@@ -31,6 +31,6 @@ In addition to all arguments above, the following attributes are exported:
 
     ~> **NOTE:** 
     - *If you created an organization with our Terraform provider version >=1.30.0, this field will be set to `true` by default.*
-    - *If you have an organization created with our Terraform provider version <1.30.0, this field might be `false`, which is the [API default value](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Organizations/operation/createOrganization). To prevent creation of future default alerts, you can explicitly set this to `true` using the [`mongodbatlas_organization`](../resources/organization.md) resource.*
+    - *If you have an existing organization created with our Terraform provider version <1.30.0, this field might be `false`, which is the [API default value](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Organizations/operation/createOrganization). To prevent creation of future default alerts, you can explicitly set this to `true` using the [`mongodbatlas_organization`](../resources/organization.md) resource.*
   
 See [MongoDB Atlas API - Organization](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Organizations/operation/getOrganization) Documentation for more information.

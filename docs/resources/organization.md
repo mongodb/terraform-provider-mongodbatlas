@@ -37,7 +37,7 @@ resource "mongodbatlas_organization" "test" {
 
    ~> **NOTE:** 
     - *If you are creating an organization with our Terraform provider version >=1.30.0, this field will be set to `true` by default.*
-    - *If you have an organization created with our Terraform provider version <1.30.0, this field might be `false`, which is the [API default value](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Organizations/operation/createOrganization). To prevent creation of future default alerts, you can explicitly set this to `true`.*
+    - *If you have an existing organization created with our Terraform provider version <1.30.0, this field might be `false`, which is the [API default value](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Organizations/operation/createOrganization). To prevent creation of future default alerts, you can explicitly set this to `true`.*
 
 
 ## Attributes Reference
