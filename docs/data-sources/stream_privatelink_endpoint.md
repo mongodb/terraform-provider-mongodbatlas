@@ -224,7 +224,7 @@ output "privatelink_endpoint_id" {
 - `dns_sub_domain` (List of String) Sub-Domain name of Confluent cluster. These are typically your availability zones.
 - `interface_endpoint_id` (String) Interface endpoint ID that is created from the specified service endpoint ID.
 - `provider_name` (String) Provider where the Kafka cluster is deployed.
-- `region` (String) Domain name of Confluent cluster.
+- `region` (String) When the vendor is `CONFLUENT`, this is the domain name of Confluent cluster. When the vendor is `MSK`, this is computed by the API from the provided `arn`.
 - `service_endpoint_id` (String) Service Endpoint ID.
 - `state` (String) Status of the connection.
 - `vendor` (String) Vendor who manages the Kafka cluster.

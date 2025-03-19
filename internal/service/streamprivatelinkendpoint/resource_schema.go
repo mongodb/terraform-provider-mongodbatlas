@@ -38,7 +38,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"region": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "Domain name of Confluent cluster.",
+				MarkdownDescription: "When the vendor is `CONFLUENT`, this is the domain name of Confluent cluster. When the vendor is `MSK`, this is computed by the API from the provided `arn`.",
 			},
 			"service_endpoint_id": schema.StringAttribute{
 				Optional:            true,

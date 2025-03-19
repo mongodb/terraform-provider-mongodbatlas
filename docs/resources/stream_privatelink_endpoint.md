@@ -223,7 +223,7 @@ output "privatelink_endpoint_id" {
 - `arn` (String) Amazon Resource Name (ARN).
 - `dns_domain` (String) Domain name of Privatelink connected cluster.
 - `dns_sub_domain` (List of String) Sub-Domain name of Confluent cluster. These are typically your availability zones.
-- `region` (String) Domain name of Confluent cluster.
+- `region` (String) When the vendor is `CONFLUENT`, this is the domain name of Confluent cluster. When the vendor is `MSK`, this is computed by the API from the provided `arn`.
 - `service_endpoint_id` (String) Service Endpoint ID.
 
 ### Read-Only

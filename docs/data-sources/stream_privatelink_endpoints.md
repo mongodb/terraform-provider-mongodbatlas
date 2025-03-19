@@ -234,7 +234,7 @@ Read-Only:
 
 **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group or project id remains the same. The resource and corresponding endpoints use the term groups.
 - `provider_name` (String) Provider where the Kafka cluster is deployed.
-- `region` (String) Domain name of Confluent cluster.
+- `region` (String) When the vendor is `CONFLUENT`, this is the domain name of Confluent cluster. When the vendor is `MSK`, this is computed by the API from the provided `arn`.
 - `service_endpoint_id` (String) Service Endpoint ID.
 - `state` (String) Status of the connection.
 - `vendor` (String) Vendor who manages the Kafka cluster.
