@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.30.0 (March 20, 2025)
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_stream_connection: Adds `Https` connection ([#3150](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3150))
