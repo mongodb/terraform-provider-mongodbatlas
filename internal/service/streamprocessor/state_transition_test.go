@@ -221,14 +221,14 @@ func TestValidateUpdateStateTransition(t *testing.T) {
 			name:           "Invalid transition - STARTED to CREATED",
 			currentState:   StartedState,
 			plannedState:   CreatedState,
-			wantErrMsg:     streamprocessor.ErrorUpdateToCreatedState,
+			wantErrMsg:     fmt.Sprintf(streamprocessor.ErrorUpdateToCreatedState, StartedState),
 			wantValidation: false,
 		},
 		{
 			name:           "Invalid transition - STOPPED to CREATED",
 			currentState:   StoppedState,
 			plannedState:   CreatedState,
-			wantErrMsg:     streamprocessor.ErrorUpdateToCreatedState,
+			wantErrMsg:     fmt.Sprintf(streamprocessor.ErrorUpdateToCreatedState, StoppedState),
 			wantValidation: false,
 		},
 
@@ -244,7 +244,7 @@ func TestValidateUpdateStateTransition(t *testing.T) {
 			name:           "Edge case - INIT to any state",
 			currentState:   InitiatingState,
 			plannedState:   CreatedState,
-			wantErrMsg:     streamprocessor.ErrorUpdateToCreatedState,
+			wantErrMsg:     fmt.Sprintf(streamprocessor.ErrorUpdateToCreatedState, InitiatingState),
 			wantValidation: false,
 		},
 		{

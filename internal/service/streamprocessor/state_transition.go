@@ -23,7 +23,7 @@ const (
 
 const (
 	ErrorUpdateStateTransition = "Stream Processor must be in %s state to transition to %s state"
-	ErrorUpdateToCreatedState  = "Cannot transition from currentState to CreatedState"
+	ErrorUpdateToCreatedState  = "Stream Processor cannot transition from %s to CREATED"
 )
 
 func WaitStateTransition(ctx context.Context, requestParams *admin.GetStreamProcessorApiParams, client admin.StreamsApi, pendingStates, desiredStates []string) (*admin.StreamsProcessorWithStats, error) {
@@ -58,7 +58,7 @@ func ValidateUpdateStateTransition(currentState, plannedState string) (errMsg st
 	}
 
 	if plannedState == CreatedState && currentState != CreatedState {
-		return ErrorUpdateToCreatedState, false
+		return fmt.Sprintf(ErrorUpdateToCreatedState, currentState), false
 	}
 
 	return "", true
