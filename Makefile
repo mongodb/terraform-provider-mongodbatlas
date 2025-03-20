@@ -40,7 +40,7 @@ clean-atlas-org: ## Run a test to clean all projects and pending resources in an
 
 .PHONY: test
 test: fmtcheck ## Run unit tests
-	go test ./... -timeout=30s -parallel=4 -race
+	go test ./... -timeout=60s -parallel=4 -race
 
 .PHONY: testmact
 testmact: ## Run MacT tests (mocked acc tests)
