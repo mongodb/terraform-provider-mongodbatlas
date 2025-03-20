@@ -1,7 +1,6 @@
 package advancedclustertpf_test
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -12,18 +11,11 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 )
 
-const (
-	projectID    = "111111111111111111111111"
-	clusterName  = "mocked-cluster"
-	resourceName = "mongodbatlas_advanced_cluster.test"
-)
-
 var (
 	repSpec0      = tfjsonpath.New("replication_specs").AtSliceIndex(0)
 	repSpec1      = tfjsonpath.New("replication_specs").AtSliceIndex(1)
 	regionConfig0 = repSpec0.AtMapKey("region_configs").AtSliceIndex(0)
 	regionConfig1 = repSpec1.AtMapKey("region_configs").AtSliceIndex(0)
-	importID      = fmt.Sprintf("%s-%s", projectID, clusterName)
 	mockConfig    = unit.MockHTTPDataConfig{AllowMissingRequests: true, SideEffect: shortenRetries, IsDiffMustSubstrings: []string{"/clusters"}, QueryVars: []string{"providerName"}}
 )
 
@@ -46,12 +38,8 @@ func autoScalingKnownValue(computeEnabled, diskEnabled, scaleDown bool, minInsta
 
 func TestMockPlanChecks_ClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 	var (
-		baseConfig = unit.MockPlanChecksConfig{
-			ImportID:     importID,
-			ResourceName: resourceName,
-			MockConfig:   mockConfig,
-			ImportName:   "ClusterTwoRepSpecsWithAutoScalingAndSpecs",
-		}
+		baseConfig = unit.NewMockPlanChecksConfig(t, mockConfig, unit.ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs)
+		resourceName = baseConfig.ResourceName
 	)
 	testCases := map[string][]plancheck.PlanCheck{
 		"removed_blocks_from_config_and_instance_change": {

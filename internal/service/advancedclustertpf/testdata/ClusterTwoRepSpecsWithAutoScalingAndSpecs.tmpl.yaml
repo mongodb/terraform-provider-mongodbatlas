@@ -1,11 +1,11 @@
 variables:
-  clusterName: test-acc-tf-c-7398840803408065070
-  groupId: 67d01a24f610961835455eb1
+  clusterName: mocked-cluster
+  groupId: "111111111111111111111111"
 steps:
   - config: |-
       resource "mongodbatlas_advanced_cluster" "test" {
-        project_id   = "67d01a24f610961835455eb1"
-        name         = "test-acc-tf-c-7398840803408065070"
+        project_id   = "111111111111111111111111"
+        name         = "mocked-cluster"
         cluster_type = "GEOSHARDED"
 
 

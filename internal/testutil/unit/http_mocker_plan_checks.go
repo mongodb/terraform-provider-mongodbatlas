@@ -18,7 +18,23 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var expectedError = errors.New("avoid full apply by raising an expected error")
+const (
+	ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs = "ClusterTwoRepSpecsWithAutoScalingAndSpecs"
+	MockedClusterName = "mocked-cluster"
+	MockedProjectID = "111111111111111111111111"
+)
+var (
+	expectedError = errors.New("avoid full apply by raising an expected error")
+
+	importIDMapping = map[string]string{
+		ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs: fmt.Sprintf("%s-%s", MockedProjectID, MockedClusterName),
+	}
+	// later this could be inferred
+	importResourceNameMapping = map[string]string{
+		ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs: "mongodbatlas_advanced_cluster.test",
+	}
+)
+
 
 type requestHandlerSwitch struct {
 	useManualHandler *bool
@@ -27,6 +43,21 @@ type requestHandlerSwitch struct {
 func (r *requestHandlerSwitch) CheckPlan(_ context.Context, req plancheck.CheckPlanRequest, resp *plancheck.CheckPlanResponse) {
 	*r.useManualHandler = true
 	resp.Error = expectedError
+}
+
+func NewMockPlanChecksConfig(t *testing.T, mockConfig MockHTTPDataConfig, importName string) MockPlanChecksConfig {
+	t.Helper()
+	importID := importIDMapping[importName]
+	require.NotEmpty(t, importID, "import ID not found for import name: %s", importName)
+	resourceName := importResourceNameMapping[importName]
+	require.NotEmpty(t, resourceName, "resource name not found for import name: %s", importName)
+	config := MockPlanChecksConfig{
+		ImportName: importName,
+		MockConfig: mockConfig,
+		ImportID: importID,
+		ResourceName: resourceName,
+	}
+	return config
 }
 
 type MockPlanChecksConfig struct {
