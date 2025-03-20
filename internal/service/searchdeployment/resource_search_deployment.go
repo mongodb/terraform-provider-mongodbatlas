@@ -13,6 +13,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 )
 
 var _ resource.ResourceWithConfigure = &searchDeploymentRS{}
@@ -101,6 +102,12 @@ func (r *searchDeploymentRS) Read(ctx context.Context, req resource.ReadRequest,
 			return
 		}
 		resp.Diagnostics.AddError("error getting search deployment information", err.Error())
+		return
+	}
+
+	// Handle empty 200 response (no deployment exists)
+	if IsNotFoundDeploymentResponse(deploymentResp) {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -199,4 +206,8 @@ func splitSearchNodeImportID(id string) (projectID, clusterName string, err erro
 	projectID = parts[1]
 	clusterName = parts[2]
 	return
+}
+
+func IsNotFoundDeploymentResponse(deploymentResp *admin.ApiSearchDeploymentResponse) bool {
+	return deploymentResp == nil || deploymentResp.Id == nil
 }
