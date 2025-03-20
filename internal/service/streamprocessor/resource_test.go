@@ -166,7 +166,6 @@ func TestAccStreamProcessor_StateTransitionsUpdates(t *testing.T) {
 		},
 	}
 
-	// Run each test case as a subtest
 	for _, tc := range transitions {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Logf("Testing: %s", tc.description)
@@ -205,7 +204,6 @@ func TestAccStreamProcessor_EmptyStateUpdates(t *testing.T) {
 		},
 	}
 
-	// Run each test case as a subtest
 	for _, tc := range transitions {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Logf("Testing: %s", tc.description)
@@ -247,7 +245,6 @@ func TestAccStreamProcessor_InvalidStateTransitionUpdates(t *testing.T) {
 		},
 	}
 
-	// Run each test case as a subtest
 	for _, tc := range transitions {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Logf("Testing: %s", tc.description)
@@ -410,7 +407,6 @@ func testAccStreamProcessorStateTransitionForUpdates(t *testing.T, setupState, i
 		})
 	}
 
-	// Add initial state step
 	var initialStateConfig string
 	if initialState != "" {
 		initialStateConfig = fmt.Sprintf(`state = %q`, initialState)
@@ -438,7 +434,6 @@ func testAccStreamProcessorStateTransitionForUpdates(t *testing.T, setupState, i
 		if targetState == "" {
 			targetState = initialState
 		}
-		// For valid transitions, check the result
 		finalStep.Check = checkAttributesFromBasicUpdateFlow(projectID, instanceName, processorName, targetState, updatedPipelineWithTumblingWindow)
 	}
 	steps = append(steps, finalStep)
@@ -451,7 +446,7 @@ func testAccStreamProcessorStateTransitionForUpdates(t *testing.T, setupState, i
 	})
 }
 
-// configToUpdateStreamProcessor generates Terraform configuration for Stream Processor state transition tests
+// configToUpdateStreamProcessor generates Terraform configuration for Stream Processor state transition tests.
 // It creates a minimal test environment with a stream instance, sample source connection and pipelines that can be updated
 func configToUpdateStreamProcessor(projectID, instanceName, processorName, state, pipeline string) string {
 	return fmt.Sprintf(`resource "mongodbatlas_stream_instance" "instance" {
@@ -482,7 +477,6 @@ func configToUpdateStreamProcessor(projectID, instanceName, processorName, state
 		`, projectID, instanceName, processorName, pipeline, state)
 }
 
-// the basic update flow checks the attributes from the simplest stream processor pipeline updates without spinning up expensive resources.
 func checkAttributesFromBasicUpdateFlow(projectID, instanceName, processorName, state, expectedPipelineStr string) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{checkExists(resourceName)}
 	attributes := map[string]string{
