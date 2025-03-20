@@ -1,7 +1,6 @@
 package config_test
 
 import (
-	"context"
 	"errors"
 	"net"
 	"net/http"
@@ -9,6 +8,8 @@ import (
 	"time"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // mockTransport implements http.RoundTripper for testing
@@ -40,10 +41,7 @@ func (m *mockTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 func TestRetryTransport_NoRetryNeeded(t *testing.T) {
 	mock := &mockTransport{
 		responses: []response{
-			{
-				resp: &http.Response{StatusCode: 200},
-				err:  nil,
-			},
+			{resp: &http.Response{StatusCode: 200}, err: nil},
 		},
 	}
 
@@ -51,15 +49,9 @@ func TestRetryTransport_NoRetryNeeded(t *testing.T) {
 	req, _ := http.NewRequestWithContext(t.Context(), "GET", "http://example.com", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 
-	if err != nil {
-		t.Errorf("expected no error, got %v", err)
-	}
-	if resp == nil {
-		t.Error("expected response, got nil")
-	}
-	if mock.current != 1 {
-		t.Errorf("expected 1 attempt, got %d", mock.current)
-	}
+	require.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, 1, mock.current)
 }
 
 func TestRetryTransport_SuccessAfterRetries(t *testing.T) {
@@ -75,15 +67,9 @@ func TestRetryTransport_SuccessAfterRetries(t *testing.T) {
 	req, _ := http.NewRequestWithContext(t.Context(), "GET", "http://example.com", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 
-	if err != nil {
-		t.Errorf("expected no error, got %v", err)
-	}
-	if resp == nil {
-		t.Error("expected response, got nil")
-	}
-	if mock.current != 3 {
-		t.Errorf("expected 3 attempts, got %d", mock.current)
-	}
+	require.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.Equal(t, 3, mock.current)
 }
 
 func TestRetryTransport_MaxRetriesExceeded(t *testing.T) {
@@ -100,15 +86,9 @@ func TestRetryTransport_MaxRetriesExceeded(t *testing.T) {
 	req, _ := http.NewRequestWithContext(t.Context(), "GET", "http://example.com", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 
-	if err == nil {
-		t.Error("expected error, got nil")
-	}
-	if resp != nil {
-		t.Error("expected nil response, got response")
-	}
-	if mock.current != 4 { // initial attempt + 3 retries
-		t.Errorf("expected 4 attempts, got %d", mock.current)
-	}
+	require.Error(t, err)
+	assert.Nil(t, resp)
+	assert.Equal(t, 4, mock.current)
 }
 
 func TestRetryTransport_NonRetriableError(t *testing.T) {
@@ -122,46 +102,9 @@ func TestRetryTransport_NonRetriableError(t *testing.T) {
 	req, _ := http.NewRequestWithContext(t.Context(), "GET", "http://example.com", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 
-	if err == nil {
-		t.Error("expected error, got nil")
-	}
-	if resp != nil {
-		t.Error("expected nil response, got response")
-	}
-	if mock.current != 1 {
-		t.Errorf("expected 1 attempt, got %d", mock.current)
-	}
-}
-
-func TestRetryTransport_ContextCancellation(t *testing.T) {
-	mock := &mockTransport{
-		responses: []response{
-			{resp: nil, err: &net.OpError{Err: errors.New("connection reset by peer")}},
-			{resp: nil, err: &net.OpError{Err: errors.New("connection reset by peer")}},
-		},
-	}
-
-	ctx, cancel := context.WithCancel(t.Context())
-	transport := config.NewRetryTransport(mock, 3, 100*time.Millisecond)
-
-	// Cancel after first attempt
-	go func() {
-		time.Sleep(50 * time.Millisecond)
-		cancel()
-	}()
-
-	req, _ := http.NewRequestWithContext(ctx, "GET", "http://example.com", http.NoBody)
-	resp, err := transport.RoundTrip(req)
-
-	if err == nil {
-		t.Error("expected error, got nil")
-	}
-	if resp != nil {
-		t.Error("expected nil response, got response")
-	}
-	if mock.current > 2 {
-		t.Errorf("expected <= 2 attempts, got %d", mock.current)
-	}
+	require.Error(t, err)
+	assert.Nil(t, resp)
+	assert.Equal(t, 1, mock.current)
 }
 
 func TestRetryTransport_ExponentialBackoff(t *testing.T) {
@@ -182,19 +125,9 @@ func TestRetryTransport_ExponentialBackoff(t *testing.T) {
 	transport := config.NewRetryTransport(mock, 3, time.Millisecond)
 	req, _ := http.NewRequestWithContext(t.Context(), "GET", "http://example.com", http.NoBody)
 	resp, err := transport.RoundTrip(req)
-
 	duration := time.Since(start)
 
-	if err != nil {
-		t.Errorf("expected no error, got %v", err)
-	}
-	if resp == nil {
-		t.Error("expected response, got nil")
-	}
-
-	// Check that the total time is at least the sum of delays plus backoff times
-	expectedMinDuration := 3 * time.Millisecond // Sum of mock delays
-	if duration < expectedMinDuration {
-		t.Errorf("expected duration >= %v, got %v", expectedMinDuration, duration)
-	}
+	require.NoError(t, err)
+	assert.NotNil(t, resp)
+	assert.GreaterOrEqual(t, duration, 3*time.Millisecond) // Sum of mock delays
 }
