@@ -1,0 +1,165 @@
+{
+ "advancedConfiguration": {
+  "customOpensslCipherConfigTls12": [],
+  "minimumEnabledTlsProtocol": "TLS1_2",
+  "tlsCipherConfigMode": "DEFAULT"
+ },
+ "backupEnabled": false,
+ "biConnector": {
+  "enabled": false,
+  "readPreference": "secondary"
+ },
+ "clusterType": "GEOSHARDED",
+ "configServerManagementMode": "ATLAS_MANAGED",
+ "configServerType": "DEDICATED",
+ "connectionStrings": {
+  "awsPrivateLinkSrv": {},
+  "privateEndpoint": [],
+  "standard": "mongodb://test-acc-tf-c-739884080-shard-00-00.gwbdm.mongodb-dev.net:27016,test-acc-tf-c-739884080-shard-00-01.gwbdm.mongodb-dev.net:27016,test-acc-tf-c-739884080-shard-00-02.gwbdm.mongodb-dev.net:27016,test-acc-tf-c-739884080-shard-00-03.gwbdm.mongodb-dev.net:27016,test-acc-tf-c-739884080-shard-00-04.gwbdm.mongodb-dev.net:27016,test-acc-tf-c-739884080-shard-00-05.gwbdm.mongodb-dev.net:27016,test-acc-tf-c-739884080-shard-00-06.gwbdm.mongodb-dev.net:27016,test-acc-tf-c-739884080-shard-01-00.gwbdm.mongodb-dev.net:27016,test-acc-tf-c-739884080-shard-01-01.gwbdm.mongodb-dev.net:27016,test-acc-tf-c-739884080-shard-01-02.gwbdm.mongodb-dev.net:27016,test-acc-tf-c-739884080-shard-01-03.gwbdm.mongodb-dev.net:27016,test-acc-tf-c-739884080-shard-01-04.gwbdm.mongodb-dev.net:27016,test-acc-tf-c-739884080-shard-01-05.gwbdm.mongodb-dev.net:27016,test-acc-tf-c-739884080-shard-01-06.gwbdm.mongodb-dev.net:27016,test-acc-tf-c-739884080-shard-01-07.gwbdm.mongodb-dev.net:27016/?ssl=true\u0026authSource=admin",
+  "standardSrv": "mongodb+srv://test-acc-tf-c-739884080.gwbdm.mongodb-dev.net"
+ },
+ "createDate": "2025-03-11T11:10:37Z",
+ "diskSizeGB": 10,
+ "diskWarmingMode": "FULLY_WARMED",
+ "encryptionAtRestProvider": "NONE",
+ "globalClusterSelfManagedSharding": false,
+ "groupId": "{groupId}",
+ "id": "67d01a2d01d3561b07caf76e",
+ "labels": [],
+ "links": [
+  {
+   "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}",
+   "rel": "self"
+  },
+  {
+   "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs",
+   "rel": "https://cloud.mongodb.com/restoreJobs"
+  },
+  {
+   "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots",
+   "rel": "https://cloud.mongodb.com/snapshots"
+  }
+ ],
+ "mongoDBMajorVersion": "8.0",
+ "mongoDBVersion": "8.0.5",
+ "name": "{clusterName}",
+ "paused": false,
+ "pitEnabled": false,
+ "replicationSpecs": [
+  {
+   "id": "67d01a2c01d3561b07caf755",
+   "numShards": 1,
+   "regionConfigs": [
+    {
+     "analyticsAutoScaling": {
+      "compute": {
+       "enabled": true,
+       "maxInstanceSize": "M30",
+       "minInstanceSize": "M10",
+       "predictiveEnabled": false,
+       "scaleDownEnabled": true
+      },
+      "diskGB": {
+       "enabled": true
+      }
+     },
+     "analyticsSpecs": {
+      "diskIOPS": 3000,
+      "ebsVolumeType": "STANDARD",
+      "instanceSize": "M10",
+      "nodeCount": 0
+     },
+     "autoScaling": {
+      "compute": {
+       "enabled": true,
+       "maxInstanceSize": "M30",
+       "minInstanceSize": "M10",
+       "predictiveEnabled": false,
+       "scaleDownEnabled": true
+      },
+      "diskGB": {
+       "enabled": true
+      }
+     },
+     "electableSpecs": {
+      "diskIOPS": 3000,
+      "ebsVolumeType": "STANDARD",
+      "instanceSize": "M10",
+      "nodeCount": 5
+     },
+     "priority": 7,
+     "providerName": "AWS",
+     "readOnlySpecs": {
+      "diskIOPS": 3000,
+      "ebsVolumeType": "STANDARD",
+      "instanceSize": "M10",
+      "nodeCount": 2
+     },
+     "regionName": "US_EAST_1"
+    }
+   ],
+   "zoneId": "67d01a2c01d3561b07caf753",
+   "zoneName": "Zone 1"
+  },
+  {
+   "id": "67d01a2c01d3561b07caf757",
+   "numShards": 1,
+   "regionConfigs": [
+    {
+     "analyticsAutoScaling": {
+      "compute": {
+       "enabled": true,
+       "maxInstanceSize": "M30",
+       "minInstanceSize": "M10",
+       "predictiveEnabled": false,
+       "scaleDownEnabled": true
+      },
+      "diskGB": {
+       "enabled": true
+      }
+     },
+     "analyticsSpecs": {
+      "diskIOPS": 3000,
+      "ebsVolumeType": "STANDARD",
+      "instanceSize": "M10",
+      "nodeCount": 4
+     },
+     "autoScaling": {
+      "compute": {
+       "enabled": true,
+       "maxInstanceSize": "M30",
+       "minInstanceSize": "M10",
+       "predictiveEnabled": false,
+       "scaleDownEnabled": true
+      },
+      "diskGB": {
+       "enabled": true
+      }
+     },
+     "electableSpecs": {
+      "diskIOPS": 3000,
+      "ebsVolumeType": "STANDARD",
+      "instanceSize": "M10",
+      "nodeCount": 3
+     },
+     "priority": 7,
+     "providerName": "AWS",
+     "readOnlySpecs": {
+      "diskIOPS": 3000,
+      "ebsVolumeType": "STANDARD",
+      "instanceSize": "M10",
+      "nodeCount": 1
+     },
+     "regionName": "US_WEST_2"
+    }
+   ],
+   "zoneId": "67d01a2c01d3561b07caf754",
+   "zoneName": "Zone 2"
+  }
+ ],
+ "rootCertType": "ISRGROOTX1",
+ "stateName": "IDLE",
+ "tags": [],
+ "terminationProtectionEnabled": false,
+ "versionReleaseSystem": "LTS"
+}

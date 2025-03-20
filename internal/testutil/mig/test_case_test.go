@@ -15,7 +15,7 @@ func TestConvertToMigration(t *testing.T) {
 	var (
 		preCheckCalled     = false
 		checkDestroyCalled = false
-		config             = "someTerraformConfig"
+		config             = "resource \"my-dummy\" \"this\" {}"
 	)
 	preCheck := func() {
 		preCheckCalled = true
