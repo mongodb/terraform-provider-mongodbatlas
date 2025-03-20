@@ -131,3 +131,28 @@ func GetCompleteConfluentConfig(usesExistingConfluentCluster, withDNSSubdomains 
 	}
 	return configNewConfluentDedicatedCluster(provider, region, awsAccountID) + configBasic(projectID, provider, region, vendor, true)
 }
+
+func GetCompleteMskConfig(projectID, clusterArn string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_stream_privatelink_endpoint" "test" {
+		project_id          = %[1]q
+		provider_name       = "AWS"
+		vendor              = "MSK"
+		arn                 = %[2]q
+	}
+
+	data "mongodbatlas_stream_privatelink_endpoint" "test" {
+		project_id = %[1]q
+		id         = mongodbatlas_stream_privatelink_endpoint.test.id
+		depends_on = [
+			mongodbatlas_stream_privatelink_endpoint.test
+		]
+	}
+
+	data "mongodbatlas_stream_privatelink_endpoints" "test" {
+		project_id = %[1]q
+		depends_on = [
+			mongodbatlas_stream_privatelink_endpoint.test
+		]
+	}`, projectID, clusterArn)
+}

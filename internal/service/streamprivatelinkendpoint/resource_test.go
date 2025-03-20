@@ -19,35 +19,84 @@ var (
 	dataSourcePluralName = "data.mongodbatlas_stream_privatelink_endpoints.test"
 )
 
-func TestAccStreamPrivatelinkEndpoint_basic(t *testing.T) {
+func TestAccStreamPrivatelinkEndpointConfluent_basic(t *testing.T) {
 	acc.SkipTestForCI(t) // needs confluent cloud resources
-	tc := basicTestCase(t, true)
+	tc := basicConfluentTestCase(t, true)
 	// Tests include testing of plural data source and so cannot be run in parallel
 	resource.Test(t, *tc)
 }
 
-func TestAccStreamPrivatelinkEndpoint_noDNSsubdomains(t *testing.T) {
+func TestAccStreamPrivatelinkEndpointConfluent_noDNSsubdomains(t *testing.T) {
 	acc.SkipTestForCI(t) // needs confluent cloud resources
-	tc := basicTestCase(t, false)
+	tc := basicConfluentTestCase(t, false)
 	// Tests include testing of plural data source and so cannot be run in parallel
 	resource.Test(t, *tc)
 }
 
-func TestAccStreamPrivatelinkEndpoint_failedUpdate(t *testing.T) {
+func TestAccStreamPrivatelinkEndpointConfluent_missingRequiredFields(t *testing.T) {
 	acc.SkipTestForCI(t) // needs confluent cloud resources
-	tc := failedUpdateTestCase(t)
+	tc := missingRequiredFieldsConfluentTestCase(t)
 	// Tests include testing of plural data source and so cannot be run in parallel
 	resource.Test(t, *tc)
 }
 
-func TestAccStreamPrivatelinkEndpoint_missingRequiredFields(t *testing.T) {
-	acc.SkipTestForCI(t) // needs confluent cloud resources
-	tc := missingRequiredFieldsTestCase(t)
+func TestAccStreamPrivatelinkEndpointMsk_basic(t *testing.T) {
+	acc.SkipTestForCI(t) // needs an AWS MSK cluster
+	tc := basicMskTestCase(t)
 	// Tests include testing of plural data source and so cannot be run in parallel
 	resource.Test(t, *tc)
 }
 
-func basicTestCase(t *testing.T, withDNSSubdomains bool) *resource.TestCase {
+func TestAccStreamPrivatelinkEndpointMsk_fields(t *testing.T) {
+	const (
+		projectID = "does-not-matter"
+		provider  = "AWS"
+		vendor    = "MSK"
+	)
+
+	tests := []struct {
+		expectedError *regexp.Regexp
+		name          string
+		config        string
+	}{
+		{
+			name:          "missing arn",
+			config:        missingRequiredFieldsConfig(projectID, provider, vendor),
+			expectedError: regexp.MustCompile(`(?s)^.*?arn is required for vendor MSK.*?$`),
+		},
+		{
+			name: "included region",
+			config: fmt.Sprintf(`
+			resource "mongodbatlas_stream_privatelink_endpoint" "test" {
+				project_id          = %[1]q
+				provider_name       = %[2]q
+				vendor              = %[3]q
+				arn                 = "an:arn:that:does:not:matter"
+				region              = "some-region-1"
+			}`, projectID, provider, vendor),
+			expectedError: regexp.MustCompile(`(?s)^.*?region cannot be set for vendor MSK.*?$`),
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			resource.ParallelTest(t, resource.TestCase{
+				PreCheck:                 func() { acc.PreCheckBasic(t) },
+				CheckDestroy:             checkDestroy,
+				ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Steps: []resource.TestStep{
+					{
+						Config:      tc.config,
+						ExpectError: tc.expectedError,
+					},
+				},
+			})
+		})
+	}
+}
+
+func basicConfluentTestCase(t *testing.T, withDNSSubdomains bool) *resource.TestCase {
 	t.Helper()
 
 	var (
@@ -69,7 +118,7 @@ func basicTestCase(t *testing.T, withDNSSubdomains bool) *resource.TestCase {
 			{
 
 				Config: config,
-				Check:  checksStreamPrivatelinkEndpoint(projectID, provider, region, vendor, false),
+				Check:  checksStreamPrivatelinkEndpointConfluent(projectID, provider, region, vendor, false),
 			},
 			{
 				ResourceName:      resourceName,
@@ -81,38 +130,7 @@ func basicTestCase(t *testing.T, withDNSSubdomains bool) *resource.TestCase {
 	}
 }
 
-func failedUpdateTestCase(t *testing.T) *resource.TestCase {
-	t.Helper()
-
-	var (
-		projectID           = acc.ProjectIDExecution(t)
-		provider            = "AWS"
-		region              = "us-east-1"
-		vendor              = "CONFLUENT"
-		awsAccountID        = os.Getenv("AWS_ACCOUNT_ID")
-		networkID           = os.Getenv("CONFLUENT_CLOUD_NETWORK_ID")
-		privatelinkAccessID = os.Getenv("CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID")
-	)
-
-	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		CheckDestroy:             checkDestroy,
-		ExternalProviders:        acc.ExternalProvidersOnlyConfluent(),
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config: acc.GetCompleteConfluentConfig(true, true, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID),
-				Check:  checksStreamPrivatelinkEndpoint(projectID, provider, region, vendor, false),
-			},
-			{
-				Config:      acc.GetCompleteConfluentConfig(true, false, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID),
-				ExpectError: regexp.MustCompile(`Operation not supported`),
-			},
-		},
-	}
-}
-
-func missingRequiredFieldsTestCase(t *testing.T) *resource.TestCase {
+func missingRequiredFieldsConfluentTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 
 	var (
@@ -146,7 +164,7 @@ func missingRequiredFieldsConfig(projectID, provider, vendor string) string {
 	}`, projectID, provider, vendor)
 }
 
-func checksStreamPrivatelinkEndpoint(projectID, provider, region, vendor string, dnsSubdomainsCheck bool) resource.TestCheckFunc {
+func checksStreamPrivatelinkEndpointConfluent(projectID, provider, region, vendor string, dnsSubdomainsCheck bool) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{checkExists()}
 	attrMap := map[string]string{
 		"project_id":    projectID,
@@ -169,6 +187,56 @@ func checksStreamPrivatelinkEndpoint(projectID, provider, region, vendor string,
 	}
 	if dnsSubdomainsCheck {
 		attrSet = append(attrSet, "dns_sub_domain.0")
+	}
+	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
+	return acc.CheckRSAndDS(resourceName, &dataSourceName, &dataSourcePluralName, attrSet, attrMap, checks...)
+}
+
+func basicMskTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
+
+	var (
+		projectID = acc.ProjectIDExecution(t)
+		provider  = "AWS"
+		vendor    = "MSK"
+		arn       = os.Getenv("AWS_MSK_ARN")
+	)
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckAwsEnvBasic(t); acc.PreCheckAwsMsk(t) },
+		CheckDestroy:             checkDestroy,
+		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: acc.GetCompleteMskConfig(projectID, arn),
+				Check:  checksStreamPrivatelinkEndpointMsk(projectID, provider, vendor, arn),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	}
+}
+
+func checksStreamPrivatelinkEndpointMsk(projectID, provider, vendor, arn string) resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{checkExists()}
+	attrMap := map[string]string{
+		"project_id":    projectID,
+		"provider_name": provider,
+		"vendor":        vendor,
+		"arn":           arn,
+	}
+	pluralMap := map[string]string{
+		"project_id": projectID,
+		"results.#":  "1",
+	}
+	attrSet := []string{
+		"id",
+		"state",
 	}
 	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
 	return acc.CheckRSAndDS(resourceName, &dataSourceName, &dataSourcePluralName, attrSet, attrMap, checks...)
