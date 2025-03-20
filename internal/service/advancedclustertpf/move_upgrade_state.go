@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 )
 
 // MoveState is used with moved block to upgrade from cluster to adv_cluster
