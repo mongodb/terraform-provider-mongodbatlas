@@ -38,7 +38,7 @@ func autoScalingKnownValue(computeEnabled, diskEnabled, scaleDown bool, minInsta
 
 func TestMockPlanChecks_ClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 	var (
-		baseConfig = unit.NewMockPlanChecksConfig(t, mockConfig, unit.ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs)
+		baseConfig   = unit.NewMockPlanChecksConfig(t, &mockConfig, unit.ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs)
 		resourceName = baseConfig.ResourceName
 	)
 	testCases := map[string][]plancheck.PlanCheck{

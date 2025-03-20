@@ -12,16 +12,16 @@ import (
 )
 
 const (
-	pkgAdvancedCluster = "advancedcluster"
+	pkgAdvancedCluster    = "advancedcluster"
 	pkgAdvancedClusterTPF = "advancedclustertpf"
-	pkgRelPath = "internal/service"
-	prefixName             = "TestMockPlanChecks_"
+	pkgRelPath            = "internal/service"
+	prefixName            = "TestMockPlanChecks_"
 )
 
-func ensureDir(t *testing.T, dir string) string{
+func ensureDir(t *testing.T, dir string) string {
 	t.Helper()
 	if !unit.FileExist(dir) {
-		err := os.Mkdir(dir, 0755)
+		err := os.Mkdir(dir, 0o755)
 		require.NoError(t, err)
 	}
 	return dir
@@ -39,10 +39,11 @@ func CreateImportData(t *testing.T, srcMockFile, destMockFile, importName string
 
 	templateYaml, err := unit.ConfigYaml(templateMockHTTPData)
 	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(destMockFile, []byte(templateYaml), 0644))
+	require.NoError(t, os.WriteFile(destMockFile, []byte(templateYaml), 0o600))
 }
 
 func createImportMockData(t *testing.T, srcMockFile, destOutputDir string, stepNr int, newVars map[string]string) *unit.MockHTTPData {
+	t.Helper()
 	data, err := unit.ParseTestDataConfigYAML(srcMockFile)
 	require.NoError(t, err)
 	relevantStep := data.Steps[stepNr-1]
@@ -70,9 +71,9 @@ func createImportMockData(t *testing.T, srcMockFile, destOutputDir string, stepN
 	}
 	for _, req := range getRequestsInStep {
 		lastResponse := req.Responses[len(req.Responses)-1]
-		jsonFileName := strings.ReplaceAll(fmt.Sprintf("import_%s.json", req.IdShort()), "/", "_")
+		jsonFileName := strings.ReplaceAll(fmt.Sprintf("import_%s.json", req.IDShort()), "/", "_")
 		jsonFilePath := path.Join(destOutputDir, jsonFileName)
-		err = os.WriteFile(jsonFilePath, []byte(lastResponse.Text), 0644)
+		err = os.WriteFile(jsonFilePath, []byte(lastResponse.Text), 0o600)
 		require.NoError(t, err)
 		templateReqResponse := unit.RequestInfo{
 			Path:    req.Path,
@@ -92,23 +93,23 @@ func createImportMockData(t *testing.T, srcMockFile, destOutputDir string, stepN
 }
 
 type importNameConfig struct {
-	TestName string
-	Step int
 	VariableReplacments map[string]string
-	SrcPackage string
-	DestPackage string
+	TestName            string
+	SrcPackage          string
+	DestPackage         string
+	Step                int
 }
 
 func TestConvertMockableTests(t *testing.T) {
 	for importName, config := range map[string]importNameConfig{
 		unit.ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs: {
 			TestName: "TestAccMockableAdvancedCluster_removeBlocksFromConfig",
-			Step: 1,
+			Step:     1,
 			VariableReplacments: map[string]string{
 				"clusterName": unit.MockedClusterName,
-				"groupId": unit.MockedProjectID,
+				"groupId":     unit.MockedProjectID,
 			},
-			SrcPackage: pkgAdvancedCluster,
+			SrcPackage:  pkgAdvancedCluster,
 			DestPackage: pkgAdvancedClusterTPF,
 		},
 	} {
@@ -122,7 +123,7 @@ func TestConvertMockableTests(t *testing.T) {
 			require.NoError(t, err)
 			require.Contains(t, string(gitIgnoreContent), gitIgnoreExpectedContent, "Missing:\n%s in %s\nused to avoid pushing dynamic planCheck files", gitIgnoreExpectedContent, gitIgnorePath)
 		} else {
-			require.NoError(t, os.WriteFile(gitIgnorePath, []byte(gitIgnoreExpectedContent), 0644))
+			require.NoError(t, os.WriteFile(gitIgnorePath, []byte(gitIgnoreExpectedContent), 0o600))
 		}
 		srcTestdataPath := path.Join(srcTestdata, config.TestName+".yaml")
 		destTestdataPath := path.Join(destTestdata, importName+".tmpl.yaml")

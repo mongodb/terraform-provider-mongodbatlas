@@ -20,21 +20,21 @@ import (
 
 const (
 	ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs = "ClusterTwoRepSpecsWithAutoScalingAndSpecs"
-	MockedClusterName = "mocked-cluster"
-	MockedProjectID = "111111111111111111111111"
+	MockedClusterName                                   = "mocked-cluster"
+	MockedProjectID                                     = "111111111111111111111111"
 )
+
 var (
-	expectedError = errors.New("avoid full apply by raising an expected error")
+	errToSkipApply = errors.New("avoid full apply by raising an expected error")
 
 	importIDMapping = map[string]string{
 		ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs: fmt.Sprintf("%s-%s", MockedProjectID, MockedClusterName),
 	}
-	// later this could be inferred
+	// later this could be inferred when reading the src main.tf
 	importResourceNameMapping = map[string]string{
 		ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs: "mongodbatlas_advanced_cluster.test",
 	}
 )
-
 
 type requestHandlerSwitch struct {
 	useManualHandler *bool
@@ -42,35 +42,35 @@ type requestHandlerSwitch struct {
 
 func (r *requestHandlerSwitch) CheckPlan(_ context.Context, req plancheck.CheckPlanRequest, resp *plancheck.CheckPlanResponse) {
 	*r.useManualHandler = true
-	resp.Error = expectedError
+	resp.Error = errToSkipApply
 }
 
-func NewMockPlanChecksConfig(t *testing.T, mockConfig MockHTTPDataConfig, importName string) MockPlanChecksConfig {
+func NewMockPlanChecksConfig(t *testing.T, mockConfig *MockHTTPDataConfig, importName string) MockPlanChecksConfig {
 	t.Helper()
 	importID := importIDMapping[importName]
 	require.NotEmpty(t, importID, "import ID not found for import name: %s", importName)
 	resourceName := importResourceNameMapping[importName]
 	require.NotEmpty(t, resourceName, "resource name not found for import name: %s", importName)
 	config := MockPlanChecksConfig{
-		ImportName: importName,
-		MockConfig: mockConfig,
-		ImportID: importID,
+		ImportName:   importName,
+		MockConfig:   *mockConfig,
+		ImportID:     importID,
 		ResourceName: resourceName,
 	}
 	return config
 }
 
 type MockPlanChecksConfig struct {
-	Checks       []plancheck.PlanCheck
 	ImportID     string
 	ResourceName string
-	MockConfig   MockHTTPDataConfig
 	ImportName   string
 	Name         string
+	Checks       []plancheck.PlanCheck
+	MockConfig   MockHTTPDataConfig
 }
 
-func (m *MockPlanChecksConfig) WithNameAndChecks(name string, checks []plancheck.PlanCheck) MockPlanChecksConfig {
-	return MockPlanChecksConfig{
+func (m *MockPlanChecksConfig) WithNameAndChecks(name string, checks []plancheck.PlanCheck) *MockPlanChecksConfig {
+	return &MockPlanChecksConfig{
 		Checks:       checks,
 		ImportName:   m.ImportName,
 		ImportID:     m.ImportID,
@@ -80,7 +80,7 @@ func (m *MockPlanChecksConfig) WithNameAndChecks(name string, checks []plancheck
 	}
 }
 
-func MockPlanChecksAndRun(t *testing.T, runConfig MockPlanChecksConfig) {
+func MockPlanChecksAndRun(t *testing.T, runConfig *MockPlanChecksConfig) {
 	t.Helper()
 	importConfig, planConfig, mockDataPath := fillMockDataTemplate(t, runConfig.ImportName, runConfig.Name)
 	useManualHandler := false
@@ -101,7 +101,7 @@ func MockPlanChecksAndRun(t *testing.T, runConfig MockPlanChecksConfig) {
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: runConfig.Checks,
 				},
-				ExpectError: regexp.MustCompile(fmt.Sprintf("^Pre-apply plan check\\(s\\) failed:\n%s$", expectedError.Error())), // To avoid doing a full apply
+				ExpectError: regexp.MustCompile(fmt.Sprintf("^Pre-apply plan check\\(s\\) failed:\n%s$", errToSkipApply.Error())), // To avoid doing a full apply
 			},
 		},
 	}
@@ -135,7 +135,7 @@ func MockPlanChecksAndRun(t *testing.T, runConfig MockPlanChecksConfig) {
 	resource.ParallelTest(t, *testCase)
 }
 
-func fillMockDataTemplate(t *testing.T, importName string, planName string) (importConfig, planConfig, mockDataFilePath string) {
+func fillMockDataTemplate(t *testing.T, importName, planName string) (importConfig, planConfig, mockDataFilePath string) {
 	t.Helper()
 	templatePath := fmt.Sprintf("testdata/%s.tmpl.yaml", importName)
 	templateContent, err := os.ReadFile(templatePath)
@@ -151,7 +151,7 @@ func fillMockDataTemplate(t *testing.T, importName string, planName string) (imp
 		templateContent = bytes.ReplaceAll(templateContent, []byte(filepath.Base(testFile)), testFileContent)
 	}
 	mockDataPath := fmt.Sprintf("testdata/%s_%s.yaml", importName, planName)
-	err = os.WriteFile(mockDataPath, templateContent, 0644)
+	err = os.WriteFile(mockDataPath, templateContent, 0o600)
 	require.NoError(t, err)
 	fullImportConfigBytes, err := os.ReadFile(path.Join(responseDir, "main.tf"))
 	require.NoError(t, err)
@@ -163,7 +163,8 @@ func fillMockDataTemplate(t *testing.T, importName string, planName string) (imp
 	return fullImportConfig, planCheckConfig, mockDataPath
 }
 
-func addPlanCheckStepAndReadImportConfig(t *testing.T, fullImportConfig, planCheckConfig string, mockDataPath string) {
+func addPlanCheckStepAndReadImportConfig(t *testing.T, fullImportConfig, planCheckConfig, mockDataPath string) {
+	t.Helper()
 	parseData := ReadMockDataFile(t, mockDataPath, []string{fullImportConfig})
 	parseData.Steps = append(parseData.Steps, StepRequests{
 		Config:           Literal(planCheckConfig),
@@ -171,6 +172,6 @@ func addPlanCheckStepAndReadImportConfig(t *testing.T, fullImportConfig, planChe
 	})
 	finalYaml, err := ConfigYaml(parseData)
 	require.NoError(t, err)
-	err = os.WriteFile(mockDataPath, []byte(finalYaml), 0644)
+	err = os.WriteFile(mockDataPath, []byte(finalYaml), 0o600)
 	require.NoError(t, err)
 }

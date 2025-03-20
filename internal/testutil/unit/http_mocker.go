@@ -24,13 +24,13 @@ const (
 
 type MockHTTPDataConfig struct {
 	SideEffect           func() error
+	RequestHandler       ManualRequestHandler
+	FilePathOverride     string
 	IsDiffSkipSuffixes   []string
 	IsDiffMustSubstrings []string
 	QueryVars            []string
 	AllowMissingRequests bool
 	AllowOutOfOrder      bool
-	RequestHandler       ManualRequestHandler
-	FilePathOverride     string
 }
 
 func (c MockHTTPDataConfig) WithAllowOutOfOrder() MockHTTPDataConfig { //nolint: gocritic // Want each test run to have its own config (hugeParam: c is heavy (112 bytes); consider passing it by pointer)
@@ -107,6 +107,7 @@ func ReadMockData(t *testing.T, tfConfigs []string) *MockHTTPData {
 }
 
 func ReadMockDataFile(t *testing.T, file string, tfConfigs []string) *MockHTTPData {
+	t.Helper()
 	data, err := ParseTestDataConfigYAML(file)
 	require.NoError(t, err)
 	oldVariables := data.Variables

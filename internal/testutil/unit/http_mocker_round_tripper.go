@@ -66,14 +66,14 @@ type MockRoundTripper struct {
 	data                 *MockHTTPData
 	usedResponses        map[string]int
 	foundsDiffs          map[int]string
-	currentStepIndex     int
+	manualRequestHandler ManualRequestHandler
 	diffResponseIndex    int
 	reReadCounter        int
-	mu                   sync.Mutex // as requests are in parallel, there is a chance of concurrent modification while reading/updating variables
+	currentStepIndex     int
+	mu                   sync.Mutex
 	allowMissingRequests bool
 	allowOutOfOrder      bool
 	logRequests          bool
-	manualRequestHandler ManualRequestHandler
 }
 
 func (r *MockRoundTripper) IncreaseStepNumberAndInit() {
@@ -118,7 +118,7 @@ func (r *MockRoundTripper) initStep() error {
 		return nil
 	}
 	for index, req := range step.DiffRequests {
-		err := r.g.Update(r.t, r.requestFilename(req.IdShort(), index), []byte(req.Text))
+		err := r.g.Update(r.t, r.requestFilename(req.IDShort(), index), []byte(req.Text))
 		if err != nil {
 			return err
 		}
@@ -161,7 +161,7 @@ func (r *MockRoundTripper) CheckStepRequests(_ *terraform.State) error {
 				missingIndexes = append(missingIndexes, fmt.Sprintf("%d", req.Responses[missingResponse].ResponseIndex))
 			}
 			missingIndexesStr := strings.Join(missingIndexes, ", ")
-			missingRequests = append(missingRequests, fmt.Sprintf("missing %d requests of %s (%s)", missingRequestsCount, req.IdShort(), missingIndexesStr))
+			missingRequests = append(missingRequests, fmt.Sprintf("missing %d requests of %s (%s)", missingRequestsCount, req.IDShort(), missingIndexesStr))
 		}
 	}
 	if r.allowMissingRequests {
@@ -174,13 +174,13 @@ func (r *MockRoundTripper) CheckStepRequests(_ *terraform.State) error {
 	missingDiffs := []string{}
 	for i, req := range step.DiffRequests {
 		if _, ok := r.foundsDiffs[i]; !ok {
-			missingDiffs = append(missingDiffs, fmt.Sprintf("missing diff request %s", req.IdShort()))
+			missingDiffs = append(missingDiffs, fmt.Sprintf("missing diff request %s", req.IDShort()))
 		}
 	}
 	assert.Empty(r.t, missingDiffs)
 	for index, payload := range r.foundsDiffs {
 		diff := step.DiffRequests[index]
-		filename := r.manualFilenameIfExist(diff.IdShort(), index)
+		filename := r.manualFilenameIfExist(diff.IDShort(), index)
 		r.t.Logf("checking diff %s", filename)
 		payloadWithVars := useVars(r.data.Variables, payload)
 		r.g.Assert(r.t, filename, []byte(payloadWithVars))

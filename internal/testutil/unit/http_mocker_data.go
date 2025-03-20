@@ -85,10 +85,10 @@ func (i RequestInfo) MarshalYAML() (any, error) { //nolint:gocritic // Using a p
 }
 
 func (i *RequestInfo) id() string {
-	return fmt.Sprintf("%s_%s", i.IdShort(), i.Text)
+	return fmt.Sprintf("%s_%s", i.IDShort(), i.Text)
 }
 
-func (i *RequestInfo) IdShort() string {
+func (i *RequestInfo) IDShort() string {
 	return fmt.Sprintf("%s_%s_%s", i.Method, i.Path, i.Version)
 }
 

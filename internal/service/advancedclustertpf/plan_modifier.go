@@ -14,7 +14,7 @@ import (
 
 var (
 	// Change mappings uses `attribute_name`, it doesn't care about the nested level.
-	attributeRootChangeMapping = map[string][]string{
+	attributeRootChangeMapping = map[string][]string{ //nolint:unused // keep existing code for this PoC
 		"disk_size_gb":           {}, // disk_size_gb can be change at any level/spec
 		"replication_specs":      {},
 		"mongo_db_major_version": {"mongo_db_version"},
@@ -47,7 +47,7 @@ func keepUnkownFuncWithNonEmptyAutoScaling(name string, replacement attr.Value) 
 }
 
 // useStateForUnknowns should be called only in Update, because of findClusterDiff
-func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
+func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) { //nolint:unused // keep existing code for this PoC
 	shardingConfigUpgrade := isShardingConfigUpgrade(ctx, state, plan, diags)
 	if diags.HasError() {
 		return
