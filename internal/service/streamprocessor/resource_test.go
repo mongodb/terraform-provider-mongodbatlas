@@ -1,9 +1,7 @@
 package streamprocessor_test
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
@@ -495,41 +493,8 @@ func checkAttributesFromBasicUpdateFlow(projectID, instanceName, processorName, 
 		"instance_name":  instanceName,
 		"processor_name": processorName,
 		"state":          state,
+		"pipeline":       expectedPipelineStr,
 	}
-
-	// pipeline attribute check
-	checks = append(checks, func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-
-		actualPipelineStr := rs.Primary.Attributes["pipeline"]
-
-		// JSON string comparison requires normalization because:
-		// 1. Whitespace differences don't affect JSON semantics but break string comparison
-		// 2. Key ordering in objects may differ but represent equivalent JSON
-		// 3. Number formats might vary (e.g., 1.0 vs 1) but are semantically identical
-		// Using unmarshal/marshal cycle gives us canonical representation for comparison
-		var expectedJSON, actualJSON interface{}
-		if err := json.Unmarshal([]byte(expectedPipelineStr), &expectedJSON); err != nil {
-			return fmt.Errorf("failed to parse expected pipeline: %v", err)
-		}
-		if err := json.Unmarshal([]byte(actualPipelineStr), &actualJSON); err != nil {
-			return fmt.Errorf("failed to parse actual pipeline: %v", err)
-		}
-
-		// Re-marshal to get consistently formatted JSON strings with Go's ordering rules
-		expectedNormalized, _ := json.Marshal(expectedJSON)
-		actualNormalized, _ := json.Marshal(actualJSON)
-
-		// Now we can do a reliable string comparison of the normalized JSON
-		if !bytes.Equal(expectedNormalized, actualNormalized) {
-			return fmt.Errorf("pipeline doesn't match expected value")
-		}
-
-		return nil
-	})
 
 	checks = acc.AddAttrChecks(resourceName, checks, attributes)
 	return resource.ComposeAggregateTestCheckFunc(checks...)
