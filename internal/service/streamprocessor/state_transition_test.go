@@ -2,6 +2,7 @@ package streamprocessor_test
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -213,21 +214,21 @@ func TestValidateUpdateStateTransition(t *testing.T) {
 			name:           "Invalid transition - CREATED to STOPPED",
 			currentState:   CreatedState,
 			plannedState:   StoppedState,
-			wantErrMsg:     "Stream Processor must be in STARTED state to transition to STOPPED state",
+			wantErrMsg:     fmt.Sprintf(streamprocessor.ErrorUpdateStateTransition, StartedState, StoppedState),
 			wantValidation: false,
 		},
 		{
 			name:           "Invalid transition - STARTED to CREATED",
 			currentState:   StartedState,
 			plannedState:   CreatedState,
-			wantErrMsg:     "Stream Processor must be in CREATED state to transition to CREATED state",
+			wantErrMsg:     streamprocessor.ErrorUpdateToCreatedState,
 			wantValidation: false,
 		},
 		{
 			name:           "Invalid transition - STOPPED to CREATED",
 			currentState:   StoppedState,
 			plannedState:   CreatedState,
-			wantErrMsg:     "Stream Processor must be in CREATED state to transition to CREATED state",
+			wantErrMsg:     streamprocessor.ErrorUpdateToCreatedState,
 			wantValidation: false,
 		},
 
@@ -243,7 +244,7 @@ func TestValidateUpdateStateTransition(t *testing.T) {
 			name:           "Edge case - INIT to any state",
 			currentState:   InitiatingState,
 			plannedState:   CreatedState,
-			wantErrMsg:     "Stream Processor must be in CREATED state to transition to CREATED state",
+			wantErrMsg:     streamprocessor.ErrorUpdateToCreatedState,
 			wantValidation: false,
 		},
 		{

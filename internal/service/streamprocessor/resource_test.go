@@ -227,7 +227,7 @@ func TestAccStreamProcessor_InvalidStateTransitionUpdates(t *testing.T) {
 			name:          "CreatedToStopped",
 			initialState:  CreatedState,
 			targetState:   StoppedState,
-			expectedError: "Stream Processor must be in STARTED state to transition to STOPPED state",
+			expectedError: fmt.Sprintf(streamprocessor.ErrorUpdateStateTransition, StartedState, StoppedState),
 			description:   "Verifies a processor cannot transition from CREATED to STOPPED state",
 		},
 		{
@@ -235,14 +235,14 @@ func TestAccStreamProcessor_InvalidStateTransitionUpdates(t *testing.T) {
 			setupState:    StartedState, // Must first get to STARTED before we can test STOPPED→CREATED
 			initialState:  StoppedState,
 			targetState:   CreatedState,
-			expectedError: "Stream Processor must be in CREATED state to transition to CREATED state",
+			expectedError: streamprocessor.ErrorUpdateToCreatedState,
 			description:   "Verifies a processor cannot transition from STOPPED to CREATED state",
 		},
 		{
 			name:          "StartedToCreated",
 			initialState:  StartedState,
 			targetState:   CreatedState,
-			expectedError: "Stream Processor must be in CREATED state to transition to CREATED state",
+			expectedError: streamprocessor.ErrorUpdateToCreatedState,
 			description:   "Verifies a processor cannot transition from STARTED to CREATED state",
 		},
 	}
