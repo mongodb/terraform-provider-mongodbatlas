@@ -368,8 +368,8 @@ func convertMetricThresholdToCtyValues(metric admin.FlexClusterMetricThreshold) 
 	}
 }
 
-func convertThresholdToCtyValues(threshold *admin.GreaterThanRawThreshold) map[string]cty.Value {
-	var t int
+func convertThresholdToCtyValues(threshold *admin.StreamProcessorMetricThreshold) map[string]cty.Value {
+	var t float64
 	if threshold.Threshold != nil {
 		t = *threshold.Threshold
 	}
