@@ -104,7 +104,7 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 	transport.Transport = baseTransport
 
 	// Wrap with retry transport
-	retryingTransport := newRetryTransport(transport, defaultMaxRetries, defaultRetryDelay)
+	retryingTransport := NewRetryTransport(transport, defaultMaxRetries, defaultRetryDelay)
 
 	// initialize the client
 	client, err := transport.Client()
