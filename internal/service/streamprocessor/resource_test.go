@@ -169,7 +169,6 @@ func TestAccStreamProcessor_StateTransitionsUpdates(t *testing.T) {
 	// Run each test case as a subtest
 	for _, tc := range transitions {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
 			t.Logf("Testing: %s", tc.description)
 			testAccStreamProcessorStateTransitionForUpdates(t, tc.setupState, tc.initialState, tc.targetState, "")
 		})
@@ -209,7 +208,6 @@ func TestAccStreamProcessor_EmptyStateUpdates(t *testing.T) {
 	// Run each test case as a subtest
 	for _, tc := range transitions {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
 			t.Logf("Testing: %s", tc.description)
 			testAccStreamProcessorStateTransitionForUpdates(t, tc.setupState, tc.initialState, tc.targetState, "")
 		})
@@ -252,7 +250,6 @@ func TestAccStreamProcessor_InvalidStateTransitionUpdates(t *testing.T) {
 	// Run each test case as a subtest
 	for _, tc := range transitions {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
 			t.Logf("Testing: %s", tc.description)
 			testAccStreamProcessorStateTransitionForUpdates(t, tc.setupState, tc.initialState, tc.targetState, tc.expectedError)
 		})
@@ -446,7 +443,7 @@ func testAccStreamProcessorStateTransitionForUpdates(t *testing.T, setupState, i
 	}
 	steps = append(steps, finalStep)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroyStreamProcessor,

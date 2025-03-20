@@ -210,13 +210,11 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-
-	modifyResp, _, err := r.Client.AtlasV2.StreamsApi.ModifyStreamProcessorWithParams(ctx, modifyAPIRequestParams).Execute()
+	streamProcessorResp, _, err := r.Client.AtlasV2.StreamsApi.ModifyStreamProcessorWithParams(ctx, modifyAPIRequestParams).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("Error modifying stream processor", err.Error())
 		return
 	}
-	streamProcessorResp = modifyResp
 
 	// start the stream processor if the desired state is started
 	if plannedState == StartedState {
