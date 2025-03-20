@@ -101,6 +101,9 @@ type importNameConfig struct {
 }
 
 func TestConvertMockableTests(t *testing.T) {
+	if os.Getenv("CONVERT_MOCKABLE_TESTS") == "" {
+		t.Skip("CONVERT_MOCKABLE_TESTS is not set, avoid running this in CI and by accident")
+	}
 	for importName, config := range map[string]importNameConfig{
 		unit.ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs: {
 			TestName: "TestAccMockableAdvancedCluster_removeBlocksFromConfig",
