@@ -82,6 +82,13 @@ func Resource() *schema.Resource {
 				Optional: true,
 				Default:  true,
 			},
+			// skip_default_alerts_settings defaults to `true` to prevent Atlas from automatically creating organization-level alerts not explicitly managed through Terraform.
+			// Note that this deviates from the API default of `false` for this attribute.
+			"skip_default_alerts_settings": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -173,6 +180,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	if err := d.Set("name", organization.Name); err != nil {
 		return diag.Errorf("error setting `name` for organization (%s): %s", *organization.Id, err)
 	}
+	if err := d.Set("skip_default_alerts_settings", organization.SkipDefaultAlertsSettings); err != nil {
+		return diag.Errorf("error setting `skip_default_alerts_settings` for organization (%s): %s", orgID, err)
+	}
 
 	settings, _, err := conn.OrganizationsApi.GetOrganizationSettings(ctx, orgID).Execute()
 	if err != nil {
@@ -213,8 +223,12 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	orgID := ids["org_id"]
 
 	updateRequest := new(admin.AtlasOrganization)
-	if d.HasChange("name") {
+
+	if d.HasChange("name") ||
+		d.HasChange("skip_default_alerts_settings") {
 		updateRequest.Name = d.Get("name").(string)
+		updateRequest.SkipDefaultAlertsSettings = conversion.Pointer(d.Get("skip_default_alerts_settings").(bool))
+
 		_, _, err := conn.OrganizationsApi.UpdateOrganization(ctx, orgID, updateRequest).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error updating Organization name: %s", err))
@@ -254,9 +268,18 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func newCreateOrganizationRequest(d *schema.ResourceData) *admin.CreateOrganizationRequest {
+	// skip_default_alerts_settings defaults to `true` to prevent Atlas from automatically creating organization-level alerts not explicitly managed through Terraform.
+	// Note that this deviates from the API default of `false` for this attribute.
+	skipDefaultAlertsSettings := true
+
+	if v, ok := d.GetOkExists("skip_default_alerts_settings"); ok {
+		skipDefaultAlertsSettings = v.(bool)
+	}
+
 	createRequest := &admin.CreateOrganizationRequest{
-		Name:       d.Get("name").(string),
-		OrgOwnerId: conversion.Pointer(d.Get("org_owner_id").(string)),
+		Name:                      d.Get("name").(string),
+		OrgOwnerId:                conversion.Pointer(d.Get("org_owner_id").(string)),
+		SkipDefaultAlertsSettings: conversion.Pointer(skipDefaultAlertsSettings),
 
 		ApiKey: &admin.CreateAtlasOrganizationApiKey{
 			Roles: conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List()),
