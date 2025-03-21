@@ -21,8 +21,8 @@ type TPFSrc interface {
 // AttributePathValue retrieves the value for src (state/plan/config) @ attributePath with converted path.Path, schema is needed to get the correct types.XXX (String/Object/etc.)
 func AttributePathValue(ctx context.Context, diags *diag.Diagnostics, attributePath *tftypes.AttributePath, src TPFSrc, schema TPFSchema) (attr.Value, path.Path) {
 	convertedPath, localDiags := AttributePath(ctx, attributePath, schema)
-	if localDiags.HasError() {
-		diags.Append(localDiags...)
+	diags.Append(localDiags...)
+	if diags.HasError() {
 		return nil, convertedPath
 	}
 	attrType, err := schema.TypeAtTerraformPath(ctx, attributePath)

@@ -10,9 +10,9 @@ import (
 )
 
 func TestIsAttributeValueOnly(t *testing.T) {
-	assert.True(t, conversion.IsAttributeValueOnly(path.Root("replication_specs").AtListIndex(0)))
-	assert.True(t, conversion.IsAttributeValueOnly(path.Root("replication_specs").AtMapKey("myKey")))
-	assert.True(t, conversion.IsAttributeValueOnly(path.Root("replication_specs").AtSetValue(types.StringValue("myKey"))))
+	assert.True(t, conversion.IsIndexValue(path.Root("replication_specs").AtListIndex(0)))
+	assert.True(t, conversion.IsIndexValue(path.Root("replication_specs").AtMapKey("myKey")))
+	assert.True(t, conversion.IsIndexValue(path.Root("replication_specs").AtSetValue(types.StringValue("myKey"))))
 }
 
 func TestAttributeNameEquals(t *testing.T) {

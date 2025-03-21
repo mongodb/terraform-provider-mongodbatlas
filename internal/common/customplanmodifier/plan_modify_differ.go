@@ -123,7 +123,7 @@ func (d *PlanModifyDiffer) UseStateForUnknown(ctx context.Context, diags *diag.D
 	schema := d.schema
 	for _, diff := range d.statePlanDiff {
 		stateValue, tpfPath := conversion.AttributePathValue(ctx, diags, diff.Path, d.req.State, schema)
-		if !conversion.HasPrefix(tpfPath, prefix) || stateValue == nil || conversion.IsAttributeValueOnly(tpfPath) {
+		if !conversion.HasPrefix(tpfPath, prefix) || stateValue == nil || conversion.IsIndexValue(tpfPath) {
 			continue
 		}
 		if d.ParentRemoved(tpfPath) {

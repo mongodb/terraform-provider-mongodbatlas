@@ -12,7 +12,7 @@ func LastPart(p path.Path) string {
 	return parts[len(parts)-1]
 }
 
-func IsAttributeValueOnly(p path.Path) bool {
+func IsIndexValue(p path.Path) bool {
 	return IsMapIndex(p) || IsListIndex(p) || IsSetIndex(p)
 }
 
@@ -72,13 +72,7 @@ func AsRemovedIndex(p path.Path) string {
 }
 
 func StripSquareBrackets(p path.Path) string {
-	if IsListIndex(p) {
-		return p.ParentPath().String()
-	}
-	if IsMapIndex(p) {
-		return p.ParentPath().String()
-	}
-	if IsSetIndex(p) {
+	if IsIndexValue(p) {
 		return p.ParentPath().String()
 	}
 	return p.String()
