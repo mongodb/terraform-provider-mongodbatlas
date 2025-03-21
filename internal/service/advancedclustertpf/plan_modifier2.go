@@ -13,7 +13,7 @@ var attributePlanModifiers = map[string]customplanmodifier.UnknownReplacementCal
 }
 
 func mongoDBVersionReplaceUnknown(ctx context.Context, state customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
-	if req.Changes.AttributeChanged("mongo_db_version") {
+	if req.Changes.AttributeChanged("mongo_db_major_version") {
 		return req.Unknown
 	}
 	return state.Value

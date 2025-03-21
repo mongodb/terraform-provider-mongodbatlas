@@ -20,19 +20,23 @@ import (
 
 const (
 	ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs = "ClusterTwoRepSpecsWithAutoScalingAndSpecs"
+	ImportNameClusterReplicasetOneRegion                = "ClusterReplicasetOneRegion"
 	MockedClusterName                                   = "mocked-cluster"
 	MockedProjectID                                     = "111111111111111111111111"
 )
 
 var (
-	errToSkipApply = errors.New("avoid full apply by raising an expected error")
+	errToSkipApply  = errors.New("avoid full apply by raising an expected error")
+	clusterImportID = fmt.Sprintf("%s-%s", MockedProjectID, MockedClusterName)
 
 	importIDMapping = map[string]string{
-		ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs: fmt.Sprintf("%s-%s", MockedProjectID, MockedClusterName),
+		ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs: clusterImportID,
+		ImportNameClusterReplicasetOneRegion:                clusterImportID,
 	}
 	// later this could be inferred when reading the src main.tf
 	importResourceNameMapping = map[string]string{
 		ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs: "mongodbatlas_advanced_cluster.test",
+		ImportNameClusterReplicasetOneRegion:                "mongodbatlas_advanced_cluster.test",
 	}
 )
 

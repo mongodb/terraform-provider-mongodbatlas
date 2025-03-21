@@ -17,6 +17,13 @@ const (
 	pkgRelPath            = "internal/service"
 )
 
+var (
+	clusterVariableReplacements = map[string]string{
+		"clusterName": unit.MockedClusterName,
+		"groupId":     unit.MockedProjectID,
+	}
+)
+
 type importNameConfig struct {
 	VariableReplacments map[string]string
 	TestName            string
@@ -32,14 +39,18 @@ func TestConvertMockableTests(t *testing.T) {
 	}
 	for importName, config := range map[string]importNameConfig{
 		unit.ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs: {
-			TestName: "TestAccMockableAdvancedCluster_removeBlocksFromConfig",
-			Step:     1,
-			VariableReplacments: map[string]string{
-				"clusterName": unit.MockedClusterName,
-				"groupId":     unit.MockedProjectID,
-			},
-			SrcPackage:  pkgAdvancedCluster,
-			DestPackage: pkgAdvancedClusterTPF,
+			TestName:            "TestAccMockableAdvancedCluster_removeBlocksFromConfig",
+			Step:                1,
+			VariableReplacments: clusterVariableReplacements,
+			SrcPackage:          pkgAdvancedCluster,
+			DestPackage:         pkgAdvancedClusterTPF,
+		},
+		unit.ImportNameClusterReplicasetOneRegion: {
+			TestName:            "TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate",
+			Step:                1,
+			VariableReplacments: clusterVariableReplacements,
+			SrcPackage:          pkgAdvancedCluster,
+			DestPackage:         pkgAdvancedClusterTPF,
 		},
 	} {
 		srcTestdata := unit.RepoPath(path.Join(pkgRelPath, config.SrcPackage, "testdata"))
