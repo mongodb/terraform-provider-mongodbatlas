@@ -1262,7 +1262,7 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 			"state_name":                    "IDLE",
 			"backup_enabled":                "true",
 			"bi_connector_config.0.enabled": "true",
-			"mongo_db_major_version":        "8.0",
+			"mongo_db_major_version":        "8.1",
 			"pit_enabled":                   "true",
 			"redact_client_log_data":        "true",
 			"replica_set_scaling_strategy":  "NODE_TYPE",
@@ -1295,7 +1295,7 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 		key   = "env"
 		value = "test"
 	}
-	mongo_db_major_version = "8.0"
+	mongo_db_major_version = "8.1"
 	pit_enabled = true
 	redact_client_log_data = true
 	replica_set_scaling_strategy = "NODE_TYPE"
