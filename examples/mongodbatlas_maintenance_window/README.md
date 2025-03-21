@@ -1,4 +1,4 @@
-# MongoDB Atlas Provider - Atlas Cluster with dedicated Search Nodes Deployment
+# MongoDB Atlas Provider - Configure Maintenance Window
 
 This example shows how you can configure maintenance windows for your Atlas project in Terraform.
 
