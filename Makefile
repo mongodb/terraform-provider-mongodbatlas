@@ -40,7 +40,7 @@ clean-atlas-org: ## Run a test to clean all projects and pending resources in an
 
 .PHONY: test
 test: fmtcheck ## Run unit tests
-	go test ./... -timeout=30s -parallel=4 -race
+	go test ./... -timeout=60s -parallel=$(PARALLEL_GO_TEST) -race
 
 .PHONY: testmact
 testmact: ## Run MacT tests (mocked acc tests)
@@ -118,8 +118,8 @@ docs: ## Give URL to test Terraform documentation
 	@echo "Use this site to preview markdown rendering: https://registry.terraform.io/tools/doc-preview"
 
 .PHONY: tflint
-tflint: fmtcheck ## Linter for Terraform files
-	tflint -f compact --recursive --minimum-failure-severity=warning
+tflint: fmtcheck ## Linter for Terraform files in examples/ dir (avoid `internal/**/testdata/main*.tf`)
+	tflint --chdir=examples/ -f compact --recursive --minimum-failure-severity=warning
 
 .PHONY: tf-validate
 tf-validate: fmtcheck ## Validate Terraform files

@@ -143,7 +143,7 @@ func (c *CaptureMockConfigClientModifier) WriteCapturedData(filePath string) err
 
 func WriteConfigYaml(filePath, configYaml string) error {
 	dirPath := path.Dir(filePath)
-	if !fileExist(dirPath) {
+	if !FileExist(dirPath) {
 		err := os.Mkdir(dirPath, 0o755)
 		if err != nil {
 			return err
@@ -189,7 +189,7 @@ func parseRoundTrip(req *http.Request, resp *http.Response, responseIndex, stepN
 			Method:  req.Method,
 			Text:    requestPayload,
 		},
-		Response: statusText{
+		Response: StatusText{
 			Text:          responsePayload,
 			Status:        resp.StatusCode,
 			ResponseIndex: responseIndex,
