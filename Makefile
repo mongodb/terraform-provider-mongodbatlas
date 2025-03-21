@@ -40,6 +40,10 @@ clean-atlas-org: ## Run a test to clean all projects and pending resources in an
 
 .PHONY: test
 test: fmtcheck ## Run unit tests
+	@$(eval export HTTP_MOCKER_REPLAY?=true)
+	@$(eval export MONGODB_ATLAS_ORG_ID?=111111111111111111111111)
+	@$(eval export MONGODB_ATLAS_PROJECT_ID?=111111111111111111111111)
+	@$(eval export MONGODB_ATLAS_CLUSTER_NAME?=mocked-cluster)
 	go test ./... -timeout=60s -parallel=16 -race
 
 .PHONY: testmact
