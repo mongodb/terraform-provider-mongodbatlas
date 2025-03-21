@@ -3,7 +3,6 @@ package acc
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -14,14 +13,7 @@ import (
 
 const (
 	MaxClusterNodesPerProject = 30 // Choose to be conservative, 40 clusters per project is the limit before `CROSS_REGION_NETWORK_PERMISSIONS_LIMIT_EXCEEDED` error, see https://www.mongodb.com/docs/atlas/reference/atlas-limits/
-	testSDKv2ToTPFEnvVar      = "MONGODB_ATLAS_TEST_SDKV2_TO_TPF"
 )
-
-// IsTestSDKv2ToTPF returns if we want to run migration tests from SDKv2 to TPF.
-func IsTestSDKv2ToTPF() bool {
-	env, _ := strconv.ParseBool(os.Getenv(testSDKv2ToTPFEnvVar))
-	return env
-}
 
 // SetupSharedResources must be called from TestMain test package in order to use ProjectIDExecution.
 // It returns the cleanup function that must be called at the end of TestMain.
@@ -181,8 +173,7 @@ func NextProjectIDClusterName(totalNodeCount int, projectCreator func(string) st
 // setupTestsSDKv2ToTPF sets the Preview environment variable to false so the previous version in migration tests uses SDKv2.
 func setupTestsSDKv2ToTPF() {
 	_ = config.PreviewProviderV2AdvancedCluster() // Makes sure that the Preview environment variable is read
-	enabled, _ := strconv.ParseBool(os.Getenv(testSDKv2ToTPFEnvVar))
-	if enabled {
+	if IsTestSDKv2ToTPF() {
 		os.Setenv(config.PreviewProviderV2AdvancedClusterEnvVar, "false")
 	}
 }
