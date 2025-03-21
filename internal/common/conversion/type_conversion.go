@@ -1,10 +1,14 @@
 package conversion
 
 import (
+	"context"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 func SafeValue[T any](v *T) T {
@@ -103,4 +107,30 @@ func NilForUnknownOrEmptyString(primitiveAttr types.String) *string {
 		return nil
 	}
 	return value
+}
+
+func TFModelList[T any](ctx context.Context, diags *diag.Diagnostics, input types.List) []T {
+	elements := make([]T, len(input.Elements()))
+	if localDiags := input.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
+		diags.Append(localDiags...)
+		return nil
+	}
+	return elements
+}
+
+// TFModelObject returns nil if the Terraform object is null or unknown, or casting to T is not valid. However object attributes can be null or unknown.
+func TFModelObject[T any](ctx context.Context, input types.Object) *T {
+	item := new(T)
+	if diags := input.As(ctx, item, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return nil
+	}
+	return item
+}
+
+func AsObjectValue[T any](ctx context.Context, t T, attrs map[string]attr.Type) types.Object {
+	objType, diagsLocal := types.ObjectValueFrom(ctx, attrs, t)
+	if diagsLocal.HasError() {
+		panic("failed to convert object to model")
+	}
+	return objType
 }
