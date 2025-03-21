@@ -1,6 +1,7 @@
 package unit
 
 import (
+	"sync"
 	"time"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
@@ -12,11 +13,15 @@ const (
 
 var (
 	MockConfigAdvancedClusterTPF = MockHTTPDataConfig{AllowMissingRequests: true, SideEffect: shortenClusterTPFRetries, IsDiffMustSubstrings: []string{"/clusters"}, QueryVars: []string{"providerName"}}
+	onceShortenClusterTPFRetries sync.Once
 )
 
+// shortenClusterTPFRetries must meet the interface func() error as it is used in SideEffect which runs a TestCase.PreCheck()
 func shortenClusterTPFRetries() error {
-	advancedclustertpf.RetryMinTimeout = shortRefresh
-	advancedclustertpf.RetryDelay = shortRefresh
-	advancedclustertpf.RetryPollInterval = shortRefresh
+	onceShortenClusterTPFRetries.Do(func() {
+		advancedclustertpf.RetryMinTimeout = shortRefresh
+		advancedclustertpf.RetryDelay = shortRefresh
+		advancedclustertpf.RetryPollInterval = shortRefresh
+	})
 	return nil
 }
