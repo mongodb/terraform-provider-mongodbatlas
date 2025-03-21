@@ -44,4 +44,12 @@ In addition to all arguments above, the following attributes are exported:
 * `start_asap` - Flag indicating whether project maintenance has been directed to start immediately. If you request that maintenance begin immediately, this field returns true from the time the request was made until the time the maintenance event completes.
 * `number_of_deferrals` - Number of times the current maintenance event for this project has been deferred, there can be a maximum of 2 deferrals.
 * `auto_defer_once_enabled` - Flag that indicates whether you want to defer all maintenance windows one week they would be triggered.
+* `protected_hours` - (Optional) Defines the a window where maintenance will not begin within.. See [Protected Hours](#protected-hours).
+* `time_zone_id` - Identifier for the current time zone of the maintenance window. This can only be updated via the Project Settings UI.
+
+### Protected Hours
+* `start_hour_of_day` - Zero-based integer that represents the beginning hour of the of the day that the maintenance will not begin in.
+* `end_hour_of_day` - Zero-based integer that represents the end hour of the of the day that the maintenance will not begin in.
+
+
 For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/reference/api/maintenance-windows/)
