@@ -55,16 +55,16 @@ func NewNotificationList(list []TfNotificationModel) (*[]admin.AlertsNotificatio
 	return &notifications, nil
 }
 
-func NewThreshold(tfThresholdConfigSlice []TfThresholdConfigModel) *admin.StreamProcessorMetricThreshold {
+func NewThreshold(tfThresholdConfigSlice []TfThresholdConfigModel) *admin.GreaterThanRawThreshold {
 	if len(tfThresholdConfigSlice) == 0 {
 		return nil
 	}
 
 	v := tfThresholdConfigSlice[0]
-	return &admin.StreamProcessorMetricThreshold{
+	return &admin.GreaterThanRawThreshold{
 		Operator:  v.Operator.ValueStringPointer(),
 		Units:     v.Units.ValueStringPointer(),
-		Threshold: conversion.Pointer(float64(v.Threshold.ValueFloat64())),
+		Threshold: conversion.Pointer(int(v.Threshold.ValueFloat64())),
 	}
 }
 
@@ -226,7 +226,7 @@ func NewTFMetricThresholdConfigModel(t *admin.FlexClusterMetricThreshold, currSt
 	return []TfMetricThresholdConfigModel{newState}
 }
 
-func NewTFThresholdConfigModel(t *admin.StreamProcessorMetricThreshold, currStateSlice []TfThresholdConfigModel) []TfThresholdConfigModel {
+func NewTFThresholdConfigModel(t *admin.GreaterThanRawThreshold, currStateSlice []TfThresholdConfigModel) []TfThresholdConfigModel {
 	if t == nil {
 		return []TfThresholdConfigModel{}
 	}
