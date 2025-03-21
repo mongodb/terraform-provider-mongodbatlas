@@ -79,6 +79,9 @@ func (m *MockPlanChecksConfig) WithNameAndChecks(name string, checks []plancheck
 func MockPlanChecksAndRun(t *testing.T, runConfig *MockPlanChecksConfig) {
 	t.Helper()
 	importConfig, planConfig, mockDataPath := fillMockDataTemplate(t, runConfig.ImportName, runConfig.Name)
+	t.Cleanup(func() {
+		require.NoError(t, os.Remove(mockDataPath))
+	})
 	useManualHandler := false
 	runConfig.Checks = append(runConfig.Checks, &requestHandlerSwitch{useManualHandler: &useManualHandler})
 	testCase := &resource.TestCase{
