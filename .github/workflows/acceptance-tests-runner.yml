@@ -412,6 +412,7 @@ jobs:
         run: make testmact
       - name: Acceptance Tests
         env:
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
           ACCTEST_PACKAGES: |
             ./internal/service/advancedcluster
@@ -439,6 +440,7 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_REGEX_RUN: '^TestMig'
           ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
