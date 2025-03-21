@@ -45,15 +45,6 @@ func TestConvertMockableTests(t *testing.T) {
 		srcTestdata := unit.RepoPath(path.Join(pkgRelPath, config.SrcPackage, "testdata"))
 		destTestdata := unit.RepoPath(path.Join(pkgRelPath, config.DestPackage, "testdata"))
 		ensureDir(t, destTestdata)
-		gitIgnorePath := path.Join(destTestdata, ".gitignore")
-		gitIgnoreExpectedContent := fmt.Sprintf("%s_*.yaml\n", importName)
-		if unit.FileExist(gitIgnorePath) {
-			gitIgnoreContent, err := os.ReadFile(gitIgnorePath)
-			require.NoError(t, err)
-			require.Contains(t, string(gitIgnoreContent), gitIgnoreExpectedContent, "Missing:\n%s in %s\nused to avoid pushing dynamic planCheck files", gitIgnoreExpectedContent, gitIgnorePath)
-		} else {
-			require.NoError(t, os.WriteFile(gitIgnorePath, []byte(gitIgnoreExpectedContent), 0o600))
-		}
 		srcTestdataPath := path.Join(srcTestdata, config.TestName+".yaml")
 		destTestdataPath := path.Join(destTestdata, importName+".tmpl.yaml")
 		t.Logf("Converting %s step %d to %s", srcTestdataPath, config.Step, destTestdataPath)

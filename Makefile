@@ -44,7 +44,7 @@ test: fmtcheck ## Run unit tests
 	@$(eval export MONGODB_ATLAS_ORG_ID?=111111111111111111111111)
 	@$(eval export MONGODB_ATLAS_PROJECT_ID?=111111111111111111111111)
 	@$(eval export MONGODB_ATLAS_CLUSTER_NAME?=mocked-cluster)
-	go test ./... -timeout=60s -parallel=16 -race
+	go test ./... -timeout=60s -parallel=$(PARALLEL_GO_TEST) -race
 
 .PHONY: testmact
 testmact: ## Run MacT tests (mocked acc tests)
@@ -122,7 +122,7 @@ docs: ## Give URL to test Terraform documentation
 	@echo "Use this site to preview markdown rendering: https://registry.terraform.io/tools/doc-preview"
 
 .PHONY: tflint
-tflint: fmtcheck ## Linter for Terraform files
+tflint: fmtcheck ## Linter for Terraform files in examples/ dir (avoid `internal/**/testdata/main*.tf`)
 	tflint --chdir=examples/ -f compact --recursive --minimum-failure-severity=warning
 
 .PHONY: tf-validate

@@ -7,8 +7,11 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 )
 
+const (
+	shortRefresh = 100 * time.Millisecond
+)
+
 var (
-	shortRefresh                 = 100 * time.Millisecond
 	MockConfigAdvancedClusterTPF = MockHTTPDataConfig{AllowMissingRequests: true, SideEffect: shortenClusterTPFRetries, IsDiffMustSubstrings: []string{"/clusters"}, QueryVars: []string{"providerName"}}
 	onceShortenClusterTPFRetries sync.Once
 )
