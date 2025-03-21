@@ -412,14 +412,37 @@ jobs:
         run: make testmact
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_LAST_VERSION: '1.28.0' # Fix mig test version until CLOUDP-296406 is resolved
-          HTTP_MOCKER_CAPTURE: 'true'
           ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
           ACCTEST_PACKAGES: |
             ./internal/service/advancedcluster
             ./internal/service/advancedclustertpf
         run: make testacc
  
+  advanced_cluster_tpf_mig_from_sdkv2:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ inputs.reduced_tests == false && (needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf') }}
+    env:
+      MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: 'true'
+      MONGODB_ATLAS_TEST_SDKV2_TO_TPF: 'true'
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false  
+      - name: Acceptance Tests
+        env:
+          ACCTEST_REGEX_RUN: '^TestMig'
+          ACCTEST_PACKAGES: ./internal/service/advancedcluster
+        run: make testacc
+
   assume_role:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.assume_role == 'true' || inputs.test_group == 'assume_role' }}
