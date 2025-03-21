@@ -108,7 +108,7 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if diags.HasError() {
 		return
 	}
-
+	unknownReplacements(ctx, &req, resp)
 	useStateForUnknowns(ctx, diags, &state, &plan)
 	if diags.HasError() {
 		return
