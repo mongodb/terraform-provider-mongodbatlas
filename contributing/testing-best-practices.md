@@ -16,7 +16,7 @@
 - All resource folders must have a `main_test.go` file to handle resource reuse lifecycle, e.g. [here](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/f3ff5bb678c1b07c16cc467471f483e483565427/internal/service/advancedcluster/main_test.go).
 - `internal/testutil/acc` contains helper test functions for Acceptance tests.
 - `internal/testutil/mig` contains helper test functions specifically for Migration tests.
-- `internal/testutil/unit` contains helper test functions for [MacT (Mocked Acceptance Tests)](#mact---mocked-acceptance-tests). MacT is used to capture and replay HTTP traffic with MongoDB Atlas and allow diff assertions on requests.
+- `internal/testutil/unit` contains helper test functions for [MacT (Mocked Acceptance Tests)](#mact---mocked-acceptance-tests) and [MipT- (Mocked Import Plan Tests)](#mipt---mocked-importplan-tests). MacT is used to capture and replay HTTP traffic with MongoDB Atlas and allow diff assertions on requests. MipT is used to test PlanModifier logic.
 
 ## Unit tests
 
@@ -131,3 +131,25 @@ It is advised to only run a **single** test at a time when a plural data source 
 - What is `duplicate_responses`?
   - A counter increasd for every response that is the same as the previous response.
   - Not used during replay.
+
+## MipT - Mocked Import+Plan Tests
+**Experimental** framework for testing PlanModifier logic. It creates an import state and then runs a plan with an updated `.tf` file and checks for known/unknown values in the plan.
+Works by: (For a full example see [plan_modifier_test.go](../internal/service/advancedclustertpf/plan_modifier_test.go))
+
+1. Stores the last `GET` response from an existing [MacT](#mact---mocked-acceptance-tests) test case step. For example the last GET of `/api/atlas/v2/groups/{groupId}/clusters/{clusterName}`
+   1. ImportName: `ClusterTwoRepSpecsWithAutoScalingAndSpecs`
+   2. GET responses are stored in `testdata/{ImportName}/import_*.json`
+2. The Terraform configuration is:
+   1. Import step always the same to ensure the config matches the respones from (1). Stored in `testdata/{ImportName}/main.tf`
+   2. Plan config is different per test. During planning all `GET` responses are as before (1) since API shouldn't have any changes. Stored in `testdata/{ImportName}/main_{plan_step_name}.tf`
+3. Each test passes the
+   1. `ImportName`, for example `ClusterTwoRepSpecsWithAutoScalingAndSpecs`
+   2. `plan_step_name`, for example `removed_blocks_from_config_and_instance_change`
+   3. `[]plancheck.PlanCheck`, see [Hashicorp docs](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-testing@v1.12.0/plancheck#PlanCheck)
+
+Maintenance:
+- `plan_step_name` is meant to be created manually (usually by copy-pasting `main.tf` and making changes)
+- Use `testCases := map[string][]plancheck.PlanCheck{}` to test many different plan configs for the same import
+- TODO: Guidance on how to write good plancheck.PlanCheck and split up tests
+
+
