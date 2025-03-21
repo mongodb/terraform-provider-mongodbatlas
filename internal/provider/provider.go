@@ -130,7 +130,7 @@ func (p *MongodbtlasProvider) Schema(ctx context.Context, req provider.SchemaReq
 			},
 			"realm_base_url": schema.StringAttribute{
 				Optional:    true,
-				Description: "MongoDB Realm Base URL",
+				Description: "MongoDB App Services Base URL",
 			},
 			"is_mongodbgov_cloud": schema.BoolAttribute{
 				Optional:    true,
