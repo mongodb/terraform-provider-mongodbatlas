@@ -13,10 +13,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb-labs/go-client-mongodb-atlas-app-services/appservices"
+	"github.com/spf13/cast"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/spf13/cast"
-	"go.mongodb.org/realm/realm"
 )
 
 const (
@@ -210,14 +211,14 @@ func Resource() *schema.Resource {
 }
 
 func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn, err := meta.(*config.MongoDBClient).GetRealmClient(ctx)
+	conn, err := meta.(*config.MongoDBClient).GetAppServicesClient(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	projectID := d.Get("project_id").(string)
 	appID := d.Get("app_id").(string)
 	typeTrigger := d.Get("type").(string)
-	eventTriggerReq := &realm.EventTriggerRequest{
+	eventTriggerReq := &appservices.EventTriggerRequest{
 		Name:       d.Get("name").(string),
 		Type:       typeTrigger,
 		FunctionID: d.Get("function_id").(string),
@@ -227,7 +228,7 @@ func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.Reso
 		eventTriggerReq.Disabled = conversion.Pointer(v.(bool))
 	}
 
-	eventTriggerConfig := &realm.EventTriggerConfig{}
+	eventTriggerConfig := &appservices.EventTriggerConfig{}
 
 	cots, okCots := d.GetOk("config_operation_types")
 	cot, okCot := d.GetOk("config_operation_type")
@@ -283,6 +284,7 @@ func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.Reso
 	if v, ok := d.GetOk("config_full_document_before"); ok {
 		eventTriggerConfig.FullDocumentBeforeChange = conversion.Pointer(v.(bool))
 	}
+
 	if oksch {
 		eventTriggerConfig.Schedule = sche.(string)
 	}
@@ -312,7 +314,7 @@ func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.Reso
 }
 
 func resourceMongoDBAtlasEventTriggersRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn, err := meta.(*config.MongoDBClient).GetRealmClient(ctx)
+	conn, err := meta.(*config.MongoDBClient).GetAppServicesClient(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -402,7 +404,7 @@ func resourceMongoDBAtlasEventTriggersRead(ctx context.Context, d *schema.Resour
 }
 
 func resourceMongoDBAtlasEventTriggersUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn, err := meta.(*config.MongoDBClient).GetRealmClient(ctx)
+	conn, err := meta.(*config.MongoDBClient).GetAppServicesClient(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -413,13 +415,13 @@ func resourceMongoDBAtlasEventTriggersUpdate(ctx context.Context, d *schema.Reso
 	triggerID := ids["trigger_id"]
 	typeTrigger := d.Get("type").(string)
 
-	eventReq := &realm.EventTriggerRequest{
+	eventReq := &appservices.EventTriggerRequest{
 		Name:       d.Get("name").(string),
 		Type:       typeTrigger,
 		FunctionID: d.Get("function_id").(string),
 		Disabled:   conversion.Pointer(d.Get("disabled").(bool)),
 	}
-	eventTriggerConfig := &realm.EventTriggerConfig{}
+	eventTriggerConfig := &appservices.EventTriggerConfig{}
 
 	if typeTrigger == "DATABASE" {
 		eventTriggerConfig.OperationTypes = cast.ToStringSlice(d.Get("config_operation_types"))
@@ -454,7 +456,7 @@ func resourceMongoDBAtlasEventTriggersUpdate(ctx context.Context, d *schema.Reso
 
 func resourceMongoDBAtlasEventTriggersDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get the client connection.
-	conn, err := meta.(*config.MongoDBClient).GetRealmClient(ctx)
+	conn, err := meta.(*config.MongoDBClient).GetAppServicesClient(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -515,7 +517,7 @@ func flattenTriggerEventProcessorAWSEventBridge(eventProcessor map[string]any) [
 }
 
 func resourceMongoDBAtlasEventTriggerImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn, err := meta.(*config.MongoDBClient).GetRealmClient(ctx)
+	conn, err := meta.(*config.MongoDBClient).GetAppServicesClient(ctx)
 	if err != nil {
 		return nil, err
 	}

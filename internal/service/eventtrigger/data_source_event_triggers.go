@@ -7,8 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb-labs/go-client-mongodb-atlas-app-services/appservices"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/realm/realm"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -146,7 +147,7 @@ func PluralDataSource() *schema.Resource {
 func dataSourceMongoDBAtlasEventTriggersRead(d *schema.ResourceData, meta any) error {
 	// Get client connection.
 	ctx := context.Background()
-	conn, err := meta.(*config.MongoDBClient).GetRealmClient(ctx)
+	conn, err := meta.(*config.MongoDBClient).GetAppServicesClient(ctx)
 	if err != nil {
 		return err
 	}
@@ -168,7 +169,7 @@ func dataSourceMongoDBAtlasEventTriggersRead(d *schema.ResourceData, meta any) e
 	return nil
 }
 
-func flattenEventTriggers(eventTriggers []realm.EventTrigger) []map[string]any {
+func flattenEventTriggers(eventTriggers []appservices.EventTrigger) []map[string]any {
 	var triggersMap []map[string]any
 
 	if len(eventTriggers) > 0 {

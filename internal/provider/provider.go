@@ -374,7 +374,7 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 
 	if data.RealmBaseURL.ValueString() == "" {
 		data.RealmBaseURL = types.StringValue(MultiEnvDefaultFunc([]string{
-			"MONGODB_REALM_BASE_URL",
+			"MONGODB_APP_SERVICES_BASE_URL",
 		}, "").(string))
 	}
 

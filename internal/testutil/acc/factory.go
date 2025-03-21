@@ -4,14 +4,15 @@ import (
 	"context"
 	"os"
 
+	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	adminpreview "github.com/mongodb/atlas-sdk-go/admin"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
-	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 )
 
 const (
@@ -61,7 +62,7 @@ func init() {
 		PublicKey:    os.Getenv("MONGODB_ATLAS_PUBLIC_KEY"),
 		PrivateKey:   os.Getenv("MONGODB_ATLAS_PRIVATE_KEY"),
 		BaseURL:      os.Getenv("MONGODB_ATLAS_BASE_URL"),
-		RealmBaseURL: os.Getenv("MONGODB_REALM_BASE_URL"),
+		RealmBaseURL: os.Getenv("MONGODB_APP_SERVICES_BASE_URL"),
 	}
 	client, _ := cfg.NewClient(context.Background())
 	MongoDBClient = client.(*config.MongoDBClient)
