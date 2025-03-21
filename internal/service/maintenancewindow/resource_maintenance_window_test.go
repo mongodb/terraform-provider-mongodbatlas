@@ -9,9 +9,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/spf13/cast"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/spf13/cast"
 )
 
 const resourceName = "mongodbatlas_maintenance_window.test"
@@ -146,6 +147,11 @@ func configBasic(orgID, projectName string, dayOfWeek int, hourOfDay *int) strin
 			project_id  = mongodbatlas_project.test.id
 			day_of_week = %[3]d
 			%[4]s
+
+			protected_hours {
+				start_hour_of_day = 9
+				end_hour_of_day   = 17
+			}
 		}`, orgID, projectName, dayOfWeek, hourOfDayAttr)
 }
 
