@@ -27,10 +27,11 @@ func autoScalingKnownValue(computeEnabled, diskEnabled, scaleDown bool, minInsta
 	})
 }
 
-func TestMockPlanChecks_ClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
+func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 	var (
-		baseConfig   = unit.NewMockPlanChecksConfig(t, &mockConfig, unit.ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs)
-		resourceName = baseConfig.ResourceName
+		baseConfig         = unit.NewMockPlanChecksConfig(t, &mockConfig, unit.ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs)
+		resourceName       = baseConfig.ResourceName
+		autoScalingEnabled = autoScalingKnownValue(true, true, true, "M10", "M30")
 	)
 	testCases := map[string][]plancheck.PlanCheck{
 		"removed_blocks_from_config_no_plan_changes": {
@@ -40,11 +41,11 @@ func TestMockPlanChecks_ClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) 
 			plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
 			plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("read_only_specs").AtMapKey("instance_size"), knownvalue.StringExact("M10")),
 			plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("read_only_specs").AtMapKey("instance_size"), knownvalue.StringExact("M20")),
-			plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("auto_scaling"), autoScalingKnownValue(true, true, true, "M10", "M30")),
-			plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("analytics_auto_scaling"), autoScalingKnownValue(true, true, true, "M10", "M30")),
-			plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("auto_scaling"), autoScalingKnownValue(true, true, true, "M10", "M30")),
-			plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("analytics_auto_scaling"), autoScalingKnownValue(true, true, true, "M10", "M30")),
-			plancheck.ExpectUnknownValue(resourceName, regionConfig0.AtMapKey("analytics_specs")),
+			plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("auto_scaling"), autoScalingEnabled),
+			plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("analytics_auto_scaling"), autoScalingEnabled),
+			plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("auto_scaling"), autoScalingEnabled),
+			plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("analytics_auto_scaling"), autoScalingEnabled),
+			plancheck.ExpectUnknownValue(resourceName, regionConfig0.AtMapKey("analytics_specs")), // analytics specs was defined in region_configs.0 but not in region_configs.1
 			plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("analytics_specs"), knownvalue.NotNull()),
 			plancheck.ExpectUnknownValue(resourceName, repSpec0.AtMapKey("id")),
 			plancheck.ExpectUnknownValue(resourceName, repSpec1.AtMapKey("id")),
