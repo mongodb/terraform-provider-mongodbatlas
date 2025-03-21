@@ -16,6 +16,7 @@ var (
 	onceShortenClusterTPFRetries sync.Once
 )
 
+// shortenClusterTPFRetries must meet the interface func() error as it is used in SideEffect which runs a TestCase.PreCheck()
 func shortenClusterTPFRetries() error {
 	onceShortenClusterTPFRetries.Do(func() {
 		advancedclustertpf.RetryMinTimeout = shortRefresh
