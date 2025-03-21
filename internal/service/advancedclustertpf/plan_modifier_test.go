@@ -56,3 +56,25 @@ func TestMockPlanChecks_ClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) 
 		})
 	}
 }
+
+func TestMockPlanChecks_ClusterReplicasetOneRegion(t *testing.T) {
+	var (
+		baseConfig   = unit.NewMockPlanChecksConfig(t, &mockConfig, unit.ImportNameClusterReplicasetOneRegion)
+		resourceName = baseConfig.ResourceName
+	)
+	testCases := map[string][]plancheck.PlanCheck{
+		"mongo_db_major_version_changed": {
+			plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+			plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("mongo_db_version")),
+		},
+		"backup_enabled": {
+			plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+			plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("mongo_db_version"), knownvalue.StringExact("8.0.5")),
+		},
+	}
+	for name, checks := range testCases {
+		t.Run(name, func(t *testing.T) {
+			unit.MockPlanChecksAndRun(t, baseConfig.WithNameAndChecks(name, checks))
+		})
+	}
+}
