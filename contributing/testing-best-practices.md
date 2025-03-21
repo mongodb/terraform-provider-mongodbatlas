@@ -133,23 +133,23 @@ It is advised to only run a **single** test at a time when a plural data source 
   - Not used during replay.
 
 ## MipT - Mocked Import+Plan Tests
-**Experimental** framework for testing PlanModifier logic. It creates an import state and then runs a plan with an updated `.tf` file and checks for known/unknown values in the plan.
-Works by: (For a full example see [plan_modifier_test.go](../internal/service/advancedclustertpf/plan_modifier_test.go))
+**Experimental** framework for testing PlanModifier logic. It creates a test case with two steps and mocks the HTTP request/responses:
+1. Import state with a fixed `.tf` file
+2. Run terraform plan with an updated `*.tf` file and perform plan checks, for example check for known/unknown values in the plan. The actual update is not performed. See [Hashicorp docs](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-testing@v1.12.0/plancheck#PlanCheck) for plan check options.
+
+For a full example see [plan_modifier_test.go](../internal/service/advancedclustertpf/plan_modifier_test.go).
+
+### File generation
+For a full example of generation see [`http_mocker_plan_checks_test.go`](../internal/testutil/unit/http_mocker_plan_checks_test.go)
 
 1. Stores the last `GET` response from an existing [MacT](#mact---mocked-acceptance-tests) test case step. For example the last GET of `/api/atlas/v2/groups/{groupId}/clusters/{clusterName}`
    1. ImportName: `ClusterTwoRepSpecsWithAutoScalingAndSpecs`
    2. GET responses are stored in `testdata/{ImportName}/import_*.json`
 2. The Terraform configuration is:
-   1. Import step always the same to ensure the config matches the respones from (1). Stored in `testdata/{ImportName}/main.tf`
+   1. Import step is always the same to ensure the config matches the response from (1). Stored in `testdata/{ImportName}/main.tf`
    2. Plan config is different per test. During planning all `GET` responses are as before (1) since API shouldn't have any changes. Stored in `testdata/{ImportName}/main_{plan_step_name}.tf`
-3. Each test passes the
-   1. `ImportName`, for example `ClusterTwoRepSpecsWithAutoScalingAndSpecs`
-   2. `plan_step_name`, for example `removed_blocks_from_config_and_instance_change`
-   3. `[]plancheck.PlanCheck`, see [Hashicorp docs](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-testing@v1.12.0/plancheck#PlanCheck)
-
-Maintenance:
+### Maintenance and tips
 - `plan_step_name` is meant to be created manually (usually by copy-pasting `main.tf` and making changes)
 - Use `testCases := map[string][]plancheck.PlanCheck{}` to test many different plan configs for the same import
-- TODO: Guidance on how to write good plancheck.PlanCheck and split up tests
 
 
