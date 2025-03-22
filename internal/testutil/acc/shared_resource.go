@@ -171,9 +171,9 @@ func NextProjectIDClusterName(totalNodeCount int, projectCreator func(string) st
 }
 
 // setupTestsSDKv2ToTPF sets the Preview environment variable to false so the previous version in migration tests uses SDKv2.
+// However the current version will use TPF as the variable was read when it was true.
 func setupTestsSDKv2ToTPF() {
-	_ = config.PreviewProviderV2AdvancedCluster() // Makes sure that the Preview environment variable is read
-	if IsTestSDKv2ToTPF() {
+	if IsTestSDKv2ToTPF() && config.PreviewProviderV2AdvancedCluster() {
 		os.Setenv(config.PreviewProviderV2AdvancedClusterEnvVar, "false")
 	}
 }
