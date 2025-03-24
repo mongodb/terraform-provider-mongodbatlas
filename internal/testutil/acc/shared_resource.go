@@ -77,6 +77,7 @@ func ProjectIDExecutionWithCluster(tb testing.TB, totalNodeCount int) (projectID
 	if ExistingClusterUsed() {
 		return existingProjectIDClusterName()
 	}
+	// Only skip after ExistingClusterUsed() to allow MacT (Mocked-Acceptance Tests) to return early instead of being skipped.
 	SkipInUnitTest(tb)
 	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
 	return NextProjectIDClusterName(totalNodeCount, func(projectName string) string {
