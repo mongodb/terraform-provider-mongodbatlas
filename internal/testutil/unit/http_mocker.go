@@ -23,14 +23,14 @@ const (
 )
 
 type MockHTTPDataConfig struct {
-	RunBeforeEach        func() error
-	RequestHandler       ManualRequestHandler
-	FilePathOverride     string
-	IsDiffSkipSuffixes   []string
-	IsDiffMustSubstrings []string
-	QueryVars            []string
-	AllowMissingRequests bool
-	AllowOutOfOrder      bool
+	RunBeforeEach        func() error         // Run by TestCase.PreCheck. Useful for reducing retry timeouts.
+	RequestHandler       ManualRequestHandler // Allow inspecting or overriding mocking behavior. Can be used to return 404 when a test has completed.
+	FilePathOverride     string               // Read mock data file from specific filepath, otherwise using the test name in `MockConfigFilePath` to find mocked responses.
+	IsDiffSkipSuffixes   []string             // Can be used when a PATCH/POST request is creating noise for diffs, for example :validate endpoints.
+	IsDiffMustSubstrings []string             // Only include diff request for specific substrings, for example /clusters (avoids project create requests)
+	QueryVars            []string             // Substitute this query vars. Useful when differentiating responses based on query args, for example ?providerName=AWS/AZURE returns different responses
+	AllowMissingRequests bool                 // When false will require all API calls to be made.
+	AllowOutOfOrder      bool                 // When true will allow a GET request returned after a POST to be returned before the POST.
 }
 
 func (c MockHTTPDataConfig) WithAllowOutOfOrder() MockHTTPDataConfig { //nolint: gocritic // Want each test run to have its own config (hugeParam: c is heavy (112 bytes); consider passing it by pointer)
@@ -151,10 +151,11 @@ func enableReplayForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase 
 	}
 	roundTripper, mockRoundTripper := NewMockRoundTripper(t, config, data)
 	httpClientModifier := mockClientModifier{config: config, mockRoundTripper: roundTripper}
+	testCase.IsUnitTest = true
 	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, &httpClientModifier)
 	testCase.PreCheck = func() {
 		if config.RunBeforeEach != nil {
-			// Mock Configs can share SideEffect, using lock to avoid race conditions.
+			// Mock Configs can share RunBeforeEach, using lock to avoid race conditions.
 			accClientLock.Lock()
 			defer accClientLock.Unlock()
 			require.NoError(t, config.RunBeforeEach())
