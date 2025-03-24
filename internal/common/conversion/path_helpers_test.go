@@ -16,13 +16,26 @@ func TestIsAttributeValueOnly(t *testing.T) {
 }
 
 func TestAttributeNameEquals(t *testing.T) {
-	assert.True(t, conversion.AttributeNameEquals(path.Root("replication_specs").AtListIndex(0), "replication_specs"))
-	assert.True(t, conversion.AttributeNameEquals(path.Root("replication_specs").AtMapKey("myKey"), "replication_specs"))
-	assert.True(t, conversion.AttributeNameEquals(path.Root("replication_specs"), "replication_specs"))
-	assert.True(t, conversion.AttributeNameEquals(path.Root("replication_specs").AtListIndex(0).AtName("region_configs").AtListIndex(1), "region_configs"))
-	assert.False(t, conversion.AttributeNameEquals(path.Root("replication_specs").AtListIndex(0), "region_configs"))
-	assert.False(t, conversion.AttributeNameEquals(path.Root("replication_specs").AtMapKey("myKey"), "region_configs"))
-	assert.False(t, conversion.AttributeNameEquals(path.Root("replication_specs"), "region_configs"))
+	var (
+		repSpecPath       = path.Root("replication_specs")
+		regionConfigsPath = repSpecPath.AtListIndex(0).AtName("region_configs")
+	)
+	for expectedAttribute, paths := range map[string][]path.Path{
+		"replication_specs": {
+			repSpecPath,
+			repSpecPath.AtListIndex(0),
+			repSpecPath.AtMapKey("myKey"),
+		},
+		"region_configs": {
+			regionConfigsPath,
+			regionConfigsPath.AtListIndex(0),
+			regionConfigsPath.AtMapKey("myKey"),
+		},
+	} {
+		for _, p := range paths {
+			assert.True(t, conversion.AttributeNameEquals(p, expectedAttribute))
+		}
+	}
 }
 
 func TestStripSquareBrackets(t *testing.T) {
