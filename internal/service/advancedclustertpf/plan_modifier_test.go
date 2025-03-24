@@ -57,11 +57,7 @@ func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 			},
 		}
 	)
-	for _, testCase := range testCases {
-		t.Run(testCase.ConfigFilename, func(t *testing.T) {
-			unit.MockPlanChecksAndRun(t, baseConfig.WithPlanCheckTest(testCase))
-		})
-	}
+	unit.RunPlanCheckTests(t, baseConfig, testCases)
 }
 
 func TestMockPlanChecks_ClusterReplicasetOneRegion(t *testing.T) {
@@ -85,9 +81,5 @@ func TestMockPlanChecks_ClusterReplicasetOneRegion(t *testing.T) {
 			},
 		}
 	)
-	for _, testCase := range testCases {
-		t.Run(testCase.ConfigFilename, func(t *testing.T) {
-			unit.MockPlanChecksAndRun(t, baseConfig.WithPlanCheckTest(testCase))
-		})
-	}
+	unit.RunPlanCheckTests(t, baseConfig, testCases)
 }

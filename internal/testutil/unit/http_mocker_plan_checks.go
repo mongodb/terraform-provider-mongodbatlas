@@ -26,7 +26,7 @@ const (
 )
 
 var (
-	errToSkipApply = errors.New("avoid full apply by raising an expected error")
+	errToSkipApply  = errors.New("avoid full apply by raising an expected error")
 	clusterImportID = fmt.Sprintf("%s-%s", MockedProjectID, MockedClusterName)
 
 	importIDMapping = map[string]string{
@@ -40,19 +40,18 @@ var (
 	}
 )
 
-func NewMockPlanChecksConfig(t *testing.T, mockConfig *MockHTTPDataConfig, importName string) MockPlanChecksConfig {
+func NewMockPlanChecksConfig(t *testing.T, mockConfig *MockHTTPDataConfig, importName string) *MockPlanChecksConfig {
 	t.Helper()
 	importID := importIDMapping[importName]
 	require.NotEmpty(t, importID, "import ID not found for import name: %s", importName)
 	resourceName := importResourceNameMapping[importName]
 	require.NotEmpty(t, resourceName, "resource name not found for import name: %s", importName)
-	config := MockPlanChecksConfig{
+	return &MockPlanChecksConfig{
 		ImportName:   importName,
 		MockConfig:   *mockConfig,
 		ImportID:     importID,
 		ResourceName: resourceName,
 	}
-	return config
 }
 
 type MockPlanChecksConfig struct {
@@ -78,6 +77,15 @@ func (m *MockPlanChecksConfig) WithPlanCheckTest(testConfig PlanCheckTest) *Mock
 type PlanCheckTest struct {
 	ConfigFilename string // .tf filename
 	Checks         []plancheck.PlanCheck
+}
+
+func RunPlanCheckTests(t *testing.T, baseConfig *MockPlanChecksConfig, tests []PlanCheckTest) {
+	t.Helper()
+	for _, testCase := range tests {
+		t.Run(testCase.ConfigFilename, func(t *testing.T) {
+			MockPlanChecksAndRun(t, baseConfig.WithPlanCheckTest(testCase))
+		})
+	}
 }
 
 // MockPlanChecksAndRun creates and runs a UnitTest enabled TestCase for Read to State checks and PlanModifier logic.
