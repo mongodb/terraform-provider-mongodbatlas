@@ -280,13 +280,13 @@ func configPartialAdvancedConfig(projectID, clusterName, extraArgs, autoScaling 
 }
 
 // migTest is a helper function to run migration tests in normal case (SDKv2 -> SDKv2, TPF -> TPF), or in mixed case (SDKv2 -> TPF).
-func migTest(t *testing.T, testCaseFunc func(t *testing.T, isAcc bool) resource.TestCase) {
+func migTest(t *testing.T, testCaseFunc func(t *testing.T, usePreviewProvider bool) resource.TestCase) {
 	t.Helper()
-	isAcc := config.PreviewProviderV2AdvancedCluster()
+	usePreviewProvider := config.PreviewProviderV2AdvancedCluster()
 	if acc.IsTestSDKv2ToTPF() {
-		isAcc = false
+		usePreviewProvider = false
 		t.Log("Running test SDKv2 to TPF")
 	}
-	testCase := testCaseFunc(t, isAcc)
+	testCase := testCaseFunc(t, usePreviewProvider)
 	mig.CreateAndRunTest(t, &testCase)
 }
