@@ -52,23 +52,28 @@ func NewMockPlanChecksConfig(t *testing.T, mockConfig *MockHTTPDataConfig, impor
 }
 
 type MockPlanChecksConfig struct {
-	ImportID     string
-	ResourceName string
-	ImportName   string
-	Name         string
-	Checks       []plancheck.PlanCheck
-	MockConfig   MockHTTPDataConfig
+	ImportID       string
+	ResourceName   string
+	ImportName     string
+	ConfigFilename string
+	Checks         []plancheck.PlanCheck
+	MockConfig     MockHTTPDataConfig
 }
 
-func (m *MockPlanChecksConfig) WithNameAndChecks(name string, checks []plancheck.PlanCheck) *MockPlanChecksConfig {
+func (m *MockPlanChecksConfig) WithPlanCheckTest(testConfig PlanCheckTest) *MockPlanChecksConfig {
 	return &MockPlanChecksConfig{
-		Checks:       checks,
-		ImportName:   m.ImportName,
-		ImportID:     m.ImportID,
-		ResourceName: m.ResourceName,
-		MockConfig:   m.MockConfig,
-		Name:         name,
+		Checks:         testConfig.Checks,
+		ConfigFilename: testConfig.ConfigFilename,
+		ImportName:     m.ImportName,
+		ImportID:       m.ImportID,
+		ResourceName:   m.ResourceName,
+		MockConfig:     m.MockConfig,
 	}
+}
+
+type PlanCheckTest struct {
+	ConfigFilename string // .tf filename
+	Checks         []plancheck.PlanCheck
 }
 
 // MockPlanChecksAndRun creates and runs a UnitTest enabled TestCase for Read to State checks and PlanModifier logic.
@@ -78,7 +83,7 @@ func (m *MockPlanChecksConfig) WithNameAndChecks(name string, checks []plancheck
 // Together with the extra step in `testdata/{ImportName}/main_{runConfig.Name}.tf` we fill the template: testdata/{runConfig.ImportName}.tmpl.yaml
 func MockPlanChecksAndRun(t *testing.T, runConfig *MockPlanChecksConfig) {
 	t.Helper()
-	importConfig, planConfig, mockDataPath := fillMockDataTemplate(t, runConfig.ImportName, runConfig.Name)
+	importConfig, planConfig, mockDataPath := fillMockDataTemplate(t, runConfig.ImportName, runConfig.ConfigFilename)
 	t.Cleanup(func() {
 		require.NoError(t, os.Remove(mockDataPath))
 	})
@@ -147,7 +152,7 @@ func (r *requestHandlerSwitch) CheckPlan(_ context.Context, req plancheck.CheckP
 	resp.Error = errToSkipApply
 }
 
-func fillMockDataTemplate(t *testing.T, importName, planName string) (importConfig, planConfig, mockDataFilePath string) {
+func fillMockDataTemplate(t *testing.T, importName, planConfigFilename string) (importConfig, planCheckConfig, mockDataFilePath string) {
 	t.Helper()
 	templatePath := fmt.Sprintf("testdata/%s.tmpl.yaml", importName)
 	templateContent, err := os.ReadFile(templatePath)
@@ -162,15 +167,15 @@ func fillMockDataTemplate(t *testing.T, importName, planName string) (importConf
 		testFileContent = bytes.ReplaceAll(testFileContent, []byte("\n"), []byte(`\n`))
 		templateContent = bytes.ReplaceAll(templateContent, []byte(filepath.Base(testFile)), testFileContent)
 	}
-	mockDataPath := fmt.Sprintf("testdata/%s_%s.yaml", importName, planName)
+	mockDataPath := fmt.Sprintf("testdata/%s_%s.yaml", importName, planConfigFilename)
 	err = os.WriteFile(mockDataPath, templateContent, 0o600)
 	require.NoError(t, err)
 	fullImportConfigBytes, err := os.ReadFile(path.Join(responseDir, "main.tf"))
 	require.NoError(t, err)
 	fullImportConfig := string(fullImportConfigBytes)
-	planCheckConfigBytes, err := os.ReadFile(path.Join(responseDir, fmt.Sprintf("main_%s.tf", planName)))
+	planCheckConfigBytes, err := os.ReadFile(path.Join(responseDir, planConfigFilename))
 	require.NoError(t, err)
-	planCheckConfig := string(planCheckConfigBytes)
+	planCheckConfig = string(planCheckConfigBytes)
 	addPlanCheckStepAndReadImportConfig(t, fullImportConfig, planCheckConfig, mockDataPath)
 	return fullImportConfig, planCheckConfig, mockDataPath
 }
