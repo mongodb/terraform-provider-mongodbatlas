@@ -6,9 +6,12 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 )
 
+const (
+	shortRefresh = 100 * time.Millisecond
+)
+
 var (
-	shortRefresh                 = 100 * time.Millisecond
-	MockConfigAdvancedClusterTPF = MockHTTPDataConfig{AllowMissingRequests: true, SideEffect: shortenClusterTPFRetries, IsDiffMustSubstrings: []string{"/clusters"}, QueryVars: []string{"providerName"}}
+	MockConfigAdvancedClusterTPF = MockHTTPDataConfig{AllowMissingRequests: true, RunBeforeEach: shortenClusterTPFRetries, IsDiffMustSubstrings: []string{"/clusters"}, QueryVars: []string{"providerName"}}
 )
 
 func shortenClusterTPFRetries() error {

@@ -23,7 +23,7 @@ const (
 )
 
 type MockHTTPDataConfig struct {
-	SideEffect           func() error
+	RunBeforeEach        func() error
 	RequestHandler       ManualRequestHandler
 	FilePathOverride     string
 	IsDiffSkipSuffixes   []string
@@ -153,11 +153,11 @@ func enableReplayForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase 
 	httpClientModifier := mockClientModifier{config: config, mockRoundTripper: roundTripper}
 	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, &httpClientModifier)
 	testCase.PreCheck = func() {
-		if config.SideEffect != nil {
+		if config.RunBeforeEach != nil {
 			// Mock Configs can share SideEffect, using lock to avoid race conditions.
 			accClientLock.Lock()
 			defer accClientLock.Unlock()
-			require.NoError(t, config.SideEffect())
+			require.NoError(t, config.RunBeforeEach())
 		}
 	}
 	require.Equal(t, len(testCase.Steps), len(data.Steps), "Number of steps in test case and mock data should match")
