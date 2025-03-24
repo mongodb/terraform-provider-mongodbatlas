@@ -22,58 +22,58 @@ func IsTestSDKv2ToTPF() bool {
 	return env
 }
 
-func CheckRSAndDSPreviewProviderV2(isAcc bool, resourceName string, dataSourceName, pluralDataSourceName *string, attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
-	modifiedSet := ConvertToPreviewProviderV2AttrsSet(isAcc, attrsSet)
-	modifiedMap := ConvertToPreviewProviderV2AttrsMap(isAcc, attrsMap)
+func CheckRSAndDSPreviewProviderV2(isTPF bool, resourceName string, dataSourceName, pluralDataSourceName *string, attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
+	modifiedSet := ConvertToPreviewProviderV2AttrsSet(isTPF, attrsSet)
+	modifiedMap := ConvertToPreviewProviderV2AttrsMap(isTPF, attrsMap)
 	return CheckRSAndDS(resourceName, dataSourceName, pluralDataSourceName, modifiedSet, modifiedMap, extra...)
 }
 
-func TestCheckResourceAttrPreviewProviderV2(isAcc bool, name, key, value string) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttr(name, AttrNameToPreviewProviderV2(isAcc, key), value)
+func TestCheckResourceAttrPreviewProviderV2(isTPF bool, name, key, value string) resource.TestCheckFunc {
+	return resource.TestCheckResourceAttr(name, AttrNameToPreviewProviderV2(isTPF, key), value)
 }
 
-func TestCheckResourceAttrSetPreviewProviderV2(isAcc bool, name, key string) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttrSet(name, AttrNameToPreviewProviderV2(isAcc, key))
+func TestCheckResourceAttrSetPreviewProviderV2(isTPF bool, name, key string) resource.TestCheckFunc {
+	return resource.TestCheckResourceAttrSet(name, AttrNameToPreviewProviderV2(isTPF, key))
 }
 
-func TestCheckResourceAttrWithPreviewProviderV2(isAcc bool, name, key string, checkValueFunc resource.CheckResourceAttrWithFunc) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttrWith(name, AttrNameToPreviewProviderV2(isAcc, key), checkValueFunc)
+func TestCheckResourceAttrWithPreviewProviderV2(isTPF bool, name, key string, checkValueFunc resource.CheckResourceAttrWithFunc) resource.TestCheckFunc {
+	return resource.TestCheckResourceAttrWith(name, AttrNameToPreviewProviderV2(isTPF, key), checkValueFunc)
 }
 
-func TestCheckTypeSetElemNestedAttrsPreviewProviderV2(isAcc bool, name, key string, values map[string]string) resource.TestCheckFunc {
-	return resource.TestCheckTypeSetElemNestedAttrs(name, AttrNameToPreviewProviderV2(isAcc, key), values)
+func TestCheckTypeSetElemNestedAttrsPreviewProviderV2(isTPF bool, name, key string, values map[string]string) resource.TestCheckFunc {
+	return resource.TestCheckTypeSetElemNestedAttrs(name, AttrNameToPreviewProviderV2(isTPF, key), values)
 }
 
-func AddAttrChecksPreviewProviderV2(isAcc bool, name string, checks []resource.TestCheckFunc, mapChecks map[string]string) []resource.TestCheckFunc {
-	return AddAttrChecks(name, checks, ConvertToPreviewProviderV2AttrsMap(isAcc, mapChecks))
+func AddAttrChecksPreviewProviderV2(isTPF bool, name string, checks []resource.TestCheckFunc, mapChecks map[string]string) []resource.TestCheckFunc {
+	return AddAttrChecks(name, checks, ConvertToPreviewProviderV2AttrsMap(isTPF, mapChecks))
 }
 
-func AddAttrSetChecksPreviewProviderV2(isAcc bool, name string, checks []resource.TestCheckFunc, attrNames ...string) []resource.TestCheckFunc {
-	return AddAttrSetChecks(name, checks, ConvertToPreviewProviderV2AttrsSet(isAcc, attrNames)...)
+func AddAttrSetChecksPreviewProviderV2(isTPF bool, name string, checks []resource.TestCheckFunc, attrNames ...string) []resource.TestCheckFunc {
+	return AddAttrSetChecks(name, checks, ConvertToPreviewProviderV2AttrsSet(isTPF, attrNames)...)
 }
 
-func AddAttrChecksPrefixPreviewProviderV2(isAcc bool, name string, checks []resource.TestCheckFunc, mapChecks map[string]string, prefix string, skipNames ...string) []resource.TestCheckFunc {
-	return AddAttrChecksPrefix(name, checks, ConvertToPreviewProviderV2AttrsMap(isAcc, mapChecks), prefix, skipNames...)
+func AddAttrChecksPrefixPreviewProviderV2(isTPF bool, name string, checks []resource.TestCheckFunc, mapChecks map[string]string, prefix string, skipNames ...string) []resource.TestCheckFunc {
+	return AddAttrChecksPrefix(name, checks, ConvertToPreviewProviderV2AttrsMap(isTPF, mapChecks), prefix, skipNames...)
 }
 
-func ConvertToPreviewProviderV2AttrsMap(isAcc bool, attrsMap map[string]string) map[string]string {
-	if skipPreviewProviderV2Work(isAcc) {
+func ConvertToPreviewProviderV2AttrsMap(isTPF bool, attrsMap map[string]string) map[string]string {
+	if skipPreviewProviderV2Work(isTPF) {
 		return attrsMap
 	}
 	ret := make(map[string]string, len(attrsMap))
 	for name, value := range attrsMap {
-		ret[AttrNameToPreviewProviderV2(isAcc, name)] = value
+		ret[AttrNameToPreviewProviderV2(isTPF, name)] = value
 	}
 	return ret
 }
 
-func ConvertToPreviewProviderV2AttrsSet(isAcc bool, attrsSet []string) []string {
-	if skipPreviewProviderV2Work(isAcc) {
+func ConvertToPreviewProviderV2AttrsSet(isTPF bool, attrsSet []string) []string {
+	if skipPreviewProviderV2Work(isTPF) {
 		return attrsSet
 	}
 	ret := make([]string, 0, len(attrsSet))
 	for _, name := range attrsSet {
-		ret = append(ret, AttrNameToPreviewProviderV2(isAcc, name))
+		ret = append(ret, AttrNameToPreviewProviderV2(isTPF, name))
 	}
 	return ret
 }
@@ -91,8 +91,8 @@ var tpfSingleNestedAttrs = []string{
 	"tags",
 }
 
-func AttrNameToPreviewProviderV2(isAcc bool, name string) string {
-	if skipPreviewProviderV2Work(isAcc) {
+func AttrNameToPreviewProviderV2(isTPF bool, name string) string {
+	if skipPreviewProviderV2Work(isTPF) {
 		return name
 	}
 	for _, singleAttrName := range tpfSingleNestedAttrs {
@@ -101,9 +101,9 @@ func AttrNameToPreviewProviderV2(isAcc bool, name string) string {
 	return name
 }
 
-func ConvertAdvancedClusterToPreviewProviderV2(t *testing.T, isAcc bool, def string) string {
+func ConvertAdvancedClusterToPreviewProviderV2(t *testing.T, isTPF bool, def string) string {
 	t.Helper()
-	if skipPreviewProviderV2Work(isAcc) {
+	if skipPreviewProviderV2Work(isTPF) {
 		return def
 	}
 	parse := hcl.GetDefParser(t, def)
@@ -123,12 +123,12 @@ func ConvertAdvancedClusterToPreviewProviderV2(t *testing.T, isAcc bool, def str
 		convertKeyValueAttrs(t, "tags", writeBody)
 	}
 	result := string(parse.Bytes())
-	result = AttrNameToPreviewProviderV2(isAcc, result) // useful for lifecycle ingore definitions
+	result = AttrNameToPreviewProviderV2(isTPF, result) // useful for lifecycle ingore definitions
 	return result
 }
 
-func skipPreviewProviderV2Work(isAcc bool) bool {
-	return !config.PreviewProviderV2AdvancedCluster() || !isAcc
+func skipPreviewProviderV2Work(isTPF bool) bool {
+	return !config.PreviewProviderV2AdvancedCluster() || !isTPF
 }
 
 func AssertEqualHCL(t *testing.T, expected, actual string, msgAndArgs ...interface{}) {
