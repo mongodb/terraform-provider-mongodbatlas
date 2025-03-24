@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -28,7 +29,26 @@ import (
 const (
 	toolName              = "terraform-provider-mongodbatlas"
 	terraformPlatformName = "Terraform"
+
+	timeout               = 5 * time.Second
+	keepAlive             = 30 * time.Second
+	maxIdleConns          = 10
+	maxIdleConnsPerHost   = 5
+	idleConnTimeout       = 30 * time.Second
+	expectContinueTimeout = 1 * time.Second
 )
+
+var baseTransport = &http.Transport{
+	DialContext: (&net.Dialer{
+		Timeout:   timeout,
+		KeepAlive: keepAlive,
+	}).DialContext,
+	MaxIdleConns:          maxIdleConns,
+	MaxIdleConnsPerHost:   maxIdleConnsPerHost,
+	Proxy:                 http.ProxyFromEnvironment,
+	IdleConnTimeout:       idleConnTimeout,
+	ExpectContinueTimeout: expectContinueTimeout,
+}
 
 // MongoDBClient contains the mongodbatlas clients and configurations
 type MongoDBClient struct {
@@ -77,6 +97,8 @@ type PlatformVersion struct {
 func (c *Config) NewClient(ctx context.Context) (any, error) {
 	// setup a transport to handle digest
 	transport := digest.NewTransport(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey))
+
+	transport.Transport = baseTransport
 
 	// initialize the client
 	client, err := transport.Client()
@@ -225,6 +247,8 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 	}
 
 	clientRealm := realmAuth.NewClient(realmAuth.BasicTokenSource(token))
+
+	clientRealm.Transport = baseTransport
 	clientRealm.Transport = logging.NewTransport("MongoDB Realm", clientRealm.Transport)
 
 	// Initialize the MongoDB Realm API Client.
