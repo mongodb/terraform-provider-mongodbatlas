@@ -2,6 +2,11 @@
 
 `{{.Name}}` provides a Stream Processor resource. The resource lets you create, delete, import, start and stop a stream processor in a stream instance.
 
+**NOTE**: When updating an Atlas Stream Processor, the following behavior applies:
+1. If the processor is in a `STARTED` state, it will automatically be stopped before the update is applied
+2. The update will be performed while the processor is in `STOPPED` state
+3. If the processor was originally in `STARTED` state, it will be restarted after the update
+
 ## Example Usages
 
 {{ tffile (printf "examples/%s/main.tf" .Name )}}
