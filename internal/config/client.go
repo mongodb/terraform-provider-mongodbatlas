@@ -96,9 +96,7 @@ type PlatformVersion struct {
 // NewClient func...
 func (c *Config) NewClient(ctx context.Context) (any, error) {
 	// setup a transport to handle digest
-	transport := digest.NewTransport(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey))
-
-	transport.Transport = baseTransport
+	transport := digest.NewTransportWithHTTPTransport(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey), baseTransport)
 
 	// initialize the client
 	client, err := transport.Client()
