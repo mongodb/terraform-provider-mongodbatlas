@@ -61,15 +61,8 @@ const (
 var (
 	configServerManagementModeFixedToDedicated = "FIXED_TO_DEDICATED"
 	configServerManagementModeAtlasManaged     = "ATLAS_MANAGED"
-	mockConfig                                 = unit.MockHTTPDataConfig{AllowMissingRequests: true, SideEffect: shortenRetries, IsDiffMustSubstrings: []string{"/clusters"}, QueryVars: []string{"providerName"}}
+	mockConfig                                 = unit.MockConfigAdvancedClusterTPF
 )
-
-func shortenRetries() error {
-	advancedclustertpf.RetryMinTimeout = 100 * time.Millisecond
-	advancedclustertpf.RetryDelay = 100 * time.Millisecond
-	advancedclustertpf.RetryPollInterval = 100 * time.Millisecond
-	return nil
-}
 
 func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
 	var (

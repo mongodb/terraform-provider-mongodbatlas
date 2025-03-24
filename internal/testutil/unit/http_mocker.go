@@ -23,7 +23,9 @@ const (
 )
 
 type MockHTTPDataConfig struct {
-	SideEffect           func() error
+	RunBeforeEach        func() error
+	RequestHandler       ManualRequestHandler
+	FilePathOverride     string
 	IsDiffSkipSuffixes   []string
 	IsDiffMustSubstrings []string
 	QueryVars            []string
@@ -101,7 +103,12 @@ func MockConfigFilePath(t *testing.T) string {
 func ReadMockData(t *testing.T, tfConfigs []string) *MockHTTPData {
 	t.Helper()
 	httpDataPath := MockConfigFilePath(t)
-	data, err := ParseTestDataConfigYAML(httpDataPath)
+	return ReadMockDataFile(t, httpDataPath, tfConfigs)
+}
+
+func ReadMockDataFile(t *testing.T, file string, tfConfigs []string) *MockHTTPData {
+	t.Helper()
+	data, err := ParseTestDataConfigYAML(file)
 	require.NoError(t, err)
 	oldVariables := data.Variables
 	data.Variables = map[string]string{}
@@ -136,13 +143,21 @@ func UpdateMockDataDiffRequest(t *testing.T, stepIndex, diffRequestIndex int, ne
 func enableReplayForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) error {
 	t.Helper()
 	tfConfigs := extractAndNormalizeConfig(t, testCase)
-	data := ReadMockData(t, tfConfigs)
+	var data *MockHTTPData
+	if config.FilePathOverride != "" {
+		data = ReadMockDataFile(t, config.FilePathOverride, tfConfigs)
+	} else {
+		data = ReadMockData(t, tfConfigs)
+	}
 	roundTripper, mockRoundTripper := NewMockRoundTripper(t, config, data)
 	httpClientModifier := mockClientModifier{config: config, mockRoundTripper: roundTripper}
 	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, &httpClientModifier)
 	testCase.PreCheck = func() {
-		if config.SideEffect != nil {
-			require.NoError(t, config.SideEffect())
+		if config.RunBeforeEach != nil {
+			// Mock Configs can share SideEffect, using lock to avoid race conditions.
+			accClientLock.Lock()
+			defer accClientLock.Unlock()
+			require.NoError(t, config.RunBeforeEach())
 		}
 	}
 	require.Equal(t, len(testCase.Steps), len(data.Steps), "Number of steps in test case and mock data should match")
