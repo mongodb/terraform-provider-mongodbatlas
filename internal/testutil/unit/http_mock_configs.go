@@ -11,7 +11,7 @@ const (
 )
 
 var (
-	MockConfigAdvancedClusterTPF = MockHTTPDataConfig{AllowMissingRequests: true, SideEffect: shortenClusterTPFRetries, IsDiffMustSubstrings: []string{"/clusters"}, QueryVars: []string{"providerName"}}
+	MockConfigAdvancedClusterTPF = MockHTTPDataConfig{AllowMissingRequests: true, RunBeforeEach: shortenClusterTPFRetries, IsDiffMustSubstrings: []string{"/clusters"}, QueryVars: []string{"providerName"}}
 )
 
 func shortenClusterTPFRetries() error {
