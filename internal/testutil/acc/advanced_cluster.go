@@ -122,7 +122,7 @@ func CheckExistsClusterHandlingRetry(projectID, clusterName string) error {
 	})
 }
 
-func CheckFCVPinningConfig(isTPF bool, resourceName, dataSourceName, pluralDataSourceName string, mongoDBMajorVersion int, pinningExpirationDate *string, fcvVersion *int) resource.TestCheckFunc {
+func CheckFCVPinningConfig(isAcc bool, resourceName, dataSourceName, pluralDataSourceName string, mongoDBMajorVersion int, pinningExpirationDate *string, fcvVersion *int) resource.TestCheckFunc {
 	mapChecks := map[string]string{
 		"mongo_db_major_version": fmt.Sprintf("%d.0", mongoDBMajorVersion),
 	}
@@ -139,7 +139,7 @@ func CheckFCVPinningConfig(isTPF bool, resourceName, dataSourceName, pluralDataS
 
 	additionalCheck := resource.TestCheckResourceAttrWith(resourceName, "mongo_db_version", MatchesExpression(fmt.Sprintf("%d..*", mongoDBMajorVersion)))
 
-	return CheckRSAndDSPreviewProviderV2(isTPF, resourceName, admin.PtrString(dataSourceName), admin.PtrString(pluralDataSourceName), []string{}, mapChecks, additionalCheck)
+	return CheckRSAndDSPreviewProviderV2(isAcc, resourceName, admin.PtrString(dataSourceName), admin.PtrString(pluralDataSourceName), []string{}, mapChecks, additionalCheck)
 }
 
 func CheckIndependentShardScalingMode(resourceName, clusterName, expectedMode string) resource.TestCheckFunc {

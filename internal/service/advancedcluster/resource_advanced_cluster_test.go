@@ -190,7 +190,7 @@ func TestAccClusterAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 	resource.ParallelTest(t, replicaSetAWSProviderTestCase(t, true))
 }
 
-func replicaSetAWSProviderTestCase(t *testing.T, isTPF bool) resource.TestCase {
+func replicaSetAWSProviderTestCase(t *testing.T, isAcc bool) resource.TestCase {
 	t.Helper()
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)
@@ -202,7 +202,7 @@ func replicaSetAWSProviderTestCase(t *testing.T, isTPF bool) resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAWSProvider(t, isTPF, ReplicaSetAWSConfig{
+				Config: configAWSProvider(t, isAcc, ReplicaSetAWSConfig{
 					ProjectID:          projectID,
 					ClusterName:        clusterName,
 					ClusterType:        "REPLICASET",
@@ -210,10 +210,10 @@ func replicaSetAWSProviderTestCase(t *testing.T, isTPF bool) resource.TestCase {
 					NodeCountElectable: 3,
 					WithAnalyticsSpecs: true,
 				}),
-				Check: checkReplicaSetAWSProvider(isTPF, projectID, clusterName, 60, 3, true, true),
+				Check: checkReplicaSetAWSProvider(isAcc, projectID, clusterName, 60, 3, true, true),
 			},
 			// empty plan when analytics block is removed
-			acc.TestStepCheckEmptyPlan(configAWSProvider(t, isTPF, ReplicaSetAWSConfig{
+			acc.TestStepCheckEmptyPlan(configAWSProvider(t, isAcc, ReplicaSetAWSConfig{
 				ProjectID:          projectID,
 				ClusterName:        clusterName,
 				ClusterType:        "REPLICASET",
@@ -222,7 +222,7 @@ func replicaSetAWSProviderTestCase(t *testing.T, isTPF bool) resource.TestCase {
 				WithAnalyticsSpecs: false,
 			})),
 			{
-				Config: configAWSProvider(t, isTPF, ReplicaSetAWSConfig{
+				Config: configAWSProvider(t, isAcc, ReplicaSetAWSConfig{
 					ProjectID:          projectID,
 					ClusterName:        clusterName,
 					ClusterType:        "REPLICASET",
@@ -230,10 +230,10 @@ func replicaSetAWSProviderTestCase(t *testing.T, isTPF bool) resource.TestCase {
 					NodeCountElectable: 5,
 					WithAnalyticsSpecs: false, // other update made after removed analytics block, computed value is expected to be the same
 				}),
-				Check: checkReplicaSetAWSProvider(isTPF, projectID, clusterName, 50, 5, true, true),
+				Check: checkReplicaSetAWSProvider(isAcc, projectID, clusterName, 50, 5, true, true),
 			},
 			{ // testing transition from replica set to sharded cluster
-				Config: configAWSProvider(t, isTPF, ReplicaSetAWSConfig{
+				Config: configAWSProvider(t, isAcc, ReplicaSetAWSConfig{
 					ProjectID:          projectID,
 					ClusterName:        clusterName,
 					ClusterType:        "SHARDED",
@@ -241,7 +241,7 @@ func replicaSetAWSProviderTestCase(t *testing.T, isTPF bool) resource.TestCase {
 					NodeCountElectable: 5,
 					WithAnalyticsSpecs: false,
 				}),
-				Check: checkReplicaSetAWSProvider(isTPF, projectID, clusterName, 50, 5, true, true),
+				Check: checkReplicaSetAWSProvider(isAcc, projectID, clusterName, 50, 5, true, true),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs", "retain_backups_enabled"),
 		},
@@ -252,7 +252,7 @@ func TestAccClusterAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 	resource.ParallelTest(t, replicaSetMultiCloudTestCase(t, true))
 }
 
-func replicaSetMultiCloudTestCase(t *testing.T, isTPF bool) resource.TestCase {
+func replicaSetMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase {
 	t.Helper()
 	var (
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -267,12 +267,12 @@ func replicaSetMultiCloudTestCase(t *testing.T, isTPF bool) resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicaSetMultiCloud(t, isTPF, orgID, projectName, clusterName),
-				Check:  checkReplicaSetMultiCloud(isTPF, clusterName, 3),
+				Config: configReplicaSetMultiCloud(t, isAcc, orgID, projectName, clusterName),
+				Check:  checkReplicaSetMultiCloud(isAcc, clusterName, 3),
 			},
 			{
-				Config: configReplicaSetMultiCloud(t, isTPF, orgID, projectName, clusterNameUpdated),
-				Check:  checkReplicaSetMultiCloud(isTPF, clusterNameUpdated, 3),
+				Config: configReplicaSetMultiCloud(t, isAcc, orgID, projectName, clusterNameUpdated),
+				Check:  checkReplicaSetMultiCloud(isAcc, clusterNameUpdated, 3),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -283,7 +283,7 @@ func TestAccClusterAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
 	resource.ParallelTest(t, singleShardedMultiCloudTestCase(t, true))
 }
 
-func singleShardedMultiCloudTestCase(t *testing.T, isTPF bool) resource.TestCase {
+func singleShardedMultiCloudTestCase(t *testing.T, isAcc bool) resource.TestCase {
 	t.Helper()
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 7)
@@ -296,12 +296,12 @@ func singleShardedMultiCloudTestCase(t *testing.T, isTPF bool) resource.TestCase
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedOldSchemaMultiCloud(t, isTPF, projectID, clusterName, 1, "M10", nil),
-				Check:  checkShardedOldSchemaMultiCloud(isTPF, clusterName, 1, "M10", true, nil),
+				Config: configShardedOldSchemaMultiCloud(t, isAcc, projectID, clusterName, 1, "M10", nil),
+				Check:  checkShardedOldSchemaMultiCloud(isAcc, clusterName, 1, "M10", true, nil),
 			},
 			{
-				Config: configShardedOldSchemaMultiCloud(t, isTPF, projectID, clusterNameUpdated, 1, "M10", nil),
-				Check:  checkShardedOldSchemaMultiCloud(isTPF, clusterNameUpdated, 1, "M10", true, nil),
+				Config: configShardedOldSchemaMultiCloud(t, isAcc, projectID, clusterNameUpdated, 1, "M10", nil),
+				Check:  checkShardedOldSchemaMultiCloud(isAcc, clusterNameUpdated, 1, "M10", true, nil),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -809,7 +809,7 @@ func TestAccClusterAdvancedClusterConfig_symmetricGeoShardedOldSchema(t *testing
 	resource.ParallelTest(t, symmetricGeoShardedOldSchemaTestCase(t, true))
 }
 
-func symmetricGeoShardedOldSchemaTestCase(t *testing.T, isTPF bool) resource.TestCase {
+func symmetricGeoShardedOldSchemaTestCase(t *testing.T, isAcc bool) resource.TestCase {
 	t.Helper()
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 18)
 
@@ -819,15 +819,15 @@ func symmetricGeoShardedOldSchemaTestCase(t *testing.T, isTPF bool) resource.Tes
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configGeoShardedOldSchema(t, isTPF, projectID, clusterName, 2, 2, false),
+				Config: configGeoShardedOldSchema(t, isAcc, projectID, clusterName, 2, 2, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkGeoShardedOldSchema(isTPF, clusterName, 2, 2, true, false),
+					checkGeoShardedOldSchema(isAcc, clusterName, 2, 2, true, false),
 					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
 			},
 			{
-				Config: configGeoShardedOldSchema(t, isTPF, projectID, clusterName, 3, 3, false),
+				Config: configGeoShardedOldSchema(t, isAcc, projectID, clusterName, 3, 3, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkGeoShardedOldSchema(isTPF, clusterName, 3, 3, true, false),
+					checkGeoShardedOldSchema(isAcc, clusterName, 3, 3, true, false),
 					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs"), // Import with old schema will NOT use `num_shards`
@@ -889,7 +889,7 @@ func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T
 	resource.ParallelTest(t, asymmetricShardedNewSchemaTestCase(t, true))
 }
 
-func asymmetricShardedNewSchemaTestCase(t *testing.T, isTPF bool) resource.TestCase {
+func asymmetricShardedNewSchemaTestCase(t *testing.T, isAcc bool) resource.TestCase {
 	t.Helper()
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -903,9 +903,9 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T, isTPF bool) resource.TestC
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(t, isTPF, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false, false),
+				Config: configShardedNewSchema(t, isAcc, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkShardedNewSchema(isTPF, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
+					checkShardedNewSchema(isAcc, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
 					resource.TestCheckResourceAttr("data.mongodbatlas_advanced_clusters.test-replication-specs-per-shard-false", "results.#", "0"),
 					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "SHARD")),
 			},
@@ -1617,19 +1617,19 @@ func checkBlocks(instanceSize string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(acc.AddAttrChecksPreviewProviderV2(true, resourceName, nil, checksMap)...)
 }
 
-func checkAggr(isTPF bool, attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
+func checkAggr(isAcc bool, attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 	extraChecks := extra
 	extraChecks = append(extraChecks, acc.CheckExistsCluster(resourceName))
-	return acc.CheckRSAndDSPreviewProviderV2(isTPF, resourceName, admin.PtrString(dataSourceName), nil, attrsSet, attrsMap, extraChecks...)
+	return acc.CheckRSAndDSPreviewProviderV2(isAcc, resourceName, admin.PtrString(dataSourceName), nil, attrsSet, attrsMap, extraChecks...)
 }
 
-func configTenant(t *testing.T, isTPF bool, projectID, name, zoneName, instanceSize string) string {
+func configTenant(t *testing.T, isAcc bool, projectID, name, zoneName, instanceSize string) string {
 	t.Helper()
 	zoneNameLine := ""
 	if zoneName != "" {
 		zoneNameLine = fmt.Sprintf("zone_name = %q", zoneName)
 	}
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isTPF, fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
 			name         = %[2]q
@@ -1651,10 +1651,10 @@ func configTenant(t *testing.T, isTPF bool, projectID, name, zoneName, instanceS
 	`, projectID, name, zoneNameLine, instanceSize)) + dataSourcesTFNewSchema
 }
 
-func checkTenant(isTPF bool, projectID, name string) resource.TestCheckFunc {
-	pluralChecks := acc.AddAttrSetChecksPreviewProviderV2(isTPF, dataSourcePluralName, nil,
+func checkTenant(isAcc bool, projectID, name string) resource.TestCheckFunc {
+	pluralChecks := acc.AddAttrSetChecksPreviewProviderV2(isAcc, dataSourcePluralName, nil,
 		[]string{"results.#", "results.0.replication_specs.#", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
-	return checkAggr(isTPF,
+	return checkAggr(isAcc,
 		[]string{"replication_specs.#", "replication_specs.0.id", "replication_specs.0.region_configs.#"},
 		map[string]string{
 			"project_id":                           projectID,
@@ -1701,7 +1701,7 @@ func checksBasicDedicated(projectID, name string) resource.TestCheckFunc {
 	return checkAggr(true, nil, checkMap, originalChecks)
 }
 
-func configWithKeyValueBlocks(t *testing.T, isTPF bool, orgID, projectName, clusterName, blockName string, blocks ...map[string]string) string {
+func configWithKeyValueBlocks(t *testing.T, isAcc bool, orgID, projectName, clusterName, blockName string, blocks ...map[string]string) string {
 	t.Helper()
 	var extraConfig string
 	for _, block := range blocks {
@@ -1713,7 +1713,7 @@ func configWithKeyValueBlocks(t *testing.T, isTPF bool, orgID, projectName, clus
 		`, blockName, block["key"], block["value"])
 	}
 
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isTPF, fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
 			name   = %[2]q
@@ -1745,57 +1745,57 @@ func configWithKeyValueBlocks(t *testing.T, isTPF bool, orgID, projectName, clus
 	`, orgID, projectName, clusterName, extraConfig)) + dataSourcesTFNewSchema
 }
 
-func checkKeyValueBlocks(isTPF, includeDataSources bool, blockName string, blocks ...map[string]string) resource.TestCheckFunc {
+func checkKeyValueBlocks(isAcc, includeDataSources bool, blockName string, blocks ...map[string]string) resource.TestCheckFunc {
 	if config.PreviewProviderV2AdvancedCluster() {
-		return checkKeyValueBlocksPreviewProviderV2(isTPF, includeDataSources, blockName, blocks...)
+		return checkKeyValueBlocksPreviewProviderV2(isAcc, includeDataSources, blockName, blocks...)
 	}
 	const pluralPrefix = "results.0."
 	lenStr := strconv.Itoa(len(blocks))
 	keyHash := blockName + ".#"
 	keyStar := blockName + ".*"
 	checks := []resource.TestCheckFunc{
-		acc.TestCheckResourceAttrPreviewProviderV2(isTPF, resourceName, keyHash, lenStr),
+		acc.TestCheckResourceAttrPreviewProviderV2(isAcc, resourceName, keyHash, lenStr),
 	}
 	if includeDataSources {
 		checks = append(checks,
-			acc.TestCheckResourceAttrPreviewProviderV2(isTPF, dataSourceName, keyHash, lenStr),
-			acc.TestCheckResourceAttrPreviewProviderV2(isTPF, dataSourcePluralName, pluralPrefix+keyHash, lenStr))
+			acc.TestCheckResourceAttrPreviewProviderV2(isAcc, dataSourceName, keyHash, lenStr),
+			acc.TestCheckResourceAttrPreviewProviderV2(isAcc, dataSourcePluralName, pluralPrefix+keyHash, lenStr))
 	}
 	for _, block := range blocks {
 		checks = append(checks,
-			acc.TestCheckTypeSetElemNestedAttrsPreviewProviderV2(isTPF, resourceName, keyStar, block),
+			acc.TestCheckTypeSetElemNestedAttrsPreviewProviderV2(isAcc, resourceName, keyStar, block),
 		)
 		if includeDataSources {
 			checks = append(checks,
-				acc.TestCheckTypeSetElemNestedAttrsPreviewProviderV2(isTPF, dataSourceName, keyStar, block),
-				acc.TestCheckTypeSetElemNestedAttrsPreviewProviderV2(isTPF, dataSourcePluralName, pluralPrefix+keyStar, block))
+				acc.TestCheckTypeSetElemNestedAttrsPreviewProviderV2(isAcc, dataSourceName, keyStar, block),
+				acc.TestCheckTypeSetElemNestedAttrsPreviewProviderV2(isAcc, dataSourcePluralName, pluralPrefix+keyStar, block))
 		}
 	}
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-func checkKeyValueBlocksPreviewProviderV2(isTPF, includeDataSources bool, blockName string, blocks ...map[string]string) resource.TestCheckFunc {
+func checkKeyValueBlocksPreviewProviderV2(isAcc, includeDataSources bool, blockName string, blocks ...map[string]string) resource.TestCheckFunc {
 	const pluralPrefix = "results.0."
 	lenStr := strconv.Itoa(len(blocks))
 	keyPct := blockName + ".%"
 	checks := []resource.TestCheckFunc{
-		acc.TestCheckResourceAttrPreviewProviderV2(isTPF, resourceName, keyPct, lenStr),
+		acc.TestCheckResourceAttrPreviewProviderV2(isAcc, resourceName, keyPct, lenStr),
 	}
 	if includeDataSources {
 		checks = append(checks,
-			acc.TestCheckResourceAttrPreviewProviderV2(isTPF, dataSourceName, keyPct, lenStr),
-			acc.TestCheckResourceAttrPreviewProviderV2(isTPF, dataSourcePluralName, pluralPrefix+keyPct, lenStr))
+			acc.TestCheckResourceAttrPreviewProviderV2(isAcc, dataSourceName, keyPct, lenStr),
+			acc.TestCheckResourceAttrPreviewProviderV2(isAcc, dataSourcePluralName, pluralPrefix+keyPct, lenStr))
 	}
 	for _, block := range blocks {
 		key := blockName + "." + block["key"]
 		value := block["value"]
 		checks = append(checks,
-			acc.TestCheckResourceAttrPreviewProviderV2(isTPF, resourceName, key, value),
+			acc.TestCheckResourceAttrPreviewProviderV2(isAcc, resourceName, key, value),
 		)
 		if includeDataSources {
 			checks = append(checks,
-				acc.TestCheckResourceAttrPreviewProviderV2(isTPF, dataSourceName, key, value),
-				acc.TestCheckResourceAttrPreviewProviderV2(isTPF, dataSourcePluralName, pluralPrefix+key, value))
+				acc.TestCheckResourceAttrPreviewProviderV2(isAcc, dataSourceName, key, value),
+				acc.TestCheckResourceAttrPreviewProviderV2(isAcc, dataSourcePluralName, pluralPrefix+key, value))
 		}
 	}
 	return resource.ComposeAggregateTestCheckFunc(checks...)
@@ -1810,7 +1810,7 @@ type ReplicaSetAWSConfig struct {
 	WithAnalyticsSpecs bool
 }
 
-func configAWSProvider(t *testing.T, isTPF bool, configInfo ReplicaSetAWSConfig) string {
+func configAWSProvider(t *testing.T, isAcc bool, configInfo ReplicaSetAWSConfig) string {
 	t.Helper()
 	analyticsSpecs := ""
 	if configInfo.WithAnalyticsSpecs {
@@ -1820,7 +1820,7 @@ func configAWSProvider(t *testing.T, isTPF bool, configInfo ReplicaSetAWSConfig)
 			node_count    = 1
 		}`
 	}
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isTPF, fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
 			name         = %[2]q
@@ -1844,17 +1844,17 @@ func configAWSProvider(t *testing.T, isTPF bool, configInfo ReplicaSetAWSConfig)
 	`, configInfo.ProjectID, configInfo.ClusterName, configInfo.ClusterType, configInfo.DiskSizeGB, configInfo.NodeCountElectable, analyticsSpecs)) + dataSourcesTFOldSchema
 }
 
-func checkReplicaSetAWSProvider(isTPF bool, projectID, name string, diskSizeGB, nodeCountElectable int, checkDiskSizeGBInnerLevel, checkExternalID bool) resource.TestCheckFunc {
+func checkReplicaSetAWSProvider(isAcc bool, projectID, name string, diskSizeGB, nodeCountElectable int, checkDiskSizeGBInnerLevel, checkExternalID bool) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{
-		acc.TestCheckResourceAttrPreviewProviderV2(isTPF, resourceName, "retain_backups_enabled", "true"),
+		acc.TestCheckResourceAttrPreviewProviderV2(isAcc, resourceName, "retain_backups_enabled", "true"),
 	}
 	additionalChecks = append(additionalChecks,
-		acc.TestCheckResourceAttrWithPreviewProviderV2(isTPF, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		acc.TestCheckResourceAttrWithPreviewProviderV2(isTPF, dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)))
+		acc.TestCheckResourceAttrWithPreviewProviderV2(isAcc, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithPreviewProviderV2(isAcc, dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)))
 
 	if checkDiskSizeGBInnerLevel {
 		additionalChecks = append(additionalChecks,
-			checkAggr(isTPF, []string{}, map[string]string{
+			checkAggr(isAcc, []string{}, map[string]string{
 				"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb": fmt.Sprintf("%d", diskSizeGB),
 				"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb": fmt.Sprintf("%d", diskSizeGB),
 			}),
@@ -1862,10 +1862,10 @@ func checkReplicaSetAWSProvider(isTPF bool, projectID, name string, diskSizeGB, 
 	}
 
 	if checkExternalID {
-		additionalChecks = append(additionalChecks, acc.TestCheckResourceAttrSetPreviewProviderV2(isTPF, resourceName, "replication_specs.0.external_id"))
+		additionalChecks = append(additionalChecks, acc.TestCheckResourceAttrSetPreviewProviderV2(isAcc, resourceName, "replication_specs.0.external_id"))
 	}
 
-	return checkAggr(isTPF,
+	return checkAggr(isAcc,
 		[]string{"replication_specs.#", "replication_specs.0.id", "replication_specs.0.region_configs.#"},
 		map[string]string{
 			"project_id":   projectID,
@@ -1877,9 +1877,9 @@ func checkReplicaSetAWSProvider(isTPF bool, projectID, name string, diskSizeGB, 
 	)
 }
 
-func configIncorrectTypeGobalClusterSelfManagedSharding(t *testing.T, isTPF bool, projectID, name string) string {
+func configIncorrectTypeGobalClusterSelfManagedSharding(t *testing.T, isAcc bool, projectID, name string) string {
 	t.Helper()
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isTPF, fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
 			name         = %[2]q
@@ -1906,9 +1906,9 @@ func configIncorrectTypeGobalClusterSelfManagedSharding(t *testing.T, isTPF bool
 	`, projectID, name))
 }
 
-func configReplicaSetMultiCloud(t *testing.T, isTPF bool, orgID, projectName, name string) string {
+func configReplicaSetMultiCloud(t *testing.T, isAcc bool, orgID, projectName, name string) string {
 	t.Helper()
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isTPF, fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
 			name   = %[2]q
@@ -1959,18 +1959,18 @@ func configReplicaSetMultiCloud(t *testing.T, isTPF bool, orgID, projectName, na
 	`, orgID, projectName, name)) + dataSourcesTFNewSchema
 }
 
-func checkReplicaSetMultiCloud(isTPF bool, name string, regionConfigs int) resource.TestCheckFunc {
+func checkReplicaSetMultiCloud(isAcc bool, name string, regionConfigs int) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{
-		acc.TestCheckResourceAttrPreviewProviderV2(isTPF, resourceName, "retain_backups_enabled", "false"),
-		acc.TestCheckResourceAttrWithPreviewProviderV2(isTPF, resourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
-		acc.TestCheckResourceAttrSetPreviewProviderV2(isTPF, resourceName, "replication_specs.0.external_id"),
-		acc.TestCheckResourceAttrWithPreviewProviderV2(isTPF, dataSourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
-		acc.TestCheckResourceAttrWithPreviewProviderV2(isTPF, dataSourcePluralName, "results.0.replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
-		acc.TestCheckResourceAttrSetPreviewProviderV2(isTPF, dataSourcePluralName, "results.#"),
-		acc.TestCheckResourceAttrSetPreviewProviderV2(isTPF, dataSourcePluralName, "results.0.replication_specs.#"),
-		acc.TestCheckResourceAttrSetPreviewProviderV2(isTPF, dataSourcePluralName, "results.0.name"),
+		acc.TestCheckResourceAttrPreviewProviderV2(isAcc, resourceName, "retain_backups_enabled", "false"),
+		acc.TestCheckResourceAttrWithPreviewProviderV2(isAcc, resourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
+		acc.TestCheckResourceAttrSetPreviewProviderV2(isAcc, resourceName, "replication_specs.0.external_id"),
+		acc.TestCheckResourceAttrWithPreviewProviderV2(isAcc, dataSourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
+		acc.TestCheckResourceAttrWithPreviewProviderV2(isAcc, dataSourcePluralName, "results.0.replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
+		acc.TestCheckResourceAttrSetPreviewProviderV2(isAcc, dataSourcePluralName, "results.#"),
+		acc.TestCheckResourceAttrSetPreviewProviderV2(isAcc, dataSourcePluralName, "results.0.replication_specs.#"),
+		acc.TestCheckResourceAttrSetPreviewProviderV2(isAcc, dataSourcePluralName, "results.0.name"),
 	}
-	return checkAggr(isTPF,
+	return checkAggr(isAcc,
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.id"},
 		map[string]string{
 			"name": name},
@@ -1978,7 +1978,7 @@ func checkReplicaSetMultiCloud(isTPF bool, name string, regionConfigs int) resou
 	)
 }
 
-func configShardedOldSchemaMultiCloud(t *testing.T, isTPF bool, projectID, name string, numShards int, analyticsSize string, configServerManagementMode *string) string {
+func configShardedOldSchemaMultiCloud(t *testing.T, isAcc bool, projectID, name string, numShards int, analyticsSize string, configServerManagementMode *string) string {
 	t.Helper()
 	var rootConfig string
 	if configServerManagementMode != nil {
@@ -1990,7 +1990,7 @@ func configShardedOldSchemaMultiCloud(t *testing.T, isTPF bool, projectID, name 
 		  config_server_management_mode = %[1]q
 		`, *configServerManagementMode)
 	}
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isTPF, fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
 			name         = %[2]q
@@ -2026,30 +2026,30 @@ func configShardedOldSchemaMultiCloud(t *testing.T, isTPF bool, projectID, name 
 	`, projectID, name, numShards, analyticsSize, rootConfig)) + dataSourcesTFOldSchema
 }
 
-func checkShardedOldSchemaMultiCloud(isTPF bool, name string, numShards int, analyticsSize string, verifyExternalID bool, configServerManagementMode *string) resource.TestCheckFunc {
+func checkShardedOldSchemaMultiCloud(isAcc bool, name string, numShards int, analyticsSize string, verifyExternalID bool, configServerManagementMode *string) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{
-		acc.TestCheckResourceAttrWithPreviewProviderV2(isTPF, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		acc.TestCheckResourceAttrWithPreviewProviderV2(isTPF, resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
-		acc.TestCheckResourceAttrWithPreviewProviderV2(isTPF, resourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		acc.TestCheckResourceAttrWithPreviewProviderV2(isTPF, dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		acc.TestCheckResourceAttrWithPreviewProviderV2(isTPF, dataSourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
-		acc.TestCheckResourceAttrWithPreviewProviderV2(isTPF, dataSourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithPreviewProviderV2(isAcc, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithPreviewProviderV2(isAcc, resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithPreviewProviderV2(isAcc, resourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithPreviewProviderV2(isAcc, dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithPreviewProviderV2(isAcc, dataSourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithPreviewProviderV2(isAcc, dataSourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
 	}
 	if verifyExternalID {
 		additionalChecks = append(
 			additionalChecks,
-			acc.TestCheckResourceAttrSetPreviewProviderV2(isTPF, resourceName, "replication_specs.0.external_id"))
+			acc.TestCheckResourceAttrSetPreviewProviderV2(isAcc, resourceName, "replication_specs.0.external_id"))
 	}
 	if configServerManagementMode != nil {
 		additionalChecks = append(additionalChecks,
-			acc.TestCheckResourceAttrPreviewProviderV2(isTPF, resourceName, "config_server_management_mode", *configServerManagementMode),
-			acc.TestCheckResourceAttrSetPreviewProviderV2(isTPF, resourceName, "config_server_type"),
-			acc.TestCheckResourceAttrPreviewProviderV2(isTPF, dataSourceName, "config_server_management_mode", *configServerManagementMode),
-			acc.TestCheckResourceAttrSetPreviewProviderV2(isTPF, dataSourceName, "config_server_type"),
+			acc.TestCheckResourceAttrPreviewProviderV2(isAcc, resourceName, "config_server_management_mode", *configServerManagementMode),
+			acc.TestCheckResourceAttrSetPreviewProviderV2(isAcc, resourceName, "config_server_type"),
+			acc.TestCheckResourceAttrPreviewProviderV2(isAcc, dataSourceName, "config_server_management_mode", *configServerManagementMode),
+			acc.TestCheckResourceAttrSetPreviewProviderV2(isAcc, dataSourceName, "config_server_type"),
 		)
 	}
 
-	return checkAggr(isTPF,
+	return checkAggr(isAcc,
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.id", "replication_specs.0.region_configs.#"},
 		map[string]string{
 			"name":                           name,
@@ -2059,9 +2059,9 @@ func checkShardedOldSchemaMultiCloud(isTPF bool, name string, numShards int, ana
 		additionalChecks...)
 }
 
-func configSingleProviderPaused(t *testing.T, isTPF bool, projectID, clusterName string, paused bool, instanceSize string) string {
+func configSingleProviderPaused(t *testing.T, isAcc bool, projectID, clusterName string, paused bool, instanceSize string) string {
 	t.Helper()
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isTPF, fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
 			name         = %[2]q
@@ -2087,15 +2087,15 @@ func configSingleProviderPaused(t *testing.T, isTPF bool, projectID, clusterName
 `, projectID, clusterName, paused, instanceSize)) + dataSourcesTFNewSchema
 }
 
-func checkSingleProviderPaused(isTPF bool, name string, paused bool) resource.TestCheckFunc {
-	return checkAggr(isTPF,
+func checkSingleProviderPaused(isAcc bool, name string, paused bool) resource.TestCheckFunc {
+	return checkAggr(isAcc,
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
 		map[string]string{
 			"name":   name,
 			"paused": strconv.FormatBool(paused)})
 }
 
-func configAdvanced(t *testing.T, isTPF bool, projectID, clusterName, mongoDBMajorVersion string, p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) string {
+func configAdvanced(t *testing.T, isAcc bool, projectID, clusterName, mongoDBMajorVersion string, p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) string {
 	t.Helper()
 	changeStreamOptionsStr := ""
 	defaultMaxTimeStr := ""
@@ -2125,7 +2125,7 @@ func configAdvanced(t *testing.T, isTPF bool, projectID, clusterName, mongoDBMaj
 		mongoDBMajorVersionStr = fmt.Sprintf(`mongo_db_major_version = %[1]q`, mongoDBMajorVersion)
 	}
 
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isTPF, fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q
 			name                   = %[2]q
@@ -2169,7 +2169,7 @@ func configAdvanced(t *testing.T, isTPF bool, projectID, clusterName, mongoDBMaj
 		changeStreamOptionsStr, defaultMaxTimeStr, mongoDBMajorVersionStr, tlsCipherConfigModeStr, customOpensslCipherConfigTLS12Str)) + dataSourcesTFNewSchema
 }
 
-func checkAdvanced(isTPF bool, name, tls string, processArgs *admin.ClusterDescriptionProcessArgs20240805) resource.TestCheckFunc {
+func checkAdvanced(isAcc bool, name, tls string, processArgs *admin.ClusterDescriptionProcessArgs20240805) resource.TestCheckFunc {
 	advancedConfig := map[string]string{
 		"name": name,
 		"advanced_configuration.0.minimum_enabled_tls_protocol":         tls,
@@ -2198,21 +2198,21 @@ func checkAdvanced(isTPF bool, name, tls string, processArgs *admin.ClusterDescr
 	}
 
 	pluralChecks := []resource.TestCheckFunc{
-		acc.TestCheckResourceAttrSetPreviewProviderV2(isTPF, dataSourcePluralName, "results.#"),
-		acc.TestCheckResourceAttrSetPreviewProviderV2(isTPF, dataSourcePluralName, "results.0.replication_specs.#"),
-		acc.TestCheckResourceAttrSetPreviewProviderV2(isTPF, dataSourcePluralName, "results.0.name"),
+		acc.TestCheckResourceAttrSetPreviewProviderV2(isAcc, dataSourcePluralName, "results.#"),
+		acc.TestCheckResourceAttrSetPreviewProviderV2(isAcc, dataSourcePluralName, "results.0.replication_specs.#"),
+		acc.TestCheckResourceAttrSetPreviewProviderV2(isAcc, dataSourcePluralName, "results.0.name"),
 	}
 
-	return checkAggr(isTPF,
+	return checkAggr(isAcc,
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
 		advancedConfig,
 		pluralChecks...,
 	)
 }
 
-func configAdvancedDefaultWrite(t *testing.T, isTPF bool, projectID, clusterName string, p *admin20240530.ClusterDescriptionProcessArgs) string {
+func configAdvancedDefaultWrite(t *testing.T, isAcc bool, projectID, clusterName string, p *admin20240530.ClusterDescriptionProcessArgs) string {
 	t.Helper()
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isTPF, fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q
 			name                   = %[2]q
@@ -2249,13 +2249,13 @@ func configAdvancedDefaultWrite(t *testing.T, isTPF bool, projectID, clusterName
 		p.GetOplogSizeMB(), p.GetSampleSizeBIConnector(), p.GetSampleRefreshIntervalBIConnector(), p.GetDefaultReadConcern(), p.GetDefaultWriteConcern())) + dataSourcesTFNewSchema
 }
 
-func checkAdvancedDefaultWrite(isTPF bool, name, writeConcern, tls string) resource.TestCheckFunc {
+func checkAdvancedDefaultWrite(isAcc bool, name, writeConcern, tls string) resource.TestCheckFunc {
 	pluralChecks := []resource.TestCheckFunc{
-		acc.TestCheckResourceAttrSetPreviewProviderV2(isTPF, dataSourcePluralName, "results.#"),
-		acc.TestCheckResourceAttrSetPreviewProviderV2(isTPF, dataSourcePluralName, "results.0.replication_specs.#"),
-		acc.TestCheckResourceAttrSetPreviewProviderV2(isTPF, dataSourcePluralName, "results.0.name"),
+		acc.TestCheckResourceAttrSetPreviewProviderV2(isAcc, dataSourcePluralName, "results.#"),
+		acc.TestCheckResourceAttrSetPreviewProviderV2(isAcc, dataSourcePluralName, "results.0.replication_specs.#"),
+		acc.TestCheckResourceAttrSetPreviewProviderV2(isAcc, dataSourcePluralName, "results.0.name"),
 	}
-	return checkAggr(isTPF,
+	return checkAggr(isAcc,
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
 		map[string]string{
 			"name": name,
@@ -2272,7 +2272,7 @@ func checkAdvancedDefaultWrite(isTPF bool, name, writeConcern, tls string) resou
 		pluralChecks...)
 }
 
-func configReplicationSpecsAutoScaling(t *testing.T, isTPF bool, projectID, clusterName string, autoScalingSettings *admin.AdvancedAutoScalingSettings, elecInstanceSize string, elecDiskSizeGB, analyticsNodeCount int) string {
+func configReplicationSpecsAutoScaling(t *testing.T, isAcc bool, projectID, clusterName string, autoScalingSettings *admin.AdvancedAutoScalingSettings, elecInstanceSize string, elecDiskSizeGB, analyticsNodeCount int) string {
 	t.Helper()
 	lifecycleIgnoreChanges := ""
 	autoScalingCompute := autoScalingSettings.GetCompute()
@@ -2295,7 +2295,7 @@ func configReplicationSpecsAutoScaling(t *testing.T, isTPF bool, projectID, clus
 		}`, autoScalingSettings.Compute.GetEnabled(), autoScalingSettings.DiskGB.GetEnabled(), autoScalingSettings.Compute.GetMaxInstanceSize())
 	}
 
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isTPF, fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q
 			name                   = %[2]q
@@ -2326,7 +2326,7 @@ func configReplicationSpecsAutoScaling(t *testing.T, isTPF bool, projectID, clus
 	`, projectID, clusterName, elecInstanceSize, elecDiskSizeGB, analyticsNodeCount, autoScalingBlock, lifecycleIgnoreChanges))
 }
 
-func configReplicationSpecsAnalyticsAutoScaling(t *testing.T, isTPF bool, projectID, clusterName string, analyticsAutoScalingSettings *admin.AdvancedAutoScalingSettings, analyticsNodeCount int) string {
+func configReplicationSpecsAnalyticsAutoScaling(t *testing.T, isAcc bool, projectID, clusterName string, analyticsAutoScalingSettings *admin.AdvancedAutoScalingSettings, analyticsNodeCount int) string {
 	t.Helper()
 
 	analyticsAutoScalingBlock := ""
@@ -2339,7 +2339,7 @@ func configReplicationSpecsAnalyticsAutoScaling(t *testing.T, isTPF bool, projec
 				}`, analyticsAutoScalingSettings.Compute.GetEnabled(), analyticsAutoScalingSettings.DiskGB.GetEnabled(), analyticsAutoScalingSettings.Compute.GetMaxInstanceSize())
 	}
 
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isTPF, fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id             = %[1]q
 			name                   = %[2]q
@@ -2365,9 +2365,9 @@ func configReplicationSpecsAnalyticsAutoScaling(t *testing.T, isTPF bool, projec
 	`, projectID, clusterName, analyticsNodeCount, analyticsAutoScalingBlock))
 }
 
-func configGeoShardedOldSchema(t *testing.T, isTPF bool, projectID, name string, numShardsFirstZone, numShardsSecondZone int, selfManagedSharding bool) string {
+func configGeoShardedOldSchema(t *testing.T, isAcc bool, projectID, name string, numShardsFirstZone, numShardsSecondZone int, selfManagedSharding bool) string {
 	t.Helper()
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isTPF, fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id = %[1]q
 			name = %[2]q
@@ -2419,15 +2419,15 @@ func configGeoShardedOldSchema(t *testing.T, isTPF bool, projectID, name string,
 	`, projectID, name, numShardsFirstZone, numShardsSecondZone, selfManagedSharding)) + dataSourcesTFOldSchema
 }
 
-func checkGeoShardedOldSchema(isTPF bool, name string, numShardsFirstZone, numShardsSecondZone int, isLatestProviderVersion, verifyExternalID bool) resource.TestCheckFunc {
+func checkGeoShardedOldSchema(isAcc bool, name string, numShardsFirstZone, numShardsSecondZone int, isLatestProviderVersion, verifyExternalID bool) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{}
 
 	if verifyExternalID {
-		additionalChecks = append(additionalChecks, acc.TestCheckResourceAttrSetPreviewProviderV2(isTPF, resourceName, "replication_specs.0.external_id"))
+		additionalChecks = append(additionalChecks, acc.TestCheckResourceAttrSetPreviewProviderV2(isAcc, resourceName, "replication_specs.0.external_id"))
 	}
 
 	if isLatestProviderVersion { // checks that will not apply if doing migration test with older version
-		additionalChecks = append(additionalChecks, checkAggr(isTPF,
+		additionalChecks = append(additionalChecks, checkAggr(isAcc,
 			[]string{"replication_specs.0.zone_id", "replication_specs.0.zone_id"},
 			map[string]string{
 				"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb": "60",
@@ -2435,7 +2435,7 @@ func checkGeoShardedOldSchema(isTPF bool, name string, numShardsFirstZone, numSh
 			}))
 	}
 
-	return checkAggr(isTPF,
+	return checkAggr(isAcc,
 		[]string{"project_id", "replication_specs.0.id", "replication_specs.1.id"},
 		map[string]string{
 			"name":                           name,
@@ -2447,9 +2447,9 @@ func checkGeoShardedOldSchema(isTPF bool, name string, numShardsFirstZone, numSh
 	)
 }
 
-func configShardedOldSchemaDiskSizeGBElectableLevel(t *testing.T, isTPF bool, projectID, name string, diskSizeGB int) string {
+func configShardedOldSchemaDiskSizeGBElectableLevel(t *testing.T, isAcc bool, projectID, name string, diskSizeGB int) string {
 	t.Helper()
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isTPF, fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id = %[1]q
 			name = %[2]q
@@ -2480,8 +2480,8 @@ func configShardedOldSchemaDiskSizeGBElectableLevel(t *testing.T, isTPF bool, pr
 	`, projectID, name, diskSizeGB)) + dataSourcesTFOldSchema
 }
 
-func checkShardedOldSchemaDiskSizeGBElectableLevel(isTPF bool, diskSizeGB int) resource.TestCheckFunc {
-	return checkAggr(isTPF,
+func checkShardedOldSchemaDiskSizeGBElectableLevel(isAcc bool, diskSizeGB int) resource.TestCheckFunc {
+	return checkAggr(isAcc,
 		[]string{},
 		map[string]string{
 			"replication_specs.0.num_shards": "2",
@@ -2491,7 +2491,7 @@ func checkShardedOldSchemaDiskSizeGBElectableLevel(isTPF bool, diskSizeGB int) r
 		})
 }
 
-func configShardedNewSchema(t *testing.T, isTPF bool, orgID, projectName, name string, diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIOPS, lastDiskIOPS *int, includeMiddleSpec, increaseDiskSizeShard2 bool) string {
+func configShardedNewSchema(t *testing.T, isAcc bool, orgID, projectName, name string, diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIOPS, lastDiskIOPS *int, includeMiddleSpec, increaseDiskSizeShard2 bool) string {
 	t.Helper()
 	var thirdReplicationSpec string
 	var diskSizeGBShard2 = diskSizeGB
@@ -2533,7 +2533,7 @@ func configShardedNewSchema(t *testing.T, isTPF bool, orgID, projectName, name s
 			ebs_volume_type = "PROVISIONED"
 		`, *lastDiskIOPS)
 	}
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isTPF, fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
 			name   = %[2]q
@@ -2604,7 +2604,7 @@ func configShardedNewSchema(t *testing.T, isTPF bool, orgID, projectName, name s
 	`, orgID, projectName, name, firstInstanceSize, lastInstanceSize, firstDiskIOPSAttrs, lastDiskIOPSAttrs, thirdReplicationSpec, diskSizeGB, diskSizeGBShard2))
 }
 
-func checkShardedNewSchema(isTPF bool, diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIops, lastDiskIops *int, isAsymmetricCluster, includeMiddleSpec bool) resource.TestCheckFunc {
+func checkShardedNewSchema(isAcc bool, diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIops, lastDiskIops *int, isAsymmetricCluster, includeMiddleSpec bool) resource.TestCheckFunc {
 	amtOfReplicationSpecs := 2
 	if includeMiddleSpec {
 		amtOfReplicationSpecs = 3
@@ -2633,31 +2633,31 @@ func checkShardedNewSchema(isTPF bool, diskSizeGB int, firstInstanceSize, lastIn
 	}
 
 	// plural data source checks
-	pluralChecks := acc.AddAttrSetChecksPreviewProviderV2(isTPF, dataSourcePluralName, nil,
+	pluralChecks := acc.AddAttrSetChecksPreviewProviderV2(isAcc, dataSourcePluralName, nil,
 		[]string{"results.#", "results.0.replication_specs.#", "results.0.replication_specs.0.region_configs.#", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
 
-	pluralChecks = acc.AddAttrChecksPrefixPreviewProviderV2(isTPF, dataSourcePluralName, pluralChecks, clusterChecks, "results.0")
+	pluralChecks = acc.AddAttrChecksPrefixPreviewProviderV2(isAcc, dataSourcePluralName, pluralChecks, clusterChecks, "results.0")
 	if isAsymmetricCluster {
-		pluralChecks = append(pluralChecks, checkAggr(isTPF, []string{}, map[string]string{
+		pluralChecks = append(pluralChecks, checkAggr(isAcc, []string{}, map[string]string{
 			"replication_specs.0.id": "",
 			"replication_specs.1.id": "",
 		}))
-		pluralChecks = acc.AddAttrChecksPreviewProviderV2(isTPF, dataSourcePluralName, pluralChecks, map[string]string{
+		pluralChecks = acc.AddAttrChecksPreviewProviderV2(isAcc, dataSourcePluralName, pluralChecks, map[string]string{
 			"results.0.replication_specs.0.id": "",
 			"results.0.replication_specs.1.id": "",
 		})
 	} else {
-		pluralChecks = append(pluralChecks, checkAggr(isTPF, []string{"replication_specs.0.id", "replication_specs.1.id"}, map[string]string{}))
-		pluralChecks = acc.AddAttrSetChecksPreviewProviderV2(isTPF, dataSourcePluralName, pluralChecks, "results.0.replication_specs.0.id", "results.0.replication_specs.1.id")
+		pluralChecks = append(pluralChecks, checkAggr(isAcc, []string{"replication_specs.0.id", "replication_specs.1.id"}, map[string]string{}))
+		pluralChecks = acc.AddAttrSetChecksPreviewProviderV2(isAcc, dataSourcePluralName, pluralChecks, "results.0.replication_specs.0.id", "results.0.replication_specs.1.id")
 	}
-	return checkAggr(isTPF,
+	return checkAggr(isAcc,
 		[]string{"replication_specs.0.external_id", "replication_specs.0.zone_id", "replication_specs.1.external_id", "replication_specs.1.zone_id"},
 		clusterChecks,
 		pluralChecks...,
 	)
 }
 
-func configGeoShardedNewSchema(t *testing.T, isTPF bool, projectID, name string, includeThirdShardInFirstZone bool) string {
+func configGeoShardedNewSchema(t *testing.T, isAcc bool, projectID, name string, includeThirdShardInFirstZone bool) string {
 	t.Helper()
 	var thirdReplicationSpec string
 	if includeThirdShardInFirstZone {
@@ -2676,7 +2676,7 @@ func configGeoShardedNewSchema(t *testing.T, isTPF bool, projectID, name string,
 			}
 		`
 	}
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isTPF, fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id = %[1]q
 			name = %[2]q
@@ -2712,7 +2712,7 @@ func configGeoShardedNewSchema(t *testing.T, isTPF bool, projectID, name string,
 	`, projectID, name, thirdReplicationSpec)) + dataSourcesTFNewSchema
 }
 
-func checkGeoShardedNewSchema(isTPF, includeThirdShardInFirstZone bool) resource.TestCheckFunc {
+func checkGeoShardedNewSchema(isAcc, includeThirdShardInFirstZone bool) resource.TestCheckFunc {
 	var amtOfReplicationSpecs int
 	if includeThirdShardInFirstZone {
 		amtOfReplicationSpecs = 3
@@ -2724,10 +2724,10 @@ func checkGeoShardedNewSchema(isTPF, includeThirdShardInFirstZone bool) resource
 		"replication_specs.0.container_id.%": "1",
 		"replication_specs.1.container_id.%": "1",
 	}
-	return checkAggr(isTPF, []string{}, clusterChecks)
+	return checkAggr(isAcc, []string{}, clusterChecks)
 }
 
-func configShardedTransitionOldToNewSchema(t *testing.T, isTPF bool, projectID, name string, useNewSchema, autoscaling bool) string {
+func configShardedTransitionOldToNewSchema(t *testing.T, isAcc bool, projectID, name string, useNewSchema, autoscaling bool) string {
 	t.Helper()
 	var numShardsStr string
 	if !useNewSchema {
@@ -2776,7 +2776,7 @@ func configShardedTransitionOldToNewSchema(t *testing.T, isTPF bool, projectID, 
 		dataSources = dataSourcesTFNewSchema
 	}
 
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isTPF, fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id = %[1]q
 			name = %[2]q
@@ -2789,7 +2789,7 @@ func configShardedTransitionOldToNewSchema(t *testing.T, isTPF bool, projectID, 
 	`, projectID, name, replicationSpecs)) + dataSources
 }
 
-func checkShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.TestCheckFunc {
+func checkShardedTransitionOldToNewSchema(isAcc, useNewSchema bool) resource.TestCheckFunc {
 	var amtOfReplicationSpecs int
 	if useNewSchema {
 		amtOfReplicationSpecs = 2
@@ -2799,7 +2799,7 @@ func checkShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.Tes
 	var checksForNewSchema []resource.TestCheckFunc
 	if useNewSchema {
 		checksForNewSchema = []resource.TestCheckFunc{
-			checkAggr(isTPF, []string{"replication_specs.1.id", "replication_specs.0.external_id", "replication_specs.1.external_id"},
+			checkAggr(isAcc, []string{"replication_specs.1.id", "replication_specs.0.external_id", "replication_specs.1.external_id"},
 				map[string]string{
 					"replication_specs.#": fmt.Sprintf("%d", amtOfReplicationSpecs),
 					"replication_specs.1.region_configs.0.electable_specs.0.instance_size": "M10",
@@ -2808,7 +2808,7 @@ func checkShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.Tes
 		}
 	}
 
-	return checkAggr(isTPF,
+	return checkAggr(isAcc,
 		[]string{"replication_specs.0.id"},
 		map[string]string{
 			"replication_specs.#": fmt.Sprintf("%d", amtOfReplicationSpecs),
@@ -2819,7 +2819,7 @@ func checkShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.Tes
 	)
 }
 
-func configGeoShardedTransitionOldToNewSchema(t *testing.T, isTPF bool, projectID, name string, useNewSchema bool) string {
+func configGeoShardedTransitionOldToNewSchema(t *testing.T, isAcc bool, projectID, name string, useNewSchema bool) string {
 	t.Helper()
 	var numShardsStr string
 	if !useNewSchema {
@@ -2866,7 +2866,7 @@ func configGeoShardedTransitionOldToNewSchema(t *testing.T, isTPF bool, projectI
 		dataSources = dataSourcesTFNewSchema
 	}
 
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isTPF, fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id = %[1]q
 			name = %[2]q
@@ -2878,9 +2878,9 @@ func configGeoShardedTransitionOldToNewSchema(t *testing.T, isTPF bool, projectI
 	`, projectID, name, replicationSpecs)) + dataSources
 }
 
-func checkGeoShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.TestCheckFunc {
+func checkGeoShardedTransitionOldToNewSchema(isAcc, useNewSchema bool) resource.TestCheckFunc {
 	if useNewSchema {
-		return checkAggr(isTPF,
+		return checkAggr(isAcc,
 			[]string{"replication_specs.0.id", "replication_specs.1.id", "replication_specs.2.id", "replication_specs.3.id",
 				"replication_specs.0.external_id", "replication_specs.1.external_id", "replication_specs.2.external_id", "replication_specs.3.external_id",
 			},
@@ -2893,7 +2893,7 @@ func checkGeoShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.
 			},
 		)
 	}
-	return checkAggr(isTPF,
+	return checkAggr(isAcc,
 		[]string{"replication_specs.0.id", "replication_specs.1.id"},
 		map[string]string{
 			"replication_specs.#":           "2",
@@ -2903,9 +2903,9 @@ func checkGeoShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.
 	)
 }
 
-func configReplicaSetScalingStrategyAndRedactClientLogData(t *testing.T, isTPF bool, orgID, projectName, name, replicaSetScalingStrategy string, redactClientLogData bool) string {
+func configReplicaSetScalingStrategyAndRedactClientLogData(t *testing.T, isAcc bool, orgID, projectName, name, replicaSetScalingStrategy string, redactClientLogData bool) string {
 	t.Helper()
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isTPF, fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
 			name   = %[2]q
@@ -2940,9 +2940,9 @@ func configReplicaSetScalingStrategyAndRedactClientLogData(t *testing.T, isTPF b
 	`, orgID, projectName, name, replicaSetScalingStrategy, redactClientLogData)) + dataSourcesTFNewSchema
 }
 
-func configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(t *testing.T, isTPF bool, orgID, projectName, name, replicaSetScalingStrategy string, redactClientLogData bool) string {
+func configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(t *testing.T, isAcc bool, orgID, projectName, name, replicaSetScalingStrategy string, redactClientLogData bool) string {
 	t.Helper()
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isTPF, fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
 			name   = %[2]q
@@ -2978,24 +2978,24 @@ func configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(t *testing.T
 	`, orgID, projectName, name, replicaSetScalingStrategy, redactClientLogData)) + dataSourcesTFOldSchema
 }
 
-func checkReplicaSetScalingStrategyAndRedactClientLogData(isTPF bool, replicaSetScalingStrategy string, redactClientLogData bool) resource.TestCheckFunc {
+func checkReplicaSetScalingStrategyAndRedactClientLogData(isAcc bool, replicaSetScalingStrategy string, redactClientLogData bool) resource.TestCheckFunc {
 	clusterChecks := map[string]string{
 		"replica_set_scaling_strategy": replicaSetScalingStrategy,
 		"redact_client_log_data":       strconv.FormatBool(redactClientLogData),
 	}
 
 	// plural data source checks
-	pluralChecks := acc.AddAttrSetChecksPreviewProviderV2(isTPF, dataSourcePluralName, nil,
+	pluralChecks := acc.AddAttrSetChecksPreviewProviderV2(isAcc, dataSourcePluralName, nil,
 		[]string{"results.#", "results.0.replica_set_scaling_strategy", "results.0.redact_client_log_data"}...)
 
-	return checkAggr(isTPF,
+	return checkAggr(isAcc,
 		[]string{},
 		clusterChecks,
 		pluralChecks...,
 	)
 }
 
-func configPriority(t *testing.T, isTPF bool, projectID, clusterName string, oldSchema, swapPriorities bool) string {
+func configPriority(t *testing.T, isAcc bool, projectID, clusterName string, oldSchema, swapPriorities bool) string {
 	t.Helper()
 	const (
 		config7 = `
@@ -3030,7 +3030,7 @@ func configPriority(t *testing.T, isTPF bool, projectID, clusterName string, old
 		strConfigs = config6 + config7
 	}
 
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isTPF, fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
 			name         = %[2]q
@@ -3045,7 +3045,7 @@ func configPriority(t *testing.T, isTPF bool, projectID, clusterName string, old
 	`, projectID, clusterName, strType, strNumShards, strConfigs))
 }
 
-func configBiConnectorConfig(t *testing.T, isTPF bool, projectID, name string, enabled bool) string {
+func configBiConnectorConfig(t *testing.T, isAcc bool, projectID, name string, enabled bool) string {
 	t.Helper()
 	additionalConfig := `
 		bi_connector_config {
@@ -3061,7 +3061,7 @@ func configBiConnectorConfig(t *testing.T, isTPF bool, projectID, name string, e
 		`
 	}
 
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isTPF, fmt.Sprintf(`
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, isAcc, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
 			name         = %[2]q
@@ -3088,7 +3088,7 @@ func configBiConnectorConfig(t *testing.T, isTPF bool, projectID, name string, e
 	`, projectID, name, additionalConfig)) + dataSourcesTFOldSchema
 }
 
-func checkTenantBiConnectorConfig(isTPF bool, projectID, name string, enabled bool) resource.TestCheckFunc {
+func checkTenantBiConnectorConfig(isAcc bool, projectID, name string, enabled bool) resource.TestCheckFunc {
 	attrsMap := map[string]string{
 		"project_id": projectID,
 		"name":       name,
@@ -3099,7 +3099,7 @@ func checkTenantBiConnectorConfig(isTPF bool, projectID, name string, enabled bo
 	} else {
 		attrsMap["bi_connector_config.0.enabled"] = "false"
 	}
-	return checkAggr(isTPF, nil, attrsMap)
+	return checkAggr(isAcc, nil, attrsMap)
 }
 
 func configFCVPinning(t *testing.T, orgID, projectName, clusterName string, pinningExpirationDate *string, mongoDBMajorVersion string) string {
