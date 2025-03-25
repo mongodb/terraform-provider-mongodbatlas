@@ -3,7 +3,9 @@ package project
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"reflect"
 	"sort"
 	"time"
@@ -77,6 +79,11 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 		Group:          projectGroup,
 		ProjectOwnerId: conversion.StringNullIfEmpty(projectPlan.ProjectOwnerID.ValueString()).ValueStringPointer(),
 	}
+
+	// reqBody, _ := json.Marshal(projectGroup)
+
+	// apiResp, _ := r.Client.UntypedAPICall(ctx, "application/vnd.atlas.2023-01-01+json", "/api/atlas/v2/groups", nil, http.MethodPost, reqBody)
+	// print(apiResp)
 
 	// create project
 	project, _, err := connV2.ProjectsApi.CreateProjectWithParams(ctx, projectAPIParams).Execute()
@@ -204,6 +211,25 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	if len(projectState.Limits.Elements()) > 0 {
 		_ = projectState.Limits.ElementsAs(ctx, &limits, false)
 	}
+
+	pathParams := map[string]string{
+		"groupId": projectID,
+	}
+
+	apiResp, err := r.Client.UntypedAPICall(ctx, "application/vnd.atlas.2023-01-01+json", "/api/atlas/v2/groups/{groupId}", pathParams, http.MethodGet, nil)
+	// Read the response body into a byte array
+	if apiResp != nil && apiResp.Body != nil {
+		defer apiResp.Body.Close()
+		respBody, err := io.ReadAll(apiResp.Body)
+		if err != nil {
+			resp.Diagnostics.AddError("error reading API response body", err.Error())
+			return
+		}
+		tflog.Debug(ctx, fmt.Sprintf("API response body: %s", string(respBody)))
+	} else {
+		tflog.Debug(ctx, "API response or body is nil")
+	}
+	print(apiResp)
 
 	// get project
 	projectRes, atlasResp, err := connV2.ProjectsApi.GetProject(ctx, projectID).Execute()
