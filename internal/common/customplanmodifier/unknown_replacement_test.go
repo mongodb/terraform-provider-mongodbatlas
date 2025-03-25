@@ -4,12 +4,17 @@ import (
 	"context"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
+	"github.com/stretchr/testify/assert"
 )
 
 var _ resource.ResourceWithConfigure = &rs{}
@@ -23,14 +28,28 @@ type BaseResourcePlanModify interface {
 	resource.ResourceWithModifyPlan
 }
 
-func WrappedResource(base BaseResourcePlanModify) func() resource.Resource {
+type planModifyRunData struct {
+	keepUnknownCalls []string
+	attributeChanges customplanmodifier.AttributeChanges
+}
+
+type replaceUnknownResourceInfo struct {
+	anyMap map[string]any
+}
+
+type replaceUnknownTestCall customplanmodifier.UnknownReplacementCall[replaceUnknownResourceInfo]
+
+func WrappedResource(base BaseResourcePlanModify, info *replaceUnknownResourceInfo, runData *planModifyRunData, attributeReplaceUnknowns map[string]replaceUnknownTestCall) func() resource.Resource {
 	return func() resource.Resource {
-		return &rs{base: base}
+		return &rs{base: base, info: info, runData: runData, attributeReplaceUnknowns: attributeReplaceUnknowns}
 	}
 }
 
 type rs struct {
-	base BaseResourcePlanModify
+	base                     BaseResourcePlanModify
+	runData                  *planModifyRunData
+	info                     *replaceUnknownResourceInfo
+	attributeReplaceUnknowns map[string]replaceUnknownTestCall
 }
 
 func (r *rs) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -41,8 +60,22 @@ func (r *rs) Configure(ctx context.Context, req resource.ConfigureRequest, resp 
 	r.base.Configure(ctx, req, resp)
 }
 
+// ModifyPlan is the only method overridden in this test.
 func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	r.base.ModifyPlan(ctx, req, resp)
+	schema := advancedclustertpf.ResourceSchema(ctx)
+	if req.Plan.Raw.IsFullyKnown() {
+		return
+	}
+	unknownReplacements := customplanmodifier.NewUnknownReplacements(ctx, &req, resp, schema, *r.info)
+	for attrName, replacer := range r.attributeReplaceUnknowns {
+		modifiedReplacer := func(ctx context.Context, stateValue customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[replaceUnknownResourceInfo]) attr.Value {
+			r.runData.keepUnknownCalls = append(r.runData.keepUnknownCalls, req.Path.String())
+			return replacer(ctx, stateValue, req)
+		}
+		unknownReplacements.AddReplacement(attrName, modifiedReplacer)
+	}
+	unknownReplacements.ApplyReplacements(ctx, &resp.Diagnostics)
+	r.runData.attributeChanges = unknownReplacements.Differ.AttributeChanges
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -69,31 +102,143 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	r.base.ImportState(ctx, req, resp)
 }
 
+func configureResources(info *replaceUnknownResourceInfo, runData *planModifyRunData, attributeReplaceUnknowns map[string]replaceUnknownTestCall) []func() resource.Resource {
+	return []func() resource.Resource{
+		WrappedResource(advancedclustertpf.Resource().(BaseResourcePlanModify), info, runData, attributeReplaceUnknowns),
+	}
+}
+
+type unknownReplacementTestCase struct {
+	attributeReplaceUnknowns map[string]replaceUnknownTestCall
+	info                     replaceUnknownResourceInfo
+	ImportName               string
+	ConfigFilename           string
+	CheckUnknowns            []tfjsonpath.Path
+	CheckKnownValues         []tfjsonpath.Path
+	ExtraChecks              []func(string) plancheck.PlanCheck
+	expectedAttributeChanges customplanmodifier.AttributeChanges
+	expectedKeepUnknownCalls []string
+}
+
 func TestWrappingAdvancedClusterTPF(t *testing.T) {
-	var (
-		resources = []func() resource.Resource{
-			WrappedResource(advancedclustertpf.Resource().(BaseResourcePlanModify)),
-		}
-		mockConfig   = unit.MockConfigAdvancedClusterTPF.WithResources(resources)
-		baseConfig   = unit.NewMockPlanChecksConfig(t, &mockConfig, unit.ImportNameClusterReplicasetOneRegion)
-		resourceName = baseConfig.ResourceName
-		testCases    = []unit.PlanCheckTest{
-			{
-				ConfigFilename: "main_mongo_db_major_version_changed.tf",
-				Checks: []plancheck.PlanCheck{
-					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
-					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("mongo_db_version")),
+	instanceSizeChanged := customplanmodifier.AttributeChanges{
+		"replication_specs[0]",
+		"replication_specs[0].region_configs[0]",
+		"replication_specs[0].region_configs[0].electable_specs",
+		"replication_specs[0].region_configs[0].electable_specs.instance_size",
+		"timeouts",
+		"timeouts.create",
+	}
+	regionConfigPath := tfjsonpath.New("replication_specs").AtSliceIndex(0).AtMapKey("region_configs").AtSliceIndex(0)
+	nodeCountChanged := customplanmodifier.AttributeChanges{
+		"replication_specs[0]",
+		"replication_specs[0].region_configs[0]",
+		"replication_specs[0].region_configs[0].electable_specs",
+		"replication_specs[0].region_configs[0].electable_specs.node_count",
+		"timeouts",
+		"timeouts.create",
+	}
+	for name, tc := range map[string]unknownReplacementTestCase{
+		"mongo db major version changed should show in attribute changes and mongo_db_version replace unknown should be called": {
+			ImportName:     unit.ImportNameClusterReplicasetOneRegion,
+			ConfigFilename: "main_mongo_db_major_version_changed.tf",
+			CheckUnknowns: []tfjsonpath.Path{
+				tfjsonpath.New("mongo_db_version"),
+			},
+			attributeReplaceUnknowns: map[string]replaceUnknownTestCall{
+				"mongo_db_version": func(ctx context.Context, stateValue customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[replaceUnknownResourceInfo]) attr.Value {
+					return req.Unknown
 				},
 			},
-			{
-				ConfigFilename: "main_backup_enabled.tf",
-				Checks: []plancheck.PlanCheck{
-					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
-					plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("mongo_db_version"), knownvalue.StringExact("8.0.5")),
+			expectedAttributeChanges: customplanmodifier.AttributeChanges{"mongo_db_major_version", "timeouts", "timeouts.create"},
+			expectedKeepUnknownCalls: []string{"mongo_db_version"},
+		},
+		"instance_size changed should show changes in parent attributes too": {
+			ImportName:               unit.ImportNameClusterReplicasetOneRegion,
+			ConfigFilename:           "main_instance_size_changed.tf",
+			expectedAttributeChanges: instanceSizeChanged,
+		},
+		"auto scaling removed should show changes and call replace unknown": {
+			ImportName:     unit.ImportNameClusterReplicasetOneRegion,
+			ConfigFilename: "main_auto_scaling_removed_node_count_changed.tf",
+			CheckUnknowns: []tfjsonpath.Path{
+				regionConfigPath.AtMapKey("auto_scaling"),
+			},
+			attributeReplaceUnknowns: map[string]replaceUnknownTestCall{
+				"auto_scaling": func(ctx context.Context, stateValue customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[replaceUnknownResourceInfo]) attr.Value {
+					return req.Unknown
 				},
 			},
-		}
-	)
-	baseConfig.TestdataPrefix = unit.PackagePath("advancedclustertpf")
-	unit.RunPlanCheckTests(t, baseConfig, testCases)
+			expectedKeepUnknownCalls: []string{"replication_specs[0].region_configs[0].auto_scaling"},
+			expectedAttributeChanges: nodeCountChanged,
+		},
+		"auto scaling removed but state value returned should update plan": {
+			ImportName:     unit.ImportNameClusterReplicasetOneRegion,
+			ConfigFilename: "main_auto_scaling_removed_node_count_changed.tf",
+			attributeReplaceUnknowns: map[string]replaceUnknownTestCall{
+				"auto_scaling": func(ctx context.Context, stateValue customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[replaceUnknownResourceInfo]) attr.Value {
+					return stateValue.AsObject()
+				},
+			},
+			CheckKnownValues: []tfjsonpath.Path{
+				regionConfigPath.AtMapKey("auto_scaling"),
+			},
+			expectedKeepUnknownCalls: []string{"replication_specs[0].region_configs[0].auto_scaling"},
+			expectedAttributeChanges: nodeCountChanged,
+		},
+		"use resource info in value replacement for read_only_specs": {
+			ImportName:     unit.ImportNameClusterReplicasetOneRegion,
+			ConfigFilename: "main_instance_size_changed.tf",
+			attributeReplaceUnknowns: map[string]replaceUnknownTestCall{
+				"read_only_specs": func(ctx context.Context, stateValue customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[replaceUnknownResourceInfo]) attr.Value {
+					infoValue, found := req.Info.anyMap["node_count"]
+					if !found {
+						return req.Unknown
+					}
+					newValue := customplanmodifier.ReadStateStructValue[advancedclustertpf.TFSpecsModel](ctx, req.Differ, req.Path)
+					newValue.NodeCount = types.Int64Value(infoValue.(int64))
+					newValue.InstanceSize = types.StringUnknown()
+					return conversion.AsObjectValue(ctx, newValue, stateValue.AsObject().AttributeTypes(ctx))
+				},
+			},
+			info: replaceUnknownResourceInfo{
+				anyMap: map[string]any{
+					"node_count": int64(99),
+				},
+			},
+			ExtraChecks: []func(string) plancheck.PlanCheck{
+				func(resourceName string) plancheck.PlanCheck {
+					return plancheck.ExpectKnownValue(resourceName, regionConfigPath.AtMapKey("read_only_specs").AtMapKey("node_count"), knownvalue.Int64Exact(99))
+				},
+			},
+			CheckUnknowns: []tfjsonpath.Path{
+				regionConfigPath.AtMapKey("read_only_specs").AtMapKey("instance_size"),
+			},
+			expectedKeepUnknownCalls: []string{"replication_specs[0].region_configs[0].read_only_specs"},
+			expectedAttributeChanges: instanceSizeChanged,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			runData := planModifyRunData{}
+			mockConfig := unit.MockConfigAdvancedClusterTPF.WithResources(configureResources(&tc.info, &runData, tc.attributeReplaceUnknowns))
+			baseConfig := unit.NewMockPlanChecksConfig(t, &mockConfig, tc.ImportName)
+			baseConfig.TestdataPrefix = unit.PackagePath("advancedclustertpf")
+			checks := make([]plancheck.PlanCheck, 0, len(tc.CheckUnknowns)+len(tc.CheckKnownValues)+len(tc.ExtraChecks))
+			for _, checkUnknown := range tc.CheckUnknowns {
+				checks = append(checks, plancheck.ExpectUnknownValue(baseConfig.ResourceName, checkUnknown))
+			}
+			for _, checkKnown := range tc.CheckKnownValues {
+				checks = append(checks, plancheck.ExpectKnownValue(baseConfig.ResourceName, checkKnown, knownvalue.NotNull()))
+			}
+			for _, extraCheck := range tc.ExtraChecks {
+				checks = append(checks, extraCheck(baseConfig.ResourceName))
+			}
+			unit.MockPlanChecksAndRun(t, baseConfig.WithPlanCheckTest(unit.PlanCheckTest{
+				ConfigFilename: tc.ConfigFilename,
+				Checks:         checks,
+			}))
+			assert.Equal(t, tc.expectedAttributeChanges, runData.attributeChanges)
+			assert.Equal(t, tc.expectedKeepUnknownCalls, runData.keepUnknownCalls)
+		})
+	}
 }

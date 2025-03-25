@@ -27,8 +27,9 @@ const (
 )
 
 var (
-	errToSkipApply  = errors.New("avoid full apply by raising an expected error")
-	clusterImportID = fmt.Sprintf("%s-%s", MockedProjectID, MockedClusterName)
+	errToSkipApply       = errors.New("avoid full apply by raising an expected error")
+	clusterImportID      = fmt.Sprintf("%s-%s", MockedProjectID, MockedClusterName)
+	planCheckTestCounter = 0
 
 	importIDMapping = map[string]string{
 		ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs: fmt.Sprintf("%s-%s", MockedProjectID, MockedClusterName),
@@ -61,8 +62,8 @@ type MockPlanChecksConfig struct {
 	ImportName     string
 	ConfigFilename string
 	TestdataPrefix string
-	MockConfig     MockHTTPDataConfig
 	Checks         []plancheck.PlanCheck
+	MockConfig     MockHTTPDataConfig
 }
 
 func (m *MockPlanChecksConfig) WithPlanCheckTest(testConfig PlanCheckTest) *MockPlanChecksConfig {
@@ -188,7 +189,11 @@ func fillMockDataTemplate(t *testing.T, testdataPrefix, importName, planConfigFi
 		testFileContent = bytes.ReplaceAll(testFileContent, []byte("\n"), []byte(`\n`))
 		templateContent = bytes.ReplaceAll(templateContent, []byte(filepath.Base(testFile)), testFileContent)
 	}
-	mockDataPath := fullPath(fmt.Sprintf("%s_%s.yaml", importName, planConfigFilename))
+	accClientLock.Lock()
+	planCheckTestCounter++
+	// Create a new mock data file for each test
+	mockDataPath := fullPath(fmt.Sprintf("%s_%s_%d.yaml", importName, planConfigFilename, planCheckTestCounter))
+	accClientLock.Unlock()
 	err = os.WriteFile(mockDataPath, templateContent, 0o600)
 	require.NoError(t, err)
 	fullImportConfigBytes, err := os.ReadFile(path.Join(responseDir, "main.tf"))
