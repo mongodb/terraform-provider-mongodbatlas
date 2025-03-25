@@ -19,12 +19,8 @@ jobs:
           go-version-file: 'go.mod'
       - name: Update files
         run:  make tools update-atlas-sdk
-      - name: Verify Changed files
-        uses: mongodb/apix-action/verify-changed-files@82844ae9e10d8b07686f90f98d9257c4c38b54ca
-        id: verify-changed-files
       - name: Create PR
         uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e
-        if: steps.verify-changed-files.outputs.files_changed == 'true'
         with:
           token: ${{ secrets.APIX_BOT_PAT }}
           title: "chore: Updates Atlas Go SDK"
