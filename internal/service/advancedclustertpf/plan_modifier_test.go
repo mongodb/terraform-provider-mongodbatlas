@@ -40,11 +40,9 @@ func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 				},
 			},
 			{
-				ConfigFilename: "main_removed_blocks_from_config_electable_specs_and_instance_change.tf",
+				ConfigFilename: "main_removed_blocks_from_config_and_instance_change.tf",
 				Checks: []plancheck.PlanCheck{
 					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
-					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("electable_specs").AtMapKey("instance_size"), knownvalue.StringExact("M10")),
-					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("electable_specs").AtMapKey("node_count"), knownvalue.Int64Exact(5)),
 					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("read_only_specs").AtMapKey("instance_size"), knownvalue.StringExact("M10")),
 					plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("read_only_specs").AtMapKey("instance_size"), knownvalue.StringExact("M20")),
 					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("auto_scaling"), autoScalingEnabled),
