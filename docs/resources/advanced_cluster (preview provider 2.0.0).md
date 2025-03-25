@@ -127,16 +127,19 @@ tags = {
 
 If you're currently utilizing `mongodbatlas_cluster`, see our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
 
-If you're currently utilizing `mongodbatlas_advanced_cluster`, you can proactively address the upcoming breaking changes that will affect all `mongodbatlas_advanced_cluster` resources when the next major provider version, 2.0.0, is released (timeline yet to be announced). However, it's not necessary to do this right now. If you decide to go ahead, we recommend to follow these steps in order:
+If you're currently utilizing `mongodbatlas_advanced_cluster`, while it's not necessary to do this right now, you can proactively address the upcoming breaking changes that will affect all `mongodbatlas_advanced_cluster` resources when the next major provider version, 2.0.0, is released (timeline yet to be announced).
+If you decide to go ahead, we recommend to follow these steps in order:
 
 1. If you are using the deprecated sharding configuration (with [`num_shards`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#num_shards-1)), you should first migrate to the new [Independent Shard Scaling]((https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema)) schema. See our [Advanced Cluster New Sharding Configurations Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema) for details. This step is recommended before enabling the Preview for MongoDB Atlas Provider 2.0.0.
+
+-> **IMPORTANT:** Before doing any migration, create a backup of your [Terraform state file](https://developer.hashicorp.com/terraform/cli/commands/state). The state file will be updated to the new format and the old format will not be supported anymore.
 
 2. You can proceed to enable the Preview for MongoDB Atlas Provider 2.0.0 by following these steps:
   - Before starting, run `terraform plan` to make sure that there are no planned changes.
   - Set environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` in order to use the Preview for MongoDB Atlas Provider 2.0.0.
-  - Run `terraform plan` and you'll see errors as definition file hasn't been updated yet.
-  - Apply definition changes explained on this page until there are no errors and no planned changes. **Important**: Don't apply until the plan is empty. If it shows other changes, you must update the `mongodbatlas_advanced_cluster` configuration until it matches the original configuration.
-  - Run `terraform apply` to apply the changes. Although there are no plan changes shown to the user, the `mongodbatlas_advanced_cluster` state will be updated to support the Preview for MongoDB Atlas Provider 2.0.0. **Important**: The state file will be updated to the new format and the old format will not be supported anymore. Before doing any migration create a backup of your [Terraform state file](https://developer.hashicorp.com/terraform/cli/commands/state).
+  - If you run `terraform plan` again, you'll see syntax errors: this is expected since the definition file hasn't been updated yet using the latest schema.
+  - At this point, you can apply definition changes explained on this page until there are no errors and no planned changes. **Important**: Don't apply until the plan is empty. If it shows other changes, you must update the `mongodbatlas_advanced_cluster` configuration until it matches the original configuration.
+  - Run `terraform apply` to apply the changes. Although there are no plan changes shown to the user, the `mongodbatlas_advanced_cluster` state will be updated to support the Preview for MongoDB Atlas Provider 2.0.0.
 
 -> **IMPORTANT:** If you migrate to the [Preview for MongoDB Atlas Provider 2.0.0](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster%2520%2528preview%2520provider%25202.0.0%2529) while still using the [deprecated sharding configuration](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema), you will be required to perform the migration to the new [Independent Shard Scaling](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema) schema when version 2.0.0 is released.
 
