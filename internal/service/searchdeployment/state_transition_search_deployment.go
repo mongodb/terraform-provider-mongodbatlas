@@ -66,6 +66,10 @@ func searchDeploymentRefreshFunc(ctx context.Context, projectID, clusterName str
 			return nil, "", err
 		}
 
+		if IsNotFoundDeploymentResponse(deploymentResp) {
+			return "", retrystrategy.RetryStrategyDeletedState, nil
+		}
+
 		if conversion.IsStringPresent(deploymentResp.StateName) {
 			tflog.Debug(ctx, fmt.Sprintf("search deployment status: %s", *deploymentResp.StateName))
 			return deploymentResp, *deploymentResp.StateName, nil

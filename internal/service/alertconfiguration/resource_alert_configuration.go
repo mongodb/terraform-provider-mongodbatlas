@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin" // CLOUDP-307850: breaking change in v20250312 of the SDK
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
