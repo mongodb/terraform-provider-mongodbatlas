@@ -27,6 +27,13 @@ func autoScalingKnownValue(computeEnabled, diskEnabled, scaleDown bool, minInsta
 	})
 }
 
+func specInstanceSizeNodeCount(instanceSize string, nodeCount int) knownvalue.Check {
+	return knownvalue.ObjectPartial(map[string]knownvalue.Check{
+		"instance_size": knownvalue.StringExact(instanceSize),
+		"node_count":    knownvalue.Int64Exact(int64(nodeCount)),
+	})
+}
+
 func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 	var (
 		baseConfig         = unit.NewMockPlanChecksConfig(t, &mockConfig, unit.ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs)
@@ -43,15 +50,20 @@ func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 				ConfigFilename: "main_removed_blocks_from_config_and_instance_change.tf",
 				Checks: []plancheck.PlanCheck{
 					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
-					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("read_only_specs").AtMapKey("instance_size"), knownvalue.StringExact("M10")),
-					plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("read_only_specs").AtMapKey("instance_size"), knownvalue.StringExact("M20")),
+					// checks regionConfig0
+					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("read_only_specs"), specInstanceSizeNodeCount("M10", 2)),
+					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("electable_specs"), specInstanceSizeNodeCount("M10", 5)),
 					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("auto_scaling"), autoScalingEnabled),
 					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("analytics_auto_scaling"), autoScalingEnabled),
+					plancheck.ExpectUnknownValue(resourceName, regionConfig0.AtMapKey("analytics_specs")), // analytics specs was defined in region_configs.0 but not in region_configs.1
+					plancheck.ExpectUnknownValue(resourceName, repSpec0.AtMapKey("id")),
+
+					// checks regionConfig1
+					plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("read_only_specs"), specInstanceSizeNodeCount("M20", 1)),
+					plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("electable_specs"), specInstanceSizeNodeCount("M20", 3)),
 					plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("auto_scaling"), autoScalingEnabled),
 					plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("analytics_auto_scaling"), autoScalingEnabled),
-					plancheck.ExpectUnknownValue(resourceName, regionConfig0.AtMapKey("analytics_specs")), // analytics specs was defined in region_configs.0 but not in region_configs.1
 					plancheck.ExpectKnownValue(resourceName, regionConfig1.AtMapKey("analytics_specs"), knownvalue.NotNull()),
-					plancheck.ExpectUnknownValue(resourceName, repSpec0.AtMapKey("id")),
 					plancheck.ExpectUnknownValue(resourceName, repSpec1.AtMapKey("id")),
 				},
 			},
