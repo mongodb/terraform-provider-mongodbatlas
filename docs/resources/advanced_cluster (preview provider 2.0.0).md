@@ -129,7 +129,7 @@ If you're currently utilizing `mongodbatlas_cluster`, see our [Migration Guide](
 
 If you're currently utilizing `mongodbatlas_advanced_cluster`, you can proactively address the upcoming breaking changes that will affect all `mongodbatlas_advanced_cluster` resources when the next major provider version, 2.0.0, is released (timeline yet to be announced). However, it's not necessary to do this right now. If you decide to go ahead, we recommend to follow these steps in order:
 
-1. If you are using the deprecated sharding configuration (with `num_shards`), you should first migrate to the new Independent Shard Scaling schema. See our [Advanced Cluster New Sharding Configurations Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema) for details. This step is recommended before enabling the Preview for MongoDB Atlas Provider 2.0.0.
+1. If you are using the deprecated sharding configuration (with [`num_shards`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#num_shards-1)), you should first migrate to the new [Independent Shard Scaling]((https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema)) schema. See our [Advanced Cluster New Sharding Configurations Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema) for details. This step is recommended before enabling the Preview for MongoDB Atlas Provider 2.0.0.
 
 2. You can proceed to enable the Preview for MongoDB Atlas Provider 2.0.0 by following these steps:
   - Before starting, run `terraform plan` to make sure that there are no planned changes.
