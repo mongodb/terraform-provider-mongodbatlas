@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
@@ -101,6 +102,11 @@ func (r *searchDeploymentRS) Read(ctx context.Context, req resource.ReadRequest,
 			return
 		}
 		resp.Diagnostics.AddError("error getting search deployment information", err.Error())
+		return
+	}
+
+	if IsNotFoundDeploymentResponse(deploymentResp) {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -199,4 +205,8 @@ func splitSearchNodeImportID(id string) (projectID, clusterName string, err erro
 	projectID = parts[1]
 	clusterName = parts[2]
 	return
+}
+
+func IsNotFoundDeploymentResponse(deploymentResp *admin.ApiSearchDeploymentResponse) bool {
+	return deploymentResp == nil || deploymentResp.Id == nil
 }
