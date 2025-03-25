@@ -127,12 +127,12 @@ tags = {
 
 If you're currently utilizing `mongodbatlas_cluster`, see our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
 
-If you're currently utilizing `mongodbatlas_advanced_cluster`, while it's not necessary to do this right now, you can proactively address the upcoming breaking changes that will affect all `mongodbatlas_advanced_cluster` resources when the next major provider version, 2.0.0, is released (timeline yet to be announced).
+If you're currently utilizing `mongodbatlas_advanced_cluster`, you may also proactively address the upcoming breaking changes that will affect all `mongodbatlas_advanced_cluster` resources when the next major provider version, 2.0.0, is released (timeline yet to be announced).
 If you decide to go ahead, we recommend to follow these steps in order:
 
 1. If you are using the deprecated sharding configuration (with [`num_shards`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#num_shards-1)), you should first migrate to the new [Independent Shard Scaling]((https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema)) schema. See our [Advanced Cluster New Sharding Configurations Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema) for details. 
 
-~> **IMPORTANT:** Before doing any migration, create a backup of your [Terraform state file](https://developer.hashicorp.com/terraform/cli/commands/state). The state file will be updated to the new format and the old format will not be supported anymore.
+~> **IMPORTANT:** Before doing any migration, create a backup of your [Terraform state file](https://developer.hashicorp.com/terraform/cli/commands/state). The state file will be updated to the new format and the old format will no longer be supported.
 
 2. Enable the Preview for MongoDB Atlas Provider 2.0.0 by following these steps:
   - Run `terraform plan` to make sure that there are no planned changes.
