@@ -242,3 +242,15 @@ func TestReplaceUnknownLogicByWrappingAdvancedClusterTPF(t *testing.T) {
 		})
 	}
 }
+
+func TestUnknownReplacements_AddReplacementSameNameShouldPanic(t *testing.T) {
+	unknownReplacements := customplanmodifier.UnknownReplacements[replaceUnknownResourceInfo]{
+		Differ:       nil,
+		Replacements: map[string]customplanmodifier.UnknownReplacementCall[replaceUnknownResourceInfo]{},
+		Info:         replaceUnknownResourceInfo{},
+	}
+	unknownReplacements.AddReplacement("name", nil)
+	assert.Panics(t, func() {
+		unknownReplacements.AddReplacement("name", nil)
+	})
+}
