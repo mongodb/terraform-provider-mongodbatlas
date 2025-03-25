@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
 const alertConfigurationsDataSourceName = "alert_configurations"
@@ -132,7 +132,7 @@ func (d *AlertConfigurationsDS) Read(ctx context.Context, req datasource.ReadReq
 
 	alertConfigurationsConfig.ListOptions = setDefaultValuesInListOptions(alertConfigurationsConfig.ListOptions)
 
-	connV2 := d.Client.AtlasV2
+	connV2 := d.Client.AtlasV220241113
 	params := newListParams(projectID, alertConfigurationsConfig.ListOptions)
 	alerts, _, err := connV2.AlertConfigurationsApi.ListAlertConfigurationsWithParams(ctx, params).Execute()
 	if err != nil {
