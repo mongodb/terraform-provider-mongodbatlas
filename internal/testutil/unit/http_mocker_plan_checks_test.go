@@ -14,7 +14,6 @@ import (
 const (
 	pkgAdvancedCluster    = "advancedcluster"
 	pkgAdvancedClusterTPF = "advancedclustertpf"
-	pkgRelPath            = "internal/service"
 )
 
 var (
@@ -53,8 +52,8 @@ func TestConvertMockableTests(t *testing.T) {
 			DestPackage:         pkgAdvancedClusterTPF,
 		},
 	} {
-		srcTestdata := unit.RepoPath(path.Join(pkgRelPath, config.SrcPackage, "testdata"))
-		destTestdata := unit.RepoPath(path.Join(pkgRelPath, config.DestPackage, "testdata"))
+		srcTestdata := path.Join(unit.PackagePath(config.SrcPackage), "testdata")
+		destTestdata := path.Join(unit.PackagePath(config.DestPackage), "testdata")
 		ensureDir(t, destTestdata)
 		srcTestdataPath := path.Join(srcTestdata, config.TestName+".yaml")
 		destTestdataPath := path.Join(destTestdata, importName+".tmpl.yaml")

@@ -10,6 +10,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -59,8 +60,9 @@ type MockPlanChecksConfig struct {
 	ResourceName   string
 	ImportName     string
 	ConfigFilename string
-	Checks         []plancheck.PlanCheck
+	TestdataPrefix string
 	MockConfig     MockHTTPDataConfig
+	Checks         []plancheck.PlanCheck
 }
 
 func (m *MockPlanChecksConfig) WithPlanCheckTest(testConfig PlanCheckTest) *MockPlanChecksConfig {
@@ -71,6 +73,7 @@ func (m *MockPlanChecksConfig) WithPlanCheckTest(testConfig PlanCheckTest) *Mock
 		ImportID:       m.ImportID,
 		ResourceName:   m.ResourceName,
 		MockConfig:     m.MockConfig,
+		TestdataPrefix: m.TestdataPrefix,
 	}
 }
 
@@ -95,7 +98,7 @@ func RunPlanCheckTests(t *testing.T, baseConfig *MockPlanChecksConfig, tests []P
 // Together with the extra step in `testdata/{ImportName}/main_{runConfig.Name}.tf` we fill the template: testdata/{runConfig.ImportName}.tmpl.yaml
 func MockPlanChecksAndRun(t *testing.T, runConfig *MockPlanChecksConfig) {
 	t.Helper()
-	importConfig, planConfig, mockDataPath := fillMockDataTemplate(t, runConfig.ImportName, runConfig.ConfigFilename)
+	importConfig, planConfig, mockDataPath := fillMockDataTemplate(t, runConfig.TestdataPrefix, runConfig.ImportName, runConfig.ConfigFilename)
 	t.Cleanup(func() {
 		require.NoError(t, os.Remove(mockDataPath))
 	})
@@ -164,12 +167,18 @@ func (r *requestHandlerSwitch) CheckPlan(_ context.Context, req plancheck.CheckP
 	resp.Error = errToSkipApply
 }
 
-func fillMockDataTemplate(t *testing.T, importName, planConfigFilename string) (importConfig, planCheckConfig, mockDataFilePath string) {
+func fillMockDataTemplate(t *testing.T, testdataPrefix, importName, planConfigFilename string) (importConfig, planCheckConfig, mockDataFilePath string) {
 	t.Helper()
-	templatePath := fmt.Sprintf("testdata/%s.tmpl.yaml", importName)
+	fullPath := func(testdataRelPath string) string {
+		if testdataPrefix == "" {
+			return "testdata/" + testdataRelPath
+		}
+		return strings.TrimSuffix(testdataPrefix, "/") + "/testdata/" + testdataRelPath
+	}
+	templatePath := fullPath(importName + ".tmpl.yaml")
 	templateContent, err := os.ReadFile(templatePath)
 	require.NoError(t, err)
-	responseDir := fmt.Sprintf("testdata/%s", importName)
+	responseDir := fullPath(importName)
 	responsePaths, err := filepath.Glob(path.Join(responseDir, "*.json"))
 	require.NoError(t, err)
 	for _, testFile := range responsePaths {
@@ -179,7 +188,7 @@ func fillMockDataTemplate(t *testing.T, importName, planConfigFilename string) (
 		testFileContent = bytes.ReplaceAll(testFileContent, []byte("\n"), []byte(`\n`))
 		templateContent = bytes.ReplaceAll(templateContent, []byte(filepath.Base(testFile)), testFileContent)
 	}
-	mockDataPath := fmt.Sprintf("testdata/%s_%s.yaml", importName, planConfigFilename)
+	mockDataPath := fullPath(fmt.Sprintf("%s_%s.yaml", importName, planConfigFilename))
 	err = os.WriteFile(mockDataPath, templateContent, 0o600)
 	require.NoError(t, err)
 	fullImportConfigBytes, err := os.ReadFile(path.Join(responseDir, "main.tf"))

@@ -28,9 +28,10 @@ type HTTPClientModifier interface {
 }
 
 type ProviderMocked struct {
-	OriginalProvider *provider.MongodbtlasProvider
-	ClientModifier   HTTPClientModifier
-	t                *testing.T
+	OriginalProvider  *provider.MongodbtlasProvider
+	ClientModifier    HTTPClientModifier
+	t                 *testing.T
+	explicitResources []func() resource.Resource
 }
 
 func (p *ProviderMocked) Metadata(ctx context.Context, req fwProvider.MetadataRequest, resp *fwProvider.MetadataResponse) {
@@ -62,11 +63,14 @@ func (p *ProviderMocked) DataSources(ctx context.Context) []func() datasource.Da
 	return p.OriginalProvider.DataSources(ctx)
 }
 func (p *ProviderMocked) Resources(ctx context.Context) []func() resource.Resource {
+	if len(p.explicitResources) > 0 {
+		return p.explicitResources
+	}
 	return p.OriginalProvider.Resources(ctx)
 }
 
 // Similar to provider.go#muxProviderFactory
-func muxProviderFactory(t *testing.T, clientModifier HTTPClientModifier) func() tfprotov6.ProviderServer {
+func muxProviderFactory(t *testing.T, clientModifier HTTPClientModifier, explicitResources []func() resource.Resource) func() tfprotov6.ProviderServer {
 	t.Helper()
 	v2Provider := provider.NewSdkV2Provider()
 	v2ProviderConfigureContextFunc := v2Provider.ConfigureContextFunc
@@ -89,9 +93,10 @@ func muxProviderFactory(t *testing.T, clientModifier HTTPClientModifier) func() 
 		log.Fatal("Failed to cast provider to MongodbtlasProvider")
 	}
 	mockedProvider := &ProviderMocked{
-		OriginalProvider: fwProviderInstanceTyped,
-		ClientModifier:   clientModifier,
-		t:                t,
+		OriginalProvider:  fwProviderInstanceTyped,
+		ClientModifier:    clientModifier,
+		t:                 t,
+		explicitResources: explicitResources,
 	}
 	upgradedSdkProvider, err := tf5to6server.UpgradeServer(t.Context(), v2Provider.GRPCProvider)
 	if err != nil {
@@ -107,11 +112,11 @@ func muxProviderFactory(t *testing.T, clientModifier HTTPClientModifier) func() 
 	return muxServer.ProviderServer
 }
 
-func TestAccProviderV6FactoriesWithMock(t *testing.T, clientModifier HTTPClientModifier) map[string]func() (tfprotov6.ProviderServer, error) {
+func TestAccProviderV6FactoriesWithMock(t *testing.T, clientModifier HTTPClientModifier, explicitResources []func() resource.Resource) map[string]func() (tfprotov6.ProviderServer, error) {
 	t.Helper()
 	return map[string]func() (tfprotov6.ProviderServer, error){
 		acc.ProviderNameMongoDBAtlas: func() (tfprotov6.ProviderServer, error) {
-			return muxProviderFactory(t, clientModifier)(), nil
+			return muxProviderFactory(t, clientModifier, explicitResources)(), nil
 		},
 	}
 }

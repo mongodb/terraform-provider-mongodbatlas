@@ -8,6 +8,7 @@ import (
 	"sync"
 	"testing"
 
+	fwresource "github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -23,18 +24,24 @@ const (
 )
 
 type MockHTTPDataConfig struct {
-	RunBeforeEach        func() error         // Run by TestCase.PreCheck. Useful for reducing retry timeouts.
-	RequestHandler       ManualRequestHandler // Allow inspecting or overriding mocking behavior. Can be used to return 404 when a test has completed.
-	FilePathOverride     string               // Read mock data file from specific filepath, otherwise using the test name in `MockConfigFilePath` to find mocked responses.
-	IsDiffSkipSuffixes   []string             // Can be used when a PATCH/POST request is creating noise for diffs, for example :validate endpoints.
-	IsDiffMustSubstrings []string             // Only include diff request for specific substrings, for example /clusters (avoids project create requests)
-	QueryVars            []string             // Substitute this query vars. Useful when differentiating responses based on query args, for example ?providerName=AWS/AZURE returns different responses
-	AllowMissingRequests bool                 // When false will require all API calls to be made.
-	AllowOutOfOrder      bool                 // When true will allow a GET request returned after a POST to be returned before the POST.
+	RunBeforeEach        func() error
+	RequestHandler       ManualRequestHandler
+	FilePathOverride     string
+	IsDiffSkipSuffixes   []string
+	IsDiffMustSubstrings []string
+	QueryVars            []string
+	ExplicitResources    []func() fwresource.Resource
+	AllowMissingRequests bool
+	AllowOutOfOrder      bool
 }
 
 func (c MockHTTPDataConfig) WithAllowOutOfOrder() MockHTTPDataConfig { //nolint: gocritic // Want each test run to have its own config (hugeParam: c is heavy (112 bytes); consider passing it by pointer)
 	c.AllowOutOfOrder = true
+	return c
+}
+
+func (c MockHTTPDataConfig) WithResources(resources []func() fwresource.Resource) MockHTTPDataConfig { //nolint: gocritic // Want each test run to have its own config (hugeParam: c is heavy (112 bytes); consider passing it by pointer)
+	c.ExplicitResources = resources
 	return c
 }
 
@@ -152,7 +159,7 @@ func enableReplayForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase 
 	roundTripper, mockRoundTripper := NewMockRoundTripper(t, config, data)
 	httpClientModifier := mockClientModifier{config: config, mockRoundTripper: roundTripper}
 	testCase.IsUnitTest = true
-	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, &httpClientModifier)
+	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, &httpClientModifier, config.ExplicitResources)
 	testCase.PreCheck = func() {
 		if config.RunBeforeEach != nil {
 			// Mock Configs can share RunBeforeEach, using lock to avoid race conditions.
@@ -193,7 +200,7 @@ func enableCaptureForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase
 	tfConfigs := extractAndNormalizeConfig(t, testCase)
 	capturedData := NewMockHTTPData(t, stepCount, tfConfigs)
 	clientModifier := NewCaptureMockConfigClientModifier(t, config, capturedData)
-	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, clientModifier)
+	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, clientModifier, config.ExplicitResources)
 	for i := range stepCount {
 		step := &testCase.Steps[i]
 		oldSkip := step.SkipFunc
