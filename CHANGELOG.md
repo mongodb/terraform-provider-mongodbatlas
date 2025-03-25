@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.31.0 (March 25, 2025)
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_organization: Adds support for `skip_default_alerts_settings` setting ([#2933](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2933))
