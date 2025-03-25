@@ -120,7 +120,7 @@ type unknownReplacementTestCase struct {
 	expectedKeepUnknownCalls []string
 }
 
-func TestWrappingAdvancedClusterTPF(t *testing.T) {
+func TestReplaceUnknownLogicByWrappingAdvancedClusterTPF(t *testing.T) {
 	instanceSizeChanged := customplanmodifier.AttributeChanges{
 		"replication_specs[0]",
 		"replication_specs[0].region_configs[0]",
