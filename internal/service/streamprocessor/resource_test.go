@@ -118,27 +118,139 @@ func TestAccStreamProcessor_withOptions(t *testing.T) {
 		}})
 }
 
-func TestAccStreamProcessor_createWithAutoStartAndStop(t *testing.T) {
-	var (
-		projectID     = acc.ProjectIDExecution(t)
-		processorName = "new-processor"
-		instanceName  = acc.RandomName()
-	)
+func TestAccStreamProcessor_StateTransitionsUpdates(t *testing.T) {
+	transitions := []struct {
+		name         string
+		setupState   string // Optional: Initial setup state (needed for STOPPED tests since we can't create in a STOPPED state)
+		initialState string // State to create or transition to after setup
+		targetState  string // Final state to transition to
+		description  string // Description of what the test validates
+	}{
+		{
+			name:         "CreatedToCreated",
+			initialState: CreatedState,
+			targetState:  CreatedState,
+			description:  "Verifies a processor in CREATED state can be updated while remaining in CREATED state",
+		},
+		{
+			name:         "CreatedToStarted",
+			initialState: CreatedState,
+			targetState:  StartedState,
+			description:  "Verifies a processor can transition from CREATED to STARTED state",
+		},
+		{
+			name:         "StartedToStopped",
+			initialState: StartedState,
+			targetState:  StoppedState,
+			description:  "Verifies a processor can transition from STARTED to STOPPED state",
+		},
+		{
+			name:         "StartedToStarted",
+			initialState: StartedState,
+			targetState:  StartedState,
+			description:  "Verifies a processor in STARTED state can be updated while remaining in STARTED state",
+		},
+		{
+			name:         "StoppedToStarted",
+			setupState:   StartedState, // Must first get to STARTED before we can test STOPPED→STARTED
+			initialState: StoppedState,
+			targetState:  StartedState,
+			description:  "Verifies a processor can transition from STOPPED to STARTED state",
+		},
+		{
+			name:         "StoppedToStopped",
+			setupState:   StartedState, // Must first get to STARTED before we can test STOPPED→STOPPED
+			initialState: StoppedState,
+			targetState:  StoppedState,
+			description:  "Verifies a processor in STOPPED state can be updated while remaining in STOPPED state",
+		},
+	}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroyStreamProcessor,
-		Steps: []resource.TestStep{
-			{
-				Config: config(t, projectID, instanceName, processorName, streamprocessor.StartedState, sampleSrcConfig, testLogDestConfig),
-				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StartedState, true, false),
-			},
-			{
-				Config: config(t, projectID, instanceName, processorName, streamprocessor.StoppedState, sampleSrcConfig, testLogDestConfig),
-				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StoppedState, true, false),
-			},
-		}})
+	for _, tc := range transitions {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Logf("Testing: %s", tc.description)
+			testAccStreamProcessorStateTransitionForUpdates(t, tc.setupState, tc.initialState, tc.targetState, "")
+		})
+	}
+}
+
+// when an empty state is provided in a stream processor update, it should use the existing current state
+func TestAccStreamProcessor_EmptyStateUpdates(t *testing.T) {
+	transitions := []struct {
+		name         string
+		setupState   string // Optional: Initial setup state (needed for STOPPED tests since we can't create in a STOPPED state)
+		initialState string // State to create or transition to after setup
+		targetState  string // Final state to transition to
+		description  string // Description of what the test validates
+	}{
+		{
+			name:         "CreatedToEmptyState",
+			initialState: CreatedState,
+			targetState:  "",
+			description:  "Verifies that a processor in CREATED state can be updated while remaining in a derived CREATED state from empty state",
+		},
+		{
+			name:         "StartedToEmptyState",
+			initialState: StartedState,
+			targetState:  "",
+			description:  "Verifies that a processor in STARTED state can be updated while remaining in a derived STARTED state from empty state",
+		},
+		{
+			name:         "StoppedToEmptyState",
+			setupState:   StartedState, // Must first get to STARTED before we can test STOPPED→EMPTY
+			initialState: StoppedState,
+			targetState:  "",
+			description:  "Verifies that a processor in STOPPED state can be updated while remaining in a derived STOPPED state from empty state",
+		},
+	}
+
+	for _, tc := range transitions {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Logf("Testing: %s", tc.description)
+			testAccStreamProcessorStateTransitionForUpdates(t, tc.setupState, tc.initialState, tc.targetState, "")
+		})
+	}
+}
+
+func TestAccStreamProcessor_InvalidStateTransitionUpdates(t *testing.T) {
+	transitions := []struct {
+		name          string
+		setupState    string // Optional: Initial setup state (needed for STOPPED tests)
+		initialState  string // State to create or transition to after setup
+		targetState   string // Final state to transition to
+		expectedError string
+		description   string // Description of what the test validates
+	}{
+		{
+			name:          "CreatedToStopped",
+			initialState:  CreatedState,
+			targetState:   StoppedState,
+			expectedError: fmt.Sprintf(streamprocessor.ErrorUpdateStateTransition, StartedState, StoppedState),
+			description:   "Verifies a processor cannot transition from CREATED to STOPPED state",
+		},
+		{
+			name:          "StoppedToCreated",
+			setupState:    StartedState, // Must first get to STARTED before we can test STOPPED→CREATED
+			initialState:  StoppedState,
+			targetState:   CreatedState,
+			expectedError: fmt.Sprintf(streamprocessor.ErrorUpdateToCreatedState, StoppedState),
+			description:   "Verifies a processor cannot transition from STOPPED to CREATED state",
+		},
+		{
+			name:          "StartedToCreated",
+			initialState:  StartedState,
+			targetState:   CreatedState,
+			expectedError: fmt.Sprintf(streamprocessor.ErrorUpdateToCreatedState, StartedState),
+			description:   "Verifies a processor cannot transition from STARTED to CREATED state",
+		},
+	}
+
+	for _, tc := range transitions {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Logf("Testing: %s", tc.description)
+			testAccStreamProcessorStateTransitionForUpdates(t, tc.setupState, tc.initialState, tc.targetState, tc.expectedError)
+		})
+	}
 }
 
 func TestAccStreamProcessor_clusterType(t *testing.T) {
@@ -181,35 +293,6 @@ func TestAccStreamProcessor_createErrors(t *testing.T) {
 			{
 				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StoppedState, sampleSrcConfig, testLogDestConfig),
 				ExpectError: regexp.MustCompile("When creating a stream processor, the only valid states are CREATED and STARTED"),
-			},
-		}})
-}
-
-func TestAccStreamProcessor_updateErrors(t *testing.T) {
-	var (
-		processorName          = "new-processor"
-		instanceName           = acc.RandomName()
-		projectID, clusterName = acc.ClusterNameExecution(t, false)
-		src                    = connectionConfig{connectionType: connTypeCluster, clusterName: clusterName, pipelineStepIsSource: true, useAsDLQ: false}
-		srcWithOptions         = connectionConfig{connectionType: connTypeCluster, clusterName: clusterName, pipelineStepIsSource: true, useAsDLQ: true}
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroyStreamProcessor,
-		Steps: []resource.TestStep{
-			{
-				Config: config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, src, testLogDestConfig),
-				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
-			},
-			{
-				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StoppedState, src, testLogDestConfig),
-				ExpectError: regexp.MustCompile(`Stream Processor must be in \w+ state to transition to \w+ state`),
-			},
-			{
-				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StartedState, srcWithOptions, testLogDestConfig),
-				ExpectError: regexp.MustCompile("updating a Stream Processor is not supported"),
 			},
 		}})
 }
@@ -259,6 +342,153 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 
 		return fmt.Sprintf("%s-%s-%s", rs.Primary.Attributes["instance_name"], rs.Primary.Attributes["project_id"], rs.Primary.Attributes["processor_name"]), nil
 	}
+}
+
+// testAccStreamProcessorStateTransition tests a state transition with optional setup state
+// If errorPattern is not empty, the final transition is expected to fail with an error matching that pattern
+func testAccStreamProcessorStateTransitionForUpdates(t *testing.T, setupState, initialState, targetState, errorPattern string) {
+	t.Helper()
+	var (
+		projectID     = acc.ProjectIDExecution(t)
+		processorName = fmt.Sprintf("processor-%s-to-%s", strings.ToLower(initialState), strings.ToLower(targetState))
+		instanceName  = fmt.Sprintf("%s-%s-%s-%s", acc.RandomName(), setupState, initialState, targetState)
+	)
+
+	initialPipeline := `[
+		{
+			"$source": {
+				"connectionName":"sample_stream_solar"
+			}
+		},
+		{
+			"$emit": {
+				"connectionName":"__testLog"
+			}
+		}
+	]`
+
+	updatedPipelineWithTumblingWindow := `[
+		{
+			"$source": {
+				"connectionName": "sample_stream_solar"
+			}
+		},
+		{
+			"$tumblingWindow": {
+				"interval": { 
+					"size": 10, 
+					"unit": "second" 
+				},
+				"pipeline": [
+					{
+						"$group": {
+							"_id": "$group_id",
+							"max_temp": { "$avg": "$obs.temp" },
+							"avg_watts": { "$min": "$obs.watts" }
+						}
+					}
+				]
+			}
+		},
+		{
+			"$emit": {
+				"connectionName": "__testLog"
+			}
+		}
+	]`
+
+	steps := []resource.TestStep{}
+	// Add setup step if needed (required for testing from STOPPED state)
+	if setupState != "" {
+		setupStateConfig := fmt.Sprintf(`state = %q`, setupState)
+		steps = append(steps, resource.TestStep{
+			Config: configToUpdateStreamProcessor(projectID, instanceName, processorName, setupStateConfig, initialPipeline),
+			Check:  checkAttributesFromBasicUpdateFlow(projectID, instanceName, processorName, setupState, initialPipeline),
+		})
+	}
+
+	var initialStateConfig string
+	if initialState != "" {
+		initialStateConfig = fmt.Sprintf(`state = %q`, initialState)
+	}
+	steps = append(steps, resource.TestStep{
+		Config: configToUpdateStreamProcessor(projectID, instanceName, processorName, initialStateConfig, initialPipeline),
+		Check:  checkAttributesFromBasicUpdateFlow(projectID, instanceName, processorName, initialState, initialPipeline),
+	})
+
+	var targetStateConfig string
+	if targetState != "" {
+		targetStateConfig = fmt.Sprintf(`state = %q`, targetState)
+	}
+	// Add target state step, with error checking if applicable
+	finalStep := resource.TestStep{
+		Config: configToUpdateStreamProcessor(projectID, instanceName, processorName, targetStateConfig, updatedPipelineWithTumblingWindow),
+	}
+
+	// Configure the step based on whether we expect success or failure
+	if errorPattern != "" {
+		// For invalid transitions, expect an error
+		finalStep.ExpectError = regexp.MustCompile(errorPattern)
+	} else {
+		// if the empty state is passed in the target config, this should be the same initial state of the config
+		if targetState == "" {
+			targetState = initialState
+		}
+		finalStep.Check = checkAttributesFromBasicUpdateFlow(projectID, instanceName, processorName, targetState, updatedPipelineWithTumblingWindow)
+	}
+	steps = append(steps, finalStep)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroyStreamProcessor,
+		Steps:                    steps,
+	})
+}
+
+// configToUpdateStreamProcessor generates Terraform configuration for Stream Processor state transition tests.
+// It creates a minimal test environment with a stream instance, sample source connection and pipelines that can be updated
+func configToUpdateStreamProcessor(projectID, instanceName, processorName, state, pipeline string) string {
+	return fmt.Sprintf(`resource "mongodbatlas_stream_instance" "instance" {
+			project_id    = %[1]q
+			instance_name = %[2]q
+			data_process_region = {
+				region         = "VIRGINIA_USA"
+				cloud_provider = "AWS"
+			}
+		}
+
+		resource "mongodbatlas_stream_connection" "sample" {
+			project_id      = %[1]q
+			instance_name   = mongodbatlas_stream_instance.instance.instance_name
+			connection_name = "sample_stream_solar"
+			type            = "Sample"
+			depends_on = [mongodbatlas_stream_instance.instance] 
+        }
+
+		resource "mongodbatlas_stream_processor" "processor" {
+			project_id     = %[1]q
+			instance_name  = mongodbatlas_stream_instance.instance.instance_name
+			processor_name = %[3]q
+			pipeline       = %[4]q
+			%[5]s
+			depends_on = [mongodbatlas_stream_connection.sample]		
+		}
+		`, projectID, instanceName, processorName, pipeline, state)
+}
+
+func checkAttributesFromBasicUpdateFlow(projectID, instanceName, processorName, state, expectedPipelineStr string) resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{checkExists(resourceName)}
+	attributes := map[string]string{
+		"project_id":     projectID,
+		"instance_name":  instanceName,
+		"processor_name": processorName,
+		"state":          state,
+		"pipeline":       expectedPipelineStr,
+	}
+
+	checks = acc.AddAttrChecks(resourceName, checks, attributes)
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func composeStreamProcessorChecks(projectID, instanceName, processorName, state string, includeStats, includeOptions bool) resource.TestCheckFunc {
