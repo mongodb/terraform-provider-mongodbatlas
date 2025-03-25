@@ -10,6 +10,7 @@ import (
 
 var attributePlanModifiers = map[string]customplanmodifier.UnknownReplacementCall[PlanModifyResourceInfo]{
 	"mongo_db_version": mongoDBVersionReplaceUnknown,
+	// TODO: Add the other computed attributes
 }
 
 func mongoDBVersionReplaceUnknown(ctx context.Context, state customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
@@ -40,7 +41,7 @@ func unknownReplacements(ctx context.Context, req *resource.ModifyPlanRequest, r
 		AutoScalingDiskUsed:     diskUsed,
 		isShardingConfigUpgrade: shardingConfigUpgrade,
 	}
-	unknownReplacements := customplanmodifier.NewUnknownReplacements(ctx, req, resp, resourceSchema(ctx), info)
+	unknownReplacements := customplanmodifier.NewUnknownReplacements(ctx, req, resp, ResourceSchema(ctx), info)
 	for attrName, replacer := range attributePlanModifiers {
 		unknownReplacements.AddReplacement(attrName, replacer)
 	}

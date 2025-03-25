@@ -21,7 +21,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
-func resourceSchema(ctx context.Context) schema.Schema {
+func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Version: 2,
 		Attributes: map[string]schema.Attribute{
@@ -329,14 +329,14 @@ func resourceSchema(ctx context.Context) schema.Schema {
 }
 
 func dataSourceSchema(ctx context.Context) dsschema.Schema {
-	return conversion.DataSourceSchemaFromResource(resourceSchema(ctx), &conversion.DataSourceSchemaRequest{
+	return conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.DataSourceSchemaRequest{
 		RequiredFields:  []string{"project_id", "name"},
 		OverridenFields: dataSourceOverridenFields(),
 	})
 }
 
 func pluralDataSourceSchema(ctx context.Context) dsschema.Schema {
-	return conversion.PluralDataSourceSchemaFromResource(resourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
+	return conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
 		RequiredFields: []string{"project_id"},
 		OverridenRootFields: map[string]dsschema.Attribute{
 			"use_replication_spec_per_shard": useReplicationSpecPerShardSchema(),
