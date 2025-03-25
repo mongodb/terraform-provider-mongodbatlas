@@ -7,14 +7,14 @@ import (
 
 type AttributeChanges []string
 
-func (a AttributeChanges) LeafChanges() map[string]bool {
+func (a AttributeChanges) LeafChanges() map[string]struct{} {
 	return a.leafChanges(true)
 }
 
 func (a AttributeChanges) AttributeChanged(name string) bool {
 	changes := a.LeafChanges()
-	changed := changes[name]
-	return changed
+	_, found := changes[name]
+	return found
 }
 
 func (a AttributeChanges) KeepUnknown(attributeEffectedMapping map[string][]string) []string {
@@ -32,7 +32,8 @@ func (a AttributeChanges) KeepUnknown(attributeEffectedMapping map[string][]stri
 func (a AttributeChanges) ListIndexChanged(name string, index int) bool {
 	leafChanges := a.leafChanges(false)
 	indexPath := fmt.Sprintf("%s[%d]", name, index)
-	return leafChanges[indexPath]
+	_, found := leafChanges[indexPath]
+	return found
 }
 
 // NestedListLenChanges accepts a fullPath, e.g., "replication_specs[0].region_configs" and returns true if the length of the nested list has changed
@@ -59,8 +60,8 @@ func (a AttributeChanges) ListLenChanges(name string) bool {
 	return false
 }
 
-func (a AttributeChanges) leafChanges(removeIndex bool) map[string]bool {
-	leafChanges := map[string]bool{}
+func (a AttributeChanges) leafChanges(removeIndex bool) map[string]struct{} {
+	leafChanges := make(map[string]struct{})
 	for _, change := range a {
 		var leaf string
 		parts := strings.Split(change, ".")
@@ -68,7 +69,7 @@ func (a AttributeChanges) leafChanges(removeIndex bool) map[string]bool {
 		if removeIndex && strings.HasSuffix(leaf, "]") {
 			leaf = strings.Split(leaf, "[")[0]
 		}
-		leafChanges[leaf] = true
+		leafChanges[leaf] = struct{}{}
 	}
 	return leafChanges
 }

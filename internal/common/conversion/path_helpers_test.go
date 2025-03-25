@@ -9,10 +9,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestIsAttributeValueOnly(t *testing.T) {
+func TestIsIndexValue(t *testing.T) {
 	assert.True(t, conversion.IsIndexValue(path.Root("replication_specs").AtListIndex(0)))
 	assert.True(t, conversion.IsIndexValue(path.Root("replication_specs").AtMapKey("myKey")))
 	assert.True(t, conversion.IsIndexValue(path.Root("replication_specs").AtSetValue(types.StringValue("myKey"))))
+	assert.False(t, conversion.IsIndexValue(path.Root("replication_specs")))
+	assert.False(t, conversion.IsIndexValue(path.Root("replication_specs").AtName("id")))
 }
 
 func TestAttributeNameEquals(t *testing.T) {
@@ -39,9 +41,9 @@ func TestAttributeNameEquals(t *testing.T) {
 }
 
 func TestStripSquareBrackets(t *testing.T) {
-	assert.Equal(t, "replication_specs", conversion.StripSquareBrackets(path.Root("replication_specs").AtListIndex(0)))
-	assert.Equal(t, "replication_specs", conversion.StripSquareBrackets(path.Root("replication_specs").AtMapKey("myKey")))
-	assert.Equal(t, "replication_specs", conversion.StripSquareBrackets(path.Root("replication_specs")))
+	assert.Equal(t, "replication_specs", conversion.TrimLastIndex(path.Root("replication_specs").AtListIndex(0)))
+	assert.Equal(t, "replication_specs", conversion.TrimLastIndex(path.Root("replication_specs").AtMapKey("myKey")))
+	assert.Equal(t, "replication_specs", conversion.TrimLastIndex(path.Root("replication_specs")))
 }
 
 func TestIndexMethods(t *testing.T) {

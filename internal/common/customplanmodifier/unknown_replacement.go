@@ -13,8 +13,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
-func NewUnknownReplacements[ResourceInfo any](ctx context.Context, req *resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse, schema conversion.TPFSchema, info ResourceInfo) *UnknownReplacments[ResourceInfo] {
-	return &UnknownReplacments[ResourceInfo]{
+func NewUnknownReplacements[ResourceInfo any](ctx context.Context, req *resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse, schema conversion.TPFSchema, info ResourceInfo) *UnknownReplacements[ResourceInfo] {
+	return &UnknownReplacements[ResourceInfo]{
 		Differ:       NewPlanModifyDiffer(ctx, req, resp, schema),
 		Info:         info,
 		Replacements: make(map[string]UnknownReplacementCall[ResourceInfo]),
@@ -23,7 +23,7 @@ func NewUnknownReplacements[ResourceInfo any](ctx context.Context, req *resource
 
 type UnknownReplacementCall[ResourceInfo any] func(ctx context.Context, stateValue ParsedAttrValue, req *UnknownReplacementRequest[ResourceInfo]) attr.Value
 
-type UnknownReplacments[ResourceInfo any] struct {
+type UnknownReplacements[ResourceInfo any] struct {
 	Differ       *PlanModifyDiffer
 	Replacements map[string]UnknownReplacementCall[ResourceInfo]
 	Info         ResourceInfo
@@ -50,13 +50,13 @@ type UnknownReplacementRequest[ResourceInfo any] struct {
 	Changes AttributeChanges
 }
 
-func (u *UnknownReplacments[ResourceInfo]) AddReplacement(name string, call UnknownReplacementCall[ResourceInfo]) {
+func (u *UnknownReplacements[ResourceInfo]) AddReplacement(name string, call UnknownReplacementCall[ResourceInfo]) {
 	// todo: Validate the name in the schema
 	// todo: Validate the name is not already in the replacements
 	u.Replacements[name] = call
 }
 
-func (u *UnknownReplacments[ResourceInfo]) ApplyReplacments(ctx context.Context, diags *diag.Diagnostics) {
+func (u *UnknownReplacements[ResourceInfo]) ApplyReplacements(ctx context.Context, diags *diag.Diagnostics) {
 	for strPath, unknown := range u.Differ.Unknowns(ctx, diags) {
 		replacer, ok := u.Replacements[unknown.AttributeName]
 		if !ok {
@@ -71,9 +71,9 @@ func (u *UnknownReplacments[ResourceInfo]) ApplyReplacments(ctx context.Context,
 		}
 		response := replacer(ctx, ParsedAttrValue{Value: unknown.StateValue}, req)
 		if response.IsUnknown() {
-			tflog.Info(ctx, fmt.Sprintf("Keeping unknown value in plan @ %s", strPath))
+			tflog.Debug(ctx, fmt.Sprintf("Keeping unknown value in plan @ %s", strPath))
 		} else {
-			tflog.Info(ctx, fmt.Sprintf("Replacing unknown value in plan @ %s", strPath))
+			tflog.Debug(ctx, fmt.Sprintf("Replacing unknown value in plan @ %s", strPath))
 			UpdatePlanValue(ctx, diags, u.Differ, unknown.Path, response)
 		}
 	}

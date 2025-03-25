@@ -44,5 +44,5 @@ func unknownReplacements(ctx context.Context, req *resource.ModifyPlanRequest, r
 	for attrName, replacer := range attributePlanModifiers {
 		unknownReplacements.AddReplacement(attrName, replacer)
 	}
-	unknownReplacements.ApplyReplacments(ctx, diags)
+	unknownReplacements.ApplyReplacements(ctx, diags)
 }

@@ -41,12 +41,12 @@ func HasPrefix(p, prefix path.Path) bool {
 }
 
 func AttributeNameEquals(p path.Path, name string) bool {
-	noBrackets := StripSquareBrackets(p)
+	noBrackets := TrimLastIndex(p)
 	return noBrackets == name || strings.HasSuffix(noBrackets, fmt.Sprintf(".%s", name))
 }
 
 func AttributeName(p path.Path) string {
-	noBrackets := StripSquareBrackets(p)
+	noBrackets := TrimLastIndex(p)
 	parts := strings.Split(noBrackets, ".")
 	return parts[len(parts)-1]
 }
@@ -71,7 +71,7 @@ func AsRemovedIndex(p path.Path) string {
 	return parentString + "." + indexWithSign
 }
 
-func StripSquareBrackets(p path.Path) string {
+func TrimLastIndex(p path.Path) string {
 	if IsIndexValue(p) {
 		return p.ParentPath().String()
 	}

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"maps"
 	"slices"
-	"sort"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -32,7 +31,7 @@ func NewPlanModifyDiffer(ctx context.Context, req *resource.ModifyPlanRequest, r
 	}
 
 	attributeChanges := findChanges(ctx, diffStatePlan, diags, schema)
-	tflog.Info(ctx, fmt.Sprintf("Attribute changes: %s\n", strings.Join(attributeChanges, "\n")))
+	tflog.Debug(ctx, fmt.Sprintf("Attribute changes: %s\n", strings.Join(attributeChanges, "\n")))
 	return &PlanModifyDiffer{
 		req:              req,
 		resp:             resp,
@@ -67,28 +66,6 @@ func (d *PlanModifyDiffer) ParentRemoved(p path.Path) bool {
 	}
 }
 
-func (d *PlanModifyDiffer) Diff(ctx context.Context, diags *diag.Diagnostics, schema conversion.TPFSchema, isConfig bool) string {
-	diffList := d.statePlanDiff
-	if isConfig {
-		diffList = d.stateConfigDiff
-	}
-	diffPaths := make([]string, len(diffList))
-	for i, diff := range diffList {
-		p, localDiags := conversion.AttributePath(ctx, diff.Path, schema)
-		if localDiags.HasError() {
-			diags.Append(localDiags...)
-			return ""
-		}
-		diffPaths[i] = p.String()
-	}
-	sort.Strings(diffPaths)
-	name := "plan"
-	if isConfig {
-		name = "config"
-	}
-	return fmt.Sprintf("DifferStateTo%s\n", name) + strings.Join(diffPaths, "\n")
-}
-
 type UnknownInfo struct {
 	StateValue    attr.Value
 	UnknownValue  attr.Value
@@ -118,48 +95,6 @@ func (d *PlanModifyDiffer) Unknowns(ctx context.Context, diags *diag.Diagnostics
 	return unknowns
 }
 
-func (d *PlanModifyDiffer) UseStateForUnknown(ctx context.Context, diags *diag.Diagnostics, keepUnknown []string, prefix path.Path) {
-	// The diff is sorted by the path length, for example read_only_spec is processed before read_only_spec.disk_size_gb
-	schema := d.schema
-	for _, diff := range d.statePlanDiff {
-		stateValue, tpfPath := conversion.AttributePathValue(ctx, diags, diff.Path, d.req.State, schema)
-		if !conversion.HasPrefix(tpfPath, prefix) || stateValue == nil || conversion.IsIndexValue(tpfPath) {
-			continue
-		}
-		if d.ParentRemoved(tpfPath) {
-			continue
-		}
-		planValue, _ := conversion.AttributePathValue(ctx, diags, diff.Path, d.req.Plan, schema)
-		if planValue == nil || !planValue.IsUnknown() {
-			continue
-		}
-		if keepUnknownCall(diff.Path, keepUnknown) {
-			tflog.Info(ctx, fmt.Sprintf("Keeping unknown value in plan @ %s", tpfPath.String()))
-			unknownValue := conversion.AsUnknownValue(ctx, stateValue)
-			UpdatePlanValue(ctx, diags, d, tpfPath, unknownValue)
-		} else {
-			tflog.Info(ctx, fmt.Sprintf("Replacing unknown value in plan @ %s", tpfPath.String()))
-			UpdatePlanValue(ctx, diags, d, tpfPath, stateValue)
-			d.ensureKeepUnknownRespected(ctx, diags, tpfPath, stateValue, keepUnknown)
-		}
-	}
-}
-
-func (d *PlanModifyDiffer) ensureKeepUnknownRespected(ctx context.Context, diags *diag.Diagnostics, tpfPath path.Path, value attr.Value, keepUnknown []string) {
-	valueObject, ok := value.(types.Object)
-	if value.IsNull() || value.IsUnknown() || !ok {
-		return
-	}
-	for key, childValue := range valueObject.Attributes() {
-		if slices.Contains(keepUnknown, key) && !childValue.IsUnknown() {
-			childPath := tpfPath.AtName(key)
-			tflog.Info(ctx, fmt.Sprintf("Keeping unknown value in plan @ %s", childPath.String()))
-			unknownValue := conversion.AsUnknownValue(ctx, childValue)
-			UpdatePlanValue(ctx, diags, d, childPath, unknownValue)
-		}
-	}
-}
-
 func ReadConfigStructValue[T any](ctx context.Context, d *PlanModifyDiffer, p path.Path) *T {
 	return readSrcStructValue[T](ctx, d.req.Config, p)
 }
@@ -183,38 +118,12 @@ func readSrcStructValue[T any](ctx context.Context, src conversion.TPFSrc, p pat
 	return conversion.TFModelObject[T](ctx, obj)
 }
 
-func UpdatePlanValue[T attr.Value](ctx context.Context, diags *diag.Diagnostics, d *PlanModifyDiffer, p path.Path, value T) {
-	if localDiags := d.resp.Plan.SetAttribute(ctx, p, value); localDiags.HasError() {
-		diags.Append(localDiags...)
-	}
-}
-
-type DiffTPF[T any] struct {
-	Plan          *T
-	State         *T
-	Config        *T
-	Path          path.Path
-	PlanUnknown   bool
-	ConfigUnknown bool
-}
-
-func (d *DiffTPF[T]) Removed() bool {
-	return d.State != nil && d.Config == nil
-}
-
-func (d *DiffTPF[T]) Changed() bool {
-	return d.State != nil && d.Config != nil
-}
-
-func (d *DiffTPF[T]) PlanOrStateValue() *T {
-	if d.Plan != nil {
-		return d.Plan
-	}
-	return d.State
+func UpdatePlanValue(ctx context.Context, diags *diag.Diagnostics, d *PlanModifyDiffer, p path.Path, value attr.Value) {
+	diags.Append(d.resp.Plan.SetAttribute(ctx, p, value)...)
 }
 
 func findChanges(ctx context.Context, diff []tftypes.ValueDiff, diags *diag.Diagnostics, schema conversion.TPFSchema) AttributeChanges {
-	changes := map[string]bool{}
+	changes := make(map[string]bool)
 	addChangeAndParentChanges := func(change string) {
 		changes[change] = true
 		parts := strings.Split(change, ".")
@@ -240,64 +149,5 @@ func findChanges(ctx context.Context, diff []tftypes.ValueDiff, diags *diag.Diag
 			addChangeAndParentChanges(p.String())
 		}
 	}
-	return slices.Sorted(maps.Keys(changes))
-}
-
-func keepUnknownCall(aPath *tftypes.AttributePath, keepUnknown []string) bool {
-	for _, step := range aPath.Steps() {
-		if aName, ok := step.(tftypes.AttributeName); ok {
-			if slices.Contains(keepUnknown, string(aName)) {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-func StateConfigDiffs[T any](ctx context.Context, diags *diag.Diagnostics, d *PlanModifyDiffer, name string, checkNestedAttributes bool) []DiffTPF[T] {
-	earlyReturn := func(localDiags diag.Diagnostics) []DiffTPF[T] {
-		diags.Append(localDiags...)
-		return nil
-	}
-	var diffs []DiffTPF[T]
-	usedPaths := map[string]bool{}
-
-	for _, diff := range d.stateConfigDiff {
-		p, localDiags := conversion.AttributePath(ctx, diff.Path, d.schema)
-		if localDiags.HasError() {
-			return earlyReturn(localDiags)
-		}
-		// Never show diff if the parent is removed, for example replication_specs[0] is removed and replication_specs[0].region_configs[0].electable_spec is changed
-		if d.ParentRemoved(p) {
-			continue
-		}
-		if checkNestedAttributes {
-			parent := p.ParentPath()
-			if conversion.AttributeNameEquals(parent, name) {
-				p = parent
-			}
-		}
-		if _, ok := usedPaths[p.String()]; ok {
-			continue // already returned
-		}
-		if conversion.AttributeNameEquals(p, name) {
-			usedPaths[p.String()] = true
-			var configObj, planObj types.Object
-			if d2 := d.req.Config.GetAttribute(ctx, p, &configObj); d2.HasError() {
-				return earlyReturn(d2)
-			}
-			if d3 := d.req.Plan.GetAttribute(ctx, p, &planObj); d3.HasError() {
-				return earlyReturn(d3)
-			}
-			diffs = append(diffs, DiffTPF[T]{
-				Path:          p,
-				State:         ReadStateStructValue[T](ctx, d, p),
-				Config:        ReadConfigStructValue[T](ctx, d, p),
-				Plan:          ReadPlanStructValue[T](ctx, d, p),
-				PlanUnknown:   planObj.IsUnknown(),
-				ConfigUnknown: configObj.IsUnknown(),
-			})
-		}
-	}
-	return diffs
+	return slices.Sorted(maps.Keys(changes)) // Ensure changes are sorted to support top-down processing, for example read_only_spec is processed before read_only_spec.disk_size_gb
 }

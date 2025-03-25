@@ -9,48 +9,48 @@ import (
 
 func TestAttributeChanges_LeafChanges(t *testing.T) {
 	tests := map[string]struct {
-		expected map[string]bool
+		expected map[string]struct{}
 		changes  customplanmodifier.AttributeChanges
 	}{
 		"empty changes": {
 			changes:  []string{},
-			expected: map[string]bool{},
+			expected: map[string]struct{}{},
 		},
 		"single level changes": {
 			changes: []string{"name", "description"},
-			expected: map[string]bool{
-				"name":        true,
-				"description": true,
+			expected: map[string]struct{}{
+				"name":        {},
+				"description": {},
 			},
 		},
 		"nested changes": {
 			changes: []string{"config.name", "settings.enabled"},
-			expected: map[string]bool{
-				"name":    true,
-				"enabled": true,
+			expected: map[string]struct{}{
+				"name":    {},
+				"enabled": {},
 			},
 		},
 		"mixed level changes": {
 			changes: []string{"name", "config.type", "settings.auth.enabled"},
-			expected: map[string]bool{
-				"name":    true,
-				"type":    true,
-				"enabled": true,
+			expected: map[string]struct{}{
+				"name":    {},
+				"type":    {},
+				"enabled": {},
 			},
 		},
 		"list changes": {
 			changes: []string{"replication_specs", "replication_specs[0]", "replication_specs[0].zone_name"},
-			expected: map[string]bool{
-				"replication_specs": true,
-				"zone_name":         true,
+			expected: map[string]struct{}{
+				"replication_specs": {},
+				"zone_name":         {},
 			},
 		},
 		"nested list changes": {
 			changes: []string{"replication_specs", "replication_specs[0]", "replication_specs[0].region_configs", "replication_specs[0].region_configs[0].region_name"},
-			expected: map[string]bool{
-				"replication_specs": true,
-				"region_name":       true,
-				"region_configs":    true,
+			expected: map[string]struct{}{
+				"replication_specs": {},
+				"region_name":       {},
+				"region_configs":    {},
 			},
 		},
 	}
