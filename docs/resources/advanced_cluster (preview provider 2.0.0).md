@@ -132,16 +132,13 @@ If you're currently utilizing `mongodbatlas_advanced_cluster`, you should follow
 1. If you are using the deprecated sharding configuration (with `num_shards`), you must first migrate to the new Independent Shard Scaling schema. See our [Advanced Cluster New Sharding Configurations Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema) for details. This step is required before enabling the Preview for MongoDB Atlas Provider 2.0.0.
 
 2. Once your configuration uses the new sharding schema (or if you were already using it), you can proceed to enable the Preview for MongoDB Atlas Provider 2.0.0 by following these steps:
-   - Set environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`
-   - Run `terraform plan` and you'll see errors as definition file hasn't been updated yet
-   - Apply definition changes explained on this page until there are no errors and no planned changes
-   - Run `terraform apply` to apply the changes
+  - Before starting, run `terraform plan` to make sure that there are no planned changes.
+  - Set environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` in order to use the Preview for MongoDB Atlas Provider 2.0.0.
+  - Run `terraform plan` and you'll see errors as definition file hasn't been updated yet.
+  - Apply definition changes explained on this page until there are no errors and no planned changes. **Important**: Don't apply until the plan is empty. If it shows other changes, you must update the `mongodbatlas_advanced_cluster` configuration until it matches the original configuration.
+  - Run `terraform apply` to apply the changes. Although there are no plan changes shown to the user, the `mongodbatlas_advanced_cluster` state will be updated to support the Preview for MongoDB Atlas Provider 2.0.0. **Important**: The state file will be updated to the new format and the old format will not be supported anymore. Before doing any migration create a backup of your [Terraform state file](https://developer.hashicorp.com/terraform/cli/commands/state).
 
 -> **IMPORTANT:** Do not enable the Preview for MongoDB Atlas Provider 2.0.0 if you are still using the deprecated sharding configuration. This would require you to perform two separate migrations when version 2.0.0 is released: one to update to the new configuration format and another to migrate to the new sharding schema. Instead, migrate to the new sharding schema first, then enable the preview.
-
-**Important**: Don't apply until the plan is empty. If it shows other changes, you must update the `mongodbatlas_advanced_cluster` configuration until it matches the original configuration.
-
-**Important**: The state file will be updated to the new format and the old format will not be supported anymore. Before doing any migration create a backup of your [Terraform state file](https://developer.hashicorp.com/terraform/cli/commands/state).
 
 ## Important notes
 
