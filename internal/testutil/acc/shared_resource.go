@@ -74,12 +74,12 @@ func ProjectIDExecution(tb testing.TB) string {
 // When `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_CLUSTER_NAME` are defined, they are used instead of creating a project and clusterName.
 func ProjectIDExecutionWithCluster(tb testing.TB, totalNodeCount int) (projectID, clusterName string) {
 	tb.Helper()
-	SkipInUnitTest(tb)
-	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
-
 	if ExistingClusterUsed() {
 		return existingProjectIDClusterName()
 	}
+	// Only skip after ExistingClusterUsed() to allow MacT (Mocked-Acceptance Tests) to return early instead of being skipped.
+	SkipInUnitTest(tb)
+	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
 	return NextProjectIDClusterName(totalNodeCount, func(projectName string) string {
 		return createProject(tb, projectName)
 	})

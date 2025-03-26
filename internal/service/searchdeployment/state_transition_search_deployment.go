@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 )
 
 const SearchDeploymentDoesNotExistsError = "ATLAS_SEARCH_DEPLOYMENT_DOES_NOT_EXIST"
@@ -64,6 +64,10 @@ func searchDeploymentRefreshFunc(ctx context.Context, projectID, clusterName str
 				return "", retrystrategy.RetryStrategyUpdatingState, nil
 			}
 			return nil, "", err
+		}
+
+		if IsNotFoundDeploymentResponse(deploymentResp) {
+			return "", retrystrategy.RetryStrategyDeletedState, nil
 		}
 
 		if conversion.IsStringPresent(deploymentResp.StateName) {

@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/fwtypes"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 )
 
 func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.StreamsProcessor, diag.Diagnostics) {
@@ -40,6 +40,43 @@ func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) 
 	}
 
 	return streamProcessor, nil
+}
+
+func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.ModifyStreamProcessorApiParams, diag.Diagnostics) {
+	pipeline, diags := convertPipelineToSdk(plan.Pipeline.ValueString())
+	if diags != nil {
+		return nil, diags
+	}
+
+	streamProcessorAPIParams := &admin.ModifyStreamProcessorApiParams{
+		GroupId:       plan.ProjectID.ValueString(),
+		TenantName:    plan.InstanceName.ValueString(),
+		ProcessorName: plan.ProcessorName.ValueString(),
+		StreamsModifyStreamProcessor: &admin.StreamsModifyStreamProcessor{
+			Name:     plan.ProcessorName.ValueStringPointer(),
+			Pipeline: &pipeline,
+		},
+	}
+
+	if !plan.Options.IsNull() && !plan.Options.IsUnknown() {
+		optionsModel := &TFOptionsModel{}
+		if diags := plan.Options.As(ctx, optionsModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
+		dlqModel := &TFDlqModel{}
+		if diags := optionsModel.Dlq.As(ctx, dlqModel, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
+		streamProcessorAPIParams.StreamsModifyStreamProcessor.Options = &admin.StreamsModifyStreamProcessorOptions{
+			Dlq: &admin.StreamsDLQ{
+				Coll:           dlqModel.Coll.ValueStringPointer(),
+				ConnectionName: dlqModel.ConnectionName.ValueStringPointer(),
+				Db:             dlqModel.DB.ValueStringPointer(),
+			},
+		}
+	}
+
+	return streamProcessorAPIParams, nil
 }
 
 func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName string, apiResp *admin.StreamsProcessorWithStats) (*TFStreamProcessorRSModel, diag.Diagnostics) {

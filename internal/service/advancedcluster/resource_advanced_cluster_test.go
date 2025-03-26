@@ -12,7 +12,7 @@ import (
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	mockadmin20240530 "go.mongodb.org/atlas-sdk/v20240530005/mockadmin"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/stretchr/testify/assert"
@@ -1245,6 +1245,7 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 		}
 		checksSet = []string{
 			"replication_specs.0.container_id.AWS:US_EAST_1",
+			"mongo_db_major_version",
 		}
 		timeoutCheck   = resource.TestCheckResourceAttr(resourceName, "timeouts.create", "6000s") // timeouts.create is not set on data sources
 		tagsLabelsMap  = map[string]string{"key": "env", "value": "test"}
@@ -1255,7 +1256,6 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 			"state_name":                    "IDLE",
 			"backup_enabled":                "true",
 			"bi_connector_config.0.enabled": "true",
-			"mongo_db_major_version":        "8.0",
 			"pit_enabled":                   "true",
 			"redact_client_log_data":        "true",
 			"replica_set_scaling_strategy":  "NODE_TYPE",
@@ -1288,7 +1288,6 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 		key   = "env"
 		value = "test"
 	}
-	mongo_db_major_version = "8.0"
 	pit_enabled = true
 	redact_client_log_data = true
 	replica_set_scaling_strategy = "NODE_TYPE"
@@ -1500,7 +1499,7 @@ func configSharded(t *testing.T, projectID, clusterName string, withUpdate bool)
 
 func configBlocks(t *testing.T, projectID, clusterName, instanceSize string, defineBlocks bool) string {
 	t.Helper()
-	var extraConfig0, extraConfig1 string
+	var extraConfig0, extraConfig1, electableSpecs0 string
 	autoScalingBlocks := `
 		auto_scaling {
 			disk_gb_enabled            = true
@@ -1518,6 +1517,12 @@ func configBlocks(t *testing.T, projectID, clusterName, instanceSize string, def
 		}
 	`
 	if defineBlocks {
+		electableSpecs0 = `
+			electable_specs {
+				instance_size   = "M10"
+				node_count      = 5
+			}
+		`
 		// read only + autoscaling blocks
 		extraConfig0 = `
 			read_only_specs {
@@ -1549,10 +1554,7 @@ func configBlocks(t *testing.T, projectID, clusterName, instanceSize string, def
 					provider_name = "AWS"
 					priority      = 7
 					region_name   = "US_EAST_1"
-					electable_specs {
-						instance_size   = "M10"
-						node_count      = 5
-					}
+					%[6]s
 					%[4]s
 				}
 			}
@@ -1577,7 +1579,7 @@ func configBlocks(t *testing.T, projectID, clusterName, instanceSize string, def
 				}
 			}
 		}
-	`, projectID, clusterName, instanceSize, extraConfig0, extraConfig1))
+	`, projectID, clusterName, instanceSize, extraConfig0, extraConfig1, electableSpecs0))
 }
 
 func checkBlocks(instanceSize string) resource.TestCheckFunc {
