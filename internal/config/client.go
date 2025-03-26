@@ -236,7 +236,6 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 	return realmClient, nil
 }
 
-
 func (c *MongoDBClient) UntypedAPICall(ctx context.Context, versionHeader string, relativePath string, pathParams map[string]string, method string, body []byte) (*http.Response, error) {
 	localBasePath, _ := c.AtlasV2.GetConfig().ServerURLWithContext(ctx, "")
 	localVarPath := localBasePath + relativePath
@@ -249,7 +248,7 @@ func (c *MongoDBClient) UntypedAPICall(ctx context.Context, versionHeader string
 	headerParams["Content-Type"] = versionHeader
 	headerParams["Accept"] = versionHeader
 
-	var reqBody any 
+	var reqBody any
 	if body != nil { // if nil slice is sent with application/json content type SDK method returns an error
 		reqBody = body
 	}
