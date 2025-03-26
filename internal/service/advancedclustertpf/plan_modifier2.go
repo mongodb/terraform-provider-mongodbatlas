@@ -50,7 +50,7 @@ func readOnlyReplaceUnknown(ctx context.Context, state customplanmodifier.Parsed
 		return req.Unknown
 	}
 	stateParsed := conversion.TFModelObject[TFSpecsModel](ctx, state.AsObject())
-	if stateParsed == nil || stateParsed.NodeCount.ValueInt64() == 0 {
+	if stateParsed == nil {
 		return req.Unknown
 	}
 	electablePath := req.Path.ParentPath().AtName("electable_specs")
