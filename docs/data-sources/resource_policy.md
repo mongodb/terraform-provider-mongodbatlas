@@ -100,6 +100,7 @@ output "policy_ids" {
 
 - `created_by_user` (Attributes) The user that last updated the Atlas resource policy. (see [below for nested schema](#nestedatt--created_by_user))
 - `created_date` (String) Date and time in UTC when the Atlas resource policy was created.
+- `description` (String) Description of the atlas resource policy.
 - `last_updated_by_user` (Attributes) The user that last updated the Atlas resource policy. (see [below for nested schema](#nestedatt--last_updated_by_user))
 - `last_updated_date` (String) Date and time in UTC when the Atlas resource policy was last updated.
 - `name` (String) Human-readable label that describes the Atlas resource policy.

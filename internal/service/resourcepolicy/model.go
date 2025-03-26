@@ -3,10 +3,12 @@ package resourcepolicy
 import (
 	"context"
 
+	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 )
 
 func NewTFModel(ctx context.Context, input *admin.ApiAtlasResourcePolicy) (*TFModel, diag.Diagnostics) {
@@ -24,6 +26,7 @@ func NewTFModel(ctx context.Context, input *admin.ApiAtlasResourcePolicy) (*TFMo
 		LastUpdatedByUser: lastUpdatedByUser,
 		LastUpdatedDate:   types.StringPointerValue(conversion.TimePtrToStringPtr(input.LastUpdatedDate)),
 		Name:              types.StringPointerValue(input.Name),
+		Description:       types.StringPointerValue(input.Description),
 		OrgID:             types.StringPointerValue(input.OrgId),
 		Policies:          policies,
 		Version:           types.StringPointerValue(input.Version),

@@ -60,6 +60,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Human-readable label that describes the Atlas resource policy.",
 				Required:            true,
 			},
+			"description": schema.StringAttribute{
+				MarkdownDescription: "Description of the atlas resource policy.",
+				Optional:            true,
+			},
 			"org_id": schema.StringAttribute{
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.",
 				Required:            true,
@@ -98,6 +102,7 @@ type TFModel struct {
 	LastUpdatedByUser types.Object    `tfsdk:"last_updated_by_user"`
 	LastUpdatedDate   types.String    `tfsdk:"last_updated_date"`
 	Name              types.String    `tfsdk:"name"`
+	Description       types.String    `tfsdk:"description"`
 	OrgID             types.String    `tfsdk:"org_id"`
 	Version           types.String    `tfsdk:"version"`
 	Policies          []TFPolicyModel `tfsdk:"policies"`

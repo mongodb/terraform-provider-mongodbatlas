@@ -80,8 +80,9 @@ func (r *resourcePolicyRS) Create(ctx context.Context, req resource.CreateReques
 
 	connV2 := r.Client.AtlasV2
 	policySDK, _, err := connV2.ResourcePoliciesApi.CreateAtlasResourcePolicy(ctx, orgID, &admin.ApiAtlasResourcePolicyCreate{
-		Name:     plan.Name.ValueString(),
-		Policies: policies,
+		Name:        plan.Name.ValueString(),
+		Description: plan.Description.ValueStringPointer(),
+		Policies:    policies,
 	}).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(errorCreate, err.Error())
@@ -134,8 +135,12 @@ func (r *resourcePolicyRS) Update(ctx context.Context, req resource.UpdateReques
 	connV2 := r.Client.AtlasV2
 	policies := NewAdminPolicies(ctx, plan.Policies)
 	editAdmin := admin.ApiAtlasResourcePolicyEdit{
-		Name:     plan.Name.ValueStringPointer(),
-		Policies: &policies,
+		Name:        plan.Name.ValueStringPointer(),
+		Description: plan.Description.ValueStringPointer(),
+		Policies:    &policies,
+	}
+	if editAdmin.Description == nil {
+		editAdmin.Description = conversion.StringPtr("")
 	}
 	policySDK, _, err := connV2.ResourcePoliciesApi.UpdateAtlasResourcePolicy(ctx, orgID, resourcePolicyID, &editAdmin).Execute()
 

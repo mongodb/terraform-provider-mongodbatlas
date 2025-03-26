@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -176,7 +177,7 @@ func configBasic(orgID, policyName string) string {
 	return configWithPolicyBodies(orgID, policyName, validPolicyForbidAwsCloudProvider)
 }
 
-func configWithPolicyBodies(orgID, policyName string, bodies ...string) string {
+func configWithPolicyBodies(orgID, policyName string, description string, bodies ...string) string {
 	policies := ""
 	for _, body := range bodies {
 		policies += fmt.Sprintf(`
@@ -203,7 +204,7 @@ data "mongodbatlas_resource_policy" "test" {
 data "mongodbatlas_resource_policies" "test" {
 	org_id = mongodbatlas_resource_policy.test.org_id
 }
-	`, orgID, policyName, policies)
+	`, orgID, policyName, policies, description)
 }
 
 func checkImportStateIDFunc(resourceID string) resource.ImportStateIdFunc {
