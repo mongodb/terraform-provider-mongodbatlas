@@ -9,17 +9,17 @@ import (
 	"strings"
 	"time"
 
-	adminpreview "github.com/mongodb/atlas-sdk-go/admin"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
 	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
-	realmAuth "go.mongodb.org/realm/auth"
-	"go.mongodb.org/realm/realm"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"github.com/mongodb-forks/digest"
+	"github.com/mongodb-labs/go-client-mongodb-atlas-app-services/appservices"
+	appServicesAuth "github.com/mongodb-labs/go-client-mongodb-atlas-app-services/auth"
+	adminpreview "github.com/mongodb/atlas-sdk-go/admin"
 	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
@@ -204,18 +204,17 @@ func (c *Config) newSDKV220241113Client(client *http.Client) (*admin20241113.API
 	return sdk, nil
 }
 
-func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, error) {
-	// Realm
+func (c *MongoDBClient) GetAppServicesClient(ctx context.Context) (*appservices.Client, error) {
 	if c.Config.PublicKey == "" && c.Config.PrivateKey == "" {
-		return nil, errors.New("please set `public_key` and `private_key` in order to use the realm client")
+		return nil, errors.New("please set `public_key` and `private_key` in order to use the App Services client")
 	}
 
-	optsRealm := []realm.ClientOpt{realm.SetUserAgent(userAgent(c.Config))}
+	optsAppServices := []appservices.ClientOpt{appservices.SetUserAgent(userAgent(c.Config))}
 
-	authConfig := realmAuth.NewConfig(nil)
+	authConfig := appServicesAuth.NewConfig(nil)
 	if c.Config.BaseURL != "" && c.Config.RealmBaseURL != "" {
 		adminURL := c.Config.RealmBaseURL + "api/admin/v3.0/"
-		optsRealm = append(optsRealm, realm.SetBaseURL(adminURL))
+		optsAppServices = append(optsAppServices, appservices.SetBaseURL(adminURL))
 		authConfig.AuthURL, _ = url.Parse(adminURL + "auth/providers/mongodb-cloud/login")
 	}
 
@@ -224,16 +223,16 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 		return nil, err
 	}
 
-	clientRealm := realmAuth.NewClient(realmAuth.BasicTokenSource(token))
-	clientRealm.Transport = logging.NewTransport("MongoDB Realm", clientRealm.Transport)
+	clientAppServices := appServicesAuth.NewClient(appServicesAuth.BasicTokenSource(token))
+	clientAppServices.Transport = logging.NewTransport("MongoDB App Services", clientAppServices.Transport)
 
-	// Initialize the MongoDB Realm API Client.
-	realmClient, err := realm.New(clientRealm, optsRealm...)
+	// Initialize the MongoDB App Services API Client.
+	appServicesClient, err := appservices.New(clientAppServices, optsAppServices...)
 	if err != nil {
 		return nil, err
 	}
 
-	return realmClient, nil
+	return appServicesClient, nil
 }
 
 func userAgent(c *Config) string {

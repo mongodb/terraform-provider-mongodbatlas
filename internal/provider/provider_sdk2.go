@@ -88,7 +88,7 @@ func NewSdkV2Provider() *schema.Provider {
 			"realm_base_url": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "MongoDB Realm Base URL",
+				Description: "MongoDB App Services Base URL",
 			},
 			"is_mongodbgov_cloud": {
 				Type:        schema.TypeBool,
@@ -372,7 +372,7 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 	}
 
 	if err := setValueFromConfigOrEnv(d, "realm_base_url", []string{
-		"MONGODB_REALM_BASE_URL",
+		"MONGODB_APP_SERVICES_BASE_URL",
 	}); err != nil {
 		return append(diagnostics, diag.FromErr(err)...)
 	}

@@ -130,7 +130,7 @@ func (p *MongodbtlasProvider) Schema(ctx context.Context, req provider.SchemaReq
 			},
 			"realm_base_url": schema.StringAttribute{
 				Optional:    true,
-				Description: "MongoDB Realm Base URL",
+				Description: "MongoDB App Services Base URL",
 			},
 			"is_mongodbgov_cloud": schema.BoolAttribute{
 				Optional:    true,
@@ -374,7 +374,7 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 
 	if data.RealmBaseURL.ValueString() == "" {
 		data.RealmBaseURL = types.StringValue(MultiEnvDefaultFunc([]string{
-			"MONGODB_REALM_BASE_URL",
+			"MONGODB_APP_SERVICES_BASE_URL",
 		}, "").(string))
 	}
 
