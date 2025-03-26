@@ -1288,7 +1288,6 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 		key   = "env"
 		value = "test"
 	}
-	mongo_db_major_version = "8.0"
 	pit_enabled = true
 	redact_client_log_data = true
 	replica_set_scaling_strategy = "NODE_TYPE"
