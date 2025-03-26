@@ -117,6 +117,18 @@ func readSrcStructValue[T any](ctx context.Context, src conversion.TPFSrc, p pat
 	}
 	return conversion.TFModelObject[T](ctx, obj)
 }
+func ReadPlanStructValues[T any](ctx context.Context, d *PlanModifyDiffer, p path.Path, diags *diag.Diagnostics) []T {
+	return readSrcStructValues[T](ctx, d.req.Plan, p, diags)
+}
+
+func readSrcStructValues[T any](ctx context.Context, src conversion.TPFSrc, p path.Path, diags *diag.Diagnostics) []T {
+	var objList types.List
+	if localDiags := src.GetAttribute(ctx, p, &objList); len(localDiags) > 0 {
+		diags.Append(localDiags...)
+		return nil
+	}
+	return conversion.TFModelList[T](ctx, diags, objList)
+}
 
 func UpdatePlanValue(ctx context.Context, diags *diag.Diagnostics, d *PlanModifyDiffer, p path.Path, value attr.Value) {
 	diags.Append(d.resp.Plan.SetAttribute(ctx, p, value)...)
