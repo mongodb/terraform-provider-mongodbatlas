@@ -9,8 +9,18 @@ import (
 )
 
 var attributePlanModifiers = map[string]customplanmodifier.UnknownReplacementCall[PlanModifyResourceInfo]{
-	"mongo_db_version": mongoDBVersionReplaceUnknown,
+	"mongo_db_version":       mongoDBVersionReplaceUnknown,
+	"auto_scaling":           autoScalingReplaceUnknown,
+	"analytics_auto_scaling": autoScalingReplaceUnknown,
 	// TODO: Add the other computed attributes
+}
+
+func autoScalingReplaceUnknown(ctx context.Context, state customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
+	// don't use auto_scaling or analytics_auto_scaling from state if it's not enabled as it doesn't need to be present in Update request payload
+	if req.Info.AutoScalingComputedUsed || req.Info.AutoScalingDiskUsed {
+		return state.AsObject()
+	}
+	return req.Unknown
 }
 
 func mongoDBVersionReplaceUnknown(ctx context.Context, state customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
