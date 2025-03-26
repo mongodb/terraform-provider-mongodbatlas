@@ -7,7 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	// TODO: update before merging to master: "go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -157,7 +158,7 @@ func basicTestCaseAWS(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigAwsKms(projectID, &awsKms, false, true),
+				Config: acc.ConfigAwsKms(projectID, &awsKms, false, true, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(earResourceName, "aws_kms_config.0.enabled", "true"),
 					resource.TestCheckResourceAttr(earResourceName, "aws_kms_config.0.require_private_networking", "false"),
@@ -233,10 +234,25 @@ func TestCheckErrorMessageAndStatus(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			diags := encryptionatrestprivateendpoint.CheckErrorMessageAndStatus(tc.SDKResp)
+			// TODO: update before merging to master: diags := encryptionatrestprivateendpoint.CheckErrorMessageAndStatus(tc.SDKResp)
+			diags := checkErrorMessageAndStatusPreview(tc.SDKResp)
 			assert.Equal(t, tc.diags, diags, "diagnostics did not match expected output")
 		})
 	}
+}
+
+// TODO: update before merging to master: remove func checkErrorMessageAndStatusPreview
+func checkErrorMessageAndStatusPreview(model *admin.EARPrivateEndpoint) diag.Diagnostics {
+	var diags diag.Diagnostics
+	switch {
+	case model.GetStatus() == retrystrategy.RetryStrategyFailedState:
+		diags = append(diags, diag.NewErrorDiagnostic(encryptionatrestprivateendpoint.FailedStatusErrorMessageSummary, model.GetErrorMessage()))
+	case model.GetErrorMessage() != "":
+		diags = append(diags, diag.NewWarningDiagnostic(encryptionatrestprivateendpoint.NonEmptyErrorMessageFieldSummary, model.GetErrorMessage()))
+	case model.GetStatus() == retrystrategy.RetryStrategyPendingAcceptanceState:
+		diags = append(diags, diag.NewWarningDiagnostic(encryptionatrestprivateendpoint.PendingAcceptanceWarnMsgSummary, encryptionatrestprivateendpoint.PendingAcceptanceWarnMsg))
+	}
+	return diags
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
@@ -316,7 +332,7 @@ func checkBasic(projectID, cloudProvider, region string, expectApproved bool) re
 }
 
 func configAWSBasic(projectID string, awsKms *admin.AWSKMSConfiguration, region string) string {
-	encryptionAtRestConfig := acc.ConfigAwsKms(projectID, awsKms, false, true)
+	encryptionAtRestConfig := acc.ConfigAwsKms(projectID, awsKms, false, true, false)
 	config := fmt.Sprintf(`
 		%[1]s
 

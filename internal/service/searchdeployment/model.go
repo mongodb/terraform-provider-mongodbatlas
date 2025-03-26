@@ -6,7 +6,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+
+	// TODO: update before merging to master: "go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
 )
 
 func NewSearchDeploymentReq(ctx context.Context, searchDeploymentPlan *TFSearchDeploymentRSModel) admin.ApiSearchDeploymentRequest {
@@ -27,10 +29,11 @@ func NewSearchDeploymentReq(ctx context.Context, searchDeploymentPlan *TFSearchD
 
 func NewTFSearchDeployment(ctx context.Context, clusterName string, deployResp *admin.ApiSearchDeploymentResponse, timeout *timeouts.Value, allowMultipleSpecs bool) (*TFSearchDeploymentRSModel, diag.Diagnostics) {
 	result := TFSearchDeploymentRSModel{
-		ID:          types.StringPointerValue(deployResp.Id),
-		ClusterName: types.StringValue(clusterName),
-		ProjectID:   types.StringPointerValue(deployResp.GroupId),
-		StateName:   types.StringPointerValue(deployResp.StateName),
+		ID:                       types.StringPointerValue(deployResp.Id),
+		ClusterName:              types.StringValue(clusterName),
+		ProjectID:                types.StringPointerValue(deployResp.GroupId),
+		StateName:                types.StringPointerValue(deployResp.StateName),
+		EncryptionAtRestProvider: types.StringPointerValue(deployResp.EncryptionAtRestProvider),
 	}
 
 	if timeout != nil {
