@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
@@ -76,4 +77,35 @@ func TrimLastIndex(p path.Path) string {
 		return p.ParentPath().String()
 	}
 	return p.String()
+}
+
+func TrimLastIndexPath(p path.Path) path.Path {
+	for {
+		if IsIndexValue(p) {
+			p = p.ParentPath()
+		} else {
+			return p
+		}
+	}
+}
+
+func ParentPathWithIndex(p path.Path, attributeName string, diags *diag.Diagnostics) path.Path {
+	for {
+		p = p.ParentPath()
+		if p.Equal(path.Empty()) {
+			diags.AddError("Parent path not found", fmt.Sprintf("Parent attribute %s not found in path %s", attributeName, p.String()))
+			return p
+		}
+		if AttributeNameEquals(p, attributeName) {
+			return p
+		}
+	}
+}
+
+func ParentPathNoIndex(p path.Path, attributeName string, diags *diag.Diagnostics) path.Path {
+	parent := ParentPathWithIndex(p, attributeName, diags)
+	if diags.HasError() {
+		return parent
+	}
+	return TrimLastIndexPath(parent)
 }
