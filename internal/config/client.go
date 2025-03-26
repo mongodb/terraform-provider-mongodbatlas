@@ -236,12 +236,12 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 	return realmClient, nil
 }
 
-func (c *MongoDBClient) UntypedAPICall(ctx context.Context, versionHeader string, relativePath string, pathParams map[string]string, method string, body []byte) (*http.Response, error) {
+func (c *MongoDBClient) UntypedAPICall(ctx context.Context, versionHeader, relativePath string, pathParams map[string]string, method string, body []byte) (*http.Response, error) {
 	localBasePath, _ := c.AtlasV2.GetConfig().ServerURLWithContext(ctx, "")
 	localVarPath := localBasePath + relativePath
 
 	for key, value := range pathParams {
-		localVarPath = strings.Replace(localVarPath, "{"+key+"}", url.PathEscape(value), -1)
+		localVarPath = strings.ReplaceAll(localVarPath, "{"+key+"}", url.PathEscape(value))
 	}
 
 	headerParams := make(map[string]string)
