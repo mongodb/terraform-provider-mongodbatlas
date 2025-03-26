@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	AsymmetricShardsUnsupportedActionDS = "Ensure you use copy_settings.#.zone_id instead of copy_settings.#.replication_spec_id for asymmetric sharded clusters by setting `use_zone_id_for_copy_settings = true`. To learn more, see our examples, documentation, and 1.18.0 migration guide at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
+	AsymmetricShardsUnsupportedActionDS = "Ensure you use copy_settings.#.zone_id instead of copy_settings.#.replication_spec_id for asymmetric sharded clusters by setting `use_zone_id_for_copy_settings = true`. To learn more, see our examples, documentation, and 1.18.0 migration guide at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide"
 )
 
 func DataSource() *schema.Resource {
