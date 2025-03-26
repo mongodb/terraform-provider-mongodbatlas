@@ -17,7 +17,6 @@ var (
 	attributeRootChangeMapping = map[string][]string{
 		"disk_size_gb":           {}, // disk_size_gb can be change at any level/spec
 		"replication_specs":      {},
-		"mongo_db_major_version": {"mongo_db_version"},
 		"tls_cipher_config_mode": {"custom_openssl_cipher_config_tls12"},
 		"cluster_type":           {"config_server_management_mode", "config_server_type"}, // computed values of config server change when REPLICA_SET changes to SHARDED
 	}
