@@ -52,20 +52,20 @@ var (
 		when {
 		context.project.ipAccessList.contains(ip("0.0.0.0/0"))
 	};`
+	descriptionPtr = conversion.StringPtr("test-description")
 )
 
 func TestAccResourcePolicy_basic(t *testing.T) {
-	tc := basicTestCase(t)
+	tc := basicTestCase(t, descriptionPtr)
 	resource.Test(t, *tc)
 }
 
-func basicTestCase(t *testing.T) *resource.TestCase {
+func basicTestCase(t *testing.T, description *string) *resource.TestCase {
 	t.Helper()
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		policyName  = "test-policy"
 		updatedName = "updated-policy"
-		description = conversion.StringPtr("test-description")
 	)
 	return &resource.TestCase{ // Need sequential execution for assertions to be deterministic (plural data source)
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
