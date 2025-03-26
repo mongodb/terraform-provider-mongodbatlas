@@ -235,11 +235,6 @@ func TFModelObject[T any](ctx context.Context, input types.Object) *T {
 	return item
 }
 
-// isKnown returns true if the attribute is known (not null or unknown). Note that !isKnown is not the same as IsUnknown because null is !isKnown but not IsUnknown.
-func isKnown(attribute attr.Value) bool {
-	return !attribute.IsNull() && !attribute.IsUnknown()
-}
-
 func minLen[T any](a, b []T) int {
 	la, lb := len(a), len(b)
 	if la < lb {
