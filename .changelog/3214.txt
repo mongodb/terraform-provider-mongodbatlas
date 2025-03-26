@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/mongodbatlas_resource_policy: Adds support for new `description` field
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_resource_policy: Adds support for new `description` field
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_resource_policies: Adds support for new `description` field
+```
