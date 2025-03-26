@@ -140,7 +140,7 @@ func (r *resourcePolicyRS) Update(ctx context.Context, req resource.UpdateReques
 		Policies:    &policies,
 	}
 	if editAdmin.Description == nil {
-		editAdmin.Description = conversion.StringPtr("")
+		editAdmin.Description = conversion.Pointer("")
 	}
 	policySDK, _, err := connV2.ResourcePoliciesApi.UpdateAtlasResourcePolicy(ctx, orgID, resourcePolicyID, &editAdmin).Execute()
 
