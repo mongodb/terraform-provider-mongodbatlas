@@ -15,7 +15,8 @@ import (
 var attributePlanModifiers = map[string]customplanmodifier.UnknownReplacementCall[PlanModifyResourceInfo]{
 	"mongo_db_version": mongoDBVersionReplaceUnknown,
 	"read_only_specs":  readOnlyReplaceUnknown,
-	"analytics_specs":  analyticsSpecsReplaceUnknown,
+	"analytics_specs":  analyticsAndElectableSpecsReplaceUnknown,
+	"electable_specs":  analyticsAndElectableSpecsReplaceUnknown,
 	// TODO: Add the other computed attributes
 }
 
@@ -85,12 +86,12 @@ func readOnlyReplaceUnknown(ctx context.Context, state customplanmodifier.Parsed
 	return conversion.AsObjectValue(ctx, newReadOnly, SpecsObjType.AttrTypes)
 }
 
-func analyticsSpecsReplaceUnknown(ctx context.Context, state customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
+func analyticsAndElectableSpecsReplaceUnknown(ctx context.Context, state customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
 	if req.Info.isShardingConfigUpgrade {
 		return req.Unknown
 	}
 	stateParsed := conversion.TFModelObject[TFSpecsModel](ctx, state.AsObject())
-	// don't get analytics_specs from state if node_count is 0 to avoid possible ANALYTICS_INSTANCE_SIZE_MUST_MATCH errors
+	// don't get analytics_specs from state if node_count is 0 to avoid possible ANALYTICS_INSTANCE_SIZE_MUST_MATCH and INSTANCE_SIZE_MUST_MATCH errors
 	if stateParsed == nil || stateParsed.NodeCount.ValueInt64() == 0 {
 		return req.Unknown
 	}
