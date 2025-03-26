@@ -109,3 +109,15 @@ func ParentPathNoIndex(p path.Path, attributeName string, diags *diag.Diagnostic
 	}
 	return TrimLastIndexPath(parent)
 }
+
+func HasPathParent(p path.Path, parentAttributeName string) bool {
+	for {
+		p = p.ParentPath()
+		if p.Equal(path.Empty()) {
+			return false
+		}
+		if AttributeNameEquals(p, parentAttributeName) {
+			return true
+		}
+	}
+}

@@ -3,6 +3,7 @@ package customplanmodifier
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -27,6 +28,66 @@ type UnknownReplacements[ResourceInfo any] struct {
 	Differ       *PlanModifyDiffer
 	Replacements map[string]UnknownReplacementCall[ResourceInfo]
 	Info         ResourceInfo
+
+	keepUnknownAttributeNames []string // todo: Support validating values when adding attributes
+	keepUnknownsExtraCalls    []func(ctx context.Context, stateValue ParsedAttrValue, req *UnknownReplacementRequest[ResourceInfo]) []string
+}
+
+func (u *UnknownReplacements[ResourceInfo]) AddReplacement(name string, call UnknownReplacementCall[ResourceInfo]) {
+	// todo: Validate the name exists in the schema
+	_, existing := u.Replacements[name]
+	if existing {
+		panic(fmt.Sprintf("Replacement already exists for %s", name))
+	}
+	u.Replacements[name] = call
+}
+
+func (u *UnknownReplacements[ResourceInfo]) AddKeepUnknownAlways(keepUnknown ...string) {
+	u.keepUnknownAttributeNames = append(u.keepUnknownAttributeNames, keepUnknown...)
+}
+
+func (u *UnknownReplacements[ResourceInfo]) AddKeepUnknownOnChanges(attributeEffectedMapping map[string][]string) {
+	u.keepUnknownAttributeNames = append(u.keepUnknownAttributeNames, u.Differ.AttributeChanges.KeepUnknown(attributeEffectedMapping)...)
+}
+
+func (u *UnknownReplacements[ResourceInfo]) AddKeepUnknownsExtraCall(call func(ctx context.Context, stateValue ParsedAttrValue, req *UnknownReplacementRequest[ResourceInfo]) []string) {
+	u.keepUnknownsExtraCalls = append(u.keepUnknownsExtraCalls, call)
+}
+
+func (u *UnknownReplacements[ResourceInfo]) ApplyReplacements(ctx context.Context, diags *diag.Diagnostics) {
+	for strPath, unknown := range u.Differ.Unknowns(ctx, diags) {
+		replacer, ok := u.Replacements[unknown.AttributeName]
+		if !ok {
+			replacer = u.defaultReplacer
+		}
+		req := &UnknownReplacementRequest[ResourceInfo]{
+			Info:          u.Info,
+			Path:          unknown.Path,
+			Differ:        u.Differ,
+			Changes:       u.Differ.AttributeChanges,
+			Unknown:       unknown.UnknownValue,
+			Diags:         diags,
+			AttributeName: unknown.AttributeName,
+		}
+		replacement := replacer(ctx, ParsedAttrValue{Value: unknown.StateValue}, req)
+		if replacement.IsUnknown() {
+			tflog.Debug(ctx, fmt.Sprintf("Keeping unknown value in plan @ %s", strPath))
+		} else {
+			tflog.Debug(ctx, fmt.Sprintf("Replacing unknown value in plan @ %s", strPath))
+			UpdatePlanValue(ctx, diags, u.Differ, unknown.Path, replacement)
+		}
+	}
+}
+
+func (u *UnknownReplacements[ResourceInfo]) defaultReplacer(ctx context.Context, stateValue ParsedAttrValue, req *UnknownReplacementRequest[ResourceInfo]) attr.Value {
+	keepUnknowns := slices.Clone(u.keepUnknownAttributeNames)
+	for _, call := range u.keepUnknownsExtraCalls {
+		keepUnknowns = append(keepUnknowns, call(ctx, stateValue, req)...)
+	}
+	if slices.Contains(keepUnknowns, req.AttributeName) {
+		return req.Unknown
+	}
+	return stateValue.Value
 }
 
 // ParsedAttrValue is a wrapper around attr.Value that provides type-safe accessors to support using the same signature of functions.
@@ -43,43 +104,11 @@ func (p *ParsedAttrValue) AsObject() types.Object {
 }
 
 type UnknownReplacementRequest[ResourceInfo any] struct {
-	Info    ResourceInfo
-	Unknown attr.Value
-	Differ  *PlanModifyDiffer
-	Diags   *diag.Diagnostics
-	Path    path.Path
-	Changes AttributeChanges
-}
-
-func (u *UnknownReplacements[ResourceInfo]) AddReplacement(name string, call UnknownReplacementCall[ResourceInfo]) {
-	// todo: Validate the name exists in the schema
-	_, existing := u.Replacements[name]
-	if existing {
-		panic(fmt.Sprintf("Replacement already exists for %s", name))
-	}
-	u.Replacements[name] = call
-}
-
-func (u *UnknownReplacements[ResourceInfo]) ApplyReplacements(ctx context.Context, diags *diag.Diagnostics) {
-	for strPath, unknown := range u.Differ.Unknowns(ctx, diags) {
-		replacer, ok := u.Replacements[unknown.AttributeName]
-		if !ok {
-			continue
-		}
-		req := &UnknownReplacementRequest[ResourceInfo]{
-			Info:    u.Info,
-			Path:    unknown.Path,
-			Differ:  u.Differ,
-			Changes: u.Differ.AttributeChanges,
-			Unknown: unknown.UnknownValue,
-			Diags:   diags,
-		}
-		response := replacer(ctx, ParsedAttrValue{Value: unknown.StateValue}, req)
-		if response.IsUnknown() {
-			tflog.Debug(ctx, fmt.Sprintf("Keeping unknown value in plan @ %s", strPath))
-		} else {
-			tflog.Debug(ctx, fmt.Sprintf("Replacing unknown value in plan @ %s", strPath))
-			UpdatePlanValue(ctx, diags, u.Differ, unknown.Path, response)
-		}
-	}
+	Info          ResourceInfo
+	Unknown       attr.Value
+	Differ        *PlanModifyDiffer
+	Diags         *diag.Diagnostics
+	AttributeName string
+	Path          path.Path
+	Changes       AttributeChanges
 }
