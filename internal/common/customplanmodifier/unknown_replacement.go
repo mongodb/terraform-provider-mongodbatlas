@@ -46,9 +46,9 @@ type UnknownReplacementRequest[ResourceInfo any] struct {
 	Info    ResourceInfo
 	Unknown attr.Value
 	Differ  *PlanModifyDiffer
+	Diags   *diag.Diagnostics
 	Path    path.Path
 	Changes AttributeChanges
-	Diags  *diag.Diagnostics
 }
 
 func (u *UnknownReplacements[ResourceInfo]) AddReplacement(name string, call UnknownReplacementCall[ResourceInfo]) {
