@@ -48,6 +48,7 @@ type UnknownReplacementRequest[ResourceInfo any] struct {
 	Differ  *PlanModifyDiffer
 	Path    path.Path
 	Changes AttributeChanges
+	Diags  *diag.Diagnostics
 }
 
 func (u *UnknownReplacements[ResourceInfo]) AddReplacement(name string, call UnknownReplacementCall[ResourceInfo]) {
@@ -71,6 +72,7 @@ func (u *UnknownReplacements[ResourceInfo]) ApplyReplacements(ctx context.Contex
 			Differ:  u.Differ,
 			Changes: u.Differ.AttributeChanges,
 			Unknown: unknown.UnknownValue,
+			Diags:   diags,
 		}
 		response := replacer(ctx, ParsedAttrValue{Value: unknown.StateValue}, req)
 		if response.IsUnknown() {
