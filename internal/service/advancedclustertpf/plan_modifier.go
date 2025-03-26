@@ -118,12 +118,6 @@ func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 			return
 		}
 		for j := range minLen(planRegionConfigsTF, stateRegionConfigsTF) {
-			stateElectableSpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].ElectableSpecs)
-			planElectableSpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ElectableSpecs)
-			if planElectableSpecs == nil && stateElectableSpecs != nil && stateElectableSpecs.NodeCount.ValueInt64() > 0 {
-				planRegionConfigsTF[j].ElectableSpecs = stateRegionConfigsTF[j].ElectableSpecs
-				planElectableSpecs = stateElectableSpecs
-			}
 			// don't use auto_scaling or analytics_auto_scaling from state if it's not enabled as it doesn't need to be present in Update request payload
 			stateAutoScaling := TFModelObject[TFAutoScalingModel](ctx, stateRegionConfigsTF[j].AutoScaling)
 			planAutoScaling := TFModelObject[TFAutoScalingModel](ctx, planRegionConfigsTF[j].AutoScaling)
@@ -239,12 +233,6 @@ func TFModelObject[T any](ctx context.Context, input types.Object) *T {
 		return nil
 	}
 	return item
-}
-
-func copyAttrIfDestNotKnown[T attr.Value](src, dest *T) {
-	if !isKnown(*dest) {
-		*dest = *src
-	}
 }
 
 // isKnown returns true if the attribute is known (not null or unknown). Note that !isKnown is not the same as IsUnknown because null is !isKnown but not IsUnknown.
