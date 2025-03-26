@@ -53,23 +53,24 @@ func AttributeName(p path.Path) string {
 }
 
 func AsAddedIndex(p path.Path) string {
-	parentString := p.ParentPath().ParentPath().String()
+	if !IsIndexValue(p) {
+		return ""
+	}
 	lastPart := LastPart(p)
 	indexWithSign := strings.Replace(lastPart, "[", "[+", 1)
-	if parentString == "" {
-		return indexWithSign
-	}
-	return parentString + "." + indexWithSign
+	everythingExceptLast, _ := strings.CutSuffix(p.String(), lastPart)
+	return everythingExceptLast + indexWithSign
 }
 
+// AsRemovedIndex returns empty string if the path is not an index otherwise it adds `-` before the index
 func AsRemovedIndex(p path.Path) string {
-	parentString := p.ParentPath().ParentPath().String()
-	lastPart := LastPart(p)
-	indexWithSign := strings.Replace(lastPart, "[", "[-", 1)
-	if parentString == "" {
-		return indexWithSign
+	if !IsIndexValue(p) {
+		return ""
 	}
-	return parentString + "." + indexWithSign
+	lastPart := LastPart(p)
+	lastPartWithRemoveIndex := strings.Replace(lastPart, "[", "[-", 1)
+	everythingExceptLast, _ := strings.CutSuffix(p.String(), lastPart)
+	return everythingExceptLast + lastPartWithRemoveIndex
 }
 
 func TrimLastIndex(p path.Path) string {
@@ -119,5 +120,17 @@ func HasPathParent(p path.Path, parentAttributeName string) bool {
 		if AttributeNameEquals(p, parentAttributeName) {
 			return true
 		}
+	}
+}
+
+func AncestorPaths(p path.Path) []path.Path {
+	ancestors := []path.Path{}
+	for {
+		ancestor := p.ParentPath()
+		if ancestor.Equal(path.Empty()) {
+			return ancestors
+		}
+		ancestors = append(ancestors, ancestor)
+		p = ancestor
 	}
 }

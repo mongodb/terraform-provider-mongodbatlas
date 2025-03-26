@@ -41,10 +41,11 @@ func TestAttributeNameEquals(t *testing.T) {
 	}
 }
 
-func TestStripSquareBrackets(t *testing.T) {
+func TestTrimLastIndex(t *testing.T) {
 	assert.Equal(t, "replication_specs", conversion.TrimLastIndex(path.Root("replication_specs").AtListIndex(0)))
 	assert.Equal(t, "replication_specs", conversion.TrimLastIndex(path.Root("replication_specs").AtMapKey("myKey")))
-	assert.Equal(t, "replication_specs", conversion.TrimLastIndex(path.Root("replication_specs")))
+	assert.Equal(t, "replication_specs[Value(\"myKey\")]", path.Root("replication_specs").AtSetValue(types.StringValue("myKey")).String())
+	assert.Equal(t, "replication_specs", conversion.TrimLastIndex(path.Root("replication_specs").AtSetValue(types.StringValue("myKey"))))
 }
 
 func TestIndexMethods(t *testing.T) {
@@ -53,8 +54,14 @@ func TestIndexMethods(t *testing.T) {
 	assert.False(t, conversion.IsListIndex(path.Root("replication_specs").AtMapKey("region_configs")))
 	assert.Equal(t, "replication_specs[+0]", conversion.AsAddedIndex(path.Root("replication_specs").AtListIndex(0)))
 	assert.Equal(t, "replication_specs[0].region_configs[+1]", conversion.AsAddedIndex(path.Root("replication_specs").AtListIndex(0).AtName("region_configs").AtListIndex(1)))
+	assert.Equal(t, "replication_specs[+\"myKey\"]", conversion.AsAddedIndex(path.Root("replication_specs").AtMapKey("myKey")))
+	assert.Equal(t, "replication_specs[+Value(\"myKey\")]", conversion.AsAddedIndex(path.Root("replication_specs").AtSetValue(types.StringValue("myKey"))))
 	assert.Equal(t, "replication_specs[-1]", conversion.AsRemovedIndex(path.Root("replication_specs").AtListIndex(1)))
 	assert.Equal(t, "replication_specs[0].region_configs[-1]", conversion.AsRemovedIndex(path.Root("replication_specs").AtListIndex(0).AtName("region_configs").AtListIndex(1)))
+	assert.Equal(t, "replication_specs[-\"myKey\"]", conversion.AsRemovedIndex(path.Root("replication_specs").AtMapKey("myKey")))
+	assert.Equal(t, "replication_specs[-Value(\"myKey\")]", conversion.AsRemovedIndex(path.Root("replication_specs").AtSetValue(types.StringValue("myKey"))))
+	assert.Equal(t, "advanced_configuration.custom_openssl_cipher_config_tls12[-Value(\"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384\")]", conversion.AsRemovedIndex(path.Root("advanced_configuration").AtName("custom_openssl_cipher_config_tls12").AtSetValue(types.StringValue("TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"))))
+	assert.Equal(t, "", conversion.AsRemovedIndex(path.Root("replication_specs")))
 }
 
 func TestPathMatches(t *testing.T) {

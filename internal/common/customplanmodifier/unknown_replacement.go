@@ -15,8 +15,10 @@ import (
 )
 
 func NewUnknownReplacements[ResourceInfo any](ctx context.Context, req *resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse, schema conversion.TPFSchema, info ResourceInfo) *UnknownReplacements[ResourceInfo] {
+	differ := NewPlanModifyDiffer(ctx, req, resp, schema)
+	tflog.Debug(ctx, differ.Diff(ctx, &resp.Diagnostics, schema, false))
 	return &UnknownReplacements[ResourceInfo]{
-		Differ:       NewPlanModifyDiffer(ctx, req, resp, schema),
+		Differ:       differ,
 		Info:         info,
 		Replacements: make(map[string]UnknownReplacementCall[ResourceInfo]),
 	}

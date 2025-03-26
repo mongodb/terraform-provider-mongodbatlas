@@ -2,6 +2,7 @@ package customplanmodifier_test
 
 import (
 	"context"
+	"slices"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -122,21 +123,30 @@ type unknownReplacementTestCase struct {
 
 func TestReplaceUnknownLogicByWrappingAdvancedClusterTPF(t *testing.T) {
 	instanceSizeChanged := customplanmodifier.AttributeChanges{
+		"replication_specs",
 		"replication_specs[0]",
+		"replication_specs[0].region_configs",
 		"replication_specs[0].region_configs[0]",
 		"replication_specs[0].region_configs[0].electable_specs",
 		"replication_specs[0].region_configs[0].electable_specs.instance_size",
 		"timeouts",
 		"timeouts.create",
 	}
-	regionConfigPath := tfjsonpath.New("replication_specs").AtSliceIndex(0).AtMapKey("region_configs").AtSliceIndex(0)
+	repSpec0 := tfjsonpath.New("replication_specs").AtSliceIndex(0)
+	repSpec1 := tfjsonpath.New("replication_specs").AtSliceIndex(1)
+	regionConfigPath := repSpec0.AtMapKey("region_configs").AtSliceIndex(0)
 	nodeCountChanged := customplanmodifier.AttributeChanges{
+		"replication_specs",
 		"replication_specs[0]",
+		"replication_specs[0].region_configs",
 		"replication_specs[0].region_configs[0]",
 		"replication_specs[0].region_configs[0].electable_specs",
 		"replication_specs[0].region_configs[0].electable_specs.node_count",
 		"timeouts",
 		"timeouts.create",
+	}
+	alwaysUnknown := func(ctx context.Context, stateValue customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[replaceUnknownResourceInfo]) attr.Value {
+		return req.Unknown
 	}
 	for name, tc := range map[string]unknownReplacementTestCase{
 		"mongo db major version changed should show in attribute changes and mongo_db_version replace unknown should be called": {
@@ -146,9 +156,7 @@ func TestReplaceUnknownLogicByWrappingAdvancedClusterTPF(t *testing.T) {
 				tfjsonpath.New("mongo_db_version"),
 			},
 			attributeReplaceUnknowns: map[string]replaceUnknownTestCall{
-				"mongo_db_version": func(ctx context.Context, stateValue customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[replaceUnknownResourceInfo]) attr.Value {
-					return req.Unknown
-				},
+				"mongo_db_version": alwaysUnknown,
 			},
 			expectedAttributeChanges: customplanmodifier.AttributeChanges{"mongo_db_major_version", "timeouts", "timeouts.create"},
 			expectedKeepUnknownCalls: []string{"mongo_db_version"},
@@ -165,9 +173,7 @@ func TestReplaceUnknownLogicByWrappingAdvancedClusterTPF(t *testing.T) {
 				regionConfigPath.AtMapKey("auto_scaling"),
 			},
 			attributeReplaceUnknowns: map[string]replaceUnknownTestCall{
-				"auto_scaling": func(ctx context.Context, stateValue customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[replaceUnknownResourceInfo]) attr.Value {
-					return req.Unknown
-				},
+				"auto_scaling": alwaysUnknown,
 			},
 			expectedKeepUnknownCalls: []string{"replication_specs[0].region_configs[0].auto_scaling"},
 			expectedAttributeChanges: nodeCountChanged,
@@ -217,6 +223,75 @@ func TestReplaceUnknownLogicByWrappingAdvancedClusterTPF(t *testing.T) {
 			expectedKeepUnknownCalls: []string{"replication_specs[0].region_configs[0].read_only_specs"},
 			expectedAttributeChanges: instanceSizeChanged,
 		},
+		"remove a replication_spec should not call replace unknown": {
+			ImportName:     unit.ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs,
+			ConfigFilename: "main_removed_replication_spec.tf",
+			attributeReplaceUnknowns: map[string]replaceUnknownTestCall{
+				"analytics_auto_scaling": alwaysUnknown,
+			},
+			expectedAttributeChanges: []string{
+				"replication_specs",
+				"replication_specs[-1]",
+			},
+		},
+		"add a region config should not call replace unknown in the new region config": {
+			ImportName:     unit.ImportNameClusterReplicasetOneRegion,
+			ConfigFilename: "main_add_region_config.tf",
+			attributeReplaceUnknowns: map[string]replaceUnknownTestCall{
+				"analytics_auto_scaling": alwaysUnknown,
+			},
+			expectedAttributeChanges: []string{
+				"replication_specs",
+				"replication_specs[0]",
+				"replication_specs[0].region_configs",
+				"replication_specs[0].region_configs[+1]",
+				"replication_specs[0].region_configs[1]",
+				"timeouts",
+				"timeouts.create",
+			},
+			expectedKeepUnknownCalls: []string{"replication_specs[0].region_configs[0].analytics_auto_scaling"},
+		},
+		"add a replication spec should not call replace unknown in the new region config": {
+			ImportName:     unit.ImportNameClusterReplicasetOneRegion,
+			ConfigFilename: "main_add_replication_spec.tf",
+			attributeReplaceUnknowns: map[string]replaceUnknownTestCall{
+				"analytics_auto_scaling": alwaysUnknown,
+				"id":                     alwaysUnknown,
+			},
+			expectedAttributeChanges: []string{
+				"replication_specs",
+				"replication_specs[+1]",
+				"replication_specs[1]",
+				"timeouts",
+				"timeouts.create",
+			},
+			expectedKeepUnknownCalls: []string{
+				"replication_specs[0].id",
+				"replication_specs[0].region_configs[0].analytics_auto_scaling",
+			},
+			CheckUnknowns: []tfjsonpath.Path{
+				repSpec1.AtMapKey("id"),
+				repSpec1.AtMapKey("region_configs").AtSliceIndex(0).AtMapKey("analytics_auto_scaling"),
+			},
+		},
+		"add tags should not call replace unknown": {
+			ImportName:     unit.ImportNameClusterReplicasetOneRegion,
+			ConfigFilename: "main_with_tags.tf",
+			attributeReplaceUnknowns: map[string]replaceUnknownTestCall{
+				"analytics_auto_scaling": alwaysUnknown,
+				"id":                     alwaysUnknown,
+			},
+			expectedAttributeChanges: []string{
+				"tags",
+				"tags[\"id\"]",
+				"timeouts",
+				"timeouts.create",
+			},
+			expectedKeepUnknownCalls: []string{
+				"replication_specs[0].id",
+				"replication_specs[0].region_configs[0].analytics_auto_scaling",
+			},
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			runData := planModifyRunData{}
@@ -238,6 +313,7 @@ func TestReplaceUnknownLogicByWrappingAdvancedClusterTPF(t *testing.T) {
 				Checks:         checks,
 			}))
 			assert.Equal(t, tc.expectedAttributeChanges, runData.attributeChanges)
+			slices.Sort(runData.keepUnknownCalls)
 			assert.Equal(t, tc.expectedKeepUnknownCalls, runData.keepUnknownCalls)
 		})
 	}

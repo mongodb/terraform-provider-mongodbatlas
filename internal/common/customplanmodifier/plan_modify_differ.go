@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"maps"
 	"slices"
+	"sort"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -53,17 +54,26 @@ type PlanModifyDiffer struct {
 	PlanFullyKnown   bool
 }
 
-func (d *PlanModifyDiffer) ParentRemoved(p path.Path) bool {
-	for {
-		parent := p.ParentPath()
-		if parent.Equal(path.Empty()) {
-			return false
-		}
-		if slices.Contains(d.AttributeChanges, conversion.AsRemovedIndex(parent)) {
-			return true
-		}
-		p = parent
+func (d *PlanModifyDiffer) Diff(ctx context.Context, diags *diag.Diagnostics, schema conversion.TPFSchema, isConfig bool) string {
+	diffList := d.statePlanDiff
+	if isConfig {
+		diffList = d.stateConfigDiff
 	}
+	diffPaths := make([]string, len(diffList))
+	for i, diff := range diffList {
+		p, localDiags := conversion.AttributePath(ctx, diff.Path, schema)
+		if localDiags.HasError() {
+			diags.Append(localDiags...)
+			return ""
+		}
+		diffPaths[i] = p.String()
+	}
+	sort.Strings(diffPaths)
+	name := "plan"
+	if isConfig {
+		name = "config"
+	}
+	return fmt.Sprintf("DifferStateTo%s\n", name) + strings.Join(diffPaths, "\n")
 }
 
 type UnknownInfo struct {
@@ -78,14 +88,12 @@ func (d *PlanModifyDiffer) Unknowns(ctx context.Context, diags *diag.Diagnostics
 	schema := d.schema
 	for _, diff := range d.statePlanDiff {
 		stateValue, tpfPath := conversion.AttributePathValue(ctx, diags, diff.Path, d.req.State, schema)
-		if d.ParentRemoved(tpfPath) {
-			continue
-		}
+		strPath := tpfPath.String()
 		planValue, _ := conversion.AttributePathValue(ctx, diags, diff.Path, d.req.Plan, schema)
 		if planValue == nil || !planValue.IsUnknown() {
 			continue
 		}
-		unknowns[tpfPath.String()] = UnknownInfo{
+		unknowns[strPath] = UnknownInfo{
 			Path:          tpfPath,
 			StateValue:    stateValue,
 			UnknownValue:  planValue,
@@ -136,29 +144,45 @@ func UpdatePlanValue(ctx context.Context, diags *diag.Diagnostics, d *PlanModify
 
 func findChanges(ctx context.Context, diff []tftypes.ValueDiff, diags *diag.Diagnostics, schema conversion.TPFSchema) AttributeChanges {
 	changes := make(map[string]bool)
-	addChangeAndParentChanges := func(change string) {
-		changes[change] = true
-		parts := strings.Split(change, ".")
-		for i := range parts[:len(parts)-1] {
-			changes[strings.Join(parts[:len(parts)-1-i], ".")] = true
+	addChangeAndAncestorChanges := func(change path.Path) {
+		changes[change.String()] = true
+		for _, p := range conversion.AncestorPaths(change) {
+			changes[p.String()] = true
 		}
+	}
+	// avoids adding change for removed region_configs inside a removed replication_specs
+	isAncestorRemoved := func(p path.Path) bool {
+		for _, a := range conversion.AncestorPaths(p) {
+			if conversion.IsListIndex(a) {
+				if _, found := changes[conversion.AsRemovedIndex(a)]; found {
+					return true
+				}
+			}
+		}
+		return false
 	}
 	for _, d := range diff {
 		p, localDiags := conversion.AttributePath(ctx, d.Path, schema)
-		if conversion.IsListIndex(p) {
-			if d.Value1 == nil {
-				addChangeAndParentChanges(conversion.AsAddedIndex(p))
-			}
-			if d.Value2 == nil {
-				addChangeAndParentChanges(conversion.AsRemovedIndex(p))
-			}
+		if localDiags.HasError() {
+			diags.Append(localDiags...)
+			continue
 		}
+		// Two types of changes from a diff
+		// 1. It is defined in the plan AND it is Known and not null
+		// 2. It is a removed list index. (set or map index we ignore, e.g., replication_specs[0].container_id[-\"AWS:US_EAST_1\"] or advanced_configuration.custom_openssl_cipher_config_tls12[-Value(\"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384\")])
+		// If we use schema.SetNestedAttribute we might need to see if those changes are detected
 		if d.Value2 != nil && d.Value2.IsKnown() && !d.Value2.IsNull() {
-			if localDiags.HasError() {
-				diags.Append(localDiags...)
-				continue
+			addChangeAndAncestorChanges(p)
+		}
+		if conversion.IsListIndex(p) {
+			isAdd := d.Value1 == nil
+			if isAdd {
+				changes[conversion.AsAddedIndex(p)] = true
 			}
-			addChangeAndParentChanges(p.String())
+			isRemove := d.Value2 == nil
+			if isRemove && !isAncestorRemoved(p) {
+				changes[conversion.AsRemovedIndex(p)] = true
+			}
 		}
 	}
 	return slices.Sorted(maps.Keys(changes)) // Ensure changes are sorted to support top-down processing, for example read_only_spec is processed before read_only_spec.disk_size_gb

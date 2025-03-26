@@ -57,15 +57,6 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	if !shardingConfigUpgrade {
 		AdjustRegionConfigsChildren(ctx, diags, state, plan)
 	}
-	diff := findClusterDiff(ctx, state, plan, diags)
-	if diags.HasError() || diff.isAnyUpgrade() { // Don't do anything in upgrades
-		return
-	}
-	attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
-	keepUnknown := []string{"connection_strings", "state_name", "mongo_db_version"} // Volatile attributes, should not be copied from state
-	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
-	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
-	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
 	/* pending revision if logic can be reincorporated safely:
 	if slices.Contains(keepUnknown, "replication_specs") {
 		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, &attributeChanges)
