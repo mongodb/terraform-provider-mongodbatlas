@@ -18,16 +18,17 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
+var resourceName = "mongodbatlas_organization.test"
+
 func TestAccConfigRSOrganization_Basic(t *testing.T) {
 	acc.SkipTestForCI(t) // affects the org
 
 	var (
-		resourceName = "mongodbatlas_organization.test"
-		orgOwnerID   = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
-		name         = acc.RandomName()
-		updatedName  = acc.RandomName()
-		description  = "test Key for Acceptance tests"
-		roleName     = "ORG_OWNER"
+		orgOwnerID  = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
+		name        = acc.RandomName()
+		updatedName = acc.RandomName()
+		description = "test Key for Acceptance tests"
+		roleName    = "ORG_OWNER"
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -36,7 +37,7 @@ func TestAccConfigRSOrganization_Basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgOwnerID, name, description, roleName),
+				Config: configBasic(orgOwnerID, name, description, roleName, false, nil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
@@ -45,10 +46,11 @@ func TestAccConfigRSOrganization_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "restrict_employee_access", "false"),
 					resource.TestCheckResourceAttr(resourceName, "multi_factor_auth_required", "false"),
 					resource.TestCheckResourceAttr(resourceName, "gen_ai_features_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "skip_default_alerts_settings", "true"),
 				),
 			},
 			{
-				Config: configBasic(orgOwnerID, updatedName, description, roleName),
+				Config: configBasic(orgOwnerID, updatedName, description, roleName, true, conversion.Pointer(false)),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
@@ -57,6 +59,20 @@ func TestAccConfigRSOrganization_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "restrict_employee_access", "false"),
 					resource.TestCheckResourceAttr(resourceName, "multi_factor_auth_required", "false"),
 					resource.TestCheckResourceAttr(resourceName, "gen_ai_features_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "skip_default_alerts_settings", "false"),
+				),
+			},
+			{
+				Config: configBasic(orgOwnerID, updatedName, description, roleName, true, conversion.Pointer(true)),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
+					resource.TestCheckResourceAttr(resourceName, "description", description),
+					resource.TestCheckResourceAttr(resourceName, "api_access_list_required", "false"),
+					resource.TestCheckResourceAttr(resourceName, "restrict_employee_access", "false"),
+					resource.TestCheckResourceAttr(resourceName, "multi_factor_auth_required", "false"),
+					resource.TestCheckResourceAttr(resourceName, "gen_ai_features_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "skip_default_alerts_settings", "true"),
 				),
 			},
 		},
@@ -67,10 +83,11 @@ func TestAccConfigRSOrganization_BasicAccess(t *testing.T) {
 	acc.SkipTestForCI(t) // affects the org
 
 	var (
-		orgOwnerID  = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
-		name        = acc.RandomName()
-		description = "test Key for Acceptance tests"
-		roleName    = "ORG_BILLING_ADMIN"
+		orgOwnerID            = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
+		name                  = acc.RandomName()
+		description           = "test Key for Acceptance tests"
+		roleName              = "ORG_BILLING_ADMIN"
+		roleNameCorrectAccess = "ORG_OWNER"
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -79,8 +96,21 @@ func TestAccConfigRSOrganization_BasicAccess(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      configBasic(orgOwnerID, name, description, roleName),
+				Config:      configBasic(orgOwnerID, name, description, roleName, false, nil),
 				ExpectError: regexp.MustCompile("API Key must have the ORG_OWNER role"),
+			},
+			{
+				Config: configBasic(orgOwnerID, name, description, roleNameCorrectAccess, true, conversion.Pointer(false)),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
+					resource.TestCheckResourceAttr(resourceName, "description", description),
+					resource.TestCheckResourceAttr(resourceName, "api_access_list_required", "false"),
+					resource.TestCheckResourceAttr(resourceName, "restrict_employee_access", "false"),
+					resource.TestCheckResourceAttr(resourceName, "multi_factor_auth_required", "false"),
+					resource.TestCheckResourceAttr(resourceName, "gen_ai_features_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "skip_default_alerts_settings", "false"),
+				),
 			},
 		},
 	})
@@ -90,11 +120,10 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 	acc.SkipTestForCI(t) // affects the org
 
 	var (
-		resourceName = "mongodbatlas_organization.test"
-		orgOwnerID   = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
-		name         = acc.RandomName()
-		description  = "test Key for Acceptance tests"
-		roleName     = "ORG_OWNER"
+		orgOwnerID  = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
+		name        = acc.RandomName()
+		description = "test Key for Acceptance tests"
+		roleName    = "ORG_OWNER"
 
 		settingsConfig = `
 		api_access_list_required = false
@@ -135,7 +164,7 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 				),
 			},
 			{
-				Config: configBasic(orgOwnerID, "org-name-updated", description, roleName),
+				Config: configBasic(orgOwnerID, "org-name-updated", description, roleName, false, nil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
@@ -158,7 +187,7 @@ func TestAccConfigRSOrganizationCreate_Errors(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      configBasic(unknownUser, acc.RandomName(), "should fail since user is not found", roleName),
+				Config:      configBasic(unknownUser, acc.RandomName(), "should fail since user is not found", roleName, false, nil),
 				ExpectError: regexp.MustCompile(`USER_NOT_FOUND`),
 			},
 		},
@@ -182,6 +211,7 @@ func TestAccConfigDSOrganization_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(datasourceName, "multi_factor_auth_required"),
 					resource.TestCheckResourceAttrSet(datasourceName, "api_access_list_required"),
 					resource.TestCheckResourceAttr(datasourceName, "gen_ai_features_enabled", "true"),
+					resource.TestCheckResourceAttrSet(datasourceName, "skip_default_alerts_settings"),
 				),
 			},
 		},
@@ -217,6 +247,7 @@ func TestAccConfigDSOrganizations_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(datasourceName, "results.0.multi_factor_auth_required"),
 					resource.TestCheckResourceAttrSet(datasourceName, "results.0.api_access_list_required"),
 					resource.TestCheckResourceAttr(datasourceName, "results.0.gen_ai_features_enabled", "true"),
+					resource.TestCheckResourceAttrSet(datasourceName, "results.0.skip_default_alerts_settings"),
 				),
 			},
 		},
@@ -323,24 +354,32 @@ func checkDestroy(s *terraform.State) error {
 	return nil
 }
 
-func configBasic(orgOwnerID, name, description, roleNames string) string {
+func configBasic(orgOwnerID, name, description, roleNames string, useSkipDefaultAlertSettings bool, skipDefaultAlertSettings *bool) string {
+	skipDefaultAlertSettingsStr := ""
+
+	if useSkipDefaultAlertSettings && skipDefaultAlertSettings != nil {
+		skipDefaultAlertSettingsStr = fmt.Sprintf("skip_default_alerts_settings = %t", *skipDefaultAlertSettings)
+	}
+
 	return fmt.Sprintf(`
 	  resource "mongodbatlas_organization" "test" {
-		org_owner_id = "%s"
-		name = "%s"
-		description = "%s"
-		role_names = ["%s"]
+		org_owner_id = %q
+		name = %q
+		description = %q
+		role_names = [%q]
+		
+		%s
 	  }
-	`, orgOwnerID, name, description, roleNames)
+	`, orgOwnerID, name, description, roleNames, skipDefaultAlertSettingsStr)
 }
 
 func configWithSettings(orgOwnerID, name, description, roleNames, settingsConfig string) string {
 	return fmt.Sprintf(`
 	  resource "mongodbatlas_organization" "test" {
-		org_owner_id = "%s"
-		name = "%s"
-		description = "%s"
-		role_names = ["%s"]
+		org_owner_id = %q
+		name = %q
+		description = %q
+		role_names = [%q]
 		%s
 	  }
 	`, orgOwnerID, name, description, roleNames, settingsConfig)

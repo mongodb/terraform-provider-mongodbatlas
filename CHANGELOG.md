@@ -1,5 +1,17 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* resource/mongodbatlas_stream_processor: Adds update support ([#3180](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3180))
+
+## 1.31.0 (March 25, 2025)
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_organization: Adds support for `skip_default_alerts_settings` setting ([#2933](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2933))
+* data-source/mongodbatlas_organizations: Adds support for `skip_default_alerts_settings` setting ([#2933](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2933))
+* resource/mongodbatlas_organization: Adds support for `skip_default_alerts_settings` setting ([#2933](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2933))
+
 ## 1.30.0 (March 20, 2025)
 
 ENHANCEMENTS:

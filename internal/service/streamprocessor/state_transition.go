@@ -21,6 +21,11 @@ const (
 	FailedState     = "FAILED"
 )
 
+const (
+	ErrorUpdateStateTransition = "Stream Processor must be in %s state to transition to %s state"
+	ErrorUpdateToCreatedState  = "Stream Processor cannot transition from %s to CREATED"
+)
+
 func WaitStateTransition(ctx context.Context, requestParams *admin.GetStreamProcessorApiParams, client admin.StreamsApi, pendingStates, desiredStates []string) (*admin.StreamsProcessorWithStats, error) {
 	stateConf := &retry.StateChangeConf{
 		Pending:    pendingStates,
@@ -41,6 +46,22 @@ func WaitStateTransition(ctx context.Context, requestParams *admin.GetStreamProc
 	}
 
 	return nil, errors.New("did not obtain valid result when waiting for stream processor state transition")
+}
+
+func ValidateUpdateStateTransition(currentState, plannedState string) (errMsg string, isValidTransition bool) {
+	if currentState == plannedState {
+		return "", true
+	}
+
+	if plannedState == StoppedState && currentState != StartedState {
+		return fmt.Sprintf(ErrorUpdateStateTransition, StartedState, StoppedState), false
+	}
+
+	if plannedState == CreatedState && currentState != CreatedState {
+		return fmt.Sprintf(ErrorUpdateToCreatedState, currentState), false
+	}
+
+	return "", true
 }
 
 func refreshFunc(ctx context.Context, requestParams *admin.GetStreamProcessorApiParams, client admin.StreamsApi) retry.StateRefreshFunc {

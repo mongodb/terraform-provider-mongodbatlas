@@ -1500,7 +1500,7 @@ func configSharded(t *testing.T, projectID, clusterName string, withUpdate bool)
 
 func configBlocks(t *testing.T, projectID, clusterName, instanceSize string, defineBlocks bool) string {
 	t.Helper()
-	var extraConfig0, extraConfig1 string
+	var extraConfig0, extraConfig1, electableSpecs0 string
 	autoScalingBlocks := `
 		auto_scaling {
 			disk_gb_enabled            = true
@@ -1518,6 +1518,12 @@ func configBlocks(t *testing.T, projectID, clusterName, instanceSize string, def
 		}
 	`
 	if defineBlocks {
+		electableSpecs0 = `
+			electable_specs {
+				instance_size   = "M10"
+				node_count      = 5
+			}
+		`
 		// read only + autoscaling blocks
 		extraConfig0 = `
 			read_only_specs {
@@ -1549,10 +1555,7 @@ func configBlocks(t *testing.T, projectID, clusterName, instanceSize string, def
 					provider_name = "AWS"
 					priority      = 7
 					region_name   = "US_EAST_1"
-					electable_specs {
-						instance_size   = "M10"
-						node_count      = 5
-					}
+					%[6]s
 					%[4]s
 				}
 			}
@@ -1577,7 +1580,7 @@ func configBlocks(t *testing.T, projectID, clusterName, instanceSize string, def
 				}
 			}
 		}
-	`, projectID, clusterName, instanceSize, extraConfig0, extraConfig1))
+	`, projectID, clusterName, instanceSize, extraConfig0, extraConfig1, electableSpecs0))
 }
 
 func checkBlocks(instanceSize string) resource.TestCheckFunc {
