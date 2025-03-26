@@ -63,17 +63,24 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Update: true,
 				Delete: true,
 			}),
+			"no_wait_for_state_transition": schema.BoolAttribute{
+				Description: "If set to true, Terraform will not wait for the search deployment to reach an idle state after an update.",
+				Optional:    true,
+				Computed:    true,
+			},
+
 		},
 	}
 }
 
 type TFSearchDeploymentRSModel struct {
-	ID          types.String   `tfsdk:"id"`
-	ClusterName types.String   `tfsdk:"cluster_name"`
-	ProjectID   types.String   `tfsdk:"project_id"`
-	Specs       types.List     `tfsdk:"specs"`
-	StateName   types.String   `tfsdk:"state_name"`
-	Timeouts    timeouts.Value `tfsdk:"timeouts"`
+	ID                       types.String   `tfsdk:"id"`
+	ClusterName              types.String   `tfsdk:"cluster_name"`
+	ProjectID                types.String   `tfsdk:"project_id"`
+	Specs                    types.List     `tfsdk:"specs"`
+	StateName                types.String   `tfsdk:"state_name"`
+	Timeouts                 timeouts.Value `tfsdk:"timeouts"`
+	NoWaitForStateTransition types.Bool     `tfsdk:"no_wait_for_state_transition"`
 }
 
 type TFSearchNodeSpecModel struct {
