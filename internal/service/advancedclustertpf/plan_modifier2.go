@@ -15,6 +15,7 @@ import (
 var attributePlanModifiers = map[string]customplanmodifier.UnknownReplacementCall[PlanModifyResourceInfo]{
 	"mongo_db_version": mongoDBVersionReplaceUnknown,
 	"read_only_specs":  readOnlyReplaceUnknown,
+	"analytics_specs":  analyticsSpecsReplaceUnknown,
 	// TODO: Add the other computed attributes
 }
 
@@ -82,6 +83,22 @@ func readOnlyReplaceUnknown(ctx context.Context, state customplanmodifier.Parsed
 		newReadOnly.DiskSizeGb = types.Float64Unknown()
 	}
 	return conversion.AsObjectValue(ctx, newReadOnly, SpecsObjType.AttrTypes)
+}
+
+func analyticsSpecsReplaceUnknown(ctx context.Context, state customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
+	if req.Info.isShardingConfigUpgrade {
+		return req.Unknown
+	}
+	stateParsed := conversion.TFModelObject[TFSpecsModel](ctx, state.AsObject())
+	// don't get analytics_specs from state if node_count is 0 to avoid possible ANALYTICS_INSTANCE_SIZE_MUST_MATCH errors
+	if stateParsed == nil || stateParsed.NodeCount.ValueInt64() == 0 {
+		return req.Unknown
+	}
+	// if disk_size_gb is defined at root level we cannot use analytics_specs.disk_size_gb from state as it can be outdated
+	if req.Changes.AttributeChanged("disk_size_gb") {
+		stateParsed.DiskSizeGb = types.Float64Unknown()
+	}
+	return conversion.AsObjectValue(ctx, stateParsed, SpecsObjType.AttrTypes)
 }
 
 func unknownReplacements(ctx context.Context, req *resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
