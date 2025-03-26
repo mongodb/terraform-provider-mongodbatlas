@@ -14,6 +14,7 @@ var (
 	repSpec1      = tfjsonpath.New("replication_specs").AtSliceIndex(1)
 	regionConfig0 = repSpec0.AtMapKey("region_configs").AtSliceIndex(0)
 	regionConfig1 = repSpec1.AtMapKey("region_configs").AtSliceIndex(0)
+	advConfig     = tfjsonpath.New("advanced_configuration")
 	mockConfig    = unit.MockConfigAdvancedClusterTPF
 )
 
@@ -89,6 +90,41 @@ func TestMockPlanChecks_ClusterReplicasetOneRegion(t *testing.T) {
 				Checks: []plancheck.PlanCheck{
 					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
 					plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("mongo_db_version"), knownvalue.StringExact("8.0.5")),
+					// should use state values inside replication_specs as no changes are made to replication_specs
+					plancheck.ExpectKnownValue(resourceName, repSpec0.AtMapKey("id"), knownvalue.NotNull()),
+					plancheck.ExpectKnownValue(resourceName, repSpec0.AtMapKey("zone_name"), knownvalue.NotNull()),
+					plancheck.ExpectKnownValue(resourceName, repSpec0.AtMapKey("zone_id"), knownvalue.NotNull()),
+					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("electable_specs").AtMapKey("ebs_volume_type"), knownvalue.NotNull()),
+				},
+			},
+			{
+				ConfigFilename: "main_electable_disk_size_changed.tf",
+				Checks: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("disk_size_gb")),
+					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("disk_size_gb")),
+					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("read_only_specs").AtMapKey("disk_size_gb"), knownvalue.Int64Exact(99)),
+					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("electable_specs").AtMapKey("disk_size_gb"), knownvalue.Int64Exact(99)),
+				},
+			},
+			{
+				ConfigFilename: "main_tls_cipher_config_mode_changed.tf",
+				Checks: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					plancheck.ExpectUnknownValue(resourceName, advConfig.AtMapKey("custom_openssl_cipher_config_tls12")),
+					plancheck.ExpectKnownValue(resourceName, advConfig.AtMapKey("javascript_enabled"), knownvalue.Bool(true)),
+				},
+			},
+			{
+				ConfigFilename: "main_cluster_type_changed.tf",
+				Checks: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("config_server_type")),
+					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("config_server_management_mode")),
+					plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("bi_connector_config"), knownvalue.ObjectExact(map[string]knownvalue.Check{
+						"enabled":         knownvalue.Bool(false),
+						"read_preference": knownvalue.StringExact("secondary"),
+					})),
 				},
 			},
 		}
