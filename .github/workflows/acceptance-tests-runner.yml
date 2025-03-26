@@ -100,9 +100,6 @@ on:
       azure_private_endpoint_region:
         type: string
         required: true
-      mongodb_atlas_flex_project_id:
-        type: string
-        required: true
       confluent_cloud_network_id:
         type: string
         required: true
@@ -754,7 +751,6 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          MONGODB_ATLAS_FLEX_PROJECT_ID: ${{ inputs.mongodb_atlas_flex_project_id }}
           ACCTEST_PACKAGES: ./internal/service/flexcluster
         run: make testacc
 
