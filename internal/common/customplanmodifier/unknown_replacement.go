@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
@@ -23,7 +22,7 @@ func NewUnknownReplacements[ResourceInfo any](ctx context.Context, state *tfsdk.
 	}
 }
 
-type UnknownReplacementCall[ResourceInfo any] func(ctx context.Context, stateValue ParsedAttrValue, req *UnknownReplacementRequest[ResourceInfo]) attr.Value
+type UnknownReplacementCall[ResourceInfo any] func(ctx context.Context, stateValue attr.Value, req *UnknownReplacementRequest[ResourceInfo]) attr.Value
 
 type UnknownReplacements[ResourceInfo any] struct {
 	Differ       *PlanModifyDiffer
@@ -31,7 +30,7 @@ type UnknownReplacements[ResourceInfo any] struct {
 	Info         ResourceInfo
 
 	keepUnknownAttributeNames []string // todo: Support validating values when adding attributes
-	keepUnknownsExtraCalls    []func(ctx context.Context, stateValue ParsedAttrValue, req *UnknownReplacementRequest[ResourceInfo]) []string
+	keepUnknownsExtraCalls    []func(ctx context.Context, stateValue attr.Value, req *UnknownReplacementRequest[ResourceInfo]) []string
 }
 
 func (u *UnknownReplacements[ResourceInfo]) AddReplacement(name string, call UnknownReplacementCall[ResourceInfo]) {
@@ -55,7 +54,7 @@ func (u *UnknownReplacements[ResourceInfo]) AddKeepUnknownOnChanges(attributeEff
 }
 
 // AddKeepUnknownsExtraCall adds a function that returns extra keepUnknown attribute names based on the path/stateValue/req (same arguments as the replacer function).
-func (u *UnknownReplacements[ResourceInfo]) AddKeepUnknownsExtraCall(call func(ctx context.Context, stateValue ParsedAttrValue, req *UnknownReplacementRequest[ResourceInfo]) []string) {
+func (u *UnknownReplacements[ResourceInfo]) AddKeepUnknownsExtraCall(call func(ctx context.Context, stateValue attr.Value, req *UnknownReplacementRequest[ResourceInfo]) []string) {
 	u.keepUnknownsExtraCalls = append(u.keepUnknownsExtraCalls, call)
 }
 
@@ -92,7 +91,7 @@ func (u *UnknownReplacements[ResourceInfo]) ApplyReplacements(ctx context.Contex
 			Diags:         diags,
 			AttributeName: unknown.AttributeName,
 		}
-		replacement := replacer(ctx, ParsedAttrValue{Value: unknown.StateValue}, req)
+		replacement := replacer(ctx, unknown.StateValue, req)
 		if replacement.IsUnknown() {
 			tflog.Debug(ctx, fmt.Sprintf("Keeping unknown value in plan @ %s", strPath))
 		} else {
@@ -102,7 +101,7 @@ func (u *UnknownReplacements[ResourceInfo]) ApplyReplacements(ctx context.Contex
 	}
 }
 
-func (u *UnknownReplacements[ResourceInfo]) defaultReplacer(ctx context.Context, stateValue ParsedAttrValue, req *UnknownReplacementRequest[ResourceInfo]) attr.Value {
+func (u *UnknownReplacements[ResourceInfo]) defaultReplacer(ctx context.Context, stateValue attr.Value, req *UnknownReplacementRequest[ResourceInfo]) attr.Value {
 	keepUnknowns := slices.Clone(u.keepUnknownAttributeNames)
 	for _, call := range u.keepUnknownsExtraCalls {
 		keepUnknowns = append(keepUnknowns, call(ctx, stateValue, req)...)
@@ -110,21 +109,7 @@ func (u *UnknownReplacements[ResourceInfo]) defaultReplacer(ctx context.Context,
 	if slices.Contains(keepUnknowns, req.AttributeName) {
 		return req.Unknown
 	}
-	return stateValue.Value
-}
-
-// ParsedAttrValue is a wrapper around attr.Value that provides type-safe accessors to support using the same signature for all replacment functions regardless of the attribute type.
-// New values can be added on demand.
-type ParsedAttrValue struct {
-	Value attr.Value
-}
-
-func (p *ParsedAttrValue) AsString() types.String {
-	return p.Value.(types.String)
-}
-
-func (p *ParsedAttrValue) AsObject() types.Object {
-	return p.Value.(types.Object)
+	return stateValue
 }
 
 type UnknownReplacementRequest[ResourceInfo any] struct {

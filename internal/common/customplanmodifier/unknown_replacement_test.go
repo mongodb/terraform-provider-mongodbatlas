@@ -63,7 +63,7 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	schema := advancedclustertpf.ResourceSchema(ctx)
 	unknownReplacements := customplanmodifier.NewUnknownReplacements(ctx, &req.State, &resp.Plan, &resp.Diagnostics, schema, *r.info)
 	for attrName, replacer := range r.attributeReplaceUnknowns {
-		modifiedReplacer := func(ctx context.Context, stateValue customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[replaceUnknownResourceInfo]) attr.Value {
+		modifiedReplacer := func(ctx context.Context, stateValue attr.Value, req *customplanmodifier.UnknownReplacementRequest[replaceUnknownResourceInfo]) attr.Value {
 			r.runData.keepUnknownCalls = append(r.runData.keepUnknownCalls, req.Path.String())
 			return replacer(ctx, stateValue, req)
 		}
@@ -111,12 +111,12 @@ type unknownReplacementTestCase struct {
 	expectedKeepUnknownCalls []string
 }
 
-func alwaysUnknown(ctx context.Context, stateValue customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[replaceUnknownResourceInfo]) attr.Value {
+func alwaysUnknown(ctx context.Context, stateValue attr.Value, req *customplanmodifier.UnknownReplacementRequest[replaceUnknownResourceInfo]) attr.Value {
 	return req.Unknown
 }
 
-func alwaysState(ctx context.Context, stateValue customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[replaceUnknownResourceInfo]) attr.Value {
-	return stateValue.AsObject()
+func alwaysState(ctx context.Context, stateValue attr.Value, req *customplanmodifier.UnknownReplacementRequest[replaceUnknownResourceInfo]) attr.Value {
+	return stateValue
 }
 
 func TestReplaceUnknownLogicByWrappingAdvancedClusterTPF(t *testing.T) {
