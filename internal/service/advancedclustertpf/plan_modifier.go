@@ -105,64 +105,20 @@ func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 	for i := range minLen(planRepSpecsTF, stateRepSpecsTF) {
 		stateRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, stateRepSpecsTF[i].RegionConfigs)
 		planRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, planRepSpecsTF[i].RegionConfigs)
-		planElectableSpecInReplicationSpec := findDefinedElectableSpecInReplicationSpec(ctx, planRegionConfigsTF)
 		if diags.HasError() {
 			return
 		}
 		for j := range minLen(planRegionConfigsTF, stateRegionConfigsTF) {
-			stateElectableSpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].ElectableSpecs)
-			planElectableSpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ElectableSpecs)
-			if planElectableSpecs == nil && stateElectableSpecs != nil && stateElectableSpecs.NodeCount.ValueInt64() > 0 {
-				planRegionConfigsTF[j].ElectableSpecs = stateRegionConfigsTF[j].ElectableSpecs
-				planElectableSpecs = stateElectableSpecs
+			// don't use auto_scaling or analytics_auto_scaling from state if it's not enabled as it doesn't need to be present in Update request payload
+			stateAutoScaling := TFModelObject[TFAutoScalingModel](ctx, stateRegionConfigsTF[j].AutoScaling)
+			planAutoScaling := TFModelObject[TFAutoScalingModel](ctx, planRegionConfigsTF[j].AutoScaling)
+			if planAutoScaling == nil && stateAutoScaling != nil && (stateAutoScaling.ComputeEnabled.ValueBool() || stateAutoScaling.DiskGBEnabled.ValueBool()) {
+				planRegionConfigsTF[j].AutoScaling = stateRegionConfigsTF[j].AutoScaling
 			}
-			stateReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].ReadOnlySpecs)
-			planReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ReadOnlySpecs)
-			if stateReadOnlySpecs != nil { // read_only_specs is present in state
-				// logic below ensures that if read only specs is present in state but not in the plan, plan will be populated so that read only spec configuration is not removed on update operations
-				newPlanReadOnlySpecs := planReadOnlySpecs
-				if newPlanReadOnlySpecs == nil {
-					newPlanReadOnlySpecs = new(TFSpecsModel) // start with null attributes if not present plan
-				}
-				baseReadOnlySpecs := stateReadOnlySpecs        // using values directly from state if no electable specs are present in plan
-				if planElectableSpecInReplicationSpec != nil { // ensures values are taken from a defined electable spec if not present in current region config
-					baseReadOnlySpecs = planElectableSpecInReplicationSpec
-				}
-				if planElectableSpecs != nil {
-					// we favor plan electable spec defined in same region config over one defined in replication spec
-					// with current API this is redudant but is more future proof in case scaling between regions becomes independent in the future
-					baseReadOnlySpecs = planElectableSpecs
-				}
-				copyAttrIfDestNotKnown(&baseReadOnlySpecs.DiskSizeGb, &newPlanReadOnlySpecs.DiskSizeGb)
-				copyAttrIfDestNotKnown(&baseReadOnlySpecs.EbsVolumeType, &newPlanReadOnlySpecs.EbsVolumeType)
-				copyAttrIfDestNotKnown(&baseReadOnlySpecs.InstanceSize, &newPlanReadOnlySpecs.InstanceSize)
-				copyAttrIfDestNotKnown(&baseReadOnlySpecs.DiskIops, &newPlanReadOnlySpecs.DiskIops)
-				// unknown node_count is always taken from state as it not dependent on electable_specs changes
-				copyAttrIfDestNotKnown(&stateReadOnlySpecs.NodeCount, &newPlanReadOnlySpecs.NodeCount)
-				objType, diagsLocal := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, newPlanReadOnlySpecs)
-				diags.Append(diagsLocal...)
-				if diags.HasError() {
-					return
-				}
-				planRegionConfigsTF[j].ReadOnlySpecs = objType
-			}
-
-			stateAnalyticsSpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].AnalyticsSpecs)
-			planAnalyticsSpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].AnalyticsSpecs)
-			// don't get analytics_specs from state if node_count is 0 to avoid possible ANALYTICS_INSTANCE_SIZE_MUST_MATCH errors
-			if planAnalyticsSpecs == nil && stateAnalyticsSpecs != nil && stateAnalyticsSpecs.NodeCount.ValueInt64() > 0 {
-				newPlanAnalyticsSpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].AnalyticsSpecs)
-				// if disk_size_gb is defined at root level we cannot use analytics_specs.disk_size_gb from state as it can be outdated
-				// read_only_specs implicitly covers this as it uses value from electable_specs which is unknown if not defined.
-				if plan.DiskSizeGB.ValueFloat64() > 0 { // has known value in config
-					newPlanAnalyticsSpecs.DiskSizeGb = types.Float64Unknown()
-				}
-				objType, diagsLocal := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, newPlanAnalyticsSpecs)
-				diags.Append(diagsLocal...)
-				if diags.HasError() {
-					return
-				}
-				planRegionConfigsTF[j].AnalyticsSpecs = objType
+			stateAnalyticsAutoScaling := TFModelObject[TFAutoScalingModel](ctx, stateRegionConfigsTF[j].AnalyticsAutoScaling)
+			planAnalyticsAutoScaling := TFModelObject[TFAutoScalingModel](ctx, planRegionConfigsTF[j].AnalyticsAutoScaling)
+			if planAnalyticsAutoScaling == nil && stateAnalyticsAutoScaling != nil && (stateAnalyticsAutoScaling.ComputeEnabled.ValueBool() || stateAnalyticsAutoScaling.DiskGBEnabled.ValueBool()) {
+				planRegionConfigsTF[j].AnalyticsAutoScaling = stateRegionConfigsTF[j].AnalyticsAutoScaling
 			}
 		}
 		listRegionConfigs, diagsLocal := types.ListValueFrom(ctx, RegionConfigsObjType, planRegionConfigsTF)
@@ -268,17 +224,6 @@ func TFModelObject[T any](ctx context.Context, input types.Object) *T {
 		return nil
 	}
 	return item
-}
-
-func copyAttrIfDestNotKnown[T attr.Value](src, dest *T) {
-	if !isKnown(*dest) {
-		*dest = *src
-	}
-}
-
-// isKnown returns true if the attribute is known (not null or unknown). Note that !isKnown is not the same as IsUnknown because null is !isKnown but not IsUnknown.
-func isKnown(attribute attr.Value) bool {
-	return !attribute.IsNull() && !attribute.IsUnknown()
 }
 
 func minLen[T any](a, b []T) int {
