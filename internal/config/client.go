@@ -265,8 +265,7 @@ func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParam
 		return nil, err
 	}
 
-	apiResp, err := c.AtlasV2.CallAPI(apiReq)
-	return apiResp, err
+	return c.AtlasV2.CallAPI(apiReq)
 }
 
 func userAgent(c *Config) string {
