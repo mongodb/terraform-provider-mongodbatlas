@@ -67,6 +67,10 @@ func basicTestCase(t *testing.T, description *string) *resource.TestCase {
 		policyName  = "test-policy"
 		updatedName = "updated-policy"
 	)
+	var updatedDescription string
+	if description != nil {
+		updatedDescription = fmt.Sprintf("updated-%s", *description)
+	}
 	return &resource.TestCase{ // Need sequential execution for assertions to be deterministic (plural data source)
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -81,7 +85,11 @@ func basicTestCase(t *testing.T, description *string) *resource.TestCase {
 				Check:  checksResourcePolicy(orgID, updatedName, 1),
 			},
 			{
-				Config:            configBasic(orgID, updatedName, nil),
+				Config: configBasic(orgID, updatedName, &updatedDescription),
+				Check:  checksResourcePolicy(orgID, updatedName, 1),
+			},
+			{
+				Config:            configBasic(orgID, updatedName, &updatedDescription),
 				ResourceName:      resourceID,
 				ImportStateIdFunc: checkImportStateIDFunc(resourceID),
 				ImportState:       true,

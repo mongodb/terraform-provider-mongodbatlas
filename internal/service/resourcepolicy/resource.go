@@ -135,12 +135,11 @@ func (r *resourcePolicyRS) Update(ctx context.Context, req resource.UpdateReques
 	connV2 := r.Client.AtlasV2
 	policies := NewAdminPolicies(ctx, plan.Policies)
 	editAdmin := admin.ApiAtlasResourcePolicyEdit{
-		Name:        plan.Name.ValueStringPointer(),
-		Description: plan.Description.ValueStringPointer(),
+		Name: plan.Name.ValueStringPointer(),
+		// description is an optional attribute (i.e. null by default), if it is removed from the config during an update
+		// (i.e. user wants to remove the existing description from resource policy), we send an empty string ("") as the value in API request for update
+		Description: conversion.Pointer(plan.Description.ValueString()),
 		Policies:    &policies,
-	}
-	if editAdmin.Description == nil {
-		editAdmin.Description = conversion.Pointer("")
 	}
 	policySDK, _, err := connV2.ResourcePoliciesApi.UpdateAtlasResourcePolicy(ctx, orgID, resourcePolicyID, &editAdmin).Execute()
 

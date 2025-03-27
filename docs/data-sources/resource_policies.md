@@ -109,7 +109,7 @@ Read-Only:
 
 - `created_by_user` (Attributes) The user that last updated the Atlas resource policy. (see [below for nested schema](#nestedatt--resource_policies--created_by_user))
 - `created_date` (String) Date and time in UTC when the Atlas resource policy was created.
-- `description` (String) Description of the atlas resource policy.
+- `description` (String) Description of the Atlas resource policy.
 - `id` (String) Unique 24-hexadecimal digit string that identifies an Atlas resource policy.
 - `last_updated_by_user` (Attributes) The user that last updated the Atlas resource policy. (see [below for nested schema](#nestedatt--resource_policies--last_updated_by_user))
 - `last_updated_date` (String) Date and time in UTC when the Atlas resource policy was last updated.
