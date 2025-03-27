@@ -89,7 +89,6 @@ func TestMockPlanChecks_ClusterReplicasetOneRegion(t *testing.T) {
 				ConfigFilename: "main_backup_enabled.tf",
 				Checks: []plancheck.PlanCheck{
 					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
-					plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("mongo_db_version"), knownvalue.StringExact("8.0.5")),
 					// should use state values inside replication_specs as no changes are made to replication_specs
 					plancheck.ExpectKnownValue(resourceName, repSpec0.AtMapKey("id"), knownvalue.NotNull()),
 					plancheck.ExpectKnownValue(resourceName, repSpec0.AtMapKey("zone_name"), knownvalue.NotNull()),

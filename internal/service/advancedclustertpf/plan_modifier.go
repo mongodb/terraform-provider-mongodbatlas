@@ -13,7 +13,6 @@ import (
 )
 
 var attributePlanModifiers = map[string]customplanmodifier.UnknownReplacementCall[PlanModifyResourceInfo]{
-	"mongo_db_version":       mongoDBVersionReplaceUnknown,
 	"read_only_specs":        readOnlyReplaceUnknown,
 	"analytics_specs":        analyticsAndElectableSpecsReplaceUnknown,
 	"electable_specs":        analyticsAndElectableSpecsReplaceUnknown,
@@ -28,13 +27,6 @@ func autoScalingReplaceUnknown(ctx context.Context, state customplanmodifier.Par
 		return state.AsObject()
 	}
 	return req.Unknown
-}
-
-func mongoDBVersionReplaceUnknown(ctx context.Context, state customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
-	if req.Changes.AttributeChanged("mongo_db_major_version") {
-		return req.Unknown
-	}
-	return state.Value
 }
 
 type PlanModifyResourceInfo struct {
@@ -65,9 +57,6 @@ func readOnlyReplaceUnknown(ctx context.Context, state customplanmodifier.Parsed
 	}
 	electablePath := req.Path.ParentPath().AtName("electable_specs")
 	electable := customplanmodifier.ReadPlanStructValue[TFSpecsModel](ctx, req.Differ, electablePath)
-	if electable == nil {
-		electable = customplanmodifier.ReadStateStructValue[TFSpecsModel](ctx, req.Differ, electablePath)
-	}
 	if electable == nil {
 		regionConfigs := parentRegionConfigs(ctx, req.Path, req.Differ, req.Diags)
 		if conversion.DiagsNonEmpty(req.Diags) {
@@ -102,7 +91,7 @@ func analyticsAndElectableSpecsReplaceUnknown(ctx context.Context, state customp
 	if stateParsed == nil || stateParsed.NodeCount.ValueInt64() == 0 {
 		return req.Unknown
 	}
-	// if disk_size_gb is defined at root level we cannot use analytics_specs.disk_size_gb from state as it can be outdated
+	// if disk_size_gb is defined at root level we cannot use (analytics|electable)_specs.disk_size_gb from state as it can be outdated
 	if req.Changes.AttributeChanged("disk_size_gb") {
 		stateParsed.DiskSizeGb = types.Float64Unknown()
 	}
