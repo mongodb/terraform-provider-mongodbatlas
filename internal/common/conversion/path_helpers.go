@@ -19,7 +19,7 @@ func IsIndexValue(p path.Path) bool {
 
 func IsListIndex(p path.Path) bool {
 	lastPart := LastPart(p)
-	if IsMapIndex(p) {
+	if IsMapIndex(p) || IsSetIndex(p) {
 		return false
 	}
 	return strings.HasSuffix(lastPart, "]")
