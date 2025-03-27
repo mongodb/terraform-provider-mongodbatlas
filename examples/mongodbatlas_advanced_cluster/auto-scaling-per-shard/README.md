@@ -31,7 +31,7 @@ private_key          = "<MONGODB_ATLAS_PRIVATE_KEY>"
 atlas_org_id         = "<MONGODB_ATLAS_ORG_ID>"
 ```
 
-Alternatively, you can use [AWS Secrets Manager](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/index.html.markdown#aws-secrets-manager).
+Alternatively, you can use [AWS Secrets Manager](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs#aws-secrets-manager).
 
 **2\. Review the Terraform plan.**
 
