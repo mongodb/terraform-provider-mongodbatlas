@@ -103,7 +103,7 @@ output "policy_ids" {
 
 ### Optional
 
-- `description` (String) Description of the atlas resource policy.
+- `description` (String) Description of the Atlas resource policy.
 
 ### Read-Only
 

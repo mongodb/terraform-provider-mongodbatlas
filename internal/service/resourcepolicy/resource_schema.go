@@ -61,7 +61,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Required:            true,
 			},
 			"description": schema.StringAttribute{
-				MarkdownDescription: "Description of the atlas resource policy.",
+				MarkdownDescription: "Description of the Atlas resource policy.",
 				Optional:            true,
 			},
 			"org_id": schema.StringAttribute{
