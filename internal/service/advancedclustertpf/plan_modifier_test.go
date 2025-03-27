@@ -126,6 +126,13 @@ func TestMockPlanChecks_ClusterReplicasetOneRegion(t *testing.T) {
 					})),
 				},
 			},
+			{
+				ConfigFilename: "main_pin_fcv.tf",
+				Checks: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("pinned_fcv").AtMapKey("version")),
+				},
+			},
 		}
 	)
 	unit.RunPlanCheckTests(t, baseConfig, testCases)
