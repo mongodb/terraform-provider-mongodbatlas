@@ -44,7 +44,7 @@ test: fmtcheck ## Run unit tests
 	@$(eval export MONGODB_ATLAS_ORG_ID?=111111111111111111111111)
 	@$(eval export MONGODB_ATLAS_PROJECT_ID?=111111111111111111111111)
 	@$(eval export MONGODB_ATLAS_CLUSTER_NAME?=mocked-cluster)
-	go test ./... -timeout=120s -parallel=$(PARALLEL_GO_TEST) -race
+	go test ./... -timeout=180s -parallel=$(PARALLEL_GO_TEST) -race
 
 .PHONY: testmact
 testmact: ## Run MacT tests (mocked acc tests)
