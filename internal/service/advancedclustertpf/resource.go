@@ -108,16 +108,16 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if diags.HasError() {
 		return
 	}
+
 	useStateForUnknowns(ctx, diags, &state, &plan)
 	if diags.HasError() {
 		return
 	}
 	diags.Append(resp.Plan.Set(ctx, plan)...)
-	unknownReplacements(ctx, &req, resp)
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = ResourceSchema(ctx)
+	resp.Schema = resourceSchema(ctx)
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 

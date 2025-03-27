@@ -69,29 +69,9 @@ func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 			},
 		}
 	)
-	unit.RunPlanCheckTests(t, baseConfig, testCases)
-}
-
-func TestMockPlanChecks_ClusterReplicasetOneRegion(t *testing.T) {
-	var (
-		baseConfig   = unit.NewMockPlanChecksConfig(t, &mockConfig, unit.ImportNameClusterReplicasetOneRegion)
-		resourceName = baseConfig.ResourceName
-		testCases    = []unit.PlanCheckTest{
-			{
-				ConfigFilename: "main_mongo_db_major_version_changed.tf",
-				Checks: []plancheck.PlanCheck{
-					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
-					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("mongo_db_version")),
-				},
-			},
-			{
-				ConfigFilename: "main_backup_enabled.tf",
-				Checks: []plancheck.PlanCheck{
-					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
-					plancheck.ExpectKnownValue(resourceName, tfjsonpath.New("mongo_db_version"), knownvalue.StringExact("8.0.5")),
-				},
-			},
-		}
-	)
-	unit.RunPlanCheckTests(t, baseConfig, testCases)
+	for _, testCase := range testCases {
+		t.Run(testCase.ConfigFilename, func(t *testing.T) {
+			unit.MockPlanChecksAndRun(t, baseConfig.WithPlanCheckTest(testCase))
+		})
+	}
 }
