@@ -50,10 +50,11 @@ type UnknownInfo struct {
 	UnknownValue  attr.Value
 	AttributeName string
 	Path          path.Path
+	StrPath       string
 }
 
-func (d *PlanModifyDiffer) Unknowns(ctx context.Context, diags *diag.Diagnostics) map[string]UnknownInfo {
-	unknowns := map[string]UnknownInfo{}
+func (d *PlanModifyDiffer) Unknowns(ctx context.Context, diags *diag.Diagnostics) []UnknownInfo {
+	unknowns := []UnknownInfo{}
 	schema := d.schema
 	for _, diff := range d.statePlanDiff {
 		stateValue, tpfPath := conversion.AttributePathValue(ctx, diags, diff.Path, d.state, schema)
@@ -62,13 +63,17 @@ func (d *PlanModifyDiffer) Unknowns(ctx context.Context, diags *diag.Diagnostics
 		if planValue == nil || !planValue.IsUnknown() {
 			continue
 		}
-		unknowns[strPath] = UnknownInfo{
+		unknowns = append(unknowns, UnknownInfo{
 			Path:          tpfPath,
+			StrPath:       strPath,
 			StateValue:    stateValue,
 			UnknownValue:  planValue,
 			AttributeName: conversion.AttributeName(tpfPath),
-		}
+		})
 	}
+	slices.SortFunc(unknowns, func(i, j UnknownInfo) int {
+		return strings.Compare(i.StrPath, j.StrPath)
+	})
 	return unknowns
 }
 

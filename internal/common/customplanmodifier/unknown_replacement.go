@@ -56,7 +56,8 @@ func (u *UnknownReplacements[ResourceInfo]) AddKeepUnknownsExtraCall(call func(c
 }
 
 func (u *UnknownReplacements[ResourceInfo]) ApplyReplacements(ctx context.Context, diags *diag.Diagnostics) {
-	for strPath, unknown := range u.Differ.Unknowns(ctx, diags) {
+	for _, unknown := range u.Differ.Unknowns(ctx, diags) {
+		strPath := unknown.StrPath
 		replacer, ok := u.Replacements[unknown.AttributeName]
 		if !ok {
 			replacer = u.defaultReplacer
