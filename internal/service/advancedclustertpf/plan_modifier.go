@@ -24,9 +24,8 @@ var (
 	// Change mappings uses `attribute_name`, it doesn't care about the nested level.
 	// However, it doesn't stop calling `replication_specs.**.attribute_name`.
 	attributeRootChangeMapping = map[string][]string{
-		"disk_size_gb":      {}, // disk_size_gb can be change at any level/spec
-		"replication_specs": {},
-		// "mongo_db_major_version": {"mongo_db_version"}, // Using new plan modifier logic to test this
+		"disk_size_gb":           {}, // disk_size_gb can be change at any level/spec
+		"replication_specs":      {},
 		"tls_cipher_config_mode": {"custom_openssl_cipher_config_tls12"},
 		"cluster_type":           {"config_server_management_mode", "config_server_type"}, // computed values of config server change when REPLICA_SET changes to SHARDED
 		"expiration_date":        {"version"},                                             // pinned_fcv
@@ -68,7 +67,7 @@ func unknownReplacements(ctx context.Context, tfsdkState *tfsdk.State, tfsdkPlan
 	unknownReplacements.AddKeepUnknownAlways("connection_strings", "state_name", "mongo_db_version") // Volatile attributes, should not be copied from state)
 	unknownReplacements.AddKeepUnknownOnChanges(attributeRootChangeMapping)
 	if computedUsed {
-		unknownReplacements.AddKeepUnknownAlways("instance_size")
+		unknownReplacements.AddKeepUnknownAlways("instance_size", "disk_iops")
 	}
 	if diskUsed {
 		unknownReplacements.AddKeepUnknownAlways("disk_size_gb")
@@ -114,6 +113,12 @@ func readOnlyReplaceUnknown(ctx context.Context, state attr.Value, req *custompl
 	electablePath := req.Path.ParentPath().AtName("electable_specs")
 	electable := customplanmodifier.ReadPlanStructValue[TFSpecsModel](ctx, req.Differ, electablePath)
 	if electable == nil {
+		electableState := customplanmodifier.ReadStateStructValue[TFSpecsModel](ctx, req.Differ, electablePath)
+		if electableState.NodeCount.ValueInt64() > 0 {
+			electable = electableState
+		}
+	}
+	if electable == nil {
 		regionConfigs := parentRegionConfigs(ctx, req.Path, req.Differ, req.Diags)
 		if req.Diags.HasError() {
 			return req.Unknown
@@ -135,7 +140,7 @@ func readOnlyReplaceUnknown(ctx context.Context, state attr.Value, req *custompl
 			DiskIops:      electable.DiskIops,
 		}
 	}
-	return conversion.AsObjectValue(ctx, newReadOnly, SpecsObjType.AttrTypes)
+	return ensureSpecRespectChanges(ctx, newReadOnly, req)
 }
 
 func analyticsAndElectableSpecsReplaceUnknown(ctx context.Context, state attr.Value, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
@@ -147,11 +152,18 @@ func analyticsAndElectableSpecsReplaceUnknown(ctx context.Context, state attr.Va
 	if stateParsed == nil || stateParsed.NodeCount.ValueInt64() == 0 {
 		return req.Unknown
 	}
-	// if disk_size_gb is defined at root level we cannot use (analytics|electable)_specs.disk_size_gb from state as it can be outdated
-	if req.Changes.AttributeChanged("disk_size_gb") {
-		stateParsed.DiskSizeGb = types.Float64Unknown()
+	return ensureSpecRespectChanges(ctx, stateParsed, req)
+}
+
+func ensureSpecRespectChanges(ctx context.Context, spec *TFSpecsModel, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) types.Object {
+	// if disk_size_gb is defined at root level we cannot use (analytics|electable|read_only)_specs.disk_size_gb from state as it can be outdated
+	if req.Changes.AttributeChanged("disk_size_gb") || req.Info.AutoScalingDiskUsed {
+		spec.DiskSizeGb = types.Float64Unknown()
 	}
-	return conversion.AsObjectValue(ctx, stateParsed, SpecsObjType.AttrTypes)
+	if req.Info.AutoScalingComputedUsed {
+		spec.DiskIops = types.Int64Unknown()
+	}
+	return conversion.AsObjectValue(ctx, spec, SpecsObjType.AttrTypes)
 }
 
 func replicationSpecsKeepUnknownWhenChanged(ctx context.Context, state attr.Value, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) []string {
