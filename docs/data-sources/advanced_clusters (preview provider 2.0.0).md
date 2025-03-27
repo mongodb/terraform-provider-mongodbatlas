@@ -230,11 +230,10 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 * `fail_index_key_too_long` - **(DEPRECATED)** When true, documents can only be updated or inserted if, for all indexed fields on the target collection, the corresponding index entries do not exceed 1024 bytes. When false, mongod writes documents that exceed the limit but does not index them.
 * `javascript_enabled` - When true, the cluster allows execution of operations that perform server-side executions of JavaScript. When false, the cluster disables execution of those operations.
 * `minimum_enabled_tls_protocol` - Sets the minimum Transport Layer Security (TLS) version the cluster accepts for incoming connections. Valid values are:
-
   - TLS1_0
   - TLS1_1
   - TLS1_2
-
+  - TLS1_3
 * `no_table_scan` - When true, the cluster disables the execution of any query that requires a collection scan to return results. When false, the cluster allows the execution of those operations.
 * `oplog_size_mb` - The custom oplog size of the cluster. Without a value that indicates that the cluster uses the default oplog size calculated by Atlas.
 * `oplog_min_retention_hours` - Minimum retention window for cluster's oplog expressed in hours. A value of null indicates that the cluster uses the default minimum oplog window that MongoDB Cloud calculates.
