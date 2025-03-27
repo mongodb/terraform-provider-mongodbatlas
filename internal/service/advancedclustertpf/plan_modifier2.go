@@ -4,7 +4,8 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
@@ -37,11 +38,10 @@ func replicationSpecsKeepUnknownWhenChanged(ctx context.Context, state custompla
 	return nil
 }
 
-func unknownReplacements(ctx context.Context, req *resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+func unknownReplacements(ctx context.Context, tfsdkState *tfsdk.State, tfsdkPlan *tfsdk.Plan, diags *diag.Diagnostics) {
 	var plan, state TFModel
-	diags := &resp.Diagnostics
-	diags.Append(req.Plan.Get(ctx, &plan)...)
-	diags.Append(req.State.Get(ctx, &state)...)
+	diags.Append(tfsdkState.Get(ctx, &state)...)
+	diags.Append(tfsdkPlan.Get(ctx, &plan)...)
 	if diags.HasError() {
 		return
 	}
@@ -56,7 +56,7 @@ func unknownReplacements(ctx context.Context, req *resource.ModifyPlanRequest, r
 		AutoScalingDiskUsed:     diskUsed,
 		isShardingConfigUpgrade: shardingConfigUpgrade,
 	}
-	unknownReplacements := customplanmodifier.NewUnknownReplacements(ctx, req, resp, ResourceSchema(ctx), info)
+	unknownReplacements := customplanmodifier.NewUnknownReplacements(ctx, tfsdkState, tfsdkPlan, diags, ResourceSchema(ctx), info)
 	for attrName, replacer := range attributePlanModifiers {
 		unknownReplacements.AddReplacement(attrName, replacer)
 	}

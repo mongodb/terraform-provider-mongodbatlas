@@ -5,75 +5,44 @@ import (
 	"fmt"
 	"maps"
 	"slices"
-	"sort"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
-func NewPlanModifyDiffer(ctx context.Context, req *resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse, schema conversion.TPFSchema) *PlanModifyDiffer {
-	diags := &resp.Diagnostics
-	diffStatePlan, err := req.State.Raw.Diff(resp.Plan.Raw)
+func NewPlanModifyDiffer(ctx context.Context, state *tfsdk.State, plan *tfsdk.Plan, diags *diag.Diagnostics, schema conversion.TPFSchema) *PlanModifyDiffer {
+	diffStatePlan, err := state.Raw.Diff(plan.Raw)
 	if err != nil {
 		diags.AddError("Error diffing state and plan", err.Error())
-		return nil
-	}
-	diffStateConfig, err := req.State.Raw.Diff(req.Config.Raw)
-	if err != nil {
-		diags.AddError("Error diffing state and config", err.Error())
 		return nil
 	}
 
 	attributeChanges := findChanges(ctx, diffStatePlan, diags, schema)
 	tflog.Debug(ctx, fmt.Sprintf("Attribute changes: %s\n", strings.Join(attributeChanges, "\n")))
 	return &PlanModifyDiffer{
-		req:              req,
-		resp:             resp,
-		stateConfigDiff:  diffStateConfig,
 		statePlanDiff:    diffStatePlan,
 		schema:           schema,
+		state:            state,
+		plan:             plan,
 		AttributeChanges: attributeChanges,
-		PlanFullyKnown:   req.Plan.Raw.IsFullyKnown(),
+		PlanFullyKnown:   plan.Raw.IsFullyKnown(),
 	}
 }
 
 type PlanModifyDiffer struct {
 	schema           conversion.TPFSchema
 	AttributeChanges AttributeChanges
-	req              *resource.ModifyPlanRequest
-	resp             *resource.ModifyPlanResponse
-	stateConfigDiff  []tftypes.ValueDiff
+	state            *tfsdk.State
+	plan             *tfsdk.Plan
 	statePlanDiff    []tftypes.ValueDiff
 	PlanFullyKnown   bool
-}
-
-func (d *PlanModifyDiffer) Diff(ctx context.Context, diags *diag.Diagnostics, schema conversion.TPFSchema, isConfig bool) string {
-	diffList := d.statePlanDiff
-	if isConfig {
-		diffList = d.stateConfigDiff
-	}
-	diffPaths := make([]string, len(diffList))
-	for i, diff := range diffList {
-		p, localDiags := conversion.AttributePath(ctx, diff.Path, schema)
-		if localDiags.HasError() {
-			diags.Append(localDiags...)
-			return ""
-		}
-		diffPaths[i] = p.String()
-	}
-	sort.Strings(diffPaths)
-	name := "plan"
-	if isConfig {
-		name = "config"
-	}
-	return fmt.Sprintf("DifferStateTo%s\n", name) + strings.Join(diffPaths, "\n")
 }
 
 type UnknownInfo struct {
@@ -87,9 +56,9 @@ func (d *PlanModifyDiffer) Unknowns(ctx context.Context, diags *diag.Diagnostics
 	unknowns := map[string]UnknownInfo{}
 	schema := d.schema
 	for _, diff := range d.statePlanDiff {
-		stateValue, tpfPath := conversion.AttributePathValue(ctx, diags, diff.Path, d.req.State, schema)
+		stateValue, tpfPath := conversion.AttributePathValue(ctx, diags, diff.Path, d.state, schema)
 		strPath := tpfPath.String()
-		planValue, _ := conversion.AttributePathValue(ctx, diags, diff.Path, d.req.Plan, schema)
+		planValue, _ := conversion.AttributePathValue(ctx, diags, diff.Path, d.plan, schema)
 		if planValue == nil || !planValue.IsUnknown() {
 			continue
 		}
@@ -103,16 +72,12 @@ func (d *PlanModifyDiffer) Unknowns(ctx context.Context, diags *diag.Diagnostics
 	return unknowns
 }
 
-func ReadConfigStructValue[T any](ctx context.Context, d *PlanModifyDiffer, p path.Path) *T {
-	return readSrcStructValue[T](ctx, d.req.Config, p)
-}
-
 func ReadPlanStructValue[T any](ctx context.Context, d *PlanModifyDiffer, p path.Path) *T {
-	return readSrcStructValue[T](ctx, d.req.Plan, p)
+	return readSrcStructValue[T](ctx, d.plan, p)
 }
 
 func ReadStateStructValue[T any](ctx context.Context, d *PlanModifyDiffer, p path.Path) *T {
-	return readSrcStructValue[T](ctx, d.req.State, p)
+	return readSrcStructValue[T](ctx, d.state, p)
 }
 
 func readSrcStructValue[T any](ctx context.Context, src conversion.TPFSrc, p path.Path) *T {
@@ -126,7 +91,7 @@ func readSrcStructValue[T any](ctx context.Context, src conversion.TPFSrc, p pat
 	return conversion.TFModelObject[T](ctx, obj)
 }
 func ReadPlanStructValues[T any](ctx context.Context, d *PlanModifyDiffer, p path.Path, diags *diag.Diagnostics) []T {
-	return readSrcStructValues[T](ctx, d.req.Plan, p, diags)
+	return readSrcStructValues[T](ctx, d.plan, p, diags)
 }
 
 func readSrcStructValues[T any](ctx context.Context, src conversion.TPFSrc, p path.Path, diags *diag.Diagnostics) []T {
@@ -139,7 +104,7 @@ func readSrcStructValues[T any](ctx context.Context, src conversion.TPFSrc, p pa
 }
 
 func UpdatePlanValue(ctx context.Context, diags *diag.Diagnostics, d *PlanModifyDiffer, p path.Path, value attr.Value) {
-	diags.Append(d.resp.Plan.SetAttribute(ctx, p, value)...)
+	diags.Append(d.plan.SetAttribute(ctx, p, value)...)
 }
 
 func findChanges(ctx context.Context, diff []tftypes.ValueDiff, diags *diag.Diagnostics, schema conversion.TPFSchema) AttributeChanges {

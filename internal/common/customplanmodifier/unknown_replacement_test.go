@@ -67,7 +67,7 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if req.Plan.Raw.IsFullyKnown() {
 		return
 	}
-	unknownReplacements := customplanmodifier.NewUnknownReplacements(ctx, &req, resp, schema, *r.info)
+	unknownReplacements := customplanmodifier.NewUnknownReplacements(ctx, &req.State, &resp.Plan, &resp.Diagnostics, schema, *r.info)
 	for attrName, replacer := range r.attributeReplaceUnknowns {
 		modifiedReplacer := func(ctx context.Context, stateValue customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[replaceUnknownResourceInfo]) attr.Value {
 			r.runData.keepUnknownCalls = append(r.runData.keepUnknownCalls, req.Path.String())

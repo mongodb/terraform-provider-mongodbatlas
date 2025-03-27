@@ -8,15 +8,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
-func NewUnknownReplacements[ResourceInfo any](ctx context.Context, req *resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse, schema conversion.TPFSchema, info ResourceInfo) *UnknownReplacements[ResourceInfo] {
-	differ := NewPlanModifyDiffer(ctx, req, resp, schema)
-	tflog.Debug(ctx, differ.Diff(ctx, &resp.Diagnostics, schema, false))
+func NewUnknownReplacements[ResourceInfo any](ctx context.Context, state *tfsdk.State, plan *tfsdk.Plan, diags *diag.Diagnostics, schema conversion.TPFSchema, info ResourceInfo) *UnknownReplacements[ResourceInfo] {
+	differ := NewPlanModifyDiffer(ctx, state, plan, diags, schema)
 	return &UnknownReplacements[ResourceInfo]{
 		Differ:       differ,
 		Info:         info,

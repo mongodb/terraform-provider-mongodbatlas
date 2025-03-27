@@ -113,7 +113,7 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 		return
 	}
 	diags.Append(resp.Plan.Set(ctx, plan)...)
-	unknownReplacements(ctx, &req, resp)
+	unknownReplacements(ctx, &req.State, &resp.Plan, diags)
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
