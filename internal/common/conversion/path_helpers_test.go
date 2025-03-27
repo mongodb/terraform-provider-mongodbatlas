@@ -73,6 +73,14 @@ func TestIndexMethods(t *testing.T) {
 	assert.Equal(t, "", conversion.AsRemovedIndex(path.Root("replication_specs")))
 }
 
+func TestHasAncestor(t *testing.T) {
+	prefix := path.Root("replication_specs").AtListIndex(0)
+	assert.True(t, conversion.HasAncestor(path.Root("replication_specs").AtListIndex(0), prefix))
+	assert.True(t, conversion.HasAncestor(path.Root("replication_specs").AtListIndex(0).AtName("region_configs"), prefix))
+	assert.False(t, conversion.HasAncestor(path.Root("replication_specs").AtListIndex(1), prefix))
+	assert.True(t, conversion.HasAncestor(path.Root("replication_specs").AtListIndex(0).AtName("region_configs").AtListIndex(1), path.Empty()))
+}
+
 func TestParentPathWithIndex_Found(t *testing.T) {
 	diags := new(diag.Diagnostics)
 	// Build a nested path: resource -> parent -> child

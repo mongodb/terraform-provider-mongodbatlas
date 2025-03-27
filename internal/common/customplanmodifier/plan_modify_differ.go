@@ -49,8 +49,8 @@ type UnknownInfo struct {
 	StateValue    attr.Value
 	UnknownValue  attr.Value
 	AttributeName string
-	Path          path.Path
 	StrPath       string
+	Path          path.Path
 }
 
 func (d *PlanModifyDiffer) Unknowns(ctx context.Context, diags *diag.Diagnostics) []UnknownInfo {

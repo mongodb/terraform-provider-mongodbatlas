@@ -124,6 +124,7 @@ func TestReplaceUnknownLogicByWrappingAdvancedClusterTPF(t *testing.T) {
 		attributeReplaceUnknowns = map[string]replaceUnknownTestCall{
 			"auto_scaling":           alwaysState,
 			"analytics_auto_scaling": alwaysUnknown,
+			"compute_enabled":        alwaysUnknown, // Should never be called since auto_scaling/analytics_auto_scaling are called first
 			"id":                     alwaysUnknown,
 		}
 		defaultReplaceUnknownCalls = []string{

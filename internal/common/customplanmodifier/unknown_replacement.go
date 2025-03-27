@@ -56,12 +56,25 @@ func (u *UnknownReplacements[ResourceInfo]) AddKeepUnknownsExtraCall(call func(c
 }
 
 func (u *UnknownReplacements[ResourceInfo]) ApplyReplacements(ctx context.Context, diags *diag.Diagnostics) {
+	replacedPaths := []path.Path{}
+	ancestorHasProcessed := func(p path.Path) bool {
+		for _, replacedPath := range replacedPaths {
+			if conversion.HasAncestor(p, replacedPath) {
+				return true
+			}
+		}
+		return false
+	}
 	for _, unknown := range u.Differ.Unknowns(ctx, diags) {
 		strPath := unknown.StrPath
 		replacer, ok := u.Replacements[unknown.AttributeName]
 		if !ok {
 			replacer = u.defaultReplacer
 		}
+		if ancestorHasProcessed(unknown.Path) {
+			continue
+		}
+		replacedPaths = append(replacedPaths, unknown.Path)
 		req := &UnknownReplacementRequest[ResourceInfo]{
 			Info:          u.Info,
 			Path:          unknown.Path,

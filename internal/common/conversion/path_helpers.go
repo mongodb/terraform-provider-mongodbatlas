@@ -26,6 +26,12 @@ func IsSetIndex(p path.Path) bool {
 	return strings.Contains(lastPart, "[Value(")
 }
 
+func HasAncestor(p, ancestor path.Path) bool {
+	prefixString := ancestor.String()
+	pString := p.String()
+	return strings.HasPrefix(pString, prefixString)
+}
+
 func AttributeNameEquals(p path.Path, name string) bool {
 	noBrackets := TrimLastIndex(p)
 	return noBrackets == name || strings.HasSuffix(noBrackets, fmt.Sprintf(".%s", name))
