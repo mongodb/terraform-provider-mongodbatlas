@@ -164,18 +164,6 @@ func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 				}
 				planRegionConfigsTF[j].AnalyticsSpecs = objType
 			}
-
-			// don't use auto_scaling or analytics_auto_scaling from state if it's not enabled as it doesn't need to be present in Update request payload
-			stateAutoScaling := TFModelObject[TFAutoScalingModel](ctx, stateRegionConfigsTF[j].AutoScaling)
-			planAutoScaling := TFModelObject[TFAutoScalingModel](ctx, planRegionConfigsTF[j].AutoScaling)
-			if planAutoScaling == nil && stateAutoScaling != nil && (stateAutoScaling.ComputeEnabled.ValueBool() || stateAutoScaling.DiskGBEnabled.ValueBool()) {
-				planRegionConfigsTF[j].AutoScaling = stateRegionConfigsTF[j].AutoScaling
-			}
-			stateAnalyticsAutoScaling := TFModelObject[TFAutoScalingModel](ctx, stateRegionConfigsTF[j].AnalyticsAutoScaling)
-			planAnalyticsAutoScaling := TFModelObject[TFAutoScalingModel](ctx, planRegionConfigsTF[j].AnalyticsAutoScaling)
-			if planAnalyticsAutoScaling == nil && stateAnalyticsAutoScaling != nil && (stateAnalyticsAutoScaling.ComputeEnabled.ValueBool() || stateAnalyticsAutoScaling.DiskGBEnabled.ValueBool()) {
-				planRegionConfigsTF[j].AnalyticsAutoScaling = stateRegionConfigsTF[j].AnalyticsAutoScaling
-			}
 		}
 		listRegionConfigs, diagsLocal := types.ListValueFrom(ctx, RegionConfigsObjType, planRegionConfigsTF)
 		diags.Append(diagsLocal...)
