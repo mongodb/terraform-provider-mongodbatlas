@@ -3,6 +3,7 @@ package customplanmodifier_test
 import (
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 	"github.com/stretchr/testify/assert"
 )
@@ -101,64 +102,58 @@ func TestAttributeChanges_KeepUnknown(t *testing.T) {
 	}
 }
 
-func TestAttributeChanges_ListIndexChanged(t *testing.T) {
+func TestAttributeChanges_PathChanged(t *testing.T) {
+	var (
+		root       = path.Root("replication_specs")
+		rootIndex0 = root.AtListIndex(0)
+	)
 	tests := map[string]struct {
-		name     string
+		path     path.Path
 		changes  customplanmodifier.AttributeChanges
-		index    int
 		expected bool
 	}{
 		"empty changes": {
-			name:     "replication_specs",
-			index:    0,
+			path:     root,
 			changes:  []string{},
 			expected: false,
 		},
 		"list element modified": {
-			name:     "replication_specs",
-			index:    0,
+			path:     rootIndex0,
 			changes:  []string{"replication_specs[0]", "replication_specs[0].zone_name"},
 			expected: true,
 		},
-		"list element added": {
-			name:     "replication_specs",
-			index:    0,
+		"list element added don't match exact index": {
+			path:     rootIndex0,
 			changes:  []string{"replication_specs[+0]"},
 			expected: false,
 		},
-		"list element removed": {
-			name:     "replication_specs",
-			index:    1,
-			changes:  []string{"replication_specs[-1]"},
+		"list element removed don't match exact index": {
+			path:     rootIndex0,
+			changes:  []string{"replication_specs[-0]"},
 			expected: false,
 		},
 		"different index": {
-			name:     "replication_specs",
-			index:    1,
-			changes:  []string{"replication_specs[0]", "replication_specs[0].zone_name"},
+			path:     rootIndex0,
+			changes:  []string{"replication_specs[1]", "replication_specs[0].zone_name"},
 			expected: false,
 		},
 		"different list name": {
-			name:     "other_specs",
-			index:    0,
+			path:     path.Root("replication_specs2"),
 			changes:  []string{"replication_specs[0]", "replication_specs[0].zone_name"},
 			expected: false,
 		},
 		"nested list": {
-			name:     "replication_specs[0].region_configs",
-			index:    0,
+			path:     rootIndex0.AtName("region_configs").AtListIndex(0),
 			changes:  []string{"replication_specs[0].region_configs[0]", "replication_specs[0].region_configs[0].priority"},
 			expected: true,
 		},
 		"nested list false": {
-			name:     "replication_specs[0].region_configs",
-			index:    1,
+			path:     rootIndex0.AtName("region_configs").AtListIndex(1),
 			changes:  []string{"replication_specs[0].region_configs[0]", "replication_specs[0].region_configs[0].priority"},
 			expected: false,
 		},
 		"index beyond bounds": {
-			name:     "replication_specs",
-			index:    5,
+			path:     root.AtListIndex(5),
 			changes:  []string{"replication_specs[0]", "replication_specs[1]"},
 			expected: false,
 		},
@@ -166,7 +161,7 @@ func TestAttributeChanges_ListIndexChanged(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			actual := tc.changes.ListIndexChanged(tc.name, tc.index)
+			actual := tc.changes.PathChanged(tc.path)
 			assert.Equal(t, tc.expected, actual)
 		})
 	}
