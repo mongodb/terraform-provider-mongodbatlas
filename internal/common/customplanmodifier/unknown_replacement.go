@@ -43,18 +43,26 @@ func (u *UnknownReplacements[ResourceInfo]) AddReplacement(name string, call Unk
 	u.Replacements[name] = call
 }
 
+// AddKeepUnknownAlways adds the attribute name to the list of attributes that should always keep unknown values. For example connection_string or state_name.
 func (u *UnknownReplacements[ResourceInfo]) AddKeepUnknownAlways(keepUnknown ...string) {
 	u.keepUnknownAttributeNames = append(u.keepUnknownAttributeNames, keepUnknown...)
 }
 
+// AddKeepUnknownOnChanges adds the attribute changed and its depending attributes to the list of attributes that should keep unknown values.
+// However, it does not infer dependencies. For example: instance_size --> disk_size_gb, and disk_gb --> disk_iops, doesn't mean instance_size --> disk_iops.
 func (u *UnknownReplacements[ResourceInfo]) AddKeepUnknownOnChanges(attributeEffectedMapping map[string][]string) {
 	u.keepUnknownAttributeNames = append(u.keepUnknownAttributeNames, u.Differ.AttributeChanges.KeepUnknown(attributeEffectedMapping)...)
 }
 
+// AddKeepUnknownsExtraCall adds a function that returns extra keepUnknown attribute names based on the path/stateValue/req (same arguments as the replacer function).
 func (u *UnknownReplacements[ResourceInfo]) AddKeepUnknownsExtraCall(call func(ctx context.Context, stateValue ParsedAttrValue, req *UnknownReplacementRequest[ResourceInfo]) []string) {
 	u.keepUnknownsExtraCalls = append(u.keepUnknownsExtraCalls, call)
 }
 
+// ApplyReplacements iterates over the unknown values in the plan and applies the replacement function for each unknown value.
+// If there is no explicit replacement function, it will use the default replacer that respects the keepUnknown attributes.
+// The calls are done top-down, for example replication_specs.*.id before replication_specs.*.region_configs.*.electable_specs
+// Same levels are sorted alphabetically, for example ...region_configs.electable_specs before ...region_configs.read_only_specs
 func (u *UnknownReplacements[ResourceInfo]) ApplyReplacements(ctx context.Context, diags *diag.Diagnostics) {
 	replacedPaths := []path.Path{}
 	ancestorHasProcessed := func(p path.Path) bool {
@@ -105,7 +113,8 @@ func (u *UnknownReplacements[ResourceInfo]) defaultReplacer(ctx context.Context,
 	return stateValue.Value
 }
 
-// ParsedAttrValue is a wrapper around attr.Value that provides type-safe accessors to support using the same signature of functions.
+// ParsedAttrValue is a wrapper around attr.Value that provides type-safe accessors to support using the same signature for all replacment functions regardless of the attribute type.
+// New values can be added on demand.
 type ParsedAttrValue struct {
 	Value attr.Value
 }
@@ -119,11 +128,11 @@ func (p *ParsedAttrValue) AsObject() types.Object {
 }
 
 type UnknownReplacementRequest[ResourceInfo any] struct {
-	Info          ResourceInfo
-	Unknown       attr.Value
-	Differ        *PlanModifyDiffer
+	Info          ResourceInfo      // Resource specific info, useful for storing shardingConfigUpgrade or other relevant info.
+	Unknown       attr.Value        // The unknown value in the plan, useful for returning if no replacement is found.
+	Differ        *PlanModifyDiffer // Used to read the state and plan values.
 	Diags         *diag.Diagnostics
-	AttributeName string
-	Path          path.Path
-	Changes       AttributeChanges
+	AttributeName string           // The name of the attribute, for example javascript_enabled for advanced_configuration.javascript_enabled
+	Path          path.Path        // The full path to the attribute in the plan, for example advanced_configuration.javascript_enabled
+	Changes       AttributeChanges // The changes in the plan, useful for checking if a dependent attribute has changed.
 }
