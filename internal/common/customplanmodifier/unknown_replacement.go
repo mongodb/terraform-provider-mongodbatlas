@@ -23,6 +23,7 @@ func NewUnknownReplacements[ResourceInfo any](ctx context.Context, state *tfsdk.
 }
 
 type UnknownReplacementCall[ResourceInfo any] func(ctx context.Context, stateValue attr.Value, req *UnknownReplacementRequest[ResourceInfo]) attr.Value
+type AddKeepUnknownsCall[ResourceInfo any] func(ctx context.Context, stateValue attr.Value, req *UnknownReplacementRequest[ResourceInfo]) []string
 
 type UnknownReplacements[ResourceInfo any] struct {
 	Differ       *PlanModifyDiffer
@@ -54,7 +55,7 @@ func (u *UnknownReplacements[ResourceInfo]) AddKeepUnknownOnChanges(attributeEff
 }
 
 // AddKeepUnknownsExtraCall adds a function that returns extra keepUnknown attribute names based on the path/stateValue/req (same arguments as the replacer function).
-func (u *UnknownReplacements[ResourceInfo]) AddKeepUnknownsExtraCall(call func(ctx context.Context, stateValue attr.Value, req *UnknownReplacementRequest[ResourceInfo]) []string) {
+func (u *UnknownReplacements[ResourceInfo]) AddKeepUnknownsExtraCall(call AddKeepUnknownsCall[ResourceInfo]) {
 	u.keepUnknownsExtraCalls = append(u.keepUnknownsExtraCalls, call)
 }
 

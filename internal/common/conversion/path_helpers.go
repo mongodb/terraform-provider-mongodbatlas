@@ -113,7 +113,6 @@ func trimLastIndex(p path.Path) string {
 func trimLastIndexPath(p path.Path) path.Path {
 	if isIndexValue(p) {
 		return p.ParentPath()
-	} else {
-		return p
 	}
+	return p
 }
