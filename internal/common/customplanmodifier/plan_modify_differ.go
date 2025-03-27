@@ -32,7 +32,6 @@ func NewPlanModifyDiffer(ctx context.Context, state *tfsdk.State, plan *tfsdk.Pl
 		state:            state,
 		plan:             plan,
 		AttributeChanges: attributeChanges,
-		PlanFullyKnown:   plan.Raw.IsFullyKnown(),
 	}
 }
 
@@ -42,7 +41,6 @@ type PlanModifyDiffer struct {
 	state            *tfsdk.State
 	plan             *tfsdk.Plan
 	statePlanDiff    []tftypes.ValueDiff
-	PlanFullyKnown   bool
 }
 
 type UnknownInfo struct {
