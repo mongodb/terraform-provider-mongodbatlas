@@ -15,6 +15,9 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -1255,7 +1258,6 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 			"state_name":                    "IDLE",
 			"backup_enabled":                "true",
 			"bi_connector_config.0.enabled": "true",
-			"mongo_db_major_version":        "8.0",
 			"pit_enabled":                   "true",
 			"redact_client_log_data":        "true",
 			"replica_set_scaling_strategy":  "NODE_TYPE",
@@ -1325,6 +1327,10 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 			{
 				Config: configBasicReplicaset(t, projectID, clusterName, ""),
 				Check:  checks,
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("mongo_db_major_version"), knownvalue.StringRegexp(regexp.MustCompile(`8\.\d+`))),
+					statecheck.ExpectKnownValue(dataSourceName, tfjsonpath.New("mongo_db_major_version"), knownvalue.StringRegexp(regexp.MustCompile(`8\.\d+`))),
+				},
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
