@@ -49,10 +49,3 @@ func AddJSONBodyErrorToDiagnostics(msgPrefix string, err error, diags *diag.Diag
 	errorJSON := string(errorBytes)
 	diags.AddError(msgPrefix, errorJSON)
 }
-
-func DiagsNonEmpty(diags *diag.Diagnostics) bool {
-	if diags == nil {
-		return false
-	}
-	return len(*diags) > 0
-}

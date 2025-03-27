@@ -41,7 +41,7 @@ func parentRegionConfigs(ctx context.Context, path path.Path, differ *customplan
 		return nil
 	}
 	regionConfigs := customplanmodifier.ReadPlanStructValues[TFRegionConfigsModel](ctx, differ, regionConfigsPath, diags)
-	if conversion.DiagsNonEmpty(diags) {
+	if diags.HasError() {
 		return nil
 	}
 	return regionConfigs
@@ -59,7 +59,7 @@ func readOnlyReplaceUnknown(ctx context.Context, state customplanmodifier.Parsed
 	electable := customplanmodifier.ReadPlanStructValue[TFSpecsModel](ctx, req.Differ, electablePath)
 	if electable == nil {
 		regionConfigs := parentRegionConfigs(ctx, req.Path, req.Differ, req.Diags)
-		if conversion.DiagsNonEmpty(req.Diags) {
+		if req.Diags.HasError() {
 			return req.Unknown
 		}
 		// ensures values are taken from a defined electable spec if not present in current region config
