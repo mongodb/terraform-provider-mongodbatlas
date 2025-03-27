@@ -27,36 +27,6 @@ func TestIsIndexTypes(t *testing.T) {
 	assert.False(t, conversion.IsMapIndex(listIndexPath))
 }
 
-func TestAttributeNameEquals(t *testing.T) {
-	var (
-		repSpecPath       = path.Root("replication_specs")
-		regionConfigsPath = repSpecPath.AtListIndex(0).AtName("region_configs")
-	)
-	for expectedAttribute, paths := range map[string][]path.Path{
-		"replication_specs": {
-			repSpecPath,
-			repSpecPath.AtListIndex(0),
-			repSpecPath.AtMapKey("myKey"),
-		},
-		"region_configs": {
-			regionConfigsPath,
-			regionConfigsPath.AtListIndex(0),
-			regionConfigsPath.AtMapKey("myKey"),
-		},
-	} {
-		for _, p := range paths {
-			assert.True(t, conversion.AttributeNameEquals(p, expectedAttribute))
-		}
-	}
-}
-
-func TestTrimLastIndex(t *testing.T) {
-	assert.Equal(t, "replication_specs", conversion.TrimLastIndex(path.Root("replication_specs").AtListIndex(0)))
-	assert.Equal(t, "replication_specs", conversion.TrimLastIndex(path.Root("replication_specs").AtMapKey("myKey")))
-	assert.Equal(t, "replication_specs[Value(\"myKey\")]", path.Root("replication_specs").AtSetValue(types.StringValue("myKey")).String())
-	assert.Equal(t, "replication_specs", conversion.TrimLastIndex(path.Root("replication_specs").AtSetValue(types.StringValue("myKey"))))
-}
-
 func TestIndexMethods(t *testing.T) {
 	assert.True(t, conversion.IsListIndex(path.Root("replication_specs").AtListIndex(0)))
 	assert.False(t, conversion.IsListIndex(path.Root("replication_specs").AtName("region_configs")))

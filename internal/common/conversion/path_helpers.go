@@ -32,17 +32,13 @@ func HasAncestor(p, ancestor path.Path) bool {
 	return strings.HasPrefix(pString, prefixString)
 }
 
-func AttributeNameEquals(p path.Path, name string) bool {
-	noBrackets := TrimLastIndex(p)
-	return noBrackets == name || strings.HasSuffix(noBrackets, fmt.Sprintf(".%s", name))
-}
-
 func AttributeName(p path.Path) string {
-	noBrackets := TrimLastIndex(p)
-	parts := strings.Split(noBrackets, ".")
+	noIndex := trimLastIndex(p)
+	parts := strings.Split(noIndex, ".")
 	return parts[len(parts)-1]
 }
 
+// AsAddedIndex returns "" if the path is not an index otherwise it adds `+` before the index
 func AsAddedIndex(p path.Path) string {
 	if !isIndexValue(p) {
 		return ""
@@ -53,7 +49,7 @@ func AsAddedIndex(p path.Path) string {
 	return everythingExceptLast + indexWithSign
 }
 
-// AsRemovedIndex returns empty string if the path is not an index otherwise it adds `-` before the index
+// AsRemovedIndex returns "" if the path is not an index otherwise it adds `-` before the index
 func AsRemovedIndex(p path.Path) string {
 	if !isIndexValue(p) {
 		return ""
@@ -64,23 +60,6 @@ func AsRemovedIndex(p path.Path) string {
 	return everythingExceptLast + lastPartWithRemoveIndex
 }
 
-func TrimLastIndex(p path.Path) string {
-	if isIndexValue(p) {
-		return p.ParentPath().String()
-	}
-	return p.String()
-}
-
-func TrimLastIndexPath(p path.Path) path.Path {
-	for {
-		if isIndexValue(p) {
-			p = p.ParentPath()
-		} else {
-			return p
-		}
-	}
-}
-
 func ParentPathWithIndex(p path.Path, attributeName string, diags *diag.Diagnostics) path.Path {
 	for {
 		p = p.ParentPath()
@@ -88,7 +67,7 @@ func ParentPathWithIndex(p path.Path, attributeName string, diags *diag.Diagnost
 			diags.AddError("Parent path not found", fmt.Sprintf("Parent attribute %s not found in path %s", attributeName, p.String()))
 			return p
 		}
-		if AttributeNameEquals(p, attributeName) {
+		if attributeNameEquals(p, attributeName) {
 			return p
 		}
 	}
@@ -99,19 +78,7 @@ func ParentPathNoIndex(p path.Path, attributeName string, diags *diag.Diagnostic
 	if diags.HasError() {
 		return parent
 	}
-	return TrimLastIndexPath(parent)
-}
-
-func HasPathParent(p path.Path, parentAttributeName string) bool {
-	for {
-		p = p.ParentPath()
-		if p.Equal(path.Empty()) {
-			return false
-		}
-		if AttributeNameEquals(p, parentAttributeName) {
-			return true
-		}
-	}
+	return trimLastIndexPath(parent)
 }
 
 func AncestorPaths(p path.Path) []path.Path {
@@ -133,4 +100,26 @@ func lastPart(p path.Path) string {
 
 func isIndexValue(p path.Path) bool {
 	return IsMapIndex(p) || IsListIndex(p) || IsSetIndex(p)
+}
+
+func attributeNameEquals(p path.Path, name string) bool {
+	noBrackets := trimLastIndex(p)
+	return noBrackets == name || strings.HasSuffix(noBrackets, fmt.Sprintf(".%s", name))
+}
+
+func trimLastIndex(p path.Path) string {
+	if isIndexValue(p) {
+		return p.ParentPath().String()
+	}
+	return p.String()
+}
+
+func trimLastIndexPath(p path.Path) path.Path {
+	for {
+		if isIndexValue(p) {
+			p = p.ParentPath()
+		} else {
+			return p
+		}
+	}
 }

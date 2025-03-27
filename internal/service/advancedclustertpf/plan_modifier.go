@@ -99,7 +99,7 @@ func analyticsAndElectableSpecsReplaceUnknown(ctx context.Context, state customp
 }
 
 func replicationSpecsKeepUnknownWhenChanged(ctx context.Context, state customplanmodifier.ParsedAttrValue, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) []string {
-	if !conversion.HasPathParent(req.Path, "replication_specs") {
+	if !conversion.HasAncestor(req.Path, path.Root("replication_specs")) {
 		return nil
 	}
 	if req.Changes.AttributeChanged("replication_specs") {
