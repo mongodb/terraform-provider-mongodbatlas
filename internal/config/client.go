@@ -236,23 +236,31 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 	return realmClient, nil
 }
 
-func (c *MongoDBClient) UntypedAPICall(ctx context.Context, versionHeader, relativePath string, pathParams map[string]string, method string, body []byte) (*http.Response, error) {
-	localBasePath, _ := c.AtlasV2.GetConfig().ServerURLWithContext(ctx, "")
-	localVarPath := localBasePath + relativePath
+type APICallParams struct {
+	VersionHeader string
+	RelativePath  string
+	PathParams    map[string]string
+	Method        string
+	Body          []byte
+}
 
-	for key, value := range pathParams {
+func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParams) (*http.Response, error) {
+	localBasePath, _ := c.AtlasV2.GetConfig().ServerURLWithContext(ctx, "")
+	localVarPath := localBasePath + params.RelativePath
+
+	for key, value := range params.PathParams {
 		localVarPath = strings.ReplaceAll(localVarPath, "{"+key+"}", url.PathEscape(value))
 	}
 
 	headerParams := make(map[string]string)
-	headerParams["Content-Type"] = versionHeader
-	headerParams["Accept"] = versionHeader
+	headerParams["Content-Type"] = params.VersionHeader
+	headerParams["Accept"] = params.VersionHeader
 
 	var reqBody any
-	if body != nil { // if nil slice is sent with application/json content type SDK method returns an error
-		reqBody = body
+	if params.Body != nil { // if nil slice is sent with application/json content type SDK method returns an error
+		reqBody = params.Body
 	}
-	apiReq, err := c.AtlasV2.PrepareRequest(ctx, localVarPath, method, reqBody, headerParams, nil, nil, nil)
+	apiReq, err := c.AtlasV2.PrepareRequest(ctx, localVarPath, params.Method, reqBody, headerParams, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
