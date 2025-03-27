@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
@@ -48,8 +48,8 @@ func keepUnkownFuncWithNonEmptyAutoScaling(name string, replacement attr.Value) 
 }
 
 func UseStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, attrChanges *schemafunc.AttributeChanges) {
-	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
-	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
+	stateRepSpecsTF := conversion.TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
+	planRepSpecsTF := conversion.TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
 	if diags.HasError() {
 		return
 	}
@@ -80,26 +80,26 @@ func UseStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 // AdjustRegionConfigsChildren modifies the planned values of region configs based on the current state.
 // This ensures proper handling of removing auto scaling and specs attributes by preserving state values.
 func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
-	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
-	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
+	stateRepSpecsTF := conversion.TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
+	planRepSpecsTF := conversion.TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
 	if diags.HasError() {
 		return
 	}
 	for i := range minLen(planRepSpecsTF, stateRepSpecsTF) {
-		stateRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, stateRepSpecsTF[i].RegionConfigs)
-		planRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, planRepSpecsTF[i].RegionConfigs)
+		stateRegionConfigsTF := conversion.TFModelList[TFRegionConfigsModel](ctx, diags, stateRepSpecsTF[i].RegionConfigs)
+		planRegionConfigsTF := conversion.TFModelList[TFRegionConfigsModel](ctx, diags, planRepSpecsTF[i].RegionConfigs)
 		if diags.HasError() {
 			return
 		}
 		for j := range minLen(planRegionConfigsTF, stateRegionConfigsTF) {
 			// don't use auto_scaling or analytics_auto_scaling from state if it's not enabled as it doesn't need to be present in Update request payload
-			stateAutoScaling := TFModelObject[TFAutoScalingModel](ctx, stateRegionConfigsTF[j].AutoScaling)
-			planAutoScaling := TFModelObject[TFAutoScalingModel](ctx, planRegionConfigsTF[j].AutoScaling)
+			stateAutoScaling := conversion.TFModelObject[TFAutoScalingModel](ctx, stateRegionConfigsTF[j].AutoScaling)
+			planAutoScaling := conversion.TFModelObject[TFAutoScalingModel](ctx, planRegionConfigsTF[j].AutoScaling)
 			if planAutoScaling == nil && stateAutoScaling != nil && (stateAutoScaling.ComputeEnabled.ValueBool() || stateAutoScaling.DiskGBEnabled.ValueBool()) {
 				planRegionConfigsTF[j].AutoScaling = stateRegionConfigsTF[j].AutoScaling
 			}
-			stateAnalyticsAutoScaling := TFModelObject[TFAutoScalingModel](ctx, stateRegionConfigsTF[j].AnalyticsAutoScaling)
-			planAnalyticsAutoScaling := TFModelObject[TFAutoScalingModel](ctx, planRegionConfigsTF[j].AnalyticsAutoScaling)
+			stateAnalyticsAutoScaling := conversion.TFModelObject[TFAutoScalingModel](ctx, stateRegionConfigsTF[j].AnalyticsAutoScaling)
+			planAnalyticsAutoScaling := conversion.TFModelObject[TFAutoScalingModel](ctx, planRegionConfigsTF[j].AnalyticsAutoScaling)
 			if planAnalyticsAutoScaling == nil && stateAnalyticsAutoScaling != nil && (stateAnalyticsAutoScaling.ComputeEnabled.ValueBool() || stateAnalyticsAutoScaling.DiskGBEnabled.ValueBool()) {
 				planRegionConfigsTF[j].AnalyticsAutoScaling = stateRegionConfigsTF[j].AnalyticsAutoScaling
 			}
@@ -121,7 +121,7 @@ func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 
 func findDefinedElectableSpecInReplicationSpec(ctx context.Context, regionConfigs []TFRegionConfigsModel) *TFSpecsModel {
 	for i := range regionConfigs {
-		electableSpecs := TFModelObject[TFSpecsModel](ctx, regionConfigs[i].ElectableSpecs)
+		electableSpecs := conversion.TFModelObject[TFSpecsModel](ctx, regionConfigs[i].ElectableSpecs)
 		if electableSpecs != nil {
 			return electableSpecs
 		}
@@ -169,12 +169,12 @@ func determineKeepUnknownsAutoScaling(ctx context.Context, diags *diag.Diagnosti
 // autoScalingUsed checks is auto-scaling was enabled (state) or will be enabled (plan).
 func autoScalingUsed(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) (computedUsed, diskUsed bool) {
 	for _, model := range []*TFModel{state, plan} {
-		repSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, model.ReplicationSpecs)
+		repSpecsTF := conversion.TFModelList[TFReplicationSpecsModel](ctx, diags, model.ReplicationSpecs)
 		for i := range repSpecsTF {
-			regiongConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, repSpecsTF[i].RegionConfigs)
+			regiongConfigsTF := conversion.TFModelList[TFRegionConfigsModel](ctx, diags, repSpecsTF[i].RegionConfigs)
 			for j := range regiongConfigsTF {
 				for _, autoScalingTF := range []types.Object{regiongConfigsTF[j].AutoScaling, regiongConfigsTF[j].AnalyticsAutoScaling} {
-					autoscaling := TFModelObject[TFAutoScalingModel](ctx, autoScalingTF)
+					autoscaling := conversion.TFModelObject[TFAutoScalingModel](ctx, autoScalingTF)
 					if autoscaling == nil {
 						continue
 					}
@@ -189,24 +189,6 @@ func autoScalingUsed(ctx context.Context, diags *diag.Diagnostics, state, plan *
 		}
 	}
 	return
-}
-
-func TFModelList[T any](ctx context.Context, diags *diag.Diagnostics, input types.List) []T {
-	elements := make([]T, len(input.Elements()))
-	diags.Append(input.ElementsAs(ctx, &elements, false)...)
-	if diags.HasError() {
-		return nil
-	}
-	return elements
-}
-
-// TFModelObject returns nil if the Terraform object is null or unknown, or casting to T is not valid. However object attributes can be null or unknown.
-func TFModelObject[T any](ctx context.Context, input types.Object) *T {
-	item := new(T)
-	if diags := input.As(ctx, item, basetypes.ObjectAsOptions{}); diags.HasError() {
-		return nil
-	}
-	return item
 }
 
 func minLen[T any](a, b []T) int {
