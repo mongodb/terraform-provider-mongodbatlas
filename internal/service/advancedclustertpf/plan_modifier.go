@@ -58,7 +58,8 @@ func unknownReplacements(ctx context.Context, tfsdkState *tfsdk.State, tfsdkPlan
 	info := PlanModifyResourceInfo{
 		AutoScalingComputedUsed: computedUsed,
 		AutoScalingDiskUsed:     diskUsed,
-		isShardingConfigUpgrade: shardingConfigUpgrade,
+		IsShardingConfigUpgrade: shardingConfigUpgrade,
+		UsingNewShardingConfig: usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags),
 	}
 	unknownReplacements := customplanmodifier.NewUnknownReplacements(ctx, tfsdkState, tfsdkPlan, diags, ResourceSchema(ctx), info)
 	for attrName, replacer := range attributePlanModifiers {
@@ -87,7 +88,8 @@ func autoScalingReplaceUnknown(ctx context.Context, state attr.Value, req *custo
 type PlanModifyResourceInfo struct {
 	AutoScalingComputedUsed bool
 	AutoScalingDiskUsed     bool
-	isShardingConfigUpgrade bool
+	IsShardingConfigUpgrade bool
+	UsingNewShardingConfig  bool
 }
 
 func parentRegionConfigs(ctx context.Context, path path.Path, differ *customplanmodifier.PlanModifyDiffer, diags *diag.Diagnostics) []TFRegionConfigsModel {
@@ -103,7 +105,7 @@ func parentRegionConfigs(ctx context.Context, path path.Path, differ *customplan
 }
 
 func readOnlyReplaceUnknown(ctx context.Context, state attr.Value, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
-	if req.Info.isShardingConfigUpgrade {
+	if req.Info.IsShardingConfigUpgrade {
 		return req.Unknown
 	}
 	stateParsed := conversion.TFModelObject[TFSpecsModel](ctx, state.(types.Object))
@@ -144,7 +146,7 @@ func readOnlyReplaceUnknown(ctx context.Context, state attr.Value, req *custompl
 }
 
 func analyticsAndElectableSpecsReplaceUnknown(ctx context.Context, state attr.Value, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
-	if req.Info.isShardingConfigUpgrade {
+	if req.Info.IsShardingConfigUpgrade {
 		return req.Unknown
 	}
 	stateParsed := conversion.TFModelObject[TFSpecsModel](ctx, state.(types.Object))
@@ -170,10 +172,30 @@ func replicationSpecsKeepUnknownWhenChanged(ctx context.Context, state attr.Valu
 	if !conversion.HasAncestor(req.Path, path.Root("replication_specs")) {
 		return nil
 	}
-	if req.Changes.AttributeChanged("replication_specs") {
-		return []string{req.AttributeName}
+	if !req.Changes.AttributeChanged("replication_specs") {
+		return nil
 	}
-	return nil
+	keepUnknowns := []string{}
+	if req.Info.UsingNewShardingConfig {
+		keepUnknowns = append(keepUnknowns, "id") // When using new sharding config, the legacy id must never be copied
+	}
+	// for isShardingConfigUpgrade, it will be empty in the plan, so we need to keep it unknown
+	// for listLenChanges, it might be an insertion in the middle of replication spec leading to wrong value from state copied
+	if req.Info.IsShardingConfigUpgrade || req.Changes.ListLenChanges("replication_specs"){
+		keepUnknowns = append(keepUnknowns, "external_id")
+	}
+	replicationSpecAncestor := conversion.AncestorPathWithIndex(req.Path, "replication_specs", req.Diags)
+	if req.Diags.HasError() {
+		return keepUnknowns
+	}
+	if !req.Changes.PathChanged(replicationSpecAncestor) {
+		return keepUnknowns
+	}
+	if req.Changes.ListLenChanges(replicationSpecAncestor.AtName("region_configs").String()) {
+		keepUnknowns = append(keepUnknowns, "container_id")
+	}
+	keepUnknowns = append(keepUnknowns, req.Changes.KeepUnknown(attributeReplicationSpecChangeMapping)...)
+	return keepUnknowns
 }
 
 func findDefinedElectableSpecInReplicationSpec(ctx context.Context, regionConfigs []TFRegionConfigsModel) *TFSpecsModel {
