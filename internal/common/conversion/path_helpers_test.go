@@ -10,12 +10,21 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestIsIndexValue(t *testing.T) {
-	assert.True(t, conversion.IsIndexValue(path.Root("replication_specs").AtListIndex(0)))
-	assert.True(t, conversion.IsIndexValue(path.Root("replication_specs").AtMapKey("myKey")))
-	assert.True(t, conversion.IsIndexValue(path.Root("replication_specs").AtSetValue(types.StringValue("myKey"))))
-	assert.False(t, conversion.IsIndexValue(path.Root("replication_specs")))
-	assert.False(t, conversion.IsIndexValue(path.Root("replication_specs").AtName("id")))
+func TestIsIndexTypes(t *testing.T) {
+	listIndexPath := path.Root("replication_specs").AtListIndex(0)
+	mapIndexPath := path.Root("replication_specs").AtMapKey("myKey")
+	setIndexPath := path.Root("replication_specs").AtSetValue(types.StringValue("myKey"))
+	assert.True(t, conversion.IsListIndex(listIndexPath))
+	assert.False(t, conversion.IsListIndex(setIndexPath))
+	assert.False(t, conversion.IsListIndex(mapIndexPath))
+
+	assert.True(t, conversion.IsSetIndex(setIndexPath))
+	assert.False(t, conversion.IsSetIndex(mapIndexPath))
+	assert.False(t, conversion.IsSetIndex(listIndexPath))
+
+	assert.True(t, conversion.IsMapIndex(mapIndexPath))
+	assert.False(t, conversion.IsMapIndex(setIndexPath))
+	assert.False(t, conversion.IsMapIndex(listIndexPath))
 }
 
 func TestAttributeNameEquals(t *testing.T) {

@@ -8,17 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
-func LastPart(p path.Path) string {
-	parts := strings.Split(p.String(), ".")
-	return parts[len(parts)-1]
-}
-
-func IsIndexValue(p path.Path) bool {
-	return IsMapIndex(p) || IsListIndex(p) || IsSetIndex(p)
-}
-
 func IsListIndex(p path.Path) bool {
-	lastPart := LastPart(p)
+	lastPart := lastPart(p)
 	if IsMapIndex(p) || IsSetIndex(p) {
 		return false
 	}
@@ -26,19 +17,13 @@ func IsListIndex(p path.Path) bool {
 }
 
 func IsMapIndex(p path.Path) bool {
-	lastPart := LastPart(p)
+	lastPart := lastPart(p)
 	return strings.HasSuffix(lastPart, "\"]")
 }
 
 func IsSetIndex(p path.Path) bool {
-	lastPart := LastPart(p)
+	lastPart := lastPart(p)
 	return strings.Contains(lastPart, "[Value(")
-}
-
-func HasPrefix(p, prefix path.Path) bool {
-	prefixString := prefix.String()
-	pString := p.String()
-	return strings.HasPrefix(pString, prefixString)
 }
 
 func AttributeNameEquals(p path.Path, name string) bool {
@@ -53,10 +38,10 @@ func AttributeName(p path.Path) string {
 }
 
 func AsAddedIndex(p path.Path) string {
-	if !IsIndexValue(p) {
+	if !isIndexValue(p) {
 		return ""
 	}
-	lastPart := LastPart(p)
+	lastPart := lastPart(p)
 	indexWithSign := strings.Replace(lastPart, "[", "[+", 1)
 	everythingExceptLast, _ := strings.CutSuffix(p.String(), lastPart)
 	return everythingExceptLast + indexWithSign
@@ -64,17 +49,17 @@ func AsAddedIndex(p path.Path) string {
 
 // AsRemovedIndex returns empty string if the path is not an index otherwise it adds `-` before the index
 func AsRemovedIndex(p path.Path) string {
-	if !IsIndexValue(p) {
+	if !isIndexValue(p) {
 		return ""
 	}
-	lastPart := LastPart(p)
+	lastPart := lastPart(p)
 	lastPartWithRemoveIndex := strings.Replace(lastPart, "[", "[-", 1)
 	everythingExceptLast, _ := strings.CutSuffix(p.String(), lastPart)
 	return everythingExceptLast + lastPartWithRemoveIndex
 }
 
 func TrimLastIndex(p path.Path) string {
-	if IsIndexValue(p) {
+	if isIndexValue(p) {
 		return p.ParentPath().String()
 	}
 	return p.String()
@@ -82,7 +67,7 @@ func TrimLastIndex(p path.Path) string {
 
 func TrimLastIndexPath(p path.Path) path.Path {
 	for {
-		if IsIndexValue(p) {
+		if isIndexValue(p) {
 			p = p.ParentPath()
 		} else {
 			return p
@@ -133,4 +118,13 @@ func AncestorPaths(p path.Path) []path.Path {
 		ancestors = append(ancestors, ancestor)
 		p = ancestor
 	}
+}
+
+func lastPart(p path.Path) string {
+	parts := strings.Split(p.String(), ".")
+	return parts[len(parts)-1]
+}
+
+func isIndexValue(p path.Path) bool {
+	return IsMapIndex(p) || IsListIndex(p) || IsSetIndex(p)
 }
