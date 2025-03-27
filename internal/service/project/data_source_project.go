@@ -147,7 +147,7 @@ func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, re
 			},
 			"ip_addresses": schema.SingleNestedAttribute{
 				Computed:           true,
-				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamByVersionWithReplacement, "1.21.0", "mongodbatlas_project_ip_addresses data source"),
+				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamWithReplacement, "mongodbatlas_project_ip_addresses data source"),
 				Attributes: map[string]schema.Attribute{
 					"services": schema.SingleNestedAttribute{
 						Computed: true,

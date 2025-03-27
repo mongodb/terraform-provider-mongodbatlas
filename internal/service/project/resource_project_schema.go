@@ -113,7 +113,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"ip_addresses": schema.SingleNestedAttribute{
 				Computed:           true,
-				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamByVersionWithReplacement, "1.21.0", "mongodbatlas_project_ip_addresses data source"),
+				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamWithReplacement, "mongodbatlas_project_ip_addresses data source"),
 				PlanModifiers: []planmodifier.Object{
 					objectplanmodifier.UseStateForUnknown(),
 				},
