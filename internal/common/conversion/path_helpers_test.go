@@ -39,7 +39,9 @@ func TestIndexMethods(t *testing.T) {
 	assert.Equal(t, "replication_specs[0].region_configs[-1]", conversion.AsRemovedIndex(path.Root("replication_specs").AtListIndex(0).AtName("region_configs").AtListIndex(1)))
 	assert.Equal(t, "replication_specs[-\"myKey\"]", conversion.AsRemovedIndex(path.Root("replication_specs").AtMapKey("myKey")))
 	assert.Equal(t, "replication_specs[-Value(\"myKey\")]", conversion.AsRemovedIndex(path.Root("replication_specs").AtSetValue(types.StringValue("myKey"))))
-	assert.Equal(t, "advanced_configuration.custom_openssl_cipher_config_tls12[-Value(\"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384\")]", conversion.AsRemovedIndex(path.Root("advanced_configuration").AtName("custom_openssl_cipher_config_tls12").AtSetValue(types.StringValue("TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"))))
+	setIndex := path.Root("advanced_configuration").AtName("custom_openssl_cipher_config_tls12").AtSetValue(types.StringValue("TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"))
+	assert.Equal(t, "advanced_configuration.custom_openssl_cipher_config_tls12[-Value(\"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384\")]", conversion.AsRemovedIndex(setIndex))
+	assert.Equal(t, "advanced_configuration.custom_openssl_cipher_config_tls12", conversion.AncestorPathNoIndex(setIndex, "custom_openssl_cipher_config_tls12", new(diag.Diagnostics)).String())
 	assert.Equal(t, "", conversion.AsRemovedIndex(path.Root("replication_specs")))
 }
 
@@ -58,8 +60,8 @@ func TestParentPathWithIndex_Found(t *testing.T) {
 	parentPath := basePath.AtName("parent")
 	childPath := parentPath.AtName("child")
 
-	assert.Equal(t, parentPath.String(), conversion.ParentPathWithIndex(childPath, "parent", diags).String())
-	assert.Equal(t, basePath.String(), conversion.ParentPathWithIndex(childPath, "resource", diags).String())
+	assert.Equal(t, parentPath.String(), conversion.AncestorPathWithIndex(childPath, "parent", diags).String())
+	assert.Equal(t, basePath.String(), conversion.AncestorPathWithIndex(childPath, "resource", diags).String())
 	assert.Empty(t, diags, "Diagnostics should not have errors")
 }
 
@@ -71,8 +73,8 @@ func TestParentPathWithIndex_FoundIncludesIndex(t *testing.T) {
 	childPath := parentPath.AtListIndex(0).AtName("child")
 	assert.Equal(t, "resource[0].parent[0].child", childPath.String())
 
-	assert.Equal(t, parentPath.AtListIndex(0).String(), conversion.ParentPathWithIndex(childPath, "parent", diags).String())
-	assert.Equal(t, basePath.AtListIndex(0).String(), conversion.ParentPathWithIndex(childPath, "resource", diags).String())
+	assert.Equal(t, parentPath.AtListIndex(0).String(), conversion.AncestorPathWithIndex(childPath, "parent", diags).String())
+	assert.Equal(t, basePath.AtListIndex(0).String(), conversion.AncestorPathWithIndex(childPath, "resource", diags).String())
 	assert.Empty(t, diags, "Diagnostics should not have errors")
 }
 
@@ -84,8 +86,8 @@ func TestParentPathNoIndex_RemovesIndex(t *testing.T) {
 	childPath := parentPath.AtListIndex(0).AtName("child")
 	assert.Equal(t, "resource[0].parent[0].child", childPath.String())
 
-	assert.Equal(t, parentPath.String(), conversion.ParentPathNoIndex(childPath, "parent", diags).String())
-	assert.Equal(t, basePath.String(), conversion.ParentPathNoIndex(childPath, "resource", diags).String())
+	assert.Equal(t, parentPath.String(), conversion.AncestorPathNoIndex(childPath, "parent", diags).String())
+	assert.Equal(t, basePath.String(), conversion.AncestorPathNoIndex(childPath, "resource", diags).String())
 	assert.Empty(t, diags, "Diagnostics should not have errors")
 }
 
@@ -95,7 +97,7 @@ func TestParentPathWithIndex_NotFound(t *testing.T) {
 	basePath := path.Root("resource")
 	childPath := basePath.AtName("child")
 
-	result := conversion.ParentPathWithIndex(childPath, "nonexistent", diags)
+	result := conversion.AncestorPathWithIndex(childPath, "nonexistent", diags)
 	// The function should traverse to path.Empty() and add an error.
 	assert.True(t, result.Equal(path.Empty()), "Expected result to be empty if parent not found")
 	assert.True(t, diags.HasError(), "Diagnostics should have an error when parent attribute is missing")
@@ -104,7 +106,7 @@ func TestParentPathWithIndex_NotFound(t *testing.T) {
 func TestParentPathWithIndex_EmptyPath(t *testing.T) {
 	diags := new(diag.Diagnostics)
 	emptyPath := path.Empty()
-	result := conversion.ParentPathWithIndex(emptyPath, "any", diags)
+	result := conversion.AncestorPathWithIndex(emptyPath, "any", diags)
 	// Since the path is empty, it should immediately return empty and add error.
 	assert.True(t, result.Equal(path.Empty()), "Expected empty path as result from an empty input path")
 	assert.True(t, diags.HasError(), "Diagnostics should have an error for empty input path")
