@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -72,9 +73,10 @@ func Schema() map[string]*schema.Schema {
 			ForceNew: true,
 		},
 		"tenant_id": {
-			Type:     schema.TypeString,
-			Optional: true, // attribute is only used as a computed, this is called out in docs and configuration of optional argument can be eventually removed implying a breaking change. To be removed in https://jira.mongodb.org/browse/CLOUDP-293142
-			Computed: true,
+			Deprecated: constant.DeprecationParam,
+			Type:       schema.TypeString,
+			Optional:   true, // attribute is only used as a computed, this is called out in docs and configuration of optional argument can be eventually removed implying a breaking change. To be removed in https://jira.mongodb.org/browse/CLOUDP-293142
+			Computed:   true,
 		},
 	}
 }

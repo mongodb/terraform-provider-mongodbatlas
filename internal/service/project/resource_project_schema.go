@@ -101,8 +101,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"is_slow_operation_thresholding_enabled": schema.BoolAttribute{
-				Computed: true,
-				Optional: true,
+				DeprecationMessage: constant.DeprecationParam,
+				Computed:           true,
+				Optional:           true,
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.UseStateForUnknown(),
 				},
