@@ -8,85 +8,56 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
-func LastPart(p path.Path) string {
-	parts := strings.Split(p.String(), ".")
-	return parts[len(parts)-1]
-}
-
-func IsIndexValue(p path.Path) bool {
-	return IsMapIndex(p) || IsListIndex(p) || IsSetIndex(p)
-}
-
 func IsListIndex(p path.Path) bool {
-	lastPart := LastPart(p)
-	if IsMapIndex(p) {
+	lastPart := lastPart(p)
+	if IsMapIndex(p) || IsSetIndex(p) {
 		return false
 	}
 	return strings.HasSuffix(lastPart, "]")
 }
 
 func IsMapIndex(p path.Path) bool {
-	lastPart := LastPart(p)
+	lastPart := lastPart(p)
 	return strings.HasSuffix(lastPart, "\"]")
 }
 
 func IsSetIndex(p path.Path) bool {
-	lastPart := LastPart(p)
+	lastPart := lastPart(p)
 	return strings.Contains(lastPart, "[Value(")
 }
 
-func HasPrefix(p, prefix path.Path) bool {
-	prefixString := prefix.String()
+func HasAncestor(p, ancestor path.Path) bool {
+	prefixString := ancestor.String()
 	pString := p.String()
 	return strings.HasPrefix(pString, prefixString)
 }
 
-func AttributeNameEquals(p path.Path, name string) bool {
-	noBrackets := TrimLastIndex(p)
-	return noBrackets == name || strings.HasSuffix(noBrackets, fmt.Sprintf(".%s", name))
-}
-
 func AttributeName(p path.Path) string {
-	noBrackets := TrimLastIndex(p)
-	parts := strings.Split(noBrackets, ".")
+	noIndex := trimLastIndex(p)
+	parts := strings.Split(noIndex, ".")
 	return parts[len(parts)-1]
 }
 
+// AsAddedIndex returns "" if the path is not an index otherwise it adds `+` before the index
 func AsAddedIndex(p path.Path) string {
-	parentString := p.ParentPath().ParentPath().String()
-	lastPart := LastPart(p)
+	if !isIndexValue(p) {
+		return ""
+	}
+	lastPart := lastPart(p)
 	indexWithSign := strings.Replace(lastPart, "[", "[+", 1)
-	if parentString == "" {
-		return indexWithSign
-	}
-	return parentString + "." + indexWithSign
+	everythingExceptLast, _ := strings.CutSuffix(p.String(), lastPart)
+	return everythingExceptLast + indexWithSign
 }
 
+// AsRemovedIndex returns "" if the path is not an index otherwise it adds `-` before the index
 func AsRemovedIndex(p path.Path) string {
-	parentString := p.ParentPath().ParentPath().String()
-	lastPart := LastPart(p)
-	indexWithSign := strings.Replace(lastPart, "[", "[-", 1)
-	if parentString == "" {
-		return indexWithSign
+	if !isIndexValue(p) {
+		return ""
 	}
-	return parentString + "." + indexWithSign
-}
-
-func TrimLastIndex(p path.Path) string {
-	if IsIndexValue(p) {
-		return p.ParentPath().String()
-	}
-	return p.String()
-}
-
-func TrimLastIndexPath(p path.Path) path.Path {
-	for {
-		if IsIndexValue(p) {
-			p = p.ParentPath()
-		} else {
-			return p
-		}
-	}
+	lastPart := lastPart(p)
+	lastPartWithRemoveIndex := strings.Replace(lastPart, "[", "[-", 1)
+	everythingExceptLast, _ := strings.CutSuffix(p.String(), lastPart)
+	return everythingExceptLast + lastPartWithRemoveIndex
 }
 
 func ParentPathWithIndex(p path.Path, attributeName string, diags *diag.Diagnostics) path.Path {
@@ -96,7 +67,7 @@ func ParentPathWithIndex(p path.Path, attributeName string, diags *diag.Diagnost
 			diags.AddError("Parent path not found", fmt.Sprintf("Parent attribute %s not found in path %s", attributeName, p.String()))
 			return p
 		}
-		if AttributeNameEquals(p, attributeName) {
+		if attributeNameEquals(p, attributeName) {
 			return p
 		}
 	}
@@ -107,5 +78,48 @@ func ParentPathNoIndex(p path.Path, attributeName string, diags *diag.Diagnostic
 	if diags.HasError() {
 		return parent
 	}
-	return TrimLastIndexPath(parent)
+	return trimLastIndexPath(parent)
+}
+
+func AncestorPaths(p path.Path) []path.Path {
+	ancestors := []path.Path{}
+	for {
+		ancestor := p.ParentPath()
+		if ancestor.Equal(path.Empty()) {
+			return ancestors
+		}
+		ancestors = append(ancestors, ancestor)
+		p = ancestor
+	}
+}
+
+func lastPart(p path.Path) string {
+	parts := strings.Split(p.String(), ".")
+	return parts[len(parts)-1]
+}
+
+func isIndexValue(p path.Path) bool {
+	return IsMapIndex(p) || IsListIndex(p) || IsSetIndex(p)
+}
+
+func attributeNameEquals(p path.Path, name string) bool {
+	noBrackets := trimLastIndex(p)
+	return noBrackets == name || strings.HasSuffix(noBrackets, fmt.Sprintf(".%s", name))
+}
+
+func trimLastIndex(p path.Path) string {
+	if isIndexValue(p) {
+		return p.ParentPath().String()
+	}
+	return p.String()
+}
+
+func trimLastIndexPath(p path.Path) path.Path {
+	for {
+		if isIndexValue(p) {
+			p = p.ParentPath()
+		} else {
+			return p
+		}
+	}
 }

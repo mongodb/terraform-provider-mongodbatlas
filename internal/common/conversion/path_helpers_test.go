@@ -10,41 +10,21 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestIsIndexValue(t *testing.T) {
-	assert.True(t, conversion.IsIndexValue(path.Root("replication_specs").AtListIndex(0)))
-	assert.True(t, conversion.IsIndexValue(path.Root("replication_specs").AtMapKey("myKey")))
-	assert.True(t, conversion.IsIndexValue(path.Root("replication_specs").AtSetValue(types.StringValue("myKey"))))
-	assert.False(t, conversion.IsIndexValue(path.Root("replication_specs")))
-	assert.False(t, conversion.IsIndexValue(path.Root("replication_specs").AtName("id")))
-}
+func TestIsIndexTypes(t *testing.T) {
+	listIndexPath := path.Root("replication_specs").AtListIndex(0)
+	mapIndexPath := path.Root("replication_specs").AtMapKey("myKey")
+	setIndexPath := path.Root("replication_specs").AtSetValue(types.StringValue("myKey"))
+	assert.True(t, conversion.IsListIndex(listIndexPath))
+	assert.False(t, conversion.IsListIndex(setIndexPath))
+	assert.False(t, conversion.IsListIndex(mapIndexPath))
 
-func TestAttributeNameEquals(t *testing.T) {
-	var (
-		repSpecPath       = path.Root("replication_specs")
-		regionConfigsPath = repSpecPath.AtListIndex(0).AtName("region_configs")
-	)
-	for expectedAttribute, paths := range map[string][]path.Path{
-		"replication_specs": {
-			repSpecPath,
-			repSpecPath.AtListIndex(0),
-			repSpecPath.AtMapKey("myKey"),
-		},
-		"region_configs": {
-			regionConfigsPath,
-			regionConfigsPath.AtListIndex(0),
-			regionConfigsPath.AtMapKey("myKey"),
-		},
-	} {
-		for _, p := range paths {
-			assert.True(t, conversion.AttributeNameEquals(p, expectedAttribute))
-		}
-	}
-}
+	assert.True(t, conversion.IsSetIndex(setIndexPath))
+	assert.False(t, conversion.IsSetIndex(mapIndexPath))
+	assert.False(t, conversion.IsSetIndex(listIndexPath))
 
-func TestStripSquareBrackets(t *testing.T) {
-	assert.Equal(t, "replication_specs", conversion.TrimLastIndex(path.Root("replication_specs").AtListIndex(0)))
-	assert.Equal(t, "replication_specs", conversion.TrimLastIndex(path.Root("replication_specs").AtMapKey("myKey")))
-	assert.Equal(t, "replication_specs", conversion.TrimLastIndex(path.Root("replication_specs")))
+	assert.True(t, conversion.IsMapIndex(mapIndexPath))
+	assert.False(t, conversion.IsMapIndex(setIndexPath))
+	assert.False(t, conversion.IsMapIndex(listIndexPath))
 }
 
 func TestIndexMethods(t *testing.T) {
@@ -53,17 +33,24 @@ func TestIndexMethods(t *testing.T) {
 	assert.False(t, conversion.IsListIndex(path.Root("replication_specs").AtMapKey("region_configs")))
 	assert.Equal(t, "replication_specs[+0]", conversion.AsAddedIndex(path.Root("replication_specs").AtListIndex(0)))
 	assert.Equal(t, "replication_specs[0].region_configs[+1]", conversion.AsAddedIndex(path.Root("replication_specs").AtListIndex(0).AtName("region_configs").AtListIndex(1)))
+	assert.Equal(t, "replication_specs[+\"myKey\"]", conversion.AsAddedIndex(path.Root("replication_specs").AtMapKey("myKey")))
+	assert.Equal(t, "replication_specs[+Value(\"myKey\")]", conversion.AsAddedIndex(path.Root("replication_specs").AtSetValue(types.StringValue("myKey"))))
 	assert.Equal(t, "replication_specs[-1]", conversion.AsRemovedIndex(path.Root("replication_specs").AtListIndex(1)))
 	assert.Equal(t, "replication_specs[0].region_configs[-1]", conversion.AsRemovedIndex(path.Root("replication_specs").AtListIndex(0).AtName("region_configs").AtListIndex(1)))
+	assert.Equal(t, "replication_specs[-\"myKey\"]", conversion.AsRemovedIndex(path.Root("replication_specs").AtMapKey("myKey")))
+	assert.Equal(t, "replication_specs[-Value(\"myKey\")]", conversion.AsRemovedIndex(path.Root("replication_specs").AtSetValue(types.StringValue("myKey"))))
+	assert.Equal(t, "advanced_configuration.custom_openssl_cipher_config_tls12[-Value(\"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384\")]", conversion.AsRemovedIndex(path.Root("advanced_configuration").AtName("custom_openssl_cipher_config_tls12").AtSetValue(types.StringValue("TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"))))
+	assert.Equal(t, "", conversion.AsRemovedIndex(path.Root("replication_specs")))
 }
 
-func TestPathMatches(t *testing.T) {
+func TestHasAncestor(t *testing.T) {
 	prefix := path.Root("replication_specs").AtListIndex(0)
-	assert.True(t, conversion.HasPrefix(path.Root("replication_specs").AtListIndex(0), prefix))
-	assert.True(t, conversion.HasPrefix(path.Root("replication_specs").AtListIndex(0).AtName("region_configs"), prefix))
-	assert.False(t, conversion.HasPrefix(path.Root("replication_specs").AtListIndex(1), prefix))
-	assert.True(t, conversion.HasPrefix(path.Root("replication_specs").AtListIndex(0).AtName("region_configs").AtListIndex(1), path.Empty()))
+	assert.True(t, conversion.HasAncestor(path.Root("replication_specs").AtListIndex(0), prefix))
+	assert.True(t, conversion.HasAncestor(path.Root("replication_specs").AtListIndex(0).AtName("region_configs"), prefix))
+	assert.False(t, conversion.HasAncestor(path.Root("replication_specs").AtListIndex(1), prefix))
+	assert.True(t, conversion.HasAncestor(path.Root("replication_specs").AtListIndex(0).AtName("region_configs").AtListIndex(1), path.Empty()))
 }
+
 func TestParentPathWithIndex_Found(t *testing.T) {
 	diags := new(diag.Diagnostics)
 	// Build a nested path: resource -> parent -> child

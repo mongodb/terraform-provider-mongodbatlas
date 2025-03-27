@@ -10,101 +10,77 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
-func NewPlanModifyDiffer(ctx context.Context, req *resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse, schema conversion.TPFSchema) *PlanModifyDiffer {
-	diags := &resp.Diagnostics
-	diffStatePlan, err := req.State.Raw.Diff(resp.Plan.Raw)
+func NewPlanModifyDiffer(ctx context.Context, state *tfsdk.State, plan *tfsdk.Plan, diags *diag.Diagnostics, schema conversion.TPFSchema) *PlanModifyDiffer {
+	diffStatePlan, err := state.Raw.Diff(plan.Raw)
 	if err != nil {
 		diags.AddError("Error diffing state and plan", err.Error())
-		return nil
-	}
-	diffStateConfig, err := req.State.Raw.Diff(req.Config.Raw)
-	if err != nil {
-		diags.AddError("Error diffing state and config", err.Error())
 		return nil
 	}
 
 	attributeChanges := findChanges(ctx, diffStatePlan, diags, schema)
 	tflog.Debug(ctx, fmt.Sprintf("Attribute changes: %s\n", strings.Join(attributeChanges, "\n")))
 	return &PlanModifyDiffer{
-		req:              req,
-		resp:             resp,
-		stateConfigDiff:  diffStateConfig,
 		statePlanDiff:    diffStatePlan,
 		schema:           schema,
+		state:            state,
+		plan:             plan,
 		AttributeChanges: attributeChanges,
-		PlanFullyKnown:   req.Plan.Raw.IsFullyKnown(),
 	}
 }
 
 type PlanModifyDiffer struct {
 	schema           conversion.TPFSchema
 	AttributeChanges AttributeChanges
-	req              *resource.ModifyPlanRequest
-	resp             *resource.ModifyPlanResponse
-	stateConfigDiff  []tftypes.ValueDiff
+	state            *tfsdk.State
+	plan             *tfsdk.Plan
 	statePlanDiff    []tftypes.ValueDiff
-	PlanFullyKnown   bool
-}
-
-func (d *PlanModifyDiffer) ParentRemoved(p path.Path) bool {
-	for {
-		parent := p.ParentPath()
-		if parent.Equal(path.Empty()) {
-			return false
-		}
-		if slices.Contains(d.AttributeChanges, conversion.AsRemovedIndex(parent)) {
-			return true
-		}
-		p = parent
-	}
 }
 
 type UnknownInfo struct {
 	StateValue    attr.Value
 	UnknownValue  attr.Value
 	AttributeName string
+	StrPath       string
 	Path          path.Path
 }
 
-func (d *PlanModifyDiffer) Unknowns(ctx context.Context, diags *diag.Diagnostics) map[string]UnknownInfo {
-	unknowns := map[string]UnknownInfo{}
+func (d *PlanModifyDiffer) Unknowns(ctx context.Context, diags *diag.Diagnostics) []UnknownInfo {
+	unknowns := []UnknownInfo{}
 	schema := d.schema
 	for _, diff := range d.statePlanDiff {
-		stateValue, tpfPath := conversion.AttributePathValue(ctx, diags, diff.Path, d.req.State, schema)
-		if d.ParentRemoved(tpfPath) {
-			continue
-		}
-		planValue, _ := conversion.AttributePathValue(ctx, diags, diff.Path, d.req.Plan, schema)
+		stateValue, tpfPath := conversion.AttributePathValue(ctx, diags, diff.Path, d.state, schema)
+		strPath := tpfPath.String()
+		planValue, _ := conversion.AttributePathValue(ctx, diags, diff.Path, d.plan, schema)
 		if planValue == nil || !planValue.IsUnknown() {
 			continue
 		}
-		unknowns[tpfPath.String()] = UnknownInfo{
+		unknowns = append(unknowns, UnknownInfo{
 			Path:          tpfPath,
+			StrPath:       strPath,
 			StateValue:    stateValue,
 			UnknownValue:  planValue,
 			AttributeName: conversion.AttributeName(tpfPath),
-		}
+		})
 	}
+	slices.SortFunc(unknowns, func(i, j UnknownInfo) int {
+		return strings.Compare(i.StrPath, j.StrPath)
+	})
 	return unknowns
 }
 
-func ReadConfigStructValue[T any](ctx context.Context, d *PlanModifyDiffer, p path.Path) *T {
-	return readSrcStructValue[T](ctx, d.req.Config, p)
-}
-
 func ReadPlanStructValue[T any](ctx context.Context, d *PlanModifyDiffer, p path.Path) *T {
-	return readSrcStructValue[T](ctx, d.req.Plan, p)
+	return readSrcStructValue[T](ctx, d.plan, p)
 }
 
 func ReadStateStructValue[T any](ctx context.Context, d *PlanModifyDiffer, p path.Path) *T {
-	return readSrcStructValue[T](ctx, d.req.State, p)
+	return readSrcStructValue[T](ctx, d.state, p)
 }
 
 func readSrcStructValue[T any](ctx context.Context, src conversion.TPFSrc, p path.Path) *T {
@@ -118,7 +94,7 @@ func readSrcStructValue[T any](ctx context.Context, src conversion.TPFSrc, p pat
 	return conversion.TFModelObject[T](ctx, obj)
 }
 func ReadPlanStructValues[T any](ctx context.Context, d *PlanModifyDiffer, p path.Path, diags *diag.Diagnostics) []T {
-	return readSrcStructValues[T](ctx, d.req.Plan, p, diags)
+	return readSrcStructValues[T](ctx, d.plan, p, diags)
 }
 
 func readSrcStructValues[T any](ctx context.Context, src conversion.TPFSrc, p path.Path, diags *diag.Diagnostics) []T {
@@ -131,34 +107,50 @@ func readSrcStructValues[T any](ctx context.Context, src conversion.TPFSrc, p pa
 }
 
 func UpdatePlanValue(ctx context.Context, diags *diag.Diagnostics, d *PlanModifyDiffer, p path.Path, value attr.Value) {
-	diags.Append(d.resp.Plan.SetAttribute(ctx, p, value)...)
+	diags.Append(d.plan.SetAttribute(ctx, p, value)...)
 }
 
 func findChanges(ctx context.Context, diff []tftypes.ValueDiff, diags *diag.Diagnostics, schema conversion.TPFSchema) AttributeChanges {
 	changes := make(map[string]bool)
-	addChangeAndParentChanges := func(change string) {
-		changes[change] = true
-		parts := strings.Split(change, ".")
-		for i := range parts[:len(parts)-1] {
-			changes[strings.Join(parts[:len(parts)-1-i], ".")] = true
+	addChangeAndAncestorChanges := func(change path.Path) {
+		changes[change.String()] = true
+		for _, p := range conversion.AncestorPaths(change) {
+			changes[p.String()] = true
 		}
+	}
+	// avoids adding change for removed region_configs inside a removed replication_specs
+	isAncestorRemoved := func(p path.Path) bool {
+		for _, a := range conversion.AncestorPaths(p) {
+			if conversion.IsListIndex(a) {
+				if _, found := changes[conversion.AsRemovedIndex(a)]; found {
+					return true
+				}
+			}
+		}
+		return false
 	}
 	for _, d := range diff {
 		p, localDiags := conversion.AttributePath(ctx, d.Path, schema)
-		if conversion.IsListIndex(p) {
-			if d.Value1 == nil {
-				addChangeAndParentChanges(conversion.AsAddedIndex(p))
-			}
-			if d.Value2 == nil {
-				addChangeAndParentChanges(conversion.AsRemovedIndex(p))
-			}
+		if localDiags.HasError() {
+			diags.Append(localDiags...)
+			continue
 		}
+		// Two types of changes from a diff
+		// 1. It is defined in the plan AND it is Known and not null
+		// 2. It is a removed list index. (set or map index we ignore, e.g., replication_specs[0].container_id[-\"AWS:US_EAST_1\"] or advanced_configuration.custom_openssl_cipher_config_tls12[-Value(\"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384\")])
+		// If we use schema.SetNestedAttribute we might need to see if those changes are detected
 		if d.Value2 != nil && d.Value2.IsKnown() && !d.Value2.IsNull() {
-			if localDiags.HasError() {
-				diags.Append(localDiags...)
-				continue
+			addChangeAndAncestorChanges(p)
+		}
+		if conversion.IsListIndex(p) {
+			isAdd := d.Value1 == nil
+			if isAdd {
+				changes[conversion.AsAddedIndex(p)] = true
 			}
-			addChangeAndParentChanges(p.String())
+			isRemove := d.Value2 == nil
+			if isRemove && !isAncestorRemoved(p) {
+				changes[conversion.AsRemovedIndex(p)] = true
+			}
 		}
 	}
 	return slices.Sorted(maps.Keys(changes)) // Ensure changes are sorted to support top-down processing, for example read_only_spec is processed before read_only_spec.disk_size_gb
