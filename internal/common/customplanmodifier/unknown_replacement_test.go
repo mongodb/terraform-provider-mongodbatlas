@@ -105,7 +105,6 @@ func configureResources(info *replaceUnknownResourceInfo, runData *planModifyRun
 
 type unknownReplacementTestCase struct {
 	attributeReplaceUnknowns map[string]replaceUnknownTestCall
-	info                     replaceUnknownResourceInfo
 	ImportName               string
 	ConfigFilename           string
 	expectedAttributeChanges customplanmodifier.AttributeChanges

@@ -102,7 +102,6 @@ func TestMockPlanChecks_ClusterReplicasetOneRegion(t *testing.T) {
 				Checks: []plancheck.PlanCheck{
 					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
 					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("disk_size_gb")),
-					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("disk_size_gb")),
 					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("read_only_specs").AtMapKey("disk_size_gb"), knownvalue.Int64Exact(99)),
 					plancheck.ExpectKnownValue(resourceName, regionConfig0.AtMapKey("electable_specs").AtMapKey("disk_size_gb"), knownvalue.Int64Exact(99)),
 				},
