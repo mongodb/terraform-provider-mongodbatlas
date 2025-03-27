@@ -32,9 +32,9 @@ func (a AttributeChanges) PathChanged(path path.Path) bool {
 }
 
 // ListLenChanges accepts a fullPath, e.g., "replication_specs[0].region_configs" and returns true if the length of the nested list has changed
-func (a AttributeChanges) ListLenChanges(fullPath string) bool {
-	addPrefix := asAddPrefix(fullPath)
-	removePrefix := asRemovePrefix(fullPath)
+func (a AttributeChanges) ListLenChanges(p path.Path) bool {
+	addPrefix := asAddPrefix(p.String())
+	removePrefix := asRemovePrefix(p.String())
 	for _, change := range a {
 		if strings.HasPrefix(change, addPrefix) || strings.HasPrefix(change, removePrefix) {
 			return true

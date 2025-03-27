@@ -166,39 +166,40 @@ func TestAttributeChanges_PathChanged(t *testing.T) {
 		})
 	}
 }
-func TestAttributeChanges_NestedListLenChanges(t *testing.T) {
+func TestAttributeChanges_ListLenChanges(t *testing.T) {
+	regionConfigs := path.Root("replication_specs").AtName("region_configs")
 	tests := map[string]struct {
-		fullPath string
+		fullPath path.Path
 		changes  customplanmodifier.AttributeChanges
 		expected bool
 	}{
 		"empty changes": {
-			fullPath: "replication_specs.region_configs",
+			fullPath: regionConfigs,
 			changes:  []string{},
 			expected: false,
 		},
 		"no nested list changes": {
-			fullPath: "replication_specs.region_configs",
+			fullPath: regionConfigs,
 			changes:  []string{"name", "description", "replication_specs.zone_name"},
 			expected: false,
 		},
 		"add nested element": {
-			fullPath: "replication_specs.region_configs",
+			fullPath: regionConfigs,
 			changes:  []string{"replication_specs.region_configs[+0]", "replication_specs.region_configs.priority"},
 			expected: true,
 		},
 		"add nested element add different index should be false": {
-			fullPath: "replication_specs[0].region_configs",
+			fullPath: path.Root("replication_specs").AtListIndex(0).AtName("region_configs"),
 			changes:  []string{"replication_specs[1].region_configs[+0]"},
 			expected: false,
 		},
 		"remove nested element": {
-			fullPath: "replication_specs.region_configs",
+			fullPath: regionConfigs,
 			changes:  []string{"replication_specs.region_configs[-1]", "replication_specs.region_configs.region_name"},
 			expected: true,
 		},
 		"mixed list operations": {
-			fullPath: "replication_specs.region_configs",
+			fullPath: regionConfigs,
 			changes: []string{
 				"replication_specs.region_configs[+0]",
 				"replication_specs.region_configs[-1]",
@@ -207,12 +208,12 @@ func TestAttributeChanges_NestedListLenChanges(t *testing.T) {
 			expected: true,
 		},
 		"different path": {
-			fullPath: "other.configs",
+			fullPath: path.Root("other").AtName("configs"),
 			changes:  []string{"replication_specs.region_configs[+0]", "replication_specs.region_configs[-1]"},
 			expected: false,
 		},
 		"multiple nested levels": {
-			fullPath: "replication_specs.region_configs.zones",
+			fullPath: regionConfigs.AtName("zones"),
 			changes:  []string{"replication_specs.region_configs.zones[+0]", "replication_specs.region_configs[0].zones.name"},
 			expected: true,
 		},
