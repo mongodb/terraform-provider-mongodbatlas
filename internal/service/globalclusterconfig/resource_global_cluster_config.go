@@ -25,7 +25,7 @@ const (
 	errorGlobalClusterRead     = "error reading MongoDB Global Cluster Configuration (%s): %s"
 	errorGlobalClusterDelete   = "error deleting MongoDB Global Cluster Configuration (%s): %s"
 	errorGlobalClusterUpdate   = "error updating MongoDB Global Cluster Configuration (%s): %s"
-	deprecationOldSchemaAction = "To learn more, see our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide"
+	deprecationOldSchemaAction = "To learn more, see our examples, documentation, and 1.18.0 migration guide at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide"
 )
 
 var deprecationMsgOldSchema = fmt.Sprintf("%s %s", fmt.Sprintf(constant.DeprecationParamWithReplacement, "`custom_zone_mapping_zone_id`"), deprecationOldSchemaAction)
