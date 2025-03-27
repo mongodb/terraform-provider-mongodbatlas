@@ -31,7 +31,7 @@ var (
 		"cluster_type":           {"config_server_management_mode", "config_server_type"}, // computed values of config server change when REPLICA_SET changes to SHARDED
 		"expiration_date":        {"version"},                                             // pinned_fcv
 	}
-	attributeReplicationSpecChangeMapping = map[string][]string{
+	attributeReplicationSpecChangeMapping = map[string][]string{ //nolint:unused // Add logic to use this in CLOUDP-308783
 		// All these fields can exist in specs that are computed, therefore, it is not safe to use them when they have changed.
 		"disk_iops":       {},
 		"ebs_volume_type": {},
