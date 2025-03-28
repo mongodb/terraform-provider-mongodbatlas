@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
-	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/schema"
 	"github.com/sebdah/goldie/v2"
 	"go.mongodb.org/atlas-sdk/v20240530005/admin"
 )
