@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 )
 
 func Resource() *schema.Resource {
@@ -358,7 +358,7 @@ func validateDeliveryType(dt []any) error {
 	oplogInc, oplogIncOk := v["oplog_inc"]
 	isOpIncSet := oplogIncOk && oplogInc != nil && (oplogInc.(int) > 0)
 
-	if !isPITSet && !(isOpTSSet && isOpIncSet) {
+	if !isPITSet && (!isOpTSSet || !isOpIncSet) {
 		return fmt.Errorf("%q point_in_time_utc_seconds or oplog_ts and oplog_inc must be set", key)
 	}
 	if isPITSet && (isOpTSSet || isOpIncSet) {
