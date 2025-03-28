@@ -13,6 +13,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
+// NewUnknownReplacements creates a new UnknownReplacements instance. ResourceInfo is a struct for storing custom resource specific data. For example, `advanced_cluster` ResourceInfo will differ from `search_deployment` or `project` ResourceInfo
 func NewUnknownReplacements[ResourceInfo any](ctx context.Context, state *tfsdk.State, plan *tfsdk.Plan, diags *diag.Diagnostics, schema conversion.TPFSchema, info ResourceInfo) *UnknownReplacements[ResourceInfo] {
 	differ := NewPlanModifyDiffer(ctx, state, plan, diags, schema)
 	return &UnknownReplacements[ResourceInfo]{
