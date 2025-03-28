@@ -1,7 +1,5 @@
 version: "2"
 run:
-  build-tags:
-    - integration
   modules-download-mode: readonly
   tests: true
 linters:
@@ -34,6 +32,9 @@ linters:
     - unused
     - usetesting
     - whitespace
+    # Too many unusued parameters, skipping this check for now
+    #- name: unused-parameter
+
   settings:
     funlen:
       lines: 360
@@ -48,6 +49,11 @@ linters:
     govet:
       enable-all: true
     lll:
+      # Default is 120. '\t' is counted as 1 character.
+      # set our project to 500, as we are adding open api field description in the schema.
+      # also, for anyone using vscode, use the following configs:
+      # "rewrap.wrappingColumn": 500 ... requires the rewrap plugin
+      # "editor.rulers": [500]
       line-length: 500
     misspell:
       locale: US
@@ -99,11 +105,11 @@ linters:
     rules:
       - linters:
           - staticcheck
-        text: 'SA1019:'
+        text: "SA1019:" # d.GetOkExists is deprecated: usage is discouraged due to undefined behaviors and may be removed in a future version of the SDK
       - linters:
           - gocritic
-        text: '^hugeParam: req is heavy'
-      - path: schema\.go
+        text: "^hugeParam: req is heavy"
+      - path: schema\.go # exclude rules for schema files as it's auto-genereated from OpenAPI spec
         text: fieldalignment|hugeParam|var-naming|ST1003|S1007|exceeds the maximum|too long|regexpSimplify|nolint
       - path: (.+)\.go$
         text: declaration of ".*" shadows declaration at line .*
