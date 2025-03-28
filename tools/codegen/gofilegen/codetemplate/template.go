@@ -16,8 +16,22 @@ type SchemaFileInputs struct {
 	Imports          []string
 }
 
+//go:embed resource-file.go.tmpl
+var resourceFileTemplate string
+
+type ResourceFileInputs struct {
+}
+
 func ApplySchemaFileTemplate(inputs SchemaFileInputs) bytes.Buffer {
-	t, err := template.New("template").Parse(schemaFileTemplate)
+	return applyTemplate(schemaFileTemplate, inputs)
+}
+
+func ApplyResourceFileTemplate(inputs ResourceFileInputs) bytes.Buffer {
+	return applyTemplate(resourceFileTemplate, inputs)
+}
+
+func applyTemplate[T any](templateStr string, inputs T) bytes.Buffer {
+	t, err := template.New("template").Parse(templateStr)
 	if err != nil {
 		panic(err)
 	}
