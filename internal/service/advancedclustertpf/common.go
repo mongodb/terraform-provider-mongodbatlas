@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 )
 
 const (

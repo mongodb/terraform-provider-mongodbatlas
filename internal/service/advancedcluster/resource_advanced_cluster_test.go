@@ -12,7 +12,7 @@ import (
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	mockadmin20240530 "go.mongodb.org/atlas-sdk/v20240530005/mockadmin"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
@@ -321,11 +321,11 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 				Check:  checkSingleProviderPaused(true, clusterName, false),
 			},
 			{
-				Config: configSingleProviderPaused(t, true, projectID, clusterName, true, anotherInstanceSize), // allows pausing and other change in same apply
+				Config: configSingleProviderPaused(t, true, projectID, clusterName, true, instanceSize), // only pause to avoid `OPERATION_INVALID_MEMBER_REPLICATION_LAG`, more info in HELP-72502
 				Check:  checkSingleProviderPaused(true, clusterName, true),
 			},
 			{
-				Config:      configSingleProviderPaused(t, true, projectID, clusterName, true, instanceSize),
+				Config:      configSingleProviderPaused(t, true, projectID, clusterName, true, anotherInstanceSize),
 				ExpectError: regexp.MustCompile("CANNOT_UPDATE_PAUSED_CLUSTER"),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -1248,6 +1248,7 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 		}
 		checksSet = []string{
 			"replication_specs.0.container_id.AWS:US_EAST_1",
+			"mongo_db_major_version",
 		}
 		timeoutCheck   = resource.TestCheckResourceAttr(resourceName, "timeouts.create", "6000s") // timeouts.create is not set on data sources
 		tagsLabelsMap  = map[string]string{"key": "env", "value": "test"}
@@ -1290,7 +1291,6 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 		key   = "env"
 		value = "test"
 	}
-	mongo_db_major_version = "8.0"
 	pit_enabled = true
 	redact_client_log_data = true
 	replica_set_scaling_strategy = "NODE_TYPE"

@@ -67,7 +67,7 @@ func AncestorPathWithIndex(p path.Path, attributeName string, diags *diag.Diagno
 			diags.AddError("Parent path not found", fmt.Sprintf("Parent attribute %s not found in path %s", attributeName, p.String()))
 			return p
 		}
-		if attributeNameEquals(p, attributeName) {
+		if AttributeName(p) == attributeName {
 			return p
 		}
 	}
@@ -100,10 +100,6 @@ func lastPart(p path.Path) string {
 
 func isIndexValue(p path.Path) bool {
 	return IsMapIndex(p) || IsListIndex(p) || IsSetIndex(p)
-}
-
-func attributeNameEquals(p path.Path, name string) bool {
-	return AttributeName(p) == name
 }
 
 func trimLastIndex(p path.Path) string {

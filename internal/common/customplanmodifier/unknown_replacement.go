@@ -13,6 +13,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
+// NewUnknownReplacements creates a new UnknownReplacements instance. ResourceInfo is a struct for storing custom resource specific data. For example, `advanced_cluster` ResourceInfo will differ from `search_deployment` or `project` ResourceInfo
 func NewUnknownReplacements[ResourceInfo any](ctx context.Context, state *tfsdk.State, plan *tfsdk.Plan, diags *diag.Diagnostics, schema conversion.TPFSchema, info ResourceInfo) *UnknownReplacements[ResourceInfo] {
 	differ := NewPlanModifyDiffer(ctx, state, plan, diags, schema)
 	return &UnknownReplacements[ResourceInfo]{
@@ -36,7 +37,7 @@ type UnknownReplacements[ResourceInfo any] struct {
 
 // AddReplacement call will only be used if the attribute is Unknown in the plan. Only valid for `computed` attributes.
 func (u *UnknownReplacements[ResourceInfo]) AddReplacement(name string, call UnknownReplacementCall[ResourceInfo]) {
-	// todo: Validate the name exists in the schema
+	// todo: Validate the name exists in the schema CLOUDP-309460
 	_, found := u.Replacements[name]
 	if found {
 		panic(fmt.Sprintf("Replacement already exists for %s", name))
@@ -51,8 +52,8 @@ func (u *UnknownReplacements[ResourceInfo]) AddKeepUnknownAlways(keepUnknown ...
 
 // AddKeepUnknownOnChanges adds the attribute changed and its depending attributes to the list of attributes that should keep unknown values.
 // However, it does not infer dependencies. For example: instance_size --> disk_size_gb, and disk_gb --> disk_iops, doesn't mean instance_size --> disk_iops.
-func (u *UnknownReplacements[ResourceInfo]) AddKeepUnknownOnChanges(attributeEffectedMapping map[string][]string) {
-	u.keepUnknownAttributeNames = append(u.keepUnknownAttributeNames, u.Differ.AttributeChanges.KeepUnknown(attributeEffectedMapping)...)
+func (u *UnknownReplacements[ResourceInfo]) AddKeepUnknownOnChanges(attributeAffectedMapping map[string][]string) {
+	u.keepUnknownAttributeNames = append(u.keepUnknownAttributeNames, u.Differ.AttributeChanges.KeepUnknown(attributeAffectedMapping)...)
 }
 
 // AddKeepUnknownsExtraCall adds a function that returns extra keepUnknown attribute names based on the path/stateValue/req (same arguments as the replacer function).
