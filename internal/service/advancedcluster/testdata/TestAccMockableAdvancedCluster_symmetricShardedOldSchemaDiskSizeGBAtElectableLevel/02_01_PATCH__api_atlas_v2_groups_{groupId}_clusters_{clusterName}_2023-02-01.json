@@ -6,16 +6,22 @@
    "regionConfigs": [
     {
      "analyticsSpecs": {
+      "diskIOPS": 3000,
+      "ebsVolumeType": "STANDARD",
       "instanceSize": "M10",
       "nodeCount": 0
      },
      "electableSpecs": {
+      "diskIOPS": 3000,
+      "ebsVolumeType": "STANDARD",
       "instanceSize": "M10",
       "nodeCount": 3
      },
      "priority": 7,
      "providerName": "AWS",
      "readOnlySpecs": {
+      "diskIOPS": 3000,
+      "ebsVolumeType": "STANDARD",
       "instanceSize": "M10",
       "nodeCount": 0
      },
