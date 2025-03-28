@@ -101,7 +101,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"is_slow_operation_thresholding_enabled": schema.BoolAttribute{
-				DeprecationMessage: constant.DeprecationParam,
+				DeprecationMessage: constant.DeprecationParam, // added deprecation in CLOUDP-293855 because was deprecated in the doc
 				Computed:           true,
 				Optional:           true,
 				PlanModifiers: []planmodifier.Bool{

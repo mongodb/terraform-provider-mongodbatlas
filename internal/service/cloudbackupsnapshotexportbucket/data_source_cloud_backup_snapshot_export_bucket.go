@@ -47,7 +47,7 @@ func DataSource() *schema.Resource {
 				Computed: true,
 			},
 			"tenant_id": {
-				Deprecated: constant.DeprecationParam,
+				Deprecated: constant.DeprecationParam, // added deprecation in CLOUDP-293855 because was deprecated in the doc
 				Type:       schema.TypeString,
 				Computed:   true,
 			},
