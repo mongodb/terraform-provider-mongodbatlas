@@ -36,7 +36,7 @@ type UnknownReplacements[ResourceInfo any] struct {
 }
 
 func (u *UnknownReplacements[ResourceInfo]) AddReplacement(name string, call UnknownReplacementCall[ResourceInfo]) {
-	// todo: Validate the name exists in the schema
+	// todo: Validate the name exists in the schema CLOUDP-309460
 	_, found := u.Replacements[name]
 	if found {
 		panic(fmt.Sprintf("Replacement already exists for %s", name))
