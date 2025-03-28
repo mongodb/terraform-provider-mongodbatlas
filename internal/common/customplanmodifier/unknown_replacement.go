@@ -50,8 +50,8 @@ func (u *UnknownReplacements[ResourceInfo]) AddKeepUnknownAlways(keepUnknown ...
 
 // AddKeepUnknownOnChanges adds the attribute changed and its depending attributes to the list of attributes that should keep unknown values.
 // However, it does not infer dependencies. For example: instance_size --> disk_size_gb, and disk_gb --> disk_iops, doesn't mean instance_size --> disk_iops.
-func (u *UnknownReplacements[ResourceInfo]) AddKeepUnknownOnChanges(attributeEffectedMapping map[string][]string) {
-	u.keepUnknownAttributeNames = append(u.keepUnknownAttributeNames, u.Differ.AttributeChanges.KeepUnknown(attributeEffectedMapping)...)
+func (u *UnknownReplacements[ResourceInfo]) AddKeepUnknownOnChanges(attributeAffectedMapping map[string][]string) {
+	u.keepUnknownAttributeNames = append(u.keepUnknownAttributeNames, u.Differ.AttributeChanges.KeepUnknown(attributeAffectedMapping)...)
 }
 
 // AddKeepUnknownsExtraCall adds a function that returns extra keepUnknown attribute names based on the path/stateValue/req (same arguments as the replacer function).
