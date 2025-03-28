@@ -32,8 +32,6 @@ linters:
     - unused
     - usetesting
     - whitespace
-    # Too many unusued parameters, skipping this check for now
-    #- name: unused-parameter
 
   settings:
     funlen:
@@ -113,17 +111,7 @@ linters:
         text: fieldalignment|hugeParam|var-naming|ST1003|S1007|exceeds the maximum|too long|regexpSimplify|nolint
       - path: (.+)\.go$
         text: declaration of ".*" shadows declaration at line .*
-    paths:
-      - third_party$
-      - builtin$
-      - examples$
 formatters:
   enable:
     - gofmt
     - goimports
-  exclusions:
-    generated: lax
-    paths:
-      - third_party$
-      - builtin$
-      - examples$
