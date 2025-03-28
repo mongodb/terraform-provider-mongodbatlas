@@ -53,7 +53,7 @@ func TestToAnySlicePointer(t *testing.T) {
 				assert.Nil(t, value)
 			} else {
 				assert.NotNil(t, ret)
-				assert.Equal(t, len(*value), len(*ret))
+				assert.Len(t, *value, len(*ret))
 				for i := range *value {
 					assert.Equal(t, (*value)[i], (*ret)[i])
 				}

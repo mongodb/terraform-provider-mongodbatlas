@@ -242,7 +242,7 @@ type MockHTTPData struct {
 
 func (m *MockHTTPData) useTFConfigs(t *testing.T, tfConfigs []string) {
 	t.Helper()
-	require.Equal(t, len(tfConfigs), len(m.Steps), "Number of steps in test case and mock data should match")
+	require.Len(t, tfConfigs, len(m.Steps), "Number of steps in test case and mock data should match")
 	for i := range tfConfigs {
 		tfConfig := tfConfigs[i]
 		configVars := ExtractConfigVariables(t, tfConfig)
