@@ -8,7 +8,10 @@ import (
 )
 
 func GenerateGoCode(input codespec.Resource) string {
-	tmplInputs := codetemplate.ResourceFileInputs{}
+	tmplInputs := codetemplate.ResourceFileInputs{
+		PackageName:  input.Name.LowerCaseNoUnderscore(),
+		ResourceName: input.Name.SnakeCase(),
+	}
 	result := codetemplate.ApplyResourceFileTemplate(tmplInputs)
 
 	formattedResult, err := format.Source(result.Bytes())

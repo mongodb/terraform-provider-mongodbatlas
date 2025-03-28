@@ -20,6 +20,8 @@ type SchemaFileInputs struct {
 var resourceFileTemplate string
 
 type ResourceFileInputs struct {
+	PackageName  string
+	ResourceName string
 }
 
 func ApplySchemaFileTemplate(inputs SchemaFileInputs) bytes.Buffer {
