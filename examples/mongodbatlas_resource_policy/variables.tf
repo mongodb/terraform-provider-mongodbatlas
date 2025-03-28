@@ -9,4 +9,4 @@ variable "private_key" {
 variable "org_id" {
   description = "Atlas Organization ID"
   type        = string
-} 
+}
