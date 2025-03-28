@@ -55,11 +55,15 @@ func unknownReplacements(ctx context.Context, tfsdkState *tfsdk.State, tfsdkPlan
 	}
 	computedUsed, diskUsed := autoScalingUsed(ctx, diags, &state, &plan)
 	shardingConfigUpgrade := isShardingConfigUpgrade(ctx, &state, &plan, diags)
+	isUsingNewShardingConfig := usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags)
+	if diags.HasError() {
+		return
+	}
 	info := PlanModifyResourceInfo{
 		AutoScalingComputedUsed: computedUsed,
 		AutoScalingDiskUsed:     diskUsed,
 		IsShardingConfigUpgrade: shardingConfigUpgrade,
-		UsingNewShardingConfig:  usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags),
+		UsingNewShardingConfig:  isUsingNewShardingConfig,
 	}
 	unknownReplacements := customplanmodifier.NewUnknownReplacements(ctx, tfsdkState, tfsdkPlan, diags, ResourceSchema(ctx), info)
 	for attrName, replacer := range attributePlanModifiers {
