@@ -16,7 +16,8 @@
 set -euo pipefail
 
 # example value of TF_VERSIONS_ARR='["1.9.x", "1.8.x", "1.7.x"]'
-TF_VERSIONS_ARR=$(./scripts/get-terraform-supported-versions.sh "false")
+# TF_VERSIONS_ARR=$(./scripts/get-terraform-supported-versions.sh "false")
+TF_VERSIONS_ARR='["1.12.x", "1.11.x","1.10.x","1.9.x","1.8.x","1.7.x","1.6.x","1.5.x","1.4.x"]'
 
 TEST_SUITE_YAML_FILE=".github/workflows/test-suite.yml"
 ACCEPTANCE_TESTS_YAML_FILE=".github/workflows/acceptance-tests.yml"
@@ -38,7 +39,8 @@ sed -i.bak -E "s|terraform_version: '.*'|terraform_version: '$LATEST_TF_VERSION'
 sed -i.bak -E "s~terraform_version \|\| '[0-9]+\.[0-9]+\.x'~terraform_version \|\| '$LATEST_TF_VERSION'~" "$ACCEPTANCE_TESTS_YAML_FILE"
 
 # Update patch version occurrences
-LATEST_TF_PATCH_VERSION=$(./scripts/get-terraform-supported-versions.sh "latest")
+# LATEST_TF_PATCH_VERSION=$(./scripts/get-terraform-supported-versions.sh "latest")
+LATEST_TF_PATCH_VERSION=1.12.5
 
 # Update Terraform versions in .tool-versions
 sed -i.bak -E "s|^(terraform) [0-9]+\.[0-9]+\.[0-9]+|\1 $LATEST_TF_PATCH_VERSION|" "$TOOL_VERSIONS_FILE"
