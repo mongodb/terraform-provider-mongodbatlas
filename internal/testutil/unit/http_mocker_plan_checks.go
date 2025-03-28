@@ -22,6 +22,7 @@ import (
 const (
 	ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs = "ClusterTwoRepSpecsWithAutoScalingAndSpecs"
 	ImportNameClusterReplicasetOneRegion                = "ClusterReplicasetOneRegion"
+	ImportNameTwoRepSpecsMultipleRegions                = "TwoRepSpecsMultipleRegions"
 	MockedClusterName                                   = "mocked-cluster"
 	MockedProjectID                                     = "111111111111111111111111"
 )
@@ -32,13 +33,15 @@ var (
 	planCheckTestCounter = 0
 
 	importIDMapping = map[string]string{
-		ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs: fmt.Sprintf("%s-%s", MockedProjectID, MockedClusterName),
+		ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs: clusterImportID,
 		ImportNameClusterReplicasetOneRegion:                clusterImportID,
+		ImportNameTwoRepSpecsMultipleRegions:                clusterImportID,
 	}
 	// later this could be inferred when reading the src main.tf
 	importResourceNameMapping = map[string]string{
 		ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs: "mongodbatlas_advanced_cluster.test",
 		ImportNameClusterReplicasetOneRegion:                "mongodbatlas_advanced_cluster.test",
+		ImportNameTwoRepSpecsMultipleRegions:                "mongodbatlas_advanced_cluster.test",
 	}
 )
 
