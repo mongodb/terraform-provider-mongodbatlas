@@ -73,7 +73,6 @@
      "regionName": "EU_WEST_1"
     }
    ],
-   "zoneId": "67e590cf71b0e316715fa5c3",
    "zoneName": "ZoneName managed by Terraform"
   }
  ]
