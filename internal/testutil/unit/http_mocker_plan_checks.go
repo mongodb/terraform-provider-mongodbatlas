@@ -10,6 +10,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -20,35 +21,39 @@ import (
 
 const (
 	ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs = "ClusterTwoRepSpecsWithAutoScalingAndSpecs"
+	ImportNameClusterReplicasetOneRegion                = "ClusterReplicasetOneRegion"
 	MockedClusterName                                   = "mocked-cluster"
 	MockedProjectID                                     = "111111111111111111111111"
 )
 
 var (
-	errToSkipApply = errors.New("avoid full apply by raising an expected error")
+	errToSkipApply       = errors.New("avoid full apply by raising an expected error")
+	clusterImportID      = fmt.Sprintf("%s-%s", MockedProjectID, MockedClusterName)
+	planCheckTestCounter = 0
 
 	importIDMapping = map[string]string{
 		ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs: fmt.Sprintf("%s-%s", MockedProjectID, MockedClusterName),
+		ImportNameClusterReplicasetOneRegion:                clusterImportID,
 	}
 	// later this could be inferred when reading the src main.tf
 	importResourceNameMapping = map[string]string{
 		ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs: "mongodbatlas_advanced_cluster.test",
+		ImportNameClusterReplicasetOneRegion:                "mongodbatlas_advanced_cluster.test",
 	}
 )
 
-func NewMockPlanChecksConfig(t *testing.T, mockConfig *MockHTTPDataConfig, importName string) MockPlanChecksConfig {
+func NewMockPlanChecksConfig(t *testing.T, mockConfig *MockHTTPDataConfig, importName string) *MockPlanChecksConfig {
 	t.Helper()
 	importID := importIDMapping[importName]
 	require.NotEmpty(t, importID, "import ID not found for import name: %s", importName)
 	resourceName := importResourceNameMapping[importName]
 	require.NotEmpty(t, resourceName, "resource name not found for import name: %s", importName)
-	config := MockPlanChecksConfig{
+	return &MockPlanChecksConfig{
 		ImportName:   importName,
 		MockConfig:   *mockConfig,
 		ImportID:     importID,
 		ResourceName: resourceName,
 	}
-	return config
 }
 
 type MockPlanChecksConfig struct {
@@ -56,6 +61,7 @@ type MockPlanChecksConfig struct {
 	ResourceName   string
 	ImportName     string
 	ConfigFilename string
+	TestdataPrefix string
 	Checks         []plancheck.PlanCheck
 	MockConfig     MockHTTPDataConfig
 }
@@ -68,12 +74,22 @@ func (m *MockPlanChecksConfig) WithPlanCheckTest(testConfig PlanCheckTest) *Mock
 		ImportID:       m.ImportID,
 		ResourceName:   m.ResourceName,
 		MockConfig:     m.MockConfig,
+		TestdataPrefix: m.TestdataPrefix,
 	}
 }
 
 type PlanCheckTest struct {
 	ConfigFilename string // .tf filename
 	Checks         []plancheck.PlanCheck
+}
+
+func RunPlanCheckTests(t *testing.T, baseConfig *MockPlanChecksConfig, tests []PlanCheckTest) {
+	t.Helper()
+	for _, testCase := range tests {
+		t.Run(testCase.ConfigFilename, func(t *testing.T) {
+			MockPlanChecksAndRun(t, baseConfig.WithPlanCheckTest(testCase))
+		})
+	}
 }
 
 // MockPlanChecksAndRun creates and runs a UnitTest enabled TestCase for Read to State checks and PlanModifier logic.
@@ -83,7 +99,7 @@ type PlanCheckTest struct {
 // Together with the extra step in `testdata/{ImportName}/main_{runConfig.Name}.tf` we fill the template: testdata/{runConfig.ImportName}.tmpl.yaml
 func MockPlanChecksAndRun(t *testing.T, runConfig *MockPlanChecksConfig) {
 	t.Helper()
-	importConfig, planConfig, mockDataPath := fillMockDataTemplate(t, runConfig.ImportName, runConfig.ConfigFilename)
+	importConfig, planConfig, mockDataPath := fillMockDataTemplate(t, runConfig.TestdataPrefix, runConfig.ImportName, runConfig.ConfigFilename)
 	t.Cleanup(func() {
 		require.NoError(t, os.Remove(mockDataPath))
 	})
@@ -152,12 +168,18 @@ func (r *requestHandlerSwitch) CheckPlan(_ context.Context, req plancheck.CheckP
 	resp.Error = errToSkipApply
 }
 
-func fillMockDataTemplate(t *testing.T, importName, planConfigFilename string) (importConfig, planCheckConfig, mockDataFilePath string) {
+func fillMockDataTemplate(t *testing.T, testdataPrefix, importName, planConfigFilename string) (importConfig, planCheckConfig, mockDataFilePath string) {
 	t.Helper()
-	templatePath := fmt.Sprintf("testdata/%s.tmpl.yaml", importName)
+	fullPath := func(testdataRelPath string) string {
+		if testdataPrefix == "" {
+			return "testdata/" + testdataRelPath
+		}
+		return strings.TrimSuffix(testdataPrefix, "/") + "/testdata/" + testdataRelPath
+	}
+	templatePath := fullPath(importName + ".tmpl.yaml")
 	templateContent, err := os.ReadFile(templatePath)
 	require.NoError(t, err)
-	responseDir := fmt.Sprintf("testdata/%s", importName)
+	responseDir := fullPath(importName)
 	responsePaths, err := filepath.Glob(path.Join(responseDir, "*.json"))
 	require.NoError(t, err)
 	for _, testFile := range responsePaths {
@@ -167,7 +189,11 @@ func fillMockDataTemplate(t *testing.T, importName, planConfigFilename string) (
 		testFileContent = bytes.ReplaceAll(testFileContent, []byte("\n"), []byte(`\n`))
 		templateContent = bytes.ReplaceAll(templateContent, []byte(filepath.Base(testFile)), testFileContent)
 	}
-	mockDataPath := fmt.Sprintf("testdata/%s_%s.yaml", importName, planConfigFilename)
+	accClientLock.Lock()
+	planCheckTestCounter++
+	// Create a new mock data file for each test
+	mockDataPath := fullPath(fmt.Sprintf("%s_%s_%d.yaml", importName, planConfigFilename, planCheckTestCounter))
+	accClientLock.Unlock()
 	err = os.WriteFile(mockDataPath, templateContent, 0o600)
 	require.NoError(t, err)
 	fullImportConfigBytes, err := os.ReadFile(path.Join(responseDir, "main.tf"))
