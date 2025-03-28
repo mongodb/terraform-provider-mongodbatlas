@@ -122,7 +122,7 @@ func findChanges(ctx context.Context, diff []tftypes.ValueDiff, diags *diag.Diag
 	isAncestorRemoved := func(p path.Path) bool {
 		for _, a := range conversion.AncestorPaths(p) {
 			if conversion.IsListIndex(a) {
-				if changes[conversion.AsRemovedIndex(a)]{
+				if changes[conversion.AsRemovedIndex(a)] {
 					return true
 				}
 			}
