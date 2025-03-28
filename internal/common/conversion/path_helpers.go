@@ -64,7 +64,7 @@ func AncestorPathWithIndex(p path.Path, attributeName string, diags *diag.Diagno
 	for {
 		p = p.ParentPath()
 		if p.Equal(path.Empty()) {
-			diags.AddError("Parent path not found", fmt.Sprintf("Parent attribute %s not found in path %s", attributeName, p.String()))
+			diags.AddError("Ancestor path not found", fmt.Sprintf("Ancestor attribute %s not found in path %s", attributeName, p.String()))
 			return p
 		}
 		if attributeNameEquals(p, attributeName) {

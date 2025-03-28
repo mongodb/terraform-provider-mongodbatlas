@@ -321,11 +321,11 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 				Check:  checkSingleProviderPaused(true, clusterName, false),
 			},
 			{
-				Config: configSingleProviderPaused(t, true, projectID, clusterName, true, anotherInstanceSize), // allows pausing and other change in same apply
+				Config: configSingleProviderPaused(t, true, projectID, clusterName, true, instanceSize), // only pause to avoid `OPERATION_INVALID_MEMBER_REPLICATION_LAG`, more info in HELP-72502
 				Check:  checkSingleProviderPaused(true, clusterName, true),
 			},
 			{
-				Config:      configSingleProviderPaused(t, true, projectID, clusterName, true, instanceSize),
+				Config:      configSingleProviderPaused(t, true, projectID, clusterName, true, anotherInstanceSize),
 				ExpectError: regexp.MustCompile("CANNOT_UPDATE_PAUSED_CLUSTER"),
 			},
 			acc.TestStepImportCluster(resourceName),

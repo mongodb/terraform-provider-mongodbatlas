@@ -30,6 +30,10 @@ jobs:
       pull-requests: write # Needed by sticky-pull-request-comment
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: ${{ vars.TF_VERSION_LATEST }} # TODO: Change after #3221 is merged
+          terraform_wrapper: false
       - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
         with:
           go-version-file: 'go.mod'

@@ -5,16 +5,19 @@
    "regionConfigs": [
     {
      "analyticsSpecs": {
+      "ebsVolumeType": "STANDARD",
       "instanceSize": "M20",
       "nodeCount": 1
      },
      "electableSpecs": {
+      "ebsVolumeType": "STANDARD",
       "instanceSize": "M10",
       "nodeCount": 3
      },
      "priority": 7,
      "providerName": "AWS",
      "readOnlySpecs": {
+      "ebsVolumeType": "STANDARD",
       "instanceSize": "M10",
       "nodeCount": 0
      },
