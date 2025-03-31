@@ -29,6 +29,7 @@ func ConvertClusterDescription20241023to20240805(clusterDescription *admin.Clust
 		ReplicaSetScalingStrategy:        clusterDescription.ReplicaSetScalingStrategy,
 		RedactClientLogData:              clusterDescription.RedactClientLogData,
 		ConfigServerManagementMode:       clusterDescription.ConfigServerManagementMode,
+		AdvancedConfiguration:            convertAdvancedConfiguration20250312to20240805(clusterDescription.AdvancedConfiguration),
 	}
 }
 
@@ -133,6 +134,18 @@ func convertBiConnector20241023to20240805(biConnector *admin.BiConnector) *admin
 	return &admin20240805.BiConnector{
 		ReadPreference: biConnector.ReadPreference,
 		Enabled:        biConnector.Enabled,
+	}
+}
+
+func convertAdvancedConfiguration20250312to20240805(advConfig *admin.ApiAtlasClusterAdvancedConfiguration) *admin20240805.ApiAtlasClusterAdvancedConfiguration {
+	if advConfig == nil {
+		return nil
+	}
+
+	return &admin20240805.ApiAtlasClusterAdvancedConfiguration{
+		MinimumEnabledTlsProtocol:      advConfig.MinimumEnabledTlsProtocol,
+		CustomOpensslCipherConfigTls12: advConfig.CustomOpensslCipherConfigTls12,
+		TlsCipherConfigMode:            advConfig.TlsCipherConfigMode,
 	}
 }
 

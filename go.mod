@@ -33,7 +33,7 @@ require (
 	github.com/zclconf/go-cty v1.16.2
 	go.mongodb.org/atlas v0.37.0
 	go.mongodb.org/atlas-sdk/v20240530005 v20240530005.0.0
-	go.mongodb.org/atlas-sdk/v20240805005 v20240805005.0.0
+	go.mongodb.org/atlas-sdk/v20240805005 v20240805005.0.1-0.20250328151632-c26058ec0b93
 	go.mongodb.org/atlas-sdk/v20241113005 v20241113005.0.0
 	go.mongodb.org/atlas-sdk/v20250312001 v20250312001.0.0
 	go.mongodb.org/realm v0.1.0

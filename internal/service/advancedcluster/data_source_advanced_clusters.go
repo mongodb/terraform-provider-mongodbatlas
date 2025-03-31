@@ -377,7 +377,7 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 		}
 
 		result := map[string]any{
-			"advanced_configuration":               flattenProcessArgs(processArgs20240530, processArgs),
+			"advanced_configuration":               flattenProcessArgs(processArgs20240530, processArgs, cluster.AdvancedConfiguration),
 			"backup_enabled":                       cluster.GetBackupEnabled(),
 			"bi_connector_config":                  flattenBiConnectorConfig(cluster.BiConnector),
 			"cluster_type":                         cluster.GetClusterType(),

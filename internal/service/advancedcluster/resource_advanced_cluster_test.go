@@ -273,7 +273,7 @@ func replicaSetMultiCloudTestCase(t *testing.T, usePreviewProvider bool) resourc
 }
 
 func TestAccClusterAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
-	resource.ParallelTest(t, singleShardedMultiCloudTestCase(t, true))
+	resource.ParallelTest(t, singleShardedMultiCloudTestCase(t, false))
 }
 
 func singleShardedMultiCloudTestCase(t *testing.T, usePreviewProvider bool) resource.TestCase {
@@ -289,11 +289,11 @@ func singleShardedMultiCloudTestCase(t *testing.T, usePreviewProvider bool) reso
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedOldSchemaMultiCloud(t, usePreviewProvider, projectID, clusterName, 1, "M10", nil),
+				Config: configShardedOldSchemaMultiCloud(t, usePreviewProvider, projectID, clusterName, 2, "M10", nil),
 				Check:  checkShardedOldSchemaMultiCloud(usePreviewProvider, clusterName, 1, "M10", true, nil),
 			},
 			{
-				Config: configShardedOldSchemaMultiCloud(t, usePreviewProvider, projectID, clusterNameUpdated, 1, "M10", nil),
+				Config: configShardedOldSchemaMultiCloud(t, usePreviewProvider, projectID, clusterNameUpdated, 2, "M10", nil),
 				Check:  checkShardedOldSchemaMultiCloud(usePreviewProvider, clusterNameUpdated, 1, "M10", true, nil),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -1991,6 +1991,13 @@ func configShardedOldSchemaMultiCloud(t *testing.T, usePreviewProvider bool, pro
 			name         = %[2]q
 			cluster_type = "SHARDED"
 			%[5]s
+
+			advanced_configuration  {
+				
+				minimum_enabled_tls_protocol         = "TLS1_2"
+				
+			}
+			
 
 			replication_specs {
 				num_shards = %[3]d
