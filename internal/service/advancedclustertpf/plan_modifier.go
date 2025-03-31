@@ -19,7 +19,6 @@ var (
 		"electable_specs":        analyticsAndElectableSpecsReplaceUnknown,
 		"auto_scaling":           autoScalingReplaceUnknown,
 		"analytics_auto_scaling": autoScalingReplaceUnknown,
-		// TODO: Add the other computed attributes
 	}
 	// Change mappings uses `attribute_name`, it doesn't care about the nested level.
 	// However, it doesn't stop calling `replication_specs.**.attribute_name`.

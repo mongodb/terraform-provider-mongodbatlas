@@ -94,6 +94,7 @@ func newReplicationSpec20240805(ctx context.Context, input types.List, diags *di
 	resp := make([]admin.ReplicationSpec20240805, len(input.Elements()))
 	for i := range elements {
 		item := &elements[i]
+		// Choosing to never send ZoneId in PATCH request. It is inferred by the backend.
 		resp[i] = admin.ReplicationSpec20240805{
 			Id:            conversion.NilForUnknownOrEmptyString(item.ExternalId),
 			RegionConfigs: newCloudRegionConfig20240805(ctx, item.RegionConfigs, diags),
