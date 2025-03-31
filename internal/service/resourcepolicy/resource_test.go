@@ -78,15 +78,15 @@ func basicTestCase(t *testing.T, description *string) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(orgID, policyName, description),
-				Check:  checksResourcePolicy(orgID, policyName, 1),
+				Check:  checksResourcePolicy(orgID, policyName, description, 1),
 			},
 			{
 				Config: configBasic(orgID, updatedName, nil),
-				Check:  checksResourcePolicy(orgID, updatedName, 1),
+				Check:  checksResourcePolicy(orgID, updatedName, nil, 1),
 			},
 			{
 				Config: configBasic(orgID, updatedName, &updatedDescription),
-				Check:  checksResourcePolicy(orgID, updatedName, 1),
+				Check:  checksResourcePolicy(orgID, updatedName, &updatedDescription, 1),
 			},
 			{
 				Config:            configBasic(orgID, updatedName, &updatedDescription),
@@ -110,7 +110,7 @@ func TestAccResourcePolicy_multipleNestedPolicies(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithPolicyBodies(orgID, "test-policy-multiple", nil, validPolicyForbidAwsCloudProvider, validPolicyProjectForbidIPAccessAnywhere),
-				Check:  checksResourcePolicy(orgID, "test-policy-multiple", 2),
+				Check:  checksResourcePolicy(orgID, "test-policy-multiple", nil, 2),
 			},
 			{
 				Config:            configWithPolicyBodies(orgID, "test-policy-multiple", nil, validPolicyForbidAwsCloudProvider, validPolicyProjectForbidIPAccessAnywhere),
@@ -152,12 +152,13 @@ func TestAccResourcePolicy_invalidConfig(t *testing.T) {
 	)
 }
 
-func checksResourcePolicy(orgID, name string, policyCount int) resource.TestCheckFunc {
+func checksResourcePolicy(orgID, name string, description *string, policyCount int) resource.TestCheckFunc {
 	attrMap := map[string]string{
 		"org_id":     orgID,
 		"policies.#": fmt.Sprintf("%d", policyCount),
 		"name":       name,
 	}
+
 	attrSet := []string{
 		"created_by_user.id",
 		"created_by_user.name",
@@ -168,6 +169,10 @@ func checksResourcePolicy(orgID, name string, policyCount int) resource.TestChec
 		"id",
 		"version",
 	}
+	if description != nil {
+		attrSet = append(attrSet, "description")
+	}
+
 	pluralMap := map[string]string{
 		"org_id":    orgID,
 		"results.#": "1",
