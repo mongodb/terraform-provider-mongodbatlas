@@ -66,7 +66,7 @@ func (u *UnknownReplacements[ResourceInfo]) AddKeepUnknownsExtraCall(call AddKee
 // The calls are done top-down, for example replication_specs.*.id before replication_specs.*.region_configs.*.electable_specs
 // Same levels are sorted alphabetically, for example ...region_configs.electable_specs before ...region_configs.read_only_specs
 // If the replacement function is called for a path that is an ancestor of another path, it will skip the replacement for the child path.
-// For example: if ..read_only_specs has a replacement function and is called then ..read_only_specs.disk_iops will not be called or use keepUnknown logic.
+// For example: if ..read_only_specs has a replacement function and is called then ..read_only_specs.disk_iops will be left as is.
 func (u *UnknownReplacements[ResourceInfo]) ApplyReplacements(ctx context.Context, diags *diag.Diagnostics) {
 	replacedPaths := []path.Path{}
 	ancestorHasProcessed := func(p path.Path) bool {
