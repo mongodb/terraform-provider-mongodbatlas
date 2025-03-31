@@ -10,19 +10,17 @@ import (
 
 func TestUnmarshal(t *testing.T) {
 	var model tfModelTest
-	require.NoError(t, autogeneration.Unmarshal([]byte(tfModelJSON), &model))
-	require.Equal(t, "value_bucket", model.BucketName.ValueString())
-	require.Equal(t, "value_date", model.CreateDate.ValueString())
+	require.NoError(t, autogeneration.Unmarshal([]byte(tfResponseJSON), &model))
+	require.Equal(t, "value_string", model.AttributeString.ValueString())
 }
 
 type tfModelTest struct {
-	BucketName types.String `tfsdk:"bucket_name"`
-	CreateDate types.String `tfsdk:"create_date"`
+	AttributeString types.String `tfsdk:"attribute_string"`
 }
 
-const tfModelJSON = `
+const tfResponseJSON = `
 {
-	"bucket_name": "value_bucket",
-	"create_date": "value_date",
+	"attribute_string": "value_string",
+	"attribute_not_in_model": "val"
 }
 `
