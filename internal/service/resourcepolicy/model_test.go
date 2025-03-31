@@ -24,6 +24,7 @@ var (
 )
 
 type tfModelTestCase struct {
+	description     *string
 	name            string
 	SDKRespJSON     string
 	userIDCreate    string
@@ -35,7 +36,6 @@ type tfModelTestCase struct {
 	orgID           string
 	policyID        string
 	version         string
-	description     *string
 }
 
 func (tc *tfModelTestCase) addDefaults() {
