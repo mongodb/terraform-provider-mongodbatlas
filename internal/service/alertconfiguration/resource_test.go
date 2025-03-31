@@ -34,19 +34,35 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy(),
 		Steps: []resource.TestStep{
 			{
-				Config: configBasicRS(projectID, true),
+				Config: configBasic(projectID, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "2"),
+					// Data source checks
+					checkExists(dataSourceName),
+					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(dataSourceName, "notification.#", "2"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "notification.0.notifier_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "matcher.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "metric_threshold_config.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "threshold_config.#", "0"),
 				),
 			},
 			{
-				Config: configBasicRS(projectID, false),
+				Config: configBasic(projectID, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "2"),
+					// Data source checks
+					checkExists(dataSourceName),
+					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(dataSourceName, "notification.#", "2"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "notification.0.notifier_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "matcher.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "metric_threshold_config.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "threshold_config.#", "0"),
 				),
 			},
 			{
@@ -209,7 +225,7 @@ func TestAccConfigRSAlertConfiguration_withMetricUpdated(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSAlertConfiguration_withThresholdUpdated(t *testing.T) {
+func TestAccConfigRSAlertConfiguration_withThreshold(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
 	)
@@ -220,17 +236,22 @@ func TestAccConfigRSAlertConfiguration_withThresholdUpdated(t *testing.T) {
 		CheckDestroy:             checkDestroy(),
 		Steps: []resource.TestStep{
 			{
-				Config: configWithThresholdUpdated(projectID, true, 1),
+				Config: configWithThreshold(projectID, true, 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 				),
 			},
 			{
-				Config: configWithThresholdUpdated(projectID, false, 3),
+				Config: configWithThreshold(projectID, false, 3),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(dataSourceName, "notification.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "matcher.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "threshold_config.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "metric_threshold_config.#", "0"),
 				),
 			},
 			{
@@ -297,7 +318,7 @@ func TestAccConfigRSAlertConfiguration_importIncorrectId(t *testing.T) {
 		CheckDestroy:             checkDestroy(),
 		Steps: []resource.TestStep{
 			{
-				Config: configBasicRS(projectID, true),
+				Config: configBasic(projectID, true),
 			},
 			{
 				ResourceName:  resourceName,
@@ -589,7 +610,7 @@ func importStateProjectIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func configBasicRS(projectID string, enabled bool) string {
+func configBasic(projectID string, enabled bool) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_alert_configuration" "test" {
 		project_id = %[1]q
@@ -626,6 +647,11 @@ func configBasicRS(projectID string, enabled bool) string {
 			units       = "RAW"
 			mode        = "AVERAGE"
 		}
+	}
+
+	data "mongodbatlas_alert_configuration" "test" {
+		project_id             = mongodbatlas_alert_configuration.test.project_id
+		alert_configuration_id = mongodbatlas_alert_configuration.test.id
 	}
 	`, projectID, enabled)
 }
@@ -750,37 +776,6 @@ func configWithoutRoles(projectID string, enabled bool, threshold float64) strin
 				threshold   = %[3]f
 				units       = "RAW"
 				mode        = "AVERAGE"
-			}
-		}
-	`, projectID, enabled, threshold)
-}
-
-func configWithThresholdUpdated(projectID string, enabled bool, threshold float64) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_alert_configuration" "test" {
-			project_id = %[1]q
-			enabled    = %[2]t
-			event_type = "REPLICATION_OPLOG_WINDOW_RUNNING_OUT"
-
-			notification {
-				type_name     = "GROUP"
-				interval_min  = 5
-				delay_min     = 0
-				sms_enabled   = false
-				email_enabled = true
-				roles = ["GROUP_DATA_ACCESS_READ_ONLY", "GROUP_CLUSTER_MANAGER"]
-			}
-
-			matcher {
-				field_name = "REPLICA_SET_NAME"
-				operator   = "EQUALS"
-				value      = "SECONDARY"
-			}
-
-			threshold_config {
-				operator    = "LESS_THAN"
-				units       = "HOURS"
-				threshold   = %[3]f
 			}
 		}
 	`, projectID, enabled, threshold)
@@ -1044,58 +1039,6 @@ func configWithEmptyOptionalBlocks(projectID string) string {
 	`, projectID)
 }
 
-// Data Source Tests
-func TestAccConfigDSAlertConfiguration_basic(t *testing.T) {
-	var (
-		projectID = acc.ProjectIDExecution(t)
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy(),
-		Steps: []resource.TestStep{
-			{
-				Config: configBasicDS(projectID),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(dataSourceName),
-					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(dataSourceName, "notification.#", "1"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "notification.0.notifier_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "matcher.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "metric_threshold_config.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "threshold_config.#", "0"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccConfigDSAlertConfiguration_withThreshold(t *testing.T) {
-	var (
-		projectID = acc.ProjectIDExecution(t)
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy(),
-		Steps: []resource.TestStep{
-			{
-				Config: configWithThreshold(projectID, true, 1),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(dataSourceName),
-					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(dataSourceName, "notification.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "matcher.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "metric_threshold_config.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "threshold_config.#", "1"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccConfigDSAlertConfiguration_withOutput(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
@@ -1227,44 +1170,6 @@ func TestAccConfigDSAlertConfigurations_totalCount(t *testing.T) {
 			},
 		},
 	})
-}
-
-// Data Source Configurations
-func configBasicDS(projectID string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_alert_configuration" "test" {
-			project_id = %[1]q
-			event_type = "OUTSIDE_METRIC_THRESHOLD"
-			enabled    = true
-
-			notification {
-				type_name     = "GROUP"
-				interval_min  = 5
-				delay_min     = 0
-				sms_enabled   = false
-				email_enabled = true
-			}
-
-			matcher {
-				field_name = "HOSTNAME_AND_PORT"
-				operator   = "EQUALS"
-				value      = "SECONDARY"
-			}
-
-			metric_threshold_config {
-				metric_name = "ASSERT_REGULAR"
-				operator    = "LESS_THAN"
-				threshold   = 99.0
-				units       = "RAW"
-				mode        = "AVERAGE"
-			}
-		}
-
-		data "mongodbatlas_alert_configuration" "test" {
-			project_id             = mongodbatlas_alert_configuration.test.project_id
-			alert_configuration_id = mongodbatlas_alert_configuration.test.id
-		}
-	`, projectID)
 }
 
 func configWithThreshold(projectID string, enabled bool, threshold float64) string {
