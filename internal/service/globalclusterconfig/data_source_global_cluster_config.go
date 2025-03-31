@@ -2,12 +2,9 @@ package globalclusterconfig
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 )
 
 func DataSource() *schema.Resource {
@@ -54,7 +51,7 @@ func DataSource() *schema.Resource {
 				},
 			},
 			"custom_zone_mapping": {
-				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersionWithReplacement, "1.23.0", "custom_zone_mapping_zone_id"),
+				Deprecated: deprecationMsgOldSchema,
 				Type:       schema.TypeMap,
 				Computed:   true,
 			},

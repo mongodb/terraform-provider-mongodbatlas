@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20241113005/admin" // CLOUDP-307850: breaking change in v20250312 of the SDK
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -368,7 +368,7 @@ func (r *alertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 }
 
 func (r *alertConfigurationRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasV220241113
 
 	var alertConfigPlan TfAlertConfigurationRSModel
 
@@ -414,7 +414,7 @@ func (r *alertConfigurationRS) Create(ctx context.Context, req resource.CreateRe
 }
 
 func (r *alertConfigurationRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasV220241113
 
 	var alertConfigState TfAlertConfigurationRSModel
 
@@ -444,7 +444,7 @@ func (r *alertConfigurationRS) Read(ctx context.Context, req resource.ReadReques
 }
 
 func (r *alertConfigurationRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasV220241113
 
 	var alertConfigState, alertConfigPlan TfAlertConfigurationRSModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &alertConfigState)...)
@@ -520,7 +520,7 @@ func (r *alertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 }
 
 func (r *alertConfigurationRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasV220241113
 
 	var alertConfigState TfAlertConfigurationRSModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &alertConfigState)...)

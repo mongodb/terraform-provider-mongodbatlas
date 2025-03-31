@@ -42,7 +42,7 @@ func TestIndexMethods(t *testing.T) {
 	setIndex := path.Root("advanced_configuration").AtName("custom_openssl_cipher_config_tls12").AtSetValue(types.StringValue("TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"))
 	assert.Equal(t, "advanced_configuration.custom_openssl_cipher_config_tls12[-Value(\"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384\")]", conversion.AsRemovedIndex(setIndex))
 	assert.Equal(t, "advanced_configuration.custom_openssl_cipher_config_tls12", conversion.AncestorPathNoIndex(setIndex, "custom_openssl_cipher_config_tls12", new(diag.Diagnostics)).String())
-	assert.Equal(t, "", conversion.AsRemovedIndex(path.Root("replication_specs")))
+	assert.Empty(t, conversion.AsRemovedIndex(path.Root("replication_specs")))
 }
 
 func TestHasAncestor(t *testing.T) {

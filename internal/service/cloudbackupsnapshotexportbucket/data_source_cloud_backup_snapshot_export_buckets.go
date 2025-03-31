@@ -3,12 +3,13 @@ package cloudbackupsnapshotexportbucket
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -58,8 +59,9 @@ func PluralDataSource() *schema.Resource {
 							Computed: true,
 						},
 						"tenant_id": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Deprecated: constant.DeprecationParam, // added deprecation in CLOUDP-293855 because was deprecated in the doc
+							Type:       schema.TypeString,
+							Computed:   true,
 						},
 					},
 				},

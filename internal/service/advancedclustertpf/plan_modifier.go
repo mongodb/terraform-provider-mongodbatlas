@@ -186,7 +186,7 @@ func replicationSpecsKeepUnknownWhenChanged(ctx context.Context, state attr.Valu
 	}
 	// for isShardingConfigUpgrade, it will be empty in the plan, so we need to keep it unknown
 	// for listLenChanges, it might be an insertion in the middle of replication spec leading to wrong value from state copied
-	if req.Info.IsShardingConfigUpgrade || req.Changes.ListLenChanges(rootPath) {
+	if req.Info.IsShardingConfigUpgrade || req.Changes.ListLenChanged(rootPath) {
 		keepUnknowns = append(keepUnknowns, "external_id")
 	}
 	replicationSpecAncestor := conversion.AncestorPathWithIndex(req.Path, "replication_specs", req.Diags)
@@ -196,7 +196,7 @@ func replicationSpecsKeepUnknownWhenChanged(ctx context.Context, state attr.Valu
 	if !req.Changes.PathChanged(replicationSpecAncestor) {
 		return keepUnknowns
 	}
-	if req.Changes.ListLenChanges(replicationSpecAncestor.AtName("region_configs")) {
+	if req.Changes.ListLenChanged(replicationSpecAncestor.AtName("region_configs")) {
 		keepUnknowns = append(keepUnknowns, "container_id")
 	}
 	keepUnknowns = append(keepUnknowns, req.Changes.KeepUnknown(attributeReplicationSpecChangeMapping)...)

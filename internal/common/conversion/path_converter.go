@@ -38,7 +38,8 @@ func AttributePathValue(ctx context.Context, diags *diag.Diagnostics, attributeP
 	return attrValue, convertedPath
 }
 
-// AttributePath similar to the internal function in TPF, but simpler interface as argument and less logging
+// AttributePath similar to the internal function in TPF, but simpler interface as argument and less logging.
+// AttributePath in TPF repo is internal and cannot be used: https://github.com/hashicorp/terraform-plugin-framework/blob/e09ec9d169c581d2606372ecdfb0113be7e3b34f/internal/fromtftypes/attribute_path.go#L17
 func AttributePath(ctx context.Context, tfType *tftypes.AttributePath, schema TPFSchema) (path.Path, diag.Diagnostics) {
 	fwPath := path.Empty()
 	for tfTypeStepIndex, tfTypeStep := range tfType.Steps() {
@@ -114,6 +115,7 @@ func AttributePath(ctx context.Context, tfType *tftypes.AttributePath, schema TP
 	return fwPath, nil
 }
 
+// AttributePathStep in TPF repo is internal and cannot be used: https://github.com/hashicorp/terraform-plugin-framework/blob/e09ec9d169c581d2606372ecdfb0113be7e3b34f/internal/fromtftypes/attribute_path_step.go#L19
 func AttributePathStep(ctx context.Context, tfType tftypes.AttributePathStep, attrType attr.Type) (path.PathStep, error) {
 	switch tfType := tfType.(type) {
 	case tftypes.AttributeName:

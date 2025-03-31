@@ -31,8 +31,8 @@ func (a AttributeChanges) PathChanged(path path.Path) bool {
 	return slices.Contains(a, path.String())
 }
 
-// ListLenChanges accepts a fullPath, e.g., "replication_specs[0].region_configs" and returns true if the length of the nested list has changed
-func (a AttributeChanges) ListLenChanges(p path.Path) bool {
+// ListLenChanged accepts a fullPath, e.g., "replication_specs[0].region_configs" and returns true if the length of the nested list has changed
+func (a AttributeChanges) ListLenChanged(p path.Path) bool {
 	addPrefix := asAddPrefix(p.String())
 	removePrefix := asRemovePrefix(p.String())
 	for _, change := range a {

@@ -2,7 +2,6 @@ package flexcluster_test
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 	"testing"
 
@@ -30,7 +29,7 @@ func TestAccFlexClusterRS_failedUpdate(t *testing.T) {
 func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
-		projectID   = os.Getenv("MONGODB_ATLAS_FLEX_PROJECT_ID")
+		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomName()
 		provider    = "AWS"
 		region      = "US_EAST_1"
@@ -62,8 +61,8 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 func failedUpdateTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
-		projectID          = os.Getenv("MONGODB_ATLAS_FLEX_PROJECT_ID")
-		projectIDUpdated   = os.Getenv("MONGODB_ATLAS_FLEX_PROJECT_ID") + "-updated"
+		projectID          = acc.ProjectIDExecution(t)
+		projectIDUpdated   = projectID + "-updated"
 		clusterName        = acc.RandomName()
 		clusterNameUpdated = clusterName + "-updated"
 		provider           = "AWS"
