@@ -3,6 +3,8 @@ package conversion_test
 import (
 	"testing"
 
+	"sort"
+
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -120,4 +122,54 @@ func TestParentPathWithIndex_EmptyPath(t *testing.T) {
 	// Since the path is empty, it should immediately return empty and add error.
 	assert.True(t, result.Equal(path.Empty()), "Expected empty path as result from an empty input path")
 	assert.True(t, diags.HasError(), "Diagnostics should have an error for empty input path")
+}
+
+func TestPathHierarchySort(t *testing.T) {
+	type testCase struct {
+		start    []string
+		expected []string
+	}
+
+	tests := map[string]testCase{
+		"simple paths": {
+			start:    []string{"a.b.c", "a.b", "a"},
+			expected: []string{"a", "a.b", "a.b.c"},
+		},
+		"same depth alphabetical": {
+			start:    []string{"a.c", "a.b", "a.a"},
+			expected: []string{"a.a", "a.b", "a.c"},
+		},
+		"mixed depth and alphabetical": {
+			start:    []string{"a.b", "a", "a.c.d", "a.c"},
+			expected: []string{"a", "a.b", "a.c", "a.c.d"},
+		},
+		"list index paths": {
+			start:    []string{"a.nested[0]", "a.nested[0].id", "a.nested[1]"},
+			expected: []string{"a.nested[0]", "a.nested[1]", "a.nested[0].id"},
+		},
+		"realistic case": {
+			start: []string{
+				"connection_strings.standard",
+				"replication_specs[1].region_configs[1].auto_scaling",
+				"advanced_configuration",
+				"advanced_configuration.default_max_time_ms",
+			},
+			expected: []string{
+				"advanced_configuration",
+				"advanced_configuration.default_max_time_ms",
+				"connection_strings.standard",
+				"replication_specs[1].region_configs[1].auto_scaling",
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			sorted := tc.start
+			sort.Slice(sorted, func(i, j int) bool {
+				return conversion.PathHierarchySort(sorted[i], sorted[j]) < 0
+			})
+			assert.Equal(t, tc.expected, sorted)
+		})
+	}
 }

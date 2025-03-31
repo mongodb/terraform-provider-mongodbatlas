@@ -113,3 +113,11 @@ func trimLastIndexPath(p path.Path) path.Path {
 	}
 	return p
 }
+
+func PathHierarchySort(p1, p2 string) int {
+	lenCompare := strings.Count(p1, ".") - strings.Count(p2, ".")
+	if lenCompare == 0 {
+		return strings.Compare(p1, p2)
+	}
+	return lenCompare
+}
