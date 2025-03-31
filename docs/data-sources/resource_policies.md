@@ -9,8 +9,8 @@
 ## Example Usages
 ```terraform
 resource "mongodbatlas_resource_policy" "project_ip_access_list" {
-  org_id = var.org_id
-  name   = "forbid-access-from-anywhere"
+  org_id      = var.org_id
+  name        = "forbid-access-from-anywhere"
   description = "Forbids access from anywhere"
 
   policies = [
@@ -30,8 +30,8 @@ EOF
 }
 
 resource "mongodbatlas_resource_policy" "cloud_provider" {
-  org_id = var.org_id
-  name   = "forbid-cloud-provider"
+  org_id      = var.org_id
+  name        = "forbid-cloud-provider"
   description = "Forbids AWS and Azure for clusters"
   policies = [
     {
