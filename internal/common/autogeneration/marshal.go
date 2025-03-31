@@ -47,8 +47,11 @@ func mapField(nameAttrSrc string, valueAttrSrc any, valDest reflect.Value) error
 		return assignField(fieldDest, types.StringValue(v))
 	case bool:
 		return assignField(fieldDest, types.BoolValue(v))
-	case float64:
-		return fmt.Errorf("not supported yet type %T for field %s", v, nameAttrSrc)
+	case float64: // number: try int or float
+		if assignField(fieldDest, types.Float64Value(v)) == nil {
+			return nil
+		}
+		return assignField(fieldDest, types.Int64Value(int64(v)))
 	case nil:
 		return nil // skip nil values, no need to set anything
 	default:
