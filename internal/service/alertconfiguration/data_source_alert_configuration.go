@@ -14,7 +14,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/zclconf/go-cty/cty"
-	"go.mongodb.org/atlas-sdk/v20241113005/admin" // CLOUDP-307850: breaking change in v20250312 of the SDK
+	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 )
 
 var _ datasource.DataSource = &alertConfigurationDS{}
@@ -265,7 +265,7 @@ func (d *alertConfigurationDS) Read(ctx context.Context, req datasource.ReadRequ
 	alertID := conversion.GetEncodedID(alertConfigurationConfig.AlertConfigurationID.ValueString(), EncodedIDKeyAlertID)
 	outputs := alertConfigurationConfig.Output
 
-	connV2 := d.Client.AtlasV220241113
+	connV2 := d.Client.AtlasV2
 	alert, _, err := connV2.AlertConfigurationsApi.GetAlertConfiguration(ctx, projectID, alertID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(errorReadAlertConf, err.Error())
@@ -368,8 +368,8 @@ func convertMetricThresholdToCtyValues(metric admin.FlexClusterMetricThreshold) 
 	}
 }
 
-func convertThresholdToCtyValues(threshold *admin.GreaterThanRawThreshold) map[string]cty.Value {
-	var t int
+func convertThresholdToCtyValues(threshold *admin.StreamProcessorMetricThreshold) map[string]cty.Value {
+	var t float64
 	if threshold.Threshold != nil {
 		t = *threshold.Threshold
 	}
