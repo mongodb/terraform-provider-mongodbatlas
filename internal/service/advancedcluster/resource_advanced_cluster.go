@@ -956,15 +956,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if d.HasChange("config_server_management_mode") {
 				request.ConfigServerManagementMode = conversion.StringPtr(d.Get("config_server_management_mode").(string))
 			}
-
-			// TODO: confirm if this is okay calling latest API
 			if d.HasChange("advanced_configuration") {
-				ac := d.Get("advanced_configuration")
-				if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
-					// params := expandClusterAdvancedConfiguration(d)
-					// if !reflect.DeepEqual(params, admin.ApiAtlasClusterAdvancedConfiguration{}) {
+				if aclist, ok := d.Get("advanced_configuration").([]any); ok && len(aclist) > 0 {
 					request.AdvancedConfiguration = expandClusterAdvancedConfiguration(d)
-					// }
+
 				}
 			}
 
@@ -1168,10 +1163,7 @@ func updateRequest(ctx context.Context, d *schema.ResourceData, projectID, clust
 	}
 	if d.HasChange("advanced_configuration") {
 		if aclist, ok := d.Get("advanced_configuration").([]any); ok && len(aclist) > 0 {
-			params := expandClusterAdvancedConfiguration(d)
-			// if !reflect.DeepEqual(params, admin.ApiAtlasClusterAdvancedConfiguration{}) {
-			cluster.AdvancedConfiguration = params
-			// }
+			cluster.AdvancedConfiguration = expandClusterAdvancedConfiguration(d)
 		}
 	}
 

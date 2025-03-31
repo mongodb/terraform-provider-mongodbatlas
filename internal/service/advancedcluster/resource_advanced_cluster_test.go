@@ -273,7 +273,7 @@ func replicaSetMultiCloudTestCase(t *testing.T, usePreviewProvider bool) resourc
 }
 
 func TestAccClusterAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
-	resource.ParallelTest(t, singleShardedMultiCloudTestCase(t, false))
+	resource.ParallelTest(t, singleShardedMultiCloudTestCase(t, true))
 }
 
 func singleShardedMultiCloudTestCase(t *testing.T, usePreviewProvider bool) resource.TestCase {
@@ -1990,14 +1990,7 @@ func configShardedOldSchemaMultiCloud(t *testing.T, usePreviewProvider bool, pro
 			project_id   = %[1]q
 			name         = %[2]q
 			cluster_type = "SHARDED"
-			%[5]s
-
-			advanced_configuration  {
-				
-				minimum_enabled_tls_protocol         = "TLS1_2"
-				
-			}
-			
+			%[5]s			
 
 			replication_specs {
 				num_shards = %[3]d
