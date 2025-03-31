@@ -301,10 +301,7 @@ resource "mongodbatlas_stream_privatelink_endpoint" "test-stream-privatelink" {
 
 **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group or project id remains the same. The resource and corresponding endpoints use the term groups.
 - `provider_name` (String) Provider where the Kafka cluster is deployed.
-- `vendor` (String) Vendor who manages the Kafka cluster. Valid values are `CONFLUENT`, `MSK`, or `GENERIC`. 
-  - `CONFLUENT` refers to Confluent managed clusters.
-  - `MSK` refers to Amazon Managed Streaming for Apache Kafka (MSK).
-  - `GENERIC` refers to a self-managed Kafka cluster.
+- `vendor` (String) Vendor who manages the Kafka cluster. Possible values are `CONFLUENT`, `MSK` or `GENERIC`.
 
 ### Optional
 

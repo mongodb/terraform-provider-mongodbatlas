@@ -315,6 +315,6 @@ resource "mongodbatlas_stream_privatelink_endpoint" "test-stream-privatelink" {
 - `region` (String) When the vendor is `CONFLUENT`, this is the domain name of Confluent cluster. When the vendor is `MSK`, this is computed by the API from the provided `arn`.
 - `service_endpoint_id` (String) Service Endpoint ID.
 - `state` (String) Status of the connection.
-- `vendor` (String) Vendor who manages the Kafka cluster.
+- `vendor` (String) Vendor who manages the Kafka cluster. Possible values are `CONFLUENT`, `MSK` or `GENERIC`.
 
 For more information see: [MongoDB Atlas API - Streams Privatelink](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createPrivateLinkConnection) Documentation.

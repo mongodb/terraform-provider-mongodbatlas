@@ -62,7 +62,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"vendor": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Vendor who manages the Kafka cluster.",
+				MarkdownDescription: "Vendor who manages the Kafka cluster. Possible values are `CONFLUENT`, `MSK` or `GENERIC`.",
 			},
 			"arn": schema.StringAttribute{
 				Optional:            true,
