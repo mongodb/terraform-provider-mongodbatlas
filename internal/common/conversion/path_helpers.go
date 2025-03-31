@@ -60,25 +60,26 @@ func AsRemovedIndex(p path.Path) string {
 	return everythingExceptLast + lastPartWithRemoveIndex
 }
 
-func AncestorPathWithIndex(p path.Path, attributeName string, diags *diag.Diagnostics) path.Path {
+func AncestorPathWithIndex(p path.Path, attributeName string) (path.Path, diag.Diagnostics) {
+	var diags diag.Diagnostics
 	for {
 		p = p.ParentPath()
 		if p.Equal(path.Empty()) {
 			diags.AddError("Ancestor path not found", fmt.Sprintf("Ancestor attribute %s not found in path %s", attributeName, p.String()))
-			return p
+			return p, diags
 		}
 		if AttributeName(p) == attributeName {
-			return p
+			return p, diags
 		}
 	}
 }
 
-func AncestorPathNoIndex(p path.Path, attributeName string, diags *diag.Diagnostics) path.Path {
-	parent := AncestorPathWithIndex(p, attributeName, diags)
+func AncestorPathNoIndex(p path.Path, attributeName string) (path.Path, diag.Diagnostics) {
+	parent, diags := AncestorPathWithIndex(p, attributeName)
 	if diags.HasError() {
-		return parent
+		return parent, diags
 	}
-	return trimLastIndexPath(parent)
+	return trimLastIndexPath(parent), diags
 }
 
 func AncestorPaths(p path.Path) []path.Path {
