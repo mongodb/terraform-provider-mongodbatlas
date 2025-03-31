@@ -2,6 +2,7 @@ package conversion
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	sdkv2diag "github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -48,4 +49,30 @@ func AddJSONBodyErrorToDiagnostics(msgPrefix string, err error, diags *diag.Diag
 	}
 	errorJSON := string(errorBytes)
 	diags.AddError(msgPrefix, errorJSON)
+}
+
+func FormatDiags(diags *diag.Diagnostics) string {
+	if diags == nil {
+		return ""
+	}
+	summary := []string{}
+
+	addDiag := func(d diag.Diagnostic) {
+		summary = append(summary, d.Summary(), "\t detail: "+d.Detail())
+	}
+
+	for _, errorDiag := range diags.Errors() {
+		addDiag(errorDiag)
+	}
+	if diags.WarningsCount() > 0 {
+		if len(summary) > 0 {
+			summary = append(summary, "\nWarnings:")
+		} else {
+			summary = append(summary, "Warnings:")
+		}
+		for _, warningDiag := range diags.Warnings() {
+			addDiag(warningDiag)
+		}
+	}
+	return strings.Join(summary, "\n")
 }
