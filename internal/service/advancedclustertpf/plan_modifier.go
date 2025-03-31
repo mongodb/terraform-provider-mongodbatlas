@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
@@ -95,16 +96,13 @@ type PlanModifyResourceInfo struct {
 	UsingNewShardingConfig  bool
 }
 
-func parentRegionConfigs(ctx context.Context, path path.Path, differ *customplanmodifier.PlanModifyDiffer, diags *diag.Diagnostics) []TFRegionConfigsModel {
-	regionConfigsPath := conversion.AncestorPathNoIndex(path, "region_configs", diags)
+func parentRegionConfigs(ctx context.Context, path path.Path, differ *customplanmodifier.PlanModifyDiffer) []TFRegionConfigsModel {
+	regionConfigsPath, diags := conversion.AncestorPathNoIndex(path, "region_configs")
 	if diags.HasError() {
+		tflog.Error(ctx, conversion.FormatDiags(&diags))
 		return nil
 	}
-	regionConfigs := customplanmodifier.ReadPlanStructValues[TFRegionConfigsModel](ctx, differ, regionConfigsPath, diags)
-	if diags.HasError() {
-		return nil
-	}
-	return regionConfigs
+	return customplanmodifier.ReadPlanStructValues[TFRegionConfigsModel](ctx, differ, regionConfigsPath)
 }
 
 func readOnlyReplaceUnknown(ctx context.Context, state attr.Value, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
@@ -119,15 +117,12 @@ func readOnlyReplaceUnknown(ctx context.Context, state attr.Value, req *custompl
 	electable := customplanmodifier.ReadPlanStructValue[TFSpecsModel](ctx, req.Differ, electablePath)
 	if electable == nil {
 		electableState := customplanmodifier.ReadStateStructValue[TFSpecsModel](ctx, req.Differ, electablePath)
-		if electableState.NodeCount.ValueInt64() > 0 {
+		if electableState != nil && electableState.NodeCount.ValueInt64() > 0 {
 			electable = electableState
 		}
 	}
 	if electable == nil {
-		regionConfigs := parentRegionConfigs(ctx, req.Path, req.Differ, req.Diags)
-		if req.Diags.HasError() {
-			return req.Unknown
-		}
+		regionConfigs := parentRegionConfigs(ctx, req.Path, req.Differ)
 		// ensures values are taken from a defined electable spec if not present in current region config
 		electable = findDefinedElectableSpecInReplicationSpec(ctx, regionConfigs)
 	}
@@ -188,8 +183,8 @@ func replicationSpecsKeepUnknownWhenChanged(ctx context.Context, state attr.Valu
 	if req.Info.IsShardingConfigUpgrade || req.Changes.ListLenChanged(rootPath) {
 		keepUnknowns = append(keepUnknowns, "external_id")
 	}
-	replicationSpecAncestor := conversion.AncestorPathWithIndex(req.Path, "replication_specs", req.Diags)
-	if req.Diags.HasError() {
+	replicationSpecAncestor, diags := conversion.AncestorPathWithIndex(req.Path, "replication_specs")
+	if diags.HasError() {
 		return keepUnknowns
 	}
 	if !req.Changes.PathChanged(replicationSpecAncestor) {
