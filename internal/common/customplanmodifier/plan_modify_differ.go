@@ -85,7 +85,8 @@ func ReadStateStructValue[T any](ctx context.Context, d *PlanModifyDiffer, p pat
 
 func readSrcStructValue[T any](ctx context.Context, src conversion.TPFSrc, p path.Path) *T {
 	var obj types.Object
-	if localDiags := src.GetAttribute(ctx, p, &obj); localDiags.HasError() {
+	if localDiags := src.GetAttribute(ctx, p, &obj); len(localDiags) > 0 {
+		tflog.Error(ctx, conversion.FormatDiags(&localDiags))
 		return nil
 	}
 	if obj.IsNull() || obj.IsUnknown() {
@@ -93,17 +94,23 @@ func readSrcStructValue[T any](ctx context.Context, src conversion.TPFSrc, p pat
 	}
 	return conversion.TFModelObject[T](ctx, obj)
 }
-func ReadPlanStructValues[T any](ctx context.Context, d *PlanModifyDiffer, p path.Path, diags *diag.Diagnostics) []T {
-	return readSrcStructValues[T](ctx, d.plan, p, diags)
+
+func ReadPlanStructValues[T any](ctx context.Context, d *PlanModifyDiffer, p path.Path) []T {
+	return readSrcStructValues[T](ctx, d.plan, p)
 }
 
-func readSrcStructValues[T any](ctx context.Context, src conversion.TPFSrc, p path.Path, diags *diag.Diagnostics) []T {
+func readSrcStructValues[T any](ctx context.Context, src conversion.TPFSrc, p path.Path) []T {
 	var objList types.List
-	if localDiags := src.GetAttribute(ctx, p, &objList); len(localDiags) > 0 {
-		diags.Append(localDiags...)
+	var localDiags diag.Diagnostics
+	if localDiags = src.GetAttribute(ctx, p, &objList); len(localDiags) > 0 {
+		tflog.Error(ctx, conversion.FormatDiags(&localDiags))
 		return nil
 	}
-	return conversion.TFModelList[T](ctx, diags, objList)
+	result := conversion.TFModelList[T](ctx, &localDiags, objList)
+	if len(localDiags) > 0 {
+		tflog.Error(ctx, conversion.FormatDiags(&localDiags))
+	}
+	return result
 }
 
 func UpdatePlanValue(ctx context.Context, diags *diag.Diagnostics, d *PlanModifyDiffer, p path.Path, value attr.Value) {
