@@ -1,0 +1,3 @@
+```release-note:new-guide
+note: Add documentation and example for using Azure PrivateLink with Atlas Streams
+```
