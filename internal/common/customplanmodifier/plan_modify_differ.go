@@ -70,7 +70,7 @@ func (d *PlanModifyDiffer) Unknowns(ctx context.Context, diags *diag.Diagnostics
 		})
 	}
 	slices.SortFunc(unknowns, func(i, j UnknownInfo) int {
-		return strings.Compare(i.StrPath, j.StrPath)
+		return conversion.PathHierarchySort(i.StrPath, j.StrPath)
 	})
 	return unknowns
 }
