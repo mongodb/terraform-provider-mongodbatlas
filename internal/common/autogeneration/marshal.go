@@ -44,14 +44,14 @@ func mapField(nameAttrSrc string, valueAttrSrc any, valDest reflect.Value) error
 	}
 	switch v := valueAttrSrc.(type) {
 	case string:
-		return assignField(fieldDest, types.StringValue(v))
+		return assignField(nameDest, fieldDest, types.StringValue(v))
 	case bool:
-		return assignField(fieldDest, types.BoolValue(v))
+		return assignField(nameDest, fieldDest, types.BoolValue(v))
 	case float64: // number: try int or float
-		if assignField(fieldDest, types.Float64Value(v)) == nil {
+		if assignField(nameDest, fieldDest, types.Float64Value(v)) == nil {
 			return nil
 		}
-		return assignField(fieldDest, types.Int64Value(int64(v)))
+		return assignField(nameDest, fieldDest, types.Int64Value(int64(v)))
 	case nil:
 		return nil // skip nil values, no need to set anything
 	default:
@@ -59,10 +59,10 @@ func mapField(nameAttrSrc string, valueAttrSrc any, valDest reflect.Value) error
 	}
 }
 
-func assignField(fieldDest reflect.Value, valueDest attr.Value) error {
+func assignField(nameDest string, fieldDest reflect.Value, valueDest attr.Value) error {
 	valObj := reflect.ValueOf(valueDest)
 	if !fieldDest.Type().AssignableTo(valObj.Type()) {
-		return fmt.Errorf("can't assign value to model field %s", fieldDest.Type().Name())
+		return fmt.Errorf("can't assign value to model field %s", nameDest)
 	}
 	fieldDest.Set(valObj)
 	return nil

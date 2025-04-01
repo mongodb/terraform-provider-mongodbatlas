@@ -14,6 +14,7 @@ func TestUnmarshalBasic(t *testing.T) {
 		AttributeFloat        types.Float64 `tfsdk:"attribute_float"`
 		AttributeFloatWithInt types.Float64 `tfsdk:"attribute_float_with_int"`
 		AttributeString       types.String  `tfsdk:"attribute_string"`
+		AttributeNotInJSON    types.String  `tfsdk:"attribute_not_in_json"`
 		AttributeInt          types.Int64   `tfsdk:"attribute_int"`
 		AttributeIntWithFloat types.Int64   `tfsdk:"attribute_int_with_float"`
 		AttributeTrue         types.Bool    `tfsdk:"attribute_true"`
@@ -21,7 +22,8 @@ func TestUnmarshalBasic(t *testing.T) {
 	}
 	const (
 		epsilon = 10e-15 // float tolerance
-		// attribute_not_in_model is ignored but not an error
+		// attribute_not_in_model is ignored because it is not in the model, no error is thrown.
+		// attribute_null is ignored because it is null, no error is thrown even if it is not in the model.
 		tfResponseJSON = `
 			{
 				"attribute_string": "value_string",
@@ -31,7 +33,8 @@ func TestUnmarshalBasic(t *testing.T) {
 				"attribute_int_with_float": 10.6,
 				"attribute_float": 456.1,
 				"attribute_float_with_int": 13,
-				"attribute_not_in_model": "val"
+				"attribute_not_in_model": "val",
+				"attribute_null": null
 			}
 		`
 	)
@@ -40,7 +43,52 @@ func TestUnmarshalBasic(t *testing.T) {
 	assert.True(t, model.AttributeTrue.ValueBool())
 	assert.False(t, model.AttributeFalse.ValueBool())
 	assert.Equal(t, int64(123), model.AttributeInt.ValueInt64())
-	assert.Equal(t, int64(10), model.AttributeIntWithFloat.ValueInt64())
+	assert.Equal(t, int64(10), model.AttributeIntWithFloat.ValueInt64()) // response floats stored in model ints have their decimals stripped.
 	assert.InEpsilon(t, float64(456.1), model.AttributeFloat.ValueFloat64(), epsilon)
 	assert.InEpsilon(t, float64(13), model.AttributeFloatWithInt.ValueFloat64(), epsilon)
+	assert.True(t, model.AttributeNotInJSON.IsNull()) // attributes not in JSON response are not changed, so null is kept.
+}
+
+func TestUnmarshalErrors(t *testing.T) {
+	const errorStr = "can't assign value to model field Attr"
+	testCases := map[string]struct {
+		responseJSON string
+		model        any
+	}{
+		"response ints are not converted to model strings": {
+			responseJSON: `{"attr": 123}`, //
+			model: &struct {
+				Attr types.String
+			}{},
+		},
+		"response strings are not converted to model ints": {
+			responseJSON: `{"attr": "hello"}`,
+			model: &struct {
+				Attr types.Int64
+			}{},
+		},
+		"response strings are not converted to model bools": {
+			responseJSON: `{"attr": "true"}`,
+			model: &struct {
+				Attr types.Bool
+			}{},
+		},
+		"response bools are not converted to model string": {
+			responseJSON: `{"attr": true}`,
+			model: &struct {
+				Attr types.String
+			}{},
+		},
+		"model attributes have to be of Terraform types": {
+			responseJSON: `{"attr": "hello"}`,
+			model: &struct {
+				Attr string
+			}{},
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			assert.ErrorContains(t, autogeneration.Unmarshal([]byte(tc.responseJSON), tc.model), errorStr)
+		})
+	}
 }
