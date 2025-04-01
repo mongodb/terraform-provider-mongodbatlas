@@ -51,14 +51,18 @@ func getOsArg() *string {
 }
 
 func writeToFile(fileName, content string) error {
+	// read/write/execute for owner, and read/execute for group and others
+	const filePermission = 0o755
+
 	// Create directories if they don't exist
 	dir := filepath.Dir(fileName)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	dirPermission := os.FileMode(filePermission)
+	if err := os.MkdirAll(dir, dirPermission); err != nil {
 		return fmt.Errorf("failed to create directory %s: %w", dir, err)
 	}
 
 	// Write content to file (will override content if file exists)
-	if err := os.WriteFile(fileName, []byte(content), 0o600); err != nil {
+	if err := os.WriteFile(fileName, []byte(content), filePermission); err != nil {
 		return fmt.Errorf("failed to write to file %s: %w", fileName, err)
 	}
 	return nil
