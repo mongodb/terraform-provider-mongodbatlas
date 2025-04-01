@@ -79,7 +79,7 @@ func unknownReplacements(ctx context.Context, tfsdkState *tfsdk.State, tfsdkPlan
 	}
 	unknownReplacements.AddKeepUnknownsExtraCall(replicationSpecsKeepUnknownWhenChanged)
 	unknownReplacements.ApplyReplacements(ctx, diags)
-	if !computedUsed && !diskUsed {
+	if !diff.isUpdateOfFlex && !computedUsed && !diskUsed {
 		addEmptyAutoScaling(ctx, diags, tfsdkPlan, unknownReplacements.Differ)
 	}
 }
