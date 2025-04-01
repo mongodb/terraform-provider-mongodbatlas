@@ -132,11 +132,11 @@ func TestUnmarshalUnsupportedResponse(t *testing.T) {
 	}{
 		"JSON objects not support yet": {
 			responseJSON: `{"attr": {"key": "value"}}`,
-			errorStr:     "not supported yet type map[string]interface {} for field att",
+			errorStr:     "not supported yet type map[string]interface {} for field attr",
 		},
 		"JSON arrays not supported yet": {
 			responseJSON: `{"attr": [{"key": "value"}]}`,
-			errorStr:     "not supported yet type []interface {} for field att",
+			errorStr:     "not supported yet type []interface {} for field attr",
 		},
 	}
 	for name, tc := range testCases {
