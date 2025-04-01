@@ -10,9 +10,31 @@ import (
 	"github.com/huandu/xstrings"
 )
 
-// Marshal gets Terraform model and marshals it in JSON (e.g. for an Atlas request).
+// Marshal gets Terraform model and marshals it into JSON (e.g. for an Atlas request).
 func Marshal(src any) ([]byte, error) {
-	return nil, nil
+	valSrc := reflect.ValueOf(src)
+	if valSrc.Kind() != reflect.Ptr {
+		panic("src must be pointer")
+	}
+	valSrc = valSrc.Elem()
+	if valSrc.Kind() != reflect.Struct {
+		panic("src must be pointer to struct")
+	}
+	dest := make(map[string]any)
+	for i := 0; i < valSrc.NumField(); i++ {
+		nameAttr := xstrings.ToSnakeCase(valSrc.Type().Field(i).Name)
+		valAttr := valSrc.Field(i)
+		switch v := valAttr.Interface().(type) {
+		case types.String:
+			if v.IsNull() || v.IsUnknown() {
+				continue
+			}
+			dest[nameAttr] = v.ValueString()
+		default:
+			return nil, fmt.Errorf("marshal not supported yet for type %T for field %s", v, nameAttr)
+		}
+	}
+	return json.Marshal(dest)
 }
 
 // Unmarshal gets a JSON (e.g. from an Atlas response) and unmarshals it into a Terraform model.
@@ -61,14 +83,14 @@ func mapField(nameAttrSrc string, valueAttrSrc any, valDest reflect.Value) error
 	case nil:
 		return nil // skip nil values, no need to set anything
 	default:
-		return fmt.Errorf("not supported yet type %T for field %s", v, nameAttrSrc)
+		return fmt.Errorf("unmarshal not supported yet for type %T for field %s", v, nameAttrSrc)
 	}
 }
 
 func assignField(nameDest string, fieldDest reflect.Value, valueDest attr.Value) error {
 	valObj := reflect.ValueOf(valueDest)
 	if !fieldDest.Type().AssignableTo(valObj.Type()) {
-		return fmt.Errorf("can't assign value to model field %s", nameDest)
+		return fmt.Errorf("unmarshal can't assign value to model field %s", nameDest)
 	}
 	fieldDest.Set(valObj)
 	return nil

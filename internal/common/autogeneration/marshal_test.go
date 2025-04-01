@@ -9,6 +9,24 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestMarshalBasic(t *testing.T) {
+	model := struct {
+		AttributeString types.String `tfsdk:"attribute_string"`
+	}{
+		AttributeString: types.StringValue("hello"),
+	}
+	const (
+		expectedJSON = `
+			{
+				"attribute_string": "hello"
+			}
+		`
+	)
+	rawJSON, err := autogeneration.Marshal(&model)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedJSON, string(rawJSON))
+}
+
 func TestUnmarshalBasic(t *testing.T) {
 	var model struct {
 		AttributeFloat        types.Float64 `tfsdk:"attribute_float"`
@@ -132,11 +150,11 @@ func TestUnmarshalUnsupportedResponse(t *testing.T) {
 	}{
 		"JSON objects not support yet": {
 			responseJSON: `{"attr": {"key": "value"}}`,
-			errorStr:     "not supported yet type map[string]interface {} for field attr",
+			errorStr:     "unmarshal not supported yet for type map[string]interface {} for field attr",
 		},
 		"JSON arrays not supported yet": {
 			responseJSON: `{"attr": [{"key": "value"}]}`,
-			errorStr:     "not supported yet type []interface {} for field attr",
+			errorStr:     "unmarshal not supported yet for type []interface {} for field attr",
 		},
 	}
 	for name, tc := range testCases {
