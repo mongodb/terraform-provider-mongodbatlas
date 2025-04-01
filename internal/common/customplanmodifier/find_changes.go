@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
 type AttributeChanges []string
@@ -25,16 +27,14 @@ func (a AttributeChanges) KeepUnknown(attributeEffectedMapping map[string][]stri
 	return keepUnknown
 }
 
-// ListIndexChanged returns true if the list at the given index has changed, false if it was added or removed
-func (a AttributeChanges) ListIndexChanged(fullPath string, index int) bool {
-	indexPath := fmt.Sprintf("%s[%d]", fullPath, index)
-	return slices.Contains(a, indexPath)
+func (a AttributeChanges) PathChanged(path path.Path) bool {
+	return slices.Contains(a, path.String())
 }
 
 // ListLenChanged accepts a fullPath, e.g., "replication_specs[0].region_configs" and returns true if the length of the nested list has changed
-func (a AttributeChanges) ListLenChanged(fullPath string) bool {
-	addPrefix := asAddPrefix(fullPath)
-	removePrefix := asRemovePrefix(fullPath)
+func (a AttributeChanges) ListLenChanged(p path.Path) bool {
+	addPrefix := asAddPrefix(p.String())
+	removePrefix := asRemovePrefix(p.String())
 	for _, change := range a {
 		if strings.HasPrefix(change, addPrefix) || strings.HasPrefix(change, removePrefix) {
 			return true
