@@ -35,8 +35,9 @@ type UnknownReplacements[ResourceInfo any] struct {
 	keepUnknownsExtraCalls    []func(ctx context.Context, stateValue attr.Value, req *UnknownReplacementRequest[ResourceInfo]) []string
 }
 
+// AddReplacement call will only be used if the attribute is Unknown in the plan. Only valid for `computed` attributes.
 func (u *UnknownReplacements[ResourceInfo]) AddReplacement(name string, call UnknownReplacementCall[ResourceInfo]) {
-	// todo: Validate the name exists in the schema CLOUDP-309460
+	// todo: Validate the name exists in the schema and that the attribute is marked with `computed` CLOUDP-309460
 	_, found := u.Replacements[name]
 	if found {
 		panic(fmt.Sprintf("Replacement already exists for %s", name))
