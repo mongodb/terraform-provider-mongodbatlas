@@ -52,8 +52,8 @@ func TestUnmarshalBasic(t *testing.T) {
 func TestUnmarshalErrors(t *testing.T) {
 	const errorStr = "can't assign value to model field Attr"
 	testCases := map[string]struct {
-		responseJSON string
 		model        any
+		responseJSON string
 	}{
 		"response ints are not converted to model strings": {
 			responseJSON: `{"attr": 123}`, //
