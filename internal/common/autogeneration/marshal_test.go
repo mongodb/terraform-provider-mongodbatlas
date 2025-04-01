@@ -92,3 +92,56 @@ func TestUnmarshalErrors(t *testing.T) {
 		})
 	}
 }
+
+// TestUnmarshalUnsupportedModel has Terraform types not supported yet.
+// It will be updated when we add support for them.
+func TestUnmarshalUnsupportedModel(t *testing.T) {
+	testCases := map[string]struct {
+		model        any
+		responseJSON string
+	}{
+		"Int32 not supported yet as it's not being used in any model": {
+			responseJSON: `{"attr": 1}`,
+			model: &struct {
+				Attr types.Int32
+			}{},
+		},
+		"Float32 not supported yet as it's not being used in any model": {
+			responseJSON: `{"attr": 1}`,
+			model: &struct {
+				Attr types.Float32
+			}{},
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			assert.Error(t, autogeneration.Unmarshal([]byte(tc.responseJSON), tc.model))
+		})
+	}
+}
+
+// TestUnmarshalUnsupportedResponse has JSON response types not supported yet.
+// It will be updated when we add support for them.
+func TestUnmarshalUnsupportedResponse(t *testing.T) {
+	var model struct {
+		Attr types.String
+	}
+	testCases := map[string]struct {
+		responseJSON string
+		errorStr     string
+	}{
+		"JSON objects not support yet": {
+			responseJSON: `{"attr": {"key": "value"}}`,
+			errorStr:     "not supported yet type map[string]interface {} for field att",
+		},
+		"JSON arrays not supported yet": {
+			responseJSON: `{"attr": [{"key": "value"}]}`,
+			errorStr:     "not supported yet type []interface {} for field att",
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			assert.ErrorContains(t, autogeneration.Unmarshal([]byte(tc.responseJSON), &model), tc.errorStr)
+		})
+	}
+}
