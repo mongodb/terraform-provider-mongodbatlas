@@ -75,17 +75,20 @@ func (d *PlanModifyDiffer) Unknowns(ctx context.Context, diags *diag.Diagnostics
 	return unknowns
 }
 
+// ReadPlanStructValue reads a struct value from the plan, returns nil if the value is null or unknown, logs any error getting the attribute.
 func ReadPlanStructValue[T any](ctx context.Context, d *PlanModifyDiffer, p path.Path) *T {
 	return readSrcStructValue[T](ctx, d.plan, p)
 }
 
+// ReadStateStructValue reads a struct value from the state, returns nil if the value is null or unknown, logs any error getting the attribute.
 func ReadStateStructValue[T any](ctx context.Context, d *PlanModifyDiffer, p path.Path) *T {
 	return readSrcStructValue[T](ctx, d.state, p)
 }
 
 func readSrcStructValue[T any](ctx context.Context, src conversion.TPFSrc, p path.Path) *T {
 	var obj types.Object
-	if localDiags := src.GetAttribute(ctx, p, &obj); localDiags.HasError() {
+	if localDiags := src.GetAttribute(ctx, p, &obj); len(localDiags) > 0 {
+		tflog.Error(ctx, conversion.FormatDiags(&localDiags))
 		return nil
 	}
 	if obj.IsNull() || obj.IsUnknown() {
@@ -93,17 +96,24 @@ func readSrcStructValue[T any](ctx context.Context, src conversion.TPFSrc, p pat
 	}
 	return conversion.TFModelObject[T](ctx, obj)
 }
-func ReadPlanStructValues[T any](ctx context.Context, d *PlanModifyDiffer, p path.Path, diags *diag.Diagnostics) []T {
-	return readSrcStructValues[T](ctx, d.plan, p, diags)
+
+// ReadPlanStructValues reads a list of struct values from the plan, returns nil if conversion fails, logs any error getting the attribute.
+func ReadPlanStructValues[T any](ctx context.Context, d *PlanModifyDiffer, p path.Path) []T {
+	return readSrcStructValues[T](ctx, d.plan, p)
 }
 
-func readSrcStructValues[T any](ctx context.Context, src conversion.TPFSrc, p path.Path, diags *diag.Diagnostics) []T {
+func readSrcStructValues[T any](ctx context.Context, src conversion.TPFSrc, p path.Path) []T {
 	var objList types.List
-	if localDiags := src.GetAttribute(ctx, p, &objList); len(localDiags) > 0 {
-		diags.Append(localDiags...)
+	var localDiags diag.Diagnostics
+	if localDiags = src.GetAttribute(ctx, p, &objList); len(localDiags) > 0 {
+		tflog.Error(ctx, conversion.FormatDiags(&localDiags))
 		return nil
 	}
-	return conversion.TFModelList[T](ctx, diags, objList)
+	result := conversion.TFModelList[T](ctx, &localDiags, objList)
+	if len(localDiags) > 0 {
+		tflog.Error(ctx, conversion.FormatDiags(&localDiags))
+	}
+	return result
 }
 
 func UpdatePlanValue(ctx context.Context, diags *diag.Diagnostics, d *PlanModifyDiffer, p path.Path, value attr.Value) {
@@ -153,5 +163,5 @@ func findChanges(ctx context.Context, diff []tftypes.ValueDiff, diags *diag.Diag
 			}
 		}
 	}
-	return slices.Sorted(maps.Keys(changes)) // Ensure changes are sorted to support top-down processing, for example read_only_spec is processed before read_only_spec.disk_size_gb
+	return slices.Sorted(maps.Keys(changes)) // prettier attribute changes when they are sorted alphabetically
 }

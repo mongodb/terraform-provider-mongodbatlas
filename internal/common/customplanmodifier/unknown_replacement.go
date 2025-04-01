@@ -37,7 +37,7 @@ type UnknownReplacements[ResourceInfo any] struct {
 
 // AddReplacement call will only be used if the attribute is Unknown in the plan. Only valid for `computed` attributes.
 func (u *UnknownReplacements[ResourceInfo]) AddReplacement(name string, call UnknownReplacementCall[ResourceInfo]) {
-	// todo: Validate the name exists in the schema CLOUDP-309460
+	// todo: Validate the name exists in the schema and that the attribute is marked with `computed` CLOUDP-309460
 	_, found := u.Replacements[name]
 	if found {
 		panic(fmt.Sprintf("Replacement already exists for %s", name))
@@ -65,26 +65,15 @@ func (u *UnknownReplacements[ResourceInfo]) AddKeepUnknownsExtraCall(call AddKee
 // If there is no explicit replacement function, it will use the default replacer that respects the keepUnknown attributes.
 // The calls are done top-down, for example replication_specs.*.id before replication_specs.*.region_configs.*.electable_specs
 // Same levels are sorted alphabetically, for example ...region_configs.electable_specs before ...region_configs.read_only_specs
+// If the replacement function is called for a path that is an ancestor of another path, it will skip the replacement for the child path.
+// For example: if ..read_only_specs has a replacement function and is called then ..read_only_specs.disk_iops will be left as is.
 func (u *UnknownReplacements[ResourceInfo]) ApplyReplacements(ctx context.Context, diags *diag.Diagnostics) {
-	replacedPaths := []path.Path{}
-	ancestorHasProcessed := func(p path.Path) bool {
-		for _, replacedPath := range replacedPaths {
-			if conversion.HasAncestor(p, replacedPath) {
-				return true
-			}
-		}
-		return false
-	}
 	for _, unknown := range u.Differ.Unknowns(ctx, diags) {
 		strPath := unknown.StrPath
 		replacer, ok := u.Replacements[unknown.AttributeName]
 		if !ok {
 			replacer = u.defaultReplacer
 		}
-		if ancestorHasProcessed(unknown.Path) {
-			continue
-		}
-		replacedPaths = append(replacedPaths, unknown.Path)
 		req := &UnknownReplacementRequest[ResourceInfo]{
 			Info:          u.Info,
 			Path:          unknown.Path,

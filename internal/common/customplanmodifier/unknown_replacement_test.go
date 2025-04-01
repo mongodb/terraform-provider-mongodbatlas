@@ -260,7 +260,6 @@ func TestReplaceUnknownLogicByWrappingAdvancedClusterTPF(t *testing.T) {
 			baseConfig.TestdataPrefix = unit.PackagePath("advancedclustertpf")
 			unit.MockPlanChecksAndRun(t, baseConfig.WithPlanCheckTest(unit.PlanCheckTest{ConfigFilename: tc.ConfigFilename}))
 			assert.Equal(t, tc.expectedAttributeChanges, runData.attributeChanges)
-			slices.Sort(runData.keepUnknownCalls)
 			assert.Equal(t, tc.expectedKeepUnknownCalls, runData.keepUnknownCalls)
 		})
 	}
