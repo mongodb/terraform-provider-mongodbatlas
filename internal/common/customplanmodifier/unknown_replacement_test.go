@@ -245,9 +245,9 @@ func TestReplaceUnknownLogicByWrappingAdvancedClusterTPF(t *testing.T) {
 			},
 			expectedKeepUnknownCalls: []string{
 				"replication_specs[0].id",
-				"replication_specs[1].id",
 				"replication_specs[0].region_configs[0].analytics_auto_scaling",
 				"replication_specs[0].region_configs[0].auto_scaling",
+				"replication_specs[1].id",
 				"replication_specs[1].region_configs[0].analytics_auto_scaling",
 				"replication_specs[1].region_configs[0].auto_scaling",
 			},

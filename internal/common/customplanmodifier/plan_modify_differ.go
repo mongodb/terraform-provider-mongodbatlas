@@ -70,7 +70,7 @@ func (d *PlanModifyDiffer) Unknowns(ctx context.Context, diags *diag.Diagnostics
 		})
 	}
 	slices.SortFunc(unknowns, func(i, j UnknownInfo) int {
-		return conversion.PathHierarchySort(i.StrPath, j.StrPath)
+		return strings.Compare(i.StrPath, j.StrPath)
 	})
 	return unknowns
 }
@@ -160,5 +160,5 @@ func findChanges(ctx context.Context, diff []tftypes.ValueDiff, diags *diag.Diag
 			}
 		}
 	}
-	return slices.Sorted(maps.Keys(changes)) // Ensure changes are sorted to support top-down processing, for example read_only_spec is processed before read_only_spec.disk_size_gb
+	return slices.Sorted(maps.Keys(changes)) // prettier attribute changes when they are sorted alphabetically
 }
