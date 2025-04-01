@@ -83,7 +83,7 @@ func unknownReplacements(ctx context.Context, tfsdkState *tfsdk.State, tfsdkPlan
 
 func autoScalingReplaceUnknown(ctx context.Context, state attr.Value, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
 	// don't use auto_scaling or analytics_auto_scaling from state if it's not enabled as it doesn't need to be present in Update request payload
-	if req.Info.AutoScalingComputedUsed || req.Info.AutoScalingDiskUsed || !req.Changes.AttributeChanged("replication_specs") {
+	if req.Info.AutoScalingComputedUsed || req.Info.AutoScalingDiskUsed {
 		return state
 	}
 	return req.Unknown
