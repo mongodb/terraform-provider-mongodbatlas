@@ -29,6 +29,7 @@ type testCase struct {
 	name          string
 	mockResponses []response
 	expectedError bool
+	extraTargetStates []string
 }
 
 func TestSearchDeploymentStateTransition(t *testing.T) {
@@ -41,6 +42,15 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 			},
 			expectedState: &idle,
 			expectedError: false,
+		},
+		{
+			name: "Successful transition to Updating when extra target state is provided",
+			mockResponses: []response{
+				{state: &updating},
+			},
+			expectedState: &updating,
+			expectedError: false,
+			extraTargetStates: []string{updating},
 		},
 		{
 			name: "Successful transition to IDLE with 503 error in between",
@@ -80,7 +90,7 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 				modelResp, httpResp, err := resp.get()
 				m.EXPECT().GetAtlasSearchDeploymentExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			resp, err := searchdeployment.WaitSearchNodeStateTransition(t.Context(), dummyProjectID, "Cluster0", m, testTimeoutConfig)
+			resp, err := searchdeployment.WaitSearchNodeStateTransition(t.Context(), dummyProjectID, "Cluster0", m, testTimeoutConfig, tc.extraTargetStates...)
 			assert.Equal(t, tc.expectedError, err != nil)
 			assert.Equal(t, responseWithState(tc.expectedState), resp)
 		})
