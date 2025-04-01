@@ -64,7 +64,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Delete: true,
 			}),
 			"skip_wait_on_update": schema.BoolAttribute{
-				Description: "If set to true, Terraform will not wait for the search deployment to reach an idle state (i.e. skip waiting for reindexing) after an update.",
+				Description: "Setting this risks returning before the search deployment is in a steady state, potentially causing inconsistencies. If set to true, Terraform will not wait for the search deployment to reach an idle state (i.e. skip waiting for reindexing) after an update.",
 				Optional:    true,
 			},
 		},
