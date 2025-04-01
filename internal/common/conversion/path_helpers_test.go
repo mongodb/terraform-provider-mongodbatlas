@@ -113,3 +113,11 @@ func TestParentPathWithIndex_NotFound(t *testing.T) {
 	assert.True(t, result.Equal(path.Empty()), "Expected result to be empty if parent not found")
 	assert.True(t, diags.HasError(), "Diagnostics should have an error when parent attribute is missing")
 }
+
+func TestParentPathWithIndex_EmptyPath(t *testing.T) {
+	emptyPath := path.Empty()
+	result, diags := conversion.AncestorPathWithIndex(emptyPath, "any")
+	// Since the path is empty, it should immediately return empty and add error.
+	assert.True(t, result.Equal(path.Empty()), "Expected empty path as result from an empty input path")
+	assert.True(t, diags.HasError(), "Diagnostics should have an error for empty input path")
+}
