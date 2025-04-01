@@ -75,10 +75,12 @@ func (d *PlanModifyDiffer) Unknowns(ctx context.Context, diags *diag.Diagnostics
 	return unknowns
 }
 
+// ReadPlanStructValue reads a struct value from the plan, returns nil if the value is null or unknown, logs any error getting the attribute.
 func ReadPlanStructValue[T any](ctx context.Context, d *PlanModifyDiffer, p path.Path) *T {
 	return readSrcStructValue[T](ctx, d.plan, p)
 }
 
+// ReadStateStructValue reads a struct value from the state, returns nil if the value is null or unknown, logs any error getting the attribute.
 func ReadStateStructValue[T any](ctx context.Context, d *PlanModifyDiffer, p path.Path) *T {
 	return readSrcStructValue[T](ctx, d.state, p)
 }
@@ -95,6 +97,7 @@ func readSrcStructValue[T any](ctx context.Context, src conversion.TPFSrc, p pat
 	return conversion.TFModelObject[T](ctx, obj)
 }
 
+// ReadPlanStructValues reads a list of struct values from the plan, returns nil if conversion fails, logs any error getting the attribute.
 func ReadPlanStructValues[T any](ctx context.Context, d *PlanModifyDiffer, p path.Path) []T {
 	return readSrcStructValues[T](ctx, d.plan, p)
 }
