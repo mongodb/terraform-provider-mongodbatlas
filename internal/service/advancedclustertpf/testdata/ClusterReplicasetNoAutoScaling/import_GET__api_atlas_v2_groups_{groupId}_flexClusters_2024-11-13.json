@@ -1,0 +1,10 @@
+{
+ "links": [
+  {
+   "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/flexClusters?includeCount=true\u0026pageNum=1\u0026itemsPerPage=100",
+   "rel": "self"
+  }
+ ],
+ "results": [],
+ "totalCount": 0
+}

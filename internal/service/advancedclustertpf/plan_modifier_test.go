@@ -13,6 +13,7 @@ var (
 	repSpec0        = tfjsonpath.New("replication_specs").AtSliceIndex(0)
 	repSpec1        = tfjsonpath.New("replication_specs").AtSliceIndex(1)
 	regionConfig0_0 = repSpec0.AtMapKey("region_configs").AtSliceIndex(0)
+	regionConfig0_1 = repSpec0.AtMapKey("region_configs").AtSliceIndex(1)
 	regionConfig1_0 = repSpec1.AtMapKey("region_configs").AtSliceIndex(0)
 	regionConfig1_1 = repSpec1.AtMapKey("region_configs").AtSliceIndex(1)
 	advConfig       = tfjsonpath.New("advanced_configuration")
@@ -158,6 +159,36 @@ func TestPlanChecksClusterTwoRepSpecsMultipleRegions(t *testing.T) {
 					plancheck.ExpectUnknownValue(resourceName, regionConfig1_1.AtMapKey("read_only_specs").AtMapKey("disk_iops")),              // auto_scaling.compute_enabled is used, so disk_iops should be unknown
 					plancheck.ExpectUnknownValue(resourceName, regionConfig1_1.AtMapKey("read_only_specs").AtMapKey("disk_size_gb")),           // auto_scaling.disk_enabled is used, so disk_size_gb should be unknown
 					plancheck.ExpectUnknownValue(resourceName, regionConfig1_1.AtMapKey("electable_specs")),                                    // node_count = 0, should not be copied
+				},
+			},
+		}
+	)
+	unit.RunPlanCheckTests(t, baseConfig, testCases)
+}
+
+func TestPlanChecksClusterReplicasetNoAutoScaling(t *testing.T) {
+	var (
+		baseConfig   = unit.NewMockPlanChecksConfig(t, &mockConfig, unit.ImportNameClusterReplicasetNoAutoScaling)
+		resourceName = baseConfig.ResourceName
+		testCases    = []unit.PlanCheckTest{
+			{
+				ConfigFilename: "main_region_config_added.tf",
+				Checks: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					plancheck.ExpectKnownValue(resourceName, regionConfig0_0.AtMapKey("auto_scaling"), autoScalingKnownValue(false, false, false, "", "")), // using explicit empty values
+					plancheck.ExpectKnownValue(resourceName, regionConfig0_0.AtMapKey("analytics_auto_scaling"), knownvalue.Null()),                        // using explicit null
+					plancheck.ExpectKnownValue(resourceName, regionConfig0_1.AtMapKey("auto_scaling"), autoScalingKnownValue(false, false, false, "", "")), // using explicit empty values
+					plancheck.ExpectKnownValue(resourceName, regionConfig0_1.AtMapKey("analytics_auto_scaling"), knownvalue.Null()),                        // using explicit null
+				},
+			},
+			{
+				ConfigFilename: "main_replication_spec_added.tf",
+				Checks: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					plancheck.ExpectKnownValue(resourceName, regionConfig0_0.AtMapKey("auto_scaling"), autoScalingKnownValue(false, false, false, "", "")), // using explicit empty values
+					plancheck.ExpectKnownValue(resourceName, regionConfig0_0.AtMapKey("analytics_auto_scaling"), knownvalue.Null()),                        // using explicit null
+					plancheck.ExpectKnownValue(resourceName, regionConfig1_0.AtMapKey("auto_scaling"), autoScalingKnownValue(false, false, false, "", "")), // using explicit empty values
+					plancheck.ExpectKnownValue(resourceName, regionConfig1_0.AtMapKey("analytics_auto_scaling"), knownvalue.Null()),
 				},
 			},
 		}
