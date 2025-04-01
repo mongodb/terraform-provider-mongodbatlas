@@ -15,6 +15,7 @@ import (
 )
 
 const SearchDeploymentDoesNotExistsError = "ATLAS_SEARCH_DEPLOYMENT_DOES_NOT_EXIST"
+
 var pendingStates = []string{retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyPausedState}
 
 func WaitSearchNodeStateTransition(ctx context.Context, projectID, clusterName string, client admin.AtlasSearchApi,

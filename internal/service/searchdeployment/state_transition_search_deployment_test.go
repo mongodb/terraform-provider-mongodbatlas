@@ -25,11 +25,11 @@ var (
 )
 
 type testCase struct {
-	expectedState *string
-	name          string
-	mockResponses []response
-	expectedError bool
+	expectedState     *string
+	name              string
+	mockResponses     []response
 	extraTargetStates []string
+	expectedError     bool
 }
 
 func TestSearchDeploymentStateTransition(t *testing.T) {
@@ -48,8 +48,8 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 			mockResponses: []response{
 				{state: &updating},
 			},
-			expectedState: &updating,
-			expectedError: false,
+			expectedState:     &updating,
+			expectedError:     false,
 			extraTargetStates: []string{updating},
 		},
 		{
