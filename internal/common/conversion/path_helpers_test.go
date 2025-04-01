@@ -42,7 +42,7 @@ func TestIndexMethods(t *testing.T) {
 	assert.Equal(t, "advanced_configuration.custom_openssl_cipher_config_tls12[-Value(\"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384\")]", conversion.AsRemovedIndex(setIndex))
 	setNoIndex, diags := conversion.AncestorPathNoIndex(setIndex, "custom_openssl_cipher_config_tls12")
 	assert.Empty(t, diags)
-	assert.Equal(t, "advanced_configuration.custom_openssl_cipher_config_tls12", setNoIndex)
+	assert.Equal(t, "advanced_configuration.custom_openssl_cipher_config_tls12", setNoIndex.String())
 	assert.Empty(t, conversion.AsRemovedIndex(path.Root("replication_specs")))
 }
 
@@ -65,7 +65,7 @@ func TestParentPathWithIndex_Found(t *testing.T) {
 	assert.Equal(t, parentPath.String(), parentPathActual.String())
 
 	basePathActual, diags := conversion.AncestorPathWithIndex(childPath, "resource")
-	assert.Equal(t, basePath.String(), basePathActual)
+	assert.Equal(t, basePath.String(), basePathActual.String())
 	assert.Empty(t, diags, "Diagnostics should not have errors")
 }
 
@@ -78,11 +78,11 @@ func TestParentPathWithIndex_FoundIncludesIndex(t *testing.T) {
 
 	parentPathActual, diags := conversion.AncestorPathWithIndex(childPath, "parent")
 	assert.Empty(t, diags)
-	assert.Equal(t, parentPath.AtListIndex(0).String(), parentPathActual)
+	assert.Equal(t, parentPath.AtListIndex(0).String(), parentPathActual.String())
 
 	basePathActual, diags := conversion.AncestorPathWithIndex(childPath, "resource")
 	assert.Empty(t, diags)
-	assert.Equal(t, basePath.AtListIndex(0).String(), basePathActual)
+	assert.Equal(t, basePath.AtListIndex(0).String(), basePathActual.String())
 	assert.Empty(t, diags, "Diagnostics should not have errors")
 }
 
