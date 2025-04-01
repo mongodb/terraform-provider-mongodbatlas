@@ -14,8 +14,15 @@ import (
 )
 
 const (
-	resourceName   = "mongodbatlas_global_cluster_config.config"
-	dataSourceName = "data.mongodbatlas_global_cluster_config.config"
+	resourceName     = "mongodbatlas_global_cluster_config.config"
+	dataSourceName   = "data.mongodbatlas_global_cluster_config.config"
+	dataSourceConfig = `
+	data "mongodbatlas_global_cluster_config" "config" {
+		project_id   = mongodbatlas_global_cluster_config.config.project_id
+		cluster_name = mongodbatlas_global_cluster_config.config.cluster_name
+		depends_on   = [mongodbatlas_global_cluster_config.config]
+	}
+	`
 )
 
 func TestAccGlobalClusterConfig_basic(t *testing.T) {
@@ -24,6 +31,48 @@ func TestAccGlobalClusterConfig_basic(t *testing.T) {
 
 func TestAccGlobalClusterConfig_withBackup(t *testing.T) {
 	resource.ParallelTest(t, *basicTestCase(t, true, true))
+}
+
+func TestAccGlobalClusterConfig_iss(t *testing.T) {
+	const (
+		zone1 = "Zone 1"
+		zone2 = "Zone 2"
+	)
+	var (
+		replicationSpec1 = acc.ReplicationSpecRequest{
+			ZoneName:     zone1,
+			Region:       "US_EAST_1",
+			InstanceSize: "M30",
+		}
+		replicationSpec2 = acc.ReplicationSpecRequest{
+			ZoneName:     zone2,
+			Region:       "US_EAST_2",
+			InstanceSize: "M10",
+		}
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{Geosharded: true, ReplicationSpecs: []acc.ReplicationSpecRequest{replicationSpec1, replicationSpec2}})
+		attrsMap    = map[string]string{
+			"cluster_name":         clusterInfo.Name,
+			"managed_namespaces.#": "1",
+			"managed_namespaces.0.is_custom_shard_key_hashed": "false",
+			"managed_namespaces.0.is_shard_key_unique":        "false",
+			"custom_zone_mapping.%":                           "0",
+			"custom_zone_mapping_zone_id.%":                   "2",
+		}
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, &clusterInfo, "", ""),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configISS(&clusterInfo, false, false, zone1, zone2),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), nil, []string{"project_id"}, attrsMap),
+				),
+			},
+		},
+	})
 }
 
 func basicTestCase(tb testing.TB, checkZoneID, withBackup bool) *resource.TestCase {
@@ -278,13 +327,7 @@ func configBasic(info *acc.ClusterInfo, isCustomShard, isShardKeyUnique bool) st
 
 			depends_on = [%[5]s]
 		}
-
-		data "mongodbatlas_global_cluster_config" "config" {
-			project_id       = mongodbatlas_global_cluster_config.config.project_id			
-			cluster_name     = mongodbatlas_global_cluster_config.config.cluster_name
-			depends_on = [mongodbatlas_global_cluster_config.config]
-		}	
-	`, info.TerraformNameRef, info.ProjectID, isCustomShard, isShardKeyUnique, info.ResourceName)
+	`, info.TerraformNameRef, info.ProjectID, isCustomShard, isShardKeyUnique, info.ResourceName) + dataSourceConfig
 }
 
 func configWithDBConfig(info *acc.ClusterInfo, zones string) string {
@@ -322,11 +365,32 @@ func configWithDBConfig(info *acc.ClusterInfo, zones string) string {
 
 			depends_on = [%[4]s]
 		}
+	`, info.TerraformNameRef, info.ProjectID, zones, info.ResourceName) + dataSourceConfig
+}
 
-		data "mongodbatlas_global_cluster_config" "config" {
-			project_id       = mongodbatlas_global_cluster_config.config.project_id			
-			cluster_name     = mongodbatlas_global_cluster_config.config.cluster_name
-			depends_on = [mongodbatlas_global_cluster_config.config]
-		}	
-	`, info.TerraformNameRef, info.ProjectID, zones, info.ResourceName)
+func configISS(info *acc.ClusterInfo, isCustomShard, isShardKeyUnique bool, zone1, zone2 string) string {
+	return info.TerraformStr + fmt.Sprintf(`
+		resource "mongodbatlas_global_cluster_config" "config" {
+			cluster_name     = %[1]s
+			project_id       = %[2]q
+
+			managed_namespaces {
+				db               		   = "mydata"
+				collection       		   = "publishers"
+				custom_shard_key		   = "city"
+				is_custom_shard_key_hashed = %[3]t
+				is_shard_key_unique 	   = %[4]t
+			}
+			depends_on = [%[5]s]
+
+			custom_zone_mappings {
+				location = "US"
+				zone     = %[6]q
+			}
+			custom_zone_mappings {
+				location = "IE"
+				zone     = %[7]q
+			}
+		}
+	`, info.TerraformNameRef, info.ProjectID, isCustomShard, isShardKeyUnique, info.ResourceName, zone1, zone2) + dataSourceConfig
 }

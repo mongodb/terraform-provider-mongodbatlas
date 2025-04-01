@@ -2,18 +2,10 @@
 
 `mongodbatlas_stream_processor` provides a Stream Processor resource. The resource lets you create, delete, import, start and stop a stream processor in a stream instance.
 
-**NOTE**: Updating an Atlas Stream Processor is currently not supported. As a result, the following steps are needed to be able to change an Atlas Stream Processor with an Atlas Change Stream Source:
-1. Retrieve the value of Change Stream Source Token `changeStreamState` from the computed `stats` attribute in `mongodbatlas_stream_processor` resource or datasource or from the Terraform state file. This takes the form of a [resume token](https://www.mongodb.com/docs/manual/changeStreams/#resume-tokens-from-change-events). The Stream Processor has to be running in the state `STARTED` for the `stats` attribute to be available. However, before you retrieve the value, you should set the `state` to `STOPPED` to get the latest `changeStreamState`.
-	- Example:
-		```
-		{\"changeStreamState\":{\"_data\":\"8266C71670000000012B0429296E1404\"}
-		```
-2. Update the `pipeline` argument setting `config.StartAfter` with the value retrieved in the previous step. More details in the [MongoDB Collection Change Stream](https://www.mongodb.com/docs/atlas/atlas-stream-processing/sp-agg-source/#mongodb-collection-change-stream) documentation.
-	- Example: 
-		```
-		pipeline = jsonencode([{ "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-cluster.connection_name, "config" = { "startAfter" = { "_data" : "8266C71562000000012B0429296E1404" } } } }, { "$emit" = { "connectionName" : "KafkaConnectionDest", "topic": "kafka-topic" } }])
-		```
-3. Delete the existing Atlas Stream Processor and then create a new Atlas Stream Processor with updated pipeline parameter and the updated values.  
+**NOTE**: When updating an Atlas Stream Processor, the following behavior applies:
+1. If the processor is in a `STARTED` state, it will automatically be stopped before the update is applied
+2. The update will be performed while the processor is in `STOPPED` state
+3. If the processor was originally in `STARTED` state, it will be restarted after the update
 
 ## Example Usages
 
@@ -141,9 +133,9 @@ output "stream_processors_results" {
 ### Optional
 
 - `options` (Attributes) Optional configuration for the stream processor. (see [below for nested schema](#nestedatt--options))
-- `state` (String) The state of the stream processor. Commonly occurring states are 'CREATED', 'STARTED', 'STOPPED' and 'FAILED'. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`. When a Stream Processor is created without specifying the state, it will default to `CREATED` state.
+- `state` (String) The state of the stream processor. Commonly occurring states are 'CREATED', 'STARTED', 'STOPPED' and 'FAILED'. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`. When a Stream Processor is created without specifying the state, it will default to `CREATED` state. When a Stream Processor is updated without specifying the state, it will default to the Previous state. 
 
-**NOTE** When creating a stream processor, setting the state to STARTED can automatically start the stream processor.
+**NOTE** When a Stream Processor is updated without specifying the state, it is stopped and then restored to previous state upon update completion.
 
 ### Read-Only
 

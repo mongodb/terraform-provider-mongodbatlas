@@ -360,7 +360,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
--> **NOTE:** For any cluster leveraging the new sharding configurations and defining independently scaled shards, users should also update corresponding `mongodbatlas_cloud_backup_schedule` resource & data sources. This involves updating any existing Terraform configurations of the resource to use `copy_settings.#.zone_id` instead of `copy_settings.#.replication_spec_id`. This is needed as `mongodbatlas_advanced_cluster` resource and data source will no longer have `replication_specs.#.id` present when shards are scaled independently. To learn more, review the [1.18.0 Migration Guide](1.18.0-upgrade-guide.md#transition-cloud-backup-schedules-for-clusters-to-use-zones).
+-> **NOTE:** See the table [below](#resources-and-data-sources-impacted-by-independent-shard-scaling) for other impacted resources when a cluster transitions to independently scaled shards.
 
 <a id="use-auto-scaling-per-shard"></a>
 ## Use Auto-Scaling Per Shard
@@ -437,4 +437,15 @@ While the example initially defines 2 symmetric shards, auto-scaling of `electab
 
 -> **NOTE:** After you upgrade to version 1.23.0 of the provider, you must update the cluster configuration to activate the auto-scaling per shard feature.
 
--> **NOTE:** When auto-scaling per shard, it is possible that the cluster will transition to having asymmetric shards. This will impact the computed attribute `replication_specs.#.id`, which is not populated when shards are scaled independently. Please make sure to update the corresponding `mongodbatlas_cloud_backup_schedule` resource & data sources. This involves updating any existing Terraform configurations of the resource to use `copy_settings.#.zone_id` instead of `copy_settings.#.replication_spec_id`. To learn more, review the [1.18.0 Migration Guide](1.18.0-upgrade-guide.md#transition-cloud-backup-schedules-for-clusters-to-use-zones).
+-> **NOTE:** See the table [below](#resources-and-data-sources-impacted-by-independent-shard-scaling) for other impacted resources when a cluster transitions to independently scaled shards.
+
+## Resources and Data Sources Impacted by Independent Shard Scaling
+
+Name | Changes | Transition Guide
+--- | --- | ---
+`mongodbatlas_advanced_cluster` | Data source must use the `use_replication_spec_per_shard` attribute. | -
+`mongodbatlas_advanced_cluster` | Use `replication_specs.#.zone_id` instead of `replication_specs.#.id`. | -
+`mongodbatlas_cluster` | Resource and Data Source will not work. API error code `ASYMMETRIC_SHARD_UNSUPPORTED`. | [cluster-to-advanced-cluster-migration-guide.](cluster-to-advanced-cluster-migration-guide.md)
+`mongodbatlas_cloud_backup_schedule` | Use `copy_settings.#.zone_id` instead of `copy_settings.#.replication_spec_id` | [1.18.0 Migration Guide](1.18.0-upgrade-guide.md#transition-cloud-backup-schedules-for-clusters-to-use-zones)
+`mongodbatlas_global_cluster_config` | `custom_zone_mapping` is no longer populated, `custom_zone_mapping_zone_id` must be used instead. | -
+

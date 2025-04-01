@@ -384,6 +384,13 @@ func PreCheckConfluentAWSPrivatelink(tb testing.TB) {
 		os.Getenv("CONFLUENT_CLOUD_API_SECRET") == "" ||
 		os.Getenv("CONFLUENT_CLOUD_NETWORK_ID") == "" ||
 		os.Getenv("CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID") == "" {
-		tb.Fatal("`CONFLUENT_CLOUD_API_KEY`, `CONFLUENT_CLOUD_API_SECRET`, `CONFLUENT_CLOUD_NETWORK_ID`, and `CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID` must be set for Cloud Backup Snapshot Export Bucket acceptance testing")
+		tb.Fatal("`CONFLUENT_CLOUD_API_KEY`, `CONFLUENT_CLOUD_API_SECRET`, `CONFLUENT_CLOUD_NETWORK_ID`, and `CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID` must be set for AWS PrivateLink acceptance testing")
+	}
+}
+
+func PreCheckAwsMsk(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("AWS_MSK_ARN") == "" {
+		tb.Fatal("`AWS_MSK_ARN` must be set for AWS MSK acceptance testing")
 	}
 }

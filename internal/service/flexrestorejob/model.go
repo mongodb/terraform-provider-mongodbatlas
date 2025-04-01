@@ -1,7 +1,7 @@
 package flexrestorejob
 
 import (
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 

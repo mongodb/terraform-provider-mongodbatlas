@@ -7,7 +7,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 )
 
 const (
@@ -134,14 +134,14 @@ func TestMetricThresholdSDKToTFModel(t *testing.T) {
 func TestThresholdConfigSDKToTFModel(t *testing.T) {
 	testCases := []struct {
 		name                        string
-		SDKResp                     *admin.GreaterThanRawThreshold
+		SDKResp                     *admin.StreamProcessorMetricThreshold
 		currentStateThresholdConfig []alertconfiguration.TfThresholdConfigModel
 		expectedTFModel             []alertconfiguration.TfThresholdConfigModel
 	}{
 		{
 			name: "Complete SDK response",
-			SDKResp: &admin.GreaterThanRawThreshold{
-				Threshold: admin.Int64PtrToIntPtr(admin.PtrInt64(1.0)),
+			SDKResp: &admin.StreamProcessorMetricThreshold{
+				Threshold: admin.PtrFloat64(1.0),
 				Operator:  admin.PtrString("LESS_THAN"),
 				Units:     admin.PtrString("HOURS"),
 			},
@@ -302,7 +302,7 @@ func TestNotificationTFModelToSDK(t *testing.T) {
 func TestThresholdTFModelToSDK(t *testing.T) {
 	testCases := []struct {
 		name           string
-		expectedSDKReq *admin.GreaterThanRawThreshold
+		expectedSDKReq *admin.StreamProcessorMetricThreshold
 		tfModel        []alertconfiguration.TfThresholdConfigModel
 	}{
 		{
@@ -319,8 +319,8 @@ func TestThresholdTFModelToSDK(t *testing.T) {
 					Units:     types.StringValue("MINUTES"),
 				},
 			},
-			expectedSDKReq: &admin.GreaterThanRawThreshold{
-				Threshold: admin.Int64PtrToIntPtr(admin.PtrInt64(1.0)),
+			expectedSDKReq: &admin.StreamProcessorMetricThreshold{
+				Threshold: admin.PtrFloat64(1.0),
 				Operator:  admin.PtrString("LESS_THAN"),
 				Units:     admin.PtrString("MINUTES"),
 			},

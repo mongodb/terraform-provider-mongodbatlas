@@ -7,8 +7,14 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-func TestMigStreamPrivatelinkEndpoint_basic(t *testing.T) {
+func TestMigStreamPrivatelinkEndpointConfluent_basic(t *testing.T) {
 	acc.SkipTestForCI(t)                // needs confluent cloud resources
 	mig.SkipIfVersionBelow(t, "1.25.0") // when resource 1st released
-	mig.CreateTestAndRunUseExternalProviderNonParallel(t, basicTestCase(t), mig.ExternalProvidersWithConfluent(), nil)
+	mig.CreateTestAndRunUseExternalProviderNonParallel(t, basicConfluentTestCase(t, true), mig.ExternalProvidersWithConfluent(), nil)
+}
+
+func TestMigStreamPrivatelinkEndpointMsk_basic(t *testing.T) {
+	acc.SkipTestForCI(t) // needs an AWS MSK cluster
+	mig.SkipIfVersionBelow(t, "1.30.0")
+	mig.CreateTestAndRunUseExternalProviderNonParallel(t, basicMskTestCase(t), mig.ExternalProvidersWithAWS(), nil)
 }

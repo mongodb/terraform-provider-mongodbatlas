@@ -23,12 +23,14 @@ const (
 )
 
 type MockHTTPDataConfig struct {
-	SideEffect           func() error
-	IsDiffSkipSuffixes   []string
-	IsDiffMustSubstrings []string
-	QueryVars            []string
-	AllowMissingRequests bool
-	AllowOutOfOrder      bool
+	RunBeforeEach        func() error         // Run by TestCase.PreCheck. Useful for reducing retry timeouts.
+	RequestHandler       ManualRequestHandler // Allow inspecting or overriding mocking behavior. Can be used to return 404 when a test has completed.
+	FilePathOverride     string               // Read mock data file from specific filepath, otherwise using the test name in `MockConfigFilePath` to find mocked responses.
+	IsDiffSkipSuffixes   []string             // Can be used when a PATCH/POST request is creating noise for diffs, for example :validate endpoints.
+	IsDiffMustSubstrings []string             // Only include diff request for specific substrings, for example /clusters (avoids project create requests)
+	QueryVars            []string             // Substitute this query vars. Useful when differentiating responses based on query args, for example ?providerName=AWS/AZURE returns different responses
+	AllowMissingRequests bool                 // When false will require all API calls to be made.
+	AllowOutOfOrder      bool                 // When true will allow a GET request returned after a POST to be returned before the POST.
 }
 
 func (c MockHTTPDataConfig) WithAllowOutOfOrder() MockHTTPDataConfig { //nolint: gocritic // Want each test run to have its own config (hugeParam: c is heavy (112 bytes); consider passing it by pointer)
@@ -101,7 +103,12 @@ func MockConfigFilePath(t *testing.T) string {
 func ReadMockData(t *testing.T, tfConfigs []string) *MockHTTPData {
 	t.Helper()
 	httpDataPath := MockConfigFilePath(t)
-	data, err := ParseTestDataConfigYAML(httpDataPath)
+	return ReadMockDataFile(t, httpDataPath, tfConfigs)
+}
+
+func ReadMockDataFile(t *testing.T, file string, tfConfigs []string) *MockHTTPData {
+	t.Helper()
+	data, err := ParseTestDataConfigYAML(file)
 	require.NoError(t, err)
 	oldVariables := data.Variables
 	data.Variables = map[string]string{}
@@ -136,16 +143,25 @@ func UpdateMockDataDiffRequest(t *testing.T, stepIndex, diffRequestIndex int, ne
 func enableReplayForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) error {
 	t.Helper()
 	tfConfigs := extractAndNormalizeConfig(t, testCase)
-	data := ReadMockData(t, tfConfigs)
+	var data *MockHTTPData
+	if config.FilePathOverride != "" {
+		data = ReadMockDataFile(t, config.FilePathOverride, tfConfigs)
+	} else {
+		data = ReadMockData(t, tfConfigs)
+	}
 	roundTripper, mockRoundTripper := NewMockRoundTripper(t, config, data)
 	httpClientModifier := mockClientModifier{config: config, mockRoundTripper: roundTripper}
+	testCase.IsUnitTest = true
 	testCase.ProtoV6ProviderFactories = TestAccProviderV6FactoriesWithMock(t, &httpClientModifier)
 	testCase.PreCheck = func() {
-		if config.SideEffect != nil {
-			require.NoError(t, config.SideEffect())
+		if config.RunBeforeEach != nil {
+			// Mock Configs can share RunBeforeEach, using lock to avoid race conditions.
+			accClientLock.Lock()
+			defer accClientLock.Unlock()
+			require.NoError(t, config.RunBeforeEach())
 		}
 	}
-	require.Equal(t, len(testCase.Steps), len(data.Steps), "Number of steps in test case and mock data should match")
+	require.Len(t, testCase.Steps, len(data.Steps), "Number of steps in test case and mock data should match")
 	checkFunc := mockRoundTripper.CheckStepRequests
 	for i := range testCase.Steps {
 		step := &testCase.Steps[i]

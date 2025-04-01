@@ -2,15 +2,36 @@
 
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_resource_policies: Adds support for the new `description` field ([#3214](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3214))
+* data-source/mongodbatlas_resource_policy: Adds support for the new `description` field ([#3214](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3214))
+* resource/mongodbatlas_resource_policy: Adds support for the new `description` field ([#3214](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3214))
+* resource/mongodbatlas_stream_processor: Adds update support ([#3180](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3180))
+
+## 1.31.0 (March 25, 2025)
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_organization: Adds support for `skip_default_alerts_settings` setting ([#2933](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2933))
+* data-source/mongodbatlas_organizations: Adds support for `skip_default_alerts_settings` setting ([#2933](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2933))
+* resource/mongodbatlas_organization: Adds support for `skip_default_alerts_settings` setting ([#2933](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2933))
+
+## 1.30.0 (March 20, 2025)
+
+ENHANCEMENTS:
+
 * data-source/mongodbatlas_stream_connection: Adds `Https` connection ([#3150](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3150))
 * data-source/mongodbatlas_stream_connections: Adds `Https` connection ([#3150](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3150))
 * resource/mongodbatlas_cloud_backup_snapshot: Adds `timeouts` attribute for create operation ([#3171](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3171))
 * resource/mongodbatlas_cloud_backup_snapshot: Adjusts creation default timeout from 20 minutes to 1 hour ([#3171](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3171))
 * resource/mongodbatlas_stream_connection: Adds `Https` connection ([#3150](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3150))
+* resource/mongodbatlas_stream_privatelink_endpoint: Adds `error_message`, `interface_endpoint_name`, and `provider_account_id` attributes ([#3161](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3161))
+* resource/mongodbatlas_stream_privatelink_endpoint: Adds support for AWS MSK clusters ([#3179](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3179))
 
 BUG FIXES:
 
+* data-source/mongodbatlas_global_cluster_config: Adds support for reading clusters with independent shard scaling ([#3177](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3177))
 * resource/mongodbatlas_advanced_cluster (preview provider 2.0.0): Avoids error when removing `read_only_specs` in `region_configs` that does not define `electable_specs` ([#3162](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3162))
+* resource/mongodbatlas_global_cluster_config: Adds support for reading clusters with independent shard scaling ([#3177](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3177))
 
 ## 1.29.0 (March 12, 2025)
 
