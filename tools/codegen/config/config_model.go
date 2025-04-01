@@ -15,7 +15,7 @@ type Resource struct {
 
 type APIOperation struct {
 	Path   string `yaml:"path"`
-	Method string `yaml:"method"`
+	Method string `yaml:"method"` // currently not being used
 }
 
 type SchemaOptions struct {
