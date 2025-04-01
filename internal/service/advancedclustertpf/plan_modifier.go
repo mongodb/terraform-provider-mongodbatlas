@@ -83,8 +83,8 @@ func unknownReplacements(ctx context.Context, tfsdkState *tfsdk.State, tfsdkPlan
 
 func autoScalingReplaceUnknown(ctx context.Context, state attr.Value, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
 	// don't use auto_scaling or analytics_auto_scaling from state if it's not enabled as it doesn't need to be present in Update request payload
-	if req.Info.AutoScalingComputedUsed || req.Info.AutoScalingDiskUsed {
-		return state.(types.Object)
+	if req.Info.AutoScalingComputedUsed || req.Info.AutoScalingDiskUsed || !req.Changes.AttributeChanged("replication_specs") {
+		return state
 	}
 	return req.Unknown
 }
@@ -108,6 +108,9 @@ func parentRegionConfigs(ctx context.Context, path path.Path, differ *customplan
 func readOnlyReplaceUnknown(ctx context.Context, state attr.Value, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
 	if req.Info.IsShardingConfigUpgrade {
 		return req.Unknown
+	}
+	if !req.Changes.AttributeChanged("replication_specs") {
+		return state
 	}
 	stateParsed := conversion.TFModelObject[TFSpecsModel](ctx, state.(types.Object))
 	if stateParsed == nil {
@@ -146,6 +149,9 @@ func readOnlyReplaceUnknown(ctx context.Context, state attr.Value, req *custompl
 func analyticsAndElectableSpecsReplaceUnknown(ctx context.Context, state attr.Value, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
 	if req.Info.IsShardingConfigUpgrade {
 		return req.Unknown
+	}
+	if !req.Changes.AttributeChanged("replication_specs") {
+		return state
 	}
 	stateParsed := conversion.TFModelObject[TFSpecsModel](ctx, state.(types.Object))
 	// don't get analytics_specs from state if node_count is 0 to avoid possible ANALYTICS_INSTANCE_SIZE_MUST_MATCH and INSTANCE_SIZE_MUST_MATCH errors
