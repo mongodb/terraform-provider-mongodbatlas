@@ -6,6 +6,13 @@ resources:
     create:
       path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
       method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
+      method: DELETE
+    version_header: application/vnd.atlas.2023-01-01+json
 
   search_deployment:
     read:

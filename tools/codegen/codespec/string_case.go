@@ -16,6 +16,10 @@ func (snake SnakeCaseString) PascalCase() string {
 	return xstrings.ToPascalCase(string(snake))
 }
 
+func (snake SnakeCaseString) CamelCase() string {
+	return xstrings.ToCamelCase(string(snake))
+}
+
 func (snake SnakeCaseString) LowerCaseNoUnderscore() string {
 	return strings.ReplaceAll(string(snake), "_", "")
 }

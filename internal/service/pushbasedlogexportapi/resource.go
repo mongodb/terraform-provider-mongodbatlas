@@ -43,11 +43,11 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	var reqBody []byte // TODO handle conversion of TFModel to reqBody
 
 	pathParams := map[string]string{
-		// TODO define path params
+		"groupId": plan.GroupId.ValueString(),
 	}
 	apiResp, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
-		VersionHeader: "application/vnd.atlas.TODO-01-01+json",
-		RelativePath:  "/api/atlas/v2/TODO",
+		VersionHeader: "application/vnd.atlas.2023-01-01+json",
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
 		PathParams:    pathParams,
 		Method:        http.MethodPost,
 		Body:          reqBody,
@@ -75,8 +75,8 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		// TODO define path params
 	}
 	apiResp, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
-		VersionHeader: "application/vnd.atlas.TODO-01-01+json",
-		RelativePath:  "/api/atlas/v2/TODO",
+		VersionHeader: "application/vnd.atlas.2023-01-01+json",
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
 		PathParams:    pathParams,
 		Method:        http.MethodGet,
 	})
@@ -111,8 +111,8 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		// TODO define path params
 	}
 	if _, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
-		VersionHeader: "application/vnd.atlas.TODO-01-01+json",
-		RelativePath:  "/api/atlas/v2/TODO",
+		VersionHeader: "application/vnd.atlas.2023-01-01+json",
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
 		PathParams:    pathParams,
 		Method:        http.MethodDelete,
 	}); err != nil {

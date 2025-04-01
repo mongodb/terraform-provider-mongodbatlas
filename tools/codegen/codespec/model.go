@@ -16,10 +16,18 @@ type Model struct {
 }
 
 type Resource struct {
-	Schema *Schema
-	Name   SnakeCaseString
+	Schema     *Schema
+	Name       SnakeCaseString
+	Operations APIOperations
 }
 
+type APIOperations struct {
+	CreatePath    string
+	ReadPath      string
+	UpdatePath    string
+	DeletePath    string
+	VersionHeader string
+}
 type Schema struct {
 	Description        *string
 	DeprecationMessage *string

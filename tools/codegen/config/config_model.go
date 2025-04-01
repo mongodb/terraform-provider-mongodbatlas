@@ -9,6 +9,7 @@ type Resource struct {
 	Read          *APIOperation `yaml:"read"`
 	Update        *APIOperation `yaml:"update"`
 	Delete        *APIOperation `yaml:"delete"`
+	VersionHeader string        `yaml:"version_header"`
 	SchemaOptions SchemaOptions `yaml:"schema"`
 }
 

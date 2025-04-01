@@ -64,14 +64,26 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 		Attributes:         attributes,
 	}
 
+	operations := obtainOperations(resourceConfig) // paths and version header is grabbed from config
 	resource := &Resource{
-		Name:   name,
-		Schema: schema,
+		Name:       name,
+		Schema:     schema,
+		Operations: operations,
 	}
 
 	applyConfigSchemaOptions(resourceConfig, resource)
 
 	return resource
+}
+
+func obtainOperations(resourceConfig *config.Resource) APIOperations {
+	return APIOperations{
+		CreatePath:    resourceConfig.Create.Path,
+		ReadPath:      resourceConfig.Read.Path,
+		UpdatePath:    resourceConfig.Update.Path,
+		DeletePath:    resourceConfig.Delete.Path,
+		VersionHeader: resourceConfig.VersionHeader,
+	}
 }
 
 func pathParamsToAttributes(createOp *high.Operation) Attributes {
