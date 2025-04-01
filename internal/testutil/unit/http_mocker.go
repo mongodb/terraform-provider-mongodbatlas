@@ -161,7 +161,7 @@ func enableReplayForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase 
 			require.NoError(t, config.RunBeforeEach())
 		}
 	}
-	require.Equal(t, len(testCase.Steps), len(data.Steps), "Number of steps in test case and mock data should match")
+	require.Len(t, testCase.Steps, len(data.Steps), "Number of steps in test case and mock data should match")
 	checkFunc := mockRoundTripper.CheckStepRequests
 	for i := range testCase.Steps {
 		step := &testCase.Steps[i]

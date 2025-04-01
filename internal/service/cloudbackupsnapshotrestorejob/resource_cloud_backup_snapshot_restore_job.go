@@ -358,7 +358,7 @@ func validateDeliveryType(dt []any) error {
 	oplogInc, oplogIncOk := v["oplog_inc"]
 	isOpIncSet := oplogIncOk && oplogInc != nil && (oplogInc.(int) > 0)
 
-	if !isPITSet && !(isOpTSSet && isOpIncSet) {
+	if !isPITSet && (!isOpTSSet || !isOpIncSet) {
 		return fmt.Errorf("%q point_in_time_utc_seconds or oplog_ts and oplog_inc must be set", key)
 	}
 	if isPITSet && (isOpTSSet || isOpIncSet) {

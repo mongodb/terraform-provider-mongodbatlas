@@ -106,7 +106,7 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 	clusterName, clusterNameOK := d.GetOk("cluster_name")
 	indexID, indexIDOk := d.GetOk("index_id")
 
-	if !(projectIDOk && clusterNameOK && indexIDOk) {
+	if !projectIDOk || !clusterNameOK || !indexIDOk {
 		return diag.Errorf("project_id, cluster_name and index_id must be configured")
 	}
 

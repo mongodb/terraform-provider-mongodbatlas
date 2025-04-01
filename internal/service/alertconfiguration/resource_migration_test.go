@@ -12,7 +12,7 @@ import (
 func TestMigConfigRSAlertConfiguration_withNotificationsMetricThreshold(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
-		config    = configBasicRS(projectID, true)
+		config    = configBasic(projectID, true)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -36,7 +36,7 @@ func TestMigConfigRSAlertConfiguration_withNotificationsMetricThreshold(t *testi
 func TestMigConfigRSAlertConfiguration_withThreshold(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
-		config    = configWithThresholdUpdated(projectID, true, 1)
+		config    = configWithThreshold(projectID, true, 1)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

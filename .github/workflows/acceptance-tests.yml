@@ -97,7 +97,7 @@ jobs:
 
 
     with:
-      terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}
+      terraform_version: ${{ inputs.terraform_version || '1.11.x' }}
       provider_version: ${{ inputs.provider_version }}
       ref: ${{ inputs.ref }}
       test_group: ${{ inputs.test_group }}

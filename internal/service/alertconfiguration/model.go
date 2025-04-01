@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20241113005/admin" // CLOUDP-307850: breaking change in v20250312 of the SDK
+	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -55,16 +55,16 @@ func NewNotificationList(list []TfNotificationModel) (*[]admin.AlertsNotificatio
 	return &notifications, nil
 }
 
-func NewThreshold(tfThresholdConfigSlice []TfThresholdConfigModel) *admin.GreaterThanRawThreshold {
+func NewThreshold(tfThresholdConfigSlice []TfThresholdConfigModel) *admin.StreamProcessorMetricThreshold {
 	if len(tfThresholdConfigSlice) == 0 {
 		return nil
 	}
 
 	v := tfThresholdConfigSlice[0]
-	return &admin.GreaterThanRawThreshold{
+	return &admin.StreamProcessorMetricThreshold{
 		Operator:  v.Operator.ValueStringPointer(),
 		Units:     v.Units.ValueStringPointer(),
-		Threshold: conversion.Pointer(int(v.Threshold.ValueFloat64())),
+		Threshold: conversion.Pointer(v.Threshold.ValueFloat64()),
 	}
 }
 
@@ -226,7 +226,7 @@ func NewTFMetricThresholdConfigModel(t *admin.FlexClusterMetricThreshold, currSt
 	return []TfMetricThresholdConfigModel{newState}
 }
 
-func NewTFThresholdConfigModel(t *admin.GreaterThanRawThreshold, currStateSlice []TfThresholdConfigModel) []TfThresholdConfigModel {
+func NewTFThresholdConfigModel(t *admin.StreamProcessorMetricThreshold, currStateSlice []TfThresholdConfigModel) []TfThresholdConfigModel {
 	if t == nil {
 		return []TfThresholdConfigModel{}
 	}
