@@ -72,7 +72,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	}
 
 	pathParams := map[string]string{
-		// TODO define path params
+		"groupId": plan.GroupId.ValueString(),
 	}
 	apiResp, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
 		VersionHeader: "application/vnd.atlas.2023-01-01+json",
@@ -108,7 +108,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	}
 
 	pathParams := map[string]string{
-		// TODO define path params
+		"groupId": state.GroupId.ValueString(),
 	}
 	if _, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
 		VersionHeader: "application/vnd.atlas.2023-01-01+json",

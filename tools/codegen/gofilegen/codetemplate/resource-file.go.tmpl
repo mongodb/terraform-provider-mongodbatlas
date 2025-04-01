@@ -109,7 +109,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	}
 
 	pathParams := map[string]string{ {{range .APIOperations.Delete.PathParams }}
-		"{{ .CamelCaseName }}": plan.{{ .PascalCaseName }}.ValueString(),
+		"{{ .CamelCaseName }}": state.{{ .PascalCaseName }}.ValueString(),
 	{{- end }}
 	}
 	if _, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{

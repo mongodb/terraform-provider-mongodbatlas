@@ -1,5 +1,7 @@
 package codespec
 
+import "github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
+
 type ElemType int
 
 const (
@@ -17,7 +19,7 @@ type Model struct {
 
 type Resource struct {
 	Schema     *Schema
-	Name       SnakeCaseString
+	Name       stringcase.SnakeCaseString
 	Operations APIOperations
 }
 
@@ -55,7 +57,7 @@ type Attribute struct {
 	Timeouts     *TimeoutsAttribute
 
 	Description              *string
-	Name                     SnakeCaseString
+	Name                     stringcase.SnakeCaseString
 	DeprecationMessage       *string
 	Sensitive                *bool
 	ComputedOptionalRequired ComputedOptionalRequired

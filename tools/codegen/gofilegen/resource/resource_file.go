@@ -2,9 +2,11 @@ package resource
 
 import (
 	"go/format"
+	"regexp"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/codetemplate"
+	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
 )
 
 func GenerateGoCode(input *codespec.Resource) string {
@@ -12,42 +14,22 @@ func GenerateGoCode(input *codespec.Resource) string {
 		PackageName:  input.Name.LowerCaseNoUnderscore(),
 		ResourceName: input.Name.SnakeCase(),
 		APIOperations: codetemplate.APIOperations{
-			VersionHeader: "application/vnd.atlas.2023-01-01+json",
+			VersionHeader: input.Operations.VersionHeader,
 			Create: codetemplate.Operation{
-				Path: "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
-				PathParams: []codetemplate.Param{
-					{
-						PascalCaseName: "GroupId",
-						CamelCaseName:  "groupId",
-					},
-				},
+				Path:       input.Operations.CreatePath,
+				PathParams: obtainPathParams(input.Operations.CreatePath),
 			},
 			Update: codetemplate.Operation{
-				Path: "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
-				PathParams: []codetemplate.Param{
-					{
-						PascalCaseName: "GroupId",
-						CamelCaseName:  "groupId",
-					},
-				},
+				Path:       input.Operations.UpdatePath,
+				PathParams: obtainPathParams(input.Operations.UpdatePath),
 			},
 			Read: codetemplate.Operation{
-				Path: "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
-				PathParams: []codetemplate.Param{
-					{
-						PascalCaseName: "GroupId",
-						CamelCaseName:  "groupId",
-					},
-				},
+				Path:       input.Operations.ReadPath,
+				PathParams: obtainPathParams(input.Operations.ReadPath),
 			},
 			Delete: codetemplate.Operation{
-				Path: "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
-				PathParams: []codetemplate.Param{
-					{
-						PascalCaseName: "GroupId",
-						CamelCaseName:  "groupId",
-					},
-				},
+				Path:       input.Operations.DeletePath,
+				PathParams: obtainPathParams(input.Operations.DeletePath),
 			},
 		},
 	}
@@ -58,4 +40,23 @@ func GenerateGoCode(input *codespec.Resource) string {
 		panic(err)
 	}
 	return string(formattedResult)
+}
+
+// obtains path parameters for URL, this can evetually be explicitly defined in the intermediate model if additional information is required
+func obtainPathParams(s string) []codetemplate.Param {
+	params := []codetemplate.Param{}
+
+	// Use regex to find all {paramName} patterns
+	re := regexp.MustCompile(`\{([^}]+)\}`)
+	matches := re.FindAllStringSubmatch(s, -1)
+
+	for _, match := range matches {
+		paramName := match[1]
+		params = append(params, codetemplate.Param{
+			CamelCaseName:  paramName,
+			PascalCaseName: stringcase.FromCamelCase(paramName).PascalCase(),
+		})
+	}
+
+	return params
 }
