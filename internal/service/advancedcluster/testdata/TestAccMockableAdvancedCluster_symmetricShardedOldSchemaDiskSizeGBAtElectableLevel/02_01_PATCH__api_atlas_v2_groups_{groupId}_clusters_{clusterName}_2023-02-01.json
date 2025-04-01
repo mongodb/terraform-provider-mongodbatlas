@@ -11,6 +11,15 @@
       "instanceSize": "M10",
       "nodeCount": 0
      },
+     "autoScaling": {
+      "compute": {
+       "enabled": false,
+       "scaleDownEnabled": false
+      },
+      "diskGB": {
+       "enabled": false
+      }
+     },
      "electableSpecs": {
       "diskIOPS": 3000,
       "ebsVolumeType": "STANDARD",
