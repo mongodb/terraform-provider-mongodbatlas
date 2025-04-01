@@ -84,6 +84,10 @@ func TestMockPlanChecks_ClusterReplicasetOneRegion(t *testing.T) {
 				Checks: []plancheck.PlanCheck{
 					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
 					plancheck.ExpectUnknownValue(resourceName, tfjsonpath.New("mongo_db_version")),
+					plancheck.ExpectKnownValue(resourceName, regionConfig0_0.AtMapKey("analytics_specs"), specInstanceSizeNodeCount("M10", 0)),
+					plancheck.ExpectKnownValue(resourceName, regionConfig0_0.AtMapKey("read_only_specs"), specInstanceSizeNodeCount("M10", 0)),
+					plancheck.ExpectKnownValue(resourceName, regionConfig0_0.AtMapKey("analytics_auto_scaling"), knownvalue.Null()),
+					plancheck.ExpectKnownValue(resourceName, regionConfig0_0.AtMapKey("auto_scaling"), autoScalingKnownValue(false, true, false, "", "")),
 				},
 			},
 			{

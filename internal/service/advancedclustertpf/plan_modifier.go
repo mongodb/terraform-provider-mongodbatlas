@@ -20,7 +20,6 @@ var (
 		"electable_specs":        analyticsAndElectableSpecsReplaceUnknown,
 		"auto_scaling":           autoScalingReplaceUnknown,
 		"analytics_auto_scaling": autoScalingReplaceUnknown,
-		// TODO: Add the other computed attributes
 	}
 	// Change mappings uses `attribute_name`, it doesn't care about the nested level.
 	// However, it doesn't stop calling `replication_specs.**.attribute_name`.
@@ -31,7 +30,7 @@ var (
 		"cluster_type":           {"config_server_management_mode", "config_server_type"}, // computed values of config server change when REPLICA_SET changes to SHARDED
 		"expiration_date":        {"version"},                                             // pinned_fcv
 	}
-	attributeReplicationSpecChangeMapping = map[string][]string{ //nolint:unused // Add logic to use this in CLOUDP-308783
+	attributeReplicationSpecChangeMapping = map[string][]string{
 		// All these fields can exist in specs that are computed, therefore, it is not safe to use them when they have changed.
 		"disk_iops":       {},
 		"ebs_volume_type": {},
@@ -84,7 +83,7 @@ func unknownReplacements(ctx context.Context, tfsdkState *tfsdk.State, tfsdkPlan
 
 func autoScalingReplaceUnknown(ctx context.Context, state attr.Value, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
 	// don't use auto_scaling or analytics_auto_scaling from state if it's not enabled as it doesn't need to be present in Update request payload
-	if req.Info.AutoScalingComputedUsed || req.Info.AutoScalingDiskUsed {
+	if req.Info.AutoScalingComputedUsed || req.Info.AutoScalingDiskUsed || !req.Changes.AttributeChanged("replication_specs") {
 		return state
 	}
 	return req.Unknown
@@ -109,6 +108,9 @@ func parentRegionConfigs(ctx context.Context, path path.Path, differ *customplan
 func readOnlyReplaceUnknown(ctx context.Context, state attr.Value, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
 	if req.Info.IsShardingConfigUpgrade {
 		return req.Unknown
+	}
+	if !req.Changes.AttributeChanged("replication_specs") {
+		return state
 	}
 	stateParsed := conversion.TFModelObject[TFSpecsModel](ctx, state.(types.Object))
 	if stateParsed == nil {
@@ -148,6 +150,9 @@ func analyticsAndElectableSpecsReplaceUnknown(ctx context.Context, state attr.Va
 	if req.Info.IsShardingConfigUpgrade {
 		return req.Unknown
 	}
+	if !req.Changes.AttributeChanged("replication_specs") {
+		return state
+	}
 	stateParsed := conversion.TFModelObject[TFSpecsModel](ctx, state.(types.Object))
 	// don't get analytics_specs from state if node_count is 0 to avoid possible ANALYTICS_INSTANCE_SIZE_MUST_MATCH and INSTANCE_SIZE_MUST_MATCH errors
 	if stateParsed == nil || stateParsed.NodeCount.ValueInt64() == 0 {
@@ -168,13 +173,34 @@ func ensureSpecRespectChanges(ctx context.Context, spec *TFSpecsModel, req *cust
 }
 
 func replicationSpecsKeepUnknownWhenChanged(ctx context.Context, state attr.Value, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) []string {
-	if !conversion.HasAncestor(req.Path, path.Root("replication_specs")) {
+	rootPath := path.Root("replication_specs")
+	if !conversion.HasAncestor(req.Path, rootPath) {
 		return nil
 	}
-	if req.Changes.AttributeChanged("replication_specs") {
-		return []string{req.AttributeName}
+	if !req.Changes.PathChanged(rootPath) {
+		return nil
 	}
-	return nil
+	keepUnknowns := []string{}
+	if req.Info.UsingNewShardingConfig {
+		keepUnknowns = append(keepUnknowns, "id") // When using new sharding config, the legacy id must never be copied
+	}
+	// for isShardingConfigUpgrade, it will be empty in the plan, so we need to keep it unknown
+	// for listLenChanges, it might be an insertion in the middle of replication spec leading to wrong value from state copied
+	if req.Info.IsShardingConfigUpgrade || req.Changes.ListLenChanged(rootPath) {
+		keepUnknowns = append(keepUnknowns, "external_id")
+	}
+	replicationSpecAncestor, diags := conversion.AncestorPathWithIndex(req.Path, "replication_specs")
+	if diags.HasError() {
+		return keepUnknowns
+	}
+	if !req.Changes.PathChanged(replicationSpecAncestor) {
+		return keepUnknowns
+	}
+	if req.Changes.ListLenChanged(replicationSpecAncestor.AtName("region_configs")) {
+		keepUnknowns = append(keepUnknowns, "container_id")
+	}
+	keepUnknowns = append(keepUnknowns, req.Changes.KeepUnknown(attributeReplicationSpecChangeMapping)...)
+	return keepUnknowns
 }
 
 func findDefinedElectableSpecInReplicationSpec(ctx context.Context, regionConfigs []TFRegionConfigsModel) *TFSpecsModel {
