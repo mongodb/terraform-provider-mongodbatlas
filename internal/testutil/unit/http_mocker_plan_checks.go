@@ -22,6 +22,7 @@ import (
 const (
 	ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs = "ClusterTwoRepSpecsWithAutoScalingAndSpecs"
 	ImportNameClusterReplicasetOneRegion                = "ClusterReplicasetOneRegion"
+	ImportNameClusterReplicasetNoAutoScaling            = "ClusterReplicasetNoAutoScaling"
 	ImportNameTwoRepSpecsMultipleRegions                = "TwoRepSpecsMultipleRegions"
 	MockedClusterName                                   = "mocked-cluster"
 	MockedProjectID                                     = "111111111111111111111111"
@@ -35,12 +36,14 @@ var (
 	importIDMapping = map[string]string{
 		ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs: clusterImportID,
 		ImportNameClusterReplicasetOneRegion:                clusterImportID,
+		ImportNameClusterReplicasetNoAutoScaling:            clusterImportID,
 		ImportNameTwoRepSpecsMultipleRegions:                clusterImportID,
 	}
 	// later this could be inferred when reading the src main.tf
 	importResourceNameMapping = map[string]string{
 		ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs: "mongodbatlas_advanced_cluster.test",
 		ImportNameClusterReplicasetOneRegion:                "mongodbatlas_advanced_cluster.test",
+		ImportNameClusterReplicasetNoAutoScaling:            "mongodbatlas_advanced_cluster.test",
 		ImportNameTwoRepSpecsMultipleRegions:                "mongodbatlas_advanced_cluster.test",
 	}
 )

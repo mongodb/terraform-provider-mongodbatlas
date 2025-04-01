@@ -58,6 +58,13 @@ func TestConvertMockableTests(t *testing.T) {
 			SrcPackage:          pkgAdvancedCluster,
 			DestPackage:         pkgAdvancedClusterTPF,
 		},
+		unit.ImportNameClusterReplicasetNoAutoScaling: {
+			TestName:            "TestAccMockableAdvancedCluster_tenantUpgrade",
+			Step:                2,
+			VariableReplacments: clusterVariableReplacements,
+			SrcPackage:          pkgAdvancedCluster,
+			DestPackage:         pkgAdvancedClusterTPF,
+		},
 	} {
 		srcTestdata := path.Join(unit.PackagePath(config.SrcPackage), "testdata")
 		destTestdata := path.Join(unit.PackagePath(config.DestPackage), "testdata")

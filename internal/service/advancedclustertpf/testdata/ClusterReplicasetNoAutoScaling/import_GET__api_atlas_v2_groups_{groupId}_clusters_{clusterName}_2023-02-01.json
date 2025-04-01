@@ -1,0 +1,91 @@
+{
+ "advancedConfiguration": {
+  "customOpensslCipherConfigTls12": [],
+  "minimumEnabledTlsProtocol": "TLS1_2",
+  "tlsCipherConfigMode": "DEFAULT"
+ },
+ "backupEnabled": false,
+ "biConnector": {
+  "enabled": false,
+  "readPreference": "secondary"
+ },
+ "clusterType": "REPLICASET",
+ "connectionStrings": {
+  "standard": "mongodb://ac-q72bhe5-shard-00-00.mgdq5wj.mongodb-dev.net:27017,ac-q72bhe5-shard-00-01.mgdq5wj.mongodb-dev.net:27017,ac-q72bhe5-shard-00-02.mgdq5wj.mongodb-dev.net:27017/?ssl=true\u0026authSource=admin\u0026replicaSet=atlas-rb3umh-shard-0",
+  "standardSrv": "mongodb+srv://test-acc-tf-c-381594904.mgdq5wj.mongodb-dev.net"
+ },
+ "createDate": "2025-03-27T17:59:08Z",
+ "diskSizeGB": 10,
+ "encryptionAtRestProvider": "NONE",
+ "globalClusterSelfManagedSharding": false,
+ "groupId": "{groupId}",
+ "id": "67e591ec71b0e316715fb2ec",
+ "labels": [],
+ "links": [
+  {
+   "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}",
+   "rel": "self"
+  },
+  {
+   "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs",
+   "rel": "https://cloud.mongodb.com/restoreJobs"
+  },
+  {
+   "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots",
+   "rel": "https://cloud.mongodb.com/snapshots"
+  }
+ ],
+ "mongoDBMajorVersion": "8.0",
+ "mongoDBVersion": "8.0.6",
+ "name": "{clusterName}",
+ "paused": false,
+ "pitEnabled": false,
+ "replicationSpecs": [
+  {
+   "id": "67e591ec71b0e316715fb2e2",
+   "numShards": 1,
+   "regionConfigs": [
+    {
+     "analyticsSpecs": {
+      "diskIOPS": 3000,
+      "ebsVolumeType": "STANDARD",
+      "instanceSize": "M10",
+      "nodeCount": 0
+     },
+     "autoScaling": {
+      "compute": {
+       "enabled": false,
+       "predictiveEnabled": false,
+       "scaleDownEnabled": false
+      },
+      "diskGB": {
+       "enabled": false
+      }
+     },
+     "electableSpecs": {
+      "diskIOPS": 3000,
+      "ebsVolumeType": "STANDARD",
+      "instanceSize": "M10",
+      "nodeCount": 3
+     },
+     "priority": 7,
+     "providerName": "AWS",
+     "readOnlySpecs": {
+      "diskIOPS": 3000,
+      "ebsVolumeType": "STANDARD",
+      "instanceSize": "M10",
+      "nodeCount": 0
+     },
+     "regionName": "US_EAST_1"
+    }
+   ],
+   "zoneId": "67e591ec71b0e316715fb2ea",
+   "zoneName": "Zone 1"
+  }
+ ],
+ "rootCertType": "ISRGROOTX1",
+ "stateName": "IDLE",
+ "tags": [],
+ "terminationProtectionEnabled": false,
+ "versionReleaseSystem": "LTS"
+}
