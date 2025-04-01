@@ -79,6 +79,43 @@ func unknownReplacements(ctx context.Context, tfsdkState *tfsdk.State, tfsdkPlan
 	}
 	unknownReplacements.AddKeepUnknownsExtraCall(replicationSpecsKeepUnknownWhenChanged)
 	unknownReplacements.ApplyReplacements(ctx, diags)
+	if !computedUsed && !diskUsed {
+		addEmptyAutoScaling(ctx, diags, tfsdkPlan, unknownReplacements.Differ)
+	}
+}
+
+func addEmptyAutoScaling(ctx context.Context, diags *diag.Diagnostics, tfsdkPlan *tfsdk.Plan, differ *customplanmodifier.PlanModifyDiffer) {
+	autoScalings := path.Root("replication_specs").Expression().AtAnyListIndex().AtName("region_configs").AtAnyListIndex().AtName("auto_scaling")
+	defaultFalse := TFAutoScalingModel{
+		ComputeEnabled:          types.BoolValue(false),
+		DiskGBEnabled:           types.BoolValue(false),
+		ComputeMaxInstanceSize:  types.StringValue(""),
+		ComputeMinInstanceSize:  types.StringValue(""),
+		ComputeScaleDownEnabled: types.BoolValue(false),
+	}
+	paths, localDiags := tfsdkPlan.PathMatches(ctx, autoScalings)
+	if localDiags.HasError() {
+		tflog.Error(ctx, conversion.FormatDiags(&localDiags))
+		return
+	}
+	for _, p := range paths {
+		autoScalingPlan := customplanmodifier.ReadPlanStructValue[TFAutoScalingModel](ctx, differ, p)
+		if autoScalingPlan == nil { // auto_scaling is not defined in plan
+			customplanmodifier.UpdatePlanValue(ctx, diags, differ, p, conversion.AsObjectValue(ctx, &defaultFalse, AutoScalingObjType.AttrTypes))
+		}
+	}
+	analyticsAutoScalings := path.Root("replication_specs").Expression().AtAnyListIndex().AtName("region_configs").AtAnyListIndex().AtName("analytics_auto_scaling")
+	analyticsAutoScalingPaths, localDiags := tfsdkPlan.PathMatches(ctx, analyticsAutoScalings)
+	if localDiags.HasError() {
+		tflog.Error(ctx, conversion.FormatDiags(&localDiags))
+		return
+	}
+	for _, p := range analyticsAutoScalingPaths {
+		analyticsAutoScalingPlan := customplanmodifier.ReadPlanStructValue[TFAutoScalingModel](ctx, differ, p)
+		if analyticsAutoScalingPlan == nil { // analytics_auto_scaling is not defined in plan
+			customplanmodifier.UpdatePlanValue(ctx, diags, differ, p, types.ObjectNull(AutoScalingObjType.AttrTypes))
+		}
+	}
 }
 
 func autoScalingReplaceUnknown(ctx context.Context, state attr.Value, req *customplanmodifier.UnknownReplacementRequest[PlanModifyResourceInfo]) attr.Value {
