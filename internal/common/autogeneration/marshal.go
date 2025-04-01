@@ -11,6 +11,7 @@ import (
 )
 
 // Unmarshal gets a JSON (e.g. from an Atlas response) and unmarshals it into a Terraform model.
+// It supports the following Terraform model types: String, Bool, Int64, Float64.
 func Unmarshal(raw []byte, dest any) error {
 	var src map[string]any
 	if err := json.Unmarshal(raw, &src); err != nil {
