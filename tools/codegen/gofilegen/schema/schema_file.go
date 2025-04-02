@@ -7,7 +7,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/codetemplate"
 )
 
-func GenerateGoCode(input codespec.Resource) string {
+func GenerateGoCode(input *codespec.Resource) string {
 	schemaAttrs := GenerateSchemaAttributes(input.Schema.Attributes)
 	models := GenerateTypedModels(input.Schema.Attributes)
 

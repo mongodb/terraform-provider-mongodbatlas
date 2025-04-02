@@ -9,12 +9,13 @@ type Resource struct {
 	Read          *APIOperation `yaml:"read"`
 	Update        *APIOperation `yaml:"update"`
 	Delete        *APIOperation `yaml:"delete"`
+	VersionHeader string        `yaml:"version_header"` // when not defined latest version defined in API Spec of the resource is used
 	SchemaOptions SchemaOptions `yaml:"schema"`
 }
 
 type APIOperation struct {
 	Path   string `yaml:"path"`
-	Method string `yaml:"method"`
+	Method string `yaml:"method"` // currently not being used
 }
 
 type SchemaOptions struct {
