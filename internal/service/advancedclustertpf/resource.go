@@ -178,7 +178,6 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	AddAdvancedConfig(ctx, modelOut, advConfig, legacyAdvConfig, clusterResp.AdvancedConfiguration, diags) // TODO: check if this is required, updateModelAdvancedConfig already calls this
 	diags.Append(resp.State.Set(ctx, modelOut)...)
 }
 

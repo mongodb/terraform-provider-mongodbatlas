@@ -820,11 +820,6 @@ func setRootFields(d *schema.ResourceData, cluster *admin.ClusterDescription2024
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "pinned_fcv", clusterName, err))
 	}
 
-	// TODO: set adv_config
-	// if err := d.Set("pinned_fcv", FlattenPinnedFCV(cluster)); err != nil {
-	// 	return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "pinned_fcv", clusterName, err))
-	// }
-
 	return nil
 }
 
@@ -945,7 +940,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			}
 			waitOnUpdate = true
 		}
-		if d.HasChange("replica_set_scaling_strategy") || d.HasChange("redact_client_log_data") || d.HasChange("config_server_management_mode") || d.HasChange("advanced_configuration") {
+		if d.HasChange("replica_set_scaling_strategy") || d.HasChange("redact_client_log_data") || d.HasChange("config_server_management_mode") {
 			request := new(admin.ClusterDescription20240805)
 			if d.HasChange("replica_set_scaling_strategy") {
 				request.ReplicaSetScalingStrategy = conversion.Pointer(d.Get("replica_set_scaling_strategy").(string))
@@ -955,11 +950,6 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			}
 			if d.HasChange("config_server_management_mode") {
 				request.ConfigServerManagementMode = conversion.StringPtr(d.Get("config_server_management_mode").(string))
-			}
-			if d.HasChange("advanced_configuration") {
-				if aclist, ok := d.Get("advanced_configuration").([]any); ok && len(aclist) > 0 {
-					request.AdvancedConfiguration = expandClusterAdvancedConfiguration(d)
-				}
 			}
 
 			// can call latest API (2024-10-23 or newer) as replications specs (with nested autoscaling property) is not specified

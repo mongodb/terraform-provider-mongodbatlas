@@ -289,11 +289,11 @@ func singleShardedMultiCloudTestCase(t *testing.T, usePreviewProvider bool) reso
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedOldSchemaMultiCloud(t, usePreviewProvider, projectID, clusterName, 2, "M10", nil),
+				Config: configShardedOldSchemaMultiCloud(t, usePreviewProvider, projectID, clusterName, 1, "M10", nil),
 				Check:  checkShardedOldSchemaMultiCloud(usePreviewProvider, clusterName, 1, "M10", true, nil),
 			},
 			{
-				Config: configShardedOldSchemaMultiCloud(t, usePreviewProvider, projectID, clusterNameUpdated, 2, "M10", nil),
+				Config: configShardedOldSchemaMultiCloud(t, usePreviewProvider, projectID, clusterNameUpdated, 1, "M10", nil),
 				Check:  checkShardedOldSchemaMultiCloud(usePreviewProvider, clusterNameUpdated, 1, "M10", true, nil),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -1990,7 +1990,7 @@ func configShardedOldSchemaMultiCloud(t *testing.T, usePreviewProvider bool, pro
 			project_id   = %[1]q
 			name         = %[2]q
 			cluster_type = "SHARDED"
-			%[5]s			
+			%[5]s
 
 			replication_specs {
 				num_shards = %[3]d
