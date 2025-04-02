@@ -51,6 +51,13 @@ func TestConvertMockableTests(t *testing.T) {
 			SrcPackage:          pkgAdvancedCluster,
 			DestPackage:         pkgAdvancedClusterTPF,
 		},
+		unit.ImportNameTwoRepSpecsMultipleRegions: {
+			TestName:            "TestAccAdvancedCluster_removeBlocksFromConfig",
+			Step:                1,
+			VariableReplacments: clusterVariableReplacements,
+			SrcPackage:          pkgAdvancedCluster,
+			DestPackage:         pkgAdvancedClusterTPF,
+		},
 	} {
 		srcTestdata := path.Join(unit.PackagePath(config.SrcPackage), "testdata")
 		destTestdata := path.Join(unit.PackagePath(config.DestPackage), "testdata")

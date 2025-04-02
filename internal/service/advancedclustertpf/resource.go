@@ -101,19 +101,7 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() || req.Plan.Raw.IsFullyKnown() { // Return early unless it is an Update
 		return
 	}
-	var plan, state TFModel
-	diags := &resp.Diagnostics
-	diags.Append(req.Plan.Get(ctx, &plan)...)
-	diags.Append(req.State.Get(ctx, &state)...)
-	if diags.HasError() {
-		return
-	}
-
-	useStateForUnknowns(ctx, diags, &state, &plan)
-	if diags.HasError() {
-		return
-	}
-	diags.Append(resp.Plan.Set(ctx, plan)...)
+	unknownReplacements(ctx, &req.State, &resp.Plan, &resp.Diagnostics)
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
