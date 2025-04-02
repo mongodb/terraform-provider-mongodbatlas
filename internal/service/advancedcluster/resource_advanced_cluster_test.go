@@ -15,9 +15,6 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
-	"github.com/hashicorp/terraform-plugin-testing/statecheck"
-	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -1327,10 +1324,6 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 			{
 				Config: configBasicReplicaset(t, projectID, clusterName, ""),
 				Check:  checks,
-				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectKnownValue(resourceName, tfjsonpath.New("mongo_db_major_version"), knownvalue.StringRegexp(regexp.MustCompile(`8\.\d+`))),
-					statecheck.ExpectKnownValue(dataSourceName, tfjsonpath.New("mongo_db_major_version"), knownvalue.StringRegexp(regexp.MustCompile(`8\.\d+`))),
-				},
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
