@@ -12,13 +12,16 @@ import (
 func TestMarshalBasic(t *testing.T) {
 	model := struct {
 		AttributeString types.String `tfsdk:"attribute_string"`
+		AttributeInt    types.Int64  `tfsdk:"attribute_int"`
 	}{
 		AttributeString: types.StringValue("hello"),
+		AttributeInt:    types.Int64Value(1),
 	}
 	const (
 		expectedJSON = `
 			{
-				"attribute_string": "hello"
+				"attribute_string": "hello",
+				"attribute_int": 1
 			}
 		`
 	)
