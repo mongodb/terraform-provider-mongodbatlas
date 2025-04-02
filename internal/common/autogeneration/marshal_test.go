@@ -38,9 +38,32 @@ func TestMarshalBasic(t *testing.T) {
 			}
 		`
 	)
-	raw, err := autogeneration.Marshal(&model)
+	raw, err := autogeneration.Marshal(&model, false)
 	require.NoError(t, err)
 	assert.JSONEq(t, expectedJSON, string(raw))
+}
+
+func TestMarshalCreateOnly(t *testing.T) {
+	const (
+		expectedCreate   = `{ "attr": "val1", "attr_create_only": "val2" }`
+		expectedNoCreate = `{ "attr": "val1" }`
+	)
+	model := struct {
+		Attr           types.String `tfsdk:"attr"`
+		AttrCreateOnly types.String `tfsdk:"attr_create_only" autogeneration:"createonly"`
+		AttrOmit       types.String `tfsdk:"attr_omit" autogeneration:"omitjson"`
+	}{
+		Attr:           types.StringValue("val1"),
+		AttrCreateOnly: types.StringValue("val2"),
+		AttrOmit:       types.StringValue("omit"),
+	}
+	noCreate, errNoCreate := autogeneration.Marshal(&model, false)
+	require.NoError(t, errNoCreate)
+	assert.JSONEq(t, expectedNoCreate, string(noCreate))
+
+	create, errCreate := autogeneration.Marshal(&model, true)
+	require.NoError(t, errCreate)
+	assert.JSONEq(t, expectedCreate, string(create))
 }
 
 func TestMarshalUnsupported(t *testing.T) {
@@ -88,7 +111,7 @@ func TestMarshalUnsupported(t *testing.T) {
 	}
 	for name, model := range testCases {
 		t.Run(name, func(t *testing.T) {
-			raw, err := autogeneration.Marshal(model)
+			raw, err := autogeneration.Marshal(model, false)
 			require.Error(t, err)
 			assert.Nil(t, raw)
 		})
@@ -113,7 +136,7 @@ func TestMarshalPanic(t *testing.T) {
 	for name, model := range testCases {
 		t.Run(name, func(t *testing.T) {
 			assert.Panics(t, func() {
-				_, _ = autogeneration.Marshal(model)
+				_, _ = autogeneration.Marshal(model, false)
 			})
 		})
 	}

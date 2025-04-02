@@ -12,12 +12,13 @@ import (
 )
 
 const (
-	tagKeyAutogeneration = "autogeneration"
-	tagValueOmitJSON     = "omitjson"
+	tagKey           = "autogeneration"
+	tagValOmitJSON   = "omitjson"
+	tagValCreateOnly = "createonly"
 )
 
 // Marshal gets a Terraform model and marshals it into JSON (e.g. for an Atlas request).
-func Marshal(model any) ([]byte, error) {
+func Marshal(model any, isCreate bool) ([]byte, error) {
 	valModel := reflect.ValueOf(model)
 	if valModel.Kind() != reflect.Ptr {
 		panic("model must be pointer")
@@ -26,7 +27,7 @@ func Marshal(model any) ([]byte, error) {
 	if valModel.Kind() != reflect.Struct {
 		panic("model must be pointer to struct")
 	}
-	objJSON, err := marshalAttrs(valModel)
+	objJSON, err := marshalAttrs(valModel, isCreate)
 	if err != nil {
 		return nil, err
 	}
@@ -43,12 +44,16 @@ func Unmarshal(raw []byte, model any) error {
 	return unmarshalAttrs(objJSON, model)
 }
 
-func marshalAttrs(valModel reflect.Value) (map[string]any, error) {
+func marshalAttrs(valModel reflect.Value, isCreate bool) (map[string]any, error) {
 	objJSON := make(map[string]any)
 	for i := 0; i < valModel.NumField(); i++ {
 		attrTypeModel := valModel.Type().Field(i)
-		if strings.Contains(attrTypeModel.Tag.Get(tagKeyAutogeneration), tagValueOmitJSON) {
+		tag := attrTypeModel.Tag.Get(tagKey)
+		if strings.Contains(tag, tagValOmitJSON) {
 			continue // skip fields with tag `omitjson`
+		}
+		if !isCreate && strings.Contains(tag, tagValCreateOnly) {
+			continue // skip fields with tag `createonly` if not createOnly
 		}
 		attrNameModel := attrTypeModel.Name
 		attrValModel := valModel.Field(i)
