@@ -66,9 +66,9 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 		Attributes:         attributes,
 	}
 
-	operations := obtainOperations(resourceConfig)
+	operations := getOperationsFromConfig(resourceConfig)
 	if operations.VersionHeader == "" { // version was not defined in config file
-		operations.VersionHeader = obtainVersionFromAPISpec(readOp)
+		operations.VersionHeader = getLatestVersionFromAPISpec(readOp)
 	}
 	resource := &Resource{
 		Name:       name,
@@ -81,7 +81,7 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 	return resource
 }
 
-func obtainVersionFromAPISpec(readOp *high.Operation) string {
+func getLatestVersionFromAPISpec(readOp *high.Operation) string {
 	okResponse, ok := readOp.Responses.Codes.Get(OASResponseCodeOK)
 	if !ok {
 		return ""
@@ -93,7 +93,7 @@ func obtainVersionFromAPISpec(readOp *high.Operation) string {
 	return orderedmap.SortAlpha(versionsMap).First().Key()
 }
 
-func obtainOperations(resourceConfig *config.Resource) APIOperations {
+func getOperationsFromConfig(resourceConfig *config.Resource) APIOperations {
 	return APIOperations{
 		CreatePath:    resourceConfig.Create.Path,
 		ReadPath:      resourceConfig.Read.Path,
