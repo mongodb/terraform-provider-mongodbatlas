@@ -14,11 +14,11 @@ import (
 func Marshal(model any) ([]byte, error) {
 	valModel := reflect.ValueOf(model)
 	if valModel.Kind() != reflect.Ptr {
-		panic("Marshal expects a pointer")
+		panic("model must be pointer")
 	}
 	valModel = valModel.Elem()
 	if valModel.Kind() != reflect.Struct {
-		panic("Marshal expects a pointer to struct")
+		panic("model must be pointer to struct")
 	}
 	objJSON, err := marshalAttrs(valModel)
 	if err != nil {
@@ -53,7 +53,7 @@ func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[s
 	attrNameJSON := xstrings.ToSnakeCase(attrNameModel)
 	obj, ok := attrValModel.Interface().(attr.Value)
 	if !ok {
-		panic("marshal expects only Terraform types")
+		panic("marshal expects only Terraform types in the model")
 	}
 	if obj.IsNull() || obj.IsUnknown() {
 		return nil // skip nil or unknown values
@@ -74,11 +74,11 @@ func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[s
 func unmarshalAttrs(objJSON map[string]any, model any) error {
 	valModel := reflect.ValueOf(model)
 	if valModel.Kind() != reflect.Ptr {
-		panic("dest must be pointer")
+		panic("model must be pointer")
 	}
 	valModel = valModel.Elem()
 	if valModel.Kind() != reflect.Struct {
-		panic("dest must be pointer to struct")
+		panic("model must be pointer to struct")
 	}
 	for attrNameJSON, attrObjJSON := range objJSON {
 		if err := unmarshalAttr(attrNameJSON, attrObjJSON, valModel); err != nil {
