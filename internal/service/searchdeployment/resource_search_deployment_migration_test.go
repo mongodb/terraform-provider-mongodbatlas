@@ -17,7 +17,7 @@ func TestMigSearchDeployment_basic(t *testing.T) {
 		clusterName     = acc.RandomClusterName()
 		instanceSize    = "S30_HIGHCPU_NVME"
 		searchNodeCount = 3
-		config          = configBasic(orgID, projectName, clusterName, instanceSize, searchNodeCount)
+		config          = configBasic(orgID, projectName, clusterName, instanceSize, searchNodeCount, false)
 	)
 	mig.SkipIfVersionBelow(t, "1.13.0")
 	resource.ParallelTest(t, resource.TestCase{
