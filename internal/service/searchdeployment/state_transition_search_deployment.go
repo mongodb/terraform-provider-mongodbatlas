@@ -16,15 +16,11 @@ import (
 
 const SearchDeploymentDoesNotExistsError = "ATLAS_SEARCH_DEPLOYMENT_DOES_NOT_EXIST"
 
-var pendingStates = []string{retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyPausedState}
-
 func WaitSearchNodeStateTransition(ctx context.Context, projectID, clusterName string, client admin.AtlasSearchApi,
-	timeConfig retrystrategy.TimeConfig, extraTargetStates ...string) (*admin.ApiSearchDeploymentResponse, error) {
-	targetStates := []string{retrystrategy.RetryStrategyIdleState}
-	targetStates = append(targetStates, extraTargetStates...)
+	timeConfig retrystrategy.TimeConfig) (*admin.ApiSearchDeploymentResponse, error) {
 	stateConf := &retry.StateChangeConf{
-		Pending:    pendingStates,
-		Target:     targetStates,
+		Pending:    []string{retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyPausedState},
+		Target:     []string{retrystrategy.RetryStrategyIdleState},
 		Refresh:    searchDeploymentRefreshFunc(ctx, projectID, clusterName, client),
 		Timeout:    timeConfig.Timeout,
 		MinTimeout: timeConfig.MinTimeout,
