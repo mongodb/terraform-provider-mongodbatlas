@@ -959,7 +959,6 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if d.HasChange("advanced_configuration") {
 				if aclist, ok := d.Get("advanced_configuration").([]any); ok && len(aclist) > 0 {
 					request.AdvancedConfiguration = expandClusterAdvancedConfiguration(d)
-
 				}
 			}
 

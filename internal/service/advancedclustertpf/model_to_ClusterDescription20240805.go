@@ -27,7 +27,7 @@ func NewAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 	}
 
 	objInput := &input.AdvancedConfiguration
-	if objInput == nil || objInput.IsUnknown() || objInput.IsNull() {
+	if objInput.IsUnknown() || objInput.IsNull() {
 		return nil
 	}
 
