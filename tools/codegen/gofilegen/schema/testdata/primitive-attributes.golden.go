@@ -48,17 +48,27 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "simple map description",
 				ElementType:         types.BoolType,
 			},
+			"attr_not_included_in_req_bodies": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "string description",
+			},
+			"attr_only_in_post_req_bodies": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "string description",
+			},
 		},
 	}
 }
 
 type TFModel struct {
-	StringAttr     types.String  `tfsdk:"string_attr"`
-	BoolAttr       types.Bool    `tfsdk:"bool_attr"`
-	IntAttr        types.Int64   `tfsdk:"int_attr"`
-	FloatAttr      types.Float64 `tfsdk:"float_attr"`
-	NumberAttr     types.Number  `tfsdk:"number_attr"`
-	SimpleListAttr types.List    `tfsdk:"simple_list_attr"`
-	SimpleSetAttr  types.Set     `tfsdk:"simple_set_attr"`
-	SimpleMapAttr  types.Map     `tfsdk:"simple_map_attr"`
+	StringAttr                 types.String  `tfsdk:"string_attr"`
+	BoolAttr                   types.Bool    `tfsdk:"bool_attr"`
+	IntAttr                    types.Int64   `tfsdk:"int_attr"`
+	FloatAttr                  types.Float64 `tfsdk:"float_attr"`
+	NumberAttr                 types.Number  `tfsdk:"number_attr"`
+	SimpleListAttr             types.List    `tfsdk:"simple_list_attr"`
+	SimpleSetAttr              types.Set     `tfsdk:"simple_set_attr"`
+	SimpleMapAttr              types.Map     `tfsdk:"simple_map_attr"`
+	AttrNotIncludedInReqBodies types.String  `tfsdk:"attr_not_included_in_req_bodies"`
+	AttrOnlyInPostReqBodies    types.String  `tfsdk:"attr_only_in_post_req_bodies"`
 }

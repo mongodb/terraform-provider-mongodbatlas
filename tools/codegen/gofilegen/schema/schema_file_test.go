@@ -89,6 +89,20 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							Description:              admin.PtrString("simple map description"),
 							ComputedOptionalRequired: codespec.Optional,
 						},
+						{
+							Name:                     "attr_not_included_in_req_bodies",
+							String:                   &codespec.StringAttribute{},
+							Description:              admin.PtrString("string description"),
+							ComputedOptionalRequired: codespec.Required,
+							ReqBodyUsage:             codespec.OmitAll,
+						},
+						{
+							Name:                     "attr_only_in_post_req_bodies",
+							String:                   &codespec.StringAttribute{},
+							Description:              admin.PtrString("string description"),
+							ComputedOptionalRequired: codespec.Required,
+							ReqBodyUsage:             codespec.PostBodyOnly,
+						},
 					},
 				},
 			},
@@ -105,7 +119,17 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							ComputedOptionalRequired: codespec.Required,
 							SingleNested: &codespec.SingleNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
-									Attributes: []codespec.Attribute{stringAttr, intAttr},
+									Attributes: []codespec.Attribute{
+										stringAttr,
+										intAttr,
+										{
+											Name:                     "attr_not_included_in_req_bodies",
+											String:                   &codespec.StringAttribute{},
+											Description:              admin.PtrString("string description"),
+											ComputedOptionalRequired: codespec.Computed,
+											ReqBodyUsage:             codespec.OmitAll,
+										},
+									},
 								},
 							},
 						},
