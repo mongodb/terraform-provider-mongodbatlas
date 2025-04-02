@@ -51,12 +51,12 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 	createOp := oasResource.CreateOp
 	readOp := oasResource.ReadOp
 
-	pathParamAttributes := pathParamsToAttributes(createOp)
+	createPathParams := pathParamsToAttributes(createOp)
 	createRequestAttributes := opRequestToAttributes(createOp)
 	createResponseAttributes := opResponseToAttributes(createOp)
 	readResponseAttributes := opResponseToAttributes(readOp)
 
-	attributes := mergeAttributes(pathParamAttributes, createRequestAttributes, createResponseAttributes, readResponseAttributes)
+	attributes := mergeAttributes(createPathParams, createRequestAttributes, createResponseAttributes, readResponseAttributes)
 
 	schema := &Schema{
 		Description:        oasResource.Description,

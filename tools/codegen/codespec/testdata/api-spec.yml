@@ -1,33 +1,8 @@
 openapi: 3.0.1
 info:
-  description: >-
-    The MongoDB Atlas Administration API allows developers to manage all
-    components in MongoDB Atlas.
-
-
-    The Atlas Administration API uses HTTP Digest Authentication to authenticate requests. Provide a programmatic API public key and corresponding private key as the username and password when constructing the HTTP request. For example, to [return database access history](#tag/Access-Tracking/operation/listAccessLogsByClusterName) with [cURL](https://en.wikipedia.org/wiki/CURL), run the following command in the terminal:
-
-
-    ```
-
-    curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" \
-      --digest \
-      --header "Accept: application/vnd.atlas.2024-08-05+json" \
-      -X GET "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/dbAccessHistory/clusters/{clusterName}?pretty=true"
-    ```
-
-
-    To learn more, see [Get Started with the Atlas Administration API](https://www.mongodb.com/docs/atlas/configure-api-access/). For support, see [MongoDB Support](https://www.mongodb.com/support/get-started).
-
-
-    You can also explore the various endpoints available through the Atlas Administration API in MongoDB's [Postman workspace](https://www.postman.com/mongodb-devrel/workspace/mongodb-atlas-administration-apis/).
-  license:
-    name: CC BY-NC-SA 3.0 US
-    url: https://creativecommons.org/licenses/by-nc-sa/3.0/us/
-  termsOfService: https://www.mongodb.com/mongodb-management-service-terms-and-conditions
+  description: ""
   title: MongoDB Atlas Administration API
   version: "2.0"
-  x-xgen-sha: 991036ecf95ec6855a39cd80bd2a15a90e012e7d
 servers:
   - url: https://cloud.mongodb.com
 tags:
