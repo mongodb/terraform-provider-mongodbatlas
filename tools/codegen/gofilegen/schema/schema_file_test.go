@@ -194,7 +194,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			result := schema.GenerateGoCode(tc.inputModel)
+			result := schema.GenerateGoCode(&tc.inputModel)
 			g := goldie.New(t, goldie.WithNameSuffix(".golden.go"))
 			g.Assert(t, tc.goldenFileName, []byte(result))
 		})

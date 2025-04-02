@@ -32,11 +32,11 @@ func main() {
 
 	for i := range model.Resources {
 		resourceModel := model.Resources[i]
-		schemaCode := schema.GenerateGoCode(resourceModel)
+		schemaCode := schema.GenerateGoCode(&resourceModel)
 		if err := writeToFile(fmt.Sprintf("internal/service/%s/resource_schema.go", resourceModel.Name.LowerCaseNoUnderscore()), schemaCode); err != nil {
 			log.Fatalf("an error occurred when writing content to file: %v", err)
 		}
-		resourceCode := resource.GenerateGoCode(resourceModel)
+		resourceCode := resource.GenerateGoCode(&resourceModel)
 		if err := writeToFile(fmt.Sprintf("internal/service/%s/resource.go", resourceModel.Name.LowerCaseNoUnderscore()), resourceCode); err != nil {
 			log.Fatalf("an error occurred when writing content to file: %v", err)
 		}

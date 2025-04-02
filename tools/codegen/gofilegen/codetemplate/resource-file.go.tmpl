@@ -6,6 +6,7 @@ import (
 	"context"
 	"io"
 	"net/http"
+	
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
@@ -14,6 +15,8 @@ import (
 
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
+
+const apiVersionHeader = "{{ .APIOperations.VersionHeader }}"
 
 func Resource() resource.Resource {
 	return &rs{
@@ -41,12 +44,13 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 
 	var reqBody []byte // TODO handle conversion of TFModel to reqBody
 
-	pathParams := map[string]string{
-		// TODO define path params
+	pathParams := map[string]string{ {{range .APIOperations.Create.PathParams }}
+		"{{ .CamelCaseName }}": plan.{{ .PascalCaseName }}.ValueString(),
+	{{- end }}
 	}
 	apiResp, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
-		VersionHeader: "application/vnd.atlas.TODO-01-01+json",
-		RelativePath: "/api/atlas/v2/TODO",
+		VersionHeader: apiVersionHeader,
+		RelativePath: "{{ .APIOperations.Create.Path }}",
 		PathParams: pathParams,
 		Method: http.MethodPost,
     	Body: reqBody,		
@@ -70,12 +74,13 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 
-	pathParams := map[string]string{
-		// TODO define path params
+	pathParams := map[string]string{ {{range .APIOperations.Read.PathParams }}
+		"{{ .CamelCaseName }}": plan.{{ .PascalCaseName }}.ValueString(),
+	{{- end }}
 	}
 	apiResp, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
-		VersionHeader: "application/vnd.atlas.TODO-01-01+json",
-		RelativePath: "/api/atlas/v2/TODO",
+		VersionHeader: apiVersionHeader,
+		RelativePath: "{{ .APIOperations.Read.Path }}",
 		PathParams: pathParams,
 		Method: http.MethodGet,		
 	})
@@ -106,12 +111,13 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		return
 	}
 
-	pathParams := map[string]string{
-		// TODO define path params
+	pathParams := map[string]string{ {{range .APIOperations.Delete.PathParams }}
+		"{{ .CamelCaseName }}": state.{{ .PascalCaseName }}.ValueString(),
+	{{- end }}
 	}
 	if _, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
-		VersionHeader: "application/vnd.atlas.TODO-01-01+json",
-		RelativePath: "/api/atlas/v2/TODO",
+		VersionHeader: apiVersionHeader,
+		RelativePath: "{{ .APIOperations.Delete.Path }}",
 		PathParams: pathParams,
 		Method: http.MethodDelete,
 	}); err != nil {

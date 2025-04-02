@@ -20,15 +20,34 @@ type SchemaFileInputs struct {
 var resourceFileTemplate string
 
 type ResourceFileInputs struct {
-	PackageName  string
-	ResourceName string
+	PackageName   string
+	ResourceName  string
+	APIOperations APIOperations
+}
+
+type APIOperations struct {
+	VersionHeader string
+	Create        Operation
+	Read          Operation
+	Update        Operation
+	Delete        Operation
+}
+
+type Operation struct {
+	Path       string
+	PathParams []Param
+}
+
+type Param struct {
+	PascalCaseName string
+	CamelCaseName  string
 }
 
 func ApplySchemaFileTemplate(inputs SchemaFileInputs) bytes.Buffer {
 	return applyTemplate(schemaFileTemplate, inputs)
 }
 
-func ApplyResourceFileTemplate(inputs ResourceFileInputs) bytes.Buffer {
+func ApplyResourceFileTemplate(inputs *ResourceFileInputs) bytes.Buffer {
 	return applyTemplate(resourceFileTemplate, inputs)
 }
 

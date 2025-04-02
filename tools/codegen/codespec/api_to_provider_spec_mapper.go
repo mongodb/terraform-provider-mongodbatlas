@@ -8,10 +8,12 @@ import (
 
 	high "github.com/pb33f/libopenapi/datamodel/high/v3"
 	low "github.com/pb33f/libopenapi/datamodel/low/v3"
+	"github.com/pb33f/libopenapi/orderedmap"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
+	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
 )
 
 func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName *string) (*Model, error) {
@@ -36,18 +38,18 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 	for name, resourceConfig := range resourceConfigsToIterate {
 		log.Printf("Generating resource: %s", name)
 		// find resource operations, schemas, etc from OAS
-		oasResource, err := getAPISpecResource(&apiSpec.Model, &resourceConfig, SnakeCaseString(name))
+		oasResource, err := getAPISpecResource(&apiSpec.Model, &resourceConfig, stringcase.SnakeCaseString(name))
 		if err != nil {
 			return nil, fmt.Errorf("unable to get APISpecResource schema: %v", err)
 		}
 		// map OAS resource model to CodeSpecModel
-		results = append(results, *apiSpecResourceToCodeSpecModel(oasResource, &resourceConfig, SnakeCaseString(name)))
+		results = append(results, *apiSpecResourceToCodeSpecModel(oasResource, &resourceConfig, stringcase.SnakeCaseString(name)))
 	}
 
 	return &Model{Resources: results}, nil
 }
 
-func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig *config.Resource, name SnakeCaseString) *Resource {
+func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig *config.Resource, name stringcase.SnakeCaseString) *Resource {
 	createOp := oasResource.CreateOp
 	readOp := oasResource.ReadOp
 
@@ -64,14 +66,41 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 		Attributes:         attributes,
 	}
 
+	operations := getOperationsFromConfig(resourceConfig)
+	if operations.VersionHeader == "" { // version was not defined in config file
+		operations.VersionHeader = getLatestVersionFromAPISpec(readOp)
+	}
 	resource := &Resource{
-		Name:   name,
-		Schema: schema,
+		Name:       name,
+		Schema:     schema,
+		Operations: operations,
 	}
 
 	applyConfigSchemaOptions(resourceConfig, resource)
 
 	return resource
+}
+
+func getLatestVersionFromAPISpec(readOp *high.Operation) string {
+	okResponse, ok := readOp.Responses.Codes.Get(OASResponseCodeOK)
+	if !ok {
+		return ""
+	}
+	versionsMap := okResponse.Content
+	if versionsMap == nil {
+		return ""
+	}
+	return orderedmap.SortAlpha(versionsMap).First().Key()
+}
+
+func getOperationsFromConfig(resourceConfig *config.Resource) APIOperations {
+	return APIOperations{
+		CreatePath:    resourceConfig.Create.Path,
+		ReadPath:      resourceConfig.Read.Path,
+		UpdatePath:    resourceConfig.Update.Path,
+		DeletePath:    resourceConfig.Delete.Path,
+		VersionHeader: resourceConfig.VersionHeader,
+	}
 }
 
 func pathParamsToAttributes(createOp *high.Operation) Attributes {
@@ -135,7 +164,7 @@ func opResponseToAttributes(op *high.Operation) Attributes {
 	return responseAttributes
 }
 
-func getAPISpecResource(spec *high.Document, resourceConfig *config.Resource, name SnakeCaseString) (APISpecResource, error) {
+func getAPISpecResource(spec *high.Document, resourceConfig *config.Resource, name stringcase.SnakeCaseString) (APISpecResource, error) {
 	var errResult error
 	var resourceDeprecationMsg *string
 

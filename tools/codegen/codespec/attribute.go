@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
 	"github.com/pb33f/libopenapi/orderedmap"
 )
 
@@ -57,7 +58,7 @@ func (s *APISpecSchema) buildResourceAttr(name string, computability ComputedOpt
 
 func (s *APISpecSchema) buildStringAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	result := &Attribute{
-		Name:                     terraformAttrName(name),
+		Name:                     stringcase.FromCamelCase(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -79,7 +80,7 @@ func (s *APISpecSchema) buildStringAttr(name string, computability ComputedOptio
 
 func (s *APISpecSchema) buildIntegerAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	result := &Attribute{
-		Name:                     terraformAttrName(name),
+		Name:                     stringcase.FromCamelCase(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -101,7 +102,7 @@ func (s *APISpecSchema) buildIntegerAttr(name string, computability ComputedOpti
 func (s *APISpecSchema) buildNumberAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	if s.Schema.Format == OASFormatDouble || s.Schema.Format == OASFormatFloat {
 		result := &Attribute{
-			Name:                     terraformAttrName(name),
+			Name:                     stringcase.FromCamelCase(name),
 			ComputedOptionalRequired: computability,
 			DeprecationMessage:       s.GetDeprecationMessage(),
 			Description:              s.GetDescription(),
@@ -121,7 +122,7 @@ func (s *APISpecSchema) buildNumberAttr(name string, computability ComputedOptio
 	}
 
 	return &Attribute{
-		Name:                     terraformAttrName(name),
+		Name:                     stringcase.FromCamelCase(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -131,7 +132,7 @@ func (s *APISpecSchema) buildNumberAttr(name string, computability ComputedOptio
 
 func (s *APISpecSchema) buildBoolAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	result := &Attribute{
-		Name:                     terraformAttrName(name),
+		Name:                     stringcase.FromCamelCase(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -163,7 +164,7 @@ func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOption
 
 	createAttribute := func(nestedObject *NestedAttributeObject, elemType ElemType) *Attribute {
 		attr := &Attribute{
-			Name:                     terraformAttrName(name),
+			Name:                     stringcase.FromCamelCase(name),
 			ComputedOptionalRequired: computability,
 			DeprecationMessage:       s.GetDeprecationMessage(),
 			Description:              s.GetDescription(),
@@ -221,7 +222,7 @@ func (s *APISpecSchema) buildMapAttr(name string, computability ComputedOptional
 	}
 
 	result := &Attribute{
-		Name:                     terraformAttrName(name),
+		Name:                     stringcase.FromCamelCase(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -259,7 +260,7 @@ func (s *APISpecSchema) buildSingleNestedAttr(name string, computability Compute
 	}
 
 	return &Attribute{
-		Name:                     terraformAttrName(name),
+		Name:                     stringcase.FromCamelCase(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),

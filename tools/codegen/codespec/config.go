@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
 )
 
 func applyConfigSchemaOptions(resourceConfig *config.Resource, resource *Resource) {
@@ -70,7 +71,7 @@ func applyAlias(attr *Attribute, attrPathName *string, schemaOptions config.Sche
 			parts[i] = newName
 
 			if i == len(parts)-1 {
-				attr.Name = SnakeCaseString(newName)
+				attr.Name = stringcase.SnakeCaseString(newName)
 			}
 		}
 	}
