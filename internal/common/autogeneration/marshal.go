@@ -10,7 +10,7 @@ import (
 	"github.com/huandu/xstrings"
 )
 
-// Marshal gets Terraform model and marshals it into JSON (e.g. for an Atlas request).
+// Marshal gets a Terraform model and marshals it into JSON (e.g. for an Atlas request).
 func Marshal(model any) ([]byte, error) {
 	valModel := reflect.ValueOf(model)
 	if valModel.Kind() != reflect.Ptr {

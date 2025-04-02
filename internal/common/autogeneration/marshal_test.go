@@ -35,9 +35,9 @@ func TestMarshalBasic(t *testing.T) {
 			}
 		`
 	)
-	rawJSON, err := autogeneration.Marshal(&model)
+	raw, err := autogeneration.Marshal(&model)
 	require.NoError(t, err)
-	assert.JSONEq(t, expectedJSON, string(rawJSON))
+	assert.JSONEq(t, expectedJSON, string(raw))
 }
 
 func TestMarshalUnsupported(t *testing.T) {
