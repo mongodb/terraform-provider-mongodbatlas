@@ -53,7 +53,7 @@ func marshalAttrs(valModel reflect.Value, isCreate bool) (map[string]any, error)
 			continue // skip fields with tag `omitjson`
 		}
 		if !isCreate && strings.Contains(tag, tagValCreateOnly) {
-			continue // skip fields with tag `createonly` if not createOnly
+			continue // skip fields with tag `createonly` if not in create
 		}
 		attrNameModel := attrTypeModel.Name
 		attrValModel := valModel.Field(i)
