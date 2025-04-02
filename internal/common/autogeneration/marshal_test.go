@@ -12,24 +12,26 @@ import (
 
 func TestMarshalBasic(t *testing.T) {
 	model := struct {
-		AttributeFloat  types.Float64 `tfsdk:"attribute_float"`
-		AttributeString types.String  `tfsdk:"attribute_string"`
-		AttributeUnkown types.String  `tfsdk:"attribute_unknown"`
-		AttributeNull   types.String  `tfsdk:"attribute_null"`
-		AttributeInt    types.Int64   `tfsdk:"attribute_int"`
+		AttrFloat  types.Float64 `tfsdk:"attribute_float"`
+		AttrString types.String  `tfsdk:"attribute_string"`
+		AttrOmit   types.String  `tfsdk:"attribute_omit" autogeneration:"omitjson"`
+		AttrUnkown types.String  `tfsdk:"attribute_unknown"`
+		AttrNull   types.String  `tfsdk:"attribute_null"`
+		AttrInt    types.Int64   `tfsdk:"attribute_int"`
 	}{
-		AttributeFloat:  types.Float64Value(1.234),
-		AttributeString: types.StringValue("hello"),
-		AttributeUnkown: types.StringUnknown(), // unknown values are not marshaled
-		AttributeNull:   types.StringNull(),    // null values are not marshaled
-		AttributeInt:    types.Int64Value(1),
+		AttrFloat:  types.Float64Value(1.234),
+		AttrString: types.StringValue("hello"),
+		AttrOmit:   types.StringValue("omit"), // values with tag `omitjson` are not marshaled
+		AttrUnkown: types.StringUnknown(),     // unknown values are not marshaled
+		AttrNull:   types.StringNull(),        // null values are not marshaled
+		AttrInt:    types.Int64Value(1),
 	}
 	const (
 		expectedJSON = `
 			{
-				"attribute_string": "hello",
-				"attribute_int": 1,
-				"attribute_float": 1.234
+				"attr_string": "hello",
+				"attr_int": 1,
+				"attr_float": 1.234
 			}
 		`
 	)
@@ -112,19 +114,18 @@ func TestMarshalPanic(t *testing.T) {
 			})
 		})
 	}
-
 }
 
 func TestUnmarshalBasic(t *testing.T) {
 	var model struct {
-		AttributeFloat        types.Float64 `tfsdk:"attribute_float"`
-		AttributeFloatWithInt types.Float64 `tfsdk:"attribute_float_with_int"`
-		AttributeString       types.String  `tfsdk:"attribute_string"`
-		AttributeNotInJSON    types.String  `tfsdk:"attribute_not_in_json"`
-		AttributeInt          types.Int64   `tfsdk:"attribute_int"`
-		AttributeIntWithFloat types.Int64   `tfsdk:"attribute_int_with_float"`
-		AttributeTrue         types.Bool    `tfsdk:"attribute_true"`
-		AttributeFalse        types.Bool    `tfsdk:"attribute_false"`
+		AttrFloat        types.Float64 `tfsdk:"attribute_float"`
+		AttrFloatWithInt types.Float64 `tfsdk:"attribute_float_with_int"`
+		AttrString       types.String  `tfsdk:"attribute_string"`
+		AttrNotInJSON    types.String  `tfsdk:"attribute_not_in_json"`
+		AttrInt          types.Int64   `tfsdk:"attribute_int"`
+		AttrIntWithFloat types.Int64   `tfsdk:"attribute_int_with_float"`
+		AttrTrue         types.Bool    `tfsdk:"attribute_true"`
+		AttrFalse        types.Bool    `tfsdk:"attribute_false"`
 	}
 	const (
 		epsilon = 10e-15 // float tolerance
@@ -132,27 +133,27 @@ func TestUnmarshalBasic(t *testing.T) {
 		// attribute_null is ignored because it is null, no error is thrown even if it is not in the model.
 		tfResponseJSON = `
 			{
-				"attribute_string": "value_string",
-				"attribute_true": true,
-				"attribute_false": false,
-				"attribute_int": 123,
-				"attribute_int_with_float": 10.6,
-				"attribute_float": 456.1,
-				"attribute_float_with_int": 13,
-				"attribute_not_in_model": "val",
-				"attribute_null": null
+				"attr_string": "value_string",
+				"attr_true": true,
+				"attr_false": false,
+				"attr_int": 123,
+				"attr_int_with_float": 10.6,
+				"attr_float": 456.1,
+				"attr_float_with_int": 13,
+				"attr_not_in_model": "val",
+				"attr_null": null
 			}
 		`
 	)
 	require.NoError(t, autogeneration.Unmarshal([]byte(tfResponseJSON), &model))
-	assert.Equal(t, "value_string", model.AttributeString.ValueString())
-	assert.True(t, model.AttributeTrue.ValueBool())
-	assert.False(t, model.AttributeFalse.ValueBool())
-	assert.Equal(t, int64(123), model.AttributeInt.ValueInt64())
-	assert.Equal(t, int64(10), model.AttributeIntWithFloat.ValueInt64()) // response floats stored in model ints have their decimals stripped.
-	assert.InEpsilon(t, float64(456.1), model.AttributeFloat.ValueFloat64(), epsilon)
-	assert.InEpsilon(t, float64(13), model.AttributeFloatWithInt.ValueFloat64(), epsilon)
-	assert.True(t, model.AttributeNotInJSON.IsNull()) // attributes not in JSON response are not changed, so null is kept.
+	assert.Equal(t, "value_string", model.AttrString.ValueString())
+	assert.True(t, model.AttrTrue.ValueBool())
+	assert.False(t, model.AttrFalse.ValueBool())
+	assert.Equal(t, int64(123), model.AttrInt.ValueInt64())
+	assert.Equal(t, int64(10), model.AttrIntWithFloat.ValueInt64()) // response floats stored in model ints have their decimals stripped.
+	assert.InEpsilon(t, float64(456.1), model.AttrFloat.ValueFloat64(), epsilon)
+	assert.InEpsilon(t, float64(13), model.AttrFloatWithInt.ValueFloat64(), epsilon)
+	assert.True(t, model.AttrNotInJSON.IsNull()) // attributes not in JSON response are not changed, so null is kept.
 }
 
 func TestUnmarshalErrors(t *testing.T) {
