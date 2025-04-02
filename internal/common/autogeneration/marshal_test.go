@@ -3,6 +3,7 @@ package autogeneration_test
 import (
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogeneration"
 	"github.com/stretchr/testify/assert"
@@ -11,23 +12,107 @@ import (
 
 func TestMarshalBasic(t *testing.T) {
 	model := struct {
-		AttributeString types.String `tfsdk:"attribute_string"`
-		AttributeInt    types.Int64  `tfsdk:"attribute_int"`
+		AttributeFloat  types.Float64 `tfsdk:"attribute_float"`
+		AttributeString types.String  `tfsdk:"attribute_string"`
+		AttributeUnkown types.String  `tfsdk:"attribute_unknown"`
+		AttributeNull   types.String  `tfsdk:"attribute_null"`
+		AttributeInt    types.Int64   `tfsdk:"attribute_int"`
 	}{
+		AttributeFloat:  types.Float64Value(1.234),
 		AttributeString: types.StringValue("hello"),
+		AttributeUnkown: types.StringUnknown(), // unknown values are not marshaled
+		AttributeNull:   types.StringNull(),    // null values are not marshaled
 		AttributeInt:    types.Int64Value(1),
 	}
 	const (
 		expectedJSON = `
 			{
 				"attribute_string": "hello",
-				"attribute_int": 1
+				"attribute_int": 1,
+				"attribute_float": 1.234
 			}
 		`
 	)
 	rawJSON, err := autogeneration.Marshal(&model)
 	require.NoError(t, err)
 	assert.JSONEq(t, expectedJSON, string(rawJSON))
+}
+
+func TestMarshalUnsupported(t *testing.T) {
+	testCases := map[string]any{
+		"Object not supported yet, only no-nested types": &struct {
+			Attr types.Object
+		}{
+			Attr: types.ObjectValueMust(map[string]attr.Type{
+				"key": types.StringType,
+			}, map[string]attr.Value{
+				"key": types.StringValue("value"),
+			}),
+		},
+		"List not supported yet, only no-nested types": &struct {
+			Attr types.List
+		}{
+			Attr: types.ListValueMust(types.StringType, []attr.Value{
+				types.StringValue("value"),
+			}),
+		},
+		"Map not supported yet, only no-nested types": &struct {
+			Attr types.Map
+		}{
+			Attr: types.MapValueMust(types.StringType, map[string]attr.Value{
+				"key": types.StringValue("value"),
+			}),
+		},
+		"Set not supported yet, only no-nested types": &struct {
+			Attr types.Set
+		}{
+			Attr: types.SetValueMust(types.StringType, []attr.Value{
+				types.StringValue("value"),
+			}),
+		},
+		"Int32 not supported yet as it's not being used in any model": &struct {
+			Attr types.Int32
+		}{
+			Attr: types.Int32Value(1),
+		},
+		"Float32 not supported yet as it's not being used in any model": &struct {
+			Attr types.Float32
+		}{
+			Attr: types.Float32Value(1.0),
+		},
+	}
+	for name, model := range testCases {
+		t.Run(name, func(t *testing.T) {
+			raw, err := autogeneration.Marshal(model)
+			require.Error(t, err)
+			assert.Nil(t, raw)
+		})
+	}
+}
+
+func TestMarshalPanic(t *testing.T) {
+	str := "string"
+	testCases := map[string]any{
+		"no Terraform types": &struct {
+			Attr string
+		}{
+			Attr: "a",
+		},
+		"no pointer": struct {
+			Attr types.String
+		}{
+			Attr: types.StringValue("a"),
+		},
+		"no struct": &str,
+	}
+	for name, model := range testCases {
+		t.Run(name, func(t *testing.T) {
+			assert.Panics(t, func() {
+				_, _ = autogeneration.Marshal(model)
+			})
+		})
+	}
+
 }
 
 func TestUnmarshalBasic(t *testing.T) {

@@ -27,6 +27,16 @@ func Marshal(model any) ([]byte, error) {
 	return json.Marshal(objJSON)
 }
 
+// Unmarshal gets a JSON (e.g. from an Atlas response) and unmarshals it into a Terraform model.
+// It supports the following Terraform model types: String, Bool, Int64, Float64.
+func Unmarshal(raw []byte, model any) error {
+	var objJSON map[string]any
+	if err := json.Unmarshal(raw, &objJSON); err != nil {
+		return err
+	}
+	return unmarshalAttrs(objJSON, model)
+}
+
 func marshalAttrs(valModel reflect.Value) (map[string]any, error) {
 	objJSON := make(map[string]any)
 	for i := 0; i < valModel.NumField(); i++ {
@@ -41,30 +51,24 @@ func marshalAttrs(valModel reflect.Value) (map[string]any, error) {
 
 func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[string]any) error {
 	attrNameJSON := xstrings.ToSnakeCase(attrNameModel)
-	if v, ok := attrValModel.Interface().(attr.Value); ok {
-		if v.IsNull() || v.IsUnknown() {
-			return nil // skip nil or unknown values
-		}
+	obj, ok := attrValModel.Interface().(attr.Value)
+	if !ok {
+		panic("marshal expects only Terraform types")
+	}
+	if obj.IsNull() || obj.IsUnknown() {
+		return nil // skip nil or unknown values
 	}
 	switch v := attrValModel.Interface().(type) {
 	case types.String:
 		objJSON[attrNameJSON] = v.ValueString()
 	case types.Int64:
 		objJSON[attrNameJSON] = v.ValueInt64()
+	case types.Float64:
+		objJSON[attrNameJSON] = v.ValueFloat64()
 	default:
 		return fmt.Errorf("marshal not supported yet for type %T for field %s", v, attrNameJSON)
 	}
 	return nil
-}
-
-// Unmarshal gets a JSON (e.g. from an Atlas response) and unmarshals it into a Terraform model.
-// It supports the following Terraform model types: String, Bool, Int64, Float64.
-func Unmarshal(raw []byte, model any) error {
-	var objJSON map[string]any
-	if err := json.Unmarshal(raw, &objJSON); err != nil {
-		return err
-	}
-	return unmarshalAttrs(objJSON, model)
 }
 
 func unmarshalAttrs(objJSON map[string]any, model any) error {
