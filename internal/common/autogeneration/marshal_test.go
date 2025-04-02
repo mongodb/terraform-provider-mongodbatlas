@@ -14,17 +14,20 @@ func TestMarshalBasic(t *testing.T) {
 	model := struct {
 		AttrFloat  types.Float64 `tfsdk:"attribute_float"`
 		AttrString types.String  `tfsdk:"attribute_string"`
-		AttrOmit   types.String  `tfsdk:"attribute_omit" autogeneration:"omitjson"`
-		AttrUnkown types.String  `tfsdk:"attribute_unknown"`
-		AttrNull   types.String  `tfsdk:"attribute_null"`
-		AttrInt    types.Int64   `tfsdk:"attribute_int"`
+		// values with tag `omitjson` are not marshaled, and they don't need to be Terraform types
+		AttrOmit            types.String `tfsdk:"attribute_omit" autogeneration:"omitjson"`
+		AttrOmitNoTerraform string       `autogeneration:"omitjson"`
+		AttrUnkown          types.String `tfsdk:"attribute_unknown"`
+		AttrNull            types.String `tfsdk:"attribute_null"`
+		AttrInt             types.Int64  `tfsdk:"attribute_int"`
 	}{
-		AttrFloat:  types.Float64Value(1.234),
-		AttrString: types.StringValue("hello"),
-		AttrOmit:   types.StringValue("omit"), // values with tag `omitjson` are not marshaled
-		AttrUnkown: types.StringUnknown(),     // unknown values are not marshaled
-		AttrNull:   types.StringNull(),        // null values are not marshaled
-		AttrInt:    types.Int64Value(1),
+		AttrFloat:           types.Float64Value(1.234),
+		AttrString:          types.StringValue("hello"),
+		AttrOmit:            types.StringValue("omit"),
+		AttrOmitNoTerraform: "omit",
+		AttrUnkown:          types.StringUnknown(), // unknown values are not marshaled
+		AttrNull:            types.StringNull(),    // null values are not marshaled
+		AttrInt:             types.Int64Value(1),
 	}
 	const (
 		expectedJSON = `

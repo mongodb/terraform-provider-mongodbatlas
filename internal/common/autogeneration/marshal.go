@@ -4,10 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/huandu/xstrings"
+)
+
+const (
+	tagKeyAutogeneration = "autogeneration"
+	tagValueOmitJSON     = "omitjson"
 )
 
 // Marshal gets a Terraform model and marshals it into JSON (e.g. for an Atlas request).
@@ -40,7 +46,11 @@ func Unmarshal(raw []byte, model any) error {
 func marshalAttrs(valModel reflect.Value) (map[string]any, error) {
 	objJSON := make(map[string]any)
 	for i := 0; i < valModel.NumField(); i++ {
-		attrNameModel := valModel.Type().Field(i).Name
+		attrTypeModel := valModel.Type().Field(i)
+		if strings.Contains(attrTypeModel.Tag.Get(tagKeyAutogeneration), tagValueOmitJSON) {
+			continue // skip fields with tag `omitjson`
+		}
+		attrNameModel := attrTypeModel.Name
 		attrValModel := valModel.Field(i)
 		if err := marshalAttr(attrNameModel, attrValModel, objJSON); err != nil {
 			return nil, err
