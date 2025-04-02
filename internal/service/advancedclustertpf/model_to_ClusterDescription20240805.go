@@ -26,17 +26,6 @@ func NewAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		majorVersion = &majorVersionFormatted
 	}
 
-	objInput := &input.AdvancedConfiguration
-	if objInput.IsUnknown() || objInput.IsNull() {
-		return nil
-	}
-
-	inputAdvConfig := &TFAdvancedConfigurationModel{}
-	if localDiags := objInput.As(ctx, inputAdvConfig, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
-		diags.Append(localDiags...)
-		return nil
-	}
-
 	return &admin.ClusterDescription20240805{
 		AcceptDataRisksAndForceReplicaSetReconfig: acceptDataRisksAndForceReplicaSetReconfig,
 		BackupEnabled:                    conversion.NilForUnknown(input.BackupEnabled, input.BackupEnabled.ValueBoolPointer()),
