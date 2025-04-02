@@ -16,6 +16,8 @@ import (
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
 
+const apiVersionHeader = "application/vnd.atlas.2023-01-01+json"
+
 func Resource() resource.Resource {
 	return &rs{
 		RSCommon: config.RSCommon{
@@ -46,7 +48,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		"groupId": plan.GroupId.ValueString(),
 	}
 	apiResp, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
-		VersionHeader: "application/vnd.atlas.2023-01-01+json",
+		VersionHeader: apiVersionHeader,
 		RelativePath:  "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
 		PathParams:    pathParams,
 		Method:        http.MethodPost,
@@ -75,7 +77,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		"groupId": plan.GroupId.ValueString(),
 	}
 	apiResp, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
-		VersionHeader: "application/vnd.atlas.2023-01-01+json",
+		VersionHeader: apiVersionHeader,
 		RelativePath:  "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
 		PathParams:    pathParams,
 		Method:        http.MethodGet,
@@ -111,7 +113,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		"groupId": state.GroupId.ValueString(),
 	}
 	if _, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
-		VersionHeader: "application/vnd.atlas.2023-01-01+json",
+		VersionHeader: apiVersionHeader,
 		RelativePath:  "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
 		PathParams:    pathParams,
 		Method:        http.MethodDelete,

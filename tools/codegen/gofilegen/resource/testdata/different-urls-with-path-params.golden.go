@@ -16,6 +16,8 @@ import (
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
 
+const apiVersionHeader = "application/vnd.atlas.2024-05-30+json"
+
 func Resource() resource.Resource {
 	return &rs{
 		RSCommon: config.RSCommon{
@@ -46,7 +48,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		"projectId": plan.ProjectId.ValueString(),
 	}
 	apiResp, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
-		VersionHeader: "application/vnd.atlas.2024-05-30+json",
+		VersionHeader: apiVersionHeader,
 		RelativePath:  "/api/v1/testname/{projectId}",
 		PathParams:    pathParams,
 		Method:        http.MethodPost,
@@ -76,7 +78,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		"roleName":  plan.RoleName.ValueString(),
 	}
 	apiResp, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
-		VersionHeader: "application/vnd.atlas.2024-05-30+json",
+		VersionHeader: apiVersionHeader,
 		RelativePath:  "/api/v1/testname/{projectId}/{roleName}",
 		PathParams:    pathParams,
 		Method:        http.MethodGet,
@@ -113,7 +115,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		"roleName":  state.RoleName.ValueString(),
 	}
 	if _, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
-		VersionHeader: "application/vnd.atlas.2024-05-30+json",
+		VersionHeader: apiVersionHeader,
 		RelativePath:  "/api/v1/testname/{projectId}/{roleName}",
 		PathParams:    pathParams,
 		Method:        http.MethodDelete,
