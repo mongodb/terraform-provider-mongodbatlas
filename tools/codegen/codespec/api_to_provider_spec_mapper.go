@@ -8,6 +8,7 @@ import (
 
 	high "github.com/pb33f/libopenapi/datamodel/high/v3"
 	low "github.com/pb33f/libopenapi/datamodel/low/v3"
+	"github.com/pb33f/libopenapi/orderedmap"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
@@ -65,7 +66,10 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 		Attributes:         attributes,
 	}
 
-	operations := obtainOperations(resourceConfig) // paths and version header is grabbed from config
+	operations := obtainOperations(resourceConfig)
+	if operations.VersionHeader == "" { // version was not defined in config file
+		operations.VersionHeader = obtainVersionFromAPISpec(readOp)
+	}
 	resource := &Resource{
 		Name:       name,
 		Schema:     schema,
@@ -75,6 +79,18 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 	applyConfigSchemaOptions(resourceConfig, resource)
 
 	return resource
+}
+
+func obtainVersionFromAPISpec(readOp *high.Operation) string {
+	okResponse, ok := readOp.Responses.Codes.Get(OASResponseCodeOK)
+	if !ok {
+		return ""
+	}
+	versionsMap := okResponse.Content
+	if versionsMap == nil {
+		return ""
+	}
+	return orderedmap.SortAlpha(versionsMap).First().Key()
 }
 
 func obtainOperations(resourceConfig *config.Resource) APIOperations {
