@@ -158,7 +158,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	legacyAdvConfig, advConfig, _ := UpdateAdvancedConfiguration(ctx, diags, r.Client, patchReqProcessArgsLegacy, patchReqProcessArgs, waitParams)
+	legacyAdvConfig, advConfig, _ := UpdateAdvancedConfiguration(ctx, diags, r.Client, patchReqProcessArgsLegacy, patchReqProcessArgs, clusterResp.AdvancedConfiguration, waitParams)
 	if diags.HasError() {
 		return
 	}
@@ -268,7 +268,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	legacyAdvConfig, advConfig, advConfigChanged := UpdateAdvancedConfiguration(ctx, diags, r.Client, patchReqProcessArgsLegacy, patchReqProcessArgs, waitParams)
+	legacyAdvConfig, advConfig, advConfigChanged := UpdateAdvancedConfiguration(ctx, diags, r.Client, patchReqProcessArgsLegacy, patchReqProcessArgs, clusterResp.AdvancedConfiguration, waitParams)
 	if diags.HasError() {
 		return
 	}
@@ -283,6 +283,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		}
 	}
 	if advConfigChanged {
+		// TODO: this is not called if only change is in cluster advConfig attrs
 		updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, legacyAdvConfig, advConfig, clusterResp.AdvancedConfiguration)
 		if diags.HasError() {
 			return

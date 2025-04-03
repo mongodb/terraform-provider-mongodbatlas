@@ -67,7 +67,7 @@ func updateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 	return AwaitChanges(ctx, client, waitParams, operationName, diags)
 }
 
-func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, reqLegacy *admin20240530.ClusterDescriptionProcessArgs, reqNew *admin.ClusterDescriptionProcessArgs20240805, waitParams *ClusterWaitParams) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805, changed bool) {
+func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, reqLegacy *admin20240530.ClusterDescriptionProcessArgs, reqNew *admin.ClusterDescriptionProcessArgs20240805, clusterAdvConfig *admin.ApiAtlasClusterAdvancedConfiguration, waitParams *ClusterWaitParams) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805, changed bool) {
 	var (
 		err             error
 		advConfig       *admin.ClusterDescriptionProcessArgs20240805
@@ -99,6 +99,9 @@ func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, c
 		if diags.HasError() {
 			return nil, nil, false
 		}
+	}
+	if !update.IsZeroValues(clusterAdvConfig) {
+		changed = true
 	}
 	return legacyAdvConfig, advConfig, changed
 }
