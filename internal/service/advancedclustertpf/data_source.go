@@ -75,7 +75,7 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		diags.AddError(errorReadDatasourceForceAsymmetric, fmt.Sprintf(errorReadDatasourceForceAsymmetricDetail, clusterName, DeprecationOldSchemaAction))
 		return nil
 	}
-	updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, nil, nil)
+	updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, nil, nil, clusterResp.AdvancedConfiguration)
 	if diags.HasError() {
 		return nil
 	}

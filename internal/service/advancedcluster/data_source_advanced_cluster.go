@@ -348,7 +348,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(ErrorAdvancedConfRead, "", clusterName, err))
 	}
 
-	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs20240530, processArgs)); err != nil {
+	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs20240530, processArgs, clusterDesc.AdvancedConfiguration)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "advanced_configuration", clusterName, err))
 	}
 

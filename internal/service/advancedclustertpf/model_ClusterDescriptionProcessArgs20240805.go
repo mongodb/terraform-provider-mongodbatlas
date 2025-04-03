@@ -12,9 +12,9 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
-func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *admin.ClusterDescriptionProcessArgs20240805, inputLegacy *admin20240530.ClusterDescriptionProcessArgs, diags *diag.Diagnostics) {
+func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *admin.ClusterDescriptionProcessArgs20240805, inputLegacy *admin20240530.ClusterDescriptionProcessArgs, clusterAdvConfig *admin.ApiAtlasClusterAdvancedConfiguration, diags *diag.Diagnostics) {
 	var advancedConfig TFAdvancedConfigurationModel
-	if input != nil && inputLegacy != nil {
+	if input != nil && inputLegacy != nil && clusterAdvConfig != nil {
 		// Using the new API as source of Truth, only use `inputLegacy` for fields not in `input`
 		changeStreamOptionsPreAndPostImagesExpireAfterSeconds := input.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds
 		if changeStreamOptionsPreAndPostImagesExpireAfterSeconds == nil {
@@ -39,7 +39,6 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *admin.Clust
 			DefaultReadConcern:               types.StringValue(conversion.SafeValue(inputLegacy.DefaultReadConcern)),
 			FailIndexKeyTooLong:              types.BoolValue(failIndexKeyTooLong),
 			JavascriptEnabled:                types.BoolValue(conversion.SafeValue(input.JavascriptEnabled)),
-			MinimumEnabledTlsProtocol:        types.StringValue(conversion.SafeValue(input.MinimumEnabledTlsProtocol)),
 			NoTableScan:                      types.BoolValue(conversion.SafeValue(input.NoTableScan)),
 			OplogMinRetentionHours:           types.Float64Value(conversion.SafeValue(input.OplogMinRetentionHours)),
 			OplogSizeMb:                      types.Int64Value(conversion.SafeValue(conversion.IntPtrToInt64Ptr(input.OplogSizeMB))),
@@ -47,21 +46,22 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *admin.Clust
 			SampleRefreshIntervalBiconnector: types.Int64Value(conversion.SafeValue(conversion.IntPtrToInt64Ptr(input.SampleRefreshIntervalBIConnector))),
 			TransactionLifetimeLimitSeconds:  types.Int64Value(conversion.SafeValue(input.TransactionLifetimeLimitSeconds)),
 			DefaultMaxTimeMS:                 types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.DefaultMaxTimeMS)),
-			TlsCipherConfigMode:              types.StringValue(conversion.SafeValue(input.TlsCipherConfigMode)),
+			MinimumEnabledTlsProtocol:        types.StringValue(conversion.SafeValue(clusterAdvConfig.MinimumEnabledTlsProtocol)),
+			TlsCipherConfigMode:              types.StringValue(conversion.SafeValue(clusterAdvConfig.TlsCipherConfigMode)),
 		}
 	}
 
-	advancedConfig.CustomOpensslCipherConfigTls12 = customOpensslCipherConfigTLS12(ctx, diags, input)
+	advancedConfig.CustomOpensslCipherConfigTls12 = customOpensslCipherConfigTLS12(ctx, diags, clusterAdvConfig)
 	objType, diagsLocal := types.ObjectValueFrom(ctx, AdvancedConfigurationObjType.AttrTypes, advancedConfig)
 	diags.Append(diagsLocal...)
 	tfModel.AdvancedConfiguration = objType
 }
 
-func customOpensslCipherConfigTLS12(ctx context.Context, diags *diag.Diagnostics, processArgs *admin.ClusterDescriptionProcessArgs20240805) types.Set {
-	if processArgs == nil {
+func customOpensslCipherConfigTLS12(ctx context.Context, diags *diag.Diagnostics, advConfig *admin.ApiAtlasClusterAdvancedConfiguration) types.Set {
+	if advConfig == nil {
 		return types.SetNull(types.StringType)
 	}
-	customOpensslCipherConfigTLS12, d := types.SetValueFrom(ctx, types.StringType, processArgs.CustomOpensslCipherConfigTls12)
+	customOpensslCipherConfigTLS12, d := types.SetValueFrom(ctx, types.StringType, advConfig.CustomOpensslCipherConfigTls12)
 	diags.Append(d...)
 	return customOpensslCipherConfigTLS12
 }

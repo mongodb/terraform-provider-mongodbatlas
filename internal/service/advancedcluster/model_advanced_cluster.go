@@ -530,7 +530,9 @@ func expandBiConnectorConfig(d *schema.ResourceData) *admin.BiConnector {
 	return nil
 }
 
-func flattenProcessArgs(p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) []map[string]any {
+func flattenProcessArgs(p20240530 *admin20240530.ClusterDescriptionProcessArgs,
+	p *admin.ClusterDescriptionProcessArgs20240805,
+	clusterAdvConfig *admin.ApiAtlasClusterAdvancedConfiguration) []map[string]any {
 	if p20240530 == nil {
 		return nil
 	}
@@ -540,7 +542,6 @@ func flattenProcessArgs(p20240530 *admin20240530.ClusterDescriptionProcessArgs, 
 			"default_write_concern":                p20240530.GetDefaultWriteConcern(),
 			"fail_index_key_too_long":              p20240530.GetFailIndexKeyTooLong(),
 			"javascript_enabled":                   p20240530.GetJavascriptEnabled(),
-			"minimum_enabled_tls_protocol":         p20240530.GetMinimumEnabledTlsProtocol(),
 			"no_table_scan":                        p20240530.GetNoTableScan(),
 			"oplog_size_mb":                        p20240530.GetOplogSizeMB(),
 			"oplog_min_retention_hours":            p20240530.GetOplogMinRetentionHours(),
@@ -559,8 +560,12 @@ func flattenProcessArgs(p20240530 *admin20240530.ClusterDescriptionProcessArgs, 
 		if v := p.DefaultMaxTimeMS; v != nil {
 			flattenedProcessArgs[0]["default_max_time_ms"] = p.GetDefaultMaxTimeMS()
 		}
-		flattenedProcessArgs[0]["tls_cipher_config_mode"] = p.GetTlsCipherConfigMode()
-		flattenedProcessArgs[0]["custom_openssl_cipher_config_tls12"] = p.GetCustomOpensslCipherConfigTls12()
+	}
+
+	if clusterAdvConfig != nil {
+		flattenedProcessArgs[0]["tls_cipher_config_mode"] = clusterAdvConfig.GetTlsCipherConfigMode()
+		flattenedProcessArgs[0]["custom_openssl_cipher_config_tls12"] = clusterAdvConfig.GetCustomOpensslCipherConfigTls12()
+		flattenedProcessArgs[0]["minimum_enabled_tls_protocol"] = clusterAdvConfig.GetMinimumEnabledTlsProtocol()
 	}
 
 	return flattenedProcessArgs
@@ -843,6 +848,32 @@ func flattenAdvancedReplicationSpecAutoScaling(apiObject *admin.AdvancedAutoScal
 	return tfList
 }
 
+func expandClusterAdvancedConfiguration(d *schema.ResourceData) *admin.ApiAtlasClusterAdvancedConfiguration {
+	res := admin.ApiAtlasClusterAdvancedConfiguration{}
+
+	if ac, ok := d.GetOk("advanced_configuration"); ok {
+		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
+			p := aclist[0].(map[string]any)
+
+			if _, ok := d.GetOkExists("advanced_configuration.0.minimum_enabled_tls_protocol"); ok {
+				res.MinimumEnabledTlsProtocol = conversion.StringPtr(cast.ToString(p["minimum_enabled_tls_protocol"]))
+			}
+
+			if _, ok := d.GetOkExists("advanced_configuration.0.tls_cipher_config_mode"); ok {
+				res.TlsCipherConfigMode = conversion.StringPtr(cast.ToString(p["tls_cipher_config_mode"]))
+			}
+
+			if _, ok := d.GetOkExists("advanced_configuration.0.custom_openssl_cipher_config_tls12"); ok {
+				tmp := conversion.ExpandStringListFromSetSchema(d.Get("advanced_configuration.0.custom_openssl_cipher_config_tls12").(*schema.Set))
+				res.CustomOpensslCipherConfigTls12 = &tmp
+			}
+
+			return &res
+		}
+	}
+	return nil
+}
+
 func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVersion *string) (admin20240530.ClusterDescriptionProcessArgs, admin.ClusterDescriptionProcessArgs20240805) {
 	res20240530 := admin20240530.ClusterDescriptionProcessArgs{}
 	res := admin.ClusterDescriptionProcessArgs20240805{}
@@ -861,10 +892,6 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.javascript_enabled"); ok {
 		res20240530.JavascriptEnabled = conversion.Pointer(cast.ToBool(p["javascript_enabled"]))
-	}
-
-	if _, ok := d.GetOkExists("advanced_configuration.0.minimum_enabled_tls_protocol"); ok {
-		res20240530.MinimumEnabledTlsProtocol = conversion.StringPtr(cast.ToString(p["minimum_enabled_tls_protocol"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.no_table_scan"); ok {
@@ -916,15 +943,6 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 		} else {
 			log.Print(ErrorDefaultMaxTimeMinVersion)
 		}
-	}
-
-	if _, ok := d.GetOkExists("advanced_configuration.0.tls_cipher_config_mode"); ok {
-		res.TlsCipherConfigMode = conversion.StringPtr(cast.ToString(p["tls_cipher_config_mode"]))
-	}
-
-	if _, ok := d.GetOkExists("advanced_configuration.0.custom_openssl_cipher_config_tls12"); ok {
-		tmp := conversion.ExpandStringListFromSetSchema(d.Get("advanced_configuration.0.custom_openssl_cipher_config_tls12").(*schema.Set))
-		res.CustomOpensslCipherConfigTls12 = &tmp
 	}
 	return res20240530, res
 }
