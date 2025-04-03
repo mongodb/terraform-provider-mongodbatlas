@@ -29,15 +29,7 @@ func TestMarshalBasic(t *testing.T) {
 		AttrNull:            types.StringNull(),    // null values are not marshaled
 		AttrInt:             types.Int64Value(1),
 	}
-	const (
-		expectedJSON = `
-			{
-				"attr_string": "hello",
-				"attr_int": 1,
-				"attr_float": 1.234
-			}
-		`
-	)
+	const expectedJSON = `{ "attr_string": "hello", "attr_int": 1, "attr_float": 1.234 }`
 	raw, err := autogeneration.Marshal(&model, false)
 	require.NoError(t, err)
 	assert.JSONEq(t, expectedJSON, string(raw))
