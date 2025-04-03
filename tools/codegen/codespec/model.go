@@ -66,7 +66,7 @@ type Attribute struct {
 type AttributeReqBodyUsage int
 
 const (
-	AllRequestBodies = iota // by default attribute is send in request bodies
+	AllRequestBodies = iota // by default attribute is sent in request bodies
 	PostBodyOnly
 	OmitAll // this covers computed-only attributes and attributes which are only used for path/query params
 )
