@@ -29,9 +29,9 @@ func TestStreamConnectionDeletion(t *testing.T) {
 	genericErr.SetError("error")
 	genericErr.SetModel(errDeleteInProgress)
 	m.EXPECT().DeleteStreamConnection(mock.Anything, projectID, instanceName, connectionName).Return(admin.DeleteStreamConnectionApiRequest{ApiService: m}).Times(3)
-	m.EXPECT().DeleteStreamConnectionExecute(mock.Anything).Once().Return(nil, nil, &genericErr)
-	m.EXPECT().DeleteStreamConnectionExecute(mock.Anything).Once().Return(nil, nil, &genericErr)
-	m.EXPECT().DeleteStreamConnectionExecute(mock.Anything).Once().Return(nil, nil, nil)
+	m.EXPECT().DeleteStreamConnectionExecute(mock.Anything).Once().Return(nil, &genericErr)
+	m.EXPECT().DeleteStreamConnectionExecute(mock.Anything).Once().Return(nil, &genericErr)
+	m.EXPECT().DeleteStreamConnectionExecute(mock.Anything).Once().Return(nil, nil)
 	err := streamconnection.DeleteStreamConnection(t.Context(), m, projectID, instanceName, connectionName, time.Minute)
 	assert.NoError(t, err)
 }
