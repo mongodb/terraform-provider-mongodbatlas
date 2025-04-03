@@ -80,9 +80,11 @@ func generateStructOfTypedModel(attributes codespec.Attributes, name string) Cod
 }
 
 func typedModelProperty(attr *codespec.Attribute) string {
-	namePascalCase := attr.Name.PascalCase()
-	propType := attrModelType(attr)
-	autogenerationTag := ""
+	var (
+		namePascalCase    = attr.Name.PascalCase()
+		propType          = attrModelType(attr)
+		autogenerationTag string
+	)
 	if attr.ReqBodyUsage == codespec.OmitAll {
 		autogenerationTag = ` autogeneration:"omitjson"`
 	} else if attr.ReqBodyUsage == codespec.OmitUpdateBody {
