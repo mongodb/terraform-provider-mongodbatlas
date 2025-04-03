@@ -101,7 +101,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              admin.PtrString("string description"),
 							ComputedOptionalRequired: codespec.Required,
-							ReqBodyUsage:             codespec.PostBodyOnly,
+							ReqBodyUsage:             codespec.OmitUpdateBody,
 						},
 					},
 				},

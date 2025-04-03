@@ -70,5 +70,5 @@ type TFModel struct {
 	SimpleSetAttr              types.Set     `tfsdk:"simple_set_attr"`
 	SimpleMapAttr              types.Map     `tfsdk:"simple_map_attr"`
 	AttrNotIncludedInReqBodies types.String  `tfsdk:"attr_not_included_in_req_bodies" autogeneration:"omitjson"`
-	AttrOnlyInPostReqBodies    types.String  `tfsdk:"attr_only_in_post_req_bodies" autogeneration:"createonly"`
+	AttrOnlyInPostReqBodies    types.String  `tfsdk:"attr_only_in_post_req_bodies" autogeneration:"omitjsonupdate"`
 }
