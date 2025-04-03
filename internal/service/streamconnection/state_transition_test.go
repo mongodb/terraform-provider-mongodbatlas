@@ -44,7 +44,7 @@ func TestStreamConnectionDeletion404(t *testing.T) {
 		connectionName = "connectionName"
 	)
 	m.EXPECT().DeleteStreamConnection(mock.Anything, projectID, instanceName, connectionName).Return(admin.DeleteStreamConnectionApiRequest{ApiService: m}).Once()
-	m.EXPECT().DeleteStreamConnectionExecute(mock.Anything).Once().Return(nil, &http.Response{StatusCode: 404}, nil)
+	m.EXPECT().DeleteStreamConnectionExecute(mock.Anything).Once().Return(&http.Response{StatusCode: 404}, nil)
 	err := streamconnection.DeleteStreamConnection(t.Context(), m, projectID, instanceName, connectionName, time.Minute)
 	assert.NoError(t, err)
 }
