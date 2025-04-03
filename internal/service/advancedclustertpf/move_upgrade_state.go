@@ -93,6 +93,7 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 	if diags.HasError() {
 		return
 	}
+	AddAdvancedConfig(ctx, model, nil, nil, diags)
 	model.Timeouts = getTimeoutFromStateObj(stateObj)
 	if diags.HasError() {
 		return
