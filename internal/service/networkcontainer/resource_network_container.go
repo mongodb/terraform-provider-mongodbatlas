@@ -336,7 +336,7 @@ func resourceRefreshFunc(ctx context.Context, d *schema.ResourceData, client *ad
 			return nil, "provisioned_container", nil
 		}
 
-		_, _, err = client.NetworkPeeringApi.DeletePeeringContainer(ctx, projectID, containerID).Execute()
+		_, err = client.NetworkPeeringApi.DeletePeeringContainer(ctx, projectID, containerID).Execute()
 		if err != nil {
 			return nil, "provisioned_container", nil
 		}

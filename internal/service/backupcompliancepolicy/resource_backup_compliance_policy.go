@@ -379,7 +379,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
-	_, _, err := connV2.CloudBackupsApi.DisableDataProtectionSettings(ctx, projectID).Execute()
+	_, err := connV2.CloudBackupsApi.DisableDataProtectionSettings(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicyDelete, projectID, err))
 	}

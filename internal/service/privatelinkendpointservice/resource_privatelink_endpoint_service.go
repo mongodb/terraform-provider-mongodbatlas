@@ -289,7 +289,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	providerName := ids["provider_name"]
 
 	if endpointServiceID != "" {
-		_, _, err := connV2.PrivateEndpointServicesApi.DeletePrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
+		_, err := connV2.PrivateEndpointServicesApi.DeletePrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorEndpointDelete, endpointServiceID, err))
 		}

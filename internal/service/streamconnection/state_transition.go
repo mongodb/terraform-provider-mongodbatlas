@@ -11,7 +11,7 @@ import (
 
 func DeleteStreamConnection(ctx context.Context, api admin.StreamsApi, projectID, instanceName, connectionName string, timeout time.Duration) error {
 	return retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-		_, resp, err := api.DeleteStreamConnection(ctx, projectID, instanceName, connectionName).Execute()
+		resp, err := api.DeleteStreamConnection(ctx, projectID, instanceName, connectionName).Execute()
 		if err == nil {
 			return nil
 		}

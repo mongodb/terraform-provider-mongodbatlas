@@ -232,7 +232,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if shouldDelete {
-		_, _, err := conn.CloudBackupsApi.CancelBackupRestoreJob(ctx, projectID, clusterName, restoreID).Execute()
+		_, err := conn.CloudBackupsApi.CancelBackupRestoreJob(ctx, projectID, clusterName, restoreID).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error deleting a cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
 		}

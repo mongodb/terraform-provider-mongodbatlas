@@ -26,7 +26,7 @@ func createProject(tb testing.TB, name string) string {
 }
 
 func deleteProject(id string) {
-	_, _, err := ConnV2().ProjectsApi.DeleteProject(context.Background(), id).Execute()
+	_, err := ConnV2().ProjectsApi.DeleteProject(context.Background(), id).Execute()
 	if err != nil {
 		fmt.Printf("Project deletion failed: %s, error: %s", id, err)
 	}

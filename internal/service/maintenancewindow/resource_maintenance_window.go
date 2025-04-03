@@ -110,7 +110,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params.AutoDeferOnceEnabled = conversion.Pointer(autoDeferOnceEnabled.(bool))
 	}
 
-	_, _, err := connV2.MaintenanceWindowsApi.UpdateMaintenanceWindow(ctx, projectID, params).Execute()
+	_, err := connV2.MaintenanceWindowsApi.UpdateMaintenanceWindow(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorMaintenanceCreate, projectID, err))
 	}
@@ -190,7 +190,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params.AutoDeferOnceEnabled = conversion.Pointer(d.Get("auto_defer_once_enabled").(bool))
 	}
 
-	_, _, err := connV2.MaintenanceWindowsApi.UpdateMaintenanceWindow(ctx, projectID, params).Execute()
+	_, err := connV2.MaintenanceWindowsApi.UpdateMaintenanceWindow(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorMaintenanceUpdate, projectID, err))
 	}

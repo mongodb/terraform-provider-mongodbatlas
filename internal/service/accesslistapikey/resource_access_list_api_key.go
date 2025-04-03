@@ -170,7 +170,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	apiKeyID := ids["api_key_id"]
 	ipAddress := ids["entry"]
 
-	_, _, err := connV2.ProgrammaticAPIKeysApi.DeleteApiKeyAccessListEntry(ctx, orgID, apiKeyID, ipAddress).Execute()
+	_, err := connV2.ProgrammaticAPIKeysApi.DeleteApiKeyAccessListEntry(ctx, orgID, apiKeyID, ipAddress).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting API Key: %s", err))
 	}

@@ -199,7 +199,7 @@ func (r *projectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 	}
 
 	err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-		_, httpResponse, err := connV2.ProjectIPAccessListApi.DeleteProjectIpAccessList(ctx, projectID, entry).Execute()
+		httpResponse, err := connV2.ProjectIPAccessListApi.DeleteProjectIpAccessList(ctx, projectID, entry).Execute()
 		if err != nil {
 			if validate.StatusInternalServerError(httpResponse) {
 				return retry.RetryableError(err)

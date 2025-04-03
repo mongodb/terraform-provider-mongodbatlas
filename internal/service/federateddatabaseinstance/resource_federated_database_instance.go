@@ -475,7 +475,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := ids["project_id"]
 	name := ids["name"]
 
-	if _, _, err := connV2.DataFederationApi.DeleteFederatedDatabase(ctx, projectID, name).Execute(); err != nil {
+	if _, err := connV2.DataFederationApi.DeleteFederatedDatabase(ctx, projectID, name).Execute(); err != nil {
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceDelete, name, err))
 	}
 

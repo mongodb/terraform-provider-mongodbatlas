@@ -170,7 +170,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.Errorf("error getting Serverless private link endpoint  information: %s", err)
 	}
 
-	_, _, err = connV2.ServerlessPrivateEndpointsApi.DeleteServerlessPrivateEndpoint(ctx, projectID, instanceName, endpointID).Execute()
+	_, err = connV2.ServerlessPrivateEndpointsApi.DeleteServerlessPrivateEndpoint(ctx, projectID, instanceName, endpointID).Execute()
 	if err != nil {
 		return diag.Errorf("error deleting serverless private link endpoint(%s): %s", endpointID, err)
 	}

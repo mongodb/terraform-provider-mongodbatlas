@@ -141,7 +141,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	tenantName := ids["tenant_name"]
 	limitName := ids["limit_name"]
 
-	if _, _, err := conn.DataFederationApi.DeleteOneDataFederationInstanceQueryLimit(ctx, projectID, tenantName, limitName).Execute(); err != nil {
+	if _, err := conn.DataFederationApi.DeleteOneDataFederationInstanceQueryLimit(ctx, projectID, tenantName, limitName).Execute(); err != nil {
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseQueryLimitDelete, limitName, err))
 	}
 

@@ -335,7 +335,7 @@ func TestUpdateProjectLimits(t *testing.T) {
 			svc := mockadmin.NewProjectsApi(t)
 
 			svc.EXPECT().DeleteProjectLimit(mock.Anything, mock.Anything, mock.Anything).Return(admin.DeleteProjectLimitApiRequest{ApiService: svc}).Maybe()
-			svc.EXPECT().DeleteProjectLimitExecute(mock.Anything).Return(tc.mockResponses.DeleteProjectLimit, tc.mockResponses.HTTPResponse, tc.mockResponses.Err).Maybe()
+			svc.EXPECT().DeleteProjectLimitExecute(mock.Anything).Return(tc.mockResponses.HTTPResponse, tc.mockResponses.Err).Maybe()
 
 			svc.EXPECT().SetProjectLimit(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(admin.SetProjectLimitApiRequest{ApiService: svc}).Maybe()
 			svc.EXPECT().SetProjectLimitExecute(mock.Anything).Return(nil, nil, nil).Maybe()
@@ -1324,9 +1324,8 @@ type ProjectResponse struct {
 	Err          error
 }
 type DeleteProjectLimitResponse struct {
-	DeleteProjectLimit map[string]interface{}
-	HTTPResponse       *http.Response
-	Err                error
+	HTTPResponse *http.Response
+	Err          error
 }
 type AdvancedClusterDescriptionResponse struct {
 	AdvancedClusterDescription *admin.PaginatedClusterDescription20240805

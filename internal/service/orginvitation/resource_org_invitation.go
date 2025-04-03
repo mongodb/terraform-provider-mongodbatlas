@@ -179,7 +179,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return nil
 		}
 	}
-	_, _, err = connV2.OrganizationsApi.DeleteOrganizationInvitation(ctx, orgID, invitationID).Execute()
+	_, err = connV2.OrganizationsApi.DeleteOrganizationInvitation(ctx, orgID, invitationID).Execute()
 	if err != nil {
 		return diag.Errorf("error deleting Organization invitation for user %s: %s", username, err)
 	}

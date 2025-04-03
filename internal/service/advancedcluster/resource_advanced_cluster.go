@@ -1038,7 +1038,7 @@ func HandlePinnedFCVUpdate(ctx context.Context, connV2 *admin.APIClient, project
 			}
 		} else {
 			// pinned_fcv has been removed from the config so unpin method is called
-			if _, _, err := connV2.ClustersApi.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
+			if _, err := connV2.ClustersApi.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
 		}

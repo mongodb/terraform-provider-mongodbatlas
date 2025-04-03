@@ -178,7 +178,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	indexID := ids["index_id"]
 
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	_, _, err := connV2.AtlasSearchApi.DeleteAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
+	_, err := connV2.AtlasSearchApi.DeleteAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		return diag.Errorf("error deleting search index (%s): %s", d.Get("name").(string), err)
 	}
@@ -245,7 +245,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if searchIndex.Definition.Mappings == nil {
 			searchIndex.Definition.Mappings = &admin.SearchMappings{}
 		}
-		searchIndex.Definition.Mappings.Fields = mappingsFields
+		searchIndex.Definition.Mappings.Fields = &mappingsFields
 	}
 
 	if d.HasChange("fields") {
@@ -430,7 +430,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		dynamic := d.Get("mappings_dynamic").(bool)
 		searchIndexRequest.Definition.Mappings = &admin.SearchMappings{
 			Dynamic: &dynamic,
-			Fields:  mappingsFields,
+			Fields:  &mappingsFields,
 		}
 		synonyms := expandSearchIndexSynonyms(d)
 		searchIndexRequest.Definition.Synonyms = &synonyms

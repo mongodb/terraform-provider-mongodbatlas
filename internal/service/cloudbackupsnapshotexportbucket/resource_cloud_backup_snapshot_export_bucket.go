@@ -89,7 +89,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	cloudProvider := d.Get("cloud_provider").(string)
 	request := &admin.DiskBackupSnapshotExportBucketRequest{
 		IamRoleId:     conversion.StringPtr(d.Get("iam_role_id").(string)),
-		BucketName:    d.Get("bucket_name").(string),
+		BucketName:    conversion.StringPtr(d.Get("bucket_name").(string)),
 		RoleId:        conversion.StringPtr(d.Get("role_id").(string)),
 		ServiceUrl:    conversion.StringPtr(d.Get("service_url").(string)),
 		TenantId:      conversion.StringPtr(d.Get("tenant_id").(string)),
@@ -176,7 +176,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,
 	}
-	_, _, err := conn.CloudBackupsApi.DeleteExportBucket(ctx, projectID, bucketID).Execute()
+	_, err := conn.CloudBackupsApi.DeleteExportBucket(ctx, projectID, bucketID).Execute()
 
 	if err != nil {
 		return diag.Errorf("error deleting snapshot export bucket (%s): %s", bucketID, err)

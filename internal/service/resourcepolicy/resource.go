@@ -165,7 +165,7 @@ func (r *resourcePolicyRS) Delete(ctx context.Context, req resource.DeleteReques
 	resourcePolicyID := resourcePolicyState.ID.ValueString()
 	connV2 := r.Client.AtlasV2
 	resourcePolicyAPI := connV2.ResourcePoliciesApi
-	if _, _, err := resourcePolicyAPI.DeleteAtlasResourcePolicy(ctx, orgID, resourcePolicyID).Execute(); err != nil {
+	if _, err := resourcePolicyAPI.DeleteAtlasResourcePolicy(ctx, orgID, resourcePolicyID).Execute(); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}

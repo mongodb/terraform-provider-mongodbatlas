@@ -147,7 +147,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := ids["project_id"]
 	endpointID := ids["endpoint_id"]
 
-	_, _, err := connV2.DataFederationApi.DeleteDataFederationPrivateEndpoint(ctx, projectID, endpointID).Execute()
+	_, err := connV2.DataFederationApi.DeleteDataFederationPrivateEndpoint(ctx, projectID, endpointID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveDelete, endpointID, projectID, err))
 	}

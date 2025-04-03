@@ -148,7 +148,7 @@ func PinFCV(ctx context.Context, api admin.ClustersApi, projectID, clusterName, 
 	req := admin.PinFCV{
 		ExpirationDate: &expirationTime,
 	}
-	if _, _, err := api.PinFeatureCompatibilityVersion(ctx, projectID, clusterName, &req).Execute(); err != nil {
+	if _, err := api.PinFeatureCompatibilityVersion(ctx, projectID, clusterName, &req).Execute(); err != nil {
 		return err
 	}
 	return nil

@@ -119,7 +119,7 @@ func (r *encryptionAtRestPrivateEndpointRS) Delete(ctx context.Context, req reso
 	projectID := earPrivateEndpointState.ProjectID.ValueString()
 	cloudProvider := earPrivateEndpointState.CloudProvider.ValueString()
 	endpointID := earPrivateEndpointState.ID.ValueString()
-	if _, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.RequestEncryptionAtRestPrivateEndpointDeletion(ctx, projectID, cloudProvider, endpointID).Execute(); err != nil {
+	if _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.RequestEncryptionAtRestPrivateEndpointDeletion(ctx, projectID, cloudProvider, endpointID).Execute(); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}

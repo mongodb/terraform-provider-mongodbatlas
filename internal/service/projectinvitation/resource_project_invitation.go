@@ -163,7 +163,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := ids["project_id"]
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
-	_, _, err := connV2.ProjectsApi.DeleteProjectInvitation(ctx, projectID, invitationID).Execute()
+	_, err := connV2.ProjectsApi.DeleteProjectInvitation(ctx, projectID, invitationID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting Project invitation for user %s: %w", username, err))
 	}

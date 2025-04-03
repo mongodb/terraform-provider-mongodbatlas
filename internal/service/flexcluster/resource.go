@@ -243,7 +243,7 @@ func UpdateFlexCluster(ctx context.Context, projectID, clusterName string, flexC
 }
 
 func DeleteFlexCluster(ctx context.Context, projectID, clusterName string, client admin.FlexClustersApi) error {
-	if _, _, err := client.DeleteFlexCluster(ctx, projectID, clusterName).Execute(); err != nil {
+	if _, err := client.DeleteFlexCluster(ctx, projectID, clusterName).Execute(); err != nil {
 		return err
 	}
 

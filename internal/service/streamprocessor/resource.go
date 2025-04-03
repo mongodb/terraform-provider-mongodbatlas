@@ -93,7 +93,7 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	if needsStarting {
-		_, _, err := connV2.StreamsApi.StartStreamProcessorWithParams(ctx,
+		_, err := connV2.StreamsApi.StartStreamProcessorWithParams(ctx,
 			&admin.StartStreamProcessorApiParams{
 				GroupId:       projectID,
 				TenantName:    instanceName,
@@ -184,7 +184,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 
 	// we must stop the current stream processor if the current state is started
 	if currentState == StartedState {
-		_, _, err := connV2.StreamsApi.StopStreamProcessorWithParams(ctx,
+		_, err := connV2.StreamsApi.StopStreamProcessorWithParams(ctx,
 			&admin.StopStreamProcessorApiParams{
 				GroupId:       plan.ProjectID.ValueString(),
 				TenantName:    plan.InstanceName.ValueString(),
@@ -218,7 +218,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 
 	// start the stream processor if the desired state is started
 	if plannedState == StartedState {
-		_, _, err := r.Client.AtlasV2.StreamsApi.StartStreamProcessorWithParams(ctx,
+		_, err := r.Client.AtlasV2.StreamsApi.StartStreamProcessorWithParams(ctx,
 			&admin.StartStreamProcessorApiParams{
 				GroupId:       projectID,
 				TenantName:    instanceName,

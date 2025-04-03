@@ -180,7 +180,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			ClusterName: name,
 			Enable:      conversion.Pointer(d.Get("auto_indexing").(bool)),
 		}
-		_, _, err := connV2.PerformanceAdvisorApi.SetServerlessAutoIndexingWithParams(ctx, params).Execute()
+		_, err := connV2.PerformanceAdvisorApi.SetServerlessAutoIndexingWithParams(ctx, params).Execute()
 		if err != nil {
 			return diag.Errorf("error creating MongoDB Serverless Instance setting auto_indexing: %s", err)
 		}
@@ -319,7 +319,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			ClusterName: name,
 			Enable:      conversion.Pointer(d.Get("auto_indexing").(bool)),
 		}
-		_, _, err := connV2.PerformanceAdvisorApi.SetServerlessAutoIndexingWithParams(ctx, params).Execute()
+		_, err := connV2.PerformanceAdvisorApi.SetServerlessAutoIndexingWithParams(ctx, params).Execute()
 		if err != nil {
 			return diag.Errorf("error updating MongoDB Serverless Instance setting auto_indexing: %s", err)
 		}
