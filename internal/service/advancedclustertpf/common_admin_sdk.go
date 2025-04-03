@@ -100,6 +100,8 @@ func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, c
 			return nil, nil, false
 		}
 	}
+	// clusterAdvConfig is managed through create/updateCluster APIs instead of processArgs APIs but since corresponding TF attributes
+	// belong in the advanced_configuration attribute we still need to check for any changes
 	if !update.IsZeroValues(clusterAdvConfig) {
 		changed = true
 	}

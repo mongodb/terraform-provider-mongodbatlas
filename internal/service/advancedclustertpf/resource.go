@@ -283,7 +283,6 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		}
 	}
 	if advConfigChanged {
-		// TODO: this is not called if only change is in cluster advConfig attrs
 		updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, legacyAdvConfig, advConfig, clusterResp.AdvancedConfiguration)
 		if diags.HasError() {
 			return
