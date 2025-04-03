@@ -87,6 +87,7 @@ func addOrUpdate(attr *Attribute, computability ComputedOptionalRequired, reqBod
 
 // mergeAttributes merges attributes from different sources (path params, create/get operation bodies) and determines a single merged list of attributes.
 // Computability and reqBodyUsage values are determined as part of this process.
+// Different sources are applied in a specific order, defining the computability and reqBodyUsage value they have at each step.
 func mergeAttributes(createPathParams, createRequest, createResponse, readResponse Attributes) Attributes {
 	merged := make(map[string]*Attribute)
 
