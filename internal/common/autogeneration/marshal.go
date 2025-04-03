@@ -74,7 +74,7 @@ func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[s
 		panic("marshal expects only Terraform types in the model")
 	}
 	if obj.IsNull() || obj.IsUnknown() {
-		return nil // skip nil or unknown values
+		return nil // skip null or unknown values
 	}
 	switch v := attrValModel.Interface().(type) {
 	case types.String:

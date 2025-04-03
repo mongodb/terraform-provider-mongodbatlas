@@ -12,14 +12,14 @@ import (
 
 func TestMarshalBasic(t *testing.T) {
 	model := struct {
-		AttrFloat  types.Float64 `tfsdk:"attribute_float"`
-		AttrString types.String  `tfsdk:"attribute_string"`
+		AttrFloat  types.Float64 `tfsdk:"attr_float"`
+		AttrString types.String  `tfsdk:"attr_string"`
 		// values with tag `omitjson` are not marshaled, and they don't need to be Terraform types
-		AttrOmit            types.String `tfsdk:"attribute_omit" autogeneration:"omitjson"`
+		AttrOmit            types.String `tfsdk:"attr_omit" autogeneration:"omitjson"`
 		AttrOmitNoTerraform string       `autogeneration:"omitjson"`
-		AttrUnkown          types.String `tfsdk:"attribute_unknown"`
-		AttrNull            types.String `tfsdk:"attribute_null"`
-		AttrInt             types.Int64  `tfsdk:"attribute_int"`
+		AttrUnkown          types.String `tfsdk:"attr_unknown"`
+		AttrNull            types.String `tfsdk:"attr_null"`
+		AttrInt             types.Int64  `tfsdk:"attr_int"`
 	}{
 		AttrFloat:           types.Float64Value(1.234),
 		AttrString:          types.StringValue("hello"),
@@ -42,7 +42,7 @@ func TestMarshalOmitJSONUpdate(t *testing.T) {
 	)
 	model := struct {
 		Attr           types.String `tfsdk:"attr"`
-		AttrOmitUpdate types.String `tfsdk:"attr_create_only" autogeneration:"omitjsonupdate"`
+		AttrOmitUpdate types.String `tfsdk:"attr_omit_update" autogeneration:"omitjsonupdate"`
 		AttrOmit       types.String `tfsdk:"attr_omit" autogeneration:"omitjson"`
 	}{
 		Attr:           types.StringValue("val1"),
@@ -136,14 +136,14 @@ func TestMarshalPanic(t *testing.T) {
 
 func TestUnmarshalBasic(t *testing.T) {
 	var model struct {
-		AttrFloat        types.Float64 `tfsdk:"attribute_float"`
-		AttrFloatWithInt types.Float64 `tfsdk:"attribute_float_with_int"`
-		AttrString       types.String  `tfsdk:"attribute_string"`
-		AttrNotInJSON    types.String  `tfsdk:"attribute_not_in_json"`
-		AttrInt          types.Int64   `tfsdk:"attribute_int"`
-		AttrIntWithFloat types.Int64   `tfsdk:"attribute_int_with_float"`
-		AttrTrue         types.Bool    `tfsdk:"attribute_true"`
-		AttrFalse        types.Bool    `tfsdk:"attribute_false"`
+		AttrFloat        types.Float64 `tfsdk:"attr_float"`
+		AttrFloatWithInt types.Float64 `tfsdk:"attr_float_with_int"`
+		AttrString       types.String  `tfsdk:"attr_string"`
+		AttrNotInJSON    types.String  `tfsdk:"attr_not_in_json"`
+		AttrInt          types.Int64   `tfsdk:"attr_int"`
+		AttrIntWithFloat types.Int64   `tfsdk:"attr_int_with_float"`
+		AttrTrue         types.Bool    `tfsdk:"attr_true"`
+		AttrFalse        types.Bool    `tfsdk:"attr_false"`
 	}
 	const (
 		epsilon = 10e-15 // float tolerance
