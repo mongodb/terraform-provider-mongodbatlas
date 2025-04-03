@@ -35,27 +35,27 @@ func TestMarshalBasic(t *testing.T) {
 	assert.JSONEq(t, expectedJSON, string(raw))
 }
 
-func TestMarshalCreateOnly(t *testing.T) {
+func TestMarshalOmitJSONUpdate(t *testing.T) {
 	const (
-		expectedCreate   = `{ "attr": "val1", "attr_create_only": "val2" }`
-		expectedNoCreate = `{ "attr": "val1" }`
+		expectedCreate = `{ "attr": "val1", "attr_omit_update": "val2" }`
+		expectedUpdate = `{ "attr": "val1" }`
 	)
 	model := struct {
 		Attr           types.String `tfsdk:"attr"`
-		AttrCreateOnly types.String `tfsdk:"attr_create_only" autogeneration:"createonly"`
+		AttrOmitUpdate types.String `tfsdk:"attr_create_only" autogeneration:"omitjsonupdate"`
 		AttrOmit       types.String `tfsdk:"attr_omit" autogeneration:"omitjson"`
 	}{
 		Attr:           types.StringValue("val1"),
-		AttrCreateOnly: types.StringValue("val2"),
+		AttrOmitUpdate: types.StringValue("val2"),
 		AttrOmit:       types.StringValue("omit"),
 	}
-	noCreate, errNoCreate := autogeneration.Marshal(&model, false)
-	require.NoError(t, errNoCreate)
-	assert.JSONEq(t, expectedNoCreate, string(noCreate))
-
-	create, errCreate := autogeneration.Marshal(&model, true)
+	create, errCreate := autogeneration.Marshal(&model, false)
 	require.NoError(t, errCreate)
 	assert.JSONEq(t, expectedCreate, string(create))
+
+	update, errUpdate := autogeneration.Marshal(&model, true)
+	require.NoError(t, errUpdate)
+	assert.JSONEq(t, expectedUpdate, string(update))
 }
 
 func TestMarshalUnsupported(t *testing.T) {

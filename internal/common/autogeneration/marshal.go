@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -12,13 +11,13 @@ import (
 )
 
 const (
-	tagKey           = "autogeneration"
-	tagValOmitJSON   = "omitjson"
-	tagValCreateOnly = "createonly"
+	tagKey               = "autogeneration"
+	tagValOmitJSON       = "omitjson"
+	tagValOmitJSONUpdate = "omitjsonupdate"
 )
 
 // Marshal gets a Terraform model and marshals it into JSON (e.g. for an Atlas request).
-func Marshal(model any, isCreate bool) ([]byte, error) {
+func Marshal(model any, isUpdate bool) ([]byte, error) {
 	valModel := reflect.ValueOf(model)
 	if valModel.Kind() != reflect.Ptr {
 		panic("model must be pointer")
@@ -27,7 +26,7 @@ func Marshal(model any, isCreate bool) ([]byte, error) {
 	if valModel.Kind() != reflect.Struct {
 		panic("model must be pointer to struct")
 	}
-	objJSON, err := marshalAttrs(valModel, isCreate)
+	objJSON, err := marshalAttrs(valModel, isUpdate)
 	if err != nil {
 		return nil, err
 	}
@@ -44,16 +43,16 @@ func Unmarshal(raw []byte, model any) error {
 	return unmarshalAttrs(objJSON, model)
 }
 
-func marshalAttrs(valModel reflect.Value, isCreate bool) (map[string]any, error) {
+func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error) {
 	objJSON := make(map[string]any)
 	for i := 0; i < valModel.NumField(); i++ {
 		attrTypeModel := valModel.Type().Field(i)
 		tag := attrTypeModel.Tag.Get(tagKey)
-		if strings.Contains(tag, tagValOmitJSON) {
+		if tag == tagValOmitJSON {
 			continue // skip fields with tag `omitjson`
 		}
-		if !isCreate && strings.Contains(tag, tagValCreateOnly) {
-			continue // skip fields with tag `createonly` if not in create
+		if isUpdate && tag == tagValOmitJSONUpdate {
+			continue // skip fields with tag `omitjsonupdate` if in update mode
 		}
 		attrNameModel := attrTypeModel.Name
 		attrValModel := valModel.Field(i)
