@@ -134,8 +134,9 @@ func applyTimeoutConfig(options config.SchemaOptions) *Attribute {
 	}
 	if result != nil {
 		return &Attribute{
-			Name:     "timeouts",
-			Timeouts: &TimeoutsAttribute{ConfigurableTimeouts: result},
+			Name:         "timeouts",
+			Timeouts:     &TimeoutsAttribute{ConfigurableTimeouts: result},
+			ReqBodyUsage: OmitAll,
 		}
 	}
 	return nil

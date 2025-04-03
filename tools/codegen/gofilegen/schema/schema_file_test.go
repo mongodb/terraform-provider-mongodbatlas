@@ -184,6 +184,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							Timeouts: &codespec.TimeoutsAttribute{
 								ConfigurableTimeouts: []codespec.Operation{codespec.Create, codespec.Update, codespec.Delete},
 							},
+							ReqBodyUsage: codespec.OmitAll,
 						},
 					},
 				},
