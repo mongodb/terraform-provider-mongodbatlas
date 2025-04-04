@@ -41,6 +41,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaddresses"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/pushbasedlogexport"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/pushbasedlogexportapi"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/resourcepolicy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
@@ -486,6 +487,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		mongodbemployeeaccessgrant.Resource,
 		streamprivatelinkendpoint.Resource,
 		flexcluster.Resource,
+		pushbasedlogexportapi.Resource,
 	}
 	if config.PreviewProviderV2AdvancedCluster() {
 		resources = append(resources, advancedclustertpf.Resource)
