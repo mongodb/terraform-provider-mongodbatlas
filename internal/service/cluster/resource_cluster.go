@@ -800,7 +800,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	}
 
 	if cluster.AdvancedConfiguration == nil || cluster.AdvancedConfiguration.MinimumEnabledTLSProtocol == nil {
-		return diag.FromErr(fmt.Errorf("look for the test using this cluster & project", "cluster_name", clusterName, "project_id", cluster.GroupID, err))
+		return diag.FromErr(fmt.Errorf("look for the test using this cluster %s & project %s", clusterName, cluster.GroupID))
 	}
 	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs20240530, processArgs, cluster.AdvancedConfiguration)); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "advanced_configuration", clusterName, err))
