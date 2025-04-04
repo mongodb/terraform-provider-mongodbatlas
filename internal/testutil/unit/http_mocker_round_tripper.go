@@ -25,7 +25,6 @@ func NewMockRoundTripper(t *testing.T, config *MockHTTPDataConfig, data *MockHTT
 	tracker := newMockRoundTripper(t, data)
 	if config != nil {
 		tracker.allowMissingRequests = config.AllowMissingRequests
-		tracker.allowOutOfOrder = config.AllowOutOfOrder
 		tracker.manualRequestHandler = config.RequestHandler
 	}
 	for _, method := range []string{"GET", "POST", "PUT", "DELETE", "PATCH"} {
@@ -72,7 +71,6 @@ type MockRoundTripper struct {
 	currentStepIndex     int
 	mu                   sync.Mutex
 	allowMissingRequests bool
-	allowOutOfOrder      bool
 	logRequests          bool
 }
 
@@ -84,10 +82,7 @@ func (r *MockRoundTripper) IncreaseStepNumberAndInit() {
 
 func (r *MockRoundTripper) canReturnResponse(responseIndex int) bool {
 	isAfter := responseIndex > r.diffResponseIndex
-	if r.allowOutOfOrder && isAfter {
-		r.t.Logf("allowwingOutOfOrder: response_index=%d is after nextDiffResponse=%d", responseIndex, r.diffResponseIndex)
-	}
-	return r.allowOutOfOrder || !isAfter
+	return !isAfter
 }
 
 func (r *MockRoundTripper) allowReUse(req *RequestInfo) bool {
@@ -134,7 +129,7 @@ func (r *MockRoundTripper) nextDiffResponseIndex() {
 	}
 	for index, req := range step.DiffRequests {
 		if _, ok := r.foundsDiffs[index]; !ok {
-			r.diffResponseIndex = req.Responses[0].ResponseIndex
+			r.diffResponseIndex = (*req.Responses)[0].ResponseIndex
 			return
 		}
 	}
@@ -153,12 +148,12 @@ func (r *MockRoundTripper) CheckStepRequests(_ *terraform.State) error {
 	missingRequests := []string{}
 	step := r.currentStep()
 	for _, req := range step.RequestResponses {
-		missingRequestsCount := len(req.Responses) - r.usedResponses[req.id()]
+		missingRequestsCount := len(*req.Responses) - r.usedResponses[req.id()]
 		if missingRequestsCount > 0 {
 			missingIndexes := []string{}
 			for i := range missingRequestsCount {
-				missingResponse := (len(req.Responses) - missingRequestsCount) + i
-				missingIndexes = append(missingIndexes, fmt.Sprintf("%d", req.Responses[missingResponse].ResponseIndex))
+				missingResponse := (len(*req.Responses) - missingRequestsCount) + i
+				missingIndexes = append(missingIndexes, fmt.Sprintf("%d", (*req.Responses)[missingResponse].ResponseIndex))
 			}
 			missingIndexesStr := strings.Join(missingIndexes, ", ")
 			missingRequests = append(missingRequests, fmt.Sprintf("missing %d requests of %s (%s)", missingRequestsCount, req.IDShort(), missingIndexesStr))
@@ -253,14 +248,14 @@ func (r *MockRoundTripper) matchRequest(method, version, payload string, reqURL 
 		}
 		requestID := request.id()
 		nextIndex := r.usedResponses[requestID]
-		if nextIndex >= len(request.Responses) {
+		if nextIndex >= len(*request.Responses) {
 			if r.allowReUse(&request) {
-				nextIndex = len(request.Responses) - 1
+				nextIndex = len(*request.Responses) - 1
 			} else {
 				continue
 			}
 		}
-		response := request.Responses[nextIndex]
+		response := (*request.Responses)[nextIndex]
 		// cannot return a response that is sent after a diff response, unless it is a diff or we ignore order with allowOutOfOrder
 		if !isDiff && !r.canReturnResponse(response.ResponseIndex) {
 			prevIndex := nextIndex - 1
@@ -269,7 +264,7 @@ func (r *MockRoundTripper) matchRequest(method, version, payload string, reqURL 
 				if r.reReadCounter > 20 {
 					return "", 0, fmt.Errorf("stuck in a loop trying to re-read the same request: %s %s %s", method, version, reqURL.Path)
 				}
-				response = request.Responses[prevIndex]
+				response = (*request.Responses)[prevIndex]
 				r.t.Logf("re-reading %s request with response_index=%d as diff hasn't been returned yet (%d)", request.Method, response.ResponseIndex, nextDiffResponse)
 				return replaceVars(response.Text, r.data.Variables), response.Status, nil
 			}

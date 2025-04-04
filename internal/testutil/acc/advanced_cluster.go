@@ -3,6 +3,7 @@ package acc
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -231,4 +232,12 @@ func ConfigBasicDedicated(projectID, name, zoneName string) string {
 		depends_on = [mongodbatlas_advanced_cluster.test]
 	}
 	`, projectID, name, zoneNameLine)
+}
+
+func JoinQuotedStrings(list []string) string {
+	quoted := make([]string, len(list))
+	for i, item := range list {
+		quoted[i] = fmt.Sprintf("%q", item)
+	}
+	return strings.Join(quoted, ", ")
 }
