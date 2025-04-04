@@ -25,6 +25,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						Required:            true,
 						MarkdownDescription: "int attribute",
 					},
+					"attr_not_included_in_req_bodies": schema.StringAttribute{
+						Computed:            true,
+						MarkdownDescription: "string description",
+					},
 				},
 			},
 			"nested_list_attr": schema.ListNestedAttribute{
@@ -88,13 +92,15 @@ type TFModel struct {
 	MapNestedAttribute types.Map    `tfsdk:"map_nested_attribute"`
 }
 type TFNestedSingleAttrModel struct {
-	StringAttr types.String `tfsdk:"string_attr"`
-	IntAttr    types.Int64  `tfsdk:"int_attr"`
+	StringAttr                 types.String `tfsdk:"string_attr"`
+	IntAttr                    types.Int64  `tfsdk:"int_attr"`
+	AttrNotIncludedInReqBodies types.String `tfsdk:"attr_not_included_in_req_bodies" autogeneration:"omitjson"`
 }
 
 var NestedSingleAttrObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"string_attr": types.StringType,
-	"int_attr":    types.Int64Type,
+	"string_attr":                     types.StringType,
+	"int_attr":                        types.Int64Type,
+	"attr_not_included_in_req_bodies": types.StringType,
 }}
 
 type TFNestedListAttrModel struct {

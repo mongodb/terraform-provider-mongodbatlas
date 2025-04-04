@@ -59,12 +59,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 type TFModel struct {
 	BucketName types.String `tfsdk:"bucket_name"`
-	CreateDate types.String `tfsdk:"create_date"`
-	GroupId    types.String `tfsdk:"group_id"`
+	CreateDate types.String `tfsdk:"create_date" autogeneration:"omitjson"`
+	GroupId    types.String `tfsdk:"group_id" autogeneration:"omitjson"`
 	IamRoleId  types.String `tfsdk:"iam_role_id"`
 	Links      types.List   `tfsdk:"links"`
 	PrefixPath types.String `tfsdk:"prefix_path"`
-	State      types.String `tfsdk:"state"`
+	State      types.String `tfsdk:"state" autogeneration:"omitjson"`
 }
 type TFLinksModel struct {
 	Href types.String `tfsdk:"href"`
