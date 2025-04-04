@@ -437,6 +437,9 @@ While the example initially defines 2 symmetric shards, auto-scaling of `electab
 
 -> **NOTE:** After you upgrade to version 1.23.0 of the provider, you must update the cluster configuration to activate the auto-scaling per shard feature.
 
+-> **NOTE:** For imported clusters, you must also update the configuration to enable per-shard auto-scaling, otherwise it will operate in cluster-wide mode.
+
+
 -> **NOTE:** See the table [below](#resources-and-data-sources-impacted-by-independent-shard-scaling) for other impacted resources when a cluster transitions to independently scaled shards.
 
 ## Resources and Data Sources Impacted by Independent Shard Scaling
