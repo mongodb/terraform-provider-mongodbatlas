@@ -131,7 +131,7 @@ func TestCleanProjectAndClusters(t *testing.T) {
 		})
 	}
 	t.Cleanup(func() {
-		projectsAfter := readAllProjects(t.Context(), t, client)
+		projectsAfter := readAllProjects(context.Background(), t, client)
 		t.Logf("SUMMARY\nProjects changed from %d to %d\ndelete_errors=%d\nDRY_RUN=%t", projectsBefore, len(projectsAfter), deleteErrors, dryRun)
 	})
 }
