@@ -8,9 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-
-	// TODO: update before merging to master: "go.mongodb.org/atlas-sdk/v20250219001/admin"
-	"github.com/mongodb/atlas-sdk-go/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
@@ -59,8 +57,7 @@ func (r *searchDeploymentRS) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
-	connV2 := r.Client.AtlasPreview
+	connV2 := r.Client.AtlasV2
 	projectID := searchDeploymentPlan.ProjectID.ValueString()
 	clusterName := searchDeploymentPlan.ClusterName.ValueString()
 	searchDeploymentReq := NewSearchDeploymentReq(ctx, &searchDeploymentPlan)
@@ -95,8 +92,7 @@ func (r *searchDeploymentRS) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
-	connV2 := r.Client.AtlasPreview
+	connV2 := r.Client.AtlasV2
 	projectID := searchDeploymentPlan.ProjectID.ValueString()
 	clusterName := searchDeploymentPlan.ClusterName.ValueString()
 	deploymentResp, getResp, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(ctx, projectID, clusterName).Execute()
@@ -129,8 +125,7 @@ func (r *searchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
-	connV2 := r.Client.AtlasPreview
+	connV2 := r.Client.AtlasV2
 	projectID := searchDeploymentPlan.ProjectID.ValueString()
 	clusterName := searchDeploymentPlan.ClusterName.ValueString()
 	searchDeploymentReq := NewSearchDeploymentReq(ctx, &searchDeploymentPlan)
@@ -165,8 +160,7 @@ func (r *searchDeploymentRS) Delete(ctx context.Context, req resource.DeleteRequ
 		return
 	}
 
-	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
-	connV2 := r.Client.AtlasPreview
+	connV2 := r.Client.AtlasV2
 	projectID := searchDeploymentState.ProjectID.ValueString()
 	clusterName := searchDeploymentState.ClusterName.ValueString()
 	if _, err := connV2.AtlasSearchApi.DeleteAtlasSearchDeployment(ctx, projectID, clusterName).Execute(); err != nil {

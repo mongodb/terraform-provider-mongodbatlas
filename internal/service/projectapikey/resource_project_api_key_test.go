@@ -239,7 +239,7 @@ func deleteAPIKeyManually(orgID, descriptionPrefix string) error {
 	}
 	for _, key := range list.GetResults() {
 		if strings.HasPrefix(key.GetDesc(), descriptionPrefix) {
-			if _, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.DeleteApiKey(context.Background(), orgID, key.GetId()).Execute(); err != nil {
+			if _, err := acc.ConnV2().ProgrammaticAPIKeysApi.DeleteApiKey(context.Background(), orgID, key.GetId()).Execute(); err != nil {
 				return err
 			}
 		}

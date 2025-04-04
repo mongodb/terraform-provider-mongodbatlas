@@ -3,8 +3,7 @@ package encryptionatrest_test
 import (
 	"testing"
 
-	// TODO: update before merging to master: "go.mongodb.org/atlas-sdk/v20250219001/admin"
-	"github.com/mongodb/atlas-sdk-go/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"

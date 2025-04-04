@@ -5,8 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	// TODO: update before merging to master: "go.mongodb.org/atlas-sdk/v20250219001/admin"
-	"github.com/mongodb/atlas-sdk-go/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
@@ -28,7 +27,7 @@ func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
 		}
 		useDatasource               = mig.IsProviderVersionAtLeast("1.19.0") // data source introduced in this version
 		useRequirePrivateNetworking = mig.IsProviderVersionAtLeast("1.28.0") // require_private_networking introduced in this version
-		useEnabledForSearchNodes    = mig.IsProviderVersionAtLeast("1.30.0") // TODO: confirm version enabled_for_search_nodes introduced in this version
+		useEnabledForSearchNodes    = mig.IsProviderVersionAtLeast("1.32.0") // enabled_for_search_nodes introduced in this version
 	)
 
 	resource.Test(t, resource.TestCase{

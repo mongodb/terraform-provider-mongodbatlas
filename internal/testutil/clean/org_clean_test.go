@@ -15,7 +15,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 )
 
 const (
@@ -153,7 +153,7 @@ func findRetryErrorCode(err error) string {
 	return ""
 }
 func deleteProject(ctx context.Context, client *admin.APIClient, projectID string) error {
-	_, _, err := client.ProjectsApi.DeleteProject(ctx, projectID).Execute()
+	_, err := client.ProjectsApi.DeleteProject(ctx, projectID).Execute()
 	if err == nil || admin.IsErrorCode(err, "PROJECT_NOT_FOUND") {
 		return nil
 	}
@@ -296,7 +296,7 @@ func removeDataLakePipelines(ctx context.Context, t *testing.T, dryRun bool, cli
 		pipelineID := p.GetId()
 		t.Logf("delete pipeline %s", pipelineID)
 		if !dryRun {
-			_, _, err = client.DataLakePipelinesApi.DeletePipeline(ctx, projectID, pipelineID).Execute()
+			_, err = client.DataLakePipelinesApi.DeletePipeline(ctx, projectID, pipelineID).Execute()
 			require.NoError(t, err)
 		}
 	}
@@ -312,7 +312,7 @@ func removeFederatedDatabasePrivateEndpoints(ctx context.Context, t *testing.T, 
 		endpointID := f.GetEndpointId()
 		t.Logf("delete federated private endpoint %s", endpointID)
 		if !dryRun {
-			_, _, err = client.DataFederationApi.DeleteDataFederationPrivateEndpoint(ctx, projectID, endpointID).Execute()
+			_, err = client.DataFederationApi.DeleteDataFederationPrivateEndpoint(ctx, projectID, endpointID).Execute()
 			require.NoError(t, err)
 		}
 	}
@@ -331,7 +331,7 @@ func removeFederatedDatabases(ctx context.Context, t *testing.T, dryRun bool, cl
 		federatedName := f.GetName()
 		t.Logf("delete federated %s", federatedName)
 		if !dryRun {
-			_, _, err = client.DataFederationApi.DeleteFederatedDatabase(ctx, projectID, federatedName).Execute()
+			_, err = client.DataFederationApi.DeleteFederatedDatabase(ctx, projectID, federatedName).Execute()
 			require.NoError(t, err)
 		}
 	}

@@ -11,9 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
-
-	// TODO: update before merging to master: "go.mongodb.org/atlas-sdk/v20250219001/admin"
-	"github.com/mongodb/atlas-sdk-go/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 )
 
 const SearchDeploymentDoesNotExistsError = "ATLAS_SEARCH_DEPLOYMENT_DOES_NOT_EXIST"
