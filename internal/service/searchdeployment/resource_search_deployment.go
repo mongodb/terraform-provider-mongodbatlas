@@ -82,6 +82,7 @@ func (r *searchDeploymentRS) Create(ctx context.Context, req resource.CreateRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	newSearchNodeModel.SkipWaitOnUpdate = searchDeploymentPlan.SkipWaitOnUpdate
 	resp.Diagnostics.Append(resp.State.Set(ctx, newSearchNodeModel)...)
 }
 
@@ -115,6 +116,7 @@ func (r *searchDeploymentRS) Read(ctx context.Context, req resource.ReadRequest,
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	newSearchNodeModel.SkipWaitOnUpdate = searchDeploymentPlan.SkipWaitOnUpdate
 	resp.Diagnostics.Append(resp.State.Set(ctx, newSearchNodeModel)...)
 }
 
@@ -129,7 +131,8 @@ func (r *searchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequ
 	projectID := searchDeploymentPlan.ProjectID.ValueString()
 	clusterName := searchDeploymentPlan.ClusterName.ValueString()
 	searchDeploymentReq := NewSearchDeploymentReq(ctx, &searchDeploymentPlan)
-	if _, _, err := connV2.AtlasSearchApi.UpdateAtlasSearchDeployment(ctx, projectID, clusterName, &searchDeploymentReq).Execute(); err != nil {
+	deploymentResp, _, err := connV2.AtlasSearchApi.UpdateAtlasSearchDeployment(ctx, projectID, clusterName, &searchDeploymentReq).Execute()
+	if err != nil {
 		resp.Diagnostics.AddError("error during search deployment update", err.Error())
 		return
 	}
@@ -139,17 +142,21 @@ func (r *searchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	deploymentResp, err := WaitSearchNodeStateTransition(ctx, projectID, clusterName, connV2.AtlasSearchApi,
-		retryTimeConfig(updateTimeout, minTimeoutCreateUpdate))
-	if err != nil {
-		resp.Diagnostics.AddError("error during search deployment update", err.Error())
-		return
+	if !searchDeploymentPlan.SkipWaitOnUpdate.ValueBool() {
+		deploymentResp, err = WaitSearchNodeStateTransition(ctx, projectID, clusterName, connV2.AtlasSearchApi,
+			retryTimeConfig(updateTimeout, minTimeoutCreateUpdate))
+		if err != nil {
+			resp.Diagnostics.AddError("error during search deployment update", err.Error())
+			return
+		}
 	}
+
 	newSearchNodeModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, &searchDeploymentPlan.Timeouts, false)
 	resp.Diagnostics.Append(diagnostics...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	newSearchNodeModel.SkipWaitOnUpdate = searchDeploymentPlan.SkipWaitOnUpdate
 	resp.Diagnostics.Append(resp.State.Set(ctx, newSearchNodeModel)...)
 }
 

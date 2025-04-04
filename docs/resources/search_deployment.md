@@ -64,6 +64,7 @@ output "mongodbatlas_search_deployment_id" {
 
 ### Optional
 
+- `skip_wait_on_update` (Boolean) Setting this risks returning before the search deployment is in a steady state, potentially causing inconsistencies. If set to true, Terraform will not wait for the search deployment to reach an idle state (i.e. skip waiting for reindexing) after an update.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

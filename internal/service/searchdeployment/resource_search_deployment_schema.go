@@ -63,17 +63,22 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Update: true,
 				Delete: true,
 			}),
+			"skip_wait_on_update": schema.BoolAttribute{
+				Description: "Setting this risks returning before the search deployment is in a steady state, potentially causing inconsistencies. If set to true, Terraform will not wait for the search deployment to reach an idle state (i.e. skip waiting for reindexing) after an update.",
+				Optional:    true,
+			},
 		},
 	}
 }
 
 type TFSearchDeploymentRSModel struct {
-	ID          types.String   `tfsdk:"id"`
-	ClusterName types.String   `tfsdk:"cluster_name"`
-	ProjectID   types.String   `tfsdk:"project_id"`
-	Specs       types.List     `tfsdk:"specs"`
-	StateName   types.String   `tfsdk:"state_name"`
-	Timeouts    timeouts.Value `tfsdk:"timeouts"`
+	ID               types.String   `tfsdk:"id"`
+	ClusterName      types.String   `tfsdk:"cluster_name"`
+	ProjectID        types.String   `tfsdk:"project_id"`
+	Specs            types.List     `tfsdk:"specs"`
+	StateName        types.String   `tfsdk:"state_name"`
+	Timeouts         timeouts.Value `tfsdk:"timeouts"`
+	SkipWaitOnUpdate types.Bool     `tfsdk:"skip_wait_on_update"`
 }
 
 type TFSearchNodeSpecModel struct {

@@ -28,6 +28,7 @@ func (d *searchDeploymentDS) Schema(ctx context.Context, req datasource.SchemaRe
 	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.DataSourceSchemaRequest{
 		RequiredFields: []string{"project_id", "cluster_name"},
 	})
+	delete(resp.Schema.Attributes, "skip_wait_on_update")
 }
 
 func (d *searchDeploymentDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
