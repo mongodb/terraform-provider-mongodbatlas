@@ -362,8 +362,8 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
 		}
 
-		if conversion.HasElementsSliceOrMap(searchIndex.LatestDefinition.Mappings.Fields) {
-			searchIndexMappingFields, err := marshalSearchIndex(searchIndex.LatestDefinition.Mappings.Fields)
+		if fields := searchIndex.LatestDefinition.Mappings.Fields; fields != nil && conversion.HasElementsSliceOrMap(*fields) {
+			searchIndexMappingFields, err := marshalSearchIndex(*fields)
 			if err != nil {
 				return diag.FromErr(err)
 			}
