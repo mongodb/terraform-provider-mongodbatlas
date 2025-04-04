@@ -1010,7 +1010,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 					return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, "", clusterName, err))
 				}
 			}
-			cluster.AdvancedConfiguration = expandClusterAdvancedConfiguration(d)
+			clusterAdvConfig := expandClusterAdvancedConfiguration(d)
+			if !reflect.DeepEqual(cluster.AdvancedConfiguration, matlas.AdvancedConfiguration{}) {
+				cluster.AdvancedConfiguration = clusterAdvConfig
+			}
 		}
 	}
 
