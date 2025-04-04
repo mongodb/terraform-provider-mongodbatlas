@@ -86,7 +86,7 @@ func searchNodeChecks(targetName, clusterName, instanceSize string, searchNodeCo
 		resource.TestCheckResourceAttr(targetName, "specs.0.instance_size", instanceSize),
 		resource.TestCheckResourceAttr(targetName, "specs.0.node_count", fmt.Sprintf("%d", searchNodeCount)),
 		resource.TestCheckResourceAttrSet(targetName, "state_name"),
-		resource.TestCheckResourceAttrSet(targetName, "encryption_at_rest_provider"),
+		// checking if encryption_at_rest_provider is set is not possible because it takes 10-15 minutes after the cluster is created to apply the encryption(and for the API to return the value)
 	}
 }
 

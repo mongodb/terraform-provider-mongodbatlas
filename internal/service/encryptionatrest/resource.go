@@ -281,7 +281,7 @@ func (r *encryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 	projectID := encryptionAtRestPlan.ProjectID.ValueString()
 	encryptionAtRestReq := &admin.EncryptionAtRest{}
 	if !encryptionAtRestPlan.EnabledForSearchNodes.IsNull() {
-		encryptionAtRestReq.EnabledForSearchNodes = conversion.Pointer(encryptionAtRestPlan.EnabledForSearchNodes.ValueBool())
+		encryptionAtRestReq.EnabledForSearchNodes = encryptionAtRestPlan.EnabledForSearchNodes.ValueBoolPointer()
 	}
 	if encryptionAtRestPlan.AwsKmsConfig != nil {
 		encryptionAtRestReq.AwsKms = NewAtlasAwsKms(encryptionAtRestPlan.AwsKmsConfig)
