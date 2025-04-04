@@ -319,12 +319,30 @@ func removeStreamInstances(ctx context.Context, t *testing.T, dryRun bool, clien
 	t.Helper()
 	streamInstances, _, err := client.StreamsApi.ListStreamInstances(ctx, projectID).Execute()
 	require.NoError(t, err)
-	for _, p := range *streamInstances.Results {
-		id := p.GetId()
+
+	for _, instance := range *streamInstances.Results {
+		instanceName := *instance.Name
+		id := instance.GetId()
 		t.Logf("delete stream instance %s", id)
+
 		if !dryRun {
-			_, _, err = client.StreamsApi.DeleteStreamInstance(ctx, projectID, *p.Name).Execute()
-			require.NoError(t, err)
+			_, _, err = client.StreamsApi.DeleteStreamInstance(ctx, projectID, instanceName).Execute()
+			if err != nil && admin.IsErrorCode(err, "STREAM_TENANT_HAS_STREAM_PROCESSORS") {
+				t.Logf("stream instance %s has stream processors, attempting to delete", id)
+				streamProcessors, _, spErr := client.StreamsApi.ListStreamProcessors(ctx, projectID, instanceName).Execute()
+				require.NoError(t, spErr)
+
+				for _, processor := range *streamProcessors.Results {
+					t.Logf("delete stream processor %s", processor.Id)
+					_, err = client.StreamsApi.DeleteStreamProcessor(ctx, projectID, instanceName, processor.Name).Execute()
+					require.NoError(t, err)
+				}
+				t.Logf("retry delete stream instance %s after removing stream processors", id)
+				_, _, err = client.StreamsApi.DeleteStreamInstance(ctx, projectID, instanceName).Execute()
+				require.NoError(t, err)
+			} else {
+				require.NoError(t, err)
+			}
 		}
 	}
 	return len(*streamInstances.Results)
