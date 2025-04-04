@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"strings"
 	"testing"
 	"time"
 
@@ -1473,8 +1472,8 @@ func configAdvancedConf(projectID, name, autoscalingEnabled string,
 		tlsCipherConfigModeStr = fmt.Sprintf(`tls_cipher_config_mode = %[1]q`, *p.TlsCipherConfigMode)
 		if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
 			customOpensslCipherConfigTLS12Str = fmt.Sprintf(
-				`custom_openssl_cipher_config_tls12 = [%q]`,
-				strings.Join(*p.CustomOpensslCipherConfigTls12, `", "`),
+				`custom_openssl_cipher_config_tls12 = [%s]`,
+				acc.JoinQuotedStrings(*p.CustomOpensslCipherConfigTls12),
 			)
 		}
 	}
@@ -1577,8 +1576,8 @@ func configAdvancedConfPartial(projectID, name, autoscalingEnabled string, p *ad
 		tlsCipherConfigModeStr = fmt.Sprintf(`tls_cipher_config_mode = %[1]q`, *p.TlsCipherConfigMode)
 		if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
 			customOpensslCipherConfigTLS12Str = fmt.Sprintf(
-				`custom_openssl_cipher_config_tls12 = [%q]`,
-				strings.Join(*p.CustomOpensslCipherConfigTls12, `", "`),
+				`custom_openssl_cipher_config_tls12 = [%s]`,
+				acc.JoinQuotedStrings(*p.CustomOpensslCipherConfigTls12),
 			)
 		}
 	}
@@ -1898,8 +1897,8 @@ func testAccMongoDBAtlasClusterAWSConfigdWithLabels(projectID, name, backupEnabl
 	for _, label := range labels {
 		labelsConf += fmt.Sprintf(`
 			labels {
-				key   = "%s"
-				value = "%s"
+				key   = %q
+				value = %q
 			}
 		`, label.Key, label.Value)
 	}

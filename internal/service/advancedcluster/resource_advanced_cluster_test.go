@@ -2109,8 +2109,8 @@ func configAdvanced(t *testing.T, usePreviewProvider bool, projectID, clusterNam
 			tlsCipherConfigModeStr = fmt.Sprintf(`tls_cipher_config_mode = %[1]q`, *p.TlsCipherConfigMode)
 			if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
 				customOpensslCipherConfigTLS12Str = fmt.Sprintf(
-					`custom_openssl_cipher_config_tls12 = [%q]`,
-					strings.Join(*p.CustomOpensslCipherConfigTls12, `", "`),
+					`custom_openssl_cipher_config_tls12 = [%s]`,
+					acc.JoinQuotedStrings(*p.CustomOpensslCipherConfigTls12),
 				)
 			}
 		}

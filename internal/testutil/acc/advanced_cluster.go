@@ -3,6 +3,7 @@ package acc
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -192,4 +193,12 @@ func PopulateWithSampleData(projectID, clusterName string) error {
 	}
 	_, err = stateConf.WaitForStateContext(ctx)
 	return err
+}
+
+func JoinQuotedStrings(list []string) string {
+	quoted := make([]string, len(list))
+	for i, item := range list {
+		quoted[i] = fmt.Sprintf("%q", item)
+	}
+	return strings.Join(quoted, ", ")
 }
