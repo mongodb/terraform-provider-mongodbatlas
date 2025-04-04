@@ -508,6 +508,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		AutoScaling:              autoScaling,
 		ProviderSettings:         providerSettings,
 		ReplicationSpecs:         replicationSpecs,
+		AdvancedConfiguration:    expandClusterAdvancedConfiguration(d),
 	}
 	if v, ok := d.GetOk("cloud_backup"); ok {
 		clusterRequest.ProviderBackupEnabled = conversion.Pointer(v.(bool))
@@ -798,7 +799,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, "", clusterName, err))
 	}
 
-	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs20240530, processArgs)); err != nil {
+	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs20240530, processArgs, cluster.AdvancedConfiguration)); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "advanced_configuration", clusterName, err))
 	}
 
@@ -1009,6 +1010,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 					return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, "", clusterName, err))
 				}
 			}
+			cluster.AdvancedConfiguration = expandClusterAdvancedConfiguration(d)
 		}
 	}
 
