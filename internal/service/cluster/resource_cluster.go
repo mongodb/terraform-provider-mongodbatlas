@@ -799,6 +799,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, "", clusterName, err))
 	}
 
+	if cluster.AdvancedConfiguration == nil || cluster.AdvancedConfiguration.MinimumEnabledTLSProtocol == nil {
+		return diag.FromErr(fmt.Errorf("look for the test using this cluster & project.....", "cluster_name", clusterName, "project_id", cluster.GroupID, err))
+	}
 	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs20240530, processArgs, cluster.AdvancedConfiguration)); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "advanced_configuration", clusterName, err))
 	}
