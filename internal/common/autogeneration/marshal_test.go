@@ -29,7 +29,7 @@ func TestMarshalBasic(t *testing.T) {
 		AttrNull:            types.StringNull(),    // null values are not marshaled
 		AttrInt:             types.Int64Value(1),
 	}
-	const expectedJSON = `{ "attr_string": "hello", "attr_int": 1, "attr_float": 1.234 }`
+	const expectedJSON = `{ "attrString": "hello", "attrInt": 1, "attrFloat": 1.234 }`
 	raw, err := autogeneration.Marshal(&model, false)
 	require.NoError(t, err)
 	assert.JSONEq(t, expectedJSON, string(raw))
@@ -37,7 +37,7 @@ func TestMarshalBasic(t *testing.T) {
 
 func TestMarshalOmitJSONUpdate(t *testing.T) {
 	const (
-		expectedCreate = `{ "attr": "val1", "attr_omit_update": "val2" }`
+		expectedCreate = `{ "attr": "val1", "attrOmitUpdate": "val2" }`
 		expectedUpdate = `{ "attr": "val1" }`
 	)
 	model := struct {
@@ -151,15 +151,15 @@ func TestUnmarshalBasic(t *testing.T) {
 		// attribute_null is ignored because it is null, no error is thrown even if it is not in the model.
 		tfResponseJSON = `
 			{
-				"attr_string": "value_string",
-				"attr_true": true,
-				"attr_false": false,
-				"attr_int": 123,
-				"attr_int_with_float": 10.6,
-				"attr_float": 456.1,
-				"attr_float_with_int": 13,
-				"attr_not_in_model": "val",
-				"attr_null": null
+				"attrString": "value_string",
+				"attrTrue": true,
+				"attrFalse": false,
+				"attrInt": 123,
+				"attrIntWithFloat": 10.6,
+				"attrFloat": 456.1,
+				"attrFloatWithInt": 13,
+				"attrNotInModel": "val",
+				"attrNull": null
 			}
 		`
 	)
