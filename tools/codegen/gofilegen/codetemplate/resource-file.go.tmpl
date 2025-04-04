@@ -94,8 +94,15 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 
-	_, _ = io.ReadAll(apiResp.Body)
-	var newModel TFModel // TODO handle conversion of byte[] body to newModel
+	rawJSON, err := io.ReadAll(apiResp.Body)
+	if err != nil {
+		resp.Diagnostics.AddError("error during get operation", err.Error())
+		return
+	}
+
+	if err := autogeneration.Unmarshal(rawJSON, &plan); err != nil {
+		resp.Diagnostics.AddError("error during get operation", err.Error())
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, newModel)...)
 }
