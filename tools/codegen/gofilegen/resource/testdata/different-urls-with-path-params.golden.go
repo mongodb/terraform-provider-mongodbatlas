@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogeneration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -42,7 +43,11 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
-	var reqBody []byte // TODO handle conversion of TFModel to reqBody
+	reqBody, err := autogeneration.Marshal(&plan, false)
+	if err != nil {
+		resp.Diagnostics.AddError("error during create operation", err.Error())
+		return
+	}
 
 	pathParams := map[string]string{
 		"projectId": plan.ProjectId.ValueString(),
@@ -60,22 +65,30 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
-	_, _ = io.ReadAll(apiResp.Body)
-	var newModel TFModel // TODO handle conversion of byte[] body to newModel
+	respBody, err := io.ReadAll(apiResp.Body)
+	if err != nil {
+		resp.Diagnostics.AddError("error during get operation", err.Error())
+		return
+	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, newModel)...)
+	// Use the plan as the base model to set the response state
+	if err := autogeneration.Unmarshal(respBody, &plan); err != nil {
+		resp.Diagnostics.AddError("error during get operation", err.Error())
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var plan TFModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &plan)...)
+	var state TFModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	pathParams := map[string]string{
-		"projectId": plan.ProjectId.ValueString(),
-		"roleName":  plan.RoleName.ValueString(),
+		"projectId": state.ProjectId.ValueString(),
+		"roleName":  state.RoleName.ValueString(),
 	}
 	apiResp, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
 		VersionHeader: apiVersionHeader,
@@ -93,10 +106,18 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 
-	_, _ = io.ReadAll(apiResp.Body)
-	var newModel TFModel // TODO handle conversion of byte[] body to newModel
+	respBody, err := io.ReadAll(apiResp.Body)
+	if err != nil {
+		resp.Diagnostics.AddError("error during get operation", err.Error())
+		return
+	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, newModel)...)
+	// Use the current state as the base model to set the response state
+	if err := autogeneration.Unmarshal(respBody, &state); err != nil {
+		resp.Diagnostics.AddError("error during get operation", err.Error())
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
