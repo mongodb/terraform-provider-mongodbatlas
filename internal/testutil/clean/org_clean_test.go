@@ -11,11 +11,13 @@ import (
 	"testing"
 	"time"
 
+	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+
+	"github.com/stretchr/testify/require"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 )
 
 const (
@@ -40,6 +42,8 @@ var (
 		"CANNOT_CLOSE_GROUP_ACTIVE_PEERING_CONNECTIONS",
 		"CANNOT_CLOSE_GROUP_ACTIVE_ATLAS_DATA_LAKES",
 		"CANNOT_CLOSE_GROUP_ACTIVE_ATLAS_DATA_FEDERATION_PRIVATE_ENDPOINTS",
+		"CANNOT_CLOSE_GROUP_ACTIVE_STREAMS_RESOURCE",
+		"CANNOT_CLOSE_GROUP_ACTIVE_ATLAS_PRIVATE_ENDPOINT_SERVICES",
 	}
 )
 
@@ -187,6 +191,14 @@ func removeProjectResources(ctx context.Context, t *testing.T, dryRun bool, clie
 	if federatedDatabasesRemoved > 0 {
 		changes = append(changes, fmt.Sprintf("removed %d federated databases", federatedDatabasesRemoved))
 	}
+	streamInstancesRemoved := removeStreamInstances(ctx, t, dryRun, client, projectID)
+	if streamInstancesRemoved > 0 {
+		changes = append(changes, fmt.Sprintf("removed %d stream instances", streamInstancesRemoved))
+	}
+	privateEndpointServicesRemoved := removePrivateEndpointServices(ctx, t, dryRun, client, projectID)
+	if privateEndpointServicesRemoved > 0 {
+		changes = append(changes, fmt.Sprintf("removed %d private endpoint services", privateEndpointServicesRemoved))
+	}
 	return strings.Join(changes, ", ")
 }
 
@@ -301,6 +313,47 @@ func removeDataLakePipelines(ctx context.Context, t *testing.T, dryRun bool, cli
 		}
 	}
 	return len(datalakeResults)
+}
+
+func removeStreamInstances(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
+	t.Helper()
+	streamInstances, _, err := client.StreamsApi.ListStreamInstances(ctx, projectID).Execute()
+	require.NoError(t, err)
+	for _, p := range *streamInstances.Results {
+		id := p.GetId()
+		t.Logf("delete stream instance %s", id)
+		if !dryRun {
+			_, _, err = client.StreamsApi.DeleteStreamInstance(ctx, projectID, id).Execute()
+			require.NoError(t, err)
+		}
+	}
+	return len(*streamInstances.Results)
+}
+
+func removePrivateEndpointServices(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
+	t.Helper()
+	totalCount := 0
+	cloudProviders := []string{"AWS", "AZURE", "GCP"}
+
+	for _, provider := range cloudProviders {
+		endpointServices, _, err := client.PrivateEndpointServicesApi.ListPrivateEndpointServices(ctx, projectID, provider).Execute()
+		if err != nil {
+			t.Errorf("failed to list private endpoint services for %s: %v", provider, err)
+			continue
+		}
+
+		for _, service := range endpointServices {
+			id := service.GetId()
+			t.Logf("delete private endpoint service %s for provider %s", id, provider)
+			if !dryRun {
+				_, _, err := client.PrivateEndpointServicesApi.DeletePrivateEndpointService(ctx, projectID, provider, id).Execute()
+				require.NoError(t, err)
+			}
+		}
+		totalCount += len(endpointServices)
+	}
+
+	return totalCount
 }
 
 func removeFederatedDatabasePrivateEndpoints(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
