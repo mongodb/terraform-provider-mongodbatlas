@@ -18,7 +18,7 @@ func TestMigSearchDeployment_basic(t *testing.T) {
 		searchNodeCount = 3
 		config          = configBasic(projectID, clusterName, instanceSize, searchNodeCount)
 	)
-	mig.SkipIfVersionBelow(t, "1.30.0") // TODO: confirm version enabled_for_search_nodes introduced in this version
+	mig.SkipIfVersionBelow(t, "1.32.0") // enabled_for_search_nodes introduced in this version
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: checkDestroy,

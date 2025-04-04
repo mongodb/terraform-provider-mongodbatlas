@@ -37,8 +37,7 @@ func (d *searchDeploymentDS) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
-	connV2 := d.Client.AtlasPreview
+	connV2 := d.Client.AtlasV2
 	projectID := searchDeploymentConfig.ProjectID.ValueString()
 	clusterName := searchDeploymentConfig.ClusterName.ValueString()
 	deploymentResp, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(ctx, projectID, clusterName).Execute()

@@ -36,8 +36,7 @@ func (d *encryptionAtRestDS) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	// TODO: update before merging to master: connV2 := d.Client.AtlasV2
-	connV2 := d.Client.AtlasPreview
+	connV2 := d.Client.AtlasV2
 	projectID := earConfig.ProjectID.ValueString()
 
 	encryptionResp, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), projectID).Execute()
