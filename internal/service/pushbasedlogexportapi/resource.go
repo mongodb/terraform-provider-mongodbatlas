@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogeneration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -67,14 +68,14 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 }
 
 func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var plan TFModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &plan)...)
+	var state TFModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	pathParams := map[string]string{
-		"groupId": plan.GroupId.ValueString(),
+		"groupId": state.GroupId.ValueString(),
 	}
 	apiResp, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
 		VersionHeader: apiVersionHeader,
@@ -98,11 +99,11 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 
-	if err := autogeneration.Unmarshal(rawJSON, &plan); err != nil {
+	if err := autogeneration.Unmarshal(rawJSON, &state); err != nil {
 		resp.Diagnostics.AddError("error during get operation", err.Error())
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, newModel)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
