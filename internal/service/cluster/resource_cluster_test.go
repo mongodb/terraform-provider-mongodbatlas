@@ -1472,9 +1472,8 @@ func configAdvancedConf(projectID, name, autoscalingEnabled string,
 	if p.TlsCipherConfigMode != nil {
 		tlsCipherConfigModeStr = fmt.Sprintf(`tls_cipher_config_mode = %[1]q`, *p.TlsCipherConfigMode)
 		if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
-			//nolint:gocritic // reason: simplifying string array construction
 			customOpensslCipherConfigTLS12Str = fmt.Sprintf(
-				`custom_openssl_cipher_config_tls12 = ["%s"]`,
+				`custom_openssl_cipher_config_tls12 = [%q]`,
 				strings.Join(*p.CustomOpensslCipherConfigTls12, `", "`),
 			)
 		}
@@ -1577,9 +1576,8 @@ func configAdvancedConfPartial(projectID, name, autoscalingEnabled string, p *ad
 	if p.TlsCipherConfigMode != nil {
 		tlsCipherConfigModeStr = fmt.Sprintf(`tls_cipher_config_mode = %[1]q`, *p.TlsCipherConfigMode)
 		if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
-			//nolint:gocritic // reason: simplifying string array construction
 			customOpensslCipherConfigTLS12Str = fmt.Sprintf(
-				`custom_openssl_cipher_config_tls12 = ["%s"]`,
+				`custom_openssl_cipher_config_tls12 = [%q]`,
 				strings.Join(*p.CustomOpensslCipherConfigTls12, `", "`),
 			)
 		}

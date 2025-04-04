@@ -30,12 +30,6 @@ type MockHTTPDataConfig struct {
 	IsDiffMustSubstrings []string             // Only include diff request for specific substrings, for example /clusters (avoids project create requests)
 	QueryVars            []string             // Substitute this query vars. Useful when differentiating responses based on query args, for example ?providerName=AWS/AZURE returns different responses
 	AllowMissingRequests bool                 // When false will require all API calls to be made.
-	AllowOutOfOrder      bool                 // When true will allow a GET request returned after a POST to be returned before the POST.
-}
-
-func (c MockHTTPDataConfig) WithAllowOutOfOrder() MockHTTPDataConfig { //nolint: gocritic // Want each test run to have its own config (hugeParam: c is heavy (112 bytes); consider passing it by pointer)
-	c.AllowOutOfOrder = true
-	return c
 }
 
 func IsCapture() bool {
@@ -53,7 +47,7 @@ func IsDataUpdate() bool {
 	return val
 }
 
-func CaptureOrMockTestCaseAndRun(t *testing.T, config MockHTTPDataConfig, testCase *resource.TestCase) { //nolint: gocritic // Want each test run to have its own config (hugeParam: config is heavy (112 bytes); consider passing it by pointer)
+func CaptureOrMockTestCaseAndRun(t *testing.T, config *MockHTTPDataConfig, testCase *resource.TestCase) {
 	t.Helper()
 	var err error
 	noneSet := !IsCapture() && !IsReplay()
@@ -64,9 +58,9 @@ func CaptureOrMockTestCaseAndRun(t *testing.T, config MockHTTPDataConfig, testCa
 	case noneSet:
 		t.Logf("Neither %s nor %s is set, running test case without modifications", EnvNameHTTPMockerCapture, EnvNameHTTPMockerReplay)
 	case IsReplay():
-		err = enableReplayForTestCase(t, &config, testCase)
+		err = enableReplayForTestCase(t, config, testCase)
 	case IsCapture():
-		err = enableCaptureForTestCase(t, &config, testCase)
+		err = enableCaptureForTestCase(t, config, testCase)
 	}
 	require.NoError(t, err)
 	resource.ParallelTest(t, *testCase)

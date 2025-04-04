@@ -56,7 +56,7 @@ type RequestInfo struct {
 }
 
 // Custom marshaling is necessary to use `flow` style only on response fields (text and responses.*.text)
-func (i RequestInfo) MarshalYAML() (any, error) { //nolint:gocritic // Using a pointer method leads to inconsistent dump results
+func (i *RequestInfo) MarshalYAML() (any, error) {
 	responseNode := []*yaml.Node{}
 	for _, response := range i.Responses {
 		node, err := response.MarshalYAML()
