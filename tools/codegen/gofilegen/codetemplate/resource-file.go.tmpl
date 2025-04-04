@@ -68,13 +68,13 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 
 	respBody, err := io.ReadAll(apiResp.Body)
 	if err != nil {
-		resp.Diagnostics.AddError("error during get operation", err.Error())
+		resp.Diagnostics.AddError("error during create operation", err.Error())
 		return
 	}
 
 	// Use the plan as the base model to set the response state
 	if err := autogeneration.Unmarshal(respBody, &plan); err != nil {
-		resp.Diagnostics.AddError("error during get operation", err.Error())
+		resp.Diagnostics.AddError("error during create operation", err.Error())
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
