@@ -2,9 +2,13 @@
 
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_encryption_at_rest: Adds `enabled_for_search_nodes` attribute ([#3142](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3142))
 * data-source/mongodbatlas_resource_policies: Adds support for the new `description` field ([#3214](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3214))
 * data-source/mongodbatlas_resource_policy: Adds support for the new `description` field ([#3214](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3214))
+* data-source/mongodbatlas_search_deployment: Adds `encryption_at_rest_provider` computed attribute ([#3152](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3152))
+* resource/mongodbatlas_encryption_at_rest: Adds `enabled_for_search_nodes` attribute ([#3142](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3142))
 * resource/mongodbatlas_resource_policy: Adds support for the new `description` field ([#3214](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3214))
+* resource/mongodbatlas_search_deployment: Adds `encryption_at_rest_provider` computed attribute ([#3152](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3152))
 * resource/mongodbatlas_stream_processor: Adds update support ([#3180](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3180))
 
 ## 1.31.0 (March 25, 2025)
