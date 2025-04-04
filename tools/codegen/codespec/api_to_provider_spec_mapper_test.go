@@ -15,6 +15,7 @@ const (
 	testResourceDesc    = "POST API description"
 	testPathParamDesc   = "Path param test description"
 	testDataAPISpecPath = "testdata/api-spec.yml"
+	testDataConfigPath  = "testdata/config.yml"
 )
 
 type convertToSpecTestCase struct {
@@ -27,8 +28,8 @@ type convertToSpecTestCase struct {
 func TestConvertToProviderSpec(t *testing.T) {
 	tc := convertToSpecTestCase{
 		inputOpenAPISpecPath: testDataAPISpecPath,
-		inputConfigPath:      "testdata/config-no-schema-opts.yml",
-		inputResourceName:    "test_resource",
+		inputConfigPath:      testDataConfigPath,
+		inputResourceName:    "test_resource_no_schema_opts",
 
 		expectedResult: &codespec.Model{
 			Resources: []codespec.Resource{{
@@ -92,7 +93,7 @@ func TestConvertToProviderSpec(t *testing.T) {
 						},
 					},
 				},
-				Name: "test_resource",
+				Name: "test_resource_no_schema_opts",
 				Operations: codespec.APIOperations{
 					CreatePath:    "/api/atlas/v2/groups/{groupId}/testResource",
 					ReadPath:      "/api/atlas/v2/groups/{groupId}/testResource",
@@ -109,7 +110,7 @@ func TestConvertToProviderSpec(t *testing.T) {
 func TestConvertToProviderSpec_nested(t *testing.T) {
 	tc := convertToSpecTestCase{
 		inputOpenAPISpecPath: testDataAPISpecPath,
-		inputConfigPath:      "testdata/config-nested-schema.yml",
+		inputConfigPath:      testDataConfigPath,
 		inputResourceName:    "test_resource_with_nested_attr",
 
 		expectedResult: &codespec.Model{
@@ -400,6 +401,54 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 					UpdatePath:    "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
 					DeletePath:    "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
 					VersionHeader: "application/vnd.atlas.2035-01-01+json", // version header defined in config
+				},
+			},
+			},
+		},
+	}
+	runTestCase(t, tc)
+}
+
+func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      testDataConfigPath,
+		inputResourceName:    "test_resource_path_param_in_post_req",
+
+		expectedResult: &codespec.Model{
+			Resources: []codespec.Resource{{
+				Schema: &codespec.Schema{
+					Description: conversion.StringPtr(testResourceDesc),
+					Attributes: codespec.Attributes{
+						{
+							Name:                     "group_id",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr(testPathParamDesc),
+							ReqBodyUsage:             codespec.OmitAll,
+						},
+						{
+							Name:                     "special_param",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							ReqBodyUsage:             codespec.OmitUpdateBody,
+							Description:              conversion.StringPtr(testPathParamDesc),
+						},
+						{
+							Name:                     "str_req_attr1",
+							ComputedOptionalRequired: codespec.Optional,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr(testFieldDesc),
+						},
+					},
+				},
+				Name: "test_resource_path_param_in_post_req",
+				Operations: codespec.APIOperations{
+					CreatePath:    "/api/atlas/v2/groups/{groupId}/pathparaminpostreq",
+					ReadPath:      "/api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}",
+					DeletePath:    "/api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}",
+					UpdatePath:    "/api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}",
+					VersionHeader: "application/vnd.atlas.2023-01-01+json",
 				},
 			},
 			},

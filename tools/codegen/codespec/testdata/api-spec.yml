@@ -215,6 +215,114 @@ paths:
       summary: Create Nested Test Resource
       tags:
         - Atlas Search 
+  "/api/atlas/v2/groups/{groupId}/pathparaminpostreq":
+    post:
+      description: POST API description
+      operationId: createTestResourceConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              type: object
+              required:
+                - specialParam
+              properties:
+                specialParam:
+                  type: string
+                  description: Path param test description
+                strReqAttr1:
+                  type: string
+                  description: Test field description
+            x-xgen-version: 2023-01-01
+        description: Create request description
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Enable the Test Resource feature for a project
+  "/api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}":
+    delete:
+      description: DELETE API description
+      operationId: deleteTestResourceConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/specialParam"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Disable the Test Resource feature for a project.
+      tags:
+        - Test Resource
+    get:
+      description: GET API description
+      operationId: getTestResourceConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/specialParam"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              schema:
+                type: object
+                properties:
+                  strReqAttr1:
+                    type: string
+                    description: Test field description
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Get the Test Resource configuration for a project
+      tags:
+        - Test Resource
+    patch:
+      description: PATCH API description
+      operationId: updateTestResourceConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/specialParam"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+                type: object
+                properties:
+                  strReqAttr1:
+                    type: string
+                    description: Test field description
+            x-xgen-version: 2023-01-01
+        description: Patch request description
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              schema:
+                type: object
+                properties:
+                  strReqAttr1:
+                    type: string
+                    description: Test field description
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Update the Test Resource feature for a project
+      tags:
+        - Test Resource
 components:
   parameters:
     groupId:
@@ -229,6 +337,14 @@ components:
         maxLength: 24
         minLength: 24
         pattern: ^([a-f0-9]{24})$
+    specialParam:
+      description: Path param test description
+      in: path
+      name: specialParam
+      required: true
+      schema:
+        type: string
+        description: Path param test description
   responses:
     accepted:
       description: Accepted.
