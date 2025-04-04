@@ -2,6 +2,7 @@ package searchdeployment
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -42,6 +43,12 @@ func (d *searchDeploymentDS) Read(ctx context.Context, req datasource.ReadReques
 	deploymentResp, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error getting search node information", err.Error())
+		return
+	}
+
+	if IsNotFoundDeploymentResponse(deploymentResp) {
+		resp.Diagnostics.AddError("search deployment not found",
+			fmt.Sprintf("no search deployment exists for cluster %s in project %s", clusterName, projectID))
 		return
 	}
 

@@ -25,7 +25,7 @@ func TestExtractVersionRequestResponse(t *testing.T) {
 
 func TestExtractVersionRequestResponseNotFound(t *testing.T) {
 	version := unit.ExtractVersionRequestResponse("application/json;", "application/vnd.atlas.2023-01+json;charset=utf-8")
-	require.Equal(t, "", version)
+	require.Empty(t, version)
 }
 
 func asURL(t *testing.T, reqPath string) *url.URL {

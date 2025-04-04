@@ -107,8 +107,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The project id.
 * `created` - The ISO-8601-formatted timestamp of when Atlas created the project.
 * `cluster_count` - The number of Atlas clusters deployed in the project.
-* `ip_addresses` - IP addresses in a project categorized by services. See [IP Addresses](#ip-addresses). **WARNING:** this attribute is deprecated and will be removed in version 1.21.0. Use the `mongodbatlas_project_ip_addresses` data source instead.
-
+* `ip_addresses` - IP addresses in a project categorized by services. See [IP Addresses](#ip-addresses). **WARNING:** This attribute is deprecated, use the `mongodbatlas_project_ip_addresses` data source instead.
 
 ### IP Addresses
 

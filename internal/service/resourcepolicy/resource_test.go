@@ -9,6 +9,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -50,35 +52,44 @@ var (
 		when {
 		context.project.ipAccessList.contains(ip("0.0.0.0/0"))
 	};`
+	descriptionPtr = conversion.StringPtr("test-description")
 )
 
 func TestAccResourcePolicy_basic(t *testing.T) {
-	tc := basicTestCase(t)
+	tc := basicTestCase(t, descriptionPtr)
 	resource.Test(t, *tc)
 }
 
-func basicTestCase(t *testing.T) *resource.TestCase {
+func basicTestCase(t *testing.T, description *string) *resource.TestCase {
 	t.Helper()
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		policyName  = "test-policy"
 		updatedName = "updated-policy"
 	)
+	var updatedDescription string
+	if description != nil {
+		updatedDescription = fmt.Sprintf("updated-%s", *description)
+	}
 	return &resource.TestCase{ // Need sequential execution for assertions to be deterministic (plural data source)
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, policyName),
-				Check:  checksResourcePolicy(orgID, policyName, 1),
+				Config: configBasic(orgID, policyName, description),
+				Check:  checksResourcePolicy(orgID, policyName, description, 1),
 			},
 			{
-				Config: configBasic(orgID, updatedName),
-				Check:  checksResourcePolicy(orgID, updatedName, 1),
+				Config: configBasic(orgID, updatedName, nil),
+				Check:  checksResourcePolicy(orgID, updatedName, nil, 1),
 			},
 			{
-				Config:            configBasic(orgID, updatedName),
+				Config: configBasic(orgID, updatedName, &updatedDescription),
+				Check:  checksResourcePolicy(orgID, updatedName, &updatedDescription, 1),
+			},
+			{
+				Config:            configBasic(orgID, updatedName, &updatedDescription),
 				ResourceName:      resourceID,
 				ImportStateIdFunc: checkImportStateIDFunc(resourceID),
 				ImportState:       true,
@@ -98,11 +109,11 @@ func TestAccResourcePolicy_multipleNestedPolicies(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithPolicyBodies(orgID, "test-policy-multiple", validPolicyForbidAwsCloudProvider, validPolicyProjectForbidIPAccessAnywhere),
-				Check:  checksResourcePolicy(orgID, "test-policy-multiple", 2),
+				Config: configWithPolicyBodies(orgID, "test-policy-multiple", nil, validPolicyForbidAwsCloudProvider, validPolicyProjectForbidIPAccessAnywhere),
+				Check:  checksResourcePolicy(orgID, "test-policy-multiple", nil, 2),
 			},
 			{
-				Config:            configWithPolicyBodies(orgID, "test-policy-multiple", validPolicyForbidAwsCloudProvider, validPolicyProjectForbidIPAccessAnywhere),
+				Config:            configWithPolicyBodies(orgID, "test-policy-multiple", nil, validPolicyForbidAwsCloudProvider, validPolicyProjectForbidIPAccessAnywhere),
 				ResourceName:      resourceID,
 				ImportStateIdFunc: checkImportStateIDFunc(resourceID),
 				ImportState:       true,
@@ -125,15 +136,15 @@ func TestAccResourcePolicy_invalidConfig(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      configWithPolicyBodies(orgID, policyName, invalidPolicyMissingComma),
+				Config:      configWithPolicyBodies(orgID, policyName, nil, invalidPolicyMissingComma),
 				ExpectError: regexp.MustCompile("unexpected token `resource`"),
 			},
 			{
-				Config:      configWithPolicyBodies(orgID, policyName, invalidPolicyUnknownCloudProvider),
+				Config:      configWithPolicyBodies(orgID, policyName, nil, invalidPolicyUnknownCloudProvider),
 				ExpectError: regexp.MustCompile(`entity id aws222 does not exist in the context of this organization`),
 			},
 			{
-				Config:      configWithPolicyBodies(orgID, policyName, validPolicyForbidAwsCloudProvider, invalidPolicyUnknownCloudProvider),
+				Config:      configWithPolicyBodies(orgID, policyName, nil, validPolicyForbidAwsCloudProvider, invalidPolicyUnknownCloudProvider),
 				ExpectError: regexp.MustCompile(`entity id aws222 does not exist in the context of this organization`),
 			},
 		},
@@ -141,12 +152,13 @@ func TestAccResourcePolicy_invalidConfig(t *testing.T) {
 	)
 }
 
-func checksResourcePolicy(orgID, name string, policyCount int) resource.TestCheckFunc {
+func checksResourcePolicy(orgID, name string, description *string, policyCount int) resource.TestCheckFunc {
 	attrMap := map[string]string{
 		"org_id":     orgID,
 		"policies.#": fmt.Sprintf("%d", policyCount),
 		"name":       name,
 	}
+
 	attrSet := []string{
 		"created_by_user.id",
 		"created_by_user.name",
@@ -157,6 +169,10 @@ func checksResourcePolicy(orgID, name string, policyCount int) resource.TestChec
 		"id",
 		"version",
 	}
+	if description != nil {
+		attrSet = append(attrSet, "description")
+	}
+
 	pluralMap := map[string]string{
 		"org_id":    orgID,
 		"results.#": "1",
@@ -172,11 +188,16 @@ func checksResourcePolicy(orgID, name string, policyCount int) resource.TestChec
 	return acc.CheckRSAndDS(resourceID, &dataSourceID, nil, attrSet, attrMap, resource.ComposeAggregateTestCheckFunc(checks...))
 }
 
-func configBasic(orgID, policyName string) string {
-	return configWithPolicyBodies(orgID, policyName, validPolicyForbidAwsCloudProvider)
+func configBasic(orgID, policyName string, description *string) string {
+	return configWithPolicyBodies(orgID, policyName, description, validPolicyForbidAwsCloudProvider)
 }
 
-func configWithPolicyBodies(orgID, policyName string, bodies ...string) string {
+func configWithPolicyBodies(orgID, policyName string, description *string, bodies ...string) string {
+	descriptionStr := ""
+	if description != nil {
+		descriptionStr = fmt.Sprintf("description = %q", *description)
+	}
+
 	policies := ""
 	for _, body := range bodies {
 		policies += fmt.Sprintf(`
@@ -191,9 +212,11 @@ func configWithPolicyBodies(orgID, policyName string, bodies ...string) string {
 resource "mongodbatlas_resource_policy" "test" {
 	org_id = %[1]q
 	name   = %[2]q
+
+	%[3]s
 	
 	policies = [
-%s
+		%[4]s
 	]
 }
 data "mongodbatlas_resource_policy" "test" {
@@ -203,7 +226,7 @@ data "mongodbatlas_resource_policy" "test" {
 data "mongodbatlas_resource_policies" "test" {
 	org_id = mongodbatlas_resource_policy.test.org_id
 }
-	`, orgID, policyName, policies)
+	`, orgID, policyName, descriptionStr, policies)
 }
 
 func checkImportStateIDFunc(resourceID string) resource.ImportStateIdFunc {
