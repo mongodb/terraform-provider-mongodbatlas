@@ -95,7 +95,7 @@ func createImportMockData(t *testing.T, srcMockFile, destOutputDir string, stepN
 		Variables: newVars,
 	}
 	for _, req := range getRequestsInStep {
-		lastResponse := req.Responses[len(req.Responses)-1]
+		lastResponse := (*req.Responses)[len(*req.Responses)-1]
 		jsonFileName := strings.ReplaceAll(fmt.Sprintf("import_%s.json", req.IDShort()), "/", "_")
 		jsonFilePath := path.Join(destOutputDir, jsonFileName)
 		err = os.WriteFile(jsonFilePath, []byte(lastResponse.Text), 0o600)
@@ -105,7 +105,7 @@ func createImportMockData(t *testing.T, srcMockFile, destOutputDir string, stepN
 			Method:  req.Method,
 			Version: req.Version,
 			Text:    req.Text,
-			Responses: []unit.StatusText{
+			Responses: &[]unit.StatusText{
 				{
 					Status: lastResponse.Status,
 					Text:   jsonFileName,
