@@ -157,7 +157,7 @@ func basicTestCaseAWS(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigAwsKms(projectID, &awsKms, false, true),
+				Config: acc.ConfigAwsKms(projectID, &awsKms, false, true, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(earResourceName, "aws_kms_config.0.enabled", "true"),
 					resource.TestCheckResourceAttr(earResourceName, "aws_kms_config.0.require_private_networking", "false"),
@@ -316,7 +316,7 @@ func checkBasic(projectID, cloudProvider, region string, expectApproved bool) re
 }
 
 func configAWSBasic(projectID string, awsKms *admin.AWSKMSConfiguration, region string) string {
-	encryptionAtRestConfig := acc.ConfigAwsKms(projectID, awsKms, false, true)
+	encryptionAtRestConfig := acc.ConfigAwsKms(projectID, awsKms, false, true, false)
 	config := fmt.Sprintf(`
 		%[1]s
 

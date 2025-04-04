@@ -27,10 +27,11 @@ func NewSearchDeploymentReq(ctx context.Context, searchDeploymentPlan *TFSearchD
 
 func NewTFSearchDeployment(ctx context.Context, clusterName string, deployResp *admin.ApiSearchDeploymentResponse, timeout *timeouts.Value, allowMultipleSpecs bool) (*TFSearchDeploymentRSModel, diag.Diagnostics) {
 	result := TFSearchDeploymentRSModel{
-		ID:          types.StringPointerValue(deployResp.Id),
-		ClusterName: types.StringValue(clusterName),
-		ProjectID:   types.StringPointerValue(deployResp.GroupId),
-		StateName:   types.StringPointerValue(deployResp.StateName),
+		ID:                       types.StringPointerValue(deployResp.Id),
+		ClusterName:              types.StringValue(clusterName),
+		ProjectID:                types.StringPointerValue(deployResp.GroupId),
+		StateName:                types.StringPointerValue(deployResp.StateName),
+		EncryptionAtRestProvider: types.StringPointerValue(deployResp.EncryptionAtRestProvider),
 	}
 
 	if timeout != nil {

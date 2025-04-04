@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -52,11 +53,12 @@ type encryptionAtRestRS struct {
 }
 
 type TfEncryptionAtRestRSModel struct {
-	ID                   types.String                 `tfsdk:"id"`
-	ProjectID            types.String                 `tfsdk:"project_id"`
-	AwsKmsConfig         []TFAwsKmsConfigModel        `tfsdk:"aws_kms_config"`
-	AzureKeyVaultConfig  []TFAzureKeyVaultConfigModel `tfsdk:"azure_key_vault_config"`
-	GoogleCloudKmsConfig []TFGcpKmsConfigModel        `tfsdk:"google_cloud_kms_config"`
+	ID                    types.String                 `tfsdk:"id"`
+	ProjectID             types.String                 `tfsdk:"project_id"`
+	AwsKmsConfig          []TFAwsKmsConfigModel        `tfsdk:"aws_kms_config"`
+	AzureKeyVaultConfig   []TFAzureKeyVaultConfigModel `tfsdk:"azure_key_vault_config"`
+	GoogleCloudKmsConfig  []TFGcpKmsConfigModel        `tfsdk:"google_cloud_kms_config"`
+	EnabledForSearchNodes types.Bool                   `tfsdk:"enabled_for_search_nodes"`
 }
 
 type TFAwsKmsConfigModel struct {
@@ -104,6 +106,12 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 					stringplanmodifier.RequiresReplace(),
 				},
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project.",
+			},
+			"enabled_for_search_nodes": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
+				MarkdownDescription: "Flag that indicates whether Encryption at Rest for Dedicated Search Nodes is enabled in the specified project.",
 			},
 		},
 		Blocks: map[string]schema.Block{
@@ -272,6 +280,9 @@ func (r *encryptionAtRestRS) Create(ctx context.Context, req resource.CreateRequ
 
 	projectID := encryptionAtRestPlan.ProjectID.ValueString()
 	encryptionAtRestReq := &admin.EncryptionAtRest{}
+	if !encryptionAtRestPlan.EnabledForSearchNodes.IsNull() {
+		encryptionAtRestReq.EnabledForSearchNodes = encryptionAtRestPlan.EnabledForSearchNodes.ValueBoolPointer()
+	}
 	if encryptionAtRestPlan.AwsKmsConfig != nil {
 		encryptionAtRestReq.AwsKms = NewAtlasAwsKms(encryptionAtRestPlan.AwsKmsConfig)
 	}
@@ -398,17 +409,8 @@ func (r *encryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	if hasAwsKmsConfigChanged(encryptionAtRestPlan.AwsKmsConfig, encryptionAtRestState.AwsKmsConfig) {
-		atlasEncryptionAtRest.AwsKms = NewAtlasAwsKms(encryptionAtRestPlan.AwsKmsConfig)
-	}
-	if hasAzureKeyVaultConfigChanged(encryptionAtRestPlan.AzureKeyVaultConfig, encryptionAtRestState.AzureKeyVaultConfig) {
-		atlasEncryptionAtRest.AzureKeyVault = NewAtlasAzureKeyVault(encryptionAtRestPlan.AzureKeyVaultConfig)
-	}
-	if hasGcpKmsConfigChanged(encryptionAtRestPlan.GoogleCloudKmsConfig, encryptionAtRestState.GoogleCloudKmsConfig) {
-		atlasEncryptionAtRest.GoogleCloudKms = NewAtlasGcpKms(encryptionAtRestPlan.GoogleCloudKmsConfig)
-	}
-
-	encryptionResp, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.UpdateEncryptionAtRest(ctx, projectID, atlasEncryptionAtRest).Execute()
+	updateReq := NewAtlasEncryptionAtRest(encryptionAtRestPlan, encryptionAtRestState, atlasEncryptionAtRest)
+	encryptionResp, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.UpdateEncryptionAtRest(ctx, projectID, updateReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error updating encryption at rest", fmt.Sprintf(errorUpdateEncryptionAtRest, err.Error()))
 		return

@@ -83,9 +83,10 @@ var (
 		ServiceAccountKey:    types.StringValue(serviceAccountKey),
 	}
 	EncryptionAtRest = &admin.EncryptionAtRest{
-		AwsKms:         AWSKMSConfiguration,
-		AzureKeyVault:  AzureKeyVault,
-		GoogleCloudKms: GoogleCloudKMS,
+		AwsKms:                AWSKMSConfiguration,
+		AzureKeyVault:         AzureKeyVault,
+		GoogleCloudKms:        GoogleCloudKMS,
+		EnabledForSearchNodes: &enabled,
 	}
 )
 
@@ -99,11 +100,12 @@ func TestNewTfEncryptionAtRestRSModel(t *testing.T) {
 			name:     "Success NewTFAwsKmsConfig",
 			sdkModel: EncryptionAtRest,
 			expectedResult: &encryptionatrest.TfEncryptionAtRestRSModel{
-				ID:                   types.StringValue(projectID),
-				ProjectID:            types.StringValue(projectID),
-				AwsKmsConfig:         []encryptionatrest.TFAwsKmsConfigModel{TfAwsKmsConfigModel},
-				AzureKeyVaultConfig:  []encryptionatrest.TFAzureKeyVaultConfigModel{TfAzureKeyVaultConfigModel},
-				GoogleCloudKmsConfig: []encryptionatrest.TFGcpKmsConfigModel{TfGcpKmsConfigModel},
+				ID:                    types.StringValue(projectID),
+				ProjectID:             types.StringValue(projectID),
+				AwsKmsConfig:          []encryptionatrest.TFAwsKmsConfigModel{TfAwsKmsConfigModel},
+				AzureKeyVaultConfig:   []encryptionatrest.TFAzureKeyVaultConfigModel{TfAzureKeyVaultConfigModel},
+				GoogleCloudKmsConfig:  []encryptionatrest.TFGcpKmsConfigModel{TfGcpKmsConfigModel},
+				EnabledForSearchNodes: types.BoolValue(enabled),
 			},
 		},
 	}

@@ -136,7 +136,7 @@ func testAccAdvancedClusterFlexUpgrade(t *testing.T, instanceSize string, includ
 	}
 	if includeDedicated {
 		steps = append(steps, resource.TestStep{
-			Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, configBasicDedicated(projectID, clusterName, defaultZoneName)),
+			Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, acc.ConfigBasicDedicated(projectID, clusterName, defaultZoneName)),
 			Check:  checksBasicDedicated(projectID, clusterName),
 		})
 	}
@@ -171,7 +171,7 @@ func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 				Check:  checkTenant(true, projectID, clusterName),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, configBasicDedicated(projectID, clusterName, defaultZoneName)),
+				Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, acc.ConfigBasicDedicated(projectID, clusterName, defaultZoneName)),
 				Check:  checksBasicDedicated(projectID, clusterName),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -1657,33 +1657,6 @@ func checkTenant(usePreviewProvider bool, projectID, name string) resource.TestC
 			"termination_protection_enabled":       "false",
 			"global_cluster_self_managed_sharding": "false"},
 		pluralChecks...)
-}
-
-func configBasicDedicated(projectID, name, zoneName string) string {
-	zoneNameLine := ""
-	if zoneName != "" {
-		zoneNameLine = fmt.Sprintf("zone_name = %q", zoneName)
-	}
-	return fmt.Sprintf(`
-	resource "mongodbatlas_advanced_cluster" "test" {
-		project_id   = %[1]q
-		name         = %[2]q
-		cluster_type = "REPLICASET"
-		
-		replication_specs {
-			region_configs {
-				priority        = 7
-				provider_name = "AWS"
-				region_name     = "US_EAST_1"
-				electable_specs {
-					node_count = 3
-					instance_size = "M10"
-				}
-			}
-			%[3]s
-		}
-	}
-	`, projectID, name, zoneNameLine) + dataSourcesTFNewSchema
 }
 
 func checksBasicDedicated(projectID, name string) resource.TestCheckFunc {

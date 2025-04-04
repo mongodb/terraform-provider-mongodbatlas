@@ -24,6 +24,7 @@ const (
 	clusterName       = "Cluster0"
 	instanceSize      = "S20_HIGHCPU_NVME"
 	nodeCount         = 2
+	earProvider       = "AWS"
 )
 
 func TestSearchDeploymentSDKToTFModel(t *testing.T) {
@@ -41,13 +42,15 @@ func TestSearchDeploymentSDKToTFModel(t *testing.T) {
 						NodeCount:    nodeCount,
 					},
 				},
+				EncryptionAtRestProvider: admin.PtrString(earProvider),
 			},
 			expectedTFModel: &searchdeployment.TFSearchDeploymentRSModel{
-				ID:          types.StringValue(dummyDeploymentID),
-				ClusterName: types.StringValue(clusterName),
-				ProjectID:   types.StringValue(dummyProjectID),
-				StateName:   types.StringValue(stateName),
-				Specs:       tfSpecsList(t, instanceSize, nodeCount),
+				ID:                       types.StringValue(dummyDeploymentID),
+				ClusterName:              types.StringValue(clusterName),
+				ProjectID:                types.StringValue(dummyProjectID),
+				StateName:                types.StringValue(stateName),
+				Specs:                    tfSpecsList(t, instanceSize, nodeCount),
+				EncryptionAtRestProvider: types.StringValue(earProvider),
 			},
 		},
 	}
