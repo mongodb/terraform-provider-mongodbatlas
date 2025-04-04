@@ -323,7 +323,7 @@ func removeStreamInstances(ctx context.Context, t *testing.T, dryRun bool, clien
 		id := p.GetId()
 		t.Logf("delete stream instance %s", id)
 		if !dryRun {
-			_, _, err = client.StreamsApi.DeleteStreamInstance(ctx, projectID, id).Execute()
+			_, _, err = client.StreamsApi.DeleteStreamInstance(ctx, projectID, *p.Name).Execute()
 			require.NoError(t, err)
 		}
 	}
