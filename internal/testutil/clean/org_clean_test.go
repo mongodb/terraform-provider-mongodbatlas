@@ -139,9 +139,9 @@ func TestCleanProjectAndClusters(t *testing.T) {
 func readAllProjects(ctx context.Context, t *testing.T, client *admin.APIClient) []admin.Group {
 	t.Helper()
 	projects, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.Group], *http.Response, error) {
-		return client.ProjectsApi.ListProjects(t.Context()).ItemsPerPage(itemsPerPage).PageNum(pageNum).Execute()
+		return client.ProjectsApi.ListProjects(ctx).ItemsPerPage(itemsPerPage).PageNum(pageNum).Execute()
 	})
-	require.NoError(t, err)
+	require.NoError(t, err) // line 144
 	return projects
 }
 
