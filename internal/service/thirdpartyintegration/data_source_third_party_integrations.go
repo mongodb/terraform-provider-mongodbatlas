@@ -89,28 +89,36 @@ func integrationToSchema(d *schema.ResourceData, integration *admin.ThirdPartyIn
 	if integrationSchema.Url == nil {
 		integrationSchema.Url = integration.Url
 	}
+	if integrationSchema.SendCollectionLatencyMetrics == nil {
+		integrationSchema.SendCollectionLatencyMetrics = integration.SendCollectionLatencyMetrics
+	}
+	if integrationSchema.SendDatabaseMetrics == nil {
+		integrationSchema.SendDatabaseMetrics = integration.SendDatabaseMetrics
+	}
 
 	out := map[string]any{
-		"id":                          integration.Id,
-		"type":                        integration.Type,
-		"api_key":                     integrationSchema.ApiKey,
-		"region":                      integration.Region,
-		"service_key":                 integrationSchema.ServiceKey,
-		"team_name":                   integration.TeamName,
-		"channel_name":                integration.ChannelName,
-		"routing_key":                 integration.RoutingKey,
-		"url":                         integrationSchema.Url,
-		"secret":                      integrationSchema.Secret,
-		"microsoft_teams_webhook_url": integrationSchema.MicrosoftTeamsWebhookUrl,
-		"user_name":                   integration.Username,
-		"password":                    integrationSchema.Password,
-		"service_discovery":           integration.ServiceDiscovery,
-		"enabled":                     integration.Enabled,
+		"id":                              integration.Id,
+		"type":                            integration.Type,
+		"api_key":                         integrationSchema.ApiKey,
+		"region":                          integration.Region,
+		"service_key":                     integrationSchema.ServiceKey,
+		"team_name":                       integration.TeamName,
+		"channel_name":                    integration.ChannelName,
+		"routing_key":                     integration.RoutingKey,
+		"url":                             integrationSchema.Url,
+		"secret":                          integrationSchema.Secret,
+		"microsoft_teams_webhook_url":     integrationSchema.MicrosoftTeamsWebhookUrl,
+		"user_name":                       integration.Username,
+		"password":                        integrationSchema.Password,
+		"service_discovery":               integration.ServiceDiscovery,
+		"enabled":                         integration.Enabled,
+		"send_collection_latency_metrics": integration.SendCollectionLatencyMetrics,
+		"send_database_metrics":           integration.SendDatabaseMetrics,
 	}
 
 	// removing optional empty values, terraform complains about unexpected values even though they're empty
 	optionals := []string{"api_key", "region", "service_key",
-		"team_name", "channel_name", "url", "secret", "password"}
+		"team_name", "channel_name", "url", "secret", "password", "send_collection_latency_metrics", "send_database_metrics"}
 
 	for _, attr := range optionals {
 		if val, ok := out[attr]; ok {
@@ -183,6 +191,14 @@ func schemaToIntegration(in *schema.ResourceData) (out *admin.ThirdPartyIntegrat
 		out.Enabled = admin.PtrBool(enabled.(bool))
 	}
 
+	if sendCollectionLatencyMetrics, ok := in.GetOk("send_collection_latency_metrics"); ok {
+		out.SendCollectionLatencyMetrics = admin.PtrBool(sendCollectionLatencyMetrics.(bool))
+	}
+
+	if sendDatabaseMetrics, ok := in.GetOk("send_database_metrics"); ok {
+		out.SendDatabaseMetrics = admin.PtrBool(sendDatabaseMetrics.(bool))
+	}
+
 	return out
 }
 
@@ -235,5 +251,13 @@ func updateIntegrationFromSchema(d *schema.ResourceData, integration *admin.Thir
 
 	if d.HasChange("enabled") {
 		integration.Enabled = admin.PtrBool(d.Get("enabled").(bool))
+	}
+
+	if d.HasChange("send_collection_latency_metrics") {
+		integration.SendCollectionLatencyMetrics = admin.PtrBool(d.Get("send_collection_latency_metrics").(bool))
+	}
+
+	if d.HasChange("send_database_metrics") {
+		integration.SendDatabaseMetrics = admin.PtrBool(d.Get("send_database_metrics").(bool))
 	}
 }
