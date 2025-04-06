@@ -101,6 +101,14 @@ func thirdPartyIntegrationSchema() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
+			"send_collection_latency_metrics": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"send_database_metrics": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 		},
 	}
 }
