@@ -18,7 +18,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "The name of the bucket to which the agent will send the logs to.",
 			},
 			"create_date": schema.StringAttribute{
-				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Date and time that this feature was enabled on.",
 			},
 			"group_id": schema.StringAttribute{
@@ -30,16 +30,16 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "ID of the AWS IAM role that will be used to write to the S3 bucket.",
 			},
 			"links": schema.ListNestedAttribute{
-				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"href": schema.StringAttribute{
-							Optional:            true,
+							Computed:            true,
 							MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
 						},
 						"rel": schema.StringAttribute{
-							Optional:            true,
+							Computed:            true,
 							MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
 						},
 					},
@@ -50,7 +50,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "S3 directory in which vector will write to in order to store the logs. An empty string denotes the root directory.",
 			},
 			"state": schema.StringAttribute{
-				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Describes whether or not the feature is enabled and what status it is in.",
 			},
 		},
@@ -59,16 +59,16 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 type TFModel struct {
 	BucketName types.String `tfsdk:"bucket_name"`
-	CreateDate types.String `tfsdk:"create_date"`
+	CreateDate types.String `tfsdk:"create_date" autogeneration:"omitjson"`
 	GroupId    types.String `tfsdk:"group_id" autogeneration:"omitjson"`
 	IamRoleId  types.String `tfsdk:"iam_role_id"`
-	Links      types.List   `tfsdk:"links"`
+	Links      types.List   `tfsdk:"links" autogeneration:"omitjson"`
 	PrefixPath types.String `tfsdk:"prefix_path"`
-	State      types.String `tfsdk:"state"`
+	State      types.String `tfsdk:"state" autogeneration:"omitjson"`
 }
 type TFLinksModel struct {
-	Href types.String `tfsdk:"href"`
-	Rel  types.String `tfsdk:"rel"`
+	Href types.String `tfsdk:"href" autogeneration:"omitjson"`
+	Rel  types.String `tfsdk:"rel" autogeneration:"omitjson"`
 }
 
 var LinksObjType = types.ObjectType{AttrTypes: map[string]attr.Type{

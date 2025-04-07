@@ -127,7 +127,7 @@ func pathParamsToAttributes(createOp *high.Operation) Attributes {
 
 		paramName := param.Name
 		s.Schema.Description = param.Description
-		parameterAttribute, err := s.buildResourceAttr(paramName, Required)
+		parameterAttribute, err := s.buildResourceAttr(paramName, Required, false)
 		if err != nil {
 			log.Printf("[WARN] Path param %s could not be mapped: %s", paramName, err)
 			continue
@@ -145,7 +145,7 @@ func opRequestToAttributes(op *high.Operation) Attributes {
 		return nil
 	}
 
-	requestAttributes, err = buildResourceAttrs(requestSchema)
+	requestAttributes, err = buildResourceAttrs(requestSchema, true)
 	if err != nil {
 		log.Printf("[WARN] Request attributes could not be mapped (OperationId: %s): %s", op.OperationId, err)
 		return nil
@@ -164,7 +164,7 @@ func opResponseToAttributes(op *high.Operation) Attributes {
 			log.Printf("[WARN] Operation response body schema could not be mapped (OperationId: %s): %s", op.OperationId, err)
 		}
 	} else {
-		responseAttributes, err = buildResourceAttrs(responseSchema)
+		responseAttributes, err = buildResourceAttrs(responseSchema, false)
 		if err != nil {
 			log.Printf("[WARN] Operation response body schema could not be mapped (OperationId: %s): %s", op.OperationId, err)
 		}
