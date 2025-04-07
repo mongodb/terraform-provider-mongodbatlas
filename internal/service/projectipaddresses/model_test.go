@@ -3,7 +3,7 @@ package projectipaddresses_test
 import (
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312002/admin"
+	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"

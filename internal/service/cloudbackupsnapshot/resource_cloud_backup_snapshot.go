@@ -14,7 +14,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"go.mongodb.org/atlas-sdk/v20250312002/admin"
+	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 )
 
 func Resource() *schema.Resource {
@@ -251,7 +251,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	groupID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 	snapshotID := ids["snapshot_id"]
-	_, err := connV2.CloudBackupsApi.DeleteReplicaSetBackup(ctx, groupID, clusterName, snapshotID).Execute()
+	_, _, err := connV2.CloudBackupsApi.DeleteReplicaSetBackup(ctx, groupID, clusterName, snapshotID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting a snapshot (%s): %s", snapshotID, err))
 	}

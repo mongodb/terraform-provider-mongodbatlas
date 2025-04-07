@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"go.mongodb.org/atlas-sdk/v20250312002/admin"
+	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 )
 
 func Resource() *schema.Resource {
@@ -163,7 +163,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := ids["project_id"]
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
-	_, err := connV2.ProjectsApi.DeleteProjectInvitation(ctx, projectID, invitationID).Execute()
+	_, _, err := connV2.ProjectsApi.DeleteProjectInvitation(ctx, projectID, invitationID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting Project invitation for user %s: %w", username, err))
 	}

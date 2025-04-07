@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312002/admin"
+	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
@@ -27,7 +27,6 @@ func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
 		}
 		useDatasource               = mig.IsProviderVersionAtLeast("1.19.0") // data source introduced in this version
 		useRequirePrivateNetworking = mig.IsProviderVersionAtLeast("1.28.0") // require_private_networking introduced in this version
-		useEnabledForSearchNodes    = mig.IsProviderVersionAtLeast("1.32.0") // enabled_for_search_nodes introduced in this version
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -36,13 +35,13 @@ func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            acc.ConfigAwsKms(projectID, &awsKms, useDatasource, useRequirePrivateNetworking, useEnabledForSearchNodes),
+				Config:            acc.ConfigAwsKms(projectID, &awsKms, useDatasource, useRequirePrivateNetworking),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckEARExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
 				),
 			},
-			mig.TestStepCheckEmptyPlan(acc.ConfigAwsKms(projectID, &awsKms, useDatasource, useRequirePrivateNetworking, useEnabledForSearchNodes)),
+			mig.TestStepCheckEmptyPlan(acc.ConfigAwsKms(projectID, &awsKms, useDatasource, useRequirePrivateNetworking)),
 		},
 	})
 }
@@ -133,6 +132,43 @@ func TestMigEncryptionAtRest_basicGCP(t *testing.T) {
 				),
 			},
 			mig.TestStepCheckEmptyPlan(configGoogleCloudKms(projectID, &googleCloudKms, useDatasource)),
+		},
+	})
+}
+
+func TestMigEncryptionAtRest_basicAWS_from_v1_11_0(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_encryption_at_rest.test"
+		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID") // to use RequirePrivateNetworking, Atlas Project is required to have FF enabled
+
+		awsKms = admin.AWSKMSConfiguration{
+			Enabled:             conversion.Pointer(true),
+			AccessKeyID:         conversion.StringPtr(os.Getenv("AWS_ACCESS_KEY_ID")),
+			SecretAccessKey:     conversion.StringPtr(os.Getenv("AWS_SECRET_ACCESS_KEY")),
+			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
+			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
+			RoleId:              conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
+		}
+		useDatasource               = mig.IsProviderVersionAtLeast("1.19.0") // data source introduced in this version
+		useRequirePrivateNetworking = mig.IsProviderVersionAtLeast("1.28.0") // require_private_networking introduced in this version
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acc.PreCheckAwsEnv(t) },
+		CheckDestroy: acc.EARDestroy,
+		Steps: []resource.TestStep{
+			{
+				ExternalProviders: acc.ExternalProvidersWithAWS("1.11.0"),
+				Config:            acc.ConfigAwsKms(projectID, &awsKms, false, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					acc.CheckEARExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.region", awsKms.GetRegion()),
+					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.role_id", awsKms.GetRoleId()),
+				),
+			},
+			mig.TestStepCheckEmptyPlan(acc.ConfigAwsKms(projectID, &awsKms, useDatasource, useRequirePrivateNetworking)),
 		},
 	})
 }

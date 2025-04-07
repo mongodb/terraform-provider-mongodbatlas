@@ -68,7 +68,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	finalResp, err := waitStateTransition(ctx, projectID, *streamsPrivateLinkConnection.Id, connV2.StreamsApi)
 	if err != nil {
 		if finalResp != nil { // delete the resource that has been created but fails to reach desired state
-			if _, err := connV2.StreamsApi.DeletePrivateLinkConnection(ctx, projectID, finalResp.GetId()).Execute(); err != nil {
+			if _, _, err := connV2.StreamsApi.DeletePrivateLinkConnection(ctx, projectID, finalResp.GetId()).Execute(); err != nil {
 				resp.Diagnostics.AddError("error deleting resource after failed creation", err.Error())
 				return
 			}
@@ -144,7 +144,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	connectionID := state.Id.ValueString()
 
 	connV2 := r.Client.AtlasV2
-	if _, err := connV2.StreamsApi.DeletePrivateLinkConnection(ctx, projectID, connectionID).Execute(); err != nil {
+	if _, _, err := connV2.StreamsApi.DeletePrivateLinkConnection(ctx, projectID, connectionID).Execute(); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}

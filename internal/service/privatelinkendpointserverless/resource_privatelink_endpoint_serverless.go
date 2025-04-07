@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312002/admin"
+	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -170,7 +170,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.Errorf("error getting Serverless private link endpoint  information: %s", err)
 	}
 
-	_, err = connV2.ServerlessPrivateEndpointsApi.DeleteServerlessPrivateEndpoint(ctx, projectID, instanceName, endpointID).Execute()
+	_, _, err = connV2.ServerlessPrivateEndpointsApi.DeleteServerlessPrivateEndpoint(ctx, projectID, instanceName, endpointID).Execute()
 	if err != nil {
 		return diag.Errorf("error deleting serverless private link endpoint(%s): %s", endpointID, err)
 	}

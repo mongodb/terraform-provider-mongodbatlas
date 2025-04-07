@@ -40,7 +40,3 @@ data "mongodbatlas_search_deployment" "example" {
 output "mongodbatlas_search_deployment_id" {
   value = data.mongodbatlas_search_deployment.example.id
 }
-
-output "mongodbatlas_search_deployment_encryption_at_rest_provider" {
-  value = data.mongodbatlas_search_deployment.example.encryption_at_rest_provider
-}

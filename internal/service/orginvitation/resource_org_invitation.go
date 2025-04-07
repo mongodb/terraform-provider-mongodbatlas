@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312002/admin"
+	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 )
 
 func Resource() *schema.Resource {
@@ -179,7 +179,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return nil
 		}
 	}
-	_, err = connV2.OrganizationsApi.DeleteOrganizationInvitation(ctx, orgID, invitationID).Execute()
+	_, _, err = connV2.OrganizationsApi.DeleteOrganizationInvitation(ctx, orgID, invitationID).Execute()
 	if err != nil {
 		return diag.Errorf("error deleting Organization invitation for user %s: %s", username, err)
 	}

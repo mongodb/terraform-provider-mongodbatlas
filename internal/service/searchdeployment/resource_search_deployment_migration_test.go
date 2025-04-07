@@ -12,13 +12,14 @@ import (
 func TestMigSearchDeployment_basic(t *testing.T) {
 	var (
 		resourceName    = "mongodbatlas_search_deployment.test"
-		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID") // to use RequirePrivateNetworking, Atlas Project is required to have FF enabled
+		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName     = acc.RandomProjectName()
 		clusterName     = acc.RandomClusterName()
 		instanceSize    = "S30_HIGHCPU_NVME"
 		searchNodeCount = 3
-		config          = configBasic(projectID, clusterName, instanceSize, searchNodeCount)
+		config          = configBasic(orgID, projectName, clusterName, instanceSize, searchNodeCount)
 	)
-	mig.SkipIfVersionBelow(t, "1.32.0") // enabled_for_search_nodes introduced in this version
+	mig.SkipIfVersionBelow(t, "1.13.0")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
 		CheckDestroy: checkDestroy,

@@ -164,8 +164,8 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 			return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
 		}
 
-		if fields := searchIndex.LatestDefinition.Mappings.Fields; fields != nil && conversion.HasElementsSliceOrMap(*fields) {
-			searchIndexMappingFields, err := marshalSearchIndex(*fields)
+		if conversion.HasElementsSliceOrMap(searchIndex.LatestDefinition.Mappings.Fields) {
+			searchIndexMappingFields, err := marshalSearchIndex(searchIndex.LatestDefinition.Mappings.Fields)
 			if err != nil {
 				return diag.FromErr(err)
 			}

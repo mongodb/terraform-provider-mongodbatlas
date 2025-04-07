@@ -63,11 +63,10 @@ func (d *searchDeploymentDS) Read(ctx context.Context, req datasource.ReadReques
 
 func convertToDSModel(inputModel *TFSearchDeploymentRSModel) TFSearchDeploymentDSModel {
 	return TFSearchDeploymentDSModel{
-		ID:                       inputModel.ID,
-		ClusterName:              inputModel.ClusterName,
-		ProjectID:                inputModel.ProjectID,
-		Specs:                    inputModel.Specs,
-		StateName:                inputModel.StateName,
-		EncryptionAtRestProvider: inputModel.EncryptionAtRestProvider,
+		ID:          inputModel.ID,
+		ClusterName: inputModel.ClusterName,
+		ProjectID:   inputModel.ProjectID,
+		Specs:       inputModel.Specs,
+		StateName:   inputModel.StateName,
 	}
 }

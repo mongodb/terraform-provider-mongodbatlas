@@ -50,7 +50,6 @@ For more explained information about plugin override check [Development Override
 - Make sure that the PR title follows [*Conventional Commits*](https://www.conventionalcommits.org/).
 - Add comments around your new code that explain what's happening.
 - Commit and push your changes to your branch then submit a pull request against the `master` branch.
-  - We recommend squashing commits into one. This enables us to correctly cherry-pick your changes for merge, see [Merging a Pull Request](#merging-a-pull-request) below for details.
 - A repo maintainer will review your pull request. **Note**: If you have an active [MongoDB Atlas Support](https://www.mongodb.com/services/support/atlas-support-plans) contract, we recommend also creating a support ticket for any questions related to this process.
 
 ### Merging a Pull Request

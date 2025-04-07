@@ -3,7 +3,7 @@ package encryptionatrest_test
 import (
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312002/admin"
+	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
@@ -83,10 +83,9 @@ var (
 		ServiceAccountKey:    types.StringValue(serviceAccountKey),
 	}
 	EncryptionAtRest = &admin.EncryptionAtRest{
-		AwsKms:                AWSKMSConfiguration,
-		AzureKeyVault:         AzureKeyVault,
-		GoogleCloudKms:        GoogleCloudKMS,
-		EnabledForSearchNodes: &enabled,
+		AwsKms:         AWSKMSConfiguration,
+		AzureKeyVault:  AzureKeyVault,
+		GoogleCloudKms: GoogleCloudKMS,
 	}
 )
 
@@ -100,12 +99,11 @@ func TestNewTfEncryptionAtRestRSModel(t *testing.T) {
 			name:     "Success NewTFAwsKmsConfig",
 			sdkModel: EncryptionAtRest,
 			expectedResult: &encryptionatrest.TfEncryptionAtRestRSModel{
-				ID:                    types.StringValue(projectID),
-				ProjectID:             types.StringValue(projectID),
-				AwsKmsConfig:          []encryptionatrest.TFAwsKmsConfigModel{TfAwsKmsConfigModel},
-				AzureKeyVaultConfig:   []encryptionatrest.TFAzureKeyVaultConfigModel{TfAzureKeyVaultConfigModel},
-				GoogleCloudKmsConfig:  []encryptionatrest.TFGcpKmsConfigModel{TfGcpKmsConfigModel},
-				EnabledForSearchNodes: types.BoolValue(enabled),
+				ID:                   types.StringValue(projectID),
+				ProjectID:            types.StringValue(projectID),
+				AwsKmsConfig:         []encryptionatrest.TFAwsKmsConfigModel{TfAwsKmsConfigModel},
+				AzureKeyVaultConfig:  []encryptionatrest.TFAzureKeyVaultConfigModel{TfAzureKeyVaultConfigModel},
+				GoogleCloudKmsConfig: []encryptionatrest.TFGcpKmsConfigModel{TfGcpKmsConfigModel},
 			},
 		},
 	}

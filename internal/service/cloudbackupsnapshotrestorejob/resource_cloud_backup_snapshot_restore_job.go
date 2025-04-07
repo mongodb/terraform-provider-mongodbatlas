@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312002/admin"
+	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 )
 
 func Resource() *schema.Resource {
@@ -232,7 +232,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if shouldDelete {
-		_, err := conn.CloudBackupsApi.CancelBackupRestoreJob(ctx, projectID, clusterName, restoreID).Execute()
+		_, _, err := conn.CloudBackupsApi.CancelBackupRestoreJob(ctx, projectID, clusterName, restoreID).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error deleting a cloudProviderSnapshotRestoreJob (%s): %s", ids["snapshot_restore_job_id"], err))
 		}
