@@ -498,7 +498,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	p := &ProcessArgs{
 		argsDefault:           processArgs,
-		argsV20240530:         processArgs20240530,
+		argsLegacy:            processArgs20240530,
 		clusterAdvancedConfig: cluster.AdvancedConfiguration,
 	}
 

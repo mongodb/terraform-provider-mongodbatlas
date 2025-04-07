@@ -409,7 +409,7 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 		}
 		p := &ProcessArgs{
 			argsDefault:           processArgs,
-			argsV20240530:         processArgs20240530,
+			argsLegacy:            processArgs20240530,
 			clusterAdvancedConfig: clusters[i].AdvancedConfiguration,
 		}
 		result := map[string]any{

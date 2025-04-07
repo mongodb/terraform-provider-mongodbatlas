@@ -22,7 +22,7 @@ import (
 type ProcessArgs struct {
 	argsDefault           *admin.ClusterDescriptionProcessArgs20240805
 	clusterAdvancedConfig *matlas.AdvancedConfiguration
-	argsV20240530         *admin20240530.ClusterDescriptionProcessArgs
+	argsLegacy            *admin20240530.ClusterDescriptionProcessArgs
 }
 
 func flattenCloudProviderSnapshotBackupPolicy(ctx context.Context, d *schema.ResourceData, conn *matlas.Client, projectID, clusterName string) ([]map[string]any, error) {
@@ -83,8 +83,8 @@ func flattenProcessArgs(p *ProcessArgs) []map[string]any {
 	flattenedProcessArgs := []map[string]any{
 		{
 			// default_read_concern and fail_index_key_too_long have been deprecated, hence using the older SDK
-			"default_read_concern":                 p.argsV20240530.DefaultReadConcern,
-			"fail_index_key_too_long":              cast.ToBool(p.argsV20240530.FailIndexKeyTooLong),
+			"default_read_concern":                 p.argsLegacy.DefaultReadConcern,
+			"fail_index_key_too_long":              cast.ToBool(p.argsLegacy.FailIndexKeyTooLong),
 			"default_write_concern":                p.argsDefault.DefaultWriteConcern,
 			"javascript_enabled":                   cast.ToBool(p.argsDefault.JavascriptEnabled),
 			"no_table_scan":                        cast.ToBool(p.argsDefault.NoTableScan),
