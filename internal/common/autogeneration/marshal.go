@@ -17,10 +17,10 @@ const (
 )
 
 // Marshal gets a Terraform model and marshals it into JSON (e.g. for an Atlas request).
-// It supports the following Terraform model types: String, Bool, Int64, Float64.
+// It supports the following Terraform model types: String, Bool, Int64, Float64, Object, Map, List, Set.
 // Attributes that are null or unknown are not marshaled.
-// Attributes with autogeneration tag `omitjson` are never marshaled.
-// Attributes with autogeneration tag `omitjsonupdate` are not marshaled if isUpdate is true.
+// Attributes with autogeneration tag `omitjson` are never marshaled, this only applies to the root model.
+// Attributes with autogeneration tag `omitjsonupdate` are not marshaled if isUpdate is true, this only applies to the root model.
 func Marshal(model any, isUpdate bool) ([]byte, error) {
 	valModel := reflect.ValueOf(model)
 	if valModel.Kind() != reflect.Ptr {
