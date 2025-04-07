@@ -5,7 +5,8 @@ import (
 )
 
 // mergeNestedAttributes recursively merges nested attributes
-func mergeNestedAttributes(existingAttrs *Attributes, newAttrs Attributes, computability ComputedOptionalRequired, reqBodyUsage AttributeReqBodyUsage, isFromResponse bool) {
+// TODO parent computability makes no sense to use here, remove and see what is actually needed
+func mergeNestedAttributes(existingAttrs *Attributes, newAttrs Attributes, reqBodyUsage AttributeReqBodyUsage, isFromResponse bool) {
 	mergedMap := make(map[string]*Attribute)
 	if existingAttrs != nil {
 		for i := range *existingAttrs {
@@ -17,10 +18,15 @@ func mergeNestedAttributes(existingAttrs *Attributes, newAttrs Attributes, compu
 	for i := range newAttrs {
 		newAttr := &newAttrs[i]
 
-		if _, exists := mergedMap[newAttr.Name.SnakeCase()]; exists {
-			addOrUpdate(newAttr, computability, reqBodyUsage, mergedMap, isFromResponse)
+		if existing, exists := mergedMap[newAttr.Name.SnakeCase()]; exists {
+			// merge computability of nested property using most restrictive value
+			newComputability := mergeComputability(newAttr.ComputedOptionalRequired, existing.ComputedOptionalRequired)
+			addOrUpdate(newAttr, newComputability, reqBodyUsage, mergedMap, isFromResponse)
 		} else {
-			newAttr.ComputedOptionalRequired = computability
+			// setting as computed as nested attribute was defined in response
+			if isFromResponse {
+				newAttr.ComputedOptionalRequired = Computed
+			}
 			newAttr.ReqBodyUsage = reqBodyUsage
 			mergedMap[newAttr.Name.SnakeCase()] = newAttr
 		}
@@ -35,51 +41,62 @@ func mergeNestedAttributes(existingAttrs *Attributes, newAttrs Attributes, compu
 	sortAttributes(*existingAttrs)
 }
 
+// mergeComputability merges two ComputedOptionalRequired values and returns the most restrictive one
+func mergeComputability(first, second ComputedOptionalRequired) ComputedOptionalRequired {
+	if first == Required || second == Required {
+		return Required
+	}
+	if first == ComputedOptional || second == ComputedOptional {
+		return ComputedOptional
+	}
+	if first == Optional || second == Optional {
+		return Optional
+	}
+	return Computed
+}
+
 // addOrUpdate adds or updates an attribute in the merged map, including nested attributes
-func addOrUpdate(attr *Attribute, computability ComputedOptionalRequired, reqBodyUsage AttributeReqBodyUsage, merged map[string]*Attribute, isFromResponse bool) {
+func addOrUpdate(attr *Attribute, targetComputability ComputedOptionalRequired, reqBodyUsage AttributeReqBodyUsage, merged map[string]*Attribute, isFromResponse bool) {
 	if existingAttr, exists := merged[attr.Name.SnakeCase()]; exists {
 		if existingAttr.Description == nil || *existingAttr.Description == "" {
 			existingAttr.Description = attr.Description
 		}
 
-		// retain existing computability if already set from request
-		if !isFromResponse && existingAttr.ComputedOptionalRequired != Required {
-			existingAttr.ComputedOptionalRequired = computability
-		}
-
-		// retain existing ReqBodyUsage if already set defined from request information
+		// retain existing computability if already set from request or path params
+		// retain existing ReqBodyUsage if already set defined from request or path params
 		if !isFromResponse {
+			existingAttr.ComputedOptionalRequired = targetComputability
 			existingAttr.ReqBodyUsage = reqBodyUsage
 		}
 
 		// handle nested attributes
 		if existingAttr.ListNested != nil && attr.ListNested != nil {
-			mergeNestedAttributes(&existingAttr.ListNested.NestedObject.Attributes, attr.ListNested.NestedObject.Attributes, computability, reqBodyUsage, isFromResponse)
+			mergeNestedAttributes(&existingAttr.ListNested.NestedObject.Attributes, attr.ListNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)
 		} else if attr.ListNested != nil {
 			existingAttr.ListNested = attr.ListNested
 		}
 
 		if existingAttr.SingleNested != nil && attr.SingleNested != nil {
-			mergeNestedAttributes(&existingAttr.SingleNested.NestedObject.Attributes, attr.SingleNested.NestedObject.Attributes, computability, reqBodyUsage, isFromResponse)
+			mergeNestedAttributes(&existingAttr.SingleNested.NestedObject.Attributes, attr.SingleNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)
 		} else if attr.SingleNested != nil {
 			existingAttr.SingleNested = attr.SingleNested
 		}
 
 		if existingAttr.SetNested != nil && attr.SetNested != nil {
-			mergeNestedAttributes(&existingAttr.SetNested.NestedObject.Attributes, attr.SetNested.NestedObject.Attributes, computability, reqBodyUsage, isFromResponse)
+			mergeNestedAttributes(&existingAttr.SetNested.NestedObject.Attributes, attr.SetNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)
 		} else if attr.SetNested != nil {
 			existingAttr.SetNested = attr.SetNested
 		}
 
 		if existingAttr.MapNested != nil && attr.MapNested != nil {
-			mergeNestedAttributes(&existingAttr.MapNested.NestedObject.Attributes, attr.MapNested.NestedObject.Attributes, computability, reqBodyUsage, isFromResponse)
+			mergeNestedAttributes(&existingAttr.MapNested.NestedObject.Attributes, attr.MapNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)
 		} else if attr.MapNested != nil {
 			existingAttr.MapNested = attr.MapNested
 		}
 	} else {
 		// add new attribute with the given computability
 		newAttr := *attr
-		newAttr.ComputedOptionalRequired = computability
+		newAttr.ComputedOptionalRequired = targetComputability
 		newAttr.ReqBodyUsage = reqBodyUsage
 		merged[attr.Name.SnakeCase()] = &newAttr
 	}
