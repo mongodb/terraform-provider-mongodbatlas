@@ -67,7 +67,9 @@ func updateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 	return AwaitChanges(ctx, client, waitParams, operationName, diags)
 }
 
-func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, reqLegacy *admin20240530.ClusterDescriptionProcessArgs, reqNew *admin.ClusterDescriptionProcessArgs20240805, clusterAdvConfig *admin.ApiAtlasClusterAdvancedConfiguration, waitParams *ClusterWaitParams) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805, changed bool) {
+// ProcessArgs.ClusterAdvancedConfig is managed through create/updateCluster APIs instead of /processArgs APIs but since corresponding TF attributes
+// belong in the advanced_configuration attribute we still need to check for any changes
+func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, p *ProcessArgs, waitParams *ClusterWaitParams) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805, changed bool) {
 	var (
 		err             error
 		advConfig       *admin.ClusterDescriptionProcessArgs20240805
@@ -75,9 +77,9 @@ func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, c
 		projectID       = waitParams.ProjectID
 		clusterName     = waitParams.ClusterName
 	)
-	if !update.IsZeroValues(reqNew) {
+	if !update.IsZeroValues(p.ArgsDefault) {
 		changed = true
-		advConfig, _, err = client.AtlasV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, reqNew).Execute()
+		advConfig, _, err = client.AtlasV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, p.ArgsDefault).Execute()
 		if err != nil {
 			addErrorDiag(diags, operationAdvancedConfigurationUpdate, defaultAPIErrorDetails(clusterName, err))
 			return nil, nil, false
@@ -87,9 +89,9 @@ func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, c
 			return nil, nil, false
 		}
 	}
-	if !update.IsZeroValues(reqLegacy) {
+	if !update.IsZeroValues(p.ArgsLegacy) {
 		changed = true
-		legacyAdvConfig, _, err = client.AtlasV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, reqLegacy).Execute()
+		legacyAdvConfig, _, err = client.AtlasV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, p.ArgsLegacy).Execute()
 		if err != nil {
 			addErrorDiag(diags, operationAdvancedConfigurationUpdate20240530, defaultAPIErrorDetails(clusterName, err))
 			diags.AddError(errorAdvancedConfUpdateLegacy, defaultAPIErrorDetails(clusterName, err))
@@ -100,9 +102,7 @@ func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, c
 			return nil, nil, false
 		}
 	}
-	// clusterAdvConfig is managed through create/updateCluster APIs instead of processArgs APIs but since corresponding TF attributes
-	// belong in the advanced_configuration attribute we still need to check for any changes
-	if !update.IsZeroValues(clusterAdvConfig) {
+	if !update.IsZeroValues(p.ClusterAdvancedConfig) {
 		changed = true
 	}
 	return legacyAdvConfig, advConfig, changed

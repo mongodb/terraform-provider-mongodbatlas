@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 )
 
 func DataSource() *schema.Resource {
@@ -347,8 +348,12 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorAdvancedConfRead, "", clusterName, err))
 	}
-
-	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs20240530, processArgs, clusterDesc.AdvancedConfiguration)); err != nil {
+	advConfigAttr := flattenProcessArgs(&advancedclustertpf.ProcessArgs{
+		ArgsLegacy:            processArgs20240530,
+		ArgsDefault:           processArgs,
+		ClusterAdvancedConfig: clusterDesc.AdvancedConfiguration,
+	})
+	if err := d.Set("advanced_configuration", advConfigAttr); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "advanced_configuration", clusterName, err))
 	}
 

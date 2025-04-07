@@ -689,7 +689,12 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorConfigRead, clusterName, err))
 	}
 
-	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs20240530, processArgs, cluster.AdvancedConfiguration)); err != nil {
+	advConfigAttr := flattenProcessArgs(&advancedclustertpf.ProcessArgs{
+		ArgsLegacy:            processArgs20240530,
+		ArgsDefault:           processArgs,
+		ClusterAdvancedConfig: cluster.AdvancedConfiguration,
+	})
+	if err := d.Set("advanced_configuration", advConfigAttr); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "advanced_configuration", clusterName, err))
 	}
 

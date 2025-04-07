@@ -83,7 +83,11 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 		if extraInfo.UseOldShardingConfigFailed {
 			continue
 		}
-		updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, nil, nil, clusterResp.AdvancedConfiguration)
+		updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, &ProcessArgs{
+			ArgsLegacy:            nil,
+			ArgsDefault:           nil,
+			ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
+		})
 		if diags.HasError() {
 			if DiagsHasOnlyClusterNotFoundErrors(diags) {
 				diags = ResetClusterNotFoundErrors(diags)

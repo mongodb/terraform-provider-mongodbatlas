@@ -530,42 +530,43 @@ func expandBiConnectorConfig(d *schema.ResourceData) *admin.BiConnector {
 	return nil
 }
 
-func flattenProcessArgs(p20240530 *admin20240530.ClusterDescriptionProcessArgs,
-	p *admin.ClusterDescriptionProcessArgs20240805,
-	clusterAdvConfig *admin.ApiAtlasClusterAdvancedConfiguration) []map[string]any {
-	if p20240530 == nil {
+func flattenProcessArgs(p *advancedclustertpf.ProcessArgs) []map[string]any {
+	if p.ArgsLegacy == nil {
 		return nil
 	}
 	flattenedProcessArgs := []map[string]any{
 		{
-			"default_read_concern":                 p20240530.GetDefaultReadConcern(),
-			"default_write_concern":                p20240530.GetDefaultWriteConcern(),
-			"fail_index_key_too_long":              p20240530.GetFailIndexKeyTooLong(),
-			"javascript_enabled":                   p20240530.GetJavascriptEnabled(),
-			"no_table_scan":                        p20240530.GetNoTableScan(),
-			"oplog_size_mb":                        p20240530.GetOplogSizeMB(),
-			"oplog_min_retention_hours":            p20240530.GetOplogMinRetentionHours(),
-			"sample_size_bi_connector":             p20240530.GetSampleSizeBIConnector(),
-			"sample_refresh_interval_bi_connector": p20240530.GetSampleRefreshIntervalBIConnector(),
-			"transaction_lifetime_limit_seconds":   p20240530.GetTransactionLifetimeLimitSeconds(),
+			"default_read_concern":                 p.ArgsLegacy.GetDefaultReadConcern(),
+			"default_write_concern":                p.ArgsLegacy.GetDefaultWriteConcern(),
+			"fail_index_key_too_long":              p.ArgsLegacy.GetFailIndexKeyTooLong(),
+			"javascript_enabled":                   p.ArgsLegacy.GetJavascriptEnabled(),
+			"no_table_scan":                        p.ArgsLegacy.GetNoTableScan(),
+			"oplog_size_mb":                        p.ArgsLegacy.GetOplogSizeMB(),
+			"oplog_min_retention_hours":            p.ArgsLegacy.GetOplogMinRetentionHours(),
+			"sample_size_bi_connector":             p.ArgsLegacy.GetSampleSizeBIConnector(),
+			"sample_refresh_interval_bi_connector": p.ArgsLegacy.GetSampleRefreshIntervalBIConnector(),
+			"transaction_lifetime_limit_seconds":   p.ArgsLegacy.GetTransactionLifetimeLimitSeconds(),
+			"tls_cipher_config_mode":               p.ClusterAdvancedConfig.GetTlsCipherConfigMode(),
+			"custom_openssl_cipher_config_tls12":   p.ClusterAdvancedConfig.GetCustomOpensslCipherConfigTls12(),
+			"minimum_enabled_tls_protocol":         p.ClusterAdvancedConfig.GetMinimumEnabledTlsProtocol(),
 		},
 	}
-	if p != nil {
-		if v := p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds; v == nil {
+	if p.ArgsDefault != nil {
+		if v := p.ArgsDefault.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds; v == nil {
 			flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = -1 // default in schema, otherwise user gets drift detection
 		} else {
-			flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = p.GetChangeStreamOptionsPreAndPostImagesExpireAfterSeconds()
+			flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = p.ArgsDefault.GetChangeStreamOptionsPreAndPostImagesExpireAfterSeconds()
 		}
 
-		if v := p.DefaultMaxTimeMS; v != nil {
-			flattenedProcessArgs[0]["default_max_time_ms"] = p.GetDefaultMaxTimeMS()
+		if v := p.ArgsDefault.DefaultMaxTimeMS; v != nil {
+			flattenedProcessArgs[0]["default_max_time_ms"] = p.ArgsDefault.GetDefaultMaxTimeMS()
 		}
 	}
 
-	if clusterAdvConfig != nil {
-		flattenedProcessArgs[0]["tls_cipher_config_mode"] = clusterAdvConfig.GetTlsCipherConfigMode()
-		flattenedProcessArgs[0]["custom_openssl_cipher_config_tls12"] = clusterAdvConfig.GetCustomOpensslCipherConfigTls12()
-		flattenedProcessArgs[0]["minimum_enabled_tls_protocol"] = clusterAdvConfig.GetMinimumEnabledTlsProtocol()
+	if p.ClusterAdvancedConfig != nil {
+		flattenedProcessArgs[0]["tls_cipher_config_mode"] = p.ClusterAdvancedConfig.GetTlsCipherConfigMode()
+		flattenedProcessArgs[0]["custom_openssl_cipher_config_tls12"] = p.ClusterAdvancedConfig.GetCustomOpensslCipherConfigTls12()
+		flattenedProcessArgs[0]["minimum_enabled_tls_protocol"] = p.ClusterAdvancedConfig.GetMinimumEnabledTlsProtocol()
 	}
 
 	return flattenedProcessArgs
