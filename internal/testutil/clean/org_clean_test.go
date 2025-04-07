@@ -11,13 +11,11 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
-
-	"github.com/stretchr/testify/require"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/stretchr/testify/require"
+	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 )
 
 const (
