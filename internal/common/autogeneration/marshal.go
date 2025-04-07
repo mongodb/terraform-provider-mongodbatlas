@@ -118,6 +118,18 @@ func getAttr(val attr.Value) (any, error) {
 			}
 		}
 		return arr, nil
+	case types.Set:
+		arr := make([]any, 0)
+		for _, attr := range v.Elements() {
+			valChild, err := getAttr(attr)
+			if err != nil {
+				return nil, err
+			}
+			if valChild != nil {
+				arr = append(arr, valChild)
+			}
+		}
+		return arr, nil
 	default:
 		return nil, fmt.Errorf("unmarshal not supported yet for type %T", v)
 	}

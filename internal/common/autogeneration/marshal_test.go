@@ -45,7 +45,7 @@ func TestMarshalBasic(t *testing.T) {
 	assert.JSONEq(t, expectedJSON, string(raw))
 }
 
-func TestMarshalList(t *testing.T) {
+func TestMarshalNested(t *testing.T) {
 	attrListObj, diags := types.ListValueFrom(t.Context(), TestObjType, []TFTestModel{
 		{
 			AttrString: types.StringValue("str1"),
@@ -57,14 +57,27 @@ func TestMarshalList(t *testing.T) {
 		},
 	})
 	assert.False(t, diags.HasError())
+	attrSetObj, diags := types.SetValueFrom(t.Context(), TestObjType, []TFTestModel{
+		{
+			AttrString: types.StringValue("str11"),
+			AttrInt:    types.Int64Value(11),
+		},
+		{
+			AttrString: types.StringValue("str22"),
+			AttrInt:    types.Int64Value(22),
+		},
+	})
+	assert.False(t, diags.HasError())
 	model := struct {
 		AttrString     types.String `tfsdk:"attr_string"`
 		AttrListSimple types.List   `tfsdk:"attr_list_simple"`
 		AttrListObj    types.List   `tfsdk:"attr_list_obj"`
+		AttrSetObj     types.Set    `tfsdk:"attr_set_obj"`
 	}{
 		AttrString:     types.StringValue("val"),
 		AttrListSimple: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("val1"), types.StringValue("val2")}),
 		AttrListObj:    attrListObj,
+		AttrSetObj:     attrSetObj,
 	}
 	const expectedJSON = `
 		{
@@ -73,6 +86,10 @@ func TestMarshalList(t *testing.T) {
 			"attrListObj": [
 				{ "attr_string": "str1", "attr_int": 1 },
 				{ "attr_string": "str2", "attr_int": 2 }
+			],
+			"attrSetObj": [
+				{ "attr_string": "str11", "attr_int": 11 },
+				{ "attr_string": "str22", "attr_int": 22 }
 			]
 		}
 	`
@@ -111,13 +128,6 @@ func TestMarshalUnsupported(t *testing.T) {
 		}{
 			Attr: types.MapValueMust(types.StringType, map[string]attr.Value{
 				"key": types.StringValue("value"),
-			}),
-		},
-		"Set not supported yet, only no-nested types": &struct {
-			Attr types.Set
-		}{
-			Attr: types.SetValueMust(types.StringType, []attr.Value{
-				types.StringValue("value"),
 			}),
 		},
 		"Int32 not supported yet as it's not being used in any model": &struct {
