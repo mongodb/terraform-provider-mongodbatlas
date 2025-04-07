@@ -53,7 +53,7 @@ paths:
         content:
           application/vnd.atlas.2023-01-01+json:
             schema:
-              $ref: "#/components/schemas/TestResource"
+              $ref: "#/components/schemas/TestResourceRequest"
             x-xgen-version: 2023-01-01
         description: Patch request description
         required: true
@@ -77,7 +77,7 @@ paths:
         content:
           application/vnd.atlas.2023-01-01+json:
             schema:
-              $ref: "#/components/schemas/CreateTestResourceRequest"
+              $ref: "#/components/schemas/TestResourceRequest"
             x-xgen-version: 2023-01-01
         description: Create request description
         required: true
@@ -349,7 +349,7 @@ components:
     accepted:
       description: Accepted.
   schemas:
-    CreateTestResourceRequest:
+    TestResourceRequest:
       type: object
       properties:
         strReqAttr1:
