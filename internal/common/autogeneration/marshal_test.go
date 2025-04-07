@@ -10,6 +10,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type TFTestModel struct {
+	Attr1 types.String `tfsdk:"attr1"`
+	Attr2 types.Int64  `tfsdk:"attr2"`
+}
+
+var TestObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"attr1": types.StringType,
+	"attr2": types.Int64Type,
+}}
+
 func TestMarshalBasic(t *testing.T) {
 	model := struct {
 		AttrFloat  types.Float64 `tfsdk:"attr_float"`
@@ -36,14 +46,36 @@ func TestMarshalBasic(t *testing.T) {
 }
 
 func TestMarshalList(t *testing.T) {
+	attrListObj, diags := types.ListValueFrom(t.Context(), TestObjType, []TFTestModel{
+		{
+			Attr1: types.StringValue("val1"),
+			Attr2: types.Int64Value(2),
+		},
+		{
+			Attr1: types.StringValue("val11"),
+			Attr2: types.Int64Value(22),
+		},
+	})
+	assert.False(t, diags.HasError())
 	model := struct {
-		AttrString types.String `tfsdk:"attr_string"`
-		AttrList   types.List   `tfsdk:"attr_list"`
+		AttrString     types.String `tfsdk:"attr_string"`
+		AttrListSimple types.List   `tfsdk:"attr_list_simple"`
+		AttrListObj    types.List   `tfsdk:"attr_list_obj"`
 	}{
-		AttrString: types.StringValue("val"),
-		AttrList:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("val1"), types.StringValue("val2")}),
+		AttrString:     types.StringValue("val"),
+		AttrListSimple: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("val1"), types.StringValue("val2")}),
+		AttrListObj:    attrListObj,
 	}
-	const expectedJSON = `{ "attrString": "val", "attrList": ["val1", "val2"] }`
+	const expectedJSON = `
+		{
+			"attrString": "val", 
+			"attrListSimple": ["val1", "val2"],
+			"attrListObj": [
+				{ "attr1": "val1", "attr2": 2 },
+				{ "attr1": "val11", "attr2": 22 }
+			]
+		}
+	`
 	raw, err := autogeneration.Marshal(&model, false)
 	require.NoError(t, err)
 	assert.JSONEq(t, expectedJSON, string(raw))
@@ -74,15 +106,6 @@ func TestMarshalOmitJSONUpdate(t *testing.T) {
 
 func TestMarshalUnsupported(t *testing.T) {
 	testCases := map[string]any{
-		"Object not supported yet, only no-nested types": &struct {
-			Attr types.Object
-		}{
-			Attr: types.ObjectValueMust(map[string]attr.Type{
-				"key": types.StringType,
-			}, map[string]attr.Value{
-				"key": types.StringValue("value"),
-			}),
-		},
 		"Map not supported yet, only no-nested types": &struct {
 			Attr types.Map
 		}{

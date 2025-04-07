@@ -94,6 +94,18 @@ func getAttr(obj attr.Value) (any, error) {
 		return v.ValueInt64(), nil
 	case types.Float64:
 		return v.ValueFloat64(), nil
+	case types.Object:
+		objJSON := make(map[string]any)
+		for name, attr := range v.Attributes() {
+			val, err := getAttr(attr)
+			if err != nil {
+				return nil, err
+			}
+			if val != nil {
+				objJSON[name] = val
+			}
+		}
+		return objJSON, nil
 	case types.List:
 		arr := make([]any, 0)
 		for _, elem := range v.Elements() {
