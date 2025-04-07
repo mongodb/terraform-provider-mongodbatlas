@@ -11,13 +11,13 @@ import (
 )
 
 type TFTestModel struct {
-	Attr1 types.String `tfsdk:"attr1"`
-	Attr2 types.Int64  `tfsdk:"attr2"`
+	AttrString types.String `tfsdk:"attr_string"`
+	AttrInt    types.Int64  `tfsdk:"attr_int"`
 }
 
 var TestObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"attr1": types.StringType,
-	"attr2": types.Int64Type,
+	"attr_string": types.StringType,
+	"attr_int":    types.Int64Type,
 }}
 
 func TestMarshalBasic(t *testing.T) {
@@ -48,12 +48,12 @@ func TestMarshalBasic(t *testing.T) {
 func TestMarshalList(t *testing.T) {
 	attrListObj, diags := types.ListValueFrom(t.Context(), TestObjType, []TFTestModel{
 		{
-			Attr1: types.StringValue("val1"),
-			Attr2: types.Int64Value(2),
+			AttrString: types.StringValue("str1"),
+			AttrInt:    types.Int64Value(1),
 		},
 		{
-			Attr1: types.StringValue("val11"),
-			Attr2: types.Int64Value(22),
+			AttrString: types.StringValue("str2"),
+			AttrInt:    types.Int64Value(2),
 		},
 	})
 	assert.False(t, diags.HasError())
@@ -71,8 +71,8 @@ func TestMarshalList(t *testing.T) {
 			"attrString": "val", 
 			"attrListSimple": ["val1", "val2"],
 			"attrListObj": [
-				{ "attr1": "val1", "attr2": 2 },
-				{ "attr1": "val11", "attr2": 22 }
+				{ "attr_string": "str1", "attr_int": 1 },
+				{ "attr_string": "str2", "attr_int": 2 }
 			]
 		}
 	`

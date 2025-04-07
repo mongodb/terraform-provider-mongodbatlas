@@ -83,11 +83,11 @@ func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[s
 	return nil
 }
 
-func getAttr(obj attr.Value) (any, error) {
-	if obj.IsNull() || obj.IsUnknown() {
+func getAttr(val attr.Value) (any, error) {
+	if val.IsNull() || val.IsUnknown() {
 		return nil, nil // skip null or unknown values
 	}
-	switch v := obj.(type) {
+	switch v := val.(type) {
 	case types.String:
 		return v.ValueString(), nil
 	case types.Int64:
@@ -95,26 +95,26 @@ func getAttr(obj attr.Value) (any, error) {
 	case types.Float64:
 		return v.ValueFloat64(), nil
 	case types.Object:
-		objJSON := make(map[string]any)
+		obj := make(map[string]any)
 		for name, attr := range v.Attributes() {
-			val, err := getAttr(attr)
+			valChild, err := getAttr(attr)
 			if err != nil {
 				return nil, err
 			}
-			if val != nil {
-				objJSON[name] = val
+			if valChild != nil {
+				obj[name] = valChild
 			}
 		}
-		return objJSON, nil
+		return obj, nil
 	case types.List:
 		arr := make([]any, 0)
-		for _, elem := range v.Elements() {
-			val, err := getAttr(elem)
+		for _, attr := range v.Elements() {
+			valChild, err := getAttr(attr)
 			if err != nil {
 				return nil, err
 			}
-			if val != nil {
-				arr = append(arr, val)
+			if valChild != nil {
+				arr = append(arr, valChild)
 			}
 		}
 		return arr, nil
