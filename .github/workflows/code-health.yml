@@ -103,7 +103,7 @@ jobs:
           cat resource.repo.patch
           exit 1
   call-acceptance-tests-workflow:
-    needs: [build, lint, shellcheck, unit-test, generate-doc-check]
+    needs: [build, lint, shellcheck, unit-test, generate-doc-check, generate-resource-check]
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
     with:
