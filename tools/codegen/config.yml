@@ -14,21 +14,6 @@ resources:
       method: DELETE
     version_header: application/vnd.atlas.2023-01-01+json
 
-  custom_db_role_api:
-    read:
-      path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
-      method: GET
-    create:
-      path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles
-      method: POST
-    update:
-      path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
-      method: PATCH
-    delete:
-      path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
-      method: DELETE
-    version_header: application/vnd.atlas.2023-01-01+json
-
   database_user_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
@@ -43,6 +28,21 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
       method: DELETE
     version_header: application/vnd.atlas.2023-01-01+json
+
+  # custom_db_role_api:
+  #   read:
+  #     path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
+  #     method: GET
+  #   create:
+  #     path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles
+  #     method: POST
+  #   update:
+  #     path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
+  #     method: PATCH
+  #   delete:
+  #     path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
+  #     method: DELETE
+  #   version_header: application/vnd.atlas.2023-01-01+json
 
   # search_deployment:
   #   read:
