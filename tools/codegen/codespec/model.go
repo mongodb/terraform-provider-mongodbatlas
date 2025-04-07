@@ -56,9 +56,9 @@ type Attribute struct {
 	SingleNested             *SingleNestedAttribute
 	Timeouts                 *TimeoutsAttribute
 	Description              *string
+	Name                     stringcase.SnakeCaseString
 	DeprecationMessage       *string
 	Sensitive                *bool
-	Name                     stringcase.SnakeCaseString
 	ComputedOptionalRequired ComputedOptionalRequired
 	ReqBodyUsage             AttributeReqBodyUsage
 }
