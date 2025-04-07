@@ -546,9 +546,6 @@ func flattenProcessArgs(p *advancedclustertpf.ProcessArgs) []map[string]any {
 			"sample_size_bi_connector":             p.ArgsLegacy.GetSampleSizeBIConnector(),
 			"sample_refresh_interval_bi_connector": p.ArgsLegacy.GetSampleRefreshIntervalBIConnector(),
 			"transaction_lifetime_limit_seconds":   p.ArgsLegacy.GetTransactionLifetimeLimitSeconds(),
-			"tls_cipher_config_mode":               p.ClusterAdvancedConfig.GetTlsCipherConfigMode(),
-			"custom_openssl_cipher_config_tls12":   p.ClusterAdvancedConfig.GetCustomOpensslCipherConfigTls12(),
-			"minimum_enabled_tls_protocol":         p.ClusterAdvancedConfig.GetMinimumEnabledTlsProtocol(),
 		},
 	}
 	if p.ArgsDefault != nil {
