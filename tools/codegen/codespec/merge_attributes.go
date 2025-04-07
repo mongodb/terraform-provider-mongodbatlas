@@ -5,7 +5,6 @@ import (
 )
 
 // mergeNestedAttributes recursively merges nested attributes
-// TODO parent computability makes no sense to use here, remove and see what is actually needed
 func mergeNestedAttributes(existingAttrs *Attributes, newAttrs Attributes, reqBodyUsage AttributeReqBodyUsage, isFromResponse bool) {
 	mergedMap := make(map[string]*Attribute)
 	if existingAttrs != nil {
@@ -62,9 +61,10 @@ func addOrUpdate(newAttr *Attribute, targetComputability ComputedOptionalRequire
 			existingAttr.Description = newAttr.Description
 		}
 
-		// if property is in both request and response values, computablity and reqBodyUsage will ignore information from response
+		// when property is in both request and response values computablity and reqBodyUsage will ignore information from response
 		if !isFromResponse {
 			existingAttr.ReqBodyUsage = reqBodyUsage
+			// merging ensures if property is defined in POST and PATCH it will have the most restrictive computability
 			existingAttr.ComputedOptionalRequired = mergeComputability(newAttr.ComputedOptionalRequired, existingAttr.ComputedOptionalRequired)
 		}
 
