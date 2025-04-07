@@ -85,37 +85,46 @@ func addOrUpdate(attr *Attribute, computability ComputedOptionalRequired, reqBod
 	}
 }
 
+type attributeDefinitionSources struct {
+	createPathParams, createRequest, updateRequest, createResponse, readResponse Attributes
+}
+
 // mergeAttributes merges attributes from different sources (path params, create/get operation bodies) and determines a single merged list of attributes.
 // Computability and reqBodyUsage values are determined as part of this process.
 // Different sources are applied in a specific order, defining the computability and reqBodyUsage value they have at each step.
-func mergeAttributes(createPathParams, createRequest, createResponse, readResponse Attributes) Attributes {
+func mergeAttributes(sources *attributeDefinitionSources) Attributes {
 	merged := make(map[string]*Attribute)
 
 	// create path parameters: all attributes will be "required", reqBodyUsage is defined as omit all at this step
-	for i := range createPathParams {
-		addOrUpdate(&createPathParams[i], Required, OmitAll, merged, false)
+	for i := range sources.createPathParams {
+		addOrUpdate(&sources.createPathParams[i], Required, OmitAll, merged, false)
 	}
 
-	// POST request body: optional/required is as defined, reqBodyUsage is defined as AllRequestBodies
-	for i := range createRequest {
+	// POST request body: optional/required is as defined, reqBodyUsage is defined as OmitUpdateBody and will be updated to AllRequestBodies if present in POST request
+	for i := range sources.createRequest {
 		// for now we do not differentiate AllRequestBodies vs PostBodyOnly as we are not processing update request
-		addOrUpdate(&createRequest[i], createRequest[i].ComputedOptionalRequired, AllRequestBodies, merged, false)
+		addOrUpdate(&sources.createRequest[i], sources.createRequest[i].ComputedOptionalRequired, OmitUpdateBody, merged, false)
+	}
+
+	// PATCH request body: optional/required is as defined, reqBodyUsage is defined as AllRequestBodies
+	for i := range sources.updateRequest {
+		addOrUpdate(&sources.updateRequest[i], sources.updateRequest[i].ComputedOptionalRequired, AllRequestBodies, merged, false)
 	}
 
 	// POST/GET response body: properties not in the request body are "computed" or "computed_optional" (if a default is present), reqBodyUsage will have OmitAll not present in request body
-	for i := range createResponse {
-		if hasDefault(&createResponse[i]) {
-			addOrUpdate(&createResponse[i], ComputedOptional, OmitAll, merged, true)
+	for i := range sources.createResponse {
+		if hasDefault(&sources.createResponse[i]) {
+			addOrUpdate(&sources.createResponse[i], ComputedOptional, OmitAll, merged, true)
 		} else {
-			addOrUpdate(&createResponse[i], Computed, OmitAll, merged, true)
+			addOrUpdate(&sources.createResponse[i], Computed, OmitAll, merged, true)
 		}
 	}
 
-	for i := range readResponse {
-		if hasDefault(&readResponse[i]) {
-			addOrUpdate(&readResponse[i], ComputedOptional, OmitAll, merged, true)
+	for i := range sources.readResponse {
+		if hasDefault(&sources.readResponse[i]) {
+			addOrUpdate(&sources.readResponse[i], ComputedOptional, OmitAll, merged, true)
 		} else {
-			addOrUpdate(&readResponse[i], Computed, OmitAll, merged, true)
+			addOrUpdate(&sources.readResponse[i], Computed, OmitAll, merged, true)
 		}
 	}
 

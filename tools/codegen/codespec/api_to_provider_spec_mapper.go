@@ -51,14 +51,22 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 
 func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig *config.Resource, name stringcase.SnakeCaseString) *Resource {
 	createOp := oasResource.CreateOp
+	updateOp := oasResource.UpdateOp
 	readOp := oasResource.ReadOp
 
 	createPathParams := pathParamsToAttributes(createOp)
 	createRequestAttributes := opRequestToAttributes(createOp)
+	updateRequestAttributes := opRequestToAttributes(updateOp)
 	createResponseAttributes := opResponseToAttributes(createOp)
 	readResponseAttributes := opResponseToAttributes(readOp)
 
-	attributes := mergeAttributes(createPathParams, createRequestAttributes, createResponseAttributes, readResponseAttributes)
+	attributes := mergeAttributes(&attributeDefinitionSources{
+		createPathParams: createPathParams,
+		createRequest:    createRequestAttributes,
+		updateRequest:    updateRequestAttributes,
+		createResponse:   createResponseAttributes,
+		readResponse:     readResponseAttributes,
+	})
 
 	schema := &Schema{
 		Description:        oasResource.Description,
