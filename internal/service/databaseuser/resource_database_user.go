@@ -332,7 +332,7 @@ func (r *databaseUserRS) Delete(ctx context.Context, req resource.DeleteRequest,
 	}
 
 	connV2 := r.Client.AtlasV2
-	_, _, err := connV2.DatabaseUsersApi.DeleteDatabaseUser(
+	_, err := connV2.DatabaseUsersApi.DeleteDatabaseUser(
 		ctx,
 		databaseUserState.ProjectID.ValueString(),
 		databaseUserState.AuthDatabaseName.ValueString(),

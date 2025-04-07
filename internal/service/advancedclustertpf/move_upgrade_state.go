@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"

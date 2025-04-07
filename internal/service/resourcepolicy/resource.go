@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -165,7 +165,7 @@ func (r *resourcePolicyRS) Delete(ctx context.Context, req resource.DeleteReques
 	resourcePolicyID := resourcePolicyState.ID.ValueString()
 	connV2 := r.Client.AtlasV2
 	resourcePolicyAPI := connV2.ResourcePoliciesApi
-	if _, _, err := resourcePolicyAPI.DeleteAtlasResourcePolicy(ctx, orgID, resourcePolicyID).Execute(); err != nil {
+	if _, err := resourcePolicyAPI.DeleteAtlasResourcePolicy(ctx, orgID, resourcePolicyID).Execute(); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}

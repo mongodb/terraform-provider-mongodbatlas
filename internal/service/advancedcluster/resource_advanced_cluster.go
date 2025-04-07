@@ -13,7 +13,7 @@ import (
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -1040,7 +1040,7 @@ func HandlePinnedFCVUpdate(ctx context.Context, connV2 *admin.APIClient, project
 			}
 		} else {
 			// pinned_fcv has been removed from the config so unpin method is called
-			if _, _, err := connV2.ClustersApi.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
+			if _, err := connV2.ClustersApi.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
 		}

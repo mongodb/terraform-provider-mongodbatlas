@@ -5,7 +5,7 @@ import (
 	"errors"
 	"regexp"
 
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -119,7 +119,7 @@ func (r *encryptionAtRestPrivateEndpointRS) Delete(ctx context.Context, req reso
 	projectID := earPrivateEndpointState.ProjectID.ValueString()
 	cloudProvider := earPrivateEndpointState.CloudProvider.ValueString()
 	endpointID := earPrivateEndpointState.ID.ValueString()
-	if _, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.RequestEncryptionAtRestPrivateEndpointDeletion(ctx, projectID, cloudProvider, endpointID).Execute(); err != nil {
+	if _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.RequestEncryptionAtRestPrivateEndpointDeletion(ctx, projectID, cloudProvider, endpointID).Execute(); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}

@@ -6,7 +6,7 @@ import (
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
@@ -153,7 +153,7 @@ func PinFCV(ctx context.Context, api admin.ClustersApi, projectID, clusterName, 
 	req := admin.PinFCV{
 		ExpirationDate: &expirationTime,
 	}
-	if _, _, err := api.PinFeatureCompatibilityVersion(ctx, projectID, clusterName, &req).Execute(); err != nil {
+	if _, err := api.PinFeatureCompatibilityVersion(ctx, projectID, clusterName, &req).Execute(); err != nil {
 		return err
 	}
 	return nil
