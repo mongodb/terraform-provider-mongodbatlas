@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 
 	"github.com/stretchr/testify/require"
 
@@ -142,7 +142,7 @@ func readAllProjects(ctx context.Context, t *testing.T, client *admin.APIClient)
 	projects, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.Group], *http.Response, error) {
 		return client.ProjectsApi.ListProjects(ctx).ItemsPerPage(itemsPerPage).PageNum(pageNum).Execute()
 	})
-	require.NoError(t, err) // line 144
+	require.NoError(t, err)
 	return projects
 }
 
@@ -158,7 +158,7 @@ func findRetryErrorCode(err error) string {
 	return ""
 }
 func deleteProject(ctx context.Context, client *admin.APIClient, projectID string) error {
-	_, _, err := client.ProjectsApi.DeleteProject(ctx, projectID).Execute()
+	_, err := client.ProjectsApi.DeleteProject(ctx, projectID).Execute()
 	if err == nil || admin.IsErrorCode(err, "PROJECT_NOT_FOUND") {
 		return nil
 	}
@@ -309,7 +309,7 @@ func removeDataLakePipelines(ctx context.Context, t *testing.T, dryRun bool, cli
 		pipelineID := p.GetId()
 		t.Logf("delete pipeline %s", pipelineID)
 		if !dryRun {
-			_, _, err = client.DataLakePipelinesApi.DeletePipeline(ctx, projectID, pipelineID).Execute()
+			_, err = client.DataLakePipelinesApi.DeletePipeline(ctx, projectID, pipelineID).Execute()
 			require.NoError(t, err)
 		}
 	}
@@ -327,7 +327,7 @@ func removeStreamInstances(ctx context.Context, t *testing.T, dryRun bool, clien
 		t.Logf("delete stream instance %s", id)
 
 		if !dryRun {
-			_, _, err = client.StreamsApi.DeleteStreamInstance(ctx, projectID, instanceName).Execute()
+			_, err = client.StreamsApi.DeleteStreamInstance(ctx, projectID, instanceName).Execute()
 			if err != nil && admin.IsErrorCode(err, "STREAM_TENANT_HAS_STREAM_PROCESSORS") {
 				t.Logf("stream instance %s has stream processors, attempting to delete", id)
 				streamProcessors, _, spErr := client.StreamsApi.ListStreamProcessors(ctx, projectID, instanceName).Execute()
@@ -339,7 +339,7 @@ func removeStreamInstances(ctx context.Context, t *testing.T, dryRun bool, clien
 					require.NoError(t, err)
 				}
 				t.Logf("retry delete stream instance %s after removing stream processors", id)
-				_, _, err = client.StreamsApi.DeleteStreamInstance(ctx, projectID, instanceName).Execute()
+				_, err = client.StreamsApi.DeleteStreamInstance(ctx, projectID, instanceName).Execute()
 				require.NoError(t, err)
 			} else {
 				require.NoError(t, err)
@@ -365,7 +365,7 @@ func removePrivateEndpointServices(ctx context.Context, t *testing.T, dryRun boo
 			id := service.GetId()
 			t.Logf("delete private endpoint service %s for provider %s", id, provider)
 			if !dryRun {
-				_, _, err := client.PrivateEndpointServicesApi.DeletePrivateEndpointService(ctx, projectID, provider, id).Execute()
+				_, err := client.PrivateEndpointServicesApi.DeletePrivateEndpointService(ctx, projectID, provider, id).Execute()
 				require.NoError(t, err)
 			}
 		}
@@ -384,7 +384,7 @@ func removeFederatedDatabasePrivateEndpoints(ctx context.Context, t *testing.T, 
 		endpointID := f.GetEndpointId()
 		t.Logf("delete federated private endpoint %s", endpointID)
 		if !dryRun {
-			_, _, err = client.DataFederationApi.DeleteDataFederationPrivateEndpoint(ctx, projectID, endpointID).Execute()
+			_, err = client.DataFederationApi.DeleteDataFederationPrivateEndpoint(ctx, projectID, endpointID).Execute()
 			require.NoError(t, err)
 		}
 	}
@@ -403,7 +403,7 @@ func removeFederatedDatabases(ctx context.Context, t *testing.T, dryRun bool, cl
 		federatedName := f.GetName()
 		t.Logf("delete federated %s", federatedName)
 		if !dryRun {
-			_, _, err = client.DataFederationApi.DeleteFederatedDatabase(ctx, projectID, federatedName).Execute()
+			_, err = client.DataFederationApi.DeleteFederatedDatabase(ctx, projectID, federatedName).Execute()
 			require.NoError(t, err)
 		}
 	}

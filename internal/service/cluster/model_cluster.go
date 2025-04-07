@@ -79,7 +79,6 @@ func flattenPolicyItems(items []matlas.PolicyItem) []map[string]any {
 	return policyItems
 }
 
-// func flattenProcessArgs(p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805, clusterAdvConfig *matlas.AdvancedConfiguration) []map[string]any {
 func flattenProcessArgs(p *ProcessArgs) []map[string]any {
 	flattenedProcessArgs := []map[string]any{
 		{
