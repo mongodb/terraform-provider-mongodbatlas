@@ -68,16 +68,36 @@ func TestMarshalNested(t *testing.T) {
 		},
 	})
 	assert.False(t, diags.HasError())
+	attrMapObj, diags := types.MapValueFrom(t.Context(), TestObjType, map[string]TFTestModel{
+		"key1": {
+			AttrString: types.StringValue("str1"),
+			AttrInt:    types.Int64Value(1),
+		},
+		"key2": {
+			AttrString: types.StringValue("str2"),
+			AttrInt:    types.Int64Value(2),
+		},
+	})
+	assert.False(t, diags.HasError())
 	model := struct {
 		AttrString     types.String `tfsdk:"attr_string"`
 		AttrListSimple types.List   `tfsdk:"attr_list_simple"`
 		AttrListObj    types.List   `tfsdk:"attr_list_obj"`
+		AttrSetSimple  types.Set    `tfsdk:"attr_set_simple"`
 		AttrSetObj     types.Set    `tfsdk:"attr_set_obj"`
+		AttrMapSimple  types.Map    `tfsdk:"attr_map_simple"`
+		AttrMapObj     types.Map    `tfsdk:"attr_map_obj"`
 	}{
 		AttrString:     types.StringValue("val"),
 		AttrListSimple: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("val1"), types.StringValue("val2")}),
 		AttrListObj:    attrListObj,
+		AttrSetSimple:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("val11"), types.StringValue("val22")}),
 		AttrSetObj:     attrSetObj,
+		AttrMapSimple: types.MapValueMust(types.StringType, map[string]attr.Value{
+			"key1": types.StringValue("val1"),
+			"key2": types.StringValue("val2"),
+		}),
+		AttrMapObj: attrMapObj,
 	}
 	const expectedJSON = `
 		{
@@ -87,10 +107,19 @@ func TestMarshalNested(t *testing.T) {
 				{ "attr_string": "str1", "attr_int": 1 },
 				{ "attr_string": "str2", "attr_int": 2 }
 			],
+			"attrSetSimple": ["val11", "val22"],
 			"attrSetObj": [
 				{ "attr_string": "str11", "attr_int": 11 },
 				{ "attr_string": "str22", "attr_int": 22 }
-			]
+			],
+			"attrMapSimple": {
+				"key1": "val1",
+				"key2": "val2"
+			},
+			"attrMapObj": {
+				"key1": { "attr_string": "str1", "attr_int": 1 },
+				"key2": { "attr_string": "str2", "attr_int": 2 }
+			}
 		}
 	`
 	raw, err := autogeneration.Marshal(&model, false)
@@ -123,13 +152,6 @@ func TestMarshalOmitJSONUpdate(t *testing.T) {
 
 func TestMarshalUnsupported(t *testing.T) {
 	testCases := map[string]any{
-		"Map not supported yet, only no-nested types": &struct {
-			Attr types.Map
-		}{
-			Attr: types.MapValueMust(types.StringType, map[string]attr.Value{
-				"key": types.StringValue("value"),
-			}),
-		},
 		"Int32 not supported yet as it's not being used in any model": &struct {
 			Attr types.Int32
 		}{

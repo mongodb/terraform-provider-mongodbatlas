@@ -106,6 +106,18 @@ func getAttr(val attr.Value) (any, error) {
 			}
 		}
 		return obj, nil
+	case types.Map:
+		obj := make(map[string]any)
+		for name, attr := range v.Elements() {
+			valChild, err := getAttr(attr)
+			if err != nil {
+				return nil, err
+			}
+			if valChild != nil {
+				obj[name] = valChild
+			}
+		}
+		return obj, nil
 	case types.List:
 		arr := make([]any, 0)
 		for _, attr := range v.Elements() {
