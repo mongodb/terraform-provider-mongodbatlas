@@ -45,11 +45,11 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *ProcessArgs
 			SampleRefreshIntervalBiconnector: types.Int64Value(conversion.SafeValue(conversion.IntPtrToInt64Ptr(input.ArgsDefault.SampleRefreshIntervalBIConnector))),
 			TransactionLifetimeLimitSeconds:  types.Int64Value(conversion.SafeValue(input.ArgsDefault.TransactionLifetimeLimitSeconds)),
 			DefaultMaxTimeMS:                 types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.ArgsDefault.DefaultMaxTimeMS)),
-			MinimumEnabledTlsProtocol:        types.StringValue(conversion.SafeValue(input.ClusterAdvancedConfig.MinimumEnabledTlsProtocol)),
-			TlsCipherConfigMode:              types.StringValue(conversion.SafeValue(input.ClusterAdvancedConfig.TlsCipherConfigMode)),
+			MinimumEnabledTlsProtocol:        types.StringValue(conversion.SafeValue(input.ArgsDefault.MinimumEnabledTlsProtocol)),
+			TlsCipherConfigMode:              types.StringValue(conversion.SafeValue(input.ArgsDefault.TlsCipherConfigMode)),
 		}
 	}
-	advancedConfig.CustomOpensslCipherConfigTls12 = customOpensslCipherConfigTLS12(ctx, diags, input.ClusterAdvancedConfig)
+	advancedConfig.CustomOpensslCipherConfigTls12 = customOpensslCipherConfigTLS12(ctx, diags, input.ArgsDefault.CustomOpensslCipherConfigTls12)
 
 	overrideTLSIfClusterAdvancedConfigPresent(ctx, diags, &advancedConfig, input.ClusterAdvancedConfig)
 
@@ -64,14 +64,14 @@ func overrideTLSIfClusterAdvancedConfigPresent(ctx context.Context, diags *diag.
 	}
 	tfAdvConfig.MinimumEnabledTlsProtocol = types.StringValue(conversion.SafeValue(conf.MinimumEnabledTlsProtocol))
 	tfAdvConfig.TlsCipherConfigMode = types.StringValue(conversion.SafeValue(conf.TlsCipherConfigMode))
-	tfAdvConfig.CustomOpensslCipherConfigTls12 = customOpensslCipherConfigTLS12(ctx, diags, conf)
+	tfAdvConfig.CustomOpensslCipherConfigTls12 = customOpensslCipherConfigTLS12(ctx, diags, conf.CustomOpensslCipherConfigTls12)
 }
 
-func customOpensslCipherConfigTLS12(ctx context.Context, diags *diag.Diagnostics, advConfig *admin.ApiAtlasClusterAdvancedConfiguration) types.Set {
-	if advConfig == nil {
+func customOpensslCipherConfigTLS12(ctx context.Context, diags *diag.Diagnostics, customOpensslCipherConfigTls12 *[]string) types.Set {
+	if customOpensslCipherConfigTls12 == nil {
 		return types.SetNull(types.StringType)
 	}
-	customOpensslCipherConfigTLS12, d := types.SetValueFrom(ctx, types.StringType, advConfig.CustomOpensslCipherConfigTls12)
+	customOpensslCipherConfigTLS12, d := types.SetValueFrom(ctx, types.StringType, customOpensslCipherConfigTls12)
 	diags.Append(d...)
 	return customOpensslCipherConfigTLS12
 }
