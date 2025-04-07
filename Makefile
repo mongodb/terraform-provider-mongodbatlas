@@ -157,7 +157,7 @@ scaffold-schemas: ## Create the schema scaffolding for a new resource
 # resource_name is optional, if not provided all configured resources will be generated
 # details on usage can be found in contributing/development-best-practices.md under "Generating Schema and Model Definitions - Using internal tool"
 .PHONY: generate-resource
-generate-resource: ## Generate the schema for a resource
+generate-resource: ## Generate the code for a resource
 	@go run ./tools/codegen/main.go $(resource_name)
 
 .PHONY: generate-doc

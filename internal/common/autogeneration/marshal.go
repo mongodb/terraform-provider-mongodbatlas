@@ -68,7 +68,7 @@ func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error)
 }
 
 func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[string]any) error {
-	attrNameJSON := xstrings.ToSnakeCase(attrNameModel)
+	attrNameJSON := xstrings.ToCamelCase(attrNameModel)
 	obj, ok := attrValModel.Interface().(attr.Value)
 	if !ok {
 		panic("marshal expects only Terraform types in the model")
