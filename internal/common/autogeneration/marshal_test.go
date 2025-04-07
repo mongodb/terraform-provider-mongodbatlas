@@ -35,6 +35,20 @@ func TestMarshalBasic(t *testing.T) {
 	assert.JSONEq(t, expectedJSON, string(raw))
 }
 
+func TestMarshalList(t *testing.T) {
+	model := struct {
+		AttrString types.String `tfsdk:"attr_string"`
+		AttrList   types.List   `tfsdk:"attr_list"`
+	}{
+		AttrString: types.StringValue("val"),
+		AttrList:   types.ListValueMust(types.StringType, []attr.Value{types.StringValue("val1"), types.StringValue("val2")}),
+	}
+	const expectedJSON = `{ "attrString": "val", "attrList": ["val1", "val2"] }`
+	raw, err := autogeneration.Marshal(&model, false)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedJSON, string(raw))
+}
+
 func TestMarshalOmitJSONUpdate(t *testing.T) {
 	const (
 		expectedCreate = `{ "attr": "val1", "attrOmitUpdate": "val2" }`
@@ -67,13 +81,6 @@ func TestMarshalUnsupported(t *testing.T) {
 				"key": types.StringType,
 			}, map[string]attr.Value{
 				"key": types.StringValue("value"),
-			}),
-		},
-		"List not supported yet, only no-nested types": &struct {
-			Attr types.List
-		}{
-			Attr: types.ListValueMust(types.StringType, []attr.Value{
-				types.StringValue("value"),
 			}),
 		},
 		"Map not supported yet, only no-nested types": &struct {

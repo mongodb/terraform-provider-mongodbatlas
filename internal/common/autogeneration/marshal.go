@@ -73,20 +73,42 @@ func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[s
 	if !ok {
 		panic("marshal expects only Terraform types in the model")
 	}
-	if obj.IsNull() || obj.IsUnknown() {
-		return nil // skip null or unknown values
+	val, err := getAttr(obj)
+	if err != nil {
+		return err
 	}
-	switch v := attrValModel.Interface().(type) {
-	case types.String:
-		objJSON[attrNameJSON] = v.ValueString()
-	case types.Int64:
-		objJSON[attrNameJSON] = v.ValueInt64()
-	case types.Float64:
-		objJSON[attrNameJSON] = v.ValueFloat64()
-	default:
-		return fmt.Errorf("marshal not supported yet for type %T for field %s", v, attrNameJSON)
+	if val != nil {
+		objJSON[attrNameJSON] = val
 	}
 	return nil
+}
+
+func getAttr(obj attr.Value) (any, error) {
+	if obj.IsNull() || obj.IsUnknown() {
+		return nil, nil // skip null or unknown values
+	}
+	switch v := obj.(type) {
+	case types.String:
+		return v.ValueString(), nil
+	case types.Int64:
+		return v.ValueInt64(), nil
+	case types.Float64:
+		return v.ValueFloat64(), nil
+	case types.List:
+		arr := make([]any, 0)
+		for _, elem := range v.Elements() {
+			val, err := getAttr(elem)
+			if err != nil {
+				return nil, err
+			}
+			if val != nil {
+				arr = append(arr, val)
+			}
+		}
+		return arr, nil
+	default:
+		return nil, fmt.Errorf("unmarshal not supported yet for type %T", v)
+	}
 }
 
 func unmarshalAttrs(objJSON map[string]any, model any) error {
