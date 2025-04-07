@@ -56,49 +56,47 @@ func mergeComputability(first, second ComputedOptionalRequired) ComputedOptional
 }
 
 // addOrUpdate adds or updates an attribute in the merged map, including nested attributes
-func addOrUpdate(attr *Attribute, targetComputability ComputedOptionalRequired, reqBodyUsage AttributeReqBodyUsage, merged map[string]*Attribute, isFromResponse bool) {
-	if existingAttr, exists := merged[attr.Name.SnakeCase()]; exists {
+func addOrUpdate(newAttr *Attribute, targetComputability ComputedOptionalRequired, reqBodyUsage AttributeReqBodyUsage, merged map[string]*Attribute, isFromResponse bool) {
+	if existingAttr, exists := merged[newAttr.Name.SnakeCase()]; exists {
 		if existingAttr.Description == nil || *existingAttr.Description == "" {
-			existingAttr.Description = attr.Description
+			existingAttr.Description = newAttr.Description
 		}
 
-		// retain existing computability if already set from request or path params
-		// retain existing ReqBodyUsage if already set defined from request or path params
+		// if property is in both request and response values, computablity and reqBodyUsage will ignore information from response
 		if !isFromResponse {
-			existingAttr.ComputedOptionalRequired = targetComputability
 			existingAttr.ReqBodyUsage = reqBodyUsage
+			existingAttr.ComputedOptionalRequired = mergeComputability(newAttr.ComputedOptionalRequired, existingAttr.ComputedOptionalRequired)
 		}
 
 		// handle nested attributes
-		if existingAttr.ListNested != nil && attr.ListNested != nil {
-			mergeNestedAttributes(&existingAttr.ListNested.NestedObject.Attributes, attr.ListNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)
-		} else if attr.ListNested != nil {
-			existingAttr.ListNested = attr.ListNested
+		if existingAttr.ListNested != nil && newAttr.ListNested != nil {
+			mergeNestedAttributes(&existingAttr.ListNested.NestedObject.Attributes, newAttr.ListNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)
+		} else if newAttr.ListNested != nil {
+			existingAttr.ListNested = newAttr.ListNested
 		}
 
-		if existingAttr.SingleNested != nil && attr.SingleNested != nil {
-			mergeNestedAttributes(&existingAttr.SingleNested.NestedObject.Attributes, attr.SingleNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)
-		} else if attr.SingleNested != nil {
-			existingAttr.SingleNested = attr.SingleNested
+		if existingAttr.SingleNested != nil && newAttr.SingleNested != nil {
+			mergeNestedAttributes(&existingAttr.SingleNested.NestedObject.Attributes, newAttr.SingleNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)
+		} else if newAttr.SingleNested != nil {
+			existingAttr.SingleNested = newAttr.SingleNested
 		}
 
-		if existingAttr.SetNested != nil && attr.SetNested != nil {
-			mergeNestedAttributes(&existingAttr.SetNested.NestedObject.Attributes, attr.SetNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)
-		} else if attr.SetNested != nil {
-			existingAttr.SetNested = attr.SetNested
+		if existingAttr.SetNested != nil && newAttr.SetNested != nil {
+			mergeNestedAttributes(&existingAttr.SetNested.NestedObject.Attributes, newAttr.SetNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)
+		} else if newAttr.SetNested != nil {
+			existingAttr.SetNested = newAttr.SetNested
 		}
 
-		if existingAttr.MapNested != nil && attr.MapNested != nil {
-			mergeNestedAttributes(&existingAttr.MapNested.NestedObject.Attributes, attr.MapNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)
-		} else if attr.MapNested != nil {
-			existingAttr.MapNested = attr.MapNested
+		if existingAttr.MapNested != nil && newAttr.MapNested != nil {
+			mergeNestedAttributes(&existingAttr.MapNested.NestedObject.Attributes, newAttr.MapNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)
+		} else if newAttr.MapNested != nil {
+			existingAttr.MapNested = newAttr.MapNested
 		}
 	} else {
 		// add new attribute with the given computability
-		newAttr := *attr
 		newAttr.ComputedOptionalRequired = targetComputability
 		newAttr.ReqBodyUsage = reqBodyUsage
-		merged[attr.Name.SnakeCase()] = &newAttr
+		merged[newAttr.Name.SnakeCase()] = newAttr
 	}
 }
 

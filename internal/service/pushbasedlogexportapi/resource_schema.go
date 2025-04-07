@@ -18,7 +18,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "The name of the bucket to which the agent will send the logs to.",
 			},
 			"create_date": schema.StringAttribute{
-				Computed:            true,
+				Optional:            true,
 				MarkdownDescription: "Date and time that this feature was enabled on.",
 			},
 			"group_id": schema.StringAttribute{
@@ -50,7 +50,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "S3 directory in which vector will write to in order to store the logs. An empty string denotes the root directory.",
 			},
 			"state": schema.StringAttribute{
-				Computed:            true,
+				Optional:            true,
 				MarkdownDescription: "Describes whether or not the feature is enabled and what status it is in.",
 			},
 		},
@@ -59,12 +59,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 type TFModel struct {
 	BucketName types.String `tfsdk:"bucket_name"`
-	CreateDate types.String `tfsdk:"create_date" autogeneration:"omitjson"`
+	CreateDate types.String `tfsdk:"create_date"`
 	GroupId    types.String `tfsdk:"group_id" autogeneration:"omitjson"`
 	IamRoleId  types.String `tfsdk:"iam_role_id"`
 	Links      types.List   `tfsdk:"links"`
 	PrefixPath types.String `tfsdk:"prefix_path"`
-	State      types.String `tfsdk:"state" autogeneration:"omitjson"`
+	State      types.String `tfsdk:"state"`
 }
 type TFLinksModel struct {
 	Href types.String `tfsdk:"href"`
