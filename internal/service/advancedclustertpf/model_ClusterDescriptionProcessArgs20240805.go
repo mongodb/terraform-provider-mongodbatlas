@@ -67,11 +67,11 @@ func overrideTLSIfClusterAdvancedConfigPresent(ctx context.Context, diags *diag.
 	tfAdvConfig.CustomOpensslCipherConfigTls12 = customOpensslCipherConfigTLS12(ctx, diags, conf.CustomOpensslCipherConfigTls12)
 }
 
-func customOpensslCipherConfigTLS12(ctx context.Context, diags *diag.Diagnostics, customOpensslCipherConfigTls12 *[]string) types.Set {
-	if customOpensslCipherConfigTls12 == nil {
+func customOpensslCipherConfigTLS12(ctx context.Context, diags *diag.Diagnostics, customOpensslCipherConfigTLS12 *[]string) types.Set {
+	if customOpensslCipherConfigTLS12 == nil {
 		return types.SetNull(types.StringType)
 	}
-	customOpensslCipherConfigTLS12, d := types.SetValueFrom(ctx, types.StringType, customOpensslCipherConfigTls12)
+	val, d := types.SetValueFrom(ctx, types.StringType, customOpensslCipherConfigTLS12)
 	diags.Append(d...)
-	return customOpensslCipherConfigTLS12
+	return val
 }
