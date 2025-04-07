@@ -19,6 +19,12 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 )
 
+type ProcessArgs struct {
+	argsDefault           *admin.ClusterDescriptionProcessArgs20240805
+	clusterAdvancedConfig *matlas.AdvancedConfiguration
+	argsV20240530         *admin20240530.ClusterDescriptionProcessArgs
+}
+
 func flattenCloudProviderSnapshotBackupPolicy(ctx context.Context, d *schema.ResourceData, conn *matlas.Client, projectID, clusterName string) ([]map[string]any, error) {
 	backupPolicy, res, err := conn.CloudProviderSnapshotBackupPolicies.Get(ctx, projectID, clusterName)
 	if err != nil {
@@ -73,30 +79,37 @@ func flattenPolicyItems(items []matlas.PolicyItem) []map[string]any {
 	return policyItems
 }
 
-func flattenProcessArgs(p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805, clusterAdvConfig *matlas.AdvancedConfiguration) []map[string]any {
+// func flattenProcessArgs(p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805, clusterAdvConfig *matlas.AdvancedConfiguration) []map[string]any {
+func flattenProcessArgs(p *ProcessArgs) []map[string]any {
 	flattenedProcessArgs := []map[string]any{
 		{
 			// default_read_concern and fail_index_key_too_long have been deprecated, hence using the older SDK
-			"default_read_concern":                 p20240530.DefaultReadConcern,
-			"fail_index_key_too_long":              cast.ToBool(p20240530.FailIndexKeyTooLong),
-			"default_write_concern":                p.DefaultWriteConcern,
-			"javascript_enabled":                   cast.ToBool(p.JavascriptEnabled),
-			"no_table_scan":                        cast.ToBool(p.NoTableScan),
-			"oplog_size_mb":                        p.OplogSizeMB,
-			"oplog_min_retention_hours":            p.OplogMinRetentionHours,
-			"sample_size_bi_connector":             p.SampleSizeBIConnector,
-			"sample_refresh_interval_bi_connector": p.SampleRefreshIntervalBIConnector,
-			"transaction_lifetime_limit_seconds":   p.TransactionLifetimeLimitSeconds,
-			"minimum_enabled_tls_protocol":         clusterAdvConfig.MinimumEnabledTLSProtocol,
-			"tls_cipher_config_mode":               clusterAdvConfig.TLSCipherConfigMode,
-			"custom_openssl_cipher_config_tls12":   conversion.SliceFromPtr(clusterAdvConfig.CustomOpensslCipherConfigTLS12),
+			"default_read_concern":                 p.argsV20240530.DefaultReadConcern,
+			"fail_index_key_too_long":              cast.ToBool(p.argsV20240530.FailIndexKeyTooLong),
+			"default_write_concern":                p.argsDefault.DefaultWriteConcern,
+			"javascript_enabled":                   cast.ToBool(p.argsDefault.JavascriptEnabled),
+			"no_table_scan":                        cast.ToBool(p.argsDefault.NoTableScan),
+			"oplog_size_mb":                        p.argsDefault.OplogSizeMB,
+			"oplog_min_retention_hours":            p.argsDefault.OplogMinRetentionHours,
+			"sample_size_bi_connector":             p.argsDefault.SampleSizeBIConnector,
+			"sample_refresh_interval_bi_connector": p.argsDefault.SampleRefreshIntervalBIConnector,
+			"transaction_lifetime_limit_seconds":   p.argsDefault.TransactionLifetimeLimitSeconds,
+			"minimum_enabled_tls_protocol":         p.argsDefault.MinimumEnabledTlsProtocol,
+			"tls_cipher_config_mode":               p.argsDefault.TlsCipherConfigMode,
+			"custom_openssl_cipher_config_tls12":   conversion.SliceFromPtr(p.argsDefault.CustomOpensslCipherConfigTls12),
 		},
 	}
 
-	if p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != nil {
-		flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds
+	if p.argsDefault.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != nil {
+		flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = p.argsDefault.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds
 	} else {
 		flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = -1 // default in schema, otherwise user gets drift detection
+	}
+
+	if p.clusterAdvancedConfig != nil { // For TENANT cluster type, advancedConfiguration field may not be returned from cluster APIs
+		flattenedProcessArgs[0]["minimum_enabled_tls_protocol"] = p.clusterAdvancedConfig.MinimumEnabledTLSProtocol
+		flattenedProcessArgs[0]["tls_cipher_config_mode"] = p.clusterAdvancedConfig.TLSCipherConfigMode
+		flattenedProcessArgs[0]["custom_openssl_cipher_config_tls12"] = conversion.SliceFromPtr(p.clusterAdvancedConfig.CustomOpensslCipherConfigTLS12)
 	}
 
 	return flattenedProcessArgs
