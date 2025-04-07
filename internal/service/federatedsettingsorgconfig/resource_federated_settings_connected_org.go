@@ -176,7 +176,7 @@ func resourcDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.D
 	federationSettingsID := ids["federation_settings_id"]
 	orgID := ids["org_id"]
 
-	_, _, err := conn.FederatedAuthenticationApi.RemoveConnectedOrgConfig(ctx, federationSettingsID, orgID).Execute()
+	_, err := conn.FederatedAuthenticationApi.RemoveConnectedOrgConfig(ctx, federationSettingsID, orgID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting federation settings connected organization (%s): %s", federationSettingsID, err))
 	}

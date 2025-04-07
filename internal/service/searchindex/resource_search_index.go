@@ -14,7 +14,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 )
 
 const (
@@ -178,7 +178,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	indexID := ids["index_id"]
 
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	_, _, err := connV2.AtlasSearchApi.DeleteAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
+	_, err := connV2.AtlasSearchApi.DeleteAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		return diag.Errorf("error deleting search index (%s): %s", d.Get("name").(string), err)
 	}
@@ -245,7 +245,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if searchIndex.Definition.Mappings == nil {
 			searchIndex.Definition.Mappings = &admin.SearchMappings{}
 		}
-		searchIndex.Definition.Mappings.Fields = mappingsFields
+		searchIndex.Definition.Mappings.Fields = &mappingsFields
 	}
 
 	if d.HasChange("fields") {
@@ -362,8 +362,8 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
 		}
 
-		if conversion.HasElementsSliceOrMap(searchIndex.LatestDefinition.Mappings.Fields) {
-			searchIndexMappingFields, err := marshalSearchIndex(searchIndex.LatestDefinition.Mappings.Fields)
+		if fields := searchIndex.LatestDefinition.Mappings.Fields; fields != nil && conversion.HasElementsSliceOrMap(*fields) {
+			searchIndexMappingFields, err := marshalSearchIndex(*fields)
 			if err != nil {
 				return diag.FromErr(err)
 			}
@@ -430,7 +430,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		dynamic := d.Get("mappings_dynamic").(bool)
 		searchIndexRequest.Definition.Mappings = &admin.SearchMappings{
 			Dynamic: &dynamic,
-			Fields:  mappingsFields,
+			Fields:  &mappingsFields,
 		}
 		synonyms := expandSearchIndexSynonyms(d)
 		searchIndexRequest.Definition.Synonyms = &synonyms

@@ -63,17 +63,22 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Update: true,
 				Delete: true,
 			}),
+			"encryption_at_rest_provider": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Cloud service provider that manages your customer keys to provide an additional layer of Encryption At Rest for the cluster.",
+			},
 		},
 	}
 }
 
 type TFSearchDeploymentRSModel struct {
-	ID          types.String   `tfsdk:"id"`
-	ClusterName types.String   `tfsdk:"cluster_name"`
-	ProjectID   types.String   `tfsdk:"project_id"`
-	Specs       types.List     `tfsdk:"specs"`
-	StateName   types.String   `tfsdk:"state_name"`
-	Timeouts    timeouts.Value `tfsdk:"timeouts"`
+	ID                       types.String   `tfsdk:"id"`
+	ClusterName              types.String   `tfsdk:"cluster_name"`
+	ProjectID                types.String   `tfsdk:"project_id"`
+	Specs                    types.List     `tfsdk:"specs"`
+	StateName                types.String   `tfsdk:"state_name"`
+	Timeouts                 timeouts.Value `tfsdk:"timeouts"`
+	EncryptionAtRestProvider types.String   `tfsdk:"encryption_at_rest_provider"`
 }
 
 type TFSearchNodeSpecModel struct {

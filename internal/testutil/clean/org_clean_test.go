@@ -11,11 +11,13 @@ import (
 	"testing"
 	"time"
 
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
+
+	"github.com/stretchr/testify/require"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 )
 
 const (
@@ -40,6 +42,8 @@ var (
 		"CANNOT_CLOSE_GROUP_ACTIVE_PEERING_CONNECTIONS",
 		"CANNOT_CLOSE_GROUP_ACTIVE_ATLAS_DATA_LAKES",
 		"CANNOT_CLOSE_GROUP_ACTIVE_ATLAS_DATA_FEDERATION_PRIVATE_ENDPOINTS",
+		"CANNOT_CLOSE_GROUP_ACTIVE_STREAMS_RESOURCE",
+		"CANNOT_CLOSE_GROUP_ACTIVE_ATLAS_PRIVATE_ENDPOINT_SERVICES",
 	}
 )
 
@@ -127,7 +131,8 @@ func TestCleanProjectAndClusters(t *testing.T) {
 		})
 	}
 	t.Cleanup(func() {
-		projectsAfter := readAllProjects(t.Context(), t, client)
+		//nolint:usetesting // reason: using context.Background() here intentionally because t.Context() is canceled at cleanup
+		projectsAfter := readAllProjects(context.Background(), t, client)
 		t.Logf("SUMMARY\nProjects changed from %d to %d\ndelete_errors=%d\nDRY_RUN=%t", projectsBefore, len(projectsAfter), deleteErrors, dryRun)
 	})
 }
@@ -135,7 +140,7 @@ func TestCleanProjectAndClusters(t *testing.T) {
 func readAllProjects(ctx context.Context, t *testing.T, client *admin.APIClient) []admin.Group {
 	t.Helper()
 	projects, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.Group], *http.Response, error) {
-		return client.ProjectsApi.ListProjects(t.Context()).ItemsPerPage(itemsPerPage).PageNum(pageNum).Execute()
+		return client.ProjectsApi.ListProjects(ctx).ItemsPerPage(itemsPerPage).PageNum(pageNum).Execute()
 	})
 	require.NoError(t, err)
 	return projects
@@ -153,7 +158,7 @@ func findRetryErrorCode(err error) string {
 	return ""
 }
 func deleteProject(ctx context.Context, client *admin.APIClient, projectID string) error {
-	_, _, err := client.ProjectsApi.DeleteProject(ctx, projectID).Execute()
+	_, err := client.ProjectsApi.DeleteProject(ctx, projectID).Execute()
 	if err == nil || admin.IsErrorCode(err, "PROJECT_NOT_FOUND") {
 		return nil
 	}
@@ -186,6 +191,14 @@ func removeProjectResources(ctx context.Context, t *testing.T, dryRun bool, clie
 	federatedDatabasesRemoved := removeFederatedDatabases(ctx, t, dryRun, client, projectID)
 	if federatedDatabasesRemoved > 0 {
 		changes = append(changes, fmt.Sprintf("removed %d federated databases", federatedDatabasesRemoved))
+	}
+	streamInstancesRemoved := removeStreamInstances(ctx, t, dryRun, client, projectID)
+	if streamInstancesRemoved > 0 {
+		changes = append(changes, fmt.Sprintf("removed %d stream instances", streamInstancesRemoved))
+	}
+	privateEndpointServicesRemoved := removePrivateEndpointServices(ctx, t, dryRun, client, projectID)
+	if privateEndpointServicesRemoved > 0 {
+		changes = append(changes, fmt.Sprintf("removed %d private endpoint services", privateEndpointServicesRemoved))
 	}
 	return strings.Join(changes, ", ")
 }
@@ -296,11 +309,70 @@ func removeDataLakePipelines(ctx context.Context, t *testing.T, dryRun bool, cli
 		pipelineID := p.GetId()
 		t.Logf("delete pipeline %s", pipelineID)
 		if !dryRun {
-			_, _, err = client.DataLakePipelinesApi.DeletePipeline(ctx, projectID, pipelineID).Execute()
+			_, err = client.DataLakePipelinesApi.DeletePipeline(ctx, projectID, pipelineID).Execute()
 			require.NoError(t, err)
 		}
 	}
 	return len(datalakeResults)
+}
+
+func removeStreamInstances(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
+	t.Helper()
+	streamInstances, _, err := client.StreamsApi.ListStreamInstances(ctx, projectID).Execute()
+	require.NoError(t, err)
+
+	for _, instance := range *streamInstances.Results {
+		instanceName := *instance.Name
+		id := instance.GetId()
+		t.Logf("delete stream instance %s", id)
+
+		if !dryRun {
+			_, err = client.StreamsApi.DeleteStreamInstance(ctx, projectID, instanceName).Execute()
+			if err != nil && admin.IsErrorCode(err, "STREAM_TENANT_HAS_STREAM_PROCESSORS") {
+				t.Logf("stream instance %s has stream processors, attempting to delete", id)
+				streamProcessors, _, spErr := client.StreamsApi.ListStreamProcessors(ctx, projectID, instanceName).Execute()
+				require.NoError(t, spErr)
+
+				for _, processor := range *streamProcessors.Results {
+					t.Logf("delete stream processor %s", processor.Id)
+					_, err = client.StreamsApi.DeleteStreamProcessor(ctx, projectID, instanceName, processor.Name).Execute()
+					require.NoError(t, err)
+				}
+				t.Logf("retry delete stream instance %s after removing stream processors", id)
+				_, err = client.StreamsApi.DeleteStreamInstance(ctx, projectID, instanceName).Execute()
+				require.NoError(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		}
+	}
+	return len(*streamInstances.Results)
+}
+
+func removePrivateEndpointServices(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
+	t.Helper()
+	totalCount := 0
+	cloudProviders := []string{"AWS", "AZURE", "GCP"}
+
+	for _, provider := range cloudProviders {
+		endpointServices, _, err := client.PrivateEndpointServicesApi.ListPrivateEndpointServices(ctx, projectID, provider).Execute()
+		if err != nil {
+			t.Errorf("failed to list private endpoint services for %s: %v", provider, err)
+			continue
+		}
+
+		for _, service := range endpointServices {
+			id := service.GetId()
+			t.Logf("delete private endpoint service %s for provider %s", id, provider)
+			if !dryRun {
+				_, err := client.PrivateEndpointServicesApi.DeletePrivateEndpointService(ctx, projectID, provider, id).Execute()
+				require.NoError(t, err)
+			}
+		}
+		totalCount += len(endpointServices)
+	}
+
+	return totalCount
 }
 
 func removeFederatedDatabasePrivateEndpoints(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
@@ -312,7 +384,7 @@ func removeFederatedDatabasePrivateEndpoints(ctx context.Context, t *testing.T, 
 		endpointID := f.GetEndpointId()
 		t.Logf("delete federated private endpoint %s", endpointID)
 		if !dryRun {
-			_, _, err = client.DataFederationApi.DeleteDataFederationPrivateEndpoint(ctx, projectID, endpointID).Execute()
+			_, err = client.DataFederationApi.DeleteDataFederationPrivateEndpoint(ctx, projectID, endpointID).Execute()
 			require.NoError(t, err)
 		}
 	}
@@ -331,7 +403,7 @@ func removeFederatedDatabases(ctx context.Context, t *testing.T, dryRun bool, cl
 		federatedName := f.GetName()
 		t.Logf("delete federated %s", federatedName)
 		if !dryRun {
-			_, _, err = client.DataFederationApi.DeleteFederatedDatabase(ctx, projectID, federatedName).Execute()
+			_, err = client.DataFederationApi.DeleteFederatedDatabase(ctx, projectID, federatedName).Execute()
 			require.NoError(t, err)
 		}
 	}
