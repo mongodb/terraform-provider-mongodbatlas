@@ -29,6 +29,21 @@ resources:
       method: DELETE
     version_header: application/vnd.atlas.2023-01-01+json
 
+  database_user_api:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/databaseUsers
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
+      method: DELETE
+    version_header: application/vnd.atlas.2023-01-01+json
+
   # search_deployment:
   #   read:
   #     path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
