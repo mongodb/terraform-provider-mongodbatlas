@@ -48,7 +48,7 @@ func addOrUpdate(merged map[string]*Attribute, newAttr *Attribute, reqBodyUsage 
 		updateAttrWithNewSource(existingAttr, newAttr, reqBodyUsage, isFromResponse)
 	} else {
 		if isFromResponse {
-			newAttr.ComputedOptionalRequired = Computed // setting as computed as nested attribute was defined only in response
+			newAttr.ComputedOptionalRequired = Computed // setting as computed as attribute was defined only in response
 		}
 		newAttr.ReqBodyUsage = reqBodyUsage
 		merged[newAttr.Name.SnakeCase()] = newAttr
