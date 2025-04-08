@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/mongodbatlas_search_deployment: Adds `skip_wait_on_update` to avoid waiting for completion of update operations
+```

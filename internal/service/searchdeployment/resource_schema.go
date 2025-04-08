@@ -63,6 +63,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Update: true,
 				Delete: true,
 			}),
+			"skip_wait_on_update": schema.BoolAttribute{
+				Description: "If true, the resource update is executed without waiting until the [state](#state_name-1) is `IDLE`, making the operation faster. This might cause update errors to go unnoticed and lead to non-empty plans at the next terraform execution.",
+				Optional:    true,
+			},
 			"encryption_at_rest_provider": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Cloud service provider that manages your customer keys to provide an additional layer of Encryption At Rest for the cluster.",
@@ -78,6 +82,7 @@ type TFSearchDeploymentRSModel struct {
 	Specs                    types.List     `tfsdk:"specs"`
 	StateName                types.String   `tfsdk:"state_name"`
 	Timeouts                 timeouts.Value `tfsdk:"timeouts"`
+	SkipWaitOnUpdate         types.Bool     `tfsdk:"skip_wait_on_update"`
 	EncryptionAtRestProvider types.String   `tfsdk:"encryption_at_rest_provider"`
 }
 

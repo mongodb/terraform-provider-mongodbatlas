@@ -18,8 +18,9 @@ const (
 
 func TestAccSearchDeployment_basic(t *testing.T) {
 	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)
+		updateStep             = newSearchNodeTestStep(resourceID, projectID, clusterName, "S30_HIGHCPU_NVME", 4)
+		updateStepNoWait       = configBasic(projectID, clusterName, "S30_HIGHCPU_NVME", 4, true)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -27,8 +28,16 @@ func TestAccSearchDeployment_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			newSearchNodeTestStep(resourceID, projectID, clusterName, "S20_HIGHCPU_NVME", 3),
-			newSearchNodeTestStep(resourceID, projectID, clusterName, "S30_HIGHCPU_NVME", 4),
+			// Do a no-wait update then expect next step to wait for the update to complete
+			// We cannot check the state_name as the response of a PATCH can be IDLE
 			{
+				Config: updateStepNoWait,
+				Check:  updateStep.Check,
+			},
+			// Changes: skip_wait_on_update true -> null
+			updateStep,
+			{
+				Config:            updateStep.Config,
 				ResourceName:      resourceID,
 				ImportStateIdFunc: importStateIDFunc(resourceID),
 				ImportState:       true,
@@ -72,7 +81,7 @@ func newSearchNodeTestStep(resourceName, projectID, clusterName, instanceSize st
 	resourceChecks := searchNodeChecks(resourceName, clusterName, instanceSize, searchNodeCount)
 	dataSourceChecks := searchNodeChecks(dataSourceID, clusterName, instanceSize, searchNodeCount)
 	return resource.TestStep{
-		Config: configBasic(projectID, clusterName, instanceSize, searchNodeCount),
+		Config: configBasic(projectID, clusterName, instanceSize, searchNodeCount, false),
 		Check:  resource.ComposeAggregateTestCheckFunc(append(resourceChecks, dataSourceChecks...)...),
 	}
 }
@@ -90,27 +99,32 @@ func searchNodeChecks(targetName, clusterName, instanceSize string, searchNodeCo
 	}
 }
 
-func configBasic(projectID, clusterName, instanceSize string, searchNodeCount int) string {
+func configBasic(projectID, clusterName, instanceSize string, searchNodeCount int, skipWaitOnUpdate bool) string {
 	clusterConfig := acc.ConfigBasicDedicated(projectID, clusterName, "")
+	var skipWaitOnUpdateStr string
+	if skipWaitOnUpdate {
+		skipWaitOnUpdateStr = fmt.Sprintf("skip_wait_on_update = %t", skipWaitOnUpdate)
+	}
 	return fmt.Sprintf(`
 		%[1]s
 
 		resource "mongodbatlas_search_deployment" "test" {
 			project_id = %[2]q
-			cluster_name = mongodbatlas_advanced_cluster.test.name
+			cluster_name = mongodbatlas_advanced_cluster.test.name # ensure dependency on cluster
 			specs = [
 				{
 					instance_size = %[3]q
 					node_count = %[4]d
 				}
 			]
+			%[5]s
 		}
 
 		data "mongodbatlas_search_deployment" "test" {
 			project_id = mongodbatlas_search_deployment.test.project_id
 			cluster_name = mongodbatlas_search_deployment.test.cluster_name
 		}
-	`, clusterConfig, projectID, instanceSize, searchNodeCount)
+	`, clusterConfig, projectID, instanceSize, searchNodeCount, skipWaitOnUpdateStr)
 }
 
 func configSearchDeployment(projectID, clusterNameRef, instanceSize string, searchNodeCount int) string {

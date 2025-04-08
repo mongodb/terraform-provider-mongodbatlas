@@ -68,6 +68,7 @@ output "mongodbatlas_search_deployment_encryption_at_rest_provider" {
 
 ### Optional
 
+- `skip_wait_on_update` (Boolean) If true, the resource update is executed without waiting until the [state](#state_name-1) is `IDLE`, making the operation faster. This might cause update errors to go unnoticed and lead to non-empty plans at the next terraform execution.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
@@ -100,5 +101,7 @@ Search node resource can be imported using the project ID and cluster name, in t
 ```
 $ terraform import mongodbatlas_search_deployment.test 650972848269185c55f40ca1-Cluster0
 ```
+
+After an import, a non-empty plan is expected if the configuration defines the `skip_wait_on_update` attribute. However, the update will not have any effect on the search deployment since `skip_wait_on_update` only relates to the update operations wait time.
 
 For more information see: [MongoDB Atlas API - Search Node](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Atlas-Search/operation/createAtlasSearchDeployment) Documentation.
