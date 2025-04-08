@@ -3,7 +3,7 @@ package encryptionatrest
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -139,24 +139,30 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 			"id": schema.StringAttribute{
 				Computed: true,
 			},
+			"enabled_for_search_nodes": schema.BoolAttribute{
+				Computed:            true,
+				MarkdownDescription: "Flag that indicates whether Encryption at Rest for Dedicated Search Nodes is enabled in the specified project.",
+			},
 		},
 	}
 }
 
 type TFEncryptionAtRestDSModel struct {
-	AzureKeyVaultConfig  *TFAzureKeyVaultConfigModel `tfsdk:"azure_key_vault_config"`
-	AwsKmsConfig         *TFAwsKmsConfigModel        `tfsdk:"aws_kms_config"`
-	GoogleCloudKmsConfig *TFGcpKmsConfigModel        `tfsdk:"google_cloud_kms_config"`
-	ID                   types.String                `tfsdk:"id"`
-	ProjectID            types.String                `tfsdk:"project_id"`
+	AzureKeyVaultConfig   *TFAzureKeyVaultConfigModel `tfsdk:"azure_key_vault_config"`
+	AwsKmsConfig          *TFAwsKmsConfigModel        `tfsdk:"aws_kms_config"`
+	GoogleCloudKmsConfig  *TFGcpKmsConfigModel        `tfsdk:"google_cloud_kms_config"`
+	ID                    types.String                `tfsdk:"id"`
+	ProjectID             types.String                `tfsdk:"project_id"`
+	EnabledForSearchNodes types.Bool                  `tfsdk:"enabled_for_search_nodes"`
 }
 
 func NewTFEncryptionAtRestDSModel(projectID string, encryptionResp *admin.EncryptionAtRest) *TFEncryptionAtRestDSModel {
 	return &TFEncryptionAtRestDSModel{
-		ID:                   types.StringValue(projectID),
-		ProjectID:            types.StringValue(projectID),
-		AwsKmsConfig:         NewTFAwsKmsConfigItem(encryptionResp.AwsKms),
-		AzureKeyVaultConfig:  NewTFAzureKeyVaultConfigItem(encryptionResp.AzureKeyVault),
-		GoogleCloudKmsConfig: NewTFGcpKmsConfigItem(encryptionResp.GoogleCloudKms),
+		ID:                    types.StringValue(projectID),
+		ProjectID:             types.StringValue(projectID),
+		AwsKmsConfig:          NewTFAwsKmsConfigItem(encryptionResp.AwsKms),
+		AzureKeyVaultConfig:   NewTFAzureKeyVaultConfigItem(encryptionResp.AzureKeyVault),
+		GoogleCloudKmsConfig:  NewTFGcpKmsConfigItem(encryptionResp.GoogleCloudKms),
+		EnabledForSearchNodes: types.BoolPointerValue(encryptionResp.EnabledForSearchNodes),
 	}
 }

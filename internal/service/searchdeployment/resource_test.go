@@ -95,11 +95,12 @@ func searchNodeChecks(targetName, clusterName, instanceSize string, searchNodeCo
 		resource.TestCheckResourceAttr(targetName, "specs.0.instance_size", instanceSize),
 		resource.TestCheckResourceAttr(targetName, "specs.0.node_count", fmt.Sprintf("%d", searchNodeCount)),
 		resource.TestCheckResourceAttrSet(targetName, "state_name"),
+		// checking if encryption_at_rest_provider is set is not possible because it takes 10-15 minutes after the cluster is created to apply the encryption(and for the API to return the value)
 	}
 }
 
 func configBasic(projectID, clusterName, instanceSize string, searchNodeCount int, skipWaitOnUpdate bool) string {
-	clusterConfig := advancedClusterConfig(projectID, clusterName)
+	clusterConfig := acc.ConfigBasicDedicated(projectID, clusterName, "")
 	var skipWaitOnUpdateStr string
 	if skipWaitOnUpdate {
 		skipWaitOnUpdateStr = fmt.Sprintf("skip_wait_on_update = %t", skipWaitOnUpdate)
@@ -139,29 +140,6 @@ func configSearchDeployment(projectID, clusterNameRef, instanceSize string, sear
 		]
 	}
 	`, projectID, clusterNameRef, instanceSize, searchNodeCount)
-}
-
-func advancedClusterConfig(projectID, clusterName string) string {
-	return fmt.Sprintf(`
-	resource "mongodbatlas_advanced_cluster" "test" {
-		project_id   = %[1]q
-		name         = %[2]q
-		cluster_type = "REPLICASET"
-		retain_backups_enabled = "true"
-
-		replication_specs {
-			region_configs {
-				electable_specs {
-					instance_size = "M10"
-					node_count    = 3
-				}
-				provider_name = "AWS"
-				priority      = 7
-				region_name   = "US_EAST_1"
-			}
-		}
-	}
-	`, projectID, clusterName)
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
