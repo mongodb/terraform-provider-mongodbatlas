@@ -161,7 +161,7 @@ func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1)
 		defaultZoneName        = "Zone 1" // Uses backend default to avoid non-empty plan, see CLOUDP-294339
 	)
-	unit.CaptureOrMockTestCaseAndRun(t, &mockConfig, &resource.TestCase{
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
@@ -780,7 +780,7 @@ func TestAccMockableAdvancedCluster_symmetricShardedOldSchema(t *testing.T) {
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 12)
 	)
 
-	unit.CaptureOrMockTestCaseAndRun(t, &mockConfig, &resource.TestCase{
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
@@ -831,7 +831,7 @@ func symmetricGeoShardedOldSchemaTestCase(t *testing.T, usePreviewProvider bool)
 func TestAccMockableAdvancedCluster_symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 6)
 
-	unit.CaptureOrMockTestCaseAndRun(t, &mockConfig, &resource.TestCase{
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
@@ -1310,7 +1310,7 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 	}
 `
 	)
-	unit.CaptureOrMockTestCaseAndRun(t, &mockConfig, &resource.TestCase{
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
@@ -1359,7 +1359,7 @@ func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing
 	checks := checkAggr(true, nil, checksMap)
 	checksMap["replication_specs.0.region_configs.0.analytics_specs.0.node_count"] = "1" // analytics_specs is kept even if it's removed from the config
 	checksAfter := checkAggr(true, nil, checksMap)
-	unit.CaptureOrMockTestCaseAndRun(t, &mockConfig, &resource.TestCase{
+	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
