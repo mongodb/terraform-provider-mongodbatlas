@@ -302,6 +302,25 @@ func TestUnmarshalBasic(t *testing.T) {
 	assert.True(t, model.AttrNotInJSON.IsNull()) // attributes not in JSON response are not changed, so null is kept.
 }
 
+func TestUnmarshalNestedAllTypes(t *testing.T) {
+	var model struct {
+		AttrObj types.Object `tfsdk:"attr_obj"`
+	}
+	const (
+		tfResponseJSON = `
+			{
+				"attrObj": {
+					"attrString": "value_string",
+					"attrInt": 123
+				}
+			}
+		`
+	)
+	require.NoError(t, autogeneration.Unmarshal([]byte(tfResponseJSON), &model))
+	assert.Equal(t, "value_string", model.AttrObj.Attributes()["attrString"].(types.String).ValueString())
+	assert.Equal(t, int64(123), model.AttrObj.Attributes()["attrInt"].(types.Int64).ValueInt64())
+}
+
 func TestUnmarshalErrors(t *testing.T) {
 	const errorStr = "can't assign value to model field Attr"
 	testCases := map[string]struct {
