@@ -1,6 +1,7 @@
 package searchdeployment_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -10,11 +11,12 @@ import (
 
 func TestMigSearchDeployment_basic(t *testing.T) {
 	var (
-		resourceName           = "mongodbatlas_search_deployment.test"
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)
-		instanceSize           = "S30_HIGHCPU_NVME"
-		searchNodeCount        = 3
-		config                 = configBasic(projectID, clusterName, instanceSize, searchNodeCount, false)
+		resourceName    = "mongodbatlas_search_deployment.test"
+		projectID       = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID") // to use RequirePrivateNetworking, Atlas Project is required to have FF enabled
+		clusterName     = acc.RandomClusterName()
+		instanceSize    = "S30_HIGHCPU_NVME"
+		searchNodeCount = 3
+		config          = configBasic(projectID, clusterName, instanceSize, searchNodeCount, false)
 	)
 	mig.SkipIfVersionBelow(t, "1.32.0") // enabled_for_search_nodes introduced in this version
 	resource.ParallelTest(t, resource.TestCase{
