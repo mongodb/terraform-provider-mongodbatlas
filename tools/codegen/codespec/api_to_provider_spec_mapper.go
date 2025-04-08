@@ -103,11 +103,18 @@ func getLatestVersionFromAPISpec(readOp *high.Operation) string {
 
 func getOperationsFromConfig(resourceConfig *config.Resource) APIOperations {
 	return APIOperations{
-		CreatePath:    resourceConfig.Create.Path,
-		ReadPath:      resourceConfig.Read.Path,
-		UpdatePath:    resourceConfig.Update.Path,
-		DeletePath:    resourceConfig.Delete.Path,
+		Create:        operationConfigToModel(resourceConfig.Create),
+		Read:          operationConfigToModel(resourceConfig.Read),
+		Update:        operationConfigToModel(resourceConfig.Update),
+		Delete:        operationConfigToModel(resourceConfig.Delete),
 		VersionHeader: resourceConfig.VersionHeader,
+	}
+}
+
+func operationConfigToModel(opConfig *config.APIOperation) APIOperation {
+	return APIOperation{
+		HTTPMethod: opConfig.Method,
+		Path:       opConfig.Path,
 	}
 }
 

@@ -95,10 +95,22 @@ func TestConvertToProviderSpec(t *testing.T) {
 				},
 				Name: "test_resource_no_schema_opts",
 				Operations: codespec.APIOperations{
-					CreatePath:    "/api/atlas/v2/groups/{groupId}/testResource",
-					ReadPath:      "/api/atlas/v2/groups/{groupId}/testResource",
-					UpdatePath:    "/api/atlas/v2/groups/{groupId}/testResource",
-					DeletePath:    "/api/atlas/v2/groups/{groupId}/testResource",
+					Create: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResource",
+						HTTPMethod: "POST",
+					},
+					Read: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResource",
+						HTTPMethod: "GET",
+					},
+					Update: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResource",
+						HTTPMethod: "PATCH",
+					},
+					Delete: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResource",
+						HTTPMethod: "DELETE",
+					},
 					VersionHeader: "application/vnd.atlas.2023-01-01+json",
 				},
 			}},
@@ -293,10 +305,22 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 				},
 				Name: "test_resource_with_nested_attr",
 				Operations: codespec.APIOperations{
-					CreatePath:    "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
-					ReadPath:      "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
-					UpdatePath:    "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
-					DeletePath:    "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
+					Create: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
+						HTTPMethod: "POST",
+					},
+					Read: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
+						HTTPMethod: "GET",
+					},
+					Update: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
+						HTTPMethod: "PATCH",
+					},
+					Delete: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
+						HTTPMethod: "DELETE",
+					},
 					VersionHeader: "application/vnd.atlas.2024-05-30+json",
 				},
 			},
@@ -396,10 +420,22 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 				},
 				Name: "test_resource_with_nested_attr_overrides",
 				Operations: codespec.APIOperations{
-					CreatePath:    "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
-					ReadPath:      "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
-					UpdatePath:    "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
-					DeletePath:    "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
+					Create: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
+						HTTPMethod: "POST",
+					},
+					Read: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
+						HTTPMethod: "GET",
+					},
+					Update: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
+						HTTPMethod: "PATCH",
+					},
+					Delete: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
+						HTTPMethod: "DELETE",
+					},
 					VersionHeader: "application/vnd.atlas.2035-01-01+json", // version header defined in config
 				},
 			},
@@ -444,10 +480,22 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 				},
 				Name: "test_resource_path_param_in_post_req",
 				Operations: codespec.APIOperations{
-					CreatePath:    "/api/atlas/v2/groups/{groupId}/pathparaminpostreq",
-					ReadPath:      "/api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}",
-					DeletePath:    "/api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}",
-					UpdatePath:    "/api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}",
+					Create: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/pathparaminpostreq",
+						HTTPMethod: "POST",
+					},
+					Read: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}",
+						HTTPMethod: "GET",
+					},
+					Delete: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}",
+						HTTPMethod: "DELETE",
+					},
+					Update: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}",
+						HTTPMethod: "PATCH",
+					},
 					VersionHeader: "application/vnd.atlas.2023-01-01+json",
 				},
 			},

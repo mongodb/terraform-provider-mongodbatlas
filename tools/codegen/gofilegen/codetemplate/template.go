@@ -35,6 +35,7 @@ type APIOperations struct {
 
 type Operation struct {
 	Path       string
+	HTTPMethod string
 	PathParams []Param
 }
 
