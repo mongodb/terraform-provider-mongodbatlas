@@ -120,7 +120,46 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	// TODO: code generation logic for update will be handled in milestone 2
+	var plan TFModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	reqBody, err := autogeneration.Marshal(&plan, true)
+	if err != nil {
+		resp.Diagnostics.AddError("error during update operation", err.Error())
+		return
+	}
+
+	pathParams := map[string]string{
+		"groupId": plan.GroupId.ValueString(),
+	}
+	apiResp, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
+		VersionHeader: apiVersionHeader,
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
+		PathParams:    pathParams,
+		Method:        http.MethodPatch,
+		Body:          reqBody,
+	})
+
+	if err != nil {
+		resp.Diagnostics.AddError("error during update operation", err.Error())
+		return
+	}
+
+	respBody, err := io.ReadAll(apiResp.Body)
+	if err != nil {
+		resp.Diagnostics.AddError("error during update operation", err.Error())
+		return
+	}
+
+	// Use the plan as the base model to set the response state
+	if err := autogeneration.Unmarshal(respBody, &plan); err != nil {
+		resp.Diagnostics.AddError("error during update operation", err.Error())
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
