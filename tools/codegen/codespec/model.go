@@ -24,12 +24,18 @@ type Resource struct {
 }
 
 type APIOperations struct {
-	CreatePath    string
-	ReadPath      string
-	UpdatePath    string
-	DeletePath    string
+	Create        APIOperation
+	Read          APIOperation
+	Update        APIOperation
+	Delete        APIOperation
 	VersionHeader string
 }
+
+type APIOperation struct {
+	HTTPMethod string
+	Path       string
+}
+
 type Schema struct {
 	Description        *string
 	DeprecationMessage *string

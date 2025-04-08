@@ -5,7 +5,6 @@ package testname
 import (
 	"context"
 	"io"
-	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogeneration"
@@ -56,7 +55,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		VersionHeader: apiVersionHeader,
 		RelativePath:  "/api/v1/testname/{projectId}",
 		PathParams:    pathParams,
-		Method:        http.MethodPost,
+		Method:        "POST",
 		Body:          reqBody,
 	})
 
@@ -94,7 +93,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		VersionHeader: apiVersionHeader,
 		RelativePath:  "/api/v1/testname/{projectId}/{roleName}",
 		PathParams:    pathParams,
-		Method:        http.MethodGet,
+		Method:        "GET",
 	})
 
 	if err != nil {
@@ -141,7 +140,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		VersionHeader: apiVersionHeader,
 		RelativePath:  "/api/v1/testname/{projectId}/{roleName}",
 		PathParams:    pathParams,
-		Method:        http.MethodPatch,
+		Method:        "PATCH",
 		Body:          reqBody,
 	})
 
@@ -179,7 +178,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		VersionHeader: apiVersionHeader,
 		RelativePath:  "/api/v1/testname/{projectId}/{roleName}",
 		PathParams:    pathParams,
-		Method:        http.MethodDelete,
+		Method:        "DELETE",
 	}); err != nil {
 		resp.Diagnostics.AddError("error during delete", err.Error())
 		return

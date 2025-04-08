@@ -15,22 +15,10 @@ func GenerateGoCode(input *codespec.Resource) string {
 		ResourceName: input.Name.SnakeCase(),
 		APIOperations: codetemplate.APIOperations{
 			VersionHeader: input.Operations.VersionHeader,
-			Create: codetemplate.Operation{
-				Path:       input.Operations.CreatePath,
-				PathParams: obtainPathParams(input.Operations.CreatePath),
-			},
-			Update: codetemplate.Operation{
-				Path:       input.Operations.UpdatePath,
-				PathParams: obtainPathParams(input.Operations.UpdatePath),
-			},
-			Read: codetemplate.Operation{
-				Path:       input.Operations.ReadPath,
-				PathParams: obtainPathParams(input.Operations.ReadPath),
-			},
-			Delete: codetemplate.Operation{
-				Path:       input.Operations.DeletePath,
-				PathParams: obtainPathParams(input.Operations.DeletePath),
-			},
+			Create:        toCodeTemplateOpModel(input.Operations.Create),
+			Update:        toCodeTemplateOpModel(input.Operations.Update),
+			Read:          toCodeTemplateOpModel(input.Operations.Read),
+			Delete:        toCodeTemplateOpModel(input.Operations.Delete),
 		},
 	}
 	result := codetemplate.ApplyResourceFileTemplate(&tmplInputs)
@@ -40,6 +28,14 @@ func GenerateGoCode(input *codespec.Resource) string {
 		panic(err)
 	}
 	return string(formattedResult)
+}
+
+func toCodeTemplateOpModel(op codespec.APIOperation) codetemplate.Operation {
+	return codetemplate.Operation{
+		Path:       op.Path,
+		HTTPMethod: op.HTTPMethod,
+		PathParams: obtainPathParams(op.Path),
+	}
 }
 
 // obtains path parameters for URL, this can evetually be explicitly defined in the intermediate model if additional information is required
