@@ -95,56 +95,44 @@ func getAttr(val attr.Value) (any, error) {
 	case types.Float64:
 		return v.ValueFloat64(), nil
 	case types.Object:
-		obj := make(map[string]any)
-		for name, attr := range v.Attributes() {
-			valChild, err := getAttr(attr)
-			if err != nil {
-				return nil, err
-			}
-			if valChild != nil {
-				obj[name] = valChild
-			}
-		}
-		return obj, nil
+		return getMapAttr(v.Attributes())
 	case types.Map:
-		obj := make(map[string]any)
-		for name, attr := range v.Elements() {
-			valChild, err := getAttr(attr)
-			if err != nil {
-				return nil, err
-			}
-			if valChild != nil {
-				obj[name] = valChild
-			}
-		}
-		return obj, nil
+		return getMapAttr(v.Elements())
 	case types.List:
-		arr := make([]any, 0)
-		for _, attr := range v.Elements() {
-			valChild, err := getAttr(attr)
-			if err != nil {
-				return nil, err
-			}
-			if valChild != nil {
-				arr = append(arr, valChild)
-			}
-		}
-		return arr, nil
+		return getListAttr(v.Elements())
 	case types.Set:
-		arr := make([]any, 0)
-		for _, attr := range v.Elements() {
-			valChild, err := getAttr(attr)
-			if err != nil {
-				return nil, err
-			}
-			if valChild != nil {
-				arr = append(arr, valChild)
-			}
-		}
-		return arr, nil
+		return getListAttr(v.Elements())
 	default:
 		return nil, fmt.Errorf("unmarshal not supported yet for type %T", v)
 	}
+}
+
+func getListAttr(elms []attr.Value) (any, error) {
+	arr := make([]any, 0)
+	for _, attr := range elms {
+		valChild, err := getAttr(attr)
+		if err != nil {
+			return nil, err
+		}
+		if valChild != nil {
+			arr = append(arr, valChild)
+		}
+	}
+	return arr, nil
+}
+
+func getMapAttr(elms map[string]attr.Value) (any, error) {
+	obj := make(map[string]any)
+	for name, attr := range elms {
+		valChild, err := getAttr(attr)
+		if err != nil {
+			return nil, err
+		}
+		if valChild != nil {
+			obj[name] = valChild
+		}
+	}
+	return obj, nil
 }
 
 func unmarshalAttrs(objJSON map[string]any, model any) error {
