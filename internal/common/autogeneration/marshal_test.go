@@ -45,7 +45,7 @@ func TestMarshalBasic(t *testing.T) {
 	assert.JSONEq(t, expectedJSON, string(raw))
 }
 
-func TestMarshalNested(t *testing.T) {
+func TestMarshalNestedAllTypes(t *testing.T) {
 	attrListObj, diags := types.ListValueFrom(t.Context(), TestObjType, []TFTestModel{
 		{
 			AttrString: types.StringValue("str1"),
@@ -120,6 +120,72 @@ func TestMarshalNested(t *testing.T) {
 				"keyOne": { "attrString": "str1", "attrInt": 1 },
 				"KeyTwo": { "attrString": "str2", "attrInt": 2 }
 			}
+		}
+	`
+	raw, err := autogeneration.Marshal(&model, false)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedJSON, string(raw))
+}
+
+func TestMarshalNestedMultiLevel(t *testing.T) {
+	type parentModel struct {
+		AttrParentObj    types.Object `tfsdk:"attr_parent_obj"`
+		AttrParentString types.String `tfsdk:"attr_parent_string"`
+		AttrParentInt    types.Int64  `tfsdk:"attr_parent_int"`
+	}
+	parentObjType := types.ObjectType{AttrTypes: map[string]attr.Type{
+		"attr_parent_obj":    TestObjType,
+		"attr_parent_string": types.StringType,
+		"attr_parent_int":    types.Int64Type,
+	}}
+	attrListObj, diags := types.ListValueFrom(t.Context(), parentObjType, []parentModel{
+		{
+			AttrParentObj: types.ObjectValueMust(TestObjType.AttrTypes, map[string]attr.Value{
+				"attr_string": types.StringValue("str11"),
+				"attr_int":    types.Int64Value(11),
+			}),
+			AttrParentString: types.StringValue("str1"),
+			AttrParentInt:    types.Int64Value(1),
+		},
+		{
+			AttrParentObj: types.ObjectValueMust(TestObjType.AttrTypes, map[string]attr.Value{
+				"attr_string": types.StringValue("str22"),
+				"attr_int":    types.Int64Value(22),
+			}),
+			AttrParentString: types.StringValue("str2"),
+			AttrParentInt:    types.Int64Value(2),
+		},
+	})
+	assert.False(t, diags.HasError())
+
+	model := struct {
+		AttrString      types.String `tfsdk:"attr_string"`
+		AttrListParents types.List   `tfsdk:"attr_list_parents"`
+	}{
+		AttrString:      types.StringValue("val"),
+		AttrListParents: attrListObj,
+	}
+	const expectedJSON = `
+		{
+			"attrString": "val", 
+			"attrListParents": [
+				{
+					"attrParentString": "str1",
+					"attrParentInt": 1,
+					"attrParentObj": {
+						"attrString": "str11",			
+						"attrInt": 11
+					}				
+				},
+				{
+					"attrParentString": "str2",
+					"attrParentInt": 2,
+					"attrParentObj": {		
+						"attrString": "str22",	
+						"attrInt": 22
+					}
+				}
+			]
 		}
 	`
 	raw, err := autogeneration.Marshal(&model, false)
