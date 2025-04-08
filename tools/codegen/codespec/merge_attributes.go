@@ -17,9 +17,9 @@ func mergeNestedAttributes(existingAttrs *Attributes, newAttrs Attributes, reqBo
 	for i := range newAttrs {
 		newAttr := &newAttrs[i]
 
-		if existing, exists := mergedMap[newAttr.Name.SnakeCase()]; exists {
+		if existingAttr, found := mergedMap[newAttr.Name.SnakeCase()]; found {
 			// merge computability of nested property using most restrictive value
-			newComputability := mergeComputability(newAttr.ComputedOptionalRequired, existing.ComputedOptionalRequired)
+			newComputability := mergeComputability(newAttr.ComputedOptionalRequired, existingAttr.ComputedOptionalRequired)
 			addOrUpdate(newAttr, newComputability, reqBodyUsage, mergedMap, isFromResponse)
 		} else {
 			// setting as computed as nested attribute was defined in response
@@ -56,7 +56,7 @@ func mergeComputability(first, second ComputedOptionalRequired) ComputedOptional
 
 // addOrUpdate adds or updates an attribute in the merged map, including nested attributes
 func addOrUpdate(newAttr *Attribute, targetComputability ComputedOptionalRequired, reqBodyUsage AttributeReqBodyUsage, merged map[string]*Attribute, isFromResponse bool) {
-	if existingAttr, exists := merged[newAttr.Name.SnakeCase()]; exists {
+	if existingAttr, found := merged[newAttr.Name.SnakeCase()]; found {
 		if existingAttr.Description == nil || *existingAttr.Description == "" {
 			existingAttr.Description = newAttr.Description
 		}
