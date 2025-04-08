@@ -1,7 +1,6 @@
 package searchdeployment_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -11,13 +10,11 @@ import (
 
 func TestMigSearchDeployment_basic(t *testing.T) {
 	var (
-		resourceName    = "mongodbatlas_search_deployment.test"
-		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName     = acc.RandomProjectName()
-		clusterName     = acc.RandomClusterName()
-		instanceSize    = "S30_HIGHCPU_NVME"
-		searchNodeCount = 3
-		config          = configBasic(orgID, projectName, clusterName, instanceSize, searchNodeCount, false)
+		resourceName           = "mongodbatlas_search_deployment.test"
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)
+		instanceSize           = "S30_HIGHCPU_NVME"
+		searchNodeCount        = 3
+		config                 = configBasic(projectID, clusterName, instanceSize, searchNodeCount, false)
 	)
 	mig.SkipIfVersionBelow(t, "1.13.0")
 	resource.ParallelTest(t, resource.TestCase{

@@ -3,7 +3,6 @@ package searchdeployment_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -19,18 +18,16 @@ const (
 
 func TestAccSearchDeployment_basic(t *testing.T) {
 	var (
-		orgID            = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName      = acc.RandomProjectName()
-		clusterName      = acc.RandomClusterName()
-		updateStep       = newSearchNodeTestStep(resourceID, orgID, projectName, clusterName, "S30_HIGHCPU_NVME", 4)
-		updateStepNoWait = configBasic(orgID, projectName, clusterName, "S30_HIGHCPU_NVME", 4, true)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)
+		updateStep             = newSearchNodeTestStep(resourceID, projectID, clusterName, "S30_HIGHCPU_NVME", 4)
+		updateStepNoWait       = configBasic(projectID, clusterName, "S30_HIGHCPU_NVME", 4, true)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
-			newSearchNodeTestStep(resourceID, orgID, projectName, clusterName, "S20_HIGHCPU_NVME", 3),
+			newSearchNodeTestStep(resourceID, projectID, clusterName, "S20_HIGHCPU_NVME", 3),
 			// Do a no-wait update then expect next step to wait for the update to complete
 			// We cannot check the state_name as the response of a PATCH can be IDLE
 			{
@@ -80,11 +77,11 @@ func TestAccSearchDeployment_multiRegion(t *testing.T) {
 	})
 }
 
-func newSearchNodeTestStep(resourceName, orgID, projectName, clusterName, instanceSize string, searchNodeCount int) resource.TestStep {
+func newSearchNodeTestStep(resourceName, projectID, clusterName, instanceSize string, searchNodeCount int) resource.TestStep {
 	resourceChecks := searchNodeChecks(resourceName, clusterName, instanceSize, searchNodeCount)
 	dataSourceChecks := searchNodeChecks(dataSourceID, clusterName, instanceSize, searchNodeCount)
 	return resource.TestStep{
-		Config: configBasic(orgID, projectName, clusterName, instanceSize, searchNodeCount, false),
+		Config: configBasic(projectID, clusterName, instanceSize, searchNodeCount, false),
 		Check:  resource.ComposeAggregateTestCheckFunc(append(resourceChecks, dataSourceChecks...)...),
 	}
 }
@@ -101,8 +98,8 @@ func searchNodeChecks(targetName, clusterName, instanceSize string, searchNodeCo
 	}
 }
 
-func configBasic(orgID, projectName, clusterName, instanceSize string, searchNodeCount int, skipWaitOnUpdate bool) string {
-	clusterConfig := advancedClusterConfig(orgID, projectName, clusterName)
+func configBasic(projectID, clusterName, instanceSize string, searchNodeCount int, skipWaitOnUpdate bool) string {
+	clusterConfig := advancedClusterConfig(projectID, clusterName)
 	var skipWaitOnUpdateStr string
 	if skipWaitOnUpdate {
 		skipWaitOnUpdateStr = fmt.Sprintf("skip_wait_on_update = %t", skipWaitOnUpdate)
@@ -111,22 +108,22 @@ func configBasic(orgID, projectName, clusterName, instanceSize string, searchNod
 		%[1]s
 
 		resource "mongodbatlas_search_deployment" "test" {
-			project_id = mongodbatlas_project.test.id
-			cluster_name = mongodbatlas_advanced_cluster.test.name
+			project_id = %[2]q
+			cluster_name = mongodbatlas_advanced_cluster.test.name # ensure dependency on cluster
 			specs = [
 				{
-					instance_size = %[2]q
-					node_count = %[3]d
+					instance_size = %[3]q
+					node_count = %[4]d
 				}
 			]
-			%[4]s
+			%[5]s
 		}
 
 		data "mongodbatlas_search_deployment" "test" {
 			project_id = mongodbatlas_search_deployment.test.project_id
 			cluster_name = mongodbatlas_search_deployment.test.cluster_name
 		}
-	`, clusterConfig, instanceSize, searchNodeCount, skipWaitOnUpdateStr)
+	`, clusterConfig, projectID, instanceSize, searchNodeCount, skipWaitOnUpdateStr)
 }
 
 func configSearchDeployment(projectID, clusterNameRef, instanceSize string, searchNodeCount int) string {
@@ -144,15 +141,11 @@ func configSearchDeployment(projectID, clusterNameRef, instanceSize string, sear
 	`, projectID, clusterNameRef, instanceSize, searchNodeCount)
 }
 
-func advancedClusterConfig(orgID, projectName, clusterName string) string {
+func advancedClusterConfig(projectID, clusterName string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_project" "test" {
-		org_id = %[1]q
-		name   = %[2]q
-	}
 	resource "mongodbatlas_advanced_cluster" "test" {
-		project_id   = mongodbatlas_project.test.id
-		name         = %[3]q
+		project_id   = %[1]q
+		name         = %[2]q
 		cluster_type = "REPLICASET"
 		retain_backups_enabled = "true"
 
@@ -168,7 +161,7 @@ func advancedClusterConfig(orgID, projectName, clusterName string) string {
 			}
 		}
 	}
-	`, orgID, projectName, clusterName)
+	`, projectID, clusterName)
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
