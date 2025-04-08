@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -118,7 +120,7 @@ func integrationToSchema(d *schema.ResourceData, integration *admin.ThirdPartyIn
 
 	// removing optional empty values, terraform complains about unexpected values even though they're empty
 	optionals := []string{"api_key", "region", "service_key",
-		"team_name", "channel_name", "url", "secret", "password", "send_collection_latency_metrics", "send_database_metrics"}
+		"team_name", "channel_name", "url", "secret", "password"}
 
 	for _, attr := range optionals {
 		if val, ok := out[attr]; ok {
