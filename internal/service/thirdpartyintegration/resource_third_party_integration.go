@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -24,7 +25,7 @@ var integrationTypes = []string{
 
 var requiredPerType = map[string][]string{
 	"PAGER_DUTY":      {"service_key"},
-	"DATADOG":         {"api_key", "region", "send_collection_latency_metrics", "send_database_metrics"},
+	"DATADOG":         {"api_key", "region"},
 	"OPS_GENIE":       {"api_key", "region"},
 	"VICTOR_OPS":      {"api_key"},
 	"WEBHOOK":         {"url"},
