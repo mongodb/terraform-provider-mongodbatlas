@@ -48,17 +48,17 @@ func (s *StatusText) IncreaseDuplicateResponses() {
 }
 
 type RequestInfo struct {
-	Responses *[]StatusText `yaml:"responses"`
-	Path      string        `yaml:"path"`
-	Method    string        `yaml:"method"`
-	Version   string        `yaml:"version"`
-	Text      string        `yaml:"text"`
+	Path      string       `yaml:"path"`
+	Method    string       `yaml:"method"`
+	Version   string       `yaml:"version"`
+	Text      string       `yaml:"text"`
+	Responses []StatusText `yaml:"responses"`
 }
 
 // Custom marshaling is necessary to use `flow` style only on response fields (text and responses.*.text)
-func (i RequestInfo) MarshalYAML() (any, error) {
+func (i *RequestInfo) MarshalYAML() (any, error) {
 	responseNode := []*yaml.Node{}
-	for _, response := range *i.Responses {
+	for _, response := range i.Responses {
 		node, err := response.MarshalYAML()
 		if err != nil {
 			return nil, err
@@ -173,12 +173,12 @@ func (s *StepRequests) AddRequest(request *RequestInfo, isDiff bool) {
 	}
 	existing, found := s.findRequest(request)
 	if found {
-		lastResponse := (*existing.Responses)[len(*existing.Responses)-1]
-		newResponse := (*request.Responses)[0]
+		lastResponse := existing.Responses[len(existing.Responses)-1]
+		newResponse := request.Responses[0]
 		if lastResponse.Status == newResponse.Status && lastResponse.Text == newResponse.Text {
-			(*existing.Responses)[len(*existing.Responses)-1].IncreaseDuplicateResponses()
+			existing.Responses[len(existing.Responses)-1].IncreaseDuplicateResponses()
 		} else {
-			*existing.Responses = append(*existing.Responses, newResponse)
+			existing.Responses = append(existing.Responses, newResponse)
 		}
 	} else {
 		s.RequestResponses = append(s.RequestResponses, *request)
@@ -269,8 +269,8 @@ func (m *MockHTTPData) Normalize() {
 
 func (m *MockHTTPData) normalizeRequest(request *RequestInfo) {
 	request.Text = useVars(m.Variables, request.Text)
-	for k := range *request.Responses {
-		response := &(*request.Responses)[k]
+	for k := range request.Responses {
+		response := &request.Responses[k]
 		response.Text = useVars(m.Variables, response.Text)
 	}
 }
@@ -300,7 +300,7 @@ func (m *MockHTTPData) AddRoundtrip(t *testing.T, rt *RoundTrip, isDiff bool) er
 		Method:  rt.Request.Method,
 		Path:    normalizedPath,
 		Text:    useVars(rtVariables, rt.Request.Text),
-		Responses: &[]StatusText{
+		Responses: []StatusText{
 			{
 				Text:          useVars(rtVariables, rt.Response.Text),
 				Status:        rt.Response.Status,
