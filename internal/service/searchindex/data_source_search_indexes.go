@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -52,7 +52,7 @@ func dataSourceMongoDBAtlasSearchIndexesRead(ctx context.Context, d *schema.Reso
 	databaseName, databaseNameOK := d.GetOk("database")
 	collectionName, collectionNameOK := d.GetOk("collection_name")
 
-	if !(projectIDOK && clusterNameOk && databaseNameOK && collectionNameOK) {
+	if !projectIDOK || !clusterNameOk || !databaseNameOK || !collectionNameOK {
 		return diag.Errorf("project_id, cluster_name, database and collection_name must be configured")
 	}
 

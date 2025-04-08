@@ -12,7 +12,7 @@ import (
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	mockadmin20240530 "go.mongodb.org/atlas-sdk/v20240530005/mockadmin"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/stretchr/testify/assert"
@@ -136,7 +136,7 @@ func testAccAdvancedClusterFlexUpgrade(t *testing.T, instanceSize string, includ
 	}
 	if includeDedicated {
 		steps = append(steps, resource.TestStep{
-			Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, configBasicDedicated(projectID, clusterName, defaultZoneName)),
+			Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, acc.ConfigBasicDedicated(projectID, clusterName, defaultZoneName)),
 			Check:  checksBasicDedicated(projectID, clusterName),
 		})
 	}
@@ -171,7 +171,7 @@ func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 				Check:  checkTenant(true, projectID, clusterName),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, configBasicDedicated(projectID, clusterName, defaultZoneName)),
+				Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, acc.ConfigBasicDedicated(projectID, clusterName, defaultZoneName)),
 				Check:  checksBasicDedicated(projectID, clusterName),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -318,11 +318,11 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 				Check:  checkSingleProviderPaused(true, clusterName, false),
 			},
 			{
-				Config: configSingleProviderPaused(t, true, projectID, clusterName, true, anotherInstanceSize), // allows pausing and other change in same apply
+				Config: configSingleProviderPaused(t, true, projectID, clusterName, true, instanceSize), // only pause to avoid `OPERATION_INVALID_MEMBER_REPLICATION_LAG`, more info in HELP-72502
 				Check:  checkSingleProviderPaused(true, clusterName, true),
 			},
 			{
-				Config:      configSingleProviderPaused(t, true, projectID, clusterName, true, instanceSize),
+				Config:      configSingleProviderPaused(t, true, projectID, clusterName, true, anotherInstanceSize),
 				ExpectError: regexp.MustCompile("CANNOT_UPDATE_PAUSED_CLUSTER"),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -1245,6 +1245,7 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 		}
 		checksSet = []string{
 			"replication_specs.0.container_id.AWS:US_EAST_1",
+			"mongo_db_major_version",
 		}
 		timeoutCheck   = resource.TestCheckResourceAttr(resourceName, "timeouts.create", "6000s") // timeouts.create is not set on data sources
 		tagsLabelsMap  = map[string]string{"key": "env", "value": "test"}
@@ -1255,7 +1256,6 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 			"state_name":                    "IDLE",
 			"backup_enabled":                "true",
 			"bi_connector_config.0.enabled": "true",
-			"mongo_db_major_version":        "8.0",
 			"pit_enabled":                   "true",
 			"redact_client_log_data":        "true",
 			"replica_set_scaling_strategy":  "NODE_TYPE",
@@ -1288,7 +1288,6 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 		key   = "env"
 		value = "test"
 	}
-	mongo_db_major_version = "8.0"
 	pit_enabled = true
 	redact_client_log_data = true
 	replica_set_scaling_strategy = "NODE_TYPE"
@@ -1658,33 +1657,6 @@ func checkTenant(usePreviewProvider bool, projectID, name string) resource.TestC
 			"termination_protection_enabled":       "false",
 			"global_cluster_self_managed_sharding": "false"},
 		pluralChecks...)
-}
-
-func configBasicDedicated(projectID, name, zoneName string) string {
-	zoneNameLine := ""
-	if zoneName != "" {
-		zoneNameLine = fmt.Sprintf("zone_name = %q", zoneName)
-	}
-	return fmt.Sprintf(`
-	resource "mongodbatlas_advanced_cluster" "test" {
-		project_id   = %[1]q
-		name         = %[2]q
-		cluster_type = "REPLICASET"
-		
-		replication_specs {
-			region_configs {
-				priority        = 7
-				provider_name = "AWS"
-				region_name     = "US_EAST_1"
-				electable_specs {
-					node_count = 3
-					instance_size = "M10"
-				}
-			}
-			%[3]s
-		}
-	}
-	`, projectID, name, zoneNameLine) + dataSourcesTFNewSchema
 }
 
 func checksBasicDedicated(projectID, name string) resource.TestCheckFunc {

@@ -112,7 +112,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID, projectIDOk := d.GetOk("project_id")
 	instanceName, instanceNameOk := d.GetOk("name")
 
-	if !(projectIDOk && instanceNameOk) {
+	if !projectIDOk || !instanceNameOk {
 		return diag.Errorf("project_id and name must be configured")
 	}
 

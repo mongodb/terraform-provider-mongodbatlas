@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
@@ -104,6 +105,11 @@ func (r *searchDeploymentRS) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
+	if IsNotFoundDeploymentResponse(deploymentResp) {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
 	newSearchNodeModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, &searchDeploymentPlan.Timeouts, false)
 	resp.Diagnostics.Append(diagnostics...)
 	if resp.Diagnostics.HasError() {
@@ -157,7 +163,7 @@ func (r *searchDeploymentRS) Delete(ctx context.Context, req resource.DeleteRequ
 	connV2 := r.Client.AtlasV2
 	projectID := searchDeploymentState.ProjectID.ValueString()
 	clusterName := searchDeploymentState.ClusterName.ValueString()
-	if _, _, err := connV2.AtlasSearchApi.DeleteAtlasSearchDeployment(ctx, projectID, clusterName).Execute(); err != nil {
+	if _, err := connV2.AtlasSearchApi.DeleteAtlasSearchDeployment(ctx, projectID, clusterName).Execute(); err != nil {
 		resp.Diagnostics.AddError("error during search deployment delete", err.Error())
 		return
 	}
@@ -199,4 +205,8 @@ func splitSearchNodeImportID(id string) (projectID, clusterName string, err erro
 	projectID = parts[1]
 	clusterName = parts[2]
 	return
+}
+
+func IsNotFoundDeploymentResponse(deploymentResp *admin.ApiSearchDeploymentResponse) bool {
+	return deploymentResp == nil || deploymentResp.Id == nil
 }
