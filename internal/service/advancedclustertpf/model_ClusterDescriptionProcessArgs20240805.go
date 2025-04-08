@@ -13,6 +13,8 @@ import (
 
 func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *ProcessArgs, diags *diag.Diagnostics) {
 	var advancedConfig TFAdvancedConfigurationModel
+	var customCipherConfig *[]string
+
 	if input.ArgsDefault != nil && input.ArgsLegacy != nil {
 		// Using the new API as source of Truth, only use `inputLegacy` for fields not in `input`
 		changeStreamOptionsPreAndPostImagesExpireAfterSeconds := input.ArgsDefault.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds
@@ -48,8 +50,9 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *ProcessArgs
 			MinimumEnabledTlsProtocol:        types.StringValue(conversion.SafeValue(input.ArgsDefault.MinimumEnabledTlsProtocol)),
 			TlsCipherConfigMode:              types.StringValue(conversion.SafeValue(input.ArgsDefault.TlsCipherConfigMode)),
 		}
+		customCipherConfig = input.ArgsDefault.CustomOpensslCipherConfigTls12
 	}
-	advancedConfig.CustomOpensslCipherConfigTls12 = customOpensslCipherConfigTLS12(ctx, diags, input.ArgsDefault.CustomOpensslCipherConfigTls12)
+	advancedConfig.CustomOpensslCipherConfigTls12 = customOpensslCipherConfigTLS12(ctx, diags, customCipherConfig)
 
 	overrideTLSIfClusterAdvancedConfigPresent(ctx, diags, &advancedConfig, input.ClusterAdvancedConfig)
 
