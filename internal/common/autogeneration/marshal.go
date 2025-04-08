@@ -95,9 +95,9 @@ func getAttr(val attr.Value) (any, error) {
 	case types.Float64:
 		return v.ValueFloat64(), nil
 	case types.Object:
-		return getMapAttr(v.Attributes())
+		return getMapAttr(v.Attributes(), false)
 	case types.Map:
-		return getMapAttr(v.Elements())
+		return getMapAttr(v.Elements(), true)
 	case types.List:
 		return getListAttr(v.Elements())
 	case types.Set:
@@ -121,7 +121,7 @@ func getListAttr(elms []attr.Value) (any, error) {
 	return arr, nil
 }
 
-func getMapAttr(elms map[string]attr.Value) (any, error) {
+func getMapAttr(elms map[string]attr.Value, keepKeyCase bool) (any, error) {
 	obj := make(map[string]any)
 	for name, attr := range elms {
 		valChild, err := getAttr(attr)
@@ -129,7 +129,11 @@ func getMapAttr(elms map[string]attr.Value) (any, error) {
 			return nil, err
 		}
 		if valChild != nil {
-			obj[name] = valChild
+			nameJSON := xstrings.ToCamelCase(name)
+			if keepKeyCase {
+				nameJSON = name
+			}
+			obj[nameJSON] = valChild
 		}
 	}
 	return obj, nil

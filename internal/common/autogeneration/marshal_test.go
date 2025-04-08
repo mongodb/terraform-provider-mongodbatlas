@@ -69,11 +69,11 @@ func TestMarshalNested(t *testing.T) {
 	})
 	assert.False(t, diags.HasError())
 	attrMapObj, diags := types.MapValueFrom(t.Context(), TestObjType, map[string]TFTestModel{
-		"key1": {
+		"keyOne": {
 			AttrString: types.StringValue("str1"),
 			AttrInt:    types.Int64Value(1),
 		},
-		"key2": {
+		"KeyTwo": { // don't change the key case when it's a map
 			AttrString: types.StringValue("str2"),
 			AttrInt:    types.Int64Value(2),
 		},
@@ -94,8 +94,8 @@ func TestMarshalNested(t *testing.T) {
 		AttrSetSimple:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("val11"), types.StringValue("val22")}),
 		AttrSetObj:     attrSetObj,
 		AttrMapSimple: types.MapValueMust(types.StringType, map[string]attr.Value{
-			"key1": types.StringValue("val1"),
-			"key2": types.StringValue("val2"),
+			"keyOne": types.StringValue("val1"),
+			"KeyTwo": types.StringValue("val2"), // don't change the key case when it's a map
 		}),
 		AttrMapObj: attrMapObj,
 	}
@@ -104,21 +104,21 @@ func TestMarshalNested(t *testing.T) {
 			"attrString": "val", 
 			"attrListSimple": ["val1", "val2"],
 			"attrListObj": [
-				{ "attr_string": "str1", "attr_int": 1 },
-				{ "attr_string": "str2", "attr_int": 2 }
+				{ "attrString": "str1", "attrInt": 1 },
+				{ "attrString": "str2", "attrInt": 2 }
 			],
 			"attrSetSimple": ["val11", "val22"],
 			"attrSetObj": [
-				{ "attr_string": "str11", "attr_int": 11 },
-				{ "attr_string": "str22", "attr_int": 22 }
+				{ "attrString": "str11", "attrInt": 11 },
+				{ "attrString": "str22", "attrInt": 22 }
 			],
 			"attrMapSimple": {
-				"key1": "val1",
-				"key2": "val2"
+				"keyOne": "val1",
+				"KeyTwo": "val2"
 			},
 			"attrMapObj": {
-				"key1": { "attr_string": "str1", "attr_int": 1 },
-				"key2": { "attr_string": "str2", "attr_int": 2 }
+				"keyOne": { "attrString": "str1", "attrInt": 1 },
+				"KeyTwo": { "attrString": "str2", "attrInt": 2 }
 			}
 		}
 	`
