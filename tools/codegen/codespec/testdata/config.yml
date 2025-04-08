@@ -1,0 +1,44 @@
+resources:
+  test_resource_no_schema_opts:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/testResource
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/testResource
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/testResource
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/testResource
+      method: DELETE
+  
+  test_resource_with_nested_attr:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource
+      method: DELETE
+    schema:
+      ignores: ["outer_object"]
+
+  test_resource_path_param_in_post_req:
+    create:
+      path: /api/atlas/v2/groups/{groupId}/pathparaminpostreq
+      method: POST
+    read:
+      path: /api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}
+      method: GET
+    update:
+      path: /api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}
+      method: DELETE

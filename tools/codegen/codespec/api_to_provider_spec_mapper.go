@@ -51,14 +51,22 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 
 func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig *config.Resource, name stringcase.SnakeCaseString) *Resource {
 	createOp := oasResource.CreateOp
+	updateOp := oasResource.UpdateOp
 	readOp := oasResource.ReadOp
 
 	createPathParams := pathParamsToAttributes(createOp)
 	createRequestAttributes := opRequestToAttributes(createOp)
+	updateRequestAttributes := opRequestToAttributes(updateOp)
 	createResponseAttributes := opResponseToAttributes(createOp)
 	readResponseAttributes := opResponseToAttributes(readOp)
 
-	attributes := mergeAttributes(createPathParams, createRequestAttributes, createResponseAttributes, readResponseAttributes)
+	attributes := mergeAttributes(&attributeDefinitionSources{
+		createPathParams: createPathParams,
+		createRequest:    createRequestAttributes,
+		updateRequest:    updateRequestAttributes,
+		createResponse:   createResponseAttributes,
+		readResponse:     readResponseAttributes,
+	})
 
 	schema := &Schema{
 		Description:        oasResource.Description,
@@ -126,7 +134,7 @@ func pathParamsToAttributes(createOp *high.Operation) Attributes {
 
 		paramName := param.Name
 		s.Schema.Description = param.Description
-		parameterAttribute, err := s.buildResourceAttr(paramName, Required)
+		parameterAttribute, err := s.buildResourceAttr(paramName, Required, false)
 		if err != nil {
 			log.Printf("[WARN] Path param %s could not be mapped: %s", paramName, err)
 			continue
@@ -144,7 +152,7 @@ func opRequestToAttributes(op *high.Operation) Attributes {
 		return nil
 	}
 
-	requestAttributes, err = buildResourceAttrs(requestSchema)
+	requestAttributes, err = buildResourceAttrs(requestSchema, true)
 	if err != nil {
 		log.Printf("[WARN] Request attributes could not be mapped (OperationId: %s): %s", op.OperationId, err)
 		return nil
@@ -163,7 +171,7 @@ func opResponseToAttributes(op *high.Operation) Attributes {
 			log.Printf("[WARN] Operation response body schema could not be mapped (OperationId: %s): %s", op.OperationId, err)
 		}
 	} else {
-		responseAttributes, err = buildResourceAttrs(responseSchema)
+		responseAttributes, err = buildResourceAttrs(responseSchema, false)
 		if err != nil {
 			log.Printf("[WARN] Operation response body schema could not be mapped (OperationId: %s): %s", op.OperationId, err)
 		}

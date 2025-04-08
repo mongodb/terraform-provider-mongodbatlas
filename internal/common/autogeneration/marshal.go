@@ -17,10 +17,10 @@ const (
 )
 
 // Marshal gets a Terraform model and marshals it into JSON (e.g. for an Atlas request).
-// It supports the following Terraform model types: String, Bool, Int64, Float64.
+// It supports the following Terraform model types: String, Bool, Int64, Float64, Object, Map, List, Set.
 // Attributes that are null or unknown are not marshaled.
-// Attributes with autogeneration tag `omitjson` are never marshaled.
-// Attributes with autogeneration tag `omitjsonupdate` are not marshaled if isUpdate is true.
+// Attributes with autogeneration tag `omitjson` are never marshaled, this only applies to the root model.
+// Attributes with autogeneration tag `omitjsonupdate` are not marshaled if isUpdate is true, this only applies to the root model.
 func Marshal(model any, isUpdate bool) ([]byte, error) {
 	valModel := reflect.ValueOf(model)
 	if valModel.Kind() != reflect.Ptr {
@@ -73,20 +73,70 @@ func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[s
 	if !ok {
 		panic("marshal expects only Terraform types in the model")
 	}
-	if obj.IsNull() || obj.IsUnknown() {
-		return nil // skip null or unknown values
+	val, err := getAttr(obj)
+	if err != nil {
+		return err
 	}
-	switch v := attrValModel.Interface().(type) {
-	case types.String:
-		objJSON[attrNameJSON] = v.ValueString()
-	case types.Int64:
-		objJSON[attrNameJSON] = v.ValueInt64()
-	case types.Float64:
-		objJSON[attrNameJSON] = v.ValueFloat64()
-	default:
-		return fmt.Errorf("marshal not supported yet for type %T for field %s", v, attrNameJSON)
+	if val != nil {
+		objJSON[attrNameJSON] = val
 	}
 	return nil
+}
+
+func getAttr(val attr.Value) (any, error) {
+	if val.IsNull() || val.IsUnknown() {
+		return nil, nil // skip null or unknown values
+	}
+	switch v := val.(type) {
+	case types.String:
+		return v.ValueString(), nil
+	case types.Int64:
+		return v.ValueInt64(), nil
+	case types.Float64:
+		return v.ValueFloat64(), nil
+	case types.Object:
+		return getMapAttr(v.Attributes(), false)
+	case types.Map:
+		return getMapAttr(v.Elements(), true)
+	case types.List:
+		return getListAttr(v.Elements())
+	case types.Set:
+		return getListAttr(v.Elements())
+	default:
+		return nil, fmt.Errorf("unmarshal not supported yet for type %T", v)
+	}
+}
+
+func getListAttr(elms []attr.Value) (any, error) {
+	arr := make([]any, 0)
+	for _, attr := range elms {
+		valChild, err := getAttr(attr)
+		if err != nil {
+			return nil, err
+		}
+		if valChild != nil {
+			arr = append(arr, valChild)
+		}
+	}
+	return arr, nil
+}
+
+func getMapAttr(elms map[string]attr.Value, keepKeyCase bool) (any, error) {
+	obj := make(map[string]any)
+	for name, attr := range elms {
+		valChild, err := getAttr(attr)
+		if err != nil {
+			return nil, err
+		}
+		if valChild != nil {
+			nameJSON := xstrings.ToCamelCase(name)
+			if keepKeyCase {
+				nameJSON = name
+			}
+			obj[nameJSON] = valChild
+		}
+	}
+	return obj, nil
 }
 
 func unmarshalAttrs(objJSON map[string]any, model any) error {
