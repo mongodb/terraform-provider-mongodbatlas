@@ -25,6 +25,7 @@ func NewMockRoundTripper(t *testing.T, config *MockHTTPDataConfig, data *MockHTT
 	tracker := newMockRoundTripper(t, data)
 	if config != nil {
 		tracker.allowMissingRequests = config.AllowMissingRequests
+		tracker.allowOutOfOrder = config.AllowOutOfOrder
 		tracker.manualRequestHandler = config.RequestHandler
 	}
 	for _, method := range []string{"GET", "POST", "PUT", "DELETE", "PATCH"} {
@@ -71,6 +72,7 @@ type MockRoundTripper struct {
 	currentStepIndex     int
 	mu                   sync.Mutex
 	allowMissingRequests bool
+	allowOutOfOrder      bool
 	logRequests          bool
 }
 
@@ -82,7 +84,10 @@ func (r *MockRoundTripper) IncreaseStepNumberAndInit() {
 
 func (r *MockRoundTripper) canReturnResponse(responseIndex int) bool {
 	isAfter := responseIndex > r.diffResponseIndex
-	return !isAfter
+	if r.allowOutOfOrder && isAfter {
+		r.t.Logf("allowwingOutOfOrder: response_index=%d is after nextDiffResponse=%d", responseIndex, r.diffResponseIndex)
+	}
+	return r.allowOutOfOrder || !isAfter
 }
 
 func (r *MockRoundTripper) allowReUse(req *RequestInfo) bool {
