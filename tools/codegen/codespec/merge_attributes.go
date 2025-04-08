@@ -16,19 +16,7 @@ func mergeNestedAttributes(existingAttrs *Attributes, newAttrs Attributes, reqBo
 	// add new attributes and merge when necessary
 	for i := range newAttrs {
 		newAttr := &newAttrs[i]
-
-		if existingAttr, found := mergedMap[newAttr.Name.SnakeCase()]; found {
-			// merge computability of nested property using most restrictive value
-			newComputability := mergeComputability(newAttr.ComputedOptionalRequired, existingAttr.ComputedOptionalRequired)
-			addOrUpdate(newAttr, newComputability, reqBodyUsage, mergedMap, isFromResponse)
-		} else {
-			// setting as computed as nested attribute was defined in response
-			if isFromResponse {
-				newAttr.ComputedOptionalRequired = Computed
-			}
-			newAttr.ReqBodyUsage = reqBodyUsage
-			mergedMap[newAttr.Name.SnakeCase()] = newAttr
-		}
+		addOrUpdate(mergedMap, newAttr, reqBodyUsage, isFromResponse)
 	}
 
 	// update original existingAttrs with the merged result
@@ -55,48 +43,54 @@ func mergeComputability(first, second ComputedOptionalRequired) ComputedOptional
 }
 
 // addOrUpdate adds or updates an attribute in the merged map, including nested attributes
-func addOrUpdate(newAttr *Attribute, targetComputability ComputedOptionalRequired, reqBodyUsage AttributeReqBodyUsage, merged map[string]*Attribute, isFromResponse bool) {
+func addOrUpdate(merged map[string]*Attribute, newAttr *Attribute, reqBodyUsage AttributeReqBodyUsage, isFromResponse bool) {
 	if existingAttr, found := merged[newAttr.Name.SnakeCase()]; found {
-		if existingAttr.Description == nil || *existingAttr.Description == "" {
-			existingAttr.Description = newAttr.Description
-		}
-
-		// when property is in both request and response values computablity and reqBodyUsage will ignore information from response
-		if !isFromResponse {
-			existingAttr.ReqBodyUsage = reqBodyUsage
-			// merging ensures if property is defined in POST and PATCH it will have the most restrictive computability
-			existingAttr.ComputedOptionalRequired = mergeComputability(newAttr.ComputedOptionalRequired, existingAttr.ComputedOptionalRequired)
-		}
-
-		// handle nested attributes
-		if existingAttr.ListNested != nil && newAttr.ListNested != nil {
-			mergeNestedAttributes(&existingAttr.ListNested.NestedObject.Attributes, newAttr.ListNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)
-		} else if newAttr.ListNested != nil {
-			existingAttr.ListNested = newAttr.ListNested
-		}
-
-		if existingAttr.SingleNested != nil && newAttr.SingleNested != nil {
-			mergeNestedAttributes(&existingAttr.SingleNested.NestedObject.Attributes, newAttr.SingleNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)
-		} else if newAttr.SingleNested != nil {
-			existingAttr.SingleNested = newAttr.SingleNested
-		}
-
-		if existingAttr.SetNested != nil && newAttr.SetNested != nil {
-			mergeNestedAttributes(&existingAttr.SetNested.NestedObject.Attributes, newAttr.SetNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)
-		} else if newAttr.SetNested != nil {
-			existingAttr.SetNested = newAttr.SetNested
-		}
-
-		if existingAttr.MapNested != nil && newAttr.MapNested != nil {
-			mergeNestedAttributes(&existingAttr.MapNested.NestedObject.Attributes, newAttr.MapNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)
-		} else if newAttr.MapNested != nil {
-			existingAttr.MapNested = newAttr.MapNested
-		}
+		updateAttrWithNewSource(existingAttr, newAttr, reqBodyUsage, isFromResponse)
 	} else {
-		// add new attribute with the given computability
-		newAttr.ComputedOptionalRequired = targetComputability
+		if isFromResponse {
+			newAttr.ComputedOptionalRequired = Computed // setting as computed as nested attribute was defined only in response
+		}
 		newAttr.ReqBodyUsage = reqBodyUsage
 		merged[newAttr.Name.SnakeCase()] = newAttr
+	}
+}
+
+// updateAttrWithNewSource updates an existing attribute with information from an additional source
+func updateAttrWithNewSource(existingAttr, newAttr *Attribute, reqBodyUsage AttributeReqBodyUsage, isFromResponse bool) {
+	if existingAttr.Description == nil || *existingAttr.Description == "" {
+		existingAttr.Description = newAttr.Description
+	}
+
+	// when property is in both request and response values computablity and reqBodyUsage will ignore information from response
+	if !isFromResponse {
+		existingAttr.ReqBodyUsage = reqBodyUsage
+		// merging ensures if property is defined in POST and PATCH it will have the most restrictive computability
+		existingAttr.ComputedOptionalRequired = mergeComputability(newAttr.ComputedOptionalRequired, existingAttr.ComputedOptionalRequired)
+	}
+
+	// handle nested attributes
+	if existingAttr.ListNested != nil && newAttr.ListNested != nil {
+		mergeNestedAttributes(&existingAttr.ListNested.NestedObject.Attributes, newAttr.ListNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)
+	} else if newAttr.ListNested != nil {
+		existingAttr.ListNested = newAttr.ListNested
+	}
+
+	if existingAttr.SingleNested != nil && newAttr.SingleNested != nil {
+		mergeNestedAttributes(&existingAttr.SingleNested.NestedObject.Attributes, newAttr.SingleNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)
+	} else if newAttr.SingleNested != nil {
+		existingAttr.SingleNested = newAttr.SingleNested
+	}
+
+	if existingAttr.SetNested != nil && newAttr.SetNested != nil {
+		mergeNestedAttributes(&existingAttr.SetNested.NestedObject.Attributes, newAttr.SetNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)
+	} else if newAttr.SetNested != nil {
+		existingAttr.SetNested = newAttr.SetNested
+	}
+
+	if existingAttr.MapNested != nil && newAttr.MapNested != nil {
+		mergeNestedAttributes(&existingAttr.MapNested.NestedObject.Attributes, newAttr.MapNested.NestedObject.Attributes, reqBodyUsage, isFromResponse)
+	} else if newAttr.MapNested != nil {
+		existingAttr.MapNested = newAttr.MapNested
 	}
 }
 
@@ -112,35 +106,27 @@ func mergeAttributes(sources *attributeDefinitionSources) Attributes {
 
 	// create path parameters: all attributes will be "required", reqBodyUsage is defined as omit all at this step
 	for i := range sources.createPathParams {
-		addOrUpdate(&sources.createPathParams[i], Required, OmitAll, merged, false)
+		addOrUpdate(merged, &sources.createPathParams[i], OmitAll, false)
 	}
 
 	// POST request body: optional/required is as defined, reqBodyUsage is defined as OmitUpdateBody and will be updated to AllRequestBodies if present in POST request
 	for i := range sources.createRequest {
 		// for now we do not differentiate AllRequestBodies vs PostBodyOnly as we are not processing update request
-		addOrUpdate(&sources.createRequest[i], sources.createRequest[i].ComputedOptionalRequired, OmitUpdateBody, merged, false)
+		addOrUpdate(merged, &sources.createRequest[i], OmitUpdateBody, false)
 	}
 
 	// PATCH request body: optional/required is as defined, reqBodyUsage is defined as AllRequestBodies
 	for i := range sources.updateRequest {
-		addOrUpdate(&sources.updateRequest[i], sources.updateRequest[i].ComputedOptionalRequired, AllRequestBodies, merged, false)
+		addOrUpdate(merged, &sources.updateRequest[i], AllRequestBodies, false)
 	}
 
 	// POST/GET response body: properties not in the request body are "computed" or "computed_optional" (if a default is present), reqBodyUsage will have OmitAll not present in request body
 	for i := range sources.createResponse {
-		if hasDefault(&sources.createResponse[i]) {
-			addOrUpdate(&sources.createResponse[i], ComputedOptional, OmitAll, merged, true)
-		} else {
-			addOrUpdate(&sources.createResponse[i], Computed, OmitAll, merged, true)
-		}
+		addOrUpdate(merged, &sources.createResponse[i], OmitAll, true)
 	}
 
 	for i := range sources.readResponse {
-		if hasDefault(&sources.readResponse[i]) {
-			addOrUpdate(&sources.readResponse[i], ComputedOptional, OmitAll, merged, true)
-		} else {
-			addOrUpdate(&sources.readResponse[i], Computed, OmitAll, merged, true)
-		}
+		addOrUpdate(merged, &sources.readResponse[i], OmitAll, true)
 	}
 
 	resourceAttributes := make(Attributes, 0, len(merged))
@@ -185,14 +171,6 @@ func updateNestedComputabilityAndReqBodyUsage(attrs *Attributes, parentIsCompute
 			updateNestedComputabilityAndReqBodyUsage(&attr.MapNested.NestedObject.Attributes, attrIsComputed, attrIsOmittedInReqBody)
 		}
 	}
-}
-
-func hasDefault(attr *Attribute) bool {
-	return (attr.Bool != nil && attr.Bool.Default != nil) ||
-		(attr.Int64 != nil && attr.Int64.Default != nil) ||
-		(attr.String != nil && attr.String.Default != nil) ||
-		(attr.Float64 != nil && attr.Float64.Default != nil) ||
-		(attr.Number != nil && attr.Number.Default != nil)
 }
 
 func sortAttributes(attrs Attributes) {
