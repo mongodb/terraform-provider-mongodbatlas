@@ -21,11 +21,7 @@ func GenericImportOperation(ctx context.Context, idAttributes []string, req reso
 		return
 	}
 	for attr, value := range attrValues {
-		resp.State.SetAttribute(ctx, path.Root(attr), value)
-	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, resp.State)...)
-	if resp.Diagnostics.HasError() {
-		return
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root(attr), value)...)
 	}
 }
 
