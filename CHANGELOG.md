@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.32.0 (April 09, 2025)
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_encryption_at_rest: Adds `enabled_for_search_nodes` attribute ([#3142](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3142))
