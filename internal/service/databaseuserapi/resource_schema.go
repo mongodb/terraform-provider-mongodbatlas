@@ -166,7 +166,7 @@ var LinksObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"rel":  types.StringType,
 }}
 
-type TFRolesModel struct { // hello
+type TFRolesModel struct {
 	CollectionName types.String `tfsdk:"collection_name"`
 	DatabaseName   types.String `tfsdk:"database_name"`
 	RoleName       types.String `tfsdk:"role_name"`
