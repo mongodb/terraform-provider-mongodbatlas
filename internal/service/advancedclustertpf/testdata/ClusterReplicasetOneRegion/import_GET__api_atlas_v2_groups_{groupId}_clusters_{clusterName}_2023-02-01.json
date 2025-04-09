@@ -1,0 +1,92 @@
+{
+ "advancedConfiguration": {
+  "customOpensslCipherConfigTls12": [],
+  "minimumEnabledTlsProtocol": "TLS1_2",
+  "tlsCipherConfigMode": "DEFAULT"
+ },
+ "backupEnabled": false,
+ "biConnector": {
+  "enabled": false,
+  "readPreference": "secondary"
+ },
+ "clusterType": "REPLICASET",
+ "connectionStrings": {
+  "standard": "mongodb://test-acc-tf-c-814005816-shard-00-00.au0ou.mongodb-dev.net:27017,test-acc-tf-c-814005816-shard-00-01.au0ou.mongodb-dev.net:27017,test-acc-tf-c-814005816-shard-00-02.au0ou.mongodb-dev.net:27017/?ssl=true\u0026authSource=admin\u0026replicaSet=atlas-xkej5d-shard-0",
+  "standardSrv": "mongodb+srv://test-acc-tf-c-814005816.au0ou.mongodb-dev.net"
+ },
+ "createDate": "2025-03-05T13:14:38Z",
+ "diskSizeGB": 10,
+ "diskWarmingMode": "FULLY_WARMED",
+ "encryptionAtRestProvider": "NONE",
+ "globalClusterSelfManagedSharding": false,
+ "groupId": "{groupId}",
+ "id": "67c84e3ecb1a946d742268da",
+ "labels": [],
+ "links": [
+  {
+   "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}",
+   "rel": "self"
+  },
+  {
+   "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs",
+   "rel": "https://cloud.mongodb.com/restoreJobs"
+  },
+  {
+   "href": "https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots",
+   "rel": "https://cloud.mongodb.com/snapshots"
+  }
+ ],
+ "mongoDBMajorVersion": "8.0",
+ "mongoDBVersion": "8.0.5",
+ "name": "{clusterName}",
+ "paused": false,
+ "pitEnabled": false,
+ "replicationSpecs": [
+  {
+   "id": "67c84e3ecb1a946d742268d0",
+   "numShards": 1,
+   "regionConfigs": [
+    {
+     "analyticsSpecs": {
+      "diskIOPS": 3000,
+      "ebsVolumeType": "STANDARD",
+      "instanceSize": "M10",
+      "nodeCount": 0
+     },
+     "autoScaling": {
+      "compute": {
+       "enabled": false,
+       "predictiveEnabled": false,
+       "scaleDownEnabled": false
+      },
+      "diskGB": {
+       "enabled": true
+      }
+     },
+     "electableSpecs": {
+      "diskIOPS": 3000,
+      "ebsVolumeType": "STANDARD",
+      "instanceSize": "M10",
+      "nodeCount": 3
+     },
+     "priority": 7,
+     "providerName": "AWS",
+     "readOnlySpecs": {
+      "diskIOPS": 3000,
+      "ebsVolumeType": "STANDARD",
+      "instanceSize": "M10",
+      "nodeCount": 0
+     },
+     "regionName": "US_EAST_1"
+    }
+   ],
+   "zoneId": "67c84e3ecb1a946d742268cf",
+   "zoneName": "ZoneName managed by Terraform"
+  }
+ ],
+ "rootCertType": "ISRGROOTX1",
+ "stateName": "IDLE",
+ "tags": [],
+ "terminationProtectionEnabled": false,
+ "versionReleaseSystem": "LTS"
+}

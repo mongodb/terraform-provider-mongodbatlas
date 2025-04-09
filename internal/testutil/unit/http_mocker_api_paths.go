@@ -114,6 +114,10 @@ func RepoPath(relPath string) string {
 	panic("could not find repo root")
 }
 
+func PackagePath(name string) string {
+	return RepoPath(path.Join("internal/service", name))
+}
+
 func init() {
 	InitializeAPISpecPaths()
 }
