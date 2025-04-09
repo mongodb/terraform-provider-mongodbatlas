@@ -69,6 +69,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	}
 
 	respBody, err := io.ReadAll(apiResp.Body)
+	apiResp.Body.Close()
 	if err != nil {
 		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 		return
@@ -110,6 +111,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	}
 
 	respBody, err := io.ReadAll(apiResp.Body)
+	apiResp.Body.Close()
 	if err != nil {
 		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 		return
@@ -154,6 +156,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 
 	respBody, err := io.ReadAll(apiResp.Body)
+	apiResp.Body.Close()
 	if err != nil {
 		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 		return
