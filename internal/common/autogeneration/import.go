@@ -15,7 +15,7 @@ import (
 //   - GenericImportOperation(ctx, []string{"project_id", "name"}, req, resp)
 //   - example import ID would be "5c9d0a239ccf643e6a35ddasdf/myCluster"
 func GenericImportOperation(ctx context.Context, idAttributes []string, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	attrValues, err := processImportID(req.ID, idAttributes)
+	attrValues, err := ProcessImportID(req.ID, idAttributes)
 	if err != nil {
 		resp.Diagnostics.AddError("Error processing import ID", err.Error())
 		return
@@ -25,7 +25,8 @@ func GenericImportOperation(ctx context.Context, idAttributes []string, req reso
 	}
 }
 
-func processImportID(importID string, idAttributes []string) (map[string]string, error) {
+// ProcessImportID is exported for testing purposes only and is not intended for direct usage.
+func ProcessImportID(importID string, idAttributes []string) (map[string]string, error) {
 	parts := strings.Split(importID, "/")
 	if len(parts) != len(idAttributes) {
 		return nil, errors.New("Expected format: " + strings.Join(idAttributes, "/"))

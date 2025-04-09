@@ -1,8 +1,9 @@
-package autogeneration //nolint:testpackage // reason: do not want to expose processImportID but is useful for unit testing
+package autogeneration_test
 
 import (
 	"testing"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogeneration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -44,7 +45,7 @@ func TestGenericImportOperation(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			attrValues, err := processImportID(tc.importID, tc.idAttributes)
+			attrValues, err := autogeneration.ProcessImportID(tc.importID, tc.idAttributes)
 
 			if tc.expectedError != nil {
 				require.Error(t, err)
