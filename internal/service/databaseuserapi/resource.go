@@ -17,9 +17,9 @@ var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
 
 const (
-	apiVersionHeader            = "application/vnd.atlas.2023-01-01+json"
-	errorProcessingAPIResponse  = "error processing API response"
-	errorConstructingAPIRequest = "error constructing API request"
+	apiVersionHeader           = "application/vnd.atlas.2023-01-01+json"
+	errorProcessingAPIResponse = "error processing API response"
+	errorBuildingAPIRequest    = "error building API request"
 )
 
 func Resource() resource.Resource {
@@ -48,7 +48,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 
 	reqBody, err := autogeneration.Marshal(&plan, false)
 	if err != nil {
-		resp.Diagnostics.AddError(errorConstructingAPIRequest, err.Error())
+		resp.Diagnostics.AddError(errorBuildingAPIRequest, err.Error())
 		return
 	}
 
@@ -133,7 +133,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 
 	reqBody, err := autogeneration.Marshal(&plan, true)
 	if err != nil {
-		resp.Diagnostics.AddError(errorConstructingAPIRequest, err.Error())
+		resp.Diagnostics.AddError(errorBuildingAPIRequest, err.Error())
 		return
 	}
 
