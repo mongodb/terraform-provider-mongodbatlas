@@ -343,7 +343,6 @@ func (r *databaseUserRS) Delete(ctx context.Context, req resource.DeleteRequest,
 	}
 }
 
-// hello
 func (r *databaseUserRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
