@@ -17,7 +17,7 @@ import (
 func GenericImportOperation(ctx context.Context, idAttributes []string, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	attrValues, err := processImportID(req.ID, idAttributes)
 	if err != nil {
-		resp.Diagnostics.AddError("error processing import ID", err.Error())
+		resp.Diagnostics.AddError("Error processing import ID", err.Error())
 		return
 	}
 	for attr, value := range attrValues {
