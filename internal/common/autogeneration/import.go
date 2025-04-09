@@ -14,27 +14,27 @@ import (
 // Example usage:
 //   - GenericImportOperation(ctx, []string{"project_id", "name"}, req, resp)
 //   - example import ID would be "5c9d0a239ccf643e6a35ddasdf/myCluster"
-func GenericImportOperation(ctx context.Context, idAttributes []string, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	attrValues, err := ProcessImportID(req.ID, idAttributes)
+func GenericImportOperation(ctx context.Context, idAttrs []string, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	idAttrsWithValue, err := ProcessImportID(req.ID, idAttrs)
 	if err != nil {
 		resp.Diagnostics.AddError("Error processing import ID", err.Error())
 		return
 	}
-	for attr, value := range attrValues {
-		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root(attr), value)...)
+	for attrName, value := range idAttrsWithValue {
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root(attrName), value)...)
 	}
 }
 
 // ProcessImportID is exported for testing purposes only and is not intended for direct usage.
-func ProcessImportID(importID string, idAttributes []string) (map[string]string, error) {
+func ProcessImportID(importID string, idAttrs []string) (map[string]string, error) {
 	parts := strings.Split(importID, "/")
-	if len(parts) != len(idAttributes) {
-		return nil, errors.New("Expected format: " + strings.Join(idAttributes, "/"))
+	if len(parts) != len(idAttrs) {
+		return nil, errors.New("Expected format: " + strings.Join(idAttrs, "/"))
 	}
 
 	result := make(map[string]string)
 	for i, part := range parts {
-		result[idAttributes[i]] = part
+		result[idAttrs[i]] = part
 	}
 
 	return result, nil
