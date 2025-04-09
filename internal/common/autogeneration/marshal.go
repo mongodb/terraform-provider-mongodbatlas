@@ -121,6 +121,8 @@ func getListAttr(elms []attr.Value) (any, error) {
 	return arr, nil
 }
 
+// getMapAttr gets a map of attributes and returns a map of JSON attributes.
+// keepKeyCase is used for types.Map to keep key case. However, we want to use JSON key case for types.Object
 func getMapAttr(elms map[string]attr.Value, keepKeyCase bool) (any, error) {
 	obj := make(map[string]any)
 	for name, attr := range elms {
