@@ -195,9 +195,9 @@ func TestAccConfigDSOrganizations_withPagination(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithPagination(2, 5),
+				Config: configWithPagination(1, 5),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(datasourceName, "results.#"),
+					resource.TestCheckResourceAttrSet(pluralDSName, "results.#"),
 				),
 			},
 		},
