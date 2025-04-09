@@ -27,7 +27,7 @@ func Resource() resource.Resource {
 }
 
 type rs struct {
-	config.RSCommon // test
+	config.RSCommon
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
