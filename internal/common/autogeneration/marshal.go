@@ -90,6 +90,8 @@ func getAttr(val attr.Value) (any, error) {
 	switch v := val.(type) {
 	case types.String:
 		return v.ValueString(), nil
+	case types.Bool:
+		return v.ValueBool(), nil
 	case types.Int64:
 		return v.ValueInt64(), nil
 	case types.Float64:

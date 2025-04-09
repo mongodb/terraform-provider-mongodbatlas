@@ -30,6 +30,9 @@ func TestMarshalBasic(t *testing.T) {
 		AttrUnkown          types.String `tfsdk:"attr_unknown"`
 		AttrNull            types.String `tfsdk:"attr_null"`
 		AttrInt             types.Int64  `tfsdk:"attr_int"`
+		AttrBoolTrue        types.Bool   `tfsdk:"attr_bool_true"`
+		AttrBoolFalse       types.Bool   `tfsdk:"attr_bool_false"`
+		AttrBoolNull        types.Bool   `tfsdk:"attr_bool_null"`
 	}{
 		AttrFloat:           types.Float64Value(1.234),
 		AttrString:          types.StringValue("hello"),
@@ -38,8 +41,11 @@ func TestMarshalBasic(t *testing.T) {
 		AttrUnkown:          types.StringUnknown(), // unknown values are not marshaled
 		AttrNull:            types.StringNull(),    // null values are not marshaled
 		AttrInt:             types.Int64Value(1),
+		AttrBoolTrue:        types.BoolValue(true),
+		AttrBoolFalse:       types.BoolValue(false),
+		AttrBoolNull:        types.BoolNull(), // null values are not marshaled
 	}
-	const expectedJSON = `{ "attrString": "hello", "attrInt": 1, "attrFloat": 1.234 }`
+	const expectedJSON = `{ "attrString": "hello", "attrInt": 1, "attrFloat": 1.234, "attrBoolTrue": true, "attrBoolFalse": false }`
 	raw, err := autogeneration.Marshal(&model, false)
 	require.NoError(t, err)
 	assert.JSONEq(t, expectedJSON, string(raw))
