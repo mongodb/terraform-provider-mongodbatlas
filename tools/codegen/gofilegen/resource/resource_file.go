@@ -20,6 +20,7 @@ func GenerateGoCode(input *codespec.Resource) string {
 			Read:          toCodeTemplateOpModel(input.Operations.Read),
 			Delete:        toCodeTemplateOpModel(input.Operations.Delete),
 		},
+		IDAttributes: getIDAttributes(input.Operations.Read.Path),
 	}
 	result := codetemplate.ApplyResourceFileTemplate(&tmplInputs)
 
@@ -34,12 +35,12 @@ func toCodeTemplateOpModel(op codespec.APIOperation) codetemplate.Operation {
 	return codetemplate.Operation{
 		Path:       op.Path,
 		HTTPMethod: op.HTTPMethod,
-		PathParams: obtainPathParams(op.Path),
+		PathParams: getPathParams(op.Path),
 	}
 }
 
 // obtains path parameters for URL, this can evetually be explicitly defined in the intermediate model if additional information is required
-func obtainPathParams(s string) []codetemplate.Param {
+func getPathParams(s string) []codetemplate.Param {
 	params := []codetemplate.Param{}
 
 	// Use regex to find all {paramName} patterns
@@ -53,6 +54,14 @@ func obtainPathParams(s string) []codetemplate.Param {
 			PascalCaseName: stringcase.FromCamelCase(paramName).PascalCase(),
 		})
 	}
-
 	return params
+}
+
+func getIDAttributes(readPath string) []string {
+	params := getPathParams(readPath)
+	result := make([]string, len(params))
+	for i, param := range params {
+		result[i] = stringcase.FromCamelCase(param.CamelCaseName).SnakeCase()
+	}
+	return result
 }

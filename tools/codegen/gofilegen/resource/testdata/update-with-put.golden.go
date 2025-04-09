@@ -183,5 +183,6 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// TODO: code generation logic for import will be handled in milestone 2
+	idAttributes := []string{"project_id"}
+	autogeneration.GenericImportOperation(ctx, idAttributes, req, resp)
 }

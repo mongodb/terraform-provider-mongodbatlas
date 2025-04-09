@@ -23,6 +23,7 @@ type ResourceFileInputs struct {
 	PackageName   string
 	ResourceName  string
 	APIOperations APIOperations
+	IDAttributes  []string // e.g. ["project_id", "name"]
 }
 
 type APIOperations struct {
