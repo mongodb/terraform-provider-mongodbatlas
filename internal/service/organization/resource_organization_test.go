@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -400,10 +401,10 @@ func checkAggr(orgOwnerID, name, description string, settings *admin.Organizatio
 		"name":                       name,
 		"org_owner_id":               orgOwnerID,
 		"description":                description,
-		"api_access_list_required":   conversion.BoolPtrToStr(settings.ApiAccessListRequired),
-		"multi_factor_auth_required": conversion.BoolPtrToStr(settings.MultiFactorAuthRequired),
-		"restrict_employee_access":   conversion.BoolPtrToStr(settings.RestrictEmployeeAccess),
-		"gen_ai_features_enabled":    conversion.BoolPtrToStr(settings.GenAIFeaturesEnabled),
+		"api_access_list_required":   strconv.FormatBool(*settings.ApiAccessListRequired),
+		"multi_factor_auth_required": strconv.FormatBool(*settings.MultiFactorAuthRequired),
+		"restrict_employee_access":   strconv.FormatBool(*settings.RestrictEmployeeAccess),
+		"gen_ai_features_enabled":    strconv.FormatBool(*settings.GenAIFeaturesEnabled),
 		"security_contact":           settings.GetSecurityContact(),
 	}
 	checks := []resource.TestCheckFunc{
