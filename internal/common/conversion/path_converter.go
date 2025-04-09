@@ -3,10 +3,13 @@ package conversion
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -38,115 +41,77 @@ func AttributePathValue(ctx context.Context, diags *diag.Diagnostics, attributeP
 	return attrValue, convertedPath
 }
 
-// AttributePath similar to the internal function in TPF, but simpler interface as argument and less logging.
-// AttributePath in TPF repo is internal and cannot be used: https://github.com/hashicorp/terraform-plugin-framework/blob/e09ec9d169c581d2606372ecdfb0113be7e3b34f/internal/fromtftypes/attribute_path.go#L17
+const keyValue = "ElementKeyValue("
+
+var prefixes = map[string]func(path.Path, string) (path.Path, error){
+	"AttributeName(": func(p path.Path, s string) (path.Path, error) {
+		return p.AtName(s), nil
+	},
+	"ElementKeyString(": func(p path.Path, s string) (path.Path, error) {
+		return p.AtMapKey(s), nil
+	},
+	"ElementKeyInt(": func(p path.Path, s string) (path.Path, error) {
+		number, err := strconv.Atoi(s)
+		if err != nil {
+			panic(fmt.Sprintf("could not convert %s to int: %v", s, err))
+		}
+		return p.AtListIndex(number), nil
+	},
+	keyValue: func(p path.Path, s string) (path.Path, error) {
+		if strings.HasPrefix(s, "tftypes.String<") {
+			s = strings.TrimPrefix(s, `tftypes.String<"`)
+			s = strings.TrimSuffix(s, `">`)
+		} else {
+			return path.Empty(), fmt.Errorf("could not convert %s at path %s", s, p.String())
+		}
+		return p.AtSetValue(types.StringValue(s)), nil
+	},
+}
+
+func ConvertAttributePath(in tftypes.AttributePath) (path.Path, error) {
+	tpfPath := path.Empty()
+	inString := in.String()
+	parts := strings.Split(inString, ".")
+	var err error
+	for i, part := range parts {
+		before := tpfPath
+		for prefix, replacer := range prefixes {
+			if strings.HasPrefix(part, prefix) {
+				var done bool
+				if prefix == keyValue {
+					part = strings.Join(parts[i:], ".")
+					done = true
+				}
+				part = strings.TrimPrefix(part, prefix)
+				part = strings.TrimSuffix(part, ")")
+				part = strings.Trim(part, `"`)
+				tpfPath, err = replacer(tpfPath, part)
+				if err != nil {
+					return path.Empty(), fmt.Errorf("could not convert %s: %v", part, err)
+				}
+				if done {
+					return tpfPath, nil
+				}
+				break
+			}
+		}
+		if tpfPath.Equal(before) {
+			return path.Empty(), fmt.Errorf("could not convert %s", part)
+		}
+	}
+	return tpfPath, nil
+}
+
 func AttributePath(ctx context.Context, tfType *tftypes.AttributePath, schema TPFSchema) (path.Path, diag.Diagnostics) {
-	fwPath := path.Empty()
-	for tfTypeStepIndex, tfTypeStep := range tfType.Steps() {
-		currentTfTypeSteps := tfType.Steps()[:tfTypeStepIndex+1]
-		currentTfTypePath := tftypes.NewAttributePathWithSteps(currentTfTypeSteps)
-		attrType, err := schema.TypeAtTerraformPath(ctx, currentTfTypePath)
-
-		if err != nil {
-			return path.Empty(), diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Unable to Convert Attribute Path",
-					"An unexpected error occurred while trying to convert an attribute path. "+
-						"This is an error in terraform-plugin-framework used by the provider. "+
-						"Please report the following to the provider developers.\n\n"+
-						// Since this is an error with the attribute path
-						// conversion, we cannot return a protocol path-based
-						// diagnostic. Returning a framework human-readable
-						// representation seems like the next best thing to do.
-						fmt.Sprintf("Attribute Path: %s\n", currentTfTypePath.String())+
-						fmt.Sprintf("Original Error: %s", err),
-				),
-			}
-		}
-
-		fwStep, err := AttributePathStep(ctx, tfTypeStep, attrType)
-
-		if err != nil {
-			return path.Empty(), diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Unable to Convert Attribute Path",
-					"An unexpected error occurred while trying to convert an attribute path. "+
-						"This is either an error in terraform-plugin-framework or a custom attribute type used by the provider. "+
-						"Please report the following to the provider developers.\n\n"+
-						// Since this is an error with the attribute path
-						// conversion, we cannot return a protocol path-based
-						// diagnostic. Returning a framework human-readable
-						// representation seems like the next best thing to do.
-						fmt.Sprintf("Attribute Path: %s\n", currentTfTypePath.String())+
-						fmt.Sprintf("Original Error: %s", err),
-				),
-			}
-		}
-
-		// In lieu of creating a path.NewPathFromSteps function, this path
-		// building logic is inlined to not expand the path package API.
-		switch fwStep := fwStep.(type) {
-		case path.PathStepAttributeName:
-			fwPath = fwPath.AtName(string(fwStep))
-		case path.PathStepElementKeyInt:
-			fwPath = fwPath.AtListIndex(int(fwStep))
-		case path.PathStepElementKeyString:
-			fwPath = fwPath.AtMapKey(string(fwStep))
-		case path.PathStepElementKeyValue:
-			fwPath = fwPath.AtSetValue(fwStep.Value)
-		default:
-			return fwPath, diag.Diagnostics{
-				diag.NewErrorDiagnostic(
-					"Unable to Convert Attribute Path",
-					"An unexpected error occurred while trying to convert an attribute path. "+
-						"This is an error in terraform-plugin-framework used by the provider. "+
-						"Please report the following to the provider developers.\n\n"+
-						// Since this is an error with the attribute path
-						// conversion, we cannot return a protocol path-based
-						// diagnostic. Returning a framework human-readable
-						// representation seems like the next best thing to do.
-						fmt.Sprintf("Attribute Path: %s\n", currentTfTypePath.String())+
-						fmt.Sprintf("Original Error: unknown path.PathStep type: %#v", fwStep),
-				),
-			}
-		}
-	}
-
-	return fwPath, nil
-}
-
-// AttributePathStep in TPF repo is internal and cannot be used: https://github.com/hashicorp/terraform-plugin-framework/blob/e09ec9d169c581d2606372ecdfb0113be7e3b34f/internal/fromtftypes/attribute_path_step.go#L19
-func AttributePathStep(ctx context.Context, tfType tftypes.AttributePathStep, attrType attr.Type) (path.PathStep, error) {
-	switch tfType := tfType.(type) {
-	case tftypes.AttributeName:
-		return path.PathStepAttributeName(string(tfType)), nil
-	case tftypes.ElementKeyInt:
-		return path.PathStepElementKeyInt(int64(tfType)), nil
-	case tftypes.ElementKeyString:
-		return path.PathStepElementKeyString(string(tfType)), nil
-	case tftypes.ElementKeyValue:
-		attrValue, err := Value(ctx, tftypes.Value(tfType), attrType)
-
-		if err != nil {
-			return nil, fmt.Errorf("unable to create PathStepElementKeyValue from tftypes.Value: %w", err)
-		}
-
-		return path.PathStepElementKeyValue{Value: attrValue}, nil
-	default:
-		return nil, fmt.Errorf("unknown tftypes.AttributePathStep: %#v", tfType)
-	}
-}
-
-func Value(ctx context.Context, tfType tftypes.Value, attrType attr.Type) (attr.Value, error) {
-	if attrType == nil {
-		return nil, fmt.Errorf("unable to convert tftypes.Value (%s) to attr.Value: missing attr.Type", tfType.String())
-	}
-
-	attrValue, err := attrType.ValueFromTerraform(ctx, tfType)
-
+	p, err := ConvertAttributePath(*tfType)
 	if err != nil {
-		return nil, fmt.Errorf("unable to convert tftypes.Value (%s) to attr.Value: %w", tfType.String(), err)
+		panic(fmt.Sprintf("could not convert TF path %s to TPF path: %v", tfType.String(), err))
+		// return path.Empty(), diag.Diagnostics{
+		// 	diag.NewErrorDiagnostic(
+		// 		"Unable to Convert Attribute Path to TPF Path",
+		// 		fmt.Sprintf("An unexpected error occurred while trying to convert an attribute path. %s", err),
+		// 	),
+		// }
 	}
-
-	return attrValue, nil
+	return p, nil
 }
