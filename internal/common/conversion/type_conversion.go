@@ -71,6 +71,16 @@ func IntPtrToInt64Ptr(i *int) *int64 {
 	return &i64
 }
 
+func BoolPtrToStr(b *bool) string {
+	if b == nil {
+		return "false"
+	}
+	if *b {
+		return "true"
+	}
+	return "false"
+}
+
 // IsStringPresent returns true if the string is non-empty.
 func IsStringPresent(strPtr *string) bool {
 	return strPtr != nil && *strPtr != ""

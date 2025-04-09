@@ -247,12 +247,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		d.HasChange("restrict_employee_access") ||
 		d.HasChange("gen_ai_features_enabled") ||
 		d.HasChange("security_contact") {
-
-		updatedSettings := newOrganizationSettings(d)
-		if _, new := d.GetChange("security_contact"); new.(string) == "" {
-			updatedSettings.SecurityContact = conversion.Pointer("")
-		}
-		if _, _, err := conn.OrganizationsApi.UpdateOrganizationSettings(ctx, orgID, updatedSettings).Execute(); err != nil {
+		if _, _, err := conn.OrganizationsApi.UpdateOrganizationSettings(ctx, orgID, newOrganizationSettings(d)).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf("error updating Organization settings: %s", err))
 		}
 	}
@@ -313,7 +308,7 @@ func newOrganizationSettings(d *schema.ResourceData) *admin.OrganizationSettings
 		MultiFactorAuthRequired: conversion.Pointer(d.Get("multi_factor_auth_required").(bool)),
 		RestrictEmployeeAccess:  conversion.Pointer(d.Get("restrict_employee_access").(bool)),
 		GenAIFeaturesEnabled:    conversion.Pointer(d.Get("gen_ai_features_enabled").(bool)),
-		SecurityContact:         conversion.StringPtr(d.Get("security_contact").(string)),
+		SecurityContact:         conversion.Pointer(d.Get("security_contact").(string)),
 	}
 }
 
