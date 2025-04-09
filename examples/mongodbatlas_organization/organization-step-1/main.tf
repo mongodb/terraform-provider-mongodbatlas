@@ -6,7 +6,7 @@ resource "mongodbatlas_organization" "test" {
   multi_factor_auth_required = true
   restrict_employee_access   = true
   api_access_list_required   = false
-  security_contact           = "test@gmail.com"
+  security_contact           = var.security_contact
 }
 
 output "org_id" {
