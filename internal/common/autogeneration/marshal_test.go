@@ -370,6 +370,14 @@ func TestUnmarshalErrors(t *testing.T) {
 				Attr string
 			}{},
 		},
+		"model attr types in objects must match JSON types": {
+			responseJSON: `{ "attrObj": { "attrString": 1 } }`,
+			model: &struct {
+				AttrObj types.Object `tfsdk:"attr_obj"`
+			}{
+				AttrObj: types.ObjectNull(objTypeTest.AttrTypes),
+			},
+		},
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
