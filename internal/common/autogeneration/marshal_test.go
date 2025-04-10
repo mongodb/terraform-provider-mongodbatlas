@@ -283,7 +283,7 @@ func TestUnmarshalBasic(t *testing.T) {
 		epsilon = 10e-15 // float tolerance
 		// attribute_not_in_model is ignored because it is not in the model, no error is thrown.
 		// attribute_null is ignored because it is null, no error is thrown even if it is not in the model.
-		tfResponseJSON = `
+		jsonResp = `
 			{
 				"attrString": "value_string",
 				"attrTrue": true,
@@ -297,7 +297,7 @@ func TestUnmarshalBasic(t *testing.T) {
 			}
 		`
 	)
-	require.NoError(t, autogeneration.Unmarshal([]byte(tfResponseJSON), &model))
+	require.NoError(t, autogeneration.Unmarshal([]byte(jsonResp), &model))
 	assert.Equal(t, "value_string", model.AttrString.ValueString())
 	assert.True(t, model.AttrTrue.ValueBool())
 	assert.False(t, model.AttrFalse.ValueBool())
@@ -309,11 +309,16 @@ func TestUnmarshalBasic(t *testing.T) {
 }
 
 func TestUnmarshalNestedAllTypes(t *testing.T) {
-	var model struct {
+	model := struct {
 		AttrObj types.Object `tfsdk:"attr_obj"`
+	}{
+		AttrObj: types.ObjectValueMust(TestObjType.AttrTypes, map[string]attr.Value{
+			"attr_string": types.StringValue("different_string"), // irrelevant, it will be overwritten
+			"attr_int":    types.Int64Value(123456),              // irrelevant, it will be overwritten
+		}),
 	}
 	const (
-		tfResponseJSON = `
+		jsonResp = `
 			{
 				"attrObj": {
 					"attrString": "value_string",
@@ -322,9 +327,9 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 			}
 		`
 	)
-	require.NoError(t, autogeneration.Unmarshal([]byte(tfResponseJSON), &model))
-	assert.Equal(t, "value_string", model.AttrObj.Attributes()["attrString"].(types.String).ValueString())
-	assert.Equal(t, int64(123), model.AttrObj.Attributes()["attrInt"].(types.Int64).ValueInt64())
+	require.NoError(t, autogeneration.Unmarshal([]byte(jsonResp), &model))
+	assert.Equal(t, "value_string", model.AttrObj.Attributes()["attr_string"].(types.String).ValueString())
+	assert.Equal(t, int64(123), model.AttrObj.Attributes()["attr_int"].(types.Int64).ValueInt64())
 }
 
 func TestUnmarshalErrors(t *testing.T) {
