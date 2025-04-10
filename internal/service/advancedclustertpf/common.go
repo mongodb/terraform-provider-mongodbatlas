@@ -5,11 +5,14 @@ import (
 	"strings"
 	"time"
 
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/spf13/cast"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
-	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 )
 
 const (
@@ -19,6 +22,12 @@ const (
 var (
 	ErrLegacyIgnoreLabel = fmt.Errorf("label `%s` is not supported as it is reserved for internal purposes", LegacyIgnoredLabelKey)
 )
+
+type ProcessArgs struct {
+	ArgsLegacy            *admin20240530.ClusterDescriptionProcessArgs
+	ArgsDefault           *admin.ClusterDescriptionProcessArgs20240805
+	ClusterAdvancedConfig *admin.ApiAtlasClusterAdvancedConfiguration
+}
 
 func FormatMongoDBMajorVersion(version string) string {
 	if strings.Contains(version, ".") {

@@ -6,6 +6,8 @@ import (
 	"math/big"
 	"strings"
 
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -14,8 +16,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 )
 
 // MoveState is used with moved block to upgrade from cluster to adv_cluster
@@ -91,8 +93,12 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 	if diags.HasError() {
 		return
 	}
+	AddAdvancedConfig(ctx, model, &ProcessArgs{
+		ArgsDefault:           nil,
+		ArgsLegacy:            nil,
+		ClusterAdvancedConfig: nil,
+	}, diags)
 	model.Timeouts = getTimeoutFromStateObj(stateObj)
-	AddAdvancedConfig(ctx, model, nil, nil, diags)
 	if diags.HasError() {
 		return
 	}

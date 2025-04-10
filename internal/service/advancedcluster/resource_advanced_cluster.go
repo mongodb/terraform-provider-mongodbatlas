@@ -458,9 +458,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	params := &admin.ClusterDescription20240805{
-		Name:             conversion.StringPtr(cast.ToString(d.Get("name"))),
-		ClusterType:      conversion.StringPtr(cast.ToString(d.Get("cluster_type"))),
-		ReplicationSpecs: replicationSpecs,
+		Name:                  conversion.StringPtr(cast.ToString(d.Get("name"))),
+		ClusterType:           conversion.StringPtr(cast.ToString(d.Get("cluster_type"))),
+		ReplicationSpecs:      replicationSpecs,
+		AdvancedConfiguration: expandClusterAdvancedConfiguration(d),
 	}
 
 	if v, ok := d.GetOk("backup_enabled"); ok {
@@ -688,7 +689,12 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorConfigRead, clusterName, err))
 	}
 
-	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs20240530, processArgs)); err != nil {
+	advConfigAttr := flattenProcessArgs(&advancedclustertpf.ProcessArgs{
+		ArgsLegacy:            processArgs20240530,
+		ArgsDefault:           processArgs,
+		ClusterAdvancedConfig: cluster.AdvancedConfiguration,
+	})
+	if err := d.Set("advanced_configuration", advConfigAttr); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "advanced_configuration", clusterName, err))
 	}
 
@@ -950,6 +956,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if d.HasChange("config_server_management_mode") {
 				request.ConfigServerManagementMode = conversion.StringPtr(d.Get("config_server_management_mode").(string))
 			}
+
 			// can call latest API (2024-10-23 or newer) as replications specs (with nested autoscaling property) is not specified
 			if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, request).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
@@ -1147,6 +1154,11 @@ func updateRequest(ctx context.Context, d *schema.ResourceData, projectID, clust
 	}
 	if d.HasChange("config_server_management_mode") {
 		cluster.ConfigServerManagementMode = conversion.StringPtr(d.Get("config_server_management_mode").(string))
+	}
+	if d.HasChange("advanced_configuration") {
+		if aclist, ok := d.Get("advanced_configuration").([]any); ok && len(aclist) > 0 {
+			cluster.AdvancedConfiguration = expandClusterAdvancedConfiguration(d)
+		}
 	}
 
 	return cluster, nil

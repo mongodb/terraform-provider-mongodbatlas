@@ -15,6 +15,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 )
 
@@ -375,9 +376,13 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 				log.Printf("[WARN] Error setting `replication_specs` for the cluster(%s): %s", cluster.GetId(), err)
 			}
 		}
-
+		advConfigAttr := flattenProcessArgs(&advancedclustertpf.ProcessArgs{
+			ArgsLegacy:            processArgs20240530,
+			ArgsDefault:           processArgs,
+			ClusterAdvancedConfig: cluster.AdvancedConfiguration,
+		})
 		result := map[string]any{
-			"advanced_configuration":               flattenProcessArgs(processArgs20240530, processArgs),
+			"advanced_configuration":               advConfigAttr,
 			"backup_enabled":                       cluster.GetBackupEnabled(),
 			"bi_connector_config":                  flattenBiConnectorConfig(cluster.BiConnector),
 			"cluster_type":                         cluster.GetClusterType(),
