@@ -40,6 +40,7 @@ func Marshal(model any, isUpdate bool) ([]byte, error) {
 
 // Unmarshal gets a JSON (e.g. from an Atlas response) and unmarshals it into a Terraform model.
 // It supports the following Terraform model types: String, Bool, Int64, Float64.
+// Attributes that are in JSON but not in the model are ignored, no error is returned.
 func Unmarshal(raw []byte, model any) error {
 	var objJSON map[string]any
 	if err := json.Unmarshal(raw, &objJSON); err != nil {
@@ -187,14 +188,17 @@ func unmarshalAttr(attrNameJSON string, attrObjJSON any, valModel reflect.Value)
 		ctx := context.Background()
 		mapObj := obj.Attributes()
 		for nameChild, valueChild := range v {
-			nameChildModel := xstrings.ToSnakeCase(nameChild)
+			nameChildTf := xstrings.ToSnakeCase(nameChild)
+			if _, found := mapObj[nameChildTf]; !found {
+				continue // skip attributes that are not in the model
+			}
 			switch vChild := valueChild.(type) {
 			case string:
-				mapObj[nameChildModel] = types.StringValue(vChild)
+				mapObj[nameChildTf] = types.StringValue(vChild)
 			case bool:
-				mapObj[nameChildModel] = types.BoolValue(vChild)
+				mapObj[nameChildTf] = types.BoolValue(vChild)
 			case float64:
-				mapObj[nameChildModel] = types.Int64Value(int64(vChild))
+				mapObj[nameChildTf] = types.Int64Value(int64(vChild))
 			default:
 				return fmt.Errorf("unmarshal not supported yet for type %T for field %s", vChild, nameChild)
 			}

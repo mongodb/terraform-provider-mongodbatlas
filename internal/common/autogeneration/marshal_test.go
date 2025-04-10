@@ -317,12 +317,14 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 			"attr_int":    types.Int64Value(123456),              // irrelevant, it will be overwritten
 		}),
 	}
+	// attrUnexisting is ignored because it is in JSON but not in the model, no error is returned
 	const (
 		jsonResp = `
 			{
 				"attrObj": {
 					"attrString": "value_string",
-					"attrInt": 123
+					"attrInt": 123,
+					"attrUnexisting": "val"
 				}
 			}
 		`
