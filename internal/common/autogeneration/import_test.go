@@ -1,6 +1,7 @@
 package autogeneration_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogeneration"
@@ -39,7 +40,7 @@ func TestGenericImportOperation(t *testing.T) {
 			name:          "Error: Wrong number of attributes",
 			importID:      "5c9d0a239ccf643e6a35ddasdf/myCluster",
 			idAttributes:  []string{"project_id", "cluster_name", "region"},
-			expectedError: conversion.StringPtr("Expected format: project_id/cluster_name/region"),
+			expectedError: conversion.StringPtr(fmt.Sprintf(autogeneration.ExpectedErrorMsg, "project_id/cluster_name/region")),
 		},
 	}
 

@@ -2,12 +2,14 @@ package autogeneration
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
+
+const ExpectedErrorMsg = "expected format: %s"
 
 // GenericImportOperation handles the import operation for Terraform resources.
 // It splits the request ID string by "/" delimiter and maps each part to the corresponding attribute specified in idAttributes.
@@ -29,7 +31,7 @@ func GenericImportOperation(ctx context.Context, idAttrs []string, req resource.
 func ProcessImportID(importID string, idAttrs []string) (map[string]string, error) {
 	parts := strings.Split(importID, "/")
 	if len(parts) != len(idAttrs) {
-		return nil, errors.New("Expected format: " + strings.Join(idAttrs, "/"))
+		return nil, fmt.Errorf(ExpectedErrorMsg, strings.Join(idAttrs, "/"))
 	}
 
 	result := make(map[string]string)
