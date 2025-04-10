@@ -16,7 +16,12 @@ import (
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
 
-const apiVersionHeader = "application/vnd.atlas.2023-01-01+json"
+const (
+	apiVersionHeader           = "application/vnd.atlas.2023-01-01+json"
+	errorReadingAPIResponse    = "error reading API response"
+	errorProcessingAPIResponse = "error processing API response"
+	errorBuildingAPIRequest    = "error building API request"
+)
 
 func Resource() resource.Resource {
 	return &rs{
@@ -44,7 +49,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 
 	reqBody, err := autogeneration.Marshal(&plan, false)
 	if err != nil {
-		resp.Diagnostics.AddError("error during create operation", err.Error())
+		resp.Diagnostics.AddError(errorBuildingAPIRequest, err.Error())
 		return
 	}
 
@@ -65,14 +70,15 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	}
 
 	respBody, err := io.ReadAll(apiResp.Body)
+	apiResp.Body.Close()
 	if err != nil {
-		resp.Diagnostics.AddError("error during create operation", err.Error())
+		resp.Diagnostics.AddError(errorReadingAPIResponse, err.Error())
 		return
 	}
 
 	// Use the plan as the base model to set the response state
 	if err := autogeneration.Unmarshal(respBody, &plan); err != nil {
-		resp.Diagnostics.AddError("error during create operation", err.Error())
+		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -105,14 +111,15 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	}
 
 	respBody, err := io.ReadAll(apiResp.Body)
+	apiResp.Body.Close()
 	if err != nil {
-		resp.Diagnostics.AddError("error during get operation", err.Error())
+		resp.Diagnostics.AddError(errorReadingAPIResponse, err.Error())
 		return
 	}
 
 	// Use the current state as the base model to set the response state
 	if err := autogeneration.Unmarshal(respBody, &state); err != nil {
-		resp.Diagnostics.AddError("error during get operation", err.Error())
+		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
@@ -127,7 +134,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 
 	reqBody, err := autogeneration.Marshal(&plan, true)
 	if err != nil {
-		resp.Diagnostics.AddError("error during update operation", err.Error())
+		resp.Diagnostics.AddError(errorBuildingAPIRequest, err.Error())
 		return
 	}
 
@@ -148,14 +155,15 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 
 	respBody, err := io.ReadAll(apiResp.Body)
+	apiResp.Body.Close()
 	if err != nil {
-		resp.Diagnostics.AddError("error during update operation", err.Error())
+		resp.Diagnostics.AddError(errorReadingAPIResponse, err.Error())
 		return
 	}
 
 	// Use the plan as the base model to set the response state
 	if err := autogeneration.Unmarshal(respBody, &plan); err != nil {
-		resp.Diagnostics.AddError("error during update operation", err.Error())
+		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -183,5 +191,6 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// TODO: code generation logic for import will be handled in milestone 2
+	idAttributes := []string{"group_id"}
+	autogeneration.GenericImportOperation(ctx, idAttributes, req, resp)
 }

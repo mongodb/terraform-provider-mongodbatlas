@@ -106,13 +106,13 @@ func mergeAttributes(sources *attributeDefinitionSources) Attributes {
 
 	// create path parameters: all attributes will be "required", reqBodyUsage is defined as omit all at this step
 	for i := range sources.createPathParams {
-		addOrUpdate(merged, &sources.createPathParams[i], OmitAll, false)
+		addOrUpdate(merged, &sources.createPathParams[i], OmitAlways, false)
 	}
 
 	// POST request body: optional/required is as defined, reqBodyUsage is defined as OmitUpdateBody and will be updated to AllRequestBodies if present in POST request
 	for i := range sources.createRequest {
 		// for now we do not differentiate AllRequestBodies vs PostBodyOnly as we are not processing update request
-		addOrUpdate(merged, &sources.createRequest[i], OmitUpdateBody, false)
+		addOrUpdate(merged, &sources.createRequest[i], OmitInUpdateBody, false)
 	}
 
 	// PATCH request body: optional/required is as defined, reqBodyUsage is defined as AllRequestBodies
@@ -122,11 +122,11 @@ func mergeAttributes(sources *attributeDefinitionSources) Attributes {
 
 	// POST/GET response body: properties not in the request body are "computed" or "computed_optional" (if a default is present), reqBodyUsage will have OmitAll not present in request body
 	for i := range sources.createResponse {
-		addOrUpdate(merged, &sources.createResponse[i], OmitAll, true)
+		addOrUpdate(merged, &sources.createResponse[i], OmitAlways, true)
 	}
 
 	for i := range sources.readResponse {
-		addOrUpdate(merged, &sources.readResponse[i], OmitAll, true)
+		addOrUpdate(merged, &sources.readResponse[i], OmitAlways, true)
 	}
 
 	resourceAttributes := make(Attributes, 0, len(merged))
@@ -152,11 +152,11 @@ func updateNestedComputabilityAndReqBodyUsage(attrs *Attributes, parentIsCompute
 			attr.ComputedOptionalRequired = Computed
 		}
 		if parentIsOmittedInReqBody {
-			attr.ReqBodyUsage = OmitAll
+			attr.ReqBodyUsage = OmitAlways
 		}
 
 		attrIsComputed := attr.ComputedOptionalRequired == Computed
-		attrIsOmittedInReqBody := attr.ReqBodyUsage == OmitAll
+		attrIsOmittedInReqBody := attr.ReqBodyUsage == OmitAlways
 
 		if attr.ListNested != nil {
 			updateNestedComputabilityAndReqBodyUsage(&attr.ListNested.NestedObject.Attributes, attrIsComputed, attrIsOmittedInReqBody)

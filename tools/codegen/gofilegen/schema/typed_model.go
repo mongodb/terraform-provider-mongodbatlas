@@ -85,9 +85,9 @@ func typedModelProperty(attr *codespec.Attribute) string {
 		propType          = attrModelType(attr)
 		autogenerationTag string
 	)
-	if attr.ReqBodyUsage == codespec.OmitAll {
+	if attr.ReqBodyUsage == codespec.OmitAlways {
 		autogenerationTag = ` autogeneration:"omitjson"`
-	} else if attr.ReqBodyUsage == codespec.OmitUpdateBody {
+	} else if attr.ReqBodyUsage == codespec.OmitInUpdateBody {
 		autogenerationTag = ` autogeneration:"omitjsonupdate"`
 	}
 	return fmt.Sprintf("%s %s", namePascalCase, propType) + " `" + fmt.Sprintf("tfsdk:%q", attr.Name.SnakeCase()) + autogenerationTag + "`"

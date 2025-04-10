@@ -52,14 +52,14 @@ func TestConvertToProviderSpec(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							ComputedOptionalRequired: codespec.Computed,
 							Description:              conversion.StringPtr(testFieldDesc),
-							ReqBodyUsage:             codespec.OmitAll,
+							ReqBodyUsage:             codespec.OmitAlways,
 						},
 						{
 							Name:                     "group_id",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
-							ReqBodyUsage:             codespec.OmitAll,
+							ReqBodyUsage:             codespec.OmitAlways,
 						},
 						{
 							Name:                     "num_double_default_attr",
@@ -71,7 +71,7 @@ func TestConvertToProviderSpec(t *testing.T) {
 							ComputedOptionalRequired: codespec.Computed,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testFieldDesc),
-							ReqBodyUsage:             codespec.OmitAll,
+							ReqBodyUsage:             codespec.OmitAlways,
 						},
 						{
 							Name:                     "str_req_attr1",
@@ -135,14 +135,14 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
-							ReqBodyUsage:             codespec.OmitAll,
+							ReqBodyUsage:             codespec.OmitAlways,
 						},
 						{
 							Name:                     "group_id",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
-							ReqBodyUsage:             codespec.OmitAll,
+							ReqBodyUsage:             codespec.OmitAlways,
 						},
 						{
 							Name:                     "list_primitive_string_attr",
@@ -151,7 +151,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 								ElementType: codespec.String,
 							},
 							Description:  conversion.StringPtr(testFieldDesc),
-							ReqBodyUsage: codespec.OmitAll,
+							ReqBodyUsage: codespec.OmitAlways,
 						},
 						{
 							Name:                     "nested_list_array_attr",
@@ -180,7 +180,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 												ElementType: codespec.String,
 											},
 											Description:  conversion.StringPtr(testFieldDesc),
-											ReqBodyUsage: codespec.OmitAll,
+											ReqBodyUsage: codespec.OmitAlways,
 										},
 									},
 								},
@@ -197,12 +197,12 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 											Name:                     "attr",
 											ComputedOptionalRequired: codespec.Computed,
 											String:                   &codespec.StringAttribute{},
-											ReqBodyUsage:             codespec.OmitAll,
+											ReqBodyUsage:             codespec.OmitAlways,
 										},
 									},
 								},
 							},
-							ReqBodyUsage: codespec.OmitAll,
+							ReqBodyUsage: codespec.OmitAlways,
 						},
 						{
 							Name:                     "nested_set_array_attr",
@@ -215,7 +215,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 											ComputedOptionalRequired: codespec.Computed,
 											Int64:                    &codespec.Int64Attribute{},
 											Description:              conversion.StringPtr(testFieldDesc),
-											ReqBodyUsage:             codespec.OmitAll,
+											ReqBodyUsage:             codespec.OmitAlways,
 										},
 										{
 											Name:                     "list_primitive_string_attr",
@@ -224,12 +224,12 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 												ElementType: codespec.String,
 											},
 											Description:  conversion.StringPtr(testFieldDesc),
-											ReqBodyUsage: codespec.OmitAll,
+											ReqBodyUsage: codespec.OmitAlways,
 										},
 									},
 								},
 							},
-							ReqBodyUsage: codespec.OmitAll,
+							ReqBodyUsage: codespec.OmitAlways,
 							Description:  conversion.StringPtr(testFieldDesc),
 						},
 						{
@@ -244,7 +244,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							Set: &codespec.SetAttribute{
 								ElementType: codespec.String,
 							},
-							ReqBodyUsage: codespec.OmitAll,
+							ReqBodyUsage: codespec.OmitAlways,
 							Description:  conversion.StringPtr(testFieldDesc),
 						},
 						{
@@ -258,19 +258,19 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 											ComputedOptionalRequired: codespec.Computed,
 											Int64:                    &codespec.Int64Attribute{},
 											Description:              conversion.StringPtr(testFieldDesc),
-											ReqBodyUsage:             codespec.OmitAll,
+											ReqBodyUsage:             codespec.OmitAlways,
 										},
 										{
 											Name:                     "inner_str_attr",
 											ComputedOptionalRequired: codespec.Computed,
 											String:                   &codespec.StringAttribute{},
 											Description:              conversion.StringPtr(testFieldDesc),
-											ReqBodyUsage:             codespec.OmitAll,
+											ReqBodyUsage:             codespec.OmitAlways,
 										},
 									},
 								},
 							},
-							ReqBodyUsage: codespec.OmitAll,
+							ReqBodyUsage: codespec.OmitAlways,
 							Description:  conversion.StringPtr(testFieldDesc),
 						},
 						{
@@ -285,7 +285,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 											Map: &codespec.MapAttribute{
 												ElementType: codespec.String,
 											},
-											ReqBodyUsage: codespec.OmitAll,
+											ReqBodyUsage: codespec.OmitAlways,
 										},
 										{
 											Name:                     "map_attr2",
@@ -293,12 +293,12 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 											Map: &codespec.MapAttribute{
 												ElementType: codespec.String,
 											},
-											ReqBodyUsage: codespec.OmitAll,
+											ReqBodyUsage: codespec.OmitAlways,
 										},
 									},
 								},
 							},
-							ReqBodyUsage: codespec.OmitAll,
+							ReqBodyUsage: codespec.OmitAlways,
 							Description:  conversion.StringPtr(testFieldDesc),
 						},
 					},
@@ -346,7 +346,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
-							ReqBodyUsage:             codespec.OmitAll,
+							ReqBodyUsage:             codespec.OmitAlways,
 						},
 						{
 							Name:                     "nested_list_array_attr",
@@ -367,7 +367,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 												ElementType: codespec.String,
 											},
 											Description:  conversion.StringPtr(testFieldDesc),
-											ReqBodyUsage: codespec.OmitAll,
+											ReqBodyUsage: codespec.OmitAlways,
 										},
 									},
 								},
@@ -383,21 +383,21 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 						{
 							Name:                     "outer_object",
 							ComputedOptionalRequired: codespec.Computed,
-							ReqBodyUsage:             codespec.OmitAll,
+							ReqBodyUsage:             codespec.OmitAlways,
 							SingleNested: &codespec.SingleNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
 										{
 											Name:                     "nested_level1",
 											ComputedOptionalRequired: codespec.Computed,
-											ReqBodyUsage:             codespec.OmitAll,
+											ReqBodyUsage:             codespec.OmitAlways,
 											SingleNested: &codespec.SingleNestedAttribute{
 												NestedObject: codespec.NestedAttributeObject{
 													Attributes: codespec.Attributes{
 														{
 															Name:                     "level_field1_alias",
 															ComputedOptionalRequired: codespec.Computed,
-															ReqBodyUsage:             codespec.OmitAll,
+															ReqBodyUsage:             codespec.OmitAlways,
 															String:                   &codespec.StringAttribute{},
 															Description:              conversion.StringPtr("Overridden level_field1_alias description"),
 														},
@@ -414,7 +414,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 							Timeouts: &codespec.TimeoutsAttribute{
 								ConfigurableTimeouts: []codespec.Operation{codespec.Create, codespec.Read, codespec.Update, codespec.Delete},
 							},
-							ReqBodyUsage: codespec.OmitAll,
+							ReqBodyUsage: codespec.OmitAlways,
 						},
 					},
 				},
@@ -461,13 +461,13 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
-							ReqBodyUsage:             codespec.OmitAll,
+							ReqBodyUsage:             codespec.OmitAlways,
 						},
 						{
 							Name:                     "special_param",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
-							ReqBodyUsage:             codespec.OmitUpdateBody,
+							ReqBodyUsage:             codespec.OmitInUpdateBody,
 							Description:              conversion.StringPtr(testPathParamDesc),
 						},
 						{
