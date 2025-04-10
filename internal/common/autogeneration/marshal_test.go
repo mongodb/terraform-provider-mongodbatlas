@@ -413,10 +413,6 @@ func TestUnmarshalUnsupportedResponse(t *testing.T) {
 		responseJSON string
 		errorStr     string
 	}{
-		"JSON objects not support yet": {
-			responseJSON: `{"attr": {"key": "value"}}`,
-			errorStr:     "unmarshal not supported yet for type map[string]interface {} for field attr",
-		},
 		"JSON arrays not supported yet": {
 			responseJSON: `{"attr": [{"key": "value"}]}`,
 			errorStr:     "unmarshal not supported yet for type []interface {} for field attr",

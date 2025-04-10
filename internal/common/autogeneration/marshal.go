@@ -1,6 +1,7 @@
 package autogeneration
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -178,6 +179,31 @@ func unmarshalAttr(attrNameJSON string, attrObjJSON any, valModel reflect.Value)
 		return setAttrModel(attrNameModel, fieldModel, types.Int64Value(int64(v)))
 	case nil:
 		return nil // skip nil values, no need to set anything
+	case map[string]any:
+		obj, ok := fieldModel.Interface().(types.Object)
+		if !ok {
+			return fmt.Errorf("unmarshal expects object for field %s", attrNameJSON)
+		}
+		ctx := context.Background()
+		mapObj := obj.Attributes()
+		for nameChild, valueChild := range v {
+			nameChildModel := xstrings.ToSnakeCase(nameChild)
+			switch vChild := valueChild.(type) {
+			case string:
+				mapObj[nameChildModel] = types.StringValue(vChild)
+			case bool:
+				mapObj[nameChildModel] = types.BoolValue(vChild)
+			case float64:
+				mapObj[nameChildModel] = types.Int64Value(int64(vChild))
+			default:
+				return fmt.Errorf("unmarshal not supported yet for type %T for field %s", vChild, nameChild)
+			}
+		}
+		objNew, diags := types.ObjectValue(obj.AttributeTypes(ctx), mapObj)
+		if diags.HasError() {
+			return fmt.Errorf("failed to convert map to object: %v", diags)
+		}
+		return setAttrModel(attrNameModel, fieldModel, objNew)
 	default:
 		return fmt.Errorf("unmarshal not supported yet for type %T for field %s", v, attrNameJSON)
 	}
