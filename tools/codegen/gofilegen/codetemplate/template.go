@@ -20,10 +20,10 @@ type SchemaFileInputs struct {
 var resourceFileTemplate string
 
 type ResourceFileInputs struct {
-	PackageName   string
-	ResourceName  string
-	APIOperations APIOperations
-	IDAttributes  []string // e.g. ["project_id", "name"]
+	PackageName        string
+	ResourceName       string
+	APIOperations      APIOperations
+	ImportIDAttributes []string // e.g. ["project_id", "name"]
 }
 
 type APIOperations struct {

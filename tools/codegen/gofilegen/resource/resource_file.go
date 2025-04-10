@@ -20,7 +20,7 @@ func GenerateGoCode(input *codespec.Resource) string {
 			Read:          toCodeTemplateOpModel(input.Operations.Read),
 			Delete:        toCodeTemplateOpModel(input.Operations.Delete),
 		},
-		IDAttributes: getIDAttributes(input.Operations.Read.Path),
+		ImportIDAttributes: getIDAttributes(input.Operations.Read.Path),
 	}
 	result := codetemplate.ApplyResourceFileTemplate(&tmplInputs)
 
