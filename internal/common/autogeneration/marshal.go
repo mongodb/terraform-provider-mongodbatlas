@@ -202,12 +202,19 @@ func unmarshalAttr(attrNameJSON string, attrObjJSON any, valModel reflect.Value)
 				}
 				mapObj[nameChildTf] = types.StringValue(vChild)
 			case bool:
+				if valueType != types.BoolType {
+					return fmt.Errorf("unmarshal expects bool for field %s, value: %v", nameChildTf, vChild)
+				}
 				mapObj[nameChildTf] = types.BoolValue(vChild)
 			case float64:
-				if valueType != types.Int64Type {
-					return fmt.Errorf("unmarshal expects int for field %s, value %v", nameChildTf, vChild)
+				switch valueType {
+				case types.Int64Type:
+					mapObj[nameChildTf] = types.Int64Value(int64(vChild))
+				case types.Float64Type:
+					mapObj[nameChildTf] = types.Float64Value(vChild)
+				default:
+					return fmt.Errorf("unmarshal expects number for field %s, value %v", nameChildTf, vChild)
 				}
-				mapObj[nameChildTf] = types.Int64Value(int64(vChild))
 			default:
 				return fmt.Errorf("unmarshal not supported yet for type %T for field %s", vChild, nameChild)
 			}

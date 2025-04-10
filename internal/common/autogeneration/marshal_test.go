@@ -11,14 +11,34 @@ import (
 )
 
 type modelTest struct {
-	AttrString types.String `tfsdk:"attr_string"`
-	AttrInt    types.Int64  `tfsdk:"attr_int"`
+	AttrFloat  types.Float64 `tfsdk:"attr_float"`
+	AttrString types.String  `tfsdk:"attr_string"`
+	AttrInt    types.Int64   `tfsdk:"attr_int"`
+	AttrBool   types.Bool    `tfsdk:"attr_bool"`
 }
 
-var objTypeTest = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"attr_string": types.StringType,
-	"attr_int":    types.Int64Type,
-}}
+type modelParentTest struct {
+	AttrParentObj    types.Object `tfsdk:"attr_parent_obj"`
+	AttrParentString types.String `tfsdk:"attr_parent_string"`
+	AttrParentInt    types.Int64  `tfsdk:"attr_parent_int"`
+}
+
+var (
+	objTypeTest = types.ObjectType{AttrTypes: map[string]attr.Type{
+		"attr_float":  types.Float64Type,
+		"attr_string": types.StringType,
+		"attr_int":    types.Int64Type,
+		"attr_bool":   types.BoolType,
+	}}
+
+	objTypeParentTest = types.ObjectType{AttrTypes: map[string]attr.Type{
+		"attr_parent_obj":    objTypeTest,
+		"attr_parent_string": types.StringType,
+		"attr_parent_int":    types.Int64Type,
+	}}
+)
+
+const epsilon = 10e-15 // float tolerance in test equality
 
 func TestMarshalBasic(t *testing.T) {
 	model := struct {
@@ -134,21 +154,13 @@ func TestMarshalNestedAllTypes(t *testing.T) {
 }
 
 func TestMarshalNestedMultiLevel(t *testing.T) {
-	type parentModel struct {
-		AttrParentObj    types.Object `tfsdk:"attr_parent_obj"`
-		AttrParentString types.String `tfsdk:"attr_parent_string"`
-		AttrParentInt    types.Int64  `tfsdk:"attr_parent_int"`
-	}
-	parentObjType := types.ObjectType{AttrTypes: map[string]attr.Type{
-		"attr_parent_obj":    objTypeTest,
-		"attr_parent_string": types.StringType,
-		"attr_parent_int":    types.Int64Type,
-	}}
-	attrListObj, diags := types.ListValueFrom(t.Context(), parentObjType, []parentModel{
+	attrListObj, diags := types.ListValueFrom(t.Context(), objTypeParentTest, []modelParentTest{
 		{
 			AttrParentObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
 				"attr_string": types.StringValue("str11"),
 				"attr_int":    types.Int64Value(11),
+				"attr_float":  types.Float64Value(11.1),
+				"attr_bool":   types.BoolValue(true),
 			}),
 			AttrParentString: types.StringValue("str1"),
 			AttrParentInt:    types.Int64Value(1),
@@ -157,6 +169,8 @@ func TestMarshalNestedMultiLevel(t *testing.T) {
 			AttrParentObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
 				"attr_string": types.StringValue("str22"),
 				"attr_int":    types.Int64Value(22),
+				"attr_float":  types.Float64Value(22.2),
+				"attr_bool":   types.BoolValue(false),
 			}),
 			AttrParentString: types.StringValue("str2"),
 			AttrParentInt:    types.Int64Value(2),
@@ -180,7 +194,9 @@ func TestMarshalNestedMultiLevel(t *testing.T) {
 					"attrParentInt": 1,
 					"attrParentObj": {
 						"attrString": "str11",			
-						"attrInt": 11
+						"attrInt": 11,
+						"attrFloat": 11.1,
+						"attrBool": true
 					}				
 				},
 				{
@@ -188,7 +204,9 @@ func TestMarshalNestedMultiLevel(t *testing.T) {
 					"attrParentInt": 2,
 					"attrParentObj": {		
 						"attrString": "str22",	
-						"attrInt": 22
+						"attrInt": 22,
+						"attrFloat": 22.2,
+						"attrBool": false
 					}
 				}
 			]
@@ -280,7 +298,6 @@ func TestUnmarshalBasic(t *testing.T) {
 		AttrFalse        types.Bool    `tfsdk:"attr_false"`
 	}
 	const (
-		epsilon = 10e-15 // float tolerance
 		// attribute_not_in_model is ignored because it is not in the model, no error is thrown.
 		// attribute_null is ignored because it is null, no error is thrown even if it is not in the model.
 		jsonResp = `
@@ -313,8 +330,11 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrObj types.Object `tfsdk:"attr_obj"`
 	}{
 		AttrObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
-			"attr_string": types.StringValue("different_string"), // irrelevant, it will be overwritten
-			"attr_int":    types.Int64Value(123456),              // irrelevant, it will be overwritten
+			// these attribute values are irrelevant, they will be overwritten with JSON values
+			"attr_string": types.StringValue("different_string"),
+			"attr_int":    types.Int64Value(123456),
+			"attr_float":  types.Float64Value(12312.21),
+			"attr_bool":   types.BoolValue(false),
 		}),
 	}
 	// attrUnexisting is ignored because it is in JSON but not in the model, no error is returned
@@ -324,6 +344,8 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 				"attrObj": {
 					"attrString": "value_string",
 					"attrInt": 123,
+					"attrFloat": 1.1,
+					"attrBool": true,
 					"attrUnexisting": "val"
 				}
 			}
@@ -332,6 +354,8 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 	require.NoError(t, autogeneration.Unmarshal([]byte(jsonResp), &model))
 	assert.Equal(t, "value_string", model.AttrObj.Attributes()["attr_string"].(types.String).ValueString())
 	assert.Equal(t, int64(123), model.AttrObj.Attributes()["attr_int"].(types.Int64).ValueInt64())
+	assert.InEpsilon(t, float64(1.1), model.AttrObj.Attributes()["attr_float"].(types.Float64).ValueFloat64(), epsilon)
+	assert.True(t, model.AttrObj.Attributes()["attr_bool"].(types.Bool).ValueBool())
 }
 
 func TestUnmarshalErrors(t *testing.T) {
@@ -384,6 +408,8 @@ func TestUnmarshalErrors(t *testing.T) {
 				AttrObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
 					"attr_string": types.StringValue("different_string"),
 					"attr_int":    types.Int64Value(123456),
+					"attr_float":  types.Float64Value(12312.21),
+					"attr_bool":   types.BoolValue(false),
 				}),
 			},
 		},
