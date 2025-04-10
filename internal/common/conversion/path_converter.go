@@ -73,33 +73,40 @@ func ConvertAttributePath(in tftypes.AttributePath) (path.Path, error) {
 	inString := in.String()
 	parts := strings.Split(inString, ".")
 	var err error
+	var done bool
 	for i, part := range parts {
-		before := tpfPath
-		for prefix, replacer := range prefixes {
-			if strings.HasPrefix(part, prefix) {
-				var done bool
-				if prefix == keyValue {
-					part = strings.Join(parts[i:], ".")
-					done = true
-				}
-				part = strings.TrimPrefix(part, prefix)
-				part = strings.TrimSuffix(part, ")")
-				part = strings.Trim(part, `"`)
-				tpfPath, err = replacer(tpfPath, part)
-				if err != nil {
-					return path.Empty(), fmt.Errorf("could not convert %s: %v", part, err)
-				}
-				if done {
-					return tpfPath, nil
-				}
-				break
-			}
+		tpfPath, done, err = addStep(part, strings.Join(parts[i:], "."), tpfPath)
+		if err != nil {
+			return path.Empty(), err
 		}
-		if tpfPath.Equal(before) {
-			return path.Empty(), fmt.Errorf("could not convert %s", part)
+		if done {
+			return tpfPath, nil
 		}
 	}
 	return tpfPath, nil
+}
+
+func addStep(part, remaingParts string, tpfPath path.Path) (path.Path, bool, error) {
+	var err error
+	for prefix, replacer := range prefixes {
+		if !strings.HasPrefix(part, prefix) {
+			continue
+		}
+		var done bool
+		if prefix == keyValue {
+			part = remaingParts
+			done = true
+		}
+		part = strings.TrimPrefix(part, prefix)
+		part = strings.TrimSuffix(part, ")")
+		part = strings.Trim(part, `"`)
+		tpfPath, err = replacer(tpfPath, part)
+		if err != nil {
+			return path.Empty(), false, fmt.Errorf("could not convert %s: %w", part, err)
+		}
+		return tpfPath, done, nil
+	}
+	return path.Empty(), false, fmt.Errorf("unknown prefix %s to convert, current path %s", part, tpfPath.String())
 }
 
 func AttributePath(ctx context.Context, tfType *tftypes.AttributePath, schema TPFSchema) (path.Path, diag.Diagnostics) {
