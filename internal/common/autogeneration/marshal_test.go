@@ -326,9 +326,14 @@ func TestUnmarshalBasic(t *testing.T) {
 }
 
 func TestUnmarshalNestedAllTypes(t *testing.T) {
-	model := struct {
-		AttrObj types.Object `tfsdk:"attr_obj"`
-	}{
+	type modelst struct {
+		AttrObj               types.Object `tfsdk:"attr_obj"`
+		AttrObjNullNotSent    types.Object `tfsdk:"attr_obj_null_not_sent"`
+		AttrObjNullSent       types.Object `tfsdk:"attr_obj_null_sent"`
+		AttrObjUnknownNotSent types.Object `tfsdk:"attr_obj_unknown_not_sent"`
+		AttrObjUnknownSent    types.Object `tfsdk:"attr_obj_unknown_sent"`
+	}
+	model := modelst{
 		AttrObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
 			// these attribute values are irrelevant, they will be overwritten with JSON values
 			"attr_string": types.StringValue("different_string"),
@@ -336,6 +341,10 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 			"attr_float":  types.Float64Unknown(), // can even be null
 			"attr_bool":   types.BoolUnknown(),    // can even be unknown
 		}),
+		AttrObjNullNotSent:    types.ObjectNull(objTypeTest.AttrTypes),
+		AttrObjNullSent:       types.ObjectNull(objTypeTest.AttrTypes),
+		AttrObjUnknownNotSent: types.ObjectUnknown(objTypeTest.AttrTypes),
+		AttrObjUnknownSent:    types.ObjectUnknown(objTypeTest.AttrTypes),
 	}
 	// attrUnexisting is ignored because it is in JSON but not in the model, no error is returned
 	const (
@@ -351,11 +360,20 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 			}
 		`
 	)
+	modelExpected := modelst{
+		AttrObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
+			"attr_string": types.StringValue("value_string"),
+			"attr_int":    types.Int64Value(123),
+			"attr_float":  types.Float64Value(1.1),
+			"attr_bool":   types.BoolValue(true),
+		}),
+		AttrObjNullNotSent:    types.ObjectNull(objTypeTest.AttrTypes),
+		AttrObjNullSent:       types.ObjectNull(objTypeTest.AttrTypes),
+		AttrObjUnknownNotSent: types.ObjectUnknown(objTypeTest.AttrTypes),
+		AttrObjUnknownSent:    types.ObjectUnknown(objTypeTest.AttrTypes),
+	}
 	require.NoError(t, autogeneration.Unmarshal([]byte(jsonResp), &model))
-	assert.Equal(t, "value_string", model.AttrObj.Attributes()["attr_string"].(types.String).ValueString())
-	assert.Equal(t, int64(123), model.AttrObj.Attributes()["attr_int"].(types.Int64).ValueInt64())
-	assert.InEpsilon(t, float64(1.1), model.AttrObj.Attributes()["attr_float"].(types.Float64).ValueFloat64(), epsilon)
-	assert.True(t, model.AttrObj.Attributes()["attr_bool"].(types.Bool).ValueBool())
+	assert.Equal(t, modelExpected, model)
 }
 
 func TestUnmarshalErrors(t *testing.T) {
