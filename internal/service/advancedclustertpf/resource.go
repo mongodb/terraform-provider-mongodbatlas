@@ -95,8 +95,16 @@ type rs struct {
 
 // ModifyPlan is called before plan is shown to the user and right before the plan is applied.
 // Why do we need this? Why can't we use planmodifier.UseStateForUnknown in different fields?
-// 1. UseStateForUnknown always copies the state for unknown values. However, that leads to `Error: Provider produced inconsistent result after apply` in some cases (see implementation below).
-// 2. Adding the different UseStateForUnknown is very verbose.
+// 1. `UseStateForUnknown` always copies the state for unknown values. However, that leads to `Error: Provider produced inconsistent result after apply` in some cases (see implementation below).
+// 2. We can know based on changes, for example, no changes to replication_specs, then we can use the state values to avoid a verbose plan.
+// When adding a new attribute:
+// 1. If the attribute is not `computed` or never changes after it is set (state value is safe), you don't need to do anything.
+// 2. If the attribute is part of a nested structure, you will need to check all the ancesstors for the plan modifier behavior.
+// 3. Add behavior to the `plan_modifier.go` file to handle the new attribute, options in increasing level of complexity:
+// a) Add directly in call to `unknownReplacements.AddKeepUnknownAlways` if state value is unsafe.
+// b) Add to `attributeRootChangeMapping` or `attributeReplicationSpecChangeMapping` if the attribute can use state unless a change is made to a related attribute
+// c) Use `unknownReplacements.AddKeepUnknownsExtraCall` if the attribute must be kept unknown based on an ancestor. For example, `replicationSpecsKeepUnknownWhenChanged` adds KeepUnknown based on changes in the ancestor of the current UnknownAttribute
+// d) Define a ReplaceUnknown callback and reference it in `attributePlanModifiers`
 func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() || req.Plan.Raw.IsFullyKnown() { // Return early unless it is an Update
 		return

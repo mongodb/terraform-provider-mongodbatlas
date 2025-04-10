@@ -167,7 +167,7 @@ steps:
       - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
         method: PATCH
         version: '2023-02-01'
-        text: "{\n \"diskSizeGB\": 55,\n \"replicationSpecs\": [\n  {\n   \"numShards\": 2,\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneName\": \"ZoneName managed by Terraform\"\n  }\n ]\n}"
+        text: "{\n \"diskSizeGB\": 55,\n \"replicationSpecs\": [\n  {\n   \"numShards\": 2,\n   \"regionConfigs\": [\n    {\n     \"analyticsSpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"autoScaling\": {\n      \"compute\": {\n       \"enabled\": false,\n       \"scaleDownEnabled\": false\n      },\n      \"diskGB\": {\n       \"enabled\": false\n      }\n     },\n     \"electableSpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 3\n     },\n     \"priority\": 7,\n     \"providerName\": \"AWS\",\n     \"readOnlySpecs\": {\n      \"diskIOPS\": 3000,\n      \"ebsVolumeType\": \"STANDARD\",\n      \"instanceSize\": \"M10\",\n      \"nodeCount\": 0\n     },\n     \"regionName\": \"US_EAST_1\"\n    }\n   ],\n   \"zoneName\": \"ZoneName managed by Terraform\"\n  }\n ]\n}"
         responses:
           - response_index: 69
             status: 200
@@ -254,8 +254,7 @@ steps:
             status: 200
             duplicate_responses: 2
             text: "{\n \"links\": [\n  {\n   \"href\": \"https://cloud-dev.mongodb.com/api/atlas/v2/groups/{groupId}/flexClusters?includeCount=true\\u0026pageNum=1\\u0026itemsPerPage=100\",\n   \"rel\": \"self\"\n  }\n ],\n \"results\": [],\n \"totalCount\": 0\n}"
-  - config: ""
-    diff_requests:
+  - diff_requests:
       - path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
         method: DELETE
         version: '2023-02-01'
