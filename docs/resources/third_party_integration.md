@@ -43,7 +43,7 @@ resource "mongodbatlas_third_party_integration" "test_datadog" {
 * `DATADOG`
   * `api_key` - Your API Key.
   * `region` (Required) - Two-letter code that indicates which API URL to use. See the `region` request parameter of [MongoDB API Third-Party Service Integration documentation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Third-Party-Integrations/operation/createThirdPartyIntegration) for more details. Datadog will use "US" by default.
-  * `send_collection_latency_metrics` - Toggle sending collection latency metrics that includes database names and collection namesand latency metrics on reads, writes, commands, and transactions. Default: `false`.
+  * `send_collection_latency_metrics` - Toggle sending collection latency metrics that includes database names and collection names and latency metrics on reads, writes, commands, and transactions. Default: `false`.
   * `send_database_metrics` - Toggle sending database metrics that includes database names and metrics on the number of collections, storage size, and index size. Default: `false`.
 * `OPS_GENIE`
   * `api_key` - Your API Key.
@@ -61,6 +61,8 @@ resource "mongodbatlas_third_party_integration" "test_datadog" {
   * `password`  - Your Prometheus password.
   * `service_discovery` - Indicates which service discovery method is used, either file or http.
   * `enabled` - Whether your cluster has Prometheus enabled.
+
+-> **NOTE:** For certain attributes with default values, it's recommended to explicitly set them back to their default instead of removing them from the configuration. For example, if `send_collection_latency_metrics` is set to `true` and you want to revert to the default (`false`), set it to `false` rather than removing it.
 
 ## Attributes Reference
 

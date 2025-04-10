@@ -26,13 +26,13 @@ variable "cluster_name" {
 }
 
 variable "send_collection_latency_metrics" {
-  description = "Send collection latency metrics"
+  description = "Send collection latency metrics (only for Datadog integrations)"
   default     = false
   type        = bool
 }
 
 variable "send_database_metrics" {
-  description = "Send database metrics"
+  description = "Send database metrics (only for Datadog integrations)"
   default     = false
   type        = bool
 }

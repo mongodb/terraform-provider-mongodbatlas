@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -85,29 +86,29 @@ func thirdPartyIntegrationSchema() *schema.Resource {
 			"microsoft_teams_webhook_url": {
 				Type:      schema.TypeString,
 				Sensitive: true,
-				Optional:  true,
+				Computed:  true,
 			},
 			"user_name": {
 				Type:      schema.TypeString,
 				Sensitive: true,
-				Optional:  true,
+				Computed:  true,
 			},
 			"service_discovery": {
 				Type:      schema.TypeString,
 				Sensitive: true,
-				Optional:  true,
+				Computed:  true,
 			},
 			"enabled": {
 				Type:     schema.TypeBool,
-				Optional: true,
+				Computed: true,
 			},
 			"send_collection_latency_metrics": {
 				Type:     schema.TypeBool,
-				Optional: true,
+				Computed: true,
 			},
 			"send_database_metrics": {
 				Type:     schema.TypeBool,
-				Optional: true,
+				Computed: true,
 			},
 		},
 	}
