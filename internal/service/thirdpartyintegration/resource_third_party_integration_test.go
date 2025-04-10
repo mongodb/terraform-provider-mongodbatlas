@@ -178,23 +178,42 @@ func datadogTest(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configDatadog(projectID, apiKey, "US"),
+				Config: configDatadog(projectID, apiKey, "US", false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
 					resource.TestCheckResourceAttr(resourceName, "api_key", apiKey),
 					resource.TestCheckResourceAttr(resourceName, "region", region),
+					resource.TestCheckResourceAttr(resourceName, "send_collection_latency_metrics", "false"),
+					resource.TestCheckResourceAttr(resourceName, "send_database_metrics", "false"),
 					resource.TestCheckResourceAttr(dataSourceName, "type", intType),
 					resource.TestCheckResourceAttr(dataSourceName, "region", region),
+					resource.TestCheckResourceAttr(dataSourceName, "send_collection_latency_metrics", "false"),
+					resource.TestCheckResourceAttr(dataSourceName, "send_database_metrics", "false"),
 				),
 			},
 			{
-				Config: configDatadog(projectID, updatedAPIKey, "US"),
+				Config: configDatadog(projectID, updatedAPIKey, "US", false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
 					resource.TestCheckResourceAttr(resourceName, "api_key", updatedAPIKey),
 					resource.TestCheckResourceAttr(resourceName, "region", region),
+					resource.TestCheckResourceAttr(resourceName, "send_collection_latency_metrics", "false"),
+					resource.TestCheckResourceAttr(resourceName, "send_database_metrics", "false"),
+				),
+			},
+			{
+				Config: configDatadog(projectID, updatedAPIKey, "US", true, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "type", intType),
+					resource.TestCheckResourceAttr(resourceName, "api_key", updatedAPIKey),
+					resource.TestCheckResourceAttr(resourceName, "region", region),
+					resource.TestCheckResourceAttr(resourceName, "send_collection_latency_metrics", "true"),
+					resource.TestCheckResourceAttr(resourceName, "send_database_metrics", "true"),
+					resource.TestCheckResourceAttr(dataSourceName, "send_collection_latency_metrics", "true"),
+					resource.TestCheckResourceAttr(dataSourceName, "send_database_metrics", "true"),
 				),
 			},
 			importStep(resourceName),
@@ -424,19 +443,23 @@ func configVictorOps(projectID, apiKey string) string {
 	) + singularDataStr
 }
 
-func configDatadog(projectID, apiKey, region string) string {
+func configDatadog(projectID, apiKey, region string, sendCollectionLatencyMetrics, sendDatabaseMetrics bool) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_third_party_integration" "test" {
 		project_id = "%[1]s"
 		type = "%[2]s"
 		api_key = "%[3]s"
 		region  ="%[4]s"
+		send_collection_latency_metrics = %[5]t
+		send_database_metrics = %[6]t
 	}
 	`,
 		projectID,
 		"DATADOG",
 		apiKey,
 		region,
+		sendCollectionLatencyMetrics,
+		sendDatabaseMetrics,
 	) + singularDataStr
 }
 

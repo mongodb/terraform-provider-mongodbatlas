@@ -24,7 +24,7 @@ var integrationTypes = []string{
 
 var requiredPerType = map[string][]string{
 	"PAGER_DUTY":      {"service_key"},
-	"DATADOG":         {"api_key", "region"},
+	"DATADOG":         {"api_key", "region", "send_collection_latency_metrics", "send_database_metrics"},
 	"OPS_GENIE":       {"api_key", "region"},
 	"VICTOR_OPS":      {"api_key"},
 	"WEBHOOK":         {"url"},
@@ -125,6 +125,16 @@ func Resource() *schema.Resource {
 				Sensitive: true,
 			},
 			"enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+				Optional: true,
+			},
+			"send_collection_latency_metrics": {
+				Type:     schema.TypeBool,
+				Computed: true,
+				Optional: true,
+			},
+			"send_database_metrics": {
 				Type:     schema.TypeBool,
 				Computed: true,
 				Optional: true,
