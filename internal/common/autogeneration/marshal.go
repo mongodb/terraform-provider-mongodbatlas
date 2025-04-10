@@ -187,17 +187,26 @@ func unmarshalAttr(attrNameJSON string, attrObjJSON any, valModel reflect.Value)
 		}
 		ctx := context.Background()
 		mapObj := obj.Attributes()
+		// mapTypes has all attributes, mapObj might not have them, e.g. in null or unknown attributes
+		mapTypes := obj.AttributeTypes(ctx)
 		for nameChild, valueChild := range v {
 			nameChildTf := xstrings.ToSnakeCase(nameChild)
-			if _, found := mapObj[nameChildTf]; !found {
+			if _, found := mapTypes[nameChildTf]; !found {
 				continue // skip attributes that are not in the model
 			}
+			valueType := mapTypes[nameChildTf].ValueType(ctx).Type(ctx)
 			switch vChild := valueChild.(type) {
 			case string:
+				if valueType != types.StringType {
+					return fmt.Errorf("unmarshal expects string for field %s, value: %v", nameChildTf, vChild)
+				}
 				mapObj[nameChildTf] = types.StringValue(vChild)
 			case bool:
 				mapObj[nameChildTf] = types.BoolValue(vChild)
 			case float64:
+				if valueType != types.Int64Type {
+					return fmt.Errorf("unmarshal expects int for field %s, value %v", nameChildTf, vChild)
+				}
 				mapObj[nameChildTf] = types.Int64Value(int64(vChild))
 			default:
 				return fmt.Errorf("unmarshal not supported yet for type %T for field %s", vChild, nameChild)

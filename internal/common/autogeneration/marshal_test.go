@@ -335,53 +335,62 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 }
 
 func TestUnmarshalErrors(t *testing.T) {
-	const errorStr = "can't assign value to model field Attr"
 	testCases := map[string]struct {
 		model        any
 		responseJSON string
+		errorStr     string
 	}{
 		"response ints are not converted to model strings": {
-			responseJSON: `{"attr": 123}`, //
+			errorStr:     "unmarshal can't assign value to model field Attr",
+			responseJSON: `{"attr": 123}`,
 			model: &struct {
 				Attr types.String
 			}{},
 		},
 		"response strings are not converted to model ints": {
+			errorStr:     "unmarshal can't assign value to model field Attr",
 			responseJSON: `{"attr": "hello"}`,
 			model: &struct {
 				Attr types.Int64
 			}{},
 		},
 		"response strings are not converted to model bools": {
+			errorStr:     "unmarshal can't assign value to model field Attr",
 			responseJSON: `{"attr": "true"}`,
 			model: &struct {
 				Attr types.Bool
 			}{},
 		},
 		"response bools are not converted to model string": {
+			errorStr:     "unmarshal can't assign value to model field Attr",
 			responseJSON: `{"attr": true}`,
 			model: &struct {
 				Attr types.String
 			}{},
 		},
 		"model attributes have to be of Terraform types": {
+			errorStr:     "unmarshal can't assign value to model field Attr",
 			responseJSON: `{"attr": "hello"}`,
 			model: &struct {
 				Attr string
 			}{},
 		},
 		"model attr types in objects must match JSON types": {
-			responseJSON: `{ "attrObj": { "attrString": 1 } }`,
+			errorStr:     "unmarshal expects string for field attr_int, value: not an int",
+			responseJSON: `{ "attrObj": { "attrString": "hello", "attrInt": "not an int" } }`,
 			model: &struct {
 				AttrObj types.Object `tfsdk:"attr_obj"`
 			}{
-				AttrObj: types.ObjectNull(objTypeTest.AttrTypes),
+				AttrObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
+					"attr_string": types.StringValue("different_string"),
+					"attr_int":    types.Int64Value(123456),
+				}),
 			},
 		},
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			assert.ErrorContains(t, autogeneration.Unmarshal([]byte(tc.responseJSON), tc.model), errorStr)
+			assert.ErrorContains(t, autogeneration.Unmarshal([]byte(tc.responseJSON), tc.model), tc.errorStr)
 		})
 	}
 }
