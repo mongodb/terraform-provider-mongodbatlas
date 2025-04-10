@@ -333,8 +333,8 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 			// these attribute values are irrelevant, they will be overwritten with JSON values
 			"attr_string": types.StringValue("different_string"),
 			"attr_int":    types.Int64Value(123456),
-			"attr_float":  types.Float64Value(12312.21),
-			"attr_bool":   types.BoolValue(false),
+			"attr_float":  types.Float64Unknown(), // can even be null
+			"attr_bool":   types.BoolUnknown(),    // can even be unknown
 		}),
 	}
 	// attrUnexisting is ignored because it is in JSON but not in the model, no error is returned
@@ -399,7 +399,7 @@ func TestUnmarshalErrors(t *testing.T) {
 				Attr string
 			}{},
 		},
-		"model attr types in objects must match JSON types": {
+		"model attr types in objects must match JSON types - int": {
 			errorStr:     "unmarshal expects string for field attr_int, value: not an int",
 			responseJSON: `{ "attrObj": { "attrString": "hello", "attrInt": "not an int" } }`,
 			model: &struct {
