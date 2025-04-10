@@ -10,12 +10,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type TFTestModel struct {
+type modelTest struct {
 	AttrString types.String `tfsdk:"attr_string"`
 	AttrInt    types.Int64  `tfsdk:"attr_int"`
 }
 
-var TestObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var objTypeTest = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"attr_string": types.StringType,
 	"attr_int":    types.Int64Type,
 }}
@@ -52,7 +52,7 @@ func TestMarshalBasic(t *testing.T) {
 }
 
 func TestMarshalNestedAllTypes(t *testing.T) {
-	attrListObj, diags := types.ListValueFrom(t.Context(), TestObjType, []TFTestModel{
+	attrListObj, diags := types.ListValueFrom(t.Context(), objTypeTest, []modelTest{
 		{
 			AttrString: types.StringValue("str1"),
 			AttrInt:    types.Int64Value(1),
@@ -63,7 +63,7 @@ func TestMarshalNestedAllTypes(t *testing.T) {
 		},
 	})
 	assert.False(t, diags.HasError())
-	attrSetObj, diags := types.SetValueFrom(t.Context(), TestObjType, []TFTestModel{
+	attrSetObj, diags := types.SetValueFrom(t.Context(), objTypeTest, []modelTest{
 		{
 			AttrString: types.StringValue("str11"),
 			AttrInt:    types.Int64Value(11),
@@ -74,7 +74,7 @@ func TestMarshalNestedAllTypes(t *testing.T) {
 		},
 	})
 	assert.False(t, diags.HasError())
-	attrMapObj, diags := types.MapValueFrom(t.Context(), TestObjType, map[string]TFTestModel{
+	attrMapObj, diags := types.MapValueFrom(t.Context(), objTypeTest, map[string]modelTest{
 		"keyOne": {
 			AttrString: types.StringValue("str1"),
 			AttrInt:    types.Int64Value(1),
@@ -140,13 +140,13 @@ func TestMarshalNestedMultiLevel(t *testing.T) {
 		AttrParentInt    types.Int64  `tfsdk:"attr_parent_int"`
 	}
 	parentObjType := types.ObjectType{AttrTypes: map[string]attr.Type{
-		"attr_parent_obj":    TestObjType,
+		"attr_parent_obj":    objTypeTest,
 		"attr_parent_string": types.StringType,
 		"attr_parent_int":    types.Int64Type,
 	}}
 	attrListObj, diags := types.ListValueFrom(t.Context(), parentObjType, []parentModel{
 		{
-			AttrParentObj: types.ObjectValueMust(TestObjType.AttrTypes, map[string]attr.Value{
+			AttrParentObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
 				"attr_string": types.StringValue("str11"),
 				"attr_int":    types.Int64Value(11),
 			}),
@@ -154,7 +154,7 @@ func TestMarshalNestedMultiLevel(t *testing.T) {
 			AttrParentInt:    types.Int64Value(1),
 		},
 		{
-			AttrParentObj: types.ObjectValueMust(TestObjType.AttrTypes, map[string]attr.Value{
+			AttrParentObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
 				"attr_string": types.StringValue("str22"),
 				"attr_int":    types.Int64Value(22),
 			}),
@@ -312,7 +312,7 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 	model := struct {
 		AttrObj types.Object `tfsdk:"attr_obj"`
 	}{
-		AttrObj: types.ObjectValueMust(TestObjType.AttrTypes, map[string]attr.Value{
+		AttrObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
 			"attr_string": types.StringValue("different_string"), // irrelevant, it will be overwritten
 			"attr_int":    types.Int64Value(123456),              // irrelevant, it will be overwritten
 		}),
