@@ -1,11 +1,11 @@
 ```release-note:enhancement
-resource/mongodbatlas_organization: Adds new `security_contact` attribute`
+resource/mongodbatlas_organization: Adds `security_contact` attribute
 ```
 
 ```release-note:enhancement
-data-source/mongodbatlas_organization: Adds new `security_contact` attribute`
+data-source/mongodbatlas_organization: Adds `security_contact` attribute
 ```
 
 ```release-note:enhancement
-data-source/mongodbatlas_organizations: Adds new `security_contact` attribute`
+data-source/mongodbatlas_organizations: Adds `security_contact` attribute
 ```
