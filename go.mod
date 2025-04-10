@@ -35,7 +35,7 @@ require (
 	go.mongodb.org/atlas-sdk/v20240530005 v20240530005.0.0
 	go.mongodb.org/atlas-sdk/v20240805005 v20240805005.0.0
 	go.mongodb.org/atlas-sdk/v20241113005 v20241113005.0.0
-	go.mongodb.org/atlas-sdk/v20250312001 v20250312001.0.1-0.20250325093008-453b6af2b254 // mapped to CLOUDP-303927-func-generic-call which exposes specific functions for generic API calls
+	go.mongodb.org/atlas-sdk/v20250312001 v20250312001.0.1-0.20250410092129-0f303459c5af // mapped to CLOUDP-303927-func-generic-call which exposes specific functions for generic API calls
 	go.mongodb.org/realm v0.1.0
 	gopkg.in/yaml.v3 v3.0.1
 )

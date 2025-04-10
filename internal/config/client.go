@@ -265,7 +265,14 @@ func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParam
 		return nil, err
 	}
 
-	return c.AtlasV2.CallAPI(apiReq)
+	apiResp, err := c.AtlasV2.CallAPI(apiReq)
+
+	if apiResp.StatusCode >= 300 {
+		newErr := c.AtlasV2.MakeApiError(apiResp, params.Method, localVarPath)
+		return apiResp, newErr
+	}
+
+	return apiResp, err
 }
 
 func userAgent(c *Config) string {
