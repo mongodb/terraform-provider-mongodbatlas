@@ -356,6 +356,11 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 					"attrFloat": 1.1,
 					"attrBool": true,
 					"attrUnexisting": "val"
+				}, 
+				"attrObjNullSent": {
+					"attrString": "null_obj",
+					"attrInt": 1,
+					"attrFloat": null
 				}
 			}
 		`
@@ -367,8 +372,13 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 			"attr_float":  types.Float64Value(1.1),
 			"attr_bool":   types.BoolValue(true),
 		}),
-		AttrObjNullNotSent:    types.ObjectNull(objTypeTest.AttrTypes),
-		AttrObjNullSent:       types.ObjectNull(objTypeTest.AttrTypes),
+		AttrObjNullNotSent: types.ObjectNull(objTypeTest.AttrTypes),
+		AttrObjNullSent: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
+			"attr_string": types.StringValue("null_obj"),
+			"attr_int":    types.Int64Value(1),
+			"attr_float":  types.Float64Null(),
+			"attr_bool":   types.BoolNull(),
+		}),
 		AttrObjUnknownNotSent: types.ObjectUnknown(objTypeTest.AttrTypes),
 		AttrObjUnknownSent:    types.ObjectUnknown(objTypeTest.AttrTypes),
 	}

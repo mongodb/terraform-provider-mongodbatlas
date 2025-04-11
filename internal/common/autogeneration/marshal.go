@@ -186,9 +186,25 @@ func unmarshalAttr(attrNameJSON string, attrObjJSON any, valModel reflect.Value)
 			return fmt.Errorf("unmarshal expects object for field %s", attrNameJSON)
 		}
 		ctx := context.Background()
-		mapAttrs := obj.Attributes()
-		// mapTypes has all attributes, mapObj might not have them, e.g. in null or unknown attributes
+		// mapTypes has all attributes, mapAttrs might not have them, e.g. in null or unknown objects
 		mapTypes := obj.AttributeTypes(ctx)
+		mapAttrs := obj.Attributes()
+		for attrName, attrType := range mapTypes {
+			if _, found := mapAttrs[attrName]; !found {
+				switch attrType {
+				case types.StringType:
+					mapAttrs[attrName] = types.StringNull()
+				case types.BoolType:
+					mapAttrs[attrName] = types.BoolNull()
+				case types.Int64Type:
+					mapAttrs[attrName] = types.Int64Null()
+				case types.Float64Type:
+					mapAttrs[attrName] = types.Float64Null()
+				default:
+					return fmt.Errorf("unmarshal not supported yet for setting null type %T for field %s", attrType, attrName)
+				}
+			}
+		}
 		for nameChild, valueChild := range v {
 			nameChildTf := xstrings.ToSnakeCase(nameChild)
 			if _, found := mapTypes[nameChildTf]; !found {
@@ -215,6 +231,7 @@ func unmarshalAttr(attrNameJSON string, attrObjJSON any, valModel reflect.Value)
 				default:
 					return fmt.Errorf("unmarshal expects number for field %s, value %v", nameChildTf, vChild)
 				}
+			case nil: // skip nil values
 			default:
 				return fmt.Errorf("unmarshal not supported yet for type %T for field %s", vChild, nameChild)
 			}
