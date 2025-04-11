@@ -1,16 +1,16 @@
-resources:
-  push_based_log_export_api:
+resources:  
+  custom_db_role_api:
     read:
-      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
+      path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
       method: GET
     create:
-      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
+      path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles
       method: POST
     update:
-      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
+      path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
       method: PATCH
     delete:
-      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
+      path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
       method: DELETE
     version_header: application/vnd.atlas.2023-01-01+json
 
@@ -29,18 +29,18 @@ resources:
       method: DELETE
     version_header: application/vnd.atlas.2023-01-01+json
 
-  custom_db_role_api:
+  push_based_log_export_api:
     read:
-      path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
+      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
       method: GET
     create:
-      path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles
+      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
       method: POST
     update:
-      path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
+      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
       method: PATCH
     delete:
-      path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
+      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
       method: DELETE
     version_header: application/vnd.atlas.2023-01-01+json
 
