@@ -129,7 +129,7 @@ func getListAttr(elms []attr.Value) (any, error) {
 // getMapAttr gets a map of attributes and returns a map of JSON attributes.
 // keepKeyCase is used for types.Map to keep key case. However, we want to use JSON key case for types.Object
 func getMapAttr(elms map[string]attr.Value, keepKeyCase bool) (any, error) {
-	obj := make(map[string]any)
+	objJSON := make(map[string]any)
 	for name, attr := range elms {
 		valChild, err := getAttr(attr)
 		if err != nil {
@@ -140,10 +140,10 @@ func getMapAttr(elms map[string]attr.Value, keepKeyCase bool) (any, error) {
 			if keepKeyCase {
 				nameJSON = name
 			}
-			obj[nameJSON] = valChild
+			objJSON[nameJSON] = valChild
 		}
 	}
-	return obj, nil
+	return objJSON, nil
 }
 
 func unmarshalAttrs(objJSON map[string]any, model any) error {
@@ -187,47 +187,7 @@ func unmarshalAttr(attrNameJSON string, attrObjJSON any, valModel reflect.Value)
 		if !ok {
 			return fmt.Errorf("unmarshal expects object for field %s", attrNameJSON)
 		}
-		mapAttrs, mapTypes, err := getObjAttrsAndTypes(obj)
-		if err != nil {
-			return err
-		}
-		ctx := context.Background()
-		for nameChild, valueChild := range v {
-			nameChildTf := xstrings.ToSnakeCase(nameChild)
-			if _, found := mapTypes[nameChildTf]; !found {
-				continue // skip attributes that are not in the model
-			}
-			valueType := mapTypes[nameChildTf].ValueType(ctx).Type(ctx)
-			switch vChild := valueChild.(type) {
-			case string:
-				if valueType != types.StringType {
-					return fmt.Errorf("unmarshal expects string for field %s, value: %v", nameChildTf, vChild)
-				}
-				mapAttrs[nameChildTf] = types.StringValue(vChild)
-			case bool:
-				if valueType != types.BoolType {
-					return fmt.Errorf("unmarshal expects bool for field %s, value: %v", nameChildTf, vChild)
-				}
-				mapAttrs[nameChildTf] = types.BoolValue(vChild)
-			case float64:
-				switch valueType {
-				case types.Int64Type:
-					mapAttrs[nameChildTf] = types.Int64Value(int64(vChild))
-				case types.Float64Type:
-					mapAttrs[nameChildTf] = types.Float64Value(vChild)
-				default:
-					return fmt.Errorf("unmarshal expects number for field %s, value %v", nameChildTf, vChild)
-				}
-			case nil: // skip nil values
-			default:
-				return fmt.Errorf("unmarshal not supported yet for type %T for field %s", vChild, nameChild)
-			}
-		}
-		objNew, diags := types.ObjectValue(obj.AttributeTypes(ctx), mapAttrs)
-		if diags.HasError() {
-			return fmt.Errorf("unmarshal failed to convert map to object: %v", diags)
-		}
-		return setAttrModel(attrNameModel, fieldModel, objNew)
+		return setObjAttrModel(attrNameModel, fieldModel, obj, v)
 	default:
 		return fmt.Errorf("unmarshal not supported yet for type %T for field %s", v, attrNameJSON)
 	}
@@ -240,6 +200,50 @@ func setAttrModel(name string, field reflect.Value, val attr.Value) error {
 	}
 	field.Set(obj)
 	return nil
+}
+
+func setObjAttrModel(name string, field reflect.Value, obj types.Object, objJSON map[string]any) error {
+	mapAttrs, mapTypes, err := getObjAttrsAndTypes(obj)
+	if err != nil {
+		return err
+	}
+	ctx := context.Background()
+	for nameChild, valueChild := range objJSON {
+		nameChildTf := xstrings.ToSnakeCase(nameChild)
+		if _, found := mapTypes[nameChildTf]; !found {
+			continue // skip attributes that are not in the model
+		}
+		valueType := mapTypes[nameChildTf].ValueType(ctx).Type(ctx)
+		switch vChild := valueChild.(type) {
+		case string:
+			if valueType != types.StringType {
+				return fmt.Errorf("unmarshal expects string for field %s, value: %v", nameChildTf, vChild)
+			}
+			mapAttrs[nameChildTf] = types.StringValue(vChild)
+		case bool:
+			if valueType != types.BoolType {
+				return fmt.Errorf("unmarshal expects bool for field %s, value: %v", nameChildTf, vChild)
+			}
+			mapAttrs[nameChildTf] = types.BoolValue(vChild)
+		case float64:
+			switch valueType {
+			case types.Int64Type:
+				mapAttrs[nameChildTf] = types.Int64Value(int64(vChild))
+			case types.Float64Type:
+				mapAttrs[nameChildTf] = types.Float64Value(vChild)
+			default:
+				return fmt.Errorf("unmarshal expects number for field %s, value %v", nameChildTf, vChild)
+			}
+		case nil: // skip nil values
+		default:
+			return fmt.Errorf("unmarshal not supported yet for type %T for field %s", vChild, nameChild)
+		}
+	}
+	objNew, diags := types.ObjectValue(obj.AttributeTypes(ctx), mapAttrs)
+	if diags.HasError() {
+		return fmt.Errorf("unmarshal failed to convert map to object: %v", diags)
+	}
+	return setAttrModel(name, field, objNew)
 }
 
 func getObjAttrsAndTypes(obj types.Object) (mapAttrs map[string]attr.Value, mapTypes map[string]attr.Type, err error) {
