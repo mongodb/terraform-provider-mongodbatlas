@@ -23,6 +23,19 @@ var intAttr = codespec.Attribute{
 	ComputedOptionalRequired: codespec.Required,
 }
 
+var doubleNestedListAttr = codespec.Attribute{
+	Name:                     "double_nested_list_attr",
+	Description:              admin.PtrString("double nested list attribute"),
+	ComputedOptionalRequired: codespec.Optional,
+	ListNested: &codespec.ListNestedAttribute{
+		NestedObject: codespec.NestedAttributeObject{
+			Attributes: []codespec.Attribute{
+				stringAttr,
+			},
+		},
+	},
+}
+
 type schemaGenerationTestCase struct {
 	inputModel     codespec.Resource
 	goldenFileName string
@@ -139,7 +152,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							ComputedOptionalRequired: codespec.Optional,
 							ListNested: &codespec.ListNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
-									Attributes: []codespec.Attribute{stringAttr, intAttr},
+									Attributes: []codespec.Attribute{stringAttr, intAttr, doubleNestedListAttr},
 								},
 							},
 						},

@@ -32,7 +32,8 @@ func generateModelObjType(attrs codespec.Attributes, name string) CodeStatement 
 	structProperties := []string{}
 	for i := range attrs {
 		propType := attrModelType(&attrs[i])
-		prop := fmt.Sprintf(`%q: %sType,`, attrs[i].Name.SnakeCase(), propType)
+		comment := limitationComment(&attrs[i])
+		prop := fmt.Sprintf(`%q: %sType,%s`, attrs[i].Name.SnakeCase(), propType, comment)
 		structProperties = append(structProperties, prop)
 	}
 	structPropsCode := strings.Join(structProperties, "\n")
@@ -119,4 +120,13 @@ func attrModelType(attr *codespec.Attribute) string {
 	default:
 		panic("Attribute with unknown type defined when generating typed model")
 	}
+}
+
+func limitationComment(attr *codespec.Attribute) string {
+	if attr.List == nil && attr.ListNested == nil &&
+		attr.Map == nil && attr.MapNested == nil &&
+		attr.Set == nil && attr.SetNested == nil {
+		return ""
+	}
+	return " // TODO: missing ElemType, codegen limitation tracked in CLOUDP-311105"
 }
