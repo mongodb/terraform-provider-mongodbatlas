@@ -208,7 +208,7 @@ func unmarshalAttr(attrNameJSON string, attrObjJSON any, valModel reflect.Value)
 			}
 			return setAttrTfModel(attrNameModel, fieldModel, set)
 		}
-		return fmt.Errorf("unmarshal expects collection for field %s", attrNameJSON)
+		return fmt.Errorf("unmarshal expects array for field %s", attrNameJSON)
 	default:
 		return fmt.Errorf("unmarshal not supported yet for type %T for field %s", v, attrNameJSON)
 	}
