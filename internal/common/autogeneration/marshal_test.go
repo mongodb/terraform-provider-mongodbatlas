@@ -332,6 +332,7 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrObjNullSent       types.Object `tfsdk:"attr_obj_null_sent"`
 		AttrObjUnknownNotSent types.Object `tfsdk:"attr_obj_unknown_not_sent"`
 		AttrObjUnknownSent    types.Object `tfsdk:"attr_obj_unknown_sent"`
+		AttrObjParent         types.Object `tfsdk:"attr_obj_parent"`
 	}
 	model := modelst{
 		AttrObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
@@ -345,6 +346,7 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrObjNullSent:       types.ObjectNull(objTypeTest.AttrTypes),
 		AttrObjUnknownNotSent: types.ObjectUnknown(objTypeTest.AttrTypes), // unknown values are changed to null
 		AttrObjUnknownSent:    types.ObjectUnknown(objTypeTest.AttrTypes),
+		AttrObjParent:         types.ObjectNull(objTypeParentTest.AttrTypes),
 	}
 	// attrUnexisting is ignored because it is in JSON but not in the model, no error is returned
 	const (
@@ -364,6 +366,12 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 				},
 				"attrObjUnknownSent": {
 					"attrString": "unknown_obj"
+				},
+				"attrObjParent": {
+					"attrParentString": "parent string",
+					"attrParentObj": {
+						"attrString": "inside parent string"
+					}
 				}
 			}
 		`
@@ -388,6 +396,16 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 			"attr_int":    types.Int64Null(),
 			"attr_float":  types.Float64Null(),
 			"attr_bool":   types.BoolNull(),
+		}),
+		AttrObjParent: types.ObjectValueMust(objTypeParentTest.AttrTypes, map[string]attr.Value{
+			"attr_parent_string": types.StringValue("parent string"),
+			"attr_parent_int":    types.Int64Null(),
+			"attr_parent_obj": types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
+				"attr_string": types.StringValue("inside parent string"),
+				"attr_int":    types.Int64Null(),
+				"attr_float":  types.Float64Null(),
+				"attr_bool":   types.BoolNull(),
+			}),
 		}),
 	}
 	require.NoError(t, autogeneration.Unmarshal([]byte(jsonResp), &model))
