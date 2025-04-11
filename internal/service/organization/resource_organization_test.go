@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
+	"strings"
 	"testing"
 
 	"go.mongodb.org/atlas-sdk/v20250312002/admin"
@@ -18,7 +20,18 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-var resourceName = "mongodbatlas_organization.test"
+var (
+	resourceName   = "mongodbatlas_organization.test"
+	pluralDSName   = "data.mongodbatlas_organizations.test"
+	datasourceName = "data.mongodbatlas_organization.test"
+
+	defaultSettings = &admin.OrganizationSettings{
+		ApiAccessListRequired:   conversion.Pointer(false),
+		MultiFactorAuthRequired: conversion.Pointer(false),
+		RestrictEmployeeAccess:  conversion.Pointer(false),
+		GenAIFeaturesEnabled:    conversion.Pointer(true),
+	}
+)
 
 func TestAccConfigRSOrganization_Basic(t *testing.T) {
 	acc.SkipTestForCI(t) // affects the org
@@ -38,42 +51,18 @@ func TestAccConfigRSOrganization_Basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(orgOwnerID, name, description, roleName, false, nil),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttr(resourceName, "description", description),
-					resource.TestCheckResourceAttr(resourceName, "api_access_list_required", "false"),
-					resource.TestCheckResourceAttr(resourceName, "restrict_employee_access", "false"),
-					resource.TestCheckResourceAttr(resourceName, "multi_factor_auth_required", "false"),
-					resource.TestCheckResourceAttr(resourceName, "gen_ai_features_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "skip_default_alerts_settings", "true"),
-				),
+				Check: checkAggr(orgOwnerID, name, description, defaultSettings,
+					resource.TestCheckResourceAttr(resourceName, "skip_default_alerts_settings", "true")),
 			},
 			{
 				Config: configBasic(orgOwnerID, updatedName, description, roleName, true, conversion.Pointer(false)),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttr(resourceName, "description", description),
-					resource.TestCheckResourceAttr(resourceName, "api_access_list_required", "false"),
-					resource.TestCheckResourceAttr(resourceName, "restrict_employee_access", "false"),
-					resource.TestCheckResourceAttr(resourceName, "multi_factor_auth_required", "false"),
-					resource.TestCheckResourceAttr(resourceName, "gen_ai_features_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "skip_default_alerts_settings", "false"),
-				),
+				Check: checkAggr(orgOwnerID, updatedName, description, defaultSettings,
+					resource.TestCheckResourceAttr(resourceName, "skip_default_alerts_settings", "false")),
 			},
 			{
 				Config: configBasic(orgOwnerID, updatedName, description, roleName, true, conversion.Pointer(true)),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttr(resourceName, "description", description),
-					resource.TestCheckResourceAttr(resourceName, "api_access_list_required", "false"),
-					resource.TestCheckResourceAttr(resourceName, "restrict_employee_access", "false"),
-					resource.TestCheckResourceAttr(resourceName, "multi_factor_auth_required", "false"),
-					resource.TestCheckResourceAttr(resourceName, "gen_ai_features_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "skip_default_alerts_settings", "true"),
-				),
+				Check: checkAggr(orgOwnerID, updatedName, description, defaultSettings,
+					resource.TestCheckResourceAttr(resourceName, "skip_default_alerts_settings", "true")),
 			},
 		},
 	})
@@ -101,16 +90,8 @@ func TestAccConfigRSOrganization_BasicAccess(t *testing.T) {
 			},
 			{
 				Config: configBasic(orgOwnerID, name, description, roleNameCorrectAccess, true, conversion.Pointer(false)),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttr(resourceName, "description", description),
-					resource.TestCheckResourceAttr(resourceName, "api_access_list_required", "false"),
-					resource.TestCheckResourceAttr(resourceName, "restrict_employee_access", "false"),
-					resource.TestCheckResourceAttr(resourceName, "multi_factor_auth_required", "false"),
-					resource.TestCheckResourceAttr(resourceName, "gen_ai_features_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "skip_default_alerts_settings", "false"),
-				),
+				Check: checkAggr(orgOwnerID, name, description, defaultSettings,
+					resource.TestCheckResourceAttr(resourceName, "skip_default_alerts_settings", "false")),
 			},
 		},
 	})
@@ -122,18 +103,23 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 	var (
 		orgOwnerID  = os.Getenv("MONGODB_ATLAS_ORG_OWNER_ID")
 		name        = acc.RandomName()
+		nameUpdated = "org-name-updated"
 		description = "test Key for Acceptance tests"
 		roleName    = "ORG_OWNER"
 
-		settingsConfig = `
-		api_access_list_required = false
-		multi_factor_auth_required = true
-		gen_ai_features_enabled = false`
-		settingsConfigUpdated = `
-		api_access_list_required = false
-		multi_factor_auth_required = true
-		restrict_employee_access = true
-		gen_ai_features_enabled = true`
+		settingsConfig = &admin.OrganizationSettings{
+			ApiAccessListRequired:   conversion.Pointer(false),
+			MultiFactorAuthRequired: conversion.Pointer(true),
+			GenAIFeaturesEnabled:    conversion.Pointer(false),
+			SecurityContact:         conversion.StringPtr("test@mongodb.com"),
+		}
+
+		settingsConfigUpdated = &admin.OrganizationSettings{
+			ApiAccessListRequired:   conversion.Pointer(false),
+			MultiFactorAuthRequired: conversion.Pointer(true),
+			RestrictEmployeeAccess:  conversion.Pointer(false),
+			GenAIFeaturesEnabled:    conversion.Pointer(true),
+		}
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -143,34 +129,16 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithSettings(orgOwnerID, name, description, roleName, settingsConfig),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttr(resourceName, "description", description),
-					resource.TestCheckResourceAttr(resourceName, "api_access_list_required", "false"),
-					resource.TestCheckResourceAttr(resourceName, "restrict_employee_access", "false"),
-					resource.TestCheckResourceAttr(resourceName, "multi_factor_auth_required", "true"),
-				),
+				Check:  checkAggr(orgOwnerID, name, description, settingsConfig),
 			},
 			{
 				Config: configWithSettings(orgOwnerID, name, description, roleName, settingsConfigUpdated),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttr(resourceName, "description", description),
-					resource.TestCheckResourceAttr(resourceName, "api_access_list_required", "false"),
-					resource.TestCheckResourceAttr(resourceName, "multi_factor_auth_required", "true"),
-					resource.TestCheckResourceAttr(resourceName, "restrict_employee_access", "true"),
-				),
+				Check:  checkAggr(orgOwnerID, name, description, settingsConfigUpdated),
 			},
 			{
-				Config: configBasic(orgOwnerID, "org-name-updated", description, roleName, false, nil),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "description"),
-					resource.TestCheckResourceAttr(resourceName, "description", description),
-				),
+				Config: configBasic(orgOwnerID, nameUpdated, description, roleName, false, nil),
+				Check: checkAggr(orgOwnerID, nameUpdated, description, settingsConfigUpdated,
+					resource.TestCheckResourceAttr(resourceName, "skip_default_alerts_settings", "true")),
 			},
 		},
 	})
@@ -194,88 +162,61 @@ func TestAccConfigRSOrganizationCreate_Errors(t *testing.T) {
 	})
 }
 
-func TestAccConfigDSOrganization_basic(t *testing.T) {
-	var (
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		datasourceName = "data.mongodbatlas_organization.test"
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config: configWithDS(orgID),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(datasourceName, "name"),
-					resource.TestCheckResourceAttrSet(datasourceName, "id"),
-					resource.TestCheckResourceAttrSet(datasourceName, "restrict_employee_access"),
-					resource.TestCheckResourceAttrSet(datasourceName, "multi_factor_auth_required"),
-					resource.TestCheckResourceAttrSet(datasourceName, "api_access_list_required"),
-					resource.TestCheckResourceAttr(datasourceName, "gen_ai_features_enabled", "true"),
-					resource.TestCheckResourceAttrSet(datasourceName, "skip_default_alerts_settings"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccConfigDSOrganization_noAccessShouldFail(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      configWithPluralDS() + acc.ConfigOrgMemberProvider(),
+				Config:      configWithPluralDS("555") + acc.ConfigOrgMemberProvider(),
 				ExpectError: regexp.MustCompile("error getting organization settings .*"),
 			},
 		},
 	})
 }
 
-func TestAccConfigDSOrganizations_basic(t *testing.T) {
+func TestAccConfigDSOrganization_basic(t *testing.T) {
 	var (
-		datasourceName = "data.mongodbatlas_organizations.test"
+		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithPluralDS(),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(datasourceName, "results.#"),
-					resource.TestCheckResourceAttrSet(datasourceName, "results.0.name"),
-					resource.TestCheckResourceAttrSet(datasourceName, "results.0.id"),
-					resource.TestCheckResourceAttrSet(datasourceName, "results.0.restrict_employee_access"),
-					resource.TestCheckResourceAttrSet(datasourceName, "results.0.multi_factor_auth_required"),
-					resource.TestCheckResourceAttrSet(datasourceName, "results.0.api_access_list_required"),
-					resource.TestCheckResourceAttr(datasourceName, "results.0.gen_ai_features_enabled", "true"),
-					resource.TestCheckResourceAttrSet(datasourceName, "results.0.skip_default_alerts_settings"),
-				),
+				Config: configWithPluralDS(orgID),
+				Check: checkAggrDS(resource.TestCheckResourceAttr(datasourceName, "gen_ai_features_enabled", "true"),
+					resource.TestCheckResourceAttr(pluralDSName, "results.0.gen_ai_features_enabled", "true")),
 			},
 		},
 	})
 }
 
 func TestAccConfigDSOrganizations_withPagination(t *testing.T) {
-	var (
-		datasourceName = "data.mongodbatlas_organizations.test"
-	)
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithPagination(2, 5),
+				Config: configWithPagination(1, 5),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(datasourceName, "results.#"),
+					resource.TestCheckResourceAttrSet(pluralDSName, "results.#"),
 				),
 			},
 		},
 	})
 }
 
-func configWithPluralDS() string {
-	return `	
+func configWithPluralDS(orgID string) string {
+	cfg := fmt.Sprintf(`
+		
+		data "mongodbatlas_organization" "test" {
+			org_id = %[1]q
+		}
+	`, orgID)
+	return fmt.Sprintf(`	
 		data "mongodbatlas_organizations" "test" {
 		}
-	`
+
+		%s
+	`, cfg)
 }
 
 func configWithPagination(pageNum, itemPage int) string {
@@ -285,16 +226,6 @@ func configWithPagination(pageNum, itemPage int) string {
 			items_per_page = %d
 		}
 	`, pageNum, itemPage)
-}
-
-func configWithDS(orgID string) string {
-	cfg := fmt.Sprintf(`
-		
-		data "mongodbatlas_organization" "test" {
-			org_id = %[1]q
-		}
-	`, orgID)
-	return cfg
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
@@ -373,7 +304,9 @@ func configBasic(orgOwnerID, name, description, roleNames string, useSkipDefault
 	`, orgOwnerID, name, description, roleNames, skipDefaultAlertSettingsStr)
 }
 
-func configWithSettings(orgOwnerID, name, description, roleNames, settingsConfig string) string {
+func configWithSettings(orgOwnerID, name, description, roleNames string, settingsConfig *admin.OrganizationSettings) string {
+	settingsStr := getSettingsConfig(settingsConfig)
+
 	return fmt.Sprintf(`
 	  resource "mongodbatlas_organization" "test" {
 		org_owner_id = %q
@@ -382,7 +315,29 @@ func configWithSettings(orgOwnerID, name, description, roleNames, settingsConfig
 		role_names = [%q]
 		%s
 	  }
-	`, orgOwnerID, name, description, roleNames, settingsConfig)
+	`, orgOwnerID, name, description, roleNames, settingsStr)
+}
+
+func getSettingsConfig(settings *admin.OrganizationSettings) string {
+	var configs []string
+
+	if settings.ApiAccessListRequired != nil {
+		configs = append(configs, fmt.Sprintf("api_access_list_required = %t", *settings.ApiAccessListRequired))
+	}
+	if settings.MultiFactorAuthRequired != nil {
+		configs = append(configs, fmt.Sprintf("multi_factor_auth_required = %t", *settings.MultiFactorAuthRequired))
+	}
+	if settings.RestrictEmployeeAccess != nil {
+		configs = append(configs, fmt.Sprintf("restrict_employee_access = %t", *settings.RestrictEmployeeAccess))
+	}
+	if settings.GenAIFeaturesEnabled != nil {
+		configs = append(configs, fmt.Sprintf("gen_ai_features_enabled = %t", *settings.GenAIFeaturesEnabled))
+	}
+	if settings.SecurityContact != nil {
+		configs = append(configs, fmt.Sprintf("security_contact = %q", *settings.SecurityContact))
+	}
+
+	return strings.Join(configs, "\n")
 }
 
 // getTestClientWithNewOrgCreds creates a new Atlas client with credentials for the newly created organization which
@@ -439,4 +394,52 @@ func TestValidateAPIKeyIsOrgOwner(t *testing.T) {
 			}
 		})
 	}
+}
+
+func checkAggr(orgOwnerID, name, description string, settings *admin.OrganizationSettings, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
+	attributes := map[string]string{
+		"name":                       name,
+		"org_owner_id":               orgOwnerID,
+		"description":                description,
+		"api_access_list_required":   strconv.FormatBool(*settings.ApiAccessListRequired),
+		"multi_factor_auth_required": strconv.FormatBool(*settings.MultiFactorAuthRequired),
+		"restrict_employee_access":   strconv.FormatBool(*settings.RestrictEmployeeAccess),
+		"gen_ai_features_enabled":    strconv.FormatBool(*settings.GenAIFeaturesEnabled),
+		"security_contact":           settings.GetSecurityContact(),
+	}
+	checks := []resource.TestCheckFunc{
+		checkExists(resourceName),
+	}
+	checks = acc.AddAttrChecks(resourceName, checks, attributes)
+	checks = acc.AddAttrSetChecks(resourceName, checks, "role_names.#")
+	checks = append(checks, extra...)
+	return resource.ComposeAggregateTestCheckFunc(checks...)
+}
+
+func checkAggrDS(extra ...resource.TestCheckFunc) resource.TestCheckFunc {
+	var checks []resource.TestCheckFunc
+
+	singularKeys := []string{
+		"name",
+		"id",
+		"restrict_employee_access",
+		"multi_factor_auth_required",
+		"api_access_list_required",
+		"skip_default_alerts_settings",
+	}
+	checks = acc.AddAttrSetChecks(datasourceName, checks, singularKeys...)
+
+	pluralKeys := getPluralDSAttrKeys(singularKeys)
+	checks = acc.AddAttrSetChecks(pluralDSName, checks, pluralKeys...)
+
+	checks = append(checks, extra...)
+	return resource.ComposeAggregateTestCheckFunc(checks...)
+}
+
+func getPluralDSAttrKeys(singularKeys []string) []string {
+	pluralKeys := []string{"results.#"}
+	for _, key := range singularKeys {
+		pluralKeys = append(pluralKeys, "results.0."+key)
+	}
+	return pluralKeys
 }
