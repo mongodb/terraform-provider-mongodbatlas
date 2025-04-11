@@ -39,7 +39,8 @@ func Marshal(model any, isUpdate bool) ([]byte, error) {
 }
 
 // Unmarshal gets a JSON (e.g. from an Atlas response) and unmarshals it into a Terraform model.
-// It supports the following Terraform model types: String, Bool, Int64, Float64.
+// It supports the following Terraform model types: String, Bool, Int64, Float64, Object, List, Set.
+// Map is not supported yet as it is not used in the Atlas API.
 // Attributes that are in JSON but not in the model are ignored, no error is returned.
 // Object attributes that are unknown are converted to null as all values must be known in the response state.
 func Unmarshal(raw []byte, model any) error {
@@ -192,6 +193,22 @@ func unmarshalAttr(attrNameJSON string, attrObjJSON any, valModel reflect.Value)
 			return err
 		}
 		return setAttrTfModel(attrNameModel, fieldModel, objNew)
+	case []any:
+		switch collection := fieldModel.Interface().(type) {
+		case types.List:
+			list, err := setListAttrModel(collection, v)
+			if err != nil {
+				return err
+			}
+			return setAttrTfModel(attrNameModel, fieldModel, list)
+		case types.Set:
+			set, err := setSetAttrModel(collection, v)
+			if err != nil {
+				return err
+			}
+			return setAttrTfModel(attrNameModel, fieldModel, set)
+		}
+		return fmt.Errorf("unmarshal expects collection for field %s", attrNameJSON)
 	default:
 		return fmt.Errorf("unmarshal not supported yet for type %T for field %s", v, attrNameJSON)
 	}
@@ -268,6 +285,45 @@ func setObjAttrModel(obj types.Object, objJSON map[string]any) (attr.Value, erro
 		return nil, fmt.Errorf("unmarshal failed to convert map to object: %v", diags)
 	}
 	return objNew, nil
+}
+
+func setListAttrModel(list types.List, arrayJSON []any) (attr.Value, error) {
+	elmType := list.ElementType(context.Background())
+	elms, err := getCollectionElements(arrayJSON, elmType)
+	if err != nil {
+		return nil, err
+	}
+	listNew, diags := types.ListValue(elmType, elms)
+	if diags.HasError() {
+		return nil, fmt.Errorf("unmarshal failed to convert list to object: %v", diags)
+	}
+	return listNew, nil
+}
+
+func setSetAttrModel(set types.Set, arrayJSON []any) (attr.Value, error) {
+	elmType := set.ElementType(context.Background())
+	elms, err := getCollectionElements(arrayJSON, elmType)
+	if err != nil {
+		return nil, err
+	}
+	setNew, diags := types.SetValue(elmType, elms)
+	if diags.HasError() {
+		return nil, fmt.Errorf("unmarshal failed to convert set to object: %v", diags)
+	}
+	return setNew, nil
+}
+
+func getCollectionElements(arrayJSON []any, _ attr.Type) ([]attr.Value, error) {
+	elms := make([]attr.Value, len(arrayJSON))
+	for i, item := range arrayJSON {
+		switch v := item.(type) {
+		case string:
+			elms[i] = types.StringValue(v)
+		default:
+			return nil, fmt.Errorf("unmarshal not supported yet for type %T in list", v)
+		}
+	}
+	return elms, nil
 }
 
 func getObjAttrsAndTypes(obj types.Object) (mapAttrs map[string]attr.Value, mapTypes map[string]attr.Type, err error) {

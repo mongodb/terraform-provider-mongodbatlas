@@ -333,6 +333,8 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrObjUnknownNotSent types.Object `tfsdk:"attr_obj_unknown_not_sent"`
 		AttrObjUnknownSent    types.Object `tfsdk:"attr_obj_unknown_sent"`
 		AttrObjParent         types.Object `tfsdk:"attr_obj_parent"`
+		AttrListString        types.List   `tfsdk:"attr_list_string"`
+		AttrSetString         types.Set    `tfsdk:"attr_set_string"`
 	}
 	model := modelst{
 		AttrObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
@@ -347,6 +349,8 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrObjUnknownNotSent: types.ObjectUnknown(objTypeTest.AttrTypes), // unknown values are changed to null
 		AttrObjUnknownSent:    types.ObjectUnknown(objTypeTest.AttrTypes),
 		AttrObjParent:         types.ObjectNull(objTypeParentTest.AttrTypes),
+		AttrListString:        types.ListUnknown(types.StringType),
+		AttrSetString:         types.SetUnknown(types.StringType),
 	}
 	// attrUnexisting is ignored because it is in JSON but not in the model, no error is returned
 	const (
@@ -372,7 +376,15 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 					"attrParentObj": {
 						"attrString": "inside parent string"
 					}
-				}
+				},
+				"attrListString": [
+					"list1",
+					"list2"
+				],
+				"attrSetString": [
+					"set1",
+					"set2"
+				]
 			}
 		`
 	)
@@ -406,6 +418,14 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 				"attr_float":  types.Float64Null(),
 				"attr_bool":   types.BoolNull(),
 			}),
+		}),
+		AttrListString: types.ListValueMust(types.StringType, []attr.Value{
+			types.StringValue("list1"),
+			types.StringValue("list2"),
+		}),
+		AttrSetString: types.SetValueMust(types.StringType, []attr.Value{
+			types.StringValue("set1"),
+			types.StringValue("set2"),
 		}),
 	}
 	require.NoError(t, autogeneration.Unmarshal([]byte(jsonResp), &model))
@@ -537,7 +557,7 @@ func TestUnmarshalUnsupportedResponse(t *testing.T) {
 				AttrList types.List `tfsdk:"attr_list"`
 			}{},
 			responseJSON: `{"attrList": [{"key": "value"}]}`,
-			errorStr:     "unmarshal not supported yet for type []interface {} for field attrList",
+			errorStr:     "unmarshal not supported yet for type map[string]interface {} in list",
 		},
 		"JSON maps not supported yet": {
 			model: &struct {
