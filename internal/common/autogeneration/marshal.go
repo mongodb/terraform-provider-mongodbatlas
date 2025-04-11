@@ -77,7 +77,7 @@ func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[s
 	if !ok {
 		panic("marshal expects only Terraform types in the model")
 	}
-	val, err := getAttr(obj)
+	val, err := getModelAttr(obj)
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[s
 	return nil
 }
 
-func getAttr(val attr.Value) (any, error) {
+func getModelAttr(val attr.Value) (any, error) {
 	if val.IsNull() || val.IsUnknown() {
 		return nil, nil // skip null or unknown values
 	}
@@ -116,7 +116,7 @@ func getAttr(val attr.Value) (any, error) {
 func getListAttr(elms []attr.Value) (any, error) {
 	arr := make([]any, 0)
 	for _, attr := range elms {
-		valChild, err := getAttr(attr)
+		valChild, err := getModelAttr(attr)
 		if err != nil {
 			return nil, err
 		}
@@ -132,7 +132,7 @@ func getListAttr(elms []attr.Value) (any, error) {
 func getMapAttr(elms map[string]attr.Value, keepKeyCase bool) (any, error) {
 	objJSON := make(map[string]any)
 	for name, attr := range elms {
-		valChild, err := getAttr(attr)
+		valChild, err := getModelAttr(attr)
 		if err != nil {
 			return nil, err
 		}
@@ -223,7 +223,7 @@ func setAttrTfModel(name string, field reflect.Value, val attr.Value) error {
 	return nil
 }
 
-func setAttrModel(name string, value any, mapAttrs map[string]attr.Value, mapTypes map[string]attr.Type) error {
+func setMapAttrModel(name string, value any, mapAttrs map[string]attr.Value, mapTypes map[string]attr.Type) error {
 	nameChildTf := xstrings.ToSnakeCase(name)
 	valueType, found := mapTypes[nameChildTf]
 	if !found {
@@ -276,7 +276,7 @@ func setObjAttrModel(obj types.Object, objJSON map[string]any) (attr.Value, erro
 		return nil, err
 	}
 	for nameChild, valueChild := range objJSON {
-		if err := setAttrModel(nameChild, valueChild, mapAttrs, mapTypes); err != nil {
+		if err := setMapAttrModel(nameChild, valueChild, mapAttrs, mapTypes); err != nil {
 			return nil, err
 		}
 	}

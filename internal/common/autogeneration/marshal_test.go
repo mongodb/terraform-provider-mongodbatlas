@@ -334,6 +334,7 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrObjUnknownSent    types.Object `tfsdk:"attr_obj_unknown_sent"`
 		AttrObjParent         types.Object `tfsdk:"attr_obj_parent"`
 		AttrListString        types.List   `tfsdk:"attr_list_string"`
+		AttrListObj           types.List   `tfsdk:"attr_list_obj"`
 		AttrSetString         types.Set    `tfsdk:"attr_set_string"`
 	}
 	model := modelst{
@@ -350,6 +351,7 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrObjUnknownSent:    types.ObjectUnknown(objTypeTest.AttrTypes),
 		AttrObjParent:         types.ObjectNull(objTypeParentTest.AttrTypes),
 		AttrListString:        types.ListUnknown(types.StringType),
+		AttrListObj:           types.ListUnknown(objTypeTest),
 		AttrSetString:         types.SetUnknown(types.StringType),
 	}
 	// attrUnexisting is ignored because it is in JSON but not in the model, no error is returned
@@ -380,6 +382,20 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 				"attrListString": [
 					"list1",
 					"list2"
+				],
+				"attrListObj": [
+					{
+						"attrString": "list1",
+						"attrInt": 1,
+						"attrFloat": 1.1,
+						"attrBool": true
+					},
+					{
+						"attrString": "list2",
+						"attrInt": 2,
+						"attrFloat": 2.2,
+						"attrBool": false
+					}
 				],
 				"attrSetString": [
 					"set1",
@@ -422,6 +438,20 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrListString: types.ListValueMust(types.StringType, []attr.Value{
 			types.StringValue("list1"),
 			types.StringValue("list2"),
+		}),
+		AttrListObj: types.ListValueMust(objTypeTest, []attr.Value{
+			types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
+				"attr_string": types.StringValue("list1"),
+				"attr_int":    types.Int64Value(1),
+				"attr_float":  types.Float64Value(1.1),
+				"attr_bool":   types.BoolValue(true),
+			}),
+			types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
+				"attr_string": types.StringValue("list2"),
+				"attr_int":    types.Int64Value(2),
+				"attr_float":  types.Float64Value(2.2),
+				"attr_bool":   types.BoolValue(false),
+			}),
 		}),
 		AttrSetString: types.SetValueMust(types.StringType, []attr.Value{
 			types.StringValue("set1"),
