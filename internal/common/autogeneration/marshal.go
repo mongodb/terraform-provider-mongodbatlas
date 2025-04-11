@@ -284,6 +284,9 @@ func getNullAttr(attrType attr.Type) (attr.Value, error) {
 	case types.Float64Type:
 		return types.Float64Null(), nil
 	default:
+		if objType, ok := attrType.(types.ObjectType); ok {
+			return types.ObjectNull(objType.AttributeTypes()), nil
+		}
 		return nil, fmt.Errorf("unmarshal to get null value not supported yet for type %T", attrType)
 	}
 }
