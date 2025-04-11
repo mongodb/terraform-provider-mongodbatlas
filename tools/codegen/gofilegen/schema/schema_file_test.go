@@ -39,6 +39,7 @@ var doubleNestedListAttr = codespec.Attribute{
 type schemaGenerationTestCase struct {
 	inputModel     codespec.Resource
 	goldenFileName string
+	withObjType    bool
 }
 
 func TestSchemaGenerationFromCodeSpec(t *testing.T) {
@@ -119,6 +120,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 					},
 				},
 			},
+			withObjType:    true,
 			goldenFileName: "primitive-attributes",
 		},
 		"Nested attributes": {
@@ -179,9 +181,10 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 					},
 				},
 			},
+			withObjType:    true,
 			goldenFileName: "nested-attributes",
 		},
-		"timeout attribute": {
+		"Timeout attribute": {
 			inputModel: codespec.Resource{
 				Name: "test_name",
 				Schema: &codespec.Schema{
@@ -204,11 +207,32 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 			},
 			goldenFileName: "timeouts",
 		},
+		"Avoid generation of ObjType definitions": {
+			inputModel: codespec.Resource{
+				Name: "test_name",
+				Schema: &codespec.Schema{
+					Attributes: []codespec.Attribute{
+						{
+							Name:                     "nested_list_attr",
+							Description:              admin.PtrString("nested list attribute"),
+							ComputedOptionalRequired: codespec.Optional,
+							ListNested: &codespec.ListNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: []codespec.Attribute{doubleNestedListAttr},
+								},
+							},
+						},
+					},
+				},
+			},
+			withObjType:    false,
+			goldenFileName: "no-obj-type-models",
+		},
 	}
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			result := schema.GenerateGoCode(&tc.inputModel)
+			result := schema.GenerateGoCode(&tc.inputModel, tc.withObjType)
 			g := goldie.New(t, goldie.WithNameSuffix(".golden.go"))
 			g.Assert(t, tc.goldenFileName, []byte(result))
 		})
