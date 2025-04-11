@@ -4,6 +4,10 @@
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
+-> **IMPORTANT:** You might encounter errors after configuring a private endpoint for a new
+region in your cluster. To learn how to troubleshoot potential errors, see
+[Multi-Region Private Endpoints](https://www.mongodb.com/docs/atlas/troubleshoot-private-endpoints/#multi-region-private-endpoints) in the MongoDB Atlas documentation.
+
 ## Example Usage
 
 ```terraform
