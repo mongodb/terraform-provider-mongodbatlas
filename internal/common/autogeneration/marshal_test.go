@@ -336,6 +336,7 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrListString        types.List   `tfsdk:"attr_list_string"`
 		AttrListObj           types.List   `tfsdk:"attr_list_obj"`
 		AttrSetString         types.Set    `tfsdk:"attr_set_string"`
+		AttrSetObj            types.Set    `tfsdk:"attr_set_obj"`
 	}
 	model := modelst{
 		AttrObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
@@ -353,6 +354,7 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrListString:        types.ListUnknown(types.StringType),
 		AttrListObj:           types.ListUnknown(objTypeTest),
 		AttrSetString:         types.SetUnknown(types.StringType),
+		AttrSetObj:            types.SetUnknown(objTypeTest),
 	}
 	// attrUnexisting is ignored because it is in JSON but not in the model, no error is returned
 	const (
@@ -400,6 +402,20 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 				"attrSetString": [
 					"set1",
 					"set2"
+				],
+				"attrSetObj": [
+					{
+						"attrString": "set1",
+						"attrInt": 11,
+						"attrFloat": 11.1,
+						"attrBool": false
+					},
+					{			
+						"attrString": "set2",
+						"attrInt": 22,
+						"attrFloat": 22.2,		
+						"attrBool": true		
+					}
 				]
 			}
 		`
@@ -456,6 +472,20 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrSetString: types.SetValueMust(types.StringType, []attr.Value{
 			types.StringValue("set1"),
 			types.StringValue("set2"),
+		}),
+		AttrSetObj: types.SetValueMust(objTypeTest, []attr.Value{
+			types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
+				"attr_string": types.StringValue("set1"),
+				"attr_int":    types.Int64Value(11),
+				"attr_float":  types.Float64Value(11.1),
+				"attr_bool":   types.BoolValue(false),
+			}),
+			types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
+				"attr_string": types.StringValue("set2"),
+				"attr_int":    types.Int64Value(22),
+				"attr_float":  types.Float64Value(22.2),
+				"attr_bool":   types.BoolValue(true),
+			}),
 		}),
 	}
 	require.NoError(t, autogeneration.Unmarshal([]byte(jsonResp), &model))
