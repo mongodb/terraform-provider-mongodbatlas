@@ -4,7 +4,10 @@ ENHANCEMENTS:
 
 * data-source/mongodbatlas_organization: Adds `security_contact` attribute ([#3263](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3263))
 * data-source/mongodbatlas_organizations: Adds `security_contact` attribute ([#3263](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3263))
+* data-source/mongodbatlas_third_party_integration: Adds support for `send_collection_latency_metrics` and `send_database_metrics` for Datadog integrations ([#3259](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3259))
+* data-source/mongodbatlas_third_party_integrations: Adds support for `send_collection_latency_metrics` and `send_database_metrics` for Datadog integrations ([#3259](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3259))
 * resource/mongodbatlas_organization: Adds `security_contact` attribute ([#3263](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3263))
+* resource/mongodbatlas_third_party_integration: Adds support for `send_collection_latency_metrics` and `send_database_metrics` for Datadog integrations ([#3259](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3259))
 
 ## 1.32.0 (April 09, 2025)
 
