@@ -187,7 +187,11 @@ func unmarshalAttr(attrNameJSON string, attrObjJSON any, valModel reflect.Value)
 		if !ok {
 			return fmt.Errorf("unmarshal expects object for field %s", attrNameJSON)
 		}
-		return setObjAttrTfModel(attrNameModel, fieldModel, obj, v)
+		objNew, err := setObjAttrModel(obj, v)
+		if err != nil {
+			return err
+		}
+		return setAttrTfModel(attrNameModel, fieldModel, objNew)
 	default:
 		return fmt.Errorf("unmarshal not supported yet for type %T for field %s", v, attrNameJSON)
 	}
@@ -237,18 +241,9 @@ func setAttrModel(name string, value any, mapAttrs map[string]attr.Value, mapTyp
 		if !found || !ok {
 			return fmt.Errorf("unmarshal gets incorrect object for field %s, value: %v", nameChildTf, v)
 		}
-		childAttrs, childTypes, err := getObjAttrsAndTypes(obj)
+		objNew, err := setObjAttrModel(obj, v)
 		if err != nil {
 			return err
-		}
-		for nameChild, valueChild := range v {
-			if err := setAttrModel(nameChild, valueChild, childAttrs, childTypes); err != nil {
-				return err
-			}
-		}
-		objNew, diags := types.ObjectValue(obj.AttributeTypes(context.Background()), childAttrs)
-		if diags.HasError() {
-			return fmt.Errorf("unmarshal failed to convert map to object: %v", diags)
 		}
 		mapAttrs[nameChildTf] = objNew
 		return nil
@@ -258,21 +253,21 @@ func setAttrModel(name string, value any, mapAttrs map[string]attr.Value, mapTyp
 	return fmt.Errorf("unmarshal not supported yet for type %T for field %s", value, nameChildTf)
 }
 
-func setObjAttrTfModel(name string, field reflect.Value, obj types.Object, objJSON map[string]any) error {
+func setObjAttrModel(obj types.Object, objJSON map[string]any) (attr.Value, error) {
 	mapAttrs, mapTypes, err := getObjAttrsAndTypes(obj)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	for nameChild, valueChild := range objJSON {
 		if err := setAttrModel(nameChild, valueChild, mapAttrs, mapTypes); err != nil {
-			return err
+			return nil, err
 		}
 	}
 	objNew, diags := types.ObjectValue(obj.AttributeTypes(context.Background()), mapAttrs)
 	if diags.HasError() {
-		return fmt.Errorf("unmarshal failed to convert map to object: %v", diags)
+		return nil, fmt.Errorf("unmarshal failed to convert map to object: %v", diags)
 	}
-	return setAttrTfModel(name, field, objNew)
+	return objNew, nil
 }
 
 func getObjAttrsAndTypes(obj types.Object) (mapAttrs map[string]attr.Value, mapTypes map[string]attr.Type, err error) {
