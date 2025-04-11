@@ -37,6 +37,9 @@ var (
 	keptPrefixes = []string{
 		"test-acc-tf-p-keep",
 	}
+	keepProjectEmptyPrefixes = []string{
+		"test-acc-tf-p-empty",
+	}
 	projectRetryDeleteErrors = []string{
 		"CANNOT_CLOSE_GROUP_ACTIVE_ATLAS_CLUSTERS",
 		"CANNOT_CLOSE_GROUP_ACTIVE_PEERING_CONNECTIONS",
@@ -87,24 +90,31 @@ func TestCleanProjectAndClusters(t *testing.T) {
 	for _, p := range projects {
 		skipReason := projectSkipReason(&p, skipProjectsAfter, onlyZeroClusters)
 		projectName := p.GetName()
+		projectID := p.GetId()
 		if skipReason != "" {
-			t.Logf("skip project %s, reason: %s", projectName, skipReason)
+			t.Logf("skip project %s (%s), reason: %s", projectName, projectID, skipReason)
 			continue
 		}
 		projectInfos = append(projectInfos, fmt.Sprintf("Project created at %s name %s (%s)", p.GetCreated().Format(time.RFC3339), projectName, p.GetId()))
-		projectID := p.GetId()
 		projectsToDelete[projectName] = projectID
 	}
 	t.Logf("will try to delete %d projects:", len(projectsToDelete))
 	slices.Sort(projectInfos)
 	t.Log(strings.Join(projectInfos, "\n"))
 	var deleteErrors int
+	var emptyProjectCount int
 	for name, projectID := range projectsToDelete {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			changes := removeProjectResources(t.Context(), t, dryRun, client, projectID)
 			if changes != "" {
 				t.Logf("project %s %s", name, changes)
+			}
+			skipReason := projectNoDeleteReason(name)
+			if skipReason != "" {
+				t.Logf("keep project empty, but no delete %s (%s), reason: %s", name, projectID, skipReason)
+				emptyProjectCount++
+				return
 			}
 			var err error
 			for i := range runRetries {
@@ -133,7 +143,7 @@ func TestCleanProjectAndClusters(t *testing.T) {
 	t.Cleanup(func() {
 		//nolint:usetesting // reason: using context.Background() here intentionally because t.Context() is canceled at cleanup
 		projectsAfter := readAllProjects(context.Background(), t, client)
-		t.Logf("SUMMARY\nProjects changed from %d to %d\ndelete_errors=%d\nDRY_RUN=%t", projectsBefore, len(projectsAfter), deleteErrors, dryRun)
+		t.Logf("SUMMARY\nProjects changed from %d to %d\ndelete_errors=%d\nempty_project_count=%d\nDRY_RUN=%t", projectsBefore, len(projectsAfter), deleteErrors, emptyProjectCount, dryRun)
 	})
 }
 
@@ -224,6 +234,15 @@ func projectSkipReason(p *admin.Group, skipProjectsAfter time.Time, onlyEmpty bo
 	}
 	if onlyEmpty && p.GetClusterCount() > 0 {
 		return "has clusters"
+	}
+	return ""
+}
+
+func projectNoDeleteReason(name string) string {
+	for _, keepPrefix := range keepProjectEmptyPrefixes {
+		if strings.HasPrefix(name, keepPrefix) {
+			return "keep project but not resources"
+		}
 	}
 	return ""
 }
