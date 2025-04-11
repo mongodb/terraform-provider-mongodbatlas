@@ -487,21 +487,29 @@ func TestUnmarshalUnsupportedModel(t *testing.T) {
 // TestUnmarshalUnsupportedResponse has JSON response types not supported yet.
 // It will be updated when we add support for them.
 func TestUnmarshalUnsupportedResponse(t *testing.T) {
-	var model struct {
-		Attr types.String
-	}
 	testCases := map[string]struct {
+		model        any
 		responseJSON string
 		errorStr     string
 	}{
 		"JSON arrays not supported yet": {
-			responseJSON: `{"attr": [{"key": "value"}]}`,
-			errorStr:     "unmarshal not supported yet for type []interface {} for field attr",
+			model: &struct {
+				AttrList types.List `tfsdk:"attr_list"`
+			}{},
+			responseJSON: `{"attrList": [{"key": "value"}]}`,
+			errorStr:     "unmarshal not supported yet for type []interface {} for field attrList",
+		},
+		"JSON maps not supported yet": {
+			model: &struct {
+				AttrMap types.Map `tfsdk:"attr_map"`
+			}{},
+			responseJSON: `{"attrMap": {"key": "value"}}`,
+			errorStr:     "unmarshal expects object for field attrMap",
 		},
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			assert.ErrorContains(t, autogeneration.Unmarshal([]byte(tc.responseJSON), &model), tc.errorStr)
+			assert.ErrorContains(t, autogeneration.Unmarshal([]byte(tc.responseJSON), tc.model), tc.errorStr)
 		})
 	}
 }
