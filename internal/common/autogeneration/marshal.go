@@ -233,7 +233,9 @@ func setMapAttrModel(name string, value any, mapAttrs map[string]attr.Value, map
 	if err != nil {
 		return err
 	}
-	mapAttrs[nameChildTf] = newValue
+	if newValue != nil {
+		mapAttrs[nameChildTf] = newValue
+	}
 	return nil
 }
 
@@ -327,7 +329,9 @@ func getCollectionElements(arrayJSON []any, valueType attr.Type) ([]attr.Value, 
 		if err != nil {
 			return nil, err
 		}
-		elms[i] = newValue
+		if newValue != nil {
+			elms[i] = newValue
+		}
 	}
 	return elms, nil
 }
