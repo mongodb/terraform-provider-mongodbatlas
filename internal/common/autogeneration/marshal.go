@@ -229,45 +229,48 @@ func setMapAttrModel(name string, value any, mapAttrs map[string]attr.Value, map
 	if !found {
 		return nil // skip attributes that are not in the model
 	}
+	newValue, err := getTfAttr(value, valueType, mapAttrs[nameChildTf])
+	if err != nil {
+		return err
+	}
+	mapAttrs[nameChildTf] = newValue
+	return nil
+}
+
+func getTfAttr(value any, valueType attr.Type, oldValue attr.Value) (attr.Value, error) {
 	switch v := value.(type) {
 	case string:
 		if valueType == types.StringType {
-			mapAttrs[nameChildTf] = types.StringValue(v)
-			return nil
+			return types.StringValue(v), nil
 		}
-		return fmt.Errorf("unmarshal gets incorrect string for field %s, value: %v", nameChildTf, v)
+		return nil, fmt.Errorf("unmarshal gets incorrect string for value: %v", v)
 	case bool:
 		if valueType == types.BoolType {
-			mapAttrs[nameChildTf] = types.BoolValue(v)
-			return nil
+			return types.BoolValue(v), nil
 		}
-		return fmt.Errorf("unmarshal gets incorrect bool for field %s, value: %v", nameChildTf, v)
+		return nil, fmt.Errorf("unmarshal gets incorrect bool for value: %v", v)
 	case float64:
 		switch valueType {
 		case types.Int64Type:
-			mapAttrs[nameChildTf] = types.Int64Value(int64(v))
-			return nil
+			return types.Int64Value(int64(v)), nil
 		case types.Float64Type:
-			mapAttrs[nameChildTf] = types.Float64Value(v)
-			return nil
+			return types.Float64Value(v), nil
 		}
-		return fmt.Errorf("unmarshal gets incorrect number for field %s, value: %v", nameChildTf, v)
+		return nil, fmt.Errorf("unmarshal gets incorrect number for value: %v", v)
 	case map[string]any:
-		mapAttr, found := mapAttrs[nameChildTf]
-		obj, ok := mapAttr.(types.Object)
-		if !found || !ok {
-			return fmt.Errorf("unmarshal gets incorrect object for field %s, value: %v", nameChildTf, v)
+		obj, ok := oldValue.(types.Object)
+		if !ok {
+			return nil, fmt.Errorf("unmarshal gets incorrect object for value: %v", v)
 		}
 		objNew, err := setObjAttrModel(obj, v)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		mapAttrs[nameChildTf] = objNew
-		return nil
+		return objNew, nil
 	case nil:
-		return nil // skip nil values, no need to set anything
+		return nil, nil // skip nil values, no need to set anything
 	}
-	return fmt.Errorf("unmarshal not supported yet for type %T for field %s", value, nameChildTf)
+	return nil, fmt.Errorf("unmarshal not supported yet for type %T", value)
 }
 
 func setObjAttrModel(obj types.Object, objJSON map[string]any) (attr.Value, error) {
