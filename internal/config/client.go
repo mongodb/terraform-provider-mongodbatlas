@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	adminpreview "github.com/mongodb/atlas-sdk-go/admin"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
@@ -20,6 +19,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"github.com/mongodb-forks/digest"
+	adminpreview "github.com/mongodb/atlas-sdk-go/admin"
 	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
@@ -43,12 +43,13 @@ type MongoDBClient struct {
 
 // Config contains the configurations needed to use SDKs
 type Config struct {
-	AssumeRole       *AssumeRole
-	PublicKey        string
-	PrivateKey       string
-	BaseURL          string
-	RealmBaseURL     string
-	TerraformVersion string
+	AssumeRole                      *AssumeRole
+	PublicKey                       string
+	PrivateKey                      string
+	BaseURL                         string
+	RealmBaseURL                    string
+	TerraformVersion                string
+	PreviewV2AdvancedClusterEnabled bool
 }
 
 type AssumeRole struct {
@@ -66,11 +67,6 @@ type AssumeRole struct {
 type SecretData struct {
 	PublicKey  string `json:"public_key"`
 	PrivateKey string `json:"private_key"`
-}
-
-type PlatformVersion struct {
-	Name    string
-	Version string
 }
 
 // NewClient func...
@@ -237,16 +233,20 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 }
 
 func userAgent(c *Config) string {
-	platformVersions := []PlatformVersion{
-		{toolName, version.ProviderVersion},
-		{terraformPlatformName, c.TerraformVersion},
+	versions := []string{
+		fmt.Sprintf("%s/%s", toolName, version.ProviderVersion),
+		fmt.Sprintf("%s/%s", terraformPlatformName, c.TerraformVersion),
 	}
 
-	var parts []string
-	for _, info := range platformVersions {
-		part := fmt.Sprintf("%s/%s", info.Name, info.Version)
-		parts = append(parts, part)
+	var metadata []string
+	if c.PreviewV2AdvancedClusterEnabled {
+		metadata = append(metadata, "IsPreviewV2AdvancedClusterEnabled=true")
 	}
 
-	return strings.Join(parts, " ")
+	userAgent := strings.Join(versions, " ")
+	if len(metadata) > 0 {
+		userAgent = fmt.Sprintf("%s (%s)", userAgent, strings.Join(metadata, "; "))
+	}
+
+	return userAgent
 }
