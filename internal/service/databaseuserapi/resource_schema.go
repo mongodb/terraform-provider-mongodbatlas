@@ -5,7 +5,6 @@ package databaseuserapi
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -150,40 +149,16 @@ type TFLabelsModel struct {
 	Key   types.String `tfsdk:"key"`
 	Value types.String `tfsdk:"value"`
 }
-
-var LabelsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"key":   types.StringType,
-	"value": types.StringType,
-}}
-
 type TFLinksModel struct {
 	Href types.String `tfsdk:"href" autogeneration:"omitjson"`
 	Rel  types.String `tfsdk:"rel" autogeneration:"omitjson"`
 }
-
-var LinksObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"href": types.StringType,
-	"rel":  types.StringType,
-}}
-
 type TFRolesModel struct {
 	CollectionName types.String `tfsdk:"collection_name"`
 	DatabaseName   types.String `tfsdk:"database_name"`
 	RoleName       types.String `tfsdk:"role_name"`
 }
-
-var RolesObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"collection_name": types.StringType,
-	"database_name":   types.StringType,
-	"role_name":       types.StringType,
-}}
-
 type TFScopesModel struct {
 	Name types.String `tfsdk:"name"`
 	Type types.String `tfsdk:"type"`
 }
-
-var ScopesObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"name": types.StringType,
-	"type": types.StringType,
-}}

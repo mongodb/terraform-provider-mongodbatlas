@@ -44,6 +44,18 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							Required:            true,
 							MarkdownDescription: "int attribute",
 						},
+						"double_nested_list_attr": schema.ListNestedAttribute{
+							Optional:            true,
+							MarkdownDescription: "double nested list attribute",
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"string_attr": schema.StringAttribute{
+										Optional:            true,
+										MarkdownDescription: "string attribute",
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -104,13 +116,23 @@ var NestedSingleAttrObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 }}
 
 type TFNestedListAttrModel struct {
-	StringAttr types.String `tfsdk:"string_attr"`
-	IntAttr    types.Int64  `tfsdk:"int_attr"`
+	StringAttr           types.String `tfsdk:"string_attr"`
+	IntAttr              types.Int64  `tfsdk:"int_attr"`
+	DoubleNestedListAttr types.List   `tfsdk:"double_nested_list_attr"`
 }
 
 var NestedListAttrObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"string_attr":             types.StringType,
+	"int_attr":                types.Int64Type,
+	"double_nested_list_attr": types.ListType, // TODO: missing ElemType, codegen limitation tracked in CLOUDP-311105
+}}
+
+type TFDoubleNestedListAttrModel struct {
+	StringAttr types.String `tfsdk:"string_attr"`
+}
+
+var DoubleNestedListAttrObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"string_attr": types.StringType,
-	"int_attr":    types.Int64Type,
 }}
 
 type TFSetNestedAttributeModel struct {

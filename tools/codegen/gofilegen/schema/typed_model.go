@@ -7,19 +7,19 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 )
 
-func GenerateTypedModels(attributes codespec.Attributes) CodeStatement {
-	return generateTypedModels(attributes, "", false) // empty string for root model, results in TFModel
+func GenerateTypedModels(attributes codespec.Attributes, withObjTypes bool) CodeStatement {
+	return generateTypedModels(attributes, "", false, withObjTypes)
 }
 
-func generateTypedModels(attributes codespec.Attributes, name string, isNested bool) CodeStatement {
+func generateTypedModels(attributes codespec.Attributes, name string, isNested, withObjTypes bool) CodeStatement {
 	models := []CodeStatement{generateStructOfTypedModel(attributes, name)}
 
-	if isNested {
+	if isNested && withObjTypes {
 		models = append(models, generateModelObjType(attributes, name))
 	}
 
 	for i := range attributes {
-		additionalModel := getNestedModel(&attributes[i])
+		additionalModel := getNestedModel(&attributes[i], withObjTypes)
 		if additionalModel != nil {
 			models = append(models, *additionalModel)
 		}
@@ -32,7 +32,8 @@ func generateModelObjType(attrs codespec.Attributes, name string) CodeStatement 
 	structProperties := []string{}
 	for i := range attrs {
 		propType := attrModelType(&attrs[i])
-		prop := fmt.Sprintf(`%q: %sType,`, attrs[i].Name.SnakeCase(), propType)
+		comment := limitationComment(&attrs[i])
+		prop := fmt.Sprintf(`%q: %sType,%s`, attrs[i].Name.SnakeCase(), propType, comment)
 		structProperties = append(structProperties, prop)
 	}
 	structPropsCode := strings.Join(structProperties, "\n")
@@ -44,7 +45,7 @@ func generateModelObjType(attrs codespec.Attributes, name string) CodeStatement 
 	}
 }
 
-func getNestedModel(attribute *codespec.Attribute) *CodeStatement {
+func getNestedModel(attribute *codespec.Attribute, withObjTypes bool) *CodeStatement {
 	var nested *codespec.NestedAttributeObject
 	if attribute.ListNested != nil {
 		nested = &attribute.ListNested.NestedObject
@@ -61,7 +62,7 @@ func getNestedModel(attribute *codespec.Attribute) *CodeStatement {
 	if nested == nil {
 		return nil
 	}
-	res := generateTypedModels(nested.Attributes, attribute.Name.PascalCase(), true)
+	res := generateTypedModels(nested.Attributes, attribute.Name.PascalCase(), true, withObjTypes)
 	return &res
 }
 
@@ -119,4 +120,13 @@ func attrModelType(attr *codespec.Attribute) string {
 	default:
 		panic("Attribute with unknown type defined when generating typed model")
 	}
+}
+
+func limitationComment(attr *codespec.Attribute) string {
+	if attr.List == nil && attr.ListNested == nil &&
+		attr.Map == nil && attr.MapNested == nil &&
+		attr.Set == nil && attr.SetNested == nil {
+		return ""
+	}
+	return " // TODO: missing ElemType, codegen limitation tracked in CLOUDP-311105"
 }
