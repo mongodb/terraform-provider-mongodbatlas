@@ -217,12 +217,12 @@ func setObjAttrModel(name string, field reflect.Value, obj types.Object, objJSON
 		switch vChild := valueChild.(type) {
 		case string:
 			if valueType != types.StringType {
-				return fmt.Errorf("unmarshal expects string for field %s, value: %v", nameChildTf, vChild)
+				return fmt.Errorf("unmarshal gets incorrect string for field %s, value: %v", nameChildTf, vChild)
 			}
 			mapAttrs[nameChildTf] = types.StringValue(vChild)
 		case bool:
 			if valueType != types.BoolType {
-				return fmt.Errorf("unmarshal expects bool for field %s, value: %v", nameChildTf, vChild)
+				return fmt.Errorf("unmarshal gets incorrect bool for field %s, value: %v", nameChildTf, vChild)
 			}
 			mapAttrs[nameChildTf] = types.BoolValue(vChild)
 		case float64:
@@ -232,7 +232,7 @@ func setObjAttrModel(name string, field reflect.Value, obj types.Object, objJSON
 			case types.Float64Type:
 				mapAttrs[nameChildTf] = types.Float64Value(vChild)
 			default:
-				return fmt.Errorf("unmarshal expects number for field %s, value %v", nameChildTf, vChild)
+				return fmt.Errorf("unmarshal gets incorrect number for field %s, value: %v", nameChildTf, vChild)
 			}
 		case nil: // skip nil values
 		default:

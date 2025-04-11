@@ -435,18 +435,40 @@ func TestUnmarshalErrors(t *testing.T) {
 				Attr string
 			}{},
 		},
-		"model attr types in objects must match JSON types - int": {
-			errorStr:     "unmarshal expects string for field attr_int, value: not an int",
-			responseJSON: `{ "attrObj": { "attrString": "hello", "attrInt": "not an int" } }`,
+		"model attr types in objects must match JSON types - string": {
+			errorStr:     "unmarshal gets incorrect number for field attr_string, value: 1",
+			responseJSON: `{ "attrObj": { "attrString": 1 } }`,
 			model: &struct {
 				AttrObj types.Object `tfsdk:"attr_obj"`
 			}{
-				AttrObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
-					"attr_string": types.StringValue("different_string"),
-					"attr_int":    types.Int64Value(123456),
-					"attr_float":  types.Float64Value(12312.21),
-					"attr_bool":   types.BoolValue(false),
-				}),
+				AttrObj: types.ObjectNull(objTypeTest.AttrTypes),
+			},
+		},
+		"model attr types in objects must match JSON types - bool": {
+			errorStr:     "unmarshal gets incorrect string for field attr_bool, value: not a bool",
+			responseJSON: `{ "attrObj": { "attrBool": "not a bool" } }`,
+			model: &struct {
+				AttrObj types.Object `tfsdk:"attr_obj"`
+			}{
+				AttrObj: types.ObjectNull(objTypeTest.AttrTypes),
+			},
+		},
+		"model attr types in objects must match JSON types - int": {
+			errorStr:     "unmarshal gets incorrect string for field attr_int, value: not an int",
+			responseJSON: `{ "attrObj": { "attrInt": "not an int" } }`,
+			model: &struct {
+				AttrObj types.Object `tfsdk:"attr_obj"`
+			}{
+				AttrObj: types.ObjectNull(objTypeTest.AttrTypes),
+			},
+		},
+		"model attr types in objects must match JSON types - float": {
+			errorStr:     "unmarshal gets incorrect string for field attr_float, value: not an int",
+			responseJSON: `{ "attrObj": { "attrFloat": "not an int" } }`,
+			model: &struct {
+				AttrObj types.Object `tfsdk:"attr_obj"`
+			}{
+				AttrObj: types.ObjectNull(objTypeTest.AttrTypes),
 			},
 		},
 	}
