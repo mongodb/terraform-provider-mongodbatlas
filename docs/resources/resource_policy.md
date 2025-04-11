@@ -2,10 +2,6 @@
 
 `mongodbatlas_resource_policy` provides a Resource Policy resource. The resource lets you create, edit and delete resource policies to prevent misconfigurations and reduce the need for corrective interventions in your organization.
 
--> **NOTE**: Resource Policies are currently in Public Preview. To use this feature, you must take the following actions:
-1. Enable the `Atlas Resource Policies` Preview Feature in your organization (contact [MongoDB Support](https://www.mongodb.com/services/support)).
-2. Enable the [Preview Features](https://github.com/mongodb/terraform-provider-mongodbatlas?tab=readme-ov-file#preview-features) when running `terraform` commands.
-
 
 ## Example Usages
 

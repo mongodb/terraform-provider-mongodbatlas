@@ -456,14 +456,13 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		flexsnapshot.PluralDataSource,
 		flexrestorejob.DataSource,
 		flexrestorejob.PluralDataSource,
+		resourcepolicy.DataSource,
+		resourcepolicy.PluralDataSource,
 	}
 	if config.PreviewProviderV2AdvancedCluster() {
 		dataSources = append(dataSources, advancedclustertpf.DataSource, advancedclustertpf.PluralDataSource)
 	}
-	previewDataSources := []func() datasource.DataSource{
-		resourcepolicy.DataSource,
-		resourcepolicy.PluralDataSource,
-	} // Data sources not yet in GA
+	previewDataSources := []func() datasource.DataSource{} // Data sources not yet in GA
 	if providerEnablePreview {
 		dataSources = append(dataSources, previewDataSources...)
 	}
@@ -486,13 +485,12 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		mongodbemployeeaccessgrant.Resource,
 		streamprivatelinkendpoint.Resource,
 		flexcluster.Resource,
+		resourcepolicy.Resource,
 	}
 	if config.PreviewProviderV2AdvancedCluster() {
 		resources = append(resources, advancedclustertpf.Resource)
 	}
-	previewResources := []func() resource.Resource{
-		resourcepolicy.Resource,
-	} // Resources not yet in GA
+	previewResources := []func() resource.Resource{} // Resources not yet in GA
 	if providerEnablePreview {
 		resources = append(resources, previewResources...)
 	}

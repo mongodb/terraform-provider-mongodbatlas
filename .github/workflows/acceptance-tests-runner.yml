@@ -984,7 +984,6 @@ jobs:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_rp_public_key }}
           MONGODB_ATLAS_PRIVATE_KEY:  ${{ secrets.mongodb_atlas_rp_private_key }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          MONGODB_ATLAS_ENABLE_PREVIEW: "true"
           ACCTEST_PACKAGES: |
             ./internal/service/resourcepolicy
         run: make testacc
