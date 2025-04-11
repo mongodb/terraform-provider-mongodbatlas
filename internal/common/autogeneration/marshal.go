@@ -187,26 +187,11 @@ func unmarshalAttr(attrNameJSON string, attrObjJSON any, valModel reflect.Value)
 		if !ok {
 			return fmt.Errorf("unmarshal expects object for field %s", attrNameJSON)
 		}
-		ctx := context.Background()
-		// mapTypes has all attributes, mapAttrs might not have them, e.g. in null or unknown objects
-		mapTypes := obj.AttributeTypes(ctx)
-		mapAttrs := obj.Attributes()
-		for attrName, attrType := range mapTypes {
-			if _, found := mapAttrs[attrName]; !found {
-				switch attrType {
-				case types.StringType:
-					mapAttrs[attrName] = types.StringNull()
-				case types.BoolType:
-					mapAttrs[attrName] = types.BoolNull()
-				case types.Int64Type:
-					mapAttrs[attrName] = types.Int64Null()
-				case types.Float64Type:
-					mapAttrs[attrName] = types.Float64Null()
-				default:
-					return fmt.Errorf("unmarshal not supported yet for setting null type %T for field %s", attrType, attrName)
-				}
-			}
+		mapAttrs, mapTypes, err := getObjAttrsAndTypes(obj)
+		if err != nil {
+			return err
 		}
+		ctx := context.Background()
 		for nameChild, valueChild := range v {
 			nameChildTf := xstrings.ToSnakeCase(nameChild)
 			if _, found := mapTypes[nameChildTf]; !found {
@@ -240,7 +225,7 @@ func unmarshalAttr(attrNameJSON string, attrObjJSON any, valModel reflect.Value)
 		}
 		objNew, diags := types.ObjectValue(obj.AttributeTypes(ctx), mapAttrs)
 		if diags.HasError() {
-			return fmt.Errorf("failed to convert map to object: %v", diags)
+			return fmt.Errorf("unmarshal failed to convert map to object: %v", diags)
 		}
 		return setAttrModel(attrNameModel, fieldModel, objNew)
 	default:
@@ -255,6 +240,38 @@ func setAttrModel(name string, field reflect.Value, val attr.Value) error {
 	}
 	field.Set(obj)
 	return nil
+}
+
+func getObjAttrsAndTypes(obj types.Object) (mapAttrs map[string]attr.Value, mapTypes map[string]attr.Type, err error) {
+	// mapTypes has all attributes, mapAttrs might not have them, e.g. in null or unknown objects
+	mapAttrs = obj.Attributes()
+	mapTypes = obj.AttributeTypes(context.Background())
+	for attrName, attrType := range mapTypes {
+		if _, found := mapAttrs[attrName]; found {
+			continue // skip attributes that are already set
+		}
+		nullVal, err := getNullAttr(attrType)
+		if err != nil {
+			return nil, nil, err
+		}
+		mapAttrs[attrName] = nullVal
+	}
+	return mapAttrs, mapTypes, nil
+}
+
+func getNullAttr(attrType attr.Type) (attr.Value, error) {
+	switch attrType {
+	case types.StringType:
+		return types.StringNull(), nil
+	case types.BoolType:
+		return types.BoolNull(), nil
+	case types.Int64Type:
+		return types.Int64Null(), nil
+	case types.Float64Type:
+		return types.Float64Null(), nil
+	default:
+		return nil, fmt.Errorf("unmarshal to get null value not supported yet for type %T", attrType)
+	}
 }
 
 func convertUnknownToNull(valModel reflect.Value) {
