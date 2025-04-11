@@ -9,6 +9,7 @@ Step | Purpose | Resources
 [Step 1](./v1) | Baseline | `mongodbatlas_cluster`
 [Step 2](./v2) | Migrate to advanced_cluster with no change in variables or plan | `mongodbatlas_advanced_cluster`
 [Step 3](./v3) | Use the latest features of advanced_cluster | `mongodbatlas_advanced_cluster`
+[Step 4](./v4) | Future proofs the module by removing all `mongodbatlas_cluster` references | `mongodbatlas_advanced_cluster`
 
 The rest of this document summarizes the different implementations:
 
@@ -144,3 +145,6 @@ output "mongodbatlas_cluster" {
   description = "Full cluster configuration for mongodbatlas_cluster resource, will be null if var.replication_specs_new is set"
 }
 ```
+
+## Step 4: Module `v4` Implementation Changes and Highlights
+This module marks the end of the migration to `mongodbatlas_advanced_cluster` by removing references to `mongodbatlas_cluster` and ... CONTINUE on monday

@@ -4,7 +4,7 @@ provider "mongodbatlas" {
 }
 
 module "cluster" {
-  source = "./modules/cluster"
+  source = "../../module_maintainer/v4"
 
   cluster_name           = var.cluster_name
   cluster_type           = var.cluster_type
