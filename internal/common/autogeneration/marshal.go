@@ -316,15 +316,18 @@ func setSetAttrModel(set types.Set, arrayJSON []any) (attr.Value, error) {
 	return setNew, nil
 }
 
-func getCollectionElements(arrayJSON []any, _ attr.Type) ([]attr.Value, error) {
+func getCollectionElements(arrayJSON []any, valueType attr.Type) ([]attr.Value, error) {
 	elms := make([]attr.Value, len(arrayJSON))
+	nullVal, err := getNullAttr(valueType)
+	if err != nil {
+		return nil, err
+	}
 	for i, item := range arrayJSON {
-		switch v := item.(type) {
-		case string:
-			elms[i] = types.StringValue(v)
-		default:
-			return nil, fmt.Errorf("unmarshal not supported yet for type %T in list", v)
+		newValue, err := getTfAttr(item, valueType, nullVal)
+		if err != nil {
+			return nil, err
 		}
+		elms[i] = newValue
 	}
 	return elms, nil
 }

@@ -582,13 +582,6 @@ func TestUnmarshalUnsupportedResponse(t *testing.T) {
 		responseJSON string
 		errorStr     string
 	}{
-		"JSON arrays not supported yet": {
-			model: &struct {
-				AttrList types.List `tfsdk:"attr_list"`
-			}{},
-			responseJSON: `{"attrList": [{"key": "value"}]}`,
-			errorStr:     "unmarshal not supported yet for type map[string]interface {} in list",
-		},
 		"JSON maps not supported yet": {
 			model: &struct {
 				AttrMap types.Map `tfsdk:"attr_map"`
