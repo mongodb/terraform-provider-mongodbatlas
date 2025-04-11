@@ -1,5 +1,11 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_organization: Adds `security_contact` attribute ([#3263](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3263))
+* data-source/mongodbatlas_organizations: Adds `security_contact` attribute ([#3263](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3263))
+* resource/mongodbatlas_organization: Adds `security_contact` attribute ([#3263](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3263))
+
 ## 1.32.0 (April 09, 2025)
 
 ENHANCEMENTS:
