@@ -52,12 +52,12 @@ jobs:
       - name: Commit changes
         run: |
           if [[ $(git status --porcelain) ]]; then
-            git pull
             git config --local user.email svc-api-experience-integrations-escalation@mongodb.com
             git config --local user.name svc-apix-bot
-            git remote set-url origin ${{ secrets.remote }}
             git add ${{ inputs.file_to_commit }}
             git commit -m "${{ inputs.commit_message }}"
+            git remote set-url origin ${{ secrets.remote }}
+            git pull --rebase
             git push
           else
             echo "No changes to commit."
