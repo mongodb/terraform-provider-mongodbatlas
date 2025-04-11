@@ -41,6 +41,7 @@ func Marshal(model any, isUpdate bool) ([]byte, error) {
 // Unmarshal gets a JSON (e.g. from an Atlas response) and unmarshals it into a Terraform model.
 // It supports the following Terraform model types: String, Bool, Int64, Float64.
 // Attributes that are in JSON but not in the model are ignored, no error is returned.
+// Object attributes that are unknown are converted to null as all values must be known in the response state.
 func Unmarshal(raw []byte, model any) error {
 	var objJSON map[string]any
 	if err := json.Unmarshal(raw, &objJSON); err != nil {
@@ -159,6 +160,7 @@ func unmarshalAttrs(objJSON map[string]any, model any) error {
 			return err
 		}
 	}
+	convertUnknownToNull(valModel)
 	return nil
 }
 
@@ -253,4 +255,15 @@ func setAttrModel(name string, field reflect.Value, val attr.Value) error {
 	}
 	field.Set(obj)
 	return nil
+}
+
+func convertUnknownToNull(valModel reflect.Value) {
+	for i := 0; i < valModel.NumField(); i++ {
+		field := valModel.Field(i)
+		if obj, ok := field.Interface().(types.Object); ok {
+			if obj.IsUnknown() && field.CanSet() {
+				field.Set(reflect.ValueOf(types.ObjectNull(obj.AttributeTypes(context.Background()))))
+			}
+		}
+	}
 }

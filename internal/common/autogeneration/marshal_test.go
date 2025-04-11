@@ -343,7 +343,7 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		}),
 		AttrObjNullNotSent:    types.ObjectNull(objTypeTest.AttrTypes),
 		AttrObjNullSent:       types.ObjectNull(objTypeTest.AttrTypes),
-		AttrObjUnknownNotSent: types.ObjectUnknown(objTypeTest.AttrTypes),
+		AttrObjUnknownNotSent: types.ObjectUnknown(objTypeTest.AttrTypes), // unknown values are changed to null
 		AttrObjUnknownSent:    types.ObjectUnknown(objTypeTest.AttrTypes),
 	}
 	// attrUnexisting is ignored because it is in JSON but not in the model, no error is returned
@@ -361,6 +361,9 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 					"attrString": "null_obj",
 					"attrInt": 1,
 					"attrFloat": null
+				},
+				"attrObjUnknownSent": {
+					"attrString": "unknown_obj"
 				}
 			}
 		`
@@ -379,8 +382,13 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 			"attr_float":  types.Float64Null(),
 			"attr_bool":   types.BoolNull(),
 		}),
-		AttrObjUnknownNotSent: types.ObjectUnknown(objTypeTest.AttrTypes),
-		AttrObjUnknownSent:    types.ObjectUnknown(objTypeTest.AttrTypes),
+		AttrObjUnknownNotSent: types.ObjectNull(objTypeTest.AttrTypes),
+		AttrObjUnknownSent: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
+			"attr_string": types.StringValue("unknown_obj"),
+			"attr_int":    types.Int64Null(),
+			"attr_float":  types.Float64Null(),
+			"attr_bool":   types.BoolNull(),
+		}),
 	}
 	require.NoError(t, autogeneration.Unmarshal([]byte(jsonResp), &model))
 	assert.Equal(t, modelExpected, model)
