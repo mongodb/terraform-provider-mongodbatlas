@@ -32,8 +32,8 @@ The rest of this example is a step by step guide on how to migrate from `mongodb
 - Configure the provider (can also be done by configuring `public_key` and `private_key` in a `provider.tfvars`).
 
 ```bash
-export MONGODB_ATLAS_PUBLIC_KEY="xxxx"
-export MONGODB_ATLAS_PRIVATE_KEY="xxxx"
+export MONGODB_ATLAS_PUBLIC_KEY="<ATLAS_PUBLIC_KEY>"
+export MONGODB_ATLAS_PRIVATE_KEY="<ATLAS_PRIVATE_KEY>"
 ```
 
 ## Step 1: Create the `mongodbatlas_cluster` with `v1` of the module
