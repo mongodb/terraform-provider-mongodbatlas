@@ -18,8 +18,8 @@ Utilize the following to execute a working example, replacing the org id, public
 Apply with the following `terraform.tfvars` to first create a shared tier cluster:
 ```
 atlas_org_id                = "627a9687f7f7f7f774de306f14"
-public_key                  = <REDACTED>
-private_key                 = <REDACTED>
+public_key                  = <YOUR_ATLAS_PUBLIC_KEY>
+private_key                 = <YOUR_ATLAS_PRIVATE_KEY>
 provider_name               = "TENANT"
 backing_provider_name       = "AWS"
 provider_instance_size_name = "M0"
@@ -28,7 +28,7 @@ provider_instance_size_name = "M0"
 Apply with the following `terraform.tfvars` to upgrade the shared tier cluster you just created to dedicated tier:
 ```
 atlas_org_id                = "627a9687f7f7f7f774de306f14"
-public_key                  = <REDACTED>
-private_key                 = <REDACTED>
+public_key                  = <YOUR_ATLAS_PUBLIC_KEY>
+private_key                 = <YOUR_ATLAS_PRIVATE_KEY>
 provider_name               = "GCP"
 provider_instance_size_name = "M10"
