@@ -137,7 +137,7 @@ type TFModel struct {
 	GroupId         types.String `tfsdk:"group_id"`
 	Labels          types.List   `tfsdk:"labels"`
 	LdapAuthType    types.String `tfsdk:"ldap_auth_type"`
-	Links           types.List   `tfsdk:"links" autogeneration:"omitjson"`
+	Links           types.List   `tfsdk:"links" autogen:"omitjson"`
 	OidcAuthType    types.String `tfsdk:"oidc_auth_type"`
 	Password        types.String `tfsdk:"password"`
 	Roles           types.List   `tfsdk:"roles"`
@@ -150,8 +150,8 @@ type TFLabelsModel struct {
 	Value types.String `tfsdk:"value"`
 }
 type TFLinksModel struct {
-	Href types.String `tfsdk:"href" autogeneration:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogeneration:"omitjson"`
+	Href types.String `tfsdk:"href" autogen:"omitjson"`
+	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
 }
 type TFRolesModel struct {
 	CollectionName types.String `tfsdk:"collection_name"`

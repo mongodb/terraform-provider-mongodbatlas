@@ -45,8 +45,8 @@ func TestMarshalBasic(t *testing.T) {
 		AttrFloat  types.Float64 `tfsdk:"attr_float"`
 		AttrString types.String  `tfsdk:"attr_string"`
 		// values with tag `omitjson` are not marshaled, and they don't need to be Terraform types
-		AttrOmit            types.String `tfsdk:"attr_omit" autogeneration:"omitjson"`
-		AttrOmitNoTerraform string       `autogeneration:"omitjson"`
+		AttrOmit            types.String `tfsdk:"attr_omit" autogen:"omitjson"`
+		AttrOmitNoTerraform string       `autogen:"omitjson"`
 		AttrUnkown          types.String `tfsdk:"attr_unknown"`
 		AttrNull            types.String `tfsdk:"attr_null"`
 		AttrInt             types.Int64  `tfsdk:"attr_int"`
@@ -224,8 +224,8 @@ func TestMarshalOmitJSONUpdate(t *testing.T) {
 	)
 	model := struct {
 		Attr           types.String `tfsdk:"attr"`
-		AttrOmitUpdate types.String `tfsdk:"attr_omit_update" autogeneration:"omitjsonupdate"`
-		AttrOmit       types.String `tfsdk:"attr_omit" autogeneration:"omitjson"`
+		AttrOmitUpdate types.String `tfsdk:"attr_omit_update" autogen:"omitjsonupdate"`
+		AttrOmit       types.String `tfsdk:"attr_omit" autogen:"omitjson"`
 	}{
 		Attr:           types.StringValue("val1"),
 		AttrOmitUpdate: types.StringValue("val2"),

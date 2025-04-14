@@ -58,14 +58,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 type TFModel struct {
 	BucketName types.String `tfsdk:"bucket_name"`
-	CreateDate types.String `tfsdk:"create_date" autogeneration:"omitjson"`
-	GroupId    types.String `tfsdk:"group_id" autogeneration:"omitjson"`
+	CreateDate types.String `tfsdk:"create_date" autogen:"omitjson"`
+	GroupId    types.String `tfsdk:"group_id" autogen:"omitjson"`
 	IamRoleId  types.String `tfsdk:"iam_role_id"`
-	Links      types.List   `tfsdk:"links" autogeneration:"omitjson"`
+	Links      types.List   `tfsdk:"links" autogen:"omitjson"`
 	PrefixPath types.String `tfsdk:"prefix_path"`
-	State      types.String `tfsdk:"state" autogeneration:"omitjson"`
+	State      types.String `tfsdk:"state" autogen:"omitjson"`
 }
 type TFLinksModel struct {
-	Href types.String `tfsdk:"href" autogeneration:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogeneration:"omitjson"`
+	Href types.String `tfsdk:"href" autogen:"omitjson"`
+	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
 }
