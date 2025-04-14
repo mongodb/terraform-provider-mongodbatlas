@@ -5,4 +5,3 @@ This directory contains examples demonstrating how to transition from `mongodbat
 The examples are organized as follows:
 - **For users directly utilizing the `mongodbatlas_cluster` resource**: please check the [basic/](./basic/README.md) folder.
 - **For users employing `modules` to manage `mongodbatlas_cluster`**: please see the [module_maintainer/](./module_maintainer/README.md) and [module_user/](./module_user/README.md) folders. These folders illustrate the migration process from both the maintainer's and the user's perspectives, highlighting how the migration can be executed in phases to manage breaking changes that may affect module users.
-- **For users employing `modules` to manage the `mongodbatlas_advanced_cluster` resource without any `mongodbatlas_cluster` dependencies**: please check the [basic_module/](./basic_module/README.md) folder.
