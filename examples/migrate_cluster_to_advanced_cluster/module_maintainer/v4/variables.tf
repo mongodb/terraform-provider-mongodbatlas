@@ -19,30 +19,6 @@ variable "mongo_db_major_version" {
   type        = string
 }
 
-# OPTIONAL VARIABLES
-variable "instance_size" {
-  description = "Hardware specification for the instance sizes in this region in this shard. Each instance size has a default storage and memory capacity. Electable nodes and read-only nodes (known as \"base nodes\") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards."
-  type        = string
-  default     = "" # optional in v3
-}
-variable "provider_name" {
-  description = "Cloud service provider on which MongoDB Cloud provisions the hosts. Set dedicated clusters to `AWS`, `GCP`, `AZURE` or `TENANT`."
-  type        = string
-  default     = "" # optional in v3
-}
-
-variable "disk_size" {
-  description = "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.   This value must be equal for all shards and node types.   This value is not configurable on M0/M2/M5 clusters.   MongoDB Cloud requires this parameter if you set **replicationSpecs**.   If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value.    Storage charge calculations depend on whether you choose the default value or a custom value.   The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier."
-  type        = number
-  default     = 0
-}
-
-variable "auto_scaling_disk_gb_enabled" {
-  description = "Flag that indicates whether this cluster enables disk auto-scaling. The maximum memory allowed for the selected cluster tier and the oplog size can limit storage auto-scaling."
-  type        = bool
-  default     = false
-}
-
 variable "tags" {
   description = "Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster."
   type        = map(string)

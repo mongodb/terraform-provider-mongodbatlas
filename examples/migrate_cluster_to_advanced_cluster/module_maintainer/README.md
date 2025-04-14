@@ -147,4 +147,23 @@ output "mongodbatlas_cluster" {
 ```
 
 ## Step 4: Module `v4` Implementation Changes and Highlights
-This module marks the end of the migration to `mongodbatlas_advanced_cluster` by removing references to `mongodbatlas_cluster` and ... CONTINUE on monday
+This module marks the end of the migration to `mongodbatlas_advanced_cluster`.
+We future-proof the module by removing references to the `mongodbatlas_cluster` data source and only allowing the latest schema for the `replication_specs` variable.
+A major version bump would typically accompany this module version since we remove and rename input and output variables.
+The reduced compatibility simplifies the module but forces the module user to rename their input variable `replication_specs_new` to `replication_specs`.
+It is an option to keep the `replication_specs_new` variable name, but it risks confusing new module users and complicating future updates.
+
+### [`variables.tf`](v4/variables.tf)
+- Remove the `replication_specs`, `auto_scaling_disk_gb_enabled`, `disk_size`, `provider_name`, and `instance_size`.
+- Rename the `replication_specs_new` to `replication_specs`.
+- Remove the default (`[]`) of `replication_specs`.
+
+### [`main.tf`](v4/main.tf)
+- Remove `locals` block (no longer needed to modify the old replication_spec variable to fit the new `mongodbatlas_advanced_cluster` schema).
+- Remove the `moved` block.
+- Remove the `mongodbatlas_cluster` data source.
+
+### [`outputs.tf`](v4/outputs.tf)
+- Remove conditional logic from `replication_specs`.
+- Flatten `mongodb_connection_strings` to use `mongodbatlas_advanced_cluster.this.connection_strings` directly instead of wrapping inside a list
+- Remove the `mongodbatlas_cluster`.
