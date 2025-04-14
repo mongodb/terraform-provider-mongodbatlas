@@ -21,13 +21,13 @@ Terraform v1.10.0
 This can be done using environment variables:
 
 ```bash
-export MONGODB_ATLAS_PUBLIC_KEY="xxxx"
-export MONGODB_ATLAS_PRIVATE_KEY="xxxx"
+export MONGODB_ATLAS_PUBLIC_KEY="<YOUR_ATLAS_PUBLIC_KEY>"
+export MONGODB_ATLAS_PRIVATE_KEY="<YOUR_ATLAS_PRIVATE_KEY>"
 ```
 
-``` bash
-$ export AWS_SECRET_ACCESS_KEY='your secret key'
-$ export AWS_ACCESS_KEY_ID='your key id'
+```bash
+$ export AWS_SECRET_ACCESS_KEY="<YOUR_AWS_SECRET_ACCESS_KEY>"
+$ export AWS_ACCESS_KEY_ID="<YOUR_AWS_ACCESS_KEY_ID>"
 ```
 
 ... or the `~/.aws/credentials` file.

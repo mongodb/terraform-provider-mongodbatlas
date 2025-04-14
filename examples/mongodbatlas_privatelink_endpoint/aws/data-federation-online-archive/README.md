@@ -16,13 +16,13 @@ Setup private connection to a [Data Federation or Online Archive](https://www.mo
 This can be done using environment variables:
 
 ```bash
-export MONGODB_ATLAS_PUBLIC_KEY="xxxx"
-export MONGODB_ATLAS_PRIVATE_KEY="xxxx"
+export MONGODB_ATLAS_PUBLIC_KEY="<YOUR_ATLAS_PUBLIC_KEY>"
+export MONGODB_ATLAS_PRIVATE_KEY="<YOUR_ATLAS_PRIVATE_KEY>"
 ```
 
 ``` bash
-$ export AWS_SECRET_ACCESS_KEY='your secret key'
-$ export AWS_ACCESS_KEY_ID='your key id'
+$ export AWS_ACCESS_KEY_ID='<YOUR_AWS_KEY_ID>'
+$ export AWS_SECRET_ACCESS_KEY='<YOUR_AWS_SECRET_ACCESS_KEY>'
 ```
 
 ... or the `~/.aws/credentials` file.
@@ -30,17 +30,17 @@ $ export AWS_ACCESS_KEY_ID='your key id'
 ```
 $ cat ~/.aws/credentials
 [default]
-aws_access_key_id = your key id
-aws_secret_access_key = your secret key
+aws_access_key_id = <YOUR_AWS_KEY_ID>
+aws_secret_access_key = <YOUR_AWS_SECRET_ACCESS_KEY>
 
 ```
 ... or follow as in the `variables.tf` file and create **terraform.tfvars** file with all the variable values, ex:
 ```
-access_key   = "<AWS_ACCESS_KEY_ID>"
-secret_key   = "<AWS_SECRET_ACCESS_KEY>"
-public_key   = "<MONGODB_ATLAS_PUBLIC_KEY>"
-private_key  = "<MONGODB_ATLAS_PRIVATE_KEY>"
-project_id   = "<MONGODB_ATLAS_PROJECT_ID>"
+access_key   = "<YOUR_AWS_ACCESS_KEY_ID>"
+secret_key   = "<YOUR_AWS_SECRET_ACCESS_KEY>"
+public_key   = "<YOUR_ATLAS_PUBLIC_KEY>"
+private_key  = "<YOUR_ATLAS_PRIVATE_KEY>"
+project_id   = "<YOUR_ATLAS_PROJECT_ID>"
 ```
 
 **2\. Review the Terraform plan.**

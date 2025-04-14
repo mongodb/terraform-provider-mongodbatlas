@@ -128,8 +128,8 @@ XXXXX
 This can be done using environment variables:
 
 ```shell
-export MONGODB_ATLAS_PUBLIC_KEY="xxxx"
-export MONGODB_ATLAS_PRIVATE_KEY="xxxx"
+export MONGODB_ATLAS_PUBLIC_KEY="<YOUR_ATLAS_PUBLIC_KEY>"
+export MONGODB_ATLAS_PRIVATE_KEY="<YOUR_ATLAS_PRIVATE_KEY>"
 ```
 
 **3\. TFVARS**
