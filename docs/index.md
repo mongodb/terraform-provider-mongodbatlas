@@ -121,10 +121,10 @@ export AWS_SESSION_TOKEN="<YOUR_AWS_SESSION_TOKEN>"
 # Configure the MongoDB Atlas Provider to Authenticate with AWS Secrets Manager 
 provider "mongodbatlas" {
   assume_role {
-    role_arn = "arn:aws:iam::<ACCOUNT_ID>:role/mdbsts"
+    role_arn = "arn:aws:iam::<YOUR_ACCOUNT_ID>:role/mdbsts"
   }
   secret_name           = "mongodbsecret"
-  // fully qualified secret_name ARN also supported as input "arn:aws:secretsmanager:af-south-1:<ACCOUNT_ID>:secret:test789-TO06Hy" 
+  // fully qualified secret_name ARN also supported as input "arn:aws:secretsmanager:af-south-1:<YOUR_ACCOUNT_ID>:secret:test789-TO06Hy" 
   region                = "us-east-2"
   
   aws_access_key_id     = "<YOUR_AWS_ACCESS_KEY_ID>"

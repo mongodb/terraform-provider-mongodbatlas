@@ -75,7 +75,7 @@ resource "mongodbatlas_stream_connection" "test" {
     connection_name = "AWSLambdaConnection"
     type            = "AWSLambda"
     aws             = {
-      role_arn = "arn:aws:iam::123456789123:role/lambdaRole"
+      role_arn = "arn:aws:iam::<YOUR_ACCOUNT_ID>:role/lambdaRole"
     }
 }
 
