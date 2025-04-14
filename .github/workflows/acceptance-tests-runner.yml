@@ -240,6 +240,7 @@ jobs:
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
       advanced_cluster_tpf: ${{ steps.filter.outputs.advanced_cluster_tpf == 'true' || env.mustTrigger == 'true' }}
       assume_role: ${{ steps.filter.outputs.assume_role == 'true' || env.mustTrigger == 'true' }}
+      autogen: ${{ steps.filter.outputs.autogen == 'true' || env.mustTrigger == 'true' }}
       backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
       control_plane_ip_addresses: ${{ steps.filter.outputs.control_plane_ip_addresses == 'true' || env.mustTrigger == 'true' }}
       cluster: ${{ steps.filter.outputs.cluster == 'true' || env.mustTrigger == 'true' }}
@@ -276,6 +277,9 @@ jobs:
             - 'internal/service/advancedcluster/*_test.go'
           assume_role:
             - 'internal/provider/*.go'
+          autogen:
+            - 'internal/service/customdbroleapi/*.go'
+            - 'internal/service/databaseuserapi/*.go'
           backup:
             - 'internal/service/cloudbackupschedule/*.go'
             - 'internal/service/cloudbackupsnapshot/*.go'
@@ -476,6 +480,32 @@ jobs:
           ACCTEST_PACKAGES: ./internal/provider
         run: make testacc
 
+  autogen:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ needs.change-detection.outputs.autogen == 'true' || inputs.test_group == 'autogen' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false
+      - name: Enable autogen
+        run: make enable-autogen
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          ACCTEST_PACKAGES: |
+            ./internal/service/customdbroleapi
+            ./internal/service/databaseuserapi
+        run: make testacc
+        
   backup:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.backup == 'true' || inputs.test_group == 'backup' }}
