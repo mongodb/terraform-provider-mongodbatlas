@@ -15,7 +15,6 @@ import (
 // It supports the following Terraform model types: String, Bool, Int64, Float64, Object, List, Set.
 // Map is not supported yet, will be done in CLOUDP-312797.
 // Attributes that are in JSON but not in the model are ignored, no error is returned.
-// Object attributes that are unknown are converted to null as all values must be known in the response state.
 func Unmarshal(raw []byte, model any) error {
 	var objJSON map[string]any
 	if err := json.Unmarshal(raw, &objJSON); err != nil {
@@ -38,7 +37,6 @@ func unmarshalAttrs(objJSON map[string]any, model any) error {
 			return err
 		}
 	}
-	convertUnknownToNull(valModel)
 	return nil
 }
 
@@ -245,16 +243,5 @@ func getNullAttr(attrType attr.Type) (attr.Value, error) {
 			return types.ObjectNull(objType.AttributeTypes()), nil
 		}
 		return nil, fmt.Errorf("unmarshal to get null value not supported yet for type %T", attrType)
-	}
-}
-
-func convertUnknownToNull(valModel reflect.Value) {
-	for i := 0; i < valModel.NumField(); i++ {
-		field := valModel.Field(i)
-		if obj, ok := field.Interface().(types.Object); ok {
-			if obj.IsUnknown() && field.CanSet() {
-				field.Set(reflect.ValueOf(types.ObjectNull(obj.AttributeTypes(context.Background()))))
-			}
-		}
 	}
 }

@@ -158,7 +158,7 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 			"attr_float":  types.Float64Null(),
 			"attr_bool":   types.BoolNull(),
 		}),
-		AttrObjUnknownNotSent: types.ObjectNull(objTypeTest.AttrTypes),
+		AttrObjUnknownNotSent: types.ObjectUnknown(objTypeTest.AttrTypes),
 		AttrObjUnknownSent: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
 			"attr_string": types.StringValue("unknown_obj"),
 			"attr_int":    types.Int64Null(),
