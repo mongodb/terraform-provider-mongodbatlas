@@ -1,4 +1,4 @@
-package autogeneration
+package autogen
 
 import (
 	"encoding/json"

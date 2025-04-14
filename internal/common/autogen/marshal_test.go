@@ -1,11 +1,11 @@
-package autogeneration_test
+package autogen_test
 
 import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogeneration"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -66,7 +66,7 @@ func TestMarshalBasic(t *testing.T) {
 		AttrBoolNull:        types.BoolNull(), // null values are not marshaled
 	}
 	const expectedJSON = `{ "attrString": "hello", "attrInt": 1, "attrFloat": 1.234, "attrBoolTrue": true, "attrBoolFalse": false }`
-	raw, err := autogeneration.Marshal(&model, false)
+	raw, err := autogen.Marshal(&model, false)
 	require.NoError(t, err)
 	assert.JSONEq(t, expectedJSON, string(raw))
 }
@@ -148,7 +148,7 @@ func TestMarshalNestedAllTypes(t *testing.T) {
 			}
 		}
 	`
-	raw, err := autogeneration.Marshal(&model, false)
+	raw, err := autogen.Marshal(&model, false)
 	require.NoError(t, err)
 	assert.JSONEq(t, expectedJSON, string(raw))
 }
@@ -212,7 +212,7 @@ func TestMarshalNestedMultiLevel(t *testing.T) {
 			]
 		}
 	`
-	raw, err := autogeneration.Marshal(&model, false)
+	raw, err := autogen.Marshal(&model, false)
 	require.NoError(t, err)
 	assert.JSONEq(t, expectedJSON, string(raw))
 }
@@ -231,11 +231,11 @@ func TestMarshalOmitJSONUpdate(t *testing.T) {
 		AttrOmitUpdate: types.StringValue("val2"),
 		AttrOmit:       types.StringValue("omit"),
 	}
-	create, errCreate := autogeneration.Marshal(&model, false)
+	create, errCreate := autogen.Marshal(&model, false)
 	require.NoError(t, errCreate)
 	assert.JSONEq(t, expectedCreate, string(create))
 
-	update, errUpdate := autogeneration.Marshal(&model, true)
+	update, errUpdate := autogen.Marshal(&model, true)
 	require.NoError(t, errUpdate)
 	assert.JSONEq(t, expectedUpdate, string(update))
 }
@@ -255,7 +255,7 @@ func TestMarshalUnsupported(t *testing.T) {
 	}
 	for name, model := range testCases {
 		t.Run(name, func(t *testing.T) {
-			raw, err := autogeneration.Marshal(model, false)
+			raw, err := autogen.Marshal(model, false)
 			require.Error(t, err)
 			assert.Nil(t, raw)
 		})
@@ -280,7 +280,7 @@ func TestMarshalPanic(t *testing.T) {
 	for name, model := range testCases {
 		t.Run(name, func(t *testing.T) {
 			assert.Panics(t, func() {
-				_, _ = autogeneration.Marshal(model, false)
+				_, _ = autogen.Marshal(model, false)
 			})
 		})
 	}

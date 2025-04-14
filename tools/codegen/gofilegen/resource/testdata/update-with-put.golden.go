@@ -7,7 +7,7 @@ import (
 	"io"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogeneration"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -47,7 +47,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
-	reqBody, err := autogeneration.Marshal(&plan, false)
+	reqBody, err := autogen.Marshal(&plan, false)
 	if err != nil {
 		resp.Diagnostics.AddError(errorBuildingAPIRequest, err.Error())
 		return
@@ -77,7 +77,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	}
 
 	// Use the plan as the base model to set the response state
-	if err := autogeneration.Unmarshal(respBody, &plan); err != nil {
+	if err := autogen.Unmarshal(respBody, &plan); err != nil {
 		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 	}
 
@@ -118,7 +118,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	}
 
 	// Use the current state as the base model to set the response state
-	if err := autogeneration.Unmarshal(respBody, &state); err != nil {
+	if err := autogen.Unmarshal(respBody, &state); err != nil {
 		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 	}
 
@@ -132,7 +132,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 
-	reqBody, err := autogeneration.Marshal(&plan, true)
+	reqBody, err := autogen.Marshal(&plan, true)
 	if err != nil {
 		resp.Diagnostics.AddError(errorBuildingAPIRequest, err.Error())
 		return
@@ -162,7 +162,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 
 	// Use the plan as the base model to set the response state
-	if err := autogeneration.Unmarshal(respBody, &plan); err != nil {
+	if err := autogen.Unmarshal(respBody, &plan); err != nil {
 		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 	}
 
@@ -192,5 +192,5 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	idAttributes := []string{"project_id"}
-	autogeneration.GenericImportOperation(ctx, idAttributes, req, resp)
+	autogen.GenericImportOperation(ctx, idAttributes, req, resp)
 }
