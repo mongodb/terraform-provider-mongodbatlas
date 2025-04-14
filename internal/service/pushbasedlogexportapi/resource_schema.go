@@ -5,7 +5,6 @@ package pushbasedlogexportapi
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -70,8 +69,3 @@ type TFLinksModel struct {
 	Href types.String `tfsdk:"href" autogeneration:"omitjson"`
 	Rel  types.String `tfsdk:"rel" autogeneration:"omitjson"`
 }
-
-var LinksObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"href": types.StringType,
-	"rel":  types.StringType,
-}}

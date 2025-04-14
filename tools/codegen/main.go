@@ -32,7 +32,7 @@ func main() {
 
 	for i := range model.Resources {
 		resourceModel := model.Resources[i]
-		schemaCode := schema.GenerateGoCode(&resourceModel)
+		schemaCode := schema.GenerateGoCode(&resourceModel, false) // object types are not needed as part of fully generated resources
 		if err := writeToFile(fmt.Sprintf("internal/service/%s/resource_schema.go", resourceModel.Name.LowerCaseNoUnderscore()), schemaCode); err != nil {
 			log.Fatalf("an error occurred when writing content to file: %v", err)
 		}
