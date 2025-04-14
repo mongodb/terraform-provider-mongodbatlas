@@ -52,6 +52,7 @@ type TfDatabaseUserModel struct {
 	OIDCAuthType     types.String `tfsdk:"oidc_auth_type"`
 	LDAPAuthType     types.String `tfsdk:"ldap_auth_type"`
 	AWSIAMType       types.String `tfsdk:"aws_iam_type"`
+	Description      types.String `tfsdk:"description"`
 	Roles            types.Set    `tfsdk:"roles"`
 	Labels           types.Set    `tfsdk:"labels"`
 	Scopes           types.Set    `tfsdk:"scopes"`
@@ -123,6 +124,9 @@ func (r *databaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 						path.MatchRelative().AtParent().AtName("aws_iam_type"),
 					}...),
 				},
+			},
+			"description": schema.StringAttribute{
+				Optional: true,
 			},
 			"x509_type": schema.StringAttribute{
 				Optional: true,

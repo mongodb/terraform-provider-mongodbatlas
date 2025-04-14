@@ -32,8 +32,11 @@ func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue types.String
 	}
 
 	result := admin.CloudDatabaseUser{
-		GroupId:      dbUserModel.ProjectID.ValueString(),
-		Username:     dbUserModel.Username.ValueString(),
+		GroupId:  dbUserModel.ProjectID.ValueString(),
+		Username: dbUserModel.Username.ValueString(),
+		// description is an optional attribute (i.e. null by default), if it is removed from the config during an update
+		// (i.e. user wants to remove the existing description from database user), we send an empty string ("") as the value in API request for update
+		Description:  conversion.Pointer(dbUserModel.Description.ValueString()),
 		X509Type:     dbUserModel.X509Type.ValueStringPointer(),
 		AwsIAMType:   dbUserModel.AWSIAMType.ValueStringPointer(),
 		OidcAuthType: dbUserModel.OIDCAuthType.ValueStringPointer(),
@@ -78,6 +81,7 @@ func NewTfDatabaseUserModel(ctx context.Context, model *TfDatabaseUserModel, dbU
 		ProjectID:        types.StringValue(dbUser.GroupId),
 		AuthDatabaseName: types.StringValue(dbUser.DatabaseName),
 		Username:         types.StringValue(dbUser.Username),
+		Description:      types.StringPointerValue(dbUser.Description),
 		X509Type:         types.StringValue(dbUser.GetX509Type()),
 		OIDCAuthType:     types.StringValue(dbUser.GetOidcAuthType()),
 		LDAPAuthType:     types.StringValue(dbUser.GetLdapAuthType()),
@@ -90,6 +94,10 @@ func NewTfDatabaseUserModel(ctx context.Context, model *TfDatabaseUserModel, dbU
 	if model != nil && model.Password.ValueString() != "" {
 		// The Password is not retuned from the endpoint so we use the one provided in the model
 		databaseUserModel.Password = model.Password
+	}
+	if dbUser.Description != nil && model != nil && model.Description.IsNull() {
+		// null != "" in TPF:  Error: Provider produced inconsistent result after apply. .description: was null, but now cty.StringVal("")
+		databaseUserModel.Description = model.Description
 	}
 
 	return databaseUserModel, nil
