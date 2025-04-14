@@ -164,10 +164,12 @@ func TestAccConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSDatabaseUser_withLabels(t *testing.T) {
+func TestAccConfigRSDatabaseUser_withLabelsAndDescription(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t)
-		username  = acc.RandomName()
+		projectID    = acc.ProjectIDExecution(t)
+		username     = acc.RandomName()
+		description1 = "desc 1"
+		description2 = "desc 2"
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -176,7 +178,7 @@ func TestAccConfigRSDatabaseUser_withLabels(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin", nil),
+				Config: acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin", description1, nil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -184,10 +186,11 @@ func TestAccConfigRSDatabaseUser_withLabels(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "description", description1),
 				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin",
+				Config: acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin", description2,
 					[]admin.ComponentLabel{
 						{
 							Key:   conversion.StringPtr("key 1"),
@@ -203,13 +206,14 @@ func TestAccConfigRSDatabaseUser_withLabels(t *testing.T) {
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "username", username),
+					resource.TestCheckResourceAttr(resourceName, "description", description2),
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "2"),
 				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserWithLabels(projectID, username, "read",
+				Config: acc.ConfigDatabaseUserWithLabels(projectID, username, "read", "",
 					[]admin.ComponentLabel{
 						{
 							Key:   conversion.StringPtr("key 4"),
@@ -232,6 +236,7 @@ func TestAccConfigRSDatabaseUser_withLabels(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
 					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "3"),
+					resource.TestCheckNoResourceAttr(resourceName, "description"),
 				),
 			},
 		},
@@ -427,7 +432,7 @@ func TestAccConfigRSDatabaseUser_updateToEmptyLabels(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin",
+				Config: acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin", "",
 					[]admin.ComponentLabel{
 						{
 							Key:   conversion.StringPtr("key 1"),
@@ -450,7 +455,7 @@ func TestAccConfigRSDatabaseUser_updateToEmptyLabels(t *testing.T) {
 				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin", nil),
+				Config: acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin", "", nil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "labels.#", "0"),
