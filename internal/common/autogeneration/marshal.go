@@ -37,16 +37,6 @@ func Marshal(model any, isUpdate bool) ([]byte, error) {
 	return json.Marshal(objJSON)
 }
 
-// Unmarshal gets a JSON (e.g. from an Atlas response) and unmarshals it into a Terraform model.
-// It supports the following Terraform model types: String, Bool, Int64, Float64.
-func Unmarshal(raw []byte, model any) error {
-	var objJSON map[string]any
-	if err := json.Unmarshal(raw, &objJSON); err != nil {
-		return err
-	}
-	return unmarshalAttrs(objJSON, model)
-}
-
 func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error) {
 	objJSON := make(map[string]any)
 	for i := 0; i < valModel.NumField(); i++ {
@@ -73,7 +63,7 @@ func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[s
 	if !ok {
 		panic("marshal expects only Terraform types in the model")
 	}
-	val, err := getAttr(obj)
+	val, err := getModelAttr(obj)
 	if err != nil {
 		return err
 	}
@@ -83,13 +73,15 @@ func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[s
 	return nil
 }
 
-func getAttr(val attr.Value) (any, error) {
+func getModelAttr(val attr.Value) (any, error) {
 	if val.IsNull() || val.IsUnknown() {
 		return nil, nil // skip null or unknown values
 	}
 	switch v := val.(type) {
 	case types.String:
 		return v.ValueString(), nil
+	case types.Bool:
+		return v.ValueBool(), nil
 	case types.Int64:
 		return v.ValueInt64(), nil
 	case types.Float64:
@@ -110,7 +102,7 @@ func getAttr(val attr.Value) (any, error) {
 func getListAttr(elms []attr.Value) (any, error) {
 	arr := make([]any, 0)
 	for _, attr := range elms {
-		valChild, err := getAttr(attr)
+		valChild, err := getModelAttr(attr)
 		if err != nil {
 			return nil, err
 		}
@@ -121,10 +113,12 @@ func getListAttr(elms []attr.Value) (any, error) {
 	return arr, nil
 }
 
+// getMapAttr gets a map of attributes and returns a map of JSON attributes.
+// keepKeyCase is used for types.Map to keep key case. However, we want to use JSON key case for types.Object
 func getMapAttr(elms map[string]attr.Value, keepKeyCase bool) (any, error) {
-	obj := make(map[string]any)
+	objJSON := make(map[string]any)
 	for name, attr := range elms {
-		valChild, err := getAttr(attr)
+		valChild, err := getModelAttr(attr)
 		if err != nil {
 			return nil, err
 		}
@@ -133,57 +127,8 @@ func getMapAttr(elms map[string]attr.Value, keepKeyCase bool) (any, error) {
 			if keepKeyCase {
 				nameJSON = name
 			}
-			obj[nameJSON] = valChild
+			objJSON[nameJSON] = valChild
 		}
 	}
-	return obj, nil
-}
-
-func unmarshalAttrs(objJSON map[string]any, model any) error {
-	valModel := reflect.ValueOf(model)
-	if valModel.Kind() != reflect.Ptr {
-		panic("model must be pointer")
-	}
-	valModel = valModel.Elem()
-	if valModel.Kind() != reflect.Struct {
-		panic("model must be pointer to struct")
-	}
-	for attrNameJSON, attrObjJSON := range objJSON {
-		if err := unmarshalAttr(attrNameJSON, attrObjJSON, valModel); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func unmarshalAttr(attrNameJSON string, attrObjJSON any, valModel reflect.Value) error {
-	attrNameModel := xstrings.ToPascalCase(attrNameJSON)
-	fieldModel := valModel.FieldByName(attrNameModel)
-	if !fieldModel.CanSet() {
-		return nil // skip fields that cannot be set, are invalid or not found
-	}
-	switch v := attrObjJSON.(type) {
-	case string:
-		return setAttrModel(attrNameModel, fieldModel, types.StringValue(v))
-	case bool:
-		return setAttrModel(attrNameModel, fieldModel, types.BoolValue(v))
-	case float64: // number: try int or float
-		if setAttrModel(attrNameModel, fieldModel, types.Float64Value(v)) == nil {
-			return nil
-		}
-		return setAttrModel(attrNameModel, fieldModel, types.Int64Value(int64(v)))
-	case nil:
-		return nil // skip nil values, no need to set anything
-	default:
-		return fmt.Errorf("unmarshal not supported yet for type %T for field %s", v, attrNameJSON)
-	}
-}
-
-func setAttrModel(name string, field reflect.Value, val attr.Value) error {
-	obj := reflect.ValueOf(val)
-	if !field.Type().AssignableTo(obj.Type()) {
-		return fmt.Errorf("unmarshal can't assign value to model field %s", name)
-	}
-	field.Set(obj)
-	return nil
+	return objJSON, nil
 }

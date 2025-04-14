@@ -10,15 +10,35 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type TFTestModel struct {
-	AttrString types.String `tfsdk:"attr_string"`
-	AttrInt    types.Int64  `tfsdk:"attr_int"`
+type modelTest struct {
+	AttrFloat  types.Float64 `tfsdk:"attr_float"`
+	AttrString types.String  `tfsdk:"attr_string"`
+	AttrInt    types.Int64   `tfsdk:"attr_int"`
+	AttrBool   types.Bool    `tfsdk:"attr_bool"`
 }
 
-var TestObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"attr_string": types.StringType,
-	"attr_int":    types.Int64Type,
-}}
+type modelParentTest struct {
+	AttrParentObj    types.Object `tfsdk:"attr_parent_obj"`
+	AttrParentString types.String `tfsdk:"attr_parent_string"`
+	AttrParentInt    types.Int64  `tfsdk:"attr_parent_int"`
+}
+
+var (
+	objTypeTest = types.ObjectType{AttrTypes: map[string]attr.Type{
+		"attr_float":  types.Float64Type,
+		"attr_string": types.StringType,
+		"attr_int":    types.Int64Type,
+		"attr_bool":   types.BoolType,
+	}}
+
+	objTypeParentTest = types.ObjectType{AttrTypes: map[string]attr.Type{
+		"attr_parent_obj":    objTypeTest,
+		"attr_parent_string": types.StringType,
+		"attr_parent_int":    types.Int64Type,
+	}}
+)
+
+const epsilon = 10e-15 // float tolerance in test equality
 
 func TestMarshalBasic(t *testing.T) {
 	model := struct {
@@ -30,6 +50,9 @@ func TestMarshalBasic(t *testing.T) {
 		AttrUnkown          types.String `tfsdk:"attr_unknown"`
 		AttrNull            types.String `tfsdk:"attr_null"`
 		AttrInt             types.Int64  `tfsdk:"attr_int"`
+		AttrBoolTrue        types.Bool   `tfsdk:"attr_bool_true"`
+		AttrBoolFalse       types.Bool   `tfsdk:"attr_bool_false"`
+		AttrBoolNull        types.Bool   `tfsdk:"attr_bool_null"`
 	}{
 		AttrFloat:           types.Float64Value(1.234),
 		AttrString:          types.StringValue("hello"),
@@ -38,15 +61,18 @@ func TestMarshalBasic(t *testing.T) {
 		AttrUnkown:          types.StringUnknown(), // unknown values are not marshaled
 		AttrNull:            types.StringNull(),    // null values are not marshaled
 		AttrInt:             types.Int64Value(1),
+		AttrBoolTrue:        types.BoolValue(true),
+		AttrBoolFalse:       types.BoolValue(false),
+		AttrBoolNull:        types.BoolNull(), // null values are not marshaled
 	}
-	const expectedJSON = `{ "attrString": "hello", "attrInt": 1, "attrFloat": 1.234 }`
+	const expectedJSON = `{ "attrString": "hello", "attrInt": 1, "attrFloat": 1.234, "attrBoolTrue": true, "attrBoolFalse": false }`
 	raw, err := autogeneration.Marshal(&model, false)
 	require.NoError(t, err)
 	assert.JSONEq(t, expectedJSON, string(raw))
 }
 
 func TestMarshalNestedAllTypes(t *testing.T) {
-	attrListObj, diags := types.ListValueFrom(t.Context(), TestObjType, []TFTestModel{
+	attrListObj, diags := types.ListValueFrom(t.Context(), objTypeTest, []modelTest{
 		{
 			AttrString: types.StringValue("str1"),
 			AttrInt:    types.Int64Value(1),
@@ -57,7 +83,7 @@ func TestMarshalNestedAllTypes(t *testing.T) {
 		},
 	})
 	assert.False(t, diags.HasError())
-	attrSetObj, diags := types.SetValueFrom(t.Context(), TestObjType, []TFTestModel{
+	attrSetObj, diags := types.SetValueFrom(t.Context(), objTypeTest, []modelTest{
 		{
 			AttrString: types.StringValue("str11"),
 			AttrInt:    types.Int64Value(11),
@@ -68,7 +94,7 @@ func TestMarshalNestedAllTypes(t *testing.T) {
 		},
 	})
 	assert.False(t, diags.HasError())
-	attrMapObj, diags := types.MapValueFrom(t.Context(), TestObjType, map[string]TFTestModel{
+	attrMapObj, diags := types.MapValueFrom(t.Context(), objTypeTest, map[string]modelTest{
 		"keyOne": {
 			AttrString: types.StringValue("str1"),
 			AttrInt:    types.Int64Value(1),
@@ -128,29 +154,23 @@ func TestMarshalNestedAllTypes(t *testing.T) {
 }
 
 func TestMarshalNestedMultiLevel(t *testing.T) {
-	type parentModel struct {
-		AttrParentObj    types.Object `tfsdk:"attr_parent_obj"`
-		AttrParentString types.String `tfsdk:"attr_parent_string"`
-		AttrParentInt    types.Int64  `tfsdk:"attr_parent_int"`
-	}
-	parentObjType := types.ObjectType{AttrTypes: map[string]attr.Type{
-		"attr_parent_obj":    TestObjType,
-		"attr_parent_string": types.StringType,
-		"attr_parent_int":    types.Int64Type,
-	}}
-	attrListObj, diags := types.ListValueFrom(t.Context(), parentObjType, []parentModel{
+	attrListObj, diags := types.ListValueFrom(t.Context(), objTypeParentTest, []modelParentTest{
 		{
-			AttrParentObj: types.ObjectValueMust(TestObjType.AttrTypes, map[string]attr.Value{
+			AttrParentObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
 				"attr_string": types.StringValue("str11"),
 				"attr_int":    types.Int64Value(11),
+				"attr_float":  types.Float64Value(11.1),
+				"attr_bool":   types.BoolValue(true),
 			}),
 			AttrParentString: types.StringValue("str1"),
 			AttrParentInt:    types.Int64Value(1),
 		},
 		{
-			AttrParentObj: types.ObjectValueMust(TestObjType.AttrTypes, map[string]attr.Value{
+			AttrParentObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
 				"attr_string": types.StringValue("str22"),
 				"attr_int":    types.Int64Value(22),
+				"attr_float":  types.Float64Value(22.2),
+				"attr_bool":   types.BoolValue(false),
 			}),
 			AttrParentString: types.StringValue("str2"),
 			AttrParentInt:    types.Int64Value(2),
@@ -174,7 +194,9 @@ func TestMarshalNestedMultiLevel(t *testing.T) {
 					"attrParentInt": 1,
 					"attrParentObj": {
 						"attrString": "str11",			
-						"attrInt": 11
+						"attrInt": 11,
+						"attrFloat": 11.1,
+						"attrBool": true
 					}				
 				},
 				{
@@ -182,7 +204,9 @@ func TestMarshalNestedMultiLevel(t *testing.T) {
 					"attrParentInt": 2,
 					"attrParentObj": {		
 						"attrString": "str22",	
-						"attrInt": 22
+						"attrInt": 22,
+						"attrFloat": 22.2,
+						"attrBool": false
 					}
 				}
 			]
@@ -258,143 +282,6 @@ func TestMarshalPanic(t *testing.T) {
 			assert.Panics(t, func() {
 				_, _ = autogeneration.Marshal(model, false)
 			})
-		})
-	}
-}
-
-func TestUnmarshalBasic(t *testing.T) {
-	var model struct {
-		AttrFloat        types.Float64 `tfsdk:"attr_float"`
-		AttrFloatWithInt types.Float64 `tfsdk:"attr_float_with_int"`
-		AttrString       types.String  `tfsdk:"attr_string"`
-		AttrNotInJSON    types.String  `tfsdk:"attr_not_in_json"`
-		AttrInt          types.Int64   `tfsdk:"attr_int"`
-		AttrIntWithFloat types.Int64   `tfsdk:"attr_int_with_float"`
-		AttrTrue         types.Bool    `tfsdk:"attr_true"`
-		AttrFalse        types.Bool    `tfsdk:"attr_false"`
-	}
-	const (
-		epsilon = 10e-15 // float tolerance
-		// attribute_not_in_model is ignored because it is not in the model, no error is thrown.
-		// attribute_null is ignored because it is null, no error is thrown even if it is not in the model.
-		tfResponseJSON = `
-			{
-				"attrString": "value_string",
-				"attrTrue": true,
-				"attrFalse": false,
-				"attrInt": 123,
-				"attrIntWithFloat": 10.6,
-				"attrFloat": 456.1,
-				"attrFloatWithInt": 13,
-				"attrNotInModel": "val",
-				"attrNull": null
-			}
-		`
-	)
-	require.NoError(t, autogeneration.Unmarshal([]byte(tfResponseJSON), &model))
-	assert.Equal(t, "value_string", model.AttrString.ValueString())
-	assert.True(t, model.AttrTrue.ValueBool())
-	assert.False(t, model.AttrFalse.ValueBool())
-	assert.Equal(t, int64(123), model.AttrInt.ValueInt64())
-	assert.Equal(t, int64(10), model.AttrIntWithFloat.ValueInt64()) // response floats stored in model ints have their decimals stripped.
-	assert.InEpsilon(t, float64(456.1), model.AttrFloat.ValueFloat64(), epsilon)
-	assert.InEpsilon(t, float64(13), model.AttrFloatWithInt.ValueFloat64(), epsilon)
-	assert.True(t, model.AttrNotInJSON.IsNull()) // attributes not in JSON response are not changed, so null is kept.
-}
-
-func TestUnmarshalErrors(t *testing.T) {
-	const errorStr = "can't assign value to model field Attr"
-	testCases := map[string]struct {
-		model        any
-		responseJSON string
-	}{
-		"response ints are not converted to model strings": {
-			responseJSON: `{"attr": 123}`, //
-			model: &struct {
-				Attr types.String
-			}{},
-		},
-		"response strings are not converted to model ints": {
-			responseJSON: `{"attr": "hello"}`,
-			model: &struct {
-				Attr types.Int64
-			}{},
-		},
-		"response strings are not converted to model bools": {
-			responseJSON: `{"attr": "true"}`,
-			model: &struct {
-				Attr types.Bool
-			}{},
-		},
-		"response bools are not converted to model string": {
-			responseJSON: `{"attr": true}`,
-			model: &struct {
-				Attr types.String
-			}{},
-		},
-		"model attributes have to be of Terraform types": {
-			responseJSON: `{"attr": "hello"}`,
-			model: &struct {
-				Attr string
-			}{},
-		},
-	}
-	for name, tc := range testCases {
-		t.Run(name, func(t *testing.T) {
-			assert.ErrorContains(t, autogeneration.Unmarshal([]byte(tc.responseJSON), tc.model), errorStr)
-		})
-	}
-}
-
-// TestUnmarshalUnsupportedModel has Terraform types not supported yet.
-// It will be updated when we add support for them.
-func TestUnmarshalUnsupportedModel(t *testing.T) {
-	testCases := map[string]struct {
-		model        any
-		responseJSON string
-	}{
-		"Int32 not supported yet as it's not being used in any model": {
-			responseJSON: `{"attr": 1}`,
-			model: &struct {
-				Attr types.Int32
-			}{},
-		},
-		"Float32 not supported yet as it's not being used in any model": {
-			responseJSON: `{"attr": 1}`,
-			model: &struct {
-				Attr types.Float32
-			}{},
-		},
-	}
-	for name, tc := range testCases {
-		t.Run(name, func(t *testing.T) {
-			assert.Error(t, autogeneration.Unmarshal([]byte(tc.responseJSON), tc.model))
-		})
-	}
-}
-
-// TestUnmarshalUnsupportedResponse has JSON response types not supported yet.
-// It will be updated when we add support for them.
-func TestUnmarshalUnsupportedResponse(t *testing.T) {
-	var model struct {
-		Attr types.String
-	}
-	testCases := map[string]struct {
-		responseJSON string
-		errorStr     string
-	}{
-		"JSON objects not support yet": {
-			responseJSON: `{"attr": {"key": "value"}}`,
-			errorStr:     "unmarshal not supported yet for type map[string]interface {} for field attr",
-		},
-		"JSON arrays not supported yet": {
-			responseJSON: `{"attr": [{"key": "value"}]}`,
-			errorStr:     "unmarshal not supported yet for type []interface {} for field attr",
-		},
-	}
-	for name, tc := range testCases {
-		t.Run(name, func(t *testing.T) {
-			assert.ErrorContains(t, autogeneration.Unmarshal([]byte(tc.responseJSON), &model), tc.errorStr)
 		})
 	}
 }
