@@ -128,8 +128,8 @@ XXXXX
 This can be done using environment variables:
 
 ```shell
-export MONGODB_ATLAS_PUBLIC_KEY="<YOUR_ATLAS_PUBLIC_KEY>"
-export MONGODB_ATLAS_PRIVATE_KEY="<YOUR_ATLAS_PRIVATE_KEY>"
+export MONGODB_ATLAS_PUBLIC_KEY="<ATLAS_PUBLIC_KEY>"
+export MONGODB_ATLAS_PRIVATE_KEY="<ATLAS_PRIVATE_KEY>"
 ```
 
 **3\. TFVARS**
@@ -140,7 +140,7 @@ Create a file named `vars.auto.tfvars`
 project_name             = "tf-example-oidc"
 location                 = "eastus" # Azure region
 owner                    = "my-user"
-org_id                   = "YOUR_ATLAS_ORG_ID" # e.g 65def6ce0f722a1507105aa5
+org_id                   = "ATLAS_ORG_ID" # e.g 65def6ce0f722a1507105aa5
 region                   = "US_EAST_1" # Atlas region
 insert_record_database   = "test"
 insert_record_collection = "test"
@@ -151,7 +151,7 @@ Configuring the `ssh_public_key` for the Azure VM:
 
 ```shell
 cd ~/.ssh
-ssh-keygen -t rsa -b 4096 -C "<your_email@example.com>" # to generate a keypair for the VM
+ssh-keygen -t rsa -b 4096 -C "<email@example.com>" # to generate a keypair for the VM
 export TF_VAR_ssh_public_key=$(cat ~/.ssh/id_rsa.pub) # set the `ssh_public_key` with an env var instead of using the variable
 ```
 

@@ -21,13 +21,13 @@ Terraform v1.5.2
 This can be done using environment variables:
 
 ```bash
-export MONGODB_ATLAS_PUBLIC_KEY="<YOUR_ATLAS_PUBLIC_KEY>"
-export MONGODB_ATLAS_PRIVATE_KEY="<YOUR_ATLAS_PRIVATE_KEY>"
+export MONGODB_ATLAS_PUBLIC_KEY="<ATLAS_PUBLIC_KEY>"
+export MONGODB_ATLAS_PRIVATE_KEY="<ATLAS_PRIVATE_KEY>"
 ```
 
 ``` bash
-export AWS_ACCESS_KEY_ID='<YOUR_AWS_KEY_ID>'
-export AWS_SECRET_ACCESS_KEY='<YOUR_AWS_SECRET_ACCESS_KEY>'
+export AWS_ACCESS_KEY_ID='<AWS_KEY_ID>'
+export AWS_SECRET_ACCESS_KEY='<AWS_SECRET_ACCESS_KEY>'
 ```
 
 ... or the `~/.aws/credentials` file.
@@ -35,15 +35,15 @@ export AWS_SECRET_ACCESS_KEY='<YOUR_AWS_SECRET_ACCESS_KEY>'
 ```
 $ cat ~/.aws/credentials
 [default]
-aws_access_key_id = <YOUR_AWS_KEY_ID>
-aws_secret_access_key = <YOUR_AWS_SECRET_ACCESS_KEY>
+aws_access_key_id = <AWS_KEY_ID>
+aws_secret_access_key = <AWS_SECRET_ACCESS_KEY>
 ```
 ... or follow as in the `variables.tf` file and create **terraform.tfvars** file with all the variable values. For example:
 ```
-access_key           = "<YOUR_AWS_ACCESS_KEY_ID>"
-secret_key           = "<YOUR_AWS_SECRET_ACCESS_KEY>"
-public_key           = "<YOUR_ATLAS_PUBLIC_KEY>"
-private_key          = "<YOUR_ATLAS_PRIVATE_KEY>"
+access_key           = "<AWS_ACCESS_KEY_ID>"
+secret_key           = "<AWS_SECRET_ACCESS_KEY>"
+public_key           = "<ATLAS_PUBLIC_KEY>"
+private_key          = "<ATLAS_PRIVATE_KEY>"
 ```
 
 **2\. Review the Terraform plan.**

@@ -19,8 +19,8 @@ on darwin_amd64
 This can be done using environment variables:
 
 ``` bash
-export AWS_ACCESS_KEY_ID='<YOUR_AWS_KEY_ID>'
-export AWS_SECRET_ACCESS_KEY='<YOUR_AWS_SECRET_ACCESS_KEY>'
+export AWS_ACCESS_KEY_ID='<AWS_KEY_ID>'
+export AWS_SECRET_ACCESS_KEY='<AWS_SECRET_ACCESS_KEY>'
 ```
 
 ... or the `~/.aws/credentials` file.
@@ -28,8 +28,8 @@ export AWS_SECRET_ACCESS_KEY='<YOUR_AWS_SECRET_ACCESS_KEY>'
 ```
 $ cat ~/.aws/credentials
 [default]
-aws_access_key_id = <YOUR_AWS_ACCESS_KEY_ID>
-aws_secret_access_key = <YOUR_AWS_SECRET_ACCESS_KEY>
+aws_access_key_id = <AWS_ACCESS_KEY_ID>
+aws_secret_access_key = <AWS_SECRET_ACCESS_KEY>
 ```
 ... or follow as in the `variables.tf` file and create **terraform.tfvars** file with all the variable values and make sure **not to commit it**.
 
