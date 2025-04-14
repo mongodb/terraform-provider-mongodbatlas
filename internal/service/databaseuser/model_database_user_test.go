@@ -145,7 +145,7 @@ func TestNewMongoDBDatabaseUser(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, err := databaseuser.NewMongoDBDatabaseUser(t.Context(), tc.passwordStateValue, &testCases[i].tfDatabaseUserModel)
+			resultModel, err := databaseuser.NewMongoDBDatabaseUser(t.Context(), tc.passwordStateValue, types.StringValue(""), &testCases[i].tfDatabaseUserModel)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)

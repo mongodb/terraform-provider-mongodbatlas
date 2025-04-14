@@ -44,6 +44,7 @@ func TestAccConfigRSDatabaseUser_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "labels.0.value", "First value"),
 					resource.TestCheckResourceAttr(resourceName, "roles.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "roles.0.role_name", "atlasAdmin"),
+					resource.TestCheckNoResourceAttr(resourceName, "description"),
 				),
 			},
 			{
