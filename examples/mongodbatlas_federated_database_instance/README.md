@@ -26,8 +26,8 @@ export MONGODB_ATLAS_PRIVATE_KEY="<YOUR_ATLAS_PRIVATE_KEY>"
 ```
 
 ```bash
-$ export AWS_SECRET_ACCESS_KEY="<YOUR_AWS_SECRET_ACCESS_KEY>"
-$ export AWS_ACCESS_KEY_ID="<YOUR_AWS_ACCESS_KEY_ID>"
+export AWS_SECRET_ACCESS_KEY="<YOUR_AWS_SECRET_ACCESS_KEY>"
+export AWS_ACCESS_KEY_ID="<YOUR_AWS_ACCESS_KEY_ID>"
 ```
 
 ... or the `~/.aws/credentials` file.
@@ -35,15 +35,15 @@ $ export AWS_ACCESS_KEY_ID="<YOUR_AWS_ACCESS_KEY_ID>"
 ```
 $ cat ~/.aws/credentials
 [default]
-aws_access_key_id = your key id
-aws_secret_access_key = your secret key
+aws_access_key_id = <YOUR_AWS_ACCESS_KEY_ID>
+aws_secret_access_key = <YOUR_AWS_SECRET_ACCESS_KEY>
 ```
 ... or follow as in the `variables.tf` file and create **terraform.tfvars** file with all the variable values, ex:
 ```
-access_key           = "<AWS_ACCESS_KEY_ID>"
-secret_key           = "<AWS_SECRET_ACCESS_KEY>"
-public_key           = "<MONGODB_ATLAS_PUBLIC_KEY>"
-private_key          = "<MONGODB_ATLAS_PRIVATE_KEY>"
+access_key   = "<YOUR_AWS_ACCESS_KEY_ID>"
+secret_key   = "<YOUR_AWS_SECRET_ACCESS_KEY>"
+public_key   = "<YOUR_ATLAS_PUBLIC_KEY>"
+private_key  = "<YOUR_ATLAS_PRIVATE_KEY>"
 ```
 **2\. Create an S3 bucket into your AWS account**
 Now create **terraform.tfvars** file with all the variable values and make sure **not to commit it**.

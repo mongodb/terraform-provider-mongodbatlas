@@ -38,9 +38,8 @@ atlas_org_id         = "63f4d4a47baeac59406dc131"
 **2\. Set your AWS access key & secret via environment variables:
 
 ```bash
-export AWS_ACCESS_KEY_ID="exampleawsy"
-export AWS_SECRET_ACCESS_KEY="ye3G3+example+TOez2BBK+P22+raXXn2l2hywcuq1"
-
+export AWS_ACCESS_KEY_ID='<YOUR_AWS_KEY_ID>'
+export AWS_SECRET_ACCESS_KEY='<YOUR_AWS_SECRET_ACCESS_KEY>'
 ```
 
 **3\. Review the Terraform plan.**

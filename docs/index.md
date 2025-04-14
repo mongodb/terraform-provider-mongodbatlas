@@ -61,7 +61,6 @@ Usage (prefix the export commands with a space to avoid the keys being recorded 
 ```shell
 $  export MONGODB_ATLAS_PUBLIC_KEY="<YOUR_ATLAS_PUBLIC_KEY>"
 $  export MONGODB_ATLAS_PRIVATE_KEY="<YOUR_ATLAS_PRIVATE_KEY>"
-```
 $ terraform plan
 ```
 
@@ -103,8 +102,8 @@ Note: this policy may be overly broad for many use cases, feel free to adjust ac
 
 3. In terminal, store as environmental variables AWS API Keys (while you can also hardcode in config files these will then be stored as plain text in .tfstate file and should be avoided if possible). For example:
 ``` 
-export AWS_ACCESS_KEY_ID='<YOUR_KEY_ID>'
-export AWS_SECRET_ACCESS_KEY='<YOUR_SECRET_KEY>'
+export AWS_ACCESS_KEY_ID='<YOUR_AWS_KEY_ID>'
+export AWS_SECRET_ACCESS_KEY='<YOUR_AWS_SECRET_ACCESS_KEY>'
 ```
 4. In terminal, use the AWS CLI command: `aws sts assume-role --role-arn ROLE_ARN_FROM_ABOVE --role-session-name newSession` 
 
@@ -112,9 +111,9 @@ Note: AWS STS secrets are short lived by default, use the ` --duration-seconds` 
 
 5. Store each of the 3 new created secrets from AWS STS as environment variables (hardcoding secrets into config file with additional risk is also supported). For example: 
 ```
-export AWS_ACCESS_KEY_ID='<YOUR_KEY_ID>'
-export AWS_SECRET_ACCESS_KEY='<YOUR_SECRET_KEY>'
-export AWS_SESSION_TOKEN="<YOUR_SESSION_TOKEN>"
+export AWS_ACCESS_KEY_ID='<YOUR_AWS_KEY_ID>'
+export AWS_SECRET_ACCESS_KEY='<YOUR_AWS_SECRET_ACCESS_KEY>'
+export AWS_SESSION_TOKEN="<YOUR_AWS_SESSION_TOKEN>"
 ```
 
 6. Add assume_role block with `role_arn`, `secret_name`, and AWS `region` where secret is stored as part of AWS SM. Each of these 3 fields are REQUIRED. For example:
@@ -128,9 +127,9 @@ provider "mongodbatlas" {
   // fully qualified secret_name ARN also supported as input "arn:aws:secretsmanager:af-south-1:<ACCOUNT_ID>:secret:test789-TO06Hy" 
   region                = "us-east-2"
   
-  aws_access_key_id     = "<YOUR_KEY_ID>"
-  aws_secret_access_key = "<YOUR_SECRET_KEY>"
-  aws_session_token     = "<YOUR_SESSION_TOKEN>"
+  aws_access_key_id     = "<YOUR_AWS_ACCESS_KEY_ID>"
+  aws_secret_access_key = "<YOUR_AWS_SECRET_ACCESS_KEY>"
+  aws_session_token     = "<YOUR_AWS_SESSION_TOKEN>"
   sts_endpoint          = "https://sts.us-east-2.amazonaws.com/"
 }
 ```
