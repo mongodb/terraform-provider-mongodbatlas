@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -26,8 +27,9 @@ import (
 )
 
 const (
-	toolName              = "terraform-provider-mongodbatlas"
-	terraformPlatformName = "Terraform"
+	toolName                             = "terraform-provider-mongodbatlas"
+	terraformPlatformName                = "Terraform"
+	previewV2AdvancedClusterEnabledUAKey = "IsAdvancedClusterPreview"
 )
 
 // MongoDBClient contains the mongodbatlas clients and configurations
@@ -67,6 +69,11 @@ type AssumeRole struct {
 type SecretData struct {
 	PublicKey  string `json:"public_key"`
 	PrivateKey string `json:"private_key"`
+}
+
+type UAMetadata struct {
+	Name    string
+	Version string
 }
 
 // NewClient func...
@@ -233,20 +240,22 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 }
 
 func userAgent(c *Config) string {
-	versions := []string{
-		fmt.Sprintf("%s/%s", toolName, version.ProviderVersion),
-		fmt.Sprintf("%s/%s", terraformPlatformName, c.TerraformVersion),
-	}
-
-	var metadata []string
+	isPreviewV2AdvancedClusterEnabled := false
 	if c.PreviewV2AdvancedClusterEnabled {
-		metadata = append(metadata, "IsPreviewV2AdvancedClusterEnabled=true")
+		isPreviewV2AdvancedClusterEnabled = true
 	}
 
-	userAgent := strings.Join(versions, " ")
-	if len(metadata) > 0 {
-		userAgent = fmt.Sprintf("%s (%s)", userAgent, strings.Join(metadata, "; "))
+	metadata := []UAMetadata{
+		{toolName, version.ProviderVersion},
+		{terraformPlatformName, c.TerraformVersion},
+		{previewV2AdvancedClusterEnabledUAKey, strconv.FormatBool(isPreviewV2AdvancedClusterEnabled)},
 	}
 
-	return userAgent
+	var parts []string
+	for _, info := range metadata {
+		part := fmt.Sprintf("%s/%s", info.Name, info.Version)
+		parts = append(parts, part)
+	}
+
+	return strings.Join(parts, " ")
 }
