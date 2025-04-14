@@ -21,7 +21,7 @@ export MONGODB_ATLAS_PRIVATE_KEY="<ATLAS_PRIVATE_KEY>"
 ```
 
 ``` bash
-export AWS_ACCESS_KEY_ID='<AWS_KEY_ID>'
+export AWS_ACCESS_KEY_ID='<AWS_ACCESS_KEY_ID>'
 export AWS_SECRET_ACCESS_KEY='<AWS_SECRET_ACCESS_KEY>'
 ```
 
@@ -30,7 +30,7 @@ export AWS_SECRET_ACCESS_KEY='<AWS_SECRET_ACCESS_KEY>'
 ```
 $ cat ~/.aws/credentials
 [default]
-aws_access_key_id = <AWS_KEY_ID>
+aws_access_key_id = <AWS_ACCESS_KEY_ID>
 aws_secret_access_key = <AWS_SECRET_ACCESS_KEY>
 
 ```

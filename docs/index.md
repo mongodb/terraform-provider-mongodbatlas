@@ -102,7 +102,7 @@ Note: this policy may be overly broad for many use cases, feel free to adjust ac
 
 3. In terminal, store as environmental variables AWS API Keys (while you can also hardcode in config files these will then be stored as plain text in .tfstate file and should be avoided if possible). For example:
 ``` 
-export AWS_ACCESS_KEY_ID='<AWS_KEY_ID>'
+export AWS_ACCESS_KEY_ID='<AWS_ACCESS_KEY_ID>'
 export AWS_SECRET_ACCESS_KEY='<AWS_SECRET_ACCESS_KEY>'
 ```
 4. In terminal, use the AWS CLI command: `aws sts assume-role --role-arn ROLE_ARN_FROM_ABOVE --role-session-name newSession` 
@@ -111,7 +111,7 @@ Note: AWS STS secrets are short lived by default, use the ` --duration-seconds` 
 
 5. Store each of the 3 new created secrets from AWS STS as environment variables (hardcoding secrets into config file with additional risk is also supported). For example: 
 ```
-export AWS_ACCESS_KEY_ID='<AWS_KEY_ID>'
+export AWS_ACCESS_KEY_ID='<AWS_ACCESS_KEY_ID>'
 export AWS_SECRET_ACCESS_KEY='<AWS_SECRET_ACCESS_KEY>'
 export AWS_SESSION_TOKEN="<AWS_SESSION_TOKEN>"
 ```

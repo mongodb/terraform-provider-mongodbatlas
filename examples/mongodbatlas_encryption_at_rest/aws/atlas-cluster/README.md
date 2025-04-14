@@ -38,7 +38,7 @@ atlas_org_id         = "63f4d4a47baeac59406dc131"
 **2\. Set your AWS access key & secret via environment variables:
 
 ```bash
-export AWS_ACCESS_KEY_ID='<AWS_KEY_ID>'
+export AWS_ACCESS_KEY_ID='<AWS_ACCESS_KEY_ID>'
 export AWS_SECRET_ACCESS_KEY='<AWS_SECRET_ACCESS_KEY>'
 ```
 

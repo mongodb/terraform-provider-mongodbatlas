@@ -151,7 +151,7 @@ Configuring the `ssh_public_key` for the Azure VM:
 
 ```shell
 cd ~/.ssh
-ssh-keygen -t rsa -b 4096 -C "<email@example.com>" # to generate a keypair for the VM
+ssh-keygen -t rsa -b 4096 -C "<your_email@example.com>" # to generate a keypair for the VM
 export TF_VAR_ssh_public_key=$(cat ~/.ssh/id_rsa.pub) # set the `ssh_public_key` with an env var instead of using the variable
 ```
 

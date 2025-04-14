@@ -30,13 +30,13 @@ export AWS_ACCESS_KEY_ID='<AWS_ACCESS_KEY_ID>'
 ```
 $ cat ~/.aws/credentials
 [default]
-aws_access_key_id = <AWS_KEY_ID>
+aws_access_key_id = <AWS_ACCESS_KEY_ID>
 aws_secret_access_key = <AWS_SECRET_ACCESS_KEY>
 
 ```
 ... or follow as in the `variables.tf` file and create **terraform.tfvars** file with all the variable values, ex:
 ```
-access_key   = "<AWS_KEY_ID>"
+access_key   = "<AWS_ACCESS_KEY_ID>"
 secret_key   = "<AWS_SECRET_ACCESS_KEY>"
 public_key   = "<ATLAS_PUBLIC_KEY>"
 private_key  = "<ATLAS_PRIVATE_KEY>"
