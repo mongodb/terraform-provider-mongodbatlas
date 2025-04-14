@@ -26,6 +26,7 @@ type TfDatabaseUserDSModel struct {
 	ProjectID        types.String   `tfsdk:"project_id"`
 	AuthDatabaseName types.String   `tfsdk:"auth_database_name"`
 	Username         types.String   `tfsdk:"username"`
+	Description      types.String   `tfsdk:"description"`
 	X509Type         types.String   `tfsdk:"x509_type"`
 	OIDCAuthType     types.String   `tfsdk:"oidc_auth_type"`
 	LDAPAuthType     types.String   `tfsdk:"ldap_auth_type"`
@@ -52,6 +53,9 @@ func (d *databaseUserDS) Schema(ctx context.Context, req datasource.SchemaReques
 			},
 			"username": schema.StringAttribute{
 				Required: true,
+			},
+			"description": schema.StringAttribute{
+				Computed: true,
 			},
 			"x509_type": schema.StringAttribute{
 				Computed: true,
