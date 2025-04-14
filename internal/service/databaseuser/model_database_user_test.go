@@ -65,6 +65,7 @@ var (
 		GroupId:      projectID,
 		DatabaseName: authDatabaseName,
 		Username:     username,
+		Description:  conversion.Pointer(""),
 		Password:     &password,
 		X509Type:     &x509Type,
 		OidcAuthType: &oidCAuthType,
@@ -77,6 +78,7 @@ var (
 	cloudDatabaseUserWithoutPassword = &admin.CloudDatabaseUser{
 		GroupId:      projectID,
 		DatabaseName: authDatabaseName,
+		Description:  conversion.Pointer(""),
 		Username:     username,
 		X509Type:     &x509Type,
 		OidcAuthType: &oidCAuthType,
@@ -164,7 +166,7 @@ func TestNewTfDatabaseUserModel(t *testing.T) {
 		{
 			name:            "Success TfDatabaseUserModel",
 			sdkDatabaseUser: cloudDatabaseUser,
-			currentModel:    databaseuser.TfDatabaseUserModel{Password: types.StringValue(password)},
+			currentModel:    databaseuser.TfDatabaseUserModel{Password: types.StringValue(password), Description: types.StringValue("")},
 			expectedResult:  getDatabaseUserModel(rolesSet, labelsSet, scopesSet, types.StringValue(password)),
 			expectedError:   false,
 		},
@@ -355,6 +357,7 @@ func getDatabaseUserModel(roles, labels, scopes basetypes.SetValue, password typ
 		ProjectID:        types.StringValue(projectID),
 		AuthDatabaseName: types.StringValue(authDatabaseName),
 		Username:         types.StringValue(username),
+		Description:      types.StringValue(""),
 		Password:         password,
 		X509Type:         types.StringValue(x509Type),
 		OIDCAuthType:     types.StringValue(oidCAuthType),
