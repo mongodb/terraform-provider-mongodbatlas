@@ -40,7 +40,7 @@ func Marshal(model any, isUpdate bool) ([]byte, error) {
 
 // Unmarshal gets a JSON (e.g. from an Atlas response) and unmarshals it into a Terraform model.
 // It supports the following Terraform model types: String, Bool, Int64, Float64, Object, List, Set.
-// Map is not supported yet as it is not used in the Atlas API.
+// Map is not supported yet, will be done in CLOUDP-312797.
 // Attributes that are in JSON but not in the model are ignored, no error is returned.
 // Object attributes that are unknown are converted to null as all values must be known in the response state.
 func Unmarshal(raw []byte, model any) error {
