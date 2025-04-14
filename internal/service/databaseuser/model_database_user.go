@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 )
 
-func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue types.String, dbUserModel *TfDatabaseUserModel) (*admin.CloudDatabaseUser, diag.Diagnostics) {
+func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue, stateDescriptionValue types.String, dbUserModel *TfDatabaseUserModel) (*admin.CloudDatabaseUser, diag.Diagnostics) {
 	var rolesModel []*TfRoleModel
 	var labelsModel []*TfLabelModel
 	var scopesModel []*TfScopeModel
@@ -32,11 +32,9 @@ func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue types.String
 	}
 
 	result := admin.CloudDatabaseUser{
-		GroupId:  dbUserModel.ProjectID.ValueString(),
-		Username: dbUserModel.Username.ValueString(),
-		// description is an optional attribute (i.e. null by default), if it is removed from the config during an update
-		// (i.e. user wants to remove the existing description from database user), we send an empty string ("") as the value in API request for update
-		Description:  conversion.Pointer(dbUserModel.Description.ValueString()),
+		GroupId:      dbUserModel.ProjectID.ValueString(),
+		Username:     dbUserModel.Username.ValueString(),
+		Description:  dbUserModel.Description.ValueStringPointer(),
 		X509Type:     dbUserModel.X509Type.ValueStringPointer(),
 		AwsIAMType:   dbUserModel.AWSIAMType.ValueStringPointer(),
 		OidcAuthType: dbUserModel.OIDCAuthType.ValueStringPointer(),
@@ -50,6 +48,11 @@ func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue types.String
 	if statePasswordValue != dbUserModel.Password {
 		// Password value has been modified or no previous state was present. Password is only updated if changed in the terraform configuration CLOUDP-235738
 		result.Password = dbUserModel.Password.ValueStringPointer()
+	}
+	if dbUserModel.Description.IsNull() && !stateDescriptionValue.Equal(dbUserModel.Description) {
+		// description is an optional attribute (i.e. null by default), if it is removed from the config during an update
+		// (i.e. user wants to remove the existing description from the database user), we send an empty string ("") as the value in API request for update
+		result.Description = conversion.Pointer("")
 	}
 	return &result, nil
 }
@@ -110,6 +113,7 @@ func NewTFDatabaseDSUserModel(ctx context.Context, dbUser *admin.CloudDatabaseUs
 		ProjectID:        types.StringValue(dbUser.GroupId),
 		AuthDatabaseName: types.StringValue(dbUser.DatabaseName),
 		Username:         types.StringValue(dbUser.Username),
+		Description:      types.StringPointerValue(dbUser.Description),
 		X509Type:         types.StringValue(dbUser.GetX509Type()),
 		OIDCAuthType:     types.StringValue(dbUser.GetOidcAuthType()),
 		LDAPAuthType:     types.StringValue(dbUser.GetLdapAuthType()),

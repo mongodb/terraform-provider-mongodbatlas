@@ -216,7 +216,7 @@ func (r *databaseUserRS) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	dbUserReq, d := NewMongoDBDatabaseUser(ctx, types.StringNull(), databaseUserPlan)
+	dbUserReq, d := NewMongoDBDatabaseUser(ctx, types.StringNull(), types.StringNull(), databaseUserPlan)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -299,7 +299,7 @@ func (r *databaseUserRS) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 
-	dbUserReq, d := NewMongoDBDatabaseUser(ctx, databaseUserState.Password, databaseUserPlan)
+	dbUserReq, d := NewMongoDBDatabaseUser(ctx, databaseUserState.Password, databaseUserState.Description, databaseUserPlan)
 	resp.Diagnostics.Append(d...)
 	if resp.Diagnostics.HasError() {
 		return
