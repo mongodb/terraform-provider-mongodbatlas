@@ -1,11 +1,11 @@
 ```release-note:note
-resource/mongodbatlas_resource_policy: Enable usage without preview environment flag
+resource/mongodbatlas_resource_policy: Enables usage without preview environment flag
 ```
 
 ```release-note:note
-data-source/mongodbatlas_resource_policy: Enable usage without preview environment flag
+data-source/mongodbatlas_resource_policy: Enables usage without preview environment flag
 ```
 
 ```release-note:note
-data-source/mongodbatlas_resource_policies: Enable usage without preview environment flag
+data-source/mongodbatlas_resource_policies: Enables usage without preview environment flag
 ```
