@@ -240,13 +240,7 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 }
 
 func userAgent(c *Config) string {
-	isPreviewV2AdvancedClusterEnabled := false
-	if c.PreviewV2AdvancedClusterEnabled {
-		isPreviewV2AdvancedClusterEnabled = true
-	}
-
-	metadata := []UAMetadata{
-		{toolName, version.ProviderVersion},
+	isPreviewV2AdvancedClusterEnabled := c.PreviewV2AdvancedClusterEnabledviVersion},
 		{terraformPlatformName, c.TerraformVersion},
 		{previewV2AdvancedClusterEnabledUAKey, strconv.FormatBool(isPreviewV2AdvancedClusterEnabled)},
 	}
