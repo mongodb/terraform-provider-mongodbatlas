@@ -144,6 +144,22 @@ func getTfAttr(value any, valueType attr.Type, oldValue attr.Value) (attr.Value,
 			return nil, err
 		}
 		return objNew, nil
+	case []any:
+		if list, ok := oldValue.(types.List); ok {
+			listNew, err := setListAttrModel(list, v)
+			if err != nil {
+				return nil, err
+			}
+			return listNew, nil
+		}
+		if set, ok := oldValue.(types.Set); ok {
+			setNew, err := setSetAttrModel(set, v)
+			if err != nil {
+				return nil, err
+			}
+			return setNew, nil
+		}
+		return nil, fmt.Errorf("unmarshal gets incorrect array for value: %v", v)
 	case nil:
 		return nil, nil // skip nil values, no need to set anything
 	}
@@ -241,6 +257,12 @@ func getNullAttr(attrType attr.Type) (attr.Value, error) {
 	default:
 		if objType, ok := attrType.(types.ObjectType); ok {
 			return types.ObjectNull(objType.AttributeTypes()), nil
+		}
+		if listType, ok := attrType.(types.ListType); ok {
+			return types.ListNull(listType.ElemType), nil
+		}
+		if setType, ok := attrType.(types.SetType); ok {
+			return types.SetNull(setType.ElemType), nil
 		}
 		return nil, fmt.Errorf("unmarshal to get null value not supported yet for type %T", attrType)
 	}

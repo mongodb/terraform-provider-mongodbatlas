@@ -61,6 +61,8 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrListObj           types.List   `tfsdk:"attr_list_obj"`
 		AttrSetString         types.Set    `tfsdk:"attr_set_string"`
 		AttrSetObj            types.Set    `tfsdk:"attr_set_obj"`
+		AttrListListString    types.List   `tfsdk:"attr_list_list_string"`
+		AttrSetListObj        types.Set    `tfsdk:"attr_set_list_obj"`
 	}
 	model := modelst{
 		AttrObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
@@ -79,6 +81,8 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrListObj:           types.ListUnknown(objTypeTest),
 		AttrSetString:         types.SetUnknown(types.StringType),
 		AttrSetObj:            types.SetUnknown(objTypeTest),
+		AttrListListString:    types.ListUnknown(types.ListType{ElemType: types.StringType}),
+		AttrSetListObj:        types.SetUnknown(types.ListType{ElemType: objTypeTest}),
 	}
 	// attrUnexisting is ignored because it is in JSON but not in the model, no error is returned
 	const (
@@ -140,6 +144,42 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 						"attrFloat": 22.2,		
 						"attrBool": true		
 					}
+				],
+				"attrListListString": [
+					["list1a", "list1b"],
+					["list2a", "list2b", "list2c"]
+				],
+				"attrSetListObj": [
+					[{
+						"attrString": "setList1",
+						"attrInt": 1,
+						"attrFloat": 1.1,
+						"attrBool": true
+					},
+					{
+						"attrString": "setList2",	
+						"attrInt": 2,
+						"attrFloat": 2.2,
+						"attrBool": false
+					}],
+					[{
+						"attrString": "setList3",	
+						"attrInt": 3,
+						"attrFloat": 3.3,
+						"attrBool": true
+					},
+					{
+						"attrString": "setList4",
+						"attrInt": 4,					
+						"attrFloat": 4.4,
+						"attrBool": false
+					},
+					{
+						"attrString": "setList5",
+						"attrInt": 5,
+						"attrFloat": 5.5,
+						"attrBool": true
+					}]
 				]
 			}
 		`
@@ -209,6 +249,53 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 				"attr_int":    types.Int64Value(22),
 				"attr_float":  types.Float64Value(22.2),
 				"attr_bool":   types.BoolValue(true),
+			}),
+		}),
+		AttrListListString: types.ListValueMust(types.ListType{ElemType: types.StringType}, []attr.Value{
+			types.ListValueMust(types.StringType, []attr.Value{
+				types.StringValue("list1a"),
+				types.StringValue("list1b"),
+			}),
+			types.ListValueMust(types.StringType, []attr.Value{
+				types.StringValue("list2a"),
+				types.StringValue("list2b"),
+				types.StringValue("list2c"),
+			}),
+		}),
+		AttrSetListObj: types.SetValueMust(types.ListType{ElemType: objTypeTest}, []attr.Value{
+			types.ListValueMust(objTypeTest, []attr.Value{
+				types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
+					"attr_string": types.StringValue("setList1"),
+					"attr_int":    types.Int64Value(1),
+					"attr_float":  types.Float64Value(1.1),
+					"attr_bool":   types.BoolValue(true),
+				}),
+				types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
+					"attr_string": types.StringValue("setList2"),
+					"attr_int":    types.Int64Value(2),
+					"attr_float":  types.Float64Value(2.2),
+					"attr_bool":   types.BoolValue(false),
+				}),
+			}),
+			types.ListValueMust(objTypeTest, []attr.Value{
+				types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
+					"attr_string": types.StringValue("setList3"),
+					"attr_int":    types.Int64Value(3),
+					"attr_float":  types.Float64Value(3.3),
+					"attr_bool":   types.BoolValue(true),
+				}),
+				types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
+					"attr_string": types.StringValue("setList4"),
+					"attr_int":    types.Int64Value(4),
+					"attr_float":  types.Float64Value(4.4),
+					"attr_bool":   types.BoolValue(false),
+				}),
+				types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
+					"attr_string": types.StringValue("setList5"),
+					"attr_int":    types.Int64Value(5),
+					"attr_float":  types.Float64Value(5.5),
+					"attr_bool":   types.BoolValue(true),
+				}),
 			}),
 		}),
 	}
