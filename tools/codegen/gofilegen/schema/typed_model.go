@@ -82,16 +82,16 @@ func generateStructOfTypedModel(attributes codespec.Attributes, name string) Cod
 
 func typedModelProperty(attr *codespec.Attribute) string {
 	var (
-		namePascalCase    = attr.Name.PascalCase()
-		propType          = attrModelType(attr)
-		autogenerationTag string
+		namePascalCase = attr.Name.PascalCase()
+		propType       = attrModelType(attr)
+		autogenTag     string
 	)
 	if attr.ReqBodyUsage == codespec.OmitAlways {
-		autogenerationTag = ` autogeneration:"omitjson"`
+		autogenTag = ` autogen:"omitjson"`
 	} else if attr.ReqBodyUsage == codespec.OmitInUpdateBody {
-		autogenerationTag = ` autogeneration:"omitjsonupdate"`
+		autogenTag = ` autogen:"omitjsonupdate"`
 	}
-	return fmt.Sprintf("%s %s", namePascalCase, propType) + " `" + fmt.Sprintf("tfsdk:%q", attr.Name.SnakeCase()) + autogenerationTag + "`"
+	return fmt.Sprintf("%s %s", namePascalCase, propType) + " `" + fmt.Sprintf("tfsdk:%q", attr.Name.SnakeCase()) + autogenTag + "`"
 }
 
 func attrModelType(attr *codespec.Attribute) string {

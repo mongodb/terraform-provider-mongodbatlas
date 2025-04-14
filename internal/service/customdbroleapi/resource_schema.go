@@ -74,9 +74,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 type TFModel struct {
 	Actions        types.List   `tfsdk:"actions"`
-	GroupId        types.String `tfsdk:"group_id" autogeneration:"omitjson"`
+	GroupId        types.String `tfsdk:"group_id" autogen:"omitjson"`
 	InheritedRoles types.Set    `tfsdk:"inherited_roles"`
-	RoleName       types.String `tfsdk:"role_name" autogeneration:"omitjsonupdate"`
+	RoleName       types.String `tfsdk:"role_name" autogen:"omitjsonupdate"`
 }
 type TFActionsModel struct {
 	Action    types.String `tfsdk:"action"`

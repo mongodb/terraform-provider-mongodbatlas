@@ -28,5 +28,5 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 type TFModel struct {
 	StringAttr types.String   `tfsdk:"string_attr"`
-	Timeouts   timeouts.Value `tfsdk:"timeouts" autogeneration:"omitjson"`
+	Timeouts   timeouts.Value `tfsdk:"timeouts" autogen:"omitjson"`
 }

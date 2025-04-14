@@ -69,6 +69,6 @@ type TFModel struct {
 	SimpleListAttr             types.List    `tfsdk:"simple_list_attr"`
 	SimpleSetAttr              types.Set     `tfsdk:"simple_set_attr"`
 	SimpleMapAttr              types.Map     `tfsdk:"simple_map_attr"`
-	AttrNotIncludedInReqBodies types.String  `tfsdk:"attr_not_included_in_req_bodies" autogeneration:"omitjson"`
-	AttrOnlyInPostReqBodies    types.String  `tfsdk:"attr_only_in_post_req_bodies" autogeneration:"omitjsonupdate"`
+	AttrNotIncludedInReqBodies types.String  `tfsdk:"attr_not_included_in_req_bodies" autogen:"omitjson"`
+	AttrOnlyInPostReqBodies    types.String  `tfsdk:"attr_only_in_post_req_bodies" autogen:"omitjsonupdate"`
 }

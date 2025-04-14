@@ -1,11 +1,11 @@
-package autogeneration_test
+package autogen_test
 
 import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogeneration"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -38,7 +38,7 @@ func TestUnmarshalBasic(t *testing.T) {
 			}
 		`
 	)
-	require.NoError(t, autogeneration.Unmarshal([]byte(jsonResp), &model))
+	require.NoError(t, autogen.Unmarshal([]byte(jsonResp), &model))
 	assert.Equal(t, "value_string", model.AttrString.ValueString())
 	assert.True(t, model.AttrTrue.ValueBool())
 	assert.False(t, model.AttrFalse.ValueBool())
@@ -299,7 +299,7 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 			}),
 		}),
 	}
-	require.NoError(t, autogeneration.Unmarshal([]byte(jsonResp), &model))
+	require.NoError(t, autogen.Unmarshal([]byte(jsonResp), &model))
 	assert.Equal(t, modelExpected, model)
 }
 
@@ -383,7 +383,7 @@ func TestUnmarshalErrors(t *testing.T) {
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			assert.ErrorContains(t, autogeneration.Unmarshal([]byte(tc.responseJSON), tc.model), tc.errorStr)
+			assert.ErrorContains(t, autogen.Unmarshal([]byte(tc.responseJSON), tc.model), tc.errorStr)
 		})
 	}
 }
@@ -410,7 +410,7 @@ func TestUnmarshalUnsupportedModel(t *testing.T) {
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			assert.Error(t, autogeneration.Unmarshal([]byte(tc.responseJSON), tc.model))
+			assert.Error(t, autogen.Unmarshal([]byte(tc.responseJSON), tc.model))
 		})
 	}
 }
@@ -433,7 +433,7 @@ func TestUnmarshalUnsupportedResponse(t *testing.T) {
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			assert.ErrorContains(t, autogeneration.Unmarshal([]byte(tc.responseJSON), tc.model), tc.errorStr)
+			assert.ErrorContains(t, autogen.Unmarshal([]byte(tc.responseJSON), tc.model), tc.errorStr)
 		})
 	}
 }

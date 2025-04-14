@@ -106,7 +106,7 @@ type TFModel struct {
 type TFNestedSingleAttrModel struct {
 	StringAttr                 types.String `tfsdk:"string_attr"`
 	IntAttr                    types.Int64  `tfsdk:"int_attr"`
-	AttrNotIncludedInReqBodies types.String `tfsdk:"attr_not_included_in_req_bodies" autogeneration:"omitjson"`
+	AttrNotIncludedInReqBodies types.String `tfsdk:"attr_not_included_in_req_bodies" autogen:"omitjson"`
 }
 
 var NestedSingleAttrObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
