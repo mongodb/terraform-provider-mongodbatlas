@@ -9,8 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// ResolveUnknowns changes unknown attributes to null so they can be used in the response state.
-func ResolveUnknowns(model any) error {
+// PrepareResponseModel is called before the Terraform operations set the model response.
+// Unknown attributes are converted to null.
+// Empty lists and sets are converted to null to avoid error "inconsistent result after apply".
+func PrepareResponseModel(model any) error {
 	valModel := reflect.ValueOf(model)
 	if valModel.Kind() != reflect.Ptr {
 		panic("model must be pointer")
@@ -23,14 +25,34 @@ func ResolveUnknowns(model any) error {
 	for i := 0; i < valModel.NumField(); i++ {
 		field := valModel.Field(i)
 		value, ok := field.Interface().(attr.Value)
-		if ok && value.IsUnknown() && field.CanSet() {
+		if !ok || !field.CanSet() {
+			continue // skip attributes that are not Terraform or not settable
+		}
+		update := value.IsUnknown()
+		if list, ok := value.(types.List); ok && len(list.Elements()) == 0 {
+			update = true
+		}
+		if set, ok := value.(types.Set); ok && len(set.Elements()) == 0 {
+			update = true
+		}
+		if update {
 			nullVal, err := getNullAttr(value.Type(ctx))
 			if err != nil {
 				return err
 			}
 			field.Set(reflect.ValueOf(nullVal))
+			continue
+		}
+		if !value.IsNull() {
+			if err := resolve(value); err != nil {
+				return err
+			}
 		}
 	}
+	return nil
+}
+
+func resolve(parent attr.Value) error {
 	return nil
 }
 
