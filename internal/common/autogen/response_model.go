@@ -21,39 +21,54 @@ func PrepareResponseModel(model any) error {
 	if valModel.Kind() != reflect.Struct {
 		panic("model must be pointer to struct")
 	}
-	ctx := context.Background()
 	for i := 0; i < valModel.NumField(); i++ {
 		field := valModel.Field(i)
 		value, ok := field.Interface().(attr.Value)
 		if !ok || !field.CanSet() {
 			continue // skip attributes that are not Terraform or not settable
 		}
-		update := value.IsUnknown()
-		if list, ok := value.(types.List); ok && len(list.Elements()) == 0 {
-			update = true
+		valNew, err := prepareAttr(value)
+		if err != nil {
+			return err
 		}
-		if set, ok := value.(types.Set); ok && len(set.Elements()) == 0 {
-			update = true
-		}
-		if update {
-			nullVal, err := getNullAttr(value.Type(ctx))
-			if err != nil {
-				return err
-			}
-			field.Set(reflect.ValueOf(nullVal))
-			continue
-		}
-		if !value.IsNull() {
-			if err := resolve(value); err != nil {
-				return err
-			}
-		}
+		field.Set(reflect.ValueOf(valNew))
 	}
 	return nil
 }
 
-func resolve(parent attr.Value) error {
-	return nil
+func prepareAttr(value attr.Value) (attr.Value, error) {
+	if value.IsNull() {
+		return value, nil
+	}
+	ctx := context.Background()
+	if value.IsUnknown() {
+		return getNullAttr(value.Type(ctx))
+	}
+	switch v := value.(type) {
+	case types.Object:
+		mapAttrs := make(map[string]attr.Value)
+		for nameAttr, valAttr := range v.Attributes() {
+			valNew, err := prepareAttr(valAttr)
+			if err != nil {
+				return nil, err
+			}
+			mapAttrs[nameAttr] = valNew
+		}
+		objNew, diags := types.ObjectValue(v.AttributeTypes(context.Background()), mapAttrs)
+		if diags.HasError() {
+			return nil, fmt.Errorf("unmarshal failed to convert map to object: %v", diags)
+		}
+		return objNew, nil
+	case types.List:
+		if len(v.Elements()) == 0 { // convert empty lists to null
+			return getNullAttr(v.Type(ctx))
+		}
+	case types.Set:
+		if len(v.Elements()) == 0 { // convert empty sets to null
+			return getNullAttr(v.Type(ctx))
+		}
+	}
+	return value, nil
 }
 
 func getNullAttr(attrType attr.Type) (attr.Value, error) {

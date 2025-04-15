@@ -36,10 +36,10 @@ func TestPrepareResponseModel(t *testing.T) {
 		AttrListUnknown:   types.ListNull(objTypeTest),
 		AttrListEmpty:     types.ListNull(objTypeTest),
 		AttrObject: types.ObjectValueMust(objTypeTest.AttributeTypes(), map[string]attr.Value{
-			"attr_string": types.StringUnknown(),
-			"attr_float":  types.Float64Unknown(),
-			"attr_int":    types.Int64Unknown(),
-			"attr_bool":   types.BoolUnknown(),
+			"attr_string": types.StringNull(),
+			"attr_float":  types.Float64Null(),
+			"attr_int":    types.Int64Null(),
+			"attr_bool":   types.BoolNull(),
 		}),
 	}
 	require.NoError(t, autogen.PrepareResponseModel(&model))
