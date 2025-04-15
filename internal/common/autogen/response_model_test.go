@@ -17,6 +17,9 @@ func TestPrepareResponseModel(t *testing.T) {
 		AttrListUnknown   types.List   `tfsdk:"attr_list_unknown"`
 		AttrListEmpty     types.List   `tfsdk:"attr_list_empty"`
 		AttrObject        types.Object `tfsdk:"attr_object"`
+		AttrListString    types.List   `tfsdk:"attr_list_string"`
+		AttrSetString     types.Set    `tfsdk:"attr_set_string"`
+		AttrListObjObj    types.List   `tfsdk:"attr_list_obj_obj"`
 	}
 	model := modelst{
 		AttrStringUnknown: types.StringUnknown(),
@@ -29,6 +32,39 @@ func TestPrepareResponseModel(t *testing.T) {
 			"attr_int":    types.Int64Unknown(),
 			"attr_bool":   types.BoolUnknown(),
 		}),
+		AttrListString: types.ListValueMust(types.StringType, []attr.Value{
+			types.StringValue("val1"),
+			types.StringUnknown(),
+			types.StringValue("val2"),
+			types.StringNull(),
+		}),
+		AttrSetString: types.SetValueMust(types.StringType, []attr.Value{
+			types.StringValue("se1"),
+			types.StringUnknown(),
+		}),
+		AttrListObjObj: types.ListValueMust(objTypeParentTest, []attr.Value{
+			types.ObjectValueMust(objTypeParentTest.AttributeTypes(), map[string]attr.Value{
+				"attr_parent_obj": types.ObjectValueMust(objTypeTest.AttributeTypes(), map[string]attr.Value{
+					"attr_string": types.StringUnknown(),
+					"attr_float":  types.Float64Value(1.234),
+					"attr_int":    types.Int64Value(1),
+					"attr_bool":   types.BoolUnknown(),
+				}),
+				"attr_parent_string": types.StringUnknown(),
+				"attr_parent_int":    types.Int64Value(1),
+			}),
+			types.ObjectValueMust(objTypeParentTest.AttributeTypes(), map[string]attr.Value{
+				"attr_parent_obj": types.ObjectValueMust(objTypeTest.AttributeTypes(), map[string]attr.Value{
+					"attr_string": types.StringValue("val1"),
+					"attr_float":  types.Float64Value(1.234),
+					"attr_int":    types.Int64Value(1),
+					"attr_bool":   types.BoolValue(true),
+				}),
+				"attr_parent_string": types.StringUnknown(),
+				"attr_parent_int":    types.Int64Unknown(),
+			}),
+			types.ObjectUnknown(objTypeParentTest.AttributeTypes()),
+		}),
 	}
 	modelExpected := modelst{
 		AttrStringUnknown: types.StringNull(),
@@ -40,6 +76,39 @@ func TestPrepareResponseModel(t *testing.T) {
 			"attr_float":  types.Float64Null(),
 			"attr_int":    types.Int64Null(),
 			"attr_bool":   types.BoolNull(),
+		}),
+		AttrListString: types.ListValueMust(types.StringType, []attr.Value{
+			types.StringValue("val1"),
+			types.StringNull(),
+			types.StringValue("val2"),
+			types.StringNull(),
+		}),
+		AttrSetString: types.SetValueMust(types.StringType, []attr.Value{
+			types.StringValue("se1"),
+			types.StringNull(),
+		}),
+		AttrListObjObj: types.ListValueMust(objTypeParentTest, []attr.Value{
+			types.ObjectValueMust(objTypeParentTest.AttributeTypes(), map[string]attr.Value{
+				"attr_parent_obj": types.ObjectValueMust(objTypeTest.AttributeTypes(), map[string]attr.Value{
+					"attr_string": types.StringNull(),
+					"attr_float":  types.Float64Value(1.234),
+					"attr_int":    types.Int64Value(1),
+					"attr_bool":   types.BoolNull(),
+				}),
+				"attr_parent_string": types.StringNull(),
+				"attr_parent_int":    types.Int64Value(1),
+			}),
+			types.ObjectValueMust(objTypeParentTest.AttributeTypes(), map[string]attr.Value{
+				"attr_parent_obj": types.ObjectValueMust(objTypeTest.AttributeTypes(), map[string]attr.Value{
+					"attr_string": types.StringValue("val1"),
+					"attr_float":  types.Float64Value(1.234),
+					"attr_int":    types.Int64Value(1),
+					"attr_bool":   types.BoolValue(true),
+				}),
+				"attr_parent_string": types.StringNull(),
+				"attr_parent_int":    types.Int64Null(),
+			}),
+			types.ObjectNull(objTypeParentTest.AttributeTypes()),
 		}),
 	}
 	require.NoError(t, autogen.PrepareResponseModel(&model))

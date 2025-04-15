@@ -37,11 +37,11 @@ func PrepareResponseModel(model any) error {
 }
 
 func prepareAttr(value attr.Value) (attr.Value, error) {
-	if value.IsNull() {
+	if value.IsNull() { // null values are not converted
 		return value, nil
 	}
 	ctx := context.Background()
-	if value.IsUnknown() {
+	if value.IsUnknown() { // unknown values are converted to null
 		return getNullAttr(value.Type(ctx))
 	}
 	switch v := value.(type) {
@@ -54,21 +54,51 @@ func prepareAttr(value attr.Value) (attr.Value, error) {
 			}
 			mapAttrs[nameAttr] = valNew
 		}
-		objNew, diags := types.ObjectValue(v.AttributeTypes(context.Background()), mapAttrs)
+		objNew, diags := types.ObjectValue(v.AttributeTypes(ctx), mapAttrs)
 		if diags.HasError() {
-			return nil, fmt.Errorf("unmarshal failed to convert map to object: %v", diags)
+			return nil, fmt.Errorf("unmarshal failed to convert object: %v", diags)
 		}
 		return objNew, nil
 	case types.List:
-		if len(v.Elements()) == 0 { // convert empty lists to null
+		elems, err := getPreparedCollection(v.Elements())
+		if err != nil {
+			return nil, err
+		}
+		if len(elems) == 0 { // convert empty lists to null
 			return getNullAttr(v.Type(ctx))
 		}
+		listNew, diags := types.ListValue(v.ElementType(ctx), elems)
+		if diags.HasError() {
+			return nil, fmt.Errorf("unmarshal failed to convert list: %v", diags)
+		}
+		return listNew, nil
 	case types.Set:
-		if len(v.Elements()) == 0 { // convert empty sets to null
+		elems, err := getPreparedCollection(v.Elements())
+		if err != nil {
+			return nil, err
+		}
+		if len(elems) == 0 { // convert empty sets to null
 			return getNullAttr(v.Type(ctx))
 		}
+		setNew, diags := types.SetValue(v.ElementType(ctx), elems)
+		if diags.HasError() {
+			return nil, fmt.Errorf("unmarshal failed to convert set: %v", diags)
+		}
+		return setNew, nil
 	}
 	return value, nil
+}
+
+func getPreparedCollection(elems []attr.Value) ([]attr.Value, error) {
+	arrayAttrs := make([]attr.Value, len(elems))
+	for i, elm := range elems {
+		valNew, err := prepareAttr(elm)
+		if err != nil {
+			return nil, err
+		}
+		arrayAttrs[i] = valNew
+	}
+	return arrayAttrs, nil
 }
 
 func getNullAttr(attrType attr.Type) (attr.Value, error) {
