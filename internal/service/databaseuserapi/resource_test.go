@@ -12,9 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-const (
-	resourceName = "mongodbatlas_database_user_api.test"
-)
+const resourceName = "mongodbatlas_database_user_api.test"
 
 func TestAccDatabaseUserAPI_basic(t *testing.T) {
 	var (
@@ -29,11 +27,11 @@ func TestAccDatabaseUserAPI_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(groupID, username, "atlasAdmin", "First Key", "First value"),
-				Check:  checksBasic(groupID, username, "atlasAdmin", "First Key", "First value"),
+				Check:  checkBasic(groupID, username, "atlasAdmin", "First Key", "First value"),
 			},
 			{
 				Config: configBasic(groupID, username, "read", "Second Key", "Second value"),
-				Check:  checksBasic(groupID, username, "read", "Second Key", "Second value"),
+				Check:  checkBasic(groupID, username, "read", "Second Key", "Second value"),
 			},
 			{
 				ResourceName:            resourceName,
@@ -67,7 +65,7 @@ func configBasic(groupID, username, roleName, keyLabel, valueLabel string) strin
 	`, groupID, username, roleName, keyLabel, valueLabel)
 }
 
-func checksBasic(groupID, username, roleName, keyLabel, valueLabel string) resource.TestCheckFunc {
+func checkBasic(groupID, username, roleName, keyLabel, valueLabel string) resource.TestCheckFunc {
 	mapChecks := map[string]string{
 		"group_id":          groupID,
 		"username":          username,
