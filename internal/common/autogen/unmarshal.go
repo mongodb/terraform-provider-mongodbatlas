@@ -190,7 +190,9 @@ func setListAttrModel(list types.List, arrayJSON []any) (attr.Value, error) {
 		return nil, err
 	}
 	if len(elms) == 0 && len(list.Elements()) == 0 {
-		return list, nil // keep current list if both model and JSON lists are zero-len (empty or null) so config is preserved
+		// Keep current list if both model and JSON lists are zero-len (empty or null) so config is preserved.
+		// It avoids inconsistent result after apply when user explicitly sets an empty list in config.
+		return list, nil
 	}
 	listNew, diags := types.ListValue(elmType, elms)
 	if diags.HasError() {
@@ -206,7 +208,9 @@ func setSetAttrModel(set types.Set, arrayJSON []any) (attr.Value, error) {
 		return nil, err
 	}
 	if len(elms) == 0 && len(set.Elements()) == 0 {
-		return set, nil // keep current set if both model and JSON sets are zero-len (empty or null) so config is preserved
+		// Keep current set if both model and JSON sets are zero-len (empty or null) so config is preserved.
+		// It avoids inconsistent result after apply when user explicitly sets an empty set in config.
+		return set, nil
 	}
 	setNew, diags := types.SetValue(elmType, elms)
 	if diags.HasError() {
