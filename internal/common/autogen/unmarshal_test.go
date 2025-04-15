@@ -63,6 +63,7 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrSetObj            types.Set    `tfsdk:"attr_set_obj"`
 		AttrListListString    types.List   `tfsdk:"attr_list_list_string"`
 		AttrSetListObj        types.Set    `tfsdk:"attr_set_list_obj"`
+		AttrListObjKnown      types.List   `tfsdk:"attr_list_obj_known"`
 	}
 	model := modelst{
 		AttrObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
@@ -83,6 +84,14 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrSetObj:            types.SetUnknown(objTypeTest),
 		AttrListListString:    types.ListUnknown(types.ListType{ElemType: types.StringType}),
 		AttrSetListObj:        types.SetUnknown(types.ListType{ElemType: objTypeTest}),
+		AttrListObjKnown: types.ListValueMust(objTypeTest, []attr.Value{
+			types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
+				"attr_string": types.StringValue("val"),
+				"attr_int":    types.Int64Value(1),
+				"attr_float":  types.Float64Value(1.1),
+				"attr_bool":   types.BoolValue(true),
+			}),
+		}),
 	}
 	// attrUnexisting is ignored because it is in JSON but not in the model, no error is returned
 	const (
@@ -180,6 +189,12 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 						"attrFloat": 5.5,
 						"attrBool": true
 					}]
+				],
+				"attrListObjKnown": [
+					{
+						"attrString": "val2",
+						"attrInt": 2
+					}
 				]
 			}
 		`
@@ -296,6 +311,14 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 					"attr_float":  types.Float64Value(5.5),
 					"attr_bool":   types.BoolValue(true),
 				}),
+			}),
+		}),
+		AttrListObjKnown: types.ListValueMust(objTypeTest, []attr.Value{
+			types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
+				"attr_string": types.StringValue("val2"),
+				"attr_int":    types.Int64Value(2),
+				"attr_float":  types.Float64Value(1.1),
+				"attr_bool":   types.BoolValue(true),
 			}),
 		}),
 	}
