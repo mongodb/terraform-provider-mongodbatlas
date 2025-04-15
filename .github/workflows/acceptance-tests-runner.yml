@@ -497,7 +497,7 @@ jobs:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false
       - name: Enable autogen
-        run: make enable-autogen
+        run: make tools enable-autogen
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}

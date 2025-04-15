@@ -16,7 +16,7 @@ const (
 	resourceName = "mongodbatlas_database_user_api.test"
 )
 
-func TestAccConfigDatabaseUserAPI_basic(t *testing.T) {
+func TestAccDatabaseUserAPI_basic(t *testing.T) {
 	var (
 		groupID  = acc.ProjectIDExecution(t)
 		username = acc.RandomName()
