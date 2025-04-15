@@ -80,6 +80,9 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if err := autogen.Unmarshal(respBody, &plan); err != nil {
 		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 	}
+	if err := autogen.PrepareResponseModel(&plan); err != nil {
+		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -119,6 +122,9 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 
 	// Use the current state as the base model to set the response state
 	if err := autogen.Unmarshal(respBody, &state); err != nil {
+		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
+	}
+	if err := autogen.PrepareResponseModel(&state); err != nil {
 		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 	}
 
@@ -163,6 +169,9 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 
 	// Use the plan as the base model to set the response state
 	if err := autogen.Unmarshal(respBody, &plan); err != nil {
+		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
+	}
+	if err := autogen.PrepareResponseModel(&plan); err != nil {
 		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 	}
 
