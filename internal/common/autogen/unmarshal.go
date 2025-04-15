@@ -114,7 +114,7 @@ func setMapAttrModel(name string, value any, mapAttrs map[string]attr.Value, map
 	return nil
 }
 
-func getTfAttr(value any, valueType attr.Type, oldValue attr.Value) (attr.Value, error) {
+func getTfAttr(value any, valueType attr.Type, oldVal attr.Value) (attr.Value, error) {
 	switch v := value.(type) {
 	case string:
 		if valueType == types.StringType {
@@ -135,7 +135,7 @@ func getTfAttr(value any, valueType attr.Type, oldValue attr.Value) (attr.Value,
 		}
 		return nil, fmt.Errorf("unmarshal gets incorrect number for value: %v", v)
 	case map[string]any:
-		obj, ok := oldValue.(types.Object)
+		obj, ok := oldVal.(types.Object)
 		if !ok {
 			return nil, fmt.Errorf("unmarshal gets incorrect object for value: %v", v)
 		}
@@ -145,14 +145,14 @@ func getTfAttr(value any, valueType attr.Type, oldValue attr.Value) (attr.Value,
 		}
 		return objNew, nil
 	case []any:
-		if list, ok := oldValue.(types.List); ok {
+		if list, ok := oldVal.(types.List); ok {
 			listNew, err := setListAttrModel(list, v)
 			if err != nil {
 				return nil, err
 			}
 			return listNew, nil
 		}
-		if set, ok := oldValue.(types.Set); ok {
+		if set, ok := oldVal.(types.Set); ok {
 			setNew, err := setSetAttrModel(set, v)
 			if err != nil {
 				return nil, err
@@ -185,9 +185,14 @@ func setObjAttrModel(obj types.Object, objJSON map[string]any) (attr.Value, erro
 
 func setListAttrModel(list types.List, arrayJSON []any) (attr.Value, error) {
 	elmType := list.ElementType(context.Background())
-	elms, err := getCollectionElements(arrayJSON, elmType)
+	elms, err := getCollectionElements(arrayJSON, elmType, list.Elements())
 	if err != nil {
 		return nil, err
+	}
+	if len(elms) == 0 && len(list.Elements()) == 0 {
+		// Keep current list if both model and JSON lists are zero-len (empty or null) so config is preserved.
+		// It avoids inconsistent result after apply when user explicitly sets an empty list in config.
+		return list, nil
 	}
 	listNew, diags := types.ListValue(elmType, elms)
 	if diags.HasError() {
@@ -198,9 +203,14 @@ func setListAttrModel(list types.List, arrayJSON []any) (attr.Value, error) {
 
 func setSetAttrModel(set types.Set, arrayJSON []any) (attr.Value, error) {
 	elmType := set.ElementType(context.Background())
-	elms, err := getCollectionElements(arrayJSON, elmType)
+	elms, err := getCollectionElements(arrayJSON, elmType, set.Elements())
 	if err != nil {
 		return nil, err
+	}
+	if len(elms) == 0 && len(set.Elements()) == 0 {
+		// Keep current set if both model and JSON sets are zero-len (empty or null) so config is preserved.
+		// It avoids inconsistent result after apply when user explicitly sets an empty set in config.
+		return set, nil
 	}
 	setNew, diags := types.SetValue(elmType, elms)
 	if diags.HasError() {
@@ -209,14 +219,18 @@ func setSetAttrModel(set types.Set, arrayJSON []any) (attr.Value, error) {
 	return setNew, nil
 }
 
-func getCollectionElements(arrayJSON []any, valueType attr.Type) ([]attr.Value, error) {
+func getCollectionElements(arrayJSON []any, valueType attr.Type, oldVals []attr.Value) ([]attr.Value, error) {
 	elms := make([]attr.Value, len(arrayJSON))
 	nullVal, err := getNullAttr(valueType)
 	if err != nil {
 		return nil, err
 	}
 	for i, item := range arrayJSON {
-		newValue, err := getTfAttr(item, valueType, nullVal)
+		oldVal := nullVal
+		if i < len(oldVals) {
+			oldVal = oldVals[i]
+		}
+		newValue, err := getTfAttr(item, valueType, oldVal)
 		if err != nil {
 			return nil, err
 		}
@@ -242,28 +256,4 @@ func getObjAttrsAndTypes(obj types.Object) (mapAttrs map[string]attr.Value, mapT
 		mapAttrs[attrName] = nullVal
 	}
 	return mapAttrs, mapTypes, nil
-}
-
-func getNullAttr(attrType attr.Type) (attr.Value, error) {
-	switch attrType {
-	case types.StringType:
-		return types.StringNull(), nil
-	case types.BoolType:
-		return types.BoolNull(), nil
-	case types.Int64Type:
-		return types.Int64Null(), nil
-	case types.Float64Type:
-		return types.Float64Null(), nil
-	default:
-		if objType, ok := attrType.(types.ObjectType); ok {
-			return types.ObjectNull(objType.AttributeTypes()), nil
-		}
-		if listType, ok := attrType.(types.ListType); ok {
-			return types.ListNull(listType.ElemType), nil
-		}
-		if setType, ok := attrType.(types.SetType); ok {
-			return types.SetNull(setType.ElemType), nil
-		}
-		return nil, fmt.Errorf("unmarshal to get null value not supported yet for type %T", attrType)
-	}
 }
