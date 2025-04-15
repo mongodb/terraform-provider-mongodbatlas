@@ -80,7 +80,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if err := autogen.Unmarshal(respBody, &plan); err != nil {
 		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 	}
-	if err := autogen.PrepareResponseModel(&plan); err != nil {
+	if err := autogen.ResolveUnknowns(&plan); err != nil {
 		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 	}
 
@@ -126,7 +126,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	if err := autogen.Unmarshal(respBody, &state); err != nil {
 		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 	}
-	if err := autogen.PrepareResponseModel(&state); err != nil {
+	if err := autogen.ResolveUnknowns(&state); err != nil {
 		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 	}
 
@@ -175,7 +175,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if err := autogen.Unmarshal(respBody, &plan); err != nil {
 		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 	}
-	if err := autogen.PrepareResponseModel(&plan); err != nil {
+	if err := autogen.ResolveUnknowns(&plan); err != nil {
 		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 	}
 

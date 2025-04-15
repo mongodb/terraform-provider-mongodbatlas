@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPrepareResponseModel(t *testing.T) {
+func TestResolveUnknowns(t *testing.T) {
 	type modelst struct {
 		AttrStringUnknown types.String `tfsdk:"attr_string_unknown"`
 		AttrObjectUnknown types.Object `tfsdk:"attr_object_unknown"`
@@ -108,6 +108,6 @@ func TestPrepareResponseModel(t *testing.T) {
 			types.ObjectNull(objTypeParentTest.AttributeTypes()),
 		}),
 	}
-	require.NoError(t, autogen.PrepareResponseModel(&model))
+	require.NoError(t, autogen.ResolveUnknowns(&model))
 	assert.Equal(t, modelExpected, model)
 }

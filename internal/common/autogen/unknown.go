@@ -9,10 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// PrepareResponseModel is called before the Terraform operations set the model response.
-// Unknown attributes are converted to null.
-// Empty lists and sets are converted to null to avoid error "inconsistent result after apply".
-func PrepareResponseModel(model any) error {
+// ResolveUnknowns converts unknown attributes to null.
+func ResolveUnknowns(model any) error {
 	valModel := reflect.ValueOf(model)
 	if valModel.Kind() != reflect.Ptr {
 		panic("model must be pointer")
