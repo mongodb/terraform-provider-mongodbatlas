@@ -243,27 +243,3 @@ func getObjAttrsAndTypes(obj types.Object) (mapAttrs map[string]attr.Value, mapT
 	}
 	return mapAttrs, mapTypes, nil
 }
-
-func getNullAttr(attrType attr.Type) (attr.Value, error) {
-	switch attrType {
-	case types.StringType:
-		return types.StringNull(), nil
-	case types.BoolType:
-		return types.BoolNull(), nil
-	case types.Int64Type:
-		return types.Int64Null(), nil
-	case types.Float64Type:
-		return types.Float64Null(), nil
-	default:
-		if objType, ok := attrType.(types.ObjectType); ok {
-			return types.ObjectNull(objType.AttributeTypes()), nil
-		}
-		if listType, ok := attrType.(types.ListType); ok {
-			return types.ListNull(listType.ElemType), nil
-		}
-		if setType, ok := attrType.(types.SetType); ok {
-			return types.SetNull(setType.ElemType), nil
-		}
-		return nil, fmt.Errorf("unmarshal to get null value not supported yet for type %T", attrType)
-	}
-}
