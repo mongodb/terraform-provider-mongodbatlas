@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -37,11 +36,12 @@ func TestAccCustomDBRole_basic(t *testing.T) {
 				Check:  checkBasic(roleName, "UPDATE", databaseName2),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"actions.0.resources.0.cluster"},
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    importStateIDFunc(resourceName),
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIgnore:              []string{"actions.0.resources.0.cluster"},
+				ImportStateVerifyIdentifierAttribute: "role_name",
 			},
 		},
 	})
@@ -93,15 +93,15 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("no ID is set")
+		groupID := rs.Primary.Attributes["group_id"]
+		roleName := rs.Primary.Attributes["role_name"]
+		if groupID == "" || roleName == "" {
+			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.ConnV2().CustomDatabaseRolesApi.GetCustomDatabaseRole(context.Background(), ids["group_id"], ids["role_name"]).Execute()
-		if err != nil {
-			return fmt.Errorf("custom DB Role (%s) does not exist", ids["role_name"])
+		if _, _, err := acc.ConnV2().CustomDatabaseRolesApi.GetCustomDatabaseRole(context.Background(), groupID, roleName).Execute(); err == nil {
+			return nil
 		}
-		return nil
+		return fmt.Errorf("custom DB Role (%s/%s) does not exist", groupID, roleName)
 	}
 }
 
@@ -110,10 +110,14 @@ func checkDestroy(s *terraform.State) error {
 		if rs.Type != "mongodbatlas_custom_db_role_api" {
 			continue
 		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.ConnV2().CustomDatabaseRolesApi.GetCustomDatabaseRole(context.Background(), ids["group_id"], ids["role_name"]).Execute()
+		groupID := rs.Primary.Attributes["group_id"]
+		roleName := rs.Primary.Attributes["role_name"]
+		if groupID == "" || roleName == "" {
+			return fmt.Errorf("checkDestroy, attributes not found for: %s", rs.Type)
+		}
+		_, _, err := acc.ConnV2().CustomDatabaseRolesApi.GetCustomDatabaseRole(context.Background(), groupID, roleName).Execute()
 		if err == nil {
-			return fmt.Errorf("custom DB Role (%s) still exists", ids["role_name"])
+			return fmt.Errorf("custom DB Role (%s) still exists", roleName)
 		}
 	}
 	return nil
@@ -125,6 +129,11 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		return fmt.Sprintf("%s/%s", rs.Primary.Attributes["group_id"], rs.Primary.Attributes["role_name"]), nil
+		groupID := rs.Primary.Attributes["group_id"]
+		roleName := rs.Primary.Attributes["role_name"]
+		if groupID == "" || roleName == "" {
+			return "", fmt.Errorf("import, attributes not found for: %s", resourceName)
+		}
+		return fmt.Sprintf("%s/%s", groupID, roleName), nil
 	}
 }

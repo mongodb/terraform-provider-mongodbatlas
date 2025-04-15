@@ -96,7 +96,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if _, _, err := acc.ConnV2().DatabaseUsersApi.GetDatabaseUser(context.Background(), groupID, databaseName, username).Execute(); err == nil {
 			return nil
 		}
-		return fmt.Errorf("database user(%s-%s-%s) does not exist", groupID, databaseName, username)
+		return fmt.Errorf("database user(%s/%s/%s) does not exist", groupID, databaseName, username)
 	}
 }
 
