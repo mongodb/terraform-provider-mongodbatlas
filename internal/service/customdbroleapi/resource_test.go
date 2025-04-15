@@ -74,11 +74,13 @@ func configBasic(orgID, groupName, roleName, action, db string) string {
 
 func checkBasic(roleName, action, db string) resource.TestCheckFunc {
 	mapChecks := map[string]string{
-		"role_name":              roleName,
-		"actions.#":              "1",
-		"actions.0.action":       action,
-		"actions.0.resources.#":  "1",
-		"actions.0.resources.db": db,
+		"role_name":                        roleName,
+		"actions.#":                        "1",
+		"actions.0.action":                 action,
+		"actions.0.resources.#":            "1",
+		"actions.0.resources.0.db":         db,
+		"actions.0.resources.0.collection": "",
+		"actions.0.resources.0.cluster":    "false",
 	}
 	checks := acc.AddAttrChecks(resourceName, nil, mapChecks)
 	checks = append(checks, checkExists(resourceName))
@@ -123,6 +125,6 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["group_id"], rs.Primary.Attributes["role_name"]), nil
+		return fmt.Sprintf("%s/%s", rs.Primary.Attributes["group_id"], rs.Primary.Attributes["role_name"]), nil
 	}
 }

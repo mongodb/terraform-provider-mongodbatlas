@@ -7,8 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -34,11 +32,12 @@ func TestAccDatabaseUserAPI_basic(t *testing.T) {
 				Check:  checkBasic(groupID, username, "read", "Second Key", "Second value"),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"password"},
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    importStateIDFunc(resourceName),
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIgnore:              []string{"password"},
+				ImportStateVerifyIdentifierAttribute: "username",
 			},
 		},
 	})
@@ -91,8 +90,8 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		groupID := rs.Primary.Attributes["group_id"]
 		databaseName := rs.Primary.Attributes["database_name"]
 		username := rs.Primary.Attributes["username"]
-		if groupID != "" || databaseName != "" || username != "" {
-			return fmt.Errorf("attributes not found for: %s", resourceName)
+		if groupID == "" || databaseName == "" || username == "" {
+			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
 		if _, _, err := acc.ConnV2().DatabaseUsersApi.GetDatabaseUser(context.Background(), groupID, databaseName, username).Execute(); err == nil {
 			return nil
@@ -106,11 +105,13 @@ func checkDestroy(s *terraform.State) error {
 		if rs.Type != "mongodbatlas_database_user_api" {
 			continue
 		}
-		groupID, username, databaseName, err := databaseuser.SplitDatabaseUserImportID(rs.Primary.ID)
-		if err != nil {
-			continue
+		groupID := rs.Primary.Attributes["group_id"]
+		databaseName := rs.Primary.Attributes["database_name"]
+		username := rs.Primary.Attributes["username"]
+		if groupID == "" || databaseName == "" || username == "" {
+			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
-		_, _, err = acc.ConnV2().DatabaseUsersApi.GetDatabaseUser(context.Background(), groupID, databaseName, username).Execute()
+		_, _, err := acc.ConnV2().DatabaseUsersApi.GetDatabaseUser(context.Background(), groupID, databaseName, username).Execute()
 		if err == nil {
 			return fmt.Errorf("database user (%s) still exists", groupID)
 		}
@@ -124,7 +125,12 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		return fmt.Sprintf("%s-%s-%s", ids["group_id"], ids["username"], ids["database_name"]), nil
+		groupID := rs.Primary.Attributes["group_id"]
+		databaseName := rs.Primary.Attributes["database_name"]
+		username := rs.Primary.Attributes["username"]
+		if groupID == "" || databaseName == "" || username == "" {
+			return "", fmt.Errorf("import, attributes not found for: %s", resourceName)
+		}
+		return fmt.Sprintf("%s/%s/%s", groupID, databaseName, username), nil
 	}
 }
