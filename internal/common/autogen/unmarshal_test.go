@@ -303,6 +303,45 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 	assert.Equal(t, modelExpected, model)
 }
 
+func TestUnmarshalZeroLenCollections(t *testing.T) {
+	type modelst struct {
+		ListNullAbsent  types.List `tfsdk:"list_null_absent"`
+		ListNullEmpty   types.List `tfsdk:"list_null_present"`
+		ListNullNull    types.List `tfsdk:"list_null_present_null"`
+		ListEmptyAbsent types.List `tfsdk:"list_empty_absent"`
+		ListEmptyEmpty  types.List `tfsdk:"list_empty_present"`
+		ListEmptyNull   types.List `tfsdk:"list_empty_present_null"`
+	}
+	model := modelst{
+		ListNullAbsent:  types.ListNull(types.StringType),
+		ListNullEmpty:   types.ListNull(types.StringType),
+		ListNullNull:    types.ListNull(types.StringType),
+		ListEmptyAbsent: types.ListValueMust(types.StringType, []attr.Value{}),
+		ListEmptyEmpty:  types.ListValueMust(types.StringType, []attr.Value{}),
+		ListEmptyNull:   types.ListValueMust(types.StringType, []attr.Value{}),
+	}
+	const (
+		jsonResp = `
+			{
+				"list_null_empty": [],
+				"list_null_null": null,
+				"list_empty_empty": [],
+				"list_empty_null": null
+			}
+		`
+	)
+	modelExpected := modelst{
+		ListNullAbsent:  types.ListNull(types.StringType),
+		ListNullEmpty:   types.ListNull(types.StringType),
+		ListNullNull:    types.ListNull(types.StringType),
+		ListEmptyAbsent: types.ListValueMust(types.StringType, []attr.Value{}),
+		ListEmptyEmpty:  types.ListValueMust(types.StringType, []attr.Value{}),
+		ListEmptyNull:   types.ListValueMust(types.StringType, []attr.Value{}),
+	}
+	require.NoError(t, autogen.Unmarshal([]byte(jsonResp), &model))
+	assert.Equal(t, modelExpected, model)
+}
+
 func TestUnmarshalErrors(t *testing.T) {
 	testCases := map[string]struct {
 		model        any

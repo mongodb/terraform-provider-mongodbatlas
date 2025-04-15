@@ -189,6 +189,9 @@ func setListAttrModel(list types.List, arrayJSON []any) (attr.Value, error) {
 	if err != nil {
 		return nil, err
 	}
+	if len(elms) == 0 && len(list.Elements()) == 0 {
+		return list, nil // keep current list if both model and JSON lists are zero-len (empty or null) so config is preserved
+	}
 	listNew, diags := types.ListValue(elmType, elms)
 	if diags.HasError() {
 		return nil, fmt.Errorf("unmarshal failed to convert list to object: %v", diags)
@@ -201,6 +204,9 @@ func setSetAttrModel(set types.Set, arrayJSON []any) (attr.Value, error) {
 	elms, err := getCollectionElements(arrayJSON, elmType)
 	if err != nil {
 		return nil, err
+	}
+	if len(elms) == 0 && len(set.Elements()) == 0 {
+		return set, nil // keep current set if both model and JSON sets are zero-len (empty or null) so config is preserved
 	}
 	setNew, diags := types.SetValue(elmType, elms)
 	if diags.HasError() {

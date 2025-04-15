@@ -64,9 +64,6 @@ func prepareAttr(value attr.Value) (attr.Value, error) {
 		if err != nil {
 			return nil, err
 		}
-		if len(elems) == 0 { // convert empty lists to null
-			return getNullAttr(v.Type(ctx))
-		}
 		listNew, diags := types.ListValue(v.ElementType(ctx), elems)
 		if diags.HasError() {
 			return nil, fmt.Errorf("unmarshal failed to convert list: %v", diags)
@@ -76,9 +73,6 @@ func prepareAttr(value attr.Value) (attr.Value, error) {
 		elems, err := getPreparedCollection(v.Elements())
 		if err != nil {
 			return nil, err
-		}
-		if len(elems) == 0 { // convert empty sets to null
-			return getNullAttr(v.Type(ctx))
 		}
 		setNew, diags := types.SetValue(v.ElementType(ctx), elems)
 		if diags.HasError() {

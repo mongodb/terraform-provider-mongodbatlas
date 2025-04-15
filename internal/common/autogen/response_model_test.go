@@ -15,7 +15,6 @@ func TestPrepareResponseModel(t *testing.T) {
 		AttrStringUnknown types.String `tfsdk:"attr_string_unknown"`
 		AttrObjectUnknown types.Object `tfsdk:"attr_object_unknown"`
 		AttrListUnknown   types.List   `tfsdk:"attr_list_unknown"`
-		AttrListEmpty     types.List   `tfsdk:"attr_list_empty"`
 		AttrObject        types.Object `tfsdk:"attr_object"`
 		AttrListString    types.List   `tfsdk:"attr_list_string"`
 		AttrSetString     types.Set    `tfsdk:"attr_set_string"`
@@ -25,7 +24,6 @@ func TestPrepareResponseModel(t *testing.T) {
 		AttrStringUnknown: types.StringUnknown(),
 		AttrObjectUnknown: types.ObjectUnknown(objTypeTest.AttributeTypes()),
 		AttrListUnknown:   types.ListUnknown(objTypeTest),
-		AttrListEmpty:     types.ListValueMust(objTypeTest, []attr.Value{}),
 		AttrObject: types.ObjectValueMust(objTypeTest.AttributeTypes(), map[string]attr.Value{
 			"attr_string": types.StringUnknown(),
 			"attr_float":  types.Float64Unknown(),
@@ -70,7 +68,6 @@ func TestPrepareResponseModel(t *testing.T) {
 		AttrStringUnknown: types.StringNull(),
 		AttrObjectUnknown: types.ObjectNull(objTypeTest.AttributeTypes()),
 		AttrListUnknown:   types.ListNull(objTypeTest),
-		AttrListEmpty:     types.ListNull(objTypeTest),
 		AttrObject: types.ObjectValueMust(objTypeTest.AttributeTypes(), map[string]attr.Value{
 			"attr_string": types.StringNull(),
 			"attr_float":  types.Float64Null(),
