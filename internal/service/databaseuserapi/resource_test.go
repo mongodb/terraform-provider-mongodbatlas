@@ -90,17 +90,16 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-		authDB := rs.Primary.Attributes["auth_database_name"]
-		projectID := rs.Primary.Attributes["project_id"]
+		groupID := rs.Primary.Attributes["group_id"]
+		databaseName := rs.Primary.Attributes["database_name"]
 		username := rs.Primary.Attributes["username"]
-		if authDB != "" || projectID != "" || username != "" {
+		if groupID != "" || databaseName != "" || username != "" {
 			return fmt.Errorf("attributes not found for: %s", resourceName)
 		}
-		if _, _, err := acc.ConnV2().DatabaseUsersApi.GetDatabaseUser(context.Background(), projectID, authDB, username).Execute(); err == nil {
+		if _, _, err := acc.ConnV2().DatabaseUsersApi.GetDatabaseUser(context.Background(), groupID, databaseName, username).Execute(); err == nil {
 			return nil
 		}
-
-		return fmt.Errorf("database user(%s-%s-%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["username"], rs.Primary.Attributes["auth_database_name"])
+		return fmt.Errorf("database user(%s-%s-%s) does not exist", groupID, databaseName, username)
 	}
 }
 
@@ -109,18 +108,15 @@ func checkDestroy(s *terraform.State) error {
 		if rs.Type != "mongodbatlas_database_user_api" {
 			continue
 		}
-
-		projectID, username, authDatabaseName, err := databaseuser.SplitDatabaseUserImportID(rs.Primary.ID)
+		groupID, username, databaseName, err := databaseuser.SplitDatabaseUserImportID(rs.Primary.ID)
 		if err != nil {
 			continue
 		}
-		// Try to find the database user
-		_, _, err = acc.ConnV2().DatabaseUsersApi.GetDatabaseUser(context.Background(), projectID, authDatabaseName, username).Execute()
+		_, _, err = acc.ConnV2().DatabaseUsersApi.GetDatabaseUser(context.Background(), groupID, databaseName, username).Execute()
 		if err == nil {
-			return fmt.Errorf("database user (%s) still exists", projectID)
+			return fmt.Errorf("database user (%s) still exists", groupID)
 		}
 	}
-
 	return nil
 }
 
@@ -131,6 +127,6 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		return fmt.Sprintf("%s-%s-%s", ids["project_id"], ids["username"], ids["auth_database_name"]), nil
+		return fmt.Sprintf("%s-%s-%s", ids["group_id"], ids["username"], ids["database_name"]), nil
 	}
 }
