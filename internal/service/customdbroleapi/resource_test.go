@@ -48,7 +48,7 @@ func TestAccCustomDBRole_basic(t *testing.T) {
 }
 
 func configBasic(orgID, groupName, roleName, action, db string) string {
-	ret := fmt.Sprintf(`
+	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			org_id = %[1]q
 			name   = %[2]q
@@ -70,8 +70,6 @@ func configBasic(orgID, groupName, roleName, action, db string) string {
 			]
 		}
 	`, orgID, groupName, roleName, action, db)
-	fmt.Println(ret)
-	panic("hello")
 }
 
 func checkBasic(roleName, action, db string) resource.TestCheckFunc {
