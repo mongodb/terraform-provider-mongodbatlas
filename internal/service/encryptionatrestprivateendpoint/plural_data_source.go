@@ -1,4 +1,3 @@
-//nolint:gocritic
 package encryptionatrestprivateendpoint
 
 import (
@@ -6,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
