@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.33.0 (April 16, 2025)
+
 NOTES:
 
 * data-source/mongodbatlas_resource_policies: Enables usage without preview environment flag ([#3276](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3276))
