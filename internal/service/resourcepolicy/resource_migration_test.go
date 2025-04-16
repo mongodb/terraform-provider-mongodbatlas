@@ -8,5 +8,5 @@ import (
 
 func TestMigResourcePolicy_basic(t *testing.T) {
 	mig.SkipIfVersionBelow(t, "1.33.0") // this feature was GA (no need of MONGODB_ATLAS_ENABLE_PREVIEW env variable) in 1.33.0
-	mig.CreateAndRunTestNonParallel(t, basicTestCase(t, descriptionPtr))
+	mig.CreateAndRunTestNonParallel(t, basicTestCase(t))
 }

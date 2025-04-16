@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -68,7 +67,7 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 		updatedName = "updated-policy"
 	)
 	updatedDescription := fmt.Sprintf("updated-%s", description)
-	
+
 	return &resource.TestCase{ // Need sequential execution for assertions to be deterministic (plural data source)
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
