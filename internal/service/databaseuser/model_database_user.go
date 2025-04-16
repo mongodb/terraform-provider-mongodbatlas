@@ -57,7 +57,7 @@ func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue, stateDescri
 	return &result, nil
 }
 
-func NewTfDatabaseUserModel(ctx context.Context, model *TfDatabaseUserModel, dbUser *admin.CloudDatabaseUser) (*TfDatabaseUserModel, diag.Diagnostics) {
+func NewTfDatabaseUserModel(ctx context.Context, inModel *TfDatabaseUserModel, dbUser *admin.CloudDatabaseUser) (*TfDatabaseUserModel, diag.Diagnostics) {
 	rolesSet, diagnostic := types.SetValueFrom(ctx, RoleObjectType, NewTFRolesModel(dbUser.GetRoles()))
 	if diagnostic.HasError() {
 		return nil, diagnostic
@@ -79,7 +79,7 @@ func NewTfDatabaseUserModel(ctx context.Context, model *TfDatabaseUserModel, dbU
 		"username":           dbUser.Username,
 		"auth_database_name": dbUser.DatabaseName,
 	})
-	databaseUserModel := &TfDatabaseUserModel{
+	outModel := &TfDatabaseUserModel{
 		ID:               types.StringValue(encodedID),
 		ProjectID:        types.StringValue(dbUser.GroupId),
 		AuthDatabaseName: types.StringValue(dbUser.DatabaseName),
@@ -94,16 +94,15 @@ func NewTfDatabaseUserModel(ctx context.Context, model *TfDatabaseUserModel, dbU
 		Scopes:           scopesSet,
 	}
 
-	if model != nil && model.Password.ValueString() != "" {
+	if inModel != nil && inModel.Password.ValueString() != "" {
 		// The Password is not retuned from the endpoint so we use the one provided in the model
-		databaseUserModel.Password = model.Password
+		outModel.Password = inModel.Password
 	}
-	if dbUser.Description != nil && model != nil && model.Description.IsNull() {
+	if inModel != nil && outModel.Description.Equal(types.StringValue("")) && inModel.Description.IsNull() {
 		// null != "" in TPF:  Error: Provider produced inconsistent result after apply. .description: was null, but now cty.StringVal("")
-		databaseUserModel.Description = model.Description
+		outModel.Description = types.StringNull()
 	}
-
-	return databaseUserModel, nil
+	return outModel, nil
 }
 
 func NewTFDatabaseDSUserModel(ctx context.Context, dbUser *admin.CloudDatabaseUser) (*TfDatabaseUserDSModel, diag.Diagnostics) {
