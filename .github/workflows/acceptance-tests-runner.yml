@@ -94,9 +94,6 @@ on:
       mongodb_atlas_project_ear_pe_id:
         type: string
         required: true
-      mongodb_atlas_enable_preview:
-        type: string
-        required: true
       azure_private_endpoint_region:
         type: string
         required: true
@@ -661,7 +658,6 @@ jobs:
           AZURE_KEY_IDENTIFIER: ${{ secrets.azure_key_identifier }}
           AZURE_KEY_VAULT_NAME_UPDATED: ${{ secrets.azure_key_vault_name_updated }}
           AZURE_KEY_IDENTIFIER_UPDATED: ${{ secrets.azure_key_identifier_updated }}
-          MONGODB_ATLAS_ENABLE_PREVIEW: ${{ inputs.mongodb_atlas_enable_preview }}
           AWS_REGION: ${{ vars.AWS_REGION_LOWERCASE }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}

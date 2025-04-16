@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -52,33 +51,31 @@ var (
 		when {
 		context.project.ipAccessList.contains(ip("0.0.0.0/0"))
 	};`
-	descriptionPtr = conversion.StringPtr("test-description")
+	description = "test-description"
 )
 
 func TestAccResourcePolicy_basic(t *testing.T) {
-	tc := basicTestCase(t, descriptionPtr)
+	tc := basicTestCase(t)
 	resource.Test(t, *tc)
 }
 
-func basicTestCase(t *testing.T, description *string) *resource.TestCase {
+func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		policyName  = "test-policy"
 		updatedName = "updated-policy"
 	)
-	var updatedDescription string
-	if description != nil {
-		updatedDescription = fmt.Sprintf("updated-%s", *description)
-	}
+	updatedDescription := fmt.Sprintf("updated-%s", description)
+
 	return &resource.TestCase{ // Need sequential execution for assertions to be deterministic (plural data source)
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, policyName, description),
-				Check:  checksResourcePolicy(orgID, policyName, description, 1),
+				Config: configBasic(orgID, policyName, &description),
+				Check:  checksResourcePolicy(orgID, policyName, &description, 1),
 			},
 			{
 				Config: configBasic(orgID, updatedName, nil),
