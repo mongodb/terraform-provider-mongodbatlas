@@ -372,35 +372,35 @@ func TestUnmarshalErrors(t *testing.T) {
 		errorStr     string
 	}{
 		"response ints are not converted to model strings": {
-			errorStr:     "unmarshal can't assign value to model field Attr",
+			errorStr:     "unmarshal gets incorrect number for value: 123",
 			responseJSON: `{"attr": 123}`,
 			model: &struct {
 				Attr types.String
 			}{},
 		},
 		"response strings are not converted to model ints": {
-			errorStr:     "unmarshal can't assign value to model field Attr",
+			errorStr:     "unmarshal gets incorrect string for value: hello",
 			responseJSON: `{"attr": "hello"}`,
 			model: &struct {
 				Attr types.Int64
 			}{},
 		},
 		"response strings are not converted to model bools": {
-			errorStr:     "unmarshal can't assign value to model field Attr",
+			errorStr:     "unmarshal gets incorrect string for value: true",
 			responseJSON: `{"attr": "true"}`,
 			model: &struct {
 				Attr types.Bool
 			}{},
 		},
 		"response bools are not converted to model string": {
-			errorStr:     "unmarshal can't assign value to model field Attr",
+			errorStr:     "unmarshal gets incorrect bool for value: true",
 			responseJSON: `{"attr": true}`,
 			model: &struct {
 				Attr types.String
 			}{},
 		},
 		"model attributes have to be of Terraform types": {
-			errorStr:     "unmarshal can't assign value to model field Attr",
+			errorStr:     "unmarshal trying to set non-Terraform attribute Attr",
 			responseJSON: `{"attr": "hello"}`,
 			model: &struct {
 				Attr string
@@ -490,7 +490,7 @@ func TestUnmarshalUnsupportedResponse(t *testing.T) {
 				AttrMap types.Map `tfsdk:"attr_map"`
 			}{},
 			responseJSON: `{"attrMap": {"key": "value"}}`,
-			errorStr:     "unmarshal expects object for field attrMap",
+			errorStr:     "unmarshal gets incorrect object for value: map[key:value]",
 		},
 	}
 	for name, tc := range testCases {

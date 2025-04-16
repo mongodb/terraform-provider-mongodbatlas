@@ -46,47 +46,19 @@ func unmarshalAttr(attrNameJSON string, attrObjJSON any, valModel reflect.Value)
 	if !fieldModel.CanSet() {
 		return nil // skip fields that cannot be set, are invalid or not found
 	}
-	switch v := attrObjJSON.(type) {
-	case string:
-		return setAttrTfModel(attrNameModel, fieldModel, types.StringValue(v))
-	case bool:
-		return setAttrTfModel(attrNameModel, fieldModel, types.BoolValue(v))
-	case float64: // number: try int or float
-		if setAttrTfModel(attrNameModel, fieldModel, types.Float64Value(v)) == nil {
-			return nil
-		}
-		return setAttrTfModel(attrNameModel, fieldModel, types.Int64Value(int64(v)))
-	case nil:
+	if attrObjJSON == nil {
 		return nil // skip nil values, no need to set anything
-	case map[string]any:
-		obj, ok := fieldModel.Interface().(types.Object)
-		if !ok {
-			return fmt.Errorf("unmarshal expects object for field %s", attrNameJSON)
-		}
-		objNew, err := setObjAttrModel(obj, v)
-		if err != nil {
-			return err
-		}
-		return setAttrTfModel(attrNameModel, fieldModel, objNew)
-	case []any:
-		switch collection := fieldModel.Interface().(type) {
-		case types.List:
-			list, err := setListAttrModel(collection, v)
-			if err != nil {
-				return err
-			}
-			return setAttrTfModel(attrNameModel, fieldModel, list)
-		case types.Set:
-			set, err := setSetAttrModel(collection, v)
-			if err != nil {
-				return err
-			}
-			return setAttrTfModel(attrNameModel, fieldModel, set)
-		}
-		return fmt.Errorf("unmarshal expects array for field %s", attrNameJSON)
-	default:
-		return fmt.Errorf("unmarshal not supported yet for type %T for field %s", v, attrNameJSON)
 	}
+	oldVal, ok := fieldModel.Interface().(attr.Value)
+	if !ok {
+		return fmt.Errorf("unmarshal trying to set non-Terraform attribute %s", attrNameModel)
+	}
+	valueType := oldVal.Type(context.Background())
+	newValue, err := getTfAttr(attrObjJSON, valueType, oldVal)
+	if err != nil {
+		return err
+	}
+	return setAttrTfModel(attrNameModel, fieldModel, newValue)
 }
 
 func setAttrTfModel(name string, field reflect.Value, val attr.Value) error {
