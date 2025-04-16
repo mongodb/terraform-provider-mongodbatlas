@@ -195,6 +195,10 @@ check-changelog-entry-file: ## Check a changelog entry file in a PR
 jira-release-version: ## Update Jira version in a release
 	go run ./tools/jira-release-version/*.go
 
+.PHONY: enable-autogen
+enable-autogen: ## Enable use of autogen resources in the provider
+	make add-lines filename=./internal/provider/provider.go find="project.Resource," add="customdbroleapi.Resource,databaseuserapi.Resource,"
+
 .PHONY: delete-lines ${filename} ${delete}
 delete-lines:
 	rm -f file.tmp
