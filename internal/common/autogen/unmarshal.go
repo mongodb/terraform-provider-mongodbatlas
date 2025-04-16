@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -93,12 +94,12 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 		if valueType == types.StringType {
 			return types.StringValue(v), nil
 		}
-		return nil, fmt.Errorf("unmarshal gets incorrect string for attribute %s for value: %v", nameErr, v)
+		return nil, errUnmarshal(value, valueType, "String", nameErr)
 	case bool:
 		if valueType == types.BoolType {
 			return types.BoolValue(v), nil
 		}
-		return nil, fmt.Errorf("unmarshal gets incorrect bool for attribute %s for value: %v", nameErr, v)
+		return nil, errUnmarshal(value, valueType, "Bool", nameErr)
 	case float64:
 		switch valueType {
 		case types.Int64Type:
@@ -106,11 +107,11 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 		case types.Float64Type:
 			return types.Float64Value(v), nil
 		}
-		return nil, fmt.Errorf("unmarshal gets incorrect number for attribute %s for value: %v", nameErr, v)
+		return nil, errUnmarshal(value, valueType, "Number", nameErr)
 	case map[string]any:
 		obj, ok := oldVal.(types.Object)
 		if !ok {
-			return nil, fmt.Errorf("unmarshal gets incorrect object for attribute %s for value: %v", nameErr, v)
+			return nil, errUnmarshal(value, valueType, "Object", nameErr)
 		}
 		objNew, err := setObjAttrModel(obj, v)
 		if err != nil {
@@ -132,11 +133,18 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 			}
 			return setNew, nil
 		}
-		return nil, fmt.Errorf("unmarshal gets incorrect array for attribute %s for value: %v", nameErr, v)
+		return nil, errUnmarshal(value, valueType, "Array", nameErr)
 	case nil:
 		return nil, nil // skip nil values, no need to set anything
 	}
 	return nil, fmt.Errorf("unmarshal not supported yet for type %T for attribute %s", value, nameErr)
+}
+
+func errUnmarshal(value any, valueType attr.Type, typeReceived, name string) error {
+	nameErr := xstrings.ToSnakeCase(name)
+	parts := strings.Split(reflect.TypeOf(valueType).String(), ".")
+	typeErr := parts[len(parts)-1]
+	return fmt.Errorf("unmarshal of attribute %s expects type %s but got %s with value: %v", nameErr, typeErr, typeReceived, value)
 }
 
 func setObjAttrModel(obj types.Object, objJSON map[string]any) (attr.Value, error) {
