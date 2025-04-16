@@ -280,6 +280,7 @@ jobs:
           autogen:
             - 'internal/service/customdbroleapi/*.go'
             - 'internal/service/databaseuserapi/*.go'
+            - 'internal/common/autogen/*.go'
           backup:
             - 'internal/service/cloudbackupschedule/*.go'
             - 'internal/service/cloudbackupsnapshot/*.go'

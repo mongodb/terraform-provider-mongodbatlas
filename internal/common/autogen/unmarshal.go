@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -46,47 +47,19 @@ func unmarshalAttr(attrNameJSON string, attrObjJSON any, valModel reflect.Value)
 	if !fieldModel.CanSet() {
 		return nil // skip fields that cannot be set, are invalid or not found
 	}
-	switch v := attrObjJSON.(type) {
-	case string:
-		return setAttrTfModel(attrNameModel, fieldModel, types.StringValue(v))
-	case bool:
-		return setAttrTfModel(attrNameModel, fieldModel, types.BoolValue(v))
-	case float64: // number: try int or float
-		if setAttrTfModel(attrNameModel, fieldModel, types.Float64Value(v)) == nil {
-			return nil
-		}
-		return setAttrTfModel(attrNameModel, fieldModel, types.Int64Value(int64(v)))
-	case nil:
+	if attrObjJSON == nil {
 		return nil // skip nil values, no need to set anything
-	case map[string]any:
-		obj, ok := fieldModel.Interface().(types.Object)
-		if !ok {
-			return fmt.Errorf("unmarshal expects object for field %s", attrNameJSON)
-		}
-		objNew, err := setObjAttrModel(obj, v)
-		if err != nil {
-			return err
-		}
-		return setAttrTfModel(attrNameModel, fieldModel, objNew)
-	case []any:
-		switch collection := fieldModel.Interface().(type) {
-		case types.List:
-			list, err := setListAttrModel(collection, v)
-			if err != nil {
-				return err
-			}
-			return setAttrTfModel(attrNameModel, fieldModel, list)
-		case types.Set:
-			set, err := setSetAttrModel(collection, v)
-			if err != nil {
-				return err
-			}
-			return setAttrTfModel(attrNameModel, fieldModel, set)
-		}
-		return fmt.Errorf("unmarshal expects array for field %s", attrNameJSON)
-	default:
-		return fmt.Errorf("unmarshal not supported yet for type %T for field %s", v, attrNameJSON)
 	}
+	oldVal, ok := fieldModel.Interface().(attr.Value)
+	if !ok {
+		return fmt.Errorf("unmarshal trying to set non-Terraform attribute %s", attrNameModel)
+	}
+	valueType := oldVal.Type(context.Background())
+	newValue, err := getTfAttr(attrObjJSON, valueType, oldVal, attrNameModel)
+	if err != nil {
+		return err
+	}
+	return setAttrTfModel(attrNameModel, fieldModel, newValue)
 }
 
 func setAttrTfModel(name string, field reflect.Value, val attr.Value) error {
@@ -104,7 +77,7 @@ func setMapAttrModel(name string, value any, mapAttrs map[string]attr.Value, map
 	if !found {
 		return nil // skip attributes that are not in the model
 	}
-	newValue, err := getTfAttr(value, valueType, mapAttrs[nameChildTf])
+	newValue, err := getTfAttr(value, valueType, mapAttrs[nameChildTf], nameChildTf)
 	if err != nil {
 		return err
 	}
@@ -114,18 +87,19 @@ func setMapAttrModel(name string, value any, mapAttrs map[string]attr.Value, map
 	return nil
 }
 
-func getTfAttr(value any, valueType attr.Type, oldVal attr.Value) (attr.Value, error) {
+func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (attr.Value, error) {
+	nameErr := xstrings.ToSnakeCase(name)
 	switch v := value.(type) {
 	case string:
 		if valueType == types.StringType {
 			return types.StringValue(v), nil
 		}
-		return nil, fmt.Errorf("unmarshal gets incorrect string for value: %v", v)
+		return nil, errUnmarshal(value, valueType, "String", nameErr)
 	case bool:
 		if valueType == types.BoolType {
 			return types.BoolValue(v), nil
 		}
-		return nil, fmt.Errorf("unmarshal gets incorrect bool for value: %v", v)
+		return nil, errUnmarshal(value, valueType, "Bool", nameErr)
 	case float64:
 		switch valueType {
 		case types.Int64Type:
@@ -133,11 +107,11 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value) (attr.Value, e
 		case types.Float64Type:
 			return types.Float64Value(v), nil
 		}
-		return nil, fmt.Errorf("unmarshal gets incorrect number for value: %v", v)
+		return nil, errUnmarshal(value, valueType, "Number", nameErr)
 	case map[string]any:
 		obj, ok := oldVal.(types.Object)
 		if !ok {
-			return nil, fmt.Errorf("unmarshal gets incorrect object for value: %v", v)
+			return nil, errUnmarshal(value, valueType, "Object", nameErr)
 		}
 		objNew, err := setObjAttrModel(obj, v)
 		if err != nil {
@@ -146,24 +120,31 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value) (attr.Value, e
 		return objNew, nil
 	case []any:
 		if list, ok := oldVal.(types.List); ok {
-			listNew, err := setListAttrModel(list, v)
+			listNew, err := setListAttrModel(list, v, nameErr)
 			if err != nil {
 				return nil, err
 			}
 			return listNew, nil
 		}
 		if set, ok := oldVal.(types.Set); ok {
-			setNew, err := setSetAttrModel(set, v)
+			setNew, err := setSetAttrModel(set, v, nameErr)
 			if err != nil {
 				return nil, err
 			}
 			return setNew, nil
 		}
-		return nil, fmt.Errorf("unmarshal gets incorrect array for value: %v", v)
+		return nil, errUnmarshal(value, valueType, "Array", nameErr)
 	case nil:
 		return nil, nil // skip nil values, no need to set anything
 	}
-	return nil, fmt.Errorf("unmarshal not supported yet for type %T", value)
+	return nil, fmt.Errorf("unmarshal not supported yet for type %T for attribute %s", value, nameErr)
+}
+
+func errUnmarshal(value any, valueType attr.Type, typeReceived, name string) error {
+	nameErr := xstrings.ToSnakeCase(name)
+	parts := strings.Split(reflect.TypeOf(valueType).String(), ".")
+	typeErr := parts[len(parts)-1]
+	return fmt.Errorf("unmarshal of attribute %s expects type %s but got %s with value: %v", nameErr, typeErr, typeReceived, value)
 }
 
 func setObjAttrModel(obj types.Object, objJSON map[string]any) (attr.Value, error) {
@@ -183,9 +164,9 @@ func setObjAttrModel(obj types.Object, objJSON map[string]any) (attr.Value, erro
 	return objNew, nil
 }
 
-func setListAttrModel(list types.List, arrayJSON []any) (attr.Value, error) {
+func setListAttrModel(list types.List, arrayJSON []any, listName string) (attr.Value, error) {
 	elmType := list.ElementType(context.Background())
-	elms, err := getCollectionElements(arrayJSON, elmType, list.Elements())
+	elms, err := getCollectionElements(arrayJSON, elmType, list.Elements(), listName)
 	if err != nil {
 		return nil, err
 	}
@@ -201,9 +182,9 @@ func setListAttrModel(list types.List, arrayJSON []any) (attr.Value, error) {
 	return listNew, nil
 }
 
-func setSetAttrModel(set types.Set, arrayJSON []any) (attr.Value, error) {
+func setSetAttrModel(set types.Set, arrayJSON []any, setName string) (attr.Value, error) {
 	elmType := set.ElementType(context.Background())
-	elms, err := getCollectionElements(arrayJSON, elmType, set.Elements())
+	elms, err := getCollectionElements(arrayJSON, elmType, set.Elements(), setName)
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +200,7 @@ func setSetAttrModel(set types.Set, arrayJSON []any) (attr.Value, error) {
 	return setNew, nil
 }
 
-func getCollectionElements(arrayJSON []any, valueType attr.Type, oldVals []attr.Value) ([]attr.Value, error) {
+func getCollectionElements(arrayJSON []any, valueType attr.Type, oldVals []attr.Value, collectionName string) ([]attr.Value, error) {
 	elms := make([]attr.Value, len(arrayJSON))
 	nullVal, err := getNullAttr(valueType)
 	if err != nil {
@@ -230,7 +211,7 @@ func getCollectionElements(arrayJSON []any, valueType attr.Type, oldVals []attr.
 		if i < len(oldVals) {
 			oldVal = oldVals[i]
 		}
-		newValue, err := getTfAttr(item, valueType, oldVal)
+		newValue, err := getTfAttr(item, valueType, oldVal, collectionName)
 		if err != nil {
 			return nil, err
 		}
