@@ -254,16 +254,6 @@ func (r *databaseUserRS) Read(ctx context.Context, req resource.ReadRequest, res
 	username := state.Username.ValueString()
 	projectID := state.ProjectID.ValueString()
 	authDatabaseName := state.AuthDatabaseName.ValueString()
-
-	// Use the ID only with the IMPORT operation
-	if state.ID.ValueString() != "" && (username == "" || projectID == "" || authDatabaseName == "") {
-		projectID, username, authDatabaseName, err = SplitDatabaseUserImportID(state.ID.ValueString())
-		if err != nil {
-			resp.Diagnostics.AddError("error splitting database User info from ID", err.Error())
-			return
-		}
-	}
-
 	connV2 := r.Client.AtlasV2
 	dbUser, httpResponse, err := connV2.DatabaseUsersApi.GetDatabaseUser(ctx, projectID, authDatabaseName, username).Execute()
 	if err != nil {
@@ -347,7 +337,14 @@ func (r *databaseUserRS) Delete(ctx context.Context, req resource.DeleteRequest,
 }
 
 func (r *databaseUserRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	projectID, username, authDatabaseName, err := SplitDatabaseUserImportID(req.ID)
+	if err != nil {
+		resp.Diagnostics.AddError("error splitting database User info from ID", err.Error())
+		return
+	}
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("username"), username)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("auth_database_name"), authDatabaseName)...)
 }
 
 func SplitDatabaseUserImportID(id string) (projectID, username, authDatabaseName string, err error) {
