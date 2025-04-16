@@ -767,7 +767,6 @@ See detailed information for arguments and attributes: [MongoDB API Advanced Clu
 
 ~> **IMPORTANT:**
 <br> &#8226; When a cluster is imported, the resulting schema structure will always return the new schema including `replication_specs` per independent shards of the cluster.
-<br> &#8226;  Note: The first time `terraform apply` command is run **after** updating the configuration of an imported cluster, you may receive a `500 Internal Server Error (Error code: "SERVICE_UNAVAILABLE")` error. This is a known temporary issue. If you encounter this, please re-run `terraform apply` and this time the update should succeed. 
 
 ## Considerations and Best Practices
 

@@ -103,24 +103,17 @@ func CheckExistsCluster(resourceName string) resource.TestCheckFunc {
 		if projectID == "" || clusterName == "" {
 			return fmt.Errorf("projectID or clusterName is empty: %s, %s", projectID, clusterName)
 		}
-		if err := CheckExistsClusterHandlingRetry(projectID, clusterName); err != nil {
+		if err := GetClusterToCheckPresence(projectID, clusterName); err != nil {
 			return fmt.Errorf("cluster(%s:%s) does not exist: %w", projectID, clusterName, err)
 		}
 		return nil
 	}
 }
 
-func CheckExistsClusterHandlingRetry(projectID, clusterName string) error {
-	return retry.RetryContext(context.Background(), 3*time.Minute, func() *retry.RetryError {
-		if _, _, err := ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute(); err != nil {
-			if admin.IsErrorCode(err, "SERVICE_UNAVAILABLE") {
-				// retrying get operation because for migration test it can be the first time new API is called for a cluster so API responds with temporary error as it transition to enabling ISS FF
-				return retry.RetryableError(err)
-			}
-			return retry.NonRetryableError(err)
-		}
-		return nil
-	})
+func GetClusterToCheckPresence(projectID, clusterName string) error {
+	_, _, err := ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute()
+	return err
+
 }
 
 func CheckFCVPinningConfig(usePreviewProvider bool, resourceName, dataSourceName, pluralDataSourceName string, mongoDBMajorVersion int, pinningExpirationDate *string, fcvVersion *int) resource.TestCheckFunc {
