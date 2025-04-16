@@ -11,47 +11,47 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 )
 
-func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue, stateDescriptionValue types.String, dbUserModel *TfDatabaseUserModel) (*admin.CloudDatabaseUser, diag.Diagnostics) {
+func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue, stateDescriptionValue types.String, plan *TfDatabaseUserModel) (*admin.CloudDatabaseUser, diag.Diagnostics) {
 	var rolesModel []*TfRoleModel
 	var labelsModel []*TfLabelModel
 	var scopesModel []*TfScopeModel
 
-	diags := dbUserModel.Roles.ElementsAs(ctx, &rolesModel, false)
+	diags := plan.Roles.ElementsAs(ctx, &rolesModel, false)
 	if diags.HasError() {
 		return nil, diags
 	}
 
-	diags = dbUserModel.Labels.ElementsAs(ctx, &labelsModel, false)
+	diags = plan.Labels.ElementsAs(ctx, &labelsModel, false)
 	if diags.HasError() {
 		return nil, diags
 	}
 
-	diags = dbUserModel.Scopes.ElementsAs(ctx, &scopesModel, false)
+	diags = plan.Scopes.ElementsAs(ctx, &scopesModel, false)
 	if diags.HasError() {
 		return nil, diags
 	}
 
 	result := admin.CloudDatabaseUser{
-		GroupId:      dbUserModel.ProjectID.ValueString(),
-		Username:     dbUserModel.Username.ValueString(),
-		Description:  dbUserModel.Description.ValueStringPointer(),
-		X509Type:     dbUserModel.X509Type.ValueStringPointer(),
-		AwsIAMType:   dbUserModel.AWSIAMType.ValueStringPointer(),
-		OidcAuthType: dbUserModel.OIDCAuthType.ValueStringPointer(),
-		LdapAuthType: dbUserModel.LDAPAuthType.ValueStringPointer(),
-		DatabaseName: dbUserModel.AuthDatabaseName.ValueString(),
+		GroupId:      plan.ProjectID.ValueString(),
+		Username:     plan.Username.ValueString(),
+		Description:  plan.Description.ValueStringPointer(),
+		X509Type:     plan.X509Type.ValueStringPointer(),
+		AwsIAMType:   plan.AWSIAMType.ValueStringPointer(),
+		OidcAuthType: plan.OIDCAuthType.ValueStringPointer(),
+		LdapAuthType: plan.LDAPAuthType.ValueStringPointer(),
+		DatabaseName: plan.AuthDatabaseName.ValueString(),
 		Roles:        NewMongoDBAtlasRoles(rolesModel),
 		Labels:       NewMongoDBAtlasLabels(labelsModel),
 		Scopes:       NewMongoDBAtlasScopes(scopesModel),
 	}
 
-	if statePasswordValue != dbUserModel.Password {
+	if statePasswordValue != plan.Password {
 		// Password value has been modified or no previous state was present. Password is only updated if changed in the terraform configuration CLOUDP-235738
-		result.Password = dbUserModel.Password.ValueStringPointer()
+		result.Password = plan.Password.ValueStringPointer()
 	}
-	if dbUserModel.Description.IsNull() && !stateDescriptionValue.Equal(dbUserModel.Description) {
+	if plan.Description.IsNull() && !stateDescriptionValue.Equal(plan.Description) {
 		// description is an optional attribute (i.e. null by default), if it is removed from the config during an update
-		// (i.e. user wants to remove the existing description from the database user), we send an empty string ("") as the value in API request for update
+		// (i.e. user wants to remove the existing description from the database user), we send an empty string ("") as the value in API request for update (dumping null is not supported in the SDK)
 		result.Description = conversion.Pointer("")
 	}
 	return &result, nil
