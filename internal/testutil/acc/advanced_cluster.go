@@ -113,7 +113,6 @@ func CheckExistsCluster(resourceName string) resource.TestCheckFunc {
 func GetClusterToCheckPresence(projectID, clusterName string) error {
 	_, _, err := ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute()
 	return err
-
 }
 
 func CheckFCVPinningConfig(usePreviewProvider bool, resourceName, dataSourceName, pluralDataSourceName string, mongoDBMajorVersion int, pinningExpirationDate *string, fcvVersion *int) resource.TestCheckFunc {
