@@ -29,7 +29,7 @@ import (
 const (
 	toolName                             = "terraform-provider-mongodbatlas"
 	terraformPlatformName                = "Terraform"
-	previewV2AdvancedClusterEnabledUAKey = "IsAdvancedClusterPreview"
+	previewV2AdvancedClusterEnabledUAKey = "AdvancedClusterPreview"
 )
 
 // MongoDBClient contains the mongodbatlas clients and configurations
@@ -72,8 +72,8 @@ type SecretData struct {
 }
 
 type UAMetadata struct {
-	Name    string
-	Version string
+	Name  string
+	Value string
 }
 
 // NewClient func...
@@ -250,7 +250,7 @@ func userAgent(c *Config) string {
 
 	var parts []string
 	for _, info := range metadata {
-		part := fmt.Sprintf("%s/%s", info.Name, info.Version)
+		part := fmt.Sprintf("%s/%s", info.Name, info.Value)
 		parts = append(parts, part)
 	}
 
