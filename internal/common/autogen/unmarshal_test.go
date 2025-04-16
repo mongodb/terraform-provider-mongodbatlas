@@ -372,28 +372,28 @@ func TestUnmarshalErrors(t *testing.T) {
 		errorStr     string
 	}{
 		"response ints are not converted to model strings": {
-			errorStr:     "unmarshal gets incorrect number for value: 123",
+			errorStr:     "unmarshal gets incorrect number for attribute attr for value: 123",
 			responseJSON: `{"attr": 123}`,
 			model: &struct {
 				Attr types.String
 			}{},
 		},
 		"response strings are not converted to model ints": {
-			errorStr:     "unmarshal gets incorrect string for value: hello",
+			errorStr:     "unmarshal gets incorrect string for attribute attr for value: hello",
 			responseJSON: `{"attr": "hello"}`,
 			model: &struct {
 				Attr types.Int64
 			}{},
 		},
 		"response strings are not converted to model bools": {
-			errorStr:     "unmarshal gets incorrect string for value: true",
+			errorStr:     "unmarshal gets incorrect string for attribute attr for value: true",
 			responseJSON: `{"attr": "true"}`,
 			model: &struct {
 				Attr types.Bool
 			}{},
 		},
 		"response bools are not converted to model string": {
-			errorStr:     "unmarshal gets incorrect bool for value: true",
+			errorStr:     "unmarshal gets incorrect bool for attribute attr for value: true",
 			responseJSON: `{"attr": true}`,
 			model: &struct {
 				Attr types.String
@@ -407,7 +407,7 @@ func TestUnmarshalErrors(t *testing.T) {
 			}{},
 		},
 		"model attr types in objects must match JSON types - string": {
-			errorStr:     "unmarshal gets incorrect number for value: 1",
+			errorStr:     "unmarshal gets incorrect number for attribute attr_string for value: 1",
 			responseJSON: `{ "attrObj": { "attrString": 1 } }`,
 			model: &struct {
 				AttrObj types.Object `tfsdk:"attr_obj"`
@@ -416,7 +416,7 @@ func TestUnmarshalErrors(t *testing.T) {
 			},
 		},
 		"model attr types in objects must match JSON types - bool": {
-			errorStr:     "unmarshal gets incorrect string for value: not a bool",
+			errorStr:     "unmarshal gets incorrect string for attribute attr_bool for value: not a bool",
 			responseJSON: `{ "attrObj": { "attrBool": "not a bool" } }`,
 			model: &struct {
 				AttrObj types.Object `tfsdk:"attr_obj"`
@@ -425,7 +425,7 @@ func TestUnmarshalErrors(t *testing.T) {
 			},
 		},
 		"model attr types in objects must match JSON types - int": {
-			errorStr:     "unmarshal gets incorrect string for value: not an int",
+			errorStr:     "unmarshal gets incorrect string for attribute attr_int for value: not an int",
 			responseJSON: `{ "attrObj": { "attrInt": "not an int" } }`,
 			model: &struct {
 				AttrObj types.Object `tfsdk:"attr_obj"`
@@ -434,7 +434,7 @@ func TestUnmarshalErrors(t *testing.T) {
 			},
 		},
 		"model attr types in objects must match JSON types - float": {
-			errorStr:     "unmarshal gets incorrect string for value: not an int",
+			errorStr:     "unmarshal gets incorrect string for attribute attr_float for value: not an int",
 			responseJSON: `{ "attrObj": { "attrFloat": "not an int" } }`,
 			model: &struct {
 				AttrObj types.Object `tfsdk:"attr_obj"`
@@ -490,7 +490,7 @@ func TestUnmarshalUnsupportedResponse(t *testing.T) {
 				AttrMap types.Map `tfsdk:"attr_map"`
 			}{},
 			responseJSON: `{"attrMap": {"key": "value"}}`,
-			errorStr:     "unmarshal gets incorrect object for value: map[key:value]",
+			errorStr:     "unmarshal gets incorrect object for attribute attr_map for value: map[key:value]",
 		},
 	}
 	for name, tc := range testCases {
