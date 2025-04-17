@@ -112,8 +112,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if _, _, err := acc.ConnV2().CloudBackupsApi.GetReplicaSetBackup(context.Background(), ids["project_id"], ids["cluster_name"], ids["snapshot_id"]).Execute(); err != nil {
 			return fmt.Errorf("cloudBackupSnapshot (%s) does not exist", rs.Primary.Attributes["snapshot_id"])
 		}
-		// needed as first call to cluster with new API will fail due to transition to ISS feature flag
-		if err := acc.CheckExistsClusterHandlingRetry(ids["project_id"], ids["cluster_name"]); err != nil {
+		if err := acc.GetClusterToCheckPresence(ids["project_id"], ids["cluster_name"]); err != nil {
 			return fmt.Errorf("cluster (%s : %s) does not exist", ids["project_id"], ids["cluster_name"])
 		}
 		return nil
