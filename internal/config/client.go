@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
-	adminpreview "github.com/mongodb/atlas-sdk-go/admin"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
@@ -20,14 +20,16 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"github.com/mongodb-forks/digest"
+	adminpreview "github.com/mongodb/atlas-sdk-go/admin"
 	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
 const (
-	toolName              = "terraform-provider-mongodbatlas"
-	terraformPlatformName = "Terraform"
+	toolName                             = "terraform-provider-mongodbatlas"
+	terraformPlatformName                = "Terraform"
+	previewV2AdvancedClusterEnabledUAKey = "AdvancedClusterPreview"
 )
 
 // MongoDBClient contains the mongodbatlas clients and configurations
@@ -43,12 +45,13 @@ type MongoDBClient struct {
 
 // Config contains the configurations needed to use SDKs
 type Config struct {
-	AssumeRole       *AssumeRole
-	PublicKey        string
-	PrivateKey       string
-	BaseURL          string
-	RealmBaseURL     string
-	TerraformVersion string
+	AssumeRole                      *AssumeRole
+	PublicKey                       string
+	PrivateKey                      string
+	BaseURL                         string
+	RealmBaseURL                    string
+	TerraformVersion                string
+	PreviewV2AdvancedClusterEnabled bool
 }
 
 type AssumeRole struct {
@@ -68,9 +71,9 @@ type SecretData struct {
 	PrivateKey string `json:"private_key"`
 }
 
-type PlatformVersion struct {
-	Name    string
-	Version string
+type UAMetadata struct {
+	Name  string
+	Value string
 }
 
 // NewClient func...
@@ -237,14 +240,17 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 }
 
 func userAgent(c *Config) string {
-	platformVersions := []PlatformVersion{
+	isPreviewV2AdvancedClusterEnabled := c.PreviewV2AdvancedClusterEnabled
+
+	metadata := []UAMetadata{
 		{toolName, version.ProviderVersion},
 		{terraformPlatformName, c.TerraformVersion},
+		{previewV2AdvancedClusterEnabledUAKey, strconv.FormatBool(isPreviewV2AdvancedClusterEnabled)},
 	}
 
 	var parts []string
-	for _, info := range platformVersions {
-		part := fmt.Sprintf("%s/%s", info.Name, info.Version)
+	for _, info := range metadata {
+		part := fmt.Sprintf("%s/%s", info.Name, info.Value)
 		parts = append(parts, part)
 	}
 
