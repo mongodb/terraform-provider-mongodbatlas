@@ -17,7 +17,7 @@ func TestMigConfigMaintenanceWindow_basic(t *testing.T) {
 		projectName = acc.RandomProjectName()
 		dayOfWeek   = 7
 		hourOfDay   = 3
-		config      = configBasic(orgID, projectName, dayOfWeek, conversion.Pointer(hourOfDay))
+		config      = configBasic(orgID, projectName, dayOfWeek, conversion.Pointer(hourOfDay), defaultProtectedHours)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
