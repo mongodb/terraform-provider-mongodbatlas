@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -125,6 +126,16 @@ func Resource() *schema.Resource {
 				Sensitive: true,
 			},
 			"enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+				Optional: true,
+			},
+			"send_collection_latency_metrics": {
+				Type:     schema.TypeBool,
+				Computed: true,
+				Optional: true,
+			},
+			"send_database_metrics": {
 				Type:     schema.TypeBool,
 				Computed: true,
 				Optional: true,

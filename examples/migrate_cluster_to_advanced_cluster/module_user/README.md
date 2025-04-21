@@ -9,6 +9,7 @@ Migration Step Code | `mongodbatlas` version | Config Changes | Plan Changes
 [Step 1](./v1) | `<= 1.29.0` | Baseline configuration | -
 [Step 2](./v2) | `>= 1.29.0` | Only change to `v2` module version | No changes. Only moved.
 [Step 3](./v3) | `>= 1.29.0` | Usage of new variables to support multi-cloud and independent shard scaling | Yes (new features)
+[Step 4](./v4) | `>= 1.29.0` | Rename `replication_specs_new` to `replication_specs` | No
 
 
 The rest of this example is a step by step guide on how to migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`:
@@ -26,14 +27,14 @@ The rest of this example is a step by step guide on how to migrate from `mongodb
 - [Cleanup with `terraform destroy`](#cleanup-with-terraform-destroy)
 
 ## Dependencies
-- Terraform CLI >= 1.8-
-- Terraform MongoDB Atlas Provider `>=v1.29.0`-
+- Terraform CLI >= 1.8
+- Terraform MongoDB Atlas Provider `>=v1.29.0`
 - A MongoDB Atlas account.
 - Configure the provider (can also be done by configuring `public_key` and `private_key` in a `provider.tfvars`).
 
 ```bash
-export MONGODB_ATLAS_PUBLIC_KEY="xxxx"
-export MONGODB_ATLAS_PRIVATE_KEY="xxxx"
+export MONGODB_ATLAS_PUBLIC_KEY="<ATLAS_PUBLIC_KEY>"
+export MONGODB_ATLAS_PRIVATE_KEY="<ATLAS_PRIVATE_KEY>"
 ```
 
 ## Step 1: Create the `mongodbatlas_cluster` with `v1` of the module
@@ -100,6 +101,22 @@ cp ../v2/terraform.tfstate . # if you are not using a remote state
 export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true # necessary for the `moved` block to work
 terraform init -upgrade # in case your Atlas Provider version needs to be upgraded
 terraform apply -var-file=../v3.tfvars # updated variables to enable latest mongodb_advanced_cluster features
+```
+
+## Step 4: Adapt to the future proof `v4` module without any `mongodbatlas_cluster` references
+
+### Update `v4.tfvars`
+
+See the example in [v4.tfvars](v4.tfvars).
+This example renames the variable `replication_specs_new` to `replication_specs`.
+
+### Run `terraform plan` to ensure no plan changes
+```bash
+cd v4
+cp ../v3/terraform.tfstate . # if you are not using a remote state
+export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true # necessary to use the latest schema
+terraform init -upgrade # in case your Atlas Provider version needs to be upgraded
+terraform plan -var-file=../v4.tfvars
 ```
 
 ## Cleanup with `terraform destroy`

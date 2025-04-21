@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"regexp"
-	"strconv"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
@@ -48,10 +47,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprivatelinkendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
-)
-
-var (
-	providerEnablePreview, _ = strconv.ParseBool(os.Getenv("MONGODB_ATLAS_ENABLE_PREVIEW"))
 )
 
 const (
@@ -456,16 +451,11 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		flexsnapshot.PluralDataSource,
 		flexrestorejob.DataSource,
 		flexrestorejob.PluralDataSource,
+		resourcepolicy.DataSource,
+		resourcepolicy.PluralDataSource,
 	}
 	if config.PreviewProviderV2AdvancedCluster() {
 		dataSources = append(dataSources, advancedclustertpf.DataSource, advancedclustertpf.PluralDataSource)
-	}
-	previewDataSources := []func() datasource.DataSource{
-		resourcepolicy.DataSource,
-		resourcepolicy.PluralDataSource,
-	} // Data sources not yet in GA
-	if providerEnablePreview {
-		dataSources = append(dataSources, previewDataSources...)
 	}
 	return dataSources
 }
@@ -486,15 +476,10 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		mongodbemployeeaccessgrant.Resource,
 		streamprivatelinkendpoint.Resource,
 		flexcluster.Resource,
+		resourcepolicy.Resource,
 	}
 	if config.PreviewProviderV2AdvancedCluster() {
 		resources = append(resources, advancedclustertpf.Resource)
-	}
-	previewResources := []func() resource.Resource{
-		resourcepolicy.Resource,
-	} // Resources not yet in GA
-	if providerEnablePreview {
-		resources = append(resources, previewResources...)
 	}
 	return resources
 }

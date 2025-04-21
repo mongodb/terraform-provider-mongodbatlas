@@ -59,6 +59,14 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+			"skip_default_alerts_settings": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"security_contact": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -75,6 +83,10 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if err := d.Set("name", organization.GetName()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `name`: %s", err))
+	}
+
+	if err := d.Set("skip_default_alerts_settings", organization.GetSkipDefaultAlertsSettings()); err != nil {
+		return diag.Errorf("error setting `skip_default_alerts_settings`: %s", err)
 	}
 
 	if err := d.Set("is_deleted", organization.GetIsDeleted()); err != nil {
@@ -100,6 +112,9 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	if err := d.Set("gen_ai_features_enabled", settings.GenAIFeaturesEnabled); err != nil {
 		return diag.Errorf("error setting `gen_ai_features_enabled` for organization (%s): %s", orgID, err)
+	}
+	if err := d.Set("security_contact", settings.SecurityContact); err != nil {
+		return diag.Errorf("error setting `security_contact` for organization (%s): %s", orgID, err)
 	}
 
 	d.SetId(organization.GetId())

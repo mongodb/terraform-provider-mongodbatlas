@@ -26,11 +26,8 @@
 
 set -euo pipefail
 
-TF_VERSION="${TF_VERSION:-"1.11.2"}" # TF version to use when running tfplugindocs. Default: 1.11.2
+TF_VERSION="${TF_VERSION:-"1.11.4"}" # TF version to use when running tfplugindocs. Default: 1.11.4
 TEMPLATE_FOLDER_PATH="${TEMPLATE_FOLDER_PATH:-"templates"}" # PATH to the templates folder. Default: templates
-
-# ensure preview resource and data sources are also included during generation
-export MONGODB_ATLAS_ENABLE_PREVIEW="true" 
 
 trap 'rm -R docs-out/' EXIT # temp dir cleanup when script exits
 

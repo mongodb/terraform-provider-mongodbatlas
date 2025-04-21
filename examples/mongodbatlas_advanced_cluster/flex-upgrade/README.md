@@ -15,9 +15,9 @@ Utilize the following to execute a working example, replacing the org id, public
 
 Apply with the following `terraform.tfvars` to first create a free tier cluster:
 ```
-atlas_org_id                = <YOUR_ORG_ID>
-public_key                  = <REDACTED>
-private_key                 = <REDACTED>
+atlas_org_id                = <ATLAS_ORG_ID>
+public_key                  = <ATLAS_PUBLIC_KEY>
+private_key                 = <ATLAS_PRIVATE_KEY>
 provider_name               = "TENANT"
 backing_provider_name       = "AWS"
 provider_instance_size_name = "M0"
@@ -54,9 +54,9 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
 Apply with the following `terraform.tfvars` to upgrade the free tier cluster you just created to flex tier:
 ```
-atlas_org_id                = <YOUR_ORG_ID>
-public_key                  = <REDACTED>
-private_key                 = <REDACTED>
+atlas_org_id                = <ATLAS_ORG_ID>
+public_key                  = <ATLAS_PUBLIC_KEY>
+private_key                 = <ATLAS_PRIVATE_KEY>
 provider_name               = "FLEX"
 backing_provider_name       = "AWS"
 provider_instance_size_name = null
@@ -92,9 +92,9 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
 Apply with the following `terraform.tfvars` to upgrade the flex tier cluster you just created to dedicated tier:
 ```
-atlas_org_id                = <YOUR_ORG_ID>
-public_key                  = <REDACTED>
-private_key                 = <REDACTED>
+atlas_org_id                = <ATLAS_ORG_ID>
+public_key                  = <ATLAS_PUBLIC_KEY>
+private_key                 = <ATLAS_PRIVATE_KEY>
 provider_name               = "AWS"
 backing_provider_name       = null
 provider_instance_size_name = "M10"

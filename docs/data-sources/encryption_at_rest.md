@@ -41,6 +41,8 @@ resource "mongodbatlas_encryption_at_rest" "test" {
     region                 = var.atlas_region
     role_id                = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
   }
+
+  enabled_for_search_nodes = true
 }
 
 resource "mongodbatlas_advanced_cluster" "cluster" {
@@ -135,6 +137,7 @@ output "is_gcp_encryption_at_rest_valid" {
 
 - `aws_kms_config` (Attributes) Amazon Web Services (AWS) KMS configuration details and encryption at rest configuration set for the specified project. (see [below for nested schema](#nestedatt--aws_kms_config))
 - `azure_key_vault_config` (Attributes) Details that define the configuration of Encryption at Rest using Azure Key Vault (AKV). (see [below for nested schema](#nestedatt--azure_key_vault_config))
+- `enabled_for_search_nodes` (Boolean) Flag that indicates whether Encryption at Rest for Dedicated Search Nodes is enabled in the specified project.
 - `google_cloud_kms_config` (Attributes) Details that define the configuration of Encryption at Rest using Google Cloud Key Management Service (KMS). (see [below for nested schema](#nestedatt--google_cloud_kms_config))
 - `id` (String) The ID of this resource.
 

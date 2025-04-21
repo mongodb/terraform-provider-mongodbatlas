@@ -34,6 +34,10 @@ resource "mongodbatlas_cloud_backup_snapshot" "test" {
   cluster_name      = mongodbatlas_advanced_cluster.my_cluster.name
   description       = "myDescription"
   retention_in_days = 1
+
+  timeouts { // optional
+    create = "1h15m"
+  }
 }
 
 resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {

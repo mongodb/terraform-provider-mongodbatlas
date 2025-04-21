@@ -59,8 +59,8 @@ provider "mongodbatlas" {}
 Usage (prefix the export commands with a space to avoid the keys being recorded in OS history):
 
 ```shell
-$  export MONGODB_ATLAS_PUBLIC_KEY="xxxx"
-$  export MONGODB_ATLAS_PRIVATE_KEY="xxxx"
+$  export MONGODB_ATLAS_PUBLIC_KEY="<ATLAS_PUBLIC_KEY>"
+$  export MONGODB_ATLAS_PRIVATE_KEY="<ATLAS_PRIVATE_KEY>"
 $ terraform plan
 ```
 
@@ -102,8 +102,8 @@ Note: this policy may be overly broad for many use cases, feel free to adjust ac
 
 3. In terminal, store as environmental variables AWS API Keys (while you can also hardcode in config files these will then be stored as plain text in .tfstate file and should be avoided if possible). For example:
 ``` 
-export AWS_ACCESS_KEY_ID="secret"
-export AWS_SECRET_ACCESS_KEY="secret”
+export AWS_ACCESS_KEY_ID='<AWS_ACCESS_KEY_ID>'
+export AWS_SECRET_ACCESS_KEY='<AWS_SECRET_ACCESS_KEY>'
 ```
 4. In terminal, use the AWS CLI command: `aws sts assume-role --role-arn ROLE_ARN_FROM_ABOVE --role-session-name newSession` 
 
@@ -111,9 +111,9 @@ Note: AWS STS secrets are short lived by default, use the ` --duration-seconds` 
 
 5. Store each of the 3 new created secrets from AWS STS as environment variables (hardcoding secrets into config file with additional risk is also supported). For example: 
 ```
-export AWS_ACCESS_KEY_ID="ASIAYBYSK3S5FZEKLETV"
-export AWS_SECRET_ACCESS_KEY="lgT6kL9lr1fxM6mCEwJ33MeoJ1M6lIzgsiW23FGH"
-export AWS_SESSION_TOKEN="IQoXX3+Q"
+export AWS_ACCESS_KEY_ID='<AWS_ACCESS_KEY_ID>'
+export AWS_SECRET_ACCESS_KEY='<AWS_SECRET_ACCESS_KEY>'
+export AWS_SESSION_TOKEN="<AWS_SESSION_TOKEN>"
 ```
 
 6. Add assume_role block with `role_arn`, `secret_name`, and AWS `region` where secret is stored as part of AWS SM. Each of these 3 fields are REQUIRED. For example:
@@ -121,15 +121,15 @@ export AWS_SESSION_TOKEN="IQoXX3+Q"
 # Configure the MongoDB Atlas Provider to Authenticate with AWS Secrets Manager 
 provider "mongodbatlas" {
   assume_role {
-    role_arn = "arn:aws:iam::476xxx451:role/mdbsts"
+    role_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/mdbsts"
   }
   secret_name           = "mongodbsecret"
-  // fully qualified secret_name ARN also supported as input "arn:aws:secretsmanager:af-south-1:553552370874:secret:test789-TO06Hy" 
+  // fully qualified secret_name ARN also supported as input "arn:aws:secretsmanager:af-south-1:<AWS_ACCOUNT_ID>:secret:test789-TO06Hy" 
   region                = "us-east-2"
   
-  aws_access_key_id     = "ASIXXBNEK"
-  aws_secret_access_key = "ZUZgVb8XYZWEXXEDURGFHFc5Au"
-  aws_session_token     = "IQoXX3+Q="
+  aws_access_key_id     = "<AWS_ACCESS_KEY_ID>"
+  aws_secret_access_key = "<AWS_SECRET_ACCESS_KEY>"
+  aws_session_token     = "<AWS_SESSION_TOKEN>"
   sts_endpoint          = "https://sts.us-east-2.amazonaws.com/"
 }
 ```
@@ -186,7 +186,6 @@ For more information on configuring and managing programmatic API Keys see the [
 | 1.7.x | 2024-01-17 | 2026-01-31 | 2026-01-31 |
 | 1.6.x | 2023-10-04 | 2025-10-31 | 2025-10-31 |
 | 1.5.x | 2023-06-12 | 2025-06-30 | 2025-06-30 |
-| 1.4.x | 2023-03-08 | 2025-03-31 | 2025-03-31 |
 <!-- MATRIX_PLACEHOLDER_END -->
 For the safety of our users, we require only consuming versions of HashiCorp Terraform that are currently receiving Security / Maintenance Updates. For more details see [Support Period and End-of-Life (EOL) Policy](https://support.hashicorp.com/hc/en-us/articles/360021185113-Support-Period-and-End-of-Life-EOL-Policy).   
 
@@ -222,7 +221,7 @@ We ship binaries but do not prioritize fixes for the following operating system 
 ## Examples from MongoDB and the Community
 
 <!-- NOTE: the below examples link is updated during the release process, when doing changes in the following sentence verify scripts/update-examples-reference-in-docs.sh is not impacted-->
-We have [example configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.30.0/examples)
+We have [example configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.33.0/examples)
 in our GitHub repo that will help both beginner and more advanced users.
 
 Have a good example you've created and want to share?

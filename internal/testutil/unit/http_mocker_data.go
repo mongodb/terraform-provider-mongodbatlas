@@ -12,14 +12,14 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type statusText struct {
+type StatusText struct {
 	Text               string `yaml:"text"`
 	ResponseIndex      int    `yaml:"response_index"`
 	Status             int    `yaml:"status"`
 	DuplicateResponses int    `yaml:"duplicate_responses"`
 }
 
-func (s statusText) MarshalYAML() (interface{}, error) {
+func (s StatusText) MarshalYAML() (interface{}, error) {
 	childNodes := []*yaml.Node{
 		{Kind: yaml.ScalarNode, Value: "response_index"},
 		{Kind: yaml.ScalarNode, Value: fmt.Sprintf("%d", s.ResponseIndex)},
@@ -43,7 +43,7 @@ func (s statusText) MarshalYAML() (interface{}, error) {
 	}, nil
 }
 
-func (s *statusText) IncreaseDuplicateResponses() {
+func (s *StatusText) IncreaseDuplicateResponses() {
 	s.DuplicateResponses++
 }
 
@@ -52,7 +52,7 @@ type RequestInfo struct {
 	Method    string       `yaml:"method"`
 	Version   string       `yaml:"version"`
 	Text      string       `yaml:"text"`
-	Responses []statusText `yaml:"responses"`
+	Responses []StatusText `yaml:"responses"`
 }
 
 // Custom marshaling is necessary to use `flow` style only on response fields (text and responses.*.text)
@@ -85,10 +85,10 @@ func (i RequestInfo) MarshalYAML() (any, error) { //nolint:gocritic // Using a p
 }
 
 func (i *RequestInfo) id() string {
-	return fmt.Sprintf("%s_%s", i.idShort(), i.Text)
+	return fmt.Sprintf("%s_%s", i.IDShort(), i.Text)
 }
 
-func (i *RequestInfo) idShort() string {
+func (i *RequestInfo) IDShort() string {
 	return fmt.Sprintf("%s_%s_%s", i.Method, i.Path, i.Version)
 }
 
@@ -152,13 +152,13 @@ func (l Literal) MarshalYAML() (any, error) {
 	}, nil
 }
 
-type stepRequests struct {
+type StepRequests struct {
 	Config           Literal       `yaml:"config,omitempty"`
 	DiffRequests     []RequestInfo `yaml:"diff_requests"`
 	RequestResponses []RequestInfo `yaml:"request_responses"`
 }
 
-func (s *stepRequests) findRequest(request *RequestInfo) (*RequestInfo, bool) {
+func (s *StepRequests) findRequest(request *RequestInfo) (*RequestInfo, bool) {
 	for i := range s.RequestResponses {
 		if s.RequestResponses[i].id() == request.id() {
 			return &s.RequestResponses[i], true
@@ -167,7 +167,7 @@ func (s *stepRequests) findRequest(request *RequestInfo) (*RequestInfo, bool) {
 	return nil, false
 }
 
-func (s *stepRequests) AddRequest(request *RequestInfo, isDiff bool) {
+func (s *StepRequests) AddRequest(request *RequestInfo, isDiff bool) {
 	if isDiff {
 		s.DiffRequests = append(s.DiffRequests, *request)
 	}
@@ -189,13 +189,13 @@ type RoundTrip struct {
 	Variables   map[string]string
 	QueryString string
 	Request     RequestInfo
-	Response    statusText
+	Response    StatusText
 	StepNumber  int
 }
 
 func NewMockHTTPData(t *testing.T, stepCount int, tfConfigs []string) *MockHTTPData {
 	t.Helper()
-	steps := make([]stepRequests, stepCount)
+	steps := make([]StepRequests, stepCount)
 	data := MockHTTPData{
 		Steps:     steps,
 		Variables: map[string]string{},
@@ -237,12 +237,12 @@ func (e VariablesChangedError) ChangedValuesMap() map[string]string {
 
 type MockHTTPData struct {
 	Variables map[string]string `yaml:"variables"`
-	Steps     []stepRequests    `yaml:"steps"`
+	Steps     []StepRequests    `yaml:"steps"`
 }
 
 func (m *MockHTTPData) useTFConfigs(t *testing.T, tfConfigs []string) {
 	t.Helper()
-	require.Equal(t, len(tfConfigs), len(m.Steps), "Number of steps in test case and mock data should match")
+	require.Len(t, tfConfigs, len(m.Steps), "Number of steps in test case and mock data should match")
 	for i := range tfConfigs {
 		tfConfig := tfConfigs[i]
 		configVars := ExtractConfigVariables(t, tfConfig)
@@ -300,7 +300,7 @@ func (m *MockHTTPData) AddRoundtrip(t *testing.T, rt *RoundTrip, isDiff bool) er
 		Method:  rt.Request.Method,
 		Path:    normalizedPath,
 		Text:    useVars(rtVariables, rt.Request.Text),
-		Responses: []statusText{
+		Responses: []StatusText{
 			{
 				Text:          useVars(rtVariables, rt.Response.Text),
 				Status:        rt.Response.Status,

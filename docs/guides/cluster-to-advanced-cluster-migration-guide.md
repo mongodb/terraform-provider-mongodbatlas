@@ -52,11 +52,11 @@ The basic experience when using the `moved` block is as follows:
 1. Before starting, run `terraform plan` to make sure that there are no planned changes.
 2. Add the `mongodbatlas_advanced_cluster` resource definition.
   - Set the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` in order to use the Preview for MongoDB Atlas Provider 2.0.0. You can also define the environment variable in your local development environment so your tools can use the new format and help you with linting and auto-completion.
-  - **Coming soon**: You will be able to use an Atlas CLI plugin to generate the `mongodbatlas_advanced_cluster` resource definition. This will be the recommended method as it will generate a clean configuration while keeping the original Terraform expressions. See the [section below](#alternatives-to-using-the-mongodb-atlas-cli-plugin-to-generate-the-mongodbatlas_advanced_cluster-resource-definition) for the available alternatives.
+  - You can use the [Atlas CLI plugin](https://github.com/mongodb-labs/atlas-cli-plugin-terraform) to generate the `mongodbatlas_advanced_cluster` resource definition. This is the recommended method as it will generate a clean configuration while keeping the original Terraform expressions. Please be aware of the [plugin limitations](https://github.com/mongodb-labs/atlas-cli-plugin-terraform#limitations), see the [section below](#alternatives-to-using-the-mongodb-atlas-cli-plugin-to-generate-the-mongodbatlas_advanced_cluster-resource-definition) for the available alternatives.
 3. Comment out or delete the `mongodbatlas_cluster` resource definition.
 4. Update the references from your previous cluster resource: `mongodbatlas_cluster.this.XXXX` to the new `mongodbatlas_advanced_cluster.this.XXX`.
    - Double check [output-changes](#output-changes) to ensure the underlying configuration stays unchanged.
-   - If you are using output variables that use the new resource `mongodbatlas_advanced_cluster.this`, the plan output can be more verbose than expected (extra `Note: Objects have changed outside of Terraform` section). Consider adding/updating output variables only **after** performing the move (see more in the [Github Issue](https://github.com/hashicorp/terraform-plugin-framework/issues/1109)).
+   - If you are using output variables that use the new resource `mongodbatlas_advanced_cluster.this`, the plan output can be more verbose than expected (extra `Note: Objects have changed outside of Terraform` section). Consider adding/updating output variables only **after** performing the move (see more in the [Github Issue](https://github.com/hashicorp/terraform/issues/36796).
 5. Add the `moved` block to your configuration file, e.g.:
 ```terraform
 moved {
@@ -170,7 +170,7 @@ import {
   }
   ```
 This file includes all configurable values in the schema, but none of the previous configuration defined for your `mongodbatlas_cluster`. Therefore, the new configuration will likely be a lot more verbose and contain none of your original [Terraform expressions](https://developer.hashicorp.com/terraform/language/expressions).
-**Coming soon**: Alternatively you will be able to use an Atlas CLI plugin to generate the `mongodbatlas_advanced_cluster` resource definition from a `mongodbatlas_cluster` definition. This will generate a clean configuration keeping the original Terraform expressions.
+Alternatively you can use the [Atlas CLI plugin](https://github.com/mongodb-labs/atlas-cli-plugin-terraform) to generate the `mongodbatlas_advanced_cluster` resource definition from a `mongodbatlas_cluster` definition. This will generate a clean configuration keeping the original Terraform expressions. Please be aware of the [plugin limitations](https://github.com/mongodb-labs/atlas-cli-plugin-terraform#limitations) and always review the generated configuration.
 5. Update the references from your previous cluster resource: `mongodbatlas_cluster.this.XXXX` to the new `mongodbatlas_advanced_cluster.this.XXX`.
    - Double check [output-changes](#output-changes) to ensure the underlying configuration stays unchanged.
 6. Run `terraform apply`. You should see the resource(s) imported: `Apply complete! Resources: 1 imported, 0 added, 0 changed, 0 destroyed.`
@@ -303,10 +303,10 @@ resource "mongodbatlas_advanced_cluster" "this" {
 
 ## Alternatives to using the MongoDB Atlas CLI plugin to generate the `mongodbatlas_advanced_cluster` resource definition
 
-While Atlas CLI plugin to generate the `mongodbatlas_advanced_cluster` resource definition is coming soon, this section can help you understand what alternatives you have to generate it. Some options might be limited if you are using our MongoDB Atlas Terraform resources through a module (**Module maintainer**).
+While the [Atlas CLI plugin](https://github.com/mongodb-labs/atlas-cli-plugin-terraform) can be used in most cases to generate the `mongodbatlas_advanced_cluster` resource definition, this section can help you understand what alternatives you have to generate it. Some options might be limited if you are using our MongoDB Atlas Terraform resources through a module (**Module maintainer**).
 
 - **Option 1**: Follow the steps 3. and 4. of the ["migration using import"](#migration-using-import) section by temporarily adding an `import block` and executing the `terraform plan -generate-config-out=adv_cluster.tf` command. Once you have the generated configuration for `mongodbatlas_advanced_cluster` you can use it in your configuration files and remove the `import block`. **Note**: Terraform modules don't support `import` blocks so this option is not possible if you are a module maintainer.
 
-- **Option 2 (Coming soon)**: Simplify your `mongodbatlas_cluster` resource definition by removing the Atlas CLI plugin limitations. Given the output, proceed with restoring the remaining configuration in the `mongodbatlas_advanced_cluster` resource.
+- **Option 2**: Simplify your `mongodbatlas_cluster` resource definition by removing the [Atlas CLI plugin limitations](https://github.com/mongodb-labs/atlas-cli-plugin-terraform#limitations). Given the output, proceed with restoring the remaining configuration in the `mongodbatlas_advanced_cluster` resource.
 
 - **Option 3**: Generate the new configuration for `mongodbatlas_advanced_cluster` manually, looking at the examples we provide in our [resource documentation page](../resources/advanced_cluster%2520%2528preview%2520provider%25202.0.0%2529).

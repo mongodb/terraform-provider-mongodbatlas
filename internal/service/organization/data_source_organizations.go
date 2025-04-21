@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
@@ -79,6 +79,14 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
+						"skip_default_alerts_settings": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"security_contact": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -135,14 +143,16 @@ func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizati
 			return nil, fmt.Errorf("error getting organization settings (orgID: %s, org Name: %s): %s", organization.GetId(), organization.GetName(), err)
 		}
 		results[k] = map[string]any{
-			"id":                         organization.Id,
-			"name":                       organization.Name,
-			"is_deleted":                 organization.IsDeleted,
-			"links":                      conversion.FlattenLinks(organization.GetLinks()),
-			"api_access_list_required":   settings.ApiAccessListRequired,
-			"multi_factor_auth_required": settings.MultiFactorAuthRequired,
-			"restrict_employee_access":   settings.RestrictEmployeeAccess,
-			"gen_ai_features_enabled":    settings.GenAIFeaturesEnabled,
+			"id":                           organization.Id,
+			"name":                         organization.Name,
+			"skip_default_alerts_settings": organization.SkipDefaultAlertsSettings,
+			"is_deleted":                   organization.IsDeleted,
+			"links":                        conversion.FlattenLinks(organization.GetLinks()),
+			"api_access_list_required":     settings.ApiAccessListRequired,
+			"multi_factor_auth_required":   settings.MultiFactorAuthRequired,
+			"restrict_employee_access":     settings.RestrictEmployeeAccess,
+			"gen_ai_features_enabled":      settings.GenAIFeaturesEnabled,
+			"security_contact":             settings.SecurityContact,
 		}
 	}
 	return results, nil

@@ -130,7 +130,7 @@ func (r *streamInstanceRS) Delete(ctx context.Context, req resource.DeleteReques
 	connV2 := r.Client.AtlasV2
 	projectID := streamInstanceState.ProjectID.ValueString()
 	instanceName := streamInstanceState.InstanceName.ValueString()
-	if _, _, err := connV2.StreamsApi.DeleteStreamInstance(ctx, projectID, instanceName).Execute(); err != nil {
+	if _, err := connV2.StreamsApi.DeleteStreamInstance(ctx, projectID, instanceName).Execute(); err != nil {
 		resp.Diagnostics.AddError("error during resource delete", err.Error())
 		return
 	}
