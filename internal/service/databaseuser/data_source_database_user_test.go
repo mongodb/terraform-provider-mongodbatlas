@@ -30,6 +30,7 @@ func TestAccConfigDSDatabaseUser_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "roles.0.role_name", roleName),
 					resource.TestCheckResourceAttr(dataSourceName, "roles.0.database_name", "admin"),
 					resource.TestCheckResourceAttr(dataSourceName, "labels.#", "2"),
+					resource.TestCheckNoResourceAttr(dataSourceName, "description"),
 				),
 			},
 		},
