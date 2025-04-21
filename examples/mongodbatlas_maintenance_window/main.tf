@@ -7,7 +7,6 @@ resource "mongodbatlas_maintenance_window" "example" {
   project_id              = mongodbatlas_project.example.id
   auto_defer_once_enabled = true
   hour_of_day             = 23
-  start_asap              = true
   day_of_week             = 1
   protected_hours {
     start_hour_of_day = 9
@@ -16,6 +15,9 @@ resource "mongodbatlas_maintenance_window" "example" {
 }
 
 data "mongodbatlas_maintenance_window" "example" {
-  project_id   = mongodbatlas_maintenance_window.example.project_id
+  project_id = mongodbatlas_maintenance_window.example.project_id
 }
 
+output "time_zone_id" {
+  value = data.mongodbatlas_maintenance_window.example.time_zone_id
+}
