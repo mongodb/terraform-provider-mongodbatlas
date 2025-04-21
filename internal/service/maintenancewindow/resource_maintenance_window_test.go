@@ -110,6 +110,7 @@ func TestAccConfigRSMaintenanceWindow_autoDeferActivated(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "hour_of_day", cast.ToString(hourOfDay)),
 					resource.TestCheckResourceAttr(resourceName, "number_of_deferrals", "0"),
 					resource.TestCheckResourceAttr(resourceName, "auto_defer_once_enabled", "true"),
+					resource.TestCheckResourceAttrSet(resourceName, "time_zone_id"),
 				),
 			},
 		},
