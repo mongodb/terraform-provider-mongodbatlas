@@ -46,13 +46,13 @@ Once maintenance is scheduled for your cluster, you cannot change your maintenan
 * `defer` - Defer the next scheduled maintenance for the given project for one week.
 * `auto_defer` - Defer any scheduled maintenance for the given project for one week.
 * `auto_defer_once_enabled` - Flag that indicates whether you want to defer all maintenance windows one week they would be triggered.
-* `protected_hours` - (Optional) Defines the a window where maintenance will not begin within.. See [Protected Hours](#protected-hours).
+* `protected_hours` - (Optional) Defines the time period during which there will be no standard updates to the clusters. See [Protected Hours](#protected-hours).
 
 -> **NOTE:** The `start_asap` attribute can't be used because of breaks the Terraform flow, but you can enable via API.
 
 ### Protected Hours
-* `start_hour_of_day` - Zero-based integer that represents the beginning hour of the of the day that the maintenance will not begin in.
-* `end_hour_of_day` - Zero-based integer that represents the end hour of the of the day that the maintenance will not begin in.
+* `start_hour_of_day` - Zero-based integer that represents the beginning hour of the day for the protected hours window.
+- `end_hour_of_day` - Zero-based integer that represents the end hour of the day for the protected hours window.
 
 ## Attributes Reference
 
