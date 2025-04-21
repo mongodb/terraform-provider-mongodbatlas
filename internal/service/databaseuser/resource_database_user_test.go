@@ -29,6 +29,16 @@ const (
 		}`
 )
 
+var (
+	importStep = resource.TestStep{
+		ResourceName:            resourceName,
+		ImportStateIdFunc:       importStateIDFunc(resourceName),
+		ImportState:             true,
+		ImportStateVerify:       true,
+		ImportStateVerifyIgnore: []string{"password"},
+	}
+)
+
 func TestAccDatabaseUser_basic(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
@@ -79,13 +89,7 @@ func TestAccDatabaseUser_basic(t *testing.T) {
 					extraChecks...,
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"password"},
-			},
+			importStep,
 		},
 	})
 }
@@ -116,12 +120,7 @@ func TestAccDatabaseUser_withX509TypeCustomer(t *testing.T) {
 					},
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			importStep,
 		},
 	})
 }
@@ -150,6 +149,7 @@ func TestAccDatabaseUser_withX509TypeManaged(t *testing.T) {
 					},
 				),
 			},
+			importStep,
 		},
 	})
 }
@@ -176,12 +176,7 @@ func TestAccDatabaseUser_withAWSIAMType(t *testing.T) {
 					},
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			importStep,
 		},
 	})
 }
@@ -275,6 +270,7 @@ func TestAccDatabaseUser_withLabelsAndDescription(t *testing.T) {
 					resource.TestCheckNoResourceAttr(resourceName, "description"),
 				),
 			},
+			importStep,
 		},
 	})
 }
@@ -341,6 +337,7 @@ func TestAccDatabaseUser_withRoles(t *testing.T) {
 					},
 				),
 			},
+			importStep,
 		},
 	})
 }
@@ -415,6 +412,7 @@ func TestAccDatabaseUser_withScopes(t *testing.T) {
 					},
 				),
 			},
+			importStep,
 		},
 	})
 }
@@ -440,12 +438,7 @@ func TestAccDatabaseUser_withLDAPAuthType(t *testing.T) {
 					},
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			importStep,
 		},
 	})
 }
@@ -487,12 +480,7 @@ func TestAccDatabaseUser_withOIDCAuthType(t *testing.T) {
 					},
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			importStep,
 		},
 	})
 }
