@@ -197,7 +197,7 @@ jira-release-version: ## Update Jira version in a release
 
 .PHONY: enable-autogen
 enable-autogen: ## Enable use of autogen resources in the provider
-	make add-lines filename=./internal/provider/provider.go find="project.Resource," add="customdbroleapi.Resource,databaseuserapi.Resource,"
+	make add-lines filename=./internal/provider/provider.go find="project.Resource," add="customdbroleapi.Resource,databaseuserapi.Resource,pushbasedlogexportapi.Resource,"
 
 .PHONY: delete-lines ${filename} ${delete}
 delete-lines:

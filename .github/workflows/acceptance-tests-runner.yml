@@ -280,6 +280,7 @@ jobs:
           autogen:
             - 'internal/service/customdbroleapi/*.go'
             - 'internal/service/databaseuserapi/*.go'
+            - 'internal/service/pushbasedlogexportapi/*.go'
             - 'internal/common/autogen/*.go'
           backup:
             - 'internal/service/cloudbackupschedule/*.go'
@@ -505,6 +506,7 @@ jobs:
           ACCTEST_PACKAGES: |
             ./internal/service/customdbroleapi
             ./internal/service/databaseuserapi
+            ./internal/service/pushbasedlogexportapi
         run: make testacc
         
   backup:
