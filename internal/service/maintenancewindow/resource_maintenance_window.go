@@ -244,11 +244,11 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params.AutoDeferOnceEnabled = conversion.Pointer(d.Get("auto_defer_once_enabled").(bool))
 	}
 
-	if oldP, newP := d.GetChange("protected_hours"); d.HasChange("protected_hours") {
-		old := oldP.([]any)
-		new := newP.([]any)
+	if oldPAny, newPAny := d.GetChange("protected_hours"); d.HasChange("protected_hours") {
+		oldP := oldPAny.([]any)
+		newP := newPAny.([]any)
 
-		if len(old) == 1 && len(new) == 0 {
+		if len(oldP) == 1 && len(newP) == 0 {
 			params.ProtectedHours = &admin.ProtectedHours{
 				StartHourOfDay: nil,
 				EndHourOfDay:   nil,
