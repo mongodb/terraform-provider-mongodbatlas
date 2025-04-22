@@ -278,10 +278,11 @@ jobs:
           assume_role:
             - 'internal/provider/*.go'
           autogen:
+            - 'internal/common/autogen/*.go'
             - 'internal/service/customdbroleapi/*.go'
             - 'internal/service/databaseuserapi/*.go'
             - 'internal/service/pushbasedlogexportapi/*.go'
-            - 'internal/common/autogen/*.go'
+            - 'internal/service/searchdeploymentapi/*.go'            
           backup:
             - 'internal/service/cloudbackupschedule/*.go'
             - 'internal/service/cloudbackupsnapshot/*.go'
@@ -507,6 +508,7 @@ jobs:
             ./internal/service/customdbroleapi
             ./internal/service/databaseuserapi
             ./internal/service/pushbasedlogexportapi
+            ./internal/service/searchdeploymentapi
         run: make testacc
         
   backup:
