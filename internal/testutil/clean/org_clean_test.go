@@ -34,11 +34,10 @@ var (
 		"cfn-test-bot-",
 		"test-acc-tf-p-",
 	}
+	// These are projects gets their resources removed but the project itself is kept
+	// Useful when a feature flag or cloud provider is configured outside of the test
 	keptPrefixes = []string{
 		"test-acc-tf-p-keep",
-	}
-	keepProjectEmptyPrefixes = []string{
-		"test-acc-tf-p-empty",
 	}
 	projectRetryDeleteErrors = []string{
 		"CANNOT_CLOSE_GROUP_ACTIVE_ATLAS_CLUSTERS",
@@ -110,8 +109,7 @@ func TestCleanProjectAndClusters(t *testing.T) {
 			if changes != "" {
 				t.Logf("project %s %s", name, changes)
 			}
-			skipReason := projectNoDeleteReason(name)
-			if skipReason != "" {
+			if skipReason := projectNoDeleteReason(name); skipReason != "" {
 				t.Logf("keep project empty, but no delete %s (%s), reason: %s", name, projectID, skipReason)
 				emptyProjectCount++
 				return
@@ -141,8 +139,7 @@ func TestCleanProjectAndClusters(t *testing.T) {
 		})
 	}
 	t.Cleanup(func() {
-		//nolint:usetesting // reason: using context.Background() here intentionally because t.Context() is canceled at cleanup
-		projectsAfter := readAllProjects(context.Background(), t, client)
+		projectsAfter := readAllProjects(context.Background(), t, client) //nolint:usetesting // reason: using context.Background() here intentionally because t.Context() is canceled at cleanup
 		t.Logf("SUMMARY\nProjects changed from %d to %d\ndelete_errors=%d\nempty_project_count=%d\nDRY_RUN=%t", projectsBefore, len(projectsAfter), deleteErrors, emptyProjectCount, dryRun)
 	})
 }
@@ -214,11 +211,6 @@ func removeProjectResources(ctx context.Context, t *testing.T, dryRun bool, clie
 }
 
 func projectSkipReason(p *admin.Group, skipProjectsAfter time.Time, onlyEmpty bool) string {
-	for _, blessedPrefix := range keptPrefixes {
-		if strings.HasPrefix(p.GetName(), blessedPrefix) {
-			return "blessed prefix: " + blessedPrefix
-		}
-	}
 	usesBotPrefix := false
 	for _, botPrefix := range botProjectPrefixes {
 		if strings.HasPrefix(p.GetName(), botPrefix) {
@@ -239,7 +231,7 @@ func projectSkipReason(p *admin.Group, skipProjectsAfter time.Time, onlyEmpty bo
 }
 
 func projectNoDeleteReason(name string) string {
-	for _, keepPrefix := range keepProjectEmptyPrefixes {
+	for _, keepPrefix := range keptPrefixes {
 		if strings.HasPrefix(name, keepPrefix) {
 			return "keep project but not resources"
 		}
