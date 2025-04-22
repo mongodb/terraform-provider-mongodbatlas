@@ -27,6 +27,7 @@ type ResourceFileInputs struct {
 }
 
 type APIOperations struct {
+	Wait          *Wait
 	VersionHeader string
 	Create        Operation
 	Read          Operation
@@ -40,6 +41,9 @@ type Operation struct {
 	PathParams []Param
 }
 
+type Wait struct {
+	TimeoutSeconds int
+}
 type Param struct {
 	PascalCaseName string
 	CamelCaseName  string
