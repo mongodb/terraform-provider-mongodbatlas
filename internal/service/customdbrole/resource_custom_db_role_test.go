@@ -16,41 +16,34 @@ import (
 
 const resourceName = "mongodbatlas_custom_db_role.test"
 
-func TestAccConfigRSCustomDBRoles_Basic(t *testing.T) {
+func TestAccCustomDBRoles_Basic(t *testing.T) {
+	resource.ParallelTest(t, *basicTestCase(t))
+}
+
+func basicTestCase(t *testing.T) *resource.TestCase {
 	var (
-		orgID         = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName   = acc.RandomProjectName()
+		projectID     = acc.ProjectIDExecution(t)
 		roleName      = acc.RandomName()
 		databaseName1 = acc.RandomClusterName()
 		databaseName2 = acc.RandomClusterName()
 	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, projectName, roleName, "INSERT", databaseName1),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "role_name", roleName),
-					resource.TestCheckResourceAttr(resourceName, "actions.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "actions.0.action", "INSERT"),
-					resource.TestCheckResourceAttr(resourceName, "actions.0.resources.#", "1"),
-				),
+				Config: configBasic(projectID, roleName, "INSERT", databaseName1),
+				Check: checkAttrs(projectID, roleName, "INSERT", databaseName1),
 			},
 			{
-				Config: configBasic(orgID, projectName, roleName, "UPDATE", databaseName2),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "role_name", roleName),
-					resource.TestCheckResourceAttr(resourceName, "actions.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "actions.0.action", "UPDATE"),
-					resource.TestCheckResourceAttr(resourceName, "actions.0.resources.#", "1"),
-				),
+				Config: configBasic(projectID, roleName, "UPDATE", databaseName2),
+				Check: checkAttrs(projectID, roleName, "UPDATE", databaseName2),
+			},
+			{
+				Config: configBasic(projectID, roleName, "FIND", ""),
+				Check: checkAttrs(projectID, roleName, "FIND", ""),
 			},
 			{
 				ResourceName:            resourceName,
@@ -60,7 +53,25 @@ func TestAccConfigRSCustomDBRoles_Basic(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"actions.0.resources.0.cluster"},
 			},
 		},
-	})
+	}
+}
+
+func checkAttrs(projectID, roleName, action, databaseName string) resource.TestCheckFunc {
+	return acc.CheckRSAndDS(
+		resourceName,
+		nil,
+		nil,
+		nil,
+		map[string]string{
+			"project_id": projectID,
+			"role_name":  roleName,
+			"actions.#":  "1",
+			"actions.0.action": action,
+			"actions.0.resources.#": "1",
+			"actions.0.resources.0.database_name": databaseName,
+		},
+		checkExists(resourceName),
+	)
 }
 
 func TestAccConfigRSCustomDBRoles_WithInheritedRoles(t *testing.T) {
@@ -547,25 +558,21 @@ func testAccCheckMongoDBAtlasCustomDBRolesImportStateIDFunc(resourceName string)
 	}
 }
 
-func configBasic(orgID, projectName, roleName, action, databaseName string) string {
+func configBasic(projectID, roleName, action, databaseName string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = %[2]q
-			org_id = %[1]q
-		}
 		resource "mongodbatlas_custom_db_role" "test" {
-			project_id = mongodbatlas_project.test.id
-			role_name  = %[3]q
+			project_id = %[1]q
+			role_name  = %[2]q
 
 			actions {
-				action = %[4]q
+				action = %[3]q
 				resources {
 					collection_name = ""
-					database_name   = %[5]q
+					database_name   = %[4]q
 				}
 			}
 		}
-	`, orgID, projectName, roleName, action, databaseName)
+	`, projectID, roleName, action, databaseName)
 }
 
 func configWithInheritedRoles(orgID, projectName string, inheritedRole []admin.UserCustomDBRole, testRole *admin.UserCustomDBRole) string {
