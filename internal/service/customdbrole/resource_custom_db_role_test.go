@@ -14,7 +14,15 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 )
 
-const resourceName = "mongodbatlas_custom_db_role.test"
+const (
+	resourceName = "mongodbatlas_custom_db_role.test"
+	dataSourceName = "data.mongodbatlas_custom_db_role.test"
+	dataSourceSingular = `
+		data "mongodbatlas_custom_db_role" "test" {
+			project_id = mongodbatlas_custom_db_role.test.project_id
+			role_name  = mongodbatlas_custom_db_role.test.role_name
+		}`
+)
 
 func TestAccCustomDBRoles_Basic(t *testing.T) {
 	resource.ParallelTest(t, *basicTestCase(t))
@@ -34,15 +42,15 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, roleName, "INSERT", databaseName1),
+				Config: configBasic(projectID, roleName, "INSERT", databaseName1) + dataSourceSingular,
 				Check: checkAttrs(projectID, roleName, "INSERT", databaseName1),
 			},
 			{
-				Config: configBasic(projectID, roleName, "UPDATE", databaseName2),
+				Config: configBasic(projectID, roleName, "UPDATE", databaseName2) + dataSourceSingular,
 				Check: checkAttrs(projectID, roleName, "UPDATE", databaseName2),
 			},
 			{
-				Config: configBasic(projectID, roleName, "FIND", ""),
+				Config: configBasic(projectID, roleName, "FIND", "") + dataSourceSingular,
 				Check: checkAttrs(projectID, roleName, "FIND", ""),
 			},
 			{
@@ -59,7 +67,7 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 func checkAttrs(projectID, roleName, action, databaseName string) resource.TestCheckFunc {
 	return acc.CheckRSAndDS(
 		resourceName,
-		nil,
+		conversion.Pointer(dataSourceName),
 		nil,
 		nil,
 		map[string]string{
