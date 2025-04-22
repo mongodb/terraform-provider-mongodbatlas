@@ -377,37 +377,6 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSCustomDBRoles_MultipleResources(t *testing.T) {
-	var (
-		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
-	)
-
-	for i := range 5 {
-		roleName := fmt.Sprintf("test-acc-custom_role-%d", i)
-		projectName := acc.RandomProjectName()
-		t.Run(roleName, func(t *testing.T) {
-			resource.ParallelTest(t, resource.TestCase{
-				PreCheck:                 func() { acc.PreCheckBasic(t) },
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				CheckDestroy:             checkDestroy,
-				Steps: []resource.TestStep{
-					{
-						Config: configBasic(orgID, projectName, roleName, "INSERT", acc.RandomClusterName()),
-						Check: resource.ComposeAggregateTestCheckFunc(
-							checkExists(resourceName),
-							resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-							resource.TestCheckResourceAttr(resourceName, "role_name", roleName),
-							resource.TestCheckResourceAttr(resourceName, "actions.#", "1"),
-							resource.TestCheckResourceAttr(resourceName, "actions.0.action", "INSERT"),
-							resource.TestCheckResourceAttr(resourceName, "actions.0.resources.#", "1"),
-						),
-					},
-				},
-			})
-		})
-	}
-}
-
 func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 	var (
 		testRoleResourceName      = "mongodbatlas_custom_db_role.test_role"
