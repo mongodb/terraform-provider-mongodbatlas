@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -15,13 +17,21 @@ import (
 )
 
 const (
-	resourceName = "mongodbatlas_custom_db_role.test"
-	dataSourceName = "data.mongodbatlas_custom_db_role.test"
-	dataSourceSingular = `
+	resourceName         = "mongodbatlas_custom_db_role.test"
+	dataSourceName       = "data.mongodbatlas_custom_db_role.test"
+	dataSourcePluralName = "data.mongodbatlas_custom_db_roles.test"
+	dataSourceSingular   = `
 		data "mongodbatlas_custom_db_role" "test" {
 			project_id = mongodbatlas_custom_db_role.test.project_id
 			role_name  = mongodbatlas_custom_db_role.test.role_name
 		}`
+	dataSourcePlural = `
+		data "mongodbatlas_custom_db_roles" "test" {
+			project_id = mongodbatlas_custom_db_role.test.project_id
+
+			depends_on = [mongodbatlas_custom_db_role.test]
+		}
+	`
 )
 
 func TestAccCustomDBRoles_Basic(t *testing.T) {
@@ -29,11 +39,18 @@ func TestAccCustomDBRoles_Basic(t *testing.T) {
 }
 
 func basicTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
 	var (
-		projectID     = acc.ProjectIDExecution(t)
-		roleName      = acc.RandomName()
-		databaseName1 = acc.RandomClusterName()
-		databaseName2 = acc.RandomClusterName()
+		projectID       = acc.ProjectIDExecution(t)
+		roleName        = acc.RandomName()
+		databaseName1   = acc.RandomClusterName()
+		databaseName2   = acc.RandomClusterName()
+		pluralMapChecks = func(actionName, db string) map[string]knownvalue.Check {
+			return map[string]knownvalue.Check{
+				"actions.0.action":                    knownvalue.StringExact(actionName),
+				"actions.0.resources.0.database_name": knownvalue.StringExact(db),
+			}
+		}
 	)
 
 	return &resource.TestCase{
@@ -42,16 +59,19 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, roleName, "INSERT", databaseName1) + dataSourceSingular,
-				Check: checkAttrs(projectID, roleName, "INSERT", databaseName1),
+				Config:            configBasic(projectID, roleName, "INSERT", databaseName1) + dataSourceSingular + dataSourcePlural,
+				Check:             checkAttrs(projectID, roleName, "INSERT", databaseName1),
+				ConfigStateChecks: []statecheck.StateCheck{acc.PluralResultCheck(dataSourcePluralName, "role_name", knownvalue.StringExact(roleName), pluralMapChecks("INSERT", databaseName1))},
 			},
 			{
-				Config: configBasic(projectID, roleName, "UPDATE", databaseName2) + dataSourceSingular,
-				Check: checkAttrs(projectID, roleName, "UPDATE", databaseName2),
+				Config:            configBasic(projectID, roleName, "UPDATE", databaseName2) + dataSourceSingular + dataSourcePlural,
+				Check:             checkAttrs(projectID, roleName, "UPDATE", databaseName2),
+				ConfigStateChecks: []statecheck.StateCheck{acc.PluralResultCheck(dataSourcePluralName, "role_name", knownvalue.StringExact(roleName), pluralMapChecks("UPDATE", databaseName2))},
 			},
 			{
-				Config: configBasic(projectID, roleName, "FIND", "") + dataSourceSingular,
-				Check: checkAttrs(projectID, roleName, "FIND", ""),
+				Config:            configBasic(projectID, roleName, "FIND", "") + dataSourceSingular + dataSourcePlural,
+				Check:             checkAttrs(projectID, roleName, "FIND", ""),
+				ConfigStateChecks: []statecheck.StateCheck{acc.PluralResultCheck(dataSourcePluralName, "role_name", knownvalue.StringExact(roleName), pluralMapChecks("FIND", ""))},
 			},
 			{
 				ResourceName:            resourceName,
@@ -71,11 +91,11 @@ func checkAttrs(projectID, roleName, action, databaseName string) resource.TestC
 		nil,
 		nil,
 		map[string]string{
-			"project_id": projectID,
-			"role_name":  roleName,
-			"actions.#":  "1",
-			"actions.0.action": action,
-			"actions.0.resources.#": "1",
+			"project_id":                          projectID,
+			"role_name":                           roleName,
+			"actions.#":                           "1",
+			"actions.0.action":                    action,
+			"actions.0.resources.#":               "1",
 			"actions.0.resources.0.database_name": databaseName,
 		},
 		checkExists(resourceName),
