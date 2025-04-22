@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -53,6 +54,7 @@ func searchNodeChecks(targetName, clusterName, instanceSize string, searchNodeCo
 		checkExists(targetName),
 		resource.TestCheckResourceAttrSet(targetName, "id"),
 		resource.TestCheckResourceAttrSet(targetName, "group_id"),
+		// resource.TestCheckResourceAttr(targetName, "state_name", "IDLE"), // TODO: uncomment when autogen long-running operations are supported
 		resource.TestCheckResourceAttr(targetName, "cluster_name", clusterName),
 		resource.TestCheckResourceAttr(targetName, "specs.0.instance_size", instanceSize),
 		resource.TestCheckResourceAttr(targetName, "specs.0.node_count", fmt.Sprintf("%d", searchNodeCount)),
@@ -131,6 +133,8 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 }
 
 func checkDestroy(state *terraform.State) error {
+	time.Sleep(5 * time.Minute) // TODO: Remove when autogen long-running operations are supported, this avoids error CANNOT_CLOSE_GROUP_MANAGED_DEPLOYMENTS.
+
 	if projectDestroyedErr := acc.CheckDestroyProject(state); projectDestroyedErr != nil {
 		return projectDestroyedErr
 	}
