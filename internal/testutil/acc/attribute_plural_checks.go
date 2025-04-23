@@ -13,6 +13,7 @@ import (
 
 // PluralResultCheck creates a StateCheck that finds results.x by using x.resultAttributeID and then performs the checks.
 // This is useful when tests are run in parallel and the index of the result is not known.
+// Code is inspired by the example here: https://developer.hashicorp.com/terraform/plugin/testing/acceptance-tests/state-checks/custom
 func PluralResultCheck(resourceAddress, resultAttributeID string, resultAttributeMatch knownvalue.Check, checks map[string]knownvalue.Check) statecheck.StateCheck {
 	return expectPluralResultChecks{
 		resourceAddress:      resourceAddress,
@@ -21,8 +22,6 @@ func PluralResultCheck(resourceAddress, resultAttributeID string, resultAttribut
 		checks:               checks,
 	}
 }
-
-var _ statecheck.StateCheck = expectPluralResultChecks{}
 
 type expectPluralResultChecks struct {
 	resultAttributeMatch knownvalue.Check
