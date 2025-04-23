@@ -85,9 +85,6 @@ func findResultsMatch(result any, resultAttributeID string, resultAttributeMatch
 	if len(resultList) == 0 {
 		return nil, fmt.Errorf("results is empty")
 	}
-	if result == nil {
-		return nil, fmt.Errorf("results not found in state")
-	}
 	for _, resultCandidate := range resultList {
 		attrValue, err := tfjsonpath.Traverse(resultCandidate, PathFromString(resultAttributeID))
 		if err != nil {
