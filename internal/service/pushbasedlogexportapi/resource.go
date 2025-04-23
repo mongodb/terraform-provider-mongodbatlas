@@ -204,7 +204,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		DelaySeconds:      10,
 		CallParams:        readAPICallParams(state),
 	}
-	if err := autogen.WaitForChanges(ctx, waitForChangesReq); err != nil {
+	if _, err := autogen.WaitForChanges(ctx, waitForChangesReq); err != nil {
 		resp.Diagnostics.AddError("error during delete", err.Error())
 		return
 	}
