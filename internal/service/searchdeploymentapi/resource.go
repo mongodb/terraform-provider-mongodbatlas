@@ -18,7 +18,7 @@ var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
 
 const (
-	apiVersionHeader           = "application/vnd.atlas.2025-03-12+json"
+	apiVersionHeader           = "application/vnd.atlas.2024-05-30+json"
 	errorReadingAPIResponse    = "error reading API response"
 	errorProcessingAPIResponse = "error processing API response"
 	errorBuildingAPIRequest    = "error building API request"

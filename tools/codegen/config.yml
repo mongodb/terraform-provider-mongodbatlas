@@ -59,7 +59,7 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
       method: DELETE
-    version_header: application/vnd.atlas.2025-03-12+json
+    version_header: application/vnd.atlas.2024-05-30+json
     wait:
       timeout_seconds: 300
     # read: application/vnd.atlas.2025-03-12+json
