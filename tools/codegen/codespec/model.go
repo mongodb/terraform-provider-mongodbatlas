@@ -28,12 +28,17 @@ type APIOperations struct {
 	Read          APIOperation
 	Update        APIOperation
 	Delete        APIOperation
+	Wait          *Wait
 	VersionHeader string
 }
 
 type APIOperation struct {
 	HTTPMethod string
 	Path       string
+}
+
+type Wait struct {
+	TimeoutSeconds int
 }
 
 type Schema struct {
