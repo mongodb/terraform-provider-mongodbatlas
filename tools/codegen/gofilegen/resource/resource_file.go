@@ -44,7 +44,7 @@ func GenerateGoCode(input *codespec.Resource) string {
 		}
 	case "search_deployment_api":
 		tmplInputs.APIOperations.Create.Wait = &codetemplate.Wait{
-			StateAttribute:    "",
+			StateAttribute:    "StateName",
 			PendingStates:     []string{"UPDATING", "PAUSED"},
 			TargetStates:      []string{"IDLE"},
 			TimeoutSeconds:    3 * 60 * 60,
@@ -53,7 +53,7 @@ func GenerateGoCode(input *codespec.Resource) string {
 		}
 		tmplInputs.APIOperations.Update.Wait = tmplInputs.APIOperations.Create.Wait
 		tmplInputs.APIOperations.Delete.Wait = &codetemplate.Wait{
-			StateAttribute:    "",
+			StateAttribute:    "StateName",
 			PendingStates:     []string{"IDLE", "UPDATING", "PAUSED"},
 			TargetStates:      []string{},
 			TimeoutSeconds:    3 * 60 * 60,
