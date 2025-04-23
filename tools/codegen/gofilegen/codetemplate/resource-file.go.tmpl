@@ -97,17 +97,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 
-	pathParams := map[string]string{ {{range .APIOperations.Read.PathParams }}
-		"{{ .CamelCaseName }}": state.{{ .PascalCaseName }}.ValueString(),
-	{{- end }}
-	}
-	apiResp, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
-		VersionHeader: apiVersionHeader,
-		RelativePath: "{{ .APIOperations.Read.Path }}",
-		PathParams: pathParams,
-		Method: "{{ .APIOperations.Read.HTTPMethod }}",		
-	})
-
+	apiResp, err := r.Client.UntypedAPICall(ctx, readAPICallParams(&state))
 	if err != nil {
 		if validate.StatusNotFound(apiResp) {
 			resp.State.RemoveResource(ctx)
@@ -211,11 +201,15 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	{{- with .APIOperations.Delete.Wait }}
 	
 	waitForChangesReq := &autogen.WaitForChangesReq{
+		StateAttribute: "{{ .StateAttribute }}",
+		PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
+		TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
 		TimeoutSeconds: {{ .TimeoutSeconds }},
 		MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
 		DelaySeconds: {{ .DelaySeconds }},
+		CallParams: readAPICallParams(state),
 	}
-	if err := autogen.WaitForChanges(waitForChangesReq); err != nil {
+	if err := autogen.WaitForChanges(ctx, waitForChangesReq); err != nil {
 		resp.Diagnostics.AddError("error during delete", err.Error())
 		return
 	}
@@ -226,4 +220,17 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	idAttributes := []string{ {{range .ImportIDAttributes }}"{{ . }}", {{- end }}}
 	autogen.GenericImportOperation(ctx, idAttributes, req, resp)
+}
+
+func readAPICallParams(state *TFModel) *config.APICallParams {
+	pathParams := map[string]string{ {{range .APIOperations.Read.PathParams }}
+		"{{ .CamelCaseName }}": state.{{ .PascalCaseName }}.ValueString(),
+	{{- end }}
+	}
+	return &config.APICallParams{
+		VersionHeader: apiVersionHeader,
+		RelativePath: "{{ .APIOperations.Read.Path }}",
+		PathParams: pathParams,
+		Method: "{{ .APIOperations.Read.HTTPMethod }}",		
+	}
 }

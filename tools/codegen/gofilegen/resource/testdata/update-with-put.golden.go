@@ -96,16 +96,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 
-	pathParams := map[string]string{
-		"projectId": state.ProjectId.ValueString(),
-	}
-	apiResp, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
-		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/v1/testname/{projectId}",
-		PathParams:    pathParams,
-		Method:        "GET",
-	})
-
+	apiResp, err := r.Client.UntypedAPICall(ctx, readAPICallParams(&state))
 	if err != nil {
 		if validate.StatusNotFound(apiResp) {
 			resp.State.RemoveResource(ctx)
@@ -208,4 +199,16 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	idAttributes := []string{"project_id"}
 	autogen.GenericImportOperation(ctx, idAttributes, req, resp)
+}
+
+func readAPICallParams(state *TFModel) *config.APICallParams {
+	pathParams := map[string]string{
+		"projectId": state.ProjectId.ValueString(),
+	}
+	return &config.APICallParams{
+		VersionHeader: apiVersionHeader,
+		RelativePath:  "/api/v1/testname/{projectId}",
+		PathParams:    pathParams,
+		Method:        "GET",
+	}
 }

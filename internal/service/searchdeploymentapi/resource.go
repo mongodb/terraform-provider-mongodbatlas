@@ -97,17 +97,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 
-	pathParams := map[string]string{
-		"groupId":     state.GroupId.ValueString(),
-		"clusterName": state.ClusterName.ValueString(),
-	}
-	apiResp, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
-		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment",
-		PathParams:    pathParams,
-		Method:        "GET",
-	})
-
+	apiResp, err := r.Client.UntypedAPICall(ctx, readAPICallParams(&state))
 	if err != nil {
 		if validate.StatusNotFound(apiResp) {
 			resp.State.RemoveResource(ctx)
@@ -209,11 +199,15 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	}
 
 	waitForChangesReq := &autogen.WaitForChangesReq{
+		StateAttribute:    "StateName",
+		PendingStates:     []string{"IDLE", "UPDATING", "PAUSED"},
+		TargetStates:      []string{},
 		TimeoutSeconds:    600,
 		MinTimeoutSeconds: 30,
 		DelaySeconds:      60,
+		CallParams:        readAPICallParams(state),
 	}
-	if err := autogen.WaitForChanges(waitForChangesReq); err != nil {
+	if err := autogen.WaitForChanges(ctx, waitForChangesReq); err != nil {
 		resp.Diagnostics.AddError("error during delete", err.Error())
 		return
 	}
@@ -223,4 +217,17 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	idAttributes := []string{"group_id", "cluster_name"}
 	autogen.GenericImportOperation(ctx, idAttributes, req, resp)
+}
+
+func readAPICallParams(state *TFModel) *config.APICallParams {
+	pathParams := map[string]string{
+		"groupId":     state.GroupId.ValueString(),
+		"clusterName": state.ClusterName.ValueString(),
+	}
+	return &config.APICallParams{
+		VersionHeader: apiVersionHeader,
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment",
+		PathParams:    pathParams,
+		Method:        "GET",
+	}
 }

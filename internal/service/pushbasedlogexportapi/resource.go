@@ -96,16 +96,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 
-	pathParams := map[string]string{
-		"groupId": state.GroupId.ValueString(),
-	}
-	apiResp, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
-		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
-		PathParams:    pathParams,
-		Method:        "GET",
-	})
-
+	apiResp, err := r.Client.UntypedAPICall(ctx, readAPICallParams(&state))
 	if err != nil {
 		if validate.StatusNotFound(apiResp) {
 			resp.State.RemoveResource(ctx)
@@ -205,11 +196,15 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	}
 
 	waitForChangesReq := &autogen.WaitForChangesReq{
+		StateAttribute:    "State",
+		PendingStates:     []string{"ACTIVE", "INITIATING", "BUCKET_VERIFIED"},
+		TargetStates:      []string{"UNCONFIGURED"},
 		TimeoutSeconds:    30,
 		MinTimeoutSeconds: 60,
 		DelaySeconds:      10,
+		CallParams:        readAPICallParams(state),
 	}
-	if err := autogen.WaitForChanges(waitForChangesReq); err != nil {
+	if err := autogen.WaitForChanges(ctx, waitForChangesReq); err != nil {
 		resp.Diagnostics.AddError("error during delete", err.Error())
 		return
 	}
@@ -219,4 +214,16 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	idAttributes := []string{"group_id"}
 	autogen.GenericImportOperation(ctx, idAttributes, req, resp)
+}
+
+func readAPICallParams(state *TFModel) *config.APICallParams {
+	pathParams := map[string]string{
+		"groupId": state.GroupId.ValueString(),
+	}
+	return &config.APICallParams{
+		VersionHeader: apiVersionHeader,
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
+		PathParams:    pathParams,
+		Method:        "GET",
+	}
 }

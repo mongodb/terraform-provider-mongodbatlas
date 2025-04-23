@@ -96,18 +96,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 
-	pathParams := map[string]string{
-		"groupId":      state.GroupId.ValueString(),
-		"databaseName": state.DatabaseName.ValueString(),
-		"username":     state.Username.ValueString(),
-	}
-	apiResp, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
-		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}",
-		PathParams:    pathParams,
-		Method:        "GET",
-	})
-
+	apiResp, err := r.Client.UntypedAPICall(ctx, readAPICallParams(&state))
 	if err != nil {
 		if validate.StatusNotFound(apiResp) {
 			resp.State.RemoveResource(ctx)
@@ -214,4 +203,18 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	idAttributes := []string{"group_id", "database_name", "username"}
 	autogen.GenericImportOperation(ctx, idAttributes, req, resp)
+}
+
+func readAPICallParams(state *TFModel) *config.APICallParams {
+	pathParams := map[string]string{
+		"groupId":      state.GroupId.ValueString(),
+		"databaseName": state.DatabaseName.ValueString(),
+		"username":     state.Username.ValueString(),
+	}
+	return &config.APICallParams{
+		VersionHeader: apiVersionHeader,
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}",
+		PathParams:    pathParams,
+		Method:        "GET",
+	}
 }
