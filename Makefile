@@ -155,10 +155,11 @@ scaffold-schemas: ## Create the schema scaffolding for a new resource
 
 # e.g. run: make generate-resource resource_name=search_deployment
 # resource_name is optional, if not provided all configured resources will be generated
-# details on usage can be found in contributing/development-best-practices.md under "Generating Schema and Model Definitions - Using internal tool"
+# documentation is also generated for all resources to contemplate any updates that have been made
 .PHONY: generate-resource
 generate-resource: ## Generate the code for a resource
 	@go run ./tools/codegen/main.go $(resource_name)
+	@scripts/generate-docs-all.sh
 
 .PHONY: generate-doc
 # e.g. run: make generate-doc resource_name=search_deployment
