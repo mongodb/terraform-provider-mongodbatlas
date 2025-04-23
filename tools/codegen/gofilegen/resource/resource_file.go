@@ -19,10 +19,21 @@ func GenerateGoCode(input *codespec.Resource) string {
 			Update:        toCodeTemplateOpModel(input.Operations.Update),
 			Read:          toCodeTemplateOpModel(input.Operations.Read),
 			Delete:        toCodeTemplateOpModel(input.Operations.Delete),
-			Wait:          toCodeTemplateWaitModel(input.Operations.Wait),
 		},
 		ImportIDAttributes: getIDAttributes(input.Operations.Read.Path),
 	}
+	// TODO: remove these hardcoded values after ticket to read from config file is done
+	switch tmplInputs.ResourceName {
+	case "push_based_log_export_api":
+		tmplInputs.APIOperations.Wait = &codetemplate.Wait{
+			TimeoutSeconds: 30,
+		}
+	case "search_deployment_api":
+		tmplInputs.APIOperations.Wait = &codetemplate.Wait{
+			TimeoutSeconds: 600,
+		}
+	}
+
 	result := codetemplate.ApplyResourceFileTemplate(&tmplInputs)
 
 	formattedResult, err := format.Source(result.Bytes())
@@ -37,15 +48,6 @@ func toCodeTemplateOpModel(op codespec.APIOperation) codetemplate.Operation {
 		Path:       op.Path,
 		HTTPMethod: op.HTTPMethod,
 		PathParams: getPathParams(op.Path),
-	}
-}
-
-func toCodeTemplateWaitModel(wait *codespec.Wait) *codetemplate.Wait {
-	if wait == nil {
-		return nil
-	}
-	return &codetemplate.Wait{
-		TimeoutSeconds: wait.TimeoutSeconds,
 	}
 }
 

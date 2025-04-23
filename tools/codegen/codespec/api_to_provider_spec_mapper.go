@@ -108,7 +108,6 @@ func getOperationsFromConfig(resourceConfig *config.Resource) APIOperations {
 		Update:        operationConfigToModel(resourceConfig.Update),
 		Delete:        operationConfigToModel(resourceConfig.Delete),
 		VersionHeader: resourceConfig.VersionHeader,
-		Wait:          waitConfigToModel(resourceConfig.Wait),
 	}
 }
 
@@ -116,15 +115,6 @@ func operationConfigToModel(opConfig *config.APIOperation) APIOperation {
 	return APIOperation{
 		HTTPMethod: opConfig.Method,
 		Path:       opConfig.Path,
-	}
-}
-
-func waitConfigToModel(waitConfig *config.WaitConfig) *Wait {
-	if waitConfig == nil {
-		return nil
-	}
-	return &Wait{
-		TimeoutSeconds: waitConfig.TimeoutSeconds,
 	}
 }
 
