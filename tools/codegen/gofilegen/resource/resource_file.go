@@ -29,8 +29,8 @@ func GenerateGoCode(input *codespec.Resource) string {
 			StateAttribute:    "State",
 			PendingStates:     []string{"INITIATING", "BUCKET_VERIFIED"},
 			TargetStates:      []string{"ACTIVE"},
-			TimeoutSeconds:    15 * 60,
-			MinTimeoutSeconds: 1 * 60,
+			TimeoutSeconds:    30, // corresponding resource value is 15m, using temporarily a lower value as we currently wait this time
+			MinTimeoutSeconds: 60,
 			DelaySeconds:      10,
 		}
 		tmplInputs.APIOperations.Update.Wait = tmplInputs.APIOperations.Create.Wait
@@ -38,8 +38,8 @@ func GenerateGoCode(input *codespec.Resource) string {
 			StateAttribute:    "State",
 			PendingStates:     []string{"ACTIVE", "INITIATING", "BUCKET_VERIFIED"},
 			TargetStates:      []string{"UNCONFIGURED"},
-			TimeoutSeconds:    15 * 60,
-			MinTimeoutSeconds: 1 * 60,
+			TimeoutSeconds:    30, // corresponding resource value is 15m, using temporarily a lower value as we currently wait this time
+			MinTimeoutSeconds: 60,
 			DelaySeconds:      10,
 		}
 	case "search_deployment_api":
@@ -47,18 +47,18 @@ func GenerateGoCode(input *codespec.Resource) string {
 			StateAttribute:    "StateName",
 			PendingStates:     []string{"UPDATING", "PAUSED"},
 			TargetStates:      []string{"IDLE"},
-			TimeoutSeconds:    3 * 60 * 60,
-			MinTimeoutSeconds: 1 * 60,
-			DelaySeconds:      1 * 60,
+			TimeoutSeconds:    10 * 60, // corresponding resource value is 3h, using temporarily a lower value as we currently wait this time
+			MinTimeoutSeconds: 60,
+			DelaySeconds:      60,
 		}
 		tmplInputs.APIOperations.Update.Wait = tmplInputs.APIOperations.Create.Wait
 		tmplInputs.APIOperations.Delete.Wait = &codetemplate.Wait{
 			StateAttribute:    "StateName",
 			PendingStates:     []string{"IDLE", "UPDATING", "PAUSED"},
 			TargetStates:      []string{},
-			TimeoutSeconds:    3 * 60 * 60,
+			TimeoutSeconds:    10 * 60, // corresponding resource value is 3h, using temporarily a lower value as we currently wait this time
 			MinTimeoutSeconds: 30,
-			DelaySeconds:      1 * 60,
+			DelaySeconds:      60,
 		}
 	}
 
