@@ -204,8 +204,9 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	}
 	
 	{{- with .APIOperations.Wait }}
-
-	time.Sleep({{ .TimeoutSeconds }} * time.Second) // TODO: remove when autogen long-running operations are supported
+	{{/* TODO: TimeoutSeconds is temporarily used to allow time to destroy the resource until autogen long-running operations are supported in CLOUDP-314960 */}}
+	
+	time.Sleep({{ .TimeoutSeconds }} * time.Second) // TODO: remove when autogen long-running operations are supported in CLOUDP-314960
 
 	{{ end -}}
 }

@@ -199,7 +199,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		return
 	}
 
-	time.Sleep(30 * time.Second) // TODO: remove when autogen long-running operations are supported
+	time.Sleep(30 * time.Second) // TODO: remove when autogen long-running operations are supported in CLOUDP-314960
 
 }
 

@@ -53,7 +53,7 @@ func searchNodeChecks(targetName, clusterName, instanceSize string, searchNodeCo
 		checkExists(targetName),
 		resource.TestCheckResourceAttrSet(targetName, "id"),
 		resource.TestCheckResourceAttrSet(targetName, "group_id"),
-		// resource.TestCheckResourceAttr(targetName, "state_name", "IDLE"), // TODO: uncomment when autogen long-running operations are supported
+		// resource.TestCheckResourceAttr(targetName, "state_name", "IDLE"), // TODO: uncomment when autogen long-running operations are supported in CLOUDP-314960
 		resource.TestCheckResourceAttr(targetName, "cluster_name", clusterName),
 		resource.TestCheckResourceAttr(targetName, "specs.0.instance_size", instanceSize),
 		resource.TestCheckResourceAttr(targetName, "specs.0.node_count", fmt.Sprintf("%d", searchNodeCount)),
