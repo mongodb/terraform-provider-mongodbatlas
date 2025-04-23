@@ -169,7 +169,7 @@ Containing key-value pairs that tag and categorize the database user. Each key a
 Array of clusters and Atlas Data Lakes that this user has access to. If omitted, Atlas grants the user access to all the clusters and Atlas Data Lakes in the project by default.
 
 * `name` - (Required) Name of the cluster or Atlas Data Lake that the user has access to.
-* `type` - (Required) Type of resource that the user has access to. Valid values are: `CLUSTER` and `DATA_LAKE`
+* `type` - (Required) Type of resource that the user has access to. See [Database User API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Database-Users/operation/createDatabaseUser) for the list of valid values.
 
 ## Attributes Reference
 
