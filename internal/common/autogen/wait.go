@@ -18,6 +18,7 @@ type WaitForChangesReq struct {
 }
 
 // WaitForChanges waits until a long-running operation is done.
+// It returns the latest JSON response from the API so it can be used to update the response state.
 // TODO: This is a basic implementation, it will be replaced in CLOUDP-314960.
 func WaitForChanges(ctx context.Context, req *WaitForChangesReq) ([]byte, error) {
 	time.Sleep(time.Duration(req.TimeoutSeconds) * time.Second) // TODO: TimeoutSeconds is temporarily used to allow time to destroy the resource until autogen long-running operations are supported in CLOUDP-314960
