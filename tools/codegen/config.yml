@@ -61,7 +61,7 @@ resources:
       method: DELETE
     version_header: application/vnd.atlas.2024-05-30+json
     wait:
-      timeout_seconds: 300
+      timeout_seconds: 600
     # read: application/vnd.atlas.2025-03-12+json
     # create, delete, update: application/vnd.atlas.2024-05-30+json
 
