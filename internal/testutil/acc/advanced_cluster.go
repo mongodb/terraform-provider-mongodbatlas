@@ -103,16 +103,11 @@ func CheckExistsCluster(resourceName string) resource.TestCheckFunc {
 		if projectID == "" || clusterName == "" {
 			return fmt.Errorf("projectID or clusterName is empty: %s, %s", projectID, clusterName)
 		}
-		if err := GetClusterToCheckPresence(projectID, clusterName); err != nil {
+		if _, _, err := ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute(); err != nil {
 			return fmt.Errorf("cluster(%s:%s) does not exist: %w", projectID, clusterName, err)
 		}
 		return nil
 	}
-}
-
-func GetClusterToCheckPresence(projectID, clusterName string) error {
-	_, _, err := ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute()
-	return err
 }
 
 func CheckFCVPinningConfig(usePreviewProvider bool, resourceName, dataSourceName, pluralDataSourceName string, mongoDBMajorVersion int, pinningExpirationDate *string, fcvVersion *int) resource.TestCheckFunc {
