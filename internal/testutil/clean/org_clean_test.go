@@ -109,8 +109,8 @@ func TestCleanProjectAndClusters(t *testing.T) {
 			if changes != "" {
 				t.Logf("project %s %s", name, changes)
 			}
-			if skipReason := projectNoDeleteReason(name); skipReason != "" {
-				t.Logf("keep project empty, but no delete %s (%s), reason: %s", name, projectID, skipReason)
+			if skipProjectDelete(name) {
+				t.Logf("keep project empty, but no delete %s (%s)", name, projectID)
 				emptyProjectCount++
 				return
 			}
@@ -230,13 +230,13 @@ func projectSkipReason(p *admin.Group, skipProjectsAfter time.Time, onlyEmpty bo
 	return ""
 }
 
-func projectNoDeleteReason(name string) string {
+func skipProjectDelete(name string) bool {
 	for _, keepPrefix := range keptPrefixes {
 		if strings.HasPrefix(name, keepPrefix) {
-			return "keep project but not resources"
+			return true
 		}
 	}
-	return ""
+	return false
 }
 
 func removeClusters(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
