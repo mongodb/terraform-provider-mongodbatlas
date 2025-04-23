@@ -34,7 +34,7 @@ var (
 		"cfn-test-bot-",
 		"test-acc-tf-p-",
 	}
-	// These are projects gets their resources removed but the project itself is kept
+	// keptPrefixes has the prefix of the projects that we want to delete their resources but keep the projects themselves.
 	// Useful when a feature flag or cloud provider is configured outside of the test
 	keptPrefixes = []string{
 		"test-acc-tf-p-keep",
