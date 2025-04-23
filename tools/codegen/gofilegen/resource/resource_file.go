@@ -25,12 +25,40 @@ func GenerateGoCode(input *codespec.Resource) string {
 	// TODO: remove these hardcoded values after ticket to read from config file is done
 	switch tmplInputs.ResourceName {
 	case "push_based_log_export_api":
-		tmplInputs.APIOperations.Wait = &codetemplate.Wait{
-			TimeoutSeconds: 30,
+		tmplInputs.APIOperations.Create.Wait = &codetemplate.Wait{
+			StateAttribute:    "State",
+			PendingStates:     []string{"INITIATING", "BUCKET_VERIFIED"},
+			TargetStates:      []string{"ACTIVE"},
+			TimeoutSeconds:    15 * 60,
+			MinTimeoutSeconds: 1 * 60,
+			DelaySeconds:      10,
+		}
+		tmplInputs.APIOperations.Update.Wait = tmplInputs.APIOperations.Create.Wait
+		tmplInputs.APIOperations.Delete.Wait = &codetemplate.Wait{
+			StateAttribute:    "State",
+			PendingStates:     []string{"ACTIVE", "INITIATING", "BUCKET_VERIFIED"},
+			TargetStates:      []string{"UNCONFIGURED"},
+			TimeoutSeconds:    15 * 60,
+			MinTimeoutSeconds: 1 * 60,
+			DelaySeconds:      10,
 		}
 	case "search_deployment_api":
-		tmplInputs.APIOperations.Wait = &codetemplate.Wait{
-			TimeoutSeconds: 600,
+		tmplInputs.APIOperations.Create.Wait = &codetemplate.Wait{
+			StateAttribute:    "",
+			PendingStates:     []string{"UPDATING", "PAUSED"},
+			TargetStates:      []string{"IDLE"},
+			TimeoutSeconds:    3 * 60 * 60,
+			MinTimeoutSeconds: 1 * 60,
+			DelaySeconds:      1 * 60,
+		}
+		tmplInputs.APIOperations.Update.Wait = tmplInputs.APIOperations.Create.Wait
+		tmplInputs.APIOperations.Delete.Wait = &codetemplate.Wait{
+			StateAttribute:    "",
+			PendingStates:     []string{"IDLE", "UPDATING", "PAUSED"},
+			TargetStates:      []string{},
+			TimeoutSeconds:    3 * 60 * 60,
+			MinTimeoutSeconds: 30,
+			DelaySeconds:      1 * 60,
 		}
 	}
 

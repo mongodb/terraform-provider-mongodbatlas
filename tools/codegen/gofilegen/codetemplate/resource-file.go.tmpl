@@ -5,7 +5,7 @@ package {{ .PackageName }}
 import (
 	"context"
 	"io"
-	{{ if .APIOperations.Wait }}"time"{{ end }}
+	{{ if .APIOperations.Delete.Wait }}"time"{{ end }}
 	
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
@@ -203,7 +203,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		return
 	}
 	
-	{{- with .APIOperations.Wait }}
+	{{- with .APIOperations.Delete.Wait }}
 	{{/* TODO: TimeoutSeconds is temporarily used to allow time to destroy the resource until autogen long-running operations are supported in CLOUDP-314960 */}}
 	
 	time.Sleep({{ .TimeoutSeconds }} * time.Second) // TODO: remove when autogen long-running operations are supported in CLOUDP-314960
