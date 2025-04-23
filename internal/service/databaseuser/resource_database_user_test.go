@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"slices"
 	"testing"
+
+	"maps"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -18,12 +21,33 @@ const (
 	resourceName         = "mongodbatlas_database_user.test"
 	dataSourceName       = "data.mongodbatlas_database_user.test"
 	dataSourcePluralName = "data.mongodbatlas_database_users.test"
+	dataSourceSingular   = `
+		data "mongodbatlas_database_user" "test" {
+			username           = mongodbatlas_database_user.test.username
+			project_id         = mongodbatlas_database_user.test.project_id
+			auth_database_name = mongodbatlas_database_user.test.auth_database_name
+		}`
 )
 
-func TestAccConfigRSDatabaseUser_basic(t *testing.T) {
+var (
+	importStep = resource.TestStep{
+		ResourceName:            resourceName,
+		ImportStateIdFunc:       importStateIDFunc(resourceName),
+		ImportState:             true,
+		ImportStateVerify:       true,
+		ImportStateVerifyIgnore: []string{"password"},
+	}
+)
+
+func TestAccDatabaseUser_basic(t *testing.T) {
 	var (
-		projectID = acc.ProjectIDExecution(t)
-		username  = acc.RandomName()
+		projectID   = acc.ProjectIDExecution(t)
+		username    = acc.RandomName()
+		extraChecks = []resource.TestCheckFunc{
+			resource.TestCheckNoResourceAttr(resourceName, "description"),
+			resource.TestCheckNoResourceAttr(dataSourceName, "description"),
+			resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
+		}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -32,48 +56,45 @@ func TestAccConfigRSDatabaseUser_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserBasic(projectID, username, "atlasAdmin", "First Key", "First value"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "labels.0.key", "First Key"),
-					resource.TestCheckResourceAttr(resourceName, "labels.0.value", "First value"),
-					resource.TestCheckResourceAttr(resourceName, "roles.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "roles.0.role_name", "atlasAdmin"),
-					resource.TestCheckNoResourceAttr(resourceName, "description"),
+				Config: acc.ConfigDatabaseUserBasic(projectID, username, "atlasAdmin", "First Key", "First value") + dataSourceSingular,
+				Check: checkAttrs(
+					projectID,
+					username,
+					"admin",
+					map[string]string{
+						"labels.#":          "1",
+						"labels.0.key":      "First Key",
+						"labels.0.value":    "First value",
+						"roles.#":           "1",
+						"roles.0.role_name": "atlasAdmin",
+						"x509_type":         "NONE",
+					},
+					extraChecks...,
 				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserBasic(projectID, username, "read", "Second Key", "Second value"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "labels.0.key", "Second Key"),
-					resource.TestCheckResourceAttr(resourceName, "labels.0.value", "Second value"),
-					resource.TestCheckResourceAttr(resourceName, "roles.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "roles.0.role_name", "read"),
+				Config: acc.ConfigDatabaseUserBasic(projectID, username, "read", "Second Key", "Second value") + dataSourceSingular,
+				Check: checkAttrs(
+					projectID,
+					username,
+					"admin",
+					map[string]string{
+						"labels.#":          "1",
+						"labels.0.key":      "Second Key",
+						"labels.0.value":    "Second value",
+						"roles.#":           "1",
+						"roles.0.role_name": "read",
+						"x509_type":         "NONE",
+					},
+					extraChecks...,
 				),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"password"},
-			},
+			importStep,
 		},
 	})
 }
 
-func TestAccConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
+func TestAccDatabaseUser_withX509TypeCustomer(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		username  = acc.RandomLDAPName()
@@ -86,27 +107,25 @@ func TestAccConfigRSDatabaseUser_withX509TypeCustomer(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithX509Type(projectID, username, x509Type, "atlasAdmin", "First Key", "First value"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "x509_type", x509Type),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
-					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
+				Config: acc.ConfigDatabaseUserWithX509Type(projectID, username, x509Type, "atlasAdmin", "First Key", "First value") + dataSourceSingular,
+				Check: checkAttrs(
+					projectID,
+					username,
+					"$external",
+					map[string]string{
+						"labels.#":       "1",
+						"labels.0.key":   "First Key",
+						"labels.0.value": "First value",
+						"x509_type":      x509Type,
+					},
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			importStep,
 		},
 	})
 }
 
-func TestAccConfigRSDatabaseUser_withX509TypeManaged(t *testing.T) {
+func TestAccDatabaseUser_withX509TypeManaged(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		x509Type  = "MANAGED"
@@ -119,21 +138,23 @@ func TestAccConfigRSDatabaseUser_withX509TypeManaged(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithX509Type(projectID, username, x509Type, "atlasAdmin", "First Key", "First value"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "x509_type", x509Type),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
-					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
+				Config: acc.ConfigDatabaseUserWithX509Type(projectID, username, x509Type, "atlasAdmin", "First Key", "First value") + dataSourceSingular,
+				Check: checkAttrs(
+					projectID,
+					username,
+					"$external",
+					map[string]string{
+						"labels.#":  "1",
+						"x509_type": x509Type,
+					},
 				),
 			},
+			importStep,
 		},
 	})
 }
 
-func TestAccConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
+func TestAccDatabaseUser_withAWSIAMType(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		username  = acc.RandomIAMUser()
@@ -145,27 +166,22 @@ func TestAccConfigRSDatabaseUser_withAWSIAMType(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithAWSIAMType(projectID, username, "atlasAdmin", "First Key", "First value"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "aws_iam_type", "USER"),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
-					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
+				Config: acc.ConfigDatabaseUserWithAWSIAMType(projectID, username, "atlasAdmin", "First Key", "First value") + dataSourceSingular,
+				Check: checkAttrs(
+					projectID,
+					username,
+					"$external",
+					map[string]string{
+						"aws_iam_type": "USER",
+					},
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			importStep,
 		},
 	})
 }
 
-func TestAccConfigRSDatabaseUser_withLabelsAndDescription(t *testing.T) {
+func TestAccDatabaseUser_withLabelsAndDescription(t *testing.T) {
 	var (
 		projectID    = acc.ProjectIDExecution(t)
 		username     = acc.RandomName()
@@ -179,19 +195,19 @@ func TestAccConfigRSDatabaseUser_withLabelsAndDescription(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin", description1, nil),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "labels.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "description", description1),
+				Config: dataSourceSingular + acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin", description1, nil),
+				Check: checkAttrs(
+					projectID,
+					username,
+					"admin",
+					map[string]string{
+						"description": description1,
+						"labels.#":    "0",
+					},
 				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin", description2,
+				Config: dataSourceSingular + acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin", description2,
 					[]admin.ComponentLabel{
 						{
 							Key:   conversion.StringPtr("key 1"),
@@ -203,18 +219,22 @@ func TestAccConfigRSDatabaseUser_withLabelsAndDescription(t *testing.T) {
 						},
 					},
 				),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "description", description2),
-					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "labels.#", "2"),
+				Check: checkAttrs(
+					projectID,
+					username,
+					"admin",
+					map[string]string{
+						"description":    description2,
+						"labels.#":       "2",
+						"labels.0.key":   "key 1",
+						"labels.0.value": "value 1",
+						"labels.1.key":   "key 2",
+						"labels.1.value": "value 2",
+					},
 				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserWithLabels(projectID, username, "read", "",
+				Config: dataSourceSingular + acc.ConfigDatabaseUserWithLabels(projectID, username, "read", "",
 					[]admin.ComponentLabel{
 						{
 							Key:   conversion.StringPtr("key 4"),
@@ -230,21 +250,32 @@ func TestAccConfigRSDatabaseUser_withLabelsAndDescription(t *testing.T) {
 						},
 					},
 				),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "password", "test-acc-password"),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "labels.#", "3"),
+				Check: checkAttrs(
+					projectID,
+					username,
+					"admin",
+					map[string]string{"labels.#": "3"}, // Labels have different order in resource and data source
 					resource.TestCheckNoResourceAttr(resourceName, "description"),
 				),
 			},
+			{
+				Config: dataSourceSingular + acc.ConfigDatabaseUserWithLabels(projectID, username, "read", "", nil),
+				Check: checkAttrs(
+					projectID,
+					username,
+					"admin",
+					map[string]string{
+						"labels.#": "0",
+					},
+					resource.TestCheckNoResourceAttr(resourceName, "description"),
+				),
+			},
+			importStep,
 		},
 	})
 }
 
-func TestAccConfigRSDatabaseUser_withRoles(t *testing.T) {
+func TestAccDatabaseUser_withRoles(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		username  = acc.RandomName()
@@ -257,7 +288,7 @@ func TestAccConfigRSDatabaseUser_withRoles(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithRoles(projectID, username, password,
+				Config: dataSourceSingular + acc.ConfigDatabaseUserWithRoles(projectID, username, password,
 					[]*admin.DatabaseUserRole{
 						{
 							RoleName:       "read",
@@ -271,19 +302,23 @@ func TestAccConfigRSDatabaseUser_withRoles(t *testing.T) {
 						},
 					},
 				),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "password", password),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "roles.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "roles.0.collection_name", "stir"),
-					resource.TestCheckResourceAttr(resourceName, "roles.1.collection_name", "unpledged"),
+				Check: checkAttrs(
+					projectID,
+					username,
+					"admin",
+					map[string]string{
+						"roles.#":                 "2",
+						"roles.0.role_name":       "read",
+						"roles.0.database_name":   "admin",
+						"roles.0.collection_name": "stir",
+						"roles.1.role_name":       "read",
+						"roles.1.database_name":   "admin",
+						"roles.1.collection_name": "unpledged",
+					},
 				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserWithRoles(projectID, username, password,
+				Config: dataSourceSingular + acc.ConfigDatabaseUserWithRoles(projectID, username, password,
 					[]*admin.DatabaseUserRole{
 						{
 							RoleName:     "read",
@@ -291,20 +326,23 @@ func TestAccConfigRSDatabaseUser_withRoles(t *testing.T) {
 						},
 					},
 				),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "password", password),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "roles.#", "1"),
+				Check: checkAttrs(
+					projectID,
+					username,
+					"admin",
+					map[string]string{
+						"roles.#":               "1",
+						"roles.0.role_name":     "read",
+						"roles.0.database_name": "admin",
+					},
 				),
 			},
+			importStep,
 		},
 	})
 }
 
-func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
+func TestAccDatabaseUser_withScopes(t *testing.T) {
 	var (
 		projectID     = acc.ProjectIDExecution(t)
 		userScopeName = acc.RandomName()
@@ -318,7 +356,7 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithScopes(projectID, username, password, "atlasAdmin",
+				Config: dataSourceSingular + acc.ConfigDatabaseUserWithScopes(projectID, username, password, "atlasAdmin",
 					[]*admin.UserScope{
 						{
 							Name: userScopeName,
@@ -330,21 +368,21 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 						},
 					},
 				),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "password", password),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "scopes.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "scopes.0.name", userScopeName),
-					resource.TestCheckResourceAttr(resourceName, "scopes.0.type", "CLUSTER"),
-					resource.TestCheckResourceAttr(resourceName, "scopes.1.name", userScopeName),
-					resource.TestCheckResourceAttr(resourceName, "scopes.1.type", "DATA_LAKE"),
+				Check: checkAttrs(
+					projectID,
+					username,
+					"admin",
+					map[string]string{
+						"scopes.#":      "2",
+						"scopes.0.name": userScopeName,
+						"scopes.0.type": "CLUSTER",
+						"scopes.1.name": userScopeName,
+						"scopes.1.type": "DATA_LAKE",
+					},
 				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserWithScopes(projectID, username, password, "atlasAdmin",
+				Config: dataSourceSingular + acc.ConfigDatabaseUserWithScopes(projectID, username, password, "atlasAdmin",
 					[]*admin.UserScope{
 						{
 							Name: userScopeName,
@@ -352,153 +390,60 @@ func TestAccConfigRSDatabaseUser_withScopes(t *testing.T) {
 						},
 					},
 				),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "password", password),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "scopes.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "scopes.0.name", userScopeName),
-					resource.TestCheckResourceAttr(resourceName, "scopes.0.type", "CLUSTER"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccConfigRSDatabaseUser_updateToEmptyScopes(t *testing.T) {
-	var (
-		projectID     = acc.ProjectIDExecution(t)
-		userScopeName = acc.RandomName()
-		username      = acc.RandomName()
-		password      = acc.RandomName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: acc.ConfigDatabaseUserWithScopes(projectID, username, password, "atlasAdmin",
-					[]*admin.UserScope{
-						{
-							Name: userScopeName,
-							Type: "CLUSTER",
-						},
-						{
-							Name: userScopeName,
-							Type: "DATA_LAKE",
-						},
+				Check: checkAttrs(
+					projectID,
+					username,
+					"admin",
+					map[string]string{
+						"scopes.#":      "1",
+						"scopes.0.name": userScopeName,
+						"scopes.0.type": "CLUSTER",
 					},
 				),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "password", password),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "scopes.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "scopes.0.name", userScopeName),
-					resource.TestCheckResourceAttr(resourceName, "scopes.0.type", "CLUSTER"),
-					resource.TestCheckResourceAttr(resourceName, "scopes.1.name", userScopeName),
-					resource.TestCheckResourceAttr(resourceName, "scopes.1.type", "DATA_LAKE"),
-				),
 			},
 			{
-				Config: acc.ConfigDatabaseUserWithScopes(projectID, username, password, "atlasAdmin", nil),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "password", password),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
-					resource.TestCheckResourceAttr(resourceName, "scopes.#", "0"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccConfigRSDatabaseUser_updateToEmptyLabels(t *testing.T) {
-	var (
-		projectID = acc.ProjectIDExecution(t)
-		username  = acc.RandomName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin", "",
-					[]admin.ComponentLabel{
-						{
-							Key:   conversion.StringPtr("key 1"),
-							Value: conversion.StringPtr("value 1"),
-						},
-						{
-							Key:   conversion.StringPtr("key 2"),
-							Value: conversion.StringPtr("value 2"),
-						},
+				Config: dataSourceSingular + acc.ConfigDatabaseUserWithScopes(projectID, username, password, "atlasAdmin", nil),
+				Check: checkAttrs(
+					projectID,
+					username,
+					"admin",
+					map[string]string{
+						"scopes.#": "0",
 					},
 				),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "labels.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "labels.0.key", "key 1"),
-					resource.TestCheckResourceAttr(resourceName, "labels.0.value", "value 1"),
-					resource.TestCheckResourceAttr(resourceName, "labels.1.key", "key 2"),
-					resource.TestCheckResourceAttr(resourceName, "labels.1.value", "value 2"),
-				),
 			},
-			{
-				Config: acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin", "", nil),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "labels.#", "0"),
-				),
-			},
+			importStep,
 		},
 	})
 }
 
-func TestAccConfigRSDatabaseUser_withLDAPAuthType(t *testing.T) {
+func TestAccDatabaseUser_withLDAPAuthType(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		username  = acc.RandomLDAPName()
 	)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDatabaseUserWithLDAPAuthType(projectID, username, "atlasAdmin", "First Key", "First value"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "ldap_auth_type", "USER"),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
-					resource.TestCheckResourceAttr(resourceName, "labels.#", "1"),
+				Config: acc.ConfigDatabaseUserWithLDAPAuthType(projectID, username, "atlasAdmin", "First Key", "First value") + dataSourceSingular,
+				Check: checkAttrs(
+					projectID,
+					username,
+					"$external",
+					map[string]string{
+						"ldap_auth_type": "USER",
+					},
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			importStep,
 		},
 	})
 }
 
-func TestAccCOnfigRSDatabaseUser_withOIDCAuthType(t *testing.T) {
+func TestAccDatabaseUser_withOIDCAuthType(t *testing.T) {
 	var (
 		projectID         = acc.ProjectIDExecution(t)
 		idpID             = os.Getenv("MONGODB_ATLAS_FEDERATED_IDP_ID")
@@ -514,33 +459,42 @@ func TestAccCOnfigRSDatabaseUser_withOIDCAuthType(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigDataBaseUserWithOIDCAuthType(projectID, usernameWorkforce, workforceAuthType, "admin", "atlasAdmin"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "username", usernameWorkforce),
-					resource.TestCheckResourceAttr(resourceName, "oidc_auth_type", workforceAuthType),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "admin"),
+				Config: acc.ConfigDataBaseUserWithOIDCAuthType(projectID, usernameWorkforce, workforceAuthType, "admin", "atlasAdmin") + dataSourceSingular,
+				Check: checkAttrs(
+					projectID,
+					usernameWorkforce,
+					"admin",
+					map[string]string{
+						"oidc_auth_type": workforceAuthType,
+					},
 				),
 			},
 			{
-				Config: acc.ConfigDataBaseUserWithOIDCAuthType(projectID, usernameWorkload, workloadAuthType, "$external", "atlasAdmin"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "username", usernameWorkload),
-					resource.TestCheckResourceAttr(resourceName, "oidc_auth_type", workloadAuthType),
-					resource.TestCheckResourceAttr(resourceName, "auth_database_name", "$external"),
+				Config: acc.ConfigDataBaseUserWithOIDCAuthType(projectID, usernameWorkload, workloadAuthType, "$external", "atlasAdmin") + dataSourceSingular,
+				Check: checkAttrs(
+					projectID,
+					usernameWorkload,
+					"$external",
+					map[string]string{
+						"oidc_auth_type": workloadAuthType,
+					},
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			importStep,
 		},
 	})
+}
+
+func checkAttrs(projectID, username, authDBName string, extraAttrs map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
+	attrsMap := map[string]string{
+		"project_id":         projectID,
+		"username":           username,
+		"auth_database_name": authDBName,
+	}
+	maps.Copy(attrsMap, extraAttrs)
+	check := acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), nil, nil, attrsMap, extra...)
+	checks := slices.Concat(extra, []resource.TestCheckFunc{check, checkExists(resourceName)})
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
