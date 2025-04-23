@@ -19,6 +19,7 @@ func GenerateGoCode(input *codespec.Resource) string {
 			Update:        toCodeTemplateOpModel(input.Operations.Update),
 			Read:          toCodeTemplateOpModel(input.Operations.Read),
 			Delete:        toCodeTemplateOpModel(input.Operations.Delete),
+			Wait:          toCodeTemplateWaitModel(input.Operations.Wait),
 		},
 		ImportIDAttributes: getIDAttributes(input.Operations.Read.Path),
 	}
@@ -36,6 +37,15 @@ func toCodeTemplateOpModel(op codespec.APIOperation) codetemplate.Operation {
 		Path:       op.Path,
 		HTTPMethod: op.HTTPMethod,
 		PathParams: getPathParams(op.Path),
+	}
+}
+
+func toCodeTemplateWaitModel(wait *codespec.Wait) *codetemplate.Wait {
+	if wait == nil {
+		return nil
+	}
+	return &codetemplate.Wait{
+		TimeoutSeconds: wait.TimeoutSeconds,
 	}
 }
 

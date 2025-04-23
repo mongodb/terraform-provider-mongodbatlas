@@ -5,6 +5,7 @@ package pushbasedlogexportapi
 import (
 	"context"
 	"io"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
@@ -197,6 +198,9 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		resp.Diagnostics.AddError("error during delete", err.Error())
 		return
 	}
+
+	time.Sleep(30 * time.Second) // TODO: remove when autogen long-running operations are supported in CLOUDP-314960
+
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

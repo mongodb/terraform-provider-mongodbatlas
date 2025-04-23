@@ -1,4 +1,4 @@
-resources:  
+resources:
   custom_db_role_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
@@ -43,6 +43,27 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
       method: DELETE
     version_header: application/vnd.atlas.2023-01-01+json
+    wait:
+      timeout_seconds: 30
+
+  search_deployment_api:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
+      method: DELETE
+    version_header: application/vnd.atlas.2024-05-30+json
+    wait:
+      timeout_seconds: 600
+    # read: application/vnd.atlas.2025-03-12+json
+    # create, delete, update: application/vnd.atlas.2024-05-30+json
 
   # search_deployment:
   #   read:
