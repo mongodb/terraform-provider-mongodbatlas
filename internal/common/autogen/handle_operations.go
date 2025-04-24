@@ -106,3 +106,10 @@ func HandleUpdate(ctx context.Context, resp *resource.UpdateResponse, client *co
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
 }
+
+func HandleDelete(ctx context.Context, resp *resource.DeleteResponse, client *config.MongoDBClient, callParams *config.APICallParams) {
+	if _, err := client.UntypedAPICall(ctx, callParams); err != nil {
+		resp.Diagnostics.AddError("error during delete", err.Error())
+		return
+	}
+}

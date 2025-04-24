@@ -89,19 +89,16 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	pathParams := map[string]string{
 		"groupId": state.GroupId.ValueString(),
 	}
-	if _, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
+	callParams := config.APICallParams{
 		VersionHeader: apiVersionHeader,
 		RelativePath:  "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
 		PathParams:    pathParams,
 		Method:        "DELETE",
-	}); err != nil {
-		resp.Diagnostics.AddError("error during delete", err.Error())
-		return
 	}
+	autogen.HandleDelete(ctx, resp, r.Client, &callParams)
 
 	waitForChangesReq := &autogen.WaitForChangesReq{
 		StateAttribute:    "State",
