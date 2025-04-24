@@ -42,6 +42,6 @@ type TFModel struct {
 type TFNestedListAttrModel struct {
 	DoubleNestedListAttr types.List `tfsdk:"double_nested_list_attr"`
 }
-type TFDoubleNestedListAttrModel struct {
+type TFNestedListAttrDoubleNestedListAttrModel struct {
 	StringAttr types.String `tfsdk:"string_attr"`
 }

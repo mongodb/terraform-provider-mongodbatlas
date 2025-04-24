@@ -82,10 +82,10 @@ type TFActionsModel struct {
 	Action    types.String `tfsdk:"action"`
 	Resources types.List   `tfsdk:"resources"`
 }
-type TFResourcesModel struct {
-	Cluster    types.Bool   `tfsdk:"cluster"`
+type TFActionsResourcesModel struct {
 	Collection types.String `tfsdk:"collection"`
 	Db         types.String `tfsdk:"db"`
+	Cluster    types.Bool   `tfsdk:"cluster"`
 }
 type TFInheritedRolesModel struct {
 	Db   types.String `tfsdk:"db"`
