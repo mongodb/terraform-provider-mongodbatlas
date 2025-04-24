@@ -46,47 +46,16 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	reqBody, err := autogen.Marshal(&plan, false)
-	if err != nil {
-		resp.Diagnostics.AddError(errorBuildingAPIRequest, err.Error())
-		return
-	}
-
 	pathParams := map[string]string{
 		"groupId": plan.GroupId.ValueString(),
 	}
-	apiResp, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
+	callParams := config.APICallParams{
 		VersionHeader: apiVersionHeader,
 		RelativePath:  "/api/atlas/v2/groups/{groupId}/customDBRoles/roles",
 		PathParams:    pathParams,
 		Method:        "POST",
-		Body:          reqBody,
-	})
-
-	if err != nil {
-		resp.Diagnostics.AddError("error during create operation", err.Error())
-		return
 	}
-
-	respBody, err := io.ReadAll(apiResp.Body)
-	apiResp.Body.Close()
-	if err != nil {
-		resp.Diagnostics.AddError(errorReadingAPIResponse, err.Error())
-		return
-	}
-
-	// Use the plan as the base model to set the response state
-	if err := autogen.Unmarshal(respBody, &plan); err != nil {
-		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
-		return
-	}
-	if err := autogen.ResolveUnknowns(&plan); err != nil {
-		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	autogen.HandleCreate(ctx, resp, r.Client, &plan, &callParams)
 }
 
 func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
