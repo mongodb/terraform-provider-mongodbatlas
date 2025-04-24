@@ -421,19 +421,19 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 				Name: "test_resource_with_nested_attr_overrides",
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
-						Path:       "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
+						Path:       "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/nestedTestResource",
 						HTTPMethod: "POST",
 					},
 					Read: codespec.APIOperation{
-						Path:       "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
+						Path:       "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/nestedTestResource",
 						HTTPMethod: "GET",
 					},
 					Update: codespec.APIOperation{
-						Path:       "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
+						Path:       "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/nestedTestResource",
 						HTTPMethod: "PATCH",
 					},
 					Delete: codespec.APIOperation{
-						Path:       "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
+						Path:       "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/nestedTestResource",
 						HTTPMethod: "DELETE",
 					},
 					VersionHeader: "application/vnd.atlas.2035-01-01+json", // version header defined in config
