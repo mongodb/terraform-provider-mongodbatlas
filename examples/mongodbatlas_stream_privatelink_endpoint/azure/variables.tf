@@ -50,3 +50,13 @@ variable "atlas_region" {
   description = "The atlas region of the Provider’s cluster. See [AZURE](https://www.mongodb.com/docs/atlas/reference/microsoft-azure/#stream-processing-instances)"
   type        = string
 }
+
+variable "public_key" {
+  description = "MongoDB Atlas public API key."
+  type        = string
+}
+
+variable "private_key" {
+  description = "MongoDB Atlas private API key."
+  type        = string
+}
