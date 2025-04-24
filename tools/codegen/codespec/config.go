@@ -1,6 +1,7 @@
 package codespec
 
 import (
+	"fmt"
 	"log"
 	"strings"
 
@@ -10,6 +11,7 @@ import (
 
 func applyConfigSchemaOptions(resourceConfig *config.Resource, resource *Resource) {
 	applySchemaOptions(resourceConfig.SchemaOptions, &resource.Schema.Attributes, "")
+	applyAliasToPathParams(resource, resourceConfig.SchemaOptions.Aliases)
 }
 
 func applySchemaOptions(schemaOptions config.SchemaOptions, attributes *Attributes, parentName string) {
@@ -26,7 +28,7 @@ func applySchemaOptions(schemaOptions config.SchemaOptions, attributes *Attribut
 		}
 
 		// the config is expected to use alias name for defining any subsequent overrides (description, etc)
-		applyAlias(attr, &attrPathName, schemaOptions)
+		applyAliasToAttribute(attr, &attrPathName, schemaOptions)
 
 		applyOverrides(attr, attrPathName, schemaOptions)
 
@@ -61,7 +63,7 @@ func shouldIgnoreAttribute(attrName string, ignoredAttrs map[string]bool) bool {
 	return ignoredAttrs[attrName]
 }
 
-func applyAlias(attr *Attribute, attrPathName *string, schemaOptions config.SchemaOptions) {
+func applyAliasToAttribute(attr *Attribute, attrPathName *string, schemaOptions config.SchemaOptions) {
 	parts := strings.Split(*attrPathName, ".")
 
 	for i := range parts {
@@ -77,6 +79,17 @@ func applyAlias(attr *Attribute, attrPathName *string, schemaOptions config.Sche
 	}
 
 	*attrPathName = strings.Join(parts, ".")
+}
+
+func applyAliasToPathParams(resource *Resource, aliases map[string]string) {
+	for original, alias := range aliases {
+		originalCamel := stringcase.SnakeCaseString(original).CamelCase()
+		aliasCamel := stringcase.SnakeCaseString(alias).CamelCase()
+		resource.Operations.Create.Path = strings.ReplaceAll(resource.Operations.Create.Path, fmt.Sprintf("{%s}", originalCamel), fmt.Sprintf("{%s}", aliasCamel))
+		resource.Operations.Read.Path = strings.ReplaceAll(resource.Operations.Read.Path, fmt.Sprintf("{%s}", originalCamel), fmt.Sprintf("{%s}", aliasCamel))
+		resource.Operations.Update.Path = strings.ReplaceAll(resource.Operations.Update.Path, fmt.Sprintf("{%s}", originalCamel), fmt.Sprintf("{%s}", aliasCamel))
+		resource.Operations.Delete.Path = strings.ReplaceAll(resource.Operations.Delete.Path, fmt.Sprintf("{%s}", originalCamel), fmt.Sprintf("{%s}", aliasCamel))
+	}
 }
 
 func applyOverrides(attr *Attribute, attrPathName string, schemaOptions config.SchemaOptions) {
