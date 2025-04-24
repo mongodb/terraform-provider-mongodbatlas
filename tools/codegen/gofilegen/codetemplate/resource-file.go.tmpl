@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -65,35 +64,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	apiResp, err := r.Client.UntypedAPICall(ctx, readAPICallParams(&state))
-	if err != nil {
-		if validate.StatusNotFound(apiResp) {
-			resp.State.RemoveResource(ctx)
-			return
-		}
-		resp.Diagnostics.AddError("error during get operation", err.Error())
-		return
-	}
-
-	respBody, err := io.ReadAll(apiResp.Body)
-	apiResp.Body.Close()
-	if err != nil {
-		resp.Diagnostics.AddError(errorReadingAPIResponse, err.Error())
-		return
-	}
-
-	// Use the current state as the base model to set the response state
-	if err := autogen.Unmarshal(respBody, &state); err != nil {
-		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
-		return
-	}
-	if err := autogen.ResolveUnknowns(&state); err != nil {
-		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	autogen.HandleRead(ctx, resp, r.Client, &state, readAPICallParams(&state))
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
