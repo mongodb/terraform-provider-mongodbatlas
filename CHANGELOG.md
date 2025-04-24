@@ -4,7 +4,9 @@ ENHANCEMENTS:
 
 * data-source/mongodbatlas_database_user: Adds `description` field ([#3280](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3280))
 * data-source/mongodbatlas_database_users: Adds `description` field ([#3280](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3280))
+* data-source/mongodbatlas_maintenance_window: Adds `protected_hours` and `time_zone_id` ([#3195](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3195))
 * resource/mongodbatlas_database_user: Adds `description` field ([#3280](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3280))
+* resource/mongodbatlas_maintenance_window: Adds `protected_hours` and `time_zone_id` ([#3195](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3195))
 
 ## 1.33.0 (April 16, 2025)
 
