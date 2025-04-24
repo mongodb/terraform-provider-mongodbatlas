@@ -75,3 +75,34 @@ func HandleRead(ctx context.Context, resp *resource.ReadResponse, client *config
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
+
+func HandleUpdate(ctx context.Context, resp *resource.UpdateResponse, client *config.MongoDBClient, plan any, callParams *config.APICallParams) {
+	reqBody, err := Marshal(plan, true)
+	if err != nil {
+		resp.Diagnostics.AddError(errorBuildingAPIRequest, err.Error())
+		return
+	}
+	callParams.Body = reqBody
+	apiResp, err := client.UntypedAPICall(ctx, callParams)
+	if err != nil {
+		resp.Diagnostics.AddError("error during update operation", err.Error())
+		return
+	}
+	respBody, err := io.ReadAll(apiResp.Body)
+	apiResp.Body.Close()
+	if err != nil {
+		resp.Diagnostics.AddError(errorReadingAPIResponse, err.Error())
+		return
+	}
+
+	// Use the plan as the base model to set the response state
+	if err := Unmarshal(respBody, plan); err != nil {
+		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
+		return
+	}
+	if err := ResolveUnknowns(plan); err != nil {
+		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+}
