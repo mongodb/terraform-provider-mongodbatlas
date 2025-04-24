@@ -6,10 +6,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/spf13/cast"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/spf13/cast"
 	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 )
 
@@ -84,6 +85,27 @@ func Resource() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"time_zone_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"protected_hours": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"end_hour_of_day": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+						"start_hour_of_day": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -110,6 +132,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params.AutoDeferOnceEnabled = conversion.Pointer(autoDeferOnceEnabled.(bool))
 	}
 
+	params.ProtectedHours = newProtectedHours(d)
 	_, err := connV2.MaintenanceWindowsApi.UpdateMaintenanceWindow(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorMaintenanceCreate, projectID, err))
@@ -125,6 +148,19 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	d.SetId(projectID)
 
 	return resourceRead(ctx, d, meta)
+}
+
+func newProtectedHours(d *schema.ResourceData) *admin.ProtectedHours {
+	if protectedHours, ok := d.Get("protected_hours").([]any); ok && conversion.HasElementsSliceOrMap(protectedHours) {
+		item := protectedHours[0].(map[string]any)
+
+		return &admin.ProtectedHours{
+			EndHourOfDay:   conversion.IntPtr(item["end_hour_of_day"].(int)),
+			StartHourOfDay: conversion.IntPtr(item["start_hour_of_day"].(int)),
+		}
+	}
+
+	return nil
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -165,7 +201,25 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
 	}
 
+	if err := d.Set("time_zone_id", maintenanceWindow.GetTimeZoneId()); err != nil {
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
+	}
+
+	if maintenanceWindow.ProtectedHours != nil {
+		if err := d.Set("protected_hours", flattenProtectedHours(maintenanceWindow.GetProtectedHours())); err != nil {
+			return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
+		}
+	}
 	return nil
+}
+
+func flattenProtectedHours(protectedHours admin.ProtectedHours) []map[string]int {
+	res := make([]map[string]int, 0)
+	res = append(res, map[string]int{
+		"end_hour_of_day":   protectedHours.GetEndHourOfDay(),
+		"start_hour_of_day": protectedHours.GetStartHourOfDay(),
+	})
+	return res
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -188,6 +242,20 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if d.HasChange("auto_defer_once_enabled") {
 		params.AutoDeferOnceEnabled = conversion.Pointer(d.Get("auto_defer_once_enabled").(bool))
+	}
+
+	if oldPAny, newPAny := d.GetChange("protected_hours"); d.HasChange("protected_hours") {
+		oldP := oldPAny.([]any)
+		newP := newPAny.([]any)
+
+		if len(oldP) == 1 && len(newP) == 0 {
+			params.ProtectedHours = &admin.ProtectedHours{
+				StartHourOfDay: nil,
+				EndHourOfDay:   nil,
+			}
+		} else {
+			params.ProtectedHours = newProtectedHours(d)
+		}
 	}
 
 	_, err := connV2.MaintenanceWindowsApi.UpdateMaintenanceWindow(ctx, projectID, params).Execute()
