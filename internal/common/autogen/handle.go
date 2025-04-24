@@ -14,8 +14,7 @@ const (
 	errorBuildingAPIRequest    = "error building API request"
 )
 
-func HandleCreate(ctx context.Context, resp *resource.CreateResponse,
-	client *config.MongoDBClient, plan any, callParams *config.APICallParams) {
+func HandleCreate(ctx context.Context, resp *resource.CreateResponse, client *config.MongoDBClient, plan any, callParams *config.APICallParams) {
 	reqBody, err := Marshal(plan, false)
 	if err != nil {
 		resp.Diagnostics.AddError(errorBuildingAPIRequest, err.Error())
