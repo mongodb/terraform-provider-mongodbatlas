@@ -14,12 +14,7 @@ import (
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
 
-const (
-	apiVersionHeader           = "application/vnd.atlas.2023-01-01+json"
-	errorReadingAPIResponse    = "error reading API response"
-	errorProcessingAPIResponse = "error processing API response"
-	errorBuildingAPIRequest    = "error building API request"
-)
+const apiVersionHeader = "application/vnd.atlas.2023-01-01+json"
 
 func Resource() resource.Resource {
 	return &rs{
