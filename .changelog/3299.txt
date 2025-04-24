@@ -1,0 +1,7 @@
+```release-note:note
+resource/mongodbatlas_stream_privatelink_endpoint: Add documentation and example for using Azure PrivateLink with Atlas Streams
+```
+
+```release-note:note
+datasource/mongodbatlas_stream_privatelink_endpoint: Add documentation and example for using Azure PrivateLink with Atlas Streams
+```
