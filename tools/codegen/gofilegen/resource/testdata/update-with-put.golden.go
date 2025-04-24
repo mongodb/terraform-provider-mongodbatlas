@@ -106,7 +106,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	idAttributes := []string{"project_id"}
-	autogen.GenericImportOperation(ctx, idAttributes, req, resp)
+	autogen.HandleImport(ctx, idAttributes, req, resp)
 }
 
 func readAPICallParams(state *TFModel) *config.APICallParams {
