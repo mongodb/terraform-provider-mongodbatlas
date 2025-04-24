@@ -23,7 +23,7 @@ jobs:
       - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
         with:
           go-version-file: 'go.mod'
-      - run: make generate-resource
+      - run: make generate-resources
       - name: Find mutations
         id: self_mutation
         run: |-
