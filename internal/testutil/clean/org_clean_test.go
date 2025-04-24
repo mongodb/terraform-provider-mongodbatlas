@@ -84,7 +84,7 @@ func TestCleanProjectAndClusters(t *testing.T) {
 	projects := readAllProjects(t.Context(), t, client)
 	projectsBefore := len(projects)
 	t.Logf("found %d projects (DRY_RUN=%t)", projectsBefore, dryRun)
-	projectsToDelete := map[string]string{}
+	projectsToClean := map[string]string{}
 	projectInfos := []string{}
 	for _, p := range projects {
 		skipReason := projectSkipReason(&p, skipProjectsAfter, onlyZeroClusters)
@@ -95,14 +95,14 @@ func TestCleanProjectAndClusters(t *testing.T) {
 			continue
 		}
 		projectInfos = append(projectInfos, fmt.Sprintf("Project created at %s name %s (%s)", p.GetCreated().Format(time.RFC3339), projectName, p.GetId()))
-		projectsToDelete[projectName] = projectID
+		projectsToClean[projectName] = projectID
 	}
-	t.Logf("will try to delete %d projects:", len(projectsToDelete))
+	t.Logf("deleting project resources and optionally delete projects for %d projects", len(projectsToClean))
 	slices.Sort(projectInfos)
 	t.Log(strings.Join(projectInfos, "\n"))
 	var deleteErrors int
 	var emptyProjectCount int
-	for name, projectID := range projectsToDelete {
+	for name, projectID := range projectsToClean {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			changes := removeProjectResources(t.Context(), t, dryRun, client, projectID)
