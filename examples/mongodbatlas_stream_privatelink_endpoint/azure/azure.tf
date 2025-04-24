@@ -18,16 +18,16 @@ resource "azurerm_subnet" "subnet" {
 }
 
 resource "azurerm_eventhub_namespace" "eventhub_ns" {
-  name = var.eventhub_namespace_name
-  location = azurerm_resource_group.rg.location
+  name                = var.eventhub_namespace_name
+  location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  sku = "Standard" # Minimum SKU for Private Link
-  capacity = 1
+  sku                 = "Standard" # Minimum SKU for Private Link
+  capacity            = 1
 }
 
 resource "azurerm_eventhub" "eventhub" {
   name                = var.eventhub_name
-  namespace_name = azurerm_eventhub_namespace.eventhub_ns.name
+  namespace_name      = azurerm_eventhub_namespace.eventhub_ns.name
   resource_group_name = azurerm_resource_group.rg.name
   partition_count     = 1
   message_retention   = 1
@@ -46,24 +46,24 @@ resource "azurerm_private_dns_zone_virtual_network_link" "dns_zone_link" {
 }
 
 resource "azurerm_private_endpoint" "eventhub_endpoint" {
- name = "pe-${var.eventhub_namespace_name}"
-    location = azurerm_resource_group.rg.location
-    resource_group_name = azurerm_resource_group.rg.name
-    subnet_id = azurerm_subnet.subnet.id
+  name                = "pe-${var.eventhub_namespace_name}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  subnet_id           = azurerm_subnet.subnet.id
 
-    private_service_connection {
-        name = "psc-${var.eventhub_namespace_name}"
-        is_manual_connection = false
-        private_connection_resource_id = azurerm_eventhub_namespace.eventhub_ns.id
-        subresource_names = ["namespace"]
-    }
+  private_service_connection {
+    name                           = "psc-${var.eventhub_namespace_name}"
+    is_manual_connection           = false
+    private_connection_resource_id = azurerm_eventhub_namespace.eventhub_ns.id
+    subresource_names              = ["namespace"]
+  }
 
-    private_dns_zone_group {
-        name = "default-dns-group"
-        private_dns_zone_ids = [azurerm_private_dns_zone.dns_zone.id]
-    }
+  private_dns_zone_group {
+    name                 = "default-dns-group"
+    private_dns_zone_ids = [azurerm_private_dns_zone.dns_zone.id]
+  }
 
-    depends_on = [azurerm_private_dns_zone_virtual_network_link.dns_zone_link]
+  depends_on = [azurerm_private_dns_zone_virtual_network_link.dns_zone_link]
 }
 
 data "azurerm_client_config" "current" {}

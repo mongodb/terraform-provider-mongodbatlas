@@ -7,7 +7,7 @@ You must set the following variables for atlas in main.tf:
 - `public_key`: Public API key to authenticate to Atlas
 - `private_key`: Private API key to authenticate to Atlas
 - `project_id`: Unique 24-hexadecimal digit string that identifies your atlas project
-- `azure_region`: The Azure region where you want to create the Streams PrivateLink resources. `Azure Region` column in https://www.mongodb.com/docs/atlas/reference/microsoft-azure/#stream-processing-instances. 
+- `atlas_region`: The Atlas region where you want to create the Streams PrivateLink resources. `Atlas Region` column in https://www.mongodb.com/docs/atlas/reference/microsoft-azure/#stream-processing-instances. 
 
 - Additional required fields in main.tf:
 - `dns_domain`: dns_domain comes from the hostname of the Event Hub Namespace in Azure.
