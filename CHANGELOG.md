@@ -8,6 +8,10 @@ ENHANCEMENTS:
 * resource/mongodbatlas_database_user: Adds `description` field ([#3280](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3280))
 * resource/mongodbatlas_maintenance_window: Adds `protected_hours` and `time_zone_id` ([#3195](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3195))
 
+BUG FIXES:
+
+* resource/mongodbatlas_auditing: Fixes JSON comparison in `audit_filter` field ([#3302](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3302))
+
 ## 1.33.0 (April 16, 2025)
 
 NOTES:
