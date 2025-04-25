@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	resourceName   = "mongodbatlas_auditing.test"
-	dataSourceName = "data.mongodbatlas_auditing.test"
+	resourceName     = "mongodbatlas_auditing.test"
+	dataSourceName   = "data.mongodbatlas_auditing.test"
+	emptyAuditFilter = "{}"
 )
 
 func TestAccGenericAuditing_basic(t *testing.T) {
@@ -28,7 +29,6 @@ func TestAccGenericAuditing_basic(t *testing.T) {
 			},
 			"atype": "authenticate"
 		}`
-		emptyAuditFilter = `{}`
 	)
 
 	// Serial so it doesn't conflict with TestMigGenericAuditing_basic
@@ -104,7 +104,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 
 func configBasic(projectID, auditFilter string, auditAuth, enabled bool) string {
 	filterValue := fmt.Sprintf("%q", auditFilter)
-	if auditFilter != "{}" {
+	if auditFilter != emptyAuditFilter {
 		filterValue = fmt.Sprintf("<<EOF\n%s\nEOF", auditFilter)
 	}
 
