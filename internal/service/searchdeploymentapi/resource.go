@@ -49,7 +49,13 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		PathParams:    pathParams,
 		Method:        "POST",
 	}
-	autogen.HandleCreate(ctx, resp, r.Client, &plan, &callParams)
+	reqHandle := autogen.HandleCreateReq{
+		Resp:       resp,
+		Client:     r.Client,
+		Plan:       &plan,
+		CallParams: &callParams,
+	}
+	autogen.HandleCreate(ctx, reqHandle)
 }
 
 func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -58,7 +64,13 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	autogen.HandleRead(ctx, resp, r.Client, &state, readAPICallParams(&state))
+	reqHandle := autogen.HandleReadReq{
+		Resp:       resp,
+		Client:     r.Client,
+		State:      &state,
+		CallParams: readAPICallParams(&state),
+	}
+	autogen.HandleRead(ctx, reqHandle)
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -77,7 +89,13 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		PathParams:    pathParams,
 		Method:        "PATCH",
 	}
-	autogen.HandleUpdate(ctx, resp, r.Client, &plan, &callParams)
+	reqHandle := autogen.HandleUpdateReq{
+		Resp:       resp,
+		Client:     r.Client,
+		Plan:       &plan,
+		CallParams: &callParams,
+	}
+	autogen.HandleUpdate(ctx, reqHandle)
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -96,7 +114,13 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		PathParams:    pathParams,
 		Method:        "DELETE",
 	}
-	autogen.HandleDelete(ctx, resp, r.Client, &callParams)
+	reqHandle := autogen.HandleDeleteReq{
+		Resp:       resp,
+		Client:     r.Client,
+		State:      &state,
+		CallParams: &callParams,
+	}
+	autogen.HandleDelete(ctx, reqHandle)
 
 	waitForChangesReq := &autogen.WaitForChangesReq{
 		StateAttribute:    "StateName",

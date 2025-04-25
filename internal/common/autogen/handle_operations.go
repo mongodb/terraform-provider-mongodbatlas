@@ -15,101 +15,129 @@ const (
 	errorBuildingAPIRequest    = "error building API request"
 )
 
-func HandleCreate(ctx context.Context, resp *resource.CreateResponse, client *config.MongoDBClient, plan any, callParams *config.APICallParams) {
-	reqBody, err := Marshal(plan, false)
+type HandleCreateReq struct {
+	Resp       *resource.CreateResponse
+	Client     *config.MongoDBClient
+	Plan       any
+	CallParams *config.APICallParams
+}
+
+func HandleCreate(ctx context.Context, req HandleCreateReq) {
+	reqBody, err := Marshal(req.Plan, false)
 	if err != nil {
-		resp.Diagnostics.AddError(errorBuildingAPIRequest, err.Error())
+		req.Resp.Diagnostics.AddError(errorBuildingAPIRequest, err.Error())
 		return
 	}
-	callParams.Body = reqBody
-	apiResp, err := client.UntypedAPICall(ctx, callParams)
+	req.CallParams.Body = reqBody
+	apiResp, err := req.Client.UntypedAPICall(ctx, req.CallParams)
 	if err != nil {
-		resp.Diagnostics.AddError("error during create operation", err.Error())
+		req.Resp.Diagnostics.AddError("error during create operation", err.Error())
 		return
 	}
 	respBody, err := io.ReadAll(apiResp.Body)
 	apiResp.Body.Close()
 	if err != nil {
-		resp.Diagnostics.AddError(errorReadingAPIResponse, err.Error())
+		req.Resp.Diagnostics.AddError(errorReadingAPIResponse, err.Error())
 		return
 	}
 
 	// Use the plan as the base model to set the response state
-	if err := Unmarshal(respBody, plan); err != nil {
-		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
+	if err := Unmarshal(respBody, req.Plan); err != nil {
+		req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 		return
 	}
-	if err := ResolveUnknowns(plan); err != nil {
-		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
+	if err := ResolveUnknowns(req.Plan); err != nil {
+		req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, req.Plan)...)
 }
 
-func HandleRead(ctx context.Context, resp *resource.ReadResponse, client *config.MongoDBClient, state any, callParams *config.APICallParams) {
-	apiResp, err := client.UntypedAPICall(ctx, callParams)
+type HandleReadReq struct {
+	Resp       *resource.ReadResponse
+	Client     *config.MongoDBClient
+	State      any
+	CallParams *config.APICallParams
+}
+
+func HandleRead(ctx context.Context, req HandleReadReq) {
+	apiResp, err := req.Client.UntypedAPICall(ctx, req.CallParams)
 	if err != nil {
 		if validate.StatusNotFound(apiResp) {
-			resp.State.RemoveResource(ctx)
+			req.Resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("error during get operation", err.Error())
+		req.Resp.Diagnostics.AddError("error during get operation", err.Error())
 		return
 	}
 	respBody, err := io.ReadAll(apiResp.Body)
 	apiResp.Body.Close()
 	if err != nil {
-		resp.Diagnostics.AddError(errorReadingAPIResponse, err.Error())
+		req.Resp.Diagnostics.AddError(errorReadingAPIResponse, err.Error())
 		return
 	}
 
 	// Use the current state as the base model to set the response state
-	if err := Unmarshal(respBody, state); err != nil {
-		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
+	if err := Unmarshal(respBody, req.State); err != nil {
+		req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 		return
 	}
-	if err := ResolveUnknowns(state); err != nil {
-		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
+	if err := ResolveUnknowns(req.State); err != nil {
+		req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+	req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, req.State)...)
 }
 
-func HandleUpdate(ctx context.Context, resp *resource.UpdateResponse, client *config.MongoDBClient, plan any, callParams *config.APICallParams) {
-	reqBody, err := Marshal(plan, true)
+type HandleUpdateReq struct {
+	Resp       *resource.UpdateResponse
+	Client     *config.MongoDBClient
+	Plan       any
+	CallParams *config.APICallParams
+}
+
+func HandleUpdate(ctx context.Context, req HandleUpdateReq) {
+	reqBody, err := Marshal(req.Plan, true)
 	if err != nil {
-		resp.Diagnostics.AddError(errorBuildingAPIRequest, err.Error())
+		req.Resp.Diagnostics.AddError(errorBuildingAPIRequest, err.Error())
 		return
 	}
-	callParams.Body = reqBody
-	apiResp, err := client.UntypedAPICall(ctx, callParams)
+	req.CallParams.Body = reqBody
+	apiResp, err := req.Client.UntypedAPICall(ctx, req.CallParams)
 	if err != nil {
-		resp.Diagnostics.AddError("error during update operation", err.Error())
+		req.Resp.Diagnostics.AddError("error during update operation", err.Error())
 		return
 	}
 	respBody, err := io.ReadAll(apiResp.Body)
 	apiResp.Body.Close()
 	if err != nil {
-		resp.Diagnostics.AddError(errorReadingAPIResponse, err.Error())
+		req.Resp.Diagnostics.AddError(errorReadingAPIResponse, err.Error())
 		return
 	}
 
 	// Use the plan as the base model to set the response state
-	if err := Unmarshal(respBody, plan); err != nil {
-		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
+	if err := Unmarshal(respBody, req.Plan); err != nil {
+		req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 		return
 	}
-	if err := ResolveUnknowns(plan); err != nil {
-		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
+	if err := ResolveUnknowns(req.Plan); err != nil {
+		req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, req.Plan)...)
 }
 
-func HandleDelete(ctx context.Context, resp *resource.DeleteResponse, client *config.MongoDBClient, callParams *config.APICallParams) {
-	if _, err := client.UntypedAPICall(ctx, callParams); err != nil {
-		resp.Diagnostics.AddError("error during delete", err.Error())
+type HandleDeleteReq struct {
+	Resp       *resource.DeleteResponse
+	Client     *config.MongoDBClient
+	State      any
+	CallParams *config.APICallParams
+}
+
+func HandleDelete(ctx context.Context, req HandleDeleteReq) {
+	if _, err := req.Client.UntypedAPICall(ctx, req.CallParams); err != nil {
+		req.Resp.Diagnostics.AddError("error during delete", err.Error())
 		return
 	}
 }
