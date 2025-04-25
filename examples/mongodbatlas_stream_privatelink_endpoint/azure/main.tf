@@ -1,4 +1,4 @@
-resource "mongodbatlas_stream_privatelink_endpoint" "test-stream-privatelink" {
+resource "mongodbatlas_stream_privatelink_endpoint" "test_stream_privatelink" {
   project_id = var.project_id
   # dns_domain comes from the hostname of the Event Hub Namespace in Azure.
   dns_domain    = "${var.eventhub_namespace_name}.servicebus.windows.net"

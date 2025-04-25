@@ -2,18 +2,18 @@
 
 This example shows how to use Azure PrivateLink Endpoints with EventHub for Atlas Streams PrivateLink.
 
-You must set the following variables for atlas in main.tf:
+You must set the following variables for Atlas in main.tf:
 
 - `public_key`: Public API key to authenticate to Atlas
 - `private_key`: Private API key to authenticate to Atlas
 - `project_id`: Unique 24-hexadecimal digit string that identifies your atlas project
-- `atlas_region`: The Atlas region where you want to create the Streams PrivateLink resources. `Atlas Region` column in https://www.mongodb.com/docs/atlas/reference/microsoft-azure/#stream-processing-instances. 
+- `atlas_region`: Atlas region where you want to create the Streams PrivateLink resources. To learn more, see `Atlas Region` column in https://www.mongodb.com/docs/atlas/reference/microsoft-azure/#stream-processing-instances. 
 
 - Additional required fields in main.tf:
-- `dns_domain`: dns_domain comes from the hostname of the Event Hub Namespace in Azure.
-- `service_endpoint_id`: This is the Service Endpoint ID for the EventHub Namespace. You can find this in the Azure portal under the EventHub Namespace properties. It typically looks like `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/namespaces/{namespaceName}`.
+- `dns_domain`: Hostname of the Event Hub Namespace in Azure, which is the dns_domain.
+- `service_endpoint_id`: Service Endpoint ID for the EventHub Namespace. You can find this in the Azure portal under the EventHub Namespace properties. It typically looks like `/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/namespaces/{namespaceName}`.
 
-The following setup is for Azure PrivateLink with EventHub example in azure.tf, see docs for more details https://learn.microsoft.com/en-us/azure/event-hubs/private-link-service#add-a-private-endpoint-using-azure-portal
+The following setup is for Azure PrivateLink with EventHub example in azure.tf. To learn more, see documentation https://learn.microsoft.com/en-us/azure/event-hubs/private-link-service#add-a-private-endpoint-using-azure-portal
 
 - `azure_region`: The Azure region where you want to create the Azure PrivateLink resources. `Azure Region` column in https://www.mongodb.com/docs/atlas/reference/microsoft-azure/#stream-processing-instances.
 - `azure_resource_group`: The name of the Azure Resource Group where you want to create the PrivateLink resources. 
@@ -26,11 +26,11 @@ The following setup is for Azure PrivateLink with EventHub example in azure.tf, 
 
 ## Usage
 
-**1\. Ensure your Azure credentials are set up.**
+**1\. Ensure that your Azure credentials are set up.**
 
 1. Install the Azure CLI by following the steps from the [official Azure documentation](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli).
-2. Run the command `az login` and this will take you to the default browser and perform the authentication.
-3. Once authenticated, it will print the user details as below:
+2. Run the command `az login` and authenticate using the default browser.
+3. Once authenticated, Azure returns the following user details:
 
 **2\. Set up your MongoDB Atlas API keys.**
 1. Log in to your MongoDB Atlas account.
@@ -40,7 +40,7 @@ The following setup is for Azure PrivateLink with EventHub example in azure.tf, 
 
 **3\. Create a terraform.tfvars file.**
 1. Create a file named `terraform.tfvars` in the same directory as your `main.tf`.
-2. Fill the `terraform.tfvars` file with the required variables.
+2. Defining the required variables in the `terraform.tfvars` file.
 
 **4\. Optional: Create the Azure resources with EventHub.**
 1. If you don't have an existing Azure EventHub Namespace and EventHub, you can create them using the provided `azure.tf` file.

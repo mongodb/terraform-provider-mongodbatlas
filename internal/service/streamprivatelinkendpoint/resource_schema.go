@@ -20,7 +20,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"dns_sub_domain": schema.ListAttribute{
 				Optional:            true,
-				MarkdownDescription: "Sub-Domain name of Confluent cluster. These are typically your availability zones. Required for AWS Provider and CONFLUENT vendor, if your AWS CONFLUENT cluster doesn't use subdomains, you must set this to the empty array [].",
+				MarkdownDescription: "Sub-Domain name of Confluent cluster. These are typically your availability zones. Required for AWS Provider and CONFLUENT vendor. If your AWS CONFLUENT cluster doesn't use subdomains, you must set this to the empty array [].",
 				ElementType:         types.StringType,
 			},
 			"error_message": schema.StringAttribute{
@@ -62,7 +62,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"vendor": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Vendor that manages the Kafka cluster. The following are the vendor values per provider:<br>- MSK and CONFLUENT for the AWS provider.<br>- EVENTHUB and CONFLUENT for the AZURE provider.<br>**NOTE** Omitting the vendor field will default to using the EVENTHUB vendor for the AZURE provider.",
+				MarkdownDescription: "Vendor that manages the Kafka cluster. The following are the vendor values per provider:<br>- MSK and CONFLUENT for the AWS provider.<br>- EVENTHUB and CONFLUENT for the AZURE provider.",
 			},
 			"arn": schema.StringAttribute{
 				Optional:            true,
