@@ -13,7 +13,7 @@ import (
 
 const resourceName = "mongodbatlas_custom_db_role_api.test"
 
-func TestAccCustomDBRole_basic(t *testing.T) {
+func TestAccCustomDBRoleAPI_basic(t *testing.T) {
 	var (
 		orgID         = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		groupName     = acc.RandomProjectName()

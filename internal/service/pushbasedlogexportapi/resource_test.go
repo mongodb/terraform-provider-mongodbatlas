@@ -56,7 +56,6 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				ImportState:                          true,
 				ImportStateVerify:                    true,
 				ImportStateVerifyIdentifierAttribute: "group_id",
-				ImportStateVerifyIgnore:              []string{"create_date", "state"}, // TODO: remove when autogen long-running operations are supported in CLOUDP-314960
 			},
 		},
 	}
@@ -66,7 +65,7 @@ func commonChecks(s3BucketName, prefixPath string) []resource.TestCheckFunc {
 	mapChecks := map[string]string{
 		"bucket_name": s3BucketName,
 		"prefix_path": prefixPath,
-		// "state":       "ACTIVE", // TODO: uncomment when autogen long-running operations are supported in CLOUDP-314960
+		"state":       "ACTIVE",
 	}
 	checks := acc.AddAttrChecks(resourceName, nil, mapChecks)
 	return acc.AddAttrSetChecks(resourceName, checks, "group_id", "iam_role_id")
