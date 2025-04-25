@@ -54,6 +54,17 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		Client: r.Client,
 		Plan: &plan,
 		CallParams: &callParams,
+		{{with .APIOperations.Create.Wait -}}
+		Wait: &autogen.WaitReq{
+			StateAttribute: "{{ .StateAttribute }}",
+			PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
+			TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
+			TimeoutSeconds: {{ .TimeoutSeconds }},
+			MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
+			DelaySeconds: {{ .DelaySeconds }},
+			CallParams: readAPICallParams(&plan),
+		},
+		{{ end }}
 	}
 	autogen.HandleCreate(ctx, reqHandle)
 }
@@ -94,12 +105,23 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		Client: r.Client,
 		Plan: &plan,
 		CallParams: &callParams,
+		{{with .APIOperations.Update.Wait -}}
+		Wait: &autogen.WaitReq{
+			StateAttribute: "{{ .StateAttribute }}",
+			PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
+			TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
+			TimeoutSeconds: {{ .TimeoutSeconds }},
+			MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
+			DelaySeconds: {{ .DelaySeconds }},
+			CallParams: readAPICallParams(&plan),
+		},
+		{{ end }}
 	}
 	autogen.HandleUpdate(ctx, reqHandle)
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state *TFModel
+	var state TFModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -119,26 +141,19 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		Client: r.Client,
 		State: &state,
 		CallParams: &callParams,
+		{{with .APIOperations.Delete.Wait -}}
+		Wait: &autogen.WaitReq{
+			StateAttribute: "{{ .StateAttribute }}",
+			PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
+			TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
+			TimeoutSeconds: {{ .TimeoutSeconds }},
+			MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
+			DelaySeconds: {{ .DelaySeconds }},
+			CallParams: readAPICallParams(&state),
+		},
+		{{ end }}
 	}
 	autogen.HandleDelete(ctx, reqHandle)
-	
-	{{- with .APIOperations.Delete.Wait }}
-	
-	waitForChangesReq := &autogen.WaitForChangesReq{
-		StateAttribute: "{{ .StateAttribute }}",
-		PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
-		TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
-		TimeoutSeconds: {{ .TimeoutSeconds }},
-		MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
-		DelaySeconds: {{ .DelaySeconds }},
-		CallParams: readAPICallParams(state),
-	}
-	if _, err := autogen.WaitForChanges(ctx, waitForChangesReq); err != nil {
-		resp.Diagnostics.AddError("error during delete", err.Error())
-		return
-	}
-
-	{{ end -}}
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

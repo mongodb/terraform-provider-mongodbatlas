@@ -20,6 +20,7 @@ type HandleCreateReq struct {
 	Client     *config.MongoDBClient
 	Plan       any
 	CallParams *config.APICallParams
+	Wait       *WaitReq
 }
 
 func HandleCreate(ctx context.Context, req HandleCreateReq) {
@@ -95,6 +96,7 @@ type HandleUpdateReq struct {
 	Client     *config.MongoDBClient
 	Plan       any
 	CallParams *config.APICallParams
+	Wait       *WaitReq
 }
 
 func HandleUpdate(ctx context.Context, req HandleUpdateReq) {
@@ -133,11 +135,18 @@ type HandleDeleteReq struct {
 	Client     *config.MongoDBClient
 	State      any
 	CallParams *config.APICallParams
+	Wait       *WaitReq
 }
 
 func HandleDelete(ctx context.Context, req HandleDeleteReq) {
 	if _, err := req.Client.UntypedAPICall(ctx, req.CallParams); err != nil {
 		req.Resp.Diagnostics.AddError("error during delete", err.Error())
 		return
+	}
+	if req.Wait != nil {
+		if _, err := waitForChanges(req.Wait); err != nil {
+			req.Resp.Diagnostics.AddError("error waiting for changes", err.Error())
+			return
+		}
 	}
 }

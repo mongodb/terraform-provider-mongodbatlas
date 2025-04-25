@@ -54,6 +54,15 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		Client:     r.Client,
 		Plan:       &plan,
 		CallParams: &callParams,
+		Wait: &autogen.WaitReq{
+			StateAttribute:    "StateName",
+			PendingStates:     []string{"UPDATING", "PAUSED"},
+			TargetStates:      []string{"IDLE"},
+			TimeoutSeconds:    600,
+			MinTimeoutSeconds: 60,
+			DelaySeconds:      60,
+			CallParams:        readAPICallParams(&plan),
+		},
 	}
 	autogen.HandleCreate(ctx, reqHandle)
 }
@@ -94,12 +103,21 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		Client:     r.Client,
 		Plan:       &plan,
 		CallParams: &callParams,
+		Wait: &autogen.WaitReq{
+			StateAttribute:    "StateName",
+			PendingStates:     []string{"UPDATING", "PAUSED"},
+			TargetStates:      []string{"IDLE"},
+			TimeoutSeconds:    600,
+			MinTimeoutSeconds: 60,
+			DelaySeconds:      60,
+			CallParams:        readAPICallParams(&plan),
+		},
 	}
 	autogen.HandleUpdate(ctx, reqHandle)
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state *TFModel
+	var state TFModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -119,23 +137,17 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		Client:     r.Client,
 		State:      &state,
 		CallParams: &callParams,
+		Wait: &autogen.WaitReq{
+			StateAttribute:    "StateName",
+			PendingStates:     []string{"IDLE", "UPDATING", "PAUSED"},
+			TargetStates:      []string{},
+			TimeoutSeconds:    600,
+			MinTimeoutSeconds: 30,
+			DelaySeconds:      60,
+			CallParams:        readAPICallParams(&state),
+		},
 	}
 	autogen.HandleDelete(ctx, reqHandle)
-
-	waitForChangesReq := &autogen.WaitForChangesReq{
-		StateAttribute:    "StateName",
-		PendingStates:     []string{"IDLE", "UPDATING", "PAUSED"},
-		TargetStates:      []string{},
-		TimeoutSeconds:    600,
-		MinTimeoutSeconds: 30,
-		DelaySeconds:      60,
-		CallParams:        readAPICallParams(state),
-	}
-	if _, err := autogen.WaitForChanges(ctx, waitForChangesReq); err != nil {
-		resp.Diagnostics.AddError("error during delete", err.Error())
-		return
-	}
-
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

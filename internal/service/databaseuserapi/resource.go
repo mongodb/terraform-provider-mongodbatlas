@@ -99,7 +99,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state *TFModel
+	var state TFModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
