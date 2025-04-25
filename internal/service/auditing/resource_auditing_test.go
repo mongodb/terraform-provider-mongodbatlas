@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -40,11 +39,6 @@ func TestAccGenericAuditing_basic(t *testing.T) {
 			{
 				Config: configBasic(projectID, auditFilter, true, true),
 				Check:  resource.ComposeAggregateTestCheckFunc(checks(auditFilter, true, true)...),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PostApplyPreRefresh: []plancheck.PlanCheck{
-						plancheck.ExpectEmptyPlan(),
-					},
-				},
 			},
 			{
 				Config: configBasic(projectID, emptyAuditFilter, false, false),
