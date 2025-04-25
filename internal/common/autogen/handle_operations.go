@@ -142,10 +142,8 @@ func HandleDelete(ctx context.Context, req HandleDeleteReq) {
 		req.Resp.Diagnostics.AddError(errorReadingAPIResponse, err.Error())
 		return
 	}
-	if err := handleWait(ctx, req.Wait, req.Client, req.State); err != nil {
-		req.Resp.Diagnostics.AddError("error waiting for changes", err.Error())
-		return
-	}
+	// don't consider wait errors as it can happen that the resource is already deleted
+	_ = handleWait(ctx, req.Wait, req.Client, req.State)
 }
 
 // handleWait waits until a long-running operation is done if needed.
