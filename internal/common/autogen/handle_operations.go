@@ -3,6 +3,7 @@ package autogen
 import (
 	"context"
 	"io"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
@@ -14,6 +15,16 @@ const (
 	errorProcessingAPIResponse = "error processing API response"
 	errorBuildingAPIRequest    = "error building API request"
 )
+
+type WaitReq struct {
+	CallParams        *config.APICallParams
+	StateAttribute    string
+	PendingStates     []string
+	TargetStates      []string
+	TimeoutSeconds    int
+	MinTimeoutSeconds int
+	DelaySeconds      int
+}
 
 type HandleCreateReq struct {
 	Resp       *resource.CreateResponse
@@ -51,6 +62,23 @@ func HandleCreate(ctx context.Context, req HandleCreateReq) {
 		req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 		return
 	}
+
+	if req.Wait != nil {
+		respBodyWait, err := waitForChanges(ctx, req.Wait, req.Client)
+		if err != nil {
+			req.Resp.Diagnostics.AddError("error waiting for changes", err.Error())
+			return
+		}
+		if err := Unmarshal(respBodyWait, req.Plan); err != nil {
+			req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
+			return
+		}
+		if err := ResolveUnknowns(req.Plan); err != nil {
+			req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
+			return
+		}
+	}
+
 	req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, req.Plan)...)
 }
 
@@ -127,6 +155,23 @@ func HandleUpdate(ctx context.Context, req HandleUpdateReq) {
 		req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 		return
 	}
+
+	if req.Wait != nil {
+		respBodyWait, err := waitForChanges(ctx, req.Wait, req.Client)
+		if err != nil {
+			req.Resp.Diagnostics.AddError("error waiting for changes", err.Error())
+			return
+		}
+		if err := Unmarshal(respBodyWait, req.Plan); err != nil {
+			req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
+			return
+		}
+		if err := ResolveUnknowns(req.Plan); err != nil {
+			req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
+			return
+		}
+	}
+
 	req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, req.Plan)...)
 }
 
@@ -144,9 +189,27 @@ func HandleDelete(ctx context.Context, req HandleDeleteReq) {
 		return
 	}
 	if req.Wait != nil {
-		if _, err := waitForChanges(req.Wait); err != nil {
+		if _, err := waitForChanges(ctx, req.Wait, req.Client); err != nil {
 			req.Resp.Diagnostics.AddError("error waiting for changes", err.Error())
 			return
 		}
 	}
+}
+
+// waitForChanges waits until a long-running operation is done.
+// It returns the latest JSON response from the API so it can be used to update the response state.
+// TODO: This is a basic implementation, it will be replaced in CLOUDP-314960.
+func waitForChanges(ctx context.Context, req *WaitReq, client *config.MongoDBClient) ([]byte, error) {
+	time.Sleep(time.Duration(req.TimeoutSeconds) * time.Second) // TODO: TimeoutSeconds is temporarily used to allow time to destroy the resource until autogen long-running operations are supported in CLOUDP-314960
+
+	apiResp, err := client.UntypedAPICall(ctx, req.CallParams)
+	if err != nil {
+		return nil, err
+	}
+	respBody, err := io.ReadAll(apiResp.Body)
+	apiResp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+	return respBody, nil
 }
