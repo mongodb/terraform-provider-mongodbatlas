@@ -62,23 +62,10 @@ func HandleCreate(ctx context.Context, req HandleCreateReq) {
 		req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 		return
 	}
-
-	if req.Wait != nil {
-		respBodyWait, err := waitForChanges(ctx, req.Wait, req.Client)
-		if err != nil {
-			req.Resp.Diagnostics.AddError("error waiting for changes", err.Error())
-			return
-		}
-		if err := Unmarshal(respBodyWait, req.Plan); err != nil {
-			req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
-			return
-		}
-		if err := ResolveUnknowns(req.Plan); err != nil {
-			req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
-			return
-		}
+	if err := handleWait(ctx, req.Wait, req.Client, req.Plan); err != nil {
+		req.Resp.Diagnostics.AddError("error waiting for changes", err.Error())
+		return
 	}
-
 	req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, req.Plan)...)
 }
 
@@ -115,7 +102,6 @@ func HandleRead(ctx context.Context, req HandleReadReq) {
 		req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 		return
 	}
-
 	req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, req.State)...)
 }
 
@@ -155,23 +141,10 @@ func HandleUpdate(ctx context.Context, req HandleUpdateReq) {
 		req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
 		return
 	}
-
-	if req.Wait != nil {
-		respBodyWait, err := waitForChanges(ctx, req.Wait, req.Client)
-		if err != nil {
-			req.Resp.Diagnostics.AddError("error waiting for changes", err.Error())
-			return
-		}
-		if err := Unmarshal(respBodyWait, req.Plan); err != nil {
-			req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
-			return
-		}
-		if err := ResolveUnknowns(req.Plan); err != nil {
-			req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
-			return
-		}
+	if err := handleWait(ctx, req.Wait, req.Client, req.Plan); err != nil {
+		req.Resp.Diagnostics.AddError("error waiting for changes", err.Error())
+		return
 	}
-
 	req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, req.Plan)...)
 }
 
@@ -188,21 +161,35 @@ func HandleDelete(ctx context.Context, req HandleDeleteReq) {
 		req.Resp.Diagnostics.AddError("error during delete", err.Error())
 		return
 	}
-	if req.Wait != nil {
-		if _, err := waitForChanges(ctx, req.Wait, req.Client); err != nil {
-			req.Resp.Diagnostics.AddError("error waiting for changes", err.Error())
-			return
-		}
+	if err := handleWait(ctx, req.Wait, req.Client, req.State); err != nil {
+		req.Resp.Diagnostics.AddError("error waiting for changes", err.Error())
+		return
 	}
+}
+
+// handleWait waits until a long-running operation is done if needed.
+// It also updates the model with the latest JSON response from the API.
+func handleWait(ctx context.Context, wait *WaitReq, client *config.MongoDBClient, model any) error {
+	if wait == nil {
+		return nil
+	}
+	respBodyWait, err := waitForChanges(ctx, wait, client)
+	if err != nil {
+		return err
+	}
+	if err := Unmarshal(respBodyWait, model); err != nil {
+		return err
+	}
+	return ResolveUnknowns(model)
 }
 
 // waitForChanges waits until a long-running operation is done.
 // It returns the latest JSON response from the API so it can be used to update the response state.
 // TODO: This is a basic implementation, it will be replaced in CLOUDP-314960.
-func waitForChanges(ctx context.Context, req *WaitReq, client *config.MongoDBClient) ([]byte, error) {
-	time.Sleep(time.Duration(req.TimeoutSeconds) * time.Second) // TODO: TimeoutSeconds is temporarily used to allow time to destroy the resource until autogen long-running operations are supported in CLOUDP-314960
+func waitForChanges(ctx context.Context, wait *WaitReq, client *config.MongoDBClient) ([]byte, error) {
+	time.Sleep(time.Duration(wait.TimeoutSeconds) * time.Second) // TODO: TimeoutSeconds is temporarily used to allow time to destroy the resource until autogen long-running operations are supported in CLOUDP-314960
 
-	apiResp, err := client.UntypedAPICall(ctx, req.CallParams)
+	apiResp, err := client.UntypedAPICall(ctx, wait.CallParams)
 	if err != nil {
 		return nil, err
 	}
