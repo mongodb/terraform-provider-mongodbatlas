@@ -1,5 +1,8 @@
 # Module Maintainer - `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`
 
+**Note**: See [Terraform Cluster to Advanced Cluster Migration Module Maintainer Perspective](https://www.youtube.com/watch?v=f-B9sK8n2rY) for a recorded demo of this example.
+
+
 If you own and maintain modules to manage your Terraform resources, the purpose of this example is to demonstrate how a Terraform module definition can migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster` while minimizing impact to its clients. The [other module example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_cluster_to_advanced_cluster/module_user) explains the same process from the module user point of view.
 
 The example contains three module versions which represent the three steps of the migration:
