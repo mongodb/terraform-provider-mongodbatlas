@@ -9,7 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-const ExpectedErrorMsg = "expected format: %s"
+const (
+	errProcessingImportID = "processing import ID"
+	opImport              = "Import"
+	ExpectedErrorMsg      = "expected format: %s"
+)
 
 // HandleImport handles the import operation for Terraform resources.
 // It splits the request ID string by "/" delimiter and maps each part to the corresponding attribute specified in idAttributes.
@@ -17,9 +21,10 @@ const ExpectedErrorMsg = "expected format: %s"
 //   - HandleImport(ctx, []string{"project_id", "name"}, req, resp)
 //   - example import ID would be "5c9d0a239ccf643e6a35ddasdf/myCluster"
 func HandleImport(ctx context.Context, idAttrs []string, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	d := &resp.Diagnostics
 	idAttrsWithValue, err := ProcessImportID(req.ID, idAttrs)
 	if err != nil {
-		resp.Diagnostics.AddError("Error processing import ID", err.Error())
+		addError(d, opImport, errProcessingImportID, err)
 		return
 	}
 	for attrName, value := range idAttrsWithValue {

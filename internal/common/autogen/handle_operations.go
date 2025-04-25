@@ -2,19 +2,27 @@ package autogen
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 const (
-	errorReadingAPIResponse    = "error reading API response"
-	errorProcessingAPIResponse = "error processing API response"
-	errorBuildingAPIRequest    = "error building API request"
+	errBuildingAPIRequest    = "building API request"
+	errCallingAPI            = "calling API"
+	errUnmarshallingResponse = "unmarshalling API response"
+	errResolvingResponse     = "resolving API response"
+	errWaitingForChanges     = "waiting for changes"
+	opCreate                 = "Create"
+	opRead                   = "Read"
+	opUpdate                 = "Update"
+	opDelete                 = "Delete"
 )
 
 type WaitReq struct {
@@ -36,28 +44,29 @@ type HandleCreateReq struct {
 }
 
 func HandleCreate(ctx context.Context, req HandleCreateReq) {
+	d := &req.Resp.Diagnostics
 	reqBody, err := Marshal(req.Plan, false)
 	if err != nil {
-		req.Resp.Diagnostics.AddError(errorBuildingAPIRequest, err.Error())
+		addError(d, opCreate, errBuildingAPIRequest, err)
 		return
 	}
 	respBody, err := callAPIWithBody(ctx, req.Client, req.CallParams, reqBody)
 	if err != nil {
-		req.Resp.Diagnostics.AddError(errorReadingAPIResponse, err.Error())
+		addError(d, opCreate, errCallingAPI, err)
 		return
 	}
 
 	// Use the plan as the base model to set the response state
 	if err := Unmarshal(respBody, req.Plan); err != nil {
-		req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
+		addError(d, opCreate, errUnmarshallingResponse, err)
 		return
 	}
 	if err := ResolveUnknowns(req.Plan); err != nil {
-		req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
+		addError(d, opCreate, errResolvingResponse, err)
 		return
 	}
 	if err := handleWait(ctx, req.Wait, req.Client, req.Plan); err != nil {
-		req.Resp.Diagnostics.AddError("error waiting for changes", err.Error())
+		addError(d, opCreate, errWaitingForChanges, err)
 		return
 	}
 	req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, req.Plan)...)
@@ -71,23 +80,24 @@ type HandleReadReq struct {
 }
 
 func HandleRead(ctx context.Context, req HandleReadReq) {
+	d := &req.Resp.Diagnostics
 	respBody, apiResp, err := callAPIWithoutBody(ctx, req.Client, req.CallParams)
 	if err != nil {
 		if validate.StatusNotFound(apiResp) {
 			req.Resp.State.RemoveResource(ctx)
 			return
 		}
-		req.Resp.Diagnostics.AddError(errorReadingAPIResponse, err.Error())
+		addError(d, opRead, errCallingAPI, err)
 		return
 	}
 
 	// Use the current state as the base model to set the response state
 	if err := Unmarshal(respBody, req.State); err != nil {
-		req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
+		addError(d, opRead, errUnmarshallingResponse, err)
 		return
 	}
 	if err := ResolveUnknowns(req.State); err != nil {
-		req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
+		addError(d, opRead, errResolvingResponse, err)
 		return
 	}
 	req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, req.State)...)
@@ -102,28 +112,29 @@ type HandleUpdateReq struct {
 }
 
 func HandleUpdate(ctx context.Context, req HandleUpdateReq) {
+	d := &req.Resp.Diagnostics
 	reqBody, err := Marshal(req.Plan, true)
 	if err != nil {
-		req.Resp.Diagnostics.AddError(errorBuildingAPIRequest, err.Error())
+		addError(d, opUpdate, errBuildingAPIRequest, err)
 		return
 	}
 	respBody, err := callAPIWithBody(ctx, req.Client, req.CallParams, reqBody)
 	if err != nil {
-		req.Resp.Diagnostics.AddError(errorReadingAPIResponse, err.Error())
+		addError(d, opUpdate, errCallingAPI, err)
 		return
 	}
 
 	// Use the plan as the base model to set the response state
 	if err := Unmarshal(respBody, req.Plan); err != nil {
-		req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
+		addError(d, opUpdate, errUnmarshallingResponse, err)
 		return
 	}
 	if err := ResolveUnknowns(req.Plan); err != nil {
-		req.Resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
+		addError(d, opUpdate, errResolvingResponse, err)
 		return
 	}
 	if err := handleWait(ctx, req.Wait, req.Client, req.Plan); err != nil {
-		req.Resp.Diagnostics.AddError("error waiting for changes", err.Error())
+		addError(d, opUpdate, errWaitingForChanges, err)
 		return
 	}
 	req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, req.Plan)...)
@@ -138,8 +149,9 @@ type HandleDeleteReq struct {
 }
 
 func HandleDelete(ctx context.Context, req HandleDeleteReq) {
+	d := &req.Resp.Diagnostics
 	if _, _, err := callAPIWithoutBody(ctx, req.Client, req.CallParams); err != nil {
-		req.Resp.Diagnostics.AddError(errorReadingAPIResponse, err.Error())
+		addError(d, opDelete, errCallingAPI, err)
 		return
 	}
 	// don't consider wait errors as it can happen that the resource is already deleted
@@ -204,4 +216,8 @@ func callAPIWithoutBody(ctx context.Context, client *config.MongoDBClient, callP
 		return nil, apiResp, err
 	}
 	return respBody, apiResp, nil
+}
+
+func addError(d *diag.Diagnostics, opName, errSummary string, err error) {
+	d.AddError(fmt.Sprintf("Error %s in %s", errSummary, opName), err.Error())
 }
