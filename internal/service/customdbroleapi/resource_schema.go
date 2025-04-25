@@ -82,7 +82,7 @@ type TFActionsModel struct {
 	Action    types.String `tfsdk:"action"`
 	Resources types.List   `tfsdk:"resources"`
 }
-type TFResourcesModel struct {
+type TFActionsResourcesModel struct {
 	Cluster    types.Bool   `tfsdk:"cluster"`
 	Collection types.String `tfsdk:"collection"`
 	Db         types.String `tfsdk:"db"`

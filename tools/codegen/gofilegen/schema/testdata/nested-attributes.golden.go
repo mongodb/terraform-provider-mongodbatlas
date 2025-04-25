@@ -127,11 +127,11 @@ var NestedListAttrObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"double_nested_list_attr": types.ListType, // TODO: missing ElemType, codegen limitation tracked in CLOUDP-311105
 }}
 
-type TFDoubleNestedListAttrModel struct {
+type TFNestedListAttrDoubleNestedListAttrModel struct {
 	StringAttr types.String `tfsdk:"string_attr"`
 }
 
-var DoubleNestedListAttrObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var NestedListAttrDoubleNestedListAttrObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"string_attr": types.StringType,
 }}
 

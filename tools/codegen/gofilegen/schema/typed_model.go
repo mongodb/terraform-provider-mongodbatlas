@@ -19,7 +19,7 @@ func generateTypedModels(attributes codespec.Attributes, name string, isNested, 
 	}
 
 	for i := range attributes {
-		additionalModel := getNestedModel(&attributes[i], withObjTypes)
+		additionalModel := getNestedModel(&attributes[i], name, withObjTypes)
 		if additionalModel != nil {
 			models = append(models, *additionalModel)
 		}
@@ -45,7 +45,7 @@ func generateModelObjType(attrs codespec.Attributes, name string) CodeStatement 
 	}
 }
 
-func getNestedModel(attribute *codespec.Attribute, withObjTypes bool) *CodeStatement {
+func getNestedModel(attribute *codespec.Attribute, ancestorsName string, withObjTypes bool) *CodeStatement {
 	var nested *codespec.NestedAttributeObject
 	if attribute.ListNested != nil {
 		nested = &attribute.ListNested.NestedObject
@@ -62,7 +62,7 @@ func getNestedModel(attribute *codespec.Attribute, withObjTypes bool) *CodeState
 	if nested == nil {
 		return nil
 	}
-	res := generateTypedModels(nested.Attributes, attribute.Name.PascalCase(), true, withObjTypes)
+	res := generateTypedModels(nested.Attributes, ancestorsName+attribute.Name.PascalCase(), true, withObjTypes)
 	return &res
 }
 

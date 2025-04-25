@@ -228,6 +228,37 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 			withObjType:    false,
 			goldenFileName: "no-obj-type-models",
 		},
+		"Multiple nested models with same parent attribute name": {
+			inputModel: codespec.Resource{
+				Name: "test_name",
+				Schema: &codespec.Schema{
+					Attributes: []codespec.Attribute{
+						{
+							Name:                     "first_nested_attr",
+							Description:              admin.PtrString("first nested attribute"),
+							ComputedOptionalRequired: codespec.Optional,
+							ListNested: &codespec.ListNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: []codespec.Attribute{doubleNestedListAttr},
+								},
+							},
+						},
+						{
+							Name:                     "second_nested_attr",
+							Description:              admin.PtrString("second nested attribute"),
+							ComputedOptionalRequired: codespec.Optional,
+							ListNested: &codespec.ListNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: []codespec.Attribute{doubleNestedListAttr},
+								},
+							},
+						},
+					},
+				},
+			},
+			withObjType:    true,
+			goldenFileName: "multiple-nested-models-same-parent-attr-name",
+		},
 	}
 
 	for testName, tc := range testCases {
