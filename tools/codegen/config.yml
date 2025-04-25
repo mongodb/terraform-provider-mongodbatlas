@@ -58,8 +58,74 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
       method: DELETE
     version_header: application/vnd.atlas.2025-03-12+json
-    # read: application/vnd.atlas.2025-03-12+json
-    # create, delete, update: application/vnd.atlas.2024-05-30+json
+
+  project_api:
+    read:
+      path: /api/atlas/v2/groups/{groupId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}
+      method: DELETE
+    schema:
+      aliases:
+        group_id: id # path param name does not match the API response property
+
+  resource_policy_api:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies
+      method: POST
+    update:
+      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
+      method: DELETE
+    schema:
+      aliases:
+        resource_policy_id: id # path param name does not match the API response property
+
+  # stream_instance_api:
+  #   read:
+  #     path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}
+  #     method: GET
+  #   create:
+  #     path: /api/atlas/v2/groups/{groupId}/streams
+  #     method: POST
+  #   update:
+  #     path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}
+  #     method: PATCH
+  #   delete:
+  #     path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}
+  #     method: DELETE
+  #   schema:
+  #     aliases:
+  #       tenant_name: name # path param name does not match the API request property
+
+  # cluster_api:
+  #   read:
+  #     path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
+  #     method: GET
+  #   create:
+  #     path: /api/atlas/v2/groups/{groupId}/clusters
+  #     method: POST
+  #   update:
+  #     path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
+  #     method: PATCH
+  #   delete:
+  #     path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
+  #     method: DELETE
+  #   schema:
+  #     aliases:
+  #       cluster_name: name # path param name does not match the API request property
 
   # search_deployment:
   #   read:
