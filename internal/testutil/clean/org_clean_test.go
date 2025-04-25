@@ -34,6 +34,8 @@ var (
 		"cfn-test-bot-",
 		"test-acc-tf-p-",
 	}
+	// keptPrefixes has the prefix of the projects that we want to delete their resources but keep the projects themselves.
+	// Useful when a feature flag or cloud provider is configured outside of the test
 	keptPrefixes = []string{
 		"test-acc-tf-p-keep",
 	}
@@ -82,29 +84,35 @@ func TestCleanProjectAndClusters(t *testing.T) {
 	projects := readAllProjects(t.Context(), t, client)
 	projectsBefore := len(projects)
 	t.Logf("found %d projects (DRY_RUN=%t)", projectsBefore, dryRun)
-	projectsToDelete := map[string]string{}
+	projectsToClean := map[string]string{}
 	projectInfos := []string{}
 	for _, p := range projects {
 		skipReason := projectSkipReason(&p, skipProjectsAfter, onlyZeroClusters)
 		projectName := p.GetName()
+		projectID := p.GetId()
 		if skipReason != "" {
-			t.Logf("skip project %s, reason: %s", projectName, skipReason)
+			t.Logf("skip project %s (%s), reason: %s", projectName, projectID, skipReason)
 			continue
 		}
 		projectInfos = append(projectInfos, fmt.Sprintf("Project created at %s name %s (%s)", p.GetCreated().Format(time.RFC3339), projectName, p.GetId()))
-		projectID := p.GetId()
-		projectsToDelete[projectName] = projectID
+		projectsToClean[projectName] = projectID
 	}
-	t.Logf("will try to delete %d projects:", len(projectsToDelete))
+	t.Logf("deleting project resources and optionally delete projects for %d projects", len(projectsToClean))
 	slices.Sort(projectInfos)
 	t.Log(strings.Join(projectInfos, "\n"))
 	var deleteErrors int
-	for name, projectID := range projectsToDelete {
+	var emptyProjectCount int
+	for name, projectID := range projectsToClean {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			changes := removeProjectResources(t.Context(), t, dryRun, client, projectID)
 			if changes != "" {
 				t.Logf("project %s %s", name, changes)
+			}
+			if skipProjectDelete(name) {
+				t.Logf("keep project empty, but no delete %s (%s)", name, projectID)
+				emptyProjectCount++
+				return
 			}
 			var err error
 			for i := range runRetries {
@@ -131,9 +139,8 @@ func TestCleanProjectAndClusters(t *testing.T) {
 		})
 	}
 	t.Cleanup(func() {
-		//nolint:usetesting // reason: using context.Background() here intentionally because t.Context() is canceled at cleanup
-		projectsAfter := readAllProjects(context.Background(), t, client)
-		t.Logf("SUMMARY\nProjects changed from %d to %d\ndelete_errors=%d\nDRY_RUN=%t", projectsBefore, len(projectsAfter), deleteErrors, dryRun)
+		projectsAfter := readAllProjects(context.Background(), t, client) //nolint:usetesting // reason: using context.Background() here intentionally because t.Context() is canceled at cleanup
+		t.Logf("SUMMARY\nProjects changed from %d to %d\ndelete_errors=%d\nempty_project_count=%d\nDRY_RUN=%t", projectsBefore, len(projectsAfter), deleteErrors, emptyProjectCount, dryRun)
 	})
 }
 
@@ -204,11 +211,6 @@ func removeProjectResources(ctx context.Context, t *testing.T, dryRun bool, clie
 }
 
 func projectSkipReason(p *admin.Group, skipProjectsAfter time.Time, onlyEmpty bool) string {
-	for _, blessedPrefix := range keptPrefixes {
-		if strings.HasPrefix(p.GetName(), blessedPrefix) {
-			return "blessed prefix: " + blessedPrefix
-		}
-	}
 	usesBotPrefix := false
 	for _, botPrefix := range botProjectPrefixes {
 		if strings.HasPrefix(p.GetName(), botPrefix) {
@@ -226,6 +228,15 @@ func projectSkipReason(p *admin.Group, skipProjectsAfter time.Time, onlyEmpty bo
 		return "has clusters"
 	}
 	return ""
+}
+
+func skipProjectDelete(name string) bool {
+	for _, keepPrefix := range keptPrefixes {
+		if strings.HasPrefix(name, keepPrefix) {
+			return true
+		}
+	}
+	return false
 }
 
 func removeClusters(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
