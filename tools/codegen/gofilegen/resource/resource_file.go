@@ -19,10 +19,49 @@ func GenerateGoCode(input *codespec.Resource) string {
 			Update:        toCodeTemplateOpModel(input.Operations.Update),
 			Read:          toCodeTemplateOpModel(input.Operations.Read),
 			Delete:        toCodeTemplateOpModel(input.Operations.Delete),
-			Wait:          toCodeTemplateWaitModel(input.Operations.Wait),
 		},
 		ImportIDAttributes: getIDAttributes(input.Operations.Read.Path),
 	}
+	// TODO: remove these hardcoded values after ticket to read from config file is done
+	switch tmplInputs.ResourceName {
+	case "push_based_log_export_api":
+		tmplInputs.APIOperations.Create.Wait = &codetemplate.Wait{
+			StateAttribute:    "State",
+			PendingStates:     []string{"INITIATING", "BUCKET_VERIFIED"},
+			TargetStates:      []string{"ACTIVE"},
+			TimeoutSeconds:    30, // corresponding resource value is 15m, using temporarily a lower value as we currently wait this time
+			MinTimeoutSeconds: 60,
+			DelaySeconds:      10,
+		}
+		tmplInputs.APIOperations.Update.Wait = tmplInputs.APIOperations.Create.Wait
+		tmplInputs.APIOperations.Delete.Wait = &codetemplate.Wait{
+			StateAttribute:    "State",
+			PendingStates:     []string{"ACTIVE", "INITIATING", "BUCKET_VERIFIED"},
+			TargetStates:      []string{"UNCONFIGURED"},
+			TimeoutSeconds:    30, // corresponding resource value is 15m, using temporarily a lower value as we currently wait this time
+			MinTimeoutSeconds: 60,
+			DelaySeconds:      10,
+		}
+	case "search_deployment_api":
+		tmplInputs.APIOperations.Create.Wait = &codetemplate.Wait{
+			StateAttribute:    "StateName",
+			PendingStates:     []string{"UPDATING", "PAUSED"},
+			TargetStates:      []string{"IDLE"},
+			TimeoutSeconds:    10 * 60, // corresponding resource value is 3h, using temporarily a lower value as we currently wait this time
+			MinTimeoutSeconds: 60,
+			DelaySeconds:      60,
+		}
+		tmplInputs.APIOperations.Update.Wait = tmplInputs.APIOperations.Create.Wait
+		tmplInputs.APIOperations.Delete.Wait = &codetemplate.Wait{
+			StateAttribute:    "StateName",
+			PendingStates:     []string{"IDLE", "UPDATING", "PAUSED"},
+			TargetStates:      []string{},
+			TimeoutSeconds:    10 * 60, // corresponding resource value is 3h, using temporarily a lower value as we currently wait this time
+			MinTimeoutSeconds: 30,
+			DelaySeconds:      60,
+		}
+	}
+
 	result := codetemplate.ApplyResourceFileTemplate(&tmplInputs)
 
 	formattedResult, err := format.Source(result.Bytes())
@@ -37,15 +76,6 @@ func toCodeTemplateOpModel(op codespec.APIOperation) codetemplate.Operation {
 		Path:       op.Path,
 		HTTPMethod: op.HTTPMethod,
 		PathParams: getPathParams(op.Path),
-	}
-}
-
-func toCodeTemplateWaitModel(wait *codespec.Wait) *codetemplate.Wait {
-	if wait == nil {
-		return nil
-	}
-	return &codetemplate.Wait{
-		TimeoutSeconds: wait.TimeoutSeconds,
 	}
 }
 

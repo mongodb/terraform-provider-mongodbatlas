@@ -27,7 +27,6 @@ type ResourceFileInputs struct {
 }
 
 type APIOperations struct {
-	Wait          *Wait
 	VersionHeader string
 	Create        Operation
 	Read          Operation
@@ -36,13 +35,19 @@ type APIOperations struct {
 }
 
 type Operation struct {
+	Wait       *Wait
 	Path       string
 	HTTPMethod string
 	PathParams []Param
 }
 
 type Wait struct {
-	TimeoutSeconds int
+	StateAttribute    string
+	PendingStates     []string
+	TargetStates      []string
+	TimeoutSeconds    int
+	MinTimeoutSeconds int
+	DelaySeconds      int
 }
 type Param struct {
 	PascalCaseName string

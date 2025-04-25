@@ -4,25 +4,17 @@ package pushbasedlogexportapi
 
 import (
 	"context"
-	"io"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
 
-const (
-	apiVersionHeader           = "application/vnd.atlas.2023-01-01+json"
-	errorReadingAPIResponse    = "error reading API response"
-	errorProcessingAPIResponse = "error processing API response"
-	errorBuildingAPIRequest    = "error building API request"
-)
+const apiVersionHeader = "application/vnd.atlas.2023-01-01+json"
 
 func Resource() resource.Resource {
 	return &rs{
@@ -47,45 +39,31 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	reqBody, err := autogen.Marshal(&plan, false)
-	if err != nil {
-		resp.Diagnostics.AddError(errorBuildingAPIRequest, err.Error())
-		return
-	}
-
 	pathParams := map[string]string{
 		"groupId": plan.GroupId.ValueString(),
 	}
-	apiResp, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
+	callParams := config.APICallParams{
 		VersionHeader: apiVersionHeader,
 		RelativePath:  "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
 		PathParams:    pathParams,
 		Method:        "POST",
-		Body:          reqBody,
-	})
-
-	if err != nil {
-		resp.Diagnostics.AddError("error during create operation", err.Error())
-		return
 	}
-
-	respBody, err := io.ReadAll(apiResp.Body)
-	apiResp.Body.Close()
-	if err != nil {
-		resp.Diagnostics.AddError(errorReadingAPIResponse, err.Error())
-		return
+	reqHandle := autogen.HandleCreateReq{
+		Resp:       resp,
+		Client:     r.Client,
+		Plan:       &plan,
+		CallParams: &callParams,
+		Wait: &autogen.WaitReq{
+			StateAttribute:    "State",
+			PendingStates:     []string{"INITIATING", "BUCKET_VERIFIED"},
+			TargetStates:      []string{"ACTIVE"},
+			TimeoutSeconds:    30,
+			MinTimeoutSeconds: 60,
+			DelaySeconds:      10,
+			CallParams:        readAPICallParams(&plan),
+		},
 	}
-
-	// Use the plan as the base model to set the response state
-	if err := autogen.Unmarshal(respBody, &plan); err != nil {
-		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
-	}
-	if err := autogen.ResolveUnknowns(&plan); err != nil {
-		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	autogen.HandleCreate(ctx, reqHandle)
 }
 
 func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -94,42 +72,13 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	pathParams := map[string]string{
-		"groupId": state.GroupId.ValueString(),
+	reqHandle := autogen.HandleReadReq{
+		Resp:       resp,
+		Client:     r.Client,
+		State:      &state,
+		CallParams: readAPICallParams(&state),
 	}
-	apiResp, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
-		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
-		PathParams:    pathParams,
-		Method:        "GET",
-	})
-
-	if err != nil {
-		if validate.StatusNotFound(apiResp) {
-			resp.State.RemoveResource(ctx)
-			return
-		}
-		resp.Diagnostics.AddError("error during get operation", err.Error())
-		return
-	}
-
-	respBody, err := io.ReadAll(apiResp.Body)
-	apiResp.Body.Close()
-	if err != nil {
-		resp.Diagnostics.AddError(errorReadingAPIResponse, err.Error())
-		return
-	}
-
-	// Use the current state as the base model to set the response state
-	if err := autogen.Unmarshal(respBody, &state); err != nil {
-		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
-	}
-	if err := autogen.ResolveUnknowns(&state); err != nil {
-		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	autogen.HandleRead(ctx, reqHandle)
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -138,72 +87,79 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	reqBody, err := autogen.Marshal(&plan, true)
-	if err != nil {
-		resp.Diagnostics.AddError(errorBuildingAPIRequest, err.Error())
-		return
-	}
-
 	pathParams := map[string]string{
 		"groupId": plan.GroupId.ValueString(),
 	}
-	apiResp, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
+	callParams := config.APICallParams{
 		VersionHeader: apiVersionHeader,
 		RelativePath:  "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
 		PathParams:    pathParams,
 		Method:        "PATCH",
-		Body:          reqBody,
-	})
-
-	if err != nil {
-		resp.Diagnostics.AddError("error during update operation", err.Error())
-		return
 	}
-
-	respBody, err := io.ReadAll(apiResp.Body)
-	apiResp.Body.Close()
-	if err != nil {
-		resp.Diagnostics.AddError(errorReadingAPIResponse, err.Error())
-		return
+	reqHandle := autogen.HandleUpdateReq{
+		Resp:       resp,
+		Client:     r.Client,
+		Plan:       &plan,
+		CallParams: &callParams,
+		Wait: &autogen.WaitReq{
+			StateAttribute:    "State",
+			PendingStates:     []string{"INITIATING", "BUCKET_VERIFIED"},
+			TargetStates:      []string{"ACTIVE"},
+			TimeoutSeconds:    30,
+			MinTimeoutSeconds: 60,
+			DelaySeconds:      10,
+			CallParams:        readAPICallParams(&plan),
+		},
 	}
-
-	// Use the plan as the base model to set the response state
-	if err := autogen.Unmarshal(respBody, &plan); err != nil {
-		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
-	}
-	if err := autogen.ResolveUnknowns(&plan); err != nil {
-		resp.Diagnostics.AddError(errorProcessingAPIResponse, err.Error())
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	autogen.HandleUpdate(ctx, reqHandle)
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state *TFModel
+	var state TFModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	pathParams := map[string]string{
 		"groupId": state.GroupId.ValueString(),
 	}
-	if _, err := r.Client.UntypedAPICall(ctx, &config.APICallParams{
+	callParams := config.APICallParams{
 		VersionHeader: apiVersionHeader,
 		RelativePath:  "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
 		PathParams:    pathParams,
 		Method:        "DELETE",
-	}); err != nil {
-		resp.Diagnostics.AddError("error during delete", err.Error())
-		return
 	}
-
-	time.Sleep(30 * time.Second) // TODO: remove when autogen long-running operations are supported in CLOUDP-314960
-
+	reqHandle := autogen.HandleDeleteReq{
+		Resp:       resp,
+		Client:     r.Client,
+		State:      &state,
+		CallParams: &callParams,
+		Wait: &autogen.WaitReq{
+			StateAttribute:    "State",
+			PendingStates:     []string{"ACTIVE", "INITIATING", "BUCKET_VERIFIED"},
+			TargetStates:      []string{"UNCONFIGURED"},
+			TimeoutSeconds:    30,
+			MinTimeoutSeconds: 60,
+			DelaySeconds:      10,
+			CallParams:        readAPICallParams(&state),
+		},
+	}
+	autogen.HandleDelete(ctx, reqHandle)
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	idAttributes := []string{"group_id"}
-	autogen.GenericImportOperation(ctx, idAttributes, req, resp)
+	autogen.HandleImport(ctx, idAttributes, req, resp)
+}
+
+func readAPICallParams(state *TFModel) *config.APICallParams {
+	pathParams := map[string]string{
+		"groupId": state.GroupId.ValueString(),
+	}
+	return &config.APICallParams{
+		VersionHeader: apiVersionHeader,
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
+		PathParams:    pathParams,
+		Method:        "GET",
+	}
 }

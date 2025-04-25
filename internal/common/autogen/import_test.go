@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGenericImportOperation(t *testing.T) {
+func TestHandleImport(t *testing.T) {
 	testCases := []struct {
 		expectedError *string
 		expectedAttrs map[string]string
