@@ -3,6 +3,7 @@ package autogen
 import (
 	"context"
 	"io"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -40,14 +41,7 @@ func HandleCreate(ctx context.Context, req HandleCreateReq) {
 		req.Resp.Diagnostics.AddError(errorBuildingAPIRequest, err.Error())
 		return
 	}
-	req.CallParams.Body = reqBody
-	apiResp, err := req.Client.UntypedAPICall(ctx, req.CallParams)
-	if err != nil {
-		req.Resp.Diagnostics.AddError("error during create operation", err.Error())
-		return
-	}
-	respBody, err := io.ReadAll(apiResp.Body)
-	apiResp.Body.Close()
+	respBody, err := callAPIWithBody(ctx, req.Client, req.CallParams, reqBody)
 	if err != nil {
 		req.Resp.Diagnostics.AddError(errorReadingAPIResponse, err.Error())
 		return
@@ -77,18 +71,12 @@ type HandleReadReq struct {
 }
 
 func HandleRead(ctx context.Context, req HandleReadReq) {
-	apiResp, err := req.Client.UntypedAPICall(ctx, req.CallParams)
+	respBody, apiResp, err := callAPIWithoutBody(ctx, req.Client, req.CallParams)
 	if err != nil {
 		if validate.StatusNotFound(apiResp) {
 			req.Resp.State.RemoveResource(ctx)
 			return
 		}
-		req.Resp.Diagnostics.AddError("error during get operation", err.Error())
-		return
-	}
-	respBody, err := io.ReadAll(apiResp.Body)
-	apiResp.Body.Close()
-	if err != nil {
 		req.Resp.Diagnostics.AddError(errorReadingAPIResponse, err.Error())
 		return
 	}
@@ -119,14 +107,7 @@ func HandleUpdate(ctx context.Context, req HandleUpdateReq) {
 		req.Resp.Diagnostics.AddError(errorBuildingAPIRequest, err.Error())
 		return
 	}
-	req.CallParams.Body = reqBody
-	apiResp, err := req.Client.UntypedAPICall(ctx, req.CallParams)
-	if err != nil {
-		req.Resp.Diagnostics.AddError("error during update operation", err.Error())
-		return
-	}
-	respBody, err := io.ReadAll(apiResp.Body)
-	apiResp.Body.Close()
+	respBody, err := callAPIWithBody(ctx, req.Client, req.CallParams, reqBody)
 	if err != nil {
 		req.Resp.Diagnostics.AddError(errorReadingAPIResponse, err.Error())
 		return
@@ -157,8 +138,8 @@ type HandleDeleteReq struct {
 }
 
 func HandleDelete(ctx context.Context, req HandleDeleteReq) {
-	if _, err := req.Client.UntypedAPICall(ctx, req.CallParams); err != nil {
-		req.Resp.Diagnostics.AddError("error during delete", err.Error())
+	if _, _, err := callAPIWithoutBody(ctx, req.Client, req.CallParams); err != nil {
+		req.Resp.Diagnostics.AddError(errorReadingAPIResponse, err.Error())
 		return
 	}
 	if err := handleWait(ctx, req.Wait, req.Client, req.State); err != nil {
@@ -173,11 +154,14 @@ func handleWait(ctx context.Context, wait *WaitReq, client *config.MongoDBClient
 	if wait == nil {
 		return nil
 	}
-	respBodyWait, err := waitForChanges(ctx, wait, client)
+	respBody, err := waitForChanges(ctx, wait, client)
 	if err != nil {
 		return err
 	}
-	if err := Unmarshal(respBodyWait, model); err != nil {
+	if respBody == nil {
+		return nil
+	}
+	if err := Unmarshal(respBody, model); err != nil {
 		return err
 	}
 	return ResolveUnknowns(model)
@@ -188,8 +172,15 @@ func handleWait(ctx context.Context, wait *WaitReq, client *config.MongoDBClient
 // TODO: This is a basic implementation, it will be replaced in CLOUDP-314960.
 func waitForChanges(ctx context.Context, wait *WaitReq, client *config.MongoDBClient) ([]byte, error) {
 	time.Sleep(time.Duration(wait.TimeoutSeconds) * time.Second) // TODO: TimeoutSeconds is temporarily used to allow time to destroy the resource until autogen long-running operations are supported in CLOUDP-314960
+	respBody, _, err := callAPIWithoutBody(ctx, client, wait.CallParams)
+	return respBody, err
+}
 
-	apiResp, err := client.UntypedAPICall(ctx, wait.CallParams)
+// callAPIWithBody makes a request to the API with the given request body and returns the response body.
+// It is used for POST, PUT, and PATCH requests where a request body is required.
+func callAPIWithBody(ctx context.Context, client *config.MongoDBClient, callParams *config.APICallParams, reqBody []byte) ([]byte, error) {
+	callParams.Body = reqBody
+	apiResp, err := client.UntypedAPICall(ctx, callParams)
 	if err != nil {
 		return nil, err
 	}
@@ -199,4 +190,20 @@ func waitForChanges(ctx context.Context, wait *WaitReq, client *config.MongoDBCl
 		return nil, err
 	}
 	return respBody, nil
+}
+
+// callAPIWithoutBody makes a request to the API without a request body and returns the response body.
+// It is used for GET or DELETE requests where no request body is required.
+func callAPIWithoutBody(ctx context.Context, client *config.MongoDBClient, callParams *config.APICallParams) ([]byte, *http.Response, error) {
+	callParams.Body = nil
+	apiResp, err := client.UntypedAPICall(ctx, callParams)
+	if err != nil {
+		return nil, apiResp, err
+	}
+	respBody, err := io.ReadAll(apiResp.Body)
+	apiResp.Body.Close()
+	if err != nil {
+		return nil, apiResp, err
+	}
+	return respBody, apiResp, nil
 }
