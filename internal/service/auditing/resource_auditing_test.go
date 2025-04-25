@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -19,7 +20,15 @@ const (
 func TestAccGenericAuditing_basic(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
-		auditFilter = "{ 'atype': 'authenticate', 'param': {   'user': 'auditAdmin',   'db': 'admin',   'mechanism': 'SCRAM-SHA-1' }}"
+		auditFilter = `{
+			"param": {
+				"mechanism": "SCRAM-SHA-1",
+				"db":       "admin",
+				"user":     "auditAdmin"
+			},
+			"atype": "authenticate"
+		}`
+		emptyAuditFilter = `{}`
 	)
 
 	// Serial so it doesn't conflict with TestMigGenericAuditing_basic
@@ -31,10 +40,15 @@ func TestAccGenericAuditing_basic(t *testing.T) {
 			{
 				Config: configBasic(projectID, auditFilter, true, true),
 				Check:  resource.ComposeAggregateTestCheckFunc(checks(auditFilter, true, true)...),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PostApplyPreRefresh: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
 			},
 			{
-				Config: configBasic(projectID, "{}", false, false),
-				Check:  resource.ComposeAggregateTestCheckFunc(checks("{}", false, false)...),
+				Config: configBasic(projectID, emptyAuditFilter, false, false),
+				Check:  resource.ComposeAggregateTestCheckFunc(checks(emptyAuditFilter, false, false)...),
 			},
 			{
 				ResourceName:            resourceName,
@@ -89,10 +103,15 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 }
 
 func configBasic(projectID, auditFilter string, auditAuth, enabled bool) string {
+	filterValue := fmt.Sprintf("%q", auditFilter)
+	if auditFilter != "{}" {
+		filterValue = fmt.Sprintf("<<EOF\n%s\nEOF", auditFilter)
+	}
+
 	return fmt.Sprintf(`
 		resource "mongodbatlas_auditing" "test" {
 			project_id                  = %[1]q
-			audit_filter                = %[2]q
+			audit_filter                = %[2]s
 			audit_authorization_success = %[3]t
 			enabled                     = %[4]t
 		}
@@ -100,7 +119,7 @@ func configBasic(projectID, auditFilter string, auditAuth, enabled bool) string 
 		data "mongodbatlas_auditing" "test" {
 			project_id = mongodbatlas_auditing.test.id
 		}		
-	`, projectID, auditFilter, auditAuth, enabled)
+	`, projectID, filterValue, auditAuth, enabled)
 }
 
 func checks(auditFilter string, auditAuth, enabled bool) []resource.TestCheckFunc {
