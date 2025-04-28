@@ -27,7 +27,7 @@ func GenerateGoCode(input *codespec.Resource) string {
 	switch tmplInputs.ResourceName {
 	case "push_based_log_export_api":
 		tmplInputs.APIOperations.Create.Wait = &codetemplate.Wait{
-			StateAttribute:    "State",
+			StateAttribute:    "state",
 			PendingStates:     []string{"INITIATING", "BUCKET_VERIFIED"},
 			TargetStates:      []string{"ACTIVE"},
 			TimeoutSeconds:    15 * 60,
@@ -36,7 +36,7 @@ func GenerateGoCode(input *codespec.Resource) string {
 		}
 		tmplInputs.APIOperations.Update.Wait = tmplInputs.APIOperations.Create.Wait
 		tmplInputs.APIOperations.Delete.Wait = &codetemplate.Wait{
-			StateAttribute:    "State",
+			StateAttribute:    "state",
 			PendingStates:     []string{"ACTIVE", "INITIATING", "BUCKET_VERIFIED"},
 			TargetStates:      []string{"UNCONFIGURED", retrystrategy.RetryStrategyDeletedState}, // DELETED is a special state value when API returns 404 or empty object
 			TimeoutSeconds:    15 * 60,
@@ -45,7 +45,7 @@ func GenerateGoCode(input *codespec.Resource) string {
 		}
 	case "search_deployment_api":
 		tmplInputs.APIOperations.Create.Wait = &codetemplate.Wait{
-			StateAttribute:    "StateName",
+			StateAttribute:    "stateName",
 			PendingStates:     []string{"UPDATING", "PAUSED"},
 			TargetStates:      []string{"IDLE"},
 			TimeoutSeconds:    3 * 60 * 60,
@@ -54,7 +54,7 @@ func GenerateGoCode(input *codespec.Resource) string {
 		}
 		tmplInputs.APIOperations.Update.Wait = tmplInputs.APIOperations.Create.Wait
 		tmplInputs.APIOperations.Delete.Wait = &codetemplate.Wait{
-			StateAttribute:    "StateName",
+			StateAttribute:    "stateName",
 			PendingStates:     []string{"IDLE", "UPDATING", "PAUSED"},
 			TargetStates:      []string{retrystrategy.RetryStrategyDeletedState}, // DELETED is a special state value when API returns 404 or empty object
 			TimeoutSeconds:    3 * 60 * 60,

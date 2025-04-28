@@ -55,7 +55,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		Plan:       &plan,
 		CallParams: &callParams,
 		Wait: &autogen.WaitReq{
-			StateAttribute:    "StateName",
+			StateAttribute:    "stateName",
 			PendingStates:     []string{"UPDATING", "PAUSED"},
 			TargetStates:      []string{"IDLE"},
 			TimeoutSeconds:    10800,
@@ -104,7 +104,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		Plan:       &plan,
 		CallParams: &callParams,
 		Wait: &autogen.WaitReq{
-			StateAttribute:    "StateName",
+			StateAttribute:    "stateName",
 			PendingStates:     []string{"UPDATING", "PAUSED"},
 			TargetStates:      []string{"IDLE"},
 			TimeoutSeconds:    10800,
@@ -138,7 +138,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		State:      &state,
 		CallParams: &callParams,
 		Wait: &autogen.WaitReq{
-			StateAttribute:    "StateName",
+			StateAttribute:    "stateName",
 			PendingStates:     []string{"IDLE", "UPDATING", "PAUSED"},
 			TargetStates:      []string{"DELETED"},
 			TimeoutSeconds:    10800,
