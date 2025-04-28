@@ -19,7 +19,7 @@ resource "mongodbatlas_stream_connection" "test" {
 }
 ```
 
-### Example Kafka Plaintext Connection
+### Example Kafka SASL Plaintext Connection
 
 ```terraform
 resource "mongodbatlas_stream_connection" "test" {
@@ -33,7 +33,7 @@ resource "mongodbatlas_stream_connection" "test" {
         password = "somepassword"
     }
     security = {
-        protocol = "PLAINTEXT"
+        protocol = "SASL_PLAINTEXT"
     }
     config = {
         "auto.offset.reset": "latest"
@@ -42,7 +42,7 @@ resource "mongodbatlas_stream_connection" "test" {
 }    
 ```
 
-### Example Kafka SSL Connection
+### Example Kafka SASL SSL Connection
 
 ```terraform
 resource "mongodbatlas_stream_connection" "test" {
@@ -56,7 +56,7 @@ resource "mongodbatlas_stream_connection" "test" {
         password = "somepassword"
     }
     security = {
-        protocol = "SSL"
+        protocol = "SASL_SSL"
         broker_public_certificate = "-----BEGIN CERTIFICATE-----<CONTENT>-----END CERTIFICATE-----"
     }
     config = {
