@@ -64,6 +64,9 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrListListString    types.List   `tfsdk:"attr_list_list_string"`
 		AttrSetListObj        types.Set    `tfsdk:"attr_set_list_obj"`
 		AttrListObjKnown      types.List   `tfsdk:"attr_list_obj_known"`
+		AttrMapSimple         types.Map    `tfsdk:"attr_map_simple"`
+		AttrMapSimpleExisting types.Map    `tfsdk:"attr_map_simple_existing"`
+		AttrMapObj            types.Map    `tfsdk:"attr_map_obj"`
 	}
 	model := modelst{
 		AttrObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
@@ -92,6 +95,12 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 				"attr_bool":   types.BoolValue(true),
 			}),
 		}),
+		AttrMapSimple: types.MapNull(types.StringType),
+		AttrMapSimpleExisting: types.MapValueMust(types.StringType, map[string]attr.Value{
+			"existing":       types.StringValue("valexisting"),
+			"existingCHANGE": types.StringValue("before"),
+		}),
+		AttrMapObj: types.MapUnknown(objTypeTest),
 	}
 	// attrUnexisting is ignored because it is in JSON but not in the model, no error is returned
 	const (
@@ -195,7 +204,29 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 						"attrString": "val2",
 						"attrInt": 2
 					}
-				]
+				],
+				"attrMapSimple": {
+					"keyOne": "val1",
+					"KeyTwo": "val2"
+				},
+				"attrMapSimpleExisting": {
+					"key": "val",
+					"existingCHANGE": "after"
+				},
+				"attrMapObj": {
+					"obj1": {
+						"attrString": "str1",
+						"attrInt": 11,
+						"attrFloat": 11.1,
+						"attrBool": false
+					},
+					"obj2": {			
+						"attrString": "str2",
+						"attrInt": 22,
+						"attrFloat": 22.2,		
+						"attrBool": true		
+					}
+				}
 			}
 		`
 	)
@@ -318,6 +349,29 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 				"attr_string": types.StringValue("val2"),
 				"attr_int":    types.Int64Value(2),
 				"attr_float":  types.Float64Value(1.1),
+				"attr_bool":   types.BoolValue(true),
+			}),
+		}),
+		AttrMapSimple: types.MapValueMust(types.StringType, map[string]attr.Value{
+			"keyOne": types.StringValue("val1"),
+			"KeyTwo": types.StringValue("val2"), // don't change the key case when it's a map
+		}),
+		AttrMapSimpleExisting: types.MapValueMust(types.StringType, map[string]attr.Value{
+			"key":            types.StringValue("val"),
+			"existing":       types.StringValue("valexisting"), // existing map values are kept
+			"existingCHANGE": types.StringValue("after"),       // existing map values are changed if in JSON
+		}),
+		AttrMapObj: types.MapValueMust(objTypeTest, map[string]attr.Value{
+			"obj1": types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
+				"attr_string": types.StringValue("str1"),
+				"attr_int":    types.Int64Value(11),
+				"attr_float":  types.Float64Value(11.1),
+				"attr_bool":   types.BoolValue(false),
+			}),
+			"obj2": types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
+				"attr_string": types.StringValue("str2"),
+				"attr_int":    types.Int64Value(22),
+				"attr_float":  types.Float64Value(22.2),
 				"attr_bool":   types.BoolValue(true),
 			}),
 		}),
@@ -473,29 +527,6 @@ func TestUnmarshalUnsupportedModel(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			assert.Error(t, autogen.Unmarshal([]byte(tc.responseJSON), tc.model))
-		})
-	}
-}
-
-// TestUnmarshalUnsupportedResponse has JSON response types not supported yet.
-// It will be updated when we add support for them.
-func TestUnmarshalUnsupportedResponse(t *testing.T) {
-	testCases := map[string]struct {
-		model        any
-		responseJSON string
-		errorStr     string
-	}{
-		"JSON maps not supported yet": {
-			model: &struct {
-				AttrMap types.Map `tfsdk:"attr_map"`
-			}{},
-			responseJSON: `{"attrMap": {"key": "value"}}`,
-			errorStr:     "unmarshal of attribute attr_map expects type MapType but got Object with value: map[key:value]",
-		},
-	}
-	for name, tc := range testCases {
-		t.Run(name, func(t *testing.T) {
-			assert.ErrorContains(t, autogen.Unmarshal([]byte(tc.responseJSON), tc.model), tc.errorStr)
 		})
 	}
 }
