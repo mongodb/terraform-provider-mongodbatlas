@@ -4,6 +4,7 @@ import (
 	"go/format"
 	"regexp"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/codetemplate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
@@ -29,7 +30,7 @@ func GenerateGoCode(input *codespec.Resource) string {
 			StateAttribute:    "State",
 			PendingStates:     []string{"INITIATING", "BUCKET_VERIFIED"},
 			TargetStates:      []string{"ACTIVE"},
-			TimeoutSeconds:    30, // corresponding resource value is 15m, using temporarily a lower value as we currently wait this time
+			TimeoutSeconds:    15 * 60,
 			MinTimeoutSeconds: 60,
 			DelaySeconds:      10,
 		}
@@ -37,8 +38,8 @@ func GenerateGoCode(input *codespec.Resource) string {
 		tmplInputs.APIOperations.Delete.Wait = &codetemplate.Wait{
 			StateAttribute:    "State",
 			PendingStates:     []string{"ACTIVE", "INITIATING", "BUCKET_VERIFIED"},
-			TargetStates:      []string{"UNCONFIGURED"},
-			TimeoutSeconds:    30, // corresponding resource value is 15m, using temporarily a lower value as we currently wait this time
+			TargetStates:      []string{"UNCONFIGURED", retrystrategy.RetryStrategyDeletedState}, // DELETED is a special state value when API returns 404 or empty object
+			TimeoutSeconds:    15 * 60,
 			MinTimeoutSeconds: 60,
 			DelaySeconds:      10,
 		}
@@ -47,7 +48,7 @@ func GenerateGoCode(input *codespec.Resource) string {
 			StateAttribute:    "StateName",
 			PendingStates:     []string{"UPDATING", "PAUSED"},
 			TargetStates:      []string{"IDLE"},
-			TimeoutSeconds:    10 * 60, // corresponding resource value is 3h, using temporarily a lower value as we currently wait this time
+			TimeoutSeconds:    3 * 60 * 60,
 			MinTimeoutSeconds: 60,
 			DelaySeconds:      60,
 		}
@@ -55,8 +56,8 @@ func GenerateGoCode(input *codespec.Resource) string {
 		tmplInputs.APIOperations.Delete.Wait = &codetemplate.Wait{
 			StateAttribute:    "StateName",
 			PendingStates:     []string{"IDLE", "UPDATING", "PAUSED"},
-			TargetStates:      []string{},
-			TimeoutSeconds:    10 * 60, // corresponding resource value is 3h, using temporarily a lower value as we currently wait this time
+			TargetStates:      []string{retrystrategy.RetryStrategyDeletedState}, // DELETED is a special state value when API returns 404 or empty object
+			TimeoutSeconds:    3 * 60 * 60,
 			MinTimeoutSeconds: 30,
 			DelaySeconds:      60,
 		}
