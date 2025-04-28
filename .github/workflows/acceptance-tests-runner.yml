@@ -513,6 +513,7 @@ jobs:
             ./internal/service/pushbasedlogexportapi
             ./internal/service/searchdeploymentapi
             ./internal/service/projectapi
+            ./internal/service/resourcepolicyapi
         run: make testacc
         
   backup:

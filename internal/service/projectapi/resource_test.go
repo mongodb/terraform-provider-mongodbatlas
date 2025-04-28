@@ -13,7 +13,7 @@ import (
 
 const resourceName = "mongodbatlas_project_api.test"
 
-func TestAccDatabaseUserAPI_basic(t *testing.T) {
+func TestAccProjectAPI_basic(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
