@@ -282,7 +282,9 @@ jobs:
             - 'internal/service/customdbroleapi/*.go'
             - 'internal/service/databaseuserapi/*.go'
             - 'internal/service/pushbasedlogexportapi/*.go'
-            - 'internal/service/searchdeploymentapi/*.go'            
+            - 'internal/service/searchdeploymentapi/*.go'
+            - 'internal/service/projectapi/*.go'
+            - 'internal/service/resourcepolicyapi/*.go'            
           backup:
             - 'internal/service/cloudbackupschedule/*.go'
             - 'internal/service/cloudbackupsnapshot/*.go'
