@@ -228,7 +228,7 @@ func callAPIWithoutBody(ctx context.Context, client *config.MongoDBClient, callP
 // It returns the latest JSON response from the API so it can be used to update the response state.
 func waitForChanges(ctx context.Context, wait *WaitReq, client *config.MongoDBClient) ([]byte, error) {
 	if len(wait.TargetStates) == 0 {
-		return nil, nil // nothing to do if no target states
+		return nil, fmt.Errorf("wait must have at least one target state, pending states: %v", wait.PendingStates)
 	}
 	stateConf := retry.StateChangeConf{
 		Target:     wait.TargetStates,
