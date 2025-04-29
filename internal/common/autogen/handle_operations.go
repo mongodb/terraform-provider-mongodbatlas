@@ -257,7 +257,6 @@ func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClien
 			return nil, "", err
 		}
 		var objJSON map[string]any
-		// TODO: check search deployment when deleted with new API. StatusServiceUnavailable not checked.
 		if err := json.Unmarshal(bodyResp, &objJSON); err != nil {
 			return nil, "", err
 		}
