@@ -1,6 +1,7 @@
 package autogen
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -48,19 +49,19 @@ type HandleCreateReq struct {
 
 func HandleCreate(ctx context.Context, req HandleCreateReq) {
 	d := &req.Resp.Diagnostics
-	reqBody, err := Marshal(req.Plan, false)
+	bodyReq, err := Marshal(req.Plan, false)
 	if err != nil {
 		addError(d, opCreate, errBuildingAPIRequest, err)
 		return
 	}
-	respBody, err := callAPIWithBody(ctx, req.Client, req.CallParams, reqBody)
+	bodyResp, err := callAPIWithBody(ctx, req.Client, req.CallParams, bodyReq)
 	if err != nil {
 		addError(d, opCreate, errCallingAPI, err)
 		return
 	}
 
 	// Use the plan as the base model to set the response state
-	if err := Unmarshal(respBody, req.Plan); err != nil {
+	if err := Unmarshal(bodyResp, req.Plan); err != nil {
 		addError(d, opCreate, errUnmarshallingResponse, err)
 		return
 	}
@@ -84,18 +85,18 @@ type HandleReadReq struct {
 
 func HandleRead(ctx context.Context, req HandleReadReq) {
 	d := &req.Resp.Diagnostics
-	respBody, apiResp, err := callAPIWithoutBody(ctx, req.Client, req.CallParams)
+	bodyResp, apiResp, err := callAPIWithoutBody(ctx, req.Client, req.CallParams)
+	if notFound(bodyResp, apiResp) {
+		req.Resp.State.RemoveResource(ctx)
+		return
+	}
 	if err != nil {
-		if validate.StatusNotFound(apiResp) {
-			req.Resp.State.RemoveResource(ctx)
-			return
-		}
 		addError(d, opRead, errCallingAPI, err)
 		return
 	}
 
 	// Use the current state as the base model to set the response state
-	if err := Unmarshal(respBody, req.State); err != nil {
+	if err := Unmarshal(bodyResp, req.State); err != nil {
 		addError(d, opRead, errUnmarshallingResponse, err)
 		return
 	}
@@ -116,19 +117,19 @@ type HandleUpdateReq struct {
 
 func HandleUpdate(ctx context.Context, req HandleUpdateReq) {
 	d := &req.Resp.Diagnostics
-	reqBody, err := Marshal(req.Plan, true)
+	bodyReq, err := Marshal(req.Plan, true)
 	if err != nil {
 		addError(d, opUpdate, errBuildingAPIRequest, err)
 		return
 	}
-	respBody, err := callAPIWithBody(ctx, req.Client, req.CallParams, reqBody)
+	bodyResp, err := callAPIWithBody(ctx, req.Client, req.CallParams, bodyReq)
 	if err != nil {
 		addError(d, opUpdate, errCallingAPI, err)
 		return
 	}
 
 	// Use the plan as the base model to set the response state
-	if err := Unmarshal(respBody, req.Plan); err != nil {
+	if err := Unmarshal(bodyResp, req.Plan); err != nil {
 		addError(d, opUpdate, errUnmarshallingResponse, err)
 		return
 	}
@@ -168,14 +169,11 @@ func handleWaitCreateUpdate(ctx context.Context, wait *WaitReq, client *config.M
 	if wait == nil {
 		return nil
 	}
-	respBody, err := waitForChanges(ctx, wait, client)
-	if err != nil {
+	bodyResp, err := waitForChanges(ctx, wait, client)
+	if err != nil || isEmptyJSON(bodyResp) {
 		return err
 	}
-	if len(respBody) == 0 {
-		return nil
-	}
-	if err := Unmarshal(respBody, model); err != nil {
+	if err := Unmarshal(bodyResp, model); err != nil {
 		return err
 	}
 	return ResolveUnknowns(model)
@@ -198,17 +196,17 @@ func addError(d *diag.Diagnostics, opName, errSummary string, err error) {
 
 // callAPIWithBody makes a request to the API with the given request body and returns the response body.
 // It is used for POST, PUT, and PATCH requests where a request body is required.
-func callAPIWithBody(ctx context.Context, client *config.MongoDBClient, callParams *config.APICallParams, reqBody []byte) ([]byte, error) {
-	apiResp, err := client.UntypedAPICall(ctx, callParams, reqBody)
+func callAPIWithBody(ctx context.Context, client *config.MongoDBClient, callParams *config.APICallParams, bodyReq []byte) ([]byte, error) {
+	apiResp, err := client.UntypedAPICall(ctx, callParams, bodyReq)
 	if err != nil {
 		return nil, err
 	}
-	respBody, err := io.ReadAll(apiResp.Body)
+	bodyResp, err := io.ReadAll(apiResp.Body)
 	apiResp.Body.Close()
 	if err != nil {
 		return nil, err
 	}
-	return respBody, nil
+	return bodyResp, nil
 }
 
 // callAPIWithoutBody makes a request to the API without a request body and returns the response body.
@@ -218,20 +216,19 @@ func callAPIWithoutBody(ctx context.Context, client *config.MongoDBClient, callP
 	if err != nil {
 		return nil, apiResp, err
 	}
-	respBody, err := io.ReadAll(apiResp.Body)
+	bodyResp, err := io.ReadAll(apiResp.Body)
 	apiResp.Body.Close()
 	if err != nil {
 		return nil, apiResp, err
 	}
-	return respBody, apiResp, nil
+	return bodyResp, apiResp, nil
 }
 
 // waitForChanges waits until a long-running operation is done.
 // It returns the latest JSON response from the API so it can be used to update the response state.
 func waitForChanges(ctx context.Context, wait *WaitReq, client *config.MongoDBClient) ([]byte, error) {
-	// time.Sleep(time.Duration(wait.TimeoutSeconds) * time.Second) // TODO: TimeoutSeconds is temporarily used to allow time to destroy the resource until autogen long-running operations are supported in CLOUDP-314960
 	if len(wait.TargetStates) == 0 {
-		return nil, fmt.Errorf("no target states, this is an error in the provider, pending states: %v", wait.PendingStates)
+		return nil, nil // nothing to do if no target states
 	}
 	stateConf := retry.StateChangeConf{
 		Target:     wait.TargetStates,
@@ -241,38 +238,49 @@ func waitForChanges(ctx context.Context, wait *WaitReq, client *config.MongoDBCl
 		Delay:      time.Duration(wait.DelaySeconds) * time.Second,
 		Refresh:    refreshFunc(ctx, wait, client),
 	}
-	respBody, err := stateConf.WaitForStateContext(ctx)
-	if err != nil || respBody == nil {
+	bodyResp, err := stateConf.WaitForStateContext(ctx)
+	if err != nil || bodyResp == nil {
 		return nil, err
 	}
-	return respBody.([]byte), err
+	return bodyResp.([]byte), err
 }
 
 // refreshFunc retries until a target state or error happens.
 // It uses a special state value of "DELETED" when the when API returns 404 or empty object
 func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClient) retry.StateRefreshFunc {
 	return func() (result any, state string, err error) {
-		respBody, httpResp, err := callAPIWithoutBody(ctx, client, wait.CallParams)
-		if validate.StatusNotFound(httpResp) {
-			return nil, retrystrategy.RetryStrategyDeletedState, nil
+		bodyResp, httpResp, err := callAPIWithoutBody(ctx, client, wait.CallParams)
+		if notFound(bodyResp, httpResp) {
+			return emptyJSON, retrystrategy.RetryStrategyDeletedState, nil
 		}
 		if err != nil {
 			return nil, "", err
 		}
 		var objJSON map[string]any
 		// TODO: check search deployment when deleted with new API. StatusServiceUnavailable not checked.
-		if err := json.Unmarshal(respBody, &objJSON); err != nil {
+		if err := json.Unmarshal(bodyResp, &objJSON); err != nil {
 			return nil, "", err
 		}
 		stateValAny, found := objJSON[wait.StateAttribute]
-		if !found { // if state attribute is not found we assume that the result is deleted, it could also happen that the state attribute name is incorrectly specified.
-			// TODO: also check id not ID or any attribute at all comes, so we can keep !found error
-			return nil, retrystrategy.RetryStrategyDeletedState, nil
+		if !found {
+			return nil, "", fmt.Errorf("wait state attribute not found: %s", wait.StateAttribute)
 		}
 		stateValStr, ok := stateValAny.(string)
 		if !ok {
-			return nil, "", fmt.Errorf("wait state value is not a string, state name: %s, state value: %s", wait.StateAttribute, stateValAny)
+			return nil, "", fmt.Errorf("wait state attribute value is not a string, attribute name: %s, state value: %s", wait.StateAttribute, stateValAny)
 		}
-		return respBody, stateValStr, nil
+		return bodyResp, stateValStr, nil
 	}
 }
+
+// notFound returns if the resource is not found (API response is 404 or response body is empty JSON).
+// That is because some resources like search_deployment can return an ok status code with empty json when resource doesn't exist.
+func notFound(bodyResp []byte, apiResp *http.Response) bool {
+	return validate.StatusNotFound(apiResp) || isEmptyJSON(bodyResp)
+}
+
+func isEmptyJSON(raw []byte) bool {
+	return len(raw) == 0 || bytes.Equal(raw, emptyJSON)
+}
+
+var emptyJSON = []byte("{}")
