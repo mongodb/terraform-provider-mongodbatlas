@@ -63,7 +63,7 @@ func configBasic(orgID, projectName string, withTags bool) string {
 	}
 
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project_api" "new-project" {
+		resource "mongodbatlas_project_api" "test" {
 			org_id           = %q
 			name             = %q
 			%s

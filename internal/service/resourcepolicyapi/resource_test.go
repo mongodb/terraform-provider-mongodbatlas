@@ -40,7 +40,7 @@ func TestAccResourcePolicyAPI_basic(t *testing.T) {
 
 func configBasic(orgID, policyName string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_resource_policy" "test" {
+		resource "mongodbatlas_resource_policy_api" "test" {
 			org_id = %[1]q
 			name   = %[2]q
 			description = "some description"
