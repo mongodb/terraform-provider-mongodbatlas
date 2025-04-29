@@ -71,7 +71,7 @@ func setAttrTfModel(name string, field reflect.Value, val attr.Value) error {
 	return nil
 }
 
-func setMapAttrModel(name string, value any, mapAttrs map[string]attr.Value, mapTypes map[string]attr.Type) error {
+func setObjElmAttrModel(name string, value any, mapAttrs map[string]attr.Value, mapTypes map[string]attr.Type) error {
 	nameChildTf := xstrings.ToSnakeCase(name)
 	valueType, found := mapTypes[nameChildTf]
 	if !found {
@@ -109,15 +109,21 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 		}
 		return nil, errUnmarshal(value, valueType, "Number", nameErr)
 	case map[string]any:
-		obj, ok := oldVal.(types.Object)
-		if !ok {
-			return nil, errUnmarshal(value, valueType, "Object", nameErr)
+		if obj, ok := oldVal.(types.Object); ok {
+			objNew, err := setObjAttrModel(obj, v)
+			if err != nil {
+				return nil, err
+			}
+			return objNew, nil
 		}
-		objNew, err := setObjAttrModel(obj, v)
-		if err != nil {
-			return nil, err
+		if m, ok := oldVal.(types.Map); ok {
+			mapNew, err := setMapAttrModel(m, v)
+			if err != nil {
+				return nil, err
+			}
+			return mapNew, nil
 		}
-		return objNew, nil
+		return nil, errUnmarshal(value, valueType, "Object", nameErr)
 	case []any:
 		if list, ok := oldVal.(types.List); ok {
 			listNew, err := setListAttrModel(list, v, nameErr)
@@ -153,15 +159,42 @@ func setObjAttrModel(obj types.Object, objJSON map[string]any) (attr.Value, erro
 		return nil, err
 	}
 	for nameChild, valueChild := range objJSON {
-		if err := setMapAttrModel(nameChild, valueChild, mapAttrs, mapTypes); err != nil {
+		if err := setObjElmAttrModel(nameChild, valueChild, mapAttrs, mapTypes); err != nil {
 			return nil, err
 		}
 	}
 	objNew, diags := types.ObjectValue(obj.AttributeTypes(context.Background()), mapAttrs)
 	if diags.HasError() {
-		return nil, fmt.Errorf("unmarshal failed to convert map to object: %v", diags)
+		return nil, fmt.Errorf("unmarshal failed to convert JSON map to object: %v", diags)
 	}
 	return objNew, nil
+}
+
+func setMapAttrModel(m types.Map, objJSON map[string]any) (attr.Value, error) {
+	mapAttrs := m.Elements()
+	valueType := m.ElementType(context.Background())
+	nullVal, err := getNullAttr(valueType)
+	if err != nil {
+		return nil, err
+	}
+	for nameChild, valueChild := range objJSON {
+		oldVal, found := mapAttrs[nameChild]
+		if !found {
+			oldVal = nullVal
+		}
+		newValue, err := getTfAttr(valueChild, valueType, oldVal, nameChild)
+		if err != nil {
+			return nil, err
+		}
+		if newValue != nil {
+			mapAttrs[nameChild] = newValue
+		}
+	}
+	mapNew, diags := types.MapValue(valueType, mapAttrs)
+	if diags.HasError() {
+		return nil, fmt.Errorf("unmarshal failed to convert JSON map to map: %v", diags)
+	}
+	return mapNew, nil
 }
 
 func setListAttrModel(list types.List, arrayJSON []any, listName string) (attr.Value, error) {
