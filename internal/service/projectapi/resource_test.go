@@ -32,7 +32,7 @@ func TestAccProjectAPI_basic(t *testing.T) {
 				Config: configBasic(orgID, projectName, true),
 				Check:  checkBasic(),
 			},
-			// complete removal does not send property in PATCH
+			// TODO: complete removal does not send property in PATCH
 			// {
 			// 	Config: configBasic(orgID, projectName, false),
 			// 	Check:  checkBasic(),
