@@ -30,7 +30,7 @@ func ParseAtlasAdminAPI(filePath string) (*libopenapi.DocumentModel[v3.Document]
 }
 
 func DownloadOpenAPISpec(url, specFilePath string) (err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*50)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, http.NoBody)
