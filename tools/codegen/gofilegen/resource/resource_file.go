@@ -4,6 +4,7 @@ import (
 	"go/format"
 	"regexp"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/codetemplate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
@@ -26,37 +27,37 @@ func GenerateGoCode(input *codespec.Resource) string {
 	switch tmplInputs.ResourceName {
 	case "push_based_log_export_api":
 		tmplInputs.APIOperations.Create.Wait = &codetemplate.Wait{
-			StateAttribute:    "State",
+			StateAttribute:    "state",
 			PendingStates:     []string{"INITIATING", "BUCKET_VERIFIED"},
 			TargetStates:      []string{"ACTIVE"},
-			TimeoutSeconds:    30, // corresponding resource value is 15m, using temporarily a lower value as we currently wait this time
+			TimeoutSeconds:    15 * 60,
 			MinTimeoutSeconds: 60,
 			DelaySeconds:      10,
 		}
 		tmplInputs.APIOperations.Update.Wait = tmplInputs.APIOperations.Create.Wait
 		tmplInputs.APIOperations.Delete.Wait = &codetemplate.Wait{
-			StateAttribute:    "State",
+			StateAttribute:    "state",
 			PendingStates:     []string{"ACTIVE", "INITIATING", "BUCKET_VERIFIED"},
-			TargetStates:      []string{"UNCONFIGURED"},
-			TimeoutSeconds:    30, // corresponding resource value is 15m, using temporarily a lower value as we currently wait this time
+			TargetStates:      []string{"UNCONFIGURED", retrystrategy.RetryStrategyDeletedState}, // DELETED is a special state value when API returns 404 or empty object
+			TimeoutSeconds:    15 * 60,
 			MinTimeoutSeconds: 60,
 			DelaySeconds:      10,
 		}
 	case "search_deployment_api":
 		tmplInputs.APIOperations.Create.Wait = &codetemplate.Wait{
-			StateAttribute:    "StateName",
+			StateAttribute:    "stateName",
 			PendingStates:     []string{"UPDATING", "PAUSED"},
 			TargetStates:      []string{"IDLE"},
-			TimeoutSeconds:    10 * 60, // corresponding resource value is 3h, using temporarily a lower value as we currently wait this time
+			TimeoutSeconds:    3 * 60 * 60,
 			MinTimeoutSeconds: 60,
 			DelaySeconds:      60,
 		}
 		tmplInputs.APIOperations.Update.Wait = tmplInputs.APIOperations.Create.Wait
 		tmplInputs.APIOperations.Delete.Wait = &codetemplate.Wait{
-			StateAttribute:    "StateName",
+			StateAttribute:    "stateName",
 			PendingStates:     []string{"IDLE", "UPDATING", "PAUSED"},
-			TargetStates:      []string{},
-			TimeoutSeconds:    10 * 60, // corresponding resource value is 3h, using temporarily a lower value as we currently wait this time
+			TargetStates:      []string{retrystrategy.RetryStrategyDeletedState}, // DELETED is a special state value when API returns 404 or empty object
+			TimeoutSeconds:    3 * 60 * 60,
 			MinTimeoutSeconds: 30,
 			DelaySeconds:      60,
 		}

@@ -241,10 +241,9 @@ type APICallParams struct {
 	RelativePath  string
 	PathParams    map[string]string
 	Method        string
-	Body          []byte
 }
 
-func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParams) (*http.Response, error) {
+func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParams, bodyReq []byte) (*http.Response, error) {
 	localBasePath, _ := c.AtlasV2.GetConfig().ServerURLWithContext(ctx, "")
 	localVarPath := localBasePath + params.RelativePath
 
@@ -256,11 +255,11 @@ func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParam
 	headerParams["Content-Type"] = params.VersionHeader
 	headerParams["Accept"] = params.VersionHeader
 
-	var reqBody any
-	if params.Body != nil { // if nil slice is sent with application/json content type SDK method returns an error
-		reqBody = params.Body
+	var bodyPost any
+	if bodyReq != nil { // if nil slice is sent with application/json content type SDK method returns an error
+		bodyPost = bodyReq
 	}
-	apiReq, err := c.AtlasV2.PrepareRequest(ctx, localVarPath, params.Method, reqBody, headerParams, nil, nil, nil)
+	apiReq, err := c.AtlasV2.PrepareRequest(ctx, localVarPath, params.Method, bodyPost, headerParams, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
