@@ -113,7 +113,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			TimeoutSeconds:    600,
 			MinTimeoutSeconds: 60,
 			DelaySeconds:      60,
-			CallParams:        readAPICallParams(&plan),
+			CallParams:        readAPICallParams(&state),
 		},
 	}
 	autogen.HandleUpdate(ctx, reqHandle)

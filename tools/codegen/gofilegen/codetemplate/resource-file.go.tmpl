@@ -116,7 +116,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			TimeoutSeconds: {{ .TimeoutSeconds }},
 			MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
 			DelaySeconds: {{ .DelaySeconds }},
-			CallParams: readAPICallParams(&plan),
+			CallParams: readAPICallParams(&state),
 		},
 		{{ end }}
 	}
