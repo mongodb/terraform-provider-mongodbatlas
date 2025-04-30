@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.34.0 (April 30, 2025)
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_database_user: Adds `description` field ([#3280](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3280))
