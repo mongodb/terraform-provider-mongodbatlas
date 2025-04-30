@@ -25,7 +25,7 @@ require (
 	github.com/jarcoal/httpmock v1.4.0
 	github.com/mongodb-forks/digest v1.1.0
 	github.com/mongodb/atlas-sdk-go v1.0.1-0.20250402092819-ea391c348e21
-	github.com/pb33f/libopenapi v0.21.8
+	github.com/pb33f/libopenapi v0.21.10
 	github.com/sebdah/goldie/v2 v2.5.5
 	github.com/spf13/cast v1.7.1
 	github.com/stretchr/testify v1.10.0
@@ -39,6 +39,8 @@ require (
 	go.mongodb.org/realm v0.1.0
 	gopkg.in/yaml.v3 v3.0.1
 )
+
+require github.com/hashicorp/terraform-json v0.24.0
 
 require (
 	cloud.google.com/go v0.112.0 // indirect
@@ -92,7 +94,6 @@ require (
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hashicorp/logutils v1.0.0 // indirect
-	github.com/hashicorp/terraform-json v0.24.0 // indirect
 	github.com/hashicorp/terraform-registry-address v0.2.4 // indirect
 	github.com/hashicorp/terraform-svchost v0.1.1 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
