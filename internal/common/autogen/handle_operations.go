@@ -31,7 +31,7 @@ const (
 
 type WaitReq struct {
 	CallParams        *config.APICallParams
-	StateAttribute    string
+	StateProperty     string
 	PendingStates     []string
 	TargetStates      []string
 	TimeoutSeconds    int
@@ -260,13 +260,13 @@ func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClien
 		if err := json.Unmarshal(bodyResp, &objJSON); err != nil {
 			return nil, "", err
 		}
-		stateValAny, found := objJSON[wait.StateAttribute]
+		stateValAny, found := objJSON[wait.StateProperty]
 		if !found {
-			return nil, "", fmt.Errorf("wait state attribute not found: %s", wait.StateAttribute)
+			return nil, "", fmt.Errorf("wait state attribute not found: %s", wait.StateProperty)
 		}
 		stateValStr, ok := stateValAny.(string)
 		if !ok {
-			return nil, "", fmt.Errorf("wait state attribute value is not a string, attribute name: %s, value: %s", wait.StateAttribute, stateValAny)
+			return nil, "", fmt.Errorf("wait state attribute value is not a string, attribute name: %s, value: %s", wait.StateProperty, stateValAny)
 		}
 		return bodyResp, stateValStr, nil
 	}

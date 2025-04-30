@@ -56,7 +56,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		CallParams: &callParams,
 		{{with .APIOperations.Create.Wait -}}
 		Wait: &autogen.WaitReq{
-			StateAttribute: "{{ .StateAttribute }}",
+			StateProperty: "{{ .StateProperty }}",
 			PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
 			TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
 			TimeoutSeconds: {{ .TimeoutSeconds }},
@@ -110,7 +110,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		CallParams: &callParams,
 		{{with .APIOperations.Update.Wait -}}
 		Wait: &autogen.WaitReq{
-			StateAttribute: "{{ .StateAttribute }}",
+			StateProperty: "{{ .StateProperty }}",
 			PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
 			TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
 			TimeoutSeconds: {{ .TimeoutSeconds }},
@@ -146,7 +146,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		CallParams: &callParams,
 		{{with .APIOperations.Delete.Wait -}}
 		Wait: &autogen.WaitReq{
-			StateAttribute: "{{ .StateAttribute }}",
+			StateProperty: "{{ .StateProperty }}",
 			PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
 			TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
 			TimeoutSeconds: {{ .TimeoutSeconds }},

@@ -42,7 +42,7 @@ type Operation struct {
 }
 
 type Wait struct {
-	StateAttribute    string
+	StateProperty     string
 	PendingStates     []string
 	TargetStates      []string
 	TimeoutSeconds    int
