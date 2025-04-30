@@ -282,7 +282,9 @@ jobs:
             - 'internal/service/customdbroleapi/*.go'
             - 'internal/service/databaseuserapi/*.go'
             - 'internal/service/pushbasedlogexportapi/*.go'
-            - 'internal/service/searchdeploymentapi/*.go'            
+            - 'internal/service/searchdeploymentapi/*.go'
+            - 'internal/service/projectapi/*.go'
+            - 'internal/service/resourcepolicyapi/*.go'            
           backup:
             - 'internal/service/cloudbackupschedule/*.go'
             - 'internal/service/cloudbackupsnapshot/*.go'
@@ -512,6 +514,8 @@ jobs:
             ./internal/service/databaseuserapi
             ./internal/service/pushbasedlogexportapi
             ./internal/service/searchdeploymentapi
+            ./internal/service/projectapi
+            ./internal/service/resourcepolicyapi
         run: make testacc
         
   backup:

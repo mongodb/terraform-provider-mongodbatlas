@@ -74,12 +74,15 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan TFModel
+	var state TFModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	// Path params are grabbed from state as they may be computed-only and not present in the plan
 	pathParams := map[string]string{
-		"projectId": plan.ProjectId.ValueString(),
+		"projectId": state.ProjectId.ValueString(),
 	}
 	callParams := config.APICallParams{
 		VersionHeader: apiVersionHeader,
