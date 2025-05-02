@@ -251,6 +251,7 @@ func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClien
 	return func() (result any, state string, err error) {
 		bodyResp, httpResp, err := callAPIWithoutBody(ctx, client, wait.CallParams)
 		if notFound(bodyResp, httpResp) {
+			// if "artificial" states continue to grow we can evaluate using a prefix to clearly separate states coming from API and those defined by refreshFunc
 			return emptyJSON, retrystrategy.RetryStrategyDeletedState, nil
 		}
 		if err != nil {
