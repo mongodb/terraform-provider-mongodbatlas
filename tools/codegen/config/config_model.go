@@ -22,7 +22,7 @@ type APIOperation struct {
 type Wait struct {
 	StateProperty     string   `yaml:"state_property"`
 	PendingStates     []string `yaml:"pending_states"`
-	TargetStates      []string `yaml:"target_states"` // for case of delete operation wait will always consider deleted (404 or empty body) as a target state
+	TargetStates      []string `yaml:"target_states"`
 	TimeoutSeconds    int      `yaml:"timeout_seconds"`
 	MinTimeoutSeconds int      `yaml:"min_timeout_seconds"`
 	DelaySeconds      int      `yaml:"delay_seconds"`
