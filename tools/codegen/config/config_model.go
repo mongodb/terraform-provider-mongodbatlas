@@ -20,7 +20,7 @@ type APIOperation struct {
 }
 
 type Wait struct {
-	StateProperty     string   `yaml:"state_property"`
+	StateProperty     string   `yaml:"state_property"` // defined in camel case as found in API response body, e.g. "stateName"
 	PendingStates     []string `yaml:"pending_states"`
 	TargetStates      []string `yaml:"target_states"`
 	TimeoutSeconds    int      `yaml:"timeout_seconds"`
