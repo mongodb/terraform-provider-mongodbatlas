@@ -32,8 +32,18 @@ type APIOperations struct {
 }
 
 type APIOperation struct {
+	Wait       *Wait
 	HTTPMethod string
 	Path       string
+}
+
+type Wait struct {
+	StateProperty     string
+	PendingStates     []string
+	TargetStates      []string
+	TimeoutSeconds    int
+	MinTimeoutSeconds int
+	DelaySeconds      int
 }
 
 type Schema struct {

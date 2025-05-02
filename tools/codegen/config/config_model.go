@@ -14,8 +14,18 @@ type Resource struct {
 }
 
 type APIOperation struct {
+	Wait   *Wait  `yaml:"wait"`
 	Path   string `yaml:"path"`
-	Method string `yaml:"method"` // currently not being used
+	Method string `yaml:"method"`
+}
+
+type Wait struct {
+	StateProperty     string   `yaml:"state_property"` // defined in camel case as found in API response body, e.g. "stateName"
+	PendingStates     []string `yaml:"pending_states"`
+	TargetStates      []string `yaml:"target_states"`
+	TimeoutSeconds    int      `yaml:"timeout_seconds"`
+	MinTimeoutSeconds int      `yaml:"min_timeout_seconds"`
+	DelaySeconds      int      `yaml:"delay_seconds"`
 }
 
 type SchemaOptions struct {

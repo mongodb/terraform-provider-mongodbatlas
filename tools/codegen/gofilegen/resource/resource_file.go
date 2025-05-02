@@ -4,7 +4,6 @@ import (
 	"go/format"
 	"regexp"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/codetemplate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
@@ -23,46 +22,6 @@ func GenerateGoCode(input *codespec.Resource) string {
 		},
 		ImportIDAttributes: getIDAttributes(input.Operations.Read.Path),
 	}
-	// TODO: remove these hardcoded values after ticket to read from config file is done
-	switch tmplInputs.ResourceName {
-	case "push_based_log_export_api":
-		tmplInputs.APIOperations.Create.Wait = &codetemplate.Wait{
-			StateAttribute:    "state",
-			PendingStates:     []string{"INITIATING", "BUCKET_VERIFIED"},
-			TargetStates:      []string{"ACTIVE"},
-			TimeoutSeconds:    15 * 60,
-			MinTimeoutSeconds: 60,
-			DelaySeconds:      10,
-		}
-		tmplInputs.APIOperations.Update.Wait = tmplInputs.APIOperations.Create.Wait
-		tmplInputs.APIOperations.Delete.Wait = &codetemplate.Wait{
-			StateAttribute:    "state",
-			PendingStates:     []string{"ACTIVE", "INITIATING", "BUCKET_VERIFIED"},
-			TargetStates:      []string{"UNCONFIGURED", retrystrategy.RetryStrategyDeletedState}, // DELETED is a special state value when API returns 404 or empty object
-			TimeoutSeconds:    15 * 60,
-			MinTimeoutSeconds: 60,
-			DelaySeconds:      10,
-		}
-	case "search_deployment_api":
-		tmplInputs.APIOperations.Create.Wait = &codetemplate.Wait{
-			StateAttribute:    "stateName",
-			PendingStates:     []string{"UPDATING", "PAUSED"},
-			TargetStates:      []string{"IDLE"},
-			TimeoutSeconds:    3 * 60 * 60,
-			MinTimeoutSeconds: 60,
-			DelaySeconds:      60,
-		}
-		tmplInputs.APIOperations.Update.Wait = tmplInputs.APIOperations.Create.Wait
-		tmplInputs.APIOperations.Delete.Wait = &codetemplate.Wait{
-			StateAttribute:    "stateName",
-			PendingStates:     []string{"IDLE", "UPDATING", "PAUSED"},
-			TargetStates:      []string{retrystrategy.RetryStrategyDeletedState}, // DELETED is a special state value when API returns 404 or empty object
-			TimeoutSeconds:    3 * 60 * 60,
-			MinTimeoutSeconds: 30,
-			DelaySeconds:      60,
-		}
-	}
-
 	result := codetemplate.ApplyResourceFileTemplate(&tmplInputs)
 
 	formattedResult, err := format.Source(result.Bytes())
@@ -77,6 +36,21 @@ func toCodeTemplateOpModel(op codespec.APIOperation) codetemplate.Operation {
 		Path:       op.Path,
 		HTTPMethod: op.HTTPMethod,
 		PathParams: getPathParams(op.Path),
+		Wait:       getWaitValues(op.Wait),
+	}
+}
+
+func getWaitValues(wait *codespec.Wait) *codetemplate.Wait {
+	if wait == nil {
+		return nil
+	}
+	return &codetemplate.Wait{
+		StateProperty:     wait.StateProperty,
+		PendingStates:     wait.PendingStates,
+		TargetStates:      wait.TargetStates,
+		TimeoutSeconds:    wait.TimeoutSeconds,
+		MinTimeoutSeconds: wait.MinTimeoutSeconds,
+		DelaySeconds:      wait.DelaySeconds,
 	}
 }
 

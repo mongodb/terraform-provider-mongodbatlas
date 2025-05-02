@@ -54,7 +54,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		Plan:       &plan,
 		CallParams: &callParams,
 		Wait: &autogen.WaitReq{
-			StateAttribute:    "state",
+			StateProperty:     "state",
 			PendingStates:     []string{"INITIATING", "BUCKET_VERIFIED"},
 			TargetStates:      []string{"ACTIVE"},
 			TimeoutSeconds:    900,
@@ -105,7 +105,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		Plan:       &plan,
 		CallParams: &callParams,
 		Wait: &autogen.WaitReq{
-			StateAttribute:    "state",
+			StateProperty:     "state",
 			PendingStates:     []string{"INITIATING", "BUCKET_VERIFIED"},
 			TargetStates:      []string{"ACTIVE"},
 			TimeoutSeconds:    900,
@@ -138,7 +138,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		State:      &state,
 		CallParams: &callParams,
 		Wait: &autogen.WaitReq{
-			StateAttribute:    "state",
+			StateProperty:     "state",
 			PendingStates:     []string{"ACTIVE", "INITIATING", "BUCKET_VERIFIED"},
 			TargetStates:      []string{"UNCONFIGURED", "DELETED"},
 			TimeoutSeconds:    900,
