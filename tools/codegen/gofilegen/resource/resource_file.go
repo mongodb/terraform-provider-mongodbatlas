@@ -4,7 +4,6 @@ import (
 	"go/format"
 	"regexp"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/codetemplate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
@@ -16,10 +15,10 @@ func GenerateGoCode(input *codespec.Resource) string {
 		ResourceName: input.Name.SnakeCase(),
 		APIOperations: codetemplate.APIOperations{
 			VersionHeader: input.Operations.VersionHeader,
-			Create:        toCodeTemplateOpModel(input.Operations.Create, false),
-			Update:        toCodeTemplateOpModel(input.Operations.Update, false),
-			Read:          toCodeTemplateOpModel(input.Operations.Read, false),
-			Delete:        toCodeTemplateOpModel(input.Operations.Delete, true),
+			Create:        toCodeTemplateOpModel(input.Operations.Create),
+			Update:        toCodeTemplateOpModel(input.Operations.Update),
+			Read:          toCodeTemplateOpModel(input.Operations.Read),
+			Delete:        toCodeTemplateOpModel(input.Operations.Delete),
 		},
 		ImportIDAttributes: getIDAttributes(input.Operations.Read.Path),
 	}
@@ -32,29 +31,23 @@ func GenerateGoCode(input *codespec.Resource) string {
 	return string(formattedResult)
 }
 
-func toCodeTemplateOpModel(op codespec.APIOperation, isDelete bool) codetemplate.Operation {
+func toCodeTemplateOpModel(op codespec.APIOperation) codetemplate.Operation {
 	return codetemplate.Operation{
 		Path:       op.Path,
 		HTTPMethod: op.HTTPMethod,
 		PathParams: getPathParams(op.Path),
-		Wait:       getWaitValues(op.Wait, isDelete),
+		Wait:       getWaitValues(op.Wait),
 	}
 }
 
-func getWaitValues(wait *codespec.Wait, isDelete bool) *codetemplate.Wait {
+func getWaitValues(wait *codespec.Wait) *codetemplate.Wait {
 	if wait == nil {
 		return nil
-	}
-	targetStates := wait.TargetStates
-
-	if isDelete {
-		// DELETED is a special state value returned in refresh function when API returns 404 or empty object
-		targetStates = append(targetStates, retrystrategy.RetryStrategyDeletedState)
 	}
 	return &codetemplate.Wait{
 		StateProperty:     wait.StateProperty,
 		PendingStates:     wait.PendingStates,
-		TargetStates:      targetStates,
+		TargetStates:      wait.TargetStates,
 		TimeoutSeconds:    wait.TimeoutSeconds,
 		MinTimeoutSeconds: wait.MinTimeoutSeconds,
 		DelaySeconds:      wait.DelaySeconds,

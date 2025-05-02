@@ -53,7 +53,7 @@ resources:
       wait:
         state_property: "state"
         pending_states: ["ACTIVE", "INITIATING", "BUCKET_VERIFIED"]
-        target_states: ["UNCONFIGURED"]
+        target_states: ["UNCONFIGURED", "DELETED"] # DELETED is a special state value when API returns 404 or empty object
         timeout_seconds: 900 # 15 minutes
         min_timeout_seconds: 60
         delay_seconds: 10
@@ -83,7 +83,7 @@ resources:
       wait:
         state_property: "stateName"
         pending_states: ["IDLE", "UPDATING", "PAUSED"]
-        target_states: [] # waits for resourced deletion
+        target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
         timeout_seconds: 10800 # 3 hours
         min_timeout_seconds: 30
         delay_seconds: 60

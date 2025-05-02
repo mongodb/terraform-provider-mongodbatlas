@@ -108,7 +108,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 						Wait: &codespec.Wait{
 							StateProperty:     "state",
 							PendingStates:     []string{"PENDING"},
-							TargetStates:      []string{"UNCONFIGURED"},
+							TargetStates:      []string{"UNCONFIGURED", "DELETED"},
 							TimeoutSeconds:    300,
 							MinTimeoutSeconds: 60,
 							DelaySeconds:      10,
