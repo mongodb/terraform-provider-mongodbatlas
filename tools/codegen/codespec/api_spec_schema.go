@@ -17,7 +17,7 @@ type APISpecResource struct {
 	DeprecationMessage *string
 	CreateOp           *high.Operation
 	ReadOp             *high.Operation
-	UpdateOp           *high.Operation // currently not used
+	UpdateOp           *high.Operation
 	DeleteOp           *high.Operation // currently not used
 	CommonParameters   []*high.Parameter
 }

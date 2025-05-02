@@ -16,53 +16,13 @@ func GenerateGoCode(input *codespec.Resource) string {
 		ResourceName: input.Name.SnakeCase(),
 		APIOperations: codetemplate.APIOperations{
 			VersionHeader: input.Operations.VersionHeader,
-			Create:        toCodeTemplateOpModel(input.Operations.Create),
-			Update:        toCodeTemplateOpModel(input.Operations.Update),
-			Read:          toCodeTemplateOpModel(input.Operations.Read),
-			Delete:        toCodeTemplateOpModel(input.Operations.Delete),
+			Create:        toCodeTemplateOpModel(input.Operations.Create, false),
+			Update:        toCodeTemplateOpModel(input.Operations.Update, false),
+			Read:          toCodeTemplateOpModel(input.Operations.Read, false),
+			Delete:        toCodeTemplateOpModel(input.Operations.Delete, true),
 		},
 		ImportIDAttributes: getIDAttributes(input.Operations.Read.Path),
 	}
-	// TODO: remove these hardcoded values after ticket to read from config file is done
-	switch tmplInputs.ResourceName {
-	case "push_based_log_export_api":
-		tmplInputs.APIOperations.Create.Wait = &codetemplate.Wait{
-			StateProperty:     "state",
-			PendingStates:     []string{"INITIATING", "BUCKET_VERIFIED"},
-			TargetStates:      []string{"ACTIVE"},
-			TimeoutSeconds:    15 * 60,
-			MinTimeoutSeconds: 60,
-			DelaySeconds:      10,
-		}
-		tmplInputs.APIOperations.Update.Wait = tmplInputs.APIOperations.Create.Wait
-		tmplInputs.APIOperations.Delete.Wait = &codetemplate.Wait{
-			StateProperty:     "state",
-			PendingStates:     []string{"ACTIVE", "INITIATING", "BUCKET_VERIFIED"},
-			TargetStates:      []string{"UNCONFIGURED", retrystrategy.RetryStrategyDeletedState}, // DELETED is a special state value when API returns 404 or empty object
-			TimeoutSeconds:    15 * 60,
-			MinTimeoutSeconds: 60,
-			DelaySeconds:      10,
-		}
-	case "search_deployment_api":
-		tmplInputs.APIOperations.Create.Wait = &codetemplate.Wait{
-			StateProperty:     "stateName",
-			PendingStates:     []string{"UPDATING", "PAUSED"},
-			TargetStates:      []string{"IDLE"},
-			TimeoutSeconds:    3 * 60 * 60,
-			MinTimeoutSeconds: 60,
-			DelaySeconds:      60,
-		}
-		tmplInputs.APIOperations.Update.Wait = tmplInputs.APIOperations.Create.Wait
-		tmplInputs.APIOperations.Delete.Wait = &codetemplate.Wait{
-			StateProperty:     "stateName",
-			PendingStates:     []string{"IDLE", "UPDATING", "PAUSED"},
-			TargetStates:      []string{retrystrategy.RetryStrategyDeletedState}, // DELETED is a special state value when API returns 404 or empty object
-			TimeoutSeconds:    3 * 60 * 60,
-			MinTimeoutSeconds: 30,
-			DelaySeconds:      60,
-		}
-	}
-
 	result := codetemplate.ApplyResourceFileTemplate(&tmplInputs)
 
 	formattedResult, err := format.Source(result.Bytes())
@@ -72,11 +32,32 @@ func GenerateGoCode(input *codespec.Resource) string {
 	return string(formattedResult)
 }
 
-func toCodeTemplateOpModel(op codespec.APIOperation) codetemplate.Operation {
+func toCodeTemplateOpModel(op codespec.APIOperation, isDelete bool) codetemplate.Operation {
 	return codetemplate.Operation{
 		Path:       op.Path,
 		HTTPMethod: op.HTTPMethod,
 		PathParams: getPathParams(op.Path),
+		Wait:       getWaitValues(op.Wait, isDelete),
+	}
+}
+
+func getWaitValues(wait *codespec.Wait, isDelete bool) *codetemplate.Wait {
+	if wait == nil {
+		return nil
+	}
+	targetStates := wait.TargetStates
+
+	if isDelete {
+		// DELETED is a special state value returned in refresh function when API returns 404 or empty object
+		targetStates = append(targetStates, retrystrategy.RetryStrategyDeletedState)
+	}
+	return &codetemplate.Wait{
+		StateProperty:     wait.StateProperty,
+		PendingStates:     wait.PendingStates,
+		TargetStates:      targetStates,
+		TimeoutSeconds:    wait.TimeoutSeconds,
+		MinTimeoutSeconds: wait.MinTimeoutSeconds,
+		DelaySeconds:      wait.DelaySeconds,
 	}
 }
 

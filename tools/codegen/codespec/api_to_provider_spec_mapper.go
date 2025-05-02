@@ -115,6 +115,21 @@ func operationConfigToModel(opConfig *config.APIOperation) APIOperation {
 	return APIOperation{
 		HTTPMethod: opConfig.Method,
 		Path:       opConfig.Path,
+		Wait:       waitConfigToModel(opConfig.Wait),
+	}
+}
+
+func waitConfigToModel(waitConfig *config.Wait) *Wait {
+	if waitConfig == nil {
+		return nil
+	}
+	return &Wait{
+		StateProperty:     waitConfig.StateProperty,
+		PendingStates:     waitConfig.PendingStates,
+		TargetStates:      waitConfig.TargetStates,
+		TimeoutSeconds:    waitConfig.TimeoutSeconds,
+		MinTimeoutSeconds: waitConfig.MinTimeoutSeconds,
+		DelaySeconds:      waitConfig.DelaySeconds,
 	}
 }
 

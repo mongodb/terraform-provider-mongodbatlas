@@ -70,6 +70,55 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 			},
 			goldenFileName: "update-with-put",
 		},
+		"Defining wait configuration in create update and delete": {
+			inputModel: codespec.Resource{
+				Name: stringcase.SnakeCaseString("test_name"),
+				Operations: codespec.APIOperations{
+					Create: codespec.APIOperation{
+						HTTPMethod: "POST",
+						Path:       "/api/v1/testname/{projectId}",
+						Wait: &codespec.Wait{
+							StateProperty:     "state",
+							PendingStates:     []string{"INITIATING"},
+							TargetStates:      []string{"IDLE"},
+							TimeoutSeconds:    300,
+							MinTimeoutSeconds: 60,
+							DelaySeconds:      10,
+						},
+					},
+					Update: codespec.APIOperation{
+						HTTPMethod: "PUT",
+						Path:       "/api/v1/testname/{projectId}",
+						Wait: &codespec.Wait{
+							StateProperty:     "state",
+							PendingStates:     []string{"UPDATING"},
+							TargetStates:      []string{"IDLE"},
+							TimeoutSeconds:    300,
+							MinTimeoutSeconds: 60,
+							DelaySeconds:      10,
+						},
+					},
+					Read: codespec.APIOperation{
+						HTTPMethod: "GET",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Delete: codespec.APIOperation{
+						HTTPMethod: "DELETE",
+						Path:       "/api/v1/testname/{projectId}",
+						Wait: &codespec.Wait{
+							StateProperty:     "state",
+							PendingStates:     []string{"PENDING"},
+							TargetStates:      []string{"UNCONFIGURED"},
+							TimeoutSeconds:    300,
+							MinTimeoutSeconds: 60,
+							DelaySeconds:      10,
+						},
+					},
+					VersionHeader: "application/vnd.atlas.2024-05-30+json",
+				},
+			},
+			goldenFileName: "wait-configuration",
+		},
 	}
 
 	for testName, tc := range testCases {
