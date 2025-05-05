@@ -18,14 +18,14 @@ func main() {
 	}
 
 	// Read the system prompt
-	systemPromptBytes, err := os.ReadFile("tools/examples-generation/prompts/generateexample.system.md")
+	systemPromptBytes, err := os.ReadFile("tools/examples-generation/prompts/generatehcl.system.md")
 	if err != nil {
 		panic(fmt.Errorf("failed to read system prompt file: %w", err))
 	}
 	systemPrompt := string(systemPromptBytes)
 
 	// Read the user prompt
-	userPromptBytes, err := os.ReadFile("tools/examples-generation/prompts/generateexample.user.md")
+	userPromptBytes, err := os.ReadFile("tools/examples-generation/prompts/generatehcl.user.md")
 	if err != nil {
 		panic(fmt.Errorf("failed to read user prompt file: %w", err))
 	}
