@@ -6,9 +6,34 @@ import (
 	"os"
 
 	"github.com/openai/openai-go"
+	// "github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
+	// "github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
 )
 
+const atlasAdminAPISpecURL = "https://raw.githubusercontent.com/mongodb/openapi/refs/heads/main/openapi/v2/openapi-2025-03-12.yaml"
+const specFilePath = "open-api-spec.yml"
+
 func main() {
+
+	// if err := openapi.DownloadOpenAPISpec(atlasAdminAPISpecURL, specFilePath); err != nil {
+	// 	log.Fatalf("an error occurred when downloading Atlas Admin API spec: %v", err)
+	// }
+
+	// apiSpec, err := openapi.ParseAtlasAdminAPI(specFilePath)
+	// if err != nil {
+	// 	log.Fatalf("unable to parse Atlas Admin API: %v", err)
+	// }
+
+	// op, _ := apiSpec.Model.Paths.PathItems.OrderedMap.Get("/api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}")
+
+	// okResponse, _ := op.Get.Responses.Codes.Get(codespec.OASResponseCodeOK)
+	// schema, _ := codespec.GetSchemaFromMediaType(okResponse.Content)
+	// baseSchema := schema.Schema
+	// yamlBytes, _ := baseSchema.RenderInline()
+	// yamlString := string(yamlBytes[:])
+	// println(yamlString)
+	// print(schema)
+
 	const DefaultAPIVersion = "2024-12-01-preview"
 	const Model = "gpt-4.1-nano"
 

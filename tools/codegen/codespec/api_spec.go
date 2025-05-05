@@ -33,7 +33,7 @@ func BuildSchema(proxy *base.SchemaProxy) (*APISpecSchema, error) {
 	return resp, nil
 }
 
-func getSchemaFromMediaType(mediaTypes *orderedmap.Map[string, *high.MediaType]) (*APISpecSchema, error) {
+func GetSchemaFromMediaType(mediaTypes *orderedmap.Map[string, *high.MediaType]) (*APISpecSchema, error) {
 	if mediaTypes == nil {
 		return nil, errSchemaNotFound
 	}
@@ -58,7 +58,7 @@ func buildSchemaFromRequest(op *high.Operation) (*APISpecSchema, error) {
 		return nil, errSchemaNotFound
 	}
 
-	return getSchemaFromMediaType(op.RequestBody.Content)
+	return GetSchemaFromMediaType(op.RequestBody.Content)
 }
 
 func buildSchemaFromResponse(op *high.Operation) (*APISpecSchema, error) {
@@ -68,12 +68,12 @@ func buildSchemaFromResponse(op *high.Operation) (*APISpecSchema, error) {
 
 	okResponse, ok := op.Responses.Codes.Get(OASResponseCodeOK)
 	if ok {
-		return getSchemaFromMediaType(okResponse.Content)
+		return GetSchemaFromMediaType(okResponse.Content)
 	}
 
 	createdResponse, ok := op.Responses.Codes.Get(OASResponseCodeCreated)
 	if ok {
-		return getSchemaFromMediaType(createdResponse.Content)
+		return GetSchemaFromMediaType(createdResponse.Content)
 	}
 
 	sortedCodes := orderedmap.SortAlpha(op.Responses.Codes)
@@ -85,7 +85,7 @@ func buildSchemaFromResponse(op *high.Operation) (*APISpecSchema, error) {
 		}
 
 		if statusCode >= 200 && statusCode <= 299 {
-			return getSchemaFromMediaType(responseCode.Content)
+			return GetSchemaFromMediaType(responseCode.Content)
 		}
 	}
 
