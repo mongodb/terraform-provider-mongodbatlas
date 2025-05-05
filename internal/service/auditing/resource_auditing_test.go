@@ -15,19 +15,19 @@ const (
 	resourceName     = "mongodbatlas_auditing.test"
 	dataSourceName   = "data.mongodbatlas_auditing.test"
 	emptyAuditFilter = "{}"
+	auditFilter      = `{
+		"param": {
+			"mechanism": "SCRAM-SHA-1",
+			"db":       "admin",
+			"user":     "auditAdmin"
+		},
+		"atype": "authenticate"
+	}`
 )
 
 func TestAccGenericAuditing_basic(t *testing.T) {
 	var (
-		projectID   = acc.ProjectIDExecution(t)
-		auditFilter = `{
-			"param": {
-				"mechanism": "SCRAM-SHA-1",
-				"db":       "admin",
-				"user":     "auditAdmin"
-			},
-			"atype": "authenticate"
-		}`
+		projectID = acc.ProjectIDExecution(t)
 	)
 
 	// Serial so it doesn't conflict with TestMigGenericAuditing_basic
