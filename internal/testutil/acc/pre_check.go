@@ -74,14 +74,6 @@ func PreCheckCert(tb testing.TB) {
 	}
 }
 
-// PreCheckPreviewFlag is used for resources not yet in GA
-func PreCheckPreviewFlag(tb testing.TB) {
-	tb.Helper()
-	if os.Getenv("MONGODB_ATLAS_ENABLE_PREVIEW") == "" {
-		tb.Fatal("`MONGODB_ATLAS_ENABLE_PREVIEW` must be set for running this acceptance test")
-	}
-}
-
 func PreCheckCloudProviderAccessAzure(tb testing.TB) {
 	tb.Helper()
 	PreCheckBasic(tb)

@@ -1,134 +1,117 @@
-linters-settings:
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - experimental
-      - opinionated
-      - performance
-      - style
-  govet:
-    enable-all: true
-
-  revive:
-    # see https://github.com/mgechev/revive#available-rules for details.
-    ignore-generated-header: true
-    severity: warning
-    rules:
-      - name: blank-imports
-      - name: context-as-argument
-      - name: context-keys-type
-      - name: dot-imports
-      - name: error-return
-      - name: error-strings
-      - name: error-naming
-      - name: errorf
-      - name: exported
-      - name: indent-error-flow
-      - name: if-return
-      - name: increment-decrement
-      - name: var-naming
-      - name: var-declaration
-      - name: package-comments
-      - name: range
-      - name: receiver-naming
-      - name: time-naming
-      - name: unexported-return
-      - name: indent-error-flow
-      - name: errorf
-      - name: empty-block
-      - name: superfluous-else
-      - name: struct-tag
-      # Too many unusued parameters, skipping this check for now
-      #- name: unused-parameter
-      - name: unreachable-code
-      - name: redefines-builtin-id
-  misspell:
-    locale: US
-    ignore-words:
-      - cancelled
-  lll:
-    # Default is 120. '\t' is counted as 1 character.
-    # set our project to 500, as we are adding open api field description in the schema.
-    # also, for anyone using vscode, use the following configs:
-    # "rewrap.wrappingColumn": 500 ... requires the rewrap plugin
-    # "editor.rulers": [500]
-    line-length: 500
-  nestif:
-    # minimal complexity of if statements to report, 5 by default
-    min-complexity: 7
-  mnd:
-    checks:
-      - case
-      - operation
-      - return
-  funlen:
-    lines: 360
-    statements: 120
+version: "2"
+run:
+  modules-download-mode: readonly
+  tests: true
 linters:
-  disable-all: true
+  default: none
   enable:
+    - copyloopvar
     - dogsled
     - errcheck
+    - exhaustive
     - funlen
     - gocritic
-    - gofmt
-    - goimports
-    - revive
-    - mnd
     - goprintffuncname
     - gosec
-    - gosimple
     - govet
     - ineffassign
     - lll
+    - makezero
     - misspell
+    - mnd
     - nakedret
+    - noctx
     - nolintlint
+    - revive
     - rowserrcheck
-    - copyloopvar
     - staticcheck
-    - stylecheck
-    - typecheck
+    - testifylint
+    - testpackage
+    - thelper
     - unconvert
     - unused
-    - whitespace
-    - thelper
-    - testifylint
-    - exhaustive
-    - makezero
-    - noctx
-    - testpackage
     - usetesting
+    - whitespace
 
-  # don't enable:
-  #    - tenv # The linter 'tenv' is deprecated (since v1.64.0) due to: Duplicate feature another linter. Replaced by usetesting.
-  #   - deadcode
-  #   - varcheck
-  #   - structcheck
-  #   - depguard # Go linter that checks if package imports are in a list of acceptable packages [fast: true, auto-fix: false]
-  #   - gocyclo # we already have funlen lint
-  #   - dupl  # we have a lot of duplicate test cases
-  #   - gochecknoinits # we need the init function for the provider
-  #   - gochecknoglobals # we need some global variables
-  #   - unparam # Forces to create global variables when one variable is repeated in different functions
-  #   - goerr113 # It does not allow you to return an error, you need to save the error in a variable to do it
-  #   - goconst
-  #   - gocognit
-issues:
-  exclude:
-    - declaration of ".*" shadows declaration at line .*
-  exclude-rules:
-    - linters:
-        - staticcheck
-      text: "SA1019:" # d.GetOkExists is deprecated: usage is discouraged due to undefined behaviors and may be removed in a future version of the SDK
-    - linters:
-        - gocritic
-      text: "^hugeParam: req is heavy"
-    - path: "schema\\.go" # exclude rules for schema files as it's auto-genereated from OpenAPI spec
-      text: "fieldalignment|hugeParam|var-naming|ST1003|S1007|exceeds the maximum|too long|regexpSimplify|nolint"
-run:
-  timeout: 10m
-  tests: true
-  build-tags:
-    - integration
-  modules-download-mode: readonly
+  settings:
+    funlen:
+      lines: 360
+      statements: 120
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - experimental
+        - opinionated
+        - performance
+        - style
+    govet:
+      enable-all: true
+    lll:
+      # Default is 120. '\t' is counted as 1 character.
+      # set our project to 500, as we are adding open api field description in the schema.
+      # also, for anyone using vscode, use the following configs:
+      # "rewrap.wrappingColumn": 500 ... requires the rewrap plugin
+      # "editor.rulers": [500]
+      line-length: 500
+    misspell:
+      locale: US
+      ignore-rules:
+        - cancelled
+    mnd:
+      checks:
+        - case
+        - operation
+        - return
+    nestif:
+      min-complexity: 7
+    revive:
+      severity: warning
+      rules:
+        - name: blank-imports
+        - name: context-as-argument
+        - name: context-keys-type
+        - name: dot-imports
+        - name: error-return
+        - name: error-strings
+        - name: error-naming
+        - name: errorf
+        - name: exported
+        - name: indent-error-flow
+        - name: if-return
+        - name: increment-decrement
+        - name: var-naming
+        - name: var-declaration
+        - name: package-comments
+        - name: range
+        - name: receiver-naming
+        - name: time-naming
+        - name: unexported-return
+        - name: indent-error-flow
+        - name: errorf
+        - name: empty-block
+        - name: superfluous-else
+        - name: struct-tag
+        - name: unreachable-code
+        - name: redefines-builtin-id
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - staticcheck
+        text: "SA1019:" # d.GetOkExists is deprecated: usage is discouraged due to undefined behaviors and may be removed in a future version of the SDK
+      - linters:
+          - gocritic
+        text: "^hugeParam: req is heavy"
+      - path: schema\.go # exclude rules for schema files as it's auto-genereated from OpenAPI spec
+        text: fieldalignment|hugeParam|var-naming|ST1003|S1007|exceeds the maximum|too long|regexpSimplify|nolint
+      - path: (.+)\.go$
+        text: declaration of ".*" shadows declaration at line .*
+formatters:
+  enable:
+    - gofmt
+    - goimports

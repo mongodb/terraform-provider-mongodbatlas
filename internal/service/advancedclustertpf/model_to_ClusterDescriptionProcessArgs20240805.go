@@ -3,7 +3,7 @@ package advancedclustertpf
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -31,7 +31,6 @@ func NewAtlasReqAdvancedConfiguration(ctx context.Context, objInput *types.Objec
 		ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: changeStreamOptionsPreAndPostImagesExpireAfterSeconds,
 		DefaultWriteConcern:              conversion.NilForUnknown(input.DefaultWriteConcern, input.DefaultWriteConcern.ValueStringPointer()),
 		JavascriptEnabled:                conversion.NilForUnknown(input.JavascriptEnabled, input.JavascriptEnabled.ValueBoolPointer()),
-		MinimumEnabledTlsProtocol:        conversion.NilForUnknown(input.MinimumEnabledTlsProtocol, input.MinimumEnabledTlsProtocol.ValueStringPointer()),
 		NoTableScan:                      conversion.NilForUnknown(input.NoTableScan, input.NoTableScan.ValueBoolPointer()),
 		OplogMinRetentionHours:           conversion.NilForUnknown(input.OplogMinRetentionHours, input.OplogMinRetentionHours.ValueFloat64Pointer()),
 		OplogSizeMB:                      conversion.NilForUnknown(input.OplogSizeMb, conversion.Int64PtrToIntPtr(input.OplogSizeMb.ValueInt64Pointer())),
@@ -39,7 +38,5 @@ func NewAtlasReqAdvancedConfiguration(ctx context.Context, objInput *types.Objec
 		SampleSizeBIConnector:            conversion.NilForUnknown(input.SampleSizeBiconnector, conversion.Int64PtrToIntPtr(input.SampleSizeBiconnector.ValueInt64Pointer())),
 		TransactionLifetimeLimitSeconds:  conversion.NilForUnknown(input.TransactionLifetimeLimitSeconds, input.TransactionLifetimeLimitSeconds.ValueInt64Pointer()),
 		DefaultMaxTimeMS:                 conversion.NilForUnknown(input.DefaultMaxTimeMS, conversion.Int64PtrToIntPtr(input.DefaultMaxTimeMS.ValueInt64Pointer())),
-		TlsCipherConfigMode:              conversion.NilForUnknown(input.TlsCipherConfigMode, input.TlsCipherConfigMode.ValueStringPointer()),
-		CustomOpensslCipherConfigTls12:   conversion.Pointer(conversion.TypesSetToString(ctx, input.CustomOpensslCipherConfigTls12)),
 	}
 }

@@ -93,7 +93,7 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
    role_id    =  mongodbatlas_cloud_provider_access_setup.setup_only.role_id
 
    aws {
-      iam_assumed_role_arn = "arn:aws:iam::772401394250:role/test-user-role"
+      iam_assumed_role_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/test-user-role"
    }
 }
 

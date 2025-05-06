@@ -21,8 +21,8 @@ Terraform >= 0.13
 This can be done using environment variables:
 
 ```bash
-export MONGODB_ATLAS_PUBLIC_KEY="xxxx"
-export MONGODB_ATLAS_PRIVATE_KEY="xxxx"
+export MONGODB_ATLAS_PUBLIC_KEY="<ATLAS_PUBLIC_KEY>"
+export MONGODB_ATLAS_PRIVATE_KEY="<ATLAS_PRIVATE_KEY>"
 ```
 
 ... or follow as in the `variables.tf` file and create **terraform.tfvars** file with all the variable values, ex:
@@ -38,9 +38,8 @@ atlas_org_id         = "63f4d4a47baeac59406dc131"
 **2\. Set your AWS access key & secret via environment variables:
 
 ```bash
-export AWS_ACCESS_KEY_ID="exampleawsy"
-export AWS_SECRET_ACCESS_KEY="ye3G3+example+TOez2BBK+P22+raXXn2l2hywcuq1"
-
+export AWS_ACCESS_KEY_ID='<AWS_ACCESS_KEY_ID>'
+export AWS_SECRET_ACCESS_KEY='<AWS_SECRET_ACCESS_KEY>'
 ```
 
 **3\. Review the Terraform plan.**

@@ -87,8 +87,6 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 This updated configuration will trigger a Terraform update plan. However, the underlying cluster will not face any changes after the `apply` command, as both configurations represent a sharded cluster composed of two shards.
 
-Note: The first time `terraform apply` command is run **after** updating the configuration, you may receive a `500 Internal Server Error (Error code: "SERVICE_UNAVAILABLE")` error. This is a known temporary issue. If you encounter this, please re-run `terraform apply` and this time the update should succeed. 
-
 <a id="migration-geosharded"></a>
 ### Migrate advanced_cluster type `GEOSHARDED`
 
@@ -197,8 +195,6 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 This updated configuration triggers a Terraform update plan. However, the underlying cluster will not face any changes after the `apply` command, as both configurations represent a geo sharded cluster with two zones and two shards in each one.
 
-Note: The first time `terraform apply` command is run **after** updating the configuration, you may receive a `500 Internal Server Error (Error code: "SERVICE_UNAVAILABLE")` error. This is a known temporary issue. If you encounter this, please re-run `terraform apply` and this time the update should succeed. 
-
 <a id="migration-replicaset"></a>
 ### Migrate advanced_cluster type `REPLICASET`
 
@@ -284,8 +280,6 @@ resource "mongodbatlas_advanced_cluster" "test" {
     }
 }
 ```
-
-Note: The first time `terraform apply` command is run **after** updating the configuration, you may receive a `500 Internal Server Error (Error code: "SERVICE_UNAVAILABLE")` error. This is a known temporary issue. If you encounter this, please re-run `terraform apply` and this time the update should succeed. 
 
 <a id="use-iss"></a>
 ## Use Independent Shard Scaling 
@@ -435,7 +429,10 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 While the example initially defines 2 symmetric shards, auto-scaling of `electable_specs` or `analytic_specs` can lead to asymmetric shards due to changes in `instance_size`.
 
--> **NOTE:** After you upgrade to version 1.23.0 of the provider, you must update the cluster configuration to activate the auto-scaling per shard feature.
+-> **NOTE:** In the following scenarios, a `mongodbatlas_advanced_cluster` using the new sharding configuration (single `replication_specs` per shard) might not have shard-level auto-scaling enabled:
+1. Configuration was defined prior to version 1.23.0 when auto-scaling per shard feature was released.
+2. Cluster was imported from a legacy schema (For example, `mongodbatlas_cluster` or `mongodbatlas_advanced_cluster` using `num_shards` > 1).
+In these cases, you must update the cluster configuration to activate the auto-scaling per shard feature. This can be done by temporarily modifying a value like `compute_min_instance_size`.
 
 -> **NOTE:** See the table [below](#resources-and-data-sources-impacted-by-independent-shard-scaling) for other impacted resources when a cluster transitions to independently scaled shards.
 

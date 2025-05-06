@@ -19,4 +19,6 @@ Search node resource can be imported using the project ID and cluster name, in t
 $ terraform import mongodbatlas_search_deployment.test 650972848269185c55f40ca1-Cluster0
 ```
 
+After an import, a non-empty plan is expected if the configuration defines the `skip_wait_on_update` attribute. However, the update will not have any effect on the search deployment since `skip_wait_on_update` only relates to the update operations wait time.
+
 For more information see: [MongoDB Atlas API - Search Node](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Atlas-Search/operation/createAtlasSearchDeployment) Documentation.
