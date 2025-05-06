@@ -6,6 +6,8 @@ import (
 	"os"
 
 	"github.com/openai/openai-go"
+	"github.com/openai/openai-go/packages/param"
+	// "log"
 	// "github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	// "github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
 )
@@ -14,7 +16,6 @@ const atlasAdminAPISpecURL = "https://raw.githubusercontent.com/mongodb/openapi/
 const specFilePath = "open-api-spec.yml"
 
 func main() {
-
 	// if err := openapi.DownloadOpenAPISpec(atlasAdminAPISpecURL, specFilePath); err != nil {
 	// 	log.Fatalf("an error occurred when downloading Atlas Admin API spec: %v", err)
 	// }
@@ -23,8 +24,7 @@ func main() {
 	// if err != nil {
 	// 	log.Fatalf("unable to parse Atlas Admin API: %v", err)
 	// }
-
-	// op, _ := apiSpec.Model.Paths.PathItems.OrderedMap.Get("/api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}")
+	// op, _ := apiSpec.Model.Paths.PathItems.OrderedMap.Get("/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}")
 
 	// okResponse, _ := op.Get.Responses.Codes.Get(codespec.OASResponseCodeOK)
 	// schema, _ := codespec.GetSchemaFromMediaType(okResponse.Content)
@@ -35,7 +35,7 @@ func main() {
 	// print(schema)
 
 	const DefaultAPIVersion = "2024-12-01-preview"
-	const Model = "gpt-4.1-nano"
+	const Model = "gpt-4.1"
 
 	client, err := CreateOpenAIClientWithKey(DefaultAPIVersion)
 	if err != nil {
@@ -61,7 +61,8 @@ func main() {
 			openai.SystemMessage(systemPrompt),
 			openai.UserMessage(userPrompt),
 		},
-		Model: Model,
+		Model:       Model,
+		Temperature: param.NewOpt(0.0),
 	})
 
 	if err != nil {
