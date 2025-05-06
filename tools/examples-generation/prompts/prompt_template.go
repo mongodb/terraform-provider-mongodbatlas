@@ -30,5 +30,5 @@ func GetUserPrompt(inputs UserPromptTemplateInputs) string {
 		panic(err)
 	}
 
-	return string(buf.Bytes())
+	return buf.String()
 }

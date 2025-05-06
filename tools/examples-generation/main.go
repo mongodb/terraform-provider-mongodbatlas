@@ -71,13 +71,13 @@ func getAPISpecSchema(resourceName string) string {
 	if err != nil {
 		log.Fatalf("unable to parse Atlas Admin API: %v", err)
 	}
-	op, _ := apiSpec.Model.Paths.PathItems.OrderedMap.Get(getPath)
+	op, _ := apiSpec.Model.Paths.PathItems.Get(getPath)
 
 	okResponse, _ := op.Get.Responses.Codes.Get(codespec.OASResponseCodeOK)
 	schema, _ := codespec.GetSchemaFromMediaType(okResponse.Content)
 	baseSchema := schema.Schema
 	yamlBytes, _ := baseSchema.RenderInline()
-	yamlString := string(yamlBytes[:])
+	yamlString := string(yamlBytes)
 	return yamlString
 }
 

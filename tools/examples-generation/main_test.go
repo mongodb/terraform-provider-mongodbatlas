@@ -9,7 +9,6 @@ import (
 
 // TestRunMain is a quick test that runs main() function
 func TestRunMain(t *testing.T) {
-
 	// This is a simple integration test that runs main
 	// We're just checking it runs without panicking
 	assert.NotPanics(t, func() {
