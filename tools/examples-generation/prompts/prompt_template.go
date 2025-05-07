@@ -18,6 +18,11 @@ var generateVarsDefHCLUserPromptTemplate string
 //go:embed generatevarsdefhcl.system.md
 var GenerateVarsDefHCLSystemPrompt string
 
+//go:embed generatereadme.user.md
+var generateReadmeUserPromptTemplate string
+//go:embed generatereadme.system.md
+var GenerateReadmeSystemPrompt string
+
 type MainHCLUserPromptInputs struct {
 	ResourceName                  string
 	ResourceImplementationSchema  string
@@ -45,6 +50,26 @@ type VarsDefHCLUserPromptInputs struct {
 
 func GetVarsDefHCLGenerationUserPrompt(inputs VarsDefHCLUserPromptInputs) string {
 	t, err := template.New("template").Parse(generateVarsDefHCLUserPromptTemplate)
+	if err != nil {
+		panic(err)
+	}
+
+	var buf bytes.Buffer
+	err = t.Execute(&buf, inputs)
+	if err != nil {
+		panic(err)
+	}
+
+	return buf.String()
+}
+
+type ReadmeUserPromptInputs struct {
+	HCLConfig string
+	VariablesDefHCL string
+}
+
+func GetReadmeGenerationUserPrompt(inputs ReadmeUserPromptInputs) string {
+	t, err := template.New("template").Parse(generateReadmeUserPromptTemplate)
 	if err != nil {
 		panic(err)
 	}

@@ -50,6 +50,11 @@ func main() {
 		log.Fatalf("Error writing main.tf: %v", err)
 	}
 
+	readmeContent := GenerateReadme(client, mainHCL, variablesDefinitionHCL)
+	if err := writeContentToExamplesFolder(readmeContent, "README.md", resourceName); err != nil {
+		log.Fatalf("Error writing main.tf: %v", err)
+	}
+
 }
 
 func GenerateVariableDefsHCL(client *openai.Client, mainHCLContent string) string {
@@ -57,6 +62,14 @@ func GenerateVariableDefsHCL(client *openai.Client, mainHCLContent string) strin
 		HCLConfig: mainHCLContent,
 	})
 	return CallModel(client, prompts.GenerateVarsDefHCLSystemPrompt, userPrompt)
+}
+
+func GenerateReadme(client *openai.Client, mainHCLContent, variablesDefinitionHCL string) string {
+	userPrompt := prompts.GetReadmeGenerationUserPrompt(prompts.ReadmeUserPromptInputs{
+		HCLConfig: mainHCLContent,
+		VariablesDefHCL: variablesDefinitionHCL,
+	})
+	return CallModel(client, prompts.GenerateReadmeSystemPrompt, userPrompt)
 }
 
 func GenerateMainHCL(client *openai.Client, resourceName string) string {

@@ -1,0 +1,5 @@
+HCL Configuration:
+
+{{ .VariablesDefHCL }}
+
+{{ .HCLConfig }}
