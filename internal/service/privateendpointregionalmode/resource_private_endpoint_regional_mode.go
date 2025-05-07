@@ -117,7 +117,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, conn.ClustersApi),
 		Timeout:    d.Timeout(timeoutKey.(string)),
 		MinTimeout: 5 * time.Second,
-		Delay:      3 * time.Second,
+		Delay:      15 * time.Second,
 	}
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
