@@ -1,6 +1,6 @@
 Resource name: mongodbatlas_{{ .ResourceName }} 
 
-Resource schema:
+Resource implementation:
 ```
 {{ .ResourceImplementationSchema }} 
 ```

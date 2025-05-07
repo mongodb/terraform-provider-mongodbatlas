@@ -6,20 +6,45 @@ import (
 	"html/template"
 )
 
-//go:embed generatehcl.user.md
-var generateHCLUserPromptTemplate string
+//go:embed generatemainhcl.user.md
+var generateMainHCLUserPromptTemplate string
 
-//go:embed generatehcl.system.md
-var GenerateHCLSystemPrompt string
+//go:embed generatemainhcl.system.md
+var GenerateMainHCLSystemPrompt string
 
-type UserPromptTemplateInputs struct {
+//go:embed generatevarsdefhcl.user.md
+var generateVarsDefHCLUserPromptTemplate string
+
+//go:embed generatevarsdefhcl.system.md
+var GenerateVarsDefHCLSystemPrompt string
+
+type MainHCLUserPromptInputs struct {
 	ResourceName                  string
 	ResourceImplementationSchema  string
 	ResourceAPISpecResponseSchema string
 }
 
-func GetUserPrompt(inputs UserPromptTemplateInputs) string {
-	t, err := template.New("template").Parse(generateHCLUserPromptTemplate)
+func GetMainHCLGenerationUserPrompt(inputs MainHCLUserPromptInputs) string {
+	t, err := template.New("template").Parse(generateMainHCLUserPromptTemplate)
+	if err != nil {
+		panic(err)
+	}
+
+	var buf bytes.Buffer
+	err = t.Execute(&buf, inputs)
+	if err != nil {
+		panic(err)
+	}
+
+	return buf.String()
+}
+
+type VarsDefHCLUserPromptInputs struct {
+	HCLConfig string
+}
+
+func GetVarsDefHCLGenerationUserPrompt(inputs VarsDefHCLUserPromptInputs) string {
+	t, err := template.New("template").Parse(generateVarsDefHCLUserPromptTemplate)
 	if err != nil {
 		panic(err)
 	}

@@ -1,60 +1,90 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/examples-generation/prompts"
 	"github.com/openai/openai-go"
-	"github.com/openai/openai-go/packages/param"
-	// "log"
-	// "github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
-	// "github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
 )
 
 const atlasAdminAPISpecURL = "https://raw.githubusercontent.com/mongodb/openapi/refs/heads/main/openapi/v2/openapi-2025-03-12.yaml"
+
 const specFilePath = "open-api-spec.yml"
+const resourcesBasePath = "./internal/service/"
 
 var resourceToGetPath = map[string]string{
 	"alert_configuration": "/api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}",
 	"search_index":        "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}",
+	"search_deployment":   "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment",
 }
 
 func main() {
-	const resourceName = "alert_configuration"
-
-	const DefaultAPIVersion = "2024-12-01-preview"
-	const Model = "gpt-4.1"
-
-	apiSpecSchema := getAPISpecSchema(resourceName)
-	userPrompt := prompts.GetUserPrompt(prompts.UserPromptTemplateInputs{
-		ResourceName:                  resourceName,
-		ResourceImplementationSchema:  schemaContent,
-		ResourceAPISpecResponseSchema: apiSpecSchema,
-	})
-	log.Printf("User Prompt: %s\n", userPrompt)
+	resourceName := "search_deployment"
 
 	client, err := CreateOpenAIClientWithKey(DefaultAPIVersion)
 	if err != nil {
 		panic(fmt.Errorf("failed to create OpenAI client: %w", err))
 	}
 
-	chatCompletion, err := client.Chat.Completions.New(context.TODO(), openai.ChatCompletionNewParams{
-		Messages: []openai.ChatCompletionMessageParamUnion{
-			openai.SystemMessage(prompts.GenerateHCLSystemPrompt),
-			openai.UserMessage(userPrompt),
-		},
-		Model:       Model,
-		Temperature: param.NewOpt(0.0),
-	})
+	mainHCL := GenerateMainHCL(client, resourceName)
 
-	if err != nil {
-		panic(err.Error())
+	if err := writeContentToExamplesFolder(mainHCL, "main.tf", resourceName); err != nil {
+		log.Fatalf("Error writing main.tf: %v", err)
 	}
-	println(chatCompletion.Choices[0].Message.Content)
+	if err := writeContentToExamplesFolder(providerHCLContent, "provider.tf", resourceName); err != nil {
+		log.Fatalf("Error writing provider hcl to file: %v", err)
+	}
+	if err := writeContentToExamplesFolder(versionsHCLContent, "versions.tf", resourceName); err != nil {
+		log.Fatalf("Error writing versions hcl to file: %v", err)
+	}
+
+	variablesDefinitionHCL := GenerateVariableDefsHCL(client, mainHCL)
+
+	if err := writeContentToExamplesFolder(variablesDefinitionHCL, "variables.tf", resourceName); err != nil {
+		log.Fatalf("Error writing main.tf: %v", err)
+	}
+
+}
+
+func GenerateVariableDefsHCL(client *openai.Client, mainHCLContent string) string {
+	userPrompt := prompts.GetVarsDefHCLGenerationUserPrompt(prompts.VarsDefHCLUserPromptInputs{
+		HCLConfig: mainHCLContent,
+	})
+	return CallModel(client, prompts.GenerateVarsDefHCLSystemPrompt, userPrompt)
+}
+
+func GenerateMainHCL(client *openai.Client, resourceName string) string {
+	apiSpecSchema := getAPISpecSchema(resourceName)
+	resourceImplSchema := getResourceImplementationSchema(resourceName)
+	userPrompt := prompts.GetMainHCLGenerationUserPrompt(prompts.MainHCLUserPromptInputs{
+		ResourceName:                  resourceName,
+		ResourceImplementationSchema:  resourceImplSchema,
+		ResourceAPISpecResponseSchema: apiSpecSchema,
+	})
+	return CallModel(client, prompts.GenerateMainHCLSystemPrompt, userPrompt)
+}
+
+func writeContentToExamplesFolder(content, fileName string, resourceName string) error {
+	// Ensure the directory exists
+	examplesDir := fmt.Sprintf("./examples/mongodbatlas_%s", resourceName)
+	if err := os.MkdirAll(examplesDir, 0755); err != nil {
+		return fmt.Errorf("failed to create directory: %w", err)
+	}
+
+	// Write the HCL content to the file
+	filePath := filepath.Join(examplesDir, fileName)
+	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
+		return fmt.Errorf("failed to write to file: %w", err)
+	}
+
+	fmt.Printf("Content written to: %s\n", filePath)
+	return nil
 }
 
 func getAPISpecSchema(resourceName string) string {
@@ -81,94 +111,41 @@ func getAPISpecSchema(resourceName string) string {
 	return yamlString
 }
 
-const schemaContent = `
-func (r *alertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"project_id": schema.StringAttribute{
-				Required: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"alert_configuration_id": schema.StringAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-		},
-		Blocks: map[string]schema.Block{
-			"matcher": schema.ListNestedBlock{
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"field_name": schema.StringAttribute{
-							Required: true,
-						},
-						"operator": schema.StringAttribute{
-							Required: true,
-						},
-						"value": schema.StringAttribute{
-							Required: true,
-						},
-					},
-				},
-			},
-			"metric_threshold_config": schema.ListNestedBlock{
-				Validators: []validator.List{
-					listvalidator.SizeAtMost(1),
-				},
-				NestedObject: schema.NestedBlockObject{
-					Attributes: map[string]schema.Attribute{
-						"metric_name": schema.StringAttribute{
-							Required: true,
-						},
-						"operator": schema.StringAttribute{
-							Optional: true,
-							Validators: []validator.String{
-								stringvalidator.OneOf("GREATER_THAN", "LESS_THAN"),
-							},
-						},
-						"threshold": schema.Float64Attribute{
-							Optional: true,
-							Computed: true,
-							PlanModifiers: []planmodifier.Float64{
-								float64planmodifier.UseStateForUnknown(),
-							},
-						},
-						"units": schema.StringAttribute{
-							Optional: true,
-						},
-						"mode": schema.StringAttribute{
-							Optional: true,
-						},
-					},
-				},
-			},
+func getResourceImplementationSchema(resourceName string) string {
+	lowerCaseJoined := codespec.SnakeCaseString(resourceName).LowerCaseNoUnderscore()
+	var implementationContent string
+	dirPath := resourcesBasePath + lowerCaseJoined
+	files, err := filepath.Glob(filepath.Join(dirPath, "*"))
+	if err != nil {
+		log.Printf("Failed to read directory %s: %v", dirPath, err)
+		return ""
 	}
-}
-`
+	for _, file := range files {
+		baseName := filepath.Base(file)
+		if strings.HasPrefix(baseName, "resource") {
+			content, err := os.ReadFile(file)
+			if err != nil {
+				log.Printf("Failed to read file %s: %v", file, err)
+				continue
+			}
 
-const apiSpecSchemaContent = `
-oneOf:
-    - description: Other alerts which don't have extra details beside of basic one.
-      properties:
-        created:
-            description: Date and time when MongoDB Cloud created the alert configuration. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
-            externalDocs:
-                description: ISO 8601
-                url: https://en.wikipedia.org/wiki/ISO_8601
-            format: date-time
-            readOnly: true
-            type: string
-        enabled:
-            default: false
-            description: Flag that indicates whether someone enabled this alert configuration for the specified project.
-            type: boolean
-`
+			implementationContent += fmt.Sprintf("File: %s\n\n%s\n\n", baseName, string(content))
+		}
+	}
+	return implementationContent
+}
+
+const providerHCLContent = `provider "mongodbatlas" {
+  public_key  = var.public_key
+  private_key = var.private_key
+}`
+
+const versionsHCLContent = `terraform {
+  required_providers {
+    mongodbatlas = {
+      source  = "mongodb/mongodbatlas"
+      version = "~> 1.0"
+    }
+  }
+  required_version = ">= 1.0"
+}`

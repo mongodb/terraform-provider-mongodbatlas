@@ -20,7 +20,8 @@ You must output:
 
 ## search index resource generation example
 Resource name: mongodbatlas_search_index
-Resource schema:
+Resource implementation:
+```
 func returnSearchIndexSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"project_id": {
@@ -115,8 +116,10 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 		},
 	}
 }
+```
 
 API Specification schema of GET response:
+```
 discriminator:
     mapping:
         search: '#/components/schemas/TextSearchIndexResponse'
@@ -412,3 +415,4 @@ resource "mongodbatlas_search_index" "test-search-vector" {
 }]
 EOF
 }
+```
