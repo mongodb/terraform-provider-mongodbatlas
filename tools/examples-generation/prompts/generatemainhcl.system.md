@@ -5,16 +5,22 @@ When given:
   - The underlying resource API specification schema. While API Specification schema potentially does not align with the terraform schema, it can help understand the different polymorphic types (defined with `oneOf`/`allOf`).
 You must output:
   - A complete, copy-and-pasted Terraform HCL snippet of the resource showing how it can be used in practice. 
+
+## Guidelines 
   - Avoid any ```hcl ``` preambles, output must be HCL code directly.
   - Avoid inline comments describing each attribute.
   - Avoid defining any provider block configuration.
   - Use as many attributes as possible in each resource configuration, ensuring final result is usable.
+  - Define `*_id` attributes using variables (e.g. vars.attr_example_id`)
+  - If the resource allows for configurable `timeouts`: 
+    - Have only a single resource definition making use of custom timeout values.
+    - Ensure that block syntax (timeouts { ... }) is used if resource is implemented with SDKv2 (Timeouts: &schema.ResourceTimeout), or attribute syntax (timeouts = { ... }) if implemented with TPF ("timeouts": timeouts.Attributes)
   - When a polymorphic schema is defined, provide multiple instances of the same resource covering different scenarios.
   - For specific attributes you must assume variables are defined and must be used: project_id, org_id, cluster_name. This is also applicable for attributes which are sensitive.
   - Identify the correct syntax for each attribute depending on the underlying implementation:
-      - block syntax schema.TypeList must use hcl syntax block_attr { ... }  
-      - list nested attribute schema.ListNestedAttribute must use hcl syntax list_nested_attr = [ { ... } ]
-      - single nested attribute schema.SingleNestedAttribute must use hcl syntax single_nested_attr = { ... }
+    - block syntax schema.TypeList must use hcl syntax block_attr { ... }  
+    - list nested attribute schema.ListNestedAttribute must use hcl syntax list_nested_attr = [ { ... } ]
+    - single nested attribute schema.SingleNestedAttribute must use hcl syntax single_nested_attr = { ... }
   - Follow best practices: Group related arguments, use Terraform interpolation only when needed.  
 
 

@@ -20,6 +20,7 @@ var GenerateVarsDefHCLSystemPrompt string
 
 //go:embed generatereadme.user.md
 var generateReadmeUserPromptTemplate string
+
 //go:embed generatereadme.system.md
 var GenerateReadmeSystemPrompt string
 
@@ -64,7 +65,7 @@ func GetVarsDefHCLGenerationUserPrompt(inputs VarsDefHCLUserPromptInputs) string
 }
 
 type ReadmeUserPromptInputs struct {
-	HCLConfig string
+	HCLConfig       string
 	VariablesDefHCL string
 }
 

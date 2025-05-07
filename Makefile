@@ -166,6 +166,11 @@ generate-schema: ## Generate the schema for a resource
 generate-doc: ## Auto-generate the documentation for a resource
 	@scripts/generate-doc.sh ${resource_name}
 
+
+.PHONY: generate-examples
+generate-examples:
+	@go run ./tools/examples-generation/*.go
+
 # generate the resource documentation via tfplugindocs for all resources that have templates
 .PHONY: generate-docs-all
 generate-docs-all: ## Auto-generate the documentation for all resources

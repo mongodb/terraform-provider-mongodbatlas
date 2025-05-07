@@ -19,13 +19,14 @@ const specFilePath = "open-api-spec.yml"
 const resourcesBasePath = "./internal/service/"
 
 var resourceToGetPath = map[string]string{
-	"alert_configuration": "/api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}",
-	"search_index":        "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}",
-	"search_deployment":   "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment",
+	"alert_configuration":   "/api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}",
+	"search_index":          "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}",
+	"search_deployment":     "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment",
+	"push_based_log_export": "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
 }
 
 func main() {
-	resourceName := "search_deployment"
+	resourceName := "push_based_log_export"
 
 	client, err := CreateOpenAIClientWithKey(DefaultAPIVersion)
 	if err != nil {
@@ -54,7 +55,6 @@ func main() {
 	if err := writeContentToExamplesFolder(readmeContent, "README.md", resourceName); err != nil {
 		log.Fatalf("Error writing main.tf: %v", err)
 	}
-
 }
 
 func GenerateVariableDefsHCL(client *openai.Client, mainHCLContent string) string {
@@ -66,7 +66,7 @@ func GenerateVariableDefsHCL(client *openai.Client, mainHCLContent string) strin
 
 func GenerateReadme(client *openai.Client, mainHCLContent, variablesDefinitionHCL string) string {
 	userPrompt := prompts.GetReadmeGenerationUserPrompt(prompts.ReadmeUserPromptInputs{
-		HCLConfig: mainHCLContent,
+		HCLConfig:       mainHCLContent,
 		VariablesDefHCL: variablesDefinitionHCL,
 	})
 	return CallModel(client, prompts.GenerateReadmeSystemPrompt, userPrompt)
