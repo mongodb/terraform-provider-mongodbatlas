@@ -2,10 +2,10 @@ Resource name: mongodbatlas_{{ .ResourceName }}
 
 Resource implementation:
 ```
-{{ .ResourceImplementationSchema }} 
+{{ .ResourceImplementation }} 
 ```
 
 API Specification schema of GET response:
 ```
-{{ .ResourceAPISpecResponseSchema }}
+{{ .ResourceAPISpec }}
 ```

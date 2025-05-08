@@ -25,9 +25,9 @@ var generateReadmeUserPromptTemplate string
 var GenerateReadmeSystemPrompt string
 
 type MainHCLUserPromptInputs struct {
-	ResourceName                  string
-	ResourceImplementationSchema  string
-	ResourceAPISpecResponseSchema string
+	ResourceName           string
+	ResourceImplementation string
+	ResourceAPISpec        string
 }
 
 func GetMainHCLGenerationUserPrompt(inputs MainHCLUserPromptInputs) string {
@@ -67,6 +67,7 @@ func GetVarsDefHCLGenerationUserPrompt(inputs VarsDefHCLUserPromptInputs) string
 type ReadmeUserPromptInputs struct {
 	HCLConfig       string
 	VariablesDefHCL string
+	ResourceAPISpec string
 }
 
 func GetReadmeGenerationUserPrompt(inputs ReadmeUserPromptInputs) string {

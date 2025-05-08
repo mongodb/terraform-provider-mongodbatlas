@@ -22,18 +22,22 @@ var resourceToGetPath = map[string]string{
 	"alert_configuration":   "/api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}",
 	"search_index":          "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}",
 	"search_deployment":     "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment",
+	"stream_instance":       "/api/atlas/v2/groups/{groupId}/streams/{tenantName}",
 	"push_based_log_export": "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
 }
 
 func main() {
-	resourceName := "push_based_log_export"
+	resourceName := "stream_instance"
+
+	resourceGetAPISpec := getAPISpecSchema(resourceName)
+	resourceImpl := getResourceImplementationSchema(resourceName)
 
 	client, err := CreateOpenAIClientWithKey(DefaultAPIVersion)
 	if err != nil {
 		panic(fmt.Errorf("failed to create OpenAI client: %w", err))
 	}
 
-	mainHCL := GenerateMainHCL(client, resourceName)
+	mainHCL := GenerateMainHCL(client, resourceName, resourceImpl, resourceGetAPISpec)
 
 	if err := writeContentToExamplesFolder(mainHCL, "main.tf", resourceName); err != nil {
 		log.Fatalf("Error writing main.tf: %v", err)
@@ -51,7 +55,7 @@ func main() {
 		log.Fatalf("Error writing main.tf: %v", err)
 	}
 
-	readmeContent := GenerateReadme(client, mainHCL, variablesDefinitionHCL)
+	readmeContent := GenerateReadme(client, mainHCL, variablesDefinitionHCL, resourceGetAPISpec)
 	if err := writeContentToExamplesFolder(readmeContent, "README.md", resourceName); err != nil {
 		log.Fatalf("Error writing main.tf: %v", err)
 	}
@@ -64,22 +68,22 @@ func GenerateVariableDefsHCL(client *openai.Client, mainHCLContent string) strin
 	return CallModel(client, prompts.GenerateVarsDefHCLSystemPrompt, userPrompt)
 }
 
-func GenerateReadme(client *openai.Client, mainHCLContent, variablesDefinitionHCL string) string {
+func GenerateReadme(client *openai.Client, mainHCLContent, variablesDefinitionHCL, apiSpec string) string {
 	userPrompt := prompts.GetReadmeGenerationUserPrompt(prompts.ReadmeUserPromptInputs{
 		HCLConfig:       mainHCLContent,
 		VariablesDefHCL: variablesDefinitionHCL,
+		ResourceAPISpec: apiSpec,
 	})
 	return CallModel(client, prompts.GenerateReadmeSystemPrompt, userPrompt)
 }
 
-func GenerateMainHCL(client *openai.Client, resourceName string) string {
-	apiSpecSchema := getAPISpecSchema(resourceName)
-	resourceImplSchema := getResourceImplementationSchema(resourceName)
+func GenerateMainHCL(client *openai.Client, resourceName string, resourceImpl string, apiSpec string) string {
 	userPrompt := prompts.GetMainHCLGenerationUserPrompt(prompts.MainHCLUserPromptInputs{
-		ResourceName:                  resourceName,
-		ResourceImplementationSchema:  resourceImplSchema,
-		ResourceAPISpecResponseSchema: apiSpecSchema,
+		ResourceName:           resourceName,
+		ResourceImplementation: resourceImpl,
+		ResourceAPISpec:        apiSpec,
 	})
+	log.Printf("User prompt: %s\n", userPrompt)
 	return CallModel(client, prompts.GenerateMainHCLSystemPrompt, userPrompt)
 }
 
@@ -114,14 +118,14 @@ func getAPISpecSchema(resourceName string) string {
 	if err != nil {
 		log.Fatalf("unable to parse Atlas Admin API: %v", err)
 	}
-	op, _ := apiSpec.Model.Paths.PathItems.Get(getPath)
-
-	okResponse, _ := op.Get.Responses.Codes.Get(codespec.OASResponseCodeOK)
-	schema, _ := codespec.GetSchemaFromMediaType(okResponse.Content)
-	baseSchema := schema.Schema
-	yamlBytes, _ := baseSchema.RenderInline()
-	yamlString := string(yamlBytes)
-	return yamlString
+	path, _ := apiSpec.Model.Paths.PathItems.Get(getPath)
+	getOp := path.Get
+	getOpBytes, _ := getOp.RenderInline()
+	// okResponse, _ := getOp.Responses.Codes.Get(codespec.OASResponseCodeOK)
+	// schema, _ := codespec.GetSchemaFromMediaType(okResponse.Content)
+	// baseSchema := schema.Schema
+	// schemaBytes, _ := baseSchema.RenderInline()
+	return string(getOpBytes)
 }
 
 func getResourceImplementationSchema(resourceName string) string {
