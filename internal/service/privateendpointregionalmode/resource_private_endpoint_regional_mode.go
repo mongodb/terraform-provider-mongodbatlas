@@ -116,8 +116,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Target:     []string{"IDLE", "DELETED"},
 		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, conn.ClustersApi),
 		Timeout:    d.Timeout(timeoutKey.(string)),
-		MinTimeout: 5 * time.Second,
-		Delay:      3 * time.Second,
+		MinTimeout: 15 * time.Second,
+		Delay:      30 * time.Second, // give time for cluster connection strings to be updated
 	}
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
