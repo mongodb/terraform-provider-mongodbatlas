@@ -96,7 +96,9 @@ func GenerateMainHCL(client *openai.Client, resourceName string, resourceImpl st
 		ResourceImplementation: resourceImpl,
 		ResourceAPISpec:        apiSpec,
 	})
-	log.Printf("User prompt: %s\n", userPrompt)
+	if err := os.WriteFile("hcl-generation-user-prompt.log", []byte(userPrompt), 0644); err != nil {
+		log.Fatalf("failed to write to user prompt log file: %v", err)
+	}
 	return CallModel(client, prompts.GenerateMainHCLSystemPrompt, userPrompt)
 }
 

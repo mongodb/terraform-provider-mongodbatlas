@@ -3,7 +3,7 @@ package prompts
 import (
 	"bytes"
 	_ "embed"
-	"html/template"
+	"text/template"
 )
 
 //go:embed generatemainhcl.user.md
