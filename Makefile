@@ -169,7 +169,7 @@ generate-doc: ## Auto-generate the documentation for a resource
 
 .PHONY: generate-examples
 generate-examples:
-	@go run ./tools/examples-generation/*.go
+	@go run ./tools/examples-generation/*.go ${resource_name}
 
 # generate the resource documentation via tfplugindocs for all resources that have templates
 .PHONY: generate-docs-all

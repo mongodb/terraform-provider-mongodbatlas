@@ -24,10 +24,15 @@ var resourceToGetPath = map[string]string{
 	"search_deployment":     "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment",
 	"stream_instance":       "/api/atlas/v2/groups/{groupId}/streams/{tenantName}",
 	"push_based_log_export": "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
+	"cluster":               "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}",
 }
 
 func main() {
-	resourceName := "stream_instance"
+	osArg := getOsArg()
+	if(osArg == nil) {
+		log.Fatalf("resource name is required")
+	}
+	resourceName := *osArg
 
 	resourceGetAPISpec := getAPISpecSchema(resourceName)
 	resourceImpl := getResourceImplementationSchema(resourceName)
@@ -59,6 +64,14 @@ func main() {
 	if err := writeContentToExamplesFolder(readmeContent, "README.md", resourceName); err != nil {
 		log.Fatalf("Error writing main.tf: %v", err)
 	}
+}
+
+
+func getOsArg() *string {
+	if len(os.Args) < 2 {
+		return nil
+	}
+	return &os.Args[1]
 }
 
 func GenerateVariableDefsHCL(client *openai.Client, mainHCLContent string) string {
