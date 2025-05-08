@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+BUG FIXES:
+
+* resource/mongodbatlas_private_endpoint_regional_mode: Increases update wait time so cluster connection strings are updated ([#3320](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3320))
+
 ## 1.34.0 (April 30, 2025)
 
 ENHANCEMENTS:
