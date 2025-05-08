@@ -25,11 +25,12 @@ var resourceToGetPath = map[string]string{
 	"stream_instance":       "/api/atlas/v2/groups/{groupId}/streams/{tenantName}",
 	"push_based_log_export": "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
 	"cluster":               "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}",
+	"stream_connection":     "/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}",
 }
 
 func main() {
 	osArg := getOsArg()
-	if(osArg == nil) {
+	if osArg == nil {
 		log.Fatalf("resource name is required")
 	}
 	resourceName := *osArg
@@ -65,7 +66,6 @@ func main() {
 		log.Fatalf("Error writing main.tf: %v", err)
 	}
 }
-
 
 func getOsArg() *string {
 	if len(os.Args) < 2 {
