@@ -17,7 +17,6 @@ var (
 	attributeRootChangeMapping = map[string][]string{
 		"disk_size_gb":           {}, // disk_size_gb can be change at any level/spec
 		"replication_specs":      {},
-		"mongo_db_major_version": {"mongo_db_version"},
 		"tls_cipher_config_mode": {"custom_openssl_cipher_config_tls12"},
 		"cluster_type":           {"config_server_management_mode", "config_server_type"}, // computed values of config server change when REPLICA_SET changes to SHARDED
 	}
@@ -62,7 +61,7 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 		return
 	}
 	attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
-	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
+	keepUnknown := []string{"connection_strings", "state_name", "mongo_db_version"} // Volatile attributes, should not be copied from state
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
@@ -119,9 +118,14 @@ func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 			return
 		}
 		for j := range minLen(planRegionConfigsTF, stateRegionConfigsTF) {
+			stateElectableSpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].ElectableSpecs)
+			planElectableSpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ElectableSpecs)
+			if planElectableSpecs == nil && stateElectableSpecs != nil && stateElectableSpecs.NodeCount.ValueInt64() > 0 {
+				planRegionConfigsTF[j].ElectableSpecs = stateRegionConfigsTF[j].ElectableSpecs
+				planElectableSpecs = stateElectableSpecs
+			}
 			stateReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].ReadOnlySpecs)
 			planReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ReadOnlySpecs)
-			planElectableSpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ElectableSpecs)
 			if stateReadOnlySpecs != nil { // read_only_specs is present in state
 				// logic below ensures that if read only specs is present in state but not in the plan, plan will be populated so that read only spec configuration is not removed on update operations
 				newPlanReadOnlySpecs := planReadOnlySpecs

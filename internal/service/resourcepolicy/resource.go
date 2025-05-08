@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -80,8 +80,9 @@ func (r *resourcePolicyRS) Create(ctx context.Context, req resource.CreateReques
 
 	connV2 := r.Client.AtlasV2
 	policySDK, _, err := connV2.ResourcePoliciesApi.CreateAtlasResourcePolicy(ctx, orgID, &admin.ApiAtlasResourcePolicyCreate{
-		Name:     plan.Name.ValueString(),
-		Policies: policies,
+		Name:        plan.Name.ValueString(),
+		Description: plan.Description.ValueStringPointer(),
+		Policies:    policies,
 	}).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(errorCreate, err.Error())
@@ -134,8 +135,11 @@ func (r *resourcePolicyRS) Update(ctx context.Context, req resource.UpdateReques
 	connV2 := r.Client.AtlasV2
 	policies := NewAdminPolicies(ctx, plan.Policies)
 	editAdmin := admin.ApiAtlasResourcePolicyEdit{
-		Name:     plan.Name.ValueStringPointer(),
-		Policies: &policies,
+		Name: plan.Name.ValueStringPointer(),
+		// description is an optional attribute (i.e. null by default), if it is removed from the config during an update
+		// (i.e. user wants to remove the existing description from resource policy), we send an empty string ("") as the value in API request for update
+		Description: conversion.Pointer(plan.Description.ValueString()),
+		Policies:    &policies,
 	}
 	policySDK, _, err := connV2.ResourcePoliciesApi.UpdateAtlasResourcePolicy(ctx, orgID, resourcePolicyID, &editAdmin).Execute()
 
@@ -161,7 +165,7 @@ func (r *resourcePolicyRS) Delete(ctx context.Context, req resource.DeleteReques
 	resourcePolicyID := resourcePolicyState.ID.ValueString()
 	connV2 := r.Client.AtlasV2
 	resourcePolicyAPI := connV2.ResourcePoliciesApi
-	if _, _, err := resourcePolicyAPI.DeleteAtlasResourcePolicy(ctx, orgID, resourcePolicyID).Execute(); err != nil {
+	if _, err := resourcePolicyAPI.DeleteAtlasResourcePolicy(ctx, orgID, resourcePolicyID).Execute(); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}

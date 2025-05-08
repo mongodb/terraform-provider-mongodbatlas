@@ -13,7 +13,7 @@ import (
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -530,37 +530,40 @@ func expandBiConnectorConfig(d *schema.ResourceData) *admin.BiConnector {
 	return nil
 }
 
-func flattenProcessArgs(p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) []map[string]any {
-	if p20240530 == nil {
+func flattenProcessArgs(p *advancedclustertpf.ProcessArgs) []map[string]any {
+	if p.ArgsLegacy == nil {
 		return nil
 	}
 	flattenedProcessArgs := []map[string]any{
 		{
-			"default_read_concern":                 p20240530.GetDefaultReadConcern(),
-			"default_write_concern":                p20240530.GetDefaultWriteConcern(),
-			"fail_index_key_too_long":              p20240530.GetFailIndexKeyTooLong(),
-			"javascript_enabled":                   p20240530.GetJavascriptEnabled(),
-			"minimum_enabled_tls_protocol":         p20240530.GetMinimumEnabledTlsProtocol(),
-			"no_table_scan":                        p20240530.GetNoTableScan(),
-			"oplog_size_mb":                        p20240530.GetOplogSizeMB(),
-			"oplog_min_retention_hours":            p20240530.GetOplogMinRetentionHours(),
-			"sample_size_bi_connector":             p20240530.GetSampleSizeBIConnector(),
-			"sample_refresh_interval_bi_connector": p20240530.GetSampleRefreshIntervalBIConnector(),
-			"transaction_lifetime_limit_seconds":   p20240530.GetTransactionLifetimeLimitSeconds(),
+			"default_read_concern":                 p.ArgsLegacy.GetDefaultReadConcern(),
+			"default_write_concern":                p.ArgsLegacy.GetDefaultWriteConcern(),
+			"fail_index_key_too_long":              p.ArgsLegacy.GetFailIndexKeyTooLong(),
+			"javascript_enabled":                   p.ArgsLegacy.GetJavascriptEnabled(),
+			"no_table_scan":                        p.ArgsLegacy.GetNoTableScan(),
+			"oplog_size_mb":                        p.ArgsLegacy.GetOplogSizeMB(),
+			"oplog_min_retention_hours":            p.ArgsLegacy.GetOplogMinRetentionHours(),
+			"sample_size_bi_connector":             p.ArgsLegacy.GetSampleSizeBIConnector(),
+			"sample_refresh_interval_bi_connector": p.ArgsLegacy.GetSampleRefreshIntervalBIConnector(),
+			"transaction_lifetime_limit_seconds":   p.ArgsLegacy.GetTransactionLifetimeLimitSeconds(),
 		},
 	}
-	if p != nil {
-		if v := p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds; v == nil {
+	if p.ArgsDefault != nil {
+		if v := p.ArgsDefault.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds; v == nil {
 			flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = -1 // default in schema, otherwise user gets drift detection
 		} else {
-			flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = p.GetChangeStreamOptionsPreAndPostImagesExpireAfterSeconds()
+			flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = p.ArgsDefault.GetChangeStreamOptionsPreAndPostImagesExpireAfterSeconds()
 		}
 
-		if v := p.DefaultMaxTimeMS; v != nil {
-			flattenedProcessArgs[0]["default_max_time_ms"] = p.GetDefaultMaxTimeMS()
+		if v := p.ArgsDefault.DefaultMaxTimeMS; v != nil {
+			flattenedProcessArgs[0]["default_max_time_ms"] = p.ArgsDefault.GetDefaultMaxTimeMS()
 		}
-		flattenedProcessArgs[0]["tls_cipher_config_mode"] = p.GetTlsCipherConfigMode()
-		flattenedProcessArgs[0]["custom_openssl_cipher_config_tls12"] = p.GetCustomOpensslCipherConfigTls12()
+	}
+
+	if p.ClusterAdvancedConfig != nil {
+		flattenedProcessArgs[0]["tls_cipher_config_mode"] = p.ClusterAdvancedConfig.GetTlsCipherConfigMode()
+		flattenedProcessArgs[0]["custom_openssl_cipher_config_tls12"] = p.ClusterAdvancedConfig.GetCustomOpensslCipherConfigTls12()
+		flattenedProcessArgs[0]["minimum_enabled_tls_protocol"] = p.ClusterAdvancedConfig.GetMinimumEnabledTlsProtocol()
 	}
 
 	return flattenedProcessArgs
@@ -843,6 +846,32 @@ func flattenAdvancedReplicationSpecAutoScaling(apiObject *admin.AdvancedAutoScal
 	return tfList
 }
 
+func expandClusterAdvancedConfiguration(d *schema.ResourceData) *admin.ApiAtlasClusterAdvancedConfiguration {
+	res := admin.ApiAtlasClusterAdvancedConfiguration{}
+
+	if ac, ok := d.GetOk("advanced_configuration"); ok {
+		if aclist, ok := ac.([]any); ok && len(aclist) > 0 {
+			p := aclist[0].(map[string]any)
+
+			if _, ok := d.GetOkExists("advanced_configuration.0.minimum_enabled_tls_protocol"); ok {
+				res.MinimumEnabledTlsProtocol = conversion.StringPtr(cast.ToString(p["minimum_enabled_tls_protocol"]))
+			}
+
+			if _, ok := d.GetOkExists("advanced_configuration.0.tls_cipher_config_mode"); ok {
+				res.TlsCipherConfigMode = conversion.StringPtr(cast.ToString(p["tls_cipher_config_mode"]))
+			}
+
+			if _, ok := d.GetOkExists("advanced_configuration.0.custom_openssl_cipher_config_tls12"); ok {
+				tmp := conversion.ExpandStringListFromSetSchema(d.Get("advanced_configuration.0.custom_openssl_cipher_config_tls12").(*schema.Set))
+				res.CustomOpensslCipherConfigTls12 = &tmp
+			}
+
+			return &res
+		}
+	}
+	return nil
+}
+
 func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVersion *string) (admin20240530.ClusterDescriptionProcessArgs, admin.ClusterDescriptionProcessArgs20240805) {
 	res20240530 := admin20240530.ClusterDescriptionProcessArgs{}
 	res := admin.ClusterDescriptionProcessArgs20240805{}
@@ -861,10 +890,6 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.javascript_enabled"); ok {
 		res20240530.JavascriptEnabled = conversion.Pointer(cast.ToBool(p["javascript_enabled"]))
-	}
-
-	if _, ok := d.GetOkExists("advanced_configuration.0.minimum_enabled_tls_protocol"); ok {
-		res20240530.MinimumEnabledTlsProtocol = conversion.StringPtr(cast.ToString(p["minimum_enabled_tls_protocol"]))
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.no_table_scan"); ok {
@@ -916,15 +941,6 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 		} else {
 			log.Print(ErrorDefaultMaxTimeMinVersion)
 		}
-	}
-
-	if _, ok := d.GetOkExists("advanced_configuration.0.tls_cipher_config_mode"); ok {
-		res.TlsCipherConfigMode = conversion.StringPtr(cast.ToString(p["tls_cipher_config_mode"]))
-	}
-
-	if _, ok := d.GetOkExists("advanced_configuration.0.custom_openssl_cipher_config_tls12"); ok {
-		tmp := conversion.ExpandStringListFromSetSchema(d.Get("advanced_configuration.0.custom_openssl_cipher_config_tls12").(*schema.Set))
-		res.CustomOpensslCipherConfigTls12 = &tmp
 	}
 	return res20240530, res
 }

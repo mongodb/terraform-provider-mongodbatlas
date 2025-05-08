@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -82,6 +82,17 @@ func Resource() *schema.Resource {
 				Optional: true,
 				Default:  true,
 			},
+			// skip_default_alerts_settings defaults to `true` to prevent Atlas from automatically creating organization-level alerts not explicitly managed through Terraform.
+			// Note that this deviates from the API default of `false` for this attribute.
+			"skip_default_alerts_settings": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+			"security_contact": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -118,7 +129,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	_, _, errUpdate := conn.OrganizationsApi.UpdateOrganizationSettings(ctx, orgID, newOrganizationSettings(d)).Execute()
 	if errUpdate != nil {
-		if _, _, err := conn.OrganizationsApi.DeleteOrganization(ctx, orgID).Execute(); err != nil {
+		if _, err := conn.OrganizationsApi.DeleteOrganization(ctx, orgID).Execute(); err != nil {
 			d.SetId("")
 			return diag.FromErr(fmt.Errorf("an error occurred when updating Organization settings: %s.\n Unable to delete organization, there may be dangling resources: %s", errUpdate.Error(), err.Error()))
 		}
@@ -173,6 +184,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	if err := d.Set("name", organization.Name); err != nil {
 		return diag.Errorf("error setting `name` for organization (%s): %s", *organization.Id, err)
 	}
+	if err := d.Set("skip_default_alerts_settings", organization.SkipDefaultAlertsSettings); err != nil {
+		return diag.Errorf("error setting `skip_default_alerts_settings` for organization (%s): %s", orgID, err)
+	}
 
 	settings, _, err := conn.OrganizationsApi.GetOrganizationSettings(ctx, orgID).Execute()
 	if err != nil {
@@ -190,6 +204,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	}
 	if err := d.Set("gen_ai_features_enabled", settings.GenAIFeaturesEnabled); err != nil {
 		return diag.Errorf("error setting `gen_ai_features_enabled` for organization (%s): %s", orgID, err)
+	}
+	if err := d.Set("security_contact", settings.SecurityContact); err != nil {
+		return diag.Errorf("error setting `security_contact` for organization (%s): %s", orgID, err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
@@ -213,8 +230,12 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	orgID := ids["org_id"]
 
 	updateRequest := new(admin.AtlasOrganization)
-	if d.HasChange("name") {
+
+	if d.HasChange("name") ||
+		d.HasChange("skip_default_alerts_settings") {
 		updateRequest.Name = d.Get("name").(string)
+		updateRequest.SkipDefaultAlertsSettings = conversion.Pointer(d.Get("skip_default_alerts_settings").(bool))
+
 		_, _, err := conn.OrganizationsApi.UpdateOrganization(ctx, orgID, updateRequest).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error updating Organization name: %s", err))
@@ -224,7 +245,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if d.HasChange("api_access_list_required") ||
 		d.HasChange("multi_factor_auth_required") ||
 		d.HasChange("restrict_employee_access") ||
-		d.HasChange("gen_ai_features_enabled") {
+		d.HasChange("gen_ai_features_enabled") ||
+		d.HasChange("security_contact") {
 		if _, _, err := conn.OrganizationsApi.UpdateOrganizationSettings(ctx, orgID, newOrganizationSettings(d)).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf("error updating Organization settings: %s", err))
 		}
@@ -247,16 +269,25 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
-	if _, _, err := conn.OrganizationsApi.DeleteOrganization(ctx, orgID).Execute(); err != nil {
+	if _, err := conn.OrganizationsApi.DeleteOrganization(ctx, orgID).Execute(); err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting Organization: %s", err))
 	}
 	return nil
 }
 
 func newCreateOrganizationRequest(d *schema.ResourceData) *admin.CreateOrganizationRequest {
+	// skip_default_alerts_settings defaults to `true` to prevent Atlas from automatically creating organization-level alerts not explicitly managed through Terraform.
+	// Note that this deviates from the API default of `false` for this attribute.
+	skipDefaultAlertsSettings := true
+
+	if v, ok := d.GetOkExists("skip_default_alerts_settings"); ok {
+		skipDefaultAlertsSettings = v.(bool)
+	}
+
 	createRequest := &admin.CreateOrganizationRequest{
-		Name:       d.Get("name").(string),
-		OrgOwnerId: conversion.Pointer(d.Get("org_owner_id").(string)),
+		Name:                      d.Get("name").(string),
+		OrgOwnerId:                conversion.Pointer(d.Get("org_owner_id").(string)),
+		SkipDefaultAlertsSettings: conversion.Pointer(skipDefaultAlertsSettings),
 
 		ApiKey: &admin.CreateAtlasOrganizationApiKey{
 			Roles: conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List()),
@@ -277,6 +308,7 @@ func newOrganizationSettings(d *schema.ResourceData) *admin.OrganizationSettings
 		MultiFactorAuthRequired: conversion.Pointer(d.Get("multi_factor_auth_required").(bool)),
 		RestrictEmployeeAccess:  conversion.Pointer(d.Get("restrict_employee_access").(bool)),
 		GenAIFeaturesEnabled:    conversion.Pointer(d.Get("gen_ai_features_enabled").(bool)),
+		SecurityContact:         conversion.Pointer(d.Get("security_contact").(string)),
 	}
 }
 

@@ -17,7 +17,7 @@ GITTAG=$(shell git describe --always --tags)
 VERSION=$(GITTAG:v%=%)
 LINKER_FLAGS=-s -w -X 'github.com/mongodb/terraform-provider-mongodbatlas/version.ProviderVersion=${VERSION}'
 
-GOLANGCI_VERSION=v1.64.7 # Also update golangci-lint GH action in code-health.yml when updating this version
+GOLANGCI_VERSION=v2.0.2 # Also update golangci-lint GH action in code-health.yml when updating this version
 
 export PATH := $(shell go env GOPATH)/bin:$(PATH)
 export SHELL := env PATH=$(PATH) /bin/bash
@@ -40,7 +40,11 @@ clean-atlas-org: ## Run a test to clean all projects and pending resources in an
 
 .PHONY: test
 test: fmtcheck ## Run unit tests
-	go test ./... -timeout=30s -parallel=4 -race
+	@$(eval export HTTP_MOCKER_REPLAY?=true)
+	@$(eval export MONGODB_ATLAS_ORG_ID?=111111111111111111111111)
+	@$(eval export MONGODB_ATLAS_PROJECT_ID?=111111111111111111111111)
+	@$(eval export MONGODB_ATLAS_CLUSTER_NAME?=mocked-cluster)
+	go test ./... -timeout=120s -parallel=$(PARALLEL_GO_TEST) -race
 
 .PHONY: testmact
 testmact: ## Run MacT tests (mocked acc tests)
@@ -118,8 +122,8 @@ docs: ## Give URL to test Terraform documentation
 	@echo "Use this site to preview markdown rendering: https://registry.terraform.io/tools/doc-preview"
 
 .PHONY: tflint
-tflint: fmtcheck ## Linter for Terraform files
-	tflint -f compact --recursive --minimum-failure-severity=warning
+tflint: fmtcheck ## Linter for Terraform files in examples/ dir (avoid `internal/**/testdata/main*.tf`)
+	tflint --chdir=examples/ -f compact --recursive --minimum-failure-severity=warning
 
 .PHONY: tf-validate
 tf-validate: fmtcheck ## Validate Terraform files

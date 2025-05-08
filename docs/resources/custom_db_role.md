@@ -18,7 +18,7 @@ resource "mongodbatlas_custom_db_role" "test_role" {
     action = "UPDATE"
     resources {
       collection_name = ""
-      database_name   = "anyDatabase"
+      database_name   = "anyDatabase" # use the empty string ("") to allow an action on all databases.
     }
   }
   actions {
@@ -123,7 +123,7 @@ Each object in the actions array represents an individual privilege action grant
 
 	-> **NOTE** This field is mutually exclusive with the `actions.resources.cluster` field.
 
-* `resources.#.database_name`	Database on which the action is granted.
+* `resources.#.database_name` Database on which the action is granted. Use the empty string ("") to allow an action on all databases.
 
 	-> **NOTE** This field is mutually exclusive with the `actions.resources.cluster` field.
 
