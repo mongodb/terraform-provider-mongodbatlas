@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/examples-generation/prompts"
 	"github.com/openai/openai-go"
+	"gopkg.in/yaml.v3"
 )
 
 const atlasAdminAPISpecURL = "https://raw.githubusercontent.com/mongodb/openapi/refs/heads/main/openapi/v2/openapi-2025-03-12.yaml"
@@ -135,12 +137,27 @@ func getAPISpecSchema(resourceName string) string {
 	}
 	path, _ := apiSpec.Model.Paths.PathItems.Get(getPath)
 	getOp := path.Get
-	getOpBytes, _ := getOp.RenderInline()
-	// okResponse, _ := getOp.Responses.Codes.Get(codespec.OASResponseCodeOK)
-	// schema, _ := codespec.GetSchemaFromMediaType(okResponse.Content)
-	// baseSchema := schema.Schema
-	// schemaBytes, _ := baseSchema.RenderInline()
-	return string(getOpBytes)
+	// Get extensions from the GET operation and convert to YAML
+	extensions := getOp.Extensions
+	docsUrlNode, _ := extensions.Get("x-xgen-docs-url")
+	docsURLStr, _ := yamlNodeToString(docsUrlNode)
+	okResponse, _ := getOp.Responses.Codes.Get(codespec.OASResponseCodeOK)
+	schema, _ := codespec.GetSchemaFromMediaType(okResponse.Content)
+	baseSchema := schema.Schema
+	schemaBytes, _ := baseSchema.RenderInline()
+	return fmt.Sprintf("docsUrl: %s\n%s", docsURLStr, string(schemaBytes))
+}
+
+func yamlNodeToString(node *yaml.Node) (string, error) {
+	var buf bytes.Buffer
+	encoder := yaml.NewEncoder(&buf)
+	defer encoder.Close()
+
+	if err := encoder.Encode(node); err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }
 
 func getResourceImplementationSchema(resourceName string) string {
