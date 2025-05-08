@@ -34,7 +34,7 @@ resource "mongodbatlas_stream_connection" "example-kafka-plaintext" {
     "auto.offset.reset" : "earliest"
   }
   security = {
-    protocol = "PLAINTEXT"
+    protocol = "SASL_PLAINTEXT"
   }
   networking = {
     access = {
@@ -59,7 +59,7 @@ resource "mongodbatlas_stream_connection" "example-kafka-ssl" {
   }
   security = {
     broker_public_certificate = var.kafka_ssl_cert
-    protocol                  = "SSL"
+    protocol                  = "SASL_SSL"
   }
 }
 
