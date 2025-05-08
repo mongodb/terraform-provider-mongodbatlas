@@ -1,11 +1,11 @@
-HCL Configuration:
+# HCL Configuration
 ```
 {{ .VariablesDefHCL }}
 
 {{ .HCLConfig }}
 ```
 
-API Specification:
+# API Specification
 ```
 {{ .ResourceAPISpec }}
 ```

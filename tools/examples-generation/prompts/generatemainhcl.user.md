@@ -1,11 +1,12 @@
-Resource name: mongodbatlas_{{ .ResourceName }} 
+# Resource name
+mongodbatlas_{{ .ResourceName }} 
 
-Resource implementation:
+# Resource implementation 
 ```
 {{ .ResourceImplementation }} 
 ```
 
-API Specification schema of GET response:
+# API Specification schema of GET response
 ```
 {{ .ResourceAPISpec }}
 ```

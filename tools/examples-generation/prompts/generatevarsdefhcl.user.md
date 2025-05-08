@@ -1,2 +1,3 @@
-Resource config:
+# Resource configuration
+
 {{ .HCLConfig }} 
