@@ -29,7 +29,7 @@ require (
 	github.com/sebdah/goldie/v2 v2.5.5
 	github.com/spf13/cast v1.8.0
 	github.com/stretchr/testify v1.10.0
-	github.com/wI2L/jsondiff v0.6.1
+	github.com/wI2L/jsondiff v0.7.0
 	github.com/zclconf/go-cty v1.16.2
 	go.mongodb.org/atlas v0.38.0
 	go.mongodb.org/atlas-sdk/v20240530005 v20240530005.0.0
@@ -157,7 +157,6 @@ require (
 	google.golang.org/grpc v1.69.4 // indirect
 	google.golang.org/protobuf v1.36.3 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
-
 )
 
 exclude github.com/denis-tingajkin/go-header v0.4.2
