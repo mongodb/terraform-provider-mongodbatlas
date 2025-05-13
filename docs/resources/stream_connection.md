@@ -19,7 +19,7 @@ resource "mongodbatlas_stream_connection" "test" {
 }
 ```
 
-### Example Kafka Plaintext Connection
+### Example Kafka SASL Plaintext Connection
 
 ```terraform
 resource "mongodbatlas_stream_connection" "test" {
@@ -33,7 +33,7 @@ resource "mongodbatlas_stream_connection" "test" {
         password = "somepassword"
     }
     security = {
-        protocol = "PLAINTEXT"
+        protocol = "SASL_PLAINTEXT"
     }
     config = {
         "auto.offset.reset": "latest"
@@ -42,7 +42,7 @@ resource "mongodbatlas_stream_connection" "test" {
 }    
 ```
 
-### Example Kafka SSL Connection
+### Example Kafka SASL SSL Connection
 
 ```terraform
 resource "mongodbatlas_stream_connection" "test" {
@@ -56,7 +56,7 @@ resource "mongodbatlas_stream_connection" "test" {
         password = "somepassword"
     }
     security = {
-        protocol = "SSL"
+        protocol = "SASL_SSL"
         broker_public_certificate = "-----BEGIN CERTIFICATE-----<CONTENT>-----END CERTIFICATE-----"
     }
     config = {
@@ -112,7 +112,7 @@ If `type` is of value `Kafka` the following additional arguments are defined:
 * `authentication` - User credentials required to connect to a Kafka cluster. Includes the authentication type, as well as the parameters for that authentication mode. See [authentication](#authentication).
 * `bootstrap_servers` - Comma separated list of server addresses.
 * `config` - A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.
-* `security` - Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use. See [security](#security).
+* `security` - Properties for the secure transport connection to Kafka. For SASL_SSL, this can include the trusted certificate to use. See [security](#security).
 * `networking` - Networking Access Type can either be `PUBLIC` (default) or `VPC`. See [networking](#networking).
 
 If `type` is of value `AWSLambda` the following additional arguments are defined:
@@ -131,7 +131,7 @@ If `type` is of value `Https` the following additional attributes are defined:
 ### Security
 
 * `broker_public_certificate` - A trusted, public x509 certificate for connecting to Kafka over SSL. String value of the certificate must be defined in the attribute.
-* `protocol` - Describes the transport type. Can be either `PLAINTEXT` or `SSL`.
+* `protocol` - Describes the transport type. Can be either `SASL_PLAINTEXT` or `SASL_SSL`.
 
 ### DBRoleToExecute
 

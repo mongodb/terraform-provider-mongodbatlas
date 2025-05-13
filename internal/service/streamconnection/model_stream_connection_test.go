@@ -18,7 +18,7 @@ const (
 	instanceName              = "InstanceName"
 	authMechanism             = "PLAIN"
 	authUsername              = "user1"
-	securityProtocol          = "SSL"
+	securityProtocol          = "SASL_SSL"
 	bootstrapServers          = "localhost:9092,another.host:9092"
 	dbRole                    = "customRole"
 	dbRoleType                = "CUSTOM"

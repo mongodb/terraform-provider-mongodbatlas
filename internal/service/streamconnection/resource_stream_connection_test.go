@@ -316,14 +316,14 @@ func configureKafka(projectID, instanceName, username, password, bootstrapServer
 	projectAndStreamInstanceConfig := acc.StreamInstanceConfig(projectID, instanceName, "VIRGINIA_USA", "AWS")
 	securityConfig := `
 		security = {
-			protocol = "PLAINTEXT"
+			protocol = "SASL_PLAINTEXT"
 		}`
 
 	if useSSL {
 		securityConfig = fmt.Sprintf(`
 		security = {
 		    broker_public_certificate = %q
-		    protocol = "SSL"
+		    protocol = "SASL_SSL"
 		}`, DummyCACert)
 	}
 	return fmt.Sprintf(`
@@ -408,10 +408,10 @@ func checkKafkaAttributes(
 		resourceChecks = append(resourceChecks, resource.TestCheckResourceAttr(resourceName, "authentication.password", password))
 	}
 	if !usesSSL {
-		resourceChecks = append(resourceChecks, resource.TestCheckResourceAttr(resourceName, "security.protocol", "PLAINTEXT"))
+		resourceChecks = append(resourceChecks, resource.TestCheckResourceAttr(resourceName, "security.protocol", "SASL_PLAINTEXT"))
 	} else {
 		resourceChecks = append(resourceChecks,
-			resource.TestCheckResourceAttr(resourceName, "security.protocol", "SSL"),
+			resource.TestCheckResourceAttr(resourceName, "security.protocol", "SASL_SSL"),
 			resource.TestCheckResourceAttrSet(resourceName, "security.broker_public_certificate"),
 		)
 	}
