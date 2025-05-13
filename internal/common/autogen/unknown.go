@@ -113,6 +113,9 @@ func getNullAttr(attrType attr.Type) (attr.Value, error) {
 		if setType, ok := attrType.(types.SetType); ok {
 			return types.SetNull(setType.ElemType), nil
 		}
+		if mapType, ok := attrType.(types.MapType); ok {
+			return types.MapNull(mapType.ElemType), nil
+		}
 		return nil, fmt.Errorf("unmarshal to get null value not supported yet for type %T", attrType)
 	}
 }
