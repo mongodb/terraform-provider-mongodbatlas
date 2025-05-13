@@ -19,6 +19,7 @@ func TestResolveUnknowns(t *testing.T) {
 		AttrListString    types.List   `tfsdk:"attr_list_string"`
 		AttrSetString     types.Set    `tfsdk:"attr_set_string"`
 		AttrListObjObj    types.List   `tfsdk:"attr_list_obj_obj"`
+		AttrMapUnknown    types.Map    `tfsdk:"attr_map_unknown"`
 	}
 	model := modelst{
 		AttrStringUnknown: types.StringUnknown(),
@@ -63,6 +64,7 @@ func TestResolveUnknowns(t *testing.T) {
 			}),
 			types.ObjectUnknown(objTypeParentTest.AttributeTypes()),
 		}),
+		AttrMapUnknown: types.MapUnknown(types.StringType),
 	}
 	modelExpected := modelst{
 		AttrStringUnknown: types.StringNull(),
@@ -107,6 +109,7 @@ func TestResolveUnknowns(t *testing.T) {
 			}),
 			types.ObjectNull(objTypeParentTest.AttributeTypes()),
 		}),
+		AttrMapUnknown: types.MapNull(types.StringType),
 	}
 	require.NoError(t, autogen.ResolveUnknowns(&model))
 	assert.Equal(t, modelExpected, model)
