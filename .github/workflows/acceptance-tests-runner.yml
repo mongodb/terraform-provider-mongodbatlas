@@ -365,7 +365,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -390,7 +390,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -419,7 +419,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -442,7 +442,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -482,7 +482,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -520,7 +520,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -542,7 +542,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -564,7 +564,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -586,7 +586,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -634,7 +634,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -677,7 +677,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -699,7 +699,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -737,7 +737,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -759,7 +759,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -786,7 +786,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -808,7 +808,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -837,7 +837,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -859,7 +859,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -904,7 +904,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -942,7 +942,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -967,7 +967,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -993,7 +993,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -1015,7 +1015,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -1037,7 +1037,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -1063,7 +1063,7 @@ jobs:
         - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
           with:
             ref: ${{ inputs.ref || github.ref }}
-        - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b
+        - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
           with:
             go-version-file: 'go.mod'
         - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
