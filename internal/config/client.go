@@ -8,8 +8,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
+	"reflect"
 	"regexp"
 	"strings"
 	"time"
@@ -36,8 +40,10 @@ const (
 )
 
 var (
-	jsonCheck = regexp.MustCompile(`(?i:(?:application|text)/(?:vnd\.[^;]+\+)?json)`)
-	xmlCheck  = regexp.MustCompile(`(?i:(?:application|text)/xml)`)
+	jsonCheck       = regexp.MustCompile(`(?i:(?:application|text)/(?:vnd\.[^;]+\+)?json)`)
+	xmlCheck        = regexp.MustCompile(`(?i:(?:application|text)/xml)`)
+	queryParamSplit = regexp.MustCompile(`(^|&)([^&]+)`)
+	queryDescape    = strings.NewReplacer("%5B", "[", "%5D", "]")
 )
 
 // MongoDBClient contains the mongodbatlas clients and configurations
@@ -269,7 +275,8 @@ func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParam
 	if bodyReq != nil { // if nil slice is sent with application/json content type SDK method returns an error
 		bodyPost = bodyReq
 	}
-	apiReq, err := c.AtlasV2.PrepareRequest(ctx, localVarPath, params.Method, bodyPost, headerParams, nil, nil, nil)
+	// TODO DELETE apiReq, err := c.AtlasV2.PrepareRequest(ctx, localVarPath, params.Method, bodyPost, headerParams, nil, nil, nil)
+	apiReq, err := prepareRequest(ctx, c.AtlasV2, localVarPath, params.Method, bodyPost, headerParams, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -282,6 +289,158 @@ func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParam
 	}
 
 	return apiResp, err
+}
+
+type formFile struct {
+	fileName     string
+	formFileName string
+	fileBytes    []byte
+}
+
+// PrepareRequest build the request
+func prepareRequest(
+	ctx context.Context,
+	c *admin.APIClient,
+	path string, method string,
+	postBody any,
+	headerParams map[string]string,
+	queryParams url.Values,
+	formParams url.Values,
+	formFiles []formFile) (localVarRequest *http.Request, err error) {
+	var body *bytes.Buffer
+
+	// Detect postBody type and post.
+	if postBody != nil {
+		contentType := headerParams["Content-Type"]
+		if contentType == "" {
+			contentType = detectContentType(postBody)
+			headerParams["Content-Type"] = contentType
+		}
+
+		body, err = setBody(postBody, contentType)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// add form parameters and file if available.
+	if strings.HasPrefix(headerParams["Content-Type"], "multipart/form-data") && len(formParams) > 0 || (len(formFiles) > 0) {
+		if body != nil {
+			return nil, errors.New("cannot specify postBody and multipart form at the same time")
+		}
+		body = &bytes.Buffer{}
+		w := multipart.NewWriter(body)
+
+		for k, v := range formParams {
+			for _, iv := range v {
+				if strings.HasPrefix(k, "@") { // file
+					err = addFile(w, k[1:], iv)
+					if err != nil {
+						return nil, err
+					}
+				} else { // form value
+					err = w.WriteField(k, iv)
+					if err != nil {
+						return nil, err
+					}
+				}
+			}
+		}
+		for _, formFile := range formFiles {
+			if !(len(formFile.fileBytes) > 0 && formFile.fileName != "") {
+				continue
+			}
+			w.Boundary()
+			part, err1 := w.CreateFormFile(formFile.formFileName, filepath.Base(formFile.fileName))
+			if err1 != nil {
+				return nil, err
+			}
+			_, err1 = part.Write(formFile.fileBytes)
+			if err1 != nil {
+				return nil, err
+			}
+		}
+
+		// Set the Boundary in the Content-Type
+		headerParams["Content-Type"] = w.FormDataContentType()
+
+		// Set Content-Length
+		headerParams["Content-Length"] = fmt.Sprintf("%d", body.Len())
+		w.Close()
+	}
+
+	if strings.HasPrefix(headerParams["Content-Type"], "application/x-www-form-urlencoded") && len(formParams) > 0 {
+		if body != nil {
+			return nil, errors.New("cannot specify postBody and x-www-form-urlencoded form at the same time")
+		}
+		body = &bytes.Buffer{}
+		body.WriteString(formParams.Encode())
+		// Set Content-Length
+		headerParams["Content-Length"] = fmt.Sprintf("%d", body.Len())
+	}
+
+	// Setup path and query parameters
+	urlData, err := url.Parse(path)
+	if err != nil {
+		return nil, err
+	}
+
+	// Override request host, if applicable
+	if c.GetConfig().Host != "" {
+		urlData.Host = c.GetConfig().Host
+	}
+
+	// Override request scheme, if applicable
+	if c.GetConfig().Scheme != "" {
+		urlData.Scheme = c.GetConfig().Scheme
+	}
+
+	// Adding Query Param
+	query := urlData.Query()
+	for k, v := range queryParams {
+		for _, iv := range v {
+			query.Add(k, iv)
+		}
+	}
+
+	// Encode the parameters.
+	urlData.RawQuery = queryParamSplit.ReplaceAllStringFunc(query.Encode(), func(s string) string {
+		pieces := strings.Split(s, "=")
+		pieces[0] = queryDescape.Replace(pieces[0])
+		return strings.Join(pieces, "=")
+	})
+
+	// Generate a new request
+	if body != nil {
+		localVarRequest, err = http.NewRequest(method, urlData.String(), body)
+	} else {
+		localVarRequest, err = http.NewRequest(method, urlData.String(), http.NoBody)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	// add header parameters, if any
+	if len(headerParams) > 0 {
+		headers := http.Header{}
+		for h, v := range headerParams {
+			headers[h] = []string{v}
+		}
+		localVarRequest.Header = headers
+	}
+
+	// Add the user agent to the request.
+	localVarRequest.Header.Add("User-Agent", c.GetConfig().UserAgent)
+
+	if ctx != nil {
+		// add context to the request
+		localVarRequest = localVarRequest.WithContext(ctx)
+	}
+
+	for header, value := range c.GetConfig().DefaultHeader {
+		localVarRequest.Header.Add(header, value)
+	}
+	return localVarRequest, nil
 }
 
 func makeAPIError(res *http.Response, httpMethod, httpPath string) error {
@@ -367,4 +526,83 @@ func userAgent(c *Config) string {
 	}
 
 	return strings.Join(parts, " ")
+}
+
+// Set request body from an any
+func setBody(body any, contentType string) (bodyBuf *bytes.Buffer, err error) {
+	bodyBuf = &bytes.Buffer{}
+	switch v := body.(type) {
+	case io.Reader:
+		_, err = bodyBuf.ReadFrom(v)
+	case *io.ReadCloser:
+		_, err = bodyBuf.ReadFrom(*v)
+	case []byte:
+		_, err = bodyBuf.Write(v)
+	case string:
+		_, err = bodyBuf.WriteString(v)
+	case *string:
+		_, err = bodyBuf.WriteString(*v)
+	default:
+		if jsonCheck.MatchString(contentType) {
+			err = json.NewEncoder(bodyBuf).Encode(body)
+		} else if xmlCheck.MatchString(contentType) {
+			err = xml.NewEncoder(bodyBuf).Encode(body)
+		}
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	if bodyBuf.Len() == 0 {
+		err = fmt.Errorf("invalid body type %s", contentType)
+		return nil, err
+	}
+	return bodyBuf, nil
+}
+
+// detectContentType method is used to figure out `Request.Body` content type for request header
+func detectContentType(body any) string {
+	contentType := "text/plain; charset=utf-8"
+	kind := reflect.TypeOf(body).Kind()
+
+	switch kind {
+	case reflect.Struct, reflect.Map, reflect.Ptr:
+		contentType = "application/json; charset=utf-8"
+	case reflect.String:
+		contentType = "text/plain; charset=utf-8"
+	case reflect.Slice:
+		if b, ok := body.([]byte); ok {
+			contentType = http.DetectContentType(b)
+		} else {
+			contentType = "application/json; charset=utf-8"
+		}
+	case reflect.Invalid, reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr,
+		reflect.Float32, reflect.Float64, reflect.Complex64, reflect.Complex128, reflect.Array, reflect.Chan,
+		reflect.Func, reflect.Interface, reflect.UnsafePointer:
+		contentType = "text/plain; charset=utf-8"
+	}
+
+	return contentType
+}
+
+// Add a file to the multipart request
+func addFile(w *multipart.Writer, fieldName, path string) error {
+	file, err := os.Open(filepath.Clean(path))
+	if err != nil {
+		return err
+	}
+	err = file.Close()
+	if err != nil {
+		return err
+	}
+
+	part, err := w.CreateFormFile(fieldName, filepath.Base(path))
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(part, file)
+
+	return err
 }
