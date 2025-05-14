@@ -219,7 +219,7 @@ func makeAPIError(res *http.Response, httpMethod, httpPath string) error {
 		newErr.SetError(fmt.Sprintf("(%s) failed to read response body: %s", res.Status, err.Error()))
 		return newErr
 	}
-	// newErr.body = localVarBody // TODO: body not set
+	// newErr.body = localVarBody // TODO: use SetBody when exposed in Atlas Go SDK.
 
 	var v admin.ApiError
 	err = decode(&v, io.NopCloser(bytes.NewBuffer(localVarBody)), res.Header.Get("Content-Type"))
