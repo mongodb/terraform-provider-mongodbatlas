@@ -1,11 +1,16 @@
 package config
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"encoding/xml"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
@@ -28,6 +33,11 @@ import (
 const (
 	toolName              = "terraform-provider-mongodbatlas"
 	terraformPlatformName = "Terraform"
+)
+
+var (
+	jsonCheck = regexp.MustCompile(`(?i:(?:application|text)/(?:vnd\.[^;]+\+)?json)`)
+	xmlCheck  = regexp.MustCompile(`(?i:(?:application|text)/xml)`)
 )
 
 // MongoDBClient contains the mongodbatlas clients and configurations
@@ -267,11 +277,81 @@ func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParam
 	apiResp, err := c.AtlasV2.CallAPI(apiReq)
 
 	if apiResp.StatusCode >= 300 {
-		newErr := c.AtlasV2.MakeApiError(apiResp, params.Method, localVarPath)
+		newErr := makeAPIError(apiResp, params.Method, localVarPath)
 		return apiResp, newErr
 	}
 
 	return apiResp, err
+}
+
+func makeAPIError(res *http.Response, httpMethod, httpPath string) error {
+	defer res.Body.Close()
+
+	newErr := new(admin.GenericOpenAPIError)
+	newErr.SetError(res.Status)
+
+	localVarBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		newErr.SetError(fmt.Sprintf("(%s) failed to read response body: %s", res.Status, err.Error()))
+		return newErr
+	}
+	// newErr.body = localVarBody // TODO: body not set
+
+	var v admin.ApiError
+	err = decode(&v, io.NopCloser(bytes.NewBuffer(localVarBody)), res.Header.Get("Content-Type"))
+	if err != nil {
+		newErr.SetError(fmt.Sprintf("(%s) failed to decode response body: %s", res.Status, err.Error()))
+		return newErr
+	}
+	newErr.SetError(admin.FormatErrorMessageWithDetails(res.Status, httpMethod, httpPath, v))
+	newErr.SetModel(v)
+	return newErr
+}
+
+func decode(v any, b io.ReadCloser, contentType string) (err error) {
+	switch r := v.(type) {
+	case *string:
+		buf, err := io.ReadAll(b)
+		_ = b.Close()
+		if err != nil {
+			return err
+		}
+		*r = string(buf)
+		return nil
+	case *io.ReadCloser:
+		*r = b
+		return nil
+	case **io.ReadCloser:
+		*r = &b
+		return nil
+	default:
+		buf, err := io.ReadAll(b)
+		_ = b.Close()
+		if err != nil {
+			return err
+		}
+		if len(buf) == 0 {
+			return nil
+		}
+		if xmlCheck.MatchString(contentType) {
+			return xml.Unmarshal(buf, v)
+		}
+		if jsonCheck.MatchString(contentType) {
+			if actualObj, ok := v.(interface{ GetActualInstance() any }); ok { // oneOf, anyOf schemas
+				if unmarshalObj, ok := actualObj.(interface{ UnmarshalJSON([]byte) error }); ok { // make sure it has UnmarshalJSON defined
+					if err := unmarshalObj.UnmarshalJSON(buf); err != nil {
+						return err
+					}
+				} else {
+					return errors.New("unknown type with GetActualInstance but no unmarshalObj.UnmarshalJSON defined")
+				}
+			} else if err := json.Unmarshal(buf, v); err != nil { // simple model
+				return err
+			}
+			return nil
+		}
+		return errors.New("undefined response type")
+	}
 }
 
 func userAgent(c *Config) string {
