@@ -8,8 +8,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -275,13 +277,12 @@ func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParam
 	if bodyReq != nil { // if nil slice is sent with application/json content type SDK method returns an error
 		bodyPost = bodyReq
 	}
-	// TODO DELETE apiReq, err := c.AtlasV2.PrepareRequest(ctx, localVarPath, params.Method, bodyPost, headerParams, nil, nil, nil)
 	apiReq, err := prepareRequest(ctx, c.AtlasV2, localVarPath, params.Method, bodyPost, headerParams, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	apiResp, err := c.AtlasV2.CallAPI(apiReq)
+	apiResp, err := callAPI(c.AtlasV2, apiReq)
 
 	if apiResp.StatusCode >= 300 {
 		newErr := makeAPIError(apiResp, params.Method, localVarPath)
@@ -441,6 +442,31 @@ func prepareRequest(
 		localVarRequest.Header.Add(header, value)
 	}
 	return localVarRequest, nil
+}
+
+// CallAPI do the request.
+func callAPI(c *admin.APIClient, request *http.Request) (*http.Response, error) {
+	if c.GetConfig().Debug {
+		dump, err := httputil.DumpRequestOut(request, true)
+		if err != nil {
+			return nil, err
+		}
+		log.Printf("\n%s\n", string(dump))
+	}
+
+	resp, err := c.GetConfig().HTTPClient.Do(request)
+	if err != nil {
+		return resp, err
+	}
+
+	if c.GetConfig().Debug {
+		dump, err1 := httputil.DumpResponse(resp, true)
+		if err1 != nil {
+			return resp, err
+		}
+		log.Printf("\n%s\n", string(dump))
+	}
+	return resp, err
 }
 
 func makeAPIError(res *http.Response, httpMethod, httpPath string) error {
