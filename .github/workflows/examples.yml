@@ -22,7 +22,7 @@ jobs:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
-          terraform_version: '1.11.x'
+          terraform_version: '1.12.x'
           terraform_wrapper: false
       - name: tf-validate
         run: make tools tf-validate
