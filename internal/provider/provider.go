@@ -30,9 +30,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/controlplaneipaddresses"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/customdbroleapi"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuserapi"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrestprivateendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
@@ -40,15 +38,11 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexsnapshot"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/mongodbemployeeaccessgrant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapi"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaddresses"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/pushbasedlogexport"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/pushbasedlogexportapi"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/resourcepolicy"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/resourcepolicyapi"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeploymentapi"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprivatelinkendpoint"
@@ -478,7 +472,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 
 func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resource {
 	resources := []func() resource.Resource{
-		project.Resource, customdbroleapi.Resource, databaseuserapi.Resource, pushbasedlogexportapi.Resource, searchdeploymentapi.Resource, projectapi.Resource, resourcepolicyapi.Resource,
+		project.Resource,
 		encryptionatrest.Resource,
 		databaseuser.Resource,
 		alertconfiguration.Resource,
