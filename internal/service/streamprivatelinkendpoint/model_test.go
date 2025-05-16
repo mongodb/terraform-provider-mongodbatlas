@@ -131,6 +131,7 @@ func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 			SDKResp: &admin.StreamsPrivateLinkConnection{},
 			expectedTFModel: &streamprivatelinkendpoint.TFModel{
 				ProjectId:    types.StringValue(""),
+				Provider:     types.StringValue(""),
 				DnsSubDomain: types.ListNull(types.StringType),
 			},
 		},
