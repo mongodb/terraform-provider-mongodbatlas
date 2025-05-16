@@ -657,8 +657,8 @@ github.com/mitchellh/reflectwalk v1.0.2/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx
 github.com/mmcloughlin/avo v0.5.0/go.mod h1:ChHFdoV7ql95Wi7vuq2YT1bwCJqiWdZrQ1im3VujLYM=
 github.com/mongodb-forks/digest v1.1.0 h1:7eUdsR1BtqLv0mdNm4OXs6ddWvR4X2/OsLwdKksrOoc=
 github.com/mongodb-forks/digest v1.1.0/go.mod h1:rb+EX8zotClD5Dj4NdgxnJXG9nwrlx3NWKJ8xttz1Dg=
-github.com/mongodb/atlas-sdk-go v1.0.1-0.20250402092819-ea391c348e21 h1:gQBUnaR0gRt9Wapl6I+V5eHxRIS596+aRlLM8jb7YUo=
-github.com/mongodb/atlas-sdk-go v1.0.1-0.20250402092819-ea391c348e21/go.mod h1:7vLdgdyq+HUqWNR8/7pvfwISyYldFqCeeQQ6qQQsdJs=
+github.com/mongodb/atlas-sdk-go v1.0.1-0.20250516083919-675679b83a94 h1:FnAih8ooUxT5xxulCKF5H1Q8Xn1k6XIn8ILP7YZ64dg=
+github.com/mongodb/atlas-sdk-go v1.0.1-0.20250516083919-675679b83a94/go.mod h1:COi8BpeujjUdGcVeh3ecD/ZBNKqACkZmTJUQwmIpZ2M=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/nxadm/tail v1.4.8/go.mod h1:+ncqLTQzXmGhMZNUePPaPqPvBxHAIsmXswZKocGu+AU=
@@ -831,8 +831,8 @@ go.mongodb.org/atlas-sdk/v20240805005 v20240805005.0.1-0.20250402112219-2468c535
 go.mongodb.org/atlas-sdk/v20240805005 v20240805005.0.1-0.20250402112219-2468c5354718/go.mod h1:PeByRxdvzfvz7xhG5vDn60j836EoduWqTqs76okUc9c=
 go.mongodb.org/atlas-sdk/v20241113005 v20241113005.0.0 h1:aaU2E4rtzYXuEDxv9MoSON2gOEAA9M2gsDf2CqjcGj8=
 go.mongodb.org/atlas-sdk/v20241113005 v20241113005.0.0/go.mod h1:eV9REWR36iVMrpZUAMZ5qPbXEatoVfmzwT+Ue8yqU+U=
-go.mongodb.org/atlas-sdk/v20250312002 v20250312002.0.0 h1:KX8PrYp3/PCSxG4NbGLcc3+EsNcfyhcvylGbe/oRlx8=
-go.mongodb.org/atlas-sdk/v20250312002 v20250312002.0.0/go.mod h1:HHCmHxHPdJRr1bUXlvRIZbm7M4gRujjur1GnjE44YgA=
+go.mongodb.org/atlas-sdk/v20250312003 v20250312003.0.0 h1:W0H4LPHfl9kDWbwsML9xmVdwc9+p6Z4ZQNPMzH76bS8=
+go.mongodb.org/atlas-sdk/v20250312003 v20250312003.0.0/go.mod h1:Yp1k2xQ+ZY4REMdkAZGXnYKLb8zqvek7VgJeHH4VP2U=
 go.mongodb.org/realm v0.1.0 h1:zJiXyLaZrznQ+Pz947ziSrDKUep39DO4SfA0Fzx8M4M=
 go.mongodb.org/realm v0.1.0/go.mod h1:4Vj6iy+Puo1TDERcoh4XZ+pjtwbOzPpzqy3Cwe8ZmDM=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
@@ -1026,8 +1026,8 @@ golang.org/x/oauth2 v0.0.0-20220822191816-0ebed06d0094/go.mod h1:h4gKUeWbJ4rQPri
 golang.org/x/oauth2 v0.0.0-20220909003341-f21342109be1/go.mod h1:h4gKUeWbJ4rQPri7E0u6Gs4e9Ri2zaLxzw5DI5XGrYg=
 golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783/go.mod h1:h4gKUeWbJ4rQPri7E0u6Gs4e9Ri2zaLxzw5DI5XGrYg=
 golang.org/x/oauth2 v0.1.0/go.mod h1:G9FE4dLTsbXUu90h/Pf85g4w1D+SSAgR+q46nJZ8M4A=
-golang.org/x/oauth2 v0.28.0 h1:CrgCKl8PPAVtLnU3c+EDw6x11699EWlsDeWNWKdIOkc=
-golang.org/x/oauth2 v0.28.0/go.mod h1:onh5ek6nERTohokkhCD/y2cV4Do3fxFHFuAejCkRWT8=
+golang.org/x/oauth2 v0.29.0 h1:WdYw2tdTK1S8olAzWHdgeqfy+Mtm9XNhv/xJsY65d98=
+golang.org/x/oauth2 v0.29.0/go.mod h1:onh5ek6nERTohokkhCD/y2cV4Do3fxFHFuAejCkRWT8=
 golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20181108010431-42b317875d0f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=

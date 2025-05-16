@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprivatelinkendpoint"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20250312002/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 )
 
 type sdkToTFModelTestCase struct {
@@ -44,7 +44,7 @@ func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 				DnsSubDomain:          conversion.Pointer([]string{dnsSubDomain, dnsSubDomain}),
 				InterfaceEndpointId:   &interfaceEndpointID,
 				InterfaceEndpointName: &interfaceEndpointName,
-				Provider:              &provider,
+				Provider:              provider,
 				ProviderAccountId:     &providerAccountID,
 				Region:                &region,
 				ServiceEndpointId:     &serviceEndpointID,
@@ -77,7 +77,7 @@ func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 				Arn:                 &arn,
 				DnsDomain:           &dnsDomain,
 				InterfaceEndpointId: &interfaceEndpointID,
-				Provider:            &provider,
+				Provider:            provider,
 				Region:              &region,
 				ServiceEndpointId:   &serviceEndpointID,
 				State:               &state,
@@ -104,7 +104,7 @@ func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 				DnsDomain:           &dnsDomain,
 				DnsSubDomain:        conversion.Pointer([]string{dnsSubDomain, dnsSubDomain}),
 				InterfaceEndpointId: &interfaceEndpointID,
-				Provider:            &provider,
+				Provider:            provider,
 				Region:              &region,
 				ServiceEndpointId:   &serviceEndpointID,
 				State:               &state,
@@ -131,6 +131,7 @@ func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 			SDKResp: &admin.StreamsPrivateLinkConnection{},
 			expectedTFModel: &streamprivatelinkendpoint.TFModel{
 				ProjectId:    types.StringValue(""),
+				Provider:     types.StringValue(""),
 				DnsSubDomain: types.ListNull(types.StringType),
 			},
 		},
@@ -177,7 +178,7 @@ func TestStreamPrivatelinkEndpointTFModelToSDK(t *testing.T) {
 				Arn:               &arn,
 				DnsDomain:         &dnsDomain,
 				DnsSubDomain:      conversion.Pointer([]string{dnsSubDomain, dnsSubDomain}),
-				Provider:          &provider,
+				Provider:          provider,
 				Region:            &region,
 				ServiceEndpointId: &serviceEndpointID,
 				State:             &state,
@@ -200,7 +201,7 @@ func TestStreamPrivatelinkEndpointTFModelToSDK(t *testing.T) {
 			expectedSDKReq: &admin.StreamsPrivateLinkConnection{
 				Arn:               &arn,
 				DnsDomain:         &dnsDomain,
-				Provider:          &provider,
+				Provider:          provider,
 				Region:            &region,
 				ServiceEndpointId: &serviceEndpointID,
 				State:             &state,
@@ -228,7 +229,7 @@ func TestStreamPrivatelinkEndpointTFModelToSDK(t *testing.T) {
 			expectedSDKReq: &admin.StreamsPrivateLinkConnection{
 				DnsDomain:         &dnsDomain,
 				DnsSubDomain:      conversion.Pointer([]string{dnsSubDomain, dnsSubDomain}),
-				Provider:          &provider,
+				Provider:          provider,
 				Region:            &region,
 				ServiceEndpointId: &serviceEndpointID,
 				State:             &state,

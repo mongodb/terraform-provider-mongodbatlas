@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312002/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 
 	"github.com/stretchr/testify/assert"
 
@@ -51,7 +51,7 @@ var (
 	description                = "description"
 	authorizationType          = "GROUP"
 
-	roleAssignments = []admin.RoleAssignment{
+	roleAssignments = []admin.ConnectedOrgConfigRoleAssignment{
 		{
 			GroupId: &groupID,
 			OrgId:   &organizationID,
@@ -146,7 +146,7 @@ var (
 func TestFlattenRoleAssignments(t *testing.T) {
 	testCases := []struct {
 		name   string
-		input  []admin.RoleAssignment
+		input  []admin.ConnectedOrgConfigRoleAssignment
 		output []map[string]any
 	}{
 		{
@@ -156,7 +156,7 @@ func TestFlattenRoleAssignments(t *testing.T) {
 		},
 		{
 			name:   "Empty FlattenRoleAssignments",
-			input:  []admin.RoleAssignment{},
+			input:  []admin.ConnectedOrgConfigRoleAssignment{},
 			output: nil,
 		},
 	}
