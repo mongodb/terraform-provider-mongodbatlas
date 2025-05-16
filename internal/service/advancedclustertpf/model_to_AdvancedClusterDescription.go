@@ -3,7 +3,7 @@ package advancedclustertpf
 import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312002/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 )
 
 func newLegacyModel20240530ReplicationSpecsAndDiskGBOnly(specs *[]admin.ReplicationSpec20240805, zoneNameNumShards map[string]int64, oldDiskGB *float64, externalIDToLegacyID map[string]string) *admin20240530.AdvancedClusterDescription {

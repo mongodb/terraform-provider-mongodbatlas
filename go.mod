@@ -24,7 +24,7 @@ require (
 	github.com/huandu/xstrings v1.5.0
 	github.com/jarcoal/httpmock v1.4.0
 	github.com/mongodb-forks/digest v1.1.0
-	github.com/mongodb/atlas-sdk-go v1.0.1-0.20250402092819-ea391c348e21
+	github.com/mongodb/atlas-sdk-go v1.0.1-0.20250516083919-675679b83a94
 	github.com/pb33f/libopenapi v0.21.11
 	github.com/sebdah/goldie/v2 v2.5.5
 	github.com/spf13/cast v1.8.0
@@ -35,12 +35,14 @@ require (
 	go.mongodb.org/atlas-sdk/v20240530005 v20240530005.0.0
 	go.mongodb.org/atlas-sdk/v20240805005 v20240805005.0.1-0.20250402112219-2468c5354718 // uses api-bot-update-v20240805-backport-cluster to support AdvancedConfiguration in create/updateCluster APIs
 	go.mongodb.org/atlas-sdk/v20241113005 v20241113005.0.0
-	go.mongodb.org/atlas-sdk/v20250312002 v20250312002.0.0
 	go.mongodb.org/realm v0.1.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
-require github.com/hashicorp/terraform-json v0.24.0
+require (
+	github.com/hashicorp/terraform-json v0.24.0
+	go.mongodb.org/atlas-sdk/v20250312003 v20250312003.0.0
+)
 
 require (
 	cloud.google.com/go v0.112.0 // indirect
@@ -143,7 +145,7 @@ require (
 	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/mod v0.24.0 // indirect
 	golang.org/x/net v0.38.0 // indirect
-	golang.org/x/oauth2 v0.28.0 // indirect
+	golang.org/x/oauth2 v0.29.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
