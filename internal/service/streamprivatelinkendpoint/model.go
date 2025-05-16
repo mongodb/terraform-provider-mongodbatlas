@@ -23,7 +23,7 @@ func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPri
 		ProjectId:             types.StringPointerValue(&projectID),
 		InterfaceEndpointId:   types.StringPointerValue(apiResp.InterfaceEndpointId),
 		InterfaceEndpointName: types.StringPointerValue(apiResp.InterfaceEndpointName),
-		Provider:              types.StringPointerValue(apiResp.Provider),
+		Provider:              types.StringValue(apiResp.Provider),
 		ProviderAccountId:     types.StringPointerValue(apiResp.ProviderAccountId),
 		Region:                types.StringPointerValue(apiResp.Region),
 		ServiceEndpointId:     types.StringPointerValue(apiResp.ServiceEndpointId),
@@ -73,7 +73,7 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 
 	result := &admin.StreamsPrivateLinkConnection{
 		DnsDomain:         plan.DnsDomain.ValueStringPointer(),
-		Provider:          plan.Provider.ValueStringPointer(),
+		Provider:          plan.Provider.ValueString(),
 		Region:            plan.Region.ValueStringPointer(),
 		ServiceEndpointId: plan.ServiceEndpointId.ValueStringPointer(),
 		State:             plan.State.ValueStringPointer(),
