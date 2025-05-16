@@ -125,6 +125,7 @@ Accepted values include:
 * `roles` - (Required) 	List of user’s roles and the databases / collections on which the roles apply. A role allows the user to perform particular actions on the specified database. A role on the admin database can include privileges that apply to the other databases as well. See [Roles](#roles) below for more details.
 * `username` - (Required) Username for authenticating to MongoDB. USER_ARN or ROLE_ARN if `aws_iam_type` is USER or ROLE.
 * `password` - (Required) User's initial password. A value is required to create the database user, however the argument may be removed from your Terraform configuration after user creation without impacting the user, password or Terraform management. If you do change management of the password to outside of Terraform it is advised to remove the argument from the Terraform configuration. IMPORTANT --- Passwords may show up in Terraform related logs and it will be stored in the Terraform state file as plain-text. Password can be changed after creation using your preferred method, e.g. via the MongoDB Atlas UI, to ensure security.
+* `description` - (Optional) Description of this database user.
 
 * `x509_type` - (Optional) X.509 method by which the provided username is authenticated. If no value is given, Atlas uses the default value of NONE. The accepted types are:
   * `NONE` -	The user does not use X.509 authentication.
@@ -168,7 +169,7 @@ Containing key-value pairs that tag and categorize the database user. Each key a
 Array of clusters and Atlas Data Lakes that this user has access to. If omitted, Atlas grants the user access to all the clusters and Atlas Data Lakes in the project by default.
 
 * `name` - (Required) Name of the cluster or Atlas Data Lake that the user has access to.
-* `type` - (Required) Type of resource that the user has access to. Valid values are: `CLUSTER` and `DATA_LAKE`
+* `type` - (Required) Type of resource that the user has access to. See [Database User API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Database-Users/operation/createDatabaseUser) for the list of valid values.
 
 ## Attributes Reference
 
@@ -180,8 +181,8 @@ In addition to all arguments above, the following attributes are exported:
 
 Database users can be imported using project ID, username, and auth database name in the format:
 
-1. `project_id`-`username`-`auth_database_name` Only works if no `-` are used for `username`/`auth_database_name`. For example `my-username` should use (2).
-2.  `project_id`/`username`/`auth_database_name` Works in all cases (introduced after (1))
+1. `project_id`-`username`-`auth_database_name` Doesn't  work if `-` is used in both the `username` and the `auth_database_name`. For example `my-username` and `my-db` should use (2).
+2. `project_id`/`username`/`auth_database_name` Works when neither `username` nor `auth_database_name` use `/`.
 
 ```
 terraform import mongodbatlas_database_user.my_user 1112222b3bf99403840e8934-my_user-admin # (1)

@@ -29,7 +29,7 @@ jobs:
     permissions:
       pull-requests: write # Needed by sticky-pull-request-comment
     steps:
-      - uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d
+      - uses: slackapi/slack-github-action@b0fa283ad8fea605de13dc3f449259339835fc52
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_DOCS }}
           webhook-type: incoming-webhook
@@ -45,7 +45,7 @@ jobs:
                 }
               ]
             }
-      - uses: marocchino/sticky-pull-request-comment@52423e01640425a022ef5fd42c6fb5f633a02728
+      - uses: marocchino/sticky-pull-request-comment@67d0dec7b07ed060a405f9b2a64b8ab319fdd7db
         with:
           header: pr-title-slack-doc
           append: true

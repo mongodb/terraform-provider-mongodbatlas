@@ -106,7 +106,7 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 	clusterName, clusterNameOK := d.GetOk("cluster_name")
 	indexID, indexIDOk := d.GetOk("index_id")
 
-	if !(projectIDOk && clusterNameOK && indexIDOk) {
+	if !projectIDOk || !clusterNameOK || !indexIDOk {
 		return diag.Errorf("project_id, cluster_name and index_id must be configured")
 	}
 
@@ -164,8 +164,8 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 			return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
 		}
 
-		if conversion.HasElementsSliceOrMap(searchIndex.LatestDefinition.Mappings.Fields) {
-			searchIndexMappingFields, err := marshalSearchIndex(searchIndex.LatestDefinition.Mappings.Fields)
+		if fields := searchIndex.LatestDefinition.Mappings.Fields; fields != nil && conversion.HasElementsSliceOrMap(*fields) {
+			searchIndexMappingFields, err := marshalSearchIndex(*fields)
 			if err != nil {
 				return diag.FromErr(err)
 			}

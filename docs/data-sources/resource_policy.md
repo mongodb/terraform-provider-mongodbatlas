@@ -2,15 +2,12 @@
 
 `mongodbatlas_resource_policy` describes a resource policy in an organization.
 
--> **NOTE**: Resource Policies are currently in Public Preview. To use this feature, you must take the following actions:
-1. Enable the `Atlas Resource Policies` Preview Feature in your organization (contact [MongoDB Support](https://www.mongodb.com/services/support)).
-2. Enable the [Preview Features](https://github.com/mongodb/terraform-provider-mongodbatlas?tab=readme-ov-file#preview-features) when running `terraform` commands.
-
 ## Example Usages
 ```terraform
 resource "mongodbatlas_resource_policy" "project_ip_access_list" {
-  org_id = var.org_id
-  name   = "forbid-access-from-anywhere"
+  org_id      = var.org_id
+  name        = "forbid-access-from-anywhere"
+  description = "Forbids access from anywhere"
 
   policies = [
     {
@@ -29,8 +26,9 @@ EOF
 }
 
 resource "mongodbatlas_resource_policy" "cloud_provider" {
-  org_id = var.org_id
-  name   = "forbid-cloud-provider"
+  org_id      = var.org_id
+  name        = "forbid-cloud-provider"
+  description = "Forbids AWS and Azure for clusters"
   policies = [
     {
       body = templatefile("${path.module}/cloud-provider.cedar", {
@@ -100,6 +98,7 @@ output "policy_ids" {
 
 - `created_by_user` (Attributes) The user that last updated the Atlas resource policy. (see [below for nested schema](#nestedatt--created_by_user))
 - `created_date` (String) Date and time in UTC when the Atlas resource policy was created.
+- `description` (String) Description of the Atlas resource policy.
 - `last_updated_by_user` (Attributes) The user that last updated the Atlas resource policy. (see [below for nested schema](#nestedatt--last_updated_by_user))
 - `last_updated_date` (String) Date and time in UTC when the Atlas resource policy was last updated.
 - `name` (String) Human-readable label that describes the Atlas resource policy.

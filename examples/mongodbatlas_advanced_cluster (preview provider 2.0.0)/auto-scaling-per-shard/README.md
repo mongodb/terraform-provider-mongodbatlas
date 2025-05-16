@@ -23,8 +23,8 @@ Terraform >= 0.13
 This can be done using environment variables:
 
 ```bash
-export MONGODB_ATLAS_PUBLIC_KEY="xxxx"
-export MONGODB_ATLAS_PRIVATE_KEY="xxxx"
+export MONGODB_ATLAS_PUBLIC_KEY="<ATLAS_PUBLIC_KEY>"
+export MONGODB_ATLAS_PRIVATE_KEY="<ATLAS_PRIVATE_KEY>"
 ```
 
 ... or follow as in the `variables.tf` file and create **terraform.tfvars** file with all the variable values, ex:
@@ -34,7 +34,7 @@ private_key          = "<MONGODB_ATLAS_PRIVATE_KEY>"
 atlas_org_id         = "<MONGODB_ATLAS_ORG_ID>"
 ```
 
-Alternatively, you can use [AWS Secrets Manager](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/website/docs/index.html.markdown#aws-secrets-manager).
+Alternatively, you can use [AWS Secrets Manager](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs#aws-secrets-manager).
 
 **2\. Review the Terraform plan.**
 

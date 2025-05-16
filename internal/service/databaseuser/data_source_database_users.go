@@ -60,6 +60,9 @@ func (d *DatabaseUsersDS) Schema(ctx context.Context, req datasource.SchemaReque
 						"username": schema.StringAttribute{
 							Computed: true,
 						},
+						"description": schema.StringAttribute{
+							Computed: true,
+						},
 						"x509_type": schema.StringAttribute{
 							Computed: true,
 						},
