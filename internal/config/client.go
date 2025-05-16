@@ -13,7 +13,7 @@ import (
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
@@ -259,15 +259,16 @@ func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParam
 	if bodyReq != nil { // if nil slice is sent with application/json content type SDK method returns an error
 		bodyPost = bodyReq
 	}
-	apiReq, err := c.AtlasV2.PrepareRequest(ctx, localVarPath, params.Method, bodyPost, headerParams, nil, nil, nil)
+	untyped := c.AtlasV2.UntypedClient
+	apiReq, err := untyped.PrepareRequest(ctx, localVarPath, params.Method, bodyPost, headerParams, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	apiResp, err := c.AtlasV2.CallAPI(apiReq)
+	apiResp, err := untyped.CallAPI(apiReq)
 
 	if apiResp.StatusCode >= 300 {
-		newErr := c.AtlasV2.MakeApiError(apiResp, params.Method, localVarPath)
+		newErr := untyped.MakeApiError(apiResp, params.Method, localVarPath)
 		return apiResp, newErr
 	}
 

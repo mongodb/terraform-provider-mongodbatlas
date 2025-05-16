@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 )
 
 func flattenSearchIndexSynonyms(synonyms []admin.SearchSynonymMappingDefinition) []map[string]any {
@@ -47,17 +47,6 @@ func expandSearchIndexSynonyms(d *schema.ResourceData) []admin.SearchSynonymMapp
 func marshalSearchIndex(fields any) (string, error) {
 	respBytes, err := json.Marshal(fields)
 	return string(respBytes), err
-}
-
-func unmarshalSearchIndexMappingFields(str string) (map[string]any, diag.Diagnostics) {
-	fields := map[string]any{}
-	if str == "" {
-		return fields, nil
-	}
-	if err := json.Unmarshal([]byte(str), &fields); err != nil {
-		return nil, diag.Errorf("cannot unmarshal search index attribute `mappings_fields` because it has an incorrect format")
-	}
-	return fields, nil
 }
 
 func unmarshalSearchIndexFields(str string) ([]map[string]any, diag.Diagnostics) {

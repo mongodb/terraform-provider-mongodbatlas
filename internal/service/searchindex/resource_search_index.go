@@ -14,7 +14,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312002/admin"
 )
 
 const (
@@ -178,7 +178,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	indexID := ids["index_id"]
 
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	_, _, err := connV2.AtlasSearchApi.DeleteAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
+	_, err := connV2.AtlasSearchApi.DeleteAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		return diag.Errorf("error deleting search index (%s): %s", d.Get("name").(string), err)
 	}
@@ -235,17 +235,6 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			searchIndex.Definition.Mappings = &admin.SearchMappings{}
 		}
 		searchIndex.Definition.Mappings.Dynamic = &dynamic
-	}
-
-	if d.HasChange("mappings_fields") {
-		mappingsFields, err := unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string))
-		if err != nil {
-			return err
-		}
-		if searchIndex.Definition.Mappings == nil {
-			searchIndex.Definition.Mappings = &admin.SearchMappings{}
-		}
-		searchIndex.Definition.Mappings.Fields = mappingsFields
 	}
 
 	if d.HasChange("fields") {
@@ -423,14 +412,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return err
 		}
 		searchIndexRequest.Definition.Analyzers = &analyzers
-		mappingsFields, err := unmarshalSearchIndexMappingFields(d.Get("mappings_fields").(string))
-		if err != nil {
-			return err
-		}
 		dynamic := d.Get("mappings_dynamic").(bool)
 		searchIndexRequest.Definition.Mappings = &admin.SearchMappings{
 			Dynamic: &dynamic,
-			Fields:  mappingsFields,
 		}
 		synonyms := expandSearchIndexSynonyms(d)
 		searchIndexRequest.Definition.Synonyms = &synonyms
