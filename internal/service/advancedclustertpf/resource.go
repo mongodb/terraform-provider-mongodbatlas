@@ -16,6 +16,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 )
@@ -131,6 +132,10 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
+	waitParams := resolveClusterWaitParams(ctx, &plan, diags, operationCreate)
+	if diags.HasError() {
+		return
+	}
 	if IsFlex(latestReq.ReplicationSpecs) {
 		flexClusterReq := NewFlexCreateReq(latestReq.GetName(), latestReq.GetTerminationProtectionEnabled(), latestReq.Tags, latestReq.ReplicationSpecs)
 		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, plan.ProjectID.ValueString(), latestReq.GetName(), flexClusterReq, r.Client.AtlasV2.FlexClustersApi)
@@ -145,11 +150,15 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		diags.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 		return
 	}
-
-	waitParams := resolveClusterWaitParams(ctx, &plan, diags, operationCreate)
-	if diags.HasError() {
-		return
-	}
+	ctx, cancel := context.WithTimeout(ctx, waitParams.Timeout)
+	defer cancel()
+	defer CleanupOnError(ctx, plan.DeleteOnCreateError.ValueBool(), diags, fmt.Sprintf("Cluster name %s (project_id=%s).", waitParams.ClusterName, waitParams.ProjectID), func(newCtx context.Context) error {
+		cleanResp, cleanErr := r.Client.AtlasV2.ClustersApi.DeleteCluster(newCtx, waitParams.ProjectID, waitParams.ClusterName).Execute()
+		if validate.StatusNotFound(cleanResp) {
+			return nil
+		}
+		return cleanErr
+	})
 	clusterResp := CreateCluster(ctx, diags, r.Client, latestReq, waitParams, usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags))
 	emptyAdvancedConfiguration := types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
 	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
