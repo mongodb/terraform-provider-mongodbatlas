@@ -6,9 +6,7 @@
 
 The [private link Terraform module](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/private-endpoint/mongodbatlas/latest) makes use of this resource and simplifies its use.
 
-~> **IMPORTANT:**You must have one of the following roles to successfully handle the resource:
-  * Organization Owner
-  * Project Owner
+~> **IMPORTANT:**You must have one of the following roles to successfully handle the resource: <br> - Organization Owner <br> - Project Owner
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
