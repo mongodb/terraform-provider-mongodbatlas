@@ -14,7 +14,7 @@
 
 ### Read-Only
 
-- `create_date` (String) Date and time that this feature was enabled on.
+- `create_date` (String) Date and time that this feature was enabled on. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 - `links` (Attributes List) List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships. (see [below for nested schema](#nestedatt--links))
 - `state` (String) Describes whether or not the feature is enabled and what status it is in.
 
