@@ -14,7 +14,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 		Attributes: map[string]schema.Attribute{
 			"accept_data_risks_and_force_replica_set_reconfig": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "If reconfiguration is necessary to regain a primary due to a regional outage, submit this field alongside your topology reconfiguration to request a new regional outage resistant topology. Forced reconfigurations during an outage of the majority of electable nodes carry a risk of data loss if replicated writes (even majority committed writes) have not been replicated to the new primary node. MongoDB Atlas docs contain more information. To proceed with an operation which carries that risk, set **acceptDataRisksAndForceReplicaSetReconfig** to the current date.",
+				MarkdownDescription: "If reconfiguration is necessary to regain a primary due to a regional outage, submit this field alongside your topology reconfiguration to request a new regional outage resistant topology. Forced reconfigurations during an outage of the majority of electable nodes carry a risk of data loss if replicated writes (even majority committed writes) have not been replicated to the new primary node. MongoDB Atlas docs contain more information. To proceed with an operation which carries that risk, set **acceptDataRisksAndForceReplicaSetReconfig** to the current date. This parameter expresses its value in the ISO 8601 timestamp format in UTC.",
 			},
 			"advanced_configuration": schema.SingleNestedAttribute{
 				Optional:            true,
@@ -162,7 +162,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"feature_compatibility_version_expiration_date": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Feature compatibility version expiration date. Will only appear if FCV is pinned.",
+				MarkdownDescription: "Feature compatibility version expiration date. Will only appear if FCV is pinned. This parameter expresses its value in the ISO 8601 timestamp format in UTC.",
 			},
 			"global_cluster_self_managed_sharding": schema.BoolAttribute{
 				Optional:            true,
@@ -214,7 +214,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Attributes: map[string]schema.Attribute{
 					"expiration_time": schema.StringAttribute{
 						Required:            true,
-						MarkdownDescription: "Expiration date for the employee access grant.",
+						MarkdownDescription: "Expiration date for the employee access grant. This parameter expresses its value in the ISO 8601 timestamp format in UTC.",
 					},
 					"grant_type": schema.StringAttribute{
 						Required:            true,
@@ -520,38 +520,38 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	AcceptDataRisksAndForceReplicaSetReconfig types.String `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
-	AdvancedConfiguration                     types.Object `tfsdk:"advanced_configuration"`
-	BackupEnabled                             types.Bool   `tfsdk:"backup_enabled"`
+	Labels                                    types.List   `tfsdk:"labels"`
+	Tags                                      types.List   `tfsdk:"tags"`
+	ReplicationSpecs                          types.List   `tfsdk:"replication_specs"`
+	Links                                     types.List   `tfsdk:"links" autogen:"omitjson"`
+	CreateDate                                types.String `tfsdk:"create_date" autogen:"omitjson"`
 	BiConnector                               types.Object `tfsdk:"bi_connector"`
-	ClusterType                               types.String `tfsdk:"cluster_type"`
-	ConfigServerManagementMode                types.String `tfsdk:"config_server_management_mode"`
 	ConfigServerType                          types.String `tfsdk:"config_server_type" autogen:"omitjson"`
 	ConnectionStrings                         types.Object `tfsdk:"connection_strings" autogen:"omitjson"`
-	CreateDate                                types.String `tfsdk:"create_date" autogen:"omitjson"`
+	AcceptDataRisksAndForceReplicaSetReconfig types.String `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
 	DiskWarmingMode                           types.String `tfsdk:"disk_warming_mode"`
 	EncryptionAtRestProvider                  types.String `tfsdk:"encryption_at_rest_provider"`
 	FeatureCompatibilityVersion               types.String `tfsdk:"feature_compatibility_version" autogen:"omitjson"`
 	FeatureCompatibilityVersionExpirationDate types.String `tfsdk:"feature_compatibility_version_expiration_date" autogen:"omitjson"`
-	GlobalClusterSelfManagedSharding          types.Bool   `tfsdk:"global_cluster_self_managed_sharding"`
+	VersionReleaseSystem                      types.String `tfsdk:"version_release_system"`
 	GroupId                                   types.String `tfsdk:"group_id" autogen:"omitjson"`
 	Id                                        types.String `tfsdk:"id" autogen:"omitjson"`
-	Labels                                    types.List   `tfsdk:"labels"`
-	Links                                     types.List   `tfsdk:"links" autogen:"omitjson"`
+	ClusterType                               types.String `tfsdk:"cluster_type"`
+	ConfigServerManagementMode                types.String `tfsdk:"config_server_management_mode"`
 	MongoDbemployeeAccessGrant                types.Object `tfsdk:"mongo_dbemployee_access_grant"`
 	MongoDbmajorVersion                       types.String `tfsdk:"mongo_dbmajor_version"`
 	MongoDbversion                            types.String `tfsdk:"mongo_dbversion" autogen:"omitjson"`
 	Name                                      types.String `tfsdk:"name"`
-	Paused                                    types.Bool   `tfsdk:"paused"`
-	PitEnabled                                types.Bool   `tfsdk:"pit_enabled"`
-	RedactClientLogData                       types.Bool   `tfsdk:"redact_client_log_data"`
-	ReplicaSetScalingStrategy                 types.String `tfsdk:"replica_set_scaling_strategy"`
-	ReplicationSpecs                          types.List   `tfsdk:"replication_specs"`
-	RootCertType                              types.String `tfsdk:"root_cert_type"`
+	AdvancedConfiguration                     types.Object `tfsdk:"advanced_configuration"`
 	StateName                                 types.String `tfsdk:"state_name" autogen:"omitjson"`
-	Tags                                      types.List   `tfsdk:"tags"`
+	RootCertType                              types.String `tfsdk:"root_cert_type"`
+	ReplicaSetScalingStrategy                 types.String `tfsdk:"replica_set_scaling_strategy"`
+	BackupEnabled                             types.Bool   `tfsdk:"backup_enabled"`
+	RedactClientLogData                       types.Bool   `tfsdk:"redact_client_log_data"`
+	PitEnabled                                types.Bool   `tfsdk:"pit_enabled"`
+	Paused                                    types.Bool   `tfsdk:"paused"`
 	TerminationProtectionEnabled              types.Bool   `tfsdk:"termination_protection_enabled"`
-	VersionReleaseSystem                      types.String `tfsdk:"version_release_system"`
+	GlobalClusterSelfManagedSharding          types.Bool   `tfsdk:"global_cluster_self_managed_sharding"`
 }
 type TFAdvancedConfigurationModel struct {
 	CustomOpensslCipherConfigTls12 types.List   `tfsdk:"custom_openssl_cipher_config_tls12"`
@@ -559,8 +559,8 @@ type TFAdvancedConfigurationModel struct {
 	TlsCipherConfigMode            types.String `tfsdk:"tls_cipher_config_mode"`
 }
 type TFBiConnectorModel struct {
-	Enabled        types.Bool   `tfsdk:"enabled"`
 	ReadPreference types.String `tfsdk:"read_preference"`
+	Enabled        types.Bool   `tfsdk:"enabled"`
 }
 type TFConnectionStringsModel struct {
 	AwsPrivateLink    types.Map    `tfsdk:"aws_private_link" autogen:"omitjson"`
@@ -612,19 +612,19 @@ type TFReplicationSpecsRegionConfigsModel struct {
 	AutoScaling          types.Object `tfsdk:"auto_scaling"`
 	BackingProviderName  types.String `tfsdk:"backing_provider_name"`
 	ElectableSpecs       types.Object `tfsdk:"electable_specs"`
-	Priority             types.Int64  `tfsdk:"priority"`
 	ProviderName         types.String `tfsdk:"provider_name"`
 	ReadOnlySpecs        types.Object `tfsdk:"read_only_specs"`
 	RegionName           types.String `tfsdk:"region_name"`
+	Priority             types.Int64  `tfsdk:"priority"`
 }
 type TFReplicationSpecsRegionConfigsAnalyticsAutoScalingModel struct {
 	Compute types.Object `tfsdk:"compute"`
 	DiskGb  types.Object `tfsdk:"disk_gb"`
 }
 type TFReplicationSpecsRegionConfigsAnalyticsAutoScalingComputeModel struct {
-	Enabled           types.Bool   `tfsdk:"enabled"`
 	MaxInstanceSize   types.String `tfsdk:"max_instance_size" autogen:"omitjson"`
 	MinInstanceSize   types.String `tfsdk:"min_instance_size" autogen:"omitjson"`
+	Enabled           types.Bool   `tfsdk:"enabled"`
 	PredictiveEnabled types.Bool   `tfsdk:"predictive_enabled"`
 	ScaleDownEnabled  types.Bool   `tfsdk:"scale_down_enabled"`
 }
@@ -632,10 +632,10 @@ type TFReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGbModel struct {
 	Enabled types.Bool `tfsdk:"enabled"`
 }
 type TFReplicationSpecsRegionConfigsAnalyticsSpecsModel struct {
-	DiskIops      types.Int64   `tfsdk:"disk_iops"`
 	DiskSizeGb    types.Float64 `tfsdk:"disk_size_gb"`
 	EbsVolumeType types.String  `tfsdk:"ebs_volume_type"`
 	InstanceSize  types.String  `tfsdk:"instance_size"`
+	DiskIops      types.Int64   `tfsdk:"disk_iops"`
 	NodeCount     types.Int64   `tfsdk:"node_count"`
 }
 type TFReplicationSpecsRegionConfigsAutoScalingModel struct {
@@ -643,9 +643,9 @@ type TFReplicationSpecsRegionConfigsAutoScalingModel struct {
 	DiskGb  types.Object `tfsdk:"disk_gb"`
 }
 type TFReplicationSpecsRegionConfigsAutoScalingComputeModel struct {
-	Enabled           types.Bool   `tfsdk:"enabled"`
 	MaxInstanceSize   types.String `tfsdk:"max_instance_size" autogen:"omitjson"`
 	MinInstanceSize   types.String `tfsdk:"min_instance_size" autogen:"omitjson"`
+	Enabled           types.Bool   `tfsdk:"enabled"`
 	PredictiveEnabled types.Bool   `tfsdk:"predictive_enabled"`
 	ScaleDownEnabled  types.Bool   `tfsdk:"scale_down_enabled"`
 }
@@ -653,18 +653,18 @@ type TFReplicationSpecsRegionConfigsAutoScalingDiskGbModel struct {
 	Enabled types.Bool `tfsdk:"enabled"`
 }
 type TFReplicationSpecsRegionConfigsElectableSpecsModel struct {
-	DiskIops              types.Int64   `tfsdk:"disk_iops"`
 	DiskSizeGb            types.Float64 `tfsdk:"disk_size_gb"`
 	EbsVolumeType         types.String  `tfsdk:"ebs_volume_type"`
 	EffectiveInstanceSize types.String  `tfsdk:"effective_instance_size" autogen:"omitjson"`
 	InstanceSize          types.String  `tfsdk:"instance_size"`
+	DiskIops              types.Int64   `tfsdk:"disk_iops"`
 	NodeCount             types.Int64   `tfsdk:"node_count"`
 }
 type TFReplicationSpecsRegionConfigsReadOnlySpecsModel struct {
-	DiskIops      types.Int64   `tfsdk:"disk_iops"`
 	DiskSizeGb    types.Float64 `tfsdk:"disk_size_gb"`
 	EbsVolumeType types.String  `tfsdk:"ebs_volume_type"`
 	InstanceSize  types.String  `tfsdk:"instance_size"`
+	DiskIops      types.Int64   `tfsdk:"disk_iops"`
 	NodeCount     types.Int64   `tfsdk:"node_count"`
 }
 type TFTagsModel struct {

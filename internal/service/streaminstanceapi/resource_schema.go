@@ -202,9 +202,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											Computed:            true,
 											MarkdownDescription: "Reserved. Will be used by PRIVATE_LINK connection type.",
 										},
+										"tgw_id": schema.StringAttribute{
+											Computed:            true,
+											MarkdownDescription: "Reserved. Will be used by TRANSIT_GATEWAY connection type.",
+										},
 										"type": schema.StringAttribute{
 											Computed:            true,
-											MarkdownDescription: "Selected networking type. Either PUBLIC, VPC or PRIVATE_LINK. Defaults to PUBLIC. For VPC, ensure that VPC peering exists and connectivity has been established between Atlas VPC and the VPC where Kafka cluster is hosted for the connection to function properly. PRIVATE_LINK support is coming soon.",
+											MarkdownDescription: "Selected networking type. Either PUBLIC, VPC, PRIVATE_LINK, or TRANSIT_GATEWAY. Defaults to PUBLIC. For VPC, ensure that VPC peering exists and connectivity has been established between Atlas VPC and the VPC where Kafka cluster is hosted for the connection to function properly. TRANSIT_GATEWAY support is coming soon.",
+										},
+										"vpc_cidr": schema.StringAttribute{
+											Computed:            true,
+											MarkdownDescription: "Reserved. Will be used by TRANSIT_GATEWAY connection type.",
 										},
 									},
 								},
@@ -458,7 +466,9 @@ type TFConnectionsNetworkingAccessModel struct {
 	ConnectionId types.String `tfsdk:"connection_id" autogen:"omitjson"`
 	Links        types.List   `tfsdk:"links" autogen:"omitjson"`
 	Name         types.String `tfsdk:"name" autogen:"omitjson"`
+	TgwId        types.String `tfsdk:"tgw_id" autogen:"omitjson"`
 	Type         types.String `tfsdk:"type" autogen:"omitjson"`
+	VpcCidr      types.String `tfsdk:"vpc_cidr" autogen:"omitjson"`
 }
 type TFConnectionsNetworkingAccessLinksModel struct {
 	Href types.String `tfsdk:"href" autogen:"omitjson"`

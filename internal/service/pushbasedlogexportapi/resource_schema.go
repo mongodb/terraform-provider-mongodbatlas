@@ -18,7 +18,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"create_date": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Date and time that this feature was enabled on.",
+				MarkdownDescription: "Date and time that this feature was enabled on. This parameter expresses its value in the ISO 8601 timestamp format in UTC.",
 			},
 			"group_id": schema.StringAttribute{
 				Required:            true,
