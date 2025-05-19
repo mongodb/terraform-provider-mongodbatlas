@@ -1314,15 +1314,15 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasicReplicaset(t, projectID, clusterName, ""),
+				Config: configBasicReplicaset(t, projectID, clusterName, "", ""),
 				Check:  checks,
 			},
 			{
-				Config: configBasicReplicaset(t, projectID, clusterName, fullUpdate),
+				Config: configBasicReplicaset(t, projectID, clusterName, fullUpdate, ""),
 				Check:  checksUpdate,
 			},
 			{
-				Config: configBasicReplicaset(t, projectID, clusterName, ""),
+				Config: configBasicReplicaset(t, projectID, clusterName, "", ""),
 				Check:  checks,
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -1404,13 +1404,38 @@ func TestAccAdvancedCluster_removeBlocksFromConfig(t *testing.T) {
 	})
 }
 
-func configBasicReplicaset(t *testing.T, projectID, clusterName, extra string) string {
+func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreate(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
+		timeoutsStr            = `
+			timeouts {
+				create = "20s"
+			}
+			delete_on_create_error = true
+		`
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:      configBasicReplicaset(t, projectID, clusterName, "", timeoutsStr),
+				ExpectError: regexp.MustCompile("error: context deadline exceeded"),
+			},
+		},
+	})
+}
+
+func configBasicReplicaset(t *testing.T, projectID, clusterName, extra, timeoutStr string) string {
 	t.Helper()
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, fmt.Sprintf(`
-		resource "mongodbatlas_advanced_cluster" "test" {
+	if timeoutStr == "" {
+		timeoutStr = `
 			timeouts {
 				create = "6000s"
-			}
+			}`
+	}
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			%[4]s		
 			project_id = %[1]q
 			name = %[2]q
 			cluster_type = "REPLICASET"
@@ -1433,7 +1458,7 @@ func configBasicReplicaset(t *testing.T, projectID, clusterName, extra string) s
 			}
 			%[3]s
 		}
-	`, projectID, clusterName, extra)) + dataSourcesTFNewSchema
+	`, projectID, clusterName, extra, timeoutStr)) + dataSourcesTFNewSchema
 }
 
 func configSharded(t *testing.T, projectID, clusterName string, withUpdate bool) string {
