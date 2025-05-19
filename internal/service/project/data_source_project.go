@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -104,7 +104,8 @@ func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, re
 				Computed: true,
 			},
 			"is_slow_operation_thresholding_enabled": schema.BoolAttribute{
-				Computed: true,
+				DeprecationMessage: constant.DeprecationParam, // added deprecation in CLOUDP-293855 because was deprecated in the doc
+				Computed:           true,
 			},
 			"region_usage_restrictions": schema.StringAttribute{
 				Computed: true,
@@ -147,7 +148,7 @@ func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, re
 			},
 			"ip_addresses": schema.SingleNestedAttribute{
 				Computed:           true,
-				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamByVersionWithReplacement, "1.21.0", "mongodbatlas_project_ip_addresses data source"),
+				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamWithReplacement, "mongodbatlas_project_ip_addresses data source"),
 				Attributes: map[string]schema.Attribute{
 					"services": schema.SingleNestedAttribute{
 						Computed: true,

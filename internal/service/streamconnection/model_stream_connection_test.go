@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 )
 
 const (
@@ -18,7 +18,7 @@ const (
 	instanceName              = "InstanceName"
 	authMechanism             = "PLAIN"
 	authUsername              = "user1"
-	securityProtocol          = "SSL"
+	securityProtocol          = "SASL_SSL"
 	bootstrapServers          = "localhost:9092,another.host:9092"
 	dbRole                    = "customRole"
 	dbRoleType                = "CUSTOM"

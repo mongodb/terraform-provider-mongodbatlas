@@ -183,7 +183,7 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 					enabled = false
 					read_preference = "secondary"
 			}`
-		config        = configPartialAdvancedConfig(projectID, clusterName, extraArgs, autoScalingConfigured)
+		configInitial = configPartialAdvancedConfig(projectID, clusterName, extraArgs, autoScalingConfigured)
 		configUpdated = configPartialAdvancedConfig(projectID, clusterName, extraArgsUpdated, "")
 	)
 
@@ -193,7 +193,7 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            config,
+				Config:            configInitial,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
@@ -205,7 +205,7 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.enabled", "true"),
 				),
 			},
-			mig.TestStepCheckEmptyPlan(config),
+			mig.TestStepCheckEmptyPlan(configInitial),
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configUpdated,

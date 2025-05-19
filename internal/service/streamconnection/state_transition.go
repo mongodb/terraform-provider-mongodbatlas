@@ -6,12 +6,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 )
 
 func DeleteStreamConnection(ctx context.Context, api admin.StreamsApi, projectID, instanceName, connectionName string, timeout time.Duration) error {
 	return retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-		_, resp, err := api.DeleteStreamConnection(ctx, projectID, instanceName, connectionName).Execute()
+		resp, err := api.DeleteStreamConnection(ctx, projectID, instanceName, connectionName).Execute()
 		if err == nil {
 			return nil
 		}

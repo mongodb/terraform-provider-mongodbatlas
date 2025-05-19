@@ -1,7 +1,52 @@
 ## (Unreleased)
 
+BUG FIXES:
+
+* resource/mongodbatlas_private_endpoint_regional_mode: Increases update wait time so cluster connection strings are updated ([#3320](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3320))
+
+## 1.34.0 (April 30, 2025)
+
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_database_user: Adds `description` field ([#3280](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3280))
+* data-source/mongodbatlas_database_users: Adds `description` field ([#3280](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3280))
+* data-source/mongodbatlas_maintenance_window: Adds `protected_hours` and `time_zone_id` ([#3195](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3195))
+* resource/mongodbatlas_database_user: Adds `description` field ([#3280](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3280))
+* resource/mongodbatlas_maintenance_window: Adds `protected_hours` and `time_zone_id` ([#3195](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3195))
+
+BUG FIXES:
+
+* resource/mongodbatlas_auditing: Fixes JSON comparison in `audit_filter` field ([#3302](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3302))
+
+## 1.33.0 (April 16, 2025)
+
+NOTES:
+
+* data-source/mongodbatlas_resource_policies: Enables usage without preview environment flag ([#3276](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3276))
+* data-source/mongodbatlas_resource_policy: Enables usage without preview environment flag ([#3276](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3276))
+* resource/mongodbatlas_resource_policy: Enables usage without preview environment flag ([#3276](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3276))
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_organization: Adds `security_contact` attribute ([#3263](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3263))
+* data-source/mongodbatlas_organizations: Adds `security_contact` attribute ([#3263](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3263))
+* data-source/mongodbatlas_third_party_integration: Adds support for `send_collection_latency_metrics` and `send_database_metrics` for Datadog integrations ([#3259](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3259))
+* data-source/mongodbatlas_third_party_integrations: Adds support for `send_collection_latency_metrics` and `send_database_metrics` for Datadog integrations ([#3259](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3259))
+* resource/mongodbatlas_organization: Adds `security_contact` attribute ([#3263](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3263))
+* resource/mongodbatlas_third_party_integration: Adds support for `send_collection_latency_metrics` and `send_database_metrics` for Datadog integrations ([#3259](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3259))
+
+## 1.32.0 (April 09, 2025)
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_encryption_at_rest: Adds `enabled_for_search_nodes` attribute ([#3142](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3142))
+* data-source/mongodbatlas_resource_policies: Adds support for the new `description` field ([#3214](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3214))
+* data-source/mongodbatlas_resource_policy: Adds support for the new `description` field ([#3214](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3214))
+* data-source/mongodbatlas_search_deployment: Adds `encryption_at_rest_provider` computed attribute ([#3152](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3152))
+* resource/mongodbatlas_encryption_at_rest: Adds `enabled_for_search_nodes` attribute ([#3142](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3142))
+* resource/mongodbatlas_resource_policy: Adds support for the new `description` field ([#3214](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3214))
+* resource/mongodbatlas_search_deployment: Adds `encryption_at_rest_provider` computed attribute ([#3152](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3152))
+* resource/mongodbatlas_search_deployment: Adds `skip_wait_on_update` to avoid waiting for completion of update operations ([#3237](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3237))
 * resource/mongodbatlas_stream_processor: Adds update support ([#3180](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3180))
 
 ## 1.31.0 (March 25, 2025)

@@ -5,12 +5,15 @@ import (
 	"encoding/json"
 	"testing"
 
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/resourcepolicy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
-	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
 )
 
 var (
@@ -21,6 +24,7 @@ var (
 )
 
 type tfModelTestCase struct {
+	description     *string
 	name            string
 	SDKRespJSON     string
 	userIDCreate    string
@@ -101,6 +105,7 @@ func createTFModel(t *testing.T, testCase *tfModelTestCase) *resourcepolicy.TFMo
 		Name:            types.StringValue(testCase.name),
 		OrgID:           types.StringValue(testCase.orgID),
 		Version:         types.StringValue(testCase.version),
+		Description:     types.StringPointerValue(testCase.description),
 	}
 }
 
@@ -118,6 +123,7 @@ func TestNewTFModel(t *testing.T) {
 			createdDate:     "2024-09-11T13:36:18Z",
 			lastUpdatedDate: "2024-09-11T13:36:18Z",
 			policyID:        "66e19cd2fdc0332d1fa5e877",
+			description:     conversion.StringPtr("test description"),
 		},
 	}
 

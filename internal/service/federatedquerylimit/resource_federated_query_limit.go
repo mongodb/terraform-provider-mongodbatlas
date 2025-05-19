@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 )
 
 const (
@@ -141,7 +141,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	tenantName := ids["tenant_name"]
 	limitName := ids["limit_name"]
 
-	if _, _, err := conn.DataFederationApi.DeleteOneDataFederationInstanceQueryLimit(ctx, projectID, tenantName, limitName).Execute(); err != nil {
+	if _, err := conn.DataFederationApi.DeleteOneDataFederationInstanceQueryLimit(ctx, projectID, tenantName, limitName).Execute(); err != nil {
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseQueryLimitDelete, limitName, err))
 	}
 

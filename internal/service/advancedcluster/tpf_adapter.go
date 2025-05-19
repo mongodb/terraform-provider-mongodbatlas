@@ -3,7 +3,7 @@ package advancedcluster
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 
 	fwdiag "github.com/hashicorp/terraform-plugin-framework/diag"
 	v2diag "github.com/hashicorp/terraform-plugin-sdk/v2/diag"

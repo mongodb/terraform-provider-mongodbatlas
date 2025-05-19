@@ -105,7 +105,7 @@ func TestSafeValue(t *testing.T) {
 	var intPointer *int
 	assert.Equal(t, 0, conversion.SafeValue(intPointer))
 	var stringPointer *string
-	assert.Equal(t, "", conversion.SafeValue(stringPointer))
+	assert.Empty(t, conversion.SafeValue(stringPointer))
 }
 
 func TestNilForUnknownOrEmpty(t *testing.T) {

@@ -8,11 +8,11 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 )
 
 const (
-	AsymmetricShardsUnsupportedActionDS = "Ensure you use copy_settings.#.zone_id instead of copy_settings.#.replication_spec_id for asymmetric sharded clusters by setting `use_zone_id_for_copy_settings = true`. To learn more, see our examples, documentation, and 1.18.0 migration guide at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
+	AsymmetricShardsUnsupportedActionDS = "Ensure you use copy_settings.#.zone_id instead of copy_settings.#.replication_spec_id for asymmetric sharded clusters by setting `use_zone_id_for_copy_settings = true`. To learn more, see our examples, documentation, and 1.18.0 migration guide at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide"
 )
 
 func DataSource() *schema.Resource {

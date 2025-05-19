@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 )
 
 func createProject(tb testing.TB, name string) string {
@@ -26,7 +26,7 @@ func createProject(tb testing.TB, name string) string {
 }
 
 func deleteProject(id string) {
-	_, _, err := ConnV2().ProjectsApi.DeleteProject(context.Background(), id).Execute()
+	_, err := ConnV2().ProjectsApi.DeleteProject(context.Background(), id).Execute()
 	if err != nil {
 		fmt.Printf("Project deletion failed: %s, error: %s", id, err)
 	}

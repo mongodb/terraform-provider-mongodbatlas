@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -43,25 +43,29 @@ func ConfigEARAzureKeyVault(projectID string, azure *admin.AzureKeyVault, useReq
 	return config
 }
 
-func ConfigAwsKms(projectID string, aws *admin.AWSKMSConfiguration, useDatasource, useRequirePrivateNetworking bool) string {
+func ConfigAwsKms(projectID string, aws *admin.AWSKMSConfiguration, useDatasource, useRequirePrivateNetworking, useEnabledForSearchNodes bool) string {
 	requirePrivateNetworkingStr := ""
 	if useRequirePrivateNetworking {
 		requirePrivateNetworkingStr = fmt.Sprintf("require_private_networking = %t", aws.GetRequirePrivateNetworking())
+	}
+	enabledForSearchNodes := ""
+	if useEnabledForSearchNodes {
+		enabledForSearchNodes = fmt.Sprintf("enabled_for_search_nodes = %t", useEnabledForSearchNodes)
 	}
 	config := fmt.Sprintf(`
 		resource "mongodbatlas_encryption_at_rest" "test" {
 			project_id = %[1]q
 
-		  aws_kms_config {
+		  	aws_kms_config {
 				enabled                = %[2]t
 				customer_master_key_id = %[3]q
 				region                 = %[4]q
 				role_id              = %[5]q
-				
 				%[6]s
 			}
+			%[7]s
 		}
-	`, projectID, aws.GetEnabled(), aws.GetCustomerMasterKeyID(), aws.GetRegion(), aws.GetRoleId(), requirePrivateNetworkingStr)
+	`, projectID, aws.GetEnabled(), aws.GetCustomerMasterKeyID(), aws.GetRegion(), aws.GetRoleId(), requirePrivateNetworkingStr, enabledForSearchNodes)
 
 	if useDatasource {
 		return fmt.Sprintf(`%s %s`, config, EARDatasourceConfig())

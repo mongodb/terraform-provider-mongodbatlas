@@ -97,7 +97,7 @@ jobs:
 
 
     with:
-      terraform_version: ${{ inputs.terraform_version || vars.TF_VERSION_LATEST }}
+      terraform_version: ${{ inputs.terraform_version || '1.12.x' }}
       provider_version: ${{ inputs.provider_version }}
       ref: ${{ inputs.ref }}
       test_group: ${{ inputs.test_group }}
@@ -125,7 +125,6 @@ jobs:
       mongodb_atlas_project_ear_pe_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_PROJECT_EAR_PE_ID_QA || vars.MONGODB_ATLAS_PROJECT_EAR_PE_ID_DEV }}
       mongodb_atlas_project_ear_pe_aws_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID_QA || vars.MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID_DEV }}
       aws_ear_role_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.AWS_EAR_ROLE_ID_QA || vars.AWS_EAR_ROLE_ID_DEV }}
-      mongodb_atlas_enable_preview: ${{ vars.MONGODB_ATLAS_ENABLE_PREVIEW }}
       azure_private_endpoint_region: ${{ vars.AZURE_PRIVATE_ENDPOINT_REGION }}
       mongodb_atlas_rp_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_RP_ORG_ID_QA || vars.MONGODB_ATLAS_RP_ORG_ID_DEV }}
       confluent_cloud_network_id: ${{ vars.CONFLUENT_CLOUD_NETWORK_ID }} 

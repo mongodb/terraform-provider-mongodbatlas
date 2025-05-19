@@ -8,50 +8,56 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 )
 
-func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue types.String, dbUserModel *TfDatabaseUserModel) (*admin.CloudDatabaseUser, diag.Diagnostics) {
+func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue, stateDescriptionValue types.String, plan *TfDatabaseUserModel) (*admin.CloudDatabaseUser, diag.Diagnostics) {
 	var rolesModel []*TfRoleModel
 	var labelsModel []*TfLabelModel
 	var scopesModel []*TfScopeModel
 
-	diags := dbUserModel.Roles.ElementsAs(ctx, &rolesModel, false)
+	diags := plan.Roles.ElementsAs(ctx, &rolesModel, false)
 	if diags.HasError() {
 		return nil, diags
 	}
 
-	diags = dbUserModel.Labels.ElementsAs(ctx, &labelsModel, false)
+	diags = plan.Labels.ElementsAs(ctx, &labelsModel, false)
 	if diags.HasError() {
 		return nil, diags
 	}
 
-	diags = dbUserModel.Scopes.ElementsAs(ctx, &scopesModel, false)
+	diags = plan.Scopes.ElementsAs(ctx, &scopesModel, false)
 	if diags.HasError() {
 		return nil, diags
 	}
 
 	result := admin.CloudDatabaseUser{
-		GroupId:      dbUserModel.ProjectID.ValueString(),
-		Username:     dbUserModel.Username.ValueString(),
-		X509Type:     dbUserModel.X509Type.ValueStringPointer(),
-		AwsIAMType:   dbUserModel.AWSIAMType.ValueStringPointer(),
-		OidcAuthType: dbUserModel.OIDCAuthType.ValueStringPointer(),
-		LdapAuthType: dbUserModel.LDAPAuthType.ValueStringPointer(),
-		DatabaseName: dbUserModel.AuthDatabaseName.ValueString(),
+		GroupId:      plan.ProjectID.ValueString(),
+		Username:     plan.Username.ValueString(),
+		Description:  plan.Description.ValueStringPointer(),
+		X509Type:     plan.X509Type.ValueStringPointer(),
+		AwsIAMType:   plan.AWSIAMType.ValueStringPointer(),
+		OidcAuthType: plan.OIDCAuthType.ValueStringPointer(),
+		LdapAuthType: plan.LDAPAuthType.ValueStringPointer(),
+		DatabaseName: plan.AuthDatabaseName.ValueString(),
 		Roles:        NewMongoDBAtlasRoles(rolesModel),
 		Labels:       NewMongoDBAtlasLabels(labelsModel),
 		Scopes:       NewMongoDBAtlasScopes(scopesModel),
 	}
 
-	if statePasswordValue != dbUserModel.Password {
+	if statePasswordValue != plan.Password {
 		// Password value has been modified or no previous state was present. Password is only updated if changed in the terraform configuration CLOUDP-235738
-		result.Password = dbUserModel.Password.ValueStringPointer()
+		result.Password = plan.Password.ValueStringPointer()
+	}
+	if plan.Description.IsNull() && !stateDescriptionValue.Equal(plan.Description) {
+		// description is an optional attribute (i.e. null by default), if it is removed from the config during an update
+		// (i.e. user wants to remove the existing description from the database user), we send an empty string ("") as the value in API request for update (dumping null is not supported in the SDK)
+		result.Description = conversion.Pointer("")
 	}
 	return &result, nil
 }
 
-func NewTfDatabaseUserModel(ctx context.Context, model *TfDatabaseUserModel, dbUser *admin.CloudDatabaseUser) (*TfDatabaseUserModel, diag.Diagnostics) {
+func NewTfDatabaseUserModel(ctx context.Context, inModel *TfDatabaseUserModel, dbUser *admin.CloudDatabaseUser) (*TfDatabaseUserModel, diag.Diagnostics) {
 	rolesSet, diagnostic := types.SetValueFrom(ctx, RoleObjectType, NewTFRolesModel(dbUser.GetRoles()))
 	if diagnostic.HasError() {
 		return nil, diagnostic
@@ -73,11 +79,12 @@ func NewTfDatabaseUserModel(ctx context.Context, model *TfDatabaseUserModel, dbU
 		"username":           dbUser.Username,
 		"auth_database_name": dbUser.DatabaseName,
 	})
-	databaseUserModel := &TfDatabaseUserModel{
+	outModel := &TfDatabaseUserModel{
 		ID:               types.StringValue(encodedID),
 		ProjectID:        types.StringValue(dbUser.GroupId),
 		AuthDatabaseName: types.StringValue(dbUser.DatabaseName),
 		Username:         types.StringValue(dbUser.Username),
+		Description:      types.StringPointerValue(dbUser.Description),
 		X509Type:         types.StringValue(dbUser.GetX509Type()),
 		OIDCAuthType:     types.StringValue(dbUser.GetOidcAuthType()),
 		LDAPAuthType:     types.StringValue(dbUser.GetLdapAuthType()),
@@ -87,12 +94,15 @@ func NewTfDatabaseUserModel(ctx context.Context, model *TfDatabaseUserModel, dbU
 		Scopes:           scopesSet,
 	}
 
-	if model != nil && model.Password.ValueString() != "" {
+	if inModel != nil && inModel.Password.ValueString() != "" {
 		// The Password is not retuned from the endpoint so we use the one provided in the model
-		databaseUserModel.Password = model.Password
+		outModel.Password = inModel.Password
 	}
-
-	return databaseUserModel, nil
+	if inModel != nil && outModel.Description.Equal(types.StringValue("")) && inModel.Description.IsNull() {
+		// null != "" in TPF:  Error: Provider produced inconsistent result after apply. .description: was null, but now cty.StringVal("")
+		outModel.Description = types.StringNull()
+	}
+	return outModel, nil
 }
 
 func NewTFDatabaseDSUserModel(ctx context.Context, dbUser *admin.CloudDatabaseUser) (*TfDatabaseUserDSModel, diag.Diagnostics) {
@@ -102,6 +112,7 @@ func NewTFDatabaseDSUserModel(ctx context.Context, dbUser *admin.CloudDatabaseUs
 		ProjectID:        types.StringValue(dbUser.GroupId),
 		AuthDatabaseName: types.StringValue(dbUser.DatabaseName),
 		Username:         types.StringValue(dbUser.Username),
+		Description:      types.StringPointerValue(dbUser.Description),
 		X509Type:         types.StringValue(dbUser.GetX509Type()),
 		OIDCAuthType:     types.StringValue(dbUser.GetOidcAuthType()),
 		LDAPAuthType:     types.StringValue(dbUser.GetLdapAuthType()),

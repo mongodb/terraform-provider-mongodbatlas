@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 )
 
 const projectsDataSourceName = "projects"
@@ -98,7 +98,8 @@ func (d *ProjectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, r
 							Computed: true,
 						},
 						"is_slow_operation_thresholding_enabled": schema.BoolAttribute{
-							Computed: true,
+							DeprecationMessage: constant.DeprecationParam, // added deprecation in CLOUDP-293855 because was deprecated in the doc
+							Computed:           true,
 						},
 						"region_usage_restrictions": schema.StringAttribute{
 							Computed: true,
@@ -141,7 +142,7 @@ func (d *ProjectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, r
 						},
 						"ip_addresses": schema.SingleNestedAttribute{
 							Computed:           true,
-							DeprecationMessage: fmt.Sprintf(constant.DeprecationParamByVersionWithReplacement, "1.21.0", "mongodbatlas_project_ip_addresses data source"),
+							DeprecationMessage: fmt.Sprintf(constant.DeprecationParamWithReplacement, "mongodbatlas_project_ip_addresses data source"),
 							Attributes: map[string]schema.Attribute{
 								"services": schema.SingleNestedAttribute{
 									Computed: true,

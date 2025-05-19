@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -407,8 +407,13 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 
 			containerID = getContainerID(containers, &clusters[i])
 		}
+		p := &ProcessArgs{
+			argsDefault:           processArgs,
+			argsLegacy:            processArgs20240530,
+			clusterAdvancedConfig: clusters[i].AdvancedConfiguration,
+		}
 		result := map[string]any{
-			"advanced_configuration":                  flattenProcessArgs(processArgs20240530, processArgs),
+			"advanced_configuration":                  flattenProcessArgs(p),
 			"auto_scaling_compute_enabled":            clusters[i].AutoScaling.Compute.Enabled,
 			"auto_scaling_compute_scale_down_enabled": clusters[i].AutoScaling.Compute.ScaleDownEnabled,
 			"auto_scaling_disk_gb_enabled":            clusters[i].AutoScaling.DiskGBEnabled,

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
@@ -83,6 +83,10 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
+						"security_contact": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -148,6 +152,7 @@ func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizati
 			"multi_factor_auth_required":   settings.MultiFactorAuthRequired,
 			"restrict_employee_access":     settings.RestrictEmployeeAccess,
 			"gen_ai_features_enabled":      settings.GenAIFeaturesEnabled,
+			"security_contact":             settings.SecurityContact,
 		}
 	}
 	return results, nil

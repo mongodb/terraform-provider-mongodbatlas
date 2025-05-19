@@ -47,7 +47,7 @@ resource "mongodbatlas_stream_connection" "example-kafka" {
     "auto.offset.reset" : "earliest"
   }
   security = {
-    protocol = "PLAINTEXT"
+    protocol = "SASL_PLAINTEXT"
   }
 }
 

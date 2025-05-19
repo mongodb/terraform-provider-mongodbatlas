@@ -15,7 +15,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 )
 
 const (
@@ -28,9 +28,9 @@ const (
 	errorSnapshotBackupScheduleUpdate   = "error updating a Cloud Backup Schedule: %s"
 	errorSnapshotBackupScheduleRead     = "error getting a Cloud Backup Schedule for the cluster(%s): %s"
 	ErrorOperationNotPermitted          = "error operation not permitted"
-	AsymmetricShardsUnsupportedAction   = "Ensure resource schema uses copy_settings.#.zone_id instead of copy_settings.#.replication_spec_id for asymmetric sharded clusters. Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
+	AsymmetricShardsUnsupportedAction   = "Ensure resource schema uses copy_settings.#.zone_id instead of copy_settings.#.replication_spec_id for asymmetric sharded clusters. Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide"
 	errorSnapshotBackupScheduleSetting  = "error setting `%s` for Cloud Backup Schedule(%s): %s"
-	DeprecationOldSchemaAction          = "To learn more, see our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
+	DeprecationOldSchemaAction          = "To learn more, see our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide"
 	AsymmetricShardsUnsupportedAPIError = "ASYMMETRIC_SHARD_BACKUP_UNSUPPORTED"
 )
 

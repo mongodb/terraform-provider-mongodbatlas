@@ -8,7 +8,7 @@ import (
 	"sort"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -467,7 +467,7 @@ func UpdateProjectLimits(ctx context.Context, projectsAPI admin.ProjectsApi, pro
 	// removing limits from the project
 	for _, limit := range removedLimits {
 		limitName := limit.Name.ValueString()
-		if _, _, err := projectsAPI.DeleteProjectLimit(ctx, limitName, projectID).Execute(); err != nil {
+		if _, err := projectsAPI.DeleteProjectLimit(ctx, limitName, projectID).Execute(); err != nil {
 			return fmt.Errorf("error removing limit %s from the project(%s) during update: %s", limitName, projectID, err)
 		}
 	}
@@ -602,7 +602,7 @@ func deleteProject(ctx context.Context, clustersAPI admin.ClustersApi, projectsA
 		tflog.Info(ctx, fmt.Sprintf("[ERROR] could not determine MongoDB project %s dependents status: %s", projectID, err.Error()))
 	}
 
-	_, _, err = projectsAPI.DeleteProject(ctx, projectID).Execute()
+	_, err = projectsAPI.DeleteProject(ctx, projectID).Execute()
 
 	return err
 }

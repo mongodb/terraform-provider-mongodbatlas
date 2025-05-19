@@ -34,7 +34,7 @@ resource "mongodbatlas_stream_connection" "example-kafka-plaintext" {
     "auto.offset.reset" : "earliest"
   }
   security = {
-    protocol = "PLAINTEXT"
+    protocol = "SASL_PLAINTEXT"
   }
   networking = {
     access = {
@@ -59,7 +59,7 @@ resource "mongodbatlas_stream_connection" "example-kafka-ssl" {
   }
   security = {
     broker_public_certificate = var.kafka_ssl_cert
-    protocol                  = "SSL"
+    protocol                  = "SASL_SSL"
   }
 }
 
@@ -76,7 +76,7 @@ resource "mongodbatlas_stream_connection" "example-aws-lambda" {
   connection_name = "AWSLambdaConnection"
   type            = "AWSLambda"
   aws = {
-    role_arn = "arn:aws:iam::123456789123:role/lambdaRole"
+    role_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/lambdaRole"
   }
 }
 

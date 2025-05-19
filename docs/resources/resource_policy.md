@@ -2,17 +2,14 @@
 
 `mongodbatlas_resource_policy` provides a Resource Policy resource. The resource lets you create, edit and delete resource policies to prevent misconfigurations and reduce the need for corrective interventions in your organization.
 
--> **NOTE**: Resource Policies are currently in Public Preview. To use this feature, you must take the following actions:
-1. Enable the `Atlas Resource Policies` Preview Feature in your organization (contact [MongoDB Support](https://www.mongodb.com/services/support)).
-2. Enable the [Preview Features](https://github.com/mongodb/terraform-provider-mongodbatlas?tab=readme-ov-file#preview-features) when running `terraform` commands.
-
 
 ## Example Usages
 
 ```terraform
 resource "mongodbatlas_resource_policy" "project_ip_access_list" {
-  org_id = var.org_id
-  name   = "forbid-access-from-anywhere"
+  org_id      = var.org_id
+  name        = "forbid-access-from-anywhere"
+  description = "Forbids access from anywhere"
 
   policies = [
     {
@@ -31,8 +28,9 @@ EOF
 }
 
 resource "mongodbatlas_resource_policy" "cloud_provider" {
-  org_id = var.org_id
-  name   = "forbid-cloud-provider"
+  org_id      = var.org_id
+  name        = "forbid-cloud-provider"
+  description = "Forbids AWS and Azure for clusters"
   policies = [
     {
       body = templatefile("${path.module}/cloud-provider.cedar", {
@@ -98,6 +96,10 @@ output "policy_ids" {
 - `name` (String) Human-readable label that describes the Atlas resource policy.
 - `org_id` (String) Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.
 - `policies` (Attributes List) List of policies that make up the Atlas resource policy. (see [below for nested schema](#nestedatt--policies))
+
+### Optional
+
+- `description` (String) Description of the Atlas resource policy.
 
 ### Read-Only
 

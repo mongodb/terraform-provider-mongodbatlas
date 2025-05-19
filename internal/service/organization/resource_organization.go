@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -89,6 +89,10 @@ func Resource() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+			"security_contact": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -125,7 +129,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	_, _, errUpdate := conn.OrganizationsApi.UpdateOrganizationSettings(ctx, orgID, newOrganizationSettings(d)).Execute()
 	if errUpdate != nil {
-		if _, _, err := conn.OrganizationsApi.DeleteOrganization(ctx, orgID).Execute(); err != nil {
+		if _, err := conn.OrganizationsApi.DeleteOrganization(ctx, orgID).Execute(); err != nil {
 			d.SetId("")
 			return diag.FromErr(fmt.Errorf("an error occurred when updating Organization settings: %s.\n Unable to delete organization, there may be dangling resources: %s", errUpdate.Error(), err.Error()))
 		}
@@ -201,6 +205,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	if err := d.Set("gen_ai_features_enabled", settings.GenAIFeaturesEnabled); err != nil {
 		return diag.Errorf("error setting `gen_ai_features_enabled` for organization (%s): %s", orgID, err)
 	}
+	if err := d.Set("security_contact", settings.SecurityContact); err != nil {
+		return diag.Errorf("error setting `security_contact` for organization (%s): %s", orgID, err)
+	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"org_id": organization.GetId(),
@@ -238,7 +245,8 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if d.HasChange("api_access_list_required") ||
 		d.HasChange("multi_factor_auth_required") ||
 		d.HasChange("restrict_employee_access") ||
-		d.HasChange("gen_ai_features_enabled") {
+		d.HasChange("gen_ai_features_enabled") ||
+		d.HasChange("security_contact") {
 		if _, _, err := conn.OrganizationsApi.UpdateOrganizationSettings(ctx, orgID, newOrganizationSettings(d)).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf("error updating Organization settings: %s", err))
 		}
@@ -261,7 +269,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
-	if _, _, err := conn.OrganizationsApi.DeleteOrganization(ctx, orgID).Execute(); err != nil {
+	if _, err := conn.OrganizationsApi.DeleteOrganization(ctx, orgID).Execute(); err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting Organization: %s", err))
 	}
 	return nil
@@ -300,6 +308,7 @@ func newOrganizationSettings(d *schema.ResourceData) *admin.OrganizationSettings
 		MultiFactorAuthRequired: conversion.Pointer(d.Get("multi_factor_auth_required").(bool)),
 		RestrictEmployeeAccess:  conversion.Pointer(d.Get("restrict_employee_access").(bool)),
 		GenAIFeaturesEnabled:    conversion.Pointer(d.Get("gen_ai_features_enabled").(bool)),
+		SecurityContact:         conversion.Pointer(d.Get("security_contact").(string)),
 	}
 }
 

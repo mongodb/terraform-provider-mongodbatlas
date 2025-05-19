@@ -3,6 +3,7 @@ package acc
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -11,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 )
 
 var (
@@ -102,24 +103,11 @@ func CheckExistsCluster(resourceName string) resource.TestCheckFunc {
 		if projectID == "" || clusterName == "" {
 			return fmt.Errorf("projectID or clusterName is empty: %s, %s", projectID, clusterName)
 		}
-		if err := CheckExistsClusterHandlingRetry(projectID, clusterName); err != nil {
+		if _, _, err := ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute(); err != nil {
 			return fmt.Errorf("cluster(%s:%s) does not exist: %w", projectID, clusterName, err)
 		}
 		return nil
 	}
-}
-
-func CheckExistsClusterHandlingRetry(projectID, clusterName string) error {
-	return retry.RetryContext(context.Background(), 3*time.Minute, func() *retry.RetryError {
-		if _, _, err := ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute(); err != nil {
-			if admin.IsErrorCode(err, "SERVICE_UNAVAILABLE") {
-				// retrying get operation because for migration test it can be the first time new API is called for a cluster so API responds with temporary error as it transition to enabling ISS FF
-				return retry.RetryableError(err)
-			}
-			return retry.NonRetryableError(err)
-		}
-		return nil
-	})
 }
 
 func CheckFCVPinningConfig(usePreviewProvider bool, resourceName, dataSourceName, pluralDataSourceName string, mongoDBMajorVersion int, pinningExpirationDate *string, fcvVersion *int) resource.TestCheckFunc {
@@ -192,4 +180,51 @@ func PopulateWithSampleData(projectID, clusterName string) error {
 	}
 	_, err = stateConf.WaitForStateContext(ctx)
 	return err
+}
+
+func ConfigBasicDedicated(projectID, name, zoneName string) string {
+	zoneNameLine := ""
+	if zoneName != "" {
+		zoneNameLine = fmt.Sprintf("zone_name = %q", zoneName)
+	}
+	return fmt.Sprintf(`
+	resource "mongodbatlas_advanced_cluster" "test" {
+		project_id   = %[1]q
+		name         = %[2]q
+		cluster_type = "REPLICASET"
+		
+		replication_specs {
+			region_configs {
+				priority        = 7
+				provider_name = "AWS"
+				region_name     = "US_EAST_1"
+				electable_specs {
+					node_count = 3
+					instance_size = "M10"
+				}
+			}
+			%[3]s
+		}
+	}
+	data "mongodbatlas_advanced_cluster" "test" {
+		project_id = mongodbatlas_advanced_cluster.test.project_id
+		name 	     = mongodbatlas_advanced_cluster.test.name
+		use_replication_spec_per_shard = true
+		depends_on = [mongodbatlas_advanced_cluster.test]
+	}
+			
+	data "mongodbatlas_advanced_clusters" "test" {
+		use_replication_spec_per_shard = true
+		project_id = mongodbatlas_advanced_cluster.test.project_id
+		depends_on = [mongodbatlas_advanced_cluster.test]
+	}
+	`, projectID, name, zoneNameLine)
+}
+
+func JoinQuotedStrings(list []string) string {
+	quoted := make([]string, len(list))
+	for i, item := range list {
+		quoted[i] = fmt.Sprintf("%q", item)
+	}
+	return strings.Join(quoted, ", ")
 }

@@ -605,7 +605,7 @@ func configConnection(t *testing.T, projectID string, config connectionConfig) (
 	case "Cluster":
 		var connectionName, resourceName string
 		clusterName := config.clusterName
-		assert.NotEqual(t, "", clusterName)
+		assert.NotEmpty(t, clusterName)
 		if pipelineStepIsSource {
 			connectionName = "ClusterConnectionSrc"
 			resourceName = "cluster_src"
@@ -657,7 +657,7 @@ func configConnection(t *testing.T, projectID string, config connectionConfig) (
                     "auto.offset.reset" : "earliest"
                 }
                 security = {
-                    protocol = "PLAINTEXT"
+                    protocol = "SASL_PLAINTEXT"
                 }
                 depends_on = [mongodbatlas_stream_instance.instance] 
             }

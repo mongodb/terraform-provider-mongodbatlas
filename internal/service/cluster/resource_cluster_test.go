@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"strings"
 	"testing"
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -1472,10 +1471,9 @@ func configAdvancedConf(projectID, name, autoscalingEnabled string,
 	if p.TlsCipherConfigMode != nil {
 		tlsCipherConfigModeStr = fmt.Sprintf(`tls_cipher_config_mode = %[1]q`, *p.TlsCipherConfigMode)
 		if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
-			//nolint:gocritic // reason: simplifying string array construction
 			customOpensslCipherConfigTLS12Str = fmt.Sprintf(
-				`custom_openssl_cipher_config_tls12 = ["%s"]`,
-				strings.Join(*p.CustomOpensslCipherConfigTls12, `", "`),
+				`custom_openssl_cipher_config_tls12 = [%s]`,
+				acc.JoinQuotedStrings(*p.CustomOpensslCipherConfigTls12),
 			)
 		}
 	}
@@ -1577,10 +1575,9 @@ func configAdvancedConfPartial(projectID, name, autoscalingEnabled string, p *ad
 	if p.TlsCipherConfigMode != nil {
 		tlsCipherConfigModeStr = fmt.Sprintf(`tls_cipher_config_mode = %[1]q`, *p.TlsCipherConfigMode)
 		if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
-			//nolint:gocritic // reason: simplifying string array construction
 			customOpensslCipherConfigTLS12Str = fmt.Sprintf(
-				`custom_openssl_cipher_config_tls12 = ["%s"]`,
-				strings.Join(*p.CustomOpensslCipherConfigTls12, `", "`),
+				`custom_openssl_cipher_config_tls12 = [%s]`,
+				acc.JoinQuotedStrings(*p.CustomOpensslCipherConfigTls12),
 			)
 		}
 	}
@@ -1900,8 +1897,8 @@ func testAccMongoDBAtlasClusterAWSConfigdWithLabels(projectID, name, backupEnabl
 	for _, label := range labels {
 		labelsConf += fmt.Sprintf(`
 			labels {
-				key   = "%s"
-				value = "%s"
+				key   = %q
+				value = %q
 			}
 		`, label.Key, label.Value)
 	}

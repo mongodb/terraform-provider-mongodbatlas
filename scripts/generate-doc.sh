@@ -32,7 +32,7 @@
 
 set -euo pipefail
 
-TF_VERSION="${TF_VERSION:-"1.11.2"}" # TF version to use when running tfplugindocs. Default: 1.11.2
+TF_VERSION="${TF_VERSION:-"1.12.0"}" # TF version to use when running tfplugindocs. Default: 1.12.0
 TEMPLATE_FOLDER_PATH="${TEMPLATE_FOLDER_PATH:-"templates"}" # PATH to the templates folder. Default: templates
 
 
@@ -66,9 +66,6 @@ if [ ! -f "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}s.md.tmpl" ]; th
     printf "Please, make sure to include the data source template under %s." "${TEMPLATE_FOLDER_PATH}/data-sources/${resource_name}.md.tmpl"
     printf "Skipping this check: We assume that the resource does not have a plural data source.\n\n"
 fi
-
-# ensure preview resource and data sources are also included during generation
-export MONGODB_ATLAS_ENABLE_PREVIEW="true" 
 
 trap 'rm -R docs-out/' EXIT # temp dir cleanup when script exits
 

@@ -8,12 +8,13 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -72,9 +73,10 @@ func Schema() map[string]*schema.Schema {
 			ForceNew: true,
 		},
 		"tenant_id": {
-			Type:     schema.TypeString,
-			Optional: true, // attribute is only used as a computed, this is called out in docs and configuration of optional argument can be eventually removed implying a breaking change. To be removed in https://jira.mongodb.org/browse/CLOUDP-293142
-			Computed: true,
+			Deprecated: constant.DeprecationParam, // added deprecation in CLOUDP-293855 because was deprecated in the doc
+			Type:       schema.TypeString,
+			Optional:   true, // attribute is only used as a computed, this is called out in docs and configuration of optional argument can be eventually removed implying a breaking change. To be removed in https://jira.mongodb.org/browse/CLOUDP-293142
+			Computed:   true,
 		},
 	}
 }
@@ -87,7 +89,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	cloudProvider := d.Get("cloud_provider").(string)
 	request := &admin.DiskBackupSnapshotExportBucketRequest{
 		IamRoleId:     conversion.StringPtr(d.Get("iam_role_id").(string)),
-		BucketName:    d.Get("bucket_name").(string),
+		BucketName:    conversion.StringPtr(d.Get("bucket_name").(string)),
 		RoleId:        conversion.StringPtr(d.Get("role_id").(string)),
 		ServiceUrl:    conversion.StringPtr(d.Get("service_url").(string)),
 		TenantId:      conversion.StringPtr(d.Get("tenant_id").(string)),
@@ -174,7 +176,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,
 	}
-	_, _, err := conn.CloudBackupsApi.DeleteExportBucket(ctx, projectID, bucketID).Execute()
+	_, err := conn.CloudBackupsApi.DeleteExportBucket(ctx, projectID, bucketID).Execute()
 
 	if err != nil {
 		return diag.Errorf("error deleting snapshot export bucket (%s): %s", bucketID, err)

@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -144,7 +144,7 @@ func FlattenAssociatedOrgs(associatedOrgs []admin.ConnectedOrgConfig) []map[stri
 	return associatedOrgsMap
 }
 
-type mRoleAssignmentV2 []admin.RoleAssignment
+type mRoleAssignmentV2 []admin.ConnectedOrgConfigRoleAssignment
 
 func (ra mRoleAssignmentV2) Len() int      { return len(ra) }
 func (ra mRoleAssignmentV2) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
@@ -164,7 +164,7 @@ func (ra mRoleAssignmentV2) Less(i, j int) bool {
 	return *ra[i].Role < *ra[j].Role
 }
 
-func FlattenRoleAssignments(roleAssignments []admin.RoleAssignment) []map[string]any {
+func FlattenRoleAssignments(roleAssignments []admin.ConnectedOrgConfigRoleAssignment) []map[string]any {
 	sort.Sort(mRoleAssignmentV2(roleAssignments))
 
 	var roleAssignmentsMap []map[string]any

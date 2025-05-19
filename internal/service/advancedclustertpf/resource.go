@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -44,7 +43,7 @@ const (
 	errorRegionPriorities         = "priority values in region_configs must be in descending order"
 	errorAdvancedConfUpdateLegacy = "error updating Advanced Configuration from legacy API"
 
-	DeprecationOldSchemaAction                   = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
+	DeprecationOldSchemaAction                   = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide"
 	ErrorCodeClusterNotFound                     = "CLUSTER_NOT_FOUND"
 	operationUpdate                              = "update"
 	operationCreate                              = "create"
@@ -158,7 +157,13 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	legacyAdvConfig, advConfig, _ := UpdateAdvancedConfiguration(ctx, diags, r.Client, patchReqProcessArgsLegacy, patchReqProcessArgs, waitParams)
+
+	p := &ProcessArgs{
+		ArgsLegacy:            patchReqProcessArgsLegacy,
+		ArgsDefault:           patchReqProcessArgs,
+		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
+	}
+	legacyAdvConfig, advConfig, _ := UpdateAdvancedConfiguration(ctx, diags, r.Client, p, waitParams)
 	if diags.HasError() {
 		return
 	}
@@ -174,11 +179,15 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 	legacyAdvConfig, advConfig = ReadIfUnsetAdvancedConfiguration(ctx, diags, r.Client, waitParams.ProjectID, waitParams.ClusterName, legacyAdvConfig, advConfig)
-	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, legacyAdvConfig, advConfig)
+
+	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
+		ArgsLegacy:            legacyAdvConfig,
+		ArgsDefault:           advConfig,
+		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
+	})
 	if diags.HasError() {
 		return
 	}
-	AddAdvancedConfig(ctx, modelOut, advConfig, legacyAdvConfig, diags)
 	diags.Append(resp.State.Set(ctx, modelOut)...)
 }
 
@@ -211,7 +220,11 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	if diags.HasError() {
 		return
 	}
-	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, nil, nil)
+	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
+		ArgsLegacy:            nil,
+		ArgsDefault:           nil,
+		ClusterAdvancedConfig: cluster.AdvancedConfiguration,
+	})
 	if diags.HasError() {
 		return
 	}
@@ -269,7 +282,12 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	legacyAdvConfig, advConfig, advConfigChanged := UpdateAdvancedConfiguration(ctx, diags, r.Client, patchReqProcessArgsLegacy, patchReqProcessArgs, waitParams)
+	p := &ProcessArgs{
+		ArgsLegacy:            patchReqProcessArgsLegacy,
+		ArgsDefault:           patchReqProcessArgs,
+		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
+	}
+	legacyAdvConfig, advConfig, advConfigChanged := UpdateAdvancedConfiguration(ctx, diags, r.Client, p, waitParams)
 	if diags.HasError() {
 		return
 	}
@@ -284,7 +302,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		}
 	}
 	if advConfigChanged {
-		updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, legacyAdvConfig, advConfig)
+		updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
+			ArgsLegacy:            legacyAdvConfig,
+			ArgsDefault:           advConfig,
+			ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
+		})
 		if diags.HasError() {
 			return
 		}
@@ -337,7 +359,7 @@ func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics,
 		return AwaitChanges(ctx, r.Client, waitParams, operationFCVPinning, diags)
 	}
 	// pinned_fcv has been removed from the config so unpin method is called
-	if _, _, err := api.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
+	if _, err := api.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
 		addErrorDiag(diags, operationFCVUnpinning, defaultAPIErrorDetails(clusterName, err))
 		return nil
 	}
@@ -439,14 +461,18 @@ func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *
 	return modelOut, extraInfo
 }
 
-func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModel, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805) {
+func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModel,
+	p *ProcessArgs) {
 	projectID := model.ProjectID.ValueString()
 	clusterName := model.Name.ValueString()
-	legacyAdvConfig, advConfig = ReadIfUnsetAdvancedConfiguration(ctx, diags, client, projectID, clusterName, legacyAdvConfig, advConfig)
+	legacyAdvConfig, advConfig := ReadIfUnsetAdvancedConfiguration(ctx, diags, client, projectID, clusterName, p.ArgsLegacy, p.ArgsDefault)
 	if diags.HasError() {
 		return
 	}
-	AddAdvancedConfig(ctx, model, advConfig, legacyAdvConfig, diags)
+	p.ArgsDefault = advConfig
+	p.ArgsLegacy = legacyAdvConfig
+
+	AddAdvancedConfig(ctx, model, p, diags)
 }
 
 func resolveClusterWaitParams(ctx context.Context, model *TFModel, diags *diag.Diagnostics, operation string) *ClusterWaitParams {

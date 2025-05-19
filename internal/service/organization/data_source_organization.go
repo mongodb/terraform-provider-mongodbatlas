@@ -63,6 +63,10 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+			"security_contact": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -108,6 +112,9 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	if err := d.Set("gen_ai_features_enabled", settings.GenAIFeaturesEnabled); err != nil {
 		return diag.Errorf("error setting `gen_ai_features_enabled` for organization (%s): %s", orgID, err)
+	}
+	if err := d.Set("security_contact", settings.SecurityContact); err != nil {
+		return diag.Errorf("error setting `security_contact` for organization (%s): %s", orgID, err)
 	}
 
 	d.SetId(organization.GetId())

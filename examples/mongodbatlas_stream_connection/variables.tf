@@ -22,7 +22,7 @@ variable "kafka_password" {
 }
 
 variable "kafka_ssl_cert" {
-  description = "Public certificate used for SSL configuration to connect to your Kafka cluster"
+  description = "Public certificate used for SASL_SSL configuration to connect to your Kafka cluster"
   type        = string
 }
 

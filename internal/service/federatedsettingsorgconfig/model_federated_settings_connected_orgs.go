@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 )
 
 type roleMappingsByGroupName []admin.AuthFederationRoleMapping
@@ -36,7 +36,7 @@ func FlattenRoleMappings(roleMappings []admin.AuthFederationRoleMapping) []map[s
 	return roleMappingsMap
 }
 
-type mRoleAssignment []admin.RoleAssignment
+type mRoleAssignment []admin.ConnectedOrgConfigRoleAssignment
 
 func (ra mRoleAssignment) Len() int      { return len(ra) }
 func (ra mRoleAssignment) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
@@ -56,7 +56,7 @@ func (ra mRoleAssignment) Less(i, j int) bool {
 	return ra[i].GetRole() < ra[j].GetRole()
 }
 
-func FlattenRoleAssignments(roleAssignments []admin.RoleAssignment) []map[string]any {
+func FlattenRoleAssignments(roleAssignments []admin.ConnectedOrgConfigRoleAssignment) []map[string]any {
 	sort.Sort(mRoleAssignment(roleAssignments))
 
 	var roleAssignmentsMap []map[string]any

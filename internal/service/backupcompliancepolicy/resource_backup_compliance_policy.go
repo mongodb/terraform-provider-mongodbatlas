@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -379,7 +379,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
-	_, _, err := connV2.CloudBackupsApi.DisableDataProtectionSettings(ctx, projectID).Execute()
+	_, err := connV2.CloudBackupsApi.DisableDataProtectionSettings(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicyDelete, projectID, err))
 	}

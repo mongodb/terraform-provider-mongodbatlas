@@ -30,7 +30,7 @@ type MockHTTPDataConfig struct {
 	IsDiffMustSubstrings []string             // Only include diff request for specific substrings, for example /clusters (avoids project create requests)
 	QueryVars            []string             // Substitute this query vars. Useful when differentiating responses based on query args, for example ?providerName=AWS/AZURE returns different responses
 	AllowMissingRequests bool                 // When false will require all API calls to be made.
-	AllowOutOfOrder      bool                 // When true will allow a GET request returned after a POST to be returned before the POST.
+	AllowOutOfOrder      bool                 // When true will allow a GET request returned after a POST to be returned before the POST. Not used but kept for debugging.
 }
 
 func (c MockHTTPDataConfig) WithAllowOutOfOrder() MockHTTPDataConfig { //nolint: gocritic // Want each test run to have its own config (hugeParam: c is heavy (112 bytes); consider passing it by pointer)
@@ -161,7 +161,7 @@ func enableReplayForTestCase(t *testing.T, config *MockHTTPDataConfig, testCase 
 			require.NoError(t, config.RunBeforeEach())
 		}
 	}
-	require.Equal(t, len(testCase.Steps), len(data.Steps), "Number of steps in test case and mock data should match")
+	require.Len(t, testCase.Steps, len(data.Steps), "Number of steps in test case and mock data should match")
 	checkFunc := mockRoundTripper.CheckStepRequests
 	for i := range testCase.Steps {
 		step := &testCase.Steps[i]

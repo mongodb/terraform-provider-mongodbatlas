@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 )
 
 func Resource() *schema.Resource {
@@ -101,7 +101,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	for _, projectID := range projectIDs[1:] {
 		roles := assignments[projectID]
 		req := &[]admin.UserAccessRoleAssignment{{Roles: &roles}}
-		if _, _, err := connV2.ProgrammaticAPIKeysApi.AddProjectApiKey(ctx, projectID, apiKeyID, req).Execute(); err != nil {
+		if _, err := connV2.ProgrammaticAPIKeysApi.AddProjectApiKey(ctx, projectID, apiKeyID, req).Execute(); err != nil {
 			return diag.FromErr(err)
 		}
 	}
@@ -161,7 +161,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		add, remove, update := getAssignmentChanges(d)
 
 		for projectID := range remove {
-			_, _, err := connV2.ProgrammaticAPIKeysApi.RemoveProjectApiKey(ctx, projectID, apiKeyID).Execute()
+			_, err := connV2.ProgrammaticAPIKeysApi.RemoveProjectApiKey(ctx, projectID, apiKeyID).Execute()
 			if err != nil {
 				if admin.IsErrorCode(err, "GROUP_NOT_FOUND") {
 					continue // allows removing assignment for a project that has been deleted
@@ -172,7 +172,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 		for projectID, roles := range add {
 			req := &[]admin.UserAccessRoleAssignment{{Roles: &roles}}
-			_, _, err := connV2.ProgrammaticAPIKeysApi.AddProjectApiKey(ctx, projectID, apiKeyID, req).Execute()
+			_, err := connV2.ProgrammaticAPIKeysApi.AddProjectApiKey(ctx, projectID, apiKeyID, req).Execute()
 			if err != nil {
 				return diag.Errorf("error adding project_api_key(%s) to project(%s): %s", apiKeyID, projectID, err)
 			}
@@ -206,7 +206,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(err)
 	}
 	if details != nil && orgID != "" {
-		if _, _, err = connV2.ProgrammaticAPIKeysApi.DeleteApiKey(ctx, orgID, apiKeyID).Execute(); err != nil {
+		if _, err = connV2.ProgrammaticAPIKeysApi.DeleteApiKey(ctx, orgID, apiKeyID).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf("error deleting project key (%s): %s", apiKeyID, err))
 		}
 	}

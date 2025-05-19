@@ -12,7 +12,7 @@ import (
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -508,6 +508,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		AutoScaling:              autoScaling,
 		ProviderSettings:         providerSettings,
 		ReplicationSpecs:         replicationSpecs,
+		AdvancedConfiguration:    expandClusterAdvancedConfiguration(d),
 	}
 	if v, ok := d.GetOk("cloud_backup"); ok {
 		clusterRequest.ProviderBackupEnabled = conversion.Pointer(v.(bool))
@@ -798,7 +799,13 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, "", clusterName, err))
 	}
 
-	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs20240530, processArgs)); err != nil {
+	p := &ProcessArgs{
+		argsDefault:           processArgs,
+		argsLegacy:            processArgs20240530,
+		clusterAdvancedConfig: cluster.AdvancedConfiguration,
+	}
+
+	if err := d.Set("advanced_configuration", flattenProcessArgs(p)); err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "advanced_configuration", clusterName, err))
 	}
 
@@ -1008,6 +1015,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 				if err != nil {
 					return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, "", clusterName, err))
 				}
+			}
+			clusterAdvConfig := expandClusterAdvancedConfiguration(d)
+			if !reflect.DeepEqual(cluster.AdvancedConfiguration, matlas.AdvancedConfiguration{}) {
+				cluster.AdvancedConfiguration = clusterAdvConfig
 			}
 		}
 	}
