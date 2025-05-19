@@ -284,15 +284,16 @@ func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParam
 	if bodyReq != nil { // if nil slice is sent with application/json content type SDK method returns an error
 		bodyPost = bodyReq
 	}
-	apiReq, err := c.AtlasV2.PrepareRequest(ctx, localVarPath, params.Method, bodyPost, headerParams, nil, nil, nil)
+	untypedClient := c.AtlasV2.UntypedClient
+	apiReq, err := untypedClient.PrepareRequest(ctx, localVarPath, params.Method, bodyPost, headerParams, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	apiResp, err := c.AtlasV2.CallAPI(apiReq)
+	apiResp, err := untypedClient.CallAPI(apiReq)
 
 	if apiResp.StatusCode >= 300 {
-		newErr := c.AtlasV2.MakeApiError(apiResp, params.Method, localVarPath)
+		newErr := untypedClient.MakeApiError(apiResp, params.Method, localVarPath)
 		return apiResp, newErr
 	}
 
