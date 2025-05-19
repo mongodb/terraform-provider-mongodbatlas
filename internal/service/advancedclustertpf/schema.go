@@ -353,6 +353,7 @@ func dataSourceOverridenFields() map[string]dsschema.Attribute {
 	return map[string]dsschema.Attribute{
 		"use_replication_spec_per_shard":                   useReplicationSpecPerShardSchema(),
 		"accept_data_risks_and_force_replica_set_reconfig": nil,
+		"delete_on_create_error":                           nil,
 	}
 }
 
