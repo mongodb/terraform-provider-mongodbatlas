@@ -14,6 +14,7 @@ import (
 	mockadmin20240530 "go.mongodb.org/atlas-sdk/v20240530005/mockadmin"
 	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -1407,20 +1408,64 @@ func TestAccAdvancedCluster_removeBlocksFromConfig(t *testing.T) {
 func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreate(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
-		timeoutsStr            = `
+		timeoutsStrShort       = `
 			timeouts {
-				create = "20s"
+				create = "10s"
 			}
 			delete_on_create_error = true
 		`
+		timeoutsStrLong      = strings.ReplaceAll(timeoutsStrShort, "10s", "6000s")
+		timeoutsStrLongFalse = strings.ReplaceAll(timeoutsStrLong, "true", "false")
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
+			//
 			{
-				Config:      configBasicReplicaset(t, projectID, clusterName, "", timeoutsStr),
+				Config:      strings.ReplaceAll(configBasicReplicaset(t, projectID, clusterName, "", timeoutsStrShort), "US_EAST_1", "INVALID_REGION"),
+				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
+			},
+			{
+				Config:      configBasicReplicaset(t, projectID, clusterName, "", timeoutsStrShort),
 				ExpectError: regexp.MustCompile("error: context deadline exceeded"),
 			},
+			// OK create should keep the delete_on_create_error flag and should be no cleanup
+			{
+				PreConfig: func() {
+					diags := &diag.Diagnostics{}
+					clusterResp, _ := advancedclustertpf.GetClusterDetails(t.Context(), diags, projectID, clusterName, acc.MongoDBClient, false)
+					if clusterResp == nil {
+						t.Fatalf("cluster %s not found in %s", clusterName, projectID)
+					}
+					// We need to wait for the cluster to be deleted before we can create it again
+					advancedclustertpf.AwaitChanges(t.Context(), acc.MongoDBClient, &advancedclustertpf.ClusterWaitParams{
+						ProjectID:   projectID,
+						ClusterName: clusterName,
+						Timeout:     60 * time.Second,
+						IsDelete:    true,
+					}, "waiting for cluster to be deleted after cleanup in create timeout", diags)
+				},
+				Config: configBasicReplicaset(t, projectID, clusterName, "", timeoutsStrLong),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "delete_on_create_error", "true"),
+				),
+			},
+			// Switch delete_on_create_error to false
+			{
+				Config: configBasicReplicaset(t, projectID, clusterName, "", timeoutsStrLongFalse),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "delete_on_create_error", "false"),
+				),
+			},
+			acc.TestStepImportCluster(resourceName),
+			// Remove delete_on_create_error
+			{
+				Config: configBasicReplicaset(t, projectID, clusterName, "", ""),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckNoResourceAttr(resourceName, "delete_on_create_error"),
+				),
+			},
+			acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
