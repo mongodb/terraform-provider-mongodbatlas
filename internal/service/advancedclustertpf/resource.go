@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
@@ -138,9 +139,25 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 	isFlex := IsFlex(latestReq.ReplicationSpecs)
+	projectID, clusterName := waitParams.ProjectID, waitParams.ClusterName
 	if plan.DeleteOnCreateTimeout.ValueBool() {
 		var deferCall func()
-		ctx, deferCall = deleteOnTimeout(ctx, waitParams, diags, isFlex, r.Client)
+		warningDetail := fmt.Sprintf("Cluster name %s (project_id=%s).", clusterName, projectID)
+		ctx, deferCall = cleanup.OnTimeout(
+			ctx, waitParams.Timeout, diags, warningDetail, func(newCtx context.Context) error {
+				// We cannot use DeleteCluster because it will wait on state transition to DELETED
+				var cleanResp *http.Response
+				var cleanErr error
+				if isFlex {
+					cleanResp, cleanErr = r.Client.AtlasV2.FlexClustersApi.DeleteFlexCluster(newCtx, projectID, clusterName).Execute()
+				} else {
+					cleanResp, cleanErr = r.Client.AtlasV2.ClustersApi.DeleteCluster(newCtx, projectID, clusterName).Execute()
+				}
+				if validate.StatusNotFound(cleanResp) {
+					return nil
+				}
+				return cleanErr
+			})
 		defer deferCall()
 	}
 	if isFlex {
@@ -631,27 +648,4 @@ func isShardingConfigUpgrade(ctx context.Context, state, plan *TFModel, diags *d
 		return false
 	}
 	return !stateUsingNewSharding && planUsingNewSharding
-}
-
-func deleteOnTimeout(ctx context.Context, waitParams *ClusterWaitParams, diags *diag.Diagnostics, isFlex bool, client *config.MongoDBClient) (outCtx context.Context, deferCall func()) {
-	outCtx, cancel := context.WithTimeout(ctx, waitParams.Timeout)
-	clusterName := waitParams.ClusterName
-	projectID := waitParams.ProjectID
-	return outCtx, func() {
-		cancel()
-		CleanupOnTimeout(outCtx, diags, fmt.Sprintf("Cluster name %s (project_id=%s).", clusterName, projectID), func(newCtx context.Context) error {
-			// We cannot use DeleteCluster because it will wait on state transition to DELETED
-			var cleanResp *http.Response
-			var cleanErr error
-			if isFlex {
-				cleanResp, cleanErr = client.AtlasV2.FlexClustersApi.DeleteFlexCluster(newCtx, projectID, clusterName).Execute()
-			} else {
-				cleanResp, cleanErr = client.AtlasV2.ClustersApi.DeleteCluster(newCtx, projectID, clusterName).Execute()
-			}
-			if validate.StatusNotFound(cleanResp) {
-				return nil
-			}
-			return cleanErr
-		})
-	}
 }

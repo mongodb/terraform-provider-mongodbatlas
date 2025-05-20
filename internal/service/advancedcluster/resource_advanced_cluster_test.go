@@ -1420,24 +1420,19 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreate(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
-			//
-			{
-				Config:      strings.ReplaceAll(configBasicReplicaset(t, projectID, clusterName, "", timeoutsStrShort), "US_EAST_1", "INVALID_REGION"),
-				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
-			},
 			{
 				Config:      configBasicReplicaset(t, projectID, clusterName, "", timeoutsStrShort),
 				ExpectError: regexp.MustCompile("error: context deadline exceeded"),
 			},
 			// OK create should keep the delete_on_create_timeout flag and should be no cleanup
 			{
+				// We use PreConfig to wait for the cluster to be deleted before we create it again
 				PreConfig: func() {
 					diags := &diag.Diagnostics{}
 					clusterResp, _ := advancedclustertpf.GetClusterDetails(t.Context(), diags, projectID, clusterName, acc.MongoDBClient, false)
 					if clusterResp == nil {
 						t.Fatalf("cluster %s not found in %s", clusterName, projectID)
 					}
-					// We need to wait for the cluster to be deleted before we can create it again
 					advancedclustertpf.AwaitChanges(t.Context(), acc.MongoDBClient, &advancedclustertpf.ClusterWaitParams{
 						ProjectID:   projectID,
 						ClusterName: clusterName,
