@@ -276,12 +276,12 @@ jobs:
             - 'internal/provider/*.go'
           autogen:
             - 'internal/common/autogen/*.go'
-            - 'internal/service/customdbroleapi/*.go'
-            - 'internal/service/databaseuserapi/*.go'
-            - 'internal/service/pushbasedlogexportapi/*.go'
-            - 'internal/service/searchdeploymentapi/*.go'
-            - 'internal/service/projectapi/*.go'
-            - 'internal/service/resourcepolicyapi/*.go'            
+            - 'internal/serviceapi/customdbroleapi/*.go'
+            - 'internal/serviceapi/databaseuserapi/*.go'
+            - 'internal/serviceapi/projectapi/*.go'
+            - 'internal/serviceapi/pushbasedlogexportapi/*.go'
+            - 'internal/serviceapi/resourcepolicyapi/*.go'            
+            - 'internal/serviceapi/searchdeploymentapi/*.go'
           backup:
             - 'internal/service/cloudbackupschedule/*.go'
             - 'internal/service/cloudbackupsnapshot/*.go'
@@ -507,12 +507,12 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
-            ./internal/service/customdbroleapi
-            ./internal/service/databaseuserapi
-            ./internal/service/pushbasedlogexportapi
-            ./internal/service/searchdeploymentapi
-            ./internal/service/projectapi
-            ./internal/service/resourcepolicyapi
+            ./internal/serviceapi/customdbroleapi
+            ./internal/serviceapi/databaseuserapi
+            ./internal/serviceapi/projectapi
+            ./internal/serviceapi/pushbasedlogexportapi
+            ./internal/serviceapi/resourcepolicyapi
+            ./internal/serviceapi/searchdeploymentapi
         run: make testacc
         
   backup:
