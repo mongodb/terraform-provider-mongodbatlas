@@ -1412,7 +1412,7 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreate(t *testing.T) {
 			timeouts {
 				create = "10s"
 			}
-			delete_on_create_error = true
+			delete_on_create_timeout = true
 		`
 		timeoutsStrLong      = strings.ReplaceAll(timeoutsStrShort, "10s", "6000s")
 		timeoutsStrLongFalse = strings.ReplaceAll(timeoutsStrLong, "true", "false")
@@ -1429,7 +1429,7 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreate(t *testing.T) {
 				Config:      configBasicReplicaset(t, projectID, clusterName, "", timeoutsStrShort),
 				ExpectError: regexp.MustCompile("error: context deadline exceeded"),
 			},
-			// OK create should keep the delete_on_create_error flag and should be no cleanup
+			// OK create should keep the delete_on_create_timeout flag and should be no cleanup
 			{
 				PreConfig: func() {
 					diags := &diag.Diagnostics{}
@@ -1447,22 +1447,22 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreate(t *testing.T) {
 				},
 				Config: configBasicReplicaset(t, projectID, clusterName, "", timeoutsStrLong),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "delete_on_create_error", "true"),
+					resource.TestCheckResourceAttr(resourceName, "delete_on_create_timeout", "true"),
 				),
 			},
-			// Switch delete_on_create_error to false
+			// Switch delete_on_create_timeout to false
 			{
 				Config: configBasicReplicaset(t, projectID, clusterName, "", timeoutsStrLongFalse),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "delete_on_create_error", "false"),
+					resource.TestCheckResourceAttr(resourceName, "delete_on_create_timeout", "false"),
 				),
 			},
 			acc.TestStepImportCluster(resourceName),
-			// Remove delete_on_create_error
+			// Remove delete_on_create_timeout
 			{
 				Config: configBasicReplicaset(t, projectID, clusterName, "", ""),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckNoResourceAttr(resourceName, "delete_on_create_error"),
+					resource.TestCheckNoResourceAttr(resourceName, "delete_on_create_timeout"),
 				),
 			},
 			acc.TestStepImportCluster(resourceName),

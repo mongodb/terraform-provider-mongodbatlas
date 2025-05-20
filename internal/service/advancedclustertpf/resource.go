@@ -138,9 +138,9 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 	isFlex := IsFlex(latestReq.ReplicationSpecs)
-	if plan.DeleteOnCreateError.ValueBool() {
+	if plan.DeleteOnCreateTimeout.ValueBool() {
 		var deferCall func()
-		ctx, deferCall = deleteOnError(ctx, waitParams, diags, isFlex, r.Client)
+		ctx, deferCall = deleteOnTimeout(ctx, waitParams, diags, isFlex, r.Client)
 		defer deferCall()
 	}
 	if isFlex {
@@ -283,7 +283,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			return
 		}
 	}
-	// clusterResp can be nil if there are no changes to the cluster, for example when `delete_on_create_error` is changed or only advanced configuration is changed
+	// clusterResp can be nil if there are no changes to the cluster, for example when `delete_on_create_timeout` is changed or only advanced configuration is changed
 	if clusterResp == nil {
 		var flexResp *admin.FlexClusterDescription20241113
 		clusterResp, flexResp = GetClusterDetails(ctx, diags, waitParams.ProjectID, waitParams.ClusterName, r.Client, false)
@@ -633,14 +633,14 @@ func isShardingConfigUpgrade(ctx context.Context, state, plan *TFModel, diags *d
 	return !stateUsingNewSharding && planUsingNewSharding
 }
 
-func deleteOnError(ctx context.Context, waitParams *ClusterWaitParams, diags *diag.Diagnostics, isFlex bool, client *config.MongoDBClient) (context.Context, func()) {
-	ctx, cancel := context.WithTimeout(ctx, waitParams.Timeout)
+func deleteOnTimeout(ctx context.Context, waitParams *ClusterWaitParams, diags *diag.Diagnostics, isFlex bool, client *config.MongoDBClient) (outCtx context.Context, deferCall func()) {
+	outCtx, cancel := context.WithTimeout(ctx, waitParams.Timeout)
 	clusterName := waitParams.ClusterName
 	projectID := waitParams.ProjectID
-	return ctx, func() {
+	return outCtx, func() {
 		cancel()
-		CleanupOnError(ctx, diags, fmt.Sprintf("Cluster name %s (project_id=%s).", clusterName, projectID), func(newCtx context.Context) error {
-			// We cannot use DeleteCluster because it will wait on transition to DELETED
+		CleanupOnTimeout(outCtx, diags, fmt.Sprintf("Cluster name %s (project_id=%s).", clusterName, projectID), func(newCtx context.Context) error {
+			// We cannot use DeleteCluster because it will wait on state transition to DELETED
 			var cleanResp *http.Response
 			var cleanErr error
 			if isFlex {
@@ -652,10 +652,6 @@ func deleteOnError(ctx context.Context, waitParams *ClusterWaitParams, diags *di
 				return nil
 			}
 			return cleanErr
-		}, func(newCtx context.Context) bool {
-			localDiags := &diag.Diagnostics{}
-			clusterResp, flexResp := GetClusterDetails(newCtx, localDiags, projectID, clusterName, client, false)
-			return clusterResp == nil && flexResp == nil && !localDiags.HasError()
 		})
 	}
 }

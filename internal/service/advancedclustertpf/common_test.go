@@ -136,11 +136,11 @@ func TestCleanupOnErrorSkippedWhenNoError(t *testing.T) {
 		cleanupCalled = true
 		return nil
 	}
-	advancedclustertpf.CleanupOnError(t.Context(), &diag.Diagnostics{}, "warning detail", cleanup, nil)
+	advancedclustertpf.CleanupOnTimeout(t.Context(), &diag.Diagnostics{}, "warning detail", cleanup)
 	assert.False(t, cleanupCalled, "cleanup should not be called")
 }
 
-func TestCleanupOnErrorCalledForAnError(t *testing.T) {
+func TestCleanupOnErrorSkippedForErrors(t *testing.T) {
 	cleanupCalled := false
 	cleanupFailed := func(ctx context.Context) error {
 		cleanupCalled = true
@@ -148,13 +148,8 @@ func TestCleanupOnErrorCalledForAnError(t *testing.T) {
 	}
 	diags := diag.Diagnostics{}
 	diags.AddError("error", "handler error")
-	advancedclustertpf.CleanupOnError(t.Context(), &diags, "warning detail", cleanupFailed, nil)
-	assert.True(t, cleanupCalled, "cleanup should be called")
-	assert.Len(t, diags, 3)
-	assert.Equal(t, "Failed to create, will perform cleanup due to error", diags[1].Summary())
-	assert.Equal(t, "warning detail", diags[1].Detail())
-	assert.Equal(t, "Error during cleanup", diags[2].Summary())
-	assert.Equal(t, "warning detail error=cleanup failed", diags[2].Detail())
+	advancedclustertpf.CleanupOnTimeout(t.Context(), &diags, "warning detail", cleanupFailed)
+	assert.False(t, cleanupCalled, "cleanup should not be called")
 }
 
 func TestCleanupOnErrorCalledForATimeout(t *testing.T) {
@@ -170,7 +165,7 @@ func TestCleanupOnErrorCalledForATimeout(t *testing.T) {
 	}
 	diags := diag.Diagnostics{}
 	diags.AddError("error", "timeout")
-	advancedclustertpf.CleanupOnError(ctx, &diags, "warning detail", cleanup, nil)
+	advancedclustertpf.CleanupOnTimeout(ctx, &diags, "warning detail", cleanup)
 	assert.True(t, cleanupCalled, "cleanup should be called")
 	assert.NotEqual(t, finalContext, ctx, "cleanup should be called with a new context")
 	require.NoError(t, finalContext.Err(), "cleanup should be called with a new context that hasn't been cancelled")

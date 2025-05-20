@@ -117,19 +117,11 @@ func GetPriorityOfFlexReplicationSpecs(replicationSpecs *[]admin.ReplicationSpec
 	return regionConfig.Priority
 }
 
-func CleanupOnError(ctx context.Context, diags *diag.Diagnostics, warningDetail string, cleanup func(context.Context) error, skipCall func(context.Context) bool) {
-	if !diags.HasError() {
+func CleanupOnTimeout(ctx context.Context, diags *diag.Diagnostics, warningDetail string, cleanup func(context.Context) error) {
+	if !errors.Is(ctx.Err(), context.DeadlineExceeded) {
 		return
 	}
-	cleanupWarning := "Failed to create, will perform cleanup due to"
-	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-		cleanupWarning += " timeout reached"
-	} else {
-		cleanupWarning += " error"
-	}
-	if skipCall != nil && skipCall(ctx) {
-		return
-	}
+	cleanupWarning := "Failed to create, will perform cleanup due to timeout reached"
 	diags.AddWarning(cleanupWarning, warningDetail)
 	newContext := context.Background() // Create a new context for cleanup
 	if err := cleanup(newContext); err != nil {
