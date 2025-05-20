@@ -137,7 +137,7 @@ func resourceSchema(ctx context.Context) schema.Schema {
 			},
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Optional:            true,
-				MarkdownDescription: "Flag that indicates whether to delete the cluster if the creation fails. If set to `true`, MongoDB Cloud deletes the cluster if the creation fails. Default is `false`.",
+				MarkdownDescription: "Flag that indicates whether to delete the cluster if the creation hits the timeout. Default is `false`.",
 			},
 			"encryption_at_rest_provider": schema.StringAttribute{
 				Computed:            true,

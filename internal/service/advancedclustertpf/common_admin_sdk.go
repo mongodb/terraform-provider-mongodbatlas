@@ -181,8 +181,7 @@ func DeleteCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 	AwaitChanges(ctx, client, waitParams, operationDelete, diags)
 }
 
-func DeleteClusterNoWait(diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, isFlex bool) func(ctx context.Context) error {
-	projectID, clusterName := waitParams.ProjectID, waitParams.ClusterName
+func DeleteClusterNoWait(client *config.MongoDBClient, projectID, clusterName string, isFlex bool) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
 		var cleanResp *http.Response
 		var cleanErr error

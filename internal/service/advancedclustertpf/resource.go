@@ -142,7 +142,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		var deferCall func()
 		warningDetail := fmt.Sprintf("Cluster name %s (project_id=%s).", clusterName, projectID)
 		ctx, deferCall = cleanup.OnTimeout(
-			ctx, waitParams.Timeout, diags, warningDetail, DeleteClusterNoWait(diags, r.Client, waitParams, isFlex),
+			ctx, waitParams.Timeout, diags.AddWarning, warningDetail, DeleteClusterNoWait(r.Client, projectID, clusterName, isFlex),
 		)
 		defer deferCall()
 	}

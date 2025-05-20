@@ -17,7 +17,8 @@ func TestCleanupOnErrorSkippedWhenNoTimeout(t *testing.T) {
 		cleanupCalled = true
 		return nil
 	}
-	_, call := cleanup.OnTimeout(t.Context(), 1*time.Millisecond, &diag.Diagnostics{}, "warning detail", cleanupFunc)
+	diags := diag.Diagnostics{}
+	_, call := cleanup.OnTimeout(t.Context(), 1*time.Millisecond, diags.AddWarning, "warning detail", cleanupFunc)
 	call()
 	assert.False(t, cleanupCalled, "cleanup should not be called when there are no timeouts")
 }
@@ -33,7 +34,7 @@ func TestCleanupOnErrorCalledForATimeout(t *testing.T) {
 	}
 	diags := diag.Diagnostics{}
 	diags.AddError("error", "timeout")
-	ctx, call := cleanup.OnTimeout(t.Context(), 1*time.Millisecond, &diags, "warning detail", cleanupFunc)
+	ctx, call := cleanup.OnTimeout(t.Context(), 1*time.Millisecond, diags.AddWarning, "warning detail", cleanupFunc)
 	time.Sleep(2 * time.Millisecond)
 	call()
 	assert.True(t, cleanupCalled, "cleanup should be called")
