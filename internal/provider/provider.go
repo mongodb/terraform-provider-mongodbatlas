@@ -46,6 +46,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprivatelinkendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/customdbroleapi"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
@@ -478,6 +479,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		streamprivatelinkendpoint.Resource,
 		flexcluster.Resource,
 		resourcepolicy.Resource,
+		customdbroleapi.Resource,
 	}
 	if config.PreviewProviderV2AdvancedCluster() {
 		resources = append(resources, advancedclustertpf.Resource)
