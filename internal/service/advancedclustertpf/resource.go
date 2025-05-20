@@ -138,24 +138,11 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 	isFlex := IsFlex(latestReq.ReplicationSpecs)
-	ctx, cancel := context.WithTimeout(ctx, waitParams.Timeout)
-	defer cancel()
-	clusterName := waitParams.ClusterName
-	projectID := waitParams.ProjectID
-	defer CleanupOnError(ctx, plan.DeleteOnCreateError.ValueBool(), diags, fmt.Sprintf("Cluster name %s (project_id=%s).", clusterName, projectID), func(newCtx context.Context) error {
-		// We cannot use DeleteCluster because it will wait on transition to DELETED
-		var cleanResp *http.Response
-		var cleanErr error
-		if isFlex {
-			cleanResp, cleanErr = r.Client.AtlasV2.FlexClustersApi.DeleteFlexCluster(newCtx, projectID, clusterName).Execute()
-		} else {
-			cleanResp, cleanErr = r.Client.AtlasV2.ClustersApi.DeleteCluster(newCtx, projectID, clusterName).Execute()
-		}
-		if validate.StatusNotFound(cleanResp) {
-			return nil
-		}
-		return cleanErr
-	})
+	if plan.DeleteOnCreateError.ValueBool() {
+		var deferCall func()
+		ctx, deferCall = deleteOnError(ctx, waitParams, diags, isFlex, r.Client)
+		defer deferCall()
+	}
 	if isFlex {
 		flexClusterReq := NewFlexCreateReq(latestReq.GetName(), latestReq.GetTerminationProtectionEnabled(), latestReq.Tags, latestReq.ReplicationSpecs)
 		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, plan.ProjectID.ValueString(), latestReq.GetName(), flexClusterReq, r.Client.AtlasV2.FlexClustersApi)
@@ -197,7 +184,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	legacyAdvConfig, advConfig = ReadIfUnsetAdvancedConfiguration(ctx, diags, r.Client, projectID, clusterName, legacyAdvConfig, advConfig)
+	legacyAdvConfig, advConfig = ReadIfUnsetAdvancedConfiguration(ctx, diags, r.Client, waitParams.ProjectID, waitParams.ClusterName, legacyAdvConfig, advConfig)
 
 	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
 		ArgsLegacy:            legacyAdvConfig,
@@ -644,4 +631,31 @@ func isShardingConfigUpgrade(ctx context.Context, state, plan *TFModel, diags *d
 		return false
 	}
 	return !stateUsingNewSharding && planUsingNewSharding
+}
+
+func deleteOnError(ctx context.Context, waitParams *ClusterWaitParams, diags *diag.Diagnostics, isFlex bool, client *config.MongoDBClient) (context.Context, func()) {
+	ctx, cancel := context.WithTimeout(ctx, waitParams.Timeout)
+	clusterName := waitParams.ClusterName
+	projectID := waitParams.ProjectID
+	return ctx, func() {
+		cancel()
+		CleanupOnError(ctx, diags, fmt.Sprintf("Cluster name %s (project_id=%s).", clusterName, projectID), func(newCtx context.Context) error {
+			// We cannot use DeleteCluster because it will wait on transition to DELETED
+			var cleanResp *http.Response
+			var cleanErr error
+			if isFlex {
+				cleanResp, cleanErr = client.AtlasV2.FlexClustersApi.DeleteFlexCluster(newCtx, projectID, clusterName).Execute()
+			} else {
+				cleanResp, cleanErr = client.AtlasV2.ClustersApi.DeleteCluster(newCtx, projectID, clusterName).Execute()
+			}
+			if validate.StatusNotFound(cleanResp) {
+				return nil
+			}
+			return cleanErr
+		}, func(newCtx context.Context) bool {
+			localDiags := &diag.Diagnostics{}
+			clusterResp, flexResp := GetClusterDetails(newCtx, localDiags, projectID, clusterName, client, false)
+			return clusterResp == nil && flexResp == nil && !localDiags.HasError()
+		})
+	}
 }

@@ -2,6 +2,7 @@ package advancedclustertpf
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -116,16 +117,18 @@ func GetPriorityOfFlexReplicationSpecs(replicationSpecs *[]admin.ReplicationSpec
 	return regionConfig.Priority
 }
 
-func CleanupOnError(ctx context.Context, condition bool, diags *diag.Diagnostics, warningDetail string, cleanup func(context.Context) error) {
-	if !condition || !diags.HasError() {
-		// If the condition is not met or there are no errors, we don't need to do cleanup
+func CleanupOnError(ctx context.Context, diags *diag.Diagnostics, warningDetail string, cleanup func(context.Context) error, skipCall func(context.Context) bool) {
+	if !diags.HasError() {
 		return
 	}
 	cleanupWarning := "Failed to create, will perform cleanup due to"
-	if ctx.Err() == context.DeadlineExceeded {
+	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
 		cleanupWarning += " timeout reached"
 	} else {
 		cleanupWarning += " error"
+	}
+	if skipCall != nil && skipCall(ctx) {
+		return
 	}
 	diags.AddWarning(cleanupWarning, warningDetail)
 	newContext := context.Background() // Create a new context for cleanup
