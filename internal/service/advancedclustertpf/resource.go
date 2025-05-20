@@ -290,6 +290,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if clusterResp == nil {
 		var flexResp *admin.FlexClusterDescription20241113
 		clusterResp, flexResp = GetClusterDetails(ctx, diags, waitParams.ProjectID, waitParams.ClusterName, r.Client, false)
+		// This should never happen since the switch case should handle the two flex cases (update/upgrade) and return, but keeping it here for safety.
 		if flexResp != nil {
 			flexPriority := GetPriorityOfFlexReplicationSpecs(normalizeFromTFModel(ctx, &plan, diags, false).ReplicationSpecs)
 			if flexOut := NewTFModelFlexResource(ctx, diags, flexResp, flexPriority, &plan); flexOut != nil {

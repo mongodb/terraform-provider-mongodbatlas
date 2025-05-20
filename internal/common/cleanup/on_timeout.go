@@ -6,10 +6,12 @@ import (
 	"time"
 )
 
-type AddWarning interface {
-	AddWarning(string, string)
-}
-
+// OnTimeout creates a new context with a timeout and a deferred function that will run `cleanup` when the context hit the timeout (no timeout=no-op).
+// Remember to always call the returned `deferCall` function: `defer deferCall()`.
+// `warningDetail` should have resource identifiable information, for example cluster name and project ID.
+// warnDiags(summary, detail) are called:
+// 1. Before the cleanup call.
+// 2. (Only if the cleanup fails) Details of the cleanup error.
 func OnTimeout(ctx context.Context, timeout time.Duration, warnDiags func(string, string), warningDetail string, cleanup func(context.Context) error) (outCtx context.Context, deferCall func()) {
 	outCtx, cancel := context.WithTimeout(ctx, timeout)
 	return outCtx, func() {
