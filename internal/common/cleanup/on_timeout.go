@@ -14,7 +14,7 @@ func OnTimeout(ctx context.Context, timeout time.Duration, warnDiags AddWarning,
 	outCtx, cancel := context.WithTimeout(ctx, timeout)
 	return outCtx, func() {
 		cancel()
-		if !errors.Is(ctx.Err(), context.DeadlineExceeded) {
+		if !errors.Is(outCtx.Err(), context.DeadlineExceeded) {
 			return
 		}
 		cleanupWarning := "Failed to create, will perform cleanup due to timeout reached"
