@@ -4,7 +4,7 @@
 ## Table of Contents
 - [Creating New Resource and Data Sources](#creating-new-resources-and-data-sources)
     - [Scaffolding Initial Code and File Structure](#scaffolding-initial-code-and-file-structure)
-    - [Generating Schema and Model Definitions](#scaffolding-schema-and-model-definitions)
+    - [Auto-Generating Resources](#auto-generating-resources)
 
 - Each resource (and associated data sources) is in a package in `internal/service`.
 - There can be multiple helper files and they can also be used from other resources, e.g. `common_advanced_cluster.go` defines functions that are also used from other resources using `advancedcluster.FunctionName`.
@@ -24,9 +24,9 @@ make scaffold resource_name=streamInstance type=resource
 
 This will generate resource/data source files and accompanying test files needed for starting the development, and will contain multiple comments with `TODO:` statements which give guidance for the development.
 
-As a follow up step, use [Scaffolding Schema and Model Definitions](#scaffolding-schema-and-model-definitions) to autogenerate the schema via the Open API specification. This will require making adjustments to the generated `./internal/service/<resource_name>/tfplugingen/generator_config.yml` file.
+As a follow up step, use [Auto-Generating Resources](#auto-generating-resources) to autogenerate the schema via the Open API specification. This will require making adjustments to the generated `./internal/service/<resource_name>/tfplugingen/generator_config.yml` file.
 
-#### Generating Schema and Model Definitions
+#### Auto-Generating Resources
 
 ##### (Recommended) Using internal tool
 
@@ -35,11 +35,14 @@ The generation command makes use of a configuration file defined under [`./tools
 The generation command takes a single optional argument `resource_name`. If not provided, all resources defined in the configuration are generated.
 
 ```bash
-make generate-schema resource_name=search_deployment
+make generate-resource-code resource_name=search_deployment_api
 ```
 
-As a result, content of schemas will be written into the corresponding resource packages:
-`./internal/service/<resource-package>/resource_schema.go`
+As a result, content of schemas and models will be written into the corresponding resource packages:
+`./internal/serviceapi/<resource-package>/resource_schema.go`
+
+And operations will be written into:
+`./internal/serviceapi/<resource-package>/resource.go`
 
 **Note**: Data source schema generation is currently not supported.
 
