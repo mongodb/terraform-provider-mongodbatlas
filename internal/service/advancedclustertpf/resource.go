@@ -286,6 +286,22 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			return
 		}
 	}
+	// clusterResp can be nil if there are no changes to the cluster, for example when `delete_on_create_error` is changed or only advanced configuration is changed
+	if clusterResp == nil {
+		var flexResp *admin.FlexClusterDescription20241113
+		clusterResp, flexResp = GetClusterDetails(ctx, diags, waitParams.ProjectID, waitParams.ClusterName, r.Client, false)
+		if flexResp != nil {
+			flexPriority := GetPriorityOfFlexReplicationSpecs(normalizeFromTFModel(ctx, &plan, diags, false).ReplicationSpecs)
+			if flexOut := NewTFModelFlexResource(ctx, diags, flexResp, flexPriority, &plan); flexOut != nil {
+				diags.Append(resp.State.Set(ctx, flexOut)...)
+			}
+			return
+		}
+	}
+	modelOut, _ := getBasicClusterModelResource(ctx, diags, r.Client, clusterResp, &plan)
+	if diags.HasError() {
+		return
+	}
 	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
 	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
 	if diags.HasError() {
@@ -299,16 +315,6 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	legacyAdvConfig, advConfig, advConfigChanged := UpdateAdvancedConfiguration(ctx, diags, r.Client, p, waitParams)
 	if diags.HasError() {
 		return
-	}
-	var modelOut *TFModel
-	if clusterResp == nil { // no Atlas updates needed but override is still needed (e.g. tags going from nil to [] or vice versa)
-		modelOut = &state
-		overrideAttributesWithPrevStateValue(&plan, modelOut)
-	} else {
-		modelOut, _ = getBasicClusterModelResource(ctx, diags, r.Client, clusterResp, &plan)
-		if diags.HasError() {
-			return
-		}
 	}
 	if advConfigChanged {
 		updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
