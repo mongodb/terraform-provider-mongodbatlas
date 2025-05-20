@@ -138,11 +138,11 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	}
 	isFlex := IsFlex(latestReq.ReplicationSpecs)
 	projectID, clusterName := waitParams.ProjectID, waitParams.ClusterName
+	clusterDetailStr := fmt.Sprintf("Cluster name %s (project_id=%s).", clusterName, projectID)
 	if plan.DeleteOnCreateTimeout.ValueBool() {
 		var deferCall func()
-		warningDetail := fmt.Sprintf("Cluster name %s (project_id=%s).", clusterName, projectID)
 		ctx, deferCall = cleanup.OnTimeout(
-			ctx, waitParams.Timeout, diags.AddWarning, warningDetail, DeleteClusterNoWait(r.Client, projectID, clusterName, isFlex),
+			ctx, waitParams.Timeout, diags.AddWarning, clusterDetailStr, DeleteClusterNoWait(r.Client, projectID, clusterName, isFlex),
 		)
 		defer deferCall()
 	}
@@ -150,7 +150,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		flexClusterReq := NewFlexCreateReq(latestReq.GetName(), latestReq.GetTerminationProtectionEnabled(), latestReq.Tags, latestReq.ReplicationSpecs)
 		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, plan.ProjectID.ValueString(), latestReq.GetName(), flexClusterReq, r.Client.AtlasV2.FlexClustersApi)
 		if err != nil {
-			diags.AddError(flexcluster.ErrorCreateFlex, err.Error())
+			diags.AddError(fmt.Sprintf(flexcluster.ErrorCreateFlex, clusterDetailStr), err.Error())
 			return
 		}
 		newFlexClusterModel := NewTFModelFlexResource(ctx, diags, flexClusterResp, GetPriorityOfFlexReplicationSpecs(latestReq.ReplicationSpecs), &plan)
@@ -616,11 +616,12 @@ func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *conf
 	if diags.HasError() {
 		return nil
 	}
-	flexCluster, err := flexcluster.UpdateFlexCluster(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(),
+	clusterName := plan.Name.ValueString()
+	flexCluster, err := flexcluster.UpdateFlexCluster(ctx, plan.ProjectID.ValueString(), clusterName,
 		GetFlexClusterUpdateRequest(configReq.Tags, configReq.TerminationProtectionEnabled),
 		client.AtlasV2.FlexClustersApi)
 	if err != nil {
-		diags.AddError(flexcluster.ErrorUpdateFlex, err.Error())
+		diags.AddError(fmt.Sprintf(flexcluster.ErrorUpdateFlex, clusterName), err.Error())
 		return nil
 	}
 	return NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(configReq.ReplicationSpecs), plan)
