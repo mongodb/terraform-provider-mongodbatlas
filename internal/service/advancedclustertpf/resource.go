@@ -3,7 +3,6 @@ package advancedclustertpf
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"go.mongodb.org/atlas-sdk/v20250312003/admin"
@@ -18,7 +17,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 )
@@ -144,20 +142,8 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		var deferCall func()
 		warningDetail := fmt.Sprintf("Cluster name %s (project_id=%s).", clusterName, projectID)
 		ctx, deferCall = cleanup.OnTimeout(
-			ctx, waitParams.Timeout, diags, warningDetail, func(newCtx context.Context) error {
-				// We cannot use DeleteCluster because it will wait on state transition to DELETED
-				var cleanResp *http.Response
-				var cleanErr error
-				if isFlex {
-					cleanResp, cleanErr = r.Client.AtlasV2.FlexClustersApi.DeleteFlexCluster(newCtx, projectID, clusterName).Execute()
-				} else {
-					cleanResp, cleanErr = r.Client.AtlasV2.ClustersApi.DeleteCluster(newCtx, projectID, clusterName).Execute()
-				}
-				if validate.StatusNotFound(cleanResp) {
-					return nil
-				}
-				return cleanErr
-			})
+			ctx, waitParams.Timeout, diags, warningDetail, DeleteClusterNoWait(diags, r.Client, waitParams, isFlex),
+		)
 		defer deferCall()
 	}
 	if isFlex {
