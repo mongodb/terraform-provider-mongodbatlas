@@ -96,6 +96,7 @@ func (r *searchDeploymentRS) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 	newSearchNodeModel.SkipWaitOnUpdate = plan.SkipWaitOnUpdate
+	newSearchNodeModel.DeleteOnCreateTimeout = plan.DeleteOnCreateTimeout
 	diags.Append(resp.State.Set(ctx, newSearchNodeModel)...)
 }
 
@@ -130,6 +131,7 @@ func (r *searchDeploymentRS) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 	newSearchNodeModel.SkipWaitOnUpdate = searchDeploymentPlan.SkipWaitOnUpdate
+	newSearchNodeModel.DeleteOnCreateTimeout = searchDeploymentPlan.DeleteOnCreateTimeout
 	resp.Diagnostics.Append(resp.State.Set(ctx, newSearchNodeModel)...)
 }
 
@@ -170,6 +172,7 @@ func (r *searchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 	newSearchNodeModel.SkipWaitOnUpdate = searchDeploymentPlan.SkipWaitOnUpdate
+	newSearchNodeModel.DeleteOnCreateTimeout = searchDeploymentPlan.DeleteOnCreateTimeout
 	resp.Diagnostics.Append(resp.State.Set(ctx, newSearchNodeModel)...)
 }
 
