@@ -6,12 +6,32 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"testing"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/zclconf/go-cty/cty"
+
+	localHcl "github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
 )
+
+func ConfigAddResourceStr(t *testing.T, hclConfig, resourceID, extraResourceStr string) string {
+	t.Helper()
+	resourceParts := strings.Split(resourceID, ".")
+	if len(resourceParts) != 2 {
+		t.Fatalf("resourceID must be in the format <type>.<name>, got %s", resourceID)
+	}
+	resourceType := resourceParts[0]
+	resourceName := resourceParts[1]
+	resourceBlockDef := fmt.Sprintf("resource %q %q {", resourceType, resourceName)
+	if !strings.Contains(hclConfig, resourceBlockDef) {
+		t.Fatalf("resource block %q not found in config: %s", resourceBlockDef, hclConfig)
+	}
+	resourceBlockDefWithExtraResourceStr := fmt.Sprintf("%s\n%s\n", resourceBlockDef, extraResourceStr)
+	hclConfigModified := strings.Replace(hclConfig, resourceBlockDef, resourceBlockDefWithExtraResourceStr, 1)
+	return localHcl.PrettyHCL(t, hclConfigModified)
+}
 
 func FormatToHCLMap(m map[string]string, indent, varName string) string {
 	if m == nil {
