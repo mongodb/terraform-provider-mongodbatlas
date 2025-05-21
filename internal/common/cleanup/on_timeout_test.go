@@ -82,8 +82,7 @@ func TestReplaceContextDeadlineExceededDiags(t *testing.T) {
 	duration := 2 * time.Minute
 	cleanup.ReplaceContextDeadlineExceededDiags(&diags, duration)
 
-	assert.Equal(t, 3, len(diags), "Expected same number of diagnostics")
-
+	assert.Len(t, diags, 3, "Expected same number of diagnostics")
 	for i, diag := range diags {
 		assert.Equal(t, expectedSummaries[i], diag.Summary(), "Summary at index %d should match", i)
 		assert.Equal(t, expectedDetails[i], diag.Detail(), "Detail at index %d should match", i)
