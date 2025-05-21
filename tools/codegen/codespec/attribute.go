@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
 	"github.com/pb33f/libopenapi/orderedmap"
 )
 
-func buildResourceAttrs(s *APISpecSchema) (Attributes, error) {
+func buildResourceAttrs(s *APISpecSchema, isFromRequest bool) (Attributes, error) {
 	objectAttributes := Attributes{}
 
 	sortedProperties := orderedmap.SortAlpha(s.Schema.Properties)
@@ -20,7 +21,12 @@ func buildResourceAttrs(s *APISpecSchema) (Attributes, error) {
 			return nil, err
 		}
 
-		attribute, err := schema.buildResourceAttr(name, s.GetComputability(name))
+		// ignores properties defined in request which are defined with readOnly (common in Atlas API Spec)
+		if schema.Schema.ReadOnly != nil && *schema.Schema.ReadOnly && isFromRequest {
+			continue
+		}
+
+		attribute, err := schema.buildResourceAttr(name, s.GetComputability(name), isFromRequest)
 		if err != nil {
 			return nil, err
 		}
@@ -33,7 +39,7 @@ func buildResourceAttrs(s *APISpecSchema) (Attributes, error) {
 	return objectAttributes, nil
 }
 
-func (s *APISpecSchema) buildResourceAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
+func (s *APISpecSchema) buildResourceAttr(name string, computability ComputedOptionalRequired, isFromRequest bool) (*Attribute, error) {
 	switch s.Type {
 	case OASTypeString:
 		return s.buildStringAttr(name, computability)
@@ -44,12 +50,12 @@ func (s *APISpecSchema) buildResourceAttr(name string, computability ComputedOpt
 	case OASTypeBoolean:
 		return s.buildBoolAttr(name, computability)
 	case OASTypeArray:
-		return s.buildArrayAttr(name, computability)
+		return s.buildArrayAttr(name, computability, isFromRequest)
 	case OASTypeObject:
 		if s.Schema.AdditionalProperties != nil && s.Schema.AdditionalProperties.IsA() {
-			return s.buildMapAttr(name, computability)
+			return s.buildMapAttr(name, computability, isFromRequest)
 		}
-		return s.buildSingleNestedAttr(name, computability)
+		return s.buildSingleNestedAttr(name, computability, isFromRequest)
 	default:
 		return nil, fmt.Errorf("invalid schema type '%s'", s.Type)
 	}
@@ -57,7 +63,7 @@ func (s *APISpecSchema) buildResourceAttr(name string, computability ComputedOpt
 
 func (s *APISpecSchema) buildStringAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	result := &Attribute{
-		Name:                     terraformAttrName(name),
+		Name:                     stringcase.FromCamelCase(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -79,7 +85,7 @@ func (s *APISpecSchema) buildStringAttr(name string, computability ComputedOptio
 
 func (s *APISpecSchema) buildIntegerAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	result := &Attribute{
-		Name:                     terraformAttrName(name),
+		Name:                     stringcase.FromCamelCase(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -101,7 +107,7 @@ func (s *APISpecSchema) buildIntegerAttr(name string, computability ComputedOpti
 func (s *APISpecSchema) buildNumberAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	if s.Schema.Format == OASFormatDouble || s.Schema.Format == OASFormatFloat {
 		result := &Attribute{
-			Name:                     terraformAttrName(name),
+			Name:                     stringcase.FromCamelCase(name),
 			ComputedOptionalRequired: computability,
 			DeprecationMessage:       s.GetDeprecationMessage(),
 			Description:              s.GetDescription(),
@@ -121,7 +127,7 @@ func (s *APISpecSchema) buildNumberAttr(name string, computability ComputedOptio
 	}
 
 	return &Attribute{
-		Name:                     terraformAttrName(name),
+		Name:                     stringcase.FromCamelCase(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -131,7 +137,7 @@ func (s *APISpecSchema) buildNumberAttr(name string, computability ComputedOptio
 
 func (s *APISpecSchema) buildBoolAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	result := &Attribute{
-		Name:                     terraformAttrName(name),
+		Name:                     stringcase.FromCamelCase(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -149,7 +155,7 @@ func (s *APISpecSchema) buildBoolAttr(name string, computability ComputedOptiona
 	return result, nil
 }
 
-func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
+func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOptionalRequired, isFromRequest bool) (*Attribute, error) {
 	if !s.Schema.Items.IsA() {
 		return nil, fmt.Errorf("invalid array items property, schema doesn't exist: %s", name)
 	}
@@ -163,7 +169,7 @@ func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOption
 
 	createAttribute := func(nestedObject *NestedAttributeObject, elemType ElemType) *Attribute {
 		attr := &Attribute{
-			Name:                     terraformAttrName(name),
+			Name:                     stringcase.FromCamelCase(name),
 			ComputedOptionalRequired: computability,
 			DeprecationMessage:       s.GetDeprecationMessage(),
 			Description:              s.GetDescription(),
@@ -187,7 +193,7 @@ func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOption
 	}
 
 	if itemSchema.Type == OASTypeObject {
-		objectAttributes, err := buildResourceAttrs(itemSchema)
+		objectAttributes, err := buildResourceAttrs(itemSchema, isFromRequest)
 		if err != nil {
 			return nil, fmt.Errorf("error while building nested schema: %s", name)
 		}
@@ -214,21 +220,21 @@ func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOption
 	return result, nil
 }
 
-func (s *APISpecSchema) buildMapAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
+func (s *APISpecSchema) buildMapAttr(name string, computability ComputedOptionalRequired, isFromRequest bool) (*Attribute, error) {
 	mapSchema, err := BuildSchema(s.Schema.AdditionalProperties.A)
 	if err != nil {
 		return nil, err
 	}
 
 	result := &Attribute{
-		Name:                     terraformAttrName(name),
+		Name:                     stringcase.FromCamelCase(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
 	}
 
 	if mapSchema.Type == OASTypeObject {
-		mapAttributes, err := buildResourceAttrs(mapSchema)
+		mapAttributes, err := buildResourceAttrs(mapSchema, isFromRequest)
 		if err != nil {
 			return nil, err
 		}
@@ -252,14 +258,14 @@ func (s *APISpecSchema) buildMapAttr(name string, computability ComputedOptional
 	return result, nil
 }
 
-func (s *APISpecSchema) buildSingleNestedAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
-	objectAttributes, err := buildResourceAttrs(s)
+func (s *APISpecSchema) buildSingleNestedAttr(name string, computability ComputedOptionalRequired, isFromRequest bool) (*Attribute, error) {
+	objectAttributes, err := buildResourceAttrs(s, isFromRequest)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Attribute{
-		Name:                     terraformAttrName(name),
+		Name:                     stringcase.FromCamelCase(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
