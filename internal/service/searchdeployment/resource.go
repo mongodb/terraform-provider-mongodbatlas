@@ -3,6 +3,7 @@ package searchdeployment
 import (
 	"context"
 	"errors"
+	"fmt"
 	"regexp"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
@@ -51,38 +53,49 @@ func retryTimeConfig(configuredTimeout, minTimeout time.Duration) retrystrategy.
 }
 
 func (r *searchDeploymentRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var searchDeploymentPlan TFSearchDeploymentRSModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &searchDeploymentPlan)...)
+	var plan TFSearchDeploymentRSModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	connV2 := r.Client.AtlasV2
-	projectID := searchDeploymentPlan.ProjectID.ValueString()
-	clusterName := searchDeploymentPlan.ClusterName.ValueString()
-	searchDeploymentReq := NewSearchDeploymentReq(ctx, &searchDeploymentPlan)
+	projectID := plan.ProjectID.ValueString()
+	clusterName := plan.ClusterName.ValueString()
+	searchDeploymentReq := NewSearchDeploymentReq(ctx, &plan)
+	createTimeout, diags := plan.Timeouts.Create(ctx, defaultSearchNodeTimeout)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	if plan.DeleteOnCreateTimeout.ValueBool() {
+		var deferCall func()
+		ctx, deferCall = cleanup.OnTimeout(
+			ctx, createTimeout, diags.AddWarning, fmt.Sprintf("Search Deployment %s, (%s)", clusterName, projectID), func(newCtx context.Context) error {
+				_, err := connV2.AtlasSearchApi.DeleteAtlasSearchDeployment(newCtx, projectID, clusterName).Execute()
+				
+				return err
+			},
+		)
+		defer deferCall()
+	}
 	if _, _, err := connV2.AtlasSearchApi.CreateAtlasSearchDeployment(ctx, projectID, clusterName, &searchDeploymentReq).Execute(); err != nil {
 		resp.Diagnostics.AddError("error during search deployment creation", err.Error())
 		return
 	}
 
-	createTimeout, diags := searchDeploymentPlan.Timeouts.Create(ctx, defaultSearchNodeTimeout)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
 	deploymentResp, err := WaitSearchNodeStateTransition(ctx, projectID, clusterName, connV2.AtlasSearchApi,
 		retryTimeConfig(createTimeout, minTimeoutCreateUpdate))
 	if err != nil {
 		resp.Diagnostics.AddError("error during search deployment creation", err.Error())
 		return
 	}
-	newSearchNodeModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, &searchDeploymentPlan.Timeouts, false)
+	newSearchNodeModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, &plan.Timeouts, false)
 	resp.Diagnostics.Append(diagnostics...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	newSearchNodeModel.SkipWaitOnUpdate = searchDeploymentPlan.SkipWaitOnUpdate
+	newSearchNodeModel.SkipWaitOnUpdate = plan.SkipWaitOnUpdate
 	resp.Diagnostics.Append(resp.State.Set(ctx, newSearchNodeModel)...)
 }
 
