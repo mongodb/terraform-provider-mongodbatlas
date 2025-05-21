@@ -18,7 +18,7 @@ type APISpecResource struct {
 	CreateOp           *high.Operation
 	ReadOp             *high.Operation
 	UpdateOp           *high.Operation
-	DeleteOp           *high.Operation // currently not used
+	DeleteOp           *high.Operation
 	CommonParameters   []*high.Parameter
 }
 
