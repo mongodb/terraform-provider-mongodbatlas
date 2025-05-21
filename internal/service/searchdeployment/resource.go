@@ -54,25 +54,25 @@ func RetryTimeConfig(configuredTimeout, minTimeout time.Duration) retrystrategy.
 
 func (r *searchDeploymentRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan TFSearchDeploymentRSModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	diags := &resp.Diagnostics
+	diags.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	connV2 := r.Client.AtlasV2
 	projectID := plan.ProjectID.ValueString()
 	clusterName := plan.ClusterName.ValueString()
 	searchDeploymentReq := NewSearchDeploymentReq(ctx, &plan)
-	createTimeout, diags := plan.Timeouts.Create(ctx, defaultSearchNodeTimeout)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	createTimeout, localDiags := plan.Timeouts.Create(ctx, defaultSearchNodeTimeout)
+	diags.Append(localDiags...)
+	if diags.HasError() {
 		return
 	}
 	if plan.DeleteOnCreateTimeout.ValueBool() {
 		var deferCall func()
 		ctx, deferCall = cleanup.OnTimeout(
 			ctx, createTimeout, diags.AddWarning, fmt.Sprintf("Search Deployment %s, (%s)", clusterName, projectID), func(newCtx context.Context) error {
-				cleanup.ReplaceContextDeadlineExceededDiags(&diags, createTimeout)
+				cleanup.ReplaceContextDeadlineExceededDiags(diags, createTimeout)
 				_, err := connV2.AtlasSearchApi.DeleteAtlasSearchDeployment(newCtx, projectID, clusterName).Execute()
 				return err
 			},
@@ -80,23 +80,23 @@ func (r *searchDeploymentRS) Create(ctx context.Context, req resource.CreateRequ
 		defer deferCall()
 	}
 	if _, _, err := connV2.AtlasSearchApi.CreateAtlasSearchDeployment(ctx, projectID, clusterName, &searchDeploymentReq).Execute(); err != nil {
-		resp.Diagnostics.AddError("error during search deployment creation", err.Error())
+		diags.AddError("error during search deployment creation", err.Error())
 		return
 	}
 
 	deploymentResp, err := WaitSearchNodeStateTransition(ctx, projectID, clusterName, connV2.AtlasSearchApi,
 		RetryTimeConfig(createTimeout, minTimeoutCreateUpdate))
 	if err != nil {
-		resp.Diagnostics.AddError("error during search deployment creation", err.Error())
+		diags.AddError("error during search deployment creation", err.Error())
 		return
 	}
-	newSearchNodeModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, &plan.Timeouts, false)
-	resp.Diagnostics.Append(diagnostics...)
-	if resp.Diagnostics.HasError() {
+	newSearchNodeModel, localDiags := NewTFSearchDeployment(ctx, clusterName, deploymentResp, &plan.Timeouts, false)
+	diags.Append(localDiags...)
+	if diags.HasError() {
 		return
 	}
 	newSearchNodeModel.SkipWaitOnUpdate = plan.SkipWaitOnUpdate
-	resp.Diagnostics.Append(resp.State.Set(ctx, newSearchNodeModel)...)
+	diags.Append(resp.State.Set(ctx, newSearchNodeModel)...)
 }
 
 func (r *searchDeploymentRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
