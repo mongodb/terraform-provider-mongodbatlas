@@ -19,9 +19,9 @@ func OnTimeout(ctx context.Context, timeout time.Duration, warnDiags func(string
 		if !errors.Is(outCtx.Err(), context.DeadlineExceeded) {
 			return
 		}
-		cleanupWarning := "Failed to create, will perform cleanup due to timeout reached"
+		cleanupWarning := "Failed to create a cluster, will run cleanup due to timeout reached"
 		warnDiags(cleanupWarning, warningDetail)
-		newContext := context.Background() // Create a new context for cleanup
+		newContext := context.Background() // Create a new context for cleanup as the old context is expired
 		if err := cleanup(newContext); err != nil {
 			warnDiags("Error during cleanup", warningDetail+" error="+err.Error())
 		}

@@ -92,7 +92,7 @@ func Resource() *schema.Resource {
 			"delete_on_create_timeout": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Flag that indicates whether to delete the cluster if the creation hits the timeout. Default is `false`.",
+				Description: "Flag that indicates whether to delete the cluster if the cluster creation times out. Default is false.",
 			},
 			"bi_connector_config": {
 				Type:     schema.TypeList,

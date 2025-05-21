@@ -45,7 +45,7 @@ func TestCleanupOnErrorCalledForATimeout(t *testing.T) {
 	assert.NotEqual(t, finalContext, ctx, "cleanup should be called with a new context")
 	require.NoError(t, finalContext.Err(), "cleanup should be called with a new context that hasn't been cancelled")
 	assert.Len(t, diags, 3) // diags entry 2 & 3 are added in the cleanup
-	assert.Equal(t, "Failed to create, will perform cleanup due to timeout reached", diags[1].Summary())
+	assert.Equal(t, "Failed to create a cluster, will run cleanup due to timeout reached", diags[1].Summary())
 	assert.Equal(t, "warning detail", diags[1].Detail())
 
 	assert.Equal(t, "Error during cleanup", diags[2].Summary())
