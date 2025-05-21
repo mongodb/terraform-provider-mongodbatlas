@@ -453,8 +453,8 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if d.Get("delete_on_create_timeout").(bool) {
 		var deferCall func()
 		warningDetail := fmt.Sprintf("Cluster name %s (project_id=%s).", clusterName, projectID)
-		logWarnings := func(summary, detail string) {
-			tflog.Warn(ctx, summary+" details: "+detail)
+		logWarnings := func(summary, details string) {
+			tflog.Warn(ctx, summary+" details: "+details)
 		}
 		ctx, deferCall = cleanup.OnTimeout(ctx, timeout, logWarnings, warningDetail, advancedclustertpf.DeleteClusterNoWait(client, projectID, clusterName, isFlex))
 		defer deferCall()
