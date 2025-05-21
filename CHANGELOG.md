@@ -1,5 +1,10 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* resource/mongodbatlas_advanced_cluster (preview provider 2.0.0): Adds `delete_on_create_timeout` a flag that indicates whether to delete the cluster if the cluster creation times out, default is false ([#3333](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3333))
+* resource/mongodbatlas_advanced_cluster: Adds `delete_on_create_timeout` a flag that indicates whether to delete the cluster if the cluster creation times out, default is false ([#3333](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3333))
+
 BUG FIXES:
 
 * resource/mongodbatlas_private_endpoint_regional_mode: Increases update wait time so cluster connection strings are updated ([#3320](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3320))
