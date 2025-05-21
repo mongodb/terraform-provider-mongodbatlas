@@ -3,6 +3,7 @@ package advancedclustertpf
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
@@ -178,6 +179,22 @@ func DeleteCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 		}
 	}
 	AwaitChanges(ctx, client, waitParams, operationDelete, diags)
+}
+
+func DeleteClusterNoWait(client *config.MongoDBClient, projectID, clusterName string, isFlex bool) func(ctx context.Context) error {
+	return func(ctx context.Context) error {
+		var cleanResp *http.Response
+		var cleanErr error
+		if isFlex {
+			cleanResp, cleanErr = client.AtlasV2.FlexClustersApi.DeleteFlexCluster(ctx, projectID, clusterName).Execute()
+		} else {
+			cleanResp, cleanErr = client.AtlasV2.ClustersApi.DeleteCluster(ctx, projectID, clusterName).Execute()
+		}
+		if validate.StatusNotFound(cleanResp) {
+			return nil
+		}
+		return cleanErr
+	}
 }
 
 func GetClusterDetails(ctx context.Context, diags *diag.Diagnostics, projectID, clusterName string, client *config.MongoDBClient, fcvPresentInState bool) (clusterDesc *admin.ClusterDescription20240805, flexClusterResp *admin.FlexClusterDescription20241113) {
