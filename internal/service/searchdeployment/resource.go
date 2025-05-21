@@ -44,7 +44,7 @@ const defaultSearchNodeTimeout time.Duration = 3 * time.Hour
 const minTimeoutCreateUpdate time.Duration = 1 * time.Minute
 const minTimeoutDelete time.Duration = 30 * time.Second
 
-func retryTimeConfig(configuredTimeout, minTimeout time.Duration) retrystrategy.TimeConfig {
+func RetryTimeConfig(configuredTimeout, minTimeout time.Duration) retrystrategy.TimeConfig {
 	return retrystrategy.TimeConfig{
 		Timeout:    configuredTimeout,
 		MinTimeout: minTimeout,
@@ -72,8 +72,8 @@ func (r *searchDeploymentRS) Create(ctx context.Context, req resource.CreateRequ
 		var deferCall func()
 		ctx, deferCall = cleanup.OnTimeout(
 			ctx, createTimeout, diags.AddWarning, fmt.Sprintf("Search Deployment %s, (%s)", clusterName, projectID), func(newCtx context.Context) error {
+				cleanup.ReplaceContextDeadlineExceededDiags(&diags, createTimeout)
 				_, err := connV2.AtlasSearchApi.DeleteAtlasSearchDeployment(newCtx, projectID, clusterName).Execute()
-				
 				return err
 			},
 		)
@@ -85,7 +85,7 @@ func (r *searchDeploymentRS) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	deploymentResp, err := WaitSearchNodeStateTransition(ctx, projectID, clusterName, connV2.AtlasSearchApi,
-		retryTimeConfig(createTimeout, minTimeoutCreateUpdate))
+		RetryTimeConfig(createTimeout, minTimeoutCreateUpdate))
 	if err != nil {
 		resp.Diagnostics.AddError("error during search deployment creation", err.Error())
 		return
@@ -157,7 +157,7 @@ func (r *searchDeploymentRS) Update(ctx context.Context, req resource.UpdateRequ
 	}
 	if !searchDeploymentPlan.SkipWaitOnUpdate.ValueBool() {
 		deploymentResp, err = WaitSearchNodeStateTransition(ctx, projectID, clusterName, connV2.AtlasSearchApi,
-			retryTimeConfig(updateTimeout, minTimeoutCreateUpdate))
+			RetryTimeConfig(updateTimeout, minTimeoutCreateUpdate))
 		if err != nil {
 			resp.Diagnostics.AddError("error during search deployment update", err.Error())
 			return
@@ -193,7 +193,7 @@ func (r *searchDeploymentRS) Delete(ctx context.Context, req resource.DeleteRequ
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if err := WaitSearchNodeDelete(ctx, projectID, clusterName, connV2.AtlasSearchApi, retryTimeConfig(deleteTimeout, minTimeoutDelete)); err != nil {
+	if err := WaitSearchNodeDelete(ctx, projectID, clusterName, connV2.AtlasSearchApi, RetryTimeConfig(deleteTimeout, minTimeoutDelete)); err != nil {
 		resp.Diagnostics.AddError("error during search deployment delete", err.Error())
 		return
 	}
