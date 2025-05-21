@@ -123,7 +123,7 @@ resources:
       aliases:
         resource_policy_id: id # path param name does not match the API response property
 
-  stream_instance_api:
+  stream_instance_api: # no fully functional yet so it doesn't have acceptance tests yet
     read:
       path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}
       method: GET
@@ -140,7 +140,7 @@ resources:
       aliases:
         tenant_name: name # path param name does not match the API request property
 
-  cluster_api:
+  cluster_api: # no fully functional yet so it doesn't have acceptance tests yet
     read:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
       method: GET
