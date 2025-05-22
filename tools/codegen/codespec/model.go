@@ -58,25 +58,25 @@ type Attributes []Attribute
 // Add this field to the Attribute struct
 // Usage AttributeUsage
 type Attribute struct {
-	Number                   *NumberAttribute
-	Int64                    *Int64Attribute
+	SetNested                *SetNestedAttribute
+	String                   *StringAttribute
 	Float64                  *Float64Attribute
-	Set                      *SetAttribute
+	List                     *ListAttribute
 	Bool                     *BoolAttribute
 	ListNested               *ListNestedAttribute
 	Map                      *MapAttribute
 	MapNested                *MapNestedAttribute
-	SetNested                *SetNestedAttribute
-	List                     *ListAttribute
-	String                   *StringAttribute
+	Int64                    *Int64Attribute
+	Number                   *NumberAttribute
+	Set                      *SetAttribute
 	SingleNested             *SingleNestedAttribute
 	Timeouts                 *TimeoutsAttribute
 	Description              *string
-	Name                     stringcase.SnakeCaseString
 	DeprecationMessage       *string
-	Sensitive                *bool
+	Name                     stringcase.SnakeCaseString
 	ComputedOptionalRequired ComputedOptionalRequired
 	ReqBodyUsage             AttributeReqBodyUsage
+	Sensitive                bool
 }
 
 type AttributeReqBodyUsage int

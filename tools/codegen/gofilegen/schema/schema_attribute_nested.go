@@ -7,8 +7,8 @@ import (
 )
 
 type ListNestedAttrGenerator struct {
-	attr            codespec.Attribute
 	listNestedModel codespec.ListNestedAttribute
+	attr            codespec.Attribute
 }
 
 func (l *ListNestedAttrGenerator) AttributeCode() CodeStatement {
@@ -16,8 +16,8 @@ func (l *ListNestedAttrGenerator) AttributeCode() CodeStatement {
 }
 
 type SetNestedGenerator struct {
-	attr           codespec.Attribute
 	setNestedModel codespec.SetNestedAttribute
+	attr           codespec.Attribute
 }
 
 func (l *SetNestedGenerator) AttributeCode() CodeStatement {
@@ -25,8 +25,8 @@ func (l *SetNestedGenerator) AttributeCode() CodeStatement {
 }
 
 type MapNestedAttrGenerator struct {
-	attr           codespec.Attribute
 	mapNestedModel codespec.MapNestedAttribute
+	attr           codespec.Attribute
 }
 
 func (m *MapNestedAttrGenerator) AttributeCode() CodeStatement {
@@ -34,8 +34,8 @@ func (m *MapNestedAttrGenerator) AttributeCode() CodeStatement {
 }
 
 type SingleNestedAttrGenerator struct {
-	attr              codespec.Attribute
 	singleNestedModel codespec.SingleNestedAttribute
+	attr              codespec.Attribute
 }
 
 func (l *SingleNestedAttrGenerator) AttributeCode() CodeStatement {
