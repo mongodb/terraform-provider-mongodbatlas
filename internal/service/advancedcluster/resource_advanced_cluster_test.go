@@ -1499,15 +1499,19 @@ func createCleanupTest(t *testing.T, configCall func(t *testing.T, timeoutSectio
 					resource.TestCheckResourceAttr(resourceName, "delete_on_create_timeout", "false"),
 				),
 			},
-			// Remove delete_on_create_timeout
-			resource.TestStep{
-				Config: configCall(t, ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckNoResourceAttr(resourceName, "delete_on_create_timeout"),
-				),
-			},
-			acc.TestStepImportCluster(resourceName),
 		)
+		deleteOnCreateTimeoutRemoved := configCall(t, "")
+		if config.PreviewProviderV2AdvancedCluster() {
+			steps = append(steps,
+				resource.TestStep{
+					Config: deleteOnCreateTimeoutRemoved,
+					Check:  resource.TestCheckNoResourceAttr(resourceName, "delete_on_create_timeout"),
+				})
+		} else {
+			// removing an optional false value has no affect in SDKv2, as false==null and no-plan-change
+			steps = append(steps, acc.TestStepCheckEmptyPlan(deleteOnCreateTimeoutRemoved))
+		}
+		steps = append(steps, acc.TestStepImportCluster(resourceName))
 	}
 	return &resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
