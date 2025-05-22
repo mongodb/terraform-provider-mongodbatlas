@@ -6,9 +6,7 @@
 
 The [private link Terraform module](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/private-endpoint/mongodbatlas/latest) makes use of this resource and simplifies its use.
 
-~> **IMPORTANT:**You must have one of the following roles to successfully handle the resource:
-   * Organization Owner
-   * Project Owner
+~> **IMPORTANT:**You must have one of the following roles to successfully handle the resource: <br> - Organization Owner <br> - Project Owner
 
 ~> **IMPORTANT:** Before configuring a private endpoint for a new region in your cluster,
 ensure that you review the [Multi-Region Private Endpoints](https://www.mongodb.com/docs/atlas/troubleshoot-private-endpoints/#multi-region-private-endpoints) troubleshooting documentation.

@@ -2,9 +2,7 @@
 
 `mongodbatlas_private_endpoint_regional_mode` provides a Private Endpoint Regional Mode resource. This represents a regionalized private endpoint setting for a Project. Enable it to allow region specific private endpoints.
 
-~> **IMPORTANT:**You must have one of the following roles to successfully handle the resource:
-  * Organization Owner
-  * Project Owner
+~> **IMPORTANT:**You must have one of the following roles to successfully handle the resource: <br> - Organization Owner <br> - Project Owner
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
