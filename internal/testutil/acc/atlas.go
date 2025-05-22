@@ -27,6 +27,11 @@ func createProject(tb testing.TB, name string) string {
 
 func deleteProject(id string) {
 	_, err := ConnV2().ProjectsApi.DeleteProject(context.Background(), id).Execute()
+	if admin.IsErrorCode(err, "CANNOT_CLOSE_GROUP_ACTIVE_ATLAS_CLUSTERS") {
+		fmt.Printf("Project deletion failed will retry in 30s: %s, error: %s", id, err)
+		time.Sleep(30 * time.Second)
+		_, err = ConnV2().ProjectsApi.DeleteProject(context.Background(), id).Execute()
+	}
 	if err != nil {
 		fmt.Printf("Project deletion failed: %s, error: %s", id, err)
 	}

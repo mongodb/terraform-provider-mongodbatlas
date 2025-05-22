@@ -14,14 +14,17 @@ import (
 	mockadmin20240530 "go.mongodb.org/atlas-sdk/v20240530005/mockadmin"
 	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 )
@@ -1314,15 +1317,15 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasicReplicaset(t, projectID, clusterName, ""),
+				Config: configBasicReplicaset(t, projectID, clusterName, "", ""),
 				Check:  checks,
 			},
 			{
-				Config: configBasicReplicaset(t, projectID, clusterName, fullUpdate),
+				Config: configBasicReplicaset(t, projectID, clusterName, fullUpdate, ""),
 				Check:  checksUpdate,
 			},
 			{
-				Config: configBasicReplicaset(t, projectID, clusterName, ""),
+				Config: configBasicReplicaset(t, projectID, clusterName, "", ""),
 				Check:  checks,
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -1404,13 +1407,125 @@ func TestAccAdvancedCluster_removeBlocksFromConfig(t *testing.T) {
 	})
 }
 
-func configBasicReplicaset(t *testing.T, projectID, clusterName, extra string) string {
+func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateReplicaset(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
+		configCall             = func(t *testing.T, timeoutSection string) string {
+			t.Helper()
+			return configBasicReplicaset(t, projectID, clusterName, "", timeoutSection)
+		}
+		waitOnClusterDeleteDone = func() {
+			diags := &diag.Diagnostics{}
+			clusterResp, _ := advancedclustertpf.GetClusterDetails(t.Context(), diags, projectID, clusterName, acc.MongoDBClient, false)
+			if clusterResp == nil {
+				t.Fatalf("cluster %s not found in %s", clusterName, projectID)
+			}
+			advancedclustertpf.AwaitChanges(t.Context(), acc.MongoDBClient, &advancedclustertpf.ClusterWaitParams{
+				ProjectID:   projectID,
+				ClusterName: clusterName,
+				Timeout:     60 * time.Second,
+				IsDelete:    true,
+			}, "waiting for cluster to be deleted after cleanup in create timeout", diags)
+		}
+	)
+	resource.ParallelTest(t, *createCleanupTest(t, configCall, waitOnClusterDeleteDone, true))
+}
+
+func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateFlex(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1)
+		configCall             = func(t *testing.T, timeoutSection string) string {
+			t.Helper()
+			return acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, fmt.Sprintf(`
+			resource "mongodbatlas_advanced_cluster" "test" {
+				project_id   = %[1]q
+				name         = %[2]q
+				cluster_type = "REPLICASET"
+				replication_specs {
+					region_configs {
+						provider_name = "FLEX"
+						backing_provider_name = "AWS"
+						region_name = "US_EAST_1"
+						priority      = 7
+					}
+				}
+				%[3]s
+			}`, projectID, clusterName, timeoutSection))
+		}
+		waitOnClusterDeleteDone = func() {
+			err := flexcluster.WaitStateTransitionDelete(t.Context(), &admin.GetFlexClusterApiParams{
+				GroupId: projectID,
+				Name:    clusterName,
+			}, acc.ConnV2().FlexClustersApi)
+			require.NoError(t, err)
+		}
+	)
+	resource.ParallelTest(t, *createCleanupTest(t, configCall, waitOnClusterDeleteDone, false))
+}
+
+func createCleanupTest(t *testing.T, configCall func(t *testing.T, timeoutSection string) string, waitOnClusterDeleteDone func(), isUpdateSupported bool) *resource.TestCase {
 	t.Helper()
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, fmt.Sprintf(`
-		resource "mongodbatlas_advanced_cluster" "test" {
+	var (
+		timeoutsStrShort = `
+			timeouts {
+				create = "10s"
+			}
+			delete_on_create_timeout = true
+		`
+		timeoutsStrLong      = strings.ReplaceAll(timeoutsStrShort, "10s", "6000s")
+		timeoutsStrLongFalse = strings.ReplaceAll(timeoutsStrLong, "true", "false")
+	)
+	steps := []resource.TestStep{
+		{
+			Config:      configCall(t, timeoutsStrShort),
+			ExpectError: regexp.MustCompile("context deadline exceeded"),
+		},
+		// OK create should keep the delete_on_create_timeout flag and should be no cleanup
+		{
+			PreConfig: waitOnClusterDeleteDone,
+			Config:    configCall(t, timeoutsStrLong),
+			Check: resource.ComposeAggregateTestCheckFunc(
+				resource.TestCheckResourceAttr(resourceName, "delete_on_create_timeout", "true"),
+			),
+		},
+		acc.TestStepImportCluster(resourceName),
+	}
+	if isUpdateSupported {
+		steps = append(steps,
+			// Switch delete_on_create_timeout to false
+			resource.TestStep{
+				Config: configCall(t, timeoutsStrLongFalse),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "delete_on_create_timeout", "false"),
+				),
+			},
+			// Remove delete_on_create_timeout
+			resource.TestStep{
+				Config: configCall(t, ""),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckNoResourceAttr(resourceName, "delete_on_create_timeout"),
+				),
+			},
+			acc.TestStepImportCluster(resourceName),
+		)
+	}
+	return &resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps:                    steps,
+	}
+}
+
+func configBasicReplicaset(t *testing.T, projectID, clusterName, extra, timeoutStr string) string {
+	t.Helper()
+	if timeoutStr == "" {
+		timeoutStr = `
 			timeouts {
 				create = "6000s"
-			}
+			}`
+	}
+	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			%[4]s		
 			project_id = %[1]q
 			name = %[2]q
 			cluster_type = "REPLICASET"
@@ -1433,7 +1548,7 @@ func configBasicReplicaset(t *testing.T, projectID, clusterName, extra string) s
 			}
 			%[3]s
 		}
-	`, projectID, clusterName, extra)) + dataSourcesTFNewSchema
+	`, projectID, clusterName, extra, timeoutStr)) + dataSourcesTFNewSchema
 }
 
 func configSharded(t *testing.T, projectID, clusterName string, withUpdate bool) string {

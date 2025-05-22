@@ -261,6 +261,45 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 	return realmClient, nil
 }
 
+type APICallParams struct {
+	VersionHeader string
+	RelativePath  string
+	PathParams    map[string]string
+	Method        string
+}
+
+func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParams, bodyReq []byte) (*http.Response, error) {
+	localBasePath, _ := c.AtlasV2.GetConfig().ServerURLWithContext(ctx, "")
+	localVarPath := localBasePath + params.RelativePath
+
+	for key, value := range params.PathParams {
+		localVarPath = strings.ReplaceAll(localVarPath, "{"+key+"}", url.PathEscape(value))
+	}
+
+	headerParams := make(map[string]string)
+	headerParams["Content-Type"] = params.VersionHeader
+	headerParams["Accept"] = params.VersionHeader
+
+	var bodyPost any
+	if bodyReq != nil { // if nil slice is sent with application/json content type SDK method returns an error
+		bodyPost = bodyReq
+	}
+	untypedClient := c.AtlasV2.UntypedClient
+	apiReq, err := untypedClient.PrepareRequest(ctx, localVarPath, params.Method, bodyPost, headerParams, nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	apiResp, err := untypedClient.CallAPI(apiReq)
+
+	if apiResp.StatusCode >= 300 {
+		newErr := untypedClient.MakeApiError(apiResp, params.Method, localVarPath)
+		return apiResp, newErr
+	}
+
+	return apiResp, err
+}
+
 func userAgent(c *Config) string {
 	isPreviewV2AdvancedClusterEnabled := c.PreviewV2AdvancedClusterEnabled
 

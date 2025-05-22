@@ -23,6 +23,9 @@ func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
 	if retainBackups != nil && !modelIn.RetainBackupsEnabled.Equal(modelOut.RetainBackupsEnabled) {
 		modelOut.RetainBackupsEnabled = types.BoolPointerValue(retainBackups)
 	}
+	if modelIn.DeleteOnCreateTimeout.ValueBoolPointer() != nil {
+		modelOut.DeleteOnCreateTimeout = modelIn.DeleteOnCreateTimeout
+	}
 	overrideMapStringWithPrevStateValue(&modelIn.Labels, &modelOut.Labels)
 	overrideMapStringWithPrevStateValue(&modelIn.Tags, &modelOut.Tags)
 }

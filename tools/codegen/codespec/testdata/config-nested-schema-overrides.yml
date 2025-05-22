@@ -12,6 +12,7 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource
       method: DELETE
+    version_header: application/vnd.atlas.2035-01-01+json
     schema:
       aliases:
         group_id: project_id

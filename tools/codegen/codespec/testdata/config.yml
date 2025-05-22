@@ -1,36 +1,44 @@
 resources:
-  test_resource:
+  test_resource_no_schema_opts:
     read:
       path: /api/atlas/v2/groups/{groupId}/testResource
       method: GET
     create:
       path: /api/atlas/v2/groups/{groupId}/testResource
       method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/testResource
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/testResource
+      method: DELETE
+  
+  test_resource_with_nested_attr:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource
+      method: DELETE
     schema:
-      aliases:
-        group_id: project_id
-      
-      ignores: ["links"]
-      
-      overrides:
-        project_id:
-          description: "Overridden project_id description"
-          default: "defaultProjectId"
-          plan_modifiers: [{
-              imports: [ "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier" ],
-              definition: "stringplanmodifier.RequiresReplace()"
-          }]
-          validators: [{
-            imports: [
-            "github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator",
-            "github.com/hashicorp/terraform-plugin-framework/path"
-            ],
-            definition: "stringvalidator.ConflictsWith(path.MatchRoot(\"name\"))"
-          }]
-        
-        prefix_path:
-          computability:
-            optional: true
-            computed: true
-      
-      timeouts: ["create", "read", "delete"]
+      ignores: ["outer_object"]
+
+  test_resource_path_param_in_post_req:
+    create:
+      path: /api/atlas/v2/groups/{groupId}/pathparaminpostreq
+      method: POST
+    read:
+      path: /api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}
+      method: GET
+    update:
+      path: /api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}
+      method: DELETE

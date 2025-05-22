@@ -1,5 +1,7 @@
 package codespec
 
+import "github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
+
 type ElemType int
 
 const (
@@ -16,8 +18,32 @@ type Model struct {
 }
 
 type Resource struct {
-	Schema *Schema
-	Name   SnakeCaseString
+	Schema     *Schema
+	Name       stringcase.SnakeCaseString
+	Operations APIOperations
+}
+
+type APIOperations struct {
+	Create        APIOperation
+	Read          APIOperation
+	Update        APIOperation
+	Delete        APIOperation
+	VersionHeader string
+}
+
+type APIOperation struct {
+	Wait       *Wait
+	HTTPMethod string
+	Path       string
+}
+
+type Wait struct {
+	StateProperty     string
+	PendingStates     []string
+	TargetStates      []string
+	TimeoutSeconds    int
+	MinTimeoutSeconds int
+	DelaySeconds      int
 }
 
 type Schema struct {
@@ -29,29 +55,37 @@ type Schema struct {
 
 type Attributes []Attribute
 
+// Add this field to the Attribute struct
+// Usage AttributeUsage
 type Attribute struct {
-	List      *ListAttribute
-	SetNested *SetNestedAttribute
-
-	Float64 *Float64Attribute
-	String  *StringAttribute
-
-	Bool         *BoolAttribute
-	ListNested   *ListNestedAttribute
-	Map          *MapAttribute
-	MapNested    *MapNestedAttribute
-	Number       *NumberAttribute
-	Set          *SetAttribute
-	Int64        *Int64Attribute
-	SingleNested *SingleNestedAttribute
-	Timeouts     *TimeoutsAttribute
-
+	Number                   *NumberAttribute
+	Int64                    *Int64Attribute
+	Float64                  *Float64Attribute
+	Set                      *SetAttribute
+	Bool                     *BoolAttribute
+	ListNested               *ListNestedAttribute
+	Map                      *MapAttribute
+	MapNested                *MapNestedAttribute
+	SetNested                *SetNestedAttribute
+	List                     *ListAttribute
+	String                   *StringAttribute
+	SingleNested             *SingleNestedAttribute
+	Timeouts                 *TimeoutsAttribute
 	Description              *string
-	Name                     SnakeCaseString
+	Name                     stringcase.SnakeCaseString
 	DeprecationMessage       *string
 	Sensitive                *bool
 	ComputedOptionalRequired ComputedOptionalRequired
+	ReqBodyUsage             AttributeReqBodyUsage
 }
+
+type AttributeReqBodyUsage int
+
+const (
+	AllRequestBodies = iota // by default attribute is sent in request bodies
+	OmitInUpdateBody
+	OmitAlways // this covers computed-only attributes and attributes which are only used for path/query params
+)
 
 type BoolAttribute struct {
 	Default *bool

@@ -25,12 +25,12 @@ require (
 	github.com/jarcoal/httpmock v1.4.0
 	github.com/mongodb-forks/digest v1.1.0
 	github.com/mongodb/atlas-sdk-go v1.0.1-0.20250519084021-87f2c6514977
-	github.com/pb33f/libopenapi v0.21.11
+	github.com/pb33f/libopenapi v0.21.12
 	github.com/sebdah/goldie/v2 v2.5.5
 	github.com/spf13/cast v1.8.0
 	github.com/stretchr/testify v1.10.0
 	github.com/wI2L/jsondiff v0.7.0
-	github.com/zclconf/go-cty v1.16.2
+	github.com/zclconf/go-cty v1.16.3
 	go.mongodb.org/atlas v0.38.0
 	go.mongodb.org/atlas-sdk/v20240530005 v20240530005.0.0
 	go.mongodb.org/atlas-sdk/v20240805005 v20240805005.0.1-0.20250402112219-2468c5354718 // uses api-bot-update-v20240805-backport-cluster to support AdvancedConfiguration in create/updateCluster APIs
@@ -40,7 +40,7 @@ require (
 )
 
 require (
-	github.com/hashicorp/terraform-json v0.24.0
+	github.com/hashicorp/terraform-json v0.25.0
 	go.mongodb.org/atlas-sdk/v20250312003 v20250312003.0.0
 )
 
@@ -121,7 +121,7 @@ require (
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/skeema/knownhosts v1.3.1 // indirect
-	github.com/speakeasy-api/jsonpath v0.6.1 // indirect
+	github.com/speakeasy-api/jsonpath v0.6.2 // indirect
 	github.com/spf13/afero v1.9.2 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/tidwall/gjson v1.18.0 // indirect
