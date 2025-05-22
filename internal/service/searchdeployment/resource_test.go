@@ -22,9 +22,9 @@ const (
 	dataSourceID = "data.mongodbatlas_search_deployment.test"
 )
 
-func importStep(config string) resource.TestStep {
+func importStep(tfConfig string) resource.TestStep {
 	return resource.TestStep{
-		Config:            config,
+		Config:            tfConfig,
 		ResourceName:      resourceID,
 		ImportStateIdFunc: importStateIDFunc(resourceID),
 		ImportState:       true,
