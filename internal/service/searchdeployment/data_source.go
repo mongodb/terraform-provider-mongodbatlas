@@ -29,7 +29,8 @@ func (d *searchDeploymentDS) Schema(ctx context.Context, req datasource.SchemaRe
 	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.DataSourceSchemaRequest{
 		RequiredFields: []string{"project_id", "cluster_name"},
 		OverridenFields: map[string]schema.Attribute{
-			"skip_wait_on_update": nil,
+			"skip_wait_on_update":      nil,
+			"delete_on_create_timeout": nil,
 		},
 	})
 }
