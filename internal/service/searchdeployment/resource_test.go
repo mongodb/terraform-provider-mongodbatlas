@@ -22,6 +22,15 @@ const (
 	dataSourceID = "data.mongodbatlas_search_deployment.test"
 )
 
+func importStep(config string) resource.TestStep {
+	return resource.TestStep{
+		Config:            config,
+		ResourceName:      resourceID,
+		ImportStateIdFunc: importStateIDFunc(resourceID),
+		ImportState:       true,
+		ImportStateVerify: true,
+	}
+}
 func TestAccSearchDeployment_basic(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)
@@ -42,13 +51,7 @@ func TestAccSearchDeployment_basic(t *testing.T) {
 			},
 			// Changes: skip_wait_on_update true -> null
 			updateStep,
-			{
-				Config:            updateStep.Config,
-				ResourceName:      resourceID,
-				ImportStateIdFunc: importStateIDFunc(resourceID),
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			importStep(updateStep.Config),
 		},
 	})
 }
@@ -59,11 +62,11 @@ func TestAccSearchDeployment_timeoutTest(t *testing.T) {
 	var (
 		timeoutsStrShort = `
 			timeouts = {
-				create = "10s"
+				create = "90s"
 			}
 			delete_on_create_timeout = true
 		`
-		timeoutsStrLong        = strings.ReplaceAll(timeoutsStrShort, "10s", "6000s")
+		timeoutsStrLong        = strings.ReplaceAll(timeoutsStrShort, "90s", "6000s")
 		timeoutsStrLongFalse   = strings.ReplaceAll(timeoutsStrLong, "true", "false")
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)
 		configWithTimeout      = func(timeoutsStr string) string {
@@ -83,7 +86,7 @@ func TestAccSearchDeployment_timeoutTest(t *testing.T) {
 			},
 			{
 				PreConfig: func() {
-					timeoutConfig := searchdeployment.RetryTimeConfig(deleteTimeout, deleteTimeout)
+					timeoutConfig := searchdeployment.RetryTimeConfig(deleteTimeout, 30*time.Second)
 					err := searchdeployment.WaitSearchNodeDelete(t.Context(), projectID, clusterName, acc.ConnV2().AtlasSearchApi, timeoutConfig)
 					require.NoError(t, err)
 				},
@@ -97,6 +100,14 @@ func TestAccSearchDeployment_timeoutTest(t *testing.T) {
 				Config: configWithTimeout(timeoutsStrLongFalse),
 				Check:  resource.TestCheckResourceAttr(resourceID, "delete_on_create_timeout", "false"),
 			},
+			{
+				Config: configWithTimeout(""),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckNoResourceAttr(resourceID, "delete_on_create_timeout"),
+					resource.TestCheckNoResourceAttr(resourceID, "timeouts.create"),
+				),
+			},
+			importStep(configWithTimeout("")),
 		},
 	})
 }
