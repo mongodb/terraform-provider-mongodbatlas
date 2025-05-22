@@ -53,7 +53,7 @@ Each object in the actions array represents an individual privilege action grant
 
 * `resources.#.collection_name` - (Optional) Collection on which the action is granted. If this value is an empty string, the action is granted on all collections within the database specified in the actions.resources.db field.
 
-* `resources.#.database_name`	Database on which the action is granted.
+* `resources.#.database_name` Database on which the action is granted. The empty string ("") allows an action on all databases.
 
 * `resources.#.cluster`	(Optional) Set to true to indicate that the action is granted on the cluster resource.
 

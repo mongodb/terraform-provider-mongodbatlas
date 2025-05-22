@@ -6,8 +6,9 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/spf13/cast"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 const dataSourceName = "mongodbatlas_maintenance_window.test"
@@ -32,6 +33,7 @@ func TestAccConfigDSMaintenanceWindow_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "day_of_week", cast.ToString(dayOfWeek)),
 					resource.TestCheckResourceAttr(dataSourceName, "hour_of_day", cast.ToString(hourOfDay)),
 					resource.TestCheckResourceAttr(dataSourceName, "auto_defer_once_enabled", "true"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "time_zone_id"),
 				),
 			},
 		},

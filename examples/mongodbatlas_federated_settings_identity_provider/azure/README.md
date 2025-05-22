@@ -128,8 +128,8 @@ XXXXX
 This can be done using environment variables:
 
 ```shell
-export MONGODB_ATLAS_PUBLIC_KEY="xxxx"
-export MONGODB_ATLAS_PRIVATE_KEY="xxxx"
+export MONGODB_ATLAS_PUBLIC_KEY="<ATLAS_PUBLIC_KEY>"
+export MONGODB_ATLAS_PRIVATE_KEY="<ATLAS_PRIVATE_KEY>"
 ```
 
 **3\. TFVARS**
@@ -140,7 +140,7 @@ Create a file named `vars.auto.tfvars`
 project_name             = "tf-example-oidc"
 location                 = "eastus" # Azure region
 owner                    = "my-user"
-org_id                   = "YOUR_ATLAS_ORG_ID" # e.g 65def6ce0f722a1507105aa5
+org_id                   = "ATLAS_ORG_ID" # e.g 65def6ce0f722a1507105aa5
 region                   = "US_EAST_1" # Atlas region
 insert_record_database   = "test"
 insert_record_collection = "test"

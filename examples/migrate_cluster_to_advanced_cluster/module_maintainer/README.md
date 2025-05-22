@@ -1,5 +1,8 @@
 # Module Maintainer - `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster`
 
+**Note**: See [Terraform Cluster to Advanced Cluster Migration Module Maintainer Perspective](https://www.youtube.com/watch?v=f-B9sK8n2rY) for a recorded demo of this example.
+
+
 If you own and maintain modules to manage your Terraform resources, the purpose of this example is to demonstrate how a Terraform module definition can migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster` while minimizing impact to its clients. The [other module example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_cluster_to_advanced_cluster/module_user) explains the same process from the module user point of view.
 
 The example contains three module versions which represent the three steps of the migration:
@@ -9,6 +12,7 @@ Step | Purpose | Resources
 [Step 1](./v1) | Baseline | `mongodbatlas_cluster`
 [Step 2](./v2) | Migrate to advanced_cluster with no change in variables or plan | `mongodbatlas_advanced_cluster`
 [Step 3](./v3) | Use the latest features of advanced_cluster | `mongodbatlas_advanced_cluster`
+[Step 4](./v4) | Future proofs the module by removing all `mongodbatlas_cluster` references | `mongodbatlas_advanced_cluster`
 
 The rest of this document summarizes the different implementations:
 
@@ -83,7 +87,7 @@ moved {
 - Adds `data "mongodbatlas_cluster" "this"` to avoid breaking changes in `outputs.tf` (see below).
 
 ### [`outputs.tf`](v2/outputs.tf)
-- Ensure you are not adding any output variables that use the new `mongodbatlas_advanced_cluster` resource. Referencing the new resource before moving can lead to a more verbose plan output (extra `Note: Objects have changed outside of Terraform` section) when performing the move (see more in the [Github Issue](https://github.com/hashicorp/terraform-plugin-framework/issues/1109)).
+- Ensure you are not adding any output variables that use the new `mongodbatlas_advanced_cluster` resource. Referencing the new resource before moving can lead to a more verbose plan output (extra `Note: Objects have changed outside of Terraform` section) when performing the move (see more in the [Github Issue](https://github.com/hashicorp/terraform/issues/36796).
 - Ensure compatibility with `v1` outputs by modifying:
   - `replication_specs`, uses `data.mongodbatlas_cluster.this.replication_specs` to keep the same format.
   - `mongodbatlas_cluster`, uses the `data.mongodbatlas_cluster.this` to keep the same format.
@@ -91,7 +95,7 @@ moved {
 
 ## Step 3: Module `v3` Implementation Changes and Highlights
 This module adds variables to support the latest `mongodbatlas_advanced_cluster` features while staying compatible with the old input variables.
-The module supports standalone usage when there is no existing `mongodbatlas_cluster` and also upgrading from `v1` using a `moved` block. However, upgrading directly from `v1` can lead to a more verbose plan output (extra `Note: Objects have changed outside of Terraform` section) when performing the move (see more in the [Github Issue](https://github.com/hashicorp/terraform-plugin-framework/issues/1109)).
+The module supports standalone usage when there is no existing `mongodbatlas_cluster` and also upgrading from `v1` using a `moved` block. However, upgrading directly from `v1` can lead to a more verbose plan output (extra `Note: Objects have changed outside of Terraform` section) when performing the move (see more in the [Github Issue](https://github.com/hashicorp/terraform/issues/36796).
 The module also supports changing an existing `mongodbatlas_advanced_cluster` created in `v2`.
 
 ### [`variables.tf`](v3/variables.tf)
@@ -144,3 +148,25 @@ output "mongodbatlas_cluster" {
   description = "Full cluster configuration for mongodbatlas_cluster resource, will be null if var.replication_specs_new is set"
 }
 ```
+
+## Step 4: Module `v4` Implementation Changes and Highlights
+This module marks the end of the migration to `mongodbatlas_advanced_cluster`.
+We future-proof the module by removing references to the `mongodbatlas_cluster` data source and only allowing the latest schema for the `replication_specs` variable.
+A major version bump would typically accompany this module version since we remove and rename input and output variables.
+The reduced compatibility simplifies the module but forces the module user to rename their input variable `replication_specs_new` to `replication_specs`.
+You can keep the `replication_specs_new` variable name, but it might confuse new module users and complicate future updates.
+
+### [`variables.tf`](v4/variables.tf)
+- Remove the `replication_specs`, `auto_scaling_disk_gb_enabled`, `disk_size`, `provider_name`, and `instance_size`.
+- Rename the `replication_specs_new` to `replication_specs`.
+- Remove the default (`[]`) of `replication_specs`.
+
+### [`main.tf`](v4/main.tf)
+- Remove `locals` block (no longer needed to modify the old replication_spec variable to fit the new `mongodbatlas_advanced_cluster` schema).
+- Remove the `moved` block.
+- Remove the `mongodbatlas_cluster` data source.
+
+### [`outputs.tf`](v4/outputs.tf)
+- Remove conditional logic from `replication_specs`.
+- Flatten `mongodb_connection_strings` to use `mongodbatlas_advanced_cluster.this.connection_strings` directly instead of wrapping inside a list.
+- Remove the `mongodbatlas_cluster`.

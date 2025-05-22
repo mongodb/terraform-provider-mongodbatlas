@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 )
 
 func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
@@ -22,6 +22,9 @@ func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
 	retainBackups := conversion.NilForUnknown(modelIn.RetainBackupsEnabled, modelIn.RetainBackupsEnabled.ValueBoolPointer())
 	if retainBackups != nil && !modelIn.RetainBackupsEnabled.Equal(modelOut.RetainBackupsEnabled) {
 		modelOut.RetainBackupsEnabled = types.BoolPointerValue(retainBackups)
+	}
+	if modelIn.DeleteOnCreateTimeout.ValueBoolPointer() != nil {
+		modelOut.DeleteOnCreateTimeout = modelIn.DeleteOnCreateTimeout
 	}
 	overrideMapStringWithPrevStateValue(&modelIn.Labels, &modelOut.Labels)
 	overrideMapStringWithPrevStateValue(&modelIn.Tags, &modelOut.Tags)

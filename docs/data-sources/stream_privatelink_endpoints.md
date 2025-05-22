@@ -212,9 +212,7 @@ output "privatelink_endpoint_id" {
 
 ### Required
 
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
-
-**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group or project id remains the same. The resource and corresponding endpoints use the term groups.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.<br>**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group or project id remains the same. The resource and corresponding endpoints use the term groups.
 
 ### Read-Only
 
@@ -225,21 +223,19 @@ output "privatelink_endpoint_id" {
 
 Read-Only:
 
-- `arn` (String) Amazon Resource Name (ARN).
-- `dns_domain` (String) Domain name of Privatelink connected cluster.
-- `dns_sub_domain` (List of String) Sub-Domain name of Confluent cluster. These are typically your availability zones.
+- `arn` (String) Amazon Resource Name (ARN). Required for AWS Provider and MSK vendor.
+- `dns_domain` (String) The domain hostname. Required for the following provider and vendor combinations:<br>- AWS provider with CONFLUENT vendor.<br>- AZURE provider with EVENTHUB or CONFLUENT vendor.
+- `dns_sub_domain` (List of String) Sub-Domain name of Confluent cluster. These are typically your availability zones. Required for AWS Provider and CONFLUENT vendor. If your AWS CONFLUENT cluster doesn't use subdomains, you must set this to the empty array [].
 - `error_message` (String) Error message if the connection is in a failed state.
 - `id` (String) The ID of the Private Link connection.
 - `interface_endpoint_id` (String) Interface endpoint ID that is created from the specified service endpoint ID.
 - `interface_endpoint_name` (String) Name of interface endpoint that is created from the specified service endpoint ID.
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
-
-**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group or project id remains the same. The resource and corresponding endpoints use the term groups.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.<br>**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group or project id remains the same. The resource and corresponding endpoints use the term groups.
 - `provider_account_id` (String) Account ID from the cloud provider.
-- `provider_name` (String) Provider where the Kafka cluster is deployed.
-- `region` (String) When the vendor is `CONFLUENT`, this is the domain name of Confluent cluster. When the vendor is `MSK`, this is computed by the API from the provided `arn`.
-- `service_endpoint_id` (String) Service Endpoint ID.
+- `provider_name` (String) Provider where the Kafka cluster is deployed. Valid values are AWS and AZURE.
+- `region` (String) The region of the Provider’s cluster. See [AZURE](https://www.mongodb.com/docs/atlas/reference/microsoft-azure/#stream-processing-instances) and [AWS](https://www.mongodb.com/docs/atlas/reference/amazon-aws/#stream-processing-instances) supported regions. When the vendor is `CONFLUENT`, this is the domain name of Confluent cluster. When the vendor is `MSK`, this is computed by the API from the provided `arn`.
+- `service_endpoint_id` (String) For AZURE EVENTHUB, this is the [namespace endpoint ID](https://learn.microsoft.com/en-us/rest/api/eventhub/namespaces/get). For AWS CONFLUENT cluster, this is the [VPC Endpoint service name](https://docs.confluent.io/cloud/current/networking/private-links/aws-privatelink.html).
 - `state` (String) Status of the connection.
-- `vendor` (String) Vendor who manages the Kafka cluster.
+- `vendor` (String) Vendor that manages the Kafka cluster. The following are the vendor values per provider:<br>- MSK and CONFLUENT for the AWS provider.<br>- EVENTHUB and CONFLUENT for the AZURE provider.
 
 For more information see: [MongoDB Atlas API - Streams Privatelink](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createPrivateLinkConnection) Documentation.

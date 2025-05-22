@@ -135,6 +135,10 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Date and time when MongoDB Cloud created this cluster. This parameter expresses its value in ISO 8601 format in UTC.",
 			},
+			"delete_on_create_timeout": schema.BoolAttribute{
+				Optional:            true,
+				MarkdownDescription: "Flag that indicates whether to delete the cluster if the cluster creation times out. Default is false.",
+			},
 			"encryption_at_rest_provider": schema.StringAttribute{
 				Computed:            true,
 				Optional:            true,
@@ -349,6 +353,7 @@ func dataSourceOverridenFields() map[string]dsschema.Attribute {
 	return map[string]dsschema.Attribute{
 		"use_replication_spec_per_shard":                   useReplicationSpecPerShardSchema(),
 		"accept_data_risks_and_force_replica_set_reconfig": nil,
+		"delete_on_create_timeout":                         nil,
 	}
 }
 
@@ -564,6 +569,7 @@ type TFModel struct {
 	GlobalClusterSelfManagedSharding          types.Bool     `tfsdk:"global_cluster_self_managed_sharding"`
 	RedactClientLogData                       types.Bool     `tfsdk:"redact_client_log_data"`
 	PitEnabled                                types.Bool     `tfsdk:"pit_enabled"`
+	DeleteOnCreateTimeout                     types.Bool     `tfsdk:"delete_on_create_timeout"`
 }
 
 // TFModelDS differs from TFModel: removes timeouts, accept_data_risks_and_force_replica_set_reconfig; adds use_replication_spec_per_shard.
