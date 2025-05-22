@@ -9,6 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
+const (
+	CleanupWarning = "Failed to create resource. Will run cleanup due to the operation timing out"
+)
+
 // OnTimeout creates a new context with a timeout and a deferred function that will run `cleanup` when the context hit the timeout (no timeout=no-op).
 // Remember to always call the returned `deferCall` function: `defer deferCall()`.
 // `warningDetail` should have resource identifiable information, for example cluster name and project ID.
@@ -22,8 +26,7 @@ func OnTimeout(ctx context.Context, timeout time.Duration, warnDiags func(string
 		if !errors.Is(outCtx.Err(), context.DeadlineExceeded) {
 			return
 		}
-		cleanupWarning := "Failed to create resource, will run cleanup due to timeout reached"
-		warnDiags(cleanupWarning, warningDetail)
+		warnDiags(CleanupWarning, warningDetail)
 		newContext := context.Background() // Create a new context for cleanup as the old context is expired
 		if err := cleanup(newContext); err != nil {
 			warnDiags("Error during cleanup", warningDetail+" error="+err.Error())
