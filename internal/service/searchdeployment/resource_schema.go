@@ -67,6 +67,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Description: "If true, the resource update is executed without waiting until the [state](#state_name-1) is `IDLE`, making the operation faster. This might cause update errors to go unnoticed and lead to non-empty plans at the next terraform execution.",
 				Optional:    true,
 			},
+			"delete_on_create_timeout": schema.BoolAttribute{
+				Optional:            true,
+				MarkdownDescription: "Flag that indicates whether to delete the search deployment if the creation times out, default is false.",
+			},
 			"encryption_at_rest_provider": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Cloud service provider that manages your customer keys to provide an additional layer of Encryption At Rest for the cluster.",
@@ -84,6 +88,7 @@ type TFSearchDeploymentRSModel struct {
 	Timeouts                 timeouts.Value `tfsdk:"timeouts"`
 	EncryptionAtRestProvider types.String   `tfsdk:"encryption_at_rest_provider"`
 	SkipWaitOnUpdate         types.Bool     `tfsdk:"skip_wait_on_update"`
+	DeleteOnCreateTimeout    types.Bool     `tfsdk:"delete_on_create_timeout"`
 }
 
 type TFSearchNodeSpecModel struct {

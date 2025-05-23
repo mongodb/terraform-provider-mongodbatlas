@@ -3,12 +3,18 @@ package searchdeployment_test
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -16,6 +22,15 @@ const (
 	dataSourceID = "data.mongodbatlas_search_deployment.test"
 )
 
+func importStep(tfConfig string) resource.TestStep {
+	return resource.TestStep{
+		Config:            tfConfig,
+		ResourceName:      resourceID,
+		ImportStateIdFunc: importStateIDFunc(resourceID),
+		ImportState:       true,
+		ImportStateVerify: true,
+	}
+}
 func TestAccSearchDeployment_basic(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)
@@ -36,13 +51,63 @@ func TestAccSearchDeployment_basic(t *testing.T) {
 			},
 			// Changes: skip_wait_on_update true -> null
 			updateStep,
+			importStep(updateStep.Config),
+		},
+	})
+}
+
+const deleteTimeout = 30 * time.Minute
+
+func TestAccSearchDeployment_timeoutTest(t *testing.T) {
+	var (
+		timeoutsStrShort = `
+			timeouts = {
+				create = "90s"
+			}
+			delete_on_create_timeout = true
+		`
+		timeoutsStrLong        = strings.ReplaceAll(timeoutsStrShort, "90s", "6000s")
+		timeoutsStrLongFalse   = strings.ReplaceAll(timeoutsStrLong, "true", "false")
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)
+		configWithTimeout      = func(timeoutsStr string) string {
+			normalConfig := configBasic(projectID, clusterName, "S20_HIGHCPU_NVME", 3, false)
+			configWithTimeout := acc.ConfigAddResourceStr(t, normalConfig, resourceID, timeoutsStr)
+			return acc.ConvertAdvancedClusterToPreviewProviderV2(t, config.PreviewProviderV2AdvancedCluster(), configWithTimeout)
+		}
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
 			{
-				Config:            updateStep.Config,
-				ResourceName:      resourceID,
-				ImportStateIdFunc: importStateIDFunc(resourceID),
-				ImportState:       true,
-				ImportStateVerify: true,
+				Config:      configWithTimeout(timeoutsStrShort),
+				ExpectError: regexp.MustCompile(cleanup.TimeoutReachedPrefix),
 			},
+			{
+				PreConfig: func() {
+					timeoutConfig := searchdeployment.RetryTimeConfig(deleteTimeout, 30*time.Second)
+					err := searchdeployment.WaitSearchNodeDelete(t.Context(), projectID, clusterName, acc.ConnV2().AtlasSearchApi, timeoutConfig)
+					require.NoError(t, err)
+				},
+				Config: configWithTimeout(timeoutsStrLong),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceID, "timeouts.create", "6000s"),
+					resource.TestCheckResourceAttr(resourceID, "delete_on_create_timeout", "true"),
+				),
+			},
+			{
+				Config: configWithTimeout(timeoutsStrLongFalse),
+				Check:  resource.TestCheckResourceAttr(resourceID, "delete_on_create_timeout", "false"),
+			},
+			{
+				Config: configWithTimeout(""),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckNoResourceAttr(resourceID, "delete_on_create_timeout"),
+					resource.TestCheckNoResourceAttr(resourceID, "timeouts.create"),
+				),
+			},
+			importStep(configWithTimeout("")),
 		},
 	})
 }
