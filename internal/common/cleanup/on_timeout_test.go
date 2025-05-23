@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	timeoutDuration = 1 * time.Millisecond
+	timeoutDuration = 10 * time.Millisecond
 )
 
 func TestCleanupOnErrorSkippedWhenNoTimeout(t *testing.T) {
@@ -76,7 +76,7 @@ func TestReplaceContextDeadlineExceededDiags(t *testing.T) {
 	expectedDetails := []string{
 		"Error waiting for state to be IDLE: Timeout reached after 2m0s",
 		"This is a different error",
-		"Warning with context deadline exceeded mentioned",
+		"Warning with Timeout reached after 2m0s mentioned",
 	}
 
 	duration := 2 * time.Minute

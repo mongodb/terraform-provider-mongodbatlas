@@ -42,9 +42,6 @@ const (
 func ReplaceContextDeadlineExceededDiags(diags *diag.Diagnostics, duration time.Duration) {
 	for i := range len(*diags) {
 		d := (*diags)[i]
-		if d.Severity() != diag.SeverityError {
-			continue
-		}
 		if strings.Contains(d.Detail(), contextDeadlineExceeded) {
 			(*diags)[i] = diag.NewErrorDiagnostic(
 				d.Summary(),
