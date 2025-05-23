@@ -16,6 +16,7 @@ import (
 	localHcl "github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
 )
 
+// ConfigAddResourceStr is useful when you need to add one or more attributes to a resource block.
 func ConfigAddResourceStr(t *testing.T, hclConfig, resourceID, extraResourceStr string) string {
 	t.Helper()
 	resourceParts := strings.Split(resourceID, ".")
