@@ -1426,7 +1426,7 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateReplicaset(t *testing
 				Timeout:     60 * time.Second,
 				IsDelete:    true,
 			}, "waiting for cluster to be deleted after cleanup in create timeout", diags)
-			time.Sleep(time.Minute) // decrease the chance of `CONTAINER_WAITING_FOR_FAST_RECORD_CLEAN_UP`: "A transient error occurred. Please try again in a minute or use a different name"
+			time.Sleep(1 * time.Minute) // decrease the chance of `CONTAINER_WAITING_FOR_FAST_RECORD_CLEAN_UP`: "A transient error occurred. Please try again in a minute or use a different name"
 		}
 	)
 	resource.ParallelTest(t, *createCleanupTest(t, configCall, waitOnClusterDeleteDone, true))
@@ -1459,7 +1459,7 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateFlex(t *testing.T) {
 				Name:    clusterName,
 			}, acc.ConnV2().FlexClustersApi)
 			require.NoError(t, err)
-			time.Sleep(time.Minute) // decrease the chance of `CONTAINER_WAITING_FOR_FAST_RECORD_CLEAN_UP`: "A transient error occurred. Please try again in a minute or use a different name"
+			time.Sleep(1 * time.Minute) // decrease the chance of `CONTAINER_WAITING_FOR_FAST_RECORD_CLEAN_UP`: "A transient error occurred. Please try again in a minute or use a different name"
 		}
 	)
 	resource.ParallelTest(t, *createCleanupTest(t, configCall, waitOnClusterDeleteDone, false))
