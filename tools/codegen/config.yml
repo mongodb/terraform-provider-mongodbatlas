@@ -28,6 +28,10 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
       method: DELETE
     version_header: application/vnd.atlas.2023-01-01+json
+    schema:
+      overrides:
+        password:
+          sensitive: true
 
   push_based_log_export_api:
     read:
@@ -123,7 +127,9 @@ resources:
       aliases:
         resource_policy_id: id # path param name does not match the API response property
 
-  stream_instance_api: # no fully functional yet so it doesn't have acceptance tests yet
+  # No fully functional yet so it doesn't have acceptance tests yet.
+  # It has a sensitive attribute that has password format in OpenAPI spec.
+  stream_instance_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}
       method: GET
@@ -140,7 +146,8 @@ resources:
       aliases:
         tenant_name: name # path param name does not match the API request property
 
-  cluster_api: # no fully functional yet so it doesn't have acceptance tests yet
+  # No fully functional yet so it doesn't have acceptance tests yet.
+  cluster_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
       method: GET
