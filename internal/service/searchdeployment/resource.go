@@ -18,24 +18,24 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-var _ resource.ResourceWithConfigure = &RS{}
-var _ resource.ResourceWithImportState = &RS{}
+var _ resource.ResourceWithConfigure = &rs{}
+var _ resource.ResourceWithImportState = &rs{}
 
 const resourceName = "search_deployment"
 
 func Resource() resource.Resource {
-	return &RS{
+	return &rs{
 		RSCommon: config.RSCommon{
 			ResourceName: resourceName,
 		},
 	}
 }
 
-type RS struct {
+type rs struct {
 	config.RSCommon
 }
 
-func (r *RS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = ResourceSchema(ctx)
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
@@ -52,7 +52,7 @@ func RetryTimeConfig(configuredTimeout, minTimeout time.Duration) retrystrategy.
 	}
 }
 
-func (r *RS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan TFSearchDeploymentRSModel
 	diags := &resp.Diagnostics
 	diags.Append(req.Plan.Get(ctx, &plan)...)
@@ -70,12 +70,13 @@ func (r *RS) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	}
 	if plan.DeleteOnCreateTimeout.ValueBool() {
 		var deferCall func()
+		deleteOnTimeout := func(newCtx context.Context) error {
+			cleanup.ReplaceContextDeadlineExceededDiags(diags, createTimeout)
+			_, err := connV2.AtlasSearchApi.DeleteAtlasSearchDeployment(newCtx, projectID, clusterName).Execute()
+			return err
+		}
 		ctx, deferCall = cleanup.OnTimeout(
-			ctx, createTimeout, diags.AddWarning, fmt.Sprintf("Search Deployment %s, (%s)", clusterName, projectID), func(newCtx context.Context) error {
-				cleanup.ReplaceContextDeadlineExceededDiags(diags, createTimeout)
-				_, err := connV2.AtlasSearchApi.DeleteAtlasSearchDeployment(newCtx, projectID, clusterName).Execute()
-				return err
-			},
+			ctx, createTimeout, diags.AddWarning, fmt.Sprintf("Search Deployment %s, (%s)", clusterName, projectID), deleteOnTimeout,
 		)
 		defer deferCall()
 	}
@@ -100,10 +101,11 @@ func (r *RS) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	diags.Append(resp.State.Set(ctx, outModel)...)
 }
 
-func (r *RS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state TFSearchDeploymentRSModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
+	diags := &resp.Diagnostics
+	diags.Append(req.State.Get(ctx, &state)...)
+	if diags.HasError() {
 		return
 	}
 
@@ -116,7 +118,7 @@ func (r *RS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("error getting search deployment information", err.Error())
+		diags.AddError("error getting search deployment information", err.Error())
 		return
 	}
 
@@ -126,19 +128,20 @@ func (r *RS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	}
 
 	outModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, &state.Timeouts, false)
-	resp.Diagnostics.Append(diagnostics...)
-	if resp.Diagnostics.HasError() {
+	diags.Append(diagnostics...)
+	if diags.HasError() {
 		return
 	}
 	outModel.SkipWaitOnUpdate = state.SkipWaitOnUpdate
 	outModel.DeleteOnCreateTimeout = state.DeleteOnCreateTimeout
-	resp.Diagnostics.Append(resp.State.Set(ctx, outModel)...)
+	diags.Append(resp.State.Set(ctx, outModel)...)
 }
 
-func (r *RS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan TFSearchDeploymentRSModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
+	diags := &resp.Diagnostics
+	diags.Append(req.Plan.Get(ctx, &plan)...)
+	if diags.HasError() {
 		return
 	}
 
@@ -148,38 +151,39 @@ func (r *RS) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	updateReq := NewSearchDeploymentReq(ctx, &plan)
 	deploymentResp, _, err := connV2.AtlasSearchApi.UpdateAtlasSearchDeployment(ctx, projectID, clusterName, &updateReq).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("error during search deployment update", err.Error())
+		diags.AddError("error during search deployment update", err.Error())
 		return
 	}
 
-	updateTimeout, diags := plan.Timeouts.Update(ctx, defaultSearchNodeTimeout)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	updateTimeout, localDiags := plan.Timeouts.Update(ctx, defaultSearchNodeTimeout)
+	diags.Append(localDiags...)
+	if diags.HasError() {
 		return
 	}
 	if !plan.SkipWaitOnUpdate.ValueBool() {
 		deploymentResp, err = WaitSearchNodeStateTransition(ctx, projectID, clusterName, connV2.AtlasSearchApi,
 			RetryTimeConfig(updateTimeout, minTimeoutCreateUpdate))
 		if err != nil {
-			resp.Diagnostics.AddError("error during search deployment update", err.Error())
+			diags.AddError("error during search deployment update", err.Error())
 			return
 		}
 	}
 
 	outModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, &plan.Timeouts, false)
-	resp.Diagnostics.Append(diagnostics...)
-	if resp.Diagnostics.HasError() {
+	diags.Append(diagnostics...)
+	if diags.HasError() {
 		return
 	}
 	outModel.SkipWaitOnUpdate = plan.SkipWaitOnUpdate
 	outModel.DeleteOnCreateTimeout = plan.DeleteOnCreateTimeout
-	resp.Diagnostics.Append(resp.State.Set(ctx, outModel)...)
+	diags.Append(resp.State.Set(ctx, outModel)...)
 }
 
-func (r *RS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state *TFSearchDeploymentRSModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
+	diags := &resp.Diagnostics
+	diags.Append(req.State.Get(ctx, &state)...)
+	if diags.HasError() {
 		return
 	}
 
@@ -187,22 +191,22 @@ func (r *RS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	projectID := state.ProjectID.ValueString()
 	clusterName := state.ClusterName.ValueString()
 	if _, err := connV2.AtlasSearchApi.DeleteAtlasSearchDeployment(ctx, projectID, clusterName).Execute(); err != nil {
-		resp.Diagnostics.AddError("error during search deployment delete", err.Error())
+		diags.AddError("error during search deployment delete", err.Error())
 		return
 	}
 
-	deleteTimeout, diags := state.Timeouts.Delete(ctx, defaultSearchNodeTimeout)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	deleteTimeout, localDiags := state.Timeouts.Delete(ctx, defaultSearchNodeTimeout)
+	diags.Append(localDiags...)
+	if diags.HasError() {
 		return
 	}
 	if err := WaitSearchNodeDelete(ctx, projectID, clusterName, connV2.AtlasSearchApi, RetryTimeConfig(deleteTimeout, minTimeoutDelete)); err != nil {
-		resp.Diagnostics.AddError("error during search deployment delete", err.Error())
+		diags.AddError("error during search deployment delete", err.Error())
 		return
 	}
 }
 
-func (r *RS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	projectID, clusterName, err := splitSearchNodeImportID(req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError("error splitting search deployment import ID", err.Error())
