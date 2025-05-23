@@ -28,6 +28,10 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
       method: DELETE
     version_header: application/vnd.atlas.2023-01-01+json
+    schema:
+      overrides:
+        password:
+          sensitive: true
 
   push_based_log_export_api:
     read:

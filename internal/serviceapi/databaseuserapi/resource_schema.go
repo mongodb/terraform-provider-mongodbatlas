@@ -79,6 +79,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"password": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "Alphanumeric string that authenticates this database user against the database specified in `databaseName`. To authenticate with SCRAM-SHA, you must specify this parameter. This parameter doesn't appear in this response.",
+				Sensitive:           true,
 			},
 			"roles": schema.ListNestedAttribute{
 				Optional:            true,

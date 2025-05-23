@@ -37,6 +37,7 @@ type SchemaOptions struct {
 
 type Override struct {
 	Computability *Computability `yaml:"computability,omitempty"`
+	Sensitive     *bool          `yaml:"sensitive"`
 	Description   string         `yaml:"description"`
 	PlanModifiers []PlanModifier `yaml:"plan_modifiers"`
 	Validators    []Validator    `yaml:"validators"`
