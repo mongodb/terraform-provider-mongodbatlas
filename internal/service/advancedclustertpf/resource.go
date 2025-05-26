@@ -31,7 +31,7 @@ const (
 	resourceName                  = "advanced_cluster"
 	errorSchemaDowngrade          = "error operation not permitted, nums_shards from 1 -> > 1"
 	errorPatchPayload             = "error creating patch payload"
-	errorDetailDefault            = "cluster name %s. API error detail %s"
+	errorDetailDefault            = "cluster name: %s, API error details: %s"
 	errorSchemaUpgradeReadIDs     = "error reading IDs from API when upgrading schema"
 	errorReadResource             = "error reading advanced cluster"
 	errorAdvancedConfRead         = "error reading Advanced Configuration"
