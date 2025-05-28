@@ -98,16 +98,20 @@ type UAMetadata struct {
 
 // NewClient func...
 func (c *Config) NewClient(ctx context.Context) (any, error) {
-	// setup a transport to handle digest
+	// Setup a transport to handle digest.
 	transport := digest.NewTransportWithHTTPTransport(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey), baseTransport)
 
-	// initialize the client
+	// Initialize the client.
 	client, err := transport.Client()
 	if err != nil {
 		return nil, err
 	}
 
-	client.Transport = logging.NewTransport("MongoDB Atlas", transport)
+	// Add network logging transport for enhanced visibility into network operations.
+	networkLoggingTransport := NewNetworkLoggingTransport("Atlas", transport)
+
+	// Chain with existing Terraform logging transport.
+	client.Transport = logging.NewLoggingHTTPTransport(networkLoggingTransport)
 
 	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
 	if c.BaseURL != "" {
@@ -228,7 +232,6 @@ func (c *Config) newSDKV220241113Client(client *http.Client) (*admin20241113.API
 }
 
 func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, error) {
-	// Realm
 	if c.Config.PublicKey == "" && c.Config.PrivateKey == "" {
 		return nil, errors.New("please set `public_key` and `private_key` in order to use the realm client")
 	}
@@ -250,7 +253,12 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 	clientRealm := realmAuth.NewClient(realmAuth.BasicTokenSource(token))
 
 	clientRealm.Transport = baseTransport
-	clientRealm.Transport = logging.NewTransport("MongoDB Realm", clientRealm.Transport)
+
+	// Add network logging transport for enhanced visibility into network operations.
+	networkLoggingTransport := NewNetworkLoggingTransport("Realm", clientRealm.Transport)
+
+	// Chain with existing Terraform logging transport.
+	clientRealm.Transport = logging.NewLoggingHTTPTransport(networkLoggingTransport)
 
 	// Initialize the MongoDB Realm API Client.
 	realmClient, err := realm.New(clientRealm, optsRealm...)
