@@ -54,8 +54,6 @@ func (t *NetworkLoggingTransport) RoundTrip(req *http.Request) (*http.Response, 
 		log.Printf("[WARN] %s HTTP Error Response: %s %s - Status: %d %s - Duration: %v - Content-Type: %s",
 			t.Name, req.Method, req.URL.String(), statusCode, http.StatusText(statusCode),
 			duration, resp.Header.Get("Content-Type"))
-
-		t.logResponseHeaders(resp, req)
 	}
 	return resp, nil
 }
@@ -85,28 +83,6 @@ func (t *NetworkLoggingTransport) logNetworkErrorContext(err error, req *http.Re
 	default:
 		log.Printf("[ERROR] %s Network Error: %s %s - Duration: %v - Error details: %v",
 			t.Name, req.Method, req.URL.String(), duration, err)
-	}
-}
-
-// logResponseHeaders logs important response headers for debugging
-func (t *NetworkLoggingTransport) logResponseHeaders(resp *http.Response, req *http.Request) {
-	// Headers that are useful for debugging API issues
-	debugHeaders := []string{
-		"X-Envoy-Upstream-Service-Time",
-		"X-RateLimit-Remaining",
-		"X-RateLimit-Reset",
-		"Retry-After",
-		"X-Request-Id",
-		"X-Correlation-Id",
-		"Server",
-		"Date",
-	}
-
-	for _, header := range debugHeaders {
-		if value := resp.Header.Get(header); value != "" {
-			log.Printf("[DEBUG] %s Response Header: %s %s - %s: %s",
-				t.Name, req.Method, req.URL.String(), header, value)
-		}
 	}
 }
 
