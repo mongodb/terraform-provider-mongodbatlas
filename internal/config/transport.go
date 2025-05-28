@@ -32,8 +32,10 @@ func NewNetworkLoggingTransport(name string, transport http.RoundTripper) *Netwo
 // around the HTTP request/response cycle.
 func (t *NetworkLoggingTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	startTime := time.Now()
+
 	log.Printf("[DEBUG] %s Network Request Start: %s %s (started at %s)",
 		t.Name, req.Method, req.URL.String(), startTime.Format(time.RFC3339Nano))
+
 	resp, err := t.Transport.RoundTrip(req)
 	duration := time.Since(startTime)
 	if err != nil {
@@ -43,7 +45,6 @@ func (t *NetworkLoggingTransport) RoundTrip(req *http.Request) (*http.Response, 
 		t.logNetworkErrorContext(err, req, duration)
 		return resp, err
 	}
-
 	statusCode := resp.StatusCode
 	statusClass := GetStatusClass(statusCode)
 

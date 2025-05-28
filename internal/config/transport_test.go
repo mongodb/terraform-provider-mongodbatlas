@@ -37,9 +37,6 @@ func TestNetworkLoggingTransport_Success(t *testing.T) {
 		StatusCode: 200,
 		Header:     make(http.Header),
 	}
-	mockResp.Header.Set("Content-Type", "application/json")
-	mockResp.Header.Set("X-Request-Id", "test-request-123")
-
 	mockTransport := &mockTransport{
 		response: mockResp,
 		err:      nil,
@@ -64,9 +61,6 @@ func TestNetworkLoggingTransport_HTTPError(t *testing.T) {
 		StatusCode: 500,
 		Header:     make(http.Header),
 	}
-	mockResp.Header.Set("Content-Type", "application/json")
-	mockResp.Header.Set("X-Request-Id", "test-request-456")
-
 	mockTransport := &mockTransport{
 		response: mockResp,
 		err:      nil,
