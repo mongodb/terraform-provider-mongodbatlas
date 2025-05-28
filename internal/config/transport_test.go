@@ -101,6 +101,38 @@ func TestNetworkLoggingTransport_NetworkError(t *testing.T) {
 	assert.Contains(t, logStr, "Network Timeout")
 }
 
+func TestNetworkLoggingTransport_DigestAuthChallenge(t *testing.T) {
+	var logOutput bytes.Buffer
+	log.SetOutput(&logOutput)
+	defer log.SetOutput(os.Stderr)
+
+	mockResp := &http.Response{
+		StatusCode: 401,
+		Header:     make(http.Header),
+	}
+	mockResp.Header.Set("WWW-Authenticate", "Digest realm=\"MongoDB Atlas\", nonce=\"abc123\"")
+
+	mockTransport := &mockTransport{
+		response: mockResp,
+		err:      nil,
+	}
+	transport := config.NewTransportWithNetworkLogging(mockTransport)
+	req := httptest.NewRequest("GET", "https://cloud.mongodb.com/api/atlas/v2/groups", http.NoBody)
+
+	resp, err := transport.RoundTrip(req)
+	require.NoError(t, err)
+	require.Equal(t, 401, resp.StatusCode)
+
+	logStr := logOutput.String()
+	assert.Contains(t, logStr, "Network Request Start")
+	assert.Contains(t, logStr, "Network Request Complete")
+	assert.Contains(t, logStr, "Status: 401 (Client Error)")
+	assert.Contains(t, logStr, "Digest Authentication Challenge")
+	assert.Contains(t, logStr, "Expected first request in digest authentication flow")
+	// Should NOT contain the generic HTTP Error Response for 401
+	assert.NotContains(t, logStr, "HTTP Error Response")
+}
+
 func TestAccNetworkLogging(t *testing.T) {
 	acc.SkipInUnitTest(t)
 	acc.PreCheckBasic(t)

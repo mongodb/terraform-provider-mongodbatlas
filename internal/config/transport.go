@@ -47,7 +47,10 @@ func (t *NetworkLoggingTransport) RoundTrip(req *http.Request) (*http.Response, 
 	log.Printf("[DEBUG] Network Request Complete: %s %s - Status: %d (%s) - Duration: %v",
 		req.Method, req.URL.String(), statusCode, statusClass, duration)
 
-	if statusCode >= 300 {
+	if statusCode == http.StatusUnauthorized {
+		log.Printf("[DEBUG] Digest Authentication Challenge: %s %s - Status: 401 - Expected first request in digest authentication flow",
+			req.Method, req.URL.String())
+	} else if statusCode >= 300 {
 		log.Printf("[WARN] HTTP Error Response: %s %s - Status: %d %s - Duration: %v - Content-Type: %s",
 			req.Method, req.URL.String(), statusCode, http.StatusText(statusCode),
 			duration, resp.Header.Get("Content-Type"))
