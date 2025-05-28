@@ -41,15 +41,15 @@ func TestNetworkLoggingTransport_Success(t *testing.T) {
 		response: mockResp,
 		err:      nil,
 	}
-	transport := config.NewTransportWithNetworkLogging("Test Service", mockTransport)
+	transport := config.NewTransportWithNetworkLogging(mockTransport)
 	req := httptest.NewRequest("GET", "https://api.example.com/test", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 	require.NoError(t, err)
 	require.Equal(t, 200, resp.StatusCode)
 
 	logStr := logOutput.String()
-	assert.Contains(t, logStr, "Test Service Network Request Start")
-	assert.Contains(t, logStr, "Test Service Network Request Complete")
+	assert.Contains(t, logStr, "Network Request Start")
+	assert.Contains(t, logStr, "Network Request Complete")
 	assert.Contains(t, logStr, "Status: 200 (Success)")
 }
 
@@ -65,15 +65,15 @@ func TestNetworkLoggingTransport_HTTPError(t *testing.T) {
 		response: mockResp,
 		err:      nil,
 	}
-	transport := config.NewTransportWithNetworkLogging("Test Service", mockTransport)
+	transport := config.NewTransportWithNetworkLogging(mockTransport)
 	req := httptest.NewRequest("POST", "https://api.example.com/test", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 	require.NoError(t, err)
 	require.Equal(t, 500, resp.StatusCode)
 
 	logStr := logOutput.String()
-	assert.Contains(t, logStr, "Test Service Network Request Start")
-	assert.Contains(t, logStr, "Test Service Network Request Complete")
+	assert.Contains(t, logStr, "Network Request Start")
+	assert.Contains(t, logStr, "Network Request Complete")
 	assert.Contains(t, logStr, "Status: 500 (Server Error)")
 	assert.Contains(t, logStr, "HTTP Error Response")
 }
@@ -88,7 +88,7 @@ func TestNetworkLoggingTransport_NetworkError(t *testing.T) {
 		err:      networkErr,
 	}
 
-	transport := config.NewTransportWithNetworkLogging("Test Service", mockTransport)
+	transport := config.NewTransportWithNetworkLogging(mockTransport)
 	req := httptest.NewRequest("GET", "https://api.example.com/test", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 	require.Error(t, err)
@@ -96,8 +96,8 @@ func TestNetworkLoggingTransport_NetworkError(t *testing.T) {
 	require.Nil(t, resp)
 
 	logStr := logOutput.String()
-	assert.Contains(t, logStr, "Test Service Network Request Start")
-	assert.Contains(t, logStr, "Test Service Network Request Failed")
+	assert.Contains(t, logStr, "Network Request Start")
+	assert.Contains(t, logStr, "Network Request Failed")
 	assert.Contains(t, logStr, "Network Timeout")
 }
 
@@ -122,7 +122,7 @@ func TestAccNetworkLogging(t *testing.T) {
 	_, _, err = client.AtlasV2.OrganizationsApi.ListOrganizations(t.Context()).Execute()
 	require.NoError(t, err)
 	logStr := logOutput.String()
-	assert.Contains(t, logStr, "Atlas Network Request Start")
-	assert.Contains(t, logStr, "Atlas Network Request Complete")
+	assert.Contains(t, logStr, "Network Request Start")
+	assert.Contains(t, logStr, "Network Request Complete")
 	assert.Contains(t, logStr, "Duration:")
 }
