@@ -10,7 +10,7 @@ import (
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"api_user_id": schema.StringAttribute{
+			"api_key_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies this organization API key that you want to assign to one project.",
 			},
@@ -28,7 +28,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	ApiUserId types.String `tfsdk:"api_user_id"`
+	ApiKeyId  types.String `tfsdk:"api_key_id"`
 	ProjectId types.String `tfsdk:"project_id"`
 	RoleNames types.Set    `tfsdk:"role_names"`
 }

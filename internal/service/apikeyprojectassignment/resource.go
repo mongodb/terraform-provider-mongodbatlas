@@ -50,7 +50,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	}
 
 	connV2 := r.Client.AtlasV2
-	_, _, err := connV2.ProgrammaticAPIKeysApi.AddProjectApiKey(ctx, tfModel.ProjectId.String(), tfModel.ApiUserId.String(), assignmentReq).Execute()
+	_, err := connV2.ProgrammaticAPIKeysApi.AddProjectApiKey(ctx, tfModel.ProjectId.ValueString(), tfModel.ApiKeyId.ValueString(), assignmentReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error creating resource", err.Error())
 		return
@@ -67,7 +67,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	}
 
 	connV2 := r.Client.AtlasV2
-	projectID := assignmentState.ProjectId.String()
+	projectID := assignmentState.ProjectId.ValueString()
 	apiKeys, apiResp, err := connV2.ProgrammaticAPIKeysApi.ListProjectApiKeys(ctx, projectID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(apiResp) {
@@ -78,12 +78,13 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 
-	apiKeyID := assignmentState.ApiUserId.String()
+	apiKeyID := assignmentState.ApiKeyId.ValueString()
 	newApiKeyProjectAssignmentModel, diags := NewTFModel(ctx, apiKeys, apiKeyID, projectID)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, newApiKeyProjectAssignmentModel)...)
 }
 
@@ -101,8 +102,8 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 
 	connV2 := r.Client.AtlasV2
-	projectID := tfModel.ProjectId.String()
-	apiKeyID := tfModel.ApiUserId.String()
+	projectID := tfModel.ProjectId.ValueString()
+	apiKeyID := tfModel.ApiKeyId.ValueString()
 
 	apiResp, _, err := connV2.ProgrammaticAPIKeysApi.UpdateApiKeyRoles(ctx, projectID, apiKeyID, assignmentReq).Execute()
 	if err != nil {
@@ -127,9 +128,9 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 
 	connV2 := r.Client.AtlasV2
 
-	projectID := assignmentState.ProjectId.String()
-	apiKeyID := assignmentState.ApiUserId.String()
-	if _, _, err := connV2.ProgrammaticAPIKeysApi.RemoveProjectApiKey(ctx, projectID, apiKeyID).Execute(); err != nil {
+	projectID := assignmentState.ProjectId.ValueString()
+	apiKeyID := assignmentState.ApiKeyId.ValueString()
+	if _, err := connV2.ProgrammaticAPIKeysApi.RemoveProjectApiKey(ctx, projectID, apiKeyID).Execute(); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}

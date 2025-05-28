@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/apikeyprojectassignment"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 )
 
 type sdkToTFModelTestCase struct {
@@ -36,6 +36,8 @@ func TestApiKeyProjectAssignmentSDKToTFModel(t *testing.T) {
 				},
 			},
 			expectedTFModel: &apikeyprojectassignment.TFModel{
+				ApiKeyId:  types.StringValue("TargetAPIKeyID"),
+				ProjectId: types.StringValue("TargetProjectID"),
 				RoleNames: types.SetValueMust(types.StringType, []attr.Value{
 					types.StringValue("MY_ROLE"),
 					types.StringValue("MY_ROLE_2"),
@@ -61,6 +63,8 @@ func TestApiKeyProjectAssignmentSDKToTFModel(t *testing.T) {
 				},
 			},
 			expectedTFModel: &apikeyprojectassignment.TFModel{
+				ApiKeyId:  types.StringValue("TargetAPIKeyID"),
+				ProjectId: types.StringValue("TargetProjectID"),
 				RoleNames: types.SetNull(nil),
 			},
 		},
@@ -83,6 +87,8 @@ func TestApiKeyProjectAssignmentSDKToTFModel(t *testing.T) {
 				},
 			},
 			expectedTFModel: &apikeyprojectassignment.TFModel{
+				ApiKeyId:  types.StringValue("TargetAPIKeyID"),
+				ProjectId: types.StringValue("TargetProjectID"),
 				RoleNames: types.SetValueMust(types.StringType, []attr.Value{}),
 			},
 		},
@@ -108,7 +114,7 @@ func TestApiKeyProjectAssignmentTFModelToSDKPatch(t *testing.T) {
 	testCases := map[string]tfToSDKModelUpdateTestCase{
 		"Complete TF state": {
 			tfModel: &apikeyprojectassignment.TFModel{
-				ApiUserId: types.StringValue("TargetAPIKeyID"),
+				ApiKeyId:  types.StringValue("TargetAPIKeyID"),
 				ProjectId: types.StringValue("TargetProject"),
 				RoleNames: types.SetValueMust(types.StringType, []attr.Value{
 					types.StringValue("MY_ROLE"),
@@ -145,7 +151,7 @@ func TestApiKeyProjectAssignmentTFModelToSDKCreate(t *testing.T) {
 	testCases := map[string]tfToSDKModelCreateTestCase{
 		"Complete TF state": {
 			tfModel: &apikeyprojectassignment.TFModel{
-				ApiUserId: types.StringValue("TargetAPIKeyID"),
+				ApiKeyId:  types.StringValue("TargetAPIKeyID"),
 				ProjectId: types.StringValue("TargetProject"),
 				RoleNames: types.SetValueMust(types.StringType, []attr.Value{
 					types.StringValue("MY_ROLE"),

@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	resourceName    = "mongodbatlas_api_key_project_assignment.test"
+	resourceName    = "mongodbatlas_api_key_project_assignment.test1"
 	roleName        = "GROUP_OWNER"
 	roleNameUpdated = "GROUP_READ_ONLY"
 )
@@ -41,11 +41,12 @@ func TestAccApiKeyProjectAssignmentRS_basic(t *testing.T) {
 				Check:  apiKeyProjectAssignmentAttributeChecks(projectName1, roleNameUpdated),
 			},
 			{
-				Config:            apiKeyProjectAssignmentConfig(orgID, roleNameUpdated, projectName1, projectName2),
-				ResourceName:      resourceName,
-				ImportStateIdFunc: checkApiKeyProjectAssignmentImportStateIDFunc(resourceName, "project_id", "api_key_id"),
-				ImportState:       true,
-				ImportStateVerify: true,
+				Config:                               apiKeyProjectAssignmentConfig(orgID, roleNameUpdated, projectName1, projectName2),
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    checkApiKeyProjectAssignmentImportStateIDFunc(resourceName, "project_id", "api_key_id"),
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "project_id",
 			},
 		},
 	})
@@ -93,38 +94,28 @@ func apiKeyProjectAssignmentConfig(orgID, roleName, projectName1, projectName2 s
 			role_names = ["ORG_READ_ONLY"]
 		}
 
-		data "mongodbatlas_roles_org_id" "test" {}
-
 		resource "mongodbatlas_project" "test1" {
 			name   = "%[3]s"
-			org_id = data.mongodbatlas_roles_org_id.test.org_id
+			org_id = "%[1]s"
         }
 
 		resource "mongodbatlas_project" "test2" {
 			name   = "%[4]s"
-			org_id = data.mongodbatlas_roles_org_id.test.org_id
+			org_id = "%[1]s"
         }
 
 		resource "mongodbatlas_api_key_project_assignment" "test1" {
-			project_id = mongodbatlas_project.test1.id
-			api_key_id = mongodbatlas_api_key.test.id
+			project_id  = mongodbatlas_project.test1.id
+			api_key_id = mongodbatlas_api_key.test.api_key_id
 
-			role_names  = ["GROUP_OWNER"]
+			role_names  = ["%[2]s"]
 		}
 		
 		resource "mongodbatlas_api_key_project_assignment" "test2" {
 			project_id = mongodbatlas_project.test2.id
-			api_key_id = mongodbatlas_api_key.test.id
+			api_key_id = mongodbatlas_api_key.test.api_key_id
 
 			role_names  = ["GROUP_OWNER"]
-		}
-
-		resource "mongodbatlas_api_key_project_assignment" "test" {
-		    depends_on [mongodbatlas_api_key_project_assignment.test1, mongodbatlas_api_key_project_assignment.test2]
-			project_id = mongodbatlas_project.test2.id
-			api_key_id = mongodbatlas_api_key.test.id
-
-			role_names  = ["%[2]s"]
 		}
 	`, orgID, roleName, projectName1, projectName2)
 }

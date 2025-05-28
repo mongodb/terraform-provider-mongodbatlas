@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 )
 
 func NewTFModel(ctx context.Context, apiResp *admin.PaginatedApiApiUser, apiKeyID, projectID string) (*TFModel, diag.Diagnostics) {
@@ -21,7 +21,10 @@ func NewTFModel(ctx context.Context, apiResp *admin.PaginatedApiApiUser, apiKeyI
 		return apiKeyUserDetailsToTFModel(ctx, &apiKey, projectID)
 	}
 
-	return &TFModel{}, nil
+	return &TFModel{
+		ProjectId: types.StringValue(projectID),
+		ApiKeyId:  types.StringValue(apiKeyID),
+	}, nil
 }
 
 func NewTFModelPatch(ctx context.Context, apiKey *admin.ApiKeyUserDetails, projectID string) (*TFModel, diag.Diagnostics) {
@@ -44,6 +47,8 @@ func apiKeyUserDetailsToTFModel(ctx context.Context, apiKey *admin.ApiKeyUserDet
 
 	return &TFModel{
 		RoleNames: roleNames,
+		ApiKeyId:  types.StringValue(apiKey.GetId()),
+		ProjectId: types.StringValue(projectID),
 	}, diags
 }
 
@@ -52,7 +57,7 @@ func NewAtlasCreateReq(ctx context.Context, plan *TFModel) (*[]admin.UserAccessR
 	return &[]admin.UserAccessRoleAssignment{
 		{
 			Roles:  &roleNames,
-			UserId: plan.ApiUserId.ValueStringPointer(),
+			UserId: plan.ApiKeyId.ValueStringPointer(),
 		},
 	}, nil
 }
