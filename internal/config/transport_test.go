@@ -7,12 +7,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type mockTransport struct {
@@ -46,23 +47,13 @@ func TestNetworkLoggingTransport_Success(t *testing.T) {
 	transport := config.NewNetworkLoggingTransport("Test Service", mockTransport)
 	req := httptest.NewRequest("GET", "https://api.example.com/test", http.NoBody)
 	resp, err := transport.RoundTrip(req)
-	if err != nil {
-		t.Fatalf("Expected no error, got: %v", err)
-	}
-	if resp.StatusCode != 200 {
-		t.Fatalf("Expected status 200, got: %d", resp.StatusCode)
-	}
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode)
 
 	logStr := logOutput.String()
-	if !strings.Contains(logStr, "Test Service Network Request Start") {
-		t.Error("Expected start log message not found")
-	}
-	if !strings.Contains(logStr, "Test Service Network Request Complete") {
-		t.Error("Expected completion log message not found")
-	}
-	if !strings.Contains(logStr, "Status: 200 (Success)") {
-		t.Error("Expected success status log not found")
-	}
+	assert.Contains(t, logStr, "Test Service Network Request Start")
+	assert.Contains(t, logStr, "Test Service Network Request Complete")
+	assert.Contains(t, logStr, "Status: 200 (Success)")
 }
 
 func TestNetworkLoggingTransport_HTTPError(t *testing.T) {
@@ -83,25 +74,14 @@ func TestNetworkLoggingTransport_HTTPError(t *testing.T) {
 	transport := config.NewNetworkLoggingTransport("Test Service", mockTransport)
 	req := httptest.NewRequest("POST", "https://api.example.com/test", http.NoBody)
 	resp, err := transport.RoundTrip(req)
-	if err != nil {
-		t.Fatalf("Expected no error, got: %v", err)
-	}
-	if resp.StatusCode != 500 {
-		t.Fatalf("Expected status 500, got: %d", resp.StatusCode)
-	}
+	require.NoError(t, err)
+	require.Equal(t, 500, resp.StatusCode)
+
 	logStr := logOutput.String()
-	if !strings.Contains(logStr, "Test Service Network Request Start") {
-		t.Error("Expected start log message not found")
-	}
-	if !strings.Contains(logStr, "Test Service Network Request Complete") {
-		t.Error("Expected completion log message not found")
-	}
-	if !strings.Contains(logStr, "Status: 500 (Server Error)") {
-		t.Error("Expected server error status log not found")
-	}
-	if !strings.Contains(logStr, "HTTP Error Response") {
-		t.Error("Expected HTTP error response log not found")
-	}
+	assert.Contains(t, logStr, "Test Service Network Request Start")
+	assert.Contains(t, logStr, "Test Service Network Request Complete")
+	assert.Contains(t, logStr, "Status: 500 (Server Error)")
+	assert.Contains(t, logStr, "HTTP Error Response")
 }
 
 func TestNetworkLoggingTransport_NetworkError(t *testing.T) {
@@ -117,25 +97,14 @@ func TestNetworkLoggingTransport_NetworkError(t *testing.T) {
 	transport := config.NewNetworkLoggingTransport("Test Service", mockTransport)
 	req := httptest.NewRequest("GET", "https://api.example.com/test", http.NoBody)
 	resp, err := transport.RoundTrip(req)
-	if err == nil {
-		t.Fatal("Expected error, got nil")
-	}
-	if err != networkErr {
-		t.Fatalf("Expected original error, got: %v", err)
-	}
-	if resp != nil {
-		t.Fatal("Expected nil response on error")
-	}
+	require.Error(t, err)
+	require.Equal(t, networkErr, err)
+	require.Nil(t, resp)
+
 	logStr := logOutput.String()
-	if !strings.Contains(logStr, "Test Service Network Request Start") {
-		t.Error("Expected start log message not found")
-	}
-	if !strings.Contains(logStr, "Test Service Network Request Failed") {
-		t.Error("Expected failure log message not found")
-	}
-	if !strings.Contains(logStr, "Network Timeout") {
-		t.Error("Expected timeout context log not found")
-	}
+	assert.Contains(t, logStr, "Test Service Network Request Start")
+	assert.Contains(t, logStr, "Test Service Network Request Failed")
+	assert.Contains(t, logStr, "Network Timeout")
 }
 
 func TestAccNetworkLogging(t *testing.T) {
@@ -151,30 +120,15 @@ func TestAccNetworkLogging(t *testing.T) {
 		BaseURL:    os.Getenv("MONGODB_ATLAS_BASE_URL"),
 	}
 	clientInterface, err := cfg.NewClient(t.Context())
-	if err != nil {
-		t.Fatalf("Failed to create client: %v", err)
-	}
+	require.NoError(t, err)
 	client, ok := clientInterface.(*config.MongoDBClient)
-	if !ok {
-		t.Fatal("Failed to cast client to MongoDBClient")
-	}
+	require.True(t, ok)
 
 	// Make a simple API call that should trigger our enhanced logging
-	// We'll try to list organizations, which is a basic read operation
-	_, resp, err := client.AtlasV2.OrganizationsApi.ListOrganizations(t.Context()).Execute()
-
-	// We don't care if the API call fails (could be due to permissions, etc.)
-	// We just want to verify that our logging is working
-	_ = resp // Ignore response
-	_ = err  // Ignore error
-
+	_, _, err = client.AtlasV2.OrganizationsApi.ListOrganizations(t.Context()).Execute()
+	require.NoError(t, err)
 	logStr := logOutput.String()
-	if !strings.Contains(logStr, "MongoDB Atlas Network Request Start") {
-		t.Error("Expected to find 'MongoDB Atlas Network Request Start' in logs")
-	}
-
-	hasCompletion := strings.Contains(logStr, "MongoDB Atlas Network Request Complete")
-	if hasCompletion && !strings.Contains(logStr, "Duration:") {
-		t.Error("Expected to find duration information in completion logs")
-	}
+	assert.Contains(t, logStr, "Atlas Network Request Start")
+	assert.Contains(t, logStr, "Atlas Network Request Complete")
+	assert.Contains(t, logStr, "Duration:")
 }
