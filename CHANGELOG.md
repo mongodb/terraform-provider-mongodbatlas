@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.35.0 (May 28, 2025)
+
 ENHANCEMENTS:
 
 * resource/mongodbatlas_advanced_cluster (preview provider 2.0.0): Adds `delete_on_create_timeout` a flag that indicates whether to delete the cluster if the cluster creation times out, default is false ([#3333](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3333))
