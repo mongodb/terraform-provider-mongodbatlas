@@ -48,13 +48,6 @@ The logging transport analyzes network errors and provides specific context for 
 [ERROR] Atlas Request Deadline Exceeded: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 30s - Request took longer than configured timeout
 ```
 
-### Slow Request Warning
-```
-[DEBUG] Atlas Network Request Start: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters (started at 2025-01-15T10:30:00.123Z)
-[DEBUG] Atlas Network Request Complete: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Status: 200 (Success) - Duration: 12s
-[INFO] Atlas Long Network Request: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 12s (>10s) - Status: 200
-```
-
 ## Implementation Details
 
 ### Transport Chain
@@ -65,11 +58,6 @@ flowchart LR
     A[baseTransport] --> B[digestTransport]
     B --> C[NetworkLoggingTransport]
     C --> D[LoggingHTTPTransport]
-    
-    style A fill:#e1f5fe
-    style B fill:#f3e5f5
-    style C fill:#fff3e0
-    style D fill:#e8f5e8
 ```
 
 This ensures:
