@@ -38,7 +38,6 @@ The logging transport analyzes network errors and provides specific context for 
 [DEBUG] Atlas Network Request Start: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters (started at 2025-01-15T10:30:00.123Z)
 [DEBUG] Atlas Network Request Complete: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Status: 400 (Client Error) - Duration: 180ms
 [WARN] Atlas HTTP Error Response: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Status: 400 Bad Request - Duration: 180ms - Content-Type: application/json
-[DEBUG] Atlas Response Header: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - X-Request-Id: 507f1f77bcf86cd799439011
 ```
 
 ### Network Error
