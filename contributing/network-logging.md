@@ -45,21 +45,21 @@ The logging transport analyzes network errors and provides specific context for 
 ```
 [DEBUG] Atlas Network Request Start: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters (started at 2025-01-15T10:30:00.123Z)
 [ERROR] Atlas Network Request Failed: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 30s - Error: context deadline exceeded
-[ERROR] Atlas Request Deadline Exceeded: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 30s - Request took longer than configured timeout - Error details: context deadline exceeded
+[ERROR] Atlas Request Deadline Exceeded: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 30s - Request took longer than configured timeout
 ```
 
 ### Connection Refused Error
 ```
 [DEBUG] Atlas Network Request Start: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters (started at 2025-01-15T10:30:00.123Z)
 [ERROR] Atlas Network Request Failed: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 5s - Error: dial tcp 192.168.1.1:443: connect: connection refused
-[ERROR] Atlas Connection Refused: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 5s - API server may be down or unreachable - Error details: dial tcp 192.168.1.1:443: connect: connection refused
+[ERROR] Atlas Connection Refused: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 5s - API server may be down or unreachable
 ```
 
 ### DNS Resolution Error
 ```
 [DEBUG] Atlas Network Request Start: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters (started at 2025-01-15T10:30:00.123Z)
 [ERROR] Atlas Network Request Failed: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 2s - Error: dial tcp: lookup cloud.mongodb.com: no such host
-[ERROR] Atlas DNS Resolution Failed: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 2s - Check DNS configuration and network connectivity - Error details: dial tcp: lookup cloud.mongodb.com: no such host
+[ERROR] Atlas DNS Resolution Failed: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 2s - Check DNS configuration and network connectivity
 ```
 
 ## Implementation Details
@@ -87,19 +87,7 @@ The enhanced logging is automatically enabled for all MongoDB Atlas API clients:
 
 No additional configuration is required - the enhanced logging works automatically when debug logging is enabled.
 
-### Technical Implementation
-The implementation uses the modern `logging.NewLoggingHTTPTransport` function from terraform-plugin-sdk v2, which provides:
-- Structured HTTP request/response logging
-- Integration with Terraform's logging subsystem
-- Proper context propagation for log filtering
-
 ## Troubleshooting Common Issues
-
-### High Latency
-If you see frequent "Long Network Request" warnings:
-- Check network connectivity to MongoDB Atlas
-- Verify there are no proxy or firewall issues
-- Consider if the Atlas API region is geographically distant
 
 ### Timeout Errors
 For "Request Deadline Exceeded" errors:
@@ -112,18 +100,3 @@ For "Connection Refused" or "DNS Resolution Failed" errors:
 - Verify network connectivity
 - Check DNS configuration
 - Ensure firewall rules allow HTTPS traffic to MongoDB Atlas
-
-### Rate Limiting
-For 429 status codes, check the response headers:
-- `X-RateLimit-Remaining`: Shows remaining requests in the current window
-- `X-RateLimit-Reset`: Shows when the rate limit resets
-- `Retry-After`: Provides guidance on when to retry
-
-## Benefits
-
-1. **Faster Issue Resolution**: Detailed error context helps quickly identify the root cause of connectivity issues
-2. **Performance Monitoring**: Request timing helps identify performance bottlenecks
-3. **Proactive Monitoring**: Warnings for slow requests help identify potential issues before they become critical
-4. **Better Debugging**: Comprehensive logging provides all necessary information for troubleshooting API issues
-5. **Operational Visibility**: Clear insight into the health and performance of MongoDB Atlas API communications
-6. **Modern Implementation**: Uses current terraform-plugin-sdk v2 logging functions for better integration and future compatibility 
