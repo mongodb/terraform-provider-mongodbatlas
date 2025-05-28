@@ -7,6 +7,8 @@ bin
 *.log
 *.mdc
 __debug_*
+*~
+.DS_Store
 
 #used for schema code generation but is not commited to avoid constant updates
 tools/codegen/open-api-spec.yml
