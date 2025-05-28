@@ -1,45 +1,14 @@
-*.dll
-*.exe
+node_modules
+bin
 .DS_Store
-.vscode
-example.tf
-terraform.tfplan
-terraform.tfstate
-.terraform.lock.hcl
-bin/
-bin-examples/
-/pkg/
-.vagrant/
-*.backup
-./*.tfstate
-.terraform/
-*.log
-*.bak
-*~
-.*.swp
 .idea
 .vscode
-*.iml
-*.test
-*.iml
-*.tfvars
-service-account.json
-log.*
-test.env
+*.env
+*.bak
+*.log
+*.mdc
 __debug_*
-coverage.out
-
-# Test exclusions
-!command/test-fixtures/**/*.tfstate
-!command/test-fixtures/**/.terraform/
-
-#exclude vendor
-vendor/
-
-# Keep windows files with windows line endings
-*.winfile eol=crlf
-/.vs
-node_modules
+*~
 
 #used for schema code generation but is not commited to avoid constant updates
 tools/codegen/open-api-spec.yml
