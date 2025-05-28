@@ -108,7 +108,7 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 	}
 
 	// Add network logging transport for enhanced visibility into network operations.
-	networkLoggingTransport := NewNetworkLoggingTransport("Atlas", transport)
+	networkLoggingTransport := NewTransportWithNetworkLogging("Atlas", transport)
 
 	// Chain with existing Terraform logging transport.
 	client.Transport = logging.NewTransport("Atlas", networkLoggingTransport)
@@ -255,7 +255,7 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 	clientRealm.Transport = baseTransport
 
 	// Add network logging transport for enhanced visibility into network operations.
-	networkLoggingTransport := NewNetworkLoggingTransport("Realm", clientRealm.Transport)
+	networkLoggingTransport := NewTransportWithNetworkLogging("Realm", clientRealm.Transport)
 
 	// Chain with existing Terraform logging transport.
 	clientRealm.Transport = logging.NewTransport("Realm", networkLoggingTransport)

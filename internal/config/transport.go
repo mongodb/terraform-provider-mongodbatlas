@@ -16,9 +16,9 @@ type NetworkLoggingTransport struct {
 	Name string
 }
 
-// NewNetworkLoggingTransport creates a new NetworkLoggingTransport that wraps
+// NewTransportWithNetworkLogging creates a new NetworkLoggingTransport that wraps
 // the provided transport with enhanced network logging capabilities.
-func NewNetworkLoggingTransport(name string, transport http.RoundTripper) *NetworkLoggingTransport {
+func NewTransportWithNetworkLogging(name string, transport http.RoundTripper) *NetworkLoggingTransport {
 	if transport == nil {
 		transport = http.DefaultTransport
 	}
