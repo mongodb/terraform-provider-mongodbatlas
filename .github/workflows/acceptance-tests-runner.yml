@@ -296,6 +296,7 @@ jobs:
           cluster_outage_simulation:
             - 'internal/service/clusteroutagesimulation/*.go'  
           config:
+            - 'internal/config/*.go'
             - 'internal/service/alertconfiguration/*.go'
             - 'internal/service/apikey/*.go'
             - 'internal/service/atlasuser/*.go'
