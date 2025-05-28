@@ -28,6 +28,7 @@ log.*
 test.env
 __debug_*
 coverage.out
+*.mdc
 
 # Test exclusions
 !command/test-fixtures/**/*.tfstate
