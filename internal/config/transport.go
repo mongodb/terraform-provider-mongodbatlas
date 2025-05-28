@@ -65,23 +65,23 @@ func (t *NetworkLoggingTransport) logNetworkErrorContext(err error, req *http.Re
 	errStr := err.Error()
 	switch {
 	case strings.Contains(errStr, "timeout"):
-		log.Printf("[ERROR] %s Network Timeout: %s %s - Duration: %v - This may indicate API server overload or network connectivity issues",
-			t.Name, req.Method, req.URL.String(), duration)
+		log.Printf("[ERROR] %s Network Timeout: %s %s - Duration: %v - This may indicate API server overload or network connectivity issues - Error details: %v",
+			t.Name, req.Method, req.URL.String(), duration, err)
 	case strings.Contains(errStr, "connection refused"):
-		log.Printf("[ERROR] %s Connection Refused: %s %s - Duration: %v - API server may be down or unreachable",
-			t.Name, req.Method, req.URL.String(), duration)
+		log.Printf("[ERROR] %s Connection Refused: %s %s - Duration: %v - API server may be down or unreachable - Error details: %v",
+			t.Name, req.Method, req.URL.String(), duration, err)
 	case strings.Contains(errStr, "no such host"):
-		log.Printf("[ERROR] %s DNS Resolution Failed: %s %s - Duration: %v - Check DNS configuration and network connectivity",
-			t.Name, req.Method, req.URL.String(), duration)
+		log.Printf("[ERROR] %s DNS Resolution Failed: %s %s - Duration: %v - Check DNS configuration and network connectivity - Error details: %v",
+			t.Name, req.Method, req.URL.String(), duration, err)
 	case strings.Contains(errStr, "certificate"):
-		log.Printf("[ERROR] %s TLS Certificate Error: %s %s - Duration: %v - Check certificate validity and trust chain",
-			t.Name, req.Method, req.URL.String(), duration)
+		log.Printf("[ERROR] %s TLS Certificate Error: %s %s - Duration: %v - Check certificate validity and trust chain - Error details: %v",
+			t.Name, req.Method, req.URL.String(), duration, err)
 	case strings.Contains(errStr, "context deadline exceeded"):
-		log.Printf("[ERROR] %s Request Deadline Exceeded: %s %s - Duration: %v - Request took longer than configured timeout",
-			t.Name, req.Method, req.URL.String(), duration)
+		log.Printf("[ERROR] %s Request Deadline Exceeded: %s %s - Duration: %v - Request took longer than configured timeout - Error details: %v",
+			t.Name, req.Method, req.URL.String(), duration, err)
 	case strings.Contains(errStr, "connection reset"):
-		log.Printf("[ERROR] %s Connection Reset: %s %s - Duration: %v - Server closed connection unexpectedly",
-			t.Name, req.Method, req.URL.String(), duration)
+		log.Printf("[ERROR] %s Connection Reset: %s %s - Duration: %v - Server closed connection unexpectedly - Error details: %v",
+			t.Name, req.Method, req.URL.String(), duration, err)
 	default:
 		log.Printf("[ERROR] %s Network Error: %s %s - Duration: %v - Error details: %v",
 			t.Name, req.Method, req.URL.String(), duration, err)
