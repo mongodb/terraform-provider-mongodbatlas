@@ -232,6 +232,7 @@ func (c *Config) newSDKV220241113Client(client *http.Client) (*admin20241113.API
 }
 
 func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, error) {
+	// Realm
 	if c.Config.PublicKey == "" && c.Config.PrivateKey == "" {
 		return nil, errors.New("please set `public_key` and `private_key` in order to use the realm client")
 	}
@@ -253,12 +254,7 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 	clientRealm := realmAuth.NewClient(realmAuth.BasicTokenSource(token))
 
 	clientRealm.Transport = baseTransport
-
-	// Add network logging transport for enhanced visibility into network operations.
-	networkLoggingTransport := NewTransportWithNetworkLogging(clientRealm.Transport)
-
-	// Chain with existing Terraform logging transport.
-	clientRealm.Transport = logging.NewTransport("Realm", networkLoggingTransport)
+	clientRealm.Transport = logging.NewTransport("MongoDB Realm", clientRealm.Transport)
 
 	// Initialize the MongoDB Realm API Client.
 	realmClient, err := realm.New(clientRealm, optsRealm...)
