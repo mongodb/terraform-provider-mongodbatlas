@@ -111,7 +111,7 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 	networkLoggingTransport := NewNetworkLoggingTransport("Atlas", transport)
 
 	// Chain with existing Terraform logging transport.
-	client.Transport = logging.NewLoggingHTTPTransport(networkLoggingTransport)
+	client.Transport = logging.NewTransport("Atlas", networkLoggingTransport)
 
 	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
 	if c.BaseURL != "" {
@@ -258,7 +258,7 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 	networkLoggingTransport := NewNetworkLoggingTransport("Realm", clientRealm.Transport)
 
 	// Chain with existing Terraform logging transport.
-	clientRealm.Transport = logging.NewLoggingHTTPTransport(networkLoggingTransport)
+	clientRealm.Transport = logging.NewTransport("Realm", networkLoggingTransport)
 
 	// Initialize the MongoDB Realm API Client.
 	realmClient, err := realm.New(clientRealm, optsRealm...)
