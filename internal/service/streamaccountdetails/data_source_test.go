@@ -24,6 +24,8 @@ func TestAccStreamAccountDetailsDS_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "aws_account_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "cidr_block"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "vpc_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "azure_subscription_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "virtual_network_name"),
 				),
 			},
 			{
@@ -33,6 +35,8 @@ func TestAccStreamAccountDetailsDS_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "azure_subscription_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "cidr_block"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "virtual_network_name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "aws_account_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "vpc_id"),
 				),
 			},
 		},
@@ -43,9 +47,9 @@ func StreamAccountDetailsConfig(projectID, cloudProvider, regionName string) str
 	return fmt.Sprintf(`
 	
 	data "mongodbatlas_stream_account_details" "test" {
-  		project_id = %[1]q
-  		cloud_provider= %[1]q
-  		region_name = %[1]q
+  		project_id 		= %[1]q
+  		cloud_provider	= %[2]q
+  		region_name 	= %[3]q
 	}
 `, projectID, cloudProvider, regionName)
 }
