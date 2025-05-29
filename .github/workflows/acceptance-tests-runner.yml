@@ -360,6 +360,7 @@ jobs:
             - 'internal/service/privatelinkendpointserviceserverless/*.go'
             - 'internal/service/serverlessinstance/*.go'
           stream:
+            - 'internal/service/streamaccountdetails/*.go'
             - 'internal/service/streamconnection/*.go'
             - 'internal/service/streaminstance/*.go'
             - 'internal/service/streamprocessor/*.go'
