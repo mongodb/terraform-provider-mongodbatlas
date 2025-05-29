@@ -137,6 +137,7 @@ func TestAccNetworkLogging(t *testing.T) {
 	acc.SkipInUnitTest(t)
 	acc.PreCheckBasic(t)
 
+	t.Setenv("TF_LOG", "DEBUG") // Enable debug logging for the test.
 	var logOutput bytes.Buffer
 	log.SetOutput(&logOutput)
 	defer log.SetOutput(os.Stderr)
