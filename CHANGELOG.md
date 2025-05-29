@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+BUG FIXES:
+
+* provider: Fixes Realm Client authentication ([#3362](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3362))
+
 ## 1.35.0 (May 28, 2025)
 
 ENHANCEMENTS:
