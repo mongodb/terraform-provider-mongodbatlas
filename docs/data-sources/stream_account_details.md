@@ -5,9 +5,9 @@
 ## Example Usages
 ```terraform
 data "mongodbatlas_stream_account_details" "account_details" {
-  project_id = var.project_id
-  cloud_provider= "aws"
-  region_name = "US_EAST_1"
+  project_id     = var.project_id
+  cloud_provider = "aws"
+  region_name    = "US_EAST_1"
 }
 
 output "aws_account_id" {
