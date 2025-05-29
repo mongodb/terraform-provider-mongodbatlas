@@ -243,10 +243,12 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 		return nil, err
 	}
 
-	clientRealm := realmAuth.NewClient(realmAuth.BasicTokenSource(token))
-
-	clientRealm.Transport = baseTransport
-	clientRealm.Transport = logging.NewTransport("MongoDB Realm", clientRealm.Transport)
+	clientRealm := &http.Client{
+		Transport: &realmAuth.Transport{
+			Source: realmAuth.BasicTokenSource(token),
+			Base:   logging.NewTransport("MongoDB Realm", baseTransport),
+		},
+	}
 
 	// Initialize the MongoDB Realm API Client.
 	realmClient, err := realm.New(clientRealm, optsRealm...)

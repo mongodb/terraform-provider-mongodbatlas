@@ -3,6 +3,7 @@ package eventtrigger_test
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -51,6 +52,23 @@ func TestAccEventTriggerDSPlural_basic(t *testing.T) {
 	})
 }
 
+func TestAccEventTriggerDSPlural_realmClientWorks(t *testing.T) {
+	// This test is designed to run in CI and expects a 404 "app not found" error from the Realm API.
+	projectID := acc.ProjectIDExecution(t)
+	appID := "invalid-app-id" // known-bad app ID
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccMongoDBAtlasEventTriggers404Config(projectID, appID),
+				ExpectError: regexp.MustCompile("app not found"),
+			},
+		},
+	})
+}
+
 func testAccMongoDBAtlasEventTriggersDataSourceConfig(projectID, appID, operationTypes string, eventTrigger *realm.EventTriggerRequest) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_event_trigger" "test" {
@@ -75,4 +93,13 @@ func testAccMongoDBAtlasEventTriggersDataSourceConfig(projectID, appID, operatio
 `, projectID, appID, eventTrigger.Name, eventTrigger.Type, eventTrigger.FunctionID, *eventTrigger.Disabled, *eventTrigger.Config.Unordered, operationTypes,
 		eventTrigger.Config.Database, eventTrigger.Config.Collection,
 		eventTrigger.Config.ServiceID)
+}
+
+func testAccMongoDBAtlasEventTriggers404Config(projectID, appID string) string {
+	return fmt.Sprintf(`
+		data "mongodbatlas_event_triggers" "this" {
+			project_id = %q
+			app_id     = %q
+		}
+	`, projectID, appID)
 }
