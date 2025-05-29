@@ -42,7 +42,6 @@ For error responses, the transport logs important debugging headers:
 
 ### HTTP Error Response
 ```
-# authentication challenge omitted
 [DEBUG] Atlas Network Request Start: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters (started at 2025-01-15T10:30:00.123Z)
 [DEBUG] Atlas Network Request Complete: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Status: 400 (Client Error) - Duration: 180ms
 [WARN] Atlas HTTP Error Response: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Status: 400 Bad Request - Duration: 180ms - Content-Type: application/json
@@ -50,7 +49,6 @@ For error responses, the transport logs important debugging headers:
 
 ### Network Error
 ```
-# authentication challenge omitted
 [DEBUG] Atlas Network Request Start: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters (started at 2025-01-15T10:30:00.123Z)
 [ERROR] Atlas Network Request Failed: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 30s - Error: context deadline exceeded
 [ERROR] Atlas Request Deadline Exceeded: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 30s - Request took longer than configured timeout
@@ -58,7 +56,6 @@ For error responses, the transport logs important debugging headers:
 
 ### Connection Refused Error
 ```
-# authentication challenge omitted
 [DEBUG] Atlas Network Request Start: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters (started at 2025-01-15T10:30:00.123Z)
 [ERROR] Atlas Network Request Failed: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 5s - Error: dial tcp 192.168.1.1:443: connect: connection refused
 [ERROR] Atlas Connection Refused: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 5s - API server may be down or unreachable
@@ -66,7 +63,6 @@ For error responses, the transport logs important debugging headers:
 
 ### DNS Resolution Error
 ```
-# authentication challenge omitted
 [DEBUG] Atlas Network Request Start: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters (started at 2025-01-15T10:30:00.123Z)
 [ERROR] Atlas Network Request Failed: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 2s - Error: dial tcp: lookup cloud.mongodb.com: no such host
 [ERROR] Atlas DNS Resolution Failed: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 2s - Check DNS configuration and network connectivity
@@ -90,13 +86,6 @@ This ensures:
 3. **Terraform logging happens after digest authentication** - prevents logging of sensitive authentication details
 4. **Existing functionality is preserved** - maintains compatibility with all existing features
 5. **Consistent logging across all MongoDB Atlas API clients** - same transport chain for all SDK versions
-
-### Configuration
-The enhanced logging is automatically enabled for all MongoDB Atlas API clients:
-- **MongoDB Atlas API**: Uses "Atlas" as the service name in logs
-- **MongoDB Realm API**: Uses "Realm" as the service name in logs
-
-No additional configuration is required - the enhanced logging works automatically when debug logging is enabled.
 
 ## Troubleshooting Common Issues
 
