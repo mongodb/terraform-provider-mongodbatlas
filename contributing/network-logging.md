@@ -42,30 +42,30 @@ For error responses, the transport logs important debugging headers:
 
 ### HTTP Error Response
 ```
-[DEBUG] Atlas Network Request Start: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters (started at 2025-01-15T10:30:00.123Z)
-[DEBUG] Atlas Network Request Complete: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Status: 400 (Client Error) - Duration: 180ms
-[WARN] Atlas HTTP Error Response: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Status: 400 Bad Request - Duration: 180ms - Content-Type: application/json
+[DEBUG] Network Request Start: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters (started at 2025-01-15T10:30:00.123Z)
+[DEBUG] Network Request Complete: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Status: 400 (Client Error) - Duration: 180ms
+[WARN] HTTP Error Response: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Status: 400 Bad Request - Duration: 180ms - Content-Type: application/json
 ```
 
 ### Network Error
 ```
-[DEBUG] Atlas Network Request Start: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters (started at 2025-01-15T10:30:00.123Z)
-[ERROR] Atlas Network Request Failed: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 30s - Error: context deadline exceeded
-[ERROR] Atlas Request Deadline Exceeded: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 30s - Request took longer than configured timeout
+[DEBUG] Network Request Start: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters (started at 2025-01-15T10:30:00.123Z)
+[ERROR] Network Request Failed: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 30s - Error: context deadline exceeded
+[ERROR] Request Deadline Exceeded: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 30s - Request took longer than configured timeout
 ```
 
 ### Connection Refused Error
 ```
-[DEBUG] Atlas Network Request Start: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters (started at 2025-01-15T10:30:00.123Z)
-[ERROR] Atlas Network Request Failed: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 5s - Error: dial tcp 192.168.1.1:443: connect: connection refused
-[ERROR] Atlas Connection Refused: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 5s - API server may be down or unreachable
+[DEBUG] Network Request Start: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters (started at 2025-01-15T10:30:00.123Z)
+[ERROR] Network Request Failed: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 5s - Error: dial tcp 192.168.1.1:443: connect: connection refused
+[ERROR] Connection Refused: POST https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 5s - API server may be down or unreachable
 ```
 
 ### DNS Resolution Error
 ```
-[DEBUG] Atlas Network Request Start: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters (started at 2025-01-15T10:30:00.123Z)
-[ERROR] Atlas Network Request Failed: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 2s - Error: dial tcp: lookup cloud.mongodb.com: no such host
-[ERROR] Atlas DNS Resolution Failed: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 2s - Check DNS configuration and network connectivity
+[DEBUG] Network Request Start: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters (started at 2025-01-15T10:30:00.123Z)
+[ERROR] Network Request Failed: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 2s - Error: dial tcp: lookup cloud.mongodb.com: no such host
+[ERROR] DNS Resolution Failed: GET https://cloud.mongodb.com/api/atlas/v2/groups/123/clusters - Duration: 2s - Check DNS configuration and network connectivity
 ```
 
 ## Implementation Details
