@@ -1,0 +1,3 @@
+```release-note:bug
+Fixes Realm Client authentication
+```
