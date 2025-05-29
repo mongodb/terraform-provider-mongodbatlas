@@ -54,7 +54,7 @@ func TestAccEventTriggerDSPlural_basic(t *testing.T) {
 
 func TestAccEventTriggerDSPlural_realmClientWorks(t *testing.T) {
 	// This test is designed to run in CI and expects a 404 "app not found" error from the Realm API.
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	projectID := acc.ProjectIDExecution(t)
 	appID := "invalid-app-id" // known-bad app ID
 
 	resource.ParallelTest(t, resource.TestCase{
