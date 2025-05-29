@@ -101,6 +101,7 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 	// Terraform logging transport is after Digest transport so the Unauthorized request bodies are not logged.
 	networkLoggingTransport := NewTransportWithNetworkLogging(baseTransport)
 	digestTransport := digest.NewTransportWithHTTPRoundTripper(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey), networkLoggingTransport)
+	// Don't change logging.NewTransport to NewSubsystemLoggingHTTPTransport until all resources are in TPF.
 	tfLoggingTransport := logging.NewTransport("Atlas", digestTransport)
 	client := &http.Client{Transport: tfLoggingTransport}
 
