@@ -22,10 +22,6 @@ output "cloud_provider" {
   value = data.mongodbatlas_stream_account_details.account_details.cloud_provider
 }
 
-output "links" {
-  value = data.mongodbatlas_stream_account_details.account_details.links
-}
-
 output "vpc_id" {
   value = data.mongodbatlas_stream_account_details.account_details.vpc_id
 }
@@ -47,16 +43,7 @@ output "vpc_id" {
 - `aws_account_id` (String) The AWS Account ID.
 - `azure_subscription_id` (String) The Azure Subscription ID.
 - `cidr_block` (String) The VPC CIDR Block.
-- `links` (Attributes List) List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships. (see [below for nested schema](#nestedatt--links))
 - `virtual_network_name` (String) The name of the virtual network.
 - `vpc_id` (String) The VPC ID.
-
-<a id="nestedatt--links"></a>
-### Nested Schema for `links`
-
-Read-Only:
-
-- `href` (String) Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
-- `rel` (String) Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.
 
 For more information see: [MongoDB Atlas API - Returns the Account ID, and the VPC ID for the group and region specified](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/getAccountDetails) Documentation.
