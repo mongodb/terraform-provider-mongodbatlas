@@ -25,7 +25,7 @@ require (
 	github.com/jarcoal/httpmock v1.4.0
 	github.com/mongodb-forks/digest v1.1.0
 	github.com/mongodb/atlas-sdk-go v1.0.1-0.20250516083919-675679b83a94
-	github.com/pb33f/libopenapi v0.21.12
+	github.com/pb33f/libopenapi v0.22.0
 	github.com/sebdah/goldie/v2 v2.5.5
 	github.com/spf13/cast v1.8.0
 	github.com/stretchr/testify v1.10.0
