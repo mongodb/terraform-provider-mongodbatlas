@@ -41,7 +41,7 @@ func TestNetworkLoggingTransport_Success(t *testing.T) {
 		response: mockResp,
 		err:      nil,
 	}
-	transport := config.NewTransportWithNetworkLogging(mockTransport)
+	transport := config.NewTransportWithNetworkLogging(mockTransport, true)
 	req := httptest.NewRequest("GET", "https://api.example.com/test", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 	require.NoError(t, err)
@@ -65,7 +65,7 @@ func TestNetworkLoggingTransport_HTTPError(t *testing.T) {
 		response: mockResp,
 		err:      nil,
 	}
-	transport := config.NewTransportWithNetworkLogging(mockTransport)
+	transport := config.NewTransportWithNetworkLogging(mockTransport, true)
 	req := httptest.NewRequest("POST", "https://api.example.com/test", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 	require.NoError(t, err)
@@ -88,7 +88,7 @@ func TestNetworkLoggingTransport_NetworkError(t *testing.T) {
 		err:      networkErr,
 	}
 
-	transport := config.NewTransportWithNetworkLogging(mockTransport)
+	transport := config.NewTransportWithNetworkLogging(mockTransport, true)
 	req := httptest.NewRequest("GET", "https://api.example.com/test", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 	require.Error(t, err)
@@ -116,7 +116,7 @@ func TestNetworkLoggingTransport_DigestAuthChallenge(t *testing.T) {
 		response: mockResp,
 		err:      nil,
 	}
-	transport := config.NewTransportWithNetworkLogging(mockTransport)
+	transport := config.NewTransportWithNetworkLogging(mockTransport, true)
 	req := httptest.NewRequest("GET", "https://cloud.mongodb.com/api/atlas/v2/groups", http.NoBody)
 
 	resp, err := transport.RoundTrip(req)

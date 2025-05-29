@@ -11,24 +11,29 @@ import (
 // for network operations, including timing, status codes, and error details.
 type NetworkLoggingTransport struct {
 	Transport http.RoundTripper
+	Enabled   bool
 }
 
 // NewTransportWithNetworkLogging creates a new NetworkLoggingTransport that wraps
 // the provided transport with enhanced network logging capabilities.
-func NewTransportWithNetworkLogging(transport http.RoundTripper) *NetworkLoggingTransport {
+func NewTransportWithNetworkLogging(transport http.RoundTripper, enabled bool) *NetworkLoggingTransport {
 	if transport == nil {
 		transport = http.DefaultTransport
 	}
 	return &NetworkLoggingTransport{
 		Transport: transport,
+		Enabled:   enabled,
 	}
 }
 
 // RoundTrip implements the http.RoundTripper interface and adds enhanced logging
 // around the HTTP request/response cycle.
 func (t *NetworkLoggingTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	startTime := time.Now()
+	if !t.Enabled {
+		return t.Transport.RoundTrip(req)
+	}
 
+	startTime := time.Now()
 	log.Printf("[DEBUG] Network Request Start: %s %s (started at %s)",
 		req.Method, req.URL.String(), startTime.Format(time.RFC3339Nano))
 
