@@ -87,7 +87,6 @@ func TestNetworkLoggingTransport_NetworkError(t *testing.T) {
 		response: nil,
 		err:      networkErr,
 	}
-
 	transport := config.NewTransportWithNetworkLogging(mockTransport, true)
 	req := httptest.NewRequest("GET", "https://api.example.com/test", http.NoBody)
 	resp, err := transport.RoundTrip(req)
@@ -105,20 +104,17 @@ func TestNetworkLoggingTransport_DigestAuthChallenge(t *testing.T) {
 	var logOutput bytes.Buffer
 	log.SetOutput(&logOutput)
 	defer log.SetOutput(os.Stderr)
-
 	mockResp := &http.Response{
 		StatusCode: 401,
 		Header:     make(http.Header),
 	}
 	mockResp.Header.Set("WWW-Authenticate", "Digest realm=\"MongoDB Atlas\", nonce=\"abc123\"")
-
 	mockTransport := &mockTransport{
 		response: mockResp,
 		err:      nil,
 	}
 	transport := config.NewTransportWithNetworkLogging(mockTransport, true)
 	req := httptest.NewRequest("GET", "https://cloud.mongodb.com/api/atlas/v2/groups", http.NoBody)
-
 	resp, err := transport.RoundTrip(req)
 	require.NoError(t, err)
 	require.Equal(t, 401, resp.StatusCode)
@@ -131,6 +127,28 @@ func TestNetworkLoggingTransport_DigestAuthChallenge(t *testing.T) {
 	assert.Contains(t, logStr, "Expected first request in digest authentication flow")
 	// Should NOT contain the generic HTTP Error Response for 401
 	assert.NotContains(t, logStr, "HTTP Error Response")
+}
+
+func TestNetworkLoggingTransport_Disabled(t *testing.T) {
+	var logOutput bytes.Buffer
+	log.SetOutput(&logOutput)
+	defer log.SetOutput(os.Stderr)
+	mockResp := &http.Response{
+		StatusCode: 200,
+		Header:     make(http.Header),
+	}
+	mockTransport := &mockTransport{
+		response: mockResp,
+		err:      nil,
+	}
+	transport := config.NewTransportWithNetworkLogging(mockTransport, false)
+	req := httptest.NewRequest("GET", "https://api.example.com/test", http.NoBody)
+	resp, err := transport.RoundTrip(req)
+	require.NoError(t, err)
+	require.Equal(t, 200, resp.StatusCode)
+
+	logStr := logOutput.String()
+	assert.Empty(t, logStr, "Expected no logs when network logging is disabled")
 }
 
 func TestAccNetworkLogging(t *testing.T) {
