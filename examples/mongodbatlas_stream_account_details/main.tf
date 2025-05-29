@@ -16,10 +16,6 @@ output "cloud_provider" {
   value = data.mongodbatlas_stream_account_details.account_details.cloud_provider
 }
 
-output "links" {
-  value = data.mongodbatlas_stream_account_details.account_details.links
-}
-
 output "vpc_id" {
   value = data.mongodbatlas_stream_account_details.account_details.vpc_id
 }
