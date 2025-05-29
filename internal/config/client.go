@@ -96,18 +96,14 @@ type UAMetadata struct {
 	Value string
 }
 
-// NewClient func...
 func (c *Config) NewClient(ctx context.Context) (any, error) {
-	// setup a transport to handle digest
-	transport := digest.NewTransportWithHTTPTransport(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey), baseTransport)
-
-	// initialize the client
-	client, err := transport.Client()
-	if err != nil {
-		return nil, err
-	}
-
-	client.Transport = logging.NewTransport("MongoDB Atlas", transport)
+	// Network Logging transport is before Digest transport so it can log the first Digest requests with 401 Unauthorized.
+	// Terraform logging transport is after Digest transport so the Unauthorized request bodies are not logged.
+	networkLoggingTransport := NewTransportWithNetworkLogging(baseTransport, logging.IsDebugOrHigher())
+	digestTransport := digest.NewTransportWithHTTPRoundTripper(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey), networkLoggingTransport)
+	// Don't change logging.NewTransport to NewSubsystemLoggingHTTPTransport until all resources are in TPF.
+	tfLoggingTransport := logging.NewTransport("Atlas", digestTransport)
+	client := &http.Client{Transport: tfLoggingTransport}
 
 	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
 	if c.BaseURL != "" {

@@ -296,6 +296,7 @@ jobs:
           cluster_outage_simulation:
             - 'internal/service/clusteroutagesimulation/*.go'  
           config:
+            - 'internal/config/*.go'
             - 'internal/service/alertconfiguration/*.go'
             - 'internal/service/apikey/*.go'
             - 'internal/service/atlasuser/*.go'
@@ -649,6 +650,7 @@ jobs:
           AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_federation }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
+            ./internal/config
             ./internal/service/alertconfiguration
             ./internal/service/atlasuser
             ./internal/service/cloudprovideraccess
