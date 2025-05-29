@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	atlasAdminAPISpecURL = "https://raw.githubusercontent.com/mongodb/atlas-sdk-go/main/openapi/atlas-api-transformed.yaml"
+	// atlasAdminAPISpecURL = "https://raw.githubusercontent.com/mongodb/atlas-sdk-go/main/openapi/atlas-api-transformed.yaml"
+	atlasAdminAPISpecURL = "https://raw.githubusercontent.com/mongodb/openapi/refs/heads/main/openapi/v2.yaml" // Multiple API Versions and no transformations
 	configPath           = "tools/codegen/config.yml"
 	specFilePath         = "tools/codegen/open-api-spec.yml"
 )
@@ -21,7 +22,22 @@ const (
 func main() {
 	resourceName := getOsArg()
 
-	if err := openapi.DownloadOpenAPISpec(atlasAdminAPISpecURL, specFilePath); err != nil {
+	skipOpenAPIDownload := os.Getenv("SKIP_OPENAPI_DOWNLOAD")
+	specFilePath := os.Getenv("OPENAPI_SPEC_FILE_PATH")
+	if specFilePath == "" {
+		specFilePath = "tools/codegen/open-api-spec.yml"
+	} else {
+		log.Printf("Using custom OpenAPI spec file path: %s", specFilePath)
+	}
+	configPath := os.Getenv("CODEGEN_CONFIG_PATH")
+	if configPath == "" {
+		configPath = "tools/codegen/config.yml"
+	} else {
+		log.Printf("Using custom codegen config file path: %s", configPath)
+	}
+	if skipOpenAPIDownload == "true" {
+		log.Println("Skipping download of Atlas Admin API spec")
+	} else if err := openapi.DownloadOpenAPISpec(atlasAdminAPISpecURL, specFilePath); err != nil {
 		log.Fatalf("an error occurred when downloading Atlas Admin API spec: %v", err)
 	}
 
