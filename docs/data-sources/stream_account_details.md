@@ -1,6 +1,6 @@
 # Data Source: mongodbatlas_stream_account_details
 
-`mongodbatlas_stream_account_details` returns the AWS Account ID/Azure Subscription ID, and the AWS VPC ID/ Azure Virtual Network Name for the group, cloud provider, and region that you specify.
+`mongodbatlas_stream_account_details` returns the AWS Account ID/Azure Subscription ID, and the AWS VPC ID/Azure Virtual Network Name for the group, cloud provider, and region that you specify.
 
 ## Example Usages
 ```terraform
