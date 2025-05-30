@@ -434,40 +434,40 @@ Name | Changes | Transition Guide
 --- | --- | ---
 `mongodbatlas_advanced_cluster` | Data source must use the `use_replication_spec_per_shard` attribute. | -
 `mongodbatlas_advanced_cluster` | Use `replication_specs.#.zone_id` instead of `replication_specs.#.id`. | -
-`mongodbatlas_cluster` | Resource and Data Source will not work. API error code `ASYMMETRIC_SHARD_UNSUPPORTED`. | [cluster-to-advanced-cluster-migration-guide](cluster-to-advanced-cluster-migration-guide.md)
+`mongodbatlas_cluster` | Resource and data source will not work. API error code `ASYMMETRIC_SHARD_UNSUPPORTED`. | [cluster-to-advanced-cluster-migration-guide](cluster-to-advanced-cluster-migration-guide.md)
 `mongodbatlas_cloud_backup_schedule` | Use `copy_settings.#.zone_id` instead of `copy_settings.#.replication_spec_id` | [1.18.0 Migration Guide](1.18.0-upgrade-guide.md#transition-cloud-backup-schedules-for-clusters-to-use-zones)
 `mongodbatlas_global_cluster_config` | `custom_zone_mapping` is no longer populated, `custom_zone_mapping_zone_id` must be used instead. | -
 
 ### Data Source Transition for Asymmetric Clusters
 
-When a cluster transitions to asymmetric shards, customers using data sources must update their Terraform configuration to handle the new sharding schema.
+If you use data sources, you must update your Terraform configuration to handle the new sharding schema when your clusters transition to asymmetric shards.
 
 #### Scenario: Cluster Becomes Asymmetric
 
 If you have an existing cluster that becomes asymmetric due to independent shard scaling or auto-scaling per shard, you will encounter errors when using the legacy data sources.
 
 **Error Symptoms:**
-- `mongodbatlas_cluster` data source will fail with API error code `ASYMMETRIC_SHARD_UNSUPPORTED`
-- `mongodbatlas_advanced_cluster` data source without `use_replication_spec_per_shard = true` will return an error asking you to enable this attribute
+- `mongodbatlas_cluster` data source fails with API error code `ASYMMETRIC_SHARD_UNSUPPORTED`
+- `mongodbatlas_advanced_cluster` data source without `use_replication_spec_per_shard = true` returns an error asking you to enable this attribute
 
 #### Required Changes
 
-**Before (will fail for asymmetric clusters):**
+**Before (fails for asymmetric clusters):**
 ```hcl
-# This will fail with ASYMMETRIC_SHARD_UNSUPPORTED error
+# This fails with ASYMMETRIC_SHARD_UNSUPPORTED error
 data "mongodbatlas_cluster" "example" {
   project_id = var.project_id
   name       = "my-cluster"
 }
 
-# This will fail and ask you to set use_replication_spec_per_shard = true
+# This fails and ask you to set use_replication_spec_per_shard = true
 data "mongodbatlas_advanced_cluster" "example" {
   project_id = var.project_id
   name       = "my-cluster"
 }
 ```
 
-**After (required for asymmetric clusters):**
+**After (succeeds for asymmetric clusters):**
 ```hcl
 # Remove mongodbatlas_cluster data source completely
 # Replace with mongodbatlas_advanced_cluster and enable the new schema
