@@ -1,4 +1,4 @@
-# MongoDB Atlas Provider - AWS Confluent Privatelink for Atlas Streams 
+# MongoDB Atlas Provider - Cloud Account Details for Atlas Streams 
 
 This example shows how to get Atlas Streams account details for a project.
 

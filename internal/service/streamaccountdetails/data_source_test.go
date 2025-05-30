@@ -16,17 +16,15 @@ func TestAccStreamAccountDetailsDS_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyStreamInstance,
 		Steps: []resource.TestStep{
 			{
 				Config: StreamAccountDetailsConfig(projectID, "aws", "US_EAST_1", clusterName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(dataSourceName, "project_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
 					resource.TestCheckResourceAttrSet(dataSourceName, "aws_account_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "cidr_block"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "vpc_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "azure_subscription_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "virtual_network_name"),
+					resource.TestCheckNoResourceAttr(dataSourceName, "azure_subscription_id"),
+					resource.TestCheckNoResourceAttr(dataSourceName, "virtual_network_name"),
 				),
 			},
 		},
@@ -70,7 +68,7 @@ func StreamAccountDetailsConfig(projectID, cloudProvider, regionName, clusterNam
 		}
 
 	data "mongodbatlas_stream_account_details" "test_details" {
-  		project_id 		= resource.mongodbatlas_stream_instance.test.project_id
+  		project_id 		= resource.mongodbatlas_stream_processor.test_processor.project_id
   		cloud_provider	= %[4]q
   		region_name 	= %[5]q
 	}
