@@ -67,10 +67,14 @@ func StreamAccountDetailsConfig(projectID, cloudProvider, regionName, clusterNam
 			state          	= "STARTED"
 		}
 
-	data "mongodbatlas_stream_account_details" "test_details" {
-  		project_id 		= resource.mongodbatlas_stream_processor.test_processor.project_id
-  		cloud_provider	= %[4]q
-  		region_name 	= %[5]q
-	}
+		data "mongodbatlas_stream_account_details" "test_details" {
+			project_id 		= resource.mongodbatlas_stream_processor.test_processor.project_id
+			cloud_provider	= %[4]q
+			region_name 	= %[5]q
+			# The getAccountDetails endpoint curerntly requires a processor in a STARTED state
+			depends_on = [
+				mongodbatlas_stream_processor.test_processor
+			]
+		}
 `, streamInstanceConfig, acc.RandomName(), clusterName, cloudProvider, regionName)
 }
