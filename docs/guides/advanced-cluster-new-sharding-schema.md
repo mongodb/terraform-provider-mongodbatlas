@@ -14,8 +14,9 @@ Note: Once applied, the `advanced_cluster` resource making use of the new shardi
     - [Migrate advanced\_cluster type `GEOSHARDED`](#migrate-advanced_cluster-type-geosharded)
     - [Migrate advanced\_cluster type `REPLICASET`](#migrate-advanced_cluster-type-replicaset)
 - [Use Independent Shard Scaling](#use-independent-shard-scaling)
-- [Data Source Transition for Asymmetric Clusters](#data-source-transition-for-asymmetric-clusters)
 - [Use Auto-Scaling Per Shard](#use-auto-scaling-per-shard)
+- [Resources and Data Sources Impacted by Independent Shard Scaling](#resources-and-data-sources-impacted-by-independent-shard-scaling)
+  - [Data Source Transition for Asymmetric Clusters](#data-source-transition-for-asymmetric-clusters)
 
 ## Changes Overview
 
@@ -348,82 +349,6 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-## Data Source Transition for Asymmetric Clusters
-
-When a cluster transitions to asymmetric shards, customers using data sources must update their Terraform configuration to handle the new sharding schema.
-
-### Scenario: Cluster Becomes Asymmetric
-
-If you have an existing cluster that becomes asymmetric due to independent shard scaling or auto-scaling per shard, you will encounter errors when using the legacy data sources.
-
-**Error Symptoms:**
-- `mongodbatlas_cluster` data source will fail with API error code `ASYMMETRIC_SHARD_UNSUPPORTED`
-- `mongodbatlas_advanced_cluster` data source without `use_replication_spec_per_shard = true` will return an error asking you to enable this attribute
-
-### Required Changes
-
-**Before (will fail for asymmetric clusters):**
-```hcl
-# This will fail with ASYMMETRIC_SHARD_UNSUPPORTED error
-data "mongodbatlas_cluster" "example" {
-  project_id = var.project_id
-  name       = "my-cluster"
-}
-
-# This will fail and ask you to set use_replication_spec_per_shard = true
-data "mongodbatlas_advanced_cluster" "example" {
-  project_id = var.project_id
-  name       = "my-cluster"
-}
-```
-
-**After (required for asymmetric clusters):**
-```hcl
-# Remove mongodbatlas_cluster data source completely
-# Replace with mongodbatlas_advanced_cluster and enable the new schema
-
-data "mongodbatlas_advanced_cluster" "example" {
-  project_id                     = var.project_id
-  name                           = "my-cluster"
-  use_replication_spec_per_shard = true  # Required for asymmetric clusters
-}
-```
-
-### Conditional Data Source Pattern
-
-For modules or configurations that need to support both symmetric and asymmetric clusters, you can use conditional data source creation:
-
-```hcl
-# Example: Conditional data source based on cluster configuration
-locals {
-  # Determine if cluster is likely to be asymmetric based on your configuration
-  cluster_uses_new_sharding = length(var.replication_specs_new) > 0
-}
-
-# Legacy cluster data source (only for symmetric clusters)
-data "mongodbatlas_cluster" "this" {
-  count      = local.cluster_uses_new_sharding ? 0 : 1
-  name       = mongodbatlas_advanced_cluster.this.name
-  project_id = mongodbatlas_advanced_cluster.this.project_id
-  depends_on = [mongodbatlas_advanced_cluster.this]
-}
-
-# Advanced cluster data source (supports asymmetric clusters)
-data "mongodbatlas_advanced_cluster" "this" {
-  count                          = local.cluster_uses_new_sharding ? 1 : 0
-  name                           = mongodbatlas_advanced_cluster.this.name
-  project_id                     = mongodbatlas_advanced_cluster.this.project_id
-  use_replication_spec_per_shard = true
-  depends_on                     = [mongodbatlas_advanced_cluster.this]
-}
-```
-
-**Notes:**
-- Once a cluster becomes asymmetric, the `mongodbatlas_cluster` data source will permanently fail for that cluster.
-- The `use_replication_spec_per_shard = true` attribute is required for clusters with independent shard scaling.
-- This transition is necessary to take advantage of the new sharding features and avoid API compatibility issues.
-- Ensure all references to the legacy data source are updated in your outputs and other resource configurations.
-
 ## Use Auto-Scaling Per Shard
 
 As of version 1.23.0, enabled `compute` auto-scaling (either `auto_scaling` or `analytics_auto_scaling`) will scale the `instance_size` of each shard independently. Each shard must be represented with a unique `replication_specs` element and `num_shards` must not be used. On the contrary, if using deprecated `num_shards` or a lower version, enabled compute auto-scaling will scale uniformily across all shards in the cluster. 
@@ -512,3 +437,76 @@ Name | Changes | Transition Guide
 `mongodbatlas_cluster` | Resource and Data Source will not work. API error code `ASYMMETRIC_SHARD_UNSUPPORTED`. | [cluster-to-advanced-cluster-migration-guide](cluster-to-advanced-cluster-migration-guide.md)
 `mongodbatlas_cloud_backup_schedule` | Use `copy_settings.#.zone_id` instead of `copy_settings.#.replication_spec_id` | [1.18.0 Migration Guide](1.18.0-upgrade-guide.md#transition-cloud-backup-schedules-for-clusters-to-use-zones)
 `mongodbatlas_global_cluster_config` | `custom_zone_mapping` is no longer populated, `custom_zone_mapping_zone_id` must be used instead. | -
+
+### Data Source Transition for Asymmetric Clusters
+
+When a cluster transitions to asymmetric shards, customers using data sources must update their Terraform configuration to handle the new sharding schema.
+
+#### Scenario: Cluster Becomes Asymmetric
+
+If you have an existing cluster that becomes asymmetric due to independent shard scaling or auto-scaling per shard, you will encounter errors when using the legacy data sources.
+
+**Error Symptoms:**
+- `mongodbatlas_cluster` data source will fail with API error code `ASYMMETRIC_SHARD_UNSUPPORTED`
+- `mongodbatlas_advanced_cluster` data source without `use_replication_spec_per_shard = true` will return an error asking you to enable this attribute
+
+#### Required Changes
+
+**Before (will fail for asymmetric clusters):**
+```hcl
+# This will fail with ASYMMETRIC_SHARD_UNSUPPORTED error
+data "mongodbatlas_cluster" "example" {
+  project_id = var.project_id
+  name       = "my-cluster"
+}
+
+# This will fail and ask you to set use_replication_spec_per_shard = true
+data "mongodbatlas_advanced_cluster" "example" {
+  project_id = var.project_id
+  name       = "my-cluster"
+}
+```
+
+**After (required for asymmetric clusters):**
+```hcl
+# Remove mongodbatlas_cluster data source completely
+# Replace with mongodbatlas_advanced_cluster and enable the new schema
+
+data "mongodbatlas_advanced_cluster" "example" {
+  project_id                     = var.project_id
+  name                           = "my-cluster"
+  use_replication_spec_per_shard = true  # Required for asymmetric clusters
+}
+```
+
+
+#### Conditional Data Source Pattern
+
+For modules or configurations that need to support both symmetric and asymmetric clusters, you can use conditional data source creation. 
+
+**Note**: While `use_replication_spec_per_shard = true` supports both symmetric and asymmetric clusters, you may want to use the conditional pattern if you prefer to preserve the legacy data source representation for symmetric clusters, or if you need to maintain backward compatibility with existing module consumers.
+
+```hcl
+# Example: Conditional data source based on cluster configuration
+locals {
+  # Determine if cluster is likely to be asymmetric based on your configuration
+  cluster_uses_new_sharding = length(var.replication_specs_new) > 0
+}
+
+# Legacy cluster data source (only for symmetric clusters)
+data "mongodbatlas_cluster" "this" {
+  count      = local.cluster_uses_new_sharding ? 0 : 1
+  name       = mongodbatlas_advanced_cluster.this.name
+  project_id = mongodbatlas_advanced_cluster.this.project_id
+  depends_on = [mongodbatlas_advanced_cluster.this]
+}
+
+# Advanced cluster data source (supports asymmetric clusters)
+data "mongodbatlas_advanced_cluster" "this" {
+  count                          = local.cluster_uses_new_sharding ? 1 : 0
+  name                           = mongodbatlas_advanced_cluster.this.name
+  project_id                     = mongodbatlas_advanced_cluster.this.project_id
+  use_replication_spec_per_shard = true
+  depends_on                     = [mongodbatlas_advanced_cluster.this]
+}
+```
