@@ -37,9 +37,9 @@ func deleteProject(id string) {
 	}
 }
 
-func createCluster(tb testing.TB, projectID, name string) string {
+func createCluster(tb testing.TB, projectID, name, regionName string) string {
 	tb.Helper()
-	req := clusterReq(name, projectID)
+	req := clusterReq(name, projectID, regionName)
 	_, _, err := ConnV2().ClustersApi.CreateCluster(tb.Context(), projectID, &req).Execute()
 	require.NoError(tb, err, "Cluster creation failed: %s, err: %s", name, err)
 
@@ -62,7 +62,11 @@ func deleteCluster(projectID, name string) {
 	}
 }
 
-func clusterReq(name, projectID string) admin.ClusterDescription20240805 {
+func clusterReq(name, projectID, regionName string) admin.ClusterDescription20240805 {
+	if regionName != constant.UsEast1 {
+		regionName = constant.UsWest2
+	}
+
 	return admin.ClusterDescription20240805{
 		Name:        admin.PtrString(name),
 		GroupId:     admin.PtrString(projectID),
@@ -72,7 +76,7 @@ func clusterReq(name, projectID string) admin.ClusterDescription20240805 {
 				RegionConfigs: &[]admin.CloudRegionConfig20240805{
 					{
 						ProviderName: admin.PtrString(constant.AWS),
-						RegionName:   admin.PtrString(constant.UsWest2),
+						RegionName:   admin.PtrString(regionName),
 						Priority:     admin.PtrInt(7),
 						ElectableSpecs: &admin.HardwareSpec20240805{
 							InstanceSize: admin.PtrString(constant.M10),

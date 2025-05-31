@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/stretchr/testify/require"
 )
@@ -90,8 +91,21 @@ func ProjectIDExecutionWithCluster(tb testing.TB, totalNodeCount int) (projectID
 // When `MONGODB_ATLAS_CLUSTER_NAME` and `MONGODB_ATLAS_PROJECT_ID` are defined it will be used instead of creating resources. This is useful for local execution but not intended for CI executions.
 func ClusterNameExecution(tb testing.TB, populateSampleData bool) (projectID, clusterName string) {
 	tb.Helper()
+	return ClusterNameExecutionWithRegion(tb, "", populateSampleData)
+}
+
+// ClusterNameExecutionWithRegion returns the name of a created cluster for the execution of the tests in the resource package.
+// This function relies on using an execution project and returns its id.
+// When `MONGODB_ATLAS_CLUSTER_NAME` and `MONGODB_ATLAS_PROJECT_ID` are defined it will be used instead of creating resources. This is useful for local execution but not intended for CI executions.
+// Valid regions are US_EAST_1, US_WEST_2, or an empty string
+func ClusterNameExecutionWithRegion(tb testing.TB, regionName string, populateSampleData bool) (projectID, clusterName string) {
+	tb.Helper()
 	SkipInUnitTest(tb)
 	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
+
+	if regionName != "" && regionName != constant.UsEast1 && regionName != constant.UsWest2 {
+		require.NoError(tb, fmt.Errorf("the region supplied for cluster creation is invalid: %s", regionName))
+	}
 
 	if ExistingClusterUsed() {
 		return existingProjectIDClusterName()
@@ -109,7 +123,7 @@ func ClusterNameExecution(tb testing.TB, populateSampleData bool) (projectID, cl
 	if sharedInfo.clusterName == "" {
 		name := RandomClusterName()
 		tb.Logf("Creating execution cluster: %s\n", name)
-		sharedInfo.clusterName = createCluster(tb, projectID, name)
+		sharedInfo.clusterName = createCluster(tb, projectID, name, "")
 
 		if populateSampleData {
 			err := PopulateWithSampleData(projectID, sharedInfo.clusterName)

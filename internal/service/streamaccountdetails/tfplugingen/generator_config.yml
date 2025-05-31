@@ -1,0 +1,9 @@
+provider:
+  name: mongodbatlas
+
+data_sources:
+  stream_account_details:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/streams/accountDetails
+      method: GET
+
