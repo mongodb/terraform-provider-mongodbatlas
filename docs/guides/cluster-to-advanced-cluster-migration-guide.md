@@ -4,7 +4,7 @@ page_title: "Migration Guide: Cluster to Advanced Cluster"
 
 # Migration Guide: Cluster to Advanced Cluster
 
-**Objective**: This guide explains how to replace the `mongodbatlas_cluster` resource with the `mongodbatlas_advanced_cluster` resource. The data source(s) migration only requires [output changes](#output-changes) as data sources only read clusters.
+**Objective**: This guide explains how to replace the `mongodbatlas_cluster` resource with the `mongodbatlas_advanced_cluster` resource. For data source migrations, refer to the [output changes](#output-changes) section. If you're transitioning to independent sharding, additional guidance is available in the [Advanced Cluster New Sharding Configurations Migration Guide](advanced-cluster-new-sharding-schema#data-source-transition-for-asymmetric-clusters).
 
 ## Why do we have both `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster` resources?
 

@@ -67,3 +67,9 @@ data "mongodbatlas_cluster" "this" {
 
   depends_on = [mongodbatlas_advanced_cluster.this]
 }
+
+# IMPORTANT: The `count` parameter above conditionally creates the mongodbatlas_cluster data source
+# to avoid "ASYMMETRIC_SHARD_UNSUPPORTED" errors when clusters become asymmetric.
+# 
+# For complete details on using the conditional pattern with `count` parameter,
+# see: https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema#data-source-transition-for-asymmetric-clusters
