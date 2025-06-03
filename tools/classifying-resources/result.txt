@@ -1,0 +1,521 @@
+65 potential resources identified, content is inferred exclusively from API Spec leveraging convention used for operationIds:
+
+
+- mongodbatlas_organization_invitation_api - Create and delete (standard):
+    read:   getOrganizationInvitation - GET - /api/atlas/v2/orgs/{orgId}/invites/{invitationId}
+    create: createOrganizationInvitation - POST - /api/atlas/v2/orgs/{orgId}/invites
+    delete: deleteOrganizationInvitation - DELETE - /api/atlas/v2/orgs/{orgId}/invites/{invitationId}
+    update: updateOrganizationInvitation - PATCH - /api/atlas/v2/orgs/{orgId}/invites
+    list:   listOrganizationInvitations - GET - /api/atlas/v2/orgs/{orgId}/invites
+
+
+- mongodbatlas_private_endpoint_service_api - Create and delete (standard):
+    read:   getPrivateEndpointService - GET - /api/atlas/v2/groups/{groupId}/privateEndpoint/{cloudProvider}/endpointService/{endpointServiceId}
+    create: createPrivateEndpointService - POST - /api/atlas/v2/groups/{groupId}/privateEndpoint/endpointService
+    delete: deletePrivateEndpointService - DELETE - /api/atlas/v2/groups/{groupId}/privateEndpoint/{cloudProvider}/endpointService/{endpointServiceId}
+    update: N/A
+    list:   listPrivateEndpointServices - GET - /api/atlas/v2/groups/{groupId}/privateEndpoint/{cloudProvider}/endpointService
+
+
+- mongodbatlas_serverless_instance_api - Create and delete (standard):
+    read:   getServerlessInstance - GET - /api/atlas/v2/groups/{groupId}/serverless/{name}
+    create: createServerlessInstance - POST - /api/atlas/v2/groups/{groupId}/serverless
+    delete: deleteServerlessInstance - DELETE - /api/atlas/v2/groups/{groupId}/serverless/{name}
+    update: updateServerlessInstance - PATCH - /api/atlas/v2/groups/{groupId}/serverless/{name}
+    list:   listServerlessInstances - GET - /api/atlas/v2/groups/{groupId}/serverless
+
+
+- mongodbatlas_managed_namespace_api - Create and delete (standard):
+    read:   getManagedNamespace - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/globalWrites
+    create: createManagedNamespace - POST - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/globalWrites/managedNamespaces
+    delete: deleteManagedNamespace - DELETE - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/globalWrites/managedNamespaces
+    update: N/A
+    list:   N/A
+
+
+- mongodbatlas_online_archive_api - Create and delete (standard):
+    read:   getOnlineArchive - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/onlineArchives/{archiveId}
+    create: createOnlineArchive - POST - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/onlineArchives
+    delete: deleteOnlineArchive - DELETE - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/onlineArchives/{archiveId}
+    update: updateOnlineArchive - PATCH - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/onlineArchives/{archiveId}
+    list:   listOnlineArchives - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/onlineArchives
+
+
+- mongodbatlas_project_invitation_api - Create and delete (standard):
+    read:   getProjectInvitation - GET - /api/atlas/v2/groups/{groupId}/invites/{invitationId}
+    create: createProjectInvitation - POST - /api/atlas/v2/groups/{groupId}/invites
+    delete: deleteProjectInvitation - DELETE - /api/atlas/v2/groups/{groupId}/invites/{invitationId}
+    update: updateProjectInvitation - PATCH - /api/atlas/v2/groups/{groupId}/invites
+    list:   listProjectInvitations - GET - /api/atlas/v2/groups/{groupId}/invites
+
+
+- mongodbatlas_stream_instance_api - Create and delete (standard):
+    read:   getStreamInstance - GET - /api/atlas/v2/groups/{groupId}/streams/{tenantName}
+    create: createStreamInstance - POST - /api/atlas/v2/groups/{groupId}/streams
+    delete: deleteStreamInstance - DELETE - /api/atlas/v2/groups/{groupId}/streams/{tenantName}
+    update: updateStreamInstance - PATCH - /api/atlas/v2/groups/{groupId}/streams/{tenantName}
+    list:   listStreamInstances - GET - /api/atlas/v2/groups/{groupId}/streams
+
+
+- mongodbatlas_private_endpoint_api - Create and delete (standard):
+    read:   getPrivateEndpoint - GET - /api/atlas/v2/groups/{groupId}/privateEndpoint/{cloudProvider}/endpointService/{endpointServiceId}/endpoint/{endpointId}
+    create: createPrivateEndpoint - POST - /api/atlas/v2/groups/{groupId}/privateEndpoint/{cloudProvider}/endpointService/{endpointServiceId}/endpoint
+    delete: deletePrivateEndpoint - DELETE - /api/atlas/v2/groups/{groupId}/privateEndpoint/{cloudProvider}/endpointService/{endpointServiceId}/endpoint/{endpointId}
+    update: N/A
+    list:   N/A
+
+
+- mongodbatlas_cluster_api - Create and delete (standard):
+    read:   getCluster - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
+    create: createCluster - POST - /api/atlas/v2/groups/{groupId}/clusters
+    delete: deleteCluster - DELETE - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
+    update: updateCluster - PATCH - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
+    list:   listClusters - GET - /api/atlas/v2/groups/{groupId}/clusters
+
+
+- mongodbatlas_atlas_search_deployment_api - Create and delete (standard):
+    read:   getAtlasSearchDeployment - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
+    create: createAtlasSearchDeployment - POST - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
+    delete: deleteAtlasSearchDeployment - DELETE - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
+    update: updateAtlasSearchDeployment - PATCH - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
+    list:   N/A
+
+
+- mongodbatlas_peering_connection_api - Create and delete (standard):
+    read:   getPeeringConnection - GET - /api/atlas/v2/groups/{groupId}/peers/{peerId}
+    create: createPeeringConnection - POST - /api/atlas/v2/groups/{groupId}/peers
+    delete: deletePeeringConnection - DELETE - /api/atlas/v2/groups/{groupId}/peers/{peerId}
+    update: updatePeeringConnection - PATCH - /api/atlas/v2/groups/{groupId}/peers/{peerId}
+    list:   listPeeringConnections - GET - /api/atlas/v2/groups/{groupId}/peers
+
+
+- mongodbatlas_database_user_api - Create and delete (standard):
+    read:   getDatabaseUser - GET - /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
+    create: createDatabaseUser - POST - /api/atlas/v2/groups/{groupId}/databaseUsers
+    delete: deleteDatabaseUser - DELETE - /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
+    update: updateDatabaseUser - PATCH - /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
+    list:   listDatabaseUsers - GET - /api/atlas/v2/groups/{groupId}/databaseUsers
+
+
+- mongodbatlas_identity_provider_api - Create and delete (standard):
+    read:   getIdentityProvider - GET - /api/atlas/v2/federationSettings/{federationSettingsId}/identityProviders/{identityProviderId}
+    create: createIdentityProvider - POST - /api/atlas/v2/federationSettings/{federationSettingsId}/identityProviders
+    delete: deleteIdentityProvider - DELETE - /api/atlas/v2/federationSettings/{federationSettingsId}/identityProviders/{identityProviderId}
+    update: updateIdentityProvider - PATCH - /api/atlas/v2/federationSettings/{federationSettingsId}/identityProviders/{identityProviderId}
+    list:   listIdentityProviders - GET - /api/atlas/v2/federationSettings/{federationSettingsId}/identityProviders
+
+
+- mongodbatlas_private_link_connection_api - Create and delete (standard):
+    read:   getPrivateLinkConnection - GET - /api/atlas/v2/groups/{groupId}/streams/privateLinkConnections/{connectionId}
+    create: createPrivateLinkConnection - POST - /api/atlas/v2/groups/{groupId}/streams/privateLinkConnections
+    delete: deletePrivateLinkConnection - DELETE - /api/atlas/v2/groups/{groupId}/streams/privateLinkConnections/{connectionId}
+    update: N/A
+    list:   listPrivateLinkConnections - GET - /api/atlas/v2/groups/{groupId}/streams/privateLinkConnections
+
+
+- mongodbatlas_pipeline_api - Create and delete (standard):
+    read:   getPipeline - GET - /api/atlas/v2/groups/{groupId}/pipelines/{pipelineName}
+    create: createPipeline - POST - /api/atlas/v2/groups/{groupId}/pipelines
+    delete: deletePipeline - DELETE - /api/atlas/v2/groups/{groupId}/pipelines/{pipelineName}
+    update: updatePipeline - PATCH - /api/atlas/v2/groups/{groupId}/pipelines/{pipelineName}
+    list:   listPipelines - GET - /api/atlas/v2/groups/{groupId}/pipelines
+
+
+- mongodbatlas_service_account_api - Create and delete (standard):
+    read:   getServiceAccount - GET - /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
+    create: createServiceAccount - POST - /api/atlas/v2/orgs/{orgId}/serviceAccounts
+    delete: deleteServiceAccount - DELETE - /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
+    update: updateServiceAccount - PATCH - /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
+    list:   listServiceAccounts - GET - /api/atlas/v2/orgs/{orgId}/serviceAccounts
+
+
+- mongodbatlas_serverless_private_endpoint_api - Create and delete (standard):
+    read:   getServerlessPrivateEndpoint - GET - /api/atlas/v2/groups/{groupId}/privateEndpoint/serverless/instance/{instanceName}/endpoint/{endpointId}
+    create: createServerlessPrivateEndpoint - POST - /api/atlas/v2/groups/{groupId}/privateEndpoint/serverless/instance/{instanceName}/endpoint
+    delete: deleteServerlessPrivateEndpoint - DELETE - /api/atlas/v2/groups/{groupId}/privateEndpoint/serverless/instance/{instanceName}/endpoint/{endpointId}
+    update: updateServerlessPrivateEndpoint - PATCH - /api/atlas/v2/groups/{groupId}/privateEndpoint/serverless/instance/{instanceName}/endpoint/{endpointId}
+    list:   listServerlessPrivateEndpoints - GET - /api/atlas/v2/groups/{groupId}/privateEndpoint/serverless/instance/{instanceName}/endpoint
+
+
+- mongodbatlas_project_service_account_api - Create and delete (standard):
+    read:   getProjectServiceAccount - GET - /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}
+    create: createProjectServiceAccount - POST - /api/atlas/v2/groups/{groupId}/serviceAccounts
+    delete: deleteProjectServiceAccount - DELETE - /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}
+    update: updateProjectServiceAccount - PATCH - /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}
+    list:   listProjectServiceAccounts - GET - /api/atlas/v2/groups/{groupId}/serviceAccounts
+
+
+- mongodbatlas_stream_processor_api - Create and delete (standard):
+    read:   getStreamProcessor - GET - /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{processorName}
+    create: createStreamProcessor - POST - /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor
+    delete: deleteStreamProcessor - DELETE - /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{processorName}
+    update: N/A
+    list:   listStreamProcessors - GET - /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processors
+
+
+- mongodbatlas_project_api - Create and delete (standard):
+    read:   getProject - GET - /api/atlas/v2/groups/{groupId}
+    create: createProject - POST - /api/atlas/v2/groups
+    delete: deleteProject - DELETE - /api/atlas/v2/groups/{groupId}
+    update: updateProject - PATCH - /api/atlas/v2/groups/{groupId}
+    list:   listProjects - GET - /api/atlas/v2/groups
+
+
+- mongodbatlas_role_mapping_api - Create and delete (standard):
+    read:   getRoleMapping - GET - /api/atlas/v2/federationSettings/{federationSettingsId}/connectedOrgConfigs/{orgId}/roleMappings/{id}
+    create: createRoleMapping - POST - /api/atlas/v2/federationSettings/{federationSettingsId}/connectedOrgConfigs/{orgId}/roleMappings
+    delete: deleteRoleMapping - DELETE - /api/atlas/v2/federationSettings/{federationSettingsId}/connectedOrgConfigs/{orgId}/roleMappings/{id}
+    update: updateRoleMapping - PUT - /api/atlas/v2/federationSettings/{federationSettingsId}/connectedOrgConfigs/{orgId}/roleMappings/{id}
+    list:   listRoleMappings - GET - /api/atlas/v2/federationSettings/{federationSettingsId}/connectedOrgConfigs/{orgId}/roleMappings
+
+
+- mongodbatlas_flex_cluster_api - Create and delete (standard):
+    read:   getFlexCluster - GET - /api/atlas/v2/groups/{groupId}/flexClusters/{name}
+    create: createFlexCluster - POST - /api/atlas/v2/groups/{groupId}/flexClusters
+    delete: deleteFlexCluster - DELETE - /api/atlas/v2/groups/{groupId}/flexClusters/{name}
+    update: updateFlexCluster - PATCH - /api/atlas/v2/groups/{groupId}/flexClusters/{name}
+    list:   listFlexClusters - GET - /api/atlas/v2/groups/{groupId}/flexClusters
+
+
+- mongodbatlas_federated_database_api - Create and delete (standard):
+    read:   getFederatedDatabase - GET - /api/atlas/v2/groups/{groupId}/dataFederation/{tenantName}
+    create: createFederatedDatabase - POST - /api/atlas/v2/groups/{groupId}/dataFederation
+    delete: deleteFederatedDatabase - DELETE - /api/atlas/v2/groups/{groupId}/dataFederation/{tenantName}
+    update: updateFederatedDatabase - PATCH - /api/atlas/v2/groups/{groupId}/dataFederation/{tenantName}
+    list:   listFederatedDatabases - GET - /api/atlas/v2/groups/{groupId}/dataFederation
+
+
+- mongodbatlas_push_based_log_configuration_api - Create and delete (standard):
+    read:   getPushBasedLogConfiguration - GET - /api/atlas/v2/groups/{groupId}/pushBasedLogExport
+    create: createPushBasedLogConfiguration - POST - /api/atlas/v2/groups/{groupId}/pushBasedLogExport
+    delete: deletePushBasedLogConfiguration - DELETE - /api/atlas/v2/groups/{groupId}/pushBasedLogExport
+    update: updatePushBasedLogConfiguration - PATCH - /api/atlas/v2/groups/{groupId}/pushBasedLogExport
+    list:   N/A
+
+
+- mongodbatlas_alert_configuration_api - Create and delete (standard):
+    read:   getAlertConfiguration - GET - /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
+    create: createAlertConfiguration - POST - /api/atlas/v2/groups/{groupId}/alertConfigs
+    delete: deleteAlertConfiguration - DELETE - /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
+    update: updateAlertConfiguration - PUT - /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
+    list:   listAlertConfigurations - GET - /api/atlas/v2/groups/{groupId}/alertConfigs
+
+
+- mongodbatlas_atlas_search_index_api - Create and delete (standard):
+    read:   getAtlasSearchIndex - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}
+    create: createAtlasSearchIndex - POST - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes
+    delete: deleteAtlasSearchIndex - DELETE - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}
+    update: updateAtlasSearchIndex - PATCH - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}
+    list:   listAtlasSearchIndexes - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{databaseName}/{collectionName}
+
+
+- mongodbatlas_peering_container_api - Create and delete (standard):
+    read:   getPeeringContainer - GET - /api/atlas/v2/groups/{groupId}/containers/{containerId}
+    create: createPeeringContainer - POST - /api/atlas/v2/groups/{groupId}/containers
+    delete: deletePeeringContainer - DELETE - /api/atlas/v2/groups/{groupId}/containers/{containerId}
+    update: updatePeeringContainer - PATCH - /api/atlas/v2/groups/{groupId}/containers/{containerId}
+    list:   listPeeringContainers - GET - /api/atlas/v2/groups/{groupId}/containers/all
+
+
+- mongodbatlas_atlas_resource_policy_api - Create and delete (standard):
+    read:   getAtlasResourcePolicy - GET - /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
+    create: createAtlasResourcePolicy - POST - /api/atlas/v2/orgs/{orgId}/resourcePolicies
+    delete: deleteAtlasResourcePolicy - DELETE - /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
+    update: updateAtlasResourcePolicy - PATCH - /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
+    list:   N/A
+
+
+- mongodbatlas_stream_connection_api - Create and delete (standard):
+    read:   getStreamConnection - GET - /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}
+    create: createStreamConnection - POST - /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections
+    delete: deleteStreamConnection - DELETE - /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}
+    update: updateStreamConnection - PATCH - /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}
+    list:   listStreamConnections - GET - /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections
+
+
+- mongodbatlas_third_party_integration_api - Create and delete (standard):
+    read:   getThirdPartyIntegration - GET - /api/atlas/v2/groups/{groupId}/integrations/{integrationType}
+    create: createThirdPartyIntegration - POST - /api/atlas/v2/groups/{groupId}/integrations/{integrationType}
+    delete: deleteThirdPartyIntegration - DELETE - /api/atlas/v2/groups/{groupId}/integrations/{integrationType}
+    update: updateThirdPartyIntegration - PUT - /api/atlas/v2/groups/{groupId}/integrations/{integrationType}
+    list:   listThirdPartyIntegrations - GET - /api/atlas/v2/groups/{groupId}/integrations
+
+
+- mongodbatlas_atlas_search_index_deprecated_api - Create and delete (standard):
+    read:   getAtlasSearchIndexDeprecated - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/fts/indexes/{indexId}
+    create: createAtlasSearchIndexDeprecated - POST - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/fts/indexes
+    delete: deleteAtlasSearchIndexDeprecated - DELETE - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/fts/indexes/{indexId}
+    update: updateAtlasSearchIndexDeprecated - PATCH - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/fts/indexes/{indexId}
+    list:   N/A
+
+
+- mongodbatlas_custom_database_role_api - Create and delete (standard):
+    read:   getCustomDatabaseRole - GET - /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
+    create: createCustomDatabaseRole - POST - /api/atlas/v2/groups/{groupId}/customDBRoles/roles
+    delete: deleteCustomDatabaseRole - DELETE - /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
+    update: updateCustomDatabaseRole - PATCH - /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
+    list:   listCustomDatabaseRoles - GET - /api/atlas/v2/groups/{groupId}/customDBRoles/roles
+
+
+- mongodbatlas_organization_api - Create and delete (standard):
+    read:   getOrganization - GET - /api/atlas/v2/orgs/{orgId}
+    create: createOrganization - POST - /api/atlas/v2/orgs
+    delete: deleteOrganization - DELETE - /api/atlas/v2/orgs/{orgId}
+    update: updateOrganization - PATCH - /api/atlas/v2/orgs/{orgId}
+    list:   listOrganizations - GET - /api/atlas/v2/orgs
+
+
+- mongodbatlas_export_bucket_api - Create and delete (standard):
+    read:   getExportBucket - GET - /api/atlas/v2/groups/{groupId}/backup/exportBuckets/{exportBucketId}
+    create: createExportBucket - POST - /api/atlas/v2/groups/{groupId}/backup/exportBuckets
+    delete: deleteExportBucket - DELETE - /api/atlas/v2/groups/{groupId}/backup/exportBuckets/{exportBucketId}
+    update: N/A
+    list:   listExportBuckets - GET - /api/atlas/v2/groups/{groupId}/backup/exportBuckets
+
+
+- mongodbatlas_data_federation_private_endpoint_api - Create and delete (standard):
+    read:   getDataFederationPrivateEndpoint - GET - /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds/{endpointId}
+    create: createDataFederationPrivateEndpoint - POST - /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds
+    delete: deleteDataFederationPrivateEndpoint - DELETE - /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds/{endpointId}
+    update: N/A
+    list:   listDataFederationPrivateEndpoints - GET - /api/atlas/v2/groups/{groupId}/privateNetworkSettings/endpointIds
+
+
+- mongodbatlas_api_key_api - Create and delete (standard):
+    read:   getApiKey - GET - /api/atlas/v2/orgs/{orgId}/apiKeys/{apiUserId}
+    create: createApiKey - POST - /api/atlas/v2/orgs/{orgId}/apiKeys
+    delete: deleteApiKey - DELETE - /api/atlas/v2/orgs/{orgId}/apiKeys/{apiUserId}
+    update: updateApiKey - PATCH - /api/atlas/v2/orgs/{orgId}/apiKeys/{apiUserId}
+    list:   listApiKeys - GET - /api/atlas/v2/orgs/{orgId}/apiKeys
+
+
+- mongodbatlas_legacy_backup_restore_job_api - Create but missing delete (inconsistent):
+    read:   getLegacyBackupRestoreJob - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/restoreJobs/{jobId}
+    create: createLegacyBackupRestoreJob - POST - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/restoreJobs
+    delete: N/A
+    update: N/A
+    list:   listLegacyBackupRestoreJobs - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/restoreJobs
+
+
+- mongodbatlas_shared_cluster_backup_restore_job_api - Create but missing delete (inconsistent):
+    read:   getSharedClusterBackupRestoreJob - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/tenant/restores/{restoreId}
+    create: createSharedClusterBackupRestoreJob - POST - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/tenant/restore
+    delete: N/A
+    update: N/A
+    list:   listSharedClusterBackupRestoreJobs - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/tenant/restores
+
+
+- mongodbatlas_user_api - Create but missing delete (inconsistent):
+    read:   getUser - GET - /api/atlas/v2/users/{userId}
+    create: createUser - POST - /api/atlas/v2/users
+    delete: N/A
+    update: N/A
+    list:   N/A
+
+
+- mongodbatlas_organization_user_api - Create but missing delete (inconsistent):
+    read:   getOrganizationUser - GET - /api/atlas/v2/orgs/{orgId}/users/{userId}
+    create: createOrganizationUser - POST - /api/atlas/v2/orgs/{orgId}/users
+    delete: N/A
+    update: updateOrganizationUser - PATCH - /api/atlas/v2/orgs/{orgId}/users/{userId}
+    list:   listOrganizationUsers - GET - /api/atlas/v2/orgs/{orgId}/users
+
+
+- mongodbatlas_encryption_at_rest_private_endpoint_api - Create but missing delete (inconsistent):
+    read:   getEncryptionAtRestPrivateEndpoint - GET - /api/atlas/v2/groups/{groupId}/encryptionAtRest/{cloudProvider}/privateEndpoints/{endpointId}
+    create: createEncryptionAtRestPrivateEndpoint - POST - /api/atlas/v2/groups/{groupId}/encryptionAtRest/{cloudProvider}/privateEndpoints
+    delete: N/A
+    update: N/A
+    list:   N/A
+
+
+- mongodbatlas_cloud_provider_access_role_api - Create but missing delete (inconsistent):
+    read:   getCloudProviderAccessRole - GET - /api/atlas/v2/groups/{groupId}/cloudProviderAccess/{roleId}
+    create: createCloudProviderAccessRole - POST - /api/atlas/v2/groups/{groupId}/cloudProviderAccess
+    delete: N/A
+    update: N/A
+    list:   listCloudProviderAccessRoles - GET - /api/atlas/v2/groups/{groupId}/cloudProviderAccess
+
+
+- mongodbatlas_flex_backup_restore_job_api - Create but missing delete (inconsistent):
+    read:   getFlexBackupRestoreJob - GET - /api/atlas/v2/groups/{groupId}/flexClusters/{name}/backup/restoreJobs/{restoreJobId}
+    create: createFlexBackupRestoreJob - POST - /api/atlas/v2/groups/{groupId}/flexClusters/{name}/backup/restoreJobs
+    delete: N/A
+    update: N/A
+    list:   listFlexBackupRestoreJobs - GET - /api/atlas/v2/groups/{groupId}/flexClusters/{name}/backup/restoreJobs
+
+
+- mongodbatlas_push_migration_api - Create but missing delete (inconsistent):
+    read:   getPushMigration - GET - /api/atlas/v2/groups/{groupId}/liveMigrations/{liveMigrationId}
+    create: createPushMigration - POST - /api/atlas/v2/groups/{groupId}/liveMigrations
+    delete: N/A
+    update: N/A
+    list:   N/A
+
+
+- mongodbatlas_cost_explorer_query_process_api - Create but missing delete (inconsistent):
+    read:   getCostExplorerQueryProcess - GET - /api/atlas/v2/orgs/{orgId}/billing/costExplorer/usage/{token}
+    create: createCostExplorerQueryProcess - POST - /api/atlas/v2/orgs/{orgId}/billing/costExplorer/usage
+    delete: N/A
+    update: N/A
+    list:   N/A
+
+
+- mongodbatlas_serverless_backup_restore_job_api - Create but missing delete (inconsistent):
+    read:   getServerlessBackupRestoreJob - GET - /api/atlas/v2/groups/{groupId}/serverless/{clusterName}/backup/restoreJobs/{restoreJobId}
+    create: createServerlessBackupRestoreJob - POST - /api/atlas/v2/groups/{groupId}/serverless/{clusterName}/backup/restoreJobs
+    delete: N/A
+    update: N/A
+    list:   listServerlessBackupRestoreJobs - GET - /api/atlas/v2/groups/{groupId}/serverless/{clusterName}/backup/restoreJobs
+
+
+- mongodbatlas_backup_restore_job_api - Create but missing delete (inconsistent):
+    read:   getBackupRestoreJob - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs/{restoreJobId}
+    create: createBackupRestoreJob - POST - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs
+    delete: N/A
+    update: N/A
+    list:   listBackupRestoreJobs - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs
+
+
+- mongodbatlas_api_key_access_list_api - Create but missing delete (inconsistent):
+    read:   getApiKeyAccessList - GET - /api/atlas/v2/orgs/{orgId}/apiKeys/{apiUserId}/accessList/{ipAddress}
+    create: createApiKeyAccessList - POST - /api/atlas/v2/orgs/{orgId}/apiKeys/{apiUserId}/accessList
+    delete: N/A
+    update: N/A
+    list:   N/A
+
+
+- mongodbatlas_backup_export_job_api - Create but missing delete (inconsistent):
+    read:   getBackupExportJob - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/exports/{exportId}
+    create: createBackupExportJob - POST - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/exports
+    delete: N/A
+    update: N/A
+    list:   listBackupExportJobs - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/exports
+
+
+- mongodbatlas_replica_set_backup_api - Read only (discarded):
+    read:   getReplicaSetBackup - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/{snapshotId}
+    create: N/A
+    delete: deleteReplicaSetBackup - DELETE - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/{snapshotId}
+    update: N/A
+    list:   listReplicaSetBackups - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots
+
+
+- mongodbatlas_project_limit_api - Read only (discarded):
+    read:   getProjectLimit - GET - /api/atlas/v2/groups/{groupId}/limits/{limitName}
+    create: N/A
+    delete: deleteProjectLimit - DELETE - /api/atlas/v2/groups/{groupId}/limits/{limitName}
+    update: N/A
+    list:   listProjectLimits - GET - /api/atlas/v2/groups/{groupId}/limits
+
+
+- mongodbatlas_ldap_configuration_api - Read only (discarded):
+    read:   getLdapConfiguration - GET - /api/atlas/v2/groups/{groupId}/userSecurity
+    create: N/A
+    delete: deleteLdapConfiguration - DELETE - /api/atlas/v2/groups/{groupId}/userSecurity/ldap/userToDNMapping
+    update: N/A
+    list:   N/A
+
+
+- mongodbatlas_sharded_cluster_backup_api - Read only (discarded):
+    read:   getShardedClusterBackup - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/shardedCluster/{snapshotId}
+    create: N/A
+    delete: deleteShardedClusterBackup - DELETE - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/shardedCluster/{snapshotId}
+    update: N/A
+    list:   listShardedClusterBackups - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/shardedClusters
+
+
+- mongodbatlas_legacy_snapshot_api - Read only (discarded):
+    read:   getLegacySnapshot - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/snapshots/{snapshotId}
+    create: N/A
+    delete: deleteLegacySnapshot - DELETE - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/snapshots/{snapshotId}
+    update: N/A
+    list:   listLegacySnapshots - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/snapshots
+
+
+- mongodbatlas_legacy_snapshot_schedule_api - Singleton:
+    read:   getLegacySnapshotSchedule - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/snapshotSchedule
+    create: N/A
+    delete: N/A
+    update: updateLegacySnapshotSchedule - PATCH - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/snapshotSchedule
+    list:   N/A
+
+
+- mongodbatlas_cluster_advanced_configuration_api - Singleton:
+    read:   getClusterAdvancedConfiguration - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
+    create: N/A
+    delete: N/A
+    update: updateClusterAdvancedConfiguration - PATCH - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
+    list:   N/A
+
+
+- mongodbatlas_maintenance_window_api - Singleton:
+    read:   getMaintenanceWindow - GET - /api/atlas/v2/groups/{groupId}/maintenanceWindow
+    create: N/A
+    delete: N/A
+    update: updateMaintenanceWindow - PATCH - /api/atlas/v2/groups/{groupId}/maintenanceWindow
+    list:   N/A
+
+
+- mongodbatlas_connected_org_config_api - Singleton:
+    read:   getConnectedOrgConfig - GET - /api/atlas/v2/federationSettings/{federationSettingsId}/connectedOrgConfigs/{orgId}
+    create: N/A
+    delete: N/A
+    update: updateConnectedOrgConfig - PATCH - /api/atlas/v2/federationSettings/{federationSettingsId}/connectedOrgConfigs/{orgId}
+    list:   listConnectedOrgConfigs - GET - /api/atlas/v2/federationSettings/{federationSettingsId}/connectedOrgConfigs
+
+
+- mongodbatlas_project_settings_api - Singleton:
+    read:   getProjectSettings - GET - /api/atlas/v2/groups/{groupId}/settings
+    create: N/A
+    delete: N/A
+    update: updateProjectSettings - PATCH - /api/atlas/v2/groups/{groupId}/settings
+    list:   N/A
+
+
+- mongodbatlas_backup_schedule_api - Singleton:
+    read:   getBackupSchedule - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/schedule
+    create: N/A
+    delete: N/A
+    update: updateBackupSchedule - PATCH - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/schedule
+    list:   N/A
+
+
+- mongodbatlas_data_protection_settings_api - Singleton:
+    read:   getDataProtectionSettings - GET - /api/atlas/v2/groups/{groupId}/backupCompliancePolicy
+    create: N/A
+    delete: N/A
+    update: updateDataProtectionSettings - PUT - /api/atlas/v2/groups/{groupId}/backupCompliancePolicy
+    list:   N/A
+
+
+- mongodbatlas_organization_settings_api - Singleton:
+    read:   getOrganizationSettings - GET - /api/atlas/v2/orgs/{orgId}/settings
+    create: N/A
+    delete: N/A
+    update: updateOrganizationSettings - PATCH - /api/atlas/v2/orgs/{orgId}/settings
+    list:   N/A
+
+
+- mongodbatlas_encryption_at_rest_api - Singleton:
+    read:   getEncryptionAtRest - GET - /api/atlas/v2/groups/{groupId}/encryptionAtRest
+    create: N/A
+    delete: N/A
+    update: updateEncryptionAtRest - PATCH - /api/atlas/v2/groups/{groupId}/encryptionAtRest
+    list:   N/A
+
+
+- mongodbatlas_auditing_configuration_api - Singleton:
+    read:   getAuditingConfiguration - GET - /api/atlas/v2/groups/{groupId}/auditLog
+    create: N/A
+    delete: N/A
+    update: updateAuditingConfiguration - PATCH - /api/atlas/v2/groups/{groupId}/auditLog
+    list:   N/A
+
+
+- mongodbatlas_atlas_search_index_by_name_api - Singleton with delete:
+    read:   getAtlasSearchIndexByName - GET - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{databaseName}/{collectionName}/{indexName}
+    create: N/A
+    delete: deleteAtlasSearchIndexByName - DELETE - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{databaseName}/{collectionName}/{indexName}
+    update: updateAtlasSearchIndexByName - PATCH - /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{databaseName}/{collectionName}/{indexName}
+    list:   N/A
