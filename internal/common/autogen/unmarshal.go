@@ -12,6 +12,10 @@ import (
 	"github.com/huandu/xstrings"
 )
 
+type Discriminator interface {
+	DiscriminatorProps(objJSON map[string]any) []string
+}
+
 // Unmarshal gets a JSON (e.g. from an Atlas response) and unmarshals it into a Terraform model.
 // It supports the following Terraform model types: String, Bool, Int64, Float64, Object, List, Set.
 // Map is not supported yet, will be done in CLOUDP-312797.
@@ -35,6 +39,15 @@ func unmarshalAttrs(objJSON map[string]any, model any) error {
 	}
 	for attrNameJSON, attrObjJSON := range objJSON {
 		if err := unmarshalAttr(attrNameJSON, attrObjJSON, valModel); err != nil {
+			return err
+		}
+	}
+	discriminator, ok := model.(Discriminator)
+	if !ok {
+		return nil // skip if model does not implement Discriminator interface
+	}
+	for _, attrNameJSON := range discriminator.DiscriminatorProps(objJSON) {
+		if err := unmarshalAttr(attrNameJSON, objJSON, valModel); err != nil {
 			return err
 		}
 	}
