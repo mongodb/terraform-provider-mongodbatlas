@@ -25,7 +25,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 			},
 			"cloud_provider": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "One of \"aws\" or \"azure\".",
+				MarkdownDescription: "One of `aws` or `azure`.",
 			},
 			"project_id": schema.StringAttribute{
 				Required:            true,
@@ -33,7 +33,7 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 			},
 			"region_name": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The cloud provider specific region name, i.e. \"US_EAST_1\" for cloud provider \"aws\".",
+				MarkdownDescription: "The cloud provider specific region name, i.e. `US_EAST_1` for cloud provider `aws`.",
 			},
 			"virtual_network_name": schema.StringAttribute{
 				Computed:            true,
