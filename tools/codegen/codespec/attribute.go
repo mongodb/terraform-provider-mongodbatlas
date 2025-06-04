@@ -35,8 +35,53 @@ func buildResourceAttrs(s *APISpecSchema, isFromRequest bool) (Attributes, error
 			objectAttributes = append(objectAttributes, *attribute)
 		}
 	}
+	oneOfRefs := s.Schema.OneOf
+	if discriminator := s.Schema.Discriminator; discriminator != nil && orderedmap.Len(discriminator.Mapping) == len(oneOfRefs) {
+		discriminatorProperty := discriminator.PropertyName
+		ensureComputed(objectAttributes, discriminatorProperty) // the discriminator property should always be computed
+		counter := -1
+		for pair := range orderedmap.Iterate(context.Background(), discriminator.Mapping) {
+			counter++
+			name := pair.Key()
+			ref := oneOfRefs[counter]
+			if ref == nil {
+				return nil, fmt.Errorf("discriminator mapping '%s' has no reference", name)
+			}
+			oneOfSchema, err := BuildSchema(ref)
+			if err != nil {
+				return nil, err
+			}
+			allOfRefs := oneOfSchema.Schema.AllOf
+			// the first schema in allOf is the discriminator schema, the second is the actual schema
+			if len(allOfRefs) != 2 {
+				return nil, fmt.Errorf("discriminator mapping '%s' has invalid schema, expected 2 schemas in allOf, got %d", name, len(allOfRefs))
+			}
+			schema, err := BuildSchema(allOfRefs[1])
+			if err != nil {
+				return nil, err
+			}
+			attribute, err := schema.buildResourceAttr(discriminatorProperty+"_"+name, Optional, isFromRequest)
+			if err != nil {
+				return nil, err
+			}
+			attribute.Discriminator = &DiscriminatorMapping{
+				DiscriminatorProperty: discriminatorProperty,
+				DiscriminatorValue:    name,
+			}
+			objectAttributes = append(objectAttributes, *attribute)
+		}
+	}
 
 	return objectAttributes, nil
+}
+
+func ensureComputed(objectAttributes Attributes, discriminatorProperty string) {
+	for i := range objectAttributes {
+		attr := &objectAttributes[i]
+		if attr.Name == stringcase.SnakeCaseString(discriminatorProperty) {
+			attr.ComputedOptionalRequired = Computed
+		}
+	}
 }
 
 func (s *APISpecSchema) buildResourceAttr(name string, computability ComputedOptionalRequired, isFromRequest bool) (*Attribute, error) {
