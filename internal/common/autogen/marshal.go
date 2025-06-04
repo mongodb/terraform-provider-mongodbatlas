@@ -84,7 +84,7 @@ func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error)
 	return objJSON, nil
 }
 
-func handleDiscriminator(tag string, attrNameModel string, objJSON map[string]any) error {
+func handleDiscriminator(tag, attrNameModel string, objJSON map[string]any) error {
 	discriminatorTag := IsDiscriminatorTag(tag)
 	if discriminatorTag == nil {
 		return nil // not a discriminator tag, nothing to do

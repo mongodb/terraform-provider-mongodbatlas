@@ -69,7 +69,7 @@ func (d DiscriminatorMapping) AttributeName() string {
 // Add this field to the Attribute struct
 // Usage AttributeUsage
 type Attribute struct {
-	SetNested                *SetNestedAttribute
+	Set                      *SetAttribute
 	String                   *StringAttribute
 	Float64                  *Float64Attribute
 	List                     *ListAttribute
@@ -77,18 +77,18 @@ type Attribute struct {
 	ListNested               *ListNestedAttribute
 	Map                      *MapAttribute
 	MapNested                *MapNestedAttribute
-	Int64                    *Int64Attribute
 	Number                   *NumberAttribute
-	Set                      *SetAttribute
-	SingleNested             *SingleNestedAttribute
+	Int64                    *Int64Attribute
 	Timeouts                 *TimeoutsAttribute
+	SingleNested             *SingleNestedAttribute
+	SetNested                *SetNestedAttribute
 	Description              *string
 	DeprecationMessage       *string
-	Name                     stringcase.SnakeCaseString
+	Discriminator            *DiscriminatorMapping
 	ComputedOptionalRequired ComputedOptionalRequired
+	Name                     stringcase.SnakeCaseString
 	ReqBodyUsage             AttributeReqBodyUsage
 	Sensitive                bool
-	Discriminator            *DiscriminatorMapping
 }
 
 type AttributeReqBodyUsage int

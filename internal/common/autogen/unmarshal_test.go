@@ -422,7 +422,7 @@ func TestUnmarshalZeroLenCollections(t *testing.T) {
 type streamConn struct {
 	Type        types.String `tfsdk:"type"`
 	TypeCluster types.Object `tfsdk:"type_cluster" autogen:"discriminator:type=Cluster"`
-	TypeHttps   types.Object `tfsdk:"type_https" autogen:"discriminator:type=Https"`
+	TypeHTTPS   types.Object `tfsdk:"type_https" autogen:"discriminator:type=Https"`
 }
 
 func (s *streamConn) DiscriminatorAttr(objJSON map[string]any) string {
@@ -431,22 +431,9 @@ func (s *streamConn) DiscriminatorAttr(objJSON map[string]any) string {
 	case "Cluster":
 		return "TypeCluster"
 	case "Https":
-		return "TypeHttps"
+		return "TypeHTTPS"
 	}
 	return ""
-}
-
-type cluster struct {
-	ClusterName     types.String `tfsdk:"cluster_name"`
-	DBRoleToExecute types.Object `tfsdk:"db_role_to_execute"`
-}
-
-type dbRole struct {
-	RoleName types.String `tfsdk:"role_name"`
-	Type     types.String `tfsdk:"type"`
-}
-type https struct {
-	URL types.String `tfsdk:"url"`
 }
 
 var (
@@ -476,12 +463,12 @@ var (
 				"type":      types.StringValue("myType"),
 			}),
 		}),
-		TypeHttps: types.ObjectNull(httpsObjType.AttrTypes),
+		TypeHTTPS: types.ObjectNull(httpsObjType.AttrTypes),
 	}
-	streamConnModelHttps = streamConn{
+	streamConnModelHTTPS = streamConn{
 		Type:        types.StringValue("Https"),
 		TypeCluster: types.ObjectNull(clusterObjType.AttrTypes),
-		TypeHttps: types.ObjectValueMust(httpsObjType.AttrTypes, map[string]attr.Value{
+		TypeHTTPS: types.ObjectValueMust(httpsObjType.AttrTypes, map[string]attr.Value{
 			"url": types.StringValue("https://example.com"),
 		}),
 	}
@@ -497,7 +484,7 @@ const (
 					"type": "myType"
 				}
 		}`
-	jsonRespHttps = `{
+	jsonRespHTTPS = `{
 					"type": "Https",
 					"url": "https://example.com"
 				}`
@@ -513,8 +500,8 @@ func TestUnmarshalModelWithDiscriminator(t *testing.T) {
 			jsonResp:      jsonRespCluster,
 		},
 		"https": {
-			modelExpected: streamConnModelHttps,
-			jsonResp:      jsonRespHttps,
+			modelExpected: streamConnModelHTTPS,
+			jsonResp:      jsonRespHTTPS,
 		},
 	}
 	for name, tc := range testCases {
@@ -522,7 +509,7 @@ func TestUnmarshalModelWithDiscriminator(t *testing.T) {
 			model := streamConn{
 				Type:        types.StringUnknown(),
 				TypeCluster: types.ObjectNull(clusterObjType.AttrTypes),
-				TypeHttps:   types.ObjectNull(httpsObjType.AttrTypes),
+				TypeHTTPS:   types.ObjectNull(httpsObjType.AttrTypes),
 			}
 			require.NoError(t, autogen.Unmarshal([]byte(tc.jsonResp), &model))
 			assert.Equal(t, tc.modelExpected, model)

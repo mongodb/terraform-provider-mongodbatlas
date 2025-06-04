@@ -288,8 +288,8 @@ func TestMarshalPanic(t *testing.T) {
 
 func TestIsDiscriminatorTag(t *testing.T) {
 	testCases := map[string]struct {
-		tagValue string
 		expected *autogen.DiscriminatorTag
+		tagValue string
 	}{
 		"empty tag": {
 			tagValue: "",
@@ -327,8 +327,8 @@ func TestMarshalDiscriminator(t *testing.T) {
 			expectedJSON: jsonRespCluster,
 		},
 		"https model": {
-			model:        streamConnModelHttps,
-			expectedJSON: jsonRespHttps,
+			model:        streamConnModelHTTPS,
+			expectedJSON: jsonRespHTTPS,
 		},
 	}
 	for name, tc := range testCases {

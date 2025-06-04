@@ -97,7 +97,8 @@ func generateDiscriminatorAttrFunc(tfModelName string, attributes codespec.Attri
 			}
 	*/
 	discriminators := []codespec.DiscriminatorMapping{}
-	for _, attr := range attributes {
+	for i := range attributes {
+		attr := &attributes[i]
 		if attr.Discriminator != nil {
 			discriminators = append(discriminators, *attr.Discriminator)
 		}
@@ -108,7 +109,7 @@ func generateDiscriminatorAttrFunc(tfModelName string, attributes codespec.Attri
 	discriminatorCases := []string{}
 	discriminatorPropName := ""
 	for _, disc := range discriminators {
-		discriminatorCases = append(discriminatorCases, fmt.Sprintf(`case "%s": return "%s"`, disc.DiscriminatorValue, disc.AttributeName()))
+		discriminatorCases = append(discriminatorCases, fmt.Sprintf(`case %q: return %q`, disc.DiscriminatorValue, disc.AttributeName()))
 		if discriminatorPropName == "" {
 			discriminatorPropName = disc.DiscriminatorProperty
 		}
