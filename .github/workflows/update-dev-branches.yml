@@ -1,0 +1,50 @@
+name: 'Update dev branches'
+
+on:
+  workflow_dispatch:
+    inputs:
+      branches:
+        description: 'Dev branch names to update from master'
+        default: '["CLOUDP-320243-dev-2.0.0", "unexisting-branch"]'
+      send_notification:
+        description: 'Send the Slack notification if any of the updates fail.'
+        type: boolean
+        default: false
+  schedule:
+    - cron: "0 5 * * 3" # workflow runs every Wednesday at 5 AM UTC
+concurrency:
+  group: '${{ github.workflow }}'
+  cancel-in-progress: false
+   
+jobs:
+  update-branches:
+    strategy:
+      max-parallel: 10
+      fail-fast: false
+      matrix:
+        branch: ${{ fromJSON(inputs.branches || '["CLOUDP-320243-dev-2.0.0", "unexisting-branch-2"]') }} # scheduled branches go here
+    runs-on: ubuntu-latest
+    steps:
+    - run: |
+        echo "Updating branch: ${{ matrix.branch }}"
+    - name: Fail if bad branch
+      run: |
+        if [[ "${{ matrix.branch }}" == "bad-branch" ]]; then
+          echo "Branch ${{ matrix.branch }} is configured to fail for testing purposes"
+          exit 1
+        fi
+
+  slack-notification:
+    needs: update-branches
+    if: ${{ !cancelled() && needs.update-branches.result == 'failure' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: slackapi/slack-github-action@b0fa283ad8fea605de13dc3f449259339835fc52
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": ":red_circle: Update dev branches failed cc ${{ secrets.SLACK_ONCALL_TAG }}: ${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}"
+            }
