@@ -3,7 +3,9 @@ package autogen
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"reflect"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -15,6 +17,28 @@ const (
 	tagValOmitJSON       = "omitjson"
 	tagValOmitJSONUpdate = "omitjsonupdate"
 )
+type DiscriminatorTag struct {
+	DiscriminatorPropName string
+	DiscriminatorPropValue string
+}
+
+/// IsDiscriminatorTag decodes a autogen:"discriminator:type=Cluster" tag to a DiscriminatorTag struct.
+func IsDiscriminatorTag(tag string) *DiscriminatorTag {
+	if tag == "" || !strings.HasPrefix(tag, "discriminator:"){
+		return nil
+	}
+	// decode the tag
+	keyValue := strings.TrimPrefix(tag, "discriminator:")
+	propName, propValue, found := strings.Cut(keyValue, "=")
+	if !found {
+		return nil // not a valid discriminator tag
+	}
+	return &DiscriminatorTag{
+		DiscriminatorPropName:  propName,
+		DiscriminatorPropValue: propValue,
+	}
+}
+
 
 // Marshal gets a Terraform model and marshals it into JSON (e.g. for an Atlas request).
 // It supports the following Terraform model types: String, Bool, Int64, Float64, Object, Map, List, Set.
@@ -53,9 +77,34 @@ func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error)
 		if err := marshalAttr(attrNameModel, attrValModel, objJSON); err != nil {
 			return nil, err
 		}
+		if err := handleDiscriminator(tag, attrNameModel, objJSON); err != nil {
+			return nil, err
+		}
 	}
 	return objJSON, nil
 }
+
+func handleDiscriminator(tag string, attrNameModel string, objJSON map[string]any) error {
+	discriminatorTag := IsDiscriminatorTag(tag)
+	if discriminatorTag == nil {
+		return nil // not a discriminator tag, nothing to do
+	}
+	attrNameJSON := xstrings.ToCamelCase(attrNameModel)
+	attrValJSON, ok := objJSON[attrNameJSON]
+	if !ok {
+		return nil // attribute not found in the JSON, nothing to do (probably Null or Unknown value)
+	}
+	// if the discriminator is set, we remove the attribute from the JSON
+	delete(objJSON, attrNameJSON)
+	objJSON[discriminatorTag.DiscriminatorPropName] = discriminatorTag.DiscriminatorPropValue // set the discriminator property in the JSON
+	attrValJSONObject, ok := attrValJSON.(map[string]any)
+	if !ok {
+		return fmt.Errorf("discriminator attribute %s must be an object", attrNameJSON)
+	}
+	maps.Copy(objJSON, attrValJSONObject) // copy the object attributes to the root JSON
+	return nil
+}
+
 
 func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[string]any) error {
 	attrNameJSON := xstrings.ToCamelCase(attrNameModel)

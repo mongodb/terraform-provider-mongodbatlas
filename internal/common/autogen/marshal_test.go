@@ -285,3 +285,58 @@ func TestMarshalPanic(t *testing.T) {
 		})
 	}
 }
+
+
+func TestIsDiscriminatorTag(t *testing.T) {
+	testCases := map[string]struct {
+		tagValue string
+		expected *autogen.DiscriminatorTag
+	}{
+		"empty tag": {
+			tagValue: "",
+			expected: nil,
+		},
+		"valid tag with name": {
+			tagValue: "discriminator:type=Cluster",
+			expected: &autogen.DiscriminatorTag{
+				DiscriminatorPropName: "type",
+				DiscriminatorPropValue:    "Cluster",
+			},
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			tag := autogen.IsDiscriminatorTag(tc.tagValue)
+			if tc.expected == nil {
+				assert.Nil(t, tag)
+			} else {
+				require.NotNil(t, tag)
+				assert.Equal(t, tc.expected.DiscriminatorPropName, tag.DiscriminatorPropName)
+				assert.Equal(t, tc.expected.DiscriminatorPropValue, tag.DiscriminatorPropValue)
+			}
+		})
+	}
+}
+
+func TestMarshalDiscriminator(t *testing.T) {
+	testCases := map[string]struct {
+		model streamConn
+		expectedJSON string
+	}{
+		"cluster model": {
+			model: streamConnModelCluster,
+			expectedJSON: jsonRespCluster,
+		},
+		"https model": {
+			model: streamConnModelHttps,
+			expectedJSON: jsonRespHttps,
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			raw, err := autogen.Marshal(&tc.model, false)
+			require.NoError(t, err)
+			assert.JSONEq(t, tc.expectedJSON, string(raw))
+		})
+	}
+}

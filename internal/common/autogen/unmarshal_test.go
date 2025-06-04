@@ -425,7 +425,7 @@ type streamConn struct {
 	TypeHttps   types.Object `tfsdk:"type_https" autogen:"discriminator:type=Https"`
 }
 
-func (s *streamConn) DiscriminatorAttrs(objJSON map[string]any) string {
+func (s *streamConn) DiscriminatorAttr(objJSON map[string]any) string {
 	// Probably can return a single attribute
 	value := objJSON["type"]
 	if value == "Cluster" {
@@ -436,21 +436,59 @@ func (s *streamConn) DiscriminatorAttrs(objJSON map[string]any) string {
 	return ""
 }
 
-func TestUnmarshalModelWithDiscriminator(t *testing.T) {
-	type cluster struct {
-		ClusterName     types.String `tfsdk:"cluster_name"`
-		DBRoleToExecute types.Object `tfsdk:"db_role_to_execute"`
-	}
+type cluster struct {
+	ClusterName     types.String `tfsdk:"cluster_name"`
+	DBRoleToExecute types.Object `tfsdk:"db_role_to_execute"`
+}
 
-	type dbRole struct {
-		RoleName types.String `tfsdk:"role_name"`
-		Type     types.String `tfsdk:"type"`
+type dbRole struct {
+	RoleName types.String `tfsdk:"role_name"`
+	Type     types.String `tfsdk:"type"`
+}
+type https struct {
+	URL types.String `tfsdk:"url"`
+}
+
+var (
+	dbRoleObjType = types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"role_name": types.StringType,
+			"type":      types.StringType,
+		},
 	}
-	type https struct {
-		URL types.String `tfsdk:"url"`
+	clusterObjType = types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"cluster_name":       types.StringType,
+			"db_role_to_execute": dbRoleObjType,
+		},
 	}
-	const (
-		jsonRespCluster = `
+	httpsObjType = types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"url": types.StringType,
+		},
+	}
+	streamConnModelCluster = streamConn{
+		Type: types.StringValue("Cluster"),
+		TypeCluster: types.ObjectValueMust(clusterObjType.AttrTypes, map[string]attr.Value{
+			"cluster_name": types.StringValue("myCluster"),
+			"db_role_to_execute": types.ObjectValueMust(dbRoleObjType.AttrTypes, map[string]attr.Value{
+				"role_name": types.StringValue("myRole"),
+				"type":      types.StringValue("myType"),
+			}),
+		}),
+		TypeHttps: types.ObjectNull(httpsObjType.AttrTypes),
+	}
+	streamConnModelHttps = streamConn{
+		Type:        types.StringValue("Https"),
+		TypeCluster: types.ObjectNull(clusterObjType.AttrTypes),
+		TypeHttps: types.ObjectValueMust(httpsObjType.AttrTypes, map[string]attr.Value{
+			"url": types.StringValue("https://example.com"),
+		}),
+	}
+)
+
+const (
+	jsonRespCluster = `
 			{
 				"type": "Cluster",
 				"clusterName": "myCluster",
@@ -459,54 +497,24 @@ func TestUnmarshalModelWithDiscriminator(t *testing.T) {
 					"type": "myType"
 				}
 		}`
-	)
-	dbRoleObjType := types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"role_name": types.StringType,
-			"type":      types.StringType,
-		},
-	}
-	clusterObjType := types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"cluster_name":       types.StringType,
-			"db_role_to_execute": dbRoleObjType,
-		},
-	}
-	httpsObjType := types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"url": types.StringType,
-		},
-	}
+	jsonRespHttps = `{
+					"type": "Https",
+					"url": "https://example.com"
+				}`
+)
+
+func TestUnmarshalModelWithDiscriminator(t *testing.T) {
 	testCases := map[string]struct {
 		modelExpected streamConn
 		jsonResp      string
 	}{
 		"cluster": {
-			modelExpected: streamConn{
-				Type: types.StringValue("Cluster"),
-				TypeCluster: types.ObjectValueMust(clusterObjType.AttrTypes, map[string]attr.Value{
-					"cluster_name": types.StringValue("myCluster"),
-					"db_role_to_execute": types.ObjectValueMust(dbRoleObjType.AttrTypes, map[string]attr.Value{
-						"role_name": types.StringValue("myRole"),
-						"type":      types.StringValue("myType"),
-					}),
-				}),
-				TypeHttps: types.ObjectNull(httpsObjType.AttrTypes),
-			},
-			jsonResp: jsonRespCluster,
+			modelExpected: streamConnModelCluster,
+			jsonResp:      jsonRespCluster,
 		},
 		"https": {
-			modelExpected: streamConn{
-				Type:        types.StringValue("Https"),
-				TypeCluster: types.ObjectNull(clusterObjType.AttrTypes),
-				TypeHttps: types.ObjectValueMust(httpsObjType.AttrTypes, map[string]attr.Value{
-					"url": types.StringValue("https://example.com"),
-				}),
-			},
-			jsonResp: `{
-					"type": "Https",
-					"url": "https://example.com"
-				}`,
+			modelExpected: streamConnModelHttps,
+			jsonResp:      jsonRespHttps,
 		},
 	}
 	for name, tc := range testCases {
