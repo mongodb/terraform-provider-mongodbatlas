@@ -13,7 +13,7 @@ import (
 )
 
 type Discriminator interface {
-	DiscriminatorProps(objJSON map[string]any) []string
+	DiscriminatorAttr(objJSON map[string]any) string
 }
 
 // Unmarshal gets a JSON (e.g. from an Atlas response) and unmarshals it into a Terraform model.
@@ -46,7 +46,7 @@ func unmarshalAttrs(objJSON map[string]any, model any) error {
 	if !ok {
 		return nil // skip if model does not implement Discriminator interface
 	}
-	for _, attrNameJSON := range discriminator.DiscriminatorProps(objJSON) {
+	if attrNameJSON := discriminator.DiscriminatorAttr(objJSON); attrNameJSON != "" {
 		if err := unmarshalAttr(attrNameJSON, objJSON, valModel); err != nil {
 			return err
 		}

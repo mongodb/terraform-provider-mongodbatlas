@@ -425,14 +425,15 @@ type streamConn struct {
 	TypeHttps   types.Object `tfsdk:"type_https" autogen:"discriminator:type=Https"`
 }
 
-func (s *streamConn) DiscriminatorAttrs(objJSON map[string]any) []string {
+func (s *streamConn) DiscriminatorAttrs(objJSON map[string]any) string {
+	// Probably can return a single attribute
 	value := objJSON["type"]
 	if value == "Cluster" {
-		return []string{"TypeCluster"}
+		return "TypeCluster"
 	} else if value == "Https" {
-		return []string{"TypeHttps"}
+		return "TypeHttps"
 	}
-	return nil
+	return ""
 }
 
 func TestUnmarshalModelWithDiscriminator(t *testing.T) {
