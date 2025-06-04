@@ -23,7 +23,7 @@ func TestAccStreamAccountDetailsDS_basic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: StreamAccountDetailsConfig(clusterInfo.TerraformStr, clusterInfo.ProjectID, "aws", "US_EAST_1", clusterInfo.ResourceName),
+				Config: configBasic(clusterInfo.TerraformStr, clusterInfo.ProjectID, "aws", "US_EAST_1", clusterInfo.ResourceName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "project_id", clusterInfo.ProjectID),
 					resource.TestCheckResourceAttrSet(dataSourceName, "aws_account_id"),
@@ -36,7 +36,7 @@ func TestAccStreamAccountDetailsDS_basic(t *testing.T) {
 	})
 }
 
-func StreamAccountDetailsConfig(clusterInfoStr, projectID, cloudProvider, regionName, clusterInfoNameRef string) string {
+func configBasic(clusterInfoStr, projectID, cloudProvider, regionName, clusterInfoNameRef string) string {
 	return fmt.Sprintf(`
 		%[1]s
 
