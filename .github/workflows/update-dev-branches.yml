@@ -20,7 +20,8 @@ jobs:
       max-parallel: 10
       fail-fast: false
       matrix:
-        branch: ${{ fromJSON(inputs.branches || '["CLOUDP-320243-dev-2.0.0", "unexisting-branch-2"]') }} # scheduled branches go here
+        branch: ${{ fromJSON(inputs.branches || '["CLOUDP-320243-dev-2.0.0", "unexisting-branch-2", "bad-branch"]') }} # scheduled branches go here
+    name: ${{ matrix.branch }}
     runs-on: ubuntu-latest
     steps:
     - run: |
