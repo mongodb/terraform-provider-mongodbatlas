@@ -96,7 +96,7 @@ jobs:
       - name: Check PURLs
         run: make check-purls
   call-acceptance-tests-workflow:
-    needs: [build, lint, shellcheck, unit-test, generate-doc-check]
+    needs: [build, lint, shellcheck, unit-test, generate-doc-check, check-purls]
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
     with:
