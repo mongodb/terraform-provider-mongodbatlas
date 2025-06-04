@@ -163,3 +163,5 @@ require (
 )
 
 exclude github.com/denis-tingajkin/go-header v0.4.2
+
+replace github.com/go-jose/go-jose/v4 v4.0.4 => github.com/go-jose/go-jose/v4 v4.0.5 // to fix a Snyk issue, can be removed once google.golang.org uses >= v4.0.5
