@@ -6,8 +6,10 @@ on:
       branches:
         description: 'Dev branch names to update from master'
         default: '["CLOUDP-320243-dev-2.0.0", "unexisting-branch"]'
+  pull_request: # TODO: remove
   schedule:
     - cron: "0 5 * * 3" # workflow runs every Wednesday at 5 AM UTC
+
 concurrency:
   group: '${{ github.workflow }}'
   cancel-in-progress: false
@@ -38,7 +40,7 @@ jobs:
     steps:
       - uses: slackapi/slack-github-action@b0fa283ad8fea605de13dc3f449259339835fc52
         with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST }}
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST }} # TODO: change to SLACK_WEBHOOK_URL
           webhook-type: incoming-webhook
           payload: |
             {
