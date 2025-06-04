@@ -45,32 +45,37 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Type of the connection.",
 			},
 			"type_awslambda": schema.SingleNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "AWS configurations for AWS-based connection types.",
+				Optional: true,
 				Attributes: map[string]schema.Attribute{
-					"links": schema.ListNestedAttribute{
-						Computed:            true,
-						MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"href": schema.StringAttribute{
-									Computed:            true,
-									MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-								},
-								"rel": schema.StringAttribute{
-									Computed:            true,
-									MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
+					"aws": schema.SingleNestedAttribute{
+						Optional:            true,
+						MarkdownDescription: "AWS configurations for AWS-based connection types.",
+						Attributes: map[string]schema.Attribute{
+							"links": schema.ListNestedAttribute{
+								Computed:            true,
+								MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
+								NestedObject: schema.NestedAttributeObject{
+									Attributes: map[string]schema.Attribute{
+										"href": schema.StringAttribute{
+											Computed:            true,
+											MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
+										},
+										"rel": schema.StringAttribute{
+											Computed:            true,
+											MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
+										},
+									},
 								},
 							},
+							"role_arn": schema.StringAttribute{
+								Optional:            true,
+								MarkdownDescription: "Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.",
+							},
+							"test_bucket": schema.StringAttribute{
+								Optional:            true,
+								MarkdownDescription: "The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.",
+							},
 						},
-					},
-					"role_arn": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.",
-					},
-					"test_bucket": schema.StringAttribute{
-						Optional:            true,
-						MarkdownDescription: "The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.",
 					},
 				},
 			},
@@ -317,6 +322,15 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
+			"type_sample": schema.SingleNestedAttribute{
+				Optional: true,
+				Attributes: map[string]schema.Attribute{
+					"type": schema.StringAttribute{
+						Optional:            true,
+						MarkdownDescription: "This should always be set to Sample, but can also be omitted",
+					},
+				},
+			},
 		},
 	}
 }
@@ -332,6 +346,7 @@ type TFModel struct {
 	TypeHttps     types.Object `tfsdk:"type_https" autogen:"discriminator:type=Https"`
 	TypeKafka     types.Object `tfsdk:"type_kafka" autogen:"discriminator:type=Kafka"`
 	TypeS3        types.Object `tfsdk:"type_s3" autogen:"discriminator:type=S3"`
+	TypeSample    types.Object `tfsdk:"type_sample" autogen:"discriminator:type=Sample"`
 }
 
 func (t *TFModel) DiscriminatorAttr(objJSON map[string]any) string {
@@ -346,6 +361,8 @@ func (t *TFModel) DiscriminatorAttr(objJSON map[string]any) string {
 		return "TypeKafka"
 	case "S3":
 		return "TypeS3"
+	case "Sample":
+		return "TypeSample"
 	}
 	return ""
 }
@@ -355,11 +372,14 @@ type TFLinksModel struct {
 	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
 }
 type TFTypeAwslambdaModel struct {
+	Aws types.Object `tfsdk:"aws"`
+}
+type TFTypeAwslambdaAwsModel struct {
 	Links      types.List   `tfsdk:"links" autogen:"omitjson"`
 	RoleArn    types.String `tfsdk:"role_arn"`
 	TestBucket types.String `tfsdk:"test_bucket"`
 }
-type TFTypeAwslambdaLinksModel struct {
+type TFTypeAwslambdaAwsLinksModel struct {
 	Href types.String `tfsdk:"href" autogen:"omitjson"`
 	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
 }
@@ -440,4 +460,7 @@ type TFTypeS3AwsModel struct {
 type TFTypeS3AwsLinksModel struct {
 	Href types.String `tfsdk:"href" autogen:"omitjson"`
 	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
+}
+type TFTypeSampleModel struct {
+	Type types.String `tfsdk:"type"`
 }

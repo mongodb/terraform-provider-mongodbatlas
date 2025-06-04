@@ -3,8 +3,11 @@ package codespec
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
+	"github.com/pb33f/libopenapi/datamodel/high/base"
 	"github.com/pb33f/libopenapi/orderedmap"
 )
 
@@ -35,44 +38,82 @@ func buildResourceAttrs(s *APISpecSchema, isFromRequest bool) (Attributes, error
 			objectAttributes = append(objectAttributes, *attribute)
 		}
 	}
-	oneOfRefs := s.Schema.OneOf
-	if discriminator := s.Schema.Discriminator; discriminator != nil && orderedmap.Len(discriminator.Mapping) == len(oneOfRefs) {
+	oneOfRefsMap := map[string]*base.SchemaProxy{}
+	for i := range s.Schema.OneOf {
+		ref := s.Schema.OneOf[i]
+		if ref != nil {
+			refName := ref.GetReference()
+			oneOfRefsMap[refName] = ref
+		}
+	}
+	if discriminator := s.Schema.Discriminator; discriminator != nil && orderedmap.Len(discriminator.Mapping) == len(oneOfRefsMap) {
 		discriminatorProperty := discriminator.PropertyName
 		ensureComputed(objectAttributes, discriminatorProperty) // the discriminator property should always be computed
 		counter := -1
 		for pair := range orderedmap.Iterate(context.Background(), discriminator.Mapping) {
 			counter++
 			name := pair.Key()
-			ref := oneOfRefs[counter]
+			refValue := pair.Value()
+			ref := oneOfRefsMap[refValue]
 			if ref == nil {
 				return nil, fmt.Errorf("discriminator mapping '%s' has no reference", name)
 			}
-			oneOfSchema, err := BuildSchema(ref)
+			discriminatorAttribute, err := createDiscriminatorAttribute(ref, discriminatorProperty, name, isFromRequest)
 			if err != nil {
 				return nil, err
 			}
-			allOfRefs := oneOfSchema.Schema.AllOf
 			// the first schema in allOf is the discriminator schema, the second is the actual schema
-			if len(allOfRefs) != 2 {
-				return nil, fmt.Errorf("discriminator mapping '%s' has invalid schema, expected 2 schemas in allOf, got %d", name, len(allOfRefs))
-			}
-			schema, err := BuildSchema(allOfRefs[1])
-			if err != nil {
-				return nil, err
-			}
-			attribute, err := schema.buildResourceAttr(discriminatorProperty+"_"+name, Optional, isFromRequest)
-			if err != nil {
-				return nil, err
-			}
-			attribute.Discriminator = &DiscriminatorMapping{
-				DiscriminatorProperty: discriminatorProperty,
-				DiscriminatorValue:    name,
-			}
-			objectAttributes = append(objectAttributes, *attribute)
+			objectAttributes = append(objectAttributes, *discriminatorAttribute)
 		}
 	}
 
 	return objectAttributes, nil
+}
+
+func createDiscriminatorAttribute(ref *base.SchemaProxy, discriminatorProperty, discriminatorValue string, isFromRequest bool) (*Attribute, error) {
+	oneOfSchema, err := BuildSchema(ref)
+	if err != nil {
+		return nil, err
+	}
+	allOfRefs := oneOfSchema.Schema.AllOf
+	attrName := stringcase.SnakeCaseString(discriminatorProperty + "_" + strings.ToLower(discriminatorValue))
+	discriminatorMapping := DiscriminatorMapping{
+		DiscriminatorProperty: discriminatorProperty,
+		DiscriminatorValue:    discriminatorValue,
+	}
+	if len(allOfRefs) == 0 || len(allOfRefs) > 2 {
+		return nil, fmt.Errorf("discriminator mapping '%s' has invalid schema, expected 1 or 2 schemas in allOf, got %d", discriminatorValue, len(allOfRefs))
+	}
+	if len(allOfRefs) == 1 { // if the specific oneOf has no special attributes, we can just use the discriminator property
+		return &Attribute{
+			Name:                     attrName,
+			ComputedOptionalRequired: Optional,
+			SingleNested: &SingleNestedAttribute{
+				NestedObject: NestedAttributeObject{
+					Attributes: []Attribute{
+						{
+							Name:                     stringcase.SnakeCaseString(discriminatorProperty),
+							ComputedOptionalRequired: Optional,
+							String:                   &StringAttribute{},
+							Description:              conversion.Pointer(fmt.Sprintf("This should always be set to %s, but can also be omitted", discriminatorValue)),
+						},
+					},
+				},
+			},
+			Discriminator: &discriminatorMapping,
+		}, nil
+	}
+	// two allOfRefs
+	schema, err := BuildSchema(allOfRefs[1])
+	if err != nil {
+		return nil, err
+	}
+	attribute, err := schema.buildResourceAttr(attrName.SnakeCase(), Optional, isFromRequest)
+	if err != nil {
+		return nil, err
+	}
+	attribute.Discriminator = &discriminatorMapping
+	return attribute, nil
 }
 
 func ensureComputed(objectAttributes Attributes, discriminatorProperty string) {
