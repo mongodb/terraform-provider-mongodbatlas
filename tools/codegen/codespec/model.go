@@ -1,6 +1,8 @@
 package codespec
 
-import "github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
+import (
+	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
+)
 
 type ElemType int
 
@@ -55,6 +57,15 @@ type Schema struct {
 
 type Attributes []Attribute
 
+type DiscriminatorMapping struct {
+	DiscriminatorProperty string
+	DiscriminatorValue    string
+}
+
+func (d DiscriminatorMapping) AttributeName() string {
+	return stringcase.SnakeCaseString(d.DiscriminatorProperty + d.DiscriminatorValue).PascalCase()
+}
+
 // Add this field to the Attribute struct
 // Usage AttributeUsage
 type Attribute struct {
@@ -77,6 +88,7 @@ type Attribute struct {
 	ComputedOptionalRequired ComputedOptionalRequired
 	ReqBodyUsage             AttributeReqBodyUsage
 	Sensitive                bool
+	Discriminator            *DiscriminatorMapping
 }
 
 type AttributeReqBodyUsage int

@@ -427,10 +427,10 @@ type streamConn struct {
 
 func (s *streamConn) DiscriminatorAttr(objJSON map[string]any) string {
 	// Probably can return a single attribute
-	value := objJSON["type"]
-	if value == "Cluster" {
+	switch objJSON["type"] {
+	case "Cluster":
 		return "TypeCluster"
-	} else if value == "Https" {
+	case "Https":
 		return "TypeHttps"
 	}
 	return ""

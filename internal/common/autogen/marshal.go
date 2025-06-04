@@ -17,14 +17,15 @@ const (
 	tagValOmitJSON       = "omitjson"
 	tagValOmitJSONUpdate = "omitjsonupdate"
 )
+
 type DiscriminatorTag struct {
-	DiscriminatorPropName string
+	DiscriminatorPropName  string
 	DiscriminatorPropValue string
 }
 
-/// IsDiscriminatorTag decodes a autogen:"discriminator:type=Cluster" tag to a DiscriminatorTag struct.
+// / IsDiscriminatorTag decodes a autogen:"discriminator:type=Cluster" tag to a DiscriminatorTag struct.
 func IsDiscriminatorTag(tag string) *DiscriminatorTag {
-	if tag == "" || !strings.HasPrefix(tag, "discriminator:"){
+	if tag == "" || !strings.HasPrefix(tag, "discriminator:") {
 		return nil
 	}
 	// decode the tag
@@ -38,7 +39,6 @@ func IsDiscriminatorTag(tag string) *DiscriminatorTag {
 		DiscriminatorPropValue: propValue,
 	}
 }
-
 
 // Marshal gets a Terraform model and marshals it into JSON (e.g. for an Atlas request).
 // It supports the following Terraform model types: String, Bool, Int64, Float64, Object, Map, List, Set.
@@ -104,7 +104,6 @@ func handleDiscriminator(tag string, attrNameModel string, objJSON map[string]an
 	maps.Copy(objJSON, attrValJSONObject) // copy the object attributes to the root JSON
 	return nil
 }
-
 
 func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[string]any) error {
 	attrNameJSON := xstrings.ToCamelCase(attrNameModel)

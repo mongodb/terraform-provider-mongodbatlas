@@ -72,12 +72,57 @@ func generateStructOfTypedModel(attributes codespec.Attributes, name string) Cod
 		structProperties = append(structProperties, typedModelProperty(&attributes[i]))
 	}
 	structPropsCode := strings.Join(structProperties, "\n")
+	tfModelName := "TF" + name + "Model"
+	discriminatorAttrFunc := generateDiscriminatorAttrFunc(tfModelName, attributes)
 	return CodeStatement{
-		Code: fmt.Sprintf(`type TF%sModel struct {
+		Code: fmt.Sprintf(`type %s struct {
 			%s
-		}`, name, structPropsCode),
+		}`, tfModelName, structPropsCode) + discriminatorAttrFunc,
 		Imports: []string{"github.com/hashicorp/terraform-plugin-framework/types"},
 	}
+}
+
+func generateDiscriminatorAttrFunc(tfModelName string, attributes codespec.Attributes) string {
+	/*
+		Example of stream_connection:
+			func (s *streamConn) DiscriminatorAttr(objJSON map[string]any) string {
+				// Probably can return a single attribute
+				switch objJSON["type"] {
+				case "Cluster":
+					return "TypeCluster"
+				case "Https":
+					return "TypeHttps"
+				}
+				return ""
+			}
+	*/
+	discriminators := []codespec.DiscriminatorMapping{}
+	for _, attr := range attributes {
+		if attr.Discriminator != nil {
+			discriminators = append(discriminators, *attr.Discriminator)
+		}
+	}
+	if len(discriminators) == 0 {
+		return ""
+	}
+	discriminatorCases := []string{}
+	discriminatorPropName := ""
+	for _, disc := range discriminators {
+		discriminatorCases = append(discriminatorCases, fmt.Sprintf(`case "%s": return "%s"`, disc.DiscriminatorValue, disc.AttributeName()))
+		if discriminatorPropName == "" {
+			discriminatorPropName = disc.DiscriminatorProperty
+		}
+		if discriminatorPropName != disc.DiscriminatorProperty {
+			panic(fmt.Sprintf("Discriminator mappings must have the same DiscriminatorProperty, found %s and %s for model %s", discriminatorPropName, disc.DiscriminatorProperty, tfModelName))
+		}
+	}
+	return fmt.Sprintf(`
+func (t *%s) DiscriminatorAttr(objJSON map[string]any) string {
+	switch objJSON["%s"] {
+	%s
+	}
+	return ""
+}`, tfModelName, discriminatorPropName, strings.Join(discriminatorCases, "\n\t"))
 }
 
 func typedModelProperty(attr *codespec.Attribute) string {
@@ -91,6 +136,9 @@ func typedModelProperty(attr *codespec.Attribute) string {
 		autogenTag = ` autogen:"omitjson"`
 	case codespec.OmitInUpdateBody:
 		autogenTag = ` autogen:"omitjsonupdate"`
+	}
+	if discriminator := attr.Discriminator; discriminator != nil {
+		autogenTag = fmt.Sprintf(` autogen:"discriminator:%s=%s"`, discriminator.DiscriminatorProperty, discriminator.DiscriminatorValue)
 	}
 	return fmt.Sprintf("%s %s", namePascalCase, propType) + " `" + fmt.Sprintf("tfsdk:%q", attr.Name.SnakeCase()) + autogenTag + "`"
 }

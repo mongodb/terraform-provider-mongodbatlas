@@ -259,6 +259,65 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 			withObjType:    true,
 			goldenFileName: "multiple-nested-models-same-parent-attr-name",
 		},
+		"Discriminator mapping": {
+			inputModel: codespec.Resource{
+				Name: "test_name",
+				Schema: &codespec.Schema{
+					Attributes: []codespec.Attribute{
+						{
+							Name:                     "type",
+							String:                   &codespec.StringAttribute{},
+							ComputedOptionalRequired: codespec.Computed,
+							Description:              admin.PtrString("Type of the stream connection"),
+						},
+						{
+							Name:                     "type_cluster",
+							ComputedOptionalRequired: codespec.Optional,
+							Description:              admin.PtrString("Use this when you want a cluster stream connection"),
+							SingleNested: &codespec.SingleNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: []codespec.Attribute{
+										{
+											Name:                     "cluster_name",
+											String:                   &codespec.StringAttribute{},
+											ComputedOptionalRequired: codespec.Required,
+											Description:              admin.PtrString("Name of the cluster to connect to"),
+										},
+									},
+								},
+							},
+							Discriminator: &codespec.DiscriminatorMapping{
+								DiscriminatorProperty: "type",
+								DiscriminatorValue:    "Cluster",
+							},
+						},
+						{
+							Name:                     "type_https",
+							ComputedOptionalRequired: codespec.Optional,
+							Description:              admin.PtrString("Use this when you want a https stream connection"),
+							SingleNested: &codespec.SingleNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: []codespec.Attribute{
+										{
+											Name:                     "url",
+											String:                   &codespec.StringAttribute{},
+											ComputedOptionalRequired: codespec.Required,
+											Description:              admin.PtrString("Url of the https stream connection"),
+										},
+									},
+								},
+							},
+							Discriminator: &codespec.DiscriminatorMapping{
+								DiscriminatorProperty: "type",
+								DiscriminatorValue:    "Https",
+							},
+						},
+					},
+				},
+			},
+			withObjType:    false,
+			goldenFileName: "discriminator-mapping-stream-connection",
+		},
 	}
 
 	for testName, tc := range testCases {

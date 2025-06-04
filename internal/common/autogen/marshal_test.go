@@ -286,7 +286,6 @@ func TestMarshalPanic(t *testing.T) {
 	}
 }
 
-
 func TestIsDiscriminatorTag(t *testing.T) {
 	testCases := map[string]struct {
 		tagValue string
@@ -299,8 +298,8 @@ func TestIsDiscriminatorTag(t *testing.T) {
 		"valid tag with name": {
 			tagValue: "discriminator:type=Cluster",
 			expected: &autogen.DiscriminatorTag{
-				DiscriminatorPropName: "type",
-				DiscriminatorPropValue:    "Cluster",
+				DiscriminatorPropName:  "type",
+				DiscriminatorPropValue: "Cluster",
 			},
 		},
 	}
@@ -320,15 +319,15 @@ func TestIsDiscriminatorTag(t *testing.T) {
 
 func TestMarshalDiscriminator(t *testing.T) {
 	testCases := map[string]struct {
-		model streamConn
+		model        streamConn
 		expectedJSON string
 	}{
 		"cluster model": {
-			model: streamConnModelCluster,
+			model:        streamConnModelCluster,
 			expectedJSON: jsonRespCluster,
 		},
 		"https model": {
-			model: streamConnModelHttps,
+			model:        streamConnModelHttps,
 			expectedJSON: jsonRespHttps,
 		},
 	}
