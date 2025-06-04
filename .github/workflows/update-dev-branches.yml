@@ -35,7 +35,7 @@ jobs:
 
   slack-notification:
     needs: update-branches
-    if: ${{ !cancelled() && needs.update-branches.result == 'failure' }}
+    if: ${{ needs.update-branches.result == 'failure' }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
