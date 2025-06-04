@@ -145,6 +145,23 @@ resources:
     schema:
       aliases:
         tenant_name: name # path param name does not match the API request property
+  stream_connection_api:
+    create: 
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections
+      method: POST
+    read:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}
+      method: GET
+    update:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}
+      method: DELETE
+    schema:
+      aliases:
+        connection_name: name # path param name does not match the API request property
+
 
   # No fully functional yet so it doesn't have acceptance tests yet.
   cluster_api:
