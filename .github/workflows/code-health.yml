@@ -88,6 +88,13 @@ jobs:
           echo "::error::Files were changed during build (see build log). If this was triggered from a fork, you will need to update your branch."
           cat doc.repo.patch
           exit 1
+  check-purls:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Check PURLs
+        run: make check-purls
   call-acceptance-tests-workflow:
     needs: [build, lint, shellcheck, unit-test, generate-doc-check]
     secrets: inherit
