@@ -1,7 +1,6 @@
 package schema
 
 import (
-	"fmt"
 	"go/format"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
@@ -25,7 +24,6 @@ func GenerateGoCode(input *codespec.Resource, withObjTypes bool) string {
 	result := codetemplate.ApplySchemaFileTemplate(tmplInputs)
 
 	formattedResult, err := format.Source(result.Bytes())
-	fmt.Print(result.String())
 	if err != nil {
 		panic(err)
 	}
