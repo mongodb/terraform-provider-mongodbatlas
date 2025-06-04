@@ -1,0 +1,10 @@
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` returns the AWS Account ID/Azure Subscription ID, and the AWS VPC ID/Azure Virtual Network Name for the group, cloud provider, and region that you specify.
+
+## Example Usages
+{{ tffile (printf "examples/mongodbatlas_stream_account_details/main.tf" )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information see [MongoDB Atlas API - Returns the Account ID, and the VPC ID for the group and region specified](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/getAccountDetails).
