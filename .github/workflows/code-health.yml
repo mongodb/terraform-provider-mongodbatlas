@@ -94,7 +94,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: Check PURLs
-        run: make check-purls
+        run: make gen-purls check-purls
   call-acceptance-tests-workflow:
     needs: [build, lint, shellcheck, unit-test, generate-doc-check, check-purls]
     secrets: inherit
