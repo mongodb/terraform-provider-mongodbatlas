@@ -419,6 +419,104 @@ func TestUnmarshalZeroLenCollections(t *testing.T) {
 	assert.Equal(t, modelExpected, model)
 }
 
+type streamConn struct {
+	Type        types.String `tfsdk:"type"`
+	TypeCluster types.Object `tfsdk:"type_cluster" autogen:"discriminator:type=Cluster"`
+	TypeHTTPS   types.Object `tfsdk:"type_https" autogen:"discriminator:type=Https"`
+}
+
+func (s *streamConn) DiscriminatorAttr(objJSON map[string]any) string {
+	// Probably can return a single attribute
+	switch objJSON["type"] {
+	case "Cluster":
+		return "TypeCluster"
+	case "Https":
+		return "TypeHTTPS"
+	}
+	return ""
+}
+
+var (
+	dbRoleObjType = types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"role_name": types.StringType,
+			"type":      types.StringType,
+		},
+	}
+	clusterObjType = types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"cluster_name":       types.StringType,
+			"db_role_to_execute": dbRoleObjType,
+		},
+	}
+	httpsObjType = types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"url": types.StringType,
+		},
+	}
+	streamConnModelCluster = streamConn{
+		Type: types.StringValue("Cluster"),
+		TypeCluster: types.ObjectValueMust(clusterObjType.AttrTypes, map[string]attr.Value{
+			"cluster_name": types.StringValue("myCluster"),
+			"db_role_to_execute": types.ObjectValueMust(dbRoleObjType.AttrTypes, map[string]attr.Value{
+				"role_name": types.StringValue("myRole"),
+				"type":      types.StringValue("myType"),
+			}),
+		}),
+		TypeHTTPS: types.ObjectNull(httpsObjType.AttrTypes),
+	}
+	streamConnModelHTTPS = streamConn{
+		Type:        types.StringValue("Https"),
+		TypeCluster: types.ObjectNull(clusterObjType.AttrTypes),
+		TypeHTTPS: types.ObjectValueMust(httpsObjType.AttrTypes, map[string]attr.Value{
+			"url": types.StringValue("https://example.com"),
+		}),
+	}
+)
+
+const (
+	jsonRespCluster = `
+			{
+				"type": "Cluster",
+				"clusterName": "myCluster",
+				"dbRoleToExecute": {
+					"roleName": "myRole",
+					"type": "myType"
+				}
+		}`
+	jsonRespHTTPS = `{
+					"type": "Https",
+					"url": "https://example.com"
+				}`
+)
+
+func TestUnmarshalModelWithDiscriminator(t *testing.T) {
+	testCases := map[string]struct {
+		modelExpected streamConn
+		jsonResp      string
+	}{
+		"cluster": {
+			modelExpected: streamConnModelCluster,
+			jsonResp:      jsonRespCluster,
+		},
+		"https": {
+			modelExpected: streamConnModelHTTPS,
+			jsonResp:      jsonRespHTTPS,
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			model := streamConn{
+				Type:        types.StringUnknown(),
+				TypeCluster: types.ObjectNull(clusterObjType.AttrTypes),
+				TypeHTTPS:   types.ObjectNull(httpsObjType.AttrTypes),
+			}
+			require.NoError(t, autogen.Unmarshal([]byte(tc.jsonResp), &model))
+			assert.Equal(t, tc.modelExpected, model)
+		})
+	}
+}
+
 func TestUnmarshalErrors(t *testing.T) {
 	testCases := map[string]struct {
 		model        any

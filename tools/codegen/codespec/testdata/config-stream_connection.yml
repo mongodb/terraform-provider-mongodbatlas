@@ -1,0 +1,14 @@
+resources:
+  stream_connection:
+    create: 
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections
+      method: POST
+    read:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}
+      method: GET
+    update:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}
+      method: DELETE

@@ -446,48 +446,48 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	AcceptDataRisksAndForceReplicaSetReconfig types.String  `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
-	AdvancedConfiguration                     types.Object  `tfsdk:"advanced_configuration"`
-	AutoScaling                               types.Object  `tfsdk:"auto_scaling"`
-	BackupEnabled                             types.Bool    `tfsdk:"backup_enabled"`
-	BiConnector                               types.Object  `tfsdk:"bi_connector"`
-	ClusterType                               types.String  `tfsdk:"cluster_type"`
-	ConfigServerManagementMode                types.String  `tfsdk:"config_server_management_mode"`
-	ConfigServerType                          types.String  `tfsdk:"config_server_type" autogen:"omitjson"`
+	DiskSizeGb                                types.Float64 `tfsdk:"disk_size_gb"`
+	Tags                                      types.List    `tfsdk:"tags"`
+	ReplicationSpecs                          types.List    `tfsdk:"replication_specs"`
+	Links                                     types.List    `tfsdk:"links" autogen:"omitjson"`
+	Labels                                    types.List    `tfsdk:"labels"`
+	ReplicationSpec                           types.Map     `tfsdk:"replication_spec"`
+	MongoDbemployeeAccessGrant                types.Object  `tfsdk:"mongo_dbemployee_access_grant"`
+	ProviderSettings                          types.Object  `tfsdk:"provider_settings"`
 	ConnectionStrings                         types.Object  `tfsdk:"connection_strings" autogen:"omitjson"`
 	CreateDate                                types.String  `tfsdk:"create_date" autogen:"omitjson"`
-	DiskSizeGb                                types.Float64 `tfsdk:"disk_size_gb"`
+	ConfigServerManagementMode                types.String  `tfsdk:"config_server_management_mode"`
 	DiskWarmingMode                           types.String  `tfsdk:"disk_warming_mode"`
 	EncryptionAtRestProvider                  types.String  `tfsdk:"encryption_at_rest_provider"`
 	FeatureCompatibilityVersion               types.String  `tfsdk:"feature_compatibility_version" autogen:"omitjson"`
 	FeatureCompatibilityVersionExpirationDate types.String  `tfsdk:"feature_compatibility_version_expiration_date" autogen:"omitjson"`
-	GlobalClusterSelfManagedSharding          types.Bool    `tfsdk:"global_cluster_self_managed_sharding"`
+	VersionReleaseSystem                      types.String  `tfsdk:"version_release_system"`
 	GroupId                                   types.String  `tfsdk:"group_id" autogen:"omitjson"`
 	Id                                        types.String  `tfsdk:"id" autogen:"omitjson"`
-	Labels                                    types.List    `tfsdk:"labels"`
-	Links                                     types.List    `tfsdk:"links" autogen:"omitjson"`
-	MongoDbemployeeAccessGrant                types.Object  `tfsdk:"mongo_dbemployee_access_grant"`
+	ClusterType                               types.String  `tfsdk:"cluster_type"`
+	BiConnector                               types.Object  `tfsdk:"bi_connector"`
+	AcceptDataRisksAndForceReplicaSetReconfig types.String  `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
 	MongoDbmajorVersion                       types.String  `tfsdk:"mongo_dbmajor_version"`
 	MongoDbversion                            types.String  `tfsdk:"mongo_dbversion"`
 	MongoUri                                  types.String  `tfsdk:"mongo_uri" autogen:"omitjson"`
 	MongoUriupdated                           types.String  `tfsdk:"mongo_uriupdated" autogen:"omitjson"`
 	MongoUriwithOptions                       types.String  `tfsdk:"mongo_uriwith_options" autogen:"omitjson"`
 	Name                                      types.String  `tfsdk:"name"`
-	NumShards                                 types.Int64   `tfsdk:"num_shards"`
-	Paused                                    types.Bool    `tfsdk:"paused"`
-	PitEnabled                                types.Bool    `tfsdk:"pit_enabled"`
-	ProviderBackupEnabled                     types.Bool    `tfsdk:"provider_backup_enabled"`
-	ProviderSettings                          types.Object  `tfsdk:"provider_settings"`
-	ReplicaSetScalingStrategy                 types.String  `tfsdk:"replica_set_scaling_strategy"`
-	ReplicationFactor                         types.Int64   `tfsdk:"replication_factor"`
-	ReplicationSpec                           types.Map     `tfsdk:"replication_spec"`
-	ReplicationSpecs                          types.List    `tfsdk:"replication_specs"`
-	RootCertType                              types.String  `tfsdk:"root_cert_type"`
-	SrvAddress                                types.String  `tfsdk:"srv_address" autogen:"omitjson"`
+	AdvancedConfiguration                     types.Object  `tfsdk:"advanced_configuration"`
 	StateName                                 types.String  `tfsdk:"state_name" autogen:"omitjson"`
-	Tags                                      types.List    `tfsdk:"tags"`
+	SrvAddress                                types.String  `tfsdk:"srv_address" autogen:"omitjson"`
+	RootCertType                              types.String  `tfsdk:"root_cert_type"`
+	ConfigServerType                          types.String  `tfsdk:"config_server_type" autogen:"omitjson"`
+	ReplicaSetScalingStrategy                 types.String  `tfsdk:"replica_set_scaling_strategy"`
+	AutoScaling                               types.Object  `tfsdk:"auto_scaling"`
+	ReplicationFactor                         types.Int64   `tfsdk:"replication_factor"`
+	NumShards                                 types.Int64   `tfsdk:"num_shards"`
+	BackupEnabled                             types.Bool    `tfsdk:"backup_enabled"`
+	ProviderBackupEnabled                     types.Bool    `tfsdk:"provider_backup_enabled"`
+	PitEnabled                                types.Bool    `tfsdk:"pit_enabled"`
+	Paused                                    types.Bool    `tfsdk:"paused"`
 	TerminationProtectionEnabled              types.Bool    `tfsdk:"termination_protection_enabled"`
-	VersionReleaseSystem                      types.String  `tfsdk:"version_release_system"`
+	GlobalClusterSelfManagedSharding          types.Bool    `tfsdk:"global_cluster_self_managed_sharding"`
 }
 type TFAdvancedConfigurationModel struct {
 	CustomOpensslCipherConfigTls12 types.List   `tfsdk:"custom_openssl_cipher_config_tls12"`
@@ -504,8 +504,8 @@ type TFAutoScalingComputeModel struct {
 	ScaleDownEnabled  types.Bool `tfsdk:"scale_down_enabled"`
 }
 type TFBiConnectorModel struct {
-	Enabled        types.Bool   `tfsdk:"enabled"`
 	ReadPreference types.String `tfsdk:"read_preference"`
+	Enabled        types.Bool   `tfsdk:"enabled"`
 }
 type TFConnectionStringsModel struct {
 	AwsPrivateLink    types.Map    `tfsdk:"aws_private_link" autogen:"omitjson"`
@@ -555,10 +555,10 @@ type TFReplicationSpecModel struct {
 	ReadOnlyNodes  types.Int64 `tfsdk:"read_only_nodes"`
 }
 type TFReplicationSpecsModel struct {
-	Id            types.String `tfsdk:"id"`
-	NumShards     types.Int64  `tfsdk:"num_shards"`
 	RegionsConfig types.Map    `tfsdk:"regions_config"`
+	Id            types.String `tfsdk:"id"`
 	ZoneName      types.String `tfsdk:"zone_name"`
+	NumShards     types.Int64  `tfsdk:"num_shards"`
 }
 type TFReplicationSpecsRegionsConfigModel struct {
 	AnalyticsNodes types.Int64 `tfsdk:"analytics_nodes"`

@@ -505,6 +505,121 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 	runTestCase(t, tc)
 }
 
+var streamConnectionExpectedSchema = codespec.Schema{
+	Description: conversion.StringPtr("create sc"),
+	Attributes: []codespec.Attribute{
+		{
+			Name:                     "group_id",
+			ComputedOptionalRequired: codespec.Required,
+			String:                   &codespec.StringAttribute{},
+			Description:              conversion.StringPtr("Unique 24-hexadecimal digit"),
+			ReqBodyUsage:             codespec.OmitAlways,
+		},
+		{
+			Name:                     "name",
+			ComputedOptionalRequired: codespec.Optional, // inferred wrongly
+			String:                   &codespec.StringAttribute{},
+			Description:              conversion.StringPtr("Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source."),
+		},
+		{
+			Name:                     "tenant_name",
+			ComputedOptionalRequired: codespec.Required,
+			String:                   &codespec.StringAttribute{},
+			Description:              conversion.StringPtr("Human-readable label that identifies the stream instance."),
+			ReqBodyUsage:             codespec.OmitAlways,
+		},
+		{
+			Name:                     "type",
+			String:                   &codespec.StringAttribute{},
+			ComputedOptionalRequired: codespec.Computed,
+			Description:              conversion.Pointer("Type of the connection."),
+		},
+		{
+			Name:                     "type_cluster",
+			ComputedOptionalRequired: codespec.Optional,
+			SingleNested: &codespec.SingleNestedAttribute{
+				NestedObject: codespec.NestedAttributeObject{
+					Attributes: []codespec.Attribute{
+						{
+							Name:                     "cluster_name",
+							String:                   &codespec.StringAttribute{},
+							ComputedOptionalRequired: codespec.Optional, // this is inferred as optional, but it should be required
+							Description:              conversion.Pointer("Name of the cluster configured for this connection."),
+						},
+					},
+				},
+			},
+			Discriminator: &codespec.DiscriminatorMapping{
+				DiscriminatorProperty: "type",
+				DiscriminatorValue:    "Cluster",
+			},
+		},
+		{
+			Name:                     "type_https",
+			ComputedOptionalRequired: codespec.Optional,
+			SingleNested: &codespec.SingleNestedAttribute{
+				NestedObject: codespec.NestedAttributeObject{
+					Attributes: []codespec.Attribute{
+						{
+							Name: "headers",
+							Map: &codespec.MapAttribute{
+								ElementType: codespec.String,
+							},
+							Description:              conversion.StringPtr("A map of key-value pairs that will be passed as headers for the request."),
+							ComputedOptionalRequired: codespec.Optional,
+						},
+						{
+							Name:                     "url",
+							String:                   &codespec.StringAttribute{},
+							ComputedOptionalRequired: codespec.Optional, // this is inferred as optional, but it should be required
+							Description:              conversion.Pointer("The url to be used for the request."),
+						},
+					},
+				},
+			},
+			Discriminator: &codespec.DiscriminatorMapping{
+				DiscriminatorProperty: "type",
+				DiscriminatorValue:    "Https",
+			},
+		},
+	},
+}
+
+func TestConvertToProviderSpec_discriminatorStreamConnection(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: "testdata/api-spec-stream_connection.yaml",
+		inputConfigPath:      "testdata/config-stream_connection.yml",
+		inputResourceName:    "stream_connection",
+		expectedResult: &codespec.Model{
+			Resources: []codespec.Resource{{
+				Schema: &streamConnectionExpectedSchema,
+				Name:   "stream_connection",
+				Operations: codespec.APIOperations{
+					Create: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections",
+						HTTPMethod: "POST",
+					},
+					Read: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}",
+						HTTPMethod: "GET",
+					},
+					Update: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}",
+						HTTPMethod: "PATCH",
+					},
+					Delete: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}",
+						HTTPMethod: "DELETE",
+					},
+					VersionHeader: "application/vnd.atlas.2023-02-01+json",
+				},
+			},
+			},
+		},
+	}
+	runTestCase(t, tc)
+}
+
 func runTestCase(t *testing.T, tc convertToSpecTestCase) {
 	t.Helper()
 	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)

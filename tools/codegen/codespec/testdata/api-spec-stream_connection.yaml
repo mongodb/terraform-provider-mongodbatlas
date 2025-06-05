@@ -1,0 +1,283 @@
+openapi: 3.0.1
+info:
+  description: minimal spec
+  version: '2.0'
+  title: MongoDB Atlas Administration API
+paths:
+  /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}:
+    delete:
+      description: Delete one connection of the specified stream instance. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Stream Processing Owner role.
+      operationId: deleteStreamConnection
+      parameters:
+      - $ref: '#/components/parameters/groupId'
+      - description: Human-readable label that identifies the stream instance.
+        in: path
+        name: tenantName
+        required: true
+        schema:
+          type: string
+      - description: Human-readable label that identifies the stream connection.
+        in: path
+        name: connectionName
+        required: true
+        schema:
+          type: string
+      responses:
+        '202':
+          content:
+            application/vnd.atlas.2023-02-01+json:
+              x-xgen-version: '2023-02-01'
+          description: Accepted
+      summary: Delete One Stream Connection
+      tags:
+      - Streams
+      x-codeSamples:
+      - label: curl
+        lang: cURL
+        source: "curl --user \"{PUBLIC-KEY}:{PRIVATE-KEY}\" \\\n  --digest \\\n  --header \"Accept: application/vnd.atlas.2025-03-12+json\" \\\n  -X DELETE \"https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}\""
+      - label: Atlas CLI
+        lang: cURL
+        source: atlas api deleteStreamConnection --help
+      x-xgen-changelog:
+        '2023-09-11': The MongoDB Atlas Streams Processing API is now exposed as part of private preview, but is subject to change until GA.
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/deleteStreamConnection
+    get:
+      description: Returns the details of one stream connection within the specified stream instance. To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
+      operationId: getStreamConnection
+      parameters:
+      - $ref: '#/components/parameters/groupId'
+      - description: Human-readable label that identifies the stream instance to return.
+        in: path
+        name: tenantName
+        required: true
+        schema:
+          type: string
+      - description: Human-readable label that identifies the stream connection to return.
+        in: path
+        name: connectionName
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/vnd.atlas.2023-02-01+json:
+              schema:
+                $ref: '#/components/schemas/StreamsConnection'
+              x-xgen-IPA-exception:
+                xgen-IPA-104-get-method-returns-response-suffixed-object: API predates IPA validation
+              x-xgen-version: '2023-02-01'
+          description: OK
+      summary: Return One Stream Connection
+      tags:
+      - Streams
+      x-codeSamples:
+      - label: curl
+        lang: cURL
+        source: "curl --user \"{PUBLIC-KEY}:{PRIVATE-KEY}\" \\\n  --digest \\\n  --header \"Accept: application/vnd.atlas.2025-03-12+json\" \\\n  -X GET \"https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}?pretty=true\""
+      - label: Atlas CLI
+        lang: cURL
+        source: atlas api getStreamConnection --help
+      x-xgen-changelog:
+        '2023-09-11': The MongoDB Atlas Streams Processing API is now exposed as part of private preview, but is subject to change until GA.
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/getStreamConnection
+    patch:
+      description: Update one connection for the specified stream instance in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Stream Processing Owner role.
+      operationId: updateStreamConnection
+      parameters:
+      - $ref: '#/components/parameters/groupId'
+      - description: Human-readable label that identifies the stream instance.
+        in: path
+        name: tenantName
+        required: true
+        schema:
+          type: string
+      - description: Human-readable label that identifies the stream connection.
+        in: path
+        name: connectionName
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/vnd.atlas.2023-02-01+json:
+            schema:
+              $ref: '#/components/schemas/StreamsConnection'
+        description: Details to update one connection for a streams instance in the specified project.
+        required: true
+      responses:
+        '200':
+          content:
+            application/vnd.atlas.2023-02-01+json:
+              schema:
+                $ref: '#/components/schemas/StreamsConnection'
+              x-xgen-version: '2023-02-01'
+          description: OK
+      summary: Update One Stream Connection
+      tags:
+      - Streams
+      x-codeSamples:
+      - label: curl
+        lang: cURL
+        source: "curl --user \"{PUBLIC-KEY}:{PRIVATE-KEY}\" \\\n  --digest \\\n  --header \"Accept: application/vnd.atlas.2025-03-12+json\" \\\n  --header \"Content-Type: application/vnd.atlas.2025-03-12+json\" \\\n  -X PATCH \"https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}\"\n  -d { <Payload> }"
+      - label: Atlas CLI
+        lang: cURL
+        source: atlas api updateStreamConnection --help
+      x-xgen-changelog:
+        '2023-09-11': The MongoDB Atlas Streams Processing API is now exposed as part of private preview, but is subject to change until GA.
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/updateStreamConnection
+  /api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections:
+    get:
+      description: Returns all connections of the stream instance for the specified project.To use this resource, the requesting Service Account or API Key must have the Project Data Access roles, Project Owner role or Project Stream Processing Owner role.
+      operationId: listStreamConnections
+      parameters:
+      - $ref: '#/components/parameters/groupId'
+      - $ref: '#/components/parameters/itemsPerPage'
+      - $ref: '#/components/parameters/pageNum'
+      - description: Human-readable label that identifies the stream instance.
+        in: path
+        name: tenantName
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/vnd.atlas.2023-02-01+json:
+              schema:
+                $ref: '#/components/schemas/PaginatedApiStreamsConnectionView'
+              x-xgen-version: '2023-02-01'
+          description: OK
+      summary: Return All Connections Of The Stream Instances
+      tags:
+      - Streams
+      x-codeSamples:
+      - label: curl
+        lang: cURL
+        source: "curl --user \"{PUBLIC-KEY}:{PRIVATE-KEY}\" \\\n  --digest \\\n  --header \"Accept: application/vnd.atlas.2025-03-12+json\" \\\n  -X GET \"https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections?pretty=true\""
+      - label: Atlas CLI
+        lang: cURL
+        source: atlas api listStreamConnections --help
+      x-xgen-changelog:
+        '2023-09-11': The MongoDB Atlas Streams Processing API is now exposed as part of private preview, but is subject to change until GA.
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/listStreamConnections
+    post:
+      description: "create sc"
+      operationId: createStreamConnection
+      parameters:
+      - $ref: '#/components/parameters/groupId'
+      - description: Human-readable label that identifies the stream instance.
+        in: path
+        name: tenantName
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/vnd.atlas.2023-02-01+json:
+            schema:
+              $ref: '#/components/schemas/StreamsConnection'
+        description: Details to create one connection for a streams instance in the specified project.
+        required: true
+      responses:
+        '200':
+          content:
+            application/vnd.atlas.2023-02-01+json:
+              schema:
+                $ref: '#/components/schemas/StreamsConnection'
+              x-xgen-version: '2023-02-01'
+          description: OK
+      summary: Create One Connection
+      tags:
+      - Streams
+      x-codeSamples:
+      - label: curl
+        lang: cURL
+        source: "curl --user \"{PUBLIC-KEY}:{PRIVATE-KEY}\" \\\n  --digest \\\n  --header \"Accept: application/vnd.atlas.2025-03-12+json\" \\\n  --header \"Content-Type: application/vnd.atlas.2025-03-12+json\" \\\n  -X POST \"https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections\"\n  -d { <Payload> }"
+      - label: Atlas CLI
+        lang: cURL
+        source: atlas api createStreamConnection --help
+      x-xgen-changelog:
+        '2023-09-11': The MongoDB Atlas Streams Processing API is now exposed as part of private preview, but is subject to change until GA.
+      x-xgen-docs-url: https://mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createStreamConnection
+components:
+  schemas:
+    PaginatedApiStreamsConnectionView:
+      properties: {}
+      type: object
+    StreamsClusterConnection:
+      allOf:
+      - $ref: '#/components/schemas/StreamsConnection'
+      - properties:
+          clusterName:
+            description: Name of the cluster configured for this connection.
+            type: string
+        type: object
+      type: object
+    StreamsConnection:
+      description: Settings that define a connection to an external data store.
+      discriminator:
+        mapping:
+          Cluster: '#/components/schemas/StreamsClusterConnection'
+          Https: '#/components/schemas/StreamsHttpsConnection'
+        propertyName: type
+      oneOf:
+      - $ref: '#/components/schemas/StreamsClusterConnection'
+      - $ref: '#/components/schemas/StreamsHttpsConnection'
+      properties:
+        name:
+          description: Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
+          type: string
+        type:
+          description: Type of the connection.
+          enum:
+          - Cluster
+          - Https
+          type: string
+      readOnly: true
+      type: object
+    StreamsHttpsConnection:
+      allOf:
+      - $ref: '#/components/schemas/StreamsConnection'
+      - properties:
+          headers:
+            additionalProperties:
+              description: A map of key-value pairs that will be passed as headers for the request.
+              type: string
+            description: A map of key-value pairs that will be passed as headers for the request.
+            type: object
+          url:
+            description: The url to be used for the request.
+            type: string
+        type: object
+      type: object
+  parameters:
+    groupId:
+      description: 'Unique 24-hexadecimal digit'
+      in: path
+      name: groupId
+      required: true
+      schema:
+        example: 32b6e34b3d91647abb20e7b8
+        pattern: ^([a-f0-9]{24})$
+        type: string
+      x-xgen-IPA-exception:
+        xgen-IPA-117-description-should-not-use-inline-links: Parameters don't support externalDocs
+    itemsPerPage:
+      description: Number of items that the response returns per page.
+      in: query
+      name: itemsPerPage
+      schema:
+        default: 100
+        maximum: 500
+        minimum: 1
+        type: integer
+    pageNum:
+      description: Number of the page that displays the current set of the total objects that the response returns.
+      in: query
+      name: pageNum
+      schema:
+        default: 1
+        minimum: 1
+        type: integer
+tags: []
