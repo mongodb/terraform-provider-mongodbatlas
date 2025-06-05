@@ -44,13 +44,13 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": ":red_circle: Update dev branches failed",
+              "text": "Update dev branches failed",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": ":red_circle: *Update dev branches failed* ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Failed Action>"
+                    "text": "*Update dev branches failed* ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Failed Action>"
                   }
                 }
               ]
