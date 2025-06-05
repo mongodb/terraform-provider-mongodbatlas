@@ -227,6 +227,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										Optional:            true,
 										MarkdownDescription: "Reserved. Will be used by TRANSIT_GATEWAY connection type.",
 									},
+									"tgw_route_id": schema.StringAttribute{
+										Optional:            true,
+										MarkdownDescription: "Reserved. Will be used by TRANSIT_GATEWAY connection type.",
+									},
 									"type": schema.StringAttribute{
 										Optional:            true,
 										MarkdownDescription: "Selected networking type. Either PUBLIC, VPC, PRIVATE_LINK, or TRANSIT_GATEWAY. Defaults to PUBLIC. For VPC, ensure that VPC peering exists and connectivity has been established between Atlas VPC and the VPC where Kafka cluster is hosted for the connection to function properly. TRANSIT_GATEWAY support is coming soon.",
@@ -429,6 +433,7 @@ type TFTypeKafkaNetworkingAccessModel struct {
 	Links        types.List   `tfsdk:"links" autogen:"omitjson"`
 	Name         types.String `tfsdk:"name"`
 	TgwId        types.String `tfsdk:"tgw_id"`
+	TgwRouteId   types.String `tfsdk:"tgw_route_id"`
 	Type         types.String `tfsdk:"type"`
 	VpcCidr      types.String `tfsdk:"vpc_cidr"`
 }
