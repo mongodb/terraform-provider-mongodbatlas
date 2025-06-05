@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	atlasAdminAPISpecURL = "https://raw.githubusercontent.com/mongodb/atlas-sdk-go/main/openapi/atlas-api-transformed.yaml"
+	// atlasAdminAPISpecURL = "https://raw.githubusercontent.com/mongodb/atlas-sdk-go/main/openapi/atlas-api-transformed.yaml"
+	atlasAdminAPISpecURL = "https://raw.githubusercontent.com/mongodb/openapi/refs/heads/main/openapi/v2/openapi-2025-03-12.yaml"
 	configPath           = "tools/codegen/config.yml"
 	specFilePath         = "tools/codegen/open-api-spec.yml"
 )
