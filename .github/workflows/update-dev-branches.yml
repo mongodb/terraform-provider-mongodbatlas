@@ -31,7 +31,7 @@ jobs:
         echo "Updating branch: ${{ matrix.branch }}"
         
         if ! git ls-remote --heads origin ${{ matrix.branch }} | grep -q ${{ matrix.branch }}; then
-          echo "Branch ${{ matrix.branch }} does not exist."
+          echo "RESULT: Branch ${{ matrix.branch }} does not exist."
           exit 1
         fi
         
@@ -42,10 +42,12 @@ jobs:
         if ! git merge origin/master --no-edit; then
           git merge --abort
           if ! git merge origin/master --strategy-option=theirs --no-edit; then
-            echo "Unable to auto-resolve conflicts, manual intervention required."
+            echo "RESULT: Unable to auto-resolve conflicts, manual intervention required."
             exit 1
           fi
-          echo "Conflicts detected and auto-resolved by favoring master changes."
+          echo "RESULT: Conflicts detected and auto-resolved by favoring master changes."
+        else
+          echo "RESULT: Merge completed successfully with no conflicts."
         fi
 
     - uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e
