@@ -5,7 +5,7 @@ on:
     inputs:
       branches:
         description: 'Dev branch names to update from master'
-        default: '["CLOUDP-320243-dev-2.0.0", "unexisting-branch"]'
+        default: '["CLOUDP-320243-dev-2.0.0", "test-unexisting", "test-no-conflicts", "test-conflicts", "test-auto-resolve"]'
   schedule:
     - cron: "0 5 * * 3" # workflow runs every Wednesday at 5 AM UTC
 
@@ -31,7 +31,7 @@ jobs:
         echo "Updating branch: ${{ matrix.branch }}"
         
         if ! git ls-remote --heads origin ${{ matrix.branch }} | grep -q ${{ matrix.branch }}; then
-          echo "RESULT: Branch ${{ matrix.branch }} does not exist."
+          echo "ERROR: Branch ${{ matrix.branch }} does not exist."
           exit 1
         fi
         
@@ -39,15 +39,16 @@ jobs:
         git fetch origin ${{ matrix.branch }}        
         git checkout -B ${{ matrix.branch }} origin/${{ matrix.branch }}
         
-        if ! git merge origin/master --no-edit; then
-          git merge --abort
-          if ! git merge origin/master --strategy-option=theirs --no-edit; then
-            echo "RESULT: Unable to auto-resolve conflicts, manual intervention required."
-            exit 1
-          fi
-          echo "RESULT: Conflicts detected and auto-resolved by favoring master changes."
+        if git merge origin/master --no-edit; then
+          echo "OK: Merge completed successfully with no conflicts."
         else
-          echo "RESULT: Merge completed successfully with no conflicts."
+          git merge --abort
+          if git merge origin/master --strategy-option=theirs --no-edit; then
+            echo "ERROR: Merge conflicts detected that can be auto-resolved by favoring master changes."
+          else
+            echo "ERROR: Merge conflicts detected that need manual intervention."
+          fi
+          exit 1
         fi
 
     - uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e
