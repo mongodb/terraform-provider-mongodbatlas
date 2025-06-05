@@ -1,7 +1,8 @@
 name: 'Test Suite'
 
 # Runs acceptance and migrations tests with a set of terraform versions and provider versions (used for migration tests). 
-# This worflow is scheduled daily and runs against dev every day except for Sunday when we run against QA. It can also be run manually.
+# This worflow is scheduled daily and runs against dev every day except for Sunday when we run against QA, and Fridays when we run against 2.0.0 dev branch.
+# It can also be run manually.
 # The 1st day of the month we run terraform-compatibility-matrix.yml and therefore, we skip the test-suite (see shedule->cron below).
 on:
   workflow_dispatch:
@@ -49,7 +50,8 @@ jobs:
     outputs:
       terraform_matrix: ${{ inputs.terraform_matrix || env.schedule_terraform_matrix }}
       provider_matrix: ${{ inputs.provider_matrix || env.schedule_provider_matrix }}
-      day: ${{ steps.set_day.outputs.DAY }}
+      is_fri: ${{ steps.set_day.outputs.DAY == 'Fri' }}
+      is_sun: ${{ steps.set_day.outputs.DAY == 'Sun' }}
     steps:
       - name: set day
         id: set_day
@@ -69,13 +71,14 @@ jobs:
       matrix:
         terraform_version: ${{ fromJSON(needs.variables.outputs.terraform_matrix) }}
         provider_version: ${{ fromJSON(needs.variables.outputs.provider_matrix) }}
-    name: tests-${{ matrix.terraform_version || 'latest' }}-${{ matrix.provider_version || 'latest' }}
+    name: tests-${{ matrix.terraform_version || 'latest' }}-${{ matrix.provider_version || 'latest' }}-${{ needs.variables.outputs.is_fri && '2.0.0' || 'master' }}
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
     with:
       terraform_version: ${{ matrix.terraform_version }}
       provider_version: ${{ matrix.provider_version }}
-      atlas_cloud_env: ${{ inputs.atlas_cloud_env || needs.variables.outputs.day == 'Sun' && 'qa' }}
+      atlas_cloud_env: ${{ inputs.atlas_cloud_env || needs.variables.outputs.is_sun && 'qa' }} # Run against QA on Sundays
+      ref: ${{ needs.variables.outputs.is_fri && 'CLOUDP-320243-dev-2.0.0' }} # Run 2.0.0 dev branch on Fridays
 
   clean-after:
     needs: tests
