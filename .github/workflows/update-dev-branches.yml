@@ -22,15 +22,41 @@ jobs:
         branch: ${{ fromJSON(inputs.branches || '["CLOUDP-320243-dev-2.0.0", "unexisting-branch-2", "bad-branch"]') }} # scheduled branches go here
     name: ${{ matrix.branch }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
     - run: |
         echo "Updating branch: ${{ matrix.branch }}"
-    - name: Fail if bad branch
-      run: |
-        if [[ "${{ matrix.branch }}" == "bad-branch" ]]; then
-          echo "Branch ${{ matrix.branch }} is configured to fail for testing purposes"
+        
+        if ! git ls-remote --heads origin ${{ matrix.branch }} | grep -q ${{ matrix.branch }}; then
+          echo "Branch ${{ matrix.branch }} does not exist."
           exit 1
         fi
+        
+        git fetch origin master
+        git fetch origin ${{ matrix.branch }}        
+        git checkout -B ${{ matrix.branch }} origin/${{ matrix.branch }}
+        
+        if ! git merge origin/master --no-edit; then
+          git merge --abort
+          if ! git merge origin/master --strategy-option=theirs --no-edit; then
+            echo "Unable to auto-resolve conflicts, manual intervention required."
+            exit 1
+          fi
+          echo "Conflicts detected and auto-resolved by favoring master changes."
+        fi
+
+    - uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e
+      with:
+        token: ${{ secrets.APIX_BOT_PAT }}
+        title: "chore: Update ${{ matrix.branch }} from master"
+        commit-message: "Update ${{ matrix.branch }} from master"
+        delete-branch: true
+        branch: update-${{ matrix.branch }}-from-master
+        base: ${{ matrix.branch }}
+        body: "Automated update of ${{ matrix.branch }} branch with latest changes from master branch."
 
   slack-notification:
     needs: update-branches
