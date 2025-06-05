@@ -229,3 +229,7 @@ gen-purls: # Generate purls on linux os
 	go version -m $(DESTINATION) | \
 		awk '$$1 == "dep" || $$1 == "=>" { print "pkg:golang/" $$2 "@" $$3 }' | \
 		LC_ALL=C sort > compliance/purls.txt
+
+.PHONY: check-purls
+check-purls: ## Check purls
+	./scripts/check-purls.sh
