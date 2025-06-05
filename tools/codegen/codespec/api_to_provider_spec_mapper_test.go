@@ -3,11 +3,15 @@ package codespec_test
 import (
 	"testing"
 
+	"github.com/pb33f/libopenapi"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
+	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
+	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 )
 
 const (
@@ -622,7 +626,21 @@ func TestConvertToProviderSpec_discriminatorStreamConnection(t *testing.T) {
 
 func runTestCase(t *testing.T, tc convertToSpecTestCase) {
 	t.Helper()
-	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	apiSpecParsed, err := openapi.ParseAtlasAdminAPI(tc.inputOpenAPISpecPath)
+	require.NoError(t, err, "Failed to parse OpenAPI spec")
+	configModel, err := config.ParseGenConfigYAML(tc.inputConfigPath)
+	require.NoError(t, err, "Failed to parse config file")
+	configModel.APISpecs = []config.APISpec{
+		{
+			Name:      "test_api_spec",
+			URL:       "Ignored",
+			IsDefault: conversion.Pointer(true),
+		},
+	}
+	parsedAPISpecs := map[string]*libopenapi.DocumentModel[v3.Document]{
+		"test_api_spec": apiSpecParsed,
+	}
+	result, err := codespec.ToCodeSpecModel(parsedAPISpecs, configModel, &tc.inputResourceName)
 	require.NoError(t, err)
 	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }

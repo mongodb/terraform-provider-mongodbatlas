@@ -1,7 +1,51 @@
 package config
 
+import "fmt"
+
+type APISpec struct {
+	IsDefault *bool  `yaml:"is_default,omitempty"`
+	Name      string `yaml:"name"`
+	URL       string `yaml:"url"`
+}
 type Config struct {
 	Resources map[string]Resource `yaml:"resources"`
+	APISpecs  []APISpec           `yaml:"api_specs,omitempty"`
+}
+
+func (c *Config) APISpecsNames() []string {
+	specs := make([]string, 0, len(c.APISpecs))
+	for _, spec := range c.APISpecs {
+		specs = append(specs, spec.Name)
+	}
+	return specs
+}
+
+func (c *Config) DefaultAPISpecName() string {
+	defaultSpecs := []string{}
+	for _, spec := range c.APISpecs {
+		if spec.IsDefault != nil && *spec.IsDefault {
+			defaultSpecs = append(defaultSpecs, spec.Name)
+		}
+	}
+	if len(defaultSpecs) == 0 {
+		panic("No default API spec defined in the configuration")
+	}
+	if len(defaultSpecs) > 1 {
+		panic(fmt.Sprintf("Multiple default API specs defined in the configuration, please define only one default API spec %v", defaultSpecs))
+	}
+	return defaultSpecs[0]
+}
+
+func (c *Config) GetAPISpecName(name *string) string {
+	if name == nil {
+		return c.DefaultAPISpecName()
+	}
+	for _, spec := range c.APISpecs {
+		if spec.Name == *name {
+			return spec.Name
+		}
+	}
+	panic(fmt.Sprintf("API spec with name %s not found in the configuration", *name))
 }
 
 type Resource struct {
@@ -9,7 +53,8 @@ type Resource struct {
 	Read          *APIOperation `yaml:"read"`
 	Update        *APIOperation `yaml:"update"`
 	Delete        *APIOperation `yaml:"delete"`
-	VersionHeader string        `yaml:"version_header"` // when not defined latest version defined in API Spec of the resource is used
+	APISpec       *string       `yaml:"api_spec,omitempty"`
+	VersionHeader string        `yaml:"version_header"`
 	SchemaOptions SchemaOptions `yaml:"schema"`
 }
 

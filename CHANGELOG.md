@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `mongodbatlas_stream_account_details` ([#3364](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3364))
+
 ## 1.35.1 (May 29, 2025)
 
 BUG FIXES:

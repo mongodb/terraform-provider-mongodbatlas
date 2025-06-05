@@ -34,7 +34,6 @@ In addition to all arguments above, the following attributes are exported:
 
 * `description` - Description of this Organization API key.
 * `public_key` - Public key for this Organization API key.
-* `private_key` - Private key for this Organization API key.
 * `role_names` - Name of the role. This resource returns all the roles the user has in Atlas.
 The following are valid roles:
   * `ORG_OWNER`

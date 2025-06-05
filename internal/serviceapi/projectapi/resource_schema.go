@@ -79,14 +79,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	Links                     types.List   `tfsdk:"links" autogen:"omitjson"`
-	Tags                      types.List   `tfsdk:"tags"`
+	ClusterCount              types.Int64  `tfsdk:"cluster_count" autogen:"omitjson"`
 	Created                   types.String `tfsdk:"created" autogen:"omitjson"`
 	Id                        types.String `tfsdk:"id" autogen:"omitjson"`
+	Links                     types.List   `tfsdk:"links" autogen:"omitjson"`
 	Name                      types.String `tfsdk:"name"`
 	OrgId                     types.String `tfsdk:"org_id" autogen:"omitjsonupdate"`
 	RegionUsageRestrictions   types.String `tfsdk:"region_usage_restrictions" autogen:"omitjsonupdate"`
-	ClusterCount              types.Int64  `tfsdk:"cluster_count" autogen:"omitjson"`
+	Tags                      types.List   `tfsdk:"tags"`
 	WithDefaultAlertsSettings types.Bool   `tfsdk:"with_default_alerts_settings" autogen:"omitjsonupdate"`
 }
 type TFLinksModel struct {
