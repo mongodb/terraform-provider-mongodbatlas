@@ -5,43 +5,44 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
+	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
 )
 
-const (
-	// atlasAdminAPISpecURL = "https://raw.githubusercontent.com/mongodb/atlas-sdk-go/main/openapi/atlas-api-transformed.yaml"
-	atlasAdminAPISpecURL = "https://raw.githubusercontent.com/mongodb/openapi/refs/heads/main/openapi/v2.yaml" // Multiple API Versions and no transformations
-	configPath           = "tools/codegen/config.yml"
-	specFilePath         = "tools/codegen/open-api-spec.yml"
+var (
+	configPath  = "tools/codegen/config.yml"
+	specDirPath = "tools/codegen/open-api-specs"
 )
 
 func main() {
 	resourceName := getOsArg()
-
-	skipOpenAPIDownload := os.Getenv("SKIP_OPENAPI_DOWNLOAD")
-	specFilePath := os.Getenv("OPENAPI_SPEC_FILE_PATH")
-	if specFilePath == "" {
-		specFilePath = "tools/codegen/open-api-spec.yml"
-	} else {
-		log.Printf("Using custom OpenAPI spec file path: %s", specFilePath)
+	envConfigPath := os.Getenv("CODEGEN_CONFIG_PATH")
+	if envConfigPath != "" {
+		log.Printf("Using custom codegen config file path: %s", envConfigPath)
+		configPath = envConfigPath
 	}
-	configPath := os.Getenv("CODEGEN_CONFIG_PATH")
-	if configPath == "" {
-		configPath = "tools/codegen/config.yml"
-	} else {
-		log.Printf("Using custom codegen config file path: %s", configPath)
+	configModel, err := config.ParseGenConfigYAML(configPath)
+	if err != nil {
+		log.Fatalf("unable to parse config file: %v", err)
 	}
-	if skipOpenAPIDownload == "true" {
+	envSpecDirPath := os.Getenv("OPENAPI_SPEC_DIR_PATH")
+	if envSpecDirPath != "" {
+		specDirPath = envSpecDirPath
+		log.Printf("Using custom OpenAPI spec dir path: %s", specDirPath)
+	}
+	skipOpenAPIDownload, _ := strconv.ParseBool(os.Getenv("SKIP_OPENAPI_DOWNLOAD"))
+	if skipOpenAPIDownload {
 		log.Println("Skipping download of Atlas Admin API spec")
-	} else if err := openapi.DownloadOpenAPISpec(atlasAdminAPISpecURL, specFilePath); err != nil {
+	} else if err := openapi.DownloadOpenAPISpecs(configModel.APISpecs, specDirPath); err != nil {
 		log.Fatalf("an error occurred when downloading Atlas Admin API spec: %v", err)
 	}
-
-	model, err := codespec.ToCodeSpecModel(specFilePath, configPath, resourceName)
+	apiSpecsParsed := openapi.ParseAPISpecs(specDirPath, configModel.APISpecsNames())
+	model, err := codespec.ToCodeSpecModel(apiSpecsParsed, configModel, resourceName)
 	if err != nil {
 		log.Fatalf("an error occurred while generating codespec.Model: %v", err)
 	}

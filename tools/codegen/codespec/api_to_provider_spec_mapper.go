@@ -6,27 +6,17 @@ import (
 	"log"
 	"strings"
 
+	"github.com/pb33f/libopenapi"
 	high "github.com/pb33f/libopenapi/datamodel/high/v3"
 	low "github.com/pb33f/libopenapi/datamodel/low/v3"
 	"github.com/pb33f/libopenapi/orderedmap"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
 )
 
-func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName *string) (*Model, error) {
-	apiSpec, err := openapi.ParseAtlasAdminAPI(atlasAdminAPISpecFilePath)
-	if err != nil {
-		return nil, fmt.Errorf("unable to parse Atlas Admin API: %v", err)
-	}
-
-	configModel, err := config.ParseGenConfigYAML(configPath)
-	if err != nil {
-		return nil, fmt.Errorf("unable to parse config file: %v", err)
-	}
-
+func ToCodeSpecModel(apiSpecs map[string]*libopenapi.DocumentModel[high.Document], configModel *config.Config, resourceName *string) (*Model, error) {
 	resourceConfigsToIterate := configModel.Resources
 	if resourceName != nil { // only generate a specific resource
 		resourceConfigsToIterate = map[string]config.Resource{
@@ -38,6 +28,11 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 	for name, resourceConfig := range resourceConfigsToIterate {
 		log.Printf("Generating resource: %s", name)
 		// find resource operations, schemas, etc from OAS
+		resourceAPISpec := configModel.GetAPISpecName(resourceConfig.APISpec)
+		apiSpec, ok := apiSpecs[resourceAPISpec]
+		if !ok {
+			return nil, fmt.Errorf("API spec '%s' not found in parsed API specs", resourceAPISpec)
+		}
 		oasResource, err := getAPISpecResource(&apiSpec.Model, &resourceConfig, stringcase.SnakeCaseString(name))
 		if err != nil {
 			return nil, fmt.Errorf("unable to get APISpecResource schema: %v", err)
