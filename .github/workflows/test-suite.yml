@@ -78,7 +78,7 @@ jobs:
       terraform_version: ${{ matrix.terraform_version }}
       provider_version: ${{ matrix.provider_version }}
       atlas_cloud_env: ${{ inputs.atlas_cloud_env || needs.variables.outputs.is_sun == 'true' && 'qa' }} # Run against QA on Sundays
-      ref: ${{ needs.variables.outputs.is_fri == 'true' && 'CLOUDP-320243-dev-2.0.0' }} # Run 2.0.0 dev branch on Fridays
+      ref: ${{ needs.variables.outputs.is_fri == 'true' && 'CLOUDP-320243-dev-2.0.0' || '' }} # Run 2.0.0 dev branch on Fridays
 
   clean-after:
     needs: tests
