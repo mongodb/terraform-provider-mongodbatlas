@@ -57,6 +57,7 @@ jobs:
         branch: update-${{ matrix.branch }}-from-master
         base: ${{ matrix.branch }}
         body: "Automated update of ${{ matrix.branch }} branch with latest changes from master branch."
+        draft: true # TODO: remove
 
   slack-notification:
     needs: update-branches
