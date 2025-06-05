@@ -50,8 +50,8 @@ jobs:
     outputs:
       terraform_matrix: ${{ inputs.terraform_matrix || env.schedule_terraform_matrix }}
       provider_matrix: ${{ inputs.provider_matrix || env.schedule_provider_matrix }}
-      is_fri: ${{ steps.set_day.outputs.DAY == 'Fri' }}
-      is_sun: ${{ steps.set_day.outputs.DAY == 'Sun' }}
+      is_fri: ${{ steps.set_day.outputs.DAY == 'Thu' }}
+      is_sun: ${{ steps.set_day.outputs.DAY == 'Thu' }}
     steps:
       - name: set day
         id: set_day
