@@ -27,12 +27,12 @@ func ToCodeSpecModel(apiSpecs map[string]*libopenapi.DocumentModel[high.Document
 	var results []Resource
 	for name, resourceConfig := range resourceConfigsToIterate {
 		log.Printf("Generating resource: %s", name)
-		// find resource operations, schemas, etc from OAS
 		resourceAPISpec := configModel.GetAPISpecName(resourceConfig.APISpec)
 		apiSpec, ok := apiSpecs[resourceAPISpec]
 		if !ok {
 			return nil, fmt.Errorf("API spec '%s' not found in parsed API specs", resourceAPISpec)
 		}
+		// find resource operations, schemas, etc from OAS
 		oasResource, err := getAPISpecResource(&apiSpec.Model, &resourceConfig, stringcase.SnakeCaseString(name))
 		if err != nil {
 			return nil, fmt.Errorf("unable to get APISpecResource schema: %v", err)
