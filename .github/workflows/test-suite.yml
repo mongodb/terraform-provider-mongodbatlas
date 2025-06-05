@@ -100,27 +100,14 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": ":red_circle: Test Suite failed (reminder to log failures)",
+              "text": "Test Suite failed",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Test Suite failed (reminder to log failures)* ${{ secrets.SLACK_ONCALL_TAG }}"
+                    "text": "*Test Suite failed* ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Failed Action>"
                   }
-                },
-                {
-                  "type": "actions",
-                  "elements": [
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": ":github: Failed action"
-                        },
-                        "url": "${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}"
-                    }
-                ]
                 }
               ]
             }
