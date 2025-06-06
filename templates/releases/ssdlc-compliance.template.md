@@ -7,7 +7,7 @@ SSDLC Compliance Report: Terraform Provider MongoDB Atlas ${VERSION}
 Overview:
 
 - **Product and Release Name**
-    - Terraform Provider MongoDB Atlas ${VERSION}, ${DATE}.
+  - Terraform Provider MongoDB Atlas ${VERSION}, ${DATE}.
 
 - **Process Document**
   - https://www.mongodb.com/blog/post/how-mongodb-protects-against-supply-chain-vulnerabilities
