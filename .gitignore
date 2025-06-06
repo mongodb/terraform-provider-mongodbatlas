@@ -10,6 +10,7 @@ bin
 __debug_*
 *~
 compliance/sbom.json
+compliance/augmented-sbom-v*.json
 
 #used for schema code generation but is not commited to avoid constant updates
 tools/codegen/open-api-spec.yml
