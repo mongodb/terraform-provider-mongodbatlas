@@ -16,7 +16,7 @@ The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-ro
 ```terraform
 resource "mongodbatlas_org_invitation" "test0" {
   username    = "test0-acc-username"
-  org_id      = "<ORG-ID>"
+  org_id      = "<ORG_ID>"
   roles       = [ "ORG_OWNER" ]
 }
 ```
@@ -24,7 +24,7 @@ resource "mongodbatlas_org_invitation" "test0" {
 ```terraform
 resource "mongodbatlas_org_invitation" "test0" {
   username    = "test0-acc-username"
-  org_id      = "<ORG-ID>"
+  org_id      = "<ORG_ID>"
   roles       = [ "ORG_MEMBER", "ORG_BILLING_ADMIN" ]
 }
 ```
@@ -32,7 +32,7 @@ resource "mongodbatlas_org_invitation" "test0" {
 ```terraform
 resource "mongodbatlas_org_invitation" "test1" {
   username    = "test1-acc-username"
-  org_id      = "<ORG-ID>"
+  org_id      = "<ORG_ID>"
   teams_ids   = [ "<TEAM-0-ID>", "<TEAM-1-ID>" ]
   roles       = [ "ORG_MEMBER" ]
 }
