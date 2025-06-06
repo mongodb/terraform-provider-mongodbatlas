@@ -1,0 +1,80 @@
+name: Augment SBOM
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: "Release version (e.g. 1.35.1)"
+        required: true
+        type: string
+
+permissions:  
+  id-token: write  
+  contents: read  
+
+jobs:
+  augment-sbom:
+    runs-on: ubuntu-latest
+
+    env:
+      KONDUKTO_TOKEN: ${{ secrets.KONDUKTO_TOKEN }}
+      KONDUKTO_REPO: ${{ vars.KONDUKTO_REPO }}
+      KONDUKTO_BRANCH_PREFIX: ${{ vars.KONDUKTO_BRANCH_PREFIX }}
+      SILKBOMB_IMG: ${{ vars.SILKBOMB_IMG }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
+        with:
+            go-version-file: 'go.mod'
+
+      - name: Download Linux ARM64 binary
+        run: |
+          curl -L "https://github.com/mongodb/terraform-provider-mongodbatlas/releases/download/terraform-provider-mongodbatlas%2Fv${{ inputs.release_version }}/terraform-provider-mongodbatlas_${{ inputs.release_version }}_linux_arm64.zip" \
+            -o release.zip
+
+      - name: Extract binary
+        run: |
+          unzip release.zip
+
+      - name: Generate PURLs from binary
+        run: |
+          go version -m ./terraform-provider-mongodbatlas_${{ inputs.release_version }}_linux_arm64/bin/terraform-provider-mongodbatlas | \
+            awk '$1 == "dep" || $1 == "=>" { print "pkg:golang/" $2 "@" $3 }' | \
+            LC_ALL=C sort > compliance/purls.txt
+          cat compliance/purls.txt
+
+      - name: Generate SBOM with Silkbomb
+        run: |
+          make generate-sbom
+          cat "compliance/sbom.json"
+
+      - name: Get current date
+        id: date
+        run: |
+          echo "date=$(date +'%Y-%m-%d')" >> "$GITHUB_ENV"
+
+      - name: Augment SBOM with Kondukto
+        env:
+          DATE: ${{ steps.date.outputs.date }}
+          RELEASE_VERSION: ${{ inputs.release_version }}
+        run: |
+          make augment-sbom
+
+      - name: Generate SSDLC report
+        env:
+            AUTHOR: ${{ github.actor }}
+            VERSION: ${{ inputs.release_version }}
+            AUGMENTED_REPORT: "true"
+        run: ./scripts/gen-ssdlc-report.sh
+
+      - name: Upload augmented SBOM as artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: augmented_sbom_and_ssdlc_report
+          path: |
+            compliance/augmented-sbom-v${{ inputs.release_version }}-${{ env.date }}.json
+            compliance/ssdlc-compliance-${{ inputs.release_version }}-${{ env.date }}.md
+          if-no-files-found: error

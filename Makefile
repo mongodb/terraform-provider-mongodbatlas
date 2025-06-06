@@ -237,3 +237,7 @@ generate-sbom: ## Generate SBOM
 .PHONY: upload-sbom
 upload-sbom: ## Upload SBOM
 	./scripts/upload-sbom.sh
+
+.PHONY: augment-sbom
+augment-sbom: ## Augment SBOM
+	./scripts/augment-sbom.sh
