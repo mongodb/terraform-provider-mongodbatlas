@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 set -eu
 
 release_date=${DATE:-$(date -u '+%Y-%m-%d')}
