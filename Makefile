@@ -224,11 +224,7 @@ change-lines:
 
 .PHONY: gen-purls
 gen-purls: # Generate purls on linux os
-	@echo "==> Generating purls"
-	GOOS=linux GOARCH=amd64 go build -ldflags "$(LINKER_FLAGS)" -o $(DESTINATION)
-	go version -m $(DESTINATION) | \
-		awk '$$1 == "dep" || $$1 == "=>" { print "pkg:golang/" $$2 "@" $$3 }' | \
-		LC_ALL=C sort > compliance/purls.txt
+	./scripts/generate-purls.sh
 
 .PHONY: check-purls
 check-purls: ## Check purls
