@@ -161,7 +161,7 @@ jobs:
       && needs.release.result == 'success'
       && needs.release-config.outputs.is_official_release == 'true'
     env:
-      SILKBOMB_IMG: ${{ vars.SILKBOMB_IMG }} # artifactory.corp.mongodb.com/release-tools-container-registry-public-local/silkbomb:2.0
+      SILKBOMB_IMG: ${{ vars.SILKBOMB_IMG }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
