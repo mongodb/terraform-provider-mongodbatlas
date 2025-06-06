@@ -1,11 +1,11 @@
-name: 'Update dev branches' # TODO: this is a placeholder to have the GHA in master so it can be executed from GH UI, a follow-up PR will go next
+name: 'Update dev branches'
 
 on:
   workflow_dispatch:
     inputs:
       branches:
         description: 'Dev branch names to update from master'
-        default: '["CLOUDP-320243-dev-2.0.0", "unexisting-branch"]'
+        default: '["CLOUDP-320243-dev-2.0.0"]'
   schedule:
     - cron: "0 5 * * 3" # workflow runs every Wednesday at 5 AM UTC
 
@@ -19,18 +19,51 @@ jobs:
       max-parallel: 10
       fail-fast: false
       matrix:
-        branch: ${{ fromJSON(inputs.branches || '["CLOUDP-320243-dev-2.0.0", "unexisting-branch-2", "bad-branch"]') }} # scheduled branches go here
+        branch: ${{ fromJSON(inputs.branches || '["CLOUDP-320243-dev-2.0.0"]') }} # scheduled branches go here
     name: ${{ matrix.branch }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+    - run: |
+        git config --local user.email svc-api-experience-integrations-escalation@mongodb.com
+        git config --local user.name svc-apix-bot
+    
     - run: |
         echo "Updating branch: ${{ matrix.branch }}"
-    - name: Fail if bad branch
-      run: |
-        if [[ "${{ matrix.branch }}" == "bad-branch" ]]; then
-          echo "Branch ${{ matrix.branch }} is configured to fail for testing purposes"
+        
+        if ! git ls-remote --heads origin ${{ matrix.branch }} | grep -q ${{ matrix.branch }}; then
+          echo "ERROR: Branch ${{ matrix.branch }} does not exist."
           exit 1
         fi
+        
+        git fetch origin master
+        git fetch origin ${{ matrix.branch }}        
+        git checkout -B ${{ matrix.branch }} origin/${{ matrix.branch }}
+        
+        if git merge origin/master --no-edit; then
+          echo "OK: Merge completed successfully with no conflicts."
+        else
+          git merge --abort
+          if git merge origin/master --strategy-option=theirs --no-edit; then
+            echo "ERROR: Merge conflicts detected that can be auto-resolved by favoring master changes."
+          else
+            echo "ERROR: Merge conflicts detected that need manual intervention."
+          fi
+          exit 1
+        fi
+
+    - uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e
+      with:
+        token: ${{ secrets.APIX_BOT_PAT }}
+        title: "chore: Update ${{ matrix.branch }} from master"
+        commit-message: "Update ${{ matrix.branch }} from master"
+        delete-branch: true
+        branch: update-${{ matrix.branch }}-from-master
+        base: ${{ matrix.branch }}
+        body: "Automated update of ${{ matrix.branch }} branch with latest changes from master branch."
 
   slack-notification:
     needs: update-branches
@@ -40,7 +73,7 @@ jobs:
     steps:
       - uses: slackapi/slack-github-action@b0fa283ad8fea605de13dc3f449259339835fc52
         with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST }} # TODO: change to SLACK_WEBHOOK_URL
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           payload: |
             {
