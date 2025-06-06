@@ -28,6 +28,10 @@ jobs:
     steps:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
     - run: |
+        git config --local user.email svc-api-experience-integrations-escalation@mongodb.com
+        git config --local user.name svc-apix-bot
+    
+    - run: |
         echo "Updating branch: ${{ matrix.branch }}"
         
         if ! git ls-remote --heads origin ${{ matrix.branch }} | grep -q ${{ matrix.branch }}; then
