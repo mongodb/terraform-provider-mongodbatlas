@@ -221,3 +221,19 @@ change-lines:
 	sed 's/${find}/${new}/' "${filename}" > "file.tmp"
 	mv file.tmp ${filename}
 	goimports -w ${filename}
+
+.PHONY: gen-purls
+gen-purls: # Generate purls on linux os
+	./scripts/generate-purls.sh
+
+.PHONY: check-purls
+check-purls: ## Check purls
+	./scripts/check-purls.sh
+
+.PHONY: generate-sbom
+generate-sbom: ## Generate SBOM
+	./scripts/generate-sbom.sh
+
+.PHONY: upload-sbom
+upload-sbom: ## Upload SBOM
+	./scripts/upload-sbom.sh
