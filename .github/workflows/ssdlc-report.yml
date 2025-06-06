@@ -1,0 +1,34 @@
+name: Generate SSDLC Compliance Report
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'terraform-provider-mongodbatlas tag version (e.g. 1.42.2)'
+        required: true
+        type: string
+
+jobs:
+  generate-ssdlc-report:
+    uses: ./.github/workflows/run-script-and-commit.yml
+    with:
+      script_call: |
+        if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+          TAG="${{ github.event.inputs.tag }}"
+          VERSION="${TAG#v}"
+          AUTHOR="${{ github.actor }}"
+        else
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          AUTHOR="${{ github.event.release.author.login }}"
+        fi
+        export AUTHOR VERSION
+        ./scripts/gen-ssdlc-report.sh
+      file_to_commit: 'compliance/v*/ssdlc-compliance-*.md'
+      commit_message: "chore: Update SSDLC report for ${{ github.event.inputs.tag || github.ref }}"
+    secrets:
+      apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
+      remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
+      gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
+      passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}
