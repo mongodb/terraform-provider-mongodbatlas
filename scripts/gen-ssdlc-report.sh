@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-
-set -eu
+set -euo pipefail
 
 release_date=${DATE:-$(date -u '+%Y-%m-%d')}
 
@@ -11,10 +10,10 @@ if [ -z "${AUTHOR:-}" ]; then
 fi
 
 if [ -z "${VERSION:-}" ]; then
-  VERSION=$(git tag --list 'terraform-provider-mongodbatlas/v*' --sort=-taggerdate | head -1 | cut -d 'v' -f 2)
+  VERSION=$(git tag --list 'v*' --sort=-taggerdate | head -1 | cut -d 'v' -f 2)
 fi
 
-if [ "${AUGMENTED_REPORT}" = "true" ]; then
+if [ "${AUGMENTED_REPORT:-false}" = "true" ]; then
   target_dir="."
   file_name="ssdlc-compliance-${VERSION}-${DATE}.md"
   SBOM_TEXT="  - See Augmented SBOM manifests (CycloneDX in JSON format):
@@ -36,10 +35,10 @@ export SBOM_TEXT
 
 echo "Generating SSDLC checklist for Terraform Provider for MongoDB Atlas version ${VERSION}, author ${AUTHOR} and release date ${DATE}..."
 
-envsubst < docs/releases/ssdlc-compliance.template.md \
+envsubst < templates/releases/ssdlc-compliance.template.md \
   > "${target_dir}/${file_name}"
 
-echo "SDLC checklist ready. Files in ${target_dir}/:"
+echo "SSDLC compliance report ready. Files in ${target_dir}/:"
 ls -l "${target_dir}/"
 
 echo "Printing the generated report:"
