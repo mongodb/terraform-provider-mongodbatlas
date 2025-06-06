@@ -1,11 +1,11 @@
-name: 'Update dev branches' # TODO: this is a placeholder to have the GHA in master so it can be executed from GH UI, a follow-up PR will go next
+name: 'Update dev branches'
 
 on:
   workflow_dispatch:
     inputs:
       branches:
         description: 'Dev branch names to update from master'
-        default: '["CLOUDP-320243-dev-2.0.0", "test-unexisting", "test-no-conflicts", "test-conflicts", "test-auto-resolve"]'
+        default: '["CLOUDP-320243-dev-2.0.0"]'
   schedule:
     - cron: "0 5 * * 3" # workflow runs every Wednesday at 5 AM UTC
 
@@ -19,7 +19,7 @@ jobs:
       max-parallel: 10
       fail-fast: false
       matrix:
-        branch: ${{ fromJSON(inputs.branches || '["CLOUDP-320243-dev-2.0.0", "unexisting-branch-2", "bad-branch"]') }} # scheduled branches go here
+        branch: ${{ fromJSON(inputs.branches || '["CLOUDP-320243-dev-2.0.0"]') }} # scheduled branches go here
     name: ${{ matrix.branch }}
     runs-on: ubuntu-latest
     permissions:
@@ -64,7 +64,6 @@ jobs:
         branch: update-${{ matrix.branch }}-from-master
         base: ${{ matrix.branch }}
         body: "Automated update of ${{ matrix.branch }} branch with latest changes from master branch."
-        draft: true # TODO: remove
 
   slack-notification:
     needs: update-branches
@@ -74,7 +73,7 @@ jobs:
     steps:
       - uses: slackapi/slack-github-action@b0fa283ad8fea605de13dc3f449259339835fc52
         with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST }} # TODO: change to SLACK_WEBHOOK_URL
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           payload: |
             {
