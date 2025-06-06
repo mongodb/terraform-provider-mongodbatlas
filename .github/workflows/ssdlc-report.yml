@@ -26,7 +26,7 @@ jobs:
         export AUTHOR VERSION
         ./scripts/gen-ssdlc-report.sh
       file_to_commit: 'compliance/v*/ssdlc-compliance-*.md'
-      commit_message: ${{ github.event_name == 'workflow_dispatch' && format('{0}{1}', 'chore:',' Update SSDLC report (Manual Trigger)') || format('{0}{1}{2}', 'chore:', ' Update SSDLC report for ', github.ref) }}
+      commit_message: ${{ github.event_name == 'workflow_dispatch' && format('{0}{1}', 'chore:',' Update SSDLC report (Manual Trigger)') || format('{0}{1}{2}', 'chore:', ' Update SSDLC report for ', github.ref.replace('refs/tags/', '')) }}
     secrets:
       apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
       remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
