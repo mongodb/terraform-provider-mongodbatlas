@@ -33,7 +33,7 @@ export AUTHOR
 export VERSION
 export SBOM_TEXT
 
-echo "Generating SSDLC checklist for Terraform Provider for MongoDB Atlas version ${VERSION}, author ${AUTHOR} and release date ${DATE}..."
+echo "Generating SSDLC report for Terraform Provider for MongoDB Atlas version ${VERSION}, author ${AUTHOR} and release date ${DATE}..."
 
 envsubst < templates/releases/ssdlc-compliance.template.md \
   > "${target_dir}/${file_name}"
