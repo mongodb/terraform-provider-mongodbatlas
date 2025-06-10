@@ -10,7 +10,7 @@ permissions:
 jobs:
   update-purls:
     name: Update PURLs
-    if: github.actor == 'dependabot[bot]'
+    if: github.actor == 'dependabot[bot]' || contains(github.head_ref, 'atlas-sdk-update')
     uses: ./.github/workflows/run-script-and-commit.yml
     with:
       script_call: 'make gen-purls'
