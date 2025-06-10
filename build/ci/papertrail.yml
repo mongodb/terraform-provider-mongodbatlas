@@ -1,0 +1,49 @@
+variables:
+  - &go_linux_version
+    go_root: "/opt/golang/go1.24"
+    go_bin: "/opt/golang/go1.24/bin"
+    go_base_path: ""
+  - &go_windows_version
+    go_root: "c:\\golang\\go1.24"
+    go_bin: "c:\\golang\\go1.24\\bin"
+    go_base_path: "c:"
+  - &go_env
+    XDG_CONFIG_HOME: ${go_base_path}${workdir}
+    GO111MODULE: "on"
+    GOROOT: ${go_root}
+    GOPATH: ${go_base_path}${workdir}
+    ADD_PATH: "${go_bin}:${go_base_path}${workdir}/bin:${go_base_path}${workdir}/src/github.com/mongodb/terraform-provider-mongodbatlas/bin"
+  - &go_options
+    add_to_path:
+      - ${go_bin}
+      - ${go_base_path}${workdir}/bin
+      - ${go_base_path}${workdir}/src/github.com/mongodb/terraform-provider-mongodbatlas/bin
+    include_expansions_in_env:
+      - go_base_path
+      - workdir
+    working_dir: src/github.com/mongodb/terraform-provider-mongodbatlas
+    env:
+      <<: *go_env
+functions:
+  "trace artifacts":
+    - command: shell.exec
+      params:
+        include_expansions_in_env:
+        script: |
+          product="terraform-provider-mongodbatlas"
+
+          cat <<EOT > src/github.com/mongodb/terraform-provider-mongodbatlas/expansions.yaml
+          product: "$product"
+          EOT
+    - command: expansions.update
+      params:
+        ignore_missing_file: true
+        file: src/github.com/mongodb/terraform-provider-mongodbatlas/expansions.yaml
+    - command: papertrail.trace
+      params:
+        key_id: ${papertrail_key_id}
+        secret_key: ${papertrail_secret_key}
+        product: ${product}
+        version: ${version}
+        filenames:
+          - "src/github.com/mongodb/terraform-provider-mongodbatlas/bin/*"
