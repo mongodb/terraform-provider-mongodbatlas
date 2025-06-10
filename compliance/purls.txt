@@ -62,7 +62,7 @@ pkg:golang/github.com/mitchellh/go-wordwrap@v1.0.1
 pkg:golang/github.com/mitchellh/mapstructure@v1.5.0
 pkg:golang/github.com/mitchellh/reflectwalk@v1.0.2
 pkg:golang/github.com/mongodb-forks/digest@v1.1.0
-pkg:golang/github.com/mongodb/atlas-sdk-go@v1.0.1-0.20250602153350-008c4a0d64f0
+pkg:golang/github.com/mongodb/atlas-sdk-go@v1.0.1-0.20250609084058-c9f9b56f64e9
 pkg:golang/github.com/oklog/run@v1.0.0
 pkg:golang/github.com/posener/complete@v1.2.3
 pkg:golang/github.com/shopspring/decimal@v1.2.0
