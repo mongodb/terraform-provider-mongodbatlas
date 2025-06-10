@@ -10,7 +10,7 @@ When enabled, the Backup Compliance Policy will be applied as the minimum backup
 
 -> **NOTE:** With Backup Compliance Policy enabled, cluster backups are retained after a cluster is deleted and backups can be used normally until retention expiration. When the Backup Compliance Policy is not enabled, Atlas deletes the cluster's associated backup snapshots when a cluster is terminated. By default, a Backup Compliance Policy is not enabled. For more details see [Back Up, Restore, and Archive Data](https://www.mongodb.com/docs/atlas/backup-restore-cluster/). 
 
--> **NOTE:** If you encounter errors when deleting an Atlas Cluster which has an associated `mongodbatlas_cloud_backup_schedule` resource, we suggest the following the steps in the [`mongodbatlas_backup_compliance_policy`](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_backup_compliance_policy/README.md#4-cleanup-extra-steps-when-a-backup-compliance-policy-is-enabled) example.
+-> **NOTE:** If you encounter errors when deleting an Atlas Cluster which has an associated `mongodbatlas_cloud_backup_schedule` resource, we suggest the following the extra cleanup steps in the [`mongodbatlas_backup_compliance_policy`](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_backup_compliance_policy/README.md#4-cleanup-extra-steps-when-a-backup-compliance-policy-is-enabled) example.
 
 
 ## Example Usage
