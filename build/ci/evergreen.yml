@@ -32,3 +32,18 @@ variables:
 pre:
   - func: "clone"
   - func: "set-expansions"
+tasks:
+- name: say_hello
+  commands:
+    - command: shell.exec
+      params:
+        script: |
+           echo "Hello world"
+
+buildvariants:
+- name: ubuntu
+  display_name: Hello world on ubuntu
+  run_on:
+  - ubuntu2204-large
+  tasks:
+  - name: say_hello
