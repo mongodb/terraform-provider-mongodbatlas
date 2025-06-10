@@ -58,7 +58,7 @@ jobs:
 
       - name: Augment SBOM with Kondukto
         env:
-          DATE: ${{ steps.date.outputs.date }}
+          DATE: ${{ env.date }}
           RELEASE_VERSION: ${{ inputs.release_version }}
         run: |
           make augment-sbom
