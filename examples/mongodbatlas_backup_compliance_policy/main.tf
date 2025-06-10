@@ -28,6 +28,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
   project_id             = var.project_id
   name                   = var.cluster_name
   cluster_type           = "REPLICASET"
+  backup_enabled         = true
   retain_backups_enabled = true
 
   replication_specs = [
@@ -70,7 +71,7 @@ resource "mongodbatlas_cloud_backup_schedule" "this" {
       "ON_DEMAND",
     ]
     region_name        = "US_EAST_2"
-    zone_id            = mongodbatlas_advanced_cluster.this.replication_specs.*.zone_id[0]
+    zone_id            = mongodbatlas_advanced_cluster.this.replication_specs[0].zone_id
     should_copy_oplogs = false
   }
 }
