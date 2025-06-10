@@ -6,12 +6,10 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
 
 	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/spf13/cast"
@@ -258,21 +256,14 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	ids := conversion.DecodeStateID(d.Id())
+	projectID := ids["project_id"]
+	containerID := ids["container_id"]
 
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"provisioned_container"},
-		Target:     []string{"deleted"},
-		Refresh:    resourceRefreshFunc(ctx, d, connV2),
-		Timeout:    1 * time.Hour,
-		MinTimeout: 10 * time.Second,
-		Delay:      2 * time.Minute,
-	}
-
-	_, err := stateConf.WaitForStateContext(ctx)
+	_, err := connV2.NetworkPeeringApi.DeletePeeringContainer(ctx, projectID, containerID).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorContainerDelete, conversion.DecodeStateID(d.Id())["container_id"], err))
+		return diag.FromErr(fmt.Errorf(errorContainerDelete, containerID, err))
 	}
-
 	return nil
 }
 
@@ -314,33 +305,4 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	}
 
 	return []*schema.ResourceData{d}, nil
-}
-
-func resourceRefreshFunc(ctx context.Context, d *schema.ResourceData, client *admin.APIClient) retry.StateRefreshFunc {
-	return func() (any, string, error) {
-		ids := conversion.DecodeStateID(d.Id())
-		projectID := ids["project_id"]
-		containerID := ids["container_id"]
-
-		var err error
-		container, res, err := client.NetworkPeeringApi.GetPeeringContainer(ctx, projectID, containerID).Execute()
-		if err != nil {
-			if validate.StatusNotFound(res) {
-				return "", "deleted", nil
-			}
-
-			return nil, "", err
-		}
-
-		if *container.Provisioned {
-			return nil, "provisioned_container", nil
-		}
-
-		_, err = client.NetworkPeeringApi.DeletePeeringContainer(ctx, projectID, containerID).Execute()
-		if err != nil {
-			return nil, "provisioned_container", nil
-		}
-
-		return "", "deleted", nil
-	}
 }
