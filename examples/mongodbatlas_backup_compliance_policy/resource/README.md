@@ -67,6 +67,8 @@ To workaround this limitation when deleting the `mongodbatlas_advanced_cluster` 
 #### 1. (Recommended) Use a `removed` block to avoid the DELETE call for `mongodbatlas_cloud_backup_schedule`
 This method requires Terraform CLI [1.7 or later](https://developer.hashicorp.com/terraform/language/resources/syntax#removing-resources).
 
+**Note**: If you are using a Terraform Module, we recommend using method 3 or follow the [module example](../module/README.md#different-cleanup-when-using-the-removed-block-for-a-module).
+
 Add the removed block
 ```terraform
 removed {

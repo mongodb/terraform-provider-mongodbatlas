@@ -1,26 +1,8 @@
-data "mongodbatlas_atlas_user" "this" {
-  user_id = var.user_id
-}
-
-resource "mongodbatlas_backup_compliance_policy" "backup_policy" {
-  project_id                 = var.project_id
-  authorized_email           = data.mongodbatlas_atlas_user.this.email_address
-  authorized_user_first_name = data.mongodbatlas_atlas_user.this.first_name
-  authorized_user_last_name  = data.mongodbatlas_atlas_user.this.last_name
-  copy_protection_enabled    = false
-  pit_enabled                = false
-  encryption_at_rest_enabled = false
-
-  restore_window_days = 7
-  on_demand_policy_item {
-    frequency_interval = 0
-    retention_unit     = "days"
-    retention_value    = 1
-  }
-  policy_item_daily {
-    frequency_interval = 0
-    retention_unit     = "days"
-    retention_value    = 1
+terraform {
+  required_providers {
+    mongodbatlas = {
+      source = "mongodb/mongodbatlas"
+    }
   }
 }
 
@@ -50,8 +32,9 @@ resource "mongodbatlas_advanced_cluster" "this" {
 }
 
 resource "mongodbatlas_cloud_backup_schedule" "this" {
+  count                    = var.add_schedule ? 1 : 0
   project_id               = var.project_id
-  cluster_name             = resource.mongodbatlas_advanced_cluster.this.name
+  cluster_name             = mongodbatlas_advanced_cluster.this.name
   reference_hour_of_day    = 19
   reference_minute_of_hour = 15
   restore_window_days      = 7
@@ -62,14 +45,12 @@ resource "mongodbatlas_cloud_backup_schedule" "this" {
   }
   copy_settings {
     cloud_provider = "AWS"
-    frequencies = [
-      "HOURLY",
+    frequencies = ["HOURLY",
       "DAILY",
       "WEEKLY",
       "MONTHLY",
       "YEARLY",
-      "ON_DEMAND",
-    ]
+    "ON_DEMAND"]
     region_name        = "US_EAST_2"
     zone_id            = mongodbatlas_advanced_cluster.this.replication_specs[0].zone_id
     should_copy_oplogs = false
