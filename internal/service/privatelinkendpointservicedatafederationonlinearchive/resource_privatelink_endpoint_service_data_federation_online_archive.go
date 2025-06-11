@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 
@@ -68,6 +69,10 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(2 * time.Hour),
+			Delete: schema.DefaultTimeout(2 * time.Hour),
 		},
 	}
 }
