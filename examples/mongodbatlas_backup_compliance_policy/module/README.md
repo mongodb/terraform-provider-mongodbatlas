@@ -1,5 +1,8 @@
 # Example - MongoDB Atlas Backup Compliance Policy with a module
 This example is identical to the [resource example](../resource/README.md) except that it uses a local [module](modules/cluster_with_schedule/main.tf) to manage the `mongodbatlas_advanced_cluster` and the `mongodbatlas_cloud_backup_schedule` via the `add_schedule` variable.
+
+The local module is meant as a placeholder for an enterprise module that cannot be changed by the module user and the module user doesn't have access to run `terraform state` commands.
+
 The [cleanup step below](#different-cleanup-when-using-the-removed-block-for-a-module) shows how the `moved` and `removed` block can remove the `mongodbatlas_cloud_backup_schedule` from your Terraform state to avoid the [BACKUP_POLICIES_NOT_MEETING_BACKUP_COMPLIANCE_POLICY_REQUIREMENTS](../resource/README.md#4-cleanup-extra-steps-when-a-backup-compliance-policy-is-enabled) error when running `terraform destroy`.
 
 ## Different cleanup when using the `removed` block for a module
@@ -31,29 +34,26 @@ module "cluster_without_schedule" {
 }
 # Rename the resource to avoid the `Removed Resource still exists error`
 moved {
-  from = module.cluster_with_schedule.mongodbatlas_cloud_backup_schedule.this[0]
+  from = module.cluster_with_schedule.mongodbatlas_cloud_backup_schedule.this[0] # must be deleted with the `add_schedule` variable set to false
   to  = mongodbatlas_cloud_backup_schedule.deleted # any resource name that doesn't exist works!
 }
 
 removed {
-  from = mongodbatlas_cloud_backup_schedule.deleted
+  from = mongodbatlas_cloud_backup_schedule.deleted # any resource name that doesn't exist works!
 
   lifecycle {
     destroy = false
   }
 }
 ```
-Then when you run:
-```sh
-terraform init # initialize the cluster_without_schedule instance
-terraform apply
-```
 
-You should see:
+Then when you run `terraform apply`, you should see:
 
 ```bash
 [...]
-module.cluster_with_schedule.mongodbatlas_cloud_backup_schedule.this[0] will no longer be managed by Terraform, but will not be destroyed
+mongodbatlas_cloud_backup_schedule.deleted will no longer be managed by Terraform, but will not be destroyed
+ (destroy = false is set in the configuration)
+  (moved from module.cluster_with_schedule.mongodbatlas_cloud_backup_schedule.this[0])
 [...]
 Plan: 0 to add, 0 to change, 0 to destroy.
 ```

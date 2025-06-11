@@ -24,37 +24,26 @@ resource "mongodbatlas_backup_compliance_policy" "this" {
   }
 }
 
-# For Step 2: This module must be commented out
 module "cluster_with_schedule" {
   source = "./modules/cluster_with_schedule"
 
   project_id    = var.project_id
   instance_size = var.instance_size
   cluster_name  = var.cluster_name
-  add_schedule  = true
+  add_schedule  = false # change to false in Step 2
 }
 
 # Step 2: For removing the `mongodbatlas_cloud_backup_schedule` resource
-# Avoids the "Removed Resource still exists error"
-# module "cluster_without_schedule" {
-#     source = "./modules/cluster_with_schedule"
+# Rename the resource to avoid the `Removed Resource still exists error`
+moved {
+  from = module.cluster_with_schedule.mongodbatlas_cloud_backup_schedule.this[0] # must be deleted with the `add_schedule` variable set to false
+  to   = mongodbatlas_cloud_backup_schedule.deleted                              # any resource name that doesn't exist works!
+}
 
-#     project_id = var.project_id
-#     instance_size = var.instance_size
-#     cluster_name = var.cluster_name
-#     add_schedule = false # changed flag
-# }
+removed {
+  from = mongodbatlas_cloud_backup_schedule.deleted # any resource name that doesn't exist works!
 
-# removed {
-#   from = module.cluster_with_schedule.mongodbatlas_cloud_backup_schedule.this
-
-#   lifecycle {
-#     destroy = false
-#   }
-# }
-
-# # Keep the cluster
-# moved {
-#   from = module.cluster_with_schedule.mongodbatlas_advanced_cluster.this
-#   to  = module.cluster_without_schedule.mongodbatlas_advanced_cluster.this
-# }
+  lifecycle {
+    destroy = false
+  }
+}

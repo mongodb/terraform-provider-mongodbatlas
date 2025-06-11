@@ -32,7 +32,6 @@ resource "mongodbatlas_advanced_cluster" "this" {
     }
   ]
 }
-
 resource "mongodbatlas_cloud_backup_schedule" "this" {
   count                    = var.add_schedule ? 1 : 0
   project_id               = var.project_id
