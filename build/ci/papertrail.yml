@@ -49,7 +49,7 @@ functions:
           - "src/github.com/mongodb/terraform-provider-mongodbatlas/bin/*"
 
 tasks:
-  - name: trace artifacts
+  - name: trace_artifacts
     # tags: [ "trace-artifacts" ] ???
     commands:
       - func: "trace artifacts"
