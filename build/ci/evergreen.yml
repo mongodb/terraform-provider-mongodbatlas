@@ -5,33 +5,6 @@ pre_error_fails_task: true
 include:
   - filename: build/ci/papertrail.yml
 
-variables:
-  - &go_linux_version
-      go_root: "/opt/golang/go1.24"
-      go_bin: "/opt/golang/go1.24/bin"
-      go_base_path: ""
-  - &go_env
-      XDG_CONFIG_HOME: ${go_base_path}${workdir}
-      GO111MODULE: "on"
-      GOROOT: ${go_root}
-      GOPATH: ${go_base_path}${workdir}
-      ADD_PATH: "${go_bin}:${go_base_path}${workdir}/bin:${go_base_path}${workdir}/src/github.com/mongodb/mongodb-atlas-cli/bin"
-      GOPROXY: ${go_proxy}
-  - &go_options
-    add_to_path:
-      - ${go_bin}
-      - ${go_base_path}${workdir}/bin
-      - ${go_base_path}${workdir}/src/github.com/mongodb/mongodb-atlas-cli/bin
-    include_expansions_in_env:
-      - go_base_path
-      - go_proxy
-      - workdir
-    working_dir: src/github.com/mongodb/mongodb-atlas-cli
-    env:
-      <<: *go_env
-pre:
-  - func: "clone"
-  - func: "set-expansions"
 tasks:
 - name: say_hello
   commands:
