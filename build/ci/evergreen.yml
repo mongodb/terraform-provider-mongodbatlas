@@ -5,18 +5,10 @@ pre_error_fails_task: true
 include:
   - filename: build/ci/papertrail.yml
 
-tasks:
-- name: say_hello
-  commands:
-    - command: shell.exec
-      params:
-        script: |
-           echo "Hello world"
-
 buildvariants:
-- name: ubuntu
-  display_name: Hello world on ubuntu
-  run_on:
-  - ubuntu2204-large
-  tasks:
-  - name: say_hello
+  - name: ubuntu
+    display_name: Say hello
+    run_on:
+      - ubuntu2204-large
+    tasks:
+      - name: say_hello

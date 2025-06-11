@@ -47,3 +47,15 @@ functions:
         version: ${version}
         filenames:
           - "src/github.com/mongodb/terraform-provider-mongodbatlas/bin/*"
+
+tasks:
+  - name: trace artifacts
+    # tags: [ "trace-artifacts" ] ???
+    commands:
+      - func: "trace artifacts"
+  - name: say_hello
+    commands:
+      - command: shell.exec
+        params:
+          script: |
+            echo "Hello world"
