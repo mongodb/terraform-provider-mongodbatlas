@@ -2,6 +2,14 @@
 set -euo pipefail
 : "${LINKER_FLAGS:=}"
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+EXTRACT_PURL_SCRIPT="${SCRIPT_DIR}/extract-purls.sh"
+
+if [ ! -x "$EXTRACT_PURL_SCRIPT" ]; then
+  echo "extract-purls.sh not found or not executable"
+  exit 1
+fi
+
 echo "==> Generating purls"
 
 # Define output and temp files
@@ -16,15 +24,15 @@ PURL_ALL="${OUT_DIR}/purls.txt"
 
 # Build and extract for Linux
 GOOS=linux GOARCH=amd64 go build -ldflags "${LINKER_FLAGS}" -o "${LINUX_BIN}"
-go version -m "${LINUX_BIN}" | awk '$1 == "dep" || $1 == "=>" { print "pkg:golang/" $2 "@" $3 }' | LC_ALL=C sort > "${PURL_LINUX}"
+"$EXTRACT_PURL_SCRIPT" "${LINUX_BIN}" "${PURL_LINUX}"
 
 # Build and extract for Darwin
 GOOS=darwin GOARCH=amd64 go build -ldflags "${LINKER_FLAGS}" -o "${DARWIN_BIN}"
-go version -m "${DARWIN_BIN}" | awk '$1 == "dep" || $1 == "=>" { print "pkg:golang/" $2 "@" $3 }' | LC_ALL=C sort > "${PURL_DARWIN}"
+"$EXTRACT_PURL_SCRIPT" "${DARWIN_BIN}" "${PURL_DARWIN}"
 
 # Build and extract for Windows
 GOOS=windows GOARCH=amd64 go build -ldflags "${LINKER_FLAGS}" -o "${WIN_BIN}"
-go version -m "${WIN_BIN}" | awk '$1 == "dep" || $1 == "=>" { print "pkg:golang/" $2 "@" $3 }' | LC_ALL=C sort > "${PURL_WIN}"
+"$EXTRACT_PURL_SCRIPT" "${WIN_BIN}" "${PURL_WIN}"
 
 # Combine, sort, and deduplicate
 cat "${PURL_LINUX}" "${PURL_DARWIN}" "${PURL_WIN}" | LC_ALL=C sort | uniq > "${PURL_ALL}"

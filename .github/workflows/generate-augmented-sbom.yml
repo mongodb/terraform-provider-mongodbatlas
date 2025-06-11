@@ -29,21 +29,9 @@ jobs:
         with:
             go-version-file: 'go.mod'
 
-      - name: Download Linux ARM64 binary
+      - name: Generate PURLs from release artifacts
         run: |
-          curl -L "https://github.com/mongodb/terraform-provider-mongodbatlas/releases/download/terraform-provider-mongodbatlas%2Fv${{ inputs.release_version }}/terraform-provider-mongodbatlas_${{ inputs.release_version }}_linux_arm64.zip" \
-            -o release.zip
-
-      - name: Extract binary
-        run: |
-          unzip release.zip
-
-      - name: Generate PURLs from binary
-        run: |
-          go version -m ./terraform-provider-mongodbatlas_${{ inputs.release_version }}_linux_arm64/bin/terraform-provider-mongodbatlas | \
-            awk '$1 == "dep" || $1 == "=>" { print "pkg:golang/" $2 "@" $3 }' | \
-            LC_ALL=C sort > compliance/purls.txt
-          cat compliance/purls.txt
+          ./scripts/generate-purls-from-release.sh "${{ inputs.release_version }}"
 
       - name: Generate SBOM with Silkbomb
         run: |
