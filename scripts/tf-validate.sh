@@ -36,18 +36,18 @@ EOF
 
 # Function to check if directory is a V2 schema directory
 is_v2_dir() {
-  local parent_dir
+  # local parent_dir # Keeping this in case we need v2 in examples that is not in a nested directory
   local grand_parent_dir
-  parent_dir=$(basename "$1")
+  # parent_dir=$(basename "$1")
   grand_parent_dir=$(basename "$(dirname "$1")")
-  local v2_parent_dirs=("") # Keeping this in case we need v2 in examples that is not in a nested directory
+  # local v2_parent_dirs=("")
   local v2_grand_parent_dirs=("module_maintainer" "module_user" "migrate_cluster_to_advanced_cluster" "mongodbatlas_backup_compliance_policy") # module_maintainer and module_user uses {PARENT_DIR}/vX/main.tf
   
-  for dir in "${v2_parent_dirs[@]}"; do
-    if [[ $parent_dir =~ $dir ]]; then
-      return 0  # True
-    fi
-  done
+  # for dir in "${v2_parent_dirs[@]}"; do
+  #   if [[ $parent_dir =~ $dir ]]; then
+  #     return 0  # True
+  #   fi
+  # done
   for dir in "${v2_grand_parent_dirs[@]}"; do
     if [[ $grand_parent_dir =~ $dir ]]; then
       return 0  # True
