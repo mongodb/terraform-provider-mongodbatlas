@@ -70,6 +70,7 @@ func Resource() *schema.Resource {
 				Computed: true,
 			},
 		},
+		// Timeouts are not being used but kept to avoid breaking changes.
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(2 * time.Hour),
 			Delete: schema.DefaultTimeout(2 * time.Hour),
