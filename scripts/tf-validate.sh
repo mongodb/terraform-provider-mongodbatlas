@@ -40,8 +40,8 @@ is_v2_dir() {
   local grand_parent_dir
   parent_dir=$(basename "$1")
   grand_parent_dir=$(basename "$(dirname "$1")")
-  local v2_parent_dirs=("mongodbatlas_backup_compliance_policy")
-  local v2_grand_parent_dirs=("module_maintainer" "module_user" "migrate_cluster_to_advanced_cluster") # module_maintainer and module_user uses {PARENT_DIR}/vX/main.tf
+  local v2_parent_dirs=("") # Keeping this in case we need v2 in examples that is not in a nested directory
+  local v2_grand_parent_dirs=("module_maintainer" "module_user" "migrate_cluster_to_advanced_cluster" "mongodbatlas_backup_compliance_policy") # module_maintainer and module_user uses {PARENT_DIR}/vX/main.tf
   
   for dir in "${v2_parent_dirs[@]}"; do
     if [[ $parent_dir =~ $dir ]]; then
