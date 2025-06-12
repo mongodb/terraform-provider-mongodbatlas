@@ -1,0 +1,66 @@
+name: "Run Script and Commit Changes"
+description: "Runs a specified script and commits changes to a file, with GPG signing."
+author: "svc-apix-bot"
+
+inputs:
+  script_call:
+    description: "The script to run."
+    required: true
+  file_to_commit:
+    description: "The file to commit."
+    required: true
+  commit_message:
+    description: "The commit message."
+    required: true
+  apix_bot_pat:
+    description: "GitHub token for pushing commits."
+    required: true
+  remote:
+    description: "Remote repository URL."
+    required: true
+  gpg_private_key:
+    description: "GPG private key for commit signing."
+    required: true
+  passphrase:
+    description: "Passphrase for the GPG key."
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ inputs.apix_bot_pat }}
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: "go.mod"
+
+    - name: Run specified script
+      shell: bash
+      run: ${{ inputs.script_call }}
+
+    - name: Import GPG key
+      uses: crazy-max/ghaction-import-gpg@v6
+      with:
+        gpg_private_key: ${{ inputs.gpg_private_key }}
+        passphrase: ${{ inputs.passphrase }}
+        git_user_signingkey: true
+        git_commit_gpgsign: true
+
+    - name: Commit changes
+      shell: bash
+      run: |
+        if [[ $(git status --porcelain) ]]; then
+          git pull
+          git config --local user.email svc-api-experience-integrations-escalation@mongodb.com
+          git config --local user.name svc-apix-bot
+          git remote set-url origin ${{ inputs.remote }}
+          git add ${{ inputs.file_to_commit }}
+          git commit -m "${{ inputs.commit_message }}"
+          git push
+        else
+          echo "No changes to commit."

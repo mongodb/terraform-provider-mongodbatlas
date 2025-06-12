@@ -9,16 +9,17 @@ on:
 jobs:
   generate-and-update-changelog:
     if: github.event.pull_request.merged || github.event_name == 'workflow_dispatch'
-    uses: ./.github/workflows/run-script-and-commit.yml
-    with:
-      script_call: 'make tools update-changelog-unreleased-section'
-      file_to_commit: 'CHANGELOG.md'
-      commit_message: ${{ github.event_name == 'workflow_dispatch' && format('{0}{1}', 'chore:',' Updates CHANGELOG.md (Manual Trigger)') || format('{0}{1}{2}{3}', 'chore:', ' Updates CHANGELOG.md for ', '#', github.event.pull_request.number) }}
-    secrets:
-      apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
-      remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
-      gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
-      passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}     
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/templates/run-script-and-commit
+        with:
+          script_call: 'make tools update-changelog-unreleased-section'
+          file_to_commit: 'CHANGELOG.md'
+          commit_message: ${{ github.event_name == 'workflow_dispatch' && format('{0}{1}', 'chore:',' Updates CHANGELOG.md (Manual Trigger)') || format('{0}{1}{2}{3}', 'chore:', ' Updates CHANGELOG.md for ', '#', github.event.pull_request.number) }}
+          apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
+          remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
+          gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}     
 
   slack-notification:
     needs: [generate-and-update-changelog]
