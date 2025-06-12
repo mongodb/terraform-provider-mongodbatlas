@@ -1,7 +1,21 @@
 # Example - MongoDB Atlas Backup Compliance Policy
-This example shows how to configure the `mongodbatlas_backup_compliance_policy` and the lifecycle impact on the `mongodbatlas_advanced_cluster` and `mongodbatlas_cloud_backup_schedule`. With Backup Compliance Policy enabled, cluster backups are retained after a cluster is deleted (remember to set `retainBackups=true`) and backups can be used until retention expiration.
+This example shows how to configure the `mongodbatlas_backup_compliance_policy` and the [lifecycle impact](#backup-compliance-policy-impact-on-a-cluster-with-cloud-backup-schedule) on the `mongodbatlas_advanced_cluster` and `mongodbatlas_cloud_backup_schedule`. With Backup Compliance Policy enabled, cluster backups are retained after a cluster is deleted (remember to set `retainBackups=true`) and backups can be used until retention expiration.
 
 For more details see [Back Up, Restore, and Archive Data](https://www.mongodb.com/docs/atlas/backup-restore-cluster/)
+
+## Backup Compliance Policy Deletion Consideration
+-> **IMPORTANT NOTE:** Once a Backup Compliance Policy is enabled, no user, regardless of role, can disable the Backup Compliance Policy via Terraform, or any other method, without contacting MongoDB Support. However, if the Backup Compliance Policy is approved for disablement by MongoDB Support, the resource can be removed and the delete operation will successfully disable the Backup Compliance Policy. With Backup Compliance Policy enabled, some resources defined in Terraform will no longer be modifiable. See the full list of [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy).
+
+Therefore, the resource `mongodbatlas_backup_compliance_policy.this` defined in [main.tf](main.tf) must only be used if the intention is to use backup compliance policies for the project.
+
+## Backup Compliance Policy Impact on a Cluster with Cloud Backup Schedule
+The delete call to `mongodbatlas_cloud_backup_schedule` can fail with `BACKUP_POLICIES_NOT_MEETING_BACKUP_COMPLIANCE_POLICY_REQUIREMENTS` when `mongodbatlas_backup_compliance_policy` is active.
+
+The error happens because Terraform tries to delete the `mongodbatlas_cloud_backup_schedule` resource **before** deleting the cluster and the `mongodbatlas_backup_compliance_policy` resource blocks the action because the `mongodbatlas_advanced_cluster` will no longer be compliant with the policy (for more details, see the [Configure a Backup Compliance Policy](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy) docs).
+
+The Terraform [resource dependency](https://developer.hashicorp.com/terraform/language/resources/behavior#resource-dependencies) between `mongodbatlas_advanced_cluster` and `mongodbatlas_cloud_backup_schedule` is reversed during deletion.
+By following the steps below you will see how to avoid this error.
+
 
 ## Dependencies
 
@@ -51,23 +65,14 @@ Now execute the plan to provision the resources.
 terraform apply
 ```
 
-### 4. Cleanup Extra Steps When a Backup Compliance Policy Is Enabled
-If you try running `terraform destroy` you will most likely see this error:
+### 4. How to delete a cluster when a Backup Compliance Policy Is Enabled
 
-```bash
-Error: error deleting MongoDB Cloud Backup Schedule ({cluster_name}): https://cloud-dev.mongodb.com/api/atlas/v2/groups/{project_id}/clusters/{cluster_name}/backup/schedule DELETE: HTTP 400 Bad Request (Error code: "BACKUP_POLICIES_NOT_MEETING_BACKUP_COMPLIANCE_POLICY_REQUIREMENTS") Detail: The following backup policies do not comply with the specified backup compliance policy: [...]
-```
-
-The error happens because Terraform tries to delete the `mongodbatlas_cloud_backup_schedule` resource before deleting the cluster and the `mongodbatlas_backup_compliance_policy` resource blocks the action because the `mongodbatlas_advanced_cluster` will no longer be compliant with the policy (For more details, see the [Configure a Backup Compliance Policy](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy) docs).
-The [resource dependency](https://developer.hashicorp.com/terraform/language/resources/behavior#resource-dependencies) between `mongodbatlas_advanced_cluster` and `mongodbatlas_cloud_backup_schedule` is reversed during deletion.
-
-To workaround this limitation when deleting the `mongodbatlas_advanced_cluster` and the `mongodbatlas_cloud_backup_schedule` you can choose one of the methods below:
-
+To proceed with the deletion you can choose one of the methods below:  
 
 #### 1. (Recommended) Use a `removed` block to avoid the DELETE call for `mongodbatlas_cloud_backup_schedule`
-This method requires Terraform CLI [1.7 or later](https://developer.hashicorp.com/terraform/language/resources/syntax#removing-resources).
+**Note**: If you are using a Terraform Module, we recommend using method 3 or follow the [module example](../module/README.md#how-to-delete-the-cluster-and-retain-their-backup-snapshots).
 
-**Note**: If you are using a Terraform Module, we recommend using method 3 or follow the [module example](../module/README.md#different-cleanup-when-using-the-removed-block-for-a-module).
+This method requires Terraform CLI [1.7 or later](https://developer.hashicorp.com/terraform/language/resources/syntax#removing-resources).
 
 Add the removed block
 ```terraform
@@ -79,7 +84,7 @@ removed {
   }
 }
 ```
-Remove the `resource "mongodbatlas_cloud_backup_schedule" "this"` block.
+Remove the `resource "mongodbatlas_cloud_backup_schedule" "this"` definition.
 
 Run `terraform apply`. You should see a plan similar to:
 
@@ -92,7 +97,7 @@ Run `terraform apply`. You should see a plan similar to:
 
 
 #### 2. Disable `mongodbatlas_backup_compliance_policy` by contacting MongoDB Support
-This requires contacting MongoDB Support and completing an extensive verification process.
+You will need to reach out to MongoDB Support and complete a thorough verification process. However, this process may not be ideal for most customers who wish to maintain their backup compliance policies for other active clusters.
 
 #### 3. Use `terraform state rm` to remove `mongodbatlas_cloud_backup_schedule` from the state to avoid the DELETE call for `mongodbatlas_cloud_backup_schedule`
 Note: This is identical to method 1 but requires access to `terraform state rm`.

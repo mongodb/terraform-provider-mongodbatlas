@@ -7,6 +7,8 @@ To do that, we'll use:
 - an `add_schedule` variable provided by the module maintainer that controls the presence of the `mongodbatlas_cloud_backup_schedule` in the configuration
 - the `moved` and `removed` blocks used by the module user and added at the root level.
 
+-> **IMPORTANT NOTE:** Read the [Backup Compliance Policy Deletion Consideration](../resource/README.md#backup-compliance-policy-deletion-consideration) before running this example.
+
 ## How to delete the cluster and retain their backup snapshots
 
 Let's begin by assuming you've created a module instance with the following configuration:
@@ -62,9 +64,8 @@ Plan: 0 to add, 0 to change, 0 to destroy.
 
 Reply `yes` to confirm the state removal of `mongodbatlas_cloud_backup_schedule`.
 
-Then run `terraform destroy` to destroy the:
-- Cluster defined in `module.cluster_with_schedule.mongodbatlas_advanced_cluster.this`.
-- Root compliance policy defined in `mongodbatlas_backup_compliance_policy`.
+Then run `terraform destroy` to destroy the cluster defined in `module.cluster_with_schedule.mongodbatlas_advanced_cluster.this`.
+See [Backup Compliance Policy Deletion Consideration](../resource/README.md#backup-compliance-policy-deletion-consideration) for details on `mongodbatlas_backup_compliance_policy` deletion.
 
 ## FAQ
 I get a `Removed Resource still exists error` when running `terraform apply`, how do I fix it?

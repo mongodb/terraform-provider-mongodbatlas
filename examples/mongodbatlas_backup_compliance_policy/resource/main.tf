@@ -2,6 +2,7 @@ data "mongodbatlas_atlas_user" "this" {
   user_id = var.user_id
 }
 
+# Be aware that deleting the `mongodbatlas_backup_compliance_policy` resource requires contacting MongoDB Support.
 resource "mongodbatlas_backup_compliance_policy" "this" {
   project_id                 = var.project_id
   authorized_email           = data.mongodbatlas_atlas_user.this.email_address
