@@ -226,10 +226,6 @@ change-lines:
 gen-purls: # Generate purls on linux os
 	./scripts/generate-purls.sh
 
-.PHONY: check-purls
-check-purls: ## Check purls
-	./scripts/check-purls.sh
-
 .PHONY: generate-sbom
 generate-sbom: ## Generate SBOM
 	./scripts/generate-sbom.sh

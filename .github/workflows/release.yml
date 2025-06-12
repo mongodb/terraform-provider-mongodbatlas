@@ -168,7 +168,7 @@ jobs:
         with:
           ref: ${{ inputs.version_number }}
       - name: Generate SBOM
-        run: make generate-sbom
+        run: make gen-purls generate-sbom
       - name: Upload SBOM to Kondukto
         run: make upload-sbom
         env:
