@@ -1,5 +1,5 @@
 # Example - MongoDB Atlas Backup Compliance Policy with a module
-This example module is identical to the [resource example](../resource/README.md) except that it is designed to serve as a reference for platform teams who have created their own module and make it available to internal teams for leveraging the MongoDB Atlas Terraform provider. Typically, these users do not have the ability to execute `terraform state` commands or modify the Terraform state manually.
+We recommend first to read the [resource example](../resource/README.md) as it contains all the relevant information. This example module is identical to it except that it is designed to serve as a reference for platform teams who have created their own module and make it available to internal teams for leveraging the MongoDB Atlas Terraform provider. Typically, these users do not have the ability to execute `terraform state` commands or modify the Terraform state manually.
 
 As in the resource example, the attention is focused on how to avoid the [BACKUP_POLICIES_NOT_MEETING_BACKUP_COMPLIANCE_POLICY_REQUIREMENTS](../resource/README.md#4-cleanup-extra-steps-when-a-backup-compliance-policy-is-enabled) when running `terraform destroy` on a `mongodbatlas_advanced_cluster` with `mongodbatlas_cloud_backup_schedule` and enabled backup compliance policy.
 
@@ -71,4 +71,4 @@ See [Backup Compliance Policy Deletion Consideration](../resource/README.md#back
 I get a `Removed Resource still exists error` when running `terraform apply`, how do I fix it?
 
 This error happens because the configuration still has the `mongodbatlas_cloud_backup_schedule` active.
-Remember to add the `moved` block and set `add_schedule=false` on the `cluster_with_schedule` module.
+When using a module, together with the `removed` block, remember to add the `moved` block and set `add_schedule=false` on the `cluster_with_schedule` module.

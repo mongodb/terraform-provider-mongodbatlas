@@ -84,7 +84,7 @@ removed {
   }
 }
 ```
-Remove the `resource "mongodbatlas_cloud_backup_schedule" "this"` definition.
+Remove or comment out the `resource "mongodbatlas_cloud_backup_schedule" "this"` definition.
 
 Run `terraform apply`. You should see a plan similar to:
 
