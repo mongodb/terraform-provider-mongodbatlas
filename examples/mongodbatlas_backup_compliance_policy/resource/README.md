@@ -70,7 +70,7 @@ terraform apply
 To proceed with the deletion you can choose one of the methods below:  
 
 #### 1. (Recommended) Use a `removed` block to avoid the DELETE call for `mongodbatlas_cloud_backup_schedule`
-**Note**: If you are using a Terraform Module, we recommend using method 3 or follow the [module example](../module/README.md#how-to-delete-the-cluster-and-retain-their-backup-snapshots).
+**Note**: If you are using a Terraform Module, we recommend using method 3 if you can access to the terraform state, or follow the [module example](../module/README.md#how-to-delete-the-cluster-and-retain-their-backup-snapshots).
 
 This method requires Terraform CLI [1.7 or later](https://developer.hashicorp.com/terraform/language/resources/syntax#removing-resources).
 
