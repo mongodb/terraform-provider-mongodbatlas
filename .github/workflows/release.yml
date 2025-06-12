@@ -183,22 +183,29 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Generate SSDLC report
-        uses: ./.github/workflows/run-script-and-commit.yml
-        with:
-          script_call: |
-            TAG="${{ inputs.version_number }}"
-            VERSION="${TAG#v}"
-            AUTHOR="${{ github.actor }}"
-            export AUTHOR VERSION
-            ./scripts/gen-ssdlc-report.sh
-          file_to_commit: 'compliance/v*/ssdlc-compliance-*.md'
-          commit_message: "chore: Update SSDLC report for ${{ inputs.version_number }}"
-        env:
-          apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
-          remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
-          gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}
+  generate-ssdlc-report:
+    needs: [ release-config, release, compliance ]
+    if: >-
+      !cancelled()
+      && needs.release.result == 'success'
+      && needs.release-config.outputs.is_official_release == 'true'
+      && needs.compliance.result == 'success'
+    uses: ./.github/workflows/run-script-and-commit.yml
+    with:
+      script_call: |
+        TAG="${{ inputs.version_number }}"
+        VERSION="${TAG#v}"
+        AUTHOR="${{ github.actor }}"
+        export AUTHOR VERSION
+        ./scripts/gen-ssdlc-report.sh
+      file_to_commit: 'compliance/v*/ssdlc-compliance-*.md'
+      commit_message: "chore: Update SSDLC report for ${{ inputs.version_number }}"
+    secrets:
+      apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
+      remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
+      gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
+      passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}
+
   jira-release-version:
     needs: [ release-config, release ]
     # if release job is skipped, cancelled, or failed we do not run this job
