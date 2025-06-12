@@ -116,6 +116,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Pending: []string{"pending"},
 		Target:  []string{"created", "failed"},
 		Refresh: func() (any, string, error) {
+			// Atlas Create is called inside refresh because the endpoint doesn't support concurrent POST requests so it's retried if it fails because of that.
 			customDBRoleRes, _, err := connV2.CustomDatabaseRolesApi.CreateCustomDatabaseRole(ctx, projectID, customDBRoleReq).Execute()
 			if err != nil {
 				if strings.Contains(err.Error(), "Unexpected error") ||
