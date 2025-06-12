@@ -1,45 +1,47 @@
 # Example - MongoDB Atlas Backup Compliance Policy with a module
-This example is identical to the [resource example](../resource/README.md) except that it uses a local [module](modules/cluster_with_schedule/main.tf) to manage the `mongodbatlas_advanced_cluster` and the `mongodbatlas_cloud_backup_schedule` via the `add_schedule` variable.
+This example module is identical to the [resource example](../resource/README.md) except that it is designed to serve as a reference for platform teams who have created their own module and make it available to internal teams for leveraging the MongoDB Atlas Terraform provider. Typically, these users do not have the ability to execute `terraform state` commands or modify the Terraform state manually.
 
-The local module is meant as a placeholder for an enterprise module that cannot be changed by the module user and the module user doesn't have access to run `terraform state` commands.
+As in the resource example, the attention is focused on how to avoid the [BACKUP_POLICIES_NOT_MEETING_BACKUP_COMPLIANCE_POLICY_REQUIREMENTS](../resource/README.md#4-cleanup-extra-steps-when-a-backup-compliance-policy-is-enabled) when running `terraform destroy` on a `mongodbatlas_advanced_cluster` with `mongodbatlas_cloud_backup_schedule` and enabled backup compliance policy.
 
-The [cleanup step below](#different-cleanup-when-using-the-removed-block-for-a-module) shows how the `moved` and `removed` block can remove the `mongodbatlas_cloud_backup_schedule` from your Terraform state to avoid the [BACKUP_POLICIES_NOT_MEETING_BACKUP_COMPLIANCE_POLICY_REQUIREMENTS](../resource/README.md#4-cleanup-extra-steps-when-a-backup-compliance-policy-is-enabled) error when running `terraform destroy`.
+To do that, we'll use:
+- an `add_schedule` variable provided by the module maintainer that controls the presence of the `mongodbatlas_cloud_backup_schedule` in the configuration
+- the `moved` and `removed` blocks used by the module user and added at the root level.
 
-## Different cleanup when using the `removed` block for a module
+## How to delete the cluster and retain their backup snapshots
 
-**Note**: If you can use the `terraform state rm` command or edit the module TF files directly, follow the simpler steps in the [resource example readme](../resource/README.md#4-cleanup-extra-steps-when-a-backup-compliance-policy-is-enabled).
-
-If you try to use the `removed` block without deleting the `from` resource you get the error: `Removed Resource still exists error`:
+Let's begin by assuming you've created a module instance with the following configuration:
 
 ```terraform
-removed {
-  from = module.cluster_with_schedule.mongodbatlas_cloud_backup_schedule.this
+module "cluster_with_schedule" {
+  source = "./modules/cluster_with_schedule"
 
-  lifecycle {
-    destroy = false
-  }
+  project_id    = var.project_id
+  instance_size = var.instance_size
+  cluster_name  = var.cluster_name
+  add_schedule  = true
 }
 ```
+Note: The `add_schedule` field is set to true, indicating that a `mongodbatlas_cloud_backup_schedule` resource has been defined, as reflected in the module's source code.
 
-To workaround this limitation (see more details about the `removed` block limitation in the Hashicorp Terraform [issue 34439](https://github.com/hashicorp/terraform/issues/34439)) you can use a `moved` block and change the `add_schedule` flag in the root [main.tf](main.tf):
+To proceed with the deletion, we'll update the configuration as follows:
 
 ```terraform
-module "cluster_without_schedule" {
-    source = "./modules/cluster_with_schedule"
+module "cluster_with_schedule" {
+  source = "./modules/cluster_with_schedule"
 
-    project_id = var.project_id
-    instance_size = var.instance_size
-    cluster_name = var.cluster_name
-    add_schedule = false # changed flag
+  project_id    = var.project_id
+  instance_size = var.instance_size
+  cluster_name  = var.cluster_name
+  add_schedule  = false # changed
 }
-# Rename the resource to avoid the `Removed Resource still exists error`
+
 moved {
   from = module.cluster_with_schedule.mongodbatlas_cloud_backup_schedule.this[0] # must be deleted with the `add_schedule` variable set to false
-  to  = mongodbatlas_cloud_backup_schedule.deleted # any resource name that doesn't exist works!
+  to   = mongodbatlas_cloud_backup_schedule.to_be_deleted                              # any resource name that doesn't exist works!
 }
 
 removed {
-  from = mongodbatlas_cloud_backup_schedule.deleted # any resource name that doesn't exist works!
+  from = mongodbatlas_cloud_backup_schedule.to_be_deleted # any resource name that doesn't exist works!
 
   lifecycle {
     destroy = false
@@ -51,7 +53,7 @@ Then when you run `terraform apply`, you should see:
 
 ```bash
 [...]
-mongodbatlas_cloud_backup_schedule.deleted will no longer be managed by Terraform, but will not be destroyed
+mongodbatlas_cloud_backup_schedule.to_be_deleted will no longer be managed by Terraform, but will not be destroyed
  (destroy = false is set in the configuration)
   (moved from module.cluster_with_schedule.mongodbatlas_cloud_backup_schedule.this[0])
 [...]
@@ -63,3 +65,9 @@ Reply `yes` to confirm the state removal of `mongodbatlas_cloud_backup_schedule`
 Then run `terraform destroy` to destroy the:
 - Cluster defined in `module.cluster_with_schedule.mongodbatlas_advanced_cluster.this`.
 - Root compliance policy defined in `mongodbatlas_backup_compliance_policy`.
+
+## FAQ
+I get a `Removed Resource still exists error` when running `terraform apply`, how do I fix it?
+
+This error happens because the configuration still has the `mongodbatlas_cloud_backup_schedule` active.
+Remember to add the `moved` block and set `add_schedule=false` on the `cluster_with_schedule` module.
