@@ -27,6 +27,8 @@ jobs:
       pull-requests: write
     steps:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      with:
+        fetch-depth: 0
     - run: |
         git config --local user.email svc-api-experience-integrations-escalation@mongodb.com
         git config --local user.name svc-apix-bot
