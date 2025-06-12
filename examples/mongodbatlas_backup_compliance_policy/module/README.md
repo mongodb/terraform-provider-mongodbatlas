@@ -65,7 +65,7 @@ Plan: 0 to add, 0 to change, 0 to destroy.
 Reply `yes` to confirm the state removal of `mongodbatlas_cloud_backup_schedule`.
 
 Then run `terraform destroy` to destroy the cluster defined in `module.cluster_with_schedule.mongodbatlas_advanced_cluster.this`.
-See [Backup Compliance Policy Deletion Consideration](../resource/README.md#backup-compliance-policy-deletion-consideration) for details on `mongodbatlas_backup_compliance_policy` deletion.
+See [Backup Compliance Policy Deletion Consideration](../resource/README.md#backup-compliance-policy-deletion-consideration) for details on the `mongodbatlas_backup_compliance_policy` deletion.
 
 ## FAQ
 I get a `Removed Resource still exists error` when running `terraform apply`, how do I fix it?
