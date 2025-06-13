@@ -27,7 +27,18 @@ variables:
 
 functions:
   # Production function - traces artifacts from GitHub releases
+  "install gh cli":
+    - command: shell.exec
+      params:
+        working_dir: "<don't-care>"
+        script: |
+          # Add the GitHub CLI repo and install
+          sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
+          sudo dnf install -y gh
+
   "trace release artifacts":
+    - func: "install gh cli"
+    
     - command: git.get_project
       params:
         directory: src/github.com/mongodb/terraform-provider-mongodbatlas
