@@ -37,8 +37,13 @@ functions:
           sudo dnf install -y gh
 
   "trace release artifacts":
-    - func: "install gh cli"
-    
+    - command: shell.exec            # ← install gh cli inline
+      params:
+        working_dir: /tmp           # any directory is fine
+        script: |
+          sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
+          sudo dnf install -y gh
+
     - command: git.get_project
       params:
         directory: src/github.com/mongodb/terraform-provider-mongodbatlas
