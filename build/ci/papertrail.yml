@@ -36,7 +36,7 @@ functions:
       params:
         working_dir: "src/github.com/mongodb/terraform-provider-mongodbatlas"
         script: |
-          release_tag=v1.36.0
+          # release_tag="v1.36.0"
           # Get the release version - this should be passed as a parameter or environment variable
           if [ -z "${release_tag}" ]; then
             echo "ERROR: release_tag must be provided for production releases"
@@ -232,6 +232,7 @@ buildvariants:
       - rhel90-small
     expansions:
       <<: *go_linux_version
+      release_tag: "v1.36.0"  # Set the specific release tag here
     tasks:
       - name: trace_release_artifacts
 
