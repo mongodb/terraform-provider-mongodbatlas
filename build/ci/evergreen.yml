@@ -15,10 +15,10 @@ tasks:
 
 
 
-buildvariants:
-  - name: ubuntu
-    display_name: Say hello
-    run_on:
-      - ubuntu2204-large
-    tasks:
-      - name: say_hello22
+# buildvariants:
+#   - name: ubuntu
+#     display_name: Say hello
+#     run_on:
+#       - ubuntu2204-large
+#     tasks:
+#       - name: say_hello22
