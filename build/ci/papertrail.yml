@@ -26,7 +26,6 @@ variables:
       <<: *go_env
 
 functions:
-  # Production function - traces artifacts from GitHub releases
   "install gh cli":
     - command: shell.exec
       params:
@@ -37,9 +36,9 @@ functions:
           sudo dnf install -y gh
 
   "trace release artifacts":
-    - command: shell.exec            # ← install gh cli inline
+    - command: shell.exec        
       params:
-        working_dir: /tmp           # any directory is fine
+        working_dir: /tmp          
         script: |
           sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
           sudo dnf install -y gh
@@ -53,11 +52,12 @@ functions:
         working_dir: "src/github.com/mongodb/terraform-provider-mongodbatlas"
         script: |
           export GH_TOKEN="${github_token}"
-          
-          release_tag=v1.36.0
-          # Get the release version - this should be passed as a parameter or environment variable
-          if [ -z "${release_tag}" ]; then
-            echo "ERROR: release_tag must be provided for production releases"
+
+          # Fetch the latest release tag (e.g. "v1.36.0")
+          release_tag=$(gh release list --limit 1 --json tagName \
+                        --jq '.[0].tagName')
+          if [ -z "$release_tag" ]; then
+            echo "ERROR: could not determine latest release tag"
             exit 1
           fi
           
@@ -119,20 +119,17 @@ functions:
 
  
 tasks:
-  # Production task for tracing GitHub release artifacts
   - name: trace_release_artifacts
     commands:
       - func: "trace release artifacts"
 
             
 buildvariants:
-  # Production variant for GitHub releases
   - name: papertrail_github_release
     display_name: "Papertrail - GitHub Release Artifacts"
     run_on:
       - rhel90-small
     expansions:
       <<: *go_linux_version
-      release_tag: "v1.36.0"  # Example release tag, should be set dynamically
     tasks:
       - name: trace_release_artifacts
