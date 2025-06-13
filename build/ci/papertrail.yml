@@ -1,0 +1,135 @@
+variables:
+  - &go_linux_version
+    go_root: "/opt/golang/go1.24"
+    go_bin: "/opt/golang/go1.24/bin"
+    go_base_path: ""
+  - &go_windows_version
+    go_root: "c:\\golang\\go1.24"
+    go_bin: "c:\\golang\\go1.24\\bin"
+    go_base_path: "c:"
+  - &go_env
+    XDG_CONFIG_HOME: ${go_base_path}${workdir}
+    GO111MODULE: "on"
+    GOROOT: ${go_root}
+    GOPATH: ${go_base_path}${workdir}
+    ADD_PATH: "${go_bin}:${go_base_path}${workdir}/bin:${go_base_path}${workdir}/src/github.com/mongodb/terraform-provider-mongodbatlas/bin"
+  - &go_options
+    add_to_path:
+      - ${go_bin}
+      - ${go_base_path}${workdir}/bin
+      - ${go_base_path}${workdir}/src/github.com/mongodb/terraform-provider-mongodbatlas/bin
+    include_expansions_in_env:
+      - go_base_path
+      - workdir
+    working_dir: src/github.com/mongodb/terraform-provider-mongodbatlas
+    env:
+      <<: *go_env
+
+functions:
+  "install gh cli":
+    - command: shell.exec
+      params:
+        working_dir: "<don't-care>"
+        script: |
+          # Add the GitHub CLI repo and install
+          sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
+          sudo dnf install -y gh
+
+  "trace release artifacts":
+    - command: shell.exec        
+      params:
+        working_dir: /tmp          
+        script: |
+          sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
+          sudo dnf install -y gh
+
+    - command: git.get_project
+      params:
+        directory: src/github.com/mongodb/terraform-provider-mongodbatlas
+    
+    - command: shell.exec
+      params:
+        working_dir: "src/github.com/mongodb/terraform-provider-mongodbatlas"
+        script: |
+          export GH_TOKEN="${github_token}"
+
+          # Fetch the latest release tag (e.g. "v1.36.0")
+          release_tag=$(gh release list --limit 1 --json tagName \
+                        --jq '.[0].tagName')
+          if [ -z "$release_tag" ]; then
+            echo "ERROR: could not determine latest release tag"
+            exit 1
+          fi
+          
+          # Clean version (remove 'v' prefix if present)
+          if [[ ${release_tag} == v* ]]; then
+              version=$(echo "${release_tag}" | cut -c 2-)
+          else
+              version="${release_tag}"
+          fi
+          
+          echo "Tracing artifacts for release version: $version"
+          
+          # Create directory for downloaded artifacts
+          mkdir -p release_artifacts
+          
+          # Download only terraform-provider artifacts (exclude source code archives)
+          echo "Downloading terraform-provider artifacts from GitHub..."
+          gh release download "${release_tag}" -p "terraform-provider-mongodbatlas*.zip" -D ./release_artifacts/
+          
+          # Verify artifacts were downloaded
+          echo "Downloaded artifacts:"
+          ls -la release_artifacts/
+          
+          # Remove any source code archives that might have been downloaded
+          echo "Removing any source code archives..."
+          rm -f release_artifacts/Source* release_artifacts/source* 2>/dev/null || true
+          
+          # Show final list of artifacts to trace
+          echo "Final artifacts to trace:"
+          ls -la release_artifacts/
+          
+          # Count artifacts
+          artifact_count=$(ls -1 release_artifacts/*.zip 2>/dev/null | wc -l)
+          if [ $artifact_count -eq 0 ]; then
+            echo "ERROR: No terraform-provider .zip artifacts found for release ${release_tag}"
+            echo "Available files in release:"
+            gh release view "${release_tag}" --json assets --jq '.assets[].name'
+            exit 1
+          fi
+          
+          echo "Found $artifact_count terraform-provider artifacts to trace"
+          
+          cat <<EOT > trace-expansions.yml
+          release_version: "$version"
+          EOT
+    
+    - command: expansions.update
+      params:
+        file: src/github.com/mongodb/terraform-provider-mongodbatlas/trace-expansions.yml
+    
+    - command: papertrail.trace
+      params:
+        key_id: ${papertrail_key_id}
+        secret_key: ${papertrail_secret_key}
+        product: "test-tf-provider-mongodbatlas"
+        version: ${release_version}
+        filenames:
+          - "src/github.com/mongodb/terraform-provider-mongodbatlas/release_artifacts/*.zip"
+
+ 
+tasks:
+  - name: trace_release_artifacts
+    commands:
+      - func: "trace release artifacts"
+
+            
+buildvariants:
+  - name: papertrail_github_release
+    display_name: "Papertrail - GitHub Release Artifacts"
+    run_on:
+      - rhel90-small
+    expansions:
+      <<: *go_linux_version
+    tasks:
+      - name: trace_release_artifacts
