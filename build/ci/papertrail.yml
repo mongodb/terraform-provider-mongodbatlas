@@ -58,7 +58,7 @@ tasks:
       - command: shell.exec
         params:
           script: |
-            echo "Hello world 2 from the papertrail test task!"
+            echo "Hello world 2 from the papertrail test task! - papertrail.yml"
             
 buildvariants:
   - name: tfreleaser_papertrail_test
