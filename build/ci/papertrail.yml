@@ -244,21 +244,21 @@ tasks:
       - func: "trace release artifacts"
   
   # Alternative task for tracing GoReleaser dist artifacts
-  - name: trace_dist_artifacts
-    commands:
-      - func: "trace dist artifacts"
+  # - name: trace_dist_artifacts
+  #   commands:
+  #     - func: "trace dist artifacts"
   
-  # Test task (keep for testing)
-  - name: trace_test_artifacts
-    commands:
-      - func: "trace test artifacts"
+  # # Test task (keep for testing)
+  # - name: trace_test_artifacts
+  #   commands:
+  #     - func: "trace test artifacts"
   
-  - name: say_hello2
-    commands:
-      - command: shell.exec
-        params:
-          script: |
-            echo "Hello world 2 from the papertrail test task! - papertrail.yml"
+  # - name: say_hello2
+  #   commands:
+  #     - command: shell.exec
+  #       params:
+  #         script: |
+  #           echo "Hello world 2 from the papertrail test task! - papertrail.yml"
             
 buildvariants:
   # Production variant for GitHub releases
