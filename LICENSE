@@ -1,5 +1,5 @@
-Mozilla Public License Version 2.0
-==================================
+Mozilla Public License Version 2.0 with Attribution Requirement
+================================================================
 
 1. Definitions
 --------------
@@ -151,7 +151,7 @@ equivalents.
 
 2.7. Conditions
 
-Sections 3.1, 3.2, 3.3, and 3.4 are conditions of the licenses granted
+Sections 3.1, 3.2, 3.3, 3.4, and 3.5 are conditions of the licenses granted
 in Section 2.1.
 
 3. Responsibilities
@@ -203,7 +203,19 @@ or limitations of liability) contained within the Source Code Form of
 the Covered Software, except that You may alter any license notices to
 the extent required to remedy known factual inaccuracies.
 
-3.5. Application of Additional Terms
+3.5. Attribution Requirements
+
+Any use of the Covered Software, including but not limited to 
+incorporation into other projects, derivative works, redistribution, 
+or deployment in any form (whether Source Code Form, Executable Form, 
+or as part of a Larger Work), must include clear attribution to the 
+original author(s) (Megum1n) in any user-facing documentation, credits, 
+about sections, or other materials where software attributions are 
+typically displayed. This attribution requirement applies regardless 
+of whether the software is used internally, distributed, or made 
+publicly available.
+
+3.6. Application of Additional Terms
 
 You may choose to offer, and to charge a fee for, warranty, support,
 indemnity or liability obligations to one or more recipients of Covered
@@ -325,25 +337,26 @@ shall not be used to construe this License against a Contributor.
 
 10.1. New Versions
 
-Mozilla Foundation is the license steward. Except as provided in Section
-10.3, no one other than the license steward has the right to modify or
-publish new versions of this License. Each version will be given a
-distinguishing version number.
+This is a modified version of the Mozilla Public License and is not
+stewarded by the Mozilla Foundation. No one other than the original
+licensor has the right to modify or publish new versions of this License.
+Each version will be given a distinguishing version number.
 
 10.2. Effect of New Versions
 
 You may distribute the Covered Software under the terms of the version
 of the License under which You originally received the Covered Software,
-or under the terms of any subsequent version published by the license
-steward.
+or under the terms of any subsequent version published by the original
+licensor.
 
 10.3. Modified Versions
 
 If you create software not governed by this License, and you want to
 create a new license for such software, you may create and use a
 modified version of this License if you rename the license and remove
-any references to the name of the license steward (except to note that
-such modified license differs from this License).
+any references to the name of the Mozilla Foundation and clearly indicate
+that such modified license differs from this License and the original
+Mozilla Public License.
 
 10.4. Distributing Source Code Form that is Incompatible With Secondary
 Licenses
@@ -356,8 +369,8 @@ Exhibit A - Source Code Form License Notice
 -------------------------------------------
 
   This Source Code Form is subject to the terms of the Mozilla Public
-  License, v. 2.0. If a copy of the MPL was not distributed with this
-  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  License with Attribution Requirement, v. 2.0. If a copy of this License 
+  was not distributed with this file, You can obtain one at [YOUR_LICENSE_URL].
 
 If it is not possible or desirable to put the notice in a particular
 file, then You may include the notice in a location (such as a LICENSE
@@ -370,4 +383,4 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 ---------------------------------------------------------
 
   This Source Code Form is "Incompatible With Secondary Licenses", as
-  defined by the Mozilla Public License, v. 2.0.
+  defined by the Mozilla Public License with Attribution Requirement, v. 2.0.
