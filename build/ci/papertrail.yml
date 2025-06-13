@@ -52,6 +52,8 @@ functions:
       params:
         working_dir: "src/github.com/mongodb/terraform-provider-mongodbatlas"
         script: |
+          export GH_TOKEN="${github_token}"
+          
           release_tag=v1.36.0
           # Get the release version - this should be passed as a parameter or environment variable
           if [ -z "${release_tag}" ]; then
