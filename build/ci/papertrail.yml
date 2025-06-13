@@ -26,59 +26,65 @@ variables:
       <<: *go_env
 
 functions:
-  "trace artifacts":
-    # First, checkout the repository
+  # Production function - traces artifacts from GitHub releases
+  "trace release artifacts":
     - command: git.get_project
       params:
         directory: src/github.com/mongodb/terraform-provider-mongodbatlas
     
-    # Check what files exist and create test files if needed
     - command: shell.exec
       params:
         working_dir: "src/github.com/mongodb/terraform-provider-mongodbatlas"
         script: |
-           tag=$(git describe --tags --always --dirty)
-
-           # remove the leading 'v' if present, otherwise use the tag as-is
-           if [[ $tag == v* ]]; then
-               version=$(echo "$tag" | cut -c 2-)
-           else
-               version="$tag"
-           fi
-
-           echo "Current directory contents:"
-           ls -la
-           
-           echo "Looking for release artifacts..."
-           # Check multiple possible locations for release artifacts
-           find . -name "*.zip" -o -name "terraform-provider-mongodbatlas*" | head -10
-           
-           # Check if dist/ directory exists (common for GoReleaser)
-           if [ -d "dist" ]; then
-               echo "Contents of dist/ directory:"
-               ls -la dist/
-           fi
-           
-           # Check if bin/ directory exists
-           if [ -d "bin" ]; then
-               echo "Contents of bin/ directory:"
-               ls -la bin/
-           else
-               echo "bin/ directory doesn't exist, creating it with test files..."
-               mkdir -p bin
-               # Create test files that match the expected pattern
-               echo "test content" > "bin/terraform-provider-mongodbatlas_${version}_darwin_arm64.zip"
-               echo "test content" > "bin/terraform-provider-mongodbatlas_${version}_darwin_amd64.zip"
-               echo "test content" > "bin/terraform-provider-mongodbatlas_${version}_linux_amd64.zip"
-               echo "test content" > "bin/terraform-provider-mongodbatlas_${version}_windows_amd64.zip"
-               echo "Created test files in bin/"
-               ls -la bin/
-           fi
-
-           cat <<EOT > trace-expansions.yml
-           release_version: "$version"
-           EOT
-           cat trace-expansions.yml
+          release_tag=v1.36.0
+          # Get the release version - this should be passed as a parameter or environment variable
+          if [ -z "${release_tag}" ]; then
+            echo "ERROR: release_tag must be provided for production releases"
+            exit 1
+          fi
+          
+          # Clean version (remove 'v' prefix if present)
+          if [[ ${release_tag} == v* ]]; then
+              version=$(echo "${release_tag}" | cut -c 2-)
+          else
+              version="${release_tag}"
+          fi
+          
+          echo "Tracing artifacts for release version: $version"
+          
+          # Create directory for downloaded artifacts
+          mkdir -p release_artifacts
+          
+          # Download only terraform-provider artifacts (exclude source code archives)
+          echo "Downloading terraform-provider artifacts from GitHub..."
+          gh release download "${release_tag}" -p "terraform-provider-mongodbatlas*.zip" -D ./release_artifacts/
+          
+          # Verify artifacts were downloaded
+          echo "Downloaded artifacts:"
+          ls -la release_artifacts/
+          
+          # Remove any source code archives that might have been downloaded
+          echo "Removing any source code archives..."
+          rm -f release_artifacts/Source* release_artifacts/source* 2>/dev/null || true
+          
+          # Show final list of artifacts to trace
+          echo "Final artifacts to trace:"
+          ls -la release_artifacts/
+          
+          # Count artifacts
+          artifact_count=$(ls -1 release_artifacts/*.zip 2>/dev/null | wc -l)
+          if [ $artifact_count -eq 0 ]; then
+            echo "ERROR: No terraform-provider .zip artifacts found for release ${release_tag}"
+            echo "Available files in release:"
+            gh release view "${release_tag}" --json assets --jq '.assets[].name'
+            exit 1
+          fi
+          
+          echo "Found $artifact_count terraform-provider artifacts to trace"
+          
+          cat <<EOT > trace-expansions.yml
+          release_version: "$version"
+          EOT
     
     - command: expansions.update
       params:
@@ -88,15 +94,129 @@ functions:
       params:
         key_id: ${papertrail_key_id}
         secret_key: ${papertrail_secret_key}
-        product: "test-tf-provider-mongodbatlas"
+        product: "terraform-provider-mongodbatlas"
         version: ${release_version}
         filenames:
-          - "src/github.com/mongodb/terraform-provider-mongodbatlas/bin/*"
+          - "src/github.com/mongodb/terraform-provider-mongodbatlas/release_artifacts/*.zip"
+
+  # Alternative function - traces artifacts from GoReleaser dist/ directory
+  # "trace dist artifacts":
+  #   - command: git.get_project
+  #     params:
+  #       directory: src/github.com/mongodb/terraform-provider-mongodbatlas
+    
+  #   - command: shell.exec
+  #     params:
+  #       working_dir: "src/github.com/mongodb/terraform-provider-mongodbatlas"
+  #       script: |
+  #         tag=$(git describe --tags --always --dirty)
+          
+  #         # Clean version (remove 'v' prefix if present)
+  #         if [[ $tag == v* ]]; then
+  #             version=$(echo "$tag" | cut -c 2-)
+  #         else
+  #             version="$tag"
+  #         fi
+          
+  #         echo "Checking for GoReleaser artifacts in dist/ directory..."
+          
+  #         if [ ! -d "dist" ]; then
+  #           echo "ERROR: dist/ directory not found. Make sure GoReleaser has run first."
+  #           exit 1
+  #         fi
+          
+  #         # Verify artifacts exist
+  #         echo "Contents of dist/ directory:"
+  #         ls -la dist/
+          
+  #         # Count zip artifacts
+  #         artifact_count=$(ls -1 dist/*.zip 2>/dev/null | wc -l)
+  #         if [ $artifact_count -eq 0 ]; then
+  #           echo "ERROR: No .zip artifacts found in dist/ directory"
+  #           exit 1
+  #         fi
+          
+  #         echo "Found $artifact_count artifacts to trace"
+          
+  #         cat <<EOT > trace-expansions.yml
+  #         release_version: "$version"
+  #         EOT
+    
+  #   - command: expansions.update
+  #     params:
+  #       file: src/github.com/mongodb/terraform-provider-mongodbatlas/trace-expansions.yml
+    
+  #   - command: papertrail.trace
+  #     params:
+  #       key_id: ${papertrail_key_id}
+  #       secret_key: ${papertrail_secret_key}
+  #       product: "terraform-provider-mongodbatlas"
+  #       version: ${release_version}
+  #       filenames:
+  #         - "src/github.com/mongodb/terraform-provider-mongodbatlas/dist/*.zip"
+
+  # Test function
+  "trace test artifacts":
+    - command: git.get_project
+      params:
+        directory: src/github.com/mongodb/terraform-provider-mongodbatlas
+    
+    - command: shell.exec
+      params:
+        working_dir: "src/github.com/mongodb/terraform-provider-mongodbatlas"
+        script: |
+           tag=$(git describe --tags --always --dirty)
+
+           if [[ $tag == v* ]]; then
+               version=$(echo "$tag" | cut -c 2-)
+           else
+               version="$tag"
+           fi
+
+           echo "Creating test artifacts for version: $version"
+           
+           mkdir -p bin
+           echo "test content" > "bin/terraform-provider-mongodbatlas_${version}_darwin_arm64.zip"
+           echo "test content" > "bin/terraform-provider-mongodbatlas_${version}_darwin_amd64.zip"
+           echo "test content" > "bin/terraform-provider-mongodbatlas_${version}_linux_amd64.zip"
+           echo "test content" > "bin/terraform-provider-mongodbatlas_${version}_windows_amd64.zip"
+           
+           echo "Created test files:"
+           ls -la bin/
+
+           cat <<EOT > trace-expansions.yml
+           release_version: "$version"
+           EOT
+    
+    - command: expansions.update
+      params:
+        file: src/github.com/mongodb/terraform-provider-mongodbatlas/trace-expansions.yml
+    
+    - command: papertrail.trace
+      params:
+        key_id: ${papertrail_key_id}
+        secret_key: ${papertrail_secret_key}
+        product: "terraform-provider-mongodbatlas"
+        version: ${release_version}
+        filenames:
+          - "src/github.com/mongodb/terraform-provider-mongodbatlas/bin/*.zip"
 
 tasks:
-  - name: trace_artifacts
+  # Production task for tracing GitHub release artifacts
+  - name: trace_release_artifacts
     commands:
-      - func: "trace artifacts"
+      - func: "trace release artifacts"
+  
+  # Alternative task for tracing GoReleaser dist artifacts
+  # - name: trace_dist_artifacts
+  #   commands:
+  #     - func: "trace dist artifacts"
+  
+  # Test task
+  - name: trace_test_artifacts
+    commands:
+      - func: "trace test artifacts"
+  
   - name: say_hello2
     commands:
       - command: shell.exec
@@ -105,6 +225,27 @@ tasks:
             echo "Hello world 2 from the papertrail test task! - papertrail.yml"
             
 buildvariants:
+  # Production variant for GitHub releases
+  - name: papertrail_github_release
+    display_name: "Papertrail - GitHub Release Artifacts"
+    run_on:
+      - rhel90-small
+    expansions:
+      <<: *go_linux_version
+    tasks:
+      - name: trace_release_artifacts
+
+  # Production variant for GoReleaser dist artifacts
+  # - name: papertrail_dist_artifacts
+  #   display_name: "Papertrail - GoReleaser Dist Artifacts"
+  #   run_on:
+  #     - rhel90-small
+  #   expansions:
+  #     <<: *go_linux_version
+  #   tasks:
+  #     - name: trace_dist_artifacts
+
+  # Test variant
   - name: tfreleaser_papertrail_test
     display_name: "tfreleaser_papertrail_test"
     run_on:
@@ -118,5 +259,5 @@ buildvariants:
       unstable: -unstable
       version:
     tasks:
-      # - name: say_hello2
-      - name: trace_artifacts
+      - name: say_hello2
+      - name: trace_test_artifacts
