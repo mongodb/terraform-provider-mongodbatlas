@@ -5,7 +5,7 @@ As in the resource example, the attention is focused on how to avoid the [BACKUP
 
 To do that, we'll use:
 - an `add_schedule` variable provided by the module maintainer that controls the presence of the `mongodbatlas_cloud_backup_schedule` in the configuration
-- the `moved` and `removed` blocks used by the module user and added at the root level.
+- the `moved` and `removed` blocks used by the module user and added at the root level. For more info on why the two blocks are needed, please read this [Terraform issue](https://github.com/hashicorp/terraform/issues/34439).
 
 -> **IMPORTANT NOTE:** Read the [Backup Compliance Policy Deletion Consideration](../resource/README.md#backup-compliance-policy-deletion-consideration) before running this example.
 
