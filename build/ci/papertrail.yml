@@ -33,7 +33,7 @@ functions:
           product="terraform-provider-mongodbatlas"
 
           cat <<EOT > src/github.com/mongodb/terraform-provider-mongodbatlas/expansions.yaml
-          product: "$product"
+          product: "test-$product"
           EOT
     - command: expansions.update
       params:
@@ -53,9 +53,28 @@ tasks:
     # tags: [ "trace-artifacts" ] ???
     commands:
       - func: "trace artifacts"
-  - name: say_hello
+  - name: say_hello2
     commands:
       - command: shell.exec
         params:
           script: |
-            echo "Hello world"
+            echo "Hello world 2 from the papertrail test task!"
+            
+buildvariants:
+  - name: tfreleaser_papertrail_test
+    display_name: "tfreleaser_papertrail_test"
+    run_on:
+      - rhel90-small
+    expansions:
+      <<: *go_linux_version
+      server_version: "4.4.0-rc3"
+      package_name: "terraform-provider-mongodbatlas"
+      # meta_package_name: "mongodb-atlas"
+      latest_deb: ~latest
+      latest_rpm: .latest
+      unstable: -unstable
+      version:
+    tasks:
+      - name: say_hello2
+      - name: trace_artifacts
+      
