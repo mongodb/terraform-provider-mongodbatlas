@@ -6,6 +6,7 @@ import (
 	"os"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -198,6 +199,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if err != nil || policy == nil {
 			return fmt.Errorf("backup compliance policy (%s) does not exist: %s", rs.Primary.ID, err)
 		}
+		time.Sleep(30 * time.Second) // Wait for the bcp to be fully applied, see more details in CLOUDP-324378.
 		return nil
 	}
 }
