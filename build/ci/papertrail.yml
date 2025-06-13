@@ -28,24 +28,38 @@ functions:
   "trace artifacts":
     - command: shell.exec
       params:
-        working_dir: src/github.com/mongodb/terraform-provider-mongodbatlas
-        include_expansions_in_env:
+        working_dir: "src"
         script: |
-          product="terraform-provider-mongodbatlas"
+           tag=$(git describe --tags --always --dirty)
 
-          cat <<EOT > src/github.com/mongodb/terraform-provider-mongodbatlas/expansions.yaml
-          product: "test-$product"
-          EOT
+           # remove the leading 'r'
+           version2=$(echo -n "test-$tag" | cut -c 2-)
+
+           cat <<EOT > trace-expansions.yml
+           release_version: "$version2"
+           EOT
+           cat trace-expansions.yml
+        # working_dir: src/github.com/mongodb/terraform-provider-mongodbatlas
+        # include_expansions_in_env: true
+        # script: |
+        #   product="terraform-provider-mongodbatlas"
+
+        #   cat <<EOT > src/github.com/mongodb/terraform-provider-mongodbatlas/expansions.yaml
+        #   product: "test-$product"
+        #   EOT
+    # - command: expansions.update
+    #   params:
+    #     ignore_missing_file: true
+    #     file: src/github.com/mongodb/terraform-provider-mongodbatlas/expansions.yaml
     - command: expansions.update
       params:
-        ignore_missing_file: true
-        file: src/github.com/mongodb/terraform-provider-mongodbatlas/expansions.yaml
+        file: src/trace-expansions.yml
     - command: papertrail.trace
       params:
         key_id: ${papertrail_key_id}
         secret_key: ${papertrail_secret_key}
-        product: ${product}
-        version: ${version}
+        product: "test-terraform-provider-mongodbatlas"
+        version: ${release_version}
         filenames:
           - "src/github.com/mongodb/terraform-provider-mongodbatlas/bin/*"
 
