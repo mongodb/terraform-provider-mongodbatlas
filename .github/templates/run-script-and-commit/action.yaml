@@ -24,6 +24,10 @@ inputs:
   passphrase:
     description: "Passphrase for the GPG key."
     required: true
+  repo-path:
+    description: "Path to the repository."
+    default: ""
+    required: false
 
 runs:
   using: "composite"
@@ -37,7 +41,7 @@ runs:
     - name: Set up Go
       uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
       with:
-        go-version-file:  ${{ format('{0}go.mod', inputs.repo-path) }}
+        go-version-file: ${{ format('{0}go.mod', inputs.repo-path) }}
     - name: Run specified script
       shell: bash
       run: ${{ inputs.script_call }}
