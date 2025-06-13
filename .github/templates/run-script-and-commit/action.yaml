@@ -62,10 +62,9 @@ runs:
           git config --local user.email svc-api-experience-integrations-escalation@mongodb.com
           git config --local user.name svc-apix-bot
           git remote set-url origin ${{ inputs.remote }}
-          git checkout -b testing-branch
           git add ${{ inputs.file_to_commit }}
           git commit -m "${{ inputs.commit_message }}"
-          git push origin testing-branch
+          git push origin
         else
           echo "No changes to commit."
         fi
