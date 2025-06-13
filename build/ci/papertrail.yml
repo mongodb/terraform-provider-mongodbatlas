@@ -28,6 +28,7 @@ functions:
   "trace artifacts":
     - command: shell.exec
       params:
+        working_dir: src/github.com/mongodb/terraform-provider-mongodbatlas
         include_expansions_in_env:
         script: |
           product="terraform-provider-mongodbatlas"
