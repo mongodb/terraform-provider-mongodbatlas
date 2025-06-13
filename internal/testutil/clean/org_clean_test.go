@@ -60,8 +60,10 @@ func TestSingleProjectRemoval(t *testing.T) {
 	if changes != "" {
 		t.Logf("project %s %s", projectToClean, changes)
 	}
-	err := deleteProject(t.Context(), client, projectToClean)
-	require.NoError(t, err)
+	if !dryRun {
+		err := deleteProject(t.Context(), client, projectToClean)
+		require.NoError(t, err)
+	}
 }
 
 // Using a test to simplify logging and parallelization
