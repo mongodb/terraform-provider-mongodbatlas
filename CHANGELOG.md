@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `mongodbatlas_stream_account_details_testing` ([#3404](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3404))
+
 ## 1.36.0 (June 11, 2025)
 
 FEATURES:
