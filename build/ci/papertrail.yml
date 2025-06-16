@@ -112,7 +112,7 @@ functions:
       params:
         key_id: ${papertrail_key_id}
         secret_key: ${papertrail_secret_key}
-        product: "test-tf-provider-mongodbatlas"
+        product: "test-tf-provider-mongodbatlas-2"
         version: ${release_version}
         filenames:
           - "src/github.com/mongodb/terraform-provider-mongodbatlas/release_artifacts/*.zip"
@@ -120,6 +120,7 @@ functions:
  
 tasks:
   - name: trace_release_artifacts
+    tags: ["release"]
     commands:
       - func: "trace release artifacts"
 
@@ -127,6 +128,8 @@ tasks:
 buildvariants:
   - name: papertrail_github_release
     display_name: "Papertrail - GitHub Release Artifacts"
+    git_tag_only: true
+    tags: ["release"]
     run_on:
       - rhel90-small
     expansions:
