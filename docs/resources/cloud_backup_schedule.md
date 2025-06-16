@@ -6,11 +6,11 @@
 
 -> **NOTE:** If Backup Compliance Policy is enabled for the project for which this backup schedule is defined, you cannot modify the backup schedule for an individual cluster below the minimum requirements set in the Backup Compliance Policy.  See [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy). 
 
-If you need to remove the `mongodbatlas_cloud_backup_schedule`, follow the cleanup steps in the [`mongodbatlas_backup_compliance_policy`](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_backup_compliance_policy/README.md#4-cleanup-extra-steps-when-a-backup-compliance-policy-is-enabled) example.
+-> **NOTE:** If you need to remove the `mongodbatlas_cloud_backup_schedule`, read the [following guide](../guides/delete-cluster-with-backup-compliance-policy.md).
 
 -> **NOTE:** When creating a backup schedule you **must either** use the `depends_on` clause to indicate the cluster to which it refers **or** specify the values of `project_id` and `cluster_name` as reference of the cluster resource (e.g. `cluster_name = mongodbatlas_advanced_cluster.my_cluster.name` - see the example below). Failure in doing so will result in an error when executing the plan.
 
-In the Terraform MongoDB Atlas Provider 1.0.0 we have re-architected the way in which Cloud Backup Policies are manged with Terraform to significantly reduce the complexity. Due to this change we've provided multiple examples below to help express how this new resource functions.
+In the Terraform MongoDB Atlas Provider 1.0.0 we have re-architected the way in which Cloud Backup Policies are managed with Terraform to significantly reduce the complexity. Due to this change we've provided multiple examples below to help express how this new resource functions.
 
 
 ## Example Usage - Create a Cluster with 2 Policies Items
