@@ -2,84 +2,96 @@
 page_title: "Guide: Delete a MongoDB Atlas Cluster with an active Backup Compliance Policy"
 ---
 
-# Guide: Delete a MongoDB Atlas Cluster with an active Backup Compliance Policy
+# Guide: Deleting a MongoDB Atlas Cluster with an Active Backup Compliance Policy
 
-**Objective**: In this guide we explain how to delete a MongoDB Atlas Cluster
-using Terraform when a Backup Compliance Policy (BCP) is enabled and how the
-`mongodbatlas_backup_compliance_policy`, `mongodbatlas_cloud_backup_schedule`
-and `mongodbatlas_advanced_cluster` terraform resources are related to each
-other.
+**Objective**: This guide explains how to delete a MongoDB Atlas Cluster using
+Terraform when a Backup Compliance Policy (BCP) is enabled. It also explores the
+relationship between the Terraform resources:
+`mongodbatlas_backup_compliance_policy`, `mongodbatlas_cloud_backup_schedule`,
+and `mongodbatlas_advanced_cluster`.
 
-## When do I need a Backup Compliance Policy?
+## Why Would You Need a Backup Compliance Policy?
 
-If you have strict data protection requirements, you can enable a Backup
-Compliance Policy to protect your backup data. You can read more about Backup
-Compliance Policy and its considerations
-[at this link](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/).
+A Backup Compliance Policy is essential if you have strict data protection
+requirements. Enabling this policy ensures your backup data remains protected.
+You can learn more about Backup Compliance Policy and its implications in the
+[official documentation](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/).
 
-In Terraform, you can use the `mongodbatlas_backup_compliance_policy` resource
-([documentation](../resources/backup_compliance_policy.md)) to configure it.
+In Terraform, the `mongodbatlas_backup_compliance_policy` resource
+([documentation](../resources/backup_compliance_policy.md)) is used to configure
+this feature.
 
-## How does a Backup Compliance Policy affect my Terraform configuration?
+## How Does a Backup Compliance Policy Impact Terraform Configuration?
 
-If you have defined a
-[MongoDB Atlas Cluster](../resources/advanced_cluster%20(preview%20provider%202.0.0).md)
-and its [backup schedule](../resources/cloud_backup_schedule.md) in a Terraform
-configuration, your configuration will look like something like this:
+If your Terraform configuration includes both a MongoDB Atlas cluster and its
+associated backup schedule, it will look something like this:
 
-```
+```terraform
 resource "mongodbatlas_advanced_cluster" "my_cluster" {
   project_id     = "<PROJECT-ID>"
   name           = "clusterTest"
-
+  
   ...
 }
 
 resource "mongodbatlas_cloud_backup_schedule" "test" {
   project_id   = mongodbatlas_advanced_cluster.my_cluster.project_id
   cluster_name = mongodbatlas_advanced_cluster.my_cluster.name
-
+  
   ...
 }
 
 ...
 ```
 
-meaning that you have both resources defined in the same terraform project with
-a direct dependency between each other (If you are using a module, those
-resources are likely defined as part of the module).
+In this setup, `mongodbatlas_advanced_cluster` and
+`mongodbatlas_cloud_backup_schedule` are defined within the same Terraform
+project, with a direct dependency between the resources. If you’re using a
+Terraform module, these resources might be included within that module.
 
-At the same time, if you've enabled a Backup Compliance Policy for your MongoDB
-Atlas Project (either via Terraform or via any other tool), one of the
-consequences as described
-[here](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#prohibited-actions)
-is that you cannot modify the
-[backup policy](https://www.mongodb.com/docs/atlas/backup/cloud-backup/configure-backup-policy/#std-label-configure-backup-policy)
-for an individual cluster **below the minimum requirements set** in the Backup
-Compliance Policy.
+If a Backup Compliance Policy is enabled for your MongoDB Atlas project
+(configured via Terraform or another tool), there is an important restriction.
+As stated
+[here](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#prohibited-actions),
+**you cannot modify the backup policy for an individual cluster below the
+minimum requirements outlined in the Backup Compliance Policy**.
 
-What this means is that any tentative to delete the
-`mongodbatlas_cloud_backup_schedule` from this terraform configuration would
-result into an error
-(`BACKUP_POLICIES_NOT_MEETING_BACKUP_COMPLIANCE_POLICY_REQUIREMENTS`) given the
-related cluster's backup policy would end up being **below the minimum
-requirements set**. While this error is expected, it poses the following
-question: "How should I proceed with the deletion of my cluster using Terraform
-by retaining the backup snapshot?"
+This means any attempt to remove the `mongodbatlas_cloud_backup_schedule` from
+your Terraform configuration will trigger an error, specifically:
+`BACKUP_POLICIES_NOT_MEETING_BACKUP_COMPLIANCE_POLICY_REQUIREMENTS`. This error
+occurs because the cluster's backup policy would fall **below the minimum
+requirements set**. While this behavior is expected, it leads to an important
+question:
 
-## How do I delete a MongoDB Atlas Cluster with a Backup Compliance Policy enabled and retain backups?
+**"How can I delete my cluster using Terraform while preserving my backup
+snapshots?"**
 
-High level, in order to delete a MongoDB Atlas Cluster in this scenario is by
-following a two-step procedure. This is an expected operation to take, given
-once again your MongoDB Atlas Project has an enabled Backup Compliance Policy.
+## Steps to Delete a MongoDB Atlas Cluster with BCP Enabled and Retain Snapshots
 
-- **Step 1.** Tell Terraform to "ignore" the
-  `mongodbatlas_cloud_backup_schedule` configuration
-- **Step 2.** Proceed with the deletion of MongoDB Atlas Cluster via Terraform
+To delete a MongoDB Atlas cluster in this scenario, you need to follow a
+two-step process. This approach aligns with the requirements of your enabled
+Backup Compliance Policy.
 
-In order to explain how to do this, we've created two examples: one related to
-the direct usage of
-[resources](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_backup_compliance_policy/resource),
-and one related to
-[module](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_backup_compliance_policy/module)
-usage.
+- **Step 1: Update Terraform to Ignore the `mongodbatlas_cloud_backup_schedule`
+  Configuration**: before deleting the cluster, instruct Terraform to "ignore"
+  the `mongodbatlas_cloud_backup_schedule` resource to avoid violating the
+  Backup Compliance Policy.
+
+- **Step 2: Delete the MongoDB Atlas Cluster with Terraform**: once the
+  `mongodbatlas_cloud_backup_schedule` is removed from Terraform's scope,
+  proceed with the cluster deletion as usual while ensuring backup snapshots
+  remain intact.
+
+To assist with implementation, we’ve provided two examples:
+
+1. **Using Resources Directly**\
+   View the
+   [resource-based example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_backup_compliance_policy/resource).
+
+2. **Using Terraform Modules**\
+   Review the
+   [module-based example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_backup_compliance_policy/module).
+
+These examples outline the adjustments required for each approach to
+successfully delete clusters under the constraints of a Backup Compliance
+Policy.
