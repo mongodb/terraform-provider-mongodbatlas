@@ -1,6 +1,6 @@
 module github.com/mongodb/terraform-provider-mongodbatlas
 
-go 1.24.3
+go 1.24.4
 
 require (
 	github.com/andygrunwald/go-jira/v2 v2.0.0-20240116150243-50d59fe116d6
