@@ -50,6 +50,8 @@ functions:
       params:
         working_dir: "src/github.com/mongodb/terraform-provider-mongodbatlas"
         script: |
+          #!/usr/bin/env bash
+          
           export GH_TOKEN="${github_token}"
 
           # Fetch the latest release tag (e.g. "v1.36.0")
