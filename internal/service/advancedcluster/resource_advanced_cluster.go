@@ -1512,6 +1512,7 @@ func getUpgradeRequest(d *schema.ResourceData) *admin.LegacyAtlasTenantClusterUp
 	}
 
 	return &admin.LegacyAtlasTenantClusterUpgradeRequest{
+		ProviderBackupEnabled: conversion.Pointer(d.Get("backup_enabled").(bool)),
 		ProviderSettings: &admin.ClusterProviderSettings{
 			ProviderName:     updatedRegion.GetProviderName(),
 			InstanceSizeName: updatedRegion.ElectableSpecs.InstanceSize,

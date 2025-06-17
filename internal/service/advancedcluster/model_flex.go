@@ -42,6 +42,7 @@ func GetUpgradeToDedicatedClusterRequest(d *schema.ResourceData) *admin.AtlasTen
 	return &admin.AtlasTenantClusterUpgradeRequest20240805{
 		Name:             clusterName,
 		ClusterType:      conversion.Pointer(d.Get("cluster_type").(string)),
+		BackupEnabled:    conversion.Pointer(d.Get("backup_enabled").(bool)),
 		ReplicationSpecs: expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), rootDiskSizeGB),
 	}
 }
