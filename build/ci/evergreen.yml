@@ -19,6 +19,6 @@ buildvariants:
   - name: ubuntu
     display_name: Say hello
     run_on:
-      - ubuntu2204-large
+      - rhel90-small
     tasks:
       - name: say_hello22

@@ -29,9 +29,8 @@ functions:
   "install gh cli":
     - command: shell.exec
       params:
-        working_dir: "<don't-care>"
+        working_dir: "n/a"
         script: |
-          # Add the GitHub CLI repo and install
           sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
           sudo dnf install -y gh
 
@@ -61,7 +60,6 @@ functions:
             exit 1
           fi
           
-          # Clean version (remove 'v' prefix if present)
           if [[ ${release_tag} == v* ]]; then
               version=$(echo "${release_tag}" | cut -c 2-)
           else
@@ -70,26 +68,50 @@ functions:
           
           echo "Tracing artifacts for release version: $version"
           
-          # Create directory for downloaded artifacts
           mkdir -p release_artifacts
           
-          # Download only terraform-provider artifacts (exclude source code archives)
-          echo "Downloading terraform-provider artifacts from GitHub..."
+          # TODO: uncomment:
+          # echo "Waiting 20 minutes before checking for release artifacts..."
+          # sleep 1200  # 20 minutes initial wait
+
+          echo "Checking for terraform-provider .zip artifacts in GitHub release..."
+
+          max_attempts=5
+          attempt=1
+          artifact_found=false
+
+          while [ $attempt -le $max_attempts ]; do
+            echo "Attempt $attempt: checking for artifacts..."
+            gh release view "${release_tag}" --json assets --jq '.assets[].name' | grep -q 'terraform-provider-mongodbatlas.*\.zip'
+            if [ $? -eq 0 ]; then
+              echo "Artifacts found. Proceeding to download..."
+              artifact_found=true
+              break
+            fi
+
+            echo "Artifacts not available yet. Sleeping for 2 minutes before retry..."
+            sleep 120
+            attempt=$((attempt + 1))
+          done
+
+          if [ "$artifact_found" != true ]; then
+            echo "ERROR: No terraform-provider .zip artifacts found after waiting. Exiting..."
+            gh release view "${release_tag}" --json assets --jq '.assets[].name'
+            exit 1
+          fi
+
+          mkdir -p release_artifacts
           gh release download "${release_tag}" -p "terraform-provider-mongodbatlas*.zip" -D ./release_artifacts/
-          
-          # Verify artifacts were downloaded
+
           echo "Downloaded artifacts:"
           ls -la release_artifacts/
           
-          # Remove any source code archives that might have been downloaded
           echo "Removing any source code archives..."
           rm -f release_artifacts/Source* release_artifacts/source* 2>/dev/null || true
           
-          # Show final list of artifacts to trace
           echo "Final artifacts to trace:"
           ls -la release_artifacts/
           
-          # Count artifacts
           artifact_count=$(ls -1 release_artifacts/*.zip 2>/dev/null | wc -l)
           if [ $artifact_count -eq 0 ]; then
             echo "ERROR: No terraform-provider .zip artifacts found for release ${release_tag}"
