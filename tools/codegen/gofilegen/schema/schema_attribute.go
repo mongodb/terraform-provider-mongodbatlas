@@ -15,7 +15,10 @@ func GenerateSchemaAttributes(attrs codespec.Attributes) CodeStatement {
 		attrsCode = append(attrsCode, result.Code)
 		imports = append(imports, result.Imports...)
 	}
-	finalAttrs := strings.Join(attrsCode, ",\n") + ","
+	finalAttrs := strings.Join(attrsCode, ",\n")
+	if len(finalAttrs) > 0 {
+		finalAttrs += ","
+	}
 	return CodeStatement{
 		Code:    finalAttrs,
 		Imports: imports,
