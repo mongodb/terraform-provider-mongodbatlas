@@ -2,7 +2,7 @@
 
 `mongodbatlas_cloud_backup_schedule` provides a Cloud Backup Schedule datasource. An Atlas Cloud Backup Schedule provides the current cloud backup schedule for the cluster. 
 
--> **NOTE:** If you want to delete an Atlas Cluster that has an associated `mongodbatlas_cloud_backup_schedule` resource and a Backup Compliance Policy enabled, read the [following guide](../guides/delete-cluster-with-backup-compliance-policy.md).
+-> **NOTE:** If you want to delete an Atlas Cluster that has an associated `mongodbatlas_cloud_backup_schedule` resource and a Backup Compliance Policy enabled, read [this guide](../guides/delete-cluster-with-backup-compliance-policy.md).
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 

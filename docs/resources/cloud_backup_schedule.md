@@ -6,7 +6,7 @@
 
 -> **NOTE:** If Backup Compliance Policy is enabled for the project for which this backup schedule is defined, you cannot modify the backup schedule for an individual cluster below the minimum requirements set in the Backup Compliance Policy.  See [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy). 
 
--> **NOTE:** If you need to remove the `mongodbatlas_cloud_backup_schedule`, read the [following guide](../guides/delete-cluster-with-backup-compliance-policy.md).
+-> **NOTE:** If you need to remove the `mongodbatlas_cloud_backup_schedule`, read [this guide](../guides/delete-cluster-with-backup-compliance-policy.md).
 
 -> **NOTE:** When creating a backup schedule you **must either** use the `depends_on` clause to indicate the cluster to which it refers **or** specify the values of `project_id` and `cluster_name` as reference of the cluster resource (e.g. `cluster_name = mongodbatlas_advanced_cluster.my_cluster.name` - see the example below). Failure in doing so will result in an error when executing the plan.
 

@@ -10,7 +10,7 @@ This page describes the **Preview for MongoDB Atlas Provider 2.0.0** of `mongodb
 <br> &#8226; Changes to cluster configurations can affect costs. Before making changes, please see [Billing](https://docs.atlas.mongodb.com/billing/).
 <br> &#8226; If your Atlas project contains a custom role that uses actions introduced in a specific MongoDB version, you cannot create a cluster with a MongoDB version less than that version unless you delete the custom role.
 
--> **NOTE:** If you want to delete an Atlas Cluster that has an associated `mongodbatlas_cloud_backup_schedule` resource and a Backup Compliance Policy enabled, read the [following guide](../guides/delete-cluster-with-backup-compliance-policy.md).
+-> **NOTE:** If you want to delete an Atlas Cluster that has an associated `mongodbatlas_cloud_backup_schedule` resource and a Backup Compliance Policy enabled, read [this guide](../guides/delete-cluster-with-backup-compliance-policy.md).
 
 **NOTE:** This data source also includes Flex clusters.
 
