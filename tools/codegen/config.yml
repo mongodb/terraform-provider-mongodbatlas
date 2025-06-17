@@ -55,12 +55,9 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
       method: DELETE
       wait:
-        state_property: "state"
+        <<: *pble-create-wait
         pending_states: ["ACTIVE", "INITIATING", "BUCKET_VERIFIED"]
         target_states: ["UNCONFIGURED", "DELETED"] # DELETED is a special state value when API returns 404 or empty object
-        timeout_seconds: 900 # 15 minutes
-        min_timeout_seconds: 60
-        delay_seconds: 10
     version_header: application/vnd.atlas.2023-01-01+json
 
   search_deployment_api:
@@ -85,12 +82,9 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
       method: DELETE
       wait:
-        state_property: "stateName"
+        <<: *search-deployment-create-wait
         pending_states: ["IDLE", "UPDATING", "PAUSED"]
         target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
-        timeout_seconds: 10800 # 3 hours
-        min_timeout_seconds: 30
-        delay_seconds: 60
     version_header: application/vnd.atlas.2025-03-12+json
 
   project_api:
@@ -154,15 +148,98 @@ resources:
     create:
       path: /api/atlas/v2/groups/{groupId}/clusters
       method: POST
+      wait: &cluster-create-wait
+        state_property: "stateName"
+        pending_states:
+          [
+            "CREATING",
+            "UPDATING",
+            "REPAIRING",
+            "REPEATING",
+            "PENDING",
+            "DELETING",
+          ]
+        target_states: ["IDLE"]
+        timeout_seconds: 10800 # 3 hours
+        min_timeout_seconds: 60
+        delay_seconds: 30
     update:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
       method: PATCH
+      wait: *cluster-create-wait
     delete:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
       method: DELETE
+      wait:
+        <<: *cluster-create-wait
+        pending_states:
+          [
+            "IDLE",
+            "CREATING",
+            "UPDATING",
+            "REPAIRING",
+            "REPEATING",
+            "PENDING",
+            "DELETING",
+          ]
+        target_states: ["DELETED"]
     schema:
       aliases:
         cluster_name: name # path param name does not match the API request property
+      # these attributes are changed by Atlas so need to be optional
+      overrides:
+        advanced_configuration:
+          computability:
+            optional: true
+            computed: true
+        analytics_specs:
+          computability:
+            optional: true
+            computed: true
+        auto_scaling:
+          computability:
+            optional: true
+            computed: true
+        bi_connector:
+          computability:
+            optional: true
+            computed: true
+        disk_iops:
+          computability:
+            optional: true
+            computed: true
+        disk_size_gb:
+          computability:
+            optional: true
+            computed: true
+        encryption_at_rest_provider:
+          computability:
+            optional: true
+            computed: true
+        global_cluster_self_managed_sharding:
+          computability:
+            optional: true
+            computed: true
+        paused:
+          computability:
+            optional: true
+            computed: true
+        pit_enabled:
+          computability:
+            optional: true
+            computed: true
+        read_only_specs:
+          computability:
+            optional: true
+            computed: true
+        redact_client_log_data:
+          computability:
+            optional: true
+            computed: true
+        zone_name:
+          computability:
+            optional: true
+            computed: true
 
   # search_deployment:
   #   read:
