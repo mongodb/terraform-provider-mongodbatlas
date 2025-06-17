@@ -52,28 +52,20 @@ functions:
         script: |
           export GH_TOKEN="${github_token}"
 
-          # Fetch the latest release tag (e.g. "v1.36.0")
-          release_tag=$(gh release list --limit 1 --json tagName \
-                        --jq '.[0].tagName')
-          if [ -z "$release_tag" ]; then
-            echo "ERROR: could not determine latest release tag"
-            exit 1
-          fi
-          
+          release_tag=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
+          echo "DEBUG: release_tag fetched: '$release_tag'"
+
           if [ -z "$release_tag" ]; then
             echo "ERROR: could not determine latest release tag"
             exit 1
           fi
 
-          case "$release_tag" in
-            v*)
-              version="${release_tag#v}"
-              ;;
-            *)
-              version="$release_tag"
-              ;;
-          esac
-
+          if echo "$release_tag" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            version="${release_tag#v}"
+          else
+            echo "ERROR: release tag '$release_tag' does not match format v<MAJOR>.<MINOR>.<PATCH>"
+            exit 1
+          fi
           
           echo "Tracing artifacts for release version: $version"
           
