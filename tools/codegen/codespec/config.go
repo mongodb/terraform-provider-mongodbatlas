@@ -92,21 +92,16 @@ func applyAliasToPathParams(resource *Resource, aliases map[string]string) {
 	}
 }
 
-// applyOverrides applies the overrides to the attribute, checking if every path part needs overriding.
-// e.g. bi_connector.enabled will check first if bi_connector has an override and will apply, then if enabled has an override and will apply.
 func applyOverrides(attr *Attribute, attrPathName string, schemaOptions config.SchemaOptions) {
-	parts := strings.Split(attrPathName, ".")
-	for _, part := range parts {
-		if override, ok := schemaOptions.Overrides[part]; ok {
-			if override.Description != "" {
-				attr.Description = &override.Description
-			}
-			if override.Computability != nil {
-				attr.ComputedOptionalRequired = getComputabilityFromConfig(*override.Computability)
-			}
-			if override.Sensitive != nil {
-				attr.Sensitive = *override.Sensitive
-			}
+	if override, ok := schemaOptions.Overrides[attrPathName]; ok {
+		if override.Description != "" {
+			attr.Description = &override.Description
+		}
+		if override.Computability != nil {
+			attr.ComputedOptionalRequired = getComputabilityFromConfig(*override.Computability)
+		}
+		if override.Sensitive != nil {
+			attr.Sensitive = *override.Sensitive
 		}
 	}
 }
