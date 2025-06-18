@@ -53,7 +53,7 @@ functions:
           export GH_TOKEN="${github_token}"
 
           # Clean the release_tag first
-          release_tag=$(gh release list --limit 1 --json tagName --jq '.[0].tagName' | tr -d '\n\r\t ')
+          release_tag=$(gh release list --limit 1 --json tagName --jq -r '.[0].tagName' | tr -d '\n\r\t ')
           echo "DEBUG: cleaned release_tag: '$release_tag'"
 
           if [ -z "${release_tag}" ]; then
