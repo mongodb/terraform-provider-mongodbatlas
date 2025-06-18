@@ -186,8 +186,8 @@ resources:
     schema:
       aliases:
         cluster_name: name # path param name does not match the API request property
-      # These attributes are optional but when not configured Atlas returns a value
-      #  If a nest attribute is O/C, all its optional child attributes must also be defined as O/C to avoid non empty plans
+      # These attributes are optional but when not configured, Atlas returns a default value.
+      # If a nested attribute is optional/computed, all its optional child attributes must also be defined as optional/computed to avoid non-empty plans.
       overrides:
         advanced_configuration:
           computability:
