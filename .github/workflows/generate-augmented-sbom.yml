@@ -31,7 +31,7 @@ jobs:
 
       - name: Generate PURLs from release artifacts
         run: |
-          ./scripts/generate-purls-from-release.sh "${{ inputs.release_version }}"
+          ./scripts/compliance/generate-purls-from-release.sh "${{ inputs.release_version }}"
 
       - name: Generate SBOM with Silkbomb
         run: |
@@ -40,12 +40,11 @@ jobs:
 
       - name: Get current date
         id: date
-        run: |
-          echo "date=$(date +'%Y-%m-%d')" >> "$GITHUB_ENV"
+        run: echo "date=$(date +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
 
       - name: Augment SBOM with Kondukto
         env:
-          DATE: ${{ env.date }}
+          DATE: ${{ steps.date.outputs.date }}
           RELEASE_VERSION: ${{ inputs.release_version }}
         run: |
           make augment-sbom
@@ -55,13 +54,13 @@ jobs:
             AUTHOR: ${{ github.actor }}
             VERSION: ${{ inputs.release_version }}
             AUGMENTED_REPORT: "true"
-        run: ./scripts/gen-ssdlc-report.sh
+        run: ./scripts/compliance/gen-ssdlc-report.sh
 
       - name: Upload augmented SBOM as artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: augmented_sbom_and_ssdlc_report
           path: |
-            compliance/augmented-sbom-v${{ inputs.release_version }}-${{ env.date }}.json
-            compliance/ssdlc-compliance-${{ inputs.release_version }}-${{ env.date }}.md
+            compliance/augmented-sbom-v${{ inputs.release_version }}-${{ steps.date.outputs.date }}.json
+            compliance/ssdlc-compliance-${{ inputs.release_version }}-${{ steps.date.outputs.date }}.md
           if-no-files-found: error

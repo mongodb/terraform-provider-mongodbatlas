@@ -207,7 +207,7 @@ jobs:
             VERSION="${TAG#v}"
             AUTHOR="${{ github.actor }}"
             export AUTHOR VERSION
-            ./scripts/gen-ssdlc-report.sh
+            ./scripts/compliance/gen-ssdlc-report.sh
           file_to_commit: 'compliance/v*/ssdlc-compliance-*.md'
           commit_message: "chore: Update SSDLC report for ${{ inputs.version_number }}"
           apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}

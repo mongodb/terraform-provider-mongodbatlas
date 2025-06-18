@@ -224,16 +224,16 @@ change-lines:
 
 .PHONY: gen-purls
 gen-purls: # Generate purls on linux os
-	./scripts/generate-purls.sh
+	./scripts/compliance/generate-purls.sh
 
 .PHONY: generate-sbom
 generate-sbom: ## Generate SBOM
-	./scripts/generate-sbom.sh
+	./scripts/compliance/generate-sbom.sh
 
 .PHONY: upload-sbom
 upload-sbom: ## Upload SBOM
-	./scripts/upload-sbom.sh
+	./scripts/compliance/upload-sbom.sh
 
 .PHONY: augment-sbom
 augment-sbom: ## Augment SBOM
-	./scripts/augment-sbom.sh
+	./scripts/compliance/augment-sbom.sh
