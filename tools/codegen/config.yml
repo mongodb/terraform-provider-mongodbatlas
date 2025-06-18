@@ -186,7 +186,8 @@ resources:
     schema:
       aliases:
         cluster_name: name # path param name does not match the API request property
-      # these attributes are changed by Atlas so need to be optional
+      # These attributes are optional but when not configured Atlas returns a value
+      #  If a nest attribute is O/C, all its optional child attributes must also be defined as O/C to avoid non empty plans
       overrides:
         advanced_configuration:
           computability:
