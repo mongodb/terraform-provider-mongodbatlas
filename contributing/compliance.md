@@ -3,7 +3,7 @@
 We scan our dependencies for vulnerabilities and incompatible licenses using [Snyk](https://snyk.io/).
 To run Snyk locally please follow their [CLI reference](https://support.snyk.io/hc/en-us/articles/360003812458-Getting-started-with-the-CLI).
 
-We also use Kundukto to scan for third-party dependency vulnerabilities. Kundukto creates tickets in MongoDB's issue tracking system for any vulnerabilities found.
+We also use Kondukto to scan for third-party dependency vulnerabilities. Kondukto creates tickets in MongoDB's issue tracking system for any vulnerabilities found.
 
 ## SBOM and Compliance
 We generate Software Bill of Materials (SBOM) files for each release as part of MongoDB's SSDLC initiative. SBOM Lite files are automatically generated and included as release artifacts. Compliance reports are generated after each release and stored in the compliance/<release-version> directory.
