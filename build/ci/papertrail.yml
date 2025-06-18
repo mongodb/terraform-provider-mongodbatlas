@@ -45,89 +45,94 @@ functions:
     - command: git.get_project
       params:
         directory: src/github.com/mongodb/terraform-provider-mongodbatlas
-    
-    - command: shell.exec
+
+    - command: subprocess.exec
       params:
-        working_dir: "src/github.com/mongodb/terraform-provider-mongodbatlas"
-        script: |
-          export GH_TOKEN="${github_token}"
+        command: tmp.sh
+    
+    # - command: shell.exec
+    #   params:
+    #     working_dir: "src/github.com/mongodb/terraform-provider-mongodbatlas"
+    #     script: |
+    #       export GH_TOKEN="${github_token}"
 
-          release_tag=$(gh release list --limit 1 --json tagName | jq -r '.[0].tagName')
-          echo "DEBUG: cleaned release_tag: '$release_tag'"
+    #       release_tag=$(gh release list --limit 1 --json tagName | jq -r '.[0].tagName')
+    #       echo "DEBUG: cleaned release_tag: $release_tag"
 
-          if [ -z "${release_tag}" ]; then
-            echo "ERROR: release_tag must be provided for production releases"
-            exit 1
-          fi
-          
-          # Clean version (remove 'v' prefix if present)
-          if [[ $release_tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-              echo "DEBUG: release_tag matches v1.2.3 format"
-              version="${release_tag:1}"  # Remove the 'v' prefix
-          else
-              echo "ERROR: release_tag '$release_tag' does not match required format v1.2.3 (found pre-release or invalid format)"
-              exit 1
-          fi
-          
-          echo "Tracing artifacts for release version: $version"
-          
-          mkdir -p release_artifacts
-          
-          # TODO: uncomment:
-          # echo "Waiting 20 minutes before checking for release artifacts..."
-          # sleep 1200  # 20 minutes initial wait
+    #       if [ -z "${release_tag}" ]; then
+    #           echo "ERROR: release_tag must be provided for production releases"
+    #           exit 1
+    #       fi
 
-          echo "Checking for terraform-provider .zip artifacts in GitHub release..."
+    #       # Clean version (remove 'v' prefix if present)
+    #       # if [[ $release_tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    #       if [[ $release_tag =~ ^test-trail-[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    #           echo "DEBUG: release_tag matches v1.2.3 format"
+    #           version="${release_tag:1}" # Remove the 'v' prefix
+    #       else
+    #           echo "ERROR: release_tag '$release_tag' does not match required format v1.2.3 (found pre-release or invalid format)"
+    #           exit 1
+    #       fi
 
-          max_attempts=5
-          attempt=1
-          artifact_found=false
-
-          while [ $attempt -le $max_attempts ]; do
-            echo "Attempt $attempt: checking for artifacts..."
-            gh release view "${release_tag}" --json assets --jq '.assets[].name' | grep -q 'terraform-provider-mongodbatlas.*\.zip'
-            if [ $? -eq 0 ]; then
-              echo "Artifacts found. Proceeding to download..."
-              artifact_found=true
-              break
-            fi
-
-            echo "Artifacts not available yet. Sleeping for 2 minutes before retry..."
-            sleep 120
-            attempt=$((attempt + 1))
-          done
-
-          if [ "$artifact_found" != true ]; then
-            echo "ERROR: No terraform-provider .zip artifacts found after waiting. Exiting..."
-            gh release view "${release_tag}" --json assets --jq '.assets[].name'
-            exit 1
-          fi
-
-          mkdir -p release_artifacts
-          gh release download "${release_tag}" -p "terraform-provider-mongodbatlas*.zip" -D ./release_artifacts/
-
-          echo "Downloaded artifacts:"
-          ls -la release_artifacts/
+    #       echo "Tracing artifacts for release version: $version"
           
-          echo "Removing any source code archives..."
-          rm -f release_artifacts/Source* release_artifacts/source* 2>/dev/null || true
+    #       mkdir -p release_artifacts
           
-          echo "Final artifacts to trace:"
-          ls -la release_artifacts/
+    #       # TODO: uncomment:
+    #       # echo "Waiting 20 minutes before checking for release artifacts..."
+    #       # sleep 1200  # 20 minutes initial wait
+
+    #       echo "Checking for terraform-provider .zip artifacts in GitHub release..."
+
+    #       max_attempts=5
+    #       attempt=1
+    #       artifact_found=false
+
+    #       while [ $attempt -le $max_attempts ]; do
+    #         echo "Attempt $attempt: checking for artifacts..."
+    #         gh release view "${release_tag}" --json assets --jq '.assets[].name' | grep -q 'terraform-provider-mongodbatlas.*\.zip'
+    #         if [ $? -eq 0 ]; then
+    #           echo "Artifacts found. Proceeding to download..."
+    #           artifact_found=true
+    #           break
+    #         fi
+
+    #         echo "Artifacts not available yet. Sleeping for 2 minutes before retry..."
+    #         sleep 120
+    #         attempt=$((attempt + 1))
+    #       done
+
+    #       if [ "$artifact_found" != true ]; then
+    #         echo "ERROR: No terraform-provider .zip artifacts found after waiting. Exiting..."
+    #         gh release view "${release_tag}" --json assets --jq '.assets[].name'
+    #         exit 1
+    #       fi
+
+    #       mkdir -p release_artifacts
+    #       gh release download "${release_tag}" -p "terraform-provider-mongodbatlas*.zip" -D ./release_artifacts/
+
+    #       echo "Downloaded artifacts:"
+    #       ls -la release_artifacts/
           
-          artifact_count=$(ls -1 release_artifacts/*.zip 2>/dev/null | wc -l)
-          if [ $artifact_count -eq 0 ]; then
-            echo "ERROR: No terraform-provider .zip artifacts found for release ${release_tag}"
-            echo "Available files in release:"
-            gh release view "${release_tag}" --json assets --jq '.assets[].name'
-            exit 1
-          fi
+    #       echo "Removing any source code archives..."
+    #       rm -f release_artifacts/Source* release_artifacts/source* 2>/dev/null || true
           
-          echo "Found $artifact_count terraform-provider artifacts to trace"
+    #       echo "Final artifacts to trace:"
+    #       ls -la release_artifacts/
           
-          cat <<EOT > trace-expansions.yml
-          release_version: "$version"
-          EOT
+    #       artifact_count=$(ls -1 release_artifacts/*.zip 2>/dev/null | wc -l)
+    #       if [ $artifact_count -eq 0 ]; then
+    #         echo "ERROR: No terraform-provider .zip artifacts found for release ${release_tag}"
+    #         echo "Available files in release:"
+    #         gh release view "${release_tag}" --json assets --jq '.assets[].name'
+    #         exit 1
+    #       fi
+          
+    #       echo "Found $artifact_count terraform-provider artifacts to trace"
+          
+    #       cat <<EOT > trace-expansions.yml
+    #       release_version: "$version"
+    #       EOT
     
     - command: expansions.update
       params:
