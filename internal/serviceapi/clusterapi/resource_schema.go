@@ -17,19 +17,23 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "If reconfiguration is necessary to regain a primary due to a regional outage, submit this field alongside your topology reconfiguration to request a new regional outage resistant topology. Forced reconfigurations during an outage of the majority of electable nodes carry a risk of data loss if replicated writes (even majority committed writes) have not been replicated to the new primary node. MongoDB Atlas docs contain more information. To proceed with an operation which carries that risk, set **acceptDataRisksAndForceReplicaSetReconfig** to the current date. This parameter expresses its value in the ISO 8601 timestamp format in UTC.",
 			},
 			"advanced_configuration": schema.SingleNestedAttribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Group of settings that configures a subset of the advanced configuration details.",
 				Attributes: map[string]schema.Attribute{
 					"custom_openssl_cipher_config_tls12": schema.ListAttribute{
+						Computed:            true,
 						Optional:            true,
 						MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.2. This field is only valid when `tlsCipherConfigMode` is set to `CUSTOM`.",
 						ElementType:         types.StringType,
 					},
 					"minimum_enabled_tls_protocol": schema.StringAttribute{
+						Computed:            true,
 						Optional:            true,
 						MarkdownDescription: "Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections. Clusters using TLS 1.0 or 1.1 should consider setting TLS 1.2 as the minimum TLS protocol version.",
 					},
 					"tls_cipher_config_mode": schema.StringAttribute{
+						Computed:            true,
 						Optional:            true,
 						MarkdownDescription: "The TLS cipher suite configuration mode. The default mode uses the default cipher suites. The custom mode allows you to specify custom cipher suites for both TLS 1.2 and TLS 1.3.",
 					},
@@ -41,14 +45,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Flag that indicates whether the cluster can perform backups. If set to `true`, the cluster can perform backups. You must set this value to `true` for NVMe clusters. Backup uses Cloud Backups for dedicated clusters and [Shared Cluster Backups](https://docs.atlas.mongodb.com/backup/shared-tier/overview/) for tenant clusters. If set to `false`, the cluster doesn't use backups.",
 			},
 			"bi_connector": schema.SingleNestedAttribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Settings needed to configure the MongoDB Connector for Business Intelligence for this cluster.",
 				Attributes: map[string]schema.Attribute{
 					"enabled": schema.BoolAttribute{
+						Computed:            true,
 						Optional:            true,
 						MarkdownDescription: "Flag that indicates whether MongoDB Connector for Business Intelligence is enabled on the specified cluster.",
 					},
 					"read_preference": schema.StringAttribute{
+						Computed:            true,
 						Optional:            true,
 						MarkdownDescription: "Data source node designated for the MongoDB Connector for Business Intelligence on MongoDB Cloud. The MongoDB Connector for Business Intelligence on MongoDB Cloud reads data from the primary, secondary, or analytics node based on your read preferences. Defaults to `ANALYTICS` node, or `SECONDARY` if there are no `ANALYTICS` nodes.",
 					},
@@ -153,6 +160,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Disk warming mode selection.",
 			},
 			"encryption_at_rest_provider": schema.StringAttribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Cloud service provider that manages your customer keys to provide an additional layer of encryption at rest for the cluster. To enable customer key management for encryption at rest, the cluster **replicationSpecs[n].regionConfigs[m].{type}Specs.instanceSize** setting must be `M10` or higher and `\"backupEnabled\" : false` or omitted entirely.",
 			},
@@ -165,6 +173,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Feature compatibility version expiration date. Will only appear if FCV is pinned. This parameter expresses its value in the ISO 8601 timestamp format in UTC.",
 			},
 			"global_cluster_self_managed_sharding": schema.BoolAttribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Set this field to configure the Sharding Management Mode when creating a new Global Cluster.\n\nWhen set to false, the management mode is set to Atlas-Managed Sharding. This mode fully manages the sharding of your Global Cluster and is built to provide a seamless deployment experience.\n\nWhen set to true, the management mode is set to Self-Managed Sharding. This mode leaves the management of shards in your hands and is built to provide an advanced and flexible deployment experience.\n\nThis setting cannot be changed once the cluster is deployed.",
 			},
@@ -251,14 +260,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Human-readable label that identifies the cluster.",
 			},
 			"paused": schema.BoolAttribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether the cluster is paused.",
 			},
 			"pit_enabled": schema.BoolAttribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether the cluster uses continuous cloud backups.",
 			},
 			"redact_client_log_data": schema.BoolAttribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Enable or disable log redaction.\n\nThis setting configures the ``mongod`` or ``mongos`` to redact any document field contents from a message accompanying a given log event before logging. This prevents the program from writing potentially sensitive data stored on the database to the diagnostic log. Metadata such as error or operation codes, line numbers, and source file names are still visible in the logs.\n\nUse ``redactClientLogData`` in conjunction with Encryption at Rest and TLS/SSL (Transport Encryption) to assist compliance with regulatory requirements.\n\n*Note*: changing this setting on a cluster will trigger a rolling restart as soon as the cluster is updated.",
 			},
@@ -324,14 +336,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										},
 									},
 									"analytics_specs": schema.SingleNestedAttribute{
+										Computed:            true,
 										Optional:            true,
 										MarkdownDescription: "Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region.",
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
+												Computed:            true,
 												Optional:            true,
 												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"Azure\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\" : \"M40\"` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected **.instanceSize** and **.diskSizeGB**.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
 											},
 											"disk_size_gb": schema.Float64Attribute{
+												Computed:            true,
 												Optional:            true,
 												MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
 											},
@@ -341,50 +356,61 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters.",
 											},
 											"instance_size": schema.StringAttribute{
+												Computed:            true,
 												Optional:            true,
 												MarkdownDescription: "Hardware specification for the instance sizes in this region in this shard. Each instance size has a default storage and memory capacity. Electable nodes and read-only nodes (known as \"base nodes\") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.",
 											},
 											"node_count": schema.Int64Attribute{
+												Computed:            true,
 												Optional:            true,
 												MarkdownDescription: "Number of nodes of the given type for MongoDB Cloud to deploy to the region.",
 											},
 										},
 									},
 									"auto_scaling": schema.SingleNestedAttribute{
+										Computed:            true,
 										Optional:            true,
 										MarkdownDescription: "Options that determine how this cluster handles resource scaling.",
 										Attributes: map[string]schema.Attribute{
 											"compute": schema.SingleNestedAttribute{
+												Computed:            true,
 												Optional:            true,
 												MarkdownDescription: "Options that determine how this cluster handles CPU scaling.",
 												Attributes: map[string]schema.Attribute{
 													"enabled": schema.BoolAttribute{
+														Computed:            true,
 														Optional:            true,
 														MarkdownDescription: "Flag that indicates whether instance size reactive auto-scaling is enabled.\n\n- Set to `true` to enable instance size reactive auto-scaling. If enabled, you must specify a value for **replicationSpecs[n].regionConfigs[m].autoScaling.compute.maxInstanceSize**.\n- Set to `false` to disable instance size reactive auto-scaling.",
 													},
 													"max_instance_size": schema.StringAttribute{
 														Computed:            true,
+														Optional:            true,
 														MarkdownDescription: "Instance size boundary to which your cluster can automatically scale.",
 													},
 													"min_instance_size": schema.StringAttribute{
 														Computed:            true,
+														Optional:            true,
 														MarkdownDescription: "Instance size boundary to which your cluster can automatically scale.",
 													},
 													"predictive_enabled": schema.BoolAttribute{
+														Computed:            true,
 														Optional:            true,
 														MarkdownDescription: "Flag that indicates whether predictive instance size auto-scaling is enabled.\n\n- Set to `true` to enable predictive instance size auto-scaling. MongoDB Cloud requires **replicationSpecs[n].regionConfigs[m].autoScaling.compute.enabled** to be `true` in order to enable this feature.\n- Set to `false` to disable predictive instance size auto-scaling.",
 													},
 													"scale_down_enabled": schema.BoolAttribute{
+														Computed:            true,
 														Optional:            true,
 														MarkdownDescription: "Flag that indicates whether the instance size may scale down via reactive auto-scaling. MongoDB Cloud requires this parameter if **replicationSpecs[n].regionConfigs[m].autoScaling.compute.enabled** is `true`. If you enable this option, specify a value for **replicationSpecs[n].regionConfigs[m].autoScaling.compute.minInstanceSize**.",
 													},
 												},
 											},
 											"disk_gb": schema.SingleNestedAttribute{
+												Computed:            true,
 												Optional:            true,
 												MarkdownDescription: "Setting that enables disk auto-scaling.",
 												Attributes: map[string]schema.Attribute{
 													"enabled": schema.BoolAttribute{
+														Computed:            true,
 														Optional:            true,
 														MarkdownDescription: "Flag that indicates whether this cluster enables disk auto-scaling. The maximum memory allowed for the selected cluster tier and the oplog size can limit storage auto-scaling.",
 													},
@@ -401,10 +427,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										MarkdownDescription: "Hardware specifications for all electable nodes deployed in the region. Electable nodes can become the primary and can enable local reads. If you don't specify this option, MongoDB Cloud deploys no electable nodes to the region.",
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
+												Computed:            true,
 												Optional:            true,
 												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"Azure\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\" : \"M40\"` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected **.instanceSize** and **.diskSizeGB**.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
 											},
 											"disk_size_gb": schema.Float64Attribute{
+												Computed:            true,
 												Optional:            true,
 												MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
 											},
@@ -436,14 +464,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										MarkdownDescription: "Cloud service provider on which MongoDB Cloud provisions the hosts. Set dedicated clusters to `AWS`, `GCP`, `AZURE` or `TENANT`.",
 									},
 									"read_only_specs": schema.SingleNestedAttribute{
+										Computed:            true,
 										Optional:            true,
 										MarkdownDescription: "Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region.",
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
+												Computed:            true,
 												Optional:            true,
 												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"Azure\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\" : \"M40\"` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected **.instanceSize** and **.diskSizeGB**.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
 											},
 											"disk_size_gb": schema.Float64Attribute{
+												Computed:            true,
 												Optional:            true,
 												MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
 											},
@@ -453,10 +484,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 												MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters.",
 											},
 											"instance_size": schema.StringAttribute{
+												Computed:            true,
 												Optional:            true,
 												MarkdownDescription: "Hardware specification for the instance sizes in this region in this shard. Each instance size has a default storage and memory capacity. Electable nodes and read-only nodes (known as \"base nodes\") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.",
 											},
 											"node_count": schema.Int64Attribute{
+												Computed:            true,
 												Optional:            true,
 												MarkdownDescription: "Number of nodes of the given type for MongoDB Cloud to deploy to the region.",
 											},
@@ -474,6 +507,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the zone in a Global Cluster. This value can be used to configure Global Cluster backup policies.",
 						},
 						"zone_name": schema.StringAttribute{
+							Computed:            true,
 							Optional:            true,
 							MarkdownDescription: "Human-readable label that describes the zone this shard belongs to in a Global Cluster. Provide this value only if \"clusterType\" : \"GEOSHARDED\" but not \"selfManagedSharding\" : true.",
 						},
