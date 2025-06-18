@@ -10,7 +10,7 @@
 
 -> **NOTE:** When creating a backup schedule you **must either** use the `depends_on` clause to indicate the cluster to which it refers **or** specify the values of `project_id` and `cluster_name` as reference of the cluster resource (e.g. `cluster_name = mongodbatlas_advanced_cluster.my_cluster.name` - see the example below). Failure in doing so will result in an error when executing the plan.
 
-In the Terraform MongoDB Atlas Provider 1.0.0 we have re-architected the way in which Cloud Backup Policies are managed with Terraform to significantly reduce the complexity. Due to this change we've provided multiple examples below to help express how this new resource functions.
+In the Terraform MongoDB Atlas Provider 1.0.0 we have re-architected the way in which Cloud Backup Policies are managed with Terraform to significantly reduce the complexity. Due to this change we've provided the following examples to help express how this resource functions.
 
 
 ## Example Usage - Create a Cluster with 2 Policies Items

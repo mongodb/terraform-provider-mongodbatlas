@@ -4,7 +4,7 @@
 
 -> **IMPORTANT NOTE:** Once you enable a Backup Compliance Policy, no user, regardless of role, can disable the Backup Compliance Policy via Terraform, or any other method, without contacting MongoDB support. This means that, once enabled, some resources defined in Terraform can not be modified. To learn more, see the full list of [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy).
 
--> **NOTE:** If you want to delete an Atlas Cluster that has an associated `mongodbatlas_cloud_backup_schedule` resource and a Backup Compliance Policy enabled, read [this guide](../guides/delete-cluster-with-backup-compliance-policy.md).
+-> **NOTE:** To delete an Atlas cluster that has an associated `mongodbatlas_cloud_backup_schedule` resource and an enabled Backup Compliance Policy, first instruct Terraform to remove the `mongodbatlas_cloud_backup_schedule` resource from the state and then use Terraform to delete the cluster. To learn more, see [Delete a Cluster with a Backup Compliance Policy](../guides/delete-cluster-with-backup-compliance-policy.md).
 
 -> **NOTE:** Groups and projects are synonymous terms. You might find `groupId` in the official documentation.
 
