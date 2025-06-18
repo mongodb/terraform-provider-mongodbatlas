@@ -193,14 +193,6 @@ resources:
           computability:
             optional: true
             computed: true
-        analytics_specs:
-          computability:
-            optional: true
-            computed: true
-        auto_scaling:
-          computability:
-            optional: true
-            computed: true
         bi_connector:
           computability:
             optional: true
@@ -229,15 +221,31 @@ resources:
           computability:
             optional: true
             computed: true
-        read_only_specs:
-          computability:
-            optional: true
-            computed: true
         redact_client_log_data:
           computability:
             optional: true
             computed: true
-        zone_name:
+        replication_specs.region_configs.analytics_specs:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.electable_specs.disk_iops:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.electable_specs.disk_size_gb:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.read_only_specs:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.zone_name:
           computability:
             optional: true
             computed: true
