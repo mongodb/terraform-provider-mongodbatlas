@@ -192,7 +192,27 @@ resources:
           computability:
             optional: true
             computed: true
+        advanced_configuration.custom_openssl_cipher_config_tls12:
+          computability:
+            optional: true
+            computed: true
+        advanced_configuration.minimum_enabled_tls_protocol:
+          computability:
+            optional: true
+            computed: true
+        advanced_configuration.tls_cipher_config_mode:
+          computability:
+            optional: true
+            computed: true
         bi_connector:
+          computability:
+            optional: true
+            computed: true
+        bi_connector.enabled:
+          computability:
+            optional: true
+            computed: true
+        bi_connector.read_preference:
           computability:
             optional: true
             computed: true
@@ -228,7 +248,55 @@ resources:
           computability:
             optional: true
             computed: true
+        replication_specs.region_configs.analytics_specs.disk_iops:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.analytics_specs.disk_size_gb:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.analytics_specs.instance_size:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.analytics_specs.node_count:
+          computability:
+            optional: true
+            computed: true
         replication_specs.region_configs.auto_scaling:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling.compute:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling.compute.enabled:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling.compute.max_instance_size:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling.compute.min_instance_size:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling.compute.predictive_enabled:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling.compute.scale_down_enabled:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling.disk_gb:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling.disk_gb.enabled:
           computability:
             optional: true
             computed: true
@@ -241,6 +309,22 @@ resources:
             optional: true
             computed: true
         replication_specs.region_configs.read_only_specs:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.read_only_specs.disk_iops:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.read_only_specs.disk_size_gb:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.read_only_specs.instance_size:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.read_only_specs.node_count:
           computability:
             optional: true
             computed: true
