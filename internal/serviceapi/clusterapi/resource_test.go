@@ -73,7 +73,7 @@ func checkBasic(groupID, clusterName, instanceSize string) resource.TestCheckFun
 	mapChecks := map[string]string{
 		"group_id": groupID,
 		"name":     clusterName,
-		"replication_specs.0.region_configs.0.electable_specs.0.instance_size": instanceSize,
+		"replication_specs.0.region_configs.0.electable_specs.instance_size": instanceSize,
 	}
 	checks := acc.AddAttrChecks(resourceName, nil, mapChecks)
 	checks = append(checks, checkExists(resourceName))
