@@ -517,7 +517,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"root_cert_type": schema.StringAttribute{
 				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Root Certificate Authority that MongoDB Cloud cluster uses. MongoDB Cloud supports Internet Security Research Group.",
+				MarkdownDescription: "Root Certificate Authority that MongoDB Atlas cluster uses. MongoDB Cloud supports Internet Security Research Group.",
 			},
 			"state_name": schema.StringAttribute{
 				Computed:            true,

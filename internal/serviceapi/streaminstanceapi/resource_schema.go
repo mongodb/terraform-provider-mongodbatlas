@@ -106,6 +106,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							Computed:            true,
 							MarkdownDescription: "Comma separated list of server addresses.",
 						},
+						"cluster_group_id": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The id of the group that the cluster belongs to.",
+						},
 						"cluster_name": schema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "Name of the cluster configured for this connection.",
@@ -203,6 +207,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											MarkdownDescription: "Reserved. Will be used by PRIVATE_LINK connection type.",
 										},
 										"tgw_id": schema.StringAttribute{
+											Computed:            true,
+											MarkdownDescription: "Reserved. Will be used by TRANSIT_GATEWAY connection type.",
+										},
+										"tgw_route_id": schema.StringAttribute{
 											Computed:            true,
 											MarkdownDescription: "Reserved. Will be used by TRANSIT_GATEWAY connection type.",
 										},
@@ -412,6 +420,7 @@ type TFConnectionsModel struct {
 	Authentication   types.Object `tfsdk:"authentication" autogen:"omitjson"`
 	Aws              types.Object `tfsdk:"aws" autogen:"omitjson"`
 	BootstrapServers types.String `tfsdk:"bootstrap_servers" autogen:"omitjson"`
+	ClusterGroupId   types.String `tfsdk:"cluster_group_id" autogen:"omitjson"`
 	ClusterName      types.String `tfsdk:"cluster_name" autogen:"omitjson"`
 	Config           types.Map    `tfsdk:"config" autogen:"omitjson"`
 	DbRoleToExecute  types.Object `tfsdk:"db_role_to_execute" autogen:"omitjson"`
@@ -467,6 +476,7 @@ type TFConnectionsNetworkingAccessModel struct {
 	Links        types.List   `tfsdk:"links" autogen:"omitjson"`
 	Name         types.String `tfsdk:"name" autogen:"omitjson"`
 	TgwId        types.String `tfsdk:"tgw_id" autogen:"omitjson"`
+	TgwRouteId   types.String `tfsdk:"tgw_route_id" autogen:"omitjson"`
 	Type         types.String `tfsdk:"type" autogen:"omitjson"`
 	VpcCidr      types.String `tfsdk:"vpc_cidr" autogen:"omitjson"`
 }
