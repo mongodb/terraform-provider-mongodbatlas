@@ -240,6 +240,46 @@ func TestMarshalOmitJSONUpdate(t *testing.T) {
 	assert.JSONEq(t, expectedUpdate, string(update))
 }
 
+func TestMarshalUpdateNull(t *testing.T) {
+	model := struct {
+		AttrList          types.List   `tfsdk:"attr_list"`
+		AttrSet           types.Set    `tfsdk:"attr_set"`
+		AttrString        types.String `tfsdk:"attr_string"`
+		AttrObj           types.Object `tfsdk:"attr_obj"`
+		AttrIncludeString types.String `tfsdk:"attr_include_update" autogen:"includejsonupdate"`
+		AttrIncludeObj    types.Object `tfsdk:"attr_include_obj" autogen:"includejsonupdate"`
+	}{
+		AttrList:          types.ListNull(types.StringType),
+		AttrSet:           types.SetNull(types.StringType),
+		AttrString:        types.StringNull(),
+		AttrObj:           types.ObjectNull(objTypeTest.AttrTypes),
+		AttrIncludeString: types.StringNull(),
+		AttrIncludeObj:    types.ObjectNull(objTypeTest.AttrTypes),
+	}
+	// null list and set root elements are sent as empty arrays in update.
+	// fields with includejsonupdate tag are included even when null during updates.
+	const expectedJSON = `
+		{
+			"attrList": [],
+			"attrSet": [],
+			"attrIncludeString": null,
+			"attrIncludeObj": null
+		}
+	`
+	raw, err := autogen.Marshal(&model, true)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedJSON, string(raw))
+
+	// Test that includejsonupdate fields are NOT included when isUpdate is false
+	rawCreate, errCreate := autogen.Marshal(&model, false)
+	require.NoError(t, errCreate)
+	const expectedJSONCreate = `
+		{
+		}
+	`
+	assert.JSONEq(t, expectedJSONCreate, string(rawCreate))
+}
+
 func TestMarshalUnsupported(t *testing.T) {
 	testCases := map[string]any{
 		"Int32 not supported yet as it's not being used in any model": &struct {

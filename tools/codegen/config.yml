@@ -32,6 +32,8 @@ resources:
       overrides:
         password:
           sensitive: true
+        description:
+          include_json_update: true
 
   push_based_log_export_api:
     read:
