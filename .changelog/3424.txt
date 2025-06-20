@@ -1,0 +1,3 @@
+```release-note:enhancement
+Adds `cluster_project_id` field for stream_connection to allow connections to clusters in other projects within an organization
+```
