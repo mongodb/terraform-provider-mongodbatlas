@@ -36,6 +36,7 @@ func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, proj
 		IPAddresses:                                 ipAddressesModel,
 		Tags:                                        conversion.NewTFTags(project.GetTags()),
 		IsSlowOperationThresholdingEnabled:          types.BoolValue(projectProps.IsSlowOperationThresholdingEnabled),
+		// TODO: add usernames set
 	}, nil
 }
 

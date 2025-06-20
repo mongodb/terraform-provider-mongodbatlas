@@ -51,6 +51,7 @@ type TFProjectDSModel struct {
 	IsExtendedStorageSizesEnabled               types.Bool       `tfsdk:"is_extended_storage_sizes_enabled"`
 	IsDataExplorerEnabled                       types.Bool       `tfsdk:"is_data_explorer_enabled"`
 	IsSlowOperationThresholdingEnabled          types.Bool       `tfsdk:"is_slow_operation_thresholding_enabled"`
+	// TODO: add usernames
 }
 
 type TFTeamDSModel struct {
@@ -179,6 +180,7 @@ func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, re
 				ElementType: types.StringType,
 				Computed:    true,
 			},
+			// TODO: add usernames
 		},
 	}
 	conversion.UpdateSchemaDescription(&resp.Schema)

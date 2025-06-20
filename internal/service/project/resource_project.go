@@ -365,6 +365,7 @@ type AdditionalProperties struct {
 	IPAddresses                        *admin.GroupIPAddresses
 	Limits                             []admin.DataFederationLimit
 	IsSlowOperationThresholdingEnabled bool
+	// TODO: add nullable usernames
 }
 
 // GetProjectPropsFromAPI fetches properties obtained from complementary endpoints associated with a project.
@@ -393,12 +394,15 @@ func GetProjectPropsFromAPI(ctx context.Context, projectsAPI admin.ProjectsApi, 
 		return nil, fmt.Errorf("error getting project's slow operation thresholding enabled (%s): %v", projectID, err.Error())
 	}
 
+	// TODO: get usernames
+
 	return &AdditionalProperties{
 		Teams:                              teams,
 		Limits:                             limits,
 		Settings:                           projectSettings,
 		IPAddresses:                        ipAddresses,
 		IsSlowOperationThresholdingEnabled: isSlowOperationThresholdingEnabled,
+		// TODO: add usernames set
 	}, nil
 }
 
