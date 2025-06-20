@@ -50,6 +50,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"cluster_name": schema.StringAttribute{
 				Optional: true,
 			},
+			"cluster_group_id": schema.StringAttribute{
+				Optional: true,
+			},
 			"db_role_to_execute": schema.SingleNestedAttribute{
 				Optional: true,
 				Attributes: map[string]schema.Attribute{

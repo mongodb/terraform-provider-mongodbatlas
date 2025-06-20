@@ -107,6 +107,7 @@ resource "mongodbatlas_stream_connection" "example-https" {
 If `type` is of value `Cluster` the following additional arguments are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
 * `db_role_to_execute` - The name of a Built in or Custom DB Role to connect to an Atlas Cluster. See [DBRoleToExecute](#DBRoleToExecute).
+* `cluster_project_id` - The id of the project that contains the configured cluster. Only populated if the id does not match the project containing the streams instance.
 
 If `type` is of value `Kafka` the following additional arguments are defined:
 * `authentication` - User credentials required to connect to a Kafka cluster. Includes the authentication type, as well as the parameters for that authentication mode. See [authentication](#authentication).
