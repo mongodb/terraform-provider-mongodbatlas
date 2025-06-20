@@ -240,6 +240,30 @@ func TestMarshalOmitJSONUpdate(t *testing.T) {
 	assert.JSONEq(t, expectedUpdate, string(update))
 }
 
+func TestMarshalUpdateNull(t *testing.T) {
+	model := struct {
+		AttrList   types.List   `tfsdk:"attr_list"`
+		AttrSet    types.Set    `tfsdk:"attr_set"`
+		AttrString types.String `tfsdk:"attr_string"`
+		AttrObj    types.Object `tfsdk:"attr_obj"`
+	}{
+		AttrList:   types.ListNull(types.StringType),
+		AttrSet:    types.SetNull(types.StringType),
+		AttrString: types.StringNull(),
+		AttrObj:    types.ObjectNull(objTypeTest.AttrTypes),
+	}
+	// null list and set root elements are sent as empty arrays in update.
+	const expectedJSON = `
+		{
+			"attrList": [],
+			"attrSet": []
+		}
+	`
+	raw, err := autogen.Marshal(&model, true)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedJSON, string(raw))
+}
+
 func TestMarshalUnsupported(t *testing.T) {
 	testCases := map[string]any{
 		"Int32 not supported yet as it's not being used in any model": &struct {
