@@ -24,11 +24,15 @@ func TestAccClusterAPI_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(groupID, clusterName, "M10"),
+				Config: configBasic(groupID, clusterName, "M10", false),
 				Check:  checkBasic(groupID, clusterName, "M10"),
 			},
 			{
-				Config: configBasic(groupID, clusterName, "M30"),
+				Config: configBasic(groupID, clusterName, "M30", true),
+				Check:  checkBasic(groupID, clusterName, "M30"),
+			},
+			{
+				Config: configBasic(groupID, clusterName, "M30", false),
 				Check:  checkBasic(groupID, clusterName, "M30"),
 			},
 			{
@@ -48,7 +52,29 @@ func TestAccClusterAPI_basic(t *testing.T) {
 	})
 }
 
-func configBasic(groupID, clusterName, instanceSize string) string {
+func configBasic(groupID, clusterName, instanceSize string, withTagsAndLabels bool) string {
+	tagsAndLabels := ""
+	if withTagsAndLabels {
+		tagsAndLabels = `
+			tags = [
+				{
+					key   = "tagKey"
+					value = "tagValue"
+				},
+				{
+					key   = "tagKey2"
+					value = "tagValue2"
+				},
+			]
+			labels = [
+				{
+					key   = "labelKey"
+					value = "labelValue"
+				},
+			]
+		`
+	}
+
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster_api" "test" {
 			group_id     = %[1]q
@@ -65,8 +91,9 @@ func configBasic(groupID, clusterName, instanceSize string) string {
 					}
 				}]
 			}]
+			%[4]s
 		}
-	`, groupID, clusterName, instanceSize)
+	`, groupID, clusterName, instanceSize, tagsAndLabels)
 }
 
 func checkBasic(groupID, clusterName, instanceSize string) resource.TestCheckFunc {
