@@ -19,6 +19,19 @@ resource "mongodbatlas_stream_connection" "example-cluster" {
   }
 }
 
+resource "mongodbatlas_stream_connection" "example-cross-project-cluster" {
+  project_id          = var.project_id
+  instance_name       = mongodbatlas_stream_instance.example.instance_name
+  connection_name     = "ClusterCrossProjectConnection"
+  type                = "Cluster"
+  cluster_name        = var.other_cluster
+  cluster_project_id  = var.other_project_id
+  db_role_to_execute  = {
+    role = "atlasAdmin"
+    type = "BUILT_IN"
+  }
+}
+
 resource "mongodbatlas_stream_connection" "example-kafka-plaintext" {
   project_id      = var.project_id
   instance_name   = mongodbatlas_stream_instance.example.instance_name
