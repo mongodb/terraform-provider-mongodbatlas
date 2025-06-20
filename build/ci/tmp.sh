@@ -1,33 +1,18 @@
 #!/usr/bin/env bash
-set -euo pipefail
 export GH_TOKEN="${github_token}"
 
-# Clean the release_tag first
 release_tag=$(gh release list --limit 1 --json tagName | jq -r '.[0].tagName')
-echo "DEBUG: cleaned release_tag: $release_tag"
+echo "DEBUG: extracted release_tag: $release_tag"
 
-if [ -z "${release_tag}" ]; then
-    echo "ERROR: release_tag must be provided for production releases"
+if [[ -z "$release_tag" || "$release_tag" == "null" ]]; then
+    echo "ERROR: Failed to extract valid release tag"
     exit 1
 fi
-
-# Clean version (remove 'v' prefix if present)
-if [[ $release_tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    # if [[ $release_tag =~ ^test-trail-[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    echo "DEBUG: release_tag matches v1.2.3 format"
-    version="${release_tag:1}" # Remove the 'v' prefix
-else
-    echo "ERROR: release_tag '$release_tag' does not match required format v1.2.3 (found pre-release or invalid format)"
-    exit 1
-fi
-
-echo "Tracing artifacts for release version: $version"
 
 mkdir -p release_artifacts
 
-# TODO: uncomment:
-# echo "Waiting 20 minutes before checking for release artifacts..."
-# sleep 1200  # 20 minutes initial wait
+echo "Waiting 20 minutes before checking for release artifacts..."
+sleep 1200 # 20 minutes initial wait
 
 echo "Checking for terraform-provider .zip artifacts in GitHub release..."
 
@@ -78,5 +63,5 @@ fi
 echo "Found $artifact_count terraform-provider artifacts to trace"
 
 cat <<EOT >trace-expansions.yml
-release_version: "$version"
+release_version: "$release_tag"
 EOT

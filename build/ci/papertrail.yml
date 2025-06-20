@@ -50,35 +50,20 @@ functions:
       params:
         working_dir: "src/github.com/mongodb/terraform-provider-mongodbatlas"
         script: |
-          set -euo pipefail
-          
           export GH_TOKEN="${github_token}"
 
-          # raw_output=$(gh release list --limit 1 --json tagName)
-          # echo "DEBUG: raw gh output: $raw_output"
-
-          # release_tag=$(echo "$raw_output" | jq -r '.[0].tagName')
-          # echo "DEBUG: extracted release_tag: $release_tag"
-
           release_tag=$(gh release list --limit 1 --json tagName | jq -r '.[0].tagName')
+          echo "DEBUG: extracted release_tag: $release_tag"
 
           if [[ -z "$release_tag" || "$release_tag" == "null" ]]; then
               echo "ERROR: Failed to extract valid release tag"
               exit 1
           fi
 
-          # strip the leading 'v'
-          # version="${release_tag#v}"
-          
-          version="${release_tag:1}" # Remove the 'v' prefix
-
-          echo "Tracing artifacts for release version: $version"
-
           mkdir -p release_artifacts
 
-          # TODO: uncomment:
-          # echo "Waiting 20 minutes before checking for release artifacts..."
-          # sleep 1200  # 20 minutes initial wait
+          echo "Waiting 20 minutes before checking for release artifacts..."
+          sleep 1200  # 20 minutes initial wait
 
           echo "Checking for terraform-provider .zip artifacts in GitHub release..."
 
@@ -129,7 +114,7 @@ functions:
           echo "Found $artifact_count terraform-provider artifacts to trace"
 
           cat <<EOT >trace-expansions.yml
-          release_version: "$version"
+          release_version: "$release_tag"
           EOT
 
     
@@ -157,7 +142,7 @@ tasks:
 buildvariants:
   - name: papertrail_github_release
     display_name: "Papertrail - GitHub Release Artifacts"
-    # git_tag_only: true
+    git_tag_only: true
     tags: ["release"]
     run_on:
       - rhel90-small
