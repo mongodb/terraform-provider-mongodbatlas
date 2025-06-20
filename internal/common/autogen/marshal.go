@@ -11,9 +11,10 @@ import (
 )
 
 const (
-	tagKey               = "autogen"
-	tagValOmitJSON       = "omitjson"
-	tagValOmitJSONUpdate = "omitjsonupdate"
+	tagKey                  = "autogen"
+	tagValOmitJSON          = "omitjson"
+	tagValOmitJSONUpdate    = "omitjsonupdate"
+	tagValIncludeJSONUpdate = "includejsonupdate"
 )
 
 // Marshal gets a Terraform model and marshals it into JSON (e.g. for an Atlas request).
@@ -21,6 +22,7 @@ const (
 // Attributes that are null or unknown are not marshaled.
 // Attributes with autogen tag `omitjson` are never marshaled, this only applies to the root model.
 // Attributes with autogen tag `omitjsonupdate` are not marshaled if isUpdate is true, this only applies to the root model.
+// Attributes with autogen tag `includejsonupdate` are marshaled if isUpdate is true (even if null), this only applies to the root model.
 // Null list or set root elements are sent as empty arrays if isUpdate is true.
 func Marshal(model any, isUpdate bool) ([]byte, error) {
 	valModel := reflect.ValueOf(model)
@@ -51,14 +53,14 @@ func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error)
 		}
 		attrNameModel := attrTypeModel.Name
 		attrValModel := valModel.Field(i)
-		if err := marshalAttr(attrNameModel, attrValModel, objJSON, isUpdate); err != nil {
+		if err := marshalAttr(attrNameModel, attrValModel, objJSON, isUpdate, tag == tagValIncludeJSONUpdate); err != nil {
 			return nil, err
 		}
 	}
 	return objJSON, nil
 }
 
-func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[string]any, isUpdate bool) error {
+func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[string]any, isUpdate, includeUpdate bool) error {
 	attrNameJSON := xstrings.ToCamelCase(attrNameModel)
 	obj, ok := attrValModel.Interface().(attr.Value)
 	if !ok {
@@ -69,15 +71,14 @@ func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[s
 		return err
 	}
 
-	// What to send in update request body if the root field is null, nothing is sent by default
 	if val == nil && isUpdate {
 		switch obj.(type) {
 		case types.List, types.Set:
-			val = []any{} // Send an empty array if it's a list or set
+			val = []any{} // Send an empty array if it's a null root list or set
 		}
 	}
 
-	if val != nil {
+	if val != nil || (isUpdate && includeUpdate) {
 		objJSON[attrNameJSON] = val
 	}
 	return nil
