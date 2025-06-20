@@ -381,6 +381,13 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 							Description:              conversion.StringPtr("Optional string that has config override to optional/computed"),
 						},
 						{
+							Name:                     "attr_always_in_updates",
+							ComputedOptionalRequired: codespec.Computed,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr("Always in updates"),
+							ReqBodyUsage:             codespec.IncludeInUpdateBody,
+						},
+						{
 							Name:                     "outer_object",
 							ComputedOptionalRequired: codespec.Computed,
 							ReqBodyUsage:             codespec.OmitAlways,
