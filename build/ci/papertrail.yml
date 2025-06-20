@@ -29,7 +29,7 @@ functions:
   "install gh cli":
     - command: shell.exec
       params:
-        working_dir: "n/a"
+        working_dir: "na"
         script: |
           sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
           sudo dnf install -y gh
@@ -63,7 +63,7 @@ functions:
           mkdir -p release_artifacts
 
           echo "Waiting 20 minutes before checking for release artifacts..."
-          sleep 1200  # 20 minutes initial wait
+          sleep 1200
 
           echo "Checking for terraform-provider .zip artifacts in GitHub release..."
 
@@ -126,7 +126,7 @@ functions:
       params:
         key_id: ${papertrail_key_id}
         secret_key: ${papertrail_secret_key}
-        product: "test-tf-provider-mongodbatlas-2"
+        product: "terraform-provider-mongodbatlas"
         version: ${release_version}
         filenames:
           - "src/github.com/mongodb/terraform-provider-mongodbatlas/release_artifacts/*.zip"
