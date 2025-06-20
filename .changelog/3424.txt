@@ -1,3 +1,7 @@
 ```release-note:enhancement
-Adds `cluster_project_id` field for stream_connection to allow connections to clusters in other projects within an organization
+data-source/mongodbatlas_stream_connection Adds `cluster_project_id` field for stream_connection to allow connections to clusters in other projects within an organization
+```
+
+```release-note:enhancement
+resource/mongodbatlas_stream_connection Adds `cluster_project_id` field for stream_connection to allow connections to clusters in other projects within an organization
 ```
