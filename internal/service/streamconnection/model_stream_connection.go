@@ -17,6 +17,7 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 		Name:             plan.ConnectionName.ValueStringPointer(),
 		Type:             plan.Type.ValueStringPointer(),
 		ClusterName:      plan.ClusterName.ValueStringPointer(),
+		ClusterGroupId:   plan.ClusterProjectID.ValueStringPointer(),
 		BootstrapServers: plan.BootstrapServers.ValueStringPointer(),
 		Url:              plan.URL.ValueStringPointer(),
 	}
