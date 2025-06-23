@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/myip"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -429,6 +430,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		alertconfiguration.DataSource,
 		alertconfiguration.PluralDataSource,
 		projectipaccesslist.DataSource,
+		myip.DataSource,
 		atlasuser.DataSource,
 		atlasuser.PluralDataSource,
 		searchdeployment.DataSource,
