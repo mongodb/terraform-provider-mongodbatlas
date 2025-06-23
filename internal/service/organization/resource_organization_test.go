@@ -168,7 +168,7 @@ func TestAccConfigDSOrganization_noAccessShouldFail(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      configWithPluralDS("555") + acc.ConfigOrgMemberProvider(),
-				ExpectError: regexp.MustCompile("error getting organization settings .*"),
+				ExpectError: regexp.MustCompile("error getting organizations information:"),
 			},
 		},
 	})
