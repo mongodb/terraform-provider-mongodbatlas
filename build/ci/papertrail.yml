@@ -138,7 +138,7 @@ tasks:
 buildvariants:
   - name: papertrail_github_release
     display_name: "Papertrail - GitHub Release Artifacts"
-    git_tag_only: true
+    # git_tag_only: true
     tags: ["release"]
     run_on:
       - rhel90-small
