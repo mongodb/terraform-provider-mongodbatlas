@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312004/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -336,6 +336,7 @@ func resourceRefreshFunc(ctx context.Context, d *schema.ResourceData, client *ad
 			return nil, "provisioned_container", nil
 		}
 
+		// Atlas Delete is called inside refresh to retry when error: HTTP 409 Conflict (Error code: "CONTAINERS_IN_USE").
 		_, err = client.NetworkPeeringApi.DeletePeeringContainer(ctx, projectID, containerID).Execute()
 		if err != nil {
 			return nil, "provisioned_container", nil

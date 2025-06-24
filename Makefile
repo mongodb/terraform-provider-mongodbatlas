@@ -1,4 +1,3 @@
-
 ifdef ACCTEST_PACKAGES
 		# remove newlines and blanks coming from GH Actions
     ACCTEST_PACKAGES := $(strip $(subst $(newline),, $(ACCTEST_PACKAGES)))
@@ -199,7 +198,10 @@ jira-release-version: ## Update Jira version in a release
 
 .PHONY: enable-autogen
 enable-autogen: ## Enable use of autogen resources in the provider
-	make add-lines filename=./internal/provider/provider.go find="project.Resource," add="customdbroleapi.Resource,databaseuserapi.Resource,pushbasedlogexportapi.Resource,searchdeploymentapi.Resource,projectapi.Resource,resourcepolicyapi.Resource,"
+	$(eval filename := ./internal/provider/provider.go)
+	$(eval resources := $(shell ls -d internal/serviceapi/*/ | xargs -n1 basename))
+	$(foreach resource,$(resources),make add-lines filename=${filename} find="project.Resource," add="$(resource).Resource,\n";)
+	goimports -w ${filename}
 
 .PHONY: delete-lines ${filename} ${delete}
 delete-lines:
@@ -211,13 +213,27 @@ delete-lines:
 .PHONY: add-lines ${filename} ${find} ${add}
 add-lines:
 	rm -f file.tmp
-	sed 's/${find}/${find}${add}/' "${filename}" > "file.tmp"
+	sed 's/${find}/${add}${find}/' "${filename}" > "file.tmp"
 	mv file.tmp ${filename}
-	goimports -w ${filename}
 
 .PHONY: change-lines ${filename} ${find} ${new}
 change-lines:
 	rm -f file.tmp
 	sed 's/${find}/${new}/' "${filename}" > "file.tmp"
 	mv file.tmp ${filename}
-	goimports -w ${filename}
+
+.PHONY: gen-purls
+gen-purls: # Generate purls on linux os
+	./scripts/compliance/generate-purls.sh
+
+.PHONY: generate-sbom
+generate-sbom: ## Generate SBOM
+	./scripts/compliance/generate-sbom.sh
+
+.PHONY: upload-sbom
+upload-sbom: ## Upload SBOM
+	./scripts/compliance/upload-sbom.sh
+
+.PHONY: augment-sbom
+augment-sbom: ## Augment SBOM
+	./scripts/compliance/augment-sbom.sh

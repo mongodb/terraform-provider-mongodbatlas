@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312004/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -69,6 +69,7 @@ func (r *projectIPAccessListRS) Create(ctx context.Context, req resource.CreateR
 		Target:  []string{"created", "failed"},
 		Refresh: func() (any, string, error) {
 			_, _, err := connV2.ProjectIPAccessListApi.CreateProjectIpAccessList(ctx, projectID, NewMongoDBProjectIPAccessList(projectIPAccessListModel)).Execute()
+			// Atlas Create is called inside refresh because this limitation: This endpoint doesn't support concurrent POST requests. You must submit multiple POST requests synchronously.
 			if err != nil {
 				if strings.Contains(err.Error(), "Unexpected error") ||
 					strings.Contains(err.Error(), "UNEXPECTED_ERROR") ||

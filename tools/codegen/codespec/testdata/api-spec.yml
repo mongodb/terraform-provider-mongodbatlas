@@ -474,6 +474,9 @@ components:
         optional_string_attr:
           type: string
           description: Optional string
+        attrAlwaysInUpdates:
+          type: string
+          description: Always in updates
     SingleNestedAttrWithNestedMaps:
       type: object
       description: Test field description
@@ -534,6 +537,9 @@ components:
         optional_string_attr:
           type: string
           description: Optional string
+        attrAlwaysInUpdates:
+          type: string
+          description: Always in updates
       required:
         - nestedListArrayAttr
     SimpleStringRefObject:

@@ -84,7 +84,8 @@ type AttributeReqBodyUsage int
 const (
 	AllRequestBodies = iota // by default attribute is sent in request bodies
 	OmitInUpdateBody
-	OmitAlways // this covers computed-only attributes and attributes which are only used for path/query params
+	IncludeInUpdateBody // attributes that always must be sent in update request body even if null
+	OmitAlways          // this covers computed-only attributes and attributes which are only used for path/query params
 )
 
 type BoolAttribute struct {

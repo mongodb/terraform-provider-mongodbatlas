@@ -1,6 +1,6 @@
 module github.com/mongodb/terraform-provider-mongodbatlas
 
-go 1.24.3
+go 1.24.4
 
 require (
 	github.com/andygrunwald/go-jira/v2 v2.0.0-20240116150243-50d59fe116d6
@@ -24,10 +24,10 @@ require (
 	github.com/huandu/xstrings v1.5.0
 	github.com/jarcoal/httpmock v1.4.0
 	github.com/mongodb-forks/digest v1.1.0
-	github.com/mongodb/atlas-sdk-go v1.0.1-0.20250602153350-008c4a0d64f0
-	github.com/pb33f/libopenapi v0.22.2
+	github.com/mongodb/atlas-sdk-go v1.0.1-0.20250620083956-0ea2317294eb
+	github.com/pb33f/libopenapi v0.22.3
 	github.com/sebdah/goldie/v2 v2.5.5
-	github.com/spf13/cast v1.8.0
+	github.com/spf13/cast v1.9.2
 	github.com/stretchr/testify v1.10.0
 	github.com/wI2L/jsondiff v0.7.0
 	github.com/zclconf/go-cty v1.16.3
@@ -41,7 +41,7 @@ require (
 
 require (
 	github.com/hashicorp/terraform-json v0.25.0
-	go.mongodb.org/atlas-sdk/v20250312003 v20250312003.0.0
+	go.mongodb.org/atlas-sdk/v20250312004 v20250312004.0.0
 )
 
 require (
@@ -63,7 +63,7 @@ require (
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
-	github.com/cloudflare/circl v1.6.0 // indirect
+	github.com/cloudflare/circl v1.6.1 // indirect
 	github.com/cyphar/filepath-securejoin v0.4.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
