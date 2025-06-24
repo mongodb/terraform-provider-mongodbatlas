@@ -12,7 +12,7 @@ tasks:
       - command: shell.exec
         params:
           script: |
-            echo "Hello world 2 from the papertrail test task - ev.yml!"
+            echo "Helloo world 2 from the papertrail test task - ev.yml!"
 
 
 
