@@ -62,6 +62,12 @@ func TestConvertToProviderSpec(t *testing.T) {
 							ReqBodyUsage:             codespec.OmitAlways,
 						},
 						{
+							Name:                     "id", // _id from API spec should become "id" in Terraform schema
+							ComputedOptionalRequired: codespec.Optional,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr("Field with _ prefix"),
+						},
+						{
 							Name:                     "num_double_default_attr",
 							Float64:                  &codespec.Float64Attribute{Default: conversion.Pointer(2.0)},
 							ComputedOptionalRequired: codespec.ComputedOptional,

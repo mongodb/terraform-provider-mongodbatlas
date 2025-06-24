@@ -12,10 +12,6 @@ import (
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"_id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Unique 24-hexadecimal character string that identifies the project.",
-			},
 			"cloud_provider": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Label that identifies the cloud service provider where MongoDB Cloud performs stream processing. Currently, this parameter only supports AWS and AZURE.",
@@ -322,6 +318,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "List that contains the hostnames assigned to the stream instance.",
 				ElementType:         types.StringType,
 			},
+			"id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Unique 24-hexadecimal character string that identifies the project.",
+			},
 			"links": schema.ListNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
@@ -404,12 +404,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	_Id               types.String `tfsdk:"_id" autogen:"omitjson"`
 	CloudProvider     types.String `tfsdk:"cloud_provider"`
 	Connections       types.List   `tfsdk:"connections" autogen:"omitjson"`
 	DataProcessRegion types.Object `tfsdk:"data_process_region" autogen:"omitjsonupdate"`
 	GroupId           types.String `tfsdk:"group_id" autogen:"omitjson"`
 	Hostnames         types.List   `tfsdk:"hostnames" autogen:"omitjson"`
+	Id                types.String `tfsdk:"id" autogen:"omitjson"`
 	Links             types.List   `tfsdk:"links" autogen:"omitjson"`
 	Name              types.String `tfsdk:"name" autogen:"omitjsonupdate"`
 	Region            types.String `tfsdk:"region"`

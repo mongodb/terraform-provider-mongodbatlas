@@ -3,6 +3,7 @@ package codespec
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
 	"github.com/pb33f/libopenapi/orderedmap"
@@ -39,7 +40,13 @@ func buildResourceAttrs(s *APISpecSchema, isFromRequest bool) (Attributes, error
 	return objectAttributes, nil
 }
 
+func sanitizeTerraformAttrName(name string) string {
+	// names starting with _ can't be used in Terraform attributes, e.g. _id in search_index_api is converted to id
+	return strings.TrimPrefix(name, "_")
+}
+
 func (s *APISpecSchema) buildResourceAttr(name string, computability ComputedOptionalRequired, isFromRequest bool) (*Attribute, error) {
+	name = sanitizeTerraformAttrName(name)
 	switch s.Type {
 	case OASTypeString:
 		return s.buildStringAttr(name, computability)
