@@ -4,3 +4,22 @@ command_type: system
 pre_error_fails_task: true
 include:
   - filename: build/ci/papertrail.yml
+
+
+tasks:
+  - name: say_hello22
+    commands:
+      - command: shell.exec
+        params:
+          script: |
+            echo "Hello world 2 from the papertrail test task - ev.yml!"
+
+
+
+buildvariants:
+  - name: ubuntu
+    display_name: Say hello
+    run_on:
+      - rhel90-small
+    tasks:
+      - name: say_hello22
