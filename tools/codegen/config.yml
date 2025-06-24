@@ -317,8 +317,6 @@ search_deployment_api:
       target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
   version_header: application/vnd.atlas.2025-03-12+json
 
-# No fully functional yet so it doesn't have acceptance tests yet.
-# It has a sensitive attribute that has password format in OpenAPI spec.
 stream_instance_api:
   read:
     path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}
