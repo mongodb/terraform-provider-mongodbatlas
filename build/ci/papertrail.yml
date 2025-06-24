@@ -1,12 +1,6 @@
 variables:
   - &go_linux_version
-    go_root: "/opt/golang/go1.24"
-    go_bin: "/opt/golang/go1.24/bin"
     go_base_path: ""
-  - &go_windows_version
-    go_root: "c:\\golang\\go1.24"
-    go_bin: "c:\\golang\\go1.24\\bin"
-    go_base_path: "c:"
   - &go_env
     XDG_CONFIG_HOME: ${go_base_path}${workdir}
     GO111MODULE: "on"
@@ -29,7 +23,7 @@ functions:
   "install gh cli":
     - command: shell.exec
       params:
-        working_dir: "na"
+        working_dir: ""
         script: |
           sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
           sudo dnf install -y gh
@@ -49,18 +43,20 @@ functions:
     - command: shell.exec
       params:
         working_dir: "src/github.com/mongodb/terraform-provider-mongodbatlas"
+        shell: bash
         script: |
           export GH_TOKEN="${github_token}"
 
           release_tag=$(gh release list --limit 1 --json tagName | jq -r '.[0].tagName')
           echo "DEBUG: extracted release_tag: $release_tag"
 
+          version="$(echo "$release_tag" | cut -c2-)"
+          echo "Tracing artifacts for version: $version"
+
           if [[ -z "$release_tag" || "$release_tag" == "null" ]]; then
               echo "ERROR: Failed to extract valid release tag"
               exit 1
           fi
-
-          mkdir -p release_artifacts
 
           echo "Waiting 20 minutes before checking for release artifacts..."
           sleep 1200
@@ -114,7 +110,7 @@ functions:
           echo "Found $artifact_count terraform-provider artifacts to trace"
 
           cat <<EOT >trace-expansions.yml
-          release_version: "$release_tag"
+          release_version: "$version"
           EOT
 
     
