@@ -52,14 +52,15 @@ func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error)
 		}
 		attrNameModel := attrTypeModel.Name
 		attrValModel := valModel.Field(i)
-		if err := marshalAttr(attrNameModel, attrValModel, objJSON, isUpdate, tag == tagValIncludeNullOnUpdate); err != nil {
+		includeNullOnUpdate := tag == tagValIncludeNullOnUpdate
+		if err := marshalAttr(attrNameModel, attrValModel, objJSON, isUpdate, includeNullOnUpdate); err != nil {
 			return nil, err
 		}
 	}
 	return objJSON, nil
 }
 
-func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[string]any, isUpdate, includeUpdate bool) error {
+func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[string]any, isUpdate, includeNullOnUpdate bool) error {
 	attrNameJSON := toJSONName(attrNameModel)
 	obj, ok := attrValModel.Interface().(attr.Value)
 	if !ok {
@@ -77,7 +78,7 @@ func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[s
 		}
 	}
 
-	if val != nil || (isUpdate && includeUpdate) {
+	if val != nil || (isUpdate && includeNullOnUpdate) {
 		objJSON[attrNameJSON] = val
 	}
 	return nil
