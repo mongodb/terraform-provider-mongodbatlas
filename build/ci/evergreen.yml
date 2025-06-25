@@ -7,10 +7,22 @@ include:
 
 tasks:
   - name: no_op
-  - run_on:
-      - ubuntu2404-small
     commands:
       - command: shell.exec
         params:
           script: |
-            echo "This is a no-op, does nothing."
+            echo "This is a no-op task, does nothing."
+
+
+
+buildvariants:
+  - name: no_op
+    display_name: no_op
+    run_on:
+      - ubuntu2404-small
+    tasks:
+      - name: no_op
+
+
+
+      
