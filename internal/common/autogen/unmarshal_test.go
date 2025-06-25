@@ -16,7 +16,7 @@ func TestUnmarshalBasic(t *testing.T) {
 		AttrFloatWithInt types.Float64 `tfsdk:"attr_float_with_int"`
 		AttrString       types.String  `tfsdk:"attr_string"`
 		AttrNotInJSON    types.String  `tfsdk:"attr_not_in_json"`
-		AttrUnderscore   types.String  `tfsdk:"_attr_underscore"`
+		AttrUnderscore   types.String  `tfsdk:"attr_underscore"`
 		AttrInt          types.Int64   `tfsdk:"attr_int"`
 		AttrIntWithFloat types.Int64   `tfsdk:"attr_int_with_float"`
 		AttrTrue         types.Bool    `tfsdk:"attr_true"`
