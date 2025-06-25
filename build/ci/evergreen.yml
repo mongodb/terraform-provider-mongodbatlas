@@ -22,7 +22,3 @@ buildvariants:
       - ubuntu2404-small
     tasks:
       - name: no_op
-
-
-
-      
