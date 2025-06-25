@@ -82,7 +82,7 @@ functions:
                   exit 1
 
               else
-                  echo "Waiing for release to complete; sleeping $sleep_interval seconds"
+                  echo "Waiting for release to complete; sleeping $sleep_interval seconds"
                   sleep "$sleep_interval"
               fi
           done
