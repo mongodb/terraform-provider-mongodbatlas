@@ -317,7 +317,7 @@ resources:
         target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
     version_header: application/vnd.atlas.2025-03-12+json
 
-  # Update doesn't work because OpenAPI spec defines incorrectly region and cloud_provider at root level in PATCH instead of inside data_process_region as in the other endpoints.
+  # Update doesn't work because API defines incorrectly region and cloud_provider at root level in PATCH instead of inside data_process_region as in the other endpoints.
   # id should be Computed but is ignored because it's defined as _id which is not a legal name for a Terraform attribute as they can't start with an underscore.
   stream_instance_api:
     read:

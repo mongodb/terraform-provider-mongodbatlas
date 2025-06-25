@@ -31,7 +31,7 @@ func TestAccStreamInstanceAPI_basic(t *testing.T) {
 				Config: configBasic(projectID, instanceName, region, cloudProvider, "SP10"),
 				Check:  checkBasic(projectID, instanceName, region, cloudProvider, "SP10"),
 			},
-			// Update doesn't work because OpenAPI spec defines incorrectly region and cloud_provider at root level in PATCH instead of inside data_process_region as in the other endpoints.
+			// Update doesn't work because API defines incorrectly region and cloud_provider at root level in PATCH instead of inside data_process_region as in the other endpoints.
 			{
 				ResourceName:                         resourceName,
 				ImportStateIdFunc:                    importStateIDFunc(resourceName),
