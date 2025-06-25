@@ -47,71 +47,70 @@ functions:
         script: |
           export GH_TOKEN="${github_token}"
 
-          release_tag=$(gh release list --limit 1 --json tagName | jq -r '.[0].tagName')
-          echo "DEBUG: extracted release_tag: $release_tag"
+          git fetch --tags
+          release_tag=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' | sort -rV | head -n1)
 
-          version="$(echo "$release_tag" | cut -c2-)"
-          echo "Tracing artifacts for version: $version"
+          max_attempts=7
+          sleep_interval=300
 
-          if [[ -z "$release_tag" || "$release_tag" == "null" ]]; then
-              echo "ERROR: Failed to extract valid release tag"
-              exit 1
-          fi
+          echo "Waiting for 'release' job in workflow release.yml to succeed"
 
-          echo "Waiting 20 minutes before checking for release artifacts..."
-          sleep 1200
+          for ((attempt = 1; attempt <= max_attempts; attempt++)); do
+              echo "Poll #$attempt"
 
-          echo "Checking for terraform-provider .zip artifacts in GitHub release..."
+              # get the latest release workflow run
+              run_id=$(gh run list --workflow release.yml --branch master --limit 1 --json databaseId --jq '.[0].databaseId')
+              run_json=$(gh run view "$run_id" --json name,jobs)
 
-          max_attempts=5
-          attempt=1
-          artifact_found=false
+              conclusion=$(jq -r '.jobs[] | select(.name=="release") | .conclusion' <<<"$run_json")
+              version=$(jq -r '.name | match("v[0-9]+\\.[0-9]+\\.[0-9]+") | .string' <<<"$run_json")
 
-          while [ $attempt -le $max_attempts ]; do
-              echo "Attempt $attempt: checking for artifacts..."
-              gh release view "${release_tag}" --json assets --jq '.assets[].name' | grep -q 'terraform-provider-mongodbatlas.*\.zip'
-              if [ $? -eq 0 ]; then
-                  echo "Artifacts found. Proceeding to download..."
-                  artifact_found=true
-                  break
+              echo "conclusion=$conclusion   version=$version"
+
+              # checking the latest tag version (that triggered this task) matches the version in the release workflow run name
+              if [[ "$version" != "$release_tag" ]]; then
+                  echo "ERROR: version from run name ($version) != release tag ($release_tag)"
+                  exit 1
               fi
 
-              echo "Artifacts not available yet. Sleeping for 2 minutes before retry..."
-              sleep 120
-              attempt=$((attempt + 1))
+              if [[ "$conclusion" == "success" ]]; then
+                  echo "✅ release job succeeded for $version"
+                  break
+
+              elif [[ "$conclusion" == "failure" || "$conclusion" == "cancelled" ]]; then
+                  echo "❌ release job failed (conclusion: $conclusion)"
+                  exit 1
+
+              else
+                  echo "Waiing for release to complete; sleeping $sleep_interval seconds"
+                  sleep "$sleep_interval"
+              fi
           done
 
-          if [ "$artifact_found" != true ]; then
-              echo "ERROR: No terraform-provider .zip artifacts found after waiting. Exiting..."
-              gh release view "${release_tag}" --json assets --jq '.assets[].name'
+          if ((attempt > max_attempts)) && [[ "$conclusion" != "success" ]]; then
+              echo "ERROR: release job still not successful after $max_attempts polls"
               exit 1
           fi
 
+          echo "Downloading provider artifacts for $version"
           mkdir -p release_artifacts
-          gh release download "${release_tag}" -p "terraform-provider-mongodbatlas*.zip" -D ./release_artifacts/
+          gh release download "$release_tag" --pattern "terraform-provider-mongodbatlas*" --dir release_artifacts
 
-          echo "Downloaded artifacts:"
-          ls -la release_artifacts/
+          rm -f release_artifacts/[Ss]ource* || true
 
-          echo "Removing any source code archives..."
-          rm -f release_artifacts/Source* release_artifacts/source* 2>/dev/null || true
-
-          echo "Final artifacts to trace:"
-          ls -la release_artifacts/
-
-          artifact_count=$(ls -1 release_artifacts/*.zip 2>/dev/null | wc -l)
-          if [ $artifact_count -eq 0 ]; then
-              echo "ERROR: No terraform-provider .zip artifacts found for release ${release_tag}"
-              echo "Available files in release:"
-              gh release view "${release_tag}" --json assets --jq '.assets[].name'
+          count=$(find release_artifacts -name 'terraform-provider-mongodbatlas*' | wc -l)
+          echo "Found $count files"
+          ((count > 0)) || {
+              echo "ERROR: no artifacts downloaded for $version"
               exit 1
-          fi
+          }
 
-          echo "Found $artifact_count terraform-provider artifacts to trace"
-
-          cat <<EOT >trace-expansions.yml
+          cat >trace-expansions.yml <<EOF
           release_version: "$version"
-          EOT
+          EOF
+
+          echo "✅ Done."
+
 
     
     - command: expansions.update
@@ -122,7 +121,7 @@ functions:
       params:
         key_id: ${papertrail_key_id}
         secret_key: ${papertrail_secret_key}
-        product: "terraform-provider-mongodbatlas"
+        product: "tmp-terraform-provider-mongodbatlas"
         version: ${release_version}
         filenames:
           - "src/github.com/mongodb/terraform-provider-mongodbatlas/release_artifacts/*.zip"
@@ -138,7 +137,7 @@ tasks:
 buildvariants:
   - name: papertrail_github_release
     display_name: "Papertrail - GitHub Release Artifacts"
-    git_tag_only: true
+    # git_tag_only: true
     tags: ["release"]
     run_on:
       - rhel90-small
