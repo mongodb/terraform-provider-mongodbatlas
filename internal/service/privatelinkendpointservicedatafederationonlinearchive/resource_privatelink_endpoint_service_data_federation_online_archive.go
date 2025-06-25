@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312004/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -70,6 +70,7 @@ func Resource() *schema.Resource {
 				Computed: true,
 			},
 		},
+		// Timeouts are not being used but kept to avoid breaking changes.
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(2 * time.Hour),
 			Delete: schema.DefaultTimeout(2 * time.Hour),

@@ -12,7 +12,7 @@ import (
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	mockadmin20240530 "go.mongodb.org/atlas-sdk/v20240530005/mockadmin"
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312004/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -1426,6 +1426,7 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateReplicaset(t *testing
 				Timeout:     60 * time.Second,
 				IsDelete:    true,
 			}, "waiting for cluster to be deleted after cleanup in create timeout", diags)
+			time.Sleep(1 * time.Minute) // decrease the chance of `CONTAINER_WAITING_FOR_FAST_RECORD_CLEAN_UP`: "A transient error occurred. Please try again in a minute or use a different name"
 		}
 	)
 	resource.ParallelTest(t, *createCleanupTest(t, configCall, waitOnClusterDeleteDone, true))
@@ -1458,6 +1459,7 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateFlex(t *testing.T) {
 				Name:    clusterName,
 			}, acc.ConnV2().FlexClustersApi)
 			require.NoError(t, err)
+			time.Sleep(1 * time.Minute) // decrease the chance of `CONTAINER_WAITING_FOR_FAST_RECORD_CLEAN_UP`: "A transient error occurred. Please try again in a minute or use a different name"
 		}
 	)
 	resource.ParallelTest(t, *createCleanupTest(t, configCall, waitOnClusterDeleteDone, false))
@@ -1499,15 +1501,19 @@ func createCleanupTest(t *testing.T, configCall func(t *testing.T, timeoutSectio
 					resource.TestCheckResourceAttr(resourceName, "delete_on_create_timeout", "false"),
 				),
 			},
-			// Remove delete_on_create_timeout
-			resource.TestStep{
-				Config: configCall(t, ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckNoResourceAttr(resourceName, "delete_on_create_timeout"),
-				),
-			},
-			acc.TestStepImportCluster(resourceName),
 		)
+		deleteOnCreateTimeoutRemoved := configCall(t, "")
+		if config.PreviewProviderV2AdvancedCluster() {
+			steps = append(steps,
+				resource.TestStep{
+					Config: deleteOnCreateTimeoutRemoved,
+					Check:  resource.TestCheckNoResourceAttr(resourceName, "delete_on_create_timeout"),
+				})
+		} else {
+			// removing an optional false value has no affect in SDKv2, as false==null and no-plan-change
+			steps = append(steps, acc.TestStepCheckEmptyPlan(deleteOnCreateTimeoutRemoved))
+		}
+		steps = append(steps, acc.TestStepImportCluster(resourceName))
 	}
 	return &resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,

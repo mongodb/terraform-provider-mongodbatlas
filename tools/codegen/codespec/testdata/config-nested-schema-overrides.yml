@@ -31,4 +31,6 @@ resources:
             optional: true
             computed: true
           description: "Optional string that has config override to optional/computed"
+        attr_always_in_updates:
+          include_json_update: true
       timeouts: ["create", "read", "update", "delete"]

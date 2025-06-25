@@ -14,7 +14,7 @@ import (
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312004/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
@@ -96,18 +96,14 @@ type UAMetadata struct {
 	Value string
 }
 
-// NewClient func...
 func (c *Config) NewClient(ctx context.Context) (any, error) {
-	// setup a transport to handle digest
-	transport := digest.NewTransportWithHTTPTransport(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey), baseTransport)
-
-	// initialize the client
-	client, err := transport.Client()
-	if err != nil {
-		return nil, err
-	}
-
-	client.Transport = logging.NewTransport("MongoDB Atlas", transport)
+	// Network Logging transport is before Digest transport so it can log the first Digest requests with 401 Unauthorized.
+	// Terraform logging transport is after Digest transport so the Unauthorized request bodies are not logged.
+	networkLoggingTransport := NewTransportWithNetworkLogging(baseTransport, logging.IsDebugOrHigher())
+	digestTransport := digest.NewTransportWithHTTPRoundTripper(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey), networkLoggingTransport)
+	// Don't change logging.NewTransport to NewSubsystemLoggingHTTPTransport until all resources are in TPF.
+	tfLoggingTransport := logging.NewTransport("Atlas", digestTransport)
+	client := &http.Client{Transport: tfLoggingTransport}
 
 	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
 	if c.BaseURL != "" {
@@ -247,10 +243,12 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 		return nil, err
 	}
 
-	clientRealm := realmAuth.NewClient(realmAuth.BasicTokenSource(token))
-
-	clientRealm.Transport = baseTransport
-	clientRealm.Transport = logging.NewTransport("MongoDB Realm", clientRealm.Transport)
+	clientRealm := &http.Client{
+		Transport: &realmAuth.Transport{
+			Source: realmAuth.BasicTokenSource(token),
+			Base:   logging.NewTransport("MongoDB Realm", baseTransport),
+		},
+	}
 
 	// Initialize the MongoDB Realm API Client.
 	realmClient, err := realm.New(clientRealm, optsRealm...)

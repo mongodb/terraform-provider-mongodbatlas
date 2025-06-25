@@ -30,3 +30,13 @@ variable "cluster_name" {
   description = "Name of an existing cluster in your project that will be used to create a stream connection"
   type        = string
 }
+
+variable "other_project_id" {
+  description = "Unique 24-hexadecimal digit string that identifies another project with a cluster that can be connected"
+  type        = string
+}
+
+variable "other_cluster" {
+  description = "Name of an existing cluster in another project within an organization that will be used to create a stream connection"
+  type        = string
+}

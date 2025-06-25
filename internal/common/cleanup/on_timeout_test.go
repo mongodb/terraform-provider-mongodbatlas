@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	timeoutDuration = 1 * time.Millisecond
+	timeoutDuration = 10 * time.Millisecond
 )
 
 func TestCleanupOnErrorSkippedWhenNoTimeout(t *testing.T) {
@@ -45,9 +45,46 @@ func TestCleanupOnErrorCalledForATimeout(t *testing.T) {
 	assert.NotEqual(t, finalContext, ctx, "cleanup should be called with a new context")
 	require.NoError(t, finalContext.Err(), "cleanup should be called with a new context that hasn't been cancelled")
 	assert.Len(t, diags, 3) // diags entry 2 & 3 are added in the cleanup
-	assert.Equal(t, "Failed to create a cluster, will run cleanup due to timeout reached", diags[1].Summary())
+	assert.Equal(t, cleanup.CleanupWarning, diags[1].Summary())
 	assert.Equal(t, "warning detail", diags[1].Detail())
 
 	assert.Equal(t, "Error during cleanup", diags[2].Summary())
 	assert.Equal(t, "warning detail error=cleanup error", diags[2].Detail())
+}
+
+func TestReplaceContextDeadlineExceededDiags(t *testing.T) {
+	diags := diag.Diagnostics{
+		diag.NewErrorDiagnostic(
+			"Error creating resource",
+			"Error waiting for state to be IDLE: context deadline exceeded",
+		),
+		diag.NewErrorDiagnostic(
+			"Another error",
+			"This is a different error",
+		),
+		diag.NewWarningDiagnostic(
+			"Warning with deadline",
+			"Warning with context deadline exceeded mentioned",
+		),
+	}
+
+	expectedSummaries := []string{
+		"Error creating resource",
+		"Another error",
+		"Warning with deadline",
+	}
+	expectedDetails := []string{
+		"Error waiting for state to be IDLE: Timeout reached after 2m0s",
+		"This is a different error",
+		"Warning with Timeout reached after 2m0s mentioned",
+	}
+
+	duration := 2 * time.Minute
+	cleanup.ReplaceContextDeadlineExceededDiags(&diags, duration)
+
+	assert.Len(t, diags, 3, "Expected same number of diagnostics")
+	for i, diag := range diags {
+		assert.Equal(t, expectedSummaries[i], diag.Summary(), "Summary at index %d should match", i)
+		assert.Equal(t, expectedDetails[i], diag.Detail(), "Detail at index %d should match", i)
+	}
 }

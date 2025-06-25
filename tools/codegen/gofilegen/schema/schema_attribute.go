@@ -138,7 +138,7 @@ func commonProperties(attr *codespec.Attribute) []string {
 	if attr.Description != nil {
 		result = append(result, fmt.Sprintf("MarkdownDescription: %q", *attr.Description))
 	}
-	if attr.Sensitive != nil && *attr.Sensitive {
+	if attr.Sensitive {
 		result = append(result, "Sensitive: true")
 	}
 	return result

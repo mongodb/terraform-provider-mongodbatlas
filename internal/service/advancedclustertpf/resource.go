@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312004/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -31,7 +31,7 @@ const (
 	resourceName                  = "advanced_cluster"
 	errorSchemaDowngrade          = "error operation not permitted, nums_shards from 1 -> > 1"
 	errorPatchPayload             = "error creating patch payload"
-	errorDetailDefault            = "cluster name %s. API error detail %s"
+	errorDetailDefault            = "cluster name: %s, API error details: %s"
 	errorSchemaUpgradeReadIDs     = "error reading IDs from API when upgrading schema"
 	errorReadResource             = "error reading advanced cluster"
 	errorAdvancedConfRead         = "error reading Advanced Configuration"

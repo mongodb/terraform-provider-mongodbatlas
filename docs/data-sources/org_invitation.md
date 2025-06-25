@@ -7,7 +7,7 @@
 ```terraform
 resource "mongodbatlas_org_invitation" "test" {
   username    = "test-acc-username"
-  org_id      = "<ORG-ID>"
+  org_id      = "<ORG_ID>"
   roles       = [ "GROUP_DATA_ACCESS_READ_WRITE" ]
 }
 

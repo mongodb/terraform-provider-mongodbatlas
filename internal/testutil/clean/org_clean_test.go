@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312004/admin"
 
 	"github.com/stretchr/testify/require"
 
@@ -60,8 +60,10 @@ func TestSingleProjectRemoval(t *testing.T) {
 	if changes != "" {
 		t.Logf("project %s %s", projectToClean, changes)
 	}
-	err := deleteProject(t.Context(), client, projectToClean)
-	require.NoError(t, err)
+	if !dryRun {
+		err := deleteProject(t.Context(), client, projectToClean)
+		require.NoError(t, err)
+	}
 }
 
 // Using a test to simplify logging and parallelization

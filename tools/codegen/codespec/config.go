@@ -100,6 +100,12 @@ func applyOverrides(attr *Attribute, attrPathName string, schemaOptions config.S
 		if override.Computability != nil {
 			attr.ComputedOptionalRequired = getComputabilityFromConfig(*override.Computability)
 		}
+		if override.Sensitive != nil {
+			attr.Sensitive = *override.Sensitive
+		}
+		if override.IncludeJSONUpdate != nil && *override.IncludeJSONUpdate {
+			attr.ReqBodyUsage = IncludeInUpdateBody
+		}
 	}
 }
 

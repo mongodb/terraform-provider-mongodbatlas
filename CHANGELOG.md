@@ -2,8 +2,28 @@
 
 ENHANCEMENTS:
 
+* data-source/mongodbatlas_stream_connection Adds `cluster_project_id` to allow connections to clusters in other projects within an organization ([#3424](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3424))
+* resource/mongodbatlas_stream_connection Adds `cluster_project_id` to allow connections to clusters in other projects within an organization ([#3424](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3424))
+
+## 1.36.0 (June 11, 2025)
+
+FEATURES:
+
+* **New Data Source:** `mongodbatlas_stream_account_details` ([#3364](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3364))
+
+## 1.35.1 (May 29, 2025)
+
+BUG FIXES:
+
+* provider: Fixes Realm Client authentication ([#3362](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3362))
+
+## 1.35.0 (May 28, 2025)
+
+ENHANCEMENTS:
+
 * resource/mongodbatlas_advanced_cluster (preview provider 2.0.0): Adds `delete_on_create_timeout` a flag that indicates whether to delete the cluster if the cluster creation times out, default is false ([#3333](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3333))
 * resource/mongodbatlas_advanced_cluster: Adds `delete_on_create_timeout` a flag that indicates whether to delete the cluster if the cluster creation times out, default is false ([#3333](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3333))
+* resource/mongodbatlas_search_deployment: Adds `delete_on_create_timeout` a flag that indicates whether to delete the search deployment if the search deployment creation times out, default is false ([#3344](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3344))
 
 BUG FIXES:
 

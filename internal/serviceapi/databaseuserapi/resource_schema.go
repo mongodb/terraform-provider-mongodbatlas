@@ -79,6 +79,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"password": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "Alphanumeric string that authenticates this database user against the database specified in `databaseName`. To authenticate with SCRAM-SHA, you must specify this parameter. This parameter doesn't appear in this response.",
+				Sensitive:           true,
 			},
 			"roles": schema.ListNestedAttribute{
 				Optional:            true,
@@ -133,7 +134,7 @@ type TFModel struct {
 	AwsIamtype      types.String `tfsdk:"aws_iamtype"`
 	DatabaseName    types.String `tfsdk:"database_name"`
 	DeleteAfterDate types.String `tfsdk:"delete_after_date"`
-	Description     types.String `tfsdk:"description"`
+	Description     types.String `tfsdk:"description" autogen:"includejsonupdate"`
 	GroupId         types.String `tfsdk:"group_id"`
 	Labels          types.List   `tfsdk:"labels"`
 	LdapAuthType    types.String `tfsdk:"ldap_auth_type"`
