@@ -25,6 +25,7 @@ data "mongodbatlas_stream_connection" "example" {
 If `type` is of value `Cluster` the following additional attributes are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
 * `db_role_to_execute` - The name of a Built in or Custom DB Role to connect to an Atlas Cluster. See [DBRoleToExecute](#DBRoleToExecute).
+* `cluster_project_id` - Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams instance. You must first enable the organization setting.
 
 If `type` is of value `Kafka` the following additional attributes are defined:
 * `authentication` - User credentials required to connect to a Kafka cluster. Includes the authentication type, as well as the parameters for that authentication mode. See [authentication](#authentication).

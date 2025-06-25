@@ -82,6 +82,37 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			},
 		},
 		{
+			name: "Cluster cross project connection type SDK response",
+			SDKResp: &admin.StreamsConnection{
+				Name:           admin.PtrString(connectionName),
+				Type:           admin.PtrString("Cluster"),
+				ClusterName:    admin.PtrString(clusterName),
+				ClusterGroupId: admin.PtrString("foo"),
+				DbRoleToExecute: &admin.DBRoleToExecute{
+					Role: admin.PtrString(dbRole),
+					Type: admin.PtrString(dbRoleType),
+				},
+			},
+			providedProjID:       dummyProjectID,
+			providedInstanceName: instanceName,
+			providedAuthConfig:   nil,
+			expectedTFModel: &streamconnection.TFStreamConnectionModel{
+				ProjectID:        types.StringValue(dummyProjectID),
+				InstanceName:     types.StringValue(instanceName),
+				ConnectionName:   types.StringValue(connectionName),
+				Type:             types.StringValue("Cluster"),
+				ClusterName:      types.StringValue(clusterName),
+				ClusterProjectID: types.StringValue("foo"),
+				Authentication:   types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+				Config:           types.MapNull(types.StringType),
+				Security:         types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+				DBRoleToExecute:  tfDBRoleToExecuteObject(t, dbRole, dbRoleType),
+				Networking:       types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+				AWS:              types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+				Headers:          types.MapNull(types.StringType),
+			},
+		},
+		{
 			name: "Kafka connection type SDK response",
 			SDKResp: &admin.StreamsConnection{
 				Name: admin.PtrString(connectionName),

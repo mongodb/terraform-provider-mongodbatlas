@@ -1,0 +1,7 @@
+```release-note:enhancement
+data-source/mongodbatlas_stream_connection Adds `cluster_project_id` to allow connections to clusters in other projects within an organization
+```
+
+```release-note:enhancement
+resource/mongodbatlas_stream_connection Adds `cluster_project_id` to allow connections to clusters in other projects within an organization
+```
