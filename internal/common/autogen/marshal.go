@@ -7,7 +7,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/huandu/xstrings"
 )
 
 const (
@@ -61,7 +60,7 @@ func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error)
 }
 
 func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[string]any, isUpdate, includeUpdate bool) error {
-	attrNameJSON := xstrings.ToCamelCase(attrNameModel)
+	attrNameJSON := ToJSONName(attrNameModel)
 	obj, ok := attrValModel.Interface().(attr.Value)
 	if !ok {
 		panic("marshal expects only Terraform types in the model")
@@ -134,7 +133,7 @@ func getMapAttr(elms map[string]attr.Value, keepKeyCase bool) (any, error) {
 			return nil, err
 		}
 		if valChild != nil {
-			nameJSON := xstrings.ToCamelCase(name)
+			nameJSON := ToJSONName(name)
 			if keepKeyCase {
 				nameJSON = name
 			}

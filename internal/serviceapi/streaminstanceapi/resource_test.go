@@ -38,11 +38,10 @@ func TestAccStreamInstanceAPI_basic(t *testing.T) {
 					Check:  checkBasic(projectID, instanceName, region, cloudProvider, "SP30"),
 				},*/
 			{
-				ResourceName:                         resourceName,
-				ImportStateVerifyIdentifierAttribute: "name",
-				ImportStateIdFunc:                    importStateIDFunc(resourceName),
-				ImportState:                          true,
-				ImportStateVerify:                    true,
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

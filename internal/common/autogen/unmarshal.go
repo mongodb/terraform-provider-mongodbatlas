@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/huandu/xstrings"
 )
 
 // Unmarshal gets a JSON (e.g. from an Atlas response) and unmarshals it into a Terraform model.
@@ -42,7 +41,7 @@ func unmarshalAttrs(objJSON map[string]any, model any) error {
 }
 
 func unmarshalAttr(attrNameJSON string, attrObjJSON any, valModel reflect.Value) error {
-	attrNameModel := xstrings.ToPascalCase(attrNameJSON)
+	attrNameModel := ToTfModelName(attrNameJSON)
 	fieldModel := valModel.FieldByName(attrNameModel)
 	if !fieldModel.CanSet() {
 		return nil // skip fields that cannot be set, are invalid or not found
@@ -72,7 +71,7 @@ func setAttrTfModel(name string, field reflect.Value, val attr.Value) error {
 }
 
 func setObjElmAttrModel(name string, value any, mapAttrs map[string]attr.Value, mapTypes map[string]attr.Type) error {
-	nameChildTf := xstrings.ToSnakeCase(name)
+	nameChildTf := ToTfSchemaName(name)
 	valueType, found := mapTypes[nameChildTf]
 	if !found {
 		return nil // skip attributes that are not in the model
@@ -88,7 +87,7 @@ func setObjElmAttrModel(name string, value any, mapAttrs map[string]attr.Value, 
 }
 
 func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (attr.Value, error) {
-	nameErr := xstrings.ToSnakeCase(name)
+	nameErr := ToTfSchemaName(name)
 	switch v := value.(type) {
 	case string:
 		if valueType == types.StringType {
@@ -147,7 +146,7 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 }
 
 func errUnmarshal(value any, valueType attr.Type, typeReceived, name string) error {
-	nameErr := xstrings.ToSnakeCase(name)
+	nameErr := ToTfSchemaName(name)
 	parts := strings.Split(reflect.TypeOf(valueType).String(), ".")
 	typeErr := parts[len(parts)-1]
 	return fmt.Errorf("unmarshal of attribute %s expects type %s but got %s with value: %v", nameErr, typeErr, typeReceived, value)
