@@ -5,6 +5,13 @@ pre_error_fails_task: true
 include:
   - filename: build/ci/papertrail.yml
 
+functions:
+  "no op":
+    description: "This is a no-op function, does nothing."
+    params: {}
+    run: |
+      echo "No operation performed."
+
 tasks:
   - name: no_op
   - run_on:
