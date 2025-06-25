@@ -357,7 +357,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 							ComputedOptionalRequired: codespec.Optional,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr("Always in updates"),
-							ReqBodyUsage:             codespec.IncludeInUpdateBody,
+							ReqBodyUsage:             codespec.IncludeNullOnUpdate,
 						},
 						{
 							Name:                     "project_id",

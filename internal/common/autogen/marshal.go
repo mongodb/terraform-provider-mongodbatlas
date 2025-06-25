@@ -10,10 +10,10 @@ import (
 )
 
 const (
-	tagKey                  = "autogen"
-	tagValOmitJSON          = "omitjson"
-	tagValOmitJSONUpdate    = "omitjsonupdate"
-	tagValIncludeJSONUpdate = "includejsonupdate"
+	tagKey                    = "autogen"
+	tagValOmitJSON            = "omitjson"
+	tagValOmitJSONUpdate      = "omitjsonupdate"
+	tagValIncludeNullOnUpdate = "includenullonupdate"
 )
 
 // Marshal gets a Terraform model and marshals it into JSON (e.g. for an Atlas request).
@@ -21,7 +21,7 @@ const (
 // Attributes that are null or unknown are not marshaled.
 // Attributes with autogen tag `omitjson` are never marshaled, this only applies to the root model.
 // Attributes with autogen tag `omitjsonupdate` are not marshaled if isUpdate is true, this only applies to the root model.
-// Attributes with autogen tag `includejsonupdate` are marshaled if isUpdate is true (even if null), this only applies to the root model.
+// Attributes with autogen tag `includenullonupdate` are marshaled if isUpdate is true (even if null), this only applies to the root model.
 // Null list or set root elements are sent as empty arrays if isUpdate is true.
 func Marshal(model any, isUpdate bool) ([]byte, error) {
 	valModel := reflect.ValueOf(model)
@@ -52,7 +52,7 @@ func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error)
 		}
 		attrNameModel := attrTypeModel.Name
 		attrValModel := valModel.Field(i)
-		if err := marshalAttr(attrNameModel, attrValModel, objJSON, isUpdate, tag == tagValIncludeJSONUpdate); err != nil {
+		if err := marshalAttr(attrNameModel, attrValModel, objJSON, isUpdate, tag == tagValIncludeNullOnUpdate); err != nil {
 			return nil, err
 		}
 	}

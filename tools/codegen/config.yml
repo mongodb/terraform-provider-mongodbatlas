@@ -226,7 +226,7 @@ resources:
         password:
           sensitive: true
         description:
-          include_json_update: true
+          include_null_on_update: true
 
   project_api:
     read:

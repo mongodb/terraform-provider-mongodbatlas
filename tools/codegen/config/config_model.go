@@ -36,12 +36,12 @@ type SchemaOptions struct {
 }
 
 type Override struct {
-	Computability     *Computability `yaml:"computability,omitempty"`
-	Sensitive         *bool          `yaml:"sensitive"`
-	IncludeJSONUpdate *bool          `yaml:"include_json_update"`
-	Description       string         `yaml:"description"`
-	PlanModifiers     []PlanModifier `yaml:"plan_modifiers"`
-	Validators        []Validator    `yaml:"validators"`
+	Computability       *Computability `yaml:"computability,omitempty"`
+	Sensitive           *bool          `yaml:"sensitive"`
+	IncludeNullOnUpdate *bool          `yaml:"include_null_on_update"`
+	Description         string         `yaml:"description"`
+	PlanModifiers       []PlanModifier `yaml:"plan_modifiers"`
+	Validators          []Validator    `yaml:"validators"`
 }
 
 type PlanModifier struct {
