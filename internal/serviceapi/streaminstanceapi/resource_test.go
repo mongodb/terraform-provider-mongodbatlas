@@ -52,8 +52,6 @@ func configBasic(projectID, instanceName, region, cloudProvider, tier string) st
 		resource "mongodbatlas_stream_instance_api" "test" {
 			group_id         = %[1]q
 			name             = %[2]q
-			region           = %[3]q
-			cloud_provider   = %[4]q
 			
 			data_process_region = {
 				region         = %[3]q
@@ -71,8 +69,6 @@ func checkBasic(projectID, instanceName, region, cloudProvider, tier string) res
 	mapChecks := map[string]string{
 		"group_id":                           projectID,
 		"name":                               instanceName,
-		"region":                             region,
-		"cloud_provider":                     cloudProvider,
 		"data_process_region.region":         region,
 		"data_process_region.cloud_provider": cloudProvider,
 		"stream_config.tier":                 tier,
