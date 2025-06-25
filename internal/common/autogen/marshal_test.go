@@ -246,8 +246,8 @@ func TestMarshalUpdateNull(t *testing.T) {
 		AttrSet           types.Set    `tfsdk:"attr_set"`
 		AttrString        types.String `tfsdk:"attr_string"`
 		AttrObj           types.Object `tfsdk:"attr_obj"`
-		AttrIncludeString types.String `tfsdk:"attr_include_update" autogen:"includejsonupdate"`
-		AttrIncludeObj    types.Object `tfsdk:"attr_include_obj" autogen:"includejsonupdate"`
+		AttrIncludeString types.String `tfsdk:"attr_include_update" autogen:"includenullonupdate"`
+		AttrIncludeObj    types.Object `tfsdk:"attr_include_obj" autogen:"includenullonupdate"`
 	}{
 		AttrList:          types.ListNull(types.StringType),
 		AttrSet:           types.SetNull(types.StringType),
@@ -257,7 +257,7 @@ func TestMarshalUpdateNull(t *testing.T) {
 		AttrIncludeObj:    types.ObjectNull(objTypeTest.AttrTypes),
 	}
 	// null list and set root elements are sent as empty arrays in update.
-	// fields with includejsonupdate tag are included even when null during updates.
+	// fields with includenullonupdate tag are included even when null during updates.
 	const expectedJSON = `
 		{
 			"attrList": [],
@@ -270,7 +270,7 @@ func TestMarshalUpdateNull(t *testing.T) {
 	require.NoError(t, err)
 	assert.JSONEq(t, expectedJSON, string(raw))
 
-	// Test that includejsonupdate fields are NOT included when isUpdate is false
+	// Test that includenullonupdate fields are NOT included when isUpdate is false
 	rawCreate, errCreate := autogen.Marshal(&model, false)
 	require.NoError(t, errCreate)
 	const expectedJSONCreate = `

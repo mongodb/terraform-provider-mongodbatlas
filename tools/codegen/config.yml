@@ -1,148 +1,4 @@
 resources:
-  custom_db_role_api:
-    read:
-      path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
-      method: GET
-    create:
-      path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles
-      method: POST
-    update:
-      path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
-      method: PATCH
-    delete:
-      path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
-      method: DELETE
-    version_header: application/vnd.atlas.2023-01-01+json
-
-  database_user_api:
-    read:
-      path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
-      method: GET
-    create:
-      path: /api/atlas/v2/groups/{groupId}/databaseUsers
-      method: POST
-    update:
-      path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
-      method: PATCH
-    delete:
-      path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
-      method: DELETE
-    version_header: application/vnd.atlas.2023-01-01+json
-    schema:
-      overrides:
-        password:
-          sensitive: true
-        description:
-          include_json_update: true
-
-  push_based_log_export_api:
-    read:
-      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
-      method: GET
-    create:
-      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
-      method: POST
-      wait: &pble-create-wait
-        state_property: "state"
-        pending_states: ["INITIATING", "BUCKET_VERIFIED"]
-        target_states: ["ACTIVE"]
-        timeout_seconds: 900 # 15 minutes
-        min_timeout_seconds: 60
-        delay_seconds: 10
-    update:
-      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
-      method: PATCH
-      wait: *pble-create-wait
-    delete:
-      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
-      method: DELETE
-      wait:
-        <<: *pble-create-wait
-        pending_states: ["ACTIVE", "INITIATING", "BUCKET_VERIFIED"]
-        target_states: ["UNCONFIGURED", "DELETED"] # DELETED is a special state value when API returns 404 or empty object
-    version_header: application/vnd.atlas.2023-01-01+json
-
-  search_deployment_api:
-    read:
-      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
-      method: GET
-    create:
-      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
-      method: POST
-      wait: &search-deployment-create-wait
-        state_property: "stateName"
-        pending_states: ["UPDATING", "PAUSED"]
-        target_states: ["IDLE"]
-        timeout_seconds: 10800 # 3 hours
-        min_timeout_seconds: 60
-        delay_seconds: 60
-    update:
-      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
-      method: PATCH
-      wait: *search-deployment-create-wait
-    delete:
-      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
-      method: DELETE
-      wait:
-        <<: *search-deployment-create-wait
-        min_timeout_seconds: 30
-        pending_states: ["IDLE", "UPDATING", "PAUSED"]
-        target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
-    version_header: application/vnd.atlas.2025-03-12+json
-
-  project_api:
-    read:
-      path: /api/atlas/v2/groups/{groupId}
-      method: GET
-    create:
-      path: /api/atlas/v2/groups
-      method: POST
-    update:
-      path: /api/atlas/v2/groups/{groupId}
-      method: PATCH
-    delete:
-      path: /api/atlas/v2/groups/{groupId}
-      method: DELETE
-    schema:
-      aliases:
-        group_id: id # path param name does not match the API response property
-
-  resource_policy_api:
-    read:
-      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
-      method: GET
-    create:
-      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies
-      method: POST
-    update:
-      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
-      method: PATCH
-    delete:
-      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
-      method: DELETE
-    schema:
-      aliases:
-        resource_policy_id: id # path param name does not match the API response property
-
-  # No fully functional yet so it doesn't have acceptance tests yet.
-  # It has a sensitive attribute that has password format in OpenAPI spec.
-  stream_instance_api:
-    read:
-      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}
-      method: GET
-    create:
-      path: /api/atlas/v2/groups/{groupId}/streams
-      method: POST
-    update:
-      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}
-      method: PATCH
-    delete:
-      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}
-      method: DELETE
-    schema:
-      aliases:
-        tenant_name: name # path param name does not match the API request property
-
   cluster_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
@@ -336,75 +192,147 @@ resources:
             optional: true
             computed: true
 
-  # search_deployment:
-  #   read:
-  #     path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
-  #     method: GET
-  #   create:
-  #     path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
-  #     method: POST
-  #   schema:
-  #     aliases:
-  #       group_id: project_id
-  #     ignores: ["links"]
-  #     timeouts: ["create", "update", "delete"]
+  custom_db_role_api:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
+      method: DELETE
+    version_header: application/vnd.atlas.2023-01-01+json
 
-  # advanced_cluster:
-  #   read:
-  #     path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
-  #     method: GET
-  #   create:
-  #     path: /api/atlas/v2/groups/{groupId}/clusters
-  #     method: POST
-  #   schema:
-  #     aliases:
-  #       group_id: project_id
-  #     ignores: ["links"]
-  #     timeouts: ["create", "update", "delete"]
+  database_user_api:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/databaseUsers
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
+      method: DELETE
+    version_header: application/vnd.atlas.2023-01-01+json
+    schema:
+      overrides:
+        password:
+          sensitive: true
+        description:
+          include_null_on_update: true
 
-  # # advanced_configuration attribute in advanced_cluster
-  # advanced_cluster_process_args:
-  #   read:
-  #     path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
-  #     method: GET
-  #   create:
-  #     path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
-  #     method: PATCH
-  #   schema:
-  #     aliases:
-  #       group_id: project_id
+  project_api:
+    read:
+      path: /api/atlas/v2/groups/{groupId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}
+      method: DELETE
+    schema:
+      aliases:
+        group_id: id # path param name does not match the API response property
 
-  # stream_privatelink_endpoint:
-  #   read:
-  #     path: /api/atlas/v2/groups/{groupId}/streams/privateLinkConnections/{connectionId}
-  #     method: GET
-  #   create:
-  #     path: /api/atlas/v2/groups/{groupId}/streams/privateLinkConnections
-  #     method: POST
-  #   schema:
-  #     aliases:
-  #       group_id: project_id
-  #       _id: id
-  #     ignores: ["links"]
+  push_based_log_export_api:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
+      method: POST
+      wait: &pble-create-wait
+        state_property: "state"
+        pending_states: ["INITIATING", "BUCKET_VERIFIED"]
+        target_states: ["ACTIVE"]
+        timeout_seconds: 900 # 15 minutes
+        min_timeout_seconds: 60
+        delay_seconds: 10
+    update:
+      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
+      method: PATCH
+      wait: *pble-create-wait
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
+      method: DELETE
+      wait:
+        <<: *pble-create-wait
+        pending_states: ["ACTIVE", "INITIATING", "BUCKET_VERIFIED"]
+        target_states: ["UNCONFIGURED", "DELETED"] # DELETED is a special state value when API returns 404 or empty object
+    version_header: application/vnd.atlas.2023-01-01+json
 
-  # flex_snapshot:
-  #   # does not have a POST endpoint so schema can't be autogenerated
-  #   create:
-  #     path: /api/atlas/v2/*
-  #     method: POST
-  #   schema:
-  #     aliases:
-  #       group_id: project_id
-  #     ignores: ["links"]
+  resource_policy_api:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies
+      method: POST
+    update:
+      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
+      method: DELETE
+    schema:
+      aliases:
+        resource_policy_id: id # path param name does not match the API response property
 
-  # flex_restore_job:
-  #   read:
-  #     path: /api/atlas/v2/groups/{groupId}/flexClusters/{name}/backup/restoreJobs/{restoreJobId}
-  #     method: GET
-  #   create:
-  #     path: /api/atlas/v2/groups/{groupId}/flexClusters/{name}/backup/restoreJobs
-  #     method: POST
-  #   schema:
-  #     aliases:
-  #       group_id: project_id
-  #     ignores: ["links"]
+  search_deployment_api:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
+      method: POST
+      wait: &search-deployment-create-wait
+        state_property: "stateName"
+        pending_states: ["UPDATING", "PAUSED"]
+        target_states: ["IDLE"]
+        timeout_seconds: 10800 # 3 hours
+        min_timeout_seconds: 60
+        delay_seconds: 60
+    update:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
+      method: PATCH
+      wait: *search-deployment-create-wait
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
+      method: DELETE
+      wait:
+        <<: *search-deployment-create-wait
+        min_timeout_seconds: 30
+        pending_states: ["IDLE", "UPDATING", "PAUSED"]
+        target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
+    version_header: application/vnd.atlas.2025-03-12+json
+
+  # Update doesn't work because API defines incorrectly region and cloud_provider at root level in PATCH instead of inside data_process_region as in the other endpoints.
+  # id should be Computed but is ignored because it's defined as _id which is not a legal name for a Terraform attribute as they can't start with an underscore.
+  stream_instance_api:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/streams
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}
+      method: DELETE
+    schema:
+      ignores: ["_id", "region", "cloud_provider"] # region and cloud_provider are incorrectly declared in PATCH as root attributes, _id can't be used in Terraform schema
+      aliases:
+        tenant_name: name # path param name does not match the API request property

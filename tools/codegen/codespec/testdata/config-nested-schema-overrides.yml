@@ -18,9 +18,19 @@ resources:
         group_id: project_id
         nested_list_array_attr.inner_num_attr: inner_num_attr_alias
         outer_object.nested_level1.level_field1: level_field1_alias
-      
-      ignores: ["nested_list_array_attr.list_primitive_string_attr", "cluster_name", "list_primitive_string_attr", "nested_map_object_attr", "nested_set_array_attr","set_primitive_string_attr", "single_nested_attr", "single_nested_attr_with_nested_maps"]
-      
+
+      ignores:
+        [
+          "nested_list_array_attr.list_primitive_string_attr",
+          "cluster_name",
+          "list_primitive_string_attr",
+          "nested_map_object_attr",
+          "nested_set_array_attr",
+          "set_primitive_string_attr",
+          "single_nested_attr",
+          "single_nested_attr_with_nested_maps",
+        ]
+
       overrides:
         nested_list_array_attr.inner_num_attr_alias:
           description: "Overridden inner_num_attr_alias description"
@@ -32,5 +42,5 @@ resources:
             computed: true
           description: "Optional string that has config override to optional/computed"
         attr_always_in_updates:
-          include_json_update: true
+          include_null_on_update: true
       timeouts: ["create", "read", "update", "delete"]

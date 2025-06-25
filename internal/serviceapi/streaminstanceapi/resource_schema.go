@@ -12,14 +12,6 @@ import (
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"_id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Unique 24-hexadecimal character string that identifies the project.",
-			},
-			"cloud_provider": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Label that identifies the cloud service provider where MongoDB Cloud performs stream processing. Currently, this parameter only supports AWS and AZURE.",
-			},
 			"connections": schema.ListNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: "List of connections configured in the stream instance.",
@@ -342,10 +334,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Human-readable label that identifies the stream instance.",
 			},
-			"region": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Name of the cloud provider region hosting Atlas Stream Processing.",
-			},
 			"sample_connections": schema.SingleNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "Sample connections to add to SPI.",
@@ -404,15 +392,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	_Id               types.String `tfsdk:"_id" autogen:"omitjson"`
-	CloudProvider     types.String `tfsdk:"cloud_provider"`
 	Connections       types.List   `tfsdk:"connections" autogen:"omitjson"`
 	DataProcessRegion types.Object `tfsdk:"data_process_region" autogen:"omitjsonupdate"`
 	GroupId           types.String `tfsdk:"group_id" autogen:"omitjson"`
 	Hostnames         types.List   `tfsdk:"hostnames" autogen:"omitjson"`
 	Links             types.List   `tfsdk:"links" autogen:"omitjson"`
 	Name              types.String `tfsdk:"name" autogen:"omitjsonupdate"`
-	Region            types.String `tfsdk:"region"`
 	SampleConnections types.Object `tfsdk:"sample_connections" autogen:"omitjsonupdate"`
 	StreamConfig      types.Object `tfsdk:"stream_config" autogen:"omitjsonupdate"`
 }
