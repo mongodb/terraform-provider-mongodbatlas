@@ -16,7 +16,6 @@ func TestUnmarshalBasic(t *testing.T) {
 		AttrFloatWithInt types.Float64 `tfsdk:"attr_float_with_int"`
 		AttrString       types.String  `tfsdk:"attr_string"`
 		AttrNotInJSON    types.String  `tfsdk:"attr_not_in_json"`
-		AttrUnderscore   types.String  `tfsdk:"attr_underscore"`
 		AttrInt          types.Int64   `tfsdk:"attr_int"`
 		AttrIntWithFloat types.Int64   `tfsdk:"attr_int_with_float"`
 		AttrTrue         types.Bool    `tfsdk:"attr_true"`
@@ -35,8 +34,7 @@ func TestUnmarshalBasic(t *testing.T) {
 				"attrFloat": 456.1,
 				"attrFloatWithInt": 13,
 				"attrNotInModel": "val",
-				"attrNull": null,
-				"_attrUnderscore": "val"
+				"attrNull": null
 			}
 		`
 	)
@@ -49,7 +47,6 @@ func TestUnmarshalBasic(t *testing.T) {
 	assert.InEpsilon(t, float64(456.1), model.AttrFloat.ValueFloat64(), epsilon)
 	assert.InEpsilon(t, float64(13), model.AttrFloatWithInt.ValueFloat64(), epsilon)
 	assert.True(t, model.AttrNotInJSON.IsNull()) // attributes not in JSON response are not changed, so null is kept.
-	assert.Equal(t, "val", model.AttrUnderscore.ValueString())
 }
 
 func TestUnmarshalNestedAllTypes(t *testing.T) {

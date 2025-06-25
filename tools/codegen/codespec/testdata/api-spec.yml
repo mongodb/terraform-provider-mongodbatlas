@@ -352,9 +352,6 @@ components:
     TestResourceRequest:
       type: object
       properties:
-        _id:
-          type: string
-          description: Field with _ prefix
         strReqAttr1:
           type: string
           description: Test field description

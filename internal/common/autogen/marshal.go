@@ -60,7 +60,7 @@ func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error)
 }
 
 func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[string]any, isUpdate, includeUpdate bool) error {
-	attrNameJSON := ToJSONName(attrNameModel)
+	attrNameJSON := toJSONName(attrNameModel)
 	obj, ok := attrValModel.Interface().(attr.Value)
 	if !ok {
 		panic("marshal expects only Terraform types in the model")
@@ -133,7 +133,7 @@ func getMapAttr(elms map[string]attr.Value, keepKeyCase bool) (any, error) {
 			return nil, err
 		}
 		if valChild != nil {
-			nameJSON := ToJSONName(name)
+			nameJSON := toJSONName(name)
 			if keepKeyCase {
 				nameJSON = name
 			}

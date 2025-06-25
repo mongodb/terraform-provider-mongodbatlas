@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
 	"github.com/pb33f/libopenapi/orderedmap"
 )
@@ -41,7 +40,6 @@ func buildResourceAttrs(s *APISpecSchema, isFromRequest bool) (Attributes, error
 }
 
 func (s *APISpecSchema) buildResourceAttr(name string, computability ComputedOptionalRequired, isFromRequest bool) (*Attribute, error) {
-	name = autogen.SanitizeTfAttrName(name)
 	switch s.Type {
 	case OASTypeString:
 		return s.buildStringAttr(name, computability)

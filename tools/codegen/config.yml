@@ -317,6 +317,8 @@ resources:
         target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
     version_header: application/vnd.atlas.2025-03-12+json
 
+  # Update doesn't work because OpenAPI spec defines incorrectly region and cloud_provider at root level in PATCH instead of inside data_process_region as in the other endpoints.
+  # id should be Computed but is ignored because it's defined as _id which is not a legal name for a Terraform attribute as they can't start with an underscore.
   stream_instance_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}
@@ -331,6 +333,6 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}
       method: DELETE
     schema:
-      ignores: ["region", "cloud_provider"] # attributes not used in root, only inside data_process_region
+      ignores: ["_id", "region", "cloud_provider"] # region and cloud_provider are incorrectly declared in PATCH as root attributes, _id can't be used in Terraform schema
       aliases:
         tenant_name: name # path param name does not match the API request property

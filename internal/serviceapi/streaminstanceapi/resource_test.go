@@ -31,17 +31,13 @@ func TestAccStreamInstanceAPI_basic(t *testing.T) {
 				Config: configBasic(projectID, instanceName, region, cloudProvider, "SP10"),
 				Check:  checkBasic(projectID, instanceName, region, cloudProvider, "SP10"),
 			},
-			// Same as in the curated resource, update can't be tested immediately after creation because the Atlas API doesn't expose a field to know when the resource is ready.
-			/*
-				{
-					Config: configBasic(projectID, instanceName, region, cloudProvider, "SP30"),
-					Check:  checkBasic(projectID, instanceName, region, cloudProvider, "SP30"),
-				},*/
+			// Update doesn't work because OpenAPI spec defines incorrectly region and cloud_provider at root level in PATCH instead of inside data_process_region as in the other endpoints.
 			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    importStateIDFunc(resourceName),
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "name", // id is not used because _id is returned in Atlas which is not a legal name for a Terraform attribute
 			},
 		},
 	})
