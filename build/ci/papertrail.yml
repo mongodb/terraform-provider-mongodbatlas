@@ -59,7 +59,7 @@ functions:
           fi
 
           echo "Waiting 20 minutes before checking for release artifacts..."
-          # sleep 1200
+          sleep 1200
 
           echo "Checking for terraform-provider .zip artifacts in GitHub release..."
 
