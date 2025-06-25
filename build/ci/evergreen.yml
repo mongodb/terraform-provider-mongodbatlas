@@ -7,10 +7,8 @@ include:
 
 tasks:
   - name: no_op
-
-
-buildvariants:
-  - name: ubuntu
-    display_name: no_op
-    tasks:
-      - name: no_op
+  - run_on:
+      - ubuntu2404-small
+    commands:
+      - func: "no op"
+        params: {}
