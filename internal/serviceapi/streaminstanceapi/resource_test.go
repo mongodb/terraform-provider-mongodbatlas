@@ -31,7 +31,7 @@ func TestAccStreamInstanceAPI_basic(t *testing.T) {
 				Config: configBasic(projectID, instanceName, region, cloudProvider, "SP10"),
 				Check:  checkBasic(projectID, instanceName, region, cloudProvider, "SP10"),
 			},
-			// TODO: not waiting as in the curated resource so can't be updated immediately, stream_instance tests don't check update either.
+			// Same as in the curated resource, update can't be tested immediately after creation because the Atlas API doesn't expose a field to know when the resource is ready.
 			/*
 				{
 					Config: configBasic(projectID, instanceName, region, cloudProvider, "SP30"),
