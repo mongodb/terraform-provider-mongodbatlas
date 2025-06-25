@@ -32,6 +32,8 @@ resources:
       overrides:
         password:
           sensitive: true
+        description:
+          include_json_update: true
 
   push_based_log_export_api:
     read:
@@ -55,12 +57,9 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
       method: DELETE
       wait:
-        state_property: "state"
+        <<: *pble-create-wait
         pending_states: ["ACTIVE", "INITIATING", "BUCKET_VERIFIED"]
         target_states: ["UNCONFIGURED", "DELETED"] # DELETED is a special state value when API returns 404 or empty object
-        timeout_seconds: 900 # 15 minutes
-        min_timeout_seconds: 60
-        delay_seconds: 10
     version_header: application/vnd.atlas.2023-01-01+json
 
   search_deployment_api:
@@ -85,12 +84,10 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
       method: DELETE
       wait:
-        state_property: "stateName"
+        <<: *search-deployment-create-wait
+        min_timeout_seconds: 30
         pending_states: ["IDLE", "UPDATING", "PAUSED"]
         target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
-        timeout_seconds: 10800 # 3 hours
-        min_timeout_seconds: 30
-        delay_seconds: 60
     version_header: application/vnd.atlas.2025-03-12+json
 
   project_api:
@@ -146,7 +143,6 @@ resources:
       aliases:
         tenant_name: name # path param name does not match the API request property
 
-  # No fully functional yet so it doesn't have acceptance tests yet.
   cluster_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
@@ -154,15 +150,191 @@ resources:
     create:
       path: /api/atlas/v2/groups/{groupId}/clusters
       method: POST
+      wait: &cluster-create-wait
+        state_property: "stateName"
+        pending_states:
+          [
+            "CREATING",
+            "UPDATING",
+            "REPAIRING",
+            "REPEATING",
+            "PENDING",
+            "DELETING",
+          ]
+        target_states: ["IDLE"]
+        timeout_seconds: 10800 # 3 hours
+        min_timeout_seconds: 60
+        delay_seconds: 30
     update:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
       method: PATCH
+      wait: *cluster-create-wait
     delete:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
       method: DELETE
+      wait:
+        <<: *cluster-create-wait
+        pending_states:
+          [
+            "IDLE",
+            "CREATING",
+            "UPDATING",
+            "REPAIRING",
+            "REPEATING",
+            "PENDING",
+            "DELETING",
+          ]
+        target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
     schema:
       aliases:
         cluster_name: name # path param name does not match the API request property
+      # These attributes are optional but when not configured, Atlas returns a default value.
+      # If a nested attribute is optional/computed, all its optional child attributes must also be defined as optional/computed to avoid non-empty plans.
+      overrides:
+        advanced_configuration:
+          computability:
+            optional: true
+            computed: true
+        advanced_configuration.custom_openssl_cipher_config_tls12:
+          computability:
+            optional: true
+            computed: true
+        advanced_configuration.minimum_enabled_tls_protocol:
+          computability:
+            optional: true
+            computed: true
+        advanced_configuration.tls_cipher_config_mode:
+          computability:
+            optional: true
+            computed: true
+        bi_connector:
+          computability:
+            optional: true
+            computed: true
+        bi_connector.enabled:
+          computability:
+            optional: true
+            computed: true
+        bi_connector.read_preference:
+          computability:
+            optional: true
+            computed: true
+        disk_iops:
+          computability:
+            optional: true
+            computed: true
+        disk_size_gb:
+          computability:
+            optional: true
+            computed: true
+        encryption_at_rest_provider:
+          computability:
+            optional: true
+            computed: true
+        global_cluster_self_managed_sharding:
+          computability:
+            optional: true
+            computed: true
+        paused:
+          computability:
+            optional: true
+            computed: true
+        pit_enabled:
+          computability:
+            optional: true
+            computed: true
+        redact_client_log_data:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.analytics_specs:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.analytics_specs.disk_iops:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.analytics_specs.disk_size_gb:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.analytics_specs.instance_size:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.analytics_specs.node_count:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling.compute:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling.compute.enabled:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling.compute.max_instance_size:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling.compute.min_instance_size:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling.compute.predictive_enabled:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling.compute.scale_down_enabled:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling.disk_gb:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling.disk_gb.enabled:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.electable_specs.disk_iops:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.electable_specs.disk_size_gb:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.read_only_specs:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.read_only_specs.disk_iops:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.read_only_specs.disk_size_gb:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.read_only_specs.instance_size:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.read_only_specs.node_count:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.zone_name:
+          computability:
+            optional: true
+            computed: true
 
   # search_deployment:
   #   read:

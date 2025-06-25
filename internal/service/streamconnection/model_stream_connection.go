@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312004/admin"
 )
 
 func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) (*admin.StreamsConnection, diag.Diagnostics) {
@@ -17,6 +17,7 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 		Name:             plan.ConnectionName.ValueStringPointer(),
 		Type:             plan.Type.ValueStringPointer(),
 		ClusterName:      plan.ClusterName.ValueStringPointer(),
+		ClusterGroupId:   plan.ClusterProjectID.ValueStringPointer(),
 		BootstrapServers: plan.BootstrapServers.ValueStringPointer(),
 		Url:              plan.URL.ValueStringPointer(),
 	}
@@ -125,6 +126,7 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName string, cur
 		ConnectionName:   types.StringPointerValue(apiResp.Name),
 		Type:             types.StringPointerValue(apiResp.Type),
 		ClusterName:      types.StringPointerValue(apiResp.ClusterName),
+		ClusterProjectID: types.StringPointerValue(apiResp.ClusterGroupId),
 		BootstrapServers: types.StringPointerValue(apiResp.BootstrapServers),
 		URL:              types.StringPointerValue(apiResp.Url),
 	}

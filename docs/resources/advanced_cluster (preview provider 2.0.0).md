@@ -604,7 +604,7 @@ Refer to the following for full privatelink endpoint connection string examples:
   [Flex Cluster Backups](https://www.mongodb.com/docs/atlas/backup/cloud-backup/flex-cluster-backup/) for flex clusters.
   If "`backup_enabled`"  is `false` (default), the cluster doesn't use Atlas backups.
 
-- `retain_backups_enabled` - (Optional) Set to true to retain backup snapshots for the deleted cluster. M10 and above only. This only applies to the `Delete` operation. If you see the `CANNOT_DELETE_SNAPSHOT_WITH_BACKUP_COMPLIANCE_POLICY` error code, set it to explicit `true`. To learn more, see [this](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_backup_compliance_policy/resource) example.
+- `retain_backups_enabled` - (Optional) Set to true to retain backup snapshots for the deleted cluster. This parameter applies to the Delete operation and only affects M10 and above clusters. If you encounter the `CANNOT_DELETE_SNAPSHOT_WITH_BACKUP_COMPLIANCE_POLICY` error code, see [how to delete a cluster with Backup Compliance Policy](../guides/delete-cluster-with-backup-compliance-policy.md).
 
 **NOTE** Prior version of provider had parameter as `bi_connector` state will migrate it to new value you only need to update parameter in your terraform file
 
