@@ -11,5 +11,6 @@ tasks:
       - ubuntu2404-small
     commands:
       - command: shell.exec
-        script: |
-          echo "This is a no-op, does nothing."
+        params:
+          script: |
+            echo "This is a no-op, does nothing."
