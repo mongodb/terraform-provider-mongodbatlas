@@ -1,0 +1,3 @@
+```release-note:enhancement
+data-source/mongodbatlas_project: Adds `users` attribute.
+```
