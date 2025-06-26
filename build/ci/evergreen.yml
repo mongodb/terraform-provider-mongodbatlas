@@ -1,4 +1,4 @@
-exec_timeout_secs: 4200
+exec_timeout_secs: 5600
 stepback: true
 command_type: system
 pre_error_fails_task: true
