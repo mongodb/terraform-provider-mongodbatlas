@@ -6,7 +6,8 @@ on:
 
 jobs:
   check:
-    if: github.event.pull_request.draft == false
+    # Docs team review only for PRs to master branch
+    if: ${{ github.event.pull_request.draft == false && github.event.pull_request.base.ref == 'master' }}
     runs-on: ubuntu-latest
     outputs:
       files: ${{ steps.changes.outputs.files }}
