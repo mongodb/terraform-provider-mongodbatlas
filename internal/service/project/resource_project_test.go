@@ -529,6 +529,7 @@ func TestAccProject_basic(t *testing.T) {
 		"is_realtime_performance_panel_enabled",
 		"is_schema_advisor_enabled",
 	}
+	// Users check
 	dataSourceChecks := map[string]string{
 		"users.#": "1",
 	}
