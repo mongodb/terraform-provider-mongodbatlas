@@ -113,6 +113,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			teamsMock := mockadmin.NewTeamsApi(t)
 			projectsMock := mockadmin.NewProjectsApi(t)
 			perfMock := mockadmin.NewPerformanceAdvisorApi(t)
+			cloudUsersMock := mockadmin.NewMongoDBCloudUsersApi(t)
 
 			teamsMock.EXPECT().ListProjectTeams(mock.Anything, mock.Anything).Return(admin.ListProjectTeamsApiRequest{ApiService: teamsMock})
 			teamsMock.EXPECT().ListProjectTeamsExecute(mock.Anything).Return(tc.teamRoleReponse.TeamRole, tc.teamRoleReponse.HTTPResponse, tc.teamRoleReponse.Err)
@@ -129,7 +130,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			perfMock.EXPECT().GetManagedSlowMs(mock.Anything, mock.Anything).Return(admin.GetManagedSlowMsApiRequest{ApiService: perfMock}).Maybe()
 			perfMock.EXPECT().GetManagedSlowMsExecute(mock.Anything).Return(true, nil, nil).Maybe()
 
-			_, err := project.GetProjectPropsFromAPI(t.Context(), projectsMock, teamsMock, perfMock, dummyProjectID, nil)
+			_, err := project.GetProjectPropsFromAPI(t.Context(), false, projectsMock, teamsMock, perfMock, cloudUsersMock, dummyProjectID, nil)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -528,9 +529,15 @@ func TestAccProject_basic(t *testing.T) {
 		"is_realtime_performance_panel_enabled",
 		"is_schema_advisor_enabled",
 	}
+	dataSourceChecks := map[string]string{
+		"users.#": "1",
+	}
+
 	checks := acc.AddAttrChecks(resourceName, nil, commonChecks)
 	checks = acc.AddAttrChecks(dataSourceNameByID, checks, commonChecks)
 	checks = acc.AddAttrChecks(dataSourceNameByName, checks, commonChecks)
+	checks = acc.AddAttrChecks(dataSourceNameByID, checks, dataSourceChecks)
+	checks = acc.AddAttrChecks(dataSourceNameByName, checks, dataSourceChecks)
 	checks = acc.AddAttrSetChecks(resourceName, checks, commonSetChecks...)
 	checks = acc.AddAttrSetChecks(dataSourceNameByID, checks, commonSetChecks...)
 	checks = acc.AddAttrSetChecks(dataSourceNameByName, checks, commonSetChecks...)

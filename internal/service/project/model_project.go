@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
-func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, projectProps AdditionalProperties) (*TFProjectDSModel, diag.Diagnostics) {
+func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, projectProps *AdditionalProperties) (*TFProjectDSModel, diag.Diagnostics) {
 	ipAddressesModel, diags := NewTFIPAddressesModel(ctx, projectProps.IPAddresses)
 	if diags.HasError() {
 		return nil, diags
@@ -36,6 +36,7 @@ func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, proj
 		IPAddresses:                                 ipAddressesModel,
 		Tags:                                        conversion.NewTFTags(project.GetTags()),
 		IsSlowOperationThresholdingEnabled:          types.BoolValue(projectProps.IsSlowOperationThresholdingEnabled),
+		Users:                                       NewTFCloudUsersDataSourceModel(ctx, projectProps.Users),
 	}, nil
 }
 
@@ -71,6 +72,33 @@ func NewTFLimitsDataSourceModel(ctx context.Context, dataFederationLimits []admi
 	return limits
 }
 
+func NewTFCloudUsersDataSourceModel(ctx context.Context, cloudUsers []admin.GroupUserResponse) []*TFCloudUsersDSModel {
+	if len(cloudUsers) == 0 {
+		return nil
+	}
+	users := make([]*TFCloudUsersDSModel, len(cloudUsers))
+	for i := range cloudUsers {
+		cloudUser := &cloudUsers[i]
+		roles, _ := types.ListValueFrom(ctx, types.StringType, cloudUser.Roles)
+		users[i] = &TFCloudUsersDSModel{
+			ID:                  types.StringValue(cloudUser.Id),
+			OrgMembershipStatus: types.StringValue(cloudUser.OrgMembershipStatus),
+			Roles:               roles,
+			Username:            types.StringValue(cloudUser.Username),
+			InvitationCreatedAt: types.StringPointerValue(conversion.TimePtrToStringPtr(cloudUser.InvitationCreatedAt)),
+			InvitationExpiresAt: types.StringPointerValue(conversion.TimePtrToStringPtr(cloudUser.InvitationExpiresAt)),
+			InviterUsername:     types.StringPointerValue(cloudUser.InviterUsername),
+			Country:             types.StringPointerValue(cloudUser.Country),
+			CreatedAt:           types.StringPointerValue(conversion.TimePtrToStringPtr(cloudUser.CreatedAt)),
+			FirstName:           types.StringPointerValue(cloudUser.FirstName),
+			LastAuth:            types.StringPointerValue(conversion.TimePtrToStringPtr(cloudUser.LastAuth)),
+			LastName:            types.StringPointerValue(cloudUser.LastName),
+			MobileNumber:        types.StringPointerValue(cloudUser.MobileNumber),
+		}
+	}
+	return users
+}
+
 func NewTFIPAddressesModel(ctx context.Context, ipAddresses *admin.GroupIPAddresses) (types.Object, diag.Diagnostics) {
 	clusterIPs := []TFClusterIPsModel{}
 	if ipAddresses != nil && ipAddresses.Services != nil {
@@ -94,7 +122,7 @@ func NewTFIPAddressesModel(ctx context.Context, ipAddresses *admin.GroupIPAddres
 	return obj, diags
 }
 
-func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, projectProps AdditionalProperties) (*TFProjectRSModel, diag.Diagnostics) {
+func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, projectProps *AdditionalProperties) (*TFProjectRSModel, diag.Diagnostics) {
 	ipAddressesModel, diags := NewTFIPAddressesModel(ctx, projectProps.IPAddresses)
 	if diags.HasError() {
 		return nil, diags

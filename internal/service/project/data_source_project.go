@@ -3,6 +3,7 @@ package project
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"go.mongodb.org/atlas-sdk/v20250312003/admin"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -33,29 +35,46 @@ type projectDS struct {
 }
 
 type TFProjectDSModel struct {
-	IPAddresses                                 types.Object     `tfsdk:"ip_addresses"`
-	Created                                     types.String     `tfsdk:"created"`
-	OrgID                                       types.String     `tfsdk:"org_id"`
-	RegionUsageRestrictions                     types.String     `tfsdk:"region_usage_restrictions"`
-	ID                                          types.String     `tfsdk:"id"`
-	Name                                        types.String     `tfsdk:"name"`
-	ProjectID                                   types.String     `tfsdk:"project_id"`
-	Tags                                        types.Map        `tfsdk:"tags"`
-	Teams                                       []*TFTeamDSModel `tfsdk:"teams"`
-	Limits                                      []*TFLimitModel  `tfsdk:"limits"`
-	ClusterCount                                types.Int64      `tfsdk:"cluster_count"`
-	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool       `tfsdk:"is_collect_database_specifics_statistics_enabled"`
-	IsRealtimePerformancePanelEnabled           types.Bool       `tfsdk:"is_realtime_performance_panel_enabled"`
-	IsSchemaAdvisorEnabled                      types.Bool       `tfsdk:"is_schema_advisor_enabled"`
-	IsPerformanceAdvisorEnabled                 types.Bool       `tfsdk:"is_performance_advisor_enabled"`
-	IsExtendedStorageSizesEnabled               types.Bool       `tfsdk:"is_extended_storage_sizes_enabled"`
-	IsDataExplorerEnabled                       types.Bool       `tfsdk:"is_data_explorer_enabled"`
-	IsSlowOperationThresholdingEnabled          types.Bool       `tfsdk:"is_slow_operation_thresholding_enabled"`
+	Tags                                        types.Map              `tfsdk:"tags"`
+	IPAddresses                                 types.Object           `tfsdk:"ip_addresses"`
+	Created                                     types.String           `tfsdk:"created"`
+	OrgID                                       types.String           `tfsdk:"org_id"`
+	RegionUsageRestrictions                     types.String           `tfsdk:"region_usage_restrictions"`
+	ID                                          types.String           `tfsdk:"id"`
+	Name                                        types.String           `tfsdk:"name"`
+	ProjectID                                   types.String           `tfsdk:"project_id"`
+	Teams                                       []*TFTeamDSModel       `tfsdk:"teams"`
+	Limits                                      []*TFLimitModel        `tfsdk:"limits"`
+	Users                                       []*TFCloudUsersDSModel `tfsdk:"users"`
+	ClusterCount                                types.Int64            `tfsdk:"cluster_count"`
+	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool             `tfsdk:"is_collect_database_specifics_statistics_enabled"`
+	IsRealtimePerformancePanelEnabled           types.Bool             `tfsdk:"is_realtime_performance_panel_enabled"`
+	IsSchemaAdvisorEnabled                      types.Bool             `tfsdk:"is_schema_advisor_enabled"`
+	IsPerformanceAdvisorEnabled                 types.Bool             `tfsdk:"is_performance_advisor_enabled"`
+	IsExtendedStorageSizesEnabled               types.Bool             `tfsdk:"is_extended_storage_sizes_enabled"`
+	IsDataExplorerEnabled                       types.Bool             `tfsdk:"is_data_explorer_enabled"`
+	IsSlowOperationThresholdingEnabled          types.Bool             `tfsdk:"is_slow_operation_thresholding_enabled"`
 }
 
 type TFTeamDSModel struct {
 	TeamID    types.String `tfsdk:"team_id"`
 	RoleNames types.List   `tfsdk:"role_names"`
+}
+
+type TFCloudUsersDSModel struct {
+	ID                  types.String `tfsdk:"id"`
+	OrgMembershipStatus types.String `tfsdk:"org_membership_status"`
+	Roles               types.List   `tfsdk:"roles"`
+	Username            types.String `tfsdk:"username"`
+	InvitationCreatedAt types.String `tfsdk:"invitation_created_at"`
+	InvitationExpiresAt types.String `tfsdk:"invitation_expires_at"`
+	InviterUsername     types.String `tfsdk:"inviter_username"`
+	Country             types.String `tfsdk:"country"`
+	CreatedAt           types.String `tfsdk:"created_at"`
+	FirstName           types.String `tfsdk:"first_name"`
+	LastAuth            types.String `tfsdk:"last_auth"`
+	LastName            types.String `tfsdk:"last_name"`
+	MobileNumber        types.String `tfsdk:"mobile_number"`
 }
 
 func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
@@ -179,6 +198,53 @@ func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, re
 				ElementType: types.StringType,
 				Computed:    true,
 			},
+			"users": schema.SetNestedAttribute{
+				Computed: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"id": schema.StringAttribute{
+							Computed: true,
+						},
+						"org_membership_status": schema.StringAttribute{
+							Computed: true,
+						},
+						"roles": schema.ListAttribute{
+							Computed:    true,
+							ElementType: types.StringType,
+						},
+						"username": schema.StringAttribute{
+							Computed: true,
+						},
+						"invitation_created_at": schema.StringAttribute{
+							Computed: true,
+						},
+						"invitation_expires_at": schema.StringAttribute{
+							Computed: true,
+						},
+						"inviter_username": schema.StringAttribute{
+							Computed: true,
+						},
+						"country": schema.StringAttribute{
+							Computed: true,
+						},
+						"created_at": schema.StringAttribute{
+							Computed: true,
+						},
+						"first_name": schema.StringAttribute{
+							Computed: true,
+						},
+						"last_auth": schema.StringAttribute{
+							Computed: true,
+						},
+						"last_name": schema.StringAttribute{
+							Computed: true,
+						},
+						"mobile_number": schema.StringAttribute{
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 	conversion.UpdateSchemaDescription(&resp.Schema)
@@ -216,13 +282,13 @@ func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 		}
 	}
 
-	projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, project.GetId(), &resp.Diagnostics)
+	projectProps, err := GetProjectPropsFromAPI(ctx, true, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, connV2.MongoDBCloudUsersApi, project.GetId(), &resp.Diagnostics)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties", fmt.Sprintf(ErrorProjectRead, project.GetId(), err.Error()))
 		return
 	}
 
-	newProjectState, diags := NewTFProjectDataSourceModel(ctx, project, *projectProps)
+	newProjectState, diags := NewTFProjectDataSourceModel(ctx, project, projectProps)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -232,4 +298,12 @@ func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 	if resp.Diagnostics.HasError() {
 		return
 	}
+}
+
+func ListAllProjectUsers(ctx context.Context, projectID string, mongoDBCloudUsersAPI admin.MongoDBCloudUsersApi) ([]admin.GroupUserResponse, error) {
+	return dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.GroupUserResponse], *http.Response, error) {
+		request := mongoDBCloudUsersAPI.ListProjectUsers(ctx, projectID)
+		request = request.PageNum(pageNum)
+		return request.Execute()
+	})
 }

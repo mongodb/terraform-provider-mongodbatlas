@@ -278,7 +278,7 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := project.NewTFProjectDataSourceModel(t.Context(), tc.project, tc.projectProps)
+			resultModel, diags := project.NewTFProjectDataSourceModel(t.Context(), tc.project, &tc.projectProps)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -363,7 +363,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := project.NewTFProjectResourceModel(t.Context(), tc.project, tc.projectProps)
+			resultModel, diags := project.NewTFProjectResourceModel(t.Context(), tc.project, &tc.projectProps)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}

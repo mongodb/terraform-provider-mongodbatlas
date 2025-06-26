@@ -165,7 +165,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	// get project props
-	projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, projectID, &resp.Diagnostics)
+	projectProps, err := GetProjectPropsFromAPI(ctx, false, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, connV2.MongoDBCloudUsersApi, projectID, &resp.Diagnostics)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -174,7 +174,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	filteredLimits := FilterUserDefinedLimits(projectProps.Limits, limits)
 	projectProps.Limits = filteredLimits
 
-	projectPlanNew, diags := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
+	projectPlanNew, diags := NewTFProjectResourceModel(ctx, projectRes, projectProps)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -217,7 +217,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	}
 
 	// get project props
-	projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, projectID, &resp.Diagnostics)
+	projectProps, err := GetProjectPropsFromAPI(ctx, false, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, connV2.MongoDBCloudUsersApi, projectID, &resp.Diagnostics)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -226,7 +226,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	filteredLimits := FilterUserDefinedLimits(projectProps.Limits, limits)
 	projectProps.Limits = filteredLimits
 
-	projectStateNew, diags := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
+	projectStateNew, diags := NewTFProjectResourceModel(ctx, projectRes, projectProps)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -288,7 +288,7 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	}
 
 	// get project props
-	projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, projectID, &resp.Diagnostics)
+	projectProps, err := GetProjectPropsFromAPI(ctx, false, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, connV2.MongoDBCloudUsersApi, projectID, &resp.Diagnostics)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -299,7 +299,7 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	filteredLimits := FilterUserDefinedLimits(projectProps.Limits, planLimits)
 	projectProps.Limits = filteredLimits
 
-	projectPlanNew, diags := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
+	projectPlanNew, diags := NewTFProjectResourceModel(ctx, projectRes, projectProps)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -364,11 +364,12 @@ type AdditionalProperties struct {
 	Settings                           *admin.GroupSettings
 	IPAddresses                        *admin.GroupIPAddresses
 	Limits                             []admin.DataFederationLimit
+	Users                              []admin.GroupUserResponse
 	IsSlowOperationThresholdingEnabled bool
 }
 
 // GetProjectPropsFromAPI fetches properties obtained from complementary endpoints associated with a project.
-func GetProjectPropsFromAPI(ctx context.Context, projectsAPI admin.ProjectsApi, teamsAPI admin.TeamsApi, performanceAdvisorAPI admin.PerformanceAdvisorApi, projectID string, warnings *diag.Diagnostics) (*AdditionalProperties, error) {
+func GetProjectPropsFromAPI(ctx context.Context, isDataSource bool, projectsAPI admin.ProjectsApi, teamsAPI admin.TeamsApi, performanceAdvisorAPI admin.PerformanceAdvisorApi, mongoDBCloudUsersAPI admin.MongoDBCloudUsersApi, projectID string, warnings *diag.Diagnostics) (*AdditionalProperties, error) {
 	teams, _, err := teamsAPI.ListProjectTeams(ctx, projectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error getting project's teams assigned (%s): %v", projectID, err.Error())
@@ -393,12 +394,21 @@ func GetProjectPropsFromAPI(ctx context.Context, projectsAPI admin.ProjectsApi, 
 		return nil, fmt.Errorf("error getting project's slow operation thresholding enabled (%s): %v", projectID, err.Error())
 	}
 
+	var users []admin.GroupUserResponse
+	if isDataSource {
+		var err error
+		users, err = ListAllProjectUsers(ctx, projectID, mongoDBCloudUsersAPI)
+		if err != nil {
+			return nil, fmt.Errorf("error getting project's users (%s): %v", projectID, err.Error())
+		}
+	}
 	return &AdditionalProperties{
 		Teams:                              teams,
 		Limits:                             limits,
 		Settings:                           projectSettings,
 		IPAddresses:                        ipAddresses,
 		IsSlowOperationThresholdingEnabled: isSlowOperationThresholdingEnabled,
+		Users:                              users,
 	}, nil
 }
 
