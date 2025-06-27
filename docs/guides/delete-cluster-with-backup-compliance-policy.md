@@ -14,7 +14,7 @@ resources are related to each other: `mongodbatlas_backup_compliance_policy`,
 You must use a Backup Compliance policy if you have strict data protection
 requirements. Enabling this policy ensures your backup data remains protected.
 To learn more, see
-[Backup Compliance Policy](mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/)
+[Backup Compliance Policy](https://mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/)
 in the MongoDB Atlas Documentation.
 
 To configure a Backup Compliance Policy in Terraform, use the
