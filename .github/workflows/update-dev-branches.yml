@@ -59,7 +59,7 @@ jobs:
             if [ "${{ inputs.force-auto-resolve }}" = "true" ]; then
               echo "WARNING: Rebase conflicts detected but auto-resolved by favoring master changes."
             else
-              echo "ERROR: Rebase conflicts detected that can be auto-resolved by favoring master changes."
+              echo "ERROR: Rebase conflicts detected. These can be auto-resolved by favoring master changes, but manual review is recommended to ensure no important changes are lost."
               echo "Manual review required to ensure no important changes are lost."
               echo "Use 'force-auto-resolve: true' input to auto-resolve these conflicts."
               git rebase --abort
