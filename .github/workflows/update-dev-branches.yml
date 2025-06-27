@@ -57,16 +57,15 @@ jobs:
           git rebase --abort
           if git rebase origin/master -X theirs; then
             if [ "${{ inputs.force-auto-resolve }}" = "true" ]; then
-              echo "WARNING: Rebase conflicts detected but auto-resolved by favoring master changes."
+              echo "WARNING: Rebase conflicts detected but auto-resolved by favoring master changes because force-auto-resolve is true."
             else
-              echo "ERROR: Rebase conflicts detected. These can be auto-resolved by favoring master changes, but manual review is recommended to ensure no important changes are lost."
-              echo "Manual review required to ensure no important changes are lost."
-              echo "Use 'force-auto-resolve: true' input to auto-resolve these conflicts."
+              echo "ERROR: Rebase conflicts detected that can be auto-resolved by favoring master changes."
+              echo "Manual review required to ensure no important changes are lost. Set force-auto-resolve to true to auto-resolve these conflicts."
               git rebase --abort
               exit 1
             fi
           else
-            echo "ERROR: Rebase conflicts detected that need manual intervention."
+            echo "ERROR: Rebase conflicts detected that need manual intervention, they can't be auto-resolved."
             exit 1
           fi
         fi
