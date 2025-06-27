@@ -6,6 +6,11 @@ on:
       branches:
         description: 'Dev branch names to update from master'
         default: '["CLOUDP-320243-dev-2.0.0"]'
+      force-auto-resolve:
+        description: 'Force auto-resolve conflicts by favoring master changes. Some changes in dev branch might be lost.'
+        required: false
+        default: false
+        type: boolean
   schedule:
     - cron: "0 5 * * 3" # workflow runs every Wednesday at 5 AM UTC
 
@@ -45,16 +50,25 @@ jobs:
         git fetch origin ${{ matrix.branch }}        
         git checkout -B ${{ matrix.branch }} origin/${{ matrix.branch }}
         
-        if git merge origin/master --no-edit; then
-          echo "OK: Merge completed successfully with no conflicts."
+        if git rebase origin/master; then
+          echo "OK: Rebase completed successfully with no conflicts."
         else
-          git merge --abort
-          if git merge origin/master --strategy-option=theirs --no-edit; then
-            echo "ERROR: Merge conflicts detected that can be auto-resolved by favoring master changes."
+          # Check if conflicts can be auto-resolved
+          git rebase --abort
+          if git rebase origin/master -X theirs; then
+            if [ "${{ inputs.force-auto-resolve }}" = "true" ]; then
+              echo "WARNING: Rebase conflicts detected but auto-resolved by favoring master changes."
+            else
+              echo "ERROR: Rebase conflicts detected that can be auto-resolved by favoring master changes."
+              echo "Manual review required to ensure no important changes are lost."
+              echo "Use 'force-auto-resolve: true' input to auto-resolve these conflicts."
+              git rebase --abort
+              exit 1
+            fi
           else
-            echo "ERROR: Merge conflicts detected that need manual intervention."
+            echo "ERROR: Rebase conflicts detected that need manual intervention."
+            exit 1
           fi
-          exit 1
         fi
 
     - uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e
