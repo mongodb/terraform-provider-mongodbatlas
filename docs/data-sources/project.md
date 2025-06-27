@@ -82,7 +82,7 @@ In addition to all arguments above, the following attributes are exported:
 * `teams` - Returns all teams to which the authenticated user has access in the project. See [Teams](#teams).
 * `limits` - The limits for the specified project. See [Limits](#limits).
 * `ip_addresses` - IP addresses in a project categorized by services. See [IP Addresses](#ip-addresses). **WARNING:** This attribute is deprecated, use the `mongodbatlas_project_ip_addresses` data source instead.
-* `users` - Returns details about the pending and active MongoDB Cloud users associated with the specified project.
+* `users` - Returns list of all pending and active MongoDB Cloud users associated with the specified project.
 * `is_collect_database_specifics_statistics_enabled` - Flag that indicates whether to enable statistics in [cluster metrics](https://www.mongodb.com/docs/atlas/monitor-cluster-metrics/) collection for the project.
 * `is_data_explorer_enabled` - Flag that indicates whether to enable Data Explorer for the project. If enabled, you can query your database with an easy to use interface.
 * `is_extended_storage_sizes_enabled` - Flag that indicates whether to enable extended storage sizes for the specified project.
