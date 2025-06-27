@@ -543,8 +543,7 @@ func TestAccProject_basic(t *testing.T) {
 	checks = acc.AddAttrSetChecks(dataSourceNameByID, checks, commonSetChecks...)
 	checks = acc.AddAttrSetChecks(dataSourceNameByName, checks, commonSetChecks...)
 	checks = append(checks, checkExists(resourceName), checkExists(dataSourceNameByID), checkExists(dataSourceNameByName))
-	// TODO: Uncomment this when CLOUDP-327589 is implemented
-	// checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, "total_count", "results.#", "results.0.is_slow_operation_thresholding_enabled")
+	checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, "total_count", "results.#", "results.0.is_slow_operation_thresholding_enabled", "results.0.users.#")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIDsWithMinCount(t, 3) },
@@ -1195,9 +1194,8 @@ func configBasic(orgID, projectName, projectOwnerID string, includeDataSource bo
 			data "mongodbatlas_project" "test2" {
 				name = mongodbatlas_project.test.name
 			}
-			# TODO: Uncomment this when CLOUDP-327589 is implemented
-			# data "mongodbatlas_projects" "test" {
-			# }
+			 data "mongodbatlas_projects" "test" {
+			}
 		`
 	}
 
