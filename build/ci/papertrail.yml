@@ -121,8 +121,9 @@ functions:
       params:
         key_id: ${papertrail_key_id}
         secret_key: ${papertrail_secret_key}
-        product: "terraform-provider-mongodbatlas"
+        product: "tmp2-terraform-provider-mongodbatlas"
         version: ${release_version}
+        submitter: "svc-apix-Bot"
         filenames:
           - "src/github.com/mongodb/terraform-provider-mongodbatlas/release_artifacts/*.zip"
 
