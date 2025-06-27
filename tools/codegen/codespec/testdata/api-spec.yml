@@ -182,7 +182,7 @@ paths:
       tags:
         - Atlas Search
     post:
-      description: POST API description      
+      description: POST API description
       operationId: createNestedTestResource
       parameters:
         - $ref: "#/components/parameters/groupId"
@@ -214,7 +214,7 @@ paths:
         - DigestAuth: []
       summary: Create Nested Test Resource
       tags:
-        - Atlas Search 
+        - Atlas Search
   "/api/atlas/v2/groups/{groupId}/pathparaminpostreq":
     post:
       description: POST API description
@@ -298,11 +298,11 @@ paths:
         content:
           application/vnd.atlas.2023-01-01+json:
             schema:
-                type: object
-                properties:
-                  strReqAttr1:
-                    type: string
-                    description: Test field description
+              type: object
+              properties:
+                strReqAttr1:
+                  type: string
+                  description: Test field description
             x-xgen-version: 2023-01-01
         description: Patch request description
         required: true
@@ -559,10 +559,9 @@ components:
       type: object
       properties:
         nestedLevel1:
-          $ref: '#/components/schemas/NestedLevel1Object'
+          $ref: "#/components/schemas/NestedLevel1Object"
     NestedLevel1Object:
       type: object
       properties:
         levelField1:
           type: string
-
