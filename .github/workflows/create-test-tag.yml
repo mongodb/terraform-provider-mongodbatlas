@@ -1,4 +1,4 @@
-name: 'test tag'
+name: 'test papertrail on tag create workflow - will be reverted'
 
 on:
   workflow_dispatch:
