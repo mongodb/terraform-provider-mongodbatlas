@@ -168,14 +168,22 @@ func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOption
 	isSet := s.Schema.Format == OASFormatSet || (s.Schema.UniqueItems != nil && *s.Schema.UniqueItems)
 
 	createAttribute := func(nestedObject *NestedAttributeObject, elemType ElemType) *Attribute {
-		attr := &Attribute{
-			Name:                     stringcase.FromCamelCase(name),
-			ComputedOptionalRequired: computability,
-			DeprecationMessage:       s.GetDeprecationMessage(),
-			Description:              s.GetDescription(),
+		var (
+			attr = &Attribute{
+				Name:                     stringcase.FromCamelCase(name),
+				ComputedOptionalRequired: computability,
+				DeprecationMessage:       s.GetDeprecationMessage(),
+				Description:              s.GetDescription(),
+			}
+			isNested      = nestedObject != nil
+			isNestedEmpty = isNested && len(nestedObject.Attributes) == 0
+		)
+
+		if isNested && isNestedEmpty { // objects without attributes use JSON custom type
+			elemType = CustomTypeJSON
 		}
 
-		if nestedObject != nil {
+		if isNested && !isNestedEmpty {
 			if isSet {
 				attr.SetNested = &SetNestedAttribute{NestedObject: *nestedObject}
 			} else {
@@ -259,20 +267,25 @@ func (s *APISpecSchema) buildMapAttr(name string, computability ComputedOptional
 }
 
 func (s *APISpecSchema) buildSingleNestedAttr(name string, computability ComputedOptionalRequired, isFromRequest bool) (*Attribute, error) {
-	objectAttributes, err := buildResourceAttrs(s, isFromRequest)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Attribute{
+	attr := &Attribute{
 		Name:                     stringcase.FromCamelCase(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
-		SingleNested: &SingleNestedAttribute{
+	}
+	objectAttributes, err := buildResourceAttrs(s, isFromRequest)
+	if err != nil {
+		return nil, err
+	}
+	if len(objectAttributes) > 0 {
+		attr.SingleNested = &SingleNestedAttribute{
 			NestedObject: NestedAttributeObject{
 				Attributes: objectAttributes,
 			},
-		},
-	}, nil
+		}
+	} else { // objects without attributes use JSON custom type
+		attr.CustomType = &CustomTypeJSONVar
+		attr.String = &StringAttribute{}
+	}
+	return attr, nil
 }
