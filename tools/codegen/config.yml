@@ -336,3 +336,29 @@ resources:
       ignores: ["_id", "region", "cloud_provider"] # region and cloud_provider are incorrectly declared in PATCH as root attributes, _id can't be used in Terraform schema
       aliases:
         tenant_name: name # path param name does not match the API request property
+
+  # id should be Computed but is ignored because it's defined as _id which is not a legal name for a Terraform attribute as they can't start with an underscore.
+  # Custom methods :startWith and :stop are not called so state attribute is not supported as Optional like in the curated resource, only as Computed.
+  stream_processor_api:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{processorName}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{processorName}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{processorName}
+      method: DELETE
+    version_header: application/vnd.atlas.2024-05-30+json
+    schema:
+      ignores: ["links", "_id"]
+      aliases:
+        processor_name: name # path param name does not match the API request property.
+      overrides:
+        options: # optional but when not configured, Atlas returns a default value.
+          computability:
+            optional: true
+            computed: true
