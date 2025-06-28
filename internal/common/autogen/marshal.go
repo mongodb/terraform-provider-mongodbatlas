@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -105,8 +106,14 @@ func getModelAttr(val attr.Value) (any, error) {
 		return getListAttr(v.Elements())
 	case types.Set:
 		return getListAttr(v.Elements())
+	case jsontypes.Normalized:
+		var valueJSON any
+		if err := json.Unmarshal([]byte(v.ValueString()), &valueJSON); err != nil {
+			return nil, fmt.Errorf("marshal failed for JSON custom type: %v", err)
+		}
+		return valueJSON, nil
 	default:
-		return nil, fmt.Errorf("unmarshal not supported yet for type %T", v)
+		return nil, fmt.Errorf("marshal not supported yet for type %T", v)
 	}
 }
 
