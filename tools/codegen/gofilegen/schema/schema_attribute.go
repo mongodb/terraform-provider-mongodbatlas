@@ -141,5 +141,8 @@ func commonProperties(attr *codespec.Attribute) []string {
 	if attr.Sensitive {
 		result = append(result, "Sensitive: true")
 	}
+	if attr.CustomType != nil {
+		result = append(result, fmt.Sprintf("CustomType: %s", attr.CustomType.Schema))
+	}
 	return result
 }
