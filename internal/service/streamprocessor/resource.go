@@ -3,6 +3,7 @@ package streamprocessor
 import (
 	"context"
 	"errors"
+	"net/http"
 	"regexp"
 
 	"go.mongodb.org/atlas-sdk/v20250312004/admin"
@@ -247,15 +248,28 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 }
 
 func (r *streamProcessorRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var streamProcessorState *TFStreamProcessorRSModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &streamProcessorState)...)
+	var state TFStreamProcessorRSModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	connV2 := r.Client.AtlasV2
-	if _, err := connV2.StreamsApi.DeleteStreamProcessor(ctx, streamProcessorState.ProjectID.ValueString(), streamProcessorState.InstanceName.ValueString(), streamProcessorState.ProcessorName.ValueString()).Execute(); err != nil {
+	params := &admin.GetStreamProcessorApiParams{
+		GroupId:       state.ProjectID.ValueString(),
+		TenantName:    state.InstanceName.ValueString(),
+		ProcessorName: state.ProcessorName.ValueString(),
+	}
+
+	if _, err := connV2.StreamsApi.DeleteStreamProcessor(ctx, params.GroupId, params.TenantName, params.ProcessorName).Execute(); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
+		return
+	}
+	_, err := WaitStateTransition(ctx, params, connV2.StreamsApi, []string{InitiatingState, CreatingState, CreatedState, StartedState, StoppedState}, []string{DroppedState})
+	if apiError, _ := admin.AsError(err); apiError.GetError() == http.StatusBadRequest {
+		return // resource already deleted
+	}
+	if err != nil {
+		resp.Diagnostics.AddError("error waiting for deleting resource", err.Error())
 		return
 	}
 }
