@@ -283,7 +283,7 @@ func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 	}
 	projectPropsParams := &PropsParams{
 		ProjectID:             project.GetId(),
-		IsDataSource:          false,
+		IsDataSource:          true,
 		ProjectsAPI:           connV2.ProjectsApi,
 		TeamsAPI:              connV2.TeamsApi,
 		PerformanceAdvisorAPI: connV2.PerformanceAdvisorApi,
