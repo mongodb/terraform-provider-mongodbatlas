@@ -351,7 +351,7 @@ resources:
         pending_states: ["INIT", "CREATING"]
         target_states: ["CREATED"]
         timeout_seconds: 300 # 5 minutes
-        min_timeout_seconds: 180 # 3 minutes
+        min_timeout_seconds: 3
         delay_seconds: 0
     update:
       path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{processorName}
@@ -362,7 +362,7 @@ resources:
       method: DELETE
       wait:
         <<: *stream-processor-create-wait
-        pending_states: ["INIT", "CREATING", "CREATED"]
+        pending_states: ["INIT", "CREATING", "CREATED", "STARTED", "STOPPED"]
         target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
     version_header: application/vnd.atlas.2024-05-30+json
     schema:
