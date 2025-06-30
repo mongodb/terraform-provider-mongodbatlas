@@ -281,21 +281,16 @@ func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 			return
 		}
 	}
-
 	projectPropsParams := &PropsParams{
-		Context:      ctx,
-		IsDataSource: true,
-		ProjectID:    project.GetId(),
-		Warnings:     &resp.Diagnostics,
-	}
-	projectApis := &APIClients{
+		ProjectID:             project.GetId(),
+		IsDataSource:          false,
 		ProjectsAPI:           connV2.ProjectsApi,
 		TeamsAPI:              connV2.TeamsApi,
 		PerformanceAdvisorAPI: connV2.PerformanceAdvisorApi,
 		MongoDBCloudUsersAPI:  connV2.MongoDBCloudUsersApi,
 	}
 
-	projectProps, err := GetProjectPropsFromAPI(projectPropsParams, projectApis)
+	projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams, &resp.Diagnostics)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties", fmt.Sprintf(ErrorProjectRead, project.GetId(), err.Error()))
 		return

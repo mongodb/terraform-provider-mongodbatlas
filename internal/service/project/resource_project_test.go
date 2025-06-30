@@ -131,19 +131,15 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			perfMock.EXPECT().GetManagedSlowMsExecute(mock.Anything).Return(true, nil, nil).Maybe()
 
 			projectPropsParams := &project.PropsParams{
-				Context:      t.Context(),
-				IsDataSource: false,
-				ProjectID:    dummyProjectID,
-				Warnings:     nil,
-			}
-			projectApis := &project.APIClients{
+				ProjectID:             dummyProjectID,
+				IsDataSource:          false,
 				ProjectsAPI:           projectsMock,
 				TeamsAPI:              teamsMock,
 				PerformanceAdvisorAPI: perfMock,
 				MongoDBCloudUsersAPI:  cloudUsersMock,
 			}
 
-			_, err := project.GetProjectPropsFromAPI(projectPropsParams, projectApis)
+			_, err := project.GetProjectPropsFromAPI(t.Context(), projectPropsParams, nil)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)

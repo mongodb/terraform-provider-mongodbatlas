@@ -165,13 +165,8 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	projectPropsParams := &PropsParams{
-		Context:      ctx,
-		IsDataSource: false,
-		ProjectID:    projectID,
-		Warnings:     &resp.Diagnostics,
-	}
-
-	projectApis := &APIClients{
+		ProjectID:             projectID,
+		IsDataSource:          false,
 		ProjectsAPI:           connV2.ProjectsApi,
 		TeamsAPI:              connV2.TeamsApi,
 		PerformanceAdvisorAPI: connV2.PerformanceAdvisorApi,
@@ -179,7 +174,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	// get project props
-	projectProps, err := GetProjectPropsFromAPI(projectPropsParams, projectApis)
+	projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams, &resp.Diagnostics)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -231,13 +226,8 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	}
 
 	projectPropsParams := &PropsParams{
-		Context:      ctx,
-		IsDataSource: false,
-		ProjectID:    projectID,
-		Warnings:     &resp.Diagnostics,
-	}
-
-	projectApis := &APIClients{
+		ProjectID:             projectID,
+		IsDataSource:          false,
 		ProjectsAPI:           connV2.ProjectsApi,
 		TeamsAPI:              connV2.TeamsApi,
 		PerformanceAdvisorAPI: connV2.PerformanceAdvisorApi,
@@ -245,7 +235,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	}
 
 	// get project props
-	projectProps, err := GetProjectPropsFromAPI(projectPropsParams, projectApis)
+	projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams, &resp.Diagnostics)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -316,13 +306,8 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	}
 
 	projectPropsParams := &PropsParams{
-		Context:      ctx,
-		IsDataSource: false,
-		ProjectID:    projectID,
-		Warnings:     &resp.Diagnostics,
-	}
-
-	projectApis := &APIClients{
+		ProjectID:             projectID,
+		IsDataSource:          false,
 		ProjectsAPI:           connV2.ProjectsApi,
 		TeamsAPI:              connV2.TeamsApi,
 		PerformanceAdvisorAPI: connV2.PerformanceAdvisorApi,
@@ -330,7 +315,7 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	}
 
 	// get project props
-	projectProps, err := GetProjectPropsFromAPI(projectPropsParams, projectApis)
+	projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams, &resp.Diagnostics)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -410,49 +395,44 @@ type AdditionalProperties struct {
 	IsSlowOperationThresholdingEnabled bool
 }
 
-type APIClients struct {
+type PropsParams struct {
 	ProjectsAPI           admin.ProjectsApi
 	TeamsAPI              admin.TeamsApi
 	PerformanceAdvisorAPI admin.PerformanceAdvisorApi
 	MongoDBCloudUsersAPI  admin.MongoDBCloudUsersApi
-}
-
-type PropsParams struct {
-	Context      context.Context
-	Warnings     *diag.Diagnostics
-	ProjectID    string
-	IsDataSource bool
+	ProjectID             string
+	IsDataSource          bool
 }
 
 // GetProjectPropsFromAPI fetches properties obtained from complementary endpoints associated with a project.
-func GetProjectPropsFromAPI(params *PropsParams, projectApis *APIClients) (*AdditionalProperties, error) {
-	teams, _, err := projectApis.TeamsAPI.ListProjectTeams(params.Context, params.ProjectID).Execute()
+func GetProjectPropsFromAPI(ctx context.Context, params *PropsParams, warnings *diag.Diagnostics) (*AdditionalProperties, error) {
+	teams, _, err := params.TeamsAPI.ListProjectTeams(ctx, params.ProjectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error getting project's teams assigned (%s): %v", params.ProjectID, err.Error())
 	}
 
-	limits, _, err := projectApis.ProjectsAPI.ListProjectLimits(params.Context, params.ProjectID).Execute()
+	limits, _, err := params.ProjectsAPI.ListProjectLimits(ctx, params.ProjectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error getting project's limits (%s): %s", params.ProjectID, err.Error())
 	}
 
-	projectSettings, _, err := projectApis.ProjectsAPI.GetProjectSettings(params.Context, params.ProjectID).Execute()
+	projectSettings, _, err := params.ProjectsAPI.GetProjectSettings(ctx, params.ProjectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error getting project's settings assigned (%s): %v", params.ProjectID, err.Error())
 	}
 
-	ipAddresses, _, err := projectApis.ProjectsAPI.ReturnAllIpAddresses(params.Context, params.ProjectID).Execute()
+	ipAddresses, _, err := params.ProjectsAPI.ReturnAllIpAddresses(ctx, params.ProjectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("error getting project's IP addresses (%s): %v", params.ProjectID, err.Error())
 	}
-	isSlowOperationThresholdingEnabled, err := ReadIsSlowMsThresholdingEnabled(params.Context, projectApis.PerformanceAdvisorAPI, params.ProjectID, params.Warnings)
+	isSlowOperationThresholdingEnabled, err := ReadIsSlowMsThresholdingEnabled(ctx, params.PerformanceAdvisorAPI, params.ProjectID, warnings)
 	if err != nil {
 		return nil, fmt.Errorf("error getting project's slow operation thresholding enabled (%s): %v", params.ProjectID, err.Error())
 	}
 
 	var users []admin.GroupUserResponse
 	if params.IsDataSource {
-		users, err = ListAllProjectUsers(params.Context, params.ProjectID, projectApis.MongoDBCloudUsersAPI)
+		users, err = ListAllProjectUsers(ctx, params.ProjectID, params.MongoDBCloudUsersAPI)
 		if err != nil {
 			return nil, fmt.Errorf("error getting project's users (%s): %v", params.ProjectID, err.Error())
 		}

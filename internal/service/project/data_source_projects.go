@@ -217,20 +217,15 @@ func populateProjectsDataSourceModel(ctx context.Context, connV2 *admin.APIClien
 		project := input[i]
 
 		projectPropsParams := &PropsParams{
-			Context:      ctx,
-			IsDataSource: true,
-			ProjectID:    project.GetId(),
-			Warnings:     &diagnostics,
-		}
-
-		projectApis := &APIClients{
+			ProjectID:             project.GetId(),
+			IsDataSource:          true,
 			ProjectsAPI:           connV2.ProjectsApi,
 			TeamsAPI:              connV2.TeamsApi,
 			PerformanceAdvisorAPI: connV2.PerformanceAdvisorApi,
 			MongoDBCloudUsersAPI:  connV2.MongoDBCloudUsersApi,
 		}
 
-		projectProps, err := GetProjectPropsFromAPI(projectPropsParams, projectApis)
+		projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams, &diagnostics)
 		if err == nil { // if the project is still valid, e.g. could have just been deleted
 			projectModel, diags := NewTFProjectDataSourceModel(ctx, &project, projectProps)
 			diagnostics = append(diagnostics, diags...)
