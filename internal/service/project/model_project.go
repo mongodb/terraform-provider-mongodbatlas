@@ -52,7 +52,7 @@ func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, proj
 
 func NewTFTeamsDataSourceModel(ctx context.Context, atlasTeams *admin.PaginatedTeamRole) []*TFTeamDSModel {
 	if atlasTeams == nil || atlasTeams.GetTotalCount() == 0 {
-		return []*TFTeamDSModel{}
+		return nil
 	}
 	results := atlasTeams.GetResults()
 	teams := make([]*TFTeamDSModel, len(results))
