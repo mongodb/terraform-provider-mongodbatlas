@@ -18,6 +18,7 @@ func TestUnmarshalBasic(t *testing.T) {
 		AttrString       types.String         `tfsdk:"attr_string"`
 		AttrNotInJSON    types.String         `tfsdk:"attr_not_in_json"`
 		AttrJSON         jsontypes.Normalized `tfsdk:"attr_json"`
+		AttrJSONList     types.List           `tfsdk:"attr_json_list"`
 		AttrInt          types.Int64          `tfsdk:"attr_int"`
 		AttrIntWithFloat types.Int64          `tfsdk:"attr_int_with_float"`
 		AttrTrue         types.Bool           `tfsdk:"attr_true"`
@@ -37,7 +38,8 @@ func TestUnmarshalBasic(t *testing.T) {
 				"attrFloatWithInt": 13,
 				"attrNotInModel": "val",
 				"attrNull": null,
-				"attrJson": {"hello": "there"}
+				"attrJSON": {"hello": "there"},
+				"attrJSONList": [{"hello1": "there1"}, {"hello2": "there2"}]
 			}
 		`
 	)
@@ -51,6 +53,9 @@ func TestUnmarshalBasic(t *testing.T) {
 	assert.InEpsilon(t, float64(13), model.AttrFloatWithInt.ValueFloat64(), epsilon)
 	assert.True(t, model.AttrNotInJSON.IsNull()) // attributes not in JSON response are not changed, so null is kept.
 	assert.JSONEq(t, "{\"hello\":\"there\"}", model.AttrJSON.ValueString())
+	require.Equal(t, 2, len(model.AttrJSONList.Elements()))
+	require.Equal(t, `{"hello1":"there1"}`, model.AttrJSONList.Elements()[0].(types.String).ValueString())
+	require.Equal(t, `{"hello2":"there2"}`, model.AttrJSONList.Elements()[1].(types.String).ValueString())
 }
 
 func TestUnmarshalNestedAllTypes(t *testing.T) {

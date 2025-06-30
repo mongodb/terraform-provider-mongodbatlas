@@ -67,7 +67,7 @@ func TestMarshalBasic(t *testing.T) {
 		AttrBoolNull:        types.BoolNull(), // null values are not marshaled
 		AttrJSON:            jsontypes.NewNormalizedValue("{\"hello\": \"there\"}"),
 	}
-	const expectedJSON = `{ "attrString": "hello", "attrInt": 1, "attrFloat": 1.234, "attrBoolTrue": true, "attrBoolFalse": false, "attrJson": {"hello": "there"} }`
+	const expectedJSON = `{ "attrString": "hello", "attrInt": 1, "attrFloat": 1.234, "attrBoolTrue": true, "attrBoolFalse": false, "attrJSON": {"hello": "there"} }`
 	raw, err := autogen.Marshal(&model, false)
 	require.NoError(t, err)
 	assert.JSONEq(t, expectedJSON, string(raw))
