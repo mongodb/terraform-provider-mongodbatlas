@@ -18,7 +18,6 @@ func TestUnmarshalBasic(t *testing.T) {
 		AttrString       types.String         `tfsdk:"attr_string"`
 		AttrNotInJSON    types.String         `tfsdk:"attr_not_in_json"`
 		AttrJSON         jsontypes.Normalized `tfsdk:"attr_json"`
-		AttrJSONList     types.List           `tfsdk:"attr_json_list"`
 		AttrInt          types.Int64          `tfsdk:"attr_int"`
 		AttrIntWithFloat types.Int64          `tfsdk:"attr_int_with_float"`
 		AttrTrue         types.Bool           `tfsdk:"attr_true"`
@@ -38,8 +37,7 @@ func TestUnmarshalBasic(t *testing.T) {
 				"attrFloatWithInt": 13,
 				"attrNotInModel": "val",
 				"attrNull": null,
-				"attrJSON": {"hello": "there"},
-				"attrJSONList": [{"hello1": "there1"}, {"hello2": "there2"}]
+				"attrJSON": {"hello": "there"}
 			}
 		`
 	)
@@ -53,9 +51,6 @@ func TestUnmarshalBasic(t *testing.T) {
 	assert.InEpsilon(t, float64(13), model.AttrFloatWithInt.ValueFloat64(), epsilon)
 	assert.True(t, model.AttrNotInJSON.IsNull()) // attributes not in JSON response are not changed, so null is kept.
 	assert.JSONEq(t, "{\"hello\":\"there\"}", model.AttrJSON.ValueString())
-	require.Len(t, model.AttrJSONList.Elements(), 2)
-	require.JSONEq(t, `{"hello1":"there1"}`, model.AttrJSONList.Elements()[0].(types.String).ValueString())
-	require.JSONEq(t, `{"hello2":"there2"}`, model.AttrJSONList.Elements()[1].(types.String).ValueString())
 }
 
 func TestUnmarshalNestedAllTypes(t *testing.T) {
@@ -76,6 +71,7 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrMapSimple         types.Map    `tfsdk:"attr_map_simple"`
 		AttrMapSimpleExisting types.Map    `tfsdk:"attr_map_simple_existing"`
 		AttrMapObj            types.Map    `tfsdk:"attr_map_obj"`
+		AttrJSONList          types.List   `tfsdk:"attr_json_list"`
 	}
 	model := modelst{
 		AttrObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
@@ -109,7 +105,8 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 			"existing":       types.StringValue("valexisting"),
 			"existingCHANGE": types.StringValue("before"),
 		}),
-		AttrMapObj: types.MapUnknown(objTypeTest),
+		AttrMapObj:   types.MapUnknown(objTypeTest),
+		AttrJSONList: types.ListUnknown(jsontypes.NormalizedType{}),
 	}
 	// attrUnexisting is ignored because it is in JSON but not in the model, no error is returned
 	const (
@@ -235,7 +232,11 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 						"attrFloat": 22.2,		
 						"attrBool": true		
 					}
-				}
+				},
+				"attrJSONList": [
+					{"hello1": "there1"},
+					{"hello2": "there2"}
+				]
 			}
 		`
 	)
@@ -383,6 +384,10 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 				"attr_float":  types.Float64Value(22.2),
 				"attr_bool":   types.BoolValue(true),
 			}),
+		}),
+		AttrJSONList: types.ListValueMust(jsontypes.NormalizedType{}, []attr.Value{
+			jsontypes.NewNormalizedValue(`{"hello1":"there1"}`),
+			jsontypes.NewNormalizedValue(`{"hello2":"there2"}`),
 		}),
 	}
 	require.NoError(t, autogen.Unmarshal([]byte(jsonResp), &model))
