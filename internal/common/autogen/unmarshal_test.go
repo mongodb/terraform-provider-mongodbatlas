@@ -53,9 +53,9 @@ func TestUnmarshalBasic(t *testing.T) {
 	assert.InEpsilon(t, float64(13), model.AttrFloatWithInt.ValueFloat64(), epsilon)
 	assert.True(t, model.AttrNotInJSON.IsNull()) // attributes not in JSON response are not changed, so null is kept.
 	assert.JSONEq(t, "{\"hello\":\"there\"}", model.AttrJSON.ValueString())
-	require.Equal(t, 2, len(model.AttrJSONList.Elements()))
-	require.Equal(t, `{"hello1":"there1"}`, model.AttrJSONList.Elements()[0].(types.String).ValueString())
-	require.Equal(t, `{"hello2":"there2"}`, model.AttrJSONList.Elements()[1].(types.String).ValueString())
+	require.Len(t, model.AttrJSONList.Elements(), 2)
+	require.JSONEq(t, `{"hello1":"there1"}`, model.AttrJSONList.Elements()[0].(types.String).ValueString())
+	require.JSONEq(t, `{"hello2":"there2"}`, model.AttrJSONList.Elements()[1].(types.String).ValueString())
 }
 
 func TestUnmarshalNestedAllTypes(t *testing.T) {

@@ -64,22 +64,6 @@ func TestAccStreamProcessorAPI_basic(t *testing.T) {
 				ImportStateVerifyIgnore:              []string{"stats"},
 				ImportStateVerifyIdentifierAttribute: "name", // id is not used because _id is returned in Atlas which is not a legal name for a Terraform attribute.
 			},
-		},
-	})
-}
-
-func TestAccStreamProcessorAPI_invalidJSON(t *testing.T) {
-	var (
-		projectID     = acc.ProjectIDExecution(t)
-		instanceName  = acc.RandomName()
-		processorName = acc.RandomName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
 			{
 				Config:      configBasic(projectID, instanceName, processorName, pipelineInvalidJSON),
 				ExpectError: regexp.MustCompile("marshal failed for JSON custom type"),
