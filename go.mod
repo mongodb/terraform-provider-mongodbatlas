@@ -24,7 +24,7 @@ require (
 	github.com/huandu/xstrings v1.5.0
 	github.com/jarcoal/httpmock v1.4.0
 	github.com/mongodb-forks/digest v1.1.0
-	github.com/mongodb/atlas-sdk-go v1.0.1-0.20250623084102-bbd2add2ae80
+	github.com/mongodb/atlas-sdk-go v1.0.1-0.20250630084102-6f6edd2e6f1f
 	github.com/pb33f/libopenapi v0.22.3
 	github.com/sebdah/goldie/v2 v2.5.5
 	github.com/spf13/cast v1.9.2
@@ -41,7 +41,7 @@ require (
 
 require (
 	github.com/hashicorp/terraform-json v0.25.0
-	go.mongodb.org/atlas-sdk/v20250312004 v20250312004.0.0
+	go.mongodb.org/atlas-sdk/v20250312005 v20250312005.0.0
 )
 
 require (

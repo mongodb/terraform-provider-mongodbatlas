@@ -1,7 +1,7 @@
 package encryptionatrestprivateendpoint
 
 import (
-	"go.mongodb.org/atlas-sdk/v20250312004/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
