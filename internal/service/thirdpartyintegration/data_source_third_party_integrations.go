@@ -16,7 +16,7 @@ import (
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasThirdPartyIntegrationsRead,
+		ReadContext: pluralDataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -31,7 +31,7 @@ func PluralDataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasThirdPartyIntegrationsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func pluralDataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
@@ -116,6 +116,7 @@ func integrationToSchema(d *schema.ResourceData, integration *admin.ThirdPartyIn
 		"enabled":                         integration.Enabled,
 		"send_collection_latency_metrics": integration.SendCollectionLatencyMetrics,
 		"send_database_metrics":           integration.SendDatabaseMetrics,
+		"send_user_provided_resource_tags": integration.SendUserProvidedResourceTags,
 	}
 
 	// removing optional empty values, terraform complains about unexpected values even though they're empty
@@ -201,6 +202,10 @@ func schemaToIntegration(in *schema.ResourceData) (out *admin.ThirdPartyIntegrat
 		out.SendDatabaseMetrics = admin.PtrBool(sendDatabaseMetrics.(bool))
 	}
 
+	if sendUserProvidedResourceTags, ok := in.GetOk("send_user_provided_resource_tags"); ok {
+		out.SendUserProvidedResourceTags = admin.PtrBool(sendUserProvidedResourceTags.(bool))
+	}
+
 	return out
 }
 
@@ -261,5 +266,9 @@ func updateIntegrationFromSchema(d *schema.ResourceData, integration *admin.Thir
 
 	if d.HasChange("send_database_metrics") {
 		integration.SendDatabaseMetrics = admin.PtrBool(d.Get("send_database_metrics").(bool))
+	}
+
+	if d.HasChange("send_user_provided_resource_tags") {
+		integration.SendUserProvidedResourceTags = admin.PtrBool(d.Get("send_user_provided_resource_tags").(bool))
 	}
 }
