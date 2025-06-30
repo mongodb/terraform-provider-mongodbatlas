@@ -48,7 +48,7 @@ func TestMarshalBasic(t *testing.T) {
 		AttrOmit            types.String         `tfsdk:"attr_omit" autogen:"omitjson"`
 		AttrUnkown          types.String         `tfsdk:"attr_unknown"`
 		AttrNull            types.String         `tfsdk:"attr_null"`
-		AttrJson            jsontypes.Normalized `tfsdk:"attr_json"`
+		AttrJSON            jsontypes.Normalized `tfsdk:"attr_json"`
 		AttrOmitNoTerraform string               `autogen:"omitjson"`
 		AttrInt             types.Int64          `tfsdk:"attr_int"`
 		AttrBoolTrue        types.Bool           `tfsdk:"attr_bool_true"`
@@ -65,7 +65,7 @@ func TestMarshalBasic(t *testing.T) {
 		AttrBoolTrue:        types.BoolValue(true),
 		AttrBoolFalse:       types.BoolValue(false),
 		AttrBoolNull:        types.BoolNull(), // null values are not marshaled
-		AttrJson:            jsontypes.NewNormalizedValue("{\"hello\": \"there\"}"),
+		AttrJSON:            jsontypes.NewNormalizedValue("{\"hello\": \"there\"}"),
 	}
 	const expectedJSON = `{ "attrString": "hello", "attrInt": 1, "attrFloat": 1.234, "attrBoolTrue": true, "attrBoolFalse": false, "attrJson": {"hello": "there"} }`
 	raw, err := autogen.Marshal(&model, false)
