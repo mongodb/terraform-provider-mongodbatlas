@@ -1,11 +1,14 @@
 package {{.NameLowerNoSpaces}}
 
 import (
-	"context"
+    "context"
 
-	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+    "github.com/hashicorp/terraform-plugin-framework/types"
+    "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
+
 )
 
 const resourceName = "{{.NameSnakeCase}}"
@@ -148,3 +151,4 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 
 	// resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
 }
+
