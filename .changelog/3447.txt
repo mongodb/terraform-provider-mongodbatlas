@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_stream_processor: Fixes Delete to wait until the resource is deleted
+```
