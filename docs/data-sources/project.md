@@ -113,11 +113,11 @@ In addition to all arguments above, the following attributes are exported:
 * `services.clusters.#.outbound` - List of outbound IP addresses associated with the cluster. If your network allows inbound HTTP requests only from specific IP addresses, you must allow access from the following IP addresses so that your Atlas cluster can communicate with your webhooks and KMS.
 
 ### Users
-* `id`- The unique identifier of the MongoDB Cloud user.
-* `orgMembershipStatus`- Indicates whether the MongoDB Cloud user has a pending invitation to join the organization or they are already active in the organization.
+* `id`- Unique 24-hexadecimal digit string that identifies the MongoDB Cloud user.
+* `orgMembershipStatus`- String enum that indicates whether the MongoDB Cloud user has a pending invitation to join the organization or they are already active in the organization.
 * `roles`- One or more project-level roles assigned to the MongoDB Cloud user.
 * `username`- Email address that represents the username of the MongoDB Cloud user.
-* `country`- Two-character alphabetical string that identifies the MongoDB Cloud user's geographic location. Uses the ISO 3166-1a2 code format.
+* `country`- Two-character alphabetical string that identifies the MongoDB Cloud user's geographic location. This parameter uses the ISO 3166-1a2 code format.
 * `createdAt`- Date and time when MongoDB Cloud created the current account. This value is in the ISO 8601 timestamp format in UTC.
 * `firstName`- First or given name that belongs to the MongoDB Cloud user.
 * `lastAuth` - Date and time when the current account last authenticated. This value is in the ISO 8601 timestamp format in UTC.

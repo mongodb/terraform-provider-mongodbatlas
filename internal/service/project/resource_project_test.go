@@ -130,7 +130,20 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			perfMock.EXPECT().GetManagedSlowMs(mock.Anything, mock.Anything).Return(admin.GetManagedSlowMsApiRequest{ApiService: perfMock}).Maybe()
 			perfMock.EXPECT().GetManagedSlowMsExecute(mock.Anything).Return(true, nil, nil).Maybe()
 
-			_, err := project.GetProjectPropsFromAPI(t.Context(), false, projectsMock, teamsMock, perfMock, cloudUsersMock, dummyProjectID, nil)
+			projectPropsParams := &project.PropsParams{
+				Context:      t.Context(),
+				IsDataSource: false,
+				ProjectID:    dummyProjectID,
+				Warnings:     nil,
+			}
+			projectApis := &project.APIClients{
+				ProjectsAPI:           projectsMock,
+				TeamsAPI:              teamsMock,
+				PerformanceAdvisorAPI: perfMock,
+				MongoDBCloudUsersAPI:  cloudUsersMock,
+			}
+
+			_, err := project.GetProjectPropsFromAPI(projectPropsParams, projectApis)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -529,7 +542,7 @@ func TestAccProject_basic(t *testing.T) {
 		"is_realtime_performance_panel_enabled",
 		"is_schema_advisor_enabled",
 	}
-	// Users check
+
 	dataSourceChecks := map[string]string{
 		"users.#": "1",
 	}

@@ -164,8 +164,22 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 		return
 	}
 
+	projectPropsParams := &PropsParams{
+		Context:      ctx,
+		IsDataSource: false,
+		ProjectID:    projectID,
+		Warnings:     &resp.Diagnostics,
+	}
+
+	projectApis := &APIClients{
+		ProjectsAPI:           connV2.ProjectsApi,
+		TeamsAPI:              connV2.TeamsApi,
+		PerformanceAdvisorAPI: connV2.PerformanceAdvisorApi,
+		MongoDBCloudUsersAPI:  connV2.MongoDBCloudUsersApi,
+	}
+
 	// get project props
-	projectProps, err := GetProjectPropsFromAPI(ctx, false, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, connV2.MongoDBCloudUsersApi, projectID, &resp.Diagnostics)
+	projectProps, err := GetProjectPropsFromAPI(projectPropsParams, projectApis)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -216,8 +230,22 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 		return
 	}
 
+	projectPropsParams := &PropsParams{
+		Context:      ctx,
+		IsDataSource: false,
+		ProjectID:    projectID,
+		Warnings:     &resp.Diagnostics,
+	}
+
+	projectApis := &APIClients{
+		ProjectsAPI:           connV2.ProjectsApi,
+		TeamsAPI:              connV2.TeamsApi,
+		PerformanceAdvisorAPI: connV2.PerformanceAdvisorApi,
+		MongoDBCloudUsersAPI:  connV2.MongoDBCloudUsersApi,
+	}
+
 	// get project props
-	projectProps, err := GetProjectPropsFromAPI(ctx, false, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, connV2.MongoDBCloudUsersApi, projectID, &resp.Diagnostics)
+	projectProps, err := GetProjectPropsFromAPI(projectPropsParams, projectApis)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -287,8 +315,22 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 		return
 	}
 
+	projectPropsParams := &PropsParams{
+		Context:      ctx,
+		IsDataSource: false,
+		ProjectID:    projectID,
+		Warnings:     &resp.Diagnostics,
+	}
+
+	projectApis := &APIClients{
+		ProjectsAPI:           connV2.ProjectsApi,
+		TeamsAPI:              connV2.TeamsApi,
+		PerformanceAdvisorAPI: connV2.PerformanceAdvisorApi,
+		MongoDBCloudUsersAPI:  connV2.MongoDBCloudUsersApi,
+	}
+
 	// get project props
-	projectProps, err := GetProjectPropsFromAPI(ctx, false, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, connV2.MongoDBCloudUsersApi, projectID, &resp.Diagnostics)
+	projectProps, err := GetProjectPropsFromAPI(projectPropsParams, projectApis)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -368,38 +410,51 @@ type AdditionalProperties struct {
 	IsSlowOperationThresholdingEnabled bool
 }
 
+type APIClients struct {
+	ProjectsAPI           admin.ProjectsApi
+	TeamsAPI              admin.TeamsApi
+	PerformanceAdvisorAPI admin.PerformanceAdvisorApi
+	MongoDBCloudUsersAPI  admin.MongoDBCloudUsersApi
+}
+
+type PropsParams struct {
+	Context      context.Context
+	Warnings     *diag.Diagnostics
+	ProjectID    string
+	IsDataSource bool
+}
+
 // GetProjectPropsFromAPI fetches properties obtained from complementary endpoints associated with a project.
-func GetProjectPropsFromAPI(ctx context.Context, isDataSource bool, projectsAPI admin.ProjectsApi, teamsAPI admin.TeamsApi, performanceAdvisorAPI admin.PerformanceAdvisorApi, mongoDBCloudUsersAPI admin.MongoDBCloudUsersApi, projectID string, warnings *diag.Diagnostics) (*AdditionalProperties, error) {
-	teams, _, err := teamsAPI.ListProjectTeams(ctx, projectID).Execute()
+func GetProjectPropsFromAPI(params *PropsParams, projectApis *APIClients) (*AdditionalProperties, error) {
+	teams, _, err := projectApis.TeamsAPI.ListProjectTeams(params.Context, params.ProjectID).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error getting project's teams assigned (%s): %v", projectID, err.Error())
+		return nil, fmt.Errorf("error getting project's teams assigned (%s): %v", params.ProjectID, err.Error())
 	}
 
-	limits, _, err := projectsAPI.ListProjectLimits(ctx, projectID).Execute()
+	limits, _, err := projectApis.ProjectsAPI.ListProjectLimits(params.Context, params.ProjectID).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error getting project's limits (%s): %s", projectID, err.Error())
+		return nil, fmt.Errorf("error getting project's limits (%s): %s", params.ProjectID, err.Error())
 	}
 
-	projectSettings, _, err := projectsAPI.GetProjectSettings(ctx, projectID).Execute()
+	projectSettings, _, err := projectApis.ProjectsAPI.GetProjectSettings(params.Context, params.ProjectID).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error getting project's settings assigned (%s): %v", projectID, err.Error())
+		return nil, fmt.Errorf("error getting project's settings assigned (%s): %v", params.ProjectID, err.Error())
 	}
 
-	ipAddresses, _, err := projectsAPI.ReturnAllIpAddresses(ctx, projectID).Execute()
+	ipAddresses, _, err := projectApis.ProjectsAPI.ReturnAllIpAddresses(params.Context, params.ProjectID).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error getting project's IP addresses (%s): %v", projectID, err.Error())
+		return nil, fmt.Errorf("error getting project's IP addresses (%s): %v", params.ProjectID, err.Error())
 	}
-	isSlowOperationThresholdingEnabled, err := ReadIsSlowMsThresholdingEnabled(ctx, performanceAdvisorAPI, projectID, warnings)
+	isSlowOperationThresholdingEnabled, err := ReadIsSlowMsThresholdingEnabled(params.Context, projectApis.PerformanceAdvisorAPI, params.ProjectID, params.Warnings)
 	if err != nil {
-		return nil, fmt.Errorf("error getting project's slow operation thresholding enabled (%s): %v", projectID, err.Error())
+		return nil, fmt.Errorf("error getting project's slow operation thresholding enabled (%s): %v", params.ProjectID, err.Error())
 	}
 
 	var users []admin.GroupUserResponse
-	if isDataSource {
-		var err error
-		users, err = ListAllProjectUsers(ctx, projectID, mongoDBCloudUsersAPI)
+	if params.IsDataSource {
+		users, err = ListAllProjectUsers(params.Context, params.ProjectID, projectApis.MongoDBCloudUsersAPI)
 		if err != nil {
-			return nil, fmt.Errorf("error getting project's users (%s): %v", projectID, err.Error())
+			return nil, fmt.Errorf("error getting project's users (%s): %v", params.ProjectID, err.Error())
 		}
 	}
 	return &AdditionalProperties{
