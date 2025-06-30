@@ -35,7 +35,7 @@ func TestAccStreamProcessorAPI_basic(t *testing.T) {
 				ImportStateIdFunc:                    importStateIDFunc(resourceName),
 				ImportState:                          true,
 				ImportStateVerify:                    true,
-				ImportStateVerifyIgnore:              []string{"stats", "state"},
+				ImportStateVerifyIgnore:              []string{"stats"},
 				ImportStateVerifyIdentifierAttribute: "name", // id is not used because _id is returned in Atlas which is not a legal name for a Terraform attribute.
 			},
 		},

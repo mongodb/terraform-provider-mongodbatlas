@@ -346,12 +346,24 @@ resources:
     create:
       path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor
       method: POST
+      wait: &stream-processor-create-wait
+        state_property: "state"
+        pending_states: ["INIT", "CREATING"]
+        target_states: ["CREATED"]
+        timeout_seconds: 300 # 5 minutes, curate resource: big pipelines can take a while to stop due to checkpointing. We prefer the API to raise the error (~ 3min) than having to expose custom timeouts.
+        min_timeout_seconds: 180 # 3 minutes
+        delay_seconds: 0
     update:
       path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{processorName}
       method: PATCH
+      wait: *stream-processor-create-wait
     delete:
       path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{processorName}
       method: DELETE
+      wait:
+        <<: *stream-processor-create-wait
+        pending_states: ["INIT", "CREATING", "CREATED"]
+        target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
     version_header: application/vnd.atlas.2024-05-30+json
     schema:
       ignores: ["links", "options.links", "options.dlq.links", "_id"]

@@ -54,6 +54,15 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		Client:     r.Client,
 		Plan:       &plan,
 		CallParams: &callParams,
+		Wait: &autogen.WaitReq{
+			StateProperty:     "state",
+			PendingStates:     []string{"INIT", "CREATING"},
+			TargetStates:      []string{"CREATED"},
+			TimeoutSeconds:    300,
+			MinTimeoutSeconds: 180,
+			DelaySeconds:      0,
+			CallParams:        readAPICallParams(&plan),
+		},
 	}
 	autogen.HandleCreate(ctx, reqHandle)
 }
@@ -98,6 +107,15 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		Client:     r.Client,
 		Plan:       &plan,
 		CallParams: &callParams,
+		Wait: &autogen.WaitReq{
+			StateProperty:     "state",
+			PendingStates:     []string{"INIT", "CREATING"},
+			TargetStates:      []string{"CREATED"},
+			TimeoutSeconds:    300,
+			MinTimeoutSeconds: 180,
+			DelaySeconds:      0,
+			CallParams:        readAPICallParams(&state),
+		},
 	}
 	autogen.HandleUpdate(ctx, reqHandle)
 }
@@ -124,6 +142,15 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		Client:     r.Client,
 		State:      &state,
 		CallParams: &callParams,
+		Wait: &autogen.WaitReq{
+			StateProperty:     "state",
+			PendingStates:     []string{"INIT", "CREATING", "CREATED"},
+			TargetStates:      []string{"DELETED"},
+			TimeoutSeconds:    300,
+			MinTimeoutSeconds: 180,
+			DelaySeconds:      0,
+			CallParams:        readAPICallParams(&state),
+		},
 	}
 	autogen.HandleDelete(ctx, reqHandle)
 }
