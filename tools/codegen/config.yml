@@ -350,7 +350,7 @@ resources:
         state_property: "state"
         pending_states: ["INIT", "CREATING"]
         target_states: ["CREATED"]
-        timeout_seconds: 300 # 5 minutes, curate resource: big pipelines can take a while to stop due to checkpointing. We prefer the API to raise the error (~ 3min) than having to expose custom timeouts.
+        timeout_seconds: 300 # 5 minutes
         min_timeout_seconds: 180 # 3 minutes
         delay_seconds: 0
     update:
