@@ -12,6 +12,24 @@ import (
 
 const (
 	resourceName = "mongodbatlas_stream_processor_api.test"
+
+	pipeline = `[
+		jsonencode({ "$source" = { "connectionName" = "sample_stream_solar" }}),
+		jsonencode({ "$emit" = { "connectionName" = "__testLog" }})
+	]`
+
+	pipelineEquivalentWithBlankLines = `[
+		jsonencode({
+			"$source" = {
+				"connectionName" = "sample_stream_solar"
+			}
+		}),
+		jsonencode({
+			"$emit" = {
+				"connectionName" = "__testLog"
+			}
+		})
+	]`
 )
 
 func TestAccStreamProcessorAPI_basic(t *testing.T) {
@@ -27,8 +45,13 @@ func TestAccStreamProcessorAPI_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, instanceName, processorName),
+				Config: configBasic(projectID, instanceName, processorName, pipeline),
 				Check:  checkBasic(projectID, instanceName, processorName),
+			},
+			{
+				Config:   configBasic(projectID, instanceName, processorName, pipelineEquivalentWithBlankLines),
+				Check:    checkBasic(projectID, instanceName, processorName),
+				PlanOnly: true, // no plan changes if the pipeline JSON is equivalent.
 			},
 			{
 				ResourceName:                         resourceName,
@@ -42,7 +65,7 @@ func TestAccStreamProcessorAPI_basic(t *testing.T) {
 	})
 }
 
-func configBasic(projectID, instanceName, processorName string) string {
+func configBasic(projectID, instanceName, processorName, pipeline string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_instance_api" "test" {
 			group_id = %[1]q
@@ -69,22 +92,11 @@ func configBasic(projectID, instanceName, processorName string) string {
 			tenant_name   = mongodbatlas_stream_instance_api.test.name
 			name          = %[3]q
 
-			pipeline = [
-				jsonencode({
-					"$source" = {
-						"connectionName" = "sample_stream_solar"
-					}
-				}),
-				jsonencode({
-					"$emit" = {
-						"connectionName" = "__testLog"
-					}
-				})
-			]
+			pipeline = %[4]s
 
 		  depends_on = [mongodbatlas_stream_connection.test]
 		}
-	`, projectID, instanceName, processorName)
+	`, projectID, instanceName, processorName, pipeline)
 }
 
 func checkBasic(projectID, instanceName, processorName string) resource.TestCheckFunc {
