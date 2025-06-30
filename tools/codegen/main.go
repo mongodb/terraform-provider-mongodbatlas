@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
@@ -33,9 +34,17 @@ func main() {
 	for i := range model.Resources {
 		resourceModel := model.Resources[i]
 		schemaCode := schema.GenerateGoCode(&resourceModel, false) // object types are not needed as part of fully generated resources
-		if err := writeToFile(fmt.Sprintf("internal/serviceapi/%s/resource_schema.go", resourceModel.Name.LowerCaseNoUnderscore()), schemaCode); err != nil {
+		schemaFilePath := fmt.Sprintf("internal/serviceapi/%s/resource_schema.go", resourceModel.Name.LowerCaseNoUnderscore())
+		if err := writeToFile(schemaFilePath, schemaCode); err != nil {
 			log.Fatalf("an error occurred when writing content to file: %v", err)
 		}
+
+		// Run fieldalignment on the generated schema file
+		cmd := exec.Command("fieldalignment", "-fix", schemaFilePath)
+		if output, err := cmd.CombinedOutput(); err != nil {
+			log.Printf("warning: fieldalignment failed for %s: %v\nOutput: %s", schemaFilePath, err, output)
+		}
+
 		resourceCode := resource.GenerateGoCode(&resourceModel)
 		if err := writeToFile(fmt.Sprintf("internal/serviceapi/%s/resource.go", resourceModel.Name.LowerCaseNoUnderscore()), resourceCode); err != nil {
 			log.Fatalf("an error occurred when writing content to file: %v", err)

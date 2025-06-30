@@ -7,13 +7,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/huandu/xstrings"
 )
 
 const (
-	tagKey               = "autogen"
-	tagValOmitJSON       = "omitjson"
-	tagValOmitJSONUpdate = "omitjsonupdate"
+	tagKey                    = "autogen"
+	tagValOmitJSON            = "omitjson"
+	tagValOmitJSONUpdate      = "omitjsonupdate"
+	tagValIncludeNullOnUpdate = "includenullonupdate"
 )
 
 // Marshal gets a Terraform model and marshals it into JSON (e.g. for an Atlas request).
@@ -21,6 +21,8 @@ const (
 // Attributes that are null or unknown are not marshaled.
 // Attributes with autogen tag `omitjson` are never marshaled, this only applies to the root model.
 // Attributes with autogen tag `omitjsonupdate` are not marshaled if isUpdate is true, this only applies to the root model.
+// Attributes with autogen tag `includenullonupdate` are marshaled if isUpdate is true (even if null), this only applies to the root model.
+// Null list or set root elements are sent as empty arrays if isUpdate is true.
 func Marshal(model any, isUpdate bool) ([]byte, error) {
 	valModel := reflect.ValueOf(model)
 	if valModel.Kind() != reflect.Ptr {
@@ -50,15 +52,16 @@ func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error)
 		}
 		attrNameModel := attrTypeModel.Name
 		attrValModel := valModel.Field(i)
-		if err := marshalAttr(attrNameModel, attrValModel, objJSON); err != nil {
+		includeNullOnUpdate := tag == tagValIncludeNullOnUpdate
+		if err := marshalAttr(attrNameModel, attrValModel, objJSON, isUpdate, includeNullOnUpdate); err != nil {
 			return nil, err
 		}
 	}
 	return objJSON, nil
 }
 
-func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[string]any) error {
-	attrNameJSON := xstrings.ToCamelCase(attrNameModel)
+func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[string]any, isUpdate, includeNullOnUpdate bool) error {
+	attrNameJSON := toJSONName(attrNameModel)
 	obj, ok := attrValModel.Interface().(attr.Value)
 	if !ok {
 		panic("marshal expects only Terraform types in the model")
@@ -67,7 +70,15 @@ func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[s
 	if err != nil {
 		return err
 	}
-	if val != nil {
+
+	if val == nil && isUpdate {
+		switch obj.(type) {
+		case types.List, types.Set:
+			val = []any{} // Send an empty array if it's a null root list or set
+		}
+	}
+
+	if val != nil || (isUpdate && includeNullOnUpdate) {
 		objJSON[attrNameJSON] = val
 	}
 	return nil
@@ -123,7 +134,7 @@ func getMapAttr(elms map[string]attr.Value, keepKeyCase bool) (any, error) {
 			return nil, err
 		}
 		if valChild != nil {
-			nameJSON := xstrings.ToCamelCase(name)
+			nameJSON := toJSONName(name)
 			if keepKeyCase {
 				nameJSON = name
 			}

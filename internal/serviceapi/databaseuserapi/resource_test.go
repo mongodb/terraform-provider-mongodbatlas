@@ -24,12 +24,16 @@ func TestAccDatabaseUserAPI_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(groupID, username, "atlasAdmin", "First Key", "First value"),
-				Check:  checkBasic(groupID, username, "atlasAdmin", "First Key", "First value"),
+				Config: configBasic(groupID, username, "atlasAdmin", "First Key", "First value", "desc1"),
+				Check:  checkBasic(groupID, username, "atlasAdmin", "First Key", "First value", "desc1"),
 			},
 			{
-				Config: configBasic(groupID, username, "read", "Second Key", "Second value"),
-				Check:  checkBasic(groupID, username, "read", "Second Key", "Second value"),
+				Config: configBasic(groupID, username, "read", "Second Key", "Second value", "desc2"),
+				Check:  checkBasic(groupID, username, "read", "Second Key", "Second value", "desc2"),
+			},
+			{
+				Config: configBasic(groupID, username, "read", "Second Key", "Second value", ""),
+				Check:  checkBasic(groupID, username, "read", "Second Key", "Second value", ""),
 			},
 			{
 				ResourceName:                         resourceName,
@@ -43,7 +47,13 @@ func TestAccDatabaseUserAPI_basic(t *testing.T) {
 	})
 }
 
-func configBasic(groupID, username, roleName, keyLabel, valueLabel string) string {
+func configBasic(groupID, username, roleName, keyLabel, valueLabel, description string) string {
+	extra := ""
+	if description != "" {
+		extra = fmt.Sprintf(`
+			description = %q
+		`, description)
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_database_user_api" "test" {
 			group_id         = %[1]q
@@ -60,11 +70,13 @@ func configBasic(groupID, username, roleName, keyLabel, valueLabel string) strin
 				key   = %[4]q
 				value = %[5]q
 			}]
+
+			%[6]s
 		}
-	`, groupID, username, roleName, keyLabel, valueLabel)
+	`, groupID, username, roleName, keyLabel, valueLabel, extra)
 }
 
-func checkBasic(groupID, username, roleName, keyLabel, valueLabel string) resource.TestCheckFunc {
+func checkBasic(groupID, username, roleName, keyLabel, valueLabel, description string) resource.TestCheckFunc {
 	mapChecks := map[string]string{
 		"group_id":          groupID,
 		"username":          username,
@@ -75,6 +87,9 @@ func checkBasic(groupID, username, roleName, keyLabel, valueLabel string) resour
 		"labels.0.value":    valueLabel,
 		"roles.#":           "1",
 		"roles.0.role_name": roleName,
+	}
+	if description != "" {
+		mapChecks["description"] = description
 	}
 	checks := acc.AddAttrChecks(resourceName, nil, mapChecks)
 	checks = append(checks, checkExists(resourceName))

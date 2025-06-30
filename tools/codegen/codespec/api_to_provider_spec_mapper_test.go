@@ -131,6 +131,12 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 					Description: conversion.StringPtr(testResourceDesc),
 					Attributes: codespec.Attributes{
 						{
+							Name:                     "attr_always_in_updates",
+							ComputedOptionalRequired: codespec.Optional,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr("Always in updates"),
+						},
+						{
 							Name:                     "cluster_name",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
@@ -323,8 +329,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 					},
 					VersionHeader: "application/vnd.atlas.2024-05-30+json",
 				},
-			},
-			},
+			}},
 		},
 	}
 	runTestCase(t, tc)
@@ -341,6 +346,13 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 				Schema: &codespec.Schema{
 					Description: conversion.StringPtr(testResourceDesc),
 					Attributes: codespec.Attributes{
+						{
+							Name:                     "attr_always_in_updates",
+							ComputedOptionalRequired: codespec.Optional,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr("Always in updates"),
+							ReqBodyUsage:             codespec.IncludeNullOnUpdate,
+						},
 						{
 							Name:                     "project_id",
 							ComputedOptionalRequired: codespec.Required,
