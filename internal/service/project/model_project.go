@@ -11,8 +11,18 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
-func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, projectProps AdditionalProperties) (*TFProjectDSModel, diag.Diagnostics) {
-	ipAddressesModel, diags := NewTFIPAddressesModel(ctx, projectProps.IPAddresses)
+func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, projectProps *AdditionalProperties) (*TFProjectDSModel, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	if project == nil {
+		diags.AddError("Invalid Project Data", "Project data is nil and cannot be processed")
+		return nil, diags
+	}
+	if projectProps == nil {
+		diags.AddError("Invalid Project Properties", "Project properties data is nil and cannot be processed")
+		return nil, diags
+	}
+	ipAddressesModel, ipDiags := NewTFIPAddressesModel(ctx, projectProps.IPAddresses)
+	diags.Append(ipDiags...)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -36,11 +46,12 @@ func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, proj
 		IPAddresses:                                 ipAddressesModel,
 		Tags:                                        conversion.NewTFTags(project.GetTags()),
 		IsSlowOperationThresholdingEnabled:          types.BoolValue(projectProps.IsSlowOperationThresholdingEnabled),
+		Users:                                       NewTFCloudUsersDataSourceModel(ctx, projectProps.Users),
 	}, nil
 }
 
 func NewTFTeamsDataSourceModel(ctx context.Context, atlasTeams *admin.PaginatedTeamRole) []*TFTeamDSModel {
-	if atlasTeams.GetTotalCount() == 0 {
+	if atlasTeams == nil || atlasTeams.GetTotalCount() == 0 {
 		return nil
 	}
 	results := atlasTeams.GetResults()
@@ -71,6 +82,33 @@ func NewTFLimitsDataSourceModel(ctx context.Context, dataFederationLimits []admi
 	return limits
 }
 
+func NewTFCloudUsersDataSourceModel(ctx context.Context, cloudUsers []admin.GroupUserResponse) []*TFCloudUsersDSModel {
+	if len(cloudUsers) == 0 {
+		return []*TFCloudUsersDSModel{}
+	}
+	users := make([]*TFCloudUsersDSModel, len(cloudUsers))
+	for i := range cloudUsers {
+		cloudUser := &cloudUsers[i]
+		roles, _ := types.ListValueFrom(ctx, types.StringType, cloudUser.Roles)
+		users[i] = &TFCloudUsersDSModel{
+			ID:                  types.StringValue(cloudUser.Id),
+			OrgMembershipStatus: types.StringValue(cloudUser.OrgMembershipStatus),
+			Roles:               roles,
+			Username:            types.StringValue(cloudUser.Username),
+			InvitationCreatedAt: types.StringPointerValue(conversion.TimePtrToStringPtr(cloudUser.InvitationCreatedAt)),
+			InvitationExpiresAt: types.StringPointerValue(conversion.TimePtrToStringPtr(cloudUser.InvitationExpiresAt)),
+			InviterUsername:     types.StringPointerValue(cloudUser.InviterUsername),
+			Country:             types.StringPointerValue(cloudUser.Country),
+			CreatedAt:           types.StringPointerValue(conversion.TimePtrToStringPtr(cloudUser.CreatedAt)),
+			FirstName:           types.StringPointerValue(cloudUser.FirstName),
+			LastAuth:            types.StringPointerValue(conversion.TimePtrToStringPtr(cloudUser.LastAuth)),
+			LastName:            types.StringPointerValue(cloudUser.LastName),
+			MobileNumber:        types.StringPointerValue(cloudUser.MobileNumber),
+		}
+	}
+	return users
+}
+
 func NewTFIPAddressesModel(ctx context.Context, ipAddresses *admin.GroupIPAddresses) (types.Object, diag.Diagnostics) {
 	clusterIPs := []TFClusterIPsModel{}
 	if ipAddresses != nil && ipAddresses.Services != nil {
@@ -94,8 +132,18 @@ func NewTFIPAddressesModel(ctx context.Context, ipAddresses *admin.GroupIPAddres
 	return obj, diags
 }
 
-func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, projectProps AdditionalProperties) (*TFProjectRSModel, diag.Diagnostics) {
-	ipAddressesModel, diags := NewTFIPAddressesModel(ctx, projectProps.IPAddresses)
+func NewTFProjectResourceModel(ctx context.Context, projectRes *admin.Group, projectProps *AdditionalProperties) (*TFProjectRSModel, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	if projectRes == nil {
+		diags.AddError("Invalid Project Data", "Project data is nil and cannot be processed")
+		return nil, diags
+	}
+	if projectProps == nil {
+		diags.AddError("Invalid Project Properties", "Project properties data is nil and cannot be processed")
+		return nil, diags
+	}
+	ipAddressesModel, ipDiags := NewTFIPAddressesModel(ctx, projectProps.IPAddresses)
+	diags.Append(ipDiags...)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -145,6 +193,9 @@ func newTFLimitsResourceModel(ctx context.Context, dataFederationLimits []admin.
 }
 
 func newTFTeamsResourceModel(ctx context.Context, atlasTeams *admin.PaginatedTeamRole) types.Set {
+	if atlasTeams == nil || atlasTeams.GetTotalCount() == 0 {
+		return types.SetNull(TfTeamObjectType)
+	}
 	results := atlasTeams.GetResults()
 	teams := make([]TFTeamModel, len(results))
 	for i, atlasTeam := range results {
