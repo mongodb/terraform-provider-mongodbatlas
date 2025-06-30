@@ -108,6 +108,11 @@ func generator(attr *codespec.Attribute) attributeGenerator {
 func commonAttrStructure(attr *codespec.Attribute, typeDef string, specificProperties []CodeStatement) CodeStatement {
 	properties := commonProperties(attr)
 	imports := []string{}
+
+	if attr.CustomType != nil {
+		imports = append(imports, "github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes")
+	}
+
 	for i := range specificProperties {
 		properties = append(properties, specificProperties[i].Code)
 		imports = append(imports, specificProperties[i].Imports...)
