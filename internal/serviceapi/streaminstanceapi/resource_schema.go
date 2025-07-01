@@ -168,11 +168,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						},
 						"networking": schema.SingleNestedAttribute{
 							Computed:            true,
-							MarkdownDescription: "Networking Access Type can either be 'PUBLIC' (default) or VPC. VPC type is in public preview, please file a support ticket to enable VPC Network Access.",
+							MarkdownDescription: "Networking configuration for Streams connections.",
 							Attributes: map[string]schema.Attribute{
 								"access": schema.SingleNestedAttribute{
 									Computed:            true,
-									MarkdownDescription: "Information about the networking access.",
+									MarkdownDescription: "Information about networking access.",
 									Attributes: map[string]schema.Attribute{
 										"connection_id": schema.StringAttribute{
 											Computed:            true,

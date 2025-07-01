@@ -3,6 +3,7 @@ package autogen_test
 import (
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
@@ -12,14 +13,15 @@ import (
 
 func TestUnmarshalBasic(t *testing.T) {
 	var model struct {
-		AttrFloat        types.Float64 `tfsdk:"attr_float"`
-		AttrFloatWithInt types.Float64 `tfsdk:"attr_float_with_int"`
-		AttrString       types.String  `tfsdk:"attr_string"`
-		AttrNotInJSON    types.String  `tfsdk:"attr_not_in_json"`
-		AttrInt          types.Int64   `tfsdk:"attr_int"`
-		AttrIntWithFloat types.Int64   `tfsdk:"attr_int_with_float"`
-		AttrTrue         types.Bool    `tfsdk:"attr_true"`
-		AttrFalse        types.Bool    `tfsdk:"attr_false"`
+		AttrFloat        types.Float64        `tfsdk:"attr_float"`
+		AttrFloatWithInt types.Float64        `tfsdk:"attr_float_with_int"`
+		AttrString       types.String         `tfsdk:"attr_string"`
+		AttrNotInJSON    types.String         `tfsdk:"attr_not_in_json"`
+		AttrJSON         jsontypes.Normalized `tfsdk:"attr_json"`
+		AttrInt          types.Int64          `tfsdk:"attr_int"`
+		AttrIntWithFloat types.Int64          `tfsdk:"attr_int_with_float"`
+		AttrTrue         types.Bool           `tfsdk:"attr_true"`
+		AttrFalse        types.Bool           `tfsdk:"attr_false"`
 	}
 	const (
 		// attribute_not_in_model is ignored because it is not in the model, no error is thrown.
@@ -34,7 +36,8 @@ func TestUnmarshalBasic(t *testing.T) {
 				"attrFloat": 456.1,
 				"attrFloatWithInt": 13,
 				"attrNotInModel": "val",
-				"attrNull": null
+				"attrNull": null,
+				"attrJSON": {"hello": "there"}
 			}
 		`
 	)
@@ -47,6 +50,7 @@ func TestUnmarshalBasic(t *testing.T) {
 	assert.InEpsilon(t, float64(456.1), model.AttrFloat.ValueFloat64(), epsilon)
 	assert.InEpsilon(t, float64(13), model.AttrFloatWithInt.ValueFloat64(), epsilon)
 	assert.True(t, model.AttrNotInJSON.IsNull()) // attributes not in JSON response are not changed, so null is kept.
+	assert.JSONEq(t, "{\"hello\":\"there\"}", model.AttrJSON.ValueString())
 }
 
 func TestUnmarshalNestedAllTypes(t *testing.T) {
@@ -67,6 +71,7 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrMapSimple         types.Map    `tfsdk:"attr_map_simple"`
 		AttrMapSimpleExisting types.Map    `tfsdk:"attr_map_simple_existing"`
 		AttrMapObj            types.Map    `tfsdk:"attr_map_obj"`
+		AttrJSONList          types.List   `tfsdk:"attr_json_list"`
 	}
 	model := modelst{
 		AttrObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
@@ -100,7 +105,8 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 			"existing":       types.StringValue("valexisting"),
 			"existingCHANGE": types.StringValue("before"),
 		}),
-		AttrMapObj: types.MapUnknown(objTypeTest),
+		AttrMapObj:   types.MapUnknown(objTypeTest),
+		AttrJSONList: types.ListUnknown(jsontypes.NormalizedType{}),
 	}
 	// attrUnexisting is ignored because it is in JSON but not in the model, no error is returned
 	const (
@@ -226,7 +232,11 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 						"attrFloat": 22.2,		
 						"attrBool": true		
 					}
-				}
+				},
+				"attrJSONList": [
+					{"hello1": "there1"},
+					{"hello2": "there2"}
+				]
 			}
 		`
 	)
@@ -374,6 +384,10 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 				"attr_float":  types.Float64Value(22.2),
 				"attr_bool":   types.BoolValue(true),
 			}),
+		}),
+		AttrJSONList: types.ListValueMust(jsontypes.NormalizedType{}, []attr.Value{
+			jsontypes.NewNormalizedValue(`{"hello1":"there1"}`),
+			jsontypes.NewNormalizedValue(`{"hello2":"there2"}`),
 		}),
 	}
 	require.NoError(t, autogen.Unmarshal([]byte(jsonResp), &model))

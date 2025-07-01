@@ -117,6 +117,13 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							ComputedOptionalRequired: codespec.Required,
 							ReqBodyUsage:             codespec.OmitInUpdateBody,
 						},
+						{
+							Name:                     "json_attr",
+							String:                   &codespec.StringAttribute{},
+							CustomType:               &codespec.CustomTypeJSONVar,
+							Description:              admin.PtrString("json description"),
+							ComputedOptionalRequired: codespec.Required,
+						},
 					},
 				},
 			},
