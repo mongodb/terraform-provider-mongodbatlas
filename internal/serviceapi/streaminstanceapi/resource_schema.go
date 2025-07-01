@@ -21,22 +21,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							Computed:            true,
 							MarkdownDescription: "User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode.",
 							Attributes: map[string]schema.Attribute{
-								"links": schema.ListNestedAttribute{
-									Computed:            true,
-									MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-									NestedObject: schema.NestedAttributeObject{
-										Attributes: map[string]schema.Attribute{
-											"href": schema.StringAttribute{
-												Computed:            true,
-												MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-											},
-											"rel": schema.StringAttribute{
-												Computed:            true,
-												MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-											},
-										},
-									},
-								},
 								"mechanism": schema.StringAttribute{
 									Computed:            true,
 									MarkdownDescription: "Style of authentication. Can be one of PLAIN, SCRAM-256, or SCRAM-512.",
@@ -68,22 +52,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							Computed:            true,
 							MarkdownDescription: "AWS configurations for AWS-based connection types.",
 							Attributes: map[string]schema.Attribute{
-								"links": schema.ListNestedAttribute{
-									Computed:            true,
-									MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-									NestedObject: schema.NestedAttributeObject{
-										Attributes: map[string]schema.Attribute{
-											"href": schema.StringAttribute{
-												Computed:            true,
-												MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-											},
-											"rel": schema.StringAttribute{
-												Computed:            true,
-												MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-											},
-										},
-									},
-								},
 								"role_arn": schema.StringAttribute{
 									Computed:            true,
 									MarkdownDescription: "Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.",
@@ -115,22 +83,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							Computed:            true,
 							MarkdownDescription: "The name of a Built in or Custom DB Role to connect to an Atlas Cluster.",
 							Attributes: map[string]schema.Attribute{
-								"links": schema.ListNestedAttribute{
-									Computed:            true,
-									MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-									NestedObject: schema.NestedAttributeObject{
-										Attributes: map[string]schema.Attribute{
-											"href": schema.StringAttribute{
-												Computed:            true,
-												MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-											},
-											"rel": schema.StringAttribute{
-												Computed:            true,
-												MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-											},
-										},
-									},
-								},
 								"role": schema.StringAttribute{
 									Computed:            true,
 									MarkdownDescription: "The name of the role to use. Can be a built in role or a custom role.",
@@ -145,22 +97,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							Computed:            true,
 							MarkdownDescription: "A map of key-value pairs that will be passed as headers for the request.",
 							ElementType:         types.StringType,
-						},
-						"links": schema.ListNestedAttribute{
-							Computed:            true,
-							MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-							NestedObject: schema.NestedAttributeObject{
-								Attributes: map[string]schema.Attribute{
-									"href": schema.StringAttribute{
-										Computed:            true,
-										MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-									},
-									"rel": schema.StringAttribute{
-										Computed:            true,
-										MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-									},
-								},
-							},
 						},
 						"name": schema.StringAttribute{
 							Computed:            true,
@@ -177,22 +113,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										"connection_id": schema.StringAttribute{
 											Computed:            true,
 											MarkdownDescription: "Reserved. Will be used by PRIVATE_LINK connection type.",
-										},
-										"links": schema.ListNestedAttribute{
-											Computed:            true,
-											MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-											NestedObject: schema.NestedAttributeObject{
-												Attributes: map[string]schema.Attribute{
-													"href": schema.StringAttribute{
-														Computed:            true,
-														MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-													},
-													"rel": schema.StringAttribute{
-														Computed:            true,
-														MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-													},
-												},
-											},
 										},
 										"name": schema.StringAttribute{
 											Computed:            true,
@@ -216,22 +136,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										},
 									},
 								},
-								"links": schema.ListNestedAttribute{
-									Computed:            true,
-									MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-									NestedObject: schema.NestedAttributeObject{
-										Attributes: map[string]schema.Attribute{
-											"href": schema.StringAttribute{
-												Computed:            true,
-												MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-											},
-											"rel": schema.StringAttribute{
-												Computed:            true,
-												MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-											},
-										},
-									},
-								},
 							},
 						},
 						"security": schema.SingleNestedAttribute{
@@ -241,22 +145,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								"broker_public_certificate": schema.StringAttribute{
 									Computed:            true,
 									MarkdownDescription: "A trusted, public x509 certificate for connecting to Kafka over SSL.",
-								},
-								"links": schema.ListNestedAttribute{
-									Computed:            true,
-									MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-									NestedObject: schema.NestedAttributeObject{
-										Attributes: map[string]schema.Attribute{
-											"href": schema.StringAttribute{
-												Computed:            true,
-												MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-											},
-											"rel": schema.StringAttribute{
-												Computed:            true,
-												MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-											},
-										},
-									},
 								},
 								"protocol": schema.StringAttribute{
 									Computed:            true,
@@ -283,22 +171,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						Required:            true,
 						MarkdownDescription: "Label that identifies the cloud service provider where MongoDB Cloud performs stream processing. Currently, this parameter only supports AWS and AZURE.",
 					},
-					"links": schema.ListNestedAttribute{
-						Computed:            true,
-						MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"href": schema.StringAttribute{
-									Computed:            true,
-									MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-								},
-								"rel": schema.StringAttribute{
-									Computed:            true,
-									MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-								},
-							},
-						},
-					},
 					"region": schema.StringAttribute{
 						Required:            true,
 						MarkdownDescription: "Name of the cloud provider region hosting Atlas Stream Processing.",
@@ -314,22 +186,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "List that contains the hostnames assigned to the stream instance.",
 				ElementType:         types.StringType,
 			},
-			"links": schema.ListNestedAttribute{
-				Computed:            true,
-				MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"href": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-						},
-						"rel": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-						},
-					},
-				},
-			},
 			"name": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "Human-readable label that identifies the stream instance.",
@@ -338,22 +194,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Sample connections to add to SPI.",
 				Attributes: map[string]schema.Attribute{
-					"links": schema.ListNestedAttribute{
-						Computed:            true,
-						MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"href": schema.StringAttribute{
-									Computed:            true,
-									MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-								},
-								"rel": schema.StringAttribute{
-									Computed:            true,
-									MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-								},
-							},
-						},
-					},
 					"solar": schema.BoolAttribute{
 						Computed:            true,
 						Optional:            true,
@@ -365,22 +205,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Configuration options for an Atlas Stream Processing Instance.",
 				Attributes: map[string]schema.Attribute{
-					"links": schema.ListNestedAttribute{
-						Computed:            true,
-						MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"href": schema.StringAttribute{
-									Computed:            true,
-									MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-								},
-								"rel": schema.StringAttribute{
-									Computed:            true,
-									MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-								},
-							},
-						},
-					},
 					"tier": schema.StringAttribute{
 						Optional:            true,
 						MarkdownDescription: "Selected tier for the Stream Instance. Configures Memory / VCPU allowances.",
@@ -396,7 +220,6 @@ type TFModel struct {
 	DataProcessRegion types.Object `tfsdk:"data_process_region" autogen:"omitjsonupdate"`
 	GroupId           types.String `tfsdk:"group_id" autogen:"omitjson"`
 	Hostnames         types.List   `tfsdk:"hostnames" autogen:"omitjson"`
-	Links             types.List   `tfsdk:"links" autogen:"omitjson"`
 	Name              types.String `tfsdk:"name" autogen:"omitjsonupdate"`
 	SampleConnections types.Object `tfsdk:"sample_connections" autogen:"omitjsonupdate"`
 	StreamConfig      types.Object `tfsdk:"stream_config" autogen:"omitjsonupdate"`
@@ -410,7 +233,6 @@ type TFConnectionsModel struct {
 	Config           types.Map    `tfsdk:"config" autogen:"omitjson"`
 	DbRoleToExecute  types.Object `tfsdk:"db_role_to_execute" autogen:"omitjson"`
 	Headers          types.Map    `tfsdk:"headers" autogen:"omitjson"`
-	Links            types.List   `tfsdk:"links" autogen:"omitjson"`
 	Name             types.String `tfsdk:"name" autogen:"omitjson"`
 	Networking       types.Object `tfsdk:"networking" autogen:"omitjson"`
 	Security         types.Object `tfsdk:"security" autogen:"omitjson"`
@@ -418,7 +240,6 @@ type TFConnectionsModel struct {
 	Url              types.String `tfsdk:"url" autogen:"omitjson"`
 }
 type TFConnectionsAuthenticationModel struct {
-	Links          types.List   `tfsdk:"links" autogen:"omitjson"`
 	Mechanism      types.String `tfsdk:"mechanism" autogen:"omitjson"`
 	Password       types.String `tfsdk:"password" autogen:"omitjson"`
 	SslCertificate types.String `tfsdk:"ssl_certificate" autogen:"omitjson"`
@@ -426,88 +247,36 @@ type TFConnectionsAuthenticationModel struct {
 	SslKeyPassword types.String `tfsdk:"ssl_key_password" autogen:"omitjson"`
 	Username       types.String `tfsdk:"username" autogen:"omitjson"`
 }
-type TFConnectionsAuthenticationLinksModel struct {
-	Href types.String `tfsdk:"href" autogen:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
-}
 type TFConnectionsAwsModel struct {
-	Links      types.List   `tfsdk:"links" autogen:"omitjson"`
 	RoleArn    types.String `tfsdk:"role_arn" autogen:"omitjson"`
 	TestBucket types.String `tfsdk:"test_bucket" autogen:"omitjson"`
 }
-type TFConnectionsAwsLinksModel struct {
-	Href types.String `tfsdk:"href" autogen:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
-}
 type TFConnectionsDbRoleToExecuteModel struct {
-	Links types.List   `tfsdk:"links" autogen:"omitjson"`
-	Role  types.String `tfsdk:"role" autogen:"omitjson"`
-	Type  types.String `tfsdk:"type" autogen:"omitjson"`
-}
-type TFConnectionsDbRoleToExecuteLinksModel struct {
-	Href types.String `tfsdk:"href" autogen:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
-}
-type TFConnectionsLinksModel struct {
-	Href types.String `tfsdk:"href" autogen:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
+	Role types.String `tfsdk:"role" autogen:"omitjson"`
+	Type types.String `tfsdk:"type" autogen:"omitjson"`
 }
 type TFConnectionsNetworkingModel struct {
 	Access types.Object `tfsdk:"access" autogen:"omitjson"`
-	Links  types.List   `tfsdk:"links" autogen:"omitjson"`
 }
 type TFConnectionsNetworkingAccessModel struct {
 	ConnectionId types.String `tfsdk:"connection_id" autogen:"omitjson"`
-	Links        types.List   `tfsdk:"links" autogen:"omitjson"`
 	Name         types.String `tfsdk:"name" autogen:"omitjson"`
 	TgwId        types.String `tfsdk:"tgw_id" autogen:"omitjson"`
 	TgwRouteId   types.String `tfsdk:"tgw_route_id" autogen:"omitjson"`
 	Type         types.String `tfsdk:"type" autogen:"omitjson"`
 	VpcCidr      types.String `tfsdk:"vpc_cidr" autogen:"omitjson"`
 }
-type TFConnectionsNetworkingAccessLinksModel struct {
-	Href types.String `tfsdk:"href" autogen:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
-}
-type TFConnectionsNetworkingLinksModel struct {
-	Href types.String `tfsdk:"href" autogen:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
-}
 type TFConnectionsSecurityModel struct {
 	BrokerPublicCertificate types.String `tfsdk:"broker_public_certificate" autogen:"omitjson"`
-	Links                   types.List   `tfsdk:"links" autogen:"omitjson"`
 	Protocol                types.String `tfsdk:"protocol" autogen:"omitjson"`
-}
-type TFConnectionsSecurityLinksModel struct {
-	Href types.String `tfsdk:"href" autogen:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
 }
 type TFDataProcessRegionModel struct {
 	CloudProvider types.String `tfsdk:"cloud_provider"`
-	Links         types.List   `tfsdk:"links" autogen:"omitjson"`
 	Region        types.String `tfsdk:"region"`
 }
-type TFDataProcessRegionLinksModel struct {
-	Href types.String `tfsdk:"href" autogen:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
-}
-type TFLinksModel struct {
-	Href types.String `tfsdk:"href" autogen:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
-}
 type TFSampleConnectionsModel struct {
-	Links types.List `tfsdk:"links" autogen:"omitjson"`
 	Solar types.Bool `tfsdk:"solar"`
 }
-type TFSampleConnectionsLinksModel struct {
-	Href types.String `tfsdk:"href" autogen:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
-}
 type TFStreamConfigModel struct {
-	Links types.List   `tfsdk:"links" autogen:"omitjson"`
-	Tier  types.String `tfsdk:"tier"`
-}
-type TFStreamConfigLinksModel struct {
-	Href types.String `tfsdk:"href" autogen:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
+	Tier types.String `tfsdk:"tier"`
 }

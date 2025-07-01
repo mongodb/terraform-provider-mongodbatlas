@@ -42,6 +42,7 @@ resources:
           ]
         target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
     schema:
+      ignores: ["links", "mongo_dbemployee_access_grant.links"]
       aliases:
         cluster_name: name # path param name does not match the API request property
       # These attributes are optional but when not configured, Atlas returns a default value.
@@ -222,6 +223,7 @@ resources:
       method: DELETE
     version_header: application/vnd.atlas.2023-01-01+json
     schema:
+      ignores: ["links"]
       overrides:
         password:
           sensitive: true
@@ -242,6 +244,7 @@ resources:
       path: /api/atlas/v2/groups/{groupId}
       method: DELETE
     schema:
+      ignores: ["links"]
       aliases:
         group_id: id # path param name does not match the API response property
 
@@ -271,6 +274,8 @@ resources:
         pending_states: ["ACTIVE", "INITIATING", "BUCKET_VERIFIED"]
         target_states: ["UNCONFIGURED", "DELETED"] # DELETED is a special state value when API returns 404 or empty object
     version_header: application/vnd.atlas.2023-01-01+json
+    schema:
+      ignores: ["links"]
 
   resource_policy_api:
     read:
@@ -333,7 +338,24 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}
       method: DELETE
     schema:
-      ignores: ["_id", "region", "cloud_provider"] # region and cloud_provider are incorrectly declared in PATCH as root attributes, _id can't be used in Terraform schema
+      # region and cloud_provider are incorrectly declared in PATCH as root attributes, _id can't be used in Terraform schema
+      ignores:
+        [
+          "_id",
+          "region",
+          "cloud_provider",
+          "links",
+          "connections.links",
+          "connections.authentication.links",
+          "connections.aws.links",
+          "connections.db_role_to_execute.links",
+          "connections.networking.links",
+          "connections.networking.access.links",
+          "connections.security.links",
+          "data_process_region.links",
+          "sample_connections.links",
+          "stream_config.links",
+        ]
       aliases:
         tenant_name: name # path param name does not match the API request property
 

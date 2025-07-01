@@ -55,22 +55,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Part of the Lightweight Directory Access Protocol (LDAP) record that the database uses to authenticate this database user on the LDAP host.",
 			},
-			"links": schema.ListNestedAttribute{
-				Computed:            true,
-				MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"href": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-						},
-						"rel": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-						},
-					},
-				},
-			},
 			"oidc_auth_type": schema.StringAttribute{
 				Computed:            true,
 				Optional:            true,
@@ -138,7 +122,6 @@ type TFModel struct {
 	GroupId         types.String `tfsdk:"group_id"`
 	Labels          types.List   `tfsdk:"labels"`
 	LdapAuthType    types.String `tfsdk:"ldap_auth_type"`
-	Links           types.List   `tfsdk:"links" autogen:"omitjson"`
 	OidcAuthType    types.String `tfsdk:"oidc_auth_type"`
 	Password        types.String `tfsdk:"password"`
 	Roles           types.List   `tfsdk:"roles"`
@@ -149,10 +132,6 @@ type TFModel struct {
 type TFLabelsModel struct {
 	Key   types.String `tfsdk:"key"`
 	Value types.String `tfsdk:"value"`
-}
-type TFLinksModel struct {
-	Href types.String `tfsdk:"href" autogen:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
 }
 type TFRolesModel struct {
 	CollectionName types.String `tfsdk:"collection_name"`
