@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/fwtypes"
 	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
@@ -172,12 +172,12 @@ func convertDlqToTF(ctx context.Context, dlq *admin.StreamsDLQ) (*types.Object, 
 	}
 	return &dlqObject, nil
 }
-func convertPipelineToTF(pipeline []any) (fwtypes.JSONString, diag.Diagnostics) {
+func convertPipelineToTF(pipeline []any) (jsontypes.Normalized, diag.Diagnostics) {
 	pipelineJSON, err := json.Marshal(pipeline)
 	if err != nil {
-		return fwtypes.JSONStringValue(""), diag.Diagnostics{diag.NewErrorDiagnostic("failed to marshal pipeline", err.Error())}
+		return jsontypes.NewNormalizedValue(""), diag.Diagnostics{diag.NewErrorDiagnostic("failed to marshal pipeline", err.Error())}
 	}
-	return fwtypes.JSONStringValue(string(pipelineJSON)), nil
+	return jsontypes.NewNormalizedValue(string(pipelineJSON)), nil
 }
 
 func convertStatsToTF(stats any) (types.String, diag.Diagnostics) {

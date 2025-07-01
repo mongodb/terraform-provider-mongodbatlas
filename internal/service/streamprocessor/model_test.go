@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/fwtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 	"github.com/stretchr/testify/assert"
@@ -190,7 +190,7 @@ func TestSDKToTFModel(t *testing.T) {
 				InstanceName:  types.StringValue(instanceName),
 				Options:       types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes),
 				ProcessorID:   types.StringValue(processorID),
-				Pipeline:      fwtypes.JSONStringValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
+				Pipeline:      jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
 				ProcessorName: types.StringValue(processorName),
 				ProjectID:     types.StringValue(projectID),
 				State:         types.StringValue("CREATED"),
@@ -204,7 +204,7 @@ func TestSDKToTFModel(t *testing.T) {
 				InstanceName:  types.StringValue(instanceName),
 				Options:       types.ObjectNull(streamprocessor.OptionsObjectType.AttrTypes),
 				ProcessorID:   types.StringValue(processorID),
-				Pipeline:      fwtypes.JSONStringValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
+				Pipeline:      jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
 				ProcessorName: types.StringValue(processorName),
 				ProjectID:     types.StringValue(projectID),
 				State:         types.StringValue("STARTED"),
@@ -218,7 +218,7 @@ func TestSDKToTFModel(t *testing.T) {
 				InstanceName:  types.StringValue(instanceName),
 				Options:       optionsToTFModel(t, &streamOptionsExample),
 				ProcessorID:   types.StringValue(processorID),
-				Pipeline:      fwtypes.JSONStringValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
+				Pipeline:      jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]"),
 				ProcessorName: types.StringValue(processorName),
 				ProjectID:     types.StringValue(projectID),
 				State:         types.StringValue("STARTED"),
