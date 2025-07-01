@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312004/admin"
 )
 
 const projectsDataSourceName = "projects"
@@ -262,7 +262,17 @@ func populateProjectsDataSourceModel(ctx context.Context, connV2 *admin.APIClien
 	results := make([]*TFProjectDSModel, 0, len(input))
 	for i := range input {
 		project := input[i]
-		projectProps, err := GetProjectPropsFromAPI(ctx, true, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, connV2.MongoDBCloudUsersApi, project.GetId(), &diagnostics)
+
+		projectPropsParams := &PropsParams{
+			ProjectID:             project.GetId(),
+			IsDataSource:          true,
+			ProjectsAPI:           connV2.ProjectsApi,
+			TeamsAPI:              connV2.TeamsApi,
+			PerformanceAdvisorAPI: connV2.PerformanceAdvisorApi,
+			MongoDBCloudUsersAPI:  connV2.MongoDBCloudUsersApi,
+		}
+
+		projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams, &diagnostics)
 		if err == nil { // if the project is still valid, e.g. could have just been deleted
 			projectModel, diags := NewTFProjectDataSourceModel(ctx, &project, projectProps)
 			diagnostics = append(diagnostics, diags...)

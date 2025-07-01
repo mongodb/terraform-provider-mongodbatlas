@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
-	"go.mongodb.org/atlas-sdk/v20250312003/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312004/admin"
+	"go.mongodb.org/atlas-sdk/v20250312004/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -130,7 +130,16 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			perfMock.EXPECT().GetManagedSlowMs(mock.Anything, mock.Anything).Return(admin.GetManagedSlowMsApiRequest{ApiService: perfMock}).Maybe()
 			perfMock.EXPECT().GetManagedSlowMsExecute(mock.Anything).Return(true, nil, nil).Maybe()
 
-			_, err := project.GetProjectPropsFromAPI(t.Context(), false, projectsMock, teamsMock, perfMock, cloudUsersMock, dummyProjectID, nil)
+			projectPropsParams := &project.PropsParams{
+				ProjectID:             dummyProjectID,
+				IsDataSource:          false,
+				ProjectsAPI:           projectsMock,
+				TeamsAPI:              teamsMock,
+				PerformanceAdvisorAPI: perfMock,
+				MongoDBCloudUsersAPI:  cloudUsersMock,
+			}
+
+			_, err := project.GetProjectPropsFromAPI(t.Context(), projectPropsParams, nil)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -529,7 +538,7 @@ func TestAccProject_basic(t *testing.T) {
 		"is_realtime_performance_panel_enabled",
 		"is_schema_advisor_enabled",
 	}
-	// Users check
+
 	dataSourceChecks := map[string]string{
 		"users.#": "1",
 	}

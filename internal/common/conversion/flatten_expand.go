@@ -3,7 +3,7 @@ package conversion
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312004/admin"
 )
 
 func FlattenLinks(links []admin.Link) []map[string]string {

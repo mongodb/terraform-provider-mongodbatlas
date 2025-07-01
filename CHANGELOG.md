@@ -1,5 +1,12 @@
 ## (Unreleased)
 
+## 1.37.0 (June 26, 2025)
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_stream_connection Adds `cluster_project_id` to allow connections to clusters in other projects within an organization ([#3424](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3424))
+* resource/mongodbatlas_stream_connection Adds `cluster_project_id` to allow connections to clusters in other projects within an organization ([#3424](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3424))
+
 ## 1.36.0 (June 11, 2025)
 
 FEATURES:

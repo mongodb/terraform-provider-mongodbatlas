@@ -1,0 +1,24 @@
+exec_timeout_secs: 5600
+stepback: true
+command_type: system
+pre_error_fails_task: true
+include:
+  - filename: build/ci/papertrail.yml
+
+tasks:
+  - name: no_op
+    commands:
+      - command: shell.exec
+        params:
+          script: |
+            echo "This is a no-op task, does nothing."
+
+
+
+buildvariants:
+  - name: no_op
+    display_name: no_op
+    run_on:
+      - ubuntu2404-small
+    tasks:
+      - name: no_op

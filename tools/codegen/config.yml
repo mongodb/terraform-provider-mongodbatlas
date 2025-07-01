@@ -1,4 +1,197 @@
 resources:
+  cluster_api:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/clusters
+      method: POST
+      wait: &cluster-create-wait
+        state_property: "stateName"
+        pending_states:
+          [
+            "CREATING",
+            "UPDATING",
+            "REPAIRING",
+            "REPEATING",
+            "PENDING",
+            "DELETING",
+          ]
+        target_states: ["IDLE"]
+        timeout_seconds: 10800 # 3 hours
+        min_timeout_seconds: 60
+        delay_seconds: 30
+    update:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
+      method: PATCH
+      wait: *cluster-create-wait
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
+      method: DELETE
+      wait:
+        <<: *cluster-create-wait
+        pending_states:
+          [
+            "IDLE",
+            "CREATING",
+            "UPDATING",
+            "REPAIRING",
+            "REPEATING",
+            "PENDING",
+            "DELETING",
+          ]
+        target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
+    schema:
+      aliases:
+        cluster_name: name # path param name does not match the API request property
+      # These attributes are optional but when not configured, Atlas returns a default value.
+      # If a nested attribute is optional/computed, all its optional child attributes must also be defined as optional/computed to avoid non-empty plans.
+      overrides:
+        advanced_configuration:
+          computability:
+            optional: true
+            computed: true
+        advanced_configuration.custom_openssl_cipher_config_tls12:
+          computability:
+            optional: true
+            computed: true
+        advanced_configuration.minimum_enabled_tls_protocol:
+          computability:
+            optional: true
+            computed: true
+        advanced_configuration.tls_cipher_config_mode:
+          computability:
+            optional: true
+            computed: true
+        bi_connector:
+          computability:
+            optional: true
+            computed: true
+        bi_connector.enabled:
+          computability:
+            optional: true
+            computed: true
+        bi_connector.read_preference:
+          computability:
+            optional: true
+            computed: true
+        disk_iops:
+          computability:
+            optional: true
+            computed: true
+        disk_size_gb:
+          computability:
+            optional: true
+            computed: true
+        encryption_at_rest_provider:
+          computability:
+            optional: true
+            computed: true
+        global_cluster_self_managed_sharding:
+          computability:
+            optional: true
+            computed: true
+        paused:
+          computability:
+            optional: true
+            computed: true
+        pit_enabled:
+          computability:
+            optional: true
+            computed: true
+        redact_client_log_data:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.analytics_specs:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.analytics_specs.disk_iops:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.analytics_specs.disk_size_gb:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.analytics_specs.instance_size:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.analytics_specs.node_count:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling.compute:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling.compute.enabled:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling.compute.max_instance_size:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling.compute.min_instance_size:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling.compute.predictive_enabled:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling.compute.scale_down_enabled:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling.disk_gb:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.auto_scaling.disk_gb.enabled:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.electable_specs.disk_iops:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.electable_specs.disk_size_gb:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.read_only_specs:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.read_only_specs.disk_iops:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.read_only_specs.disk_size_gb:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.read_only_specs.instance_size:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.region_configs.read_only_specs.node_count:
+          computability:
+            optional: true
+            computed: true
+        replication_specs.zone_name:
+          computability:
+            optional: true
+            computed: true
+
   custom_db_role_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
@@ -32,6 +225,25 @@ resources:
       overrides:
         password:
           sensitive: true
+        description:
+          include_null_on_update: true
+
+  project_api:
+    read:
+      path: /api/atlas/v2/groups/{groupId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}
+      method: DELETE
+    schema:
+      aliases:
+        group_id: id # path param name does not match the API response property
 
   push_based_log_export_api:
     read:
@@ -55,13 +267,27 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
       method: DELETE
       wait:
-        state_property: "state"
+        <<: *pble-create-wait
         pending_states: ["ACTIVE", "INITIATING", "BUCKET_VERIFIED"]
         target_states: ["UNCONFIGURED", "DELETED"] # DELETED is a special state value when API returns 404 or empty object
-        timeout_seconds: 900 # 15 minutes
-        min_timeout_seconds: 60
-        delay_seconds: 10
     version_header: application/vnd.atlas.2023-01-01+json
+
+  resource_policy_api:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies
+      method: POST
+    update:
+      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
+      method: DELETE
+    schema:
+      aliases:
+        resource_policy_id: id # path param name does not match the API response property
 
   search_deployment_api:
     read:
@@ -85,50 +311,14 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
       method: DELETE
       wait:
-        state_property: "stateName"
+        <<: *search-deployment-create-wait
+        min_timeout_seconds: 30
         pending_states: ["IDLE", "UPDATING", "PAUSED"]
         target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
-        timeout_seconds: 10800 # 3 hours
-        min_timeout_seconds: 30
-        delay_seconds: 60
     version_header: application/vnd.atlas.2025-03-12+json
 
-  project_api:
-    read:
-      path: /api/atlas/v2/groups/{groupId}
-      method: GET
-    create:
-      path: /api/atlas/v2/groups
-      method: POST
-    update:
-      path: /api/atlas/v2/groups/{groupId}
-      method: PATCH
-    delete:
-      path: /api/atlas/v2/groups/{groupId}
-      method: DELETE
-    schema:
-      aliases:
-        group_id: id # path param name does not match the API response property
-
-  resource_policy_api:
-    read:
-      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
-      method: GET
-    create:
-      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies
-      method: POST
-    update:
-      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
-      method: PATCH
-    delete:
-      path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
-      method: DELETE
-    schema:
-      aliases:
-        resource_policy_id: id # path param name does not match the API response property
-
-  # No fully functional yet so it doesn't have acceptance tests yet.
-  # It has a sensitive attribute that has password format in OpenAPI spec.
+  # Update doesn't work because API defines incorrectly region and cloud_provider at root level in PATCH instead of inside data_process_region as in the other endpoints.
+  # id should be Computed but is ignored because it's defined as _id which is not a legal name for a Terraform attribute as they can't start with an underscore.
   stream_instance_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}
@@ -143,96 +333,6 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}
       method: DELETE
     schema:
+      ignores: ["_id", "region", "cloud_provider"] # region and cloud_provider are incorrectly declared in PATCH as root attributes, _id can't be used in Terraform schema
       aliases:
         tenant_name: name # path param name does not match the API request property
-
-  # No fully functional yet so it doesn't have acceptance tests yet.
-  cluster_api:
-    read:
-      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
-      method: GET
-    create:
-      path: /api/atlas/v2/groups/{groupId}/clusters
-      method: POST
-    update:
-      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
-      method: PATCH
-    delete:
-      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
-      method: DELETE
-    schema:
-      aliases:
-        cluster_name: name # path param name does not match the API request property
-
-  # search_deployment:
-  #   read:
-  #     path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
-  #     method: GET
-  #   create:
-  #     path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
-  #     method: POST
-  #   schema:
-  #     aliases:
-  #       group_id: project_id
-  #     ignores: ["links"]
-  #     timeouts: ["create", "update", "delete"]
-
-  # advanced_cluster:
-  #   read:
-  #     path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
-  #     method: GET
-  #   create:
-  #     path: /api/atlas/v2/groups/{groupId}/clusters
-  #     method: POST
-  #   schema:
-  #     aliases:
-  #       group_id: project_id
-  #     ignores: ["links"]
-  #     timeouts: ["create", "update", "delete"]
-
-  # # advanced_configuration attribute in advanced_cluster
-  # advanced_cluster_process_args:
-  #   read:
-  #     path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
-  #     method: GET
-  #   create:
-  #     path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs
-  #     method: PATCH
-  #   schema:
-  #     aliases:
-  #       group_id: project_id
-
-  # stream_privatelink_endpoint:
-  #   read:
-  #     path: /api/atlas/v2/groups/{groupId}/streams/privateLinkConnections/{connectionId}
-  #     method: GET
-  #   create:
-  #     path: /api/atlas/v2/groups/{groupId}/streams/privateLinkConnections
-  #     method: POST
-  #   schema:
-  #     aliases:
-  #       group_id: project_id
-  #       _id: id
-  #     ignores: ["links"]
-
-  # flex_snapshot:
-  #   # does not have a POST endpoint so schema can't be autogenerated
-  #   create:
-  #     path: /api/atlas/v2/*
-  #     method: POST
-  #   schema:
-  #     aliases:
-  #       group_id: project_id
-  #     ignores: ["links"]
-
-  # flex_restore_job:
-  #   read:
-  #     path: /api/atlas/v2/groups/{groupId}/flexClusters/{name}/backup/restoreJobs/{restoreJobId}
-  #     method: GET
-  #   create:
-  #     path: /api/atlas/v2/groups/{groupId}/flexClusters/{name}/backup/restoreJobs
-  #     method: POST
-  #   schema:
-  #     aliases:
-  #       group_id: project_id
-  #     ignores: ["links"]

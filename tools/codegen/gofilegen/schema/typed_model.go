@@ -91,6 +91,8 @@ func typedModelProperty(attr *codespec.Attribute) string {
 		autogenTag = ` autogen:"omitjson"`
 	case codespec.OmitInUpdateBody:
 		autogenTag = ` autogen:"omitjsonupdate"`
+	case codespec.IncludeNullOnUpdate:
+		autogenTag = ` autogen:"includenullonupdate"`
 	}
 	return fmt.Sprintf("%s %s", namePascalCase, propType) + " `" + fmt.Sprintf("tfsdk:%q", attr.Name.SnakeCase()) + autogenTag + "`"
 }

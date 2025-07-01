@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312004/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -281,8 +281,16 @@ func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 			return
 		}
 	}
+	projectPropsParams := &PropsParams{
+		ProjectID:             project.GetId(),
+		IsDataSource:          true,
+		ProjectsAPI:           connV2.ProjectsApi,
+		TeamsAPI:              connV2.TeamsApi,
+		PerformanceAdvisorAPI: connV2.PerformanceAdvisorApi,
+		MongoDBCloudUsersAPI:  connV2.MongoDBCloudUsersApi,
+	}
 
-	projectProps, err := GetProjectPropsFromAPI(ctx, true, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, connV2.MongoDBCloudUsersApi, project.GetId(), &resp.Diagnostics)
+	projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams, &resp.Diagnostics)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties", fmt.Sprintf(ErrorProjectRead, project.GetId(), err.Error()))
 		return

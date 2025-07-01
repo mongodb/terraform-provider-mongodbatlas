@@ -12,7 +12,7 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/testResource
       method: DELETE
-  
+
   test_resource_with_nested_attr:
     read:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource

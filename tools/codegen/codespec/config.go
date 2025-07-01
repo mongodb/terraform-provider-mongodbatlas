@@ -103,6 +103,9 @@ func applyOverrides(attr *Attribute, attrPathName string, schemaOptions config.S
 		if override.Sensitive != nil {
 			attr.Sensitive = *override.Sensitive
 		}
+		if override.IncludeNullOnUpdate != nil && *override.IncludeNullOnUpdate {
+			attr.ReqBodyUsage = IncludeNullOnUpdate
+		}
 	}
 }
 

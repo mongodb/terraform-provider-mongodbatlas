@@ -134,7 +134,7 @@ type TFModel struct {
 	AwsIamtype      types.String `tfsdk:"aws_iamtype"`
 	DatabaseName    types.String `tfsdk:"database_name"`
 	DeleteAfterDate types.String `tfsdk:"delete_after_date"`
-	Description     types.String `tfsdk:"description"`
+	Description     types.String `tfsdk:"description" autogen:"includenullonupdate"`
 	GroupId         types.String `tfsdk:"group_id"`
 	Labels          types.List   `tfsdk:"labels"`
 	LdapAuthType    types.String `tfsdk:"ldap_auth_type"`

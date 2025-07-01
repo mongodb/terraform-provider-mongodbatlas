@@ -12,14 +12,6 @@ import (
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"_id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "Unique 24-hexadecimal character string that identifies the project.",
-			},
-			"cloud_provider": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Label that identifies the cloud service provider where MongoDB Cloud performs stream processing. Currently, this parameter only supports AWS and AZURE.",
-			},
 			"connections": schema.ListNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: "List of connections configured in the stream instance.",
@@ -105,6 +97,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						"bootstrap_servers": schema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "Comma separated list of server addresses.",
+						},
+						"cluster_group_id": schema.StringAttribute{
+							Computed:            true,
+							MarkdownDescription: "The id of the group that the cluster belongs to.",
 						},
 						"cluster_name": schema.StringAttribute{
 							Computed:            true,
@@ -203,6 +199,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											MarkdownDescription: "Reserved. Will be used by PRIVATE_LINK connection type.",
 										},
 										"tgw_id": schema.StringAttribute{
+											Computed:            true,
+											MarkdownDescription: "Reserved. Will be used by TRANSIT_GATEWAY connection type.",
+										},
+										"tgw_route_id": schema.StringAttribute{
 											Computed:            true,
 											MarkdownDescription: "Reserved. Will be used by TRANSIT_GATEWAY connection type.",
 										},
@@ -334,10 +334,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Human-readable label that identifies the stream instance.",
 			},
-			"region": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Name of the cloud provider region hosting Atlas Stream Processing.",
-			},
 			"sample_connections": schema.SingleNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "Sample connections to add to SPI.",
@@ -396,15 +392,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	_Id               types.String `tfsdk:"_id" autogen:"omitjson"`
-	CloudProvider     types.String `tfsdk:"cloud_provider"`
 	Connections       types.List   `tfsdk:"connections" autogen:"omitjson"`
 	DataProcessRegion types.Object `tfsdk:"data_process_region" autogen:"omitjsonupdate"`
 	GroupId           types.String `tfsdk:"group_id" autogen:"omitjson"`
 	Hostnames         types.List   `tfsdk:"hostnames" autogen:"omitjson"`
 	Links             types.List   `tfsdk:"links" autogen:"omitjson"`
 	Name              types.String `tfsdk:"name" autogen:"omitjsonupdate"`
-	Region            types.String `tfsdk:"region"`
 	SampleConnections types.Object `tfsdk:"sample_connections" autogen:"omitjsonupdate"`
 	StreamConfig      types.Object `tfsdk:"stream_config" autogen:"omitjsonupdate"`
 }
@@ -412,6 +405,7 @@ type TFConnectionsModel struct {
 	Authentication   types.Object `tfsdk:"authentication" autogen:"omitjson"`
 	Aws              types.Object `tfsdk:"aws" autogen:"omitjson"`
 	BootstrapServers types.String `tfsdk:"bootstrap_servers" autogen:"omitjson"`
+	ClusterGroupId   types.String `tfsdk:"cluster_group_id" autogen:"omitjson"`
 	ClusterName      types.String `tfsdk:"cluster_name" autogen:"omitjson"`
 	Config           types.Map    `tfsdk:"config" autogen:"omitjson"`
 	DbRoleToExecute  types.Object `tfsdk:"db_role_to_execute" autogen:"omitjson"`
@@ -467,6 +461,7 @@ type TFConnectionsNetworkingAccessModel struct {
 	Links        types.List   `tfsdk:"links" autogen:"omitjson"`
 	Name         types.String `tfsdk:"name" autogen:"omitjson"`
 	TgwId        types.String `tfsdk:"tgw_id" autogen:"omitjson"`
+	TgwRouteId   types.String `tfsdk:"tgw_route_id" autogen:"omitjson"`
 	Type         types.String `tfsdk:"type" autogen:"omitjson"`
 	VpcCidr      types.String `tfsdk:"vpc_cidr" autogen:"omitjson"`
 }
