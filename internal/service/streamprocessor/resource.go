@@ -265,7 +265,7 @@ func (r *streamProcessorRS) Delete(ctx context.Context, req resource.DeleteReque
 		return
 	}
 	_, err := WaitStateTransition(ctx, params, connV2.StreamsApi, []string{InitiatingState, CreatingState, CreatedState, StartedState, StoppedState}, []string{DroppedState})
-	if apiError, _ := admin.AsError(err); apiError.GetError() == http.StatusBadRequest {
+	if apiError, _ := admin.AsError(err); apiError.GetError() == http.StatusBadRequest || apiError.GetError() == http.StatusNotFound {
 		return // resource already deleted
 	}
 	if err != nil {
