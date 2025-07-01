@@ -456,9 +456,6 @@ func configToUpdateStreamProcessor(projectID, instanceName, processorName, state
 				region         = "VIRGINIA_USA"
 				cloud_provider = "AWS"
 			}
-			stream_config = {
-				tier = "SP10"
-			}
 		}
 
 		resource "mongodbatlas_stream_connection" "sample" {
@@ -577,9 +574,6 @@ func config(t *testing.T, projectID, instanceName, processorName, state string, 
 			data_process_region = {
 				region         = "VIRGINIA_USA"
 				cloud_provider = "AWS"
-			}
-			stream_config = {
-				tier = "SP10"
 			}
 		}
 

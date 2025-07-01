@@ -427,9 +427,6 @@ func configureCluster(projectID, instanceName, clusterName string) string {
 				region = "VIRGINIA_USA"
 				cloud_provider = "AWS"
 			}
-			stream_config = {
-				tier = "SP10"
-			}
 		}
 		
 		resource "mongodbatlas_stream_connection" "test" {
@@ -454,9 +451,6 @@ func configureHTTPS(projectID, instanceName, url, headers string) string {
 			data_process_region = {
 				region = "VIRGINIA_USA"
 				cloud_provider = "AWS"
-			}
-			stream_config = {
-				tier = "SP10"
 			}
 		}
 			
