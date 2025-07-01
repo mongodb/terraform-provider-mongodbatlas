@@ -59,8 +59,8 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 			PendingStates:     []string{"INIT", "CREATING"},
 			TargetStates:      []string{"CREATED"},
 			TimeoutSeconds:    300,
-			MinTimeoutSeconds: 3,
-			DelaySeconds:      0,
+			MinTimeoutSeconds: 10,
+			DelaySeconds:      10,
 			CallParams:        readAPICallParams(&plan),
 		},
 	}
@@ -112,8 +112,8 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			PendingStates:     []string{"INIT", "CREATING"},
 			TargetStates:      []string{"CREATED"},
 			TimeoutSeconds:    300,
-			MinTimeoutSeconds: 3,
-			DelaySeconds:      0,
+			MinTimeoutSeconds: 10,
+			DelaySeconds:      10,
 			CallParams:        readAPICallParams(&state),
 		},
 	}
@@ -147,8 +147,8 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 			PendingStates:     []string{"INIT", "CREATING", "CREATED", "STARTED", "STOPPED"},
 			TargetStates:      []string{"DELETED"},
 			TimeoutSeconds:    300,
-			MinTimeoutSeconds: 3,
-			DelaySeconds:      0,
+			MinTimeoutSeconds: 10,
+			DelaySeconds:      10,
 			CallParams:        readAPICallParams(&state),
 		},
 	}

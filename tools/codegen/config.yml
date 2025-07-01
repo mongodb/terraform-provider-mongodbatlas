@@ -351,8 +351,8 @@ resources:
         pending_states: ["INIT", "CREATING"]
         target_states: ["CREATED"]
         timeout_seconds: 300 # 5 minutes
-        min_timeout_seconds: 3
-        delay_seconds: 0
+        min_timeout_seconds: 10
+        delay_seconds: 10
     update:
       path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{processorName}
       method: PATCH
