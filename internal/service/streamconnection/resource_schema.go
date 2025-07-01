@@ -130,6 +130,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"role_arn": schema.StringAttribute{
 						Required: true,
 					},
+					"test_bucket": schema.StringAttribute{
+						Optional: true,
+					},
 				},
 			},
 

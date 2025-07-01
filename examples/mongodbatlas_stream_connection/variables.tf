@@ -40,3 +40,8 @@ variable "other_cluster" {
   description = "Name of an existing cluster in another project within an organization that will be used to create a stream connection"
   type        = string
 }
+
+variable "s3_test_bucket_name" {
+  description = "Name of the S3 bucket to use for testing AWS S3 connections"
+  type        = string
+}

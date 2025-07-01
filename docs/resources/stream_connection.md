@@ -93,6 +93,20 @@ resource "mongodbatlas_stream_connection" "test" {
 }
 
 ```
+### Example AWS S3 Connection
+
+```terraform
+resource "mongodbatlas_stream_connection" "test" {
+    project_id      = var.project_id
+    instance_name   = "NewInstance"
+    connection_name = "AWSS3Connection"
+    type            = "S3"
+    aws = {
+        role_arn    = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/s3AccessRole"
+        test_bucket = "example-bucket"
+    }
+}
+```
 
 ### Example Https Connection
 
@@ -161,6 +175,7 @@ If `type` is of value `Https` the following additional attributes are defined:
 
 ### AWS
 * `role_arn` - Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
+* `test_bucket` - The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.
 
 ## Import
 

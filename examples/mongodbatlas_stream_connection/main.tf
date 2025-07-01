@@ -93,6 +93,17 @@ resource "mongodbatlas_stream_connection" "example-aws-lambda" {
   }
 }
 
+resource "mongodbatlas_stream_connection" "example-aws-s3" {
+  project_id      = var.project_id
+  instance_name   = mongodbatlas_stream_instance.example.instance_name
+  connection_name = "AWSS3Connection"
+  type            = "S3"
+  aws = {
+    role_arn    = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/s3AccessRole"
+    test_bucket = var.s3_test_bucket_name
+  }
+}
+
 resource "mongodbatlas_stream_connection" "example-https" {
   project_id      = var.project_id
   instance_name   = mongodbatlas_stream_instance.example.instance_name
