@@ -338,7 +338,9 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}
       method: DELETE
     schema:
-      ignores: [
+      # region and cloud_provider are incorrectly declared in PATCH as root attributes, _id can't be used in Terraform schema
+      ignores:
+        [
           "_id",
           "region",
           "cloud_provider",
@@ -353,7 +355,7 @@ resources:
           "data_process_region.links",
           "sample_connections.links",
           "stream_config.links",
-        ] # region and cloud_provider are incorrectly declared in PATCH as root attributes, _id can't be used in Terraform schema
+        ]
       aliases:
         tenant_name: name # path param name does not match the API request property
 
