@@ -8,7 +8,58 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+)
+
+var (
+	DSUsersSchema = schema.SetNestedAttribute{
+		Computed: true,
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"id": schema.StringAttribute{
+					Computed: true,
+				},
+				"org_membership_status": schema.StringAttribute{
+					Computed: true,
+				},
+				"roles": schema.ListAttribute{
+					Computed:    true,
+					ElementType: types.StringType,
+				},
+				"username": schema.StringAttribute{
+					Computed: true,
+				},
+				"invitation_created_at": schema.StringAttribute{
+					Computed: true,
+				},
+				"invitation_expires_at": schema.StringAttribute{
+					Computed: true,
+				},
+				"inviter_username": schema.StringAttribute{
+					Computed: true,
+				},
+				"country": schema.StringAttribute{
+					Computed: true,
+				},
+				"created_at": schema.StringAttribute{
+					Computed: true,
+				},
+				"first_name": schema.StringAttribute{
+					Computed: true,
+				},
+				"last_auth": schema.StringAttribute{
+					Computed: true,
+				},
+				"last_name": schema.StringAttribute{
+					Computed: true,
+				},
+				"mobile_number": schema.StringAttribute{
+					Computed: true,
+				},
+			},
+		},
+	}
 )
 
 func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, projectProps *AdditionalProperties) (*TFProjectDSModel, diag.Diagnostics) {
