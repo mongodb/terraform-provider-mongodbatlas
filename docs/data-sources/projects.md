@@ -57,7 +57,7 @@ data "mongodbatlas_projects" "test" {
 * `teams` - Returns all teams to which the authenticated user has access in the project. See [Teams](#teams).
 * `limits` - The limits for the specified project. See [Limits](#limits).
 * `ip_addresses` - IP addresses in a project categorized by services. See [IP Addresses](#ip-addresses). **WARNING:** This attribute is deprecated, use the `mongodbatlas_project_ip_addresses` data source instead.
-* `users` - Returns details about the pending and active MongoDB Cloud users associated with the specified project.
+* `users` - Returns list of all pending and active MongoDB Cloud users associated with the specified project.
 * `is_collect_database_specifics_statistics_enabled` - Flag that indicates whether to enable statistics in [cluster metrics](https://www.mongodb.com/docs/atlas/monitor-cluster-metrics/) collection for the project.
 * `is_data_explorer_enabled` - Flag that indicates whether to enable Data Explorer for the project. If enabled, you can query your database with an easy to use interface.
 * `is_extended_storage_sizes_enabled` - Flag that indicates whether to enable extended storage sizes for the specified project.
@@ -88,11 +88,11 @@ data "mongodbatlas_projects" "test" {
 * `services.clusters.#.outbound` - List of outbound IP addresses associated with the cluster. If your network allows inbound HTTP requests only from specific IP addresses, you must allow access from the following IP addresses so that your Atlas cluster can communicate with your webhooks and KMS.
 
 ### Users
-* `id`- The unique identifier of the MongoDB Cloud user.
-* `orgMembershipStatus`- Indicates whether the MongoDB Cloud user has a pending invitation to join the organization or they are already active in the organization.
+* `id`- Unique 24-hexadecimal digit string that identifies the MongoDB Cloud user.
+* `orgMembershipStatus`- String enum that indicates whether the MongoDB Cloud user has a pending invitation to join the organization or they are already active in the organization.
 * `roles`- One or more project-level roles assigned to the MongoDB Cloud user.
 * `username`- Email address that represents the username of the MongoDB Cloud user.
-* `country`- Two-character alphabetical string that identifies the MongoDB Cloud user's geographic location. Uses the ISO 3166-1a2 code format.
+* `country`- Two-character alphabetical string that identifies the MongoDB Cloud user's geographic location. This parameter uses the ISO 3166-1a2 code format.
 * `createdAt`- Date and time when MongoDB Cloud created the current account. This value is in the ISO 8601 timestamp format in UTC.
 * `firstName`- First or given name that belongs to the MongoDB Cloud user.
 * `lastAuth` - Date and time when the current account last authenticated. This value is in the ISO 8601 timestamp format in UTC.
