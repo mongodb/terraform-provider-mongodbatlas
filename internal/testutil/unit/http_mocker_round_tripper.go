@@ -131,7 +131,6 @@ func (r *MockRoundTripper) nextDiffResponseIndex() {
 	step := r.currentStep()
 	if step == nil {
 		r.t.Fatal("no more steps, in testCase")
-		return
 	}
 	for index, req := range step.DiffRequests {
 		if _, ok := r.foundsDiffs[index]; !ok {
