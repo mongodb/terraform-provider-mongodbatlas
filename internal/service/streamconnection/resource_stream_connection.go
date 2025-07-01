@@ -104,11 +104,13 @@ var NetworkingObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 }}
 
 type TFAWSModel struct {
-	RoleArn types.String `tfsdk:"role_arn"`
+	RoleArn    types.String `tfsdk:"role_arn"`
+	TestBucket types.String `tfsdk:"test_bucket"`
 }
 
 var AWSObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"role_arn": types.StringType,
+	"role_arn":    types.StringType,
+	"test_bucket": types.StringType,
 }}
 
 func (r *streamConnectionRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {

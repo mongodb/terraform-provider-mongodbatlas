@@ -1,0 +1,7 @@
+```release-note:enhancement
+data-source/mongodbatlas_stream_connection Adds `test_bucket` to check authorization of the passed-in IAM role
+```
+
+```release-note:enhancement
+resource/mongodbatlas_stream_connection Adds `test_bucket` to check authorization of the passed-in IAM role
+```

@@ -312,6 +312,36 @@ func TestAccStreamRSStreamConnection_AWSLambda(t *testing.T) {
 	})
 }
 
+func TestAccStreamRSStreamConnection_AWSS3(t *testing.T) {
+	var (
+		projectID      = os.Getenv("MONGODB_ATLAS_ASP_PROJECT_EAR_PE_ID") // test-acc-tf-p-keep-ear-AWS-private-endpoint project has aws integration
+		instanceName   = acc.RandomName()
+		connectionName = acc.RandomName()
+		roleArn        = os.Getenv("MONGODB_ATLAS_ASP_PROJECT_AWS_ROLE_ARN")
+		testBucket     = os.Getenv("MONGODB_ATLAS_ASP_PROJECT_AWS_S3_BUCKET")
+	)
+	if projectID == "" || roleArn == "" || testBucket == "" {
+		t.Skip("Required environment variables for AWS S3 stream connection are not set")
+	}
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: configureAWSS3(projectID, instanceName, connectionName, roleArn, testBucket),
+				Check:  checkAWSS3Attributes(resourceName, instanceName, connectionName, roleArn, testBucket),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func configureKafka(projectID, instanceName, username, password, bootstrapServers, configValue, networkingConfig string, useSSL bool) string {
 	projectAndStreamInstanceConfig := acc.StreamInstanceConfig(projectID, instanceName, "VIRGINIA_USA", "AWS")
 	securityConfig := `
@@ -586,6 +616,38 @@ func checkAWSLambdaAttributes(
 		resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
 		resource.TestCheckResourceAttr(resourceName, "type", "AWSLambda"),
 		resource.TestCheckResourceAttr(resourceName, "aws.role_arn", roleArn),
+	}
+	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
+}
+
+func configureAWSS3(projectID, instanceName, connectionName, roleArn, testBucket string) string {
+	streamInstanceConfig := acc.StreamInstanceConfig(projectID, instanceName, "VIRGINIA_USA", "AWS")
+	return fmt.Sprintf(`
+		%[1]s
+
+		resource "mongodbatlas_stream_connection" "test" {
+			project_id = mongodbatlas_stream_instance.test.project_id
+			instance_name = mongodbatlas_stream_instance.test.instance_name
+			connection_name = %[2]q
+			type = "S3"
+			aws = {
+				role_arn = %[3]q
+				test_bucket = %[4]q
+			}
+		}
+	`, streamInstanceConfig, connectionName, roleArn, testBucket)
+}
+
+func checkAWSS3Attributes(
+	resourceName, instanceName, connectionName, roleArn, testBucket string) resource.TestCheckFunc {
+	resourceChecks := []resource.TestCheckFunc{
+		checkStreamConnectionExists(),
+		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+		resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
+		resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
+		resource.TestCheckResourceAttr(resourceName, "type", "S3"),
+		resource.TestCheckResourceAttr(resourceName, "aws.role_arn", roleArn),
+		resource.TestCheckResourceAttr(resourceName, "aws.test_bucket", testBucket),
 	}
 	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
 }
