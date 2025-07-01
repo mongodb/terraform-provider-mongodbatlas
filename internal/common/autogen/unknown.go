@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -115,6 +116,9 @@ func getNullAttr(attrType attr.Type) (attr.Value, error) {
 		}
 		if mapType, ok := attrType.(types.MapType); ok {
 			return types.MapNull(mapType.ElemType), nil
+		}
+		if _, ok := attrType.(jsontypes.NormalizedType); ok {
+			return jsontypes.NewNormalizedNull(), nil
 		}
 		return nil, fmt.Errorf("unmarshal to get null value not supported yet for type %T", attrType)
 	}
