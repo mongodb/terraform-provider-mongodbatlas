@@ -12,7 +12,7 @@
 
 -> **NOTE:** If Backup Compliance Policy is enabled for the project for which this backup schedule is defined, you cannot modify the backup schedule for an individual cluster below the minimum requirements set in the Backup Compliance Policy.  See [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy).
 
--> **NOTE:** The Low-CPU instance clusters are prefixed with `R`, i.e. `R40`. For complete list of Low-CPU instance clusters see Cluster Configuration Options under each Cloud Provider (https://www.mongodb.com/docs/atlas/reference/cloud-providers/).
+-> **NOTE:** The Low-CPU instance clusters are prefixed with `R`, i.e. `R40`. For complete list of Low-CPU instance clusters see Cluster Configuration Options under each Cloud Provider (https://www.mongodb.com/docs/atlas/reference/cloud-providers).
 
 ~> **IMPORTANT:**
 <br> &#8226; Multi Region Cluster: The `mongodbatlas_cluster` resource doesn't return the `container_id` for each region utilized by the cluster. For retrieving the `container_id`, we recommend to use the [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster) resource instead.
