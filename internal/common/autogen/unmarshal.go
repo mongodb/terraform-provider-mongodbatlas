@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -108,6 +109,13 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 		}
 		return nil, errUnmarshal(value, valueType, "Number", nameErr)
 	case map[string]any:
+		if _, ok := valueType.(jsontypes.NormalizedType); ok {
+			jsonBytes, err := json.Marshal(v)
+			if err != nil {
+				return nil, fmt.Errorf("failed to marshal object to JSON for attribute %s: %v", nameErr, err)
+			}
+			return jsontypes.NewNormalizedValue(string(jsonBytes)), nil
+		}
 		if obj, ok := oldVal.(types.Object); ok {
 			objNew, err := setObjAttrModel(obj, v)
 			if err != nil {
@@ -124,6 +132,13 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 		}
 		return nil, errUnmarshal(value, valueType, "Object", nameErr)
 	case []any:
+		if _, ok := valueType.(jsontypes.NormalizedType); ok {
+			jsonBytes, err := json.Marshal(v)
+			if err != nil {
+				return nil, fmt.Errorf("failed to marshal array to JSON for attribute %s: %v", nameErr, err)
+			}
+			return jsontypes.NewNormalizedValue(string(jsonBytes)), nil
+		}
 		if list, ok := oldVal.(types.List); ok {
 			listNew, err := setListAttrModel(list, v, nameErr)
 			if err != nil {
