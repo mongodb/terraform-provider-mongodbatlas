@@ -3,6 +3,7 @@ package autogen_test
 import (
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
@@ -42,17 +43,17 @@ const epsilon = 10e-15 // float tolerance in test equality
 
 func TestMarshalBasic(t *testing.T) {
 	model := struct {
-		AttrFloat  types.Float64 `tfsdk:"attr_float"`
-		AttrString types.String  `tfsdk:"attr_string"`
-		// values with tag `omitjson` are not marshaled, and they don't need to be Terraform types
-		AttrOmit            types.String `tfsdk:"attr_omit" autogen:"omitjson"`
-		AttrOmitNoTerraform string       `autogen:"omitjson"`
-		AttrUnkown          types.String `tfsdk:"attr_unknown"`
-		AttrNull            types.String `tfsdk:"attr_null"`
-		AttrInt             types.Int64  `tfsdk:"attr_int"`
-		AttrBoolTrue        types.Bool   `tfsdk:"attr_bool_true"`
-		AttrBoolFalse       types.Bool   `tfsdk:"attr_bool_false"`
-		AttrBoolNull        types.Bool   `tfsdk:"attr_bool_null"`
+		AttrFloat           types.Float64        `tfsdk:"attr_float"`
+		AttrString          types.String         `tfsdk:"attr_string"`
+		AttrOmit            types.String         `tfsdk:"attr_omit" autogen:"omitjson"`
+		AttrUnkown          types.String         `tfsdk:"attr_unknown"`
+		AttrNull            types.String         `tfsdk:"attr_null"`
+		AttrJSON            jsontypes.Normalized `tfsdk:"attr_json"`
+		AttrOmitNoTerraform string               `autogen:"omitjson"`
+		AttrInt             types.Int64          `tfsdk:"attr_int"`
+		AttrBoolTrue        types.Bool           `tfsdk:"attr_bool_true"`
+		AttrBoolFalse       types.Bool           `tfsdk:"attr_bool_false"`
+		AttrBoolNull        types.Bool           `tfsdk:"attr_bool_null"`
 	}{
 		AttrFloat:           types.Float64Value(1.234),
 		AttrString:          types.StringValue("hello"),
@@ -64,8 +65,9 @@ func TestMarshalBasic(t *testing.T) {
 		AttrBoolTrue:        types.BoolValue(true),
 		AttrBoolFalse:       types.BoolValue(false),
 		AttrBoolNull:        types.BoolNull(), // null values are not marshaled
+		AttrJSON:            jsontypes.NewNormalizedValue("{\"hello\": \"there\"}"),
 	}
-	const expectedJSON = `{ "attrString": "hello", "attrInt": 1, "attrFloat": 1.234, "attrBoolTrue": true, "attrBoolFalse": false }`
+	const expectedJSON = `{ "attrString": "hello", "attrInt": 1, "attrFloat": 1.234, "attrBoolTrue": true, "attrBoolFalse": false, "attrJSON": {"hello": "there"} }`
 	raw, err := autogen.Marshal(&model, false)
 	require.NoError(t, err)
 	assert.JSONEq(t, expectedJSON, string(raw))
