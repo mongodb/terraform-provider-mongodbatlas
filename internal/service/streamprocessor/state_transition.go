@@ -32,8 +32,8 @@ func WaitStateTransition(ctx context.Context, requestParams *admin.GetStreamProc
 		Target:     desiredStates,
 		Refresh:    refreshFunc(ctx, requestParams, client),
 		Timeout:    5 * time.Minute, // big pipelines can take a while to stop due to checkpointing. We prefer the API to raise the error (~ 3min) than having to expose custom timeouts.
-		MinTimeout: 10 * time.Second,
-		Delay:      10 * time.Second,
+		MinTimeout: 3 * time.Second,
+		Delay:      3 * time.Second,
 	}
 
 	streamProcessorResp, err := stateConf.WaitForStateContext(ctx)
