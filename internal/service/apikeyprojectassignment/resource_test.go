@@ -30,7 +30,6 @@ func TestAccApiKeyProjectAssignmentRS_basic(t *testing.T) {
 
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		// CheckDestroy:             checkDestroyApiKeyProjectAssignment,
 		Steps: []resource.TestStep{
 			{
 				Config: apiKeyProjectAssignmentConfig(orgID, roleName, projectName1, projectName2),
@@ -43,7 +42,7 @@ func TestAccApiKeyProjectAssignmentRS_basic(t *testing.T) {
 			{
 				Config:                               apiKeyProjectAssignmentConfig(orgID, roleNameUpdated, projectName1, projectName2),
 				ResourceName:                         resourceName,
-				ImportStateIdFunc:                    checkApiKeyProjectAssignmentImportStateIDFunc(resourceName, "project_id", "api_key_id"),
+				ImportStateIdFunc:                    checkAPIKeyProjectAssignmentImportStateIDFunc(resourceName, "project_id", "api_key_id"),
 				ImportState:                          true,
 				ImportStateVerify:                    true,
 				ImportStateVerifyIdentifierAttribute: "project_id",
@@ -52,13 +51,13 @@ func TestAccApiKeyProjectAssignmentRS_basic(t *testing.T) {
 	})
 }
 
-func checkApiKeyProjectAssignmentImportStateIDFunc(resourceName, attrNameProjectID, attrNameApiKeyID string) resource.ImportStateIdFunc {
+func checkAPIKeyProjectAssignmentImportStateIDFunc(resourceName, attrNameProjectID, attrNameAPIKeyID string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		return IDWithProjectIDApiKeyID(rs.Primary.Attributes[attrNameProjectID], rs.Primary.Attributes[attrNameApiKeyID])
+		return IDWithProjectIDApiKeyID(rs.Primary.Attributes[attrNameProjectID], rs.Primary.Attributes[attrNameAPIKeyID])
 	}
 }
 
@@ -88,27 +87,27 @@ func apiKeyProjectAssignmentAttributeChecks(projectNameOrID, roleNames string) r
 func apiKeyProjectAssignmentConfig(orgID, roleName, projectName1, projectName2 string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_api_key" "test" {
-			org_id     = "%[1]s"
+			org_id     = %[1]q
 			description  = "Test API Key"
 
 			role_names = ["ORG_READ_ONLY"]
 		}
 
 		resource "mongodbatlas_project" "test1" {
-			name   = "%[3]s"
-			org_id = "%[1]s"
+			name   = %[3]q
+			org_id = %[1]q
         }
 
 		resource "mongodbatlas_project" "test2" {
-			name   = "%[4]s"
-			org_id = "%[1]s"
+			name   = %[4]q
+			org_id = %[1]q
         }
 
 		resource "mongodbatlas_api_key_project_assignment" "test1" {
 			project_id  = mongodbatlas_project.test1.id
 			api_key_id = mongodbatlas_api_key.test.api_key_id
 
-			role_names  = ["%[2]s"]
+			role_names  = [%[2]q]
 		}
 		
 		resource "mongodbatlas_api_key_project_assignment" "test2" {

@@ -79,13 +79,13 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	}
 
 	apiKeyID := assignmentState.ApiKeyId.ValueString()
-	newApiKeyProjectAssignmentModel, diags := NewTFModel(ctx, apiKeys, apiKeyID, projectID)
+	newAPIKeyProjectAssignmentModel, diags := NewTFModel(ctx, apiKeys, apiKeyID, projectID)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, newApiKeyProjectAssignmentModel)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, newAPIKeyProjectAssignmentModel)...)
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -137,7 +137,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	projectID, apiKeyID, err := splitApiKeyProjectAssignmentImportID(req.ID)
+	projectID, apiKeyID, err := splitAPIKeyProjectAssignmentImportID(req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError("error splitting import ID", err.Error())
 		return
@@ -147,7 +147,7 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("api_key_id"), apiKeyID)...)
 }
 
-func splitApiKeyProjectAssignmentImportID(id string) (projectID, apiKeyID string, err error) {
+func splitAPIKeyProjectAssignmentImportID(id string) (projectID, apiKeyID string, err error) {
 	re := regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)$`)
 	parts := re.FindStringSubmatch(id)
 
