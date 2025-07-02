@@ -433,6 +433,17 @@ func TestUnmarshalZeroLenCollections(t *testing.T) {
 	assert.Equal(t, modelExpected, model)
 }
 
+func TestUnmarshalEmptyJSON(t *testing.T) {
+	model := struct {
+		Attr types.String `tfsdk:"attr"`
+	}{
+		Attr: types.StringValue("hello"),
+	}
+	require.NoError(t, autogen.Unmarshal([]byte(""), &model))
+	require.NoError(t, autogen.Unmarshal(nil, &model))
+	assert.Equal(t, types.StringValue("hello"), model.Attr)
+}
+
 func TestUnmarshalErrors(t *testing.T) {
 	testCases := map[string]struct {
 		model        any
