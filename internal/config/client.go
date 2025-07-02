@@ -290,7 +290,7 @@ func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParam
 
 	apiResp, err := untypedClient.CallAPI(apiReq)
 
-	if apiResp.StatusCode >= 300 {
+	if apiResp != nil && apiResp.StatusCode >= 300 {
 		newErr := untypedClient.MakeApiError(apiResp, params.Method, localVarPath)
 		return apiResp, newErr
 	}
