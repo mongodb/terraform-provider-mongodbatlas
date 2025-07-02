@@ -3,7 +3,6 @@ package maintenancewindowapi_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -15,8 +14,7 @@ const resourceName = "mongodbatlas_maintenance_window_api.test"
 
 func TestAccMaintenanceWindowAPI_basic(t *testing.T) {
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
+		projectID = acc.ProjectIDExecution(t)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -25,44 +23,57 @@ func TestAccMaintenanceWindowAPI_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, projectName, 3, 4),
-				Check:  checkBasic(),
+				Config: configBasic(projectID, 3, 4, false),
+				Check:  checkExists(resourceName),
 			},
 			{
-				Config: configBasic(orgID, projectName, 7, 2),
-				Check:  checkBasic(),
+				Config: configBasic(projectID, 7, 2, false),
+				Check:  checkExists(resourceName),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
+				Config: configBasic(projectID, 7, 2, true),
+				Check:  checkExists(resourceName),
+			},
+			{
+				Config: configBasic(projectID, 7, 2, false),
+				Check:  checkExists(resourceName),
+			},
+			{
+				Config:   configBasic(projectID, 7, 2, false),
+				PlanOnly: true, // Check that nested attribute protected_hours was correctly unset in API.
+			},
+			{
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    importStateIDFunc(resourceName),
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "group_id",
+				// Patch doesn't return a response body, but these attributes are changed when Get is called.
+				ImportStateVerifyIgnore: []string{"auto_defer_once_enabled", "number_of_deferrals", "time_zone_id"},
 			},
 		},
 	})
 }
 
-func configBasic(orgID, projectName string, dayOfWeek, hourOfDay int) string {
+func configBasic(projectID string, dayOfWeek, hourOfDay int, useProtectedHours bool) string {
+	protectedHours := ""
+	if useProtectedHours {
+		protectedHours = `
+			protected_hours = {
+				start_hour_of_day = 18
+				end_hour_of_day   = 23
+			}`
+	}
+
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = %q
-			org_id = %q
-		}
-
 		resource "mongodbatlas_maintenance_window_api" "test" {
-			project_id  = mongodbatlas_project.test.id
-			day_of_week = %d
-			hour_of_day = %d
+			group_id    = %[1]q
+			day_of_week = %[2]d
+			hour_of_day = %[3]d
+			
+			%[4]s
 		}
-	`, projectName, orgID, dayOfWeek, hourOfDay)
-}
-
-func checkBasic() resource.TestCheckFunc {
-	// adds checks for computed attributes not defined in config
-	setAttrsChecks := []string{"number_of_deferrals", "time_zone_id"}
-	checks := acc.AddAttrSetChecks(resourceName, nil, setAttrsChecks...)
-	checks = append(checks, checkExists(resourceName))
-	return resource.ComposeAggregateTestCheckFunc(checks...)
+	`, projectID, dayOfWeek, hourOfDay, protectedHours)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
@@ -71,14 +82,14 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-		projectID := rs.Primary.Attributes["project_id"]
-		if projectID == "" {
+		groupID := rs.Primary.Attributes["group_id"]
+		if groupID == "" {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
-		if _, _, err := acc.ConnV2().MaintenanceWindowsApi.GetMaintenanceWindow(context.Background(), projectID).Execute(); err == nil {
+		if _, _, err := acc.ConnV2().MaintenanceWindowsApi.GetMaintenanceWindow(context.Background(), groupID).Execute(); err == nil {
 			return nil
 		}
-		return fmt.Errorf("maintenance window for project(%s) does not exist", projectID)
+		return fmt.Errorf("maintenance window for project(%s) does not exist", groupID)
 	}
 }
 
@@ -87,17 +98,17 @@ func checkDestroy(s *terraform.State) error {
 		if rs.Type != "mongodbatlas_maintenance_window_api" {
 			continue
 		}
-		projectID := rs.Primary.Attributes["project_id"]
-		if projectID == "" {
+		groupID := rs.Primary.Attributes["group_id"]
+		if groupID == "" {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
-		maintenanceWindow, _, err := acc.ConnV2().MaintenanceWindowsApi.GetMaintenanceWindow(context.Background(), projectID).Execute()
+		maintenanceWindow, _, err := acc.ConnV2().MaintenanceWindowsApi.GetMaintenanceWindow(context.Background(), groupID).Execute()
 		if err != nil {
-			return fmt.Errorf("maintenance window for project (%s) still exists", projectID)
+			return fmt.Errorf("maintenance window for project (%s) still exists", groupID)
 		}
 		// Check if it's back to default settings (day_of_week = 0 means it's been reset)
 		if maintenanceWindow.GetDayOfWeek() != 0 {
-			return fmt.Errorf("maintenance window for project (%s) was not properly reset to defaults", projectID)
+			return fmt.Errorf("maintenance window for project (%s) was not properly reset to defaults", groupID)
 		}
 	}
 	return nil
@@ -109,10 +120,10 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		projectID := rs.Primary.Attributes["project_id"]
-		if projectID == "" {
+		groupID := rs.Primary.Attributes["group_id"]
+		if groupID == "" {
 			return "", fmt.Errorf("import, attributes not found for: %s", resourceName)
 		}
-		return projectID, nil
+		return groupID, nil
 	}
 }

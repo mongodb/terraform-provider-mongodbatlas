@@ -21,13 +21,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Required:            true,
 				MarkdownDescription: "One-based integer that represents the day of the week that the maintenance window starts.\n\n- `1`: Sunday.\n- `2`: Monday.\n- `3`: Tuesday.\n- `4`: Wednesday.\n- `5`: Thursday.\n- `6`: Friday.\n- `7`: Saturday.",
 			},
-			"project_id": schema.StringAttribute{
+			"group_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
 			},
 			"hour_of_day": schema.Int64Attribute{
-				Computed:            true,
-				Optional:            true,
+				Required:            true,
 				MarkdownDescription: "Zero-based integer that represents the hour of the of the day that the maintenance window starts according to a 24-hour clock. Use `0` for midnight and `12` for noon.",
 			},
 			"number_of_deferrals": schema.Int64Attribute{
@@ -35,17 +34,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Number of times the current maintenance event for this project has been deferred.",
 			},
 			"protected_hours": schema.SingleNestedAttribute{
-				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Defines the a window where maintenance will not begin within.",
 				Attributes: map[string]schema.Attribute{
 					"end_hour_of_day": schema.Int64Attribute{
-						Computed:            true,
 						Optional:            true,
 						MarkdownDescription: "Zero-based integer that represents the end hour of the of the day that the maintenance will not begin in.",
 					},
 					"start_hour_of_day": schema.Int64Attribute{
-						Computed:            true,
 						Optional:            true,
 						MarkdownDescription: "Zero-based integer that represents the beginning hour of the of the day that the maintenance will not begin in.",
 					},
@@ -64,7 +60,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	ProjectId            types.String `tfsdk:"project_id" autogen:"omitjson"`
+	GroupId              types.String `tfsdk:"group_id" autogen:"omitjson"`
 	ProtectedHours       types.Object `tfsdk:"protected_hours"`
 	TimeZoneId           types.String `tfsdk:"time_zone_id" autogen:"omitjson"`
 	DayOfWeek            types.Int64  `tfsdk:"day_of_week"`
