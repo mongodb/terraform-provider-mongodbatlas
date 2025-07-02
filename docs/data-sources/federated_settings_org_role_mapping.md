@@ -38,7 +38,8 @@ data "mongodbatlas_federated_settings_org_role_mapping" "role_mapping" {
 ## Argument Reference
 
 * `federation_settings_id` - (Required) Unique 24-hexadecimal digit string that identifies the federated authentication configuration.
-* `org_id` - Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
+* `org_id` - (Required) Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
+* `role_mapping_id` - (Required) Unique 24-hexadecimal digit string that identifies this role mapping.
 
 ## Attributes Reference
 

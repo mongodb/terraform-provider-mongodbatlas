@@ -26,7 +26,7 @@ data "mongodbatlas_federated_settings_org_role_mappings" "role_mappings" {
 ## Argument Reference
 
 * `federation_settings_id` - (Required) Unique 24-hexadecimal digit string that identifies the federated authentication configuration.
-* `org_id` - Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
+* `org_id` - (Required) Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
 * `page_num` - (Optional)  	The page to return. Defaults to `1`.
 * `items_per_page` - (Optional) Number of items to return per page, up to a maximum of 500. Defaults to `100`.
 
