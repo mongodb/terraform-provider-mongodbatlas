@@ -103,7 +103,12 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 	digestTransport := digest.NewTransportWithHTTPRoundTripper(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey), networkLoggingTransport)
 	// Don't change logging.NewTransport to NewSubsystemLoggingHTTPTransport until all resources are in TPF.
 	tfLoggingTransport := logging.NewTransport("Atlas", digestTransport)
-	client := &http.Client{Transport: tfLoggingTransport}
+	// Add tf-src header to User-Agent, see wrapper_provider_server.go
+	// Must be before tfLoggingTransport otherwise the "final" userAgent will not be logged
+	userAgentTransport := TFSrcUserAgentAdder{
+		Transport: tfLoggingTransport,
+	}
+	client := &http.Client{Transport: &userAgentTransport}
 
 	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
 	if c.BaseURL != "" {
