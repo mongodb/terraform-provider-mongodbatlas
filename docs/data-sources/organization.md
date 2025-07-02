@@ -23,6 +23,7 @@ In addition to all arguments above, the following attributes are exported:
 * `name` - Human-readable label that identifies the organization.
 * `id` - Unique 24-hexadecimal digit string that identifies the organization.
 * `is_deleted` - Flag that indicates whether this organization has been deleted.
+* `users`- Returns list of all pending and active MongoDB Cloud users associated with the specified organization.
 * `api_access_list_required` - (Optional) Flag that indicates whether to require API operations to originate from an IP Address added to the API access list for the specified organization.
 * `multi_factor_auth_required` - (Optional) Flag that indicates whether to require users to set up Multi-Factor Authentication (MFA) before accessing the specified organization. To learn more, see: https://www.mongodb.com/docs/atlas/security-multi-factor-authentication/.
 * `restrict_employee_access` - (Optional) Flag that indicates whether to block MongoDB Support from accessing Atlas infrastructure for any deployment in the specified organization without explicit permission. Once this setting is turned on, you can grant MongoDB Support a 24-hour bypass access to the Atlas deployment to resolve support issues. To learn more, see: https://www.mongodb.com/docs/atlas/security-restrict-support-access/.
@@ -30,6 +31,22 @@ In addition to all arguments above, the following attributes are exported:
 * `security_contact` - (Optional) String that specifies a single email address for the specified organization to receive security-related notifications. Specifying a security contact does not grant them authorization or access to Atlas for security decisions or approvals.
 * `skip_default_alerts_settings` - (Optional) Flag that indicates whether to prevent Atlas from automatically creating organization-level alerts not explicitly managed through Terraform. Defaults to `true`.
 
+
+### Users
+* `id` - Unique 24-hexadecimal digit string that identifies the MongoDB Cloud user.
+* `orgMembershipStatus` - String enum that indicates whether the MongoDB Cloud user has a pending invitation to join the organization or they are already active in the organization.
+* `roles` - Organization- and project-level roles assigned to one MongoDB Cloud user within one organization.
+* `teamIds` - List of unique 24-hexadecimal digit strings that identifies the teams to which this MongoDB Cloud user belongs.
+* `username` - Email address that represents the username of the MongoDB Cloud user.
+* `country` - Two-character alphabetical string that identifies the MongoDB Cloud user's geographic location. This parameter uses the ISO 3166-1a2 code format.
+* `invitationCreatedAt` - Date and time when MongoDB Cloud sent the invitation. MongoDB Cloud represents this timestamp in ISO 8601 format in UTC.
+* `invitationExpiresAt` - Date and time when the invitation from MongoDB Cloud expires. MongoDB Cloud represents this timestamp in ISO 8601 format in UTC.
+* `inviterUsername` - Username of the MongoDB Cloud user who sent the invitation to join the organization.
+* `createdAt` - Date and time when MongoDB Cloud created the current account. This value is in the ISO 8601 timestamp format in UTC.
+* `firstName` - First or given name that belongs to the MongoDB Cloud user.
+* `lastAuth` - Date and time when the current account last authenticated. This value is in the ISO 8601 timestamp format in UTC.
+* `lastName` - Last name, family name, or surname that belongs to the MongoDB Cloud user.
+* `mobileNumber` - Mobile phone number that belongs to the MongoDB Cloud user.
 
 ~> **NOTE:** - If you create an organization with our Terraform provider version >=1.30.0, this field is set to `true` by default.<br> - If you have an existing organization created with our Terraform provider version <1.30.0, this field might be `false`, which is the [API default value](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Organizations/operation/createOrganization). To prevent the creation of future default alerts, set this explicitly to `true` using the [`mongodbatlas_organization`](../resources/organization.md) resource.
 
