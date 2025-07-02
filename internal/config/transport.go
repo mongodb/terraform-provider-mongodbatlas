@@ -1,11 +1,36 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
 	"time"
 )
+
+type ContextKey string
+
+const (
+	ContextKeyTFSrc = ContextKey("tf-src")
+	UserAgentHeader = "User-Agent"
+)
+
+type TFSrcUserAgentAdder struct {
+	Transport http.RoundTripper
+}
+
+func (t *TFSrcUserAgentAdder) RoundTrip(req *http.Request) (*http.Response, error) {
+	ctx := req.Context()
+	tfSrcName := ctx.Value(ContextKeyTFSrc)
+	if tfSrcName != nil {
+		userAgent := req.Header.Get(UserAgentHeader)
+		tfSrcValue := tfSrcName.(string)
+		newVar := fmt.Sprintf("%s %s/%s", userAgent, ContextKeyTFSrc, tfSrcValue)
+		req.Header.Set(UserAgentHeader, newVar)
+	}
+	resp, err := t.Transport.RoundTrip(req)
+	return resp, err
+}
 
 // NetworkLoggingTransport wraps an http.RoundTripper to provide enhanced logging
 // for network operations, including timing, status codes, and error details.
