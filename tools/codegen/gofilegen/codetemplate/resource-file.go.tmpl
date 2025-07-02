@@ -144,6 +144,9 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		Client: r.Client,
 		State: &state,
 		CallParams: &callParams,
+		{{- if ne .APIOperations.Delete.FixedRequestBody "" }}
+		FixedRequestBody: `{{ .APIOperations.Delete.FixedRequestBody }}`,
+		{{ end }}
 		{{with .APIOperations.Delete.Wait -}}
 		Wait: &autogen.WaitReq{
 			StateProperty: "{{ .StateProperty }}",

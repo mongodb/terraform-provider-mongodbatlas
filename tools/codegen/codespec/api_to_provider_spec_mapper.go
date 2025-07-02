@@ -113,9 +113,10 @@ func getOperationsFromConfig(resourceConfig *config.Resource) APIOperations {
 
 func operationConfigToModel(opConfig *config.APIOperation) APIOperation {
 	return APIOperation{
-		HTTPMethod: opConfig.Method,
-		Path:       opConfig.Path,
-		Wait:       waitConfigToModel(opConfig.Wait),
+		HTTPMethod:       opConfig.Method,
+		Path:             opConfig.Path,
+		Wait:             waitConfigToModel(opConfig.Wait),
+		FixedRequestBody: opConfig.FixedRequestBody,
 	}
 }
 

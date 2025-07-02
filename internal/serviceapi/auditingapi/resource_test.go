@@ -23,7 +23,11 @@ func TestAccAuditingAPI_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, true, "{\"atype\": [\"authenticate\"]}"),
+				Config: configBasic(projectID, true, false, `{"atype": ["authenticate"]}`),
+				Check:  checkExists(resourceName),
+			},
+			{
+				Config: configBasic(projectID, true, true, `{"atype": ["authenticate"]}`),
 				Check:  checkExists(resourceName),
 			},
 			{
@@ -37,14 +41,19 @@ func TestAccAuditingAPI_basic(t *testing.T) {
 	})
 }
 
-func configBasic(projectID string, enabled bool, auditFilter string) string {
+func configBasic(projectID string, enabled, auditSuccess bool, auditFilter string) string {
+	auditSuccessField := ""
+	if auditSuccess {
+		auditSuccessField = "audit_authorization_success = true"
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_auditing_api" "test" {
-			group_id     = %q
-			enabled      = %t
-			audit_filter = %q
+			group_id     = %[1]q
+			enabled      = %[2]t
+			audit_filter = %[3]q
+			%[4]s
 		}
-	`, projectID, enabled, auditFilter)
+	`, projectID, enabled, auditFilter, auditSuccessField)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
