@@ -1,3 +1,11 @@
 ```release-note:new-resource
 resource/mongodbatlas_api_key_project_assignment
 ```
+
+```release-note:new-datasource
+data-source/mongodbatlas_api_key_project_assignment
+```
+
+```release-note:new-datasource
+data-source/mongodbatlas_api_key_project_assignments
+```

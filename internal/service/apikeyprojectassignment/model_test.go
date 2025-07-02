@@ -38,7 +38,7 @@ func TestApiKeyProjectAssignmentSDKToTFModel(t *testing.T) {
 			expectedTFModel: &apikeyprojectassignment.TFModel{
 				ApiKeyId:  types.StringValue("TargetAPIKeyID"),
 				ProjectId: types.StringValue("TargetProjectID"),
-				RoleNames: types.SetValueMust(types.StringType, []attr.Value{
+				Roles: types.SetValueMust(types.StringType, []attr.Value{
 					types.StringValue("MY_ROLE"),
 					types.StringValue("MY_ROLE_2"),
 				}),
@@ -65,7 +65,7 @@ func TestApiKeyProjectAssignmentSDKToTFModel(t *testing.T) {
 			expectedTFModel: &apikeyprojectassignment.TFModel{
 				ApiKeyId:  types.StringValue("TargetAPIKeyID"),
 				ProjectId: types.StringValue("TargetProjectID"),
-				RoleNames: types.SetNull(nil),
+				Roles:     types.SetNull(nil),
 			},
 		},
 		"Complete SDK response - Wrong project": {
@@ -89,7 +89,7 @@ func TestApiKeyProjectAssignmentSDKToTFModel(t *testing.T) {
 			expectedTFModel: &apikeyprojectassignment.TFModel{
 				ApiKeyId:  types.StringValue("TargetAPIKeyID"),
 				ProjectId: types.StringValue("TargetProjectID"),
-				RoleNames: types.SetValueMust(types.StringType, []attr.Value{}),
+				Roles:     types.SetValueMust(types.StringType, []attr.Value{}),
 			},
 		},
 	}
@@ -116,7 +116,7 @@ func TestApiKeyProjectAssignmentTFModelToSDKPatch(t *testing.T) {
 			tfModel: &apikeyprojectassignment.TFModel{
 				ApiKeyId:  types.StringValue("TargetAPIKeyID"),
 				ProjectId: types.StringValue("TargetProject"),
-				RoleNames: types.SetValueMust(types.StringType, []attr.Value{
+				Roles: types.SetValueMust(types.StringType, []attr.Value{
 					types.StringValue("MY_ROLE"),
 					types.StringValue("MY_ROLE_2"),
 				}),
@@ -153,7 +153,7 @@ func TestApiKeyProjectAssignmentTFModelToSDKCreate(t *testing.T) {
 			tfModel: &apikeyprojectassignment.TFModel{
 				ApiKeyId:  types.StringValue("TargetAPIKeyID"),
 				ProjectId: types.StringValue("TargetProject"),
-				RoleNames: types.SetValueMust(types.StringType, []attr.Value{
+				Roles: types.SetValueMust(types.StringType, []attr.Value{
 					types.StringValue("MY_ROLE"),
 					types.StringValue("MY_ROLE_2"),
 				}),

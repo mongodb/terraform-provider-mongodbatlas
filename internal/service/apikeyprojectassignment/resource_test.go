@@ -8,21 +8,23 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 const (
-	resourceName    = "mongodbatlas_api_key_project_assignment.test1"
+	resourceName    = "mongodbatlas_api_key_project_assignment.test"
+	pluralDSName    = "data.mongodbatlas_api_key_project_assignments.plural"
+	singularDSName  = "data.mongodbatlas_api_key_project_assignment.singular"
 	roleName        = "GROUP_OWNER"
 	roleNameUpdated = "GROUP_READ_ONLY"
 )
 
 func TestAccApiKeyProjectAssignmentRS_basic(t *testing.T) {
 	var (
-		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName1 = acc.RandomProjectName()
-		projectName2 = acc.RandomProjectName()
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 
@@ -31,15 +33,15 @@ func TestAccApiKeyProjectAssignmentRS_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: apiKeyProjectAssignmentConfig(orgID, roleName, projectName1, projectName2),
-				Check:  apiKeyProjectAssignmentAttributeChecks(projectName1, roleName),
+				Config: apiKeyProjectAssignmentConfig(orgID, roleName, projectName),
+				Check:  apiKeyProjectAssignmentAttributeChecks(roleName),
 			},
 			{
-				Config: apiKeyProjectAssignmentConfig(orgID, roleNameUpdated, projectName1, projectName2),
-				Check:  apiKeyProjectAssignmentAttributeChecks(projectName1, roleNameUpdated),
+				Config: apiKeyProjectAssignmentConfig(orgID, roleNameUpdated, projectName),
+				Check:  apiKeyProjectAssignmentAttributeChecks(roleNameUpdated),
 			},
 			{
-				Config:                               apiKeyProjectAssignmentConfig(orgID, roleNameUpdated, projectName1, projectName2),
+				Config:                               apiKeyProjectAssignmentConfig(orgID, roleNameUpdated, projectName),
 				ResourceName:                         resourceName,
 				ImportStateIdFunc:                    importStateIDFunc(resourceName, "project_id", "api_key_id"),
 				ImportState:                          true,
@@ -60,48 +62,47 @@ func importStateIDFunc(resourceName, attrNameProjectID, attrNameAPIKeyID string)
 	}
 }
 
-func apiKeyProjectAssignmentAttributeChecks(projectID, roleName string) resource.TestCheckFunc {
+func apiKeyProjectAssignmentAttributeChecks(roleName string) resource.TestCheckFunc {
 	attrsMap := map[string]string{
-		"role_names.0": roleName,
+		"roles.#": "1",
+		"roles.0": roleName,
 	}
 	attrsSet := []string{"project_id", "api_key_id"}
 	checks := []resource.TestCheckFunc{
 		checkExists(resourceName),
 	}
-	return acc.CheckRSAndDS(resourceName, nil, nil, attrsSet, attrsMap, checks...)
+	return acc.CheckRSAndDS(resourceName, conversion.Pointer(singularDSName), conversion.Pointer(pluralDSName), attrsSet, attrsMap, checks...)
 }
 
-func apiKeyProjectAssignmentConfig(orgID, roleName, projectName1, projectName2 string) string {
+func apiKeyProjectAssignmentConfig(orgID, roleName, projectName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_api_key" "test" {
 			org_id     = %[1]q
 			description  = "Test API Key"
-
 			role_names = ["ORG_READ_ONLY"]
 		}
 
-		resource "mongodbatlas_project" "test1" {
+		resource "mongodbatlas_project" "test" {
 			name   = %[3]q
 			org_id = %[1]q
         }
 
-		resource "mongodbatlas_project" "test2" {
-			name   = %[4]q
-			org_id = %[1]q
-        }
+		resource "mongodbatlas_api_key_project_assignment" "test" {
+			project_id = mongodbatlas_project.test.id
+			api_key_id = mongodbatlas_api_key.test.api_key_id
+			roles      = [%[2]q]
+		}
 
-		resource "mongodbatlas_api_key_project_assignment" "test1" {
-			project_id  = mongodbatlas_project.test1.id
-			api_key_id = mongodbatlas_api_key.test.api_key_id
-			role_names  = [%[2]q]
+		data "mongodbatlas_api_key_project_assignments" "plural" {
+			project_id = mongodbatlas_project.test.id
 		}
-		
-		resource "mongodbatlas_api_key_project_assignment" "test2" {
-			project_id = mongodbatlas_project.test2.id
+
+		data "mongodbatlas_api_key_project_assignment" "singular" {
+			project_id = mongodbatlas_project.test.id
 			api_key_id = mongodbatlas_api_key.test.api_key_id
-			role_names  = ["GROUP_OWNER"]
+			depends_on = [mongodbatlas_api_key_project_assignment.test]
 		}
-	`, orgID, roleName, projectName1, projectName2)
+	`, orgID, roleName, projectName)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {

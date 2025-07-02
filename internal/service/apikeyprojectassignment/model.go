@@ -17,13 +17,18 @@ func NewTFModel(ctx context.Context, apiResp *admin.PaginatedApiApiUser, apiKeyI
 		if apiKey.GetId() != apiKeyID {
 			continue
 		}
-
 		return apiKeyUserDetailsToTFModel(ctx, &apiKey, projectID)
+	}
+
+	emptyRoleNames, diags := types.SetValueFrom(ctx, types.StringType, []string{})
+	if diags.HasError() {
+		return nil, diags
 	}
 
 	return &TFModel{
 		ProjectId: types.StringValue(projectID),
 		ApiKeyId:  types.StringValue(apiKeyID),
+		Roles:     emptyRoleNames,
 	}, nil
 }
 
@@ -46,14 +51,14 @@ func apiKeyUserDetailsToTFModel(ctx context.Context, apiKey *admin.ApiKeyUserDet
 	}
 
 	return &TFModel{
-		RoleNames: roleNames,
+		Roles:     roleNames,
 		ApiKeyId:  types.StringValue(apiKey.GetId()),
 		ProjectId: types.StringValue(projectID),
 	}, diags
 }
 
 func NewAtlasCreateReq(ctx context.Context, plan *TFModel) (*[]admin.UserAccessRoleAssignment, diag.Diagnostics) {
-	roleNames := conversion.TypesSetToString(ctx, plan.RoleNames)
+	roleNames := conversion.TypesSetToString(ctx, plan.Roles)
 	return &[]admin.UserAccessRoleAssignment{
 		{
 			Roles:  &roleNames,
@@ -63,8 +68,24 @@ func NewAtlasCreateReq(ctx context.Context, plan *TFModel) (*[]admin.UserAccessR
 }
 
 func NewAtlasUpdateReq(ctx context.Context, plan *TFModel) (*admin.UpdateAtlasProjectApiKey, diag.Diagnostics) {
-	roleNames := conversion.TypesSetToString(ctx, plan.RoleNames)
+	roleNames := conversion.TypesSetToString(ctx, plan.Roles)
 	return &admin.UpdateAtlasProjectApiKey{
 		Roles: &roleNames,
+	}, nil
+}
+
+func NewTFModelDSP(ctx context.Context, projectID string, apiKeys []admin.ApiKeyUserDetails) (*TFModelDSP, diag.Diagnostics) {
+	results := make([]TFModel, 0, len(apiKeys))
+	for _, apiKey := range apiKeys {
+		model, diags := apiKeyUserDetailsToTFModel(ctx, &apiKey, projectID)
+		if diags.HasError() {
+			return nil, diags
+		}
+		results = append(results, *model)
+	}
+
+	return &TFModelDSP{
+		ProjectId: types.StringValue(projectID),
+		Results:   results,
 	}, nil
 }
