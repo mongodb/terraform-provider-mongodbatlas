@@ -95,6 +95,7 @@ func apiKeyProjectAssignmentConfig(orgID, roleName, projectName string) string {
 
 		data "mongodbatlas_api_key_project_assignments" "plural" {
 			project_id = mongodbatlas_project.test.id
+			depends_on = [mongodbatlas_api_key_project_assignment.test]
 		}
 
 		data "mongodbatlas_api_key_project_assignment" "singular" {
