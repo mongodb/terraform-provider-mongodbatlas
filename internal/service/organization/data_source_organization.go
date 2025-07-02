@@ -3,12 +3,109 @@ package organization
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"go.mongodb.org/atlas-sdk/v20250312004/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+)
+
+var (
+	DSOrgUsersSchema = schema.Schema{
+		Type:     schema.TypeSet,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"org_membership_status": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"roles": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"org_roles": {
+								Type:     schema.TypeList,
+								Computed: true,
+								Elem:     &schema.Schema{Type: schema.TypeString},
+							},
+							"project_roles": {
+								Type:     schema.TypeList,
+								Computed: true,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"group_id": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+										"group_roles": {
+											Type:     schema.TypeList,
+											Computed: true,
+											Elem:     &schema.Schema{Type: schema.TypeString},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				"team_ids": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem:     &schema.Schema{Type: schema.TypeString},
+				},
+				"username": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"invitation_created_at": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"invitation_expires_at": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"inviter_username": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"country": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"created_at": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"first_name": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"last_auth": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"last_name": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"mobile_number": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
 )
 
 func DataSource() *schema.Resource {
@@ -43,6 +140,7 @@ func DataSource() *schema.Resource {
 					},
 				},
 			},
+			"users": &DSOrgUsersSchema,
 			"api_access_list_required": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -97,6 +195,14 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf("error setting `is_deleted`: %s", err))
 	}
 
+	users, err := ListAllOrganizationUsers(ctx, orgID, conn)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error getting organization users: %s", err))
+	}
+	if err := d.Set("users", conversion.FlattenUsers(users)); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `users`: %s", err))
+	}
+
 	settings, _, err := conn.OrganizationsApi.GetOrganizationSettings(ctx, orgID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting organization settings: %s", err))
@@ -120,4 +226,12 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	d.SetId(organization.GetId())
 
 	return nil
+}
+
+func ListAllOrganizationUsers(ctx context.Context, orgID string, conn *admin.APIClient) ([]admin.OrgUserResponse, error) {
+	return dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.OrgUserResponse], *http.Response, error) {
+		request := conn.MongoDBCloudUsersApi.ListOrganizationUsers(ctx, orgID)
+		request = request.PageNum(pageNum)
+		return request.Execute()
+	})
 }
