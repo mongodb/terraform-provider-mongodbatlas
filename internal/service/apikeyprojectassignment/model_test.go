@@ -65,7 +65,7 @@ func TestApiKeyProjectAssignmentSDKToTFModel(t *testing.T) {
 			expectedTFModel: &apikeyprojectassignment.TFModel{
 				ApiKeyId:  types.StringValue("TargetAPIKeyID"),
 				ProjectId: types.StringValue("TargetProjectID"),
-				Roles:     types.SetNull(nil),
+				Roles:     types.SetValueMust(types.StringType, []attr.Value{}),
 			},
 		},
 		"Complete SDK response - Wrong project": {
