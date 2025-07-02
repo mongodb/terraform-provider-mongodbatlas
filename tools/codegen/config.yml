@@ -1,4 +1,36 @@
 resources:
+  auditing_api:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/auditLog
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/auditLog
+      method: PATCH
+    update:
+      path: /api/atlas/v2/groups/{groupId}/auditLog
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/auditLog
+      method: PATCH
+    schema:
+      ignores: ["links"]
+      aliases:
+        group_id: project_id # path param name does not match the API request property
+      overrides:
+        # These attributes are optional but when not configured, Atlas returns a default value.
+        audit_authorization_success:
+          computability:
+            optional: true
+            computed: true
+        audit_filter:
+          computability:
+            optional: true
+            computed: true
+        enabled:
+          computability:
+            optional: true
+            computed: true
+
   cluster_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
@@ -229,6 +261,46 @@ resources:
           sensitive: true
         description:
           include_null_on_update: true
+
+  maintenance_window_api:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/maintenanceWindow
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/maintenanceWindow
+      method: PATCH
+    update:
+      path: /api/atlas/v2/groups/{groupId}/maintenanceWindow
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/maintenanceWindow
+      method: DELETE
+    schema:
+      ignores: ["links"]
+      aliases:
+        group_id: project_id # path param name does not match the API request property
+      overrides:
+        # These attributes are optional but when not configured, Atlas returns a default value.
+        hour_of_day:
+          computability:
+            optional: true
+            computed: true
+        auto_defer_once_enabled:
+          computability:
+            optional: true
+            computed: true
+        protected_hours:
+          computability:
+            optional: true
+            computed: true
+        protected_hours.start_hour_of_day:
+          computability:
+            optional: true
+            computed: true
+        protected_hours.end_hour_of_day:
+          computability:
+            optional: true
+            computed: true
 
   project_api:
     read:
