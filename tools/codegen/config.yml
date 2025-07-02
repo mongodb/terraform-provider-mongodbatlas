@@ -1,4 +1,6 @@
 resources:
+  # Singleton resource in project.
+  # Create, Delete and Update uses PATCH.
   auditing_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/auditLog
@@ -13,24 +15,6 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/auditLog
       method: PATCH
     version_header: application/vnd.atlas.2023-01-01+json
-    schema:
-      ignores: ["links"]
-      aliases:
-        group_id: project_id # path param name does not match the API request property
-      overrides:
-        # These attributes are optional but when not configured, Atlas returns a default value.
-        audit_authorization_success:
-          computability:
-            optional: true
-            computed: true
-        audit_filter:
-          computability:
-            optional: true
-            computed: true
-        enabled:
-          computability:
-            optional: true
-            computed: true
 
   cluster_api:
     read:

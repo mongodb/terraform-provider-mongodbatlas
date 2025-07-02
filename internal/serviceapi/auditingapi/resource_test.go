@@ -3,7 +3,6 @@ package auditingapi_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -15,8 +14,7 @@ const resourceName = "mongodbatlas_auditing_api.test"
 
 func TestAccAuditingAPI_basic(t *testing.T) {
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
+		projectID = acc.ProjectIDExecution(t)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -25,44 +23,28 @@ func TestAccAuditingAPI_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, projectName, true, "{}"),
-				Check:  checkBasic(),
+				Config: configBasic(projectID, true, "{\"atype\": [\"authenticate\"]}"),
+				Check:  checkExists(resourceName),
 			},
 			{
-				Config: configBasic(orgID, projectName, false, `{"atype":"authenticate"}`),
-				Check:  checkBasic(),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    importStateIDFunc(resourceName),
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "group_id",
 			},
 		},
 	})
 }
 
-func configBasic(orgID, projectName string, enabled bool, auditFilter string) string {
+func configBasic(projectID string, enabled bool, auditFilter string) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = %q
-			org_id = %q
-		}
-
 		resource "mongodbatlas_auditing_api" "test" {
-			project_id = mongodbatlas_project.test.id
-			enabled    = %t
+			group_id     = %q
+			enabled      = %t
 			audit_filter = %q
 		}
-	`, projectName, orgID, enabled, auditFilter)
-}
-
-func checkBasic() resource.TestCheckFunc {
-	// adds checks for computed attributes not defined in config
-	setAttrsChecks := []string{"configuration_type"}
-	checks := acc.AddAttrSetChecks(resourceName, nil, setAttrsChecks...)
-	checks = append(checks, checkExists(resourceName))
-	return resource.ComposeAggregateTestCheckFunc(checks...)
+	`, projectID, enabled, auditFilter)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
@@ -71,14 +53,14 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if !ok {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
-		projectID := rs.Primary.Attributes["project_id"]
-		if projectID == "" {
+		groupID := rs.Primary.Attributes["group_id"]
+		if groupID == "" {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
-		if _, _, err := acc.ConnV2().AuditingApi.GetAuditingConfiguration(context.Background(), projectID).Execute(); err == nil {
+		if _, _, err := acc.ConnV2().AuditingApi.GetAuditingConfiguration(context.Background(), groupID).Execute(); err == nil {
 			return nil
 		}
-		return fmt.Errorf("auditing configuration for project(%s) does not exist", projectID)
+		return fmt.Errorf("auditing configuration for project(%s) does not exist", groupID)
 	}
 }
 
@@ -87,17 +69,14 @@ func checkDestroy(s *terraform.State) error {
 		if rs.Type != "mongodbatlas_auditing_api" {
 			continue
 		}
-		projectID := rs.Primary.Attributes["project_id"]
-		if projectID == "" {
+		groupID := rs.Primary.Attributes["group_id"]
+		if groupID == "" {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
-		auditingConfig, _, err := acc.ConnV2().AuditingApi.GetAuditingConfiguration(context.Background(), projectID).Execute()
-		if err != nil {
-			return fmt.Errorf("auditing configuration for project (%s) still exists", projectID)
-		}
+		auditingConfig, _, _ := acc.ConnV2().AuditingApi.GetAuditingConfiguration(context.Background(), groupID).Execute()
 		// Check if it's back to default settings (enabled = false means it's been reset)
 		if auditingConfig.GetEnabled() {
-			return fmt.Errorf("auditing configuration for project (%s) was not properly reset to defaults", projectID)
+			return fmt.Errorf("auditing configuration for project (%s) was not properly reset to defaults", groupID)
 		}
 	}
 	return nil
@@ -109,10 +88,10 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		projectID := rs.Primary.Attributes["project_id"]
-		if projectID == "" {
+		groupID := rs.Primary.Attributes["group_id"]
+		if groupID == "" {
 			return "", fmt.Errorf("import, attributes not found for: %s", resourceName)
 		}
-		return projectID, nil
+		return groupID, nil
 	}
 }

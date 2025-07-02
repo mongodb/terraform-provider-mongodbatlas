@@ -40,11 +40,11 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 	pathParams := map[string]string{
-		"projectId": plan.ProjectId.ValueString(),
+		"groupId": plan.GroupId.ValueString(),
 	}
 	callParams := config.APICallParams{
 		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{projectId}/auditLog",
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/auditLog",
 		PathParams:    pathParams,
 		Method:        "PATCH",
 	}
@@ -82,11 +82,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 	// Path params are grabbed from state as they may be computed-only and not present in the plan
 	pathParams := map[string]string{
-		"projectId": state.ProjectId.ValueString(),
+		"groupId": state.GroupId.ValueString(),
 	}
 	callParams := config.APICallParams{
 		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{projectId}/auditLog",
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/auditLog",
 		PathParams:    pathParams,
 		Method:        "PATCH",
 	}
@@ -106,11 +106,11 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		return
 	}
 	pathParams := map[string]string{
-		"projectId": state.ProjectId.ValueString(),
+		"groupId": state.GroupId.ValueString(),
 	}
 	callParams := config.APICallParams{
 		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{projectId}/auditLog",
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/auditLog",
 		PathParams:    pathParams,
 		Method:        "PATCH",
 	}
@@ -124,17 +124,17 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	idAttributes := []string{"project_id"}
+	idAttributes := []string{"group_id"}
 	autogen.HandleImport(ctx, idAttributes, req, resp)
 }
 
 func readAPICallParams(state *TFModel) *config.APICallParams {
 	pathParams := map[string]string{
-		"projectId": state.ProjectId.ValueString(),
+		"groupId": state.GroupId.ValueString(),
 	}
 	return &config.APICallParams{
 		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{projectId}/auditLog",
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/auditLog",
 		PathParams:    pathParams,
 		Method:        "GET",
 	}
