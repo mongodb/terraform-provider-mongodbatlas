@@ -1,19 +1,23 @@
 ```release-note:bug
-data-source/mongodbatlas_cloud_backup_snapshots: Fix pagination when `items_per_page` and `page_num` are not set
+data-source/mongodbatlas_cloud_backup_snapshots: Fix pagination when `items_per_page` or `page_num` are not set
 ```
 
 ```release-note:bug
-data-source/mongodbatlas_cloud_backup_snapshot_export_buckets: Fix pagination when `items_per_page` and `page_num` are not set
+data-source/mongodbatlas_cloud_backup_snapshot_export_buckets: Fix pagination when `items_per_page` or `page_num` are not set
 ```
 
 ```release-note:bug
-data-source/mongodbatlas_cloud_backup_snapshot_restore_jobs: Fix pagination when `items_per_page` and `page_num` are not set
+data-source/mongodbatlas_cloud_backup_snapshot_restore_jobs: Fix pagination when `items_per_page` or `page_num` are not set
 ```
 
 ```release-note:bug
-data-source/mongodbatlas_federated_settings_org_configs: Fix pagination when `items_per_page` and `page_num` are not set
+data-source/mongodbatlas_federated_settings_org_configs: Fix pagination when `items_per_page` or `page_num` are not set
 ```
 
 ```release-note:bug
-data-source/mongodbatlas_organizations: Fix pagination when `items_per_page` and `page_num` are not set
+data-source/mongodbatlas_organizations: Fix pagination when `items_per_page` or `page_num` are not set
+```
+
+```release-note:bug
+data-source/mongodbatlas_cloud_backup_snapshot_export_jobs: Fix pagination when `items_per_page` or `page_num` are not set
 ```
