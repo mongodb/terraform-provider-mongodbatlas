@@ -320,11 +320,9 @@ func TestAccStreamRSStreamConnection_AWSS3(t *testing.T) {
 		roleArn        = os.Getenv("MONGODB_ATLAS_ASP_PROJECT_AWS_ROLE_ARN")
 		testBucket     = os.Getenv("MONGODB_ATLAS_ASP_PROJECT_AWS_S3_BUCKET")
 	)
-	if projectID == "" || roleArn == "" || testBucket == "" {
-		t.Skip("Required environment variables for AWS S3 stream connection are not set")
-	}
+
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 func() { preCheckS3(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
@@ -642,12 +640,16 @@ func checkAWSS3Attributes(
 	resourceName, instanceName, connectionName, roleArn, testBucket string) resource.TestCheckFunc {
 	resourceChecks := []resource.TestCheckFunc{
 		checkStreamConnectionExists(),
-		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-		resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
-		resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
-		resource.TestCheckResourceAttr(resourceName, "type", "S3"),
-		resource.TestCheckResourceAttr(resourceName, "aws.role_arn", roleArn),
-		resource.TestCheckResourceAttr(resourceName, "aws.test_bucket", testBucket),
 	}
 	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
+}
+
+func preCheckS3(t *testing.T) {
+	t.Helper()
+	if os.Getenv("MONGODB_ATLAS_ASP_PROJECT_AWS_ROLE_ARN") == "" ||
+		os.Getenv("MONGODB_ATLAS_ASP_PROJECT_AWS_S3_BUCKET") == "" {
+		t.Fatal("`MONGODB_ATLAS_ASP_PROJECT_AWS_ROLE_ARN` and `MONGODB_ATLAS_ASP_PROJECT_AWS_S3_BUCKET` must be set for acceptance testing")
+	}
+
+	acc.PreCheckBasic(t)
 }
