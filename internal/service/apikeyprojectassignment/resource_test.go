@@ -4,13 +4,11 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -30,6 +28,7 @@ func TestAccApiKeyProjectAssignmentRS_basic(t *testing.T) {
 
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: apiKeyProjectAssignmentConfig(orgID, roleName, projectName1, projectName2),
@@ -42,7 +41,7 @@ func TestAccApiKeyProjectAssignmentRS_basic(t *testing.T) {
 			{
 				Config:                               apiKeyProjectAssignmentConfig(orgID, roleNameUpdated, projectName1, projectName2),
 				ResourceName:                         resourceName,
-				ImportStateIdFunc:                    checkAPIKeyProjectAssignmentImportStateIDFunc(resourceName, "project_id", "api_key_id"),
+				ImportStateIdFunc:                    importStateIDFunc(resourceName, "project_id", "api_key_id"),
 				ImportState:                          true,
 				ImportStateVerify:                    true,
 				ImportStateVerifyIdentifierAttribute: "project_id",
@@ -51,37 +50,25 @@ func TestAccApiKeyProjectAssignmentRS_basic(t *testing.T) {
 	})
 }
 
-func checkAPIKeyProjectAssignmentImportStateIDFunc(resourceName, attrNameProjectID, attrNameAPIKeyID string) resource.ImportStateIdFunc {
+func importStateIDFunc(resourceName, attrNameProjectID, attrNameAPIKeyID string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		return IDWithProjectIDApiKeyID(rs.Primary.Attributes[attrNameProjectID], rs.Primary.Attributes[attrNameAPIKeyID])
+		return fmt.Sprintf("%s-%s", rs.Primary.Attributes[attrNameProjectID], rs.Primary.Attributes[attrNameAPIKeyID]), nil
 	}
 }
 
-func IDWithProjectIDApiKeyID(projectID, apiKeyID string) (string, error) {
-	if err := conversion.ValidateProjectID(projectID); err != nil {
-		return "", err
-	}
-	return projectID + "-" + apiKeyID, nil
-}
-
-func apiKeyProjectAssignmentAttributeChecks(projectNameOrID, roleNames string) resource.TestCheckFunc {
-	roles := getRoleNames(roleNames)
+func apiKeyProjectAssignmentAttributeChecks(projectID, roleName string) resource.TestCheckFunc {
 	attrsMap := map[string]string{
-		"role_names.#": strconv.Itoa(len(roles)),
+		"role_names.0": roleName,
 	}
+	attrsSet := []string{"project_id", "api_key_id"}
 	checks := []resource.TestCheckFunc{
 		checkExists(resourceName),
-		resource.TestCheckResourceAttrWith(resourceName, "project_id", acc.IsProjectNameOrID(projectNameOrID)),
 	}
-	for _, role := range roles {
-		checks = append(checks,
-			resource.TestCheckTypeSetElemAttr(resourceName, "role_names.*", role))
-	}
-	return acc.CheckRSAndDS(resourceName, nil, nil, []string{}, attrsMap, checks...)
+	return acc.CheckRSAndDS(resourceName, nil, nil, attrsSet, attrsMap, checks...)
 }
 
 func apiKeyProjectAssignmentConfig(orgID, roleName, projectName1, projectName2 string) string {
@@ -106,25 +93,15 @@ func apiKeyProjectAssignmentConfig(orgID, roleName, projectName1, projectName2 s
 		resource "mongodbatlas_api_key_project_assignment" "test1" {
 			project_id  = mongodbatlas_project.test1.id
 			api_key_id = mongodbatlas_api_key.test.api_key_id
-
 			role_names  = [%[2]q]
 		}
 		
 		resource "mongodbatlas_api_key_project_assignment" "test2" {
 			project_id = mongodbatlas_project.test2.id
 			api_key_id = mongodbatlas_api_key.test.api_key_id
-
 			role_names  = ["GROUP_OWNER"]
 		}
 	`, orgID, roleName, projectName1, projectName2)
-}
-
-func getRoleNames(roleNames string) []string {
-	var ret []string
-	for _, role := range strings.Split(roleNames, ",") {
-		ret = append(ret, strings.TrimSpace(role))
-	}
-	return ret
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
@@ -136,12 +113,40 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		ids := conversion.DecodeStateID(rs.Primary.ID)
-		apiKeyID := ids["api_key_id"]
-		orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-		if found, _, _ := acc.ConnV2().ProgrammaticAPIKeysApi.GetApiKey(context.Background(), orgID, apiKeyID).Execute(); found == nil {
-			return fmt.Errorf("API Key (%s) does not exist", apiKeyID)
+		projectID := rs.Primary.Attributes["project_id"]
+		apiKeyID := rs.Primary.Attributes["api_key_id"]
+		apiKeys, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.ListProjectApiKeys(context.Background(), projectID).Execute()
+		if err != nil {
+			return fmt.Errorf("error fetching API Keys: %w", err)
 		}
-		return nil
+		for _, apiKey := range apiKeys.GetResults() {
+			if apiKey.GetId() == apiKeyID {
+				return nil
+			}
+		}
+		return fmt.Errorf("API Key (%s) does not exist in project (%s)", apiKeyID, projectID)
 	}
+}
+
+func checkDestroy(s *terraform.State) error {
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "mongodbatlas_api_key_project_assignment" {
+			continue
+		}
+		projectID := rs.Primary.Attributes["project_id"]
+		apiKeyID := rs.Primary.Attributes["api_key_id"]
+		apiKeys, apiResp, err := acc.ConnV2().ProgrammaticAPIKeysApi.ListProjectApiKeys(context.Background(), projectID).Execute()
+		if err != nil {
+			if validate.StatusNotFound(apiResp) {
+				return nil
+			}
+			return fmt.Errorf("error fetching Project API Keys: %w", err)
+		}
+		for _, apiKey := range apiKeys.GetResults() {
+			if apiKey.GetId() == apiKeyID {
+				return fmt.Errorf("Project API Key (%s) still exists in project (%s)", apiKeyID, projectID)
+			}
+		}
+	}
+	return nil
 }

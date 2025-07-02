@@ -49,14 +49,28 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
+	projectID := tfModel.ProjectId.ValueString()
+	apiKeyID := tfModel.ApiKeyId.ValueString()
 	connV2 := r.Client.AtlasV2
-	_, err := connV2.ProgrammaticAPIKeysApi.AddProjectApiKey(ctx, tfModel.ProjectId.ValueString(), tfModel.ApiKeyId.ValueString(), assignmentReq).Execute()
+	_, err := connV2.ProgrammaticAPIKeysApi.AddProjectApiKey(ctx, projectID, apiKeyID, assignmentReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error creating resource", err.Error())
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, tfModel)...)
+	apiKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListProjectApiKeys(ctx, projectID).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError("error fetching resource", err.Error())
+		return
+	}
+
+	newAPIKeyProjectAssignmentModel, diags := NewTFModel(ctx, apiKeys, apiKeyID, projectID)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, newAPIKeyProjectAssignmentModel)...)
 }
 
 func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
