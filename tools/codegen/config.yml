@@ -12,6 +12,7 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/auditLog
       method: PATCH
+    version_header: application/vnd.atlas.2023-01-01+json
     schema:
       ignores: ["links"]
       aliases:
@@ -73,6 +74,7 @@ resources:
             "DELETING",
           ]
         target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
+    version_header: application/vnd.atlas.2024-08-05+json
     schema:
       ignores: ["links", "mongo_dbemployee_access_grant.links"]
       aliases:
@@ -277,6 +279,7 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/maintenanceWindow
       method: DELETE
+    version_header: application/vnd.atlas.2023-01-01+json
     schema:
       overrides:
         hour_of_day: # hour_of_day should be Required in API spec, getting this error if not set: ATLAS_INVALID_MAINTENANCE_WINDOW_HOUR_OF_DAY.
@@ -300,6 +303,7 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}
       method: DELETE
+    version_header: application/vnd.atlas.2023-01-01+json
     schema:
       ignores: ["links"]
       aliases:
@@ -347,6 +351,7 @@ resources:
     delete:
       path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{resourcePolicyId}
       method: DELETE
+    version_header: application/vnd.atlas.2024-08-05+json
     schema:
       aliases:
         resource_policy_id: id # path param name does not match the API response property
@@ -394,6 +399,7 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}
       method: DELETE
+    version_header: application/vnd.atlas.2023-02-01+json
     schema:
       # region and cloud_provider are incorrectly declared in PATCH as root attributes, _id can't be used in Terraform schema
       ignores:
