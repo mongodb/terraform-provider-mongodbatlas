@@ -8,8 +8,148 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
+
+func UsersProjectSchema() schema.SetNestedAttribute {
+	return schema.SetNestedAttribute{
+		Computed: true,
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"id": schema.StringAttribute{
+					Computed: true,
+				},
+				"org_membership_status": schema.StringAttribute{
+					Computed: true,
+				},
+				"roles": schema.ListAttribute{
+					Computed:    true,
+					ElementType: types.StringType,
+				},
+				"username": schema.StringAttribute{
+					Computed: true,
+				},
+				"invitation_created_at": schema.StringAttribute{
+					Computed: true,
+				},
+				"invitation_expires_at": schema.StringAttribute{
+					Computed: true,
+				},
+				"inviter_username": schema.StringAttribute{
+					Computed: true,
+				},
+				"country": schema.StringAttribute{
+					Computed: true,
+				},
+				"created_at": schema.StringAttribute{
+					Computed: true,
+				},
+				"first_name": schema.StringAttribute{
+					Computed: true,
+				},
+				"last_auth": schema.StringAttribute{
+					Computed: true,
+				},
+				"last_name": schema.StringAttribute{
+					Computed: true,
+				},
+				"mobile_number": schema.StringAttribute{
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+func dataSourceOverridenFields() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"name": schema.StringAttribute{
+			Optional: true,
+			Validators: []validator.String{
+				stringvalidator.ConflictsWith(path.MatchRoot("project_id")),
+			},
+		},
+		"project_id": schema.StringAttribute{
+			Optional: true,
+			Validators: []validator.String{
+				stringvalidator.ConflictsWith(path.MatchRoot("name")),
+			},
+		},
+		"users": UsersProjectSchema(),
+		"teams": schema.ListNestedAttribute{
+			Computed: true,
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					"team_id": schema.StringAttribute{
+						Computed: true,
+					},
+					"role_names": schema.ListAttribute{
+						Computed:    true,
+						ElementType: types.StringType,
+					},
+				},
+			},
+		},
+		"project_owner_id":             nil,
+		"with_default_alerts_settings": nil,
+	}
+}
+
+type tfProjectsDSModel struct {
+	ID           types.String        `tfsdk:"id"`
+	Results      []*TFProjectDSModel `tfsdk:"results"`
+	PageNum      types.Int64         `tfsdk:"page_num"`
+	ItemsPerPage types.Int64         `tfsdk:"items_per_page"`
+	TotalCount   types.Int64         `tfsdk:"total_count"`
+}
+
+type TFProjectDSModel struct {
+	Tags                                        types.Map              `tfsdk:"tags"`
+	IPAddresses                                 types.Object           `tfsdk:"ip_addresses"`
+	Created                                     types.String           `tfsdk:"created"`
+	OrgID                                       types.String           `tfsdk:"org_id"`
+	RegionUsageRestrictions                     types.String           `tfsdk:"region_usage_restrictions"`
+	ID                                          types.String           `tfsdk:"id"`
+	Name                                        types.String           `tfsdk:"name"`
+	ProjectID                                   types.String           `tfsdk:"project_id"`
+	Teams                                       []*TFTeamDSModel       `tfsdk:"teams"`
+	Limits                                      []*TFLimitModel        `tfsdk:"limits"`
+	Users                                       []*TFCloudUsersDSModel `tfsdk:"users"`
+	ClusterCount                                types.Int64            `tfsdk:"cluster_count"`
+	IsCollectDatabaseSpecificsStatisticsEnabled types.Bool             `tfsdk:"is_collect_database_specifics_statistics_enabled"`
+	IsRealtimePerformancePanelEnabled           types.Bool             `tfsdk:"is_realtime_performance_panel_enabled"`
+	IsSchemaAdvisorEnabled                      types.Bool             `tfsdk:"is_schema_advisor_enabled"`
+	IsPerformanceAdvisorEnabled                 types.Bool             `tfsdk:"is_performance_advisor_enabled"`
+	IsExtendedStorageSizesEnabled               types.Bool             `tfsdk:"is_extended_storage_sizes_enabled"`
+	IsDataExplorerEnabled                       types.Bool             `tfsdk:"is_data_explorer_enabled"`
+	IsSlowOperationThresholdingEnabled          types.Bool             `tfsdk:"is_slow_operation_thresholding_enabled"`
+}
+
+type TFTeamDSModel struct {
+	TeamID    types.String `tfsdk:"team_id"`
+	RoleNames types.List   `tfsdk:"role_names"`
+}
+
+type TFCloudUsersDSModel struct {
+	ID                  types.String `tfsdk:"id"`
+	OrgMembershipStatus types.String `tfsdk:"org_membership_status"`
+	Roles               types.List   `tfsdk:"roles"`
+	Username            types.String `tfsdk:"username"`
+	InvitationCreatedAt types.String `tfsdk:"invitation_created_at"`
+	InvitationExpiresAt types.String `tfsdk:"invitation_expires_at"`
+	InviterUsername     types.String `tfsdk:"inviter_username"`
+	Country             types.String `tfsdk:"country"`
+	CreatedAt           types.String `tfsdk:"created_at"`
+	FirstName           types.String `tfsdk:"first_name"`
+	LastAuth            types.String `tfsdk:"last_auth"`
+	LastName            types.String `tfsdk:"last_name"`
+	MobileNumber        types.String `tfsdk:"mobile_number"`
+}
 
 func NewTFProjectDataSourceModel(ctx context.Context, project *admin.Group, projectProps *AdditionalProperties) (*TFProjectDSModel, diag.Diagnostics) {
 	var diags diag.Diagnostics

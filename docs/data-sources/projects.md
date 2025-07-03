@@ -51,13 +51,14 @@ data "mongodbatlas_projects" "test" {
 
 * `name` - The name of the project you want to create.
 * `org_id` - The ID of the organization you want to create the project within.
+* `project_id`- Unique 24-hexadecimal digit string that identifies the MongoDB Cloud project.
 * `cluster_count` - The number of Atlas clusters deployed in the project.
 * `created` - The ISO-8601-formatted timestamp of when Atlas created the project.
 * `tags` - Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the project. To learn more, see [Resource Tags](https://www.mongodb.com/docs/atlas/tags/)
 * `teams` - Returns all teams to which the authenticated user has access in the project. See [Teams](#teams).
 * `limits` - The limits for the specified project. See [Limits](#limits).
 * `ip_addresses` - IP addresses in a project categorized by services. See [IP Addresses](#ip-addresses). **WARNING:** This attribute is deprecated, use the `mongodbatlas_project_ip_addresses` data source instead.
-
+* `users` - Returns list of all pending and active MongoDB Cloud users associated with the specified project.
 * `is_collect_database_specifics_statistics_enabled` - Flag that indicates whether to enable statistics in [cluster metrics](https://www.mongodb.com/docs/atlas/monitor-cluster-metrics/) collection for the project.
 * `is_data_explorer_enabled` - Flag that indicates whether to enable Data Explorer for the project. If enabled, you can query your database with an easy to use interface.
 * `is_extended_storage_sizes_enabled` - Flag that indicates whether to enable extended storage sizes for the specified project.
@@ -87,5 +88,18 @@ data "mongodbatlas_projects" "test" {
 * `services.clusters.#.inbound` - List of inbound IP addresses associated with the cluster. If your network allows outbound HTTP requests only to specific IP addresses, you must allow access to the following IP addresses so that your application can connect to your Atlas cluster.
 * `services.clusters.#.outbound` - List of outbound IP addresses associated with the cluster. If your network allows inbound HTTP requests only from specific IP addresses, you must allow access from the following IP addresses so that your Atlas cluster can communicate with your webhooks and KMS.
 
+### Users
+* `id`- Unique 24-hexadecimal digit string that identifies the MongoDB Cloud user.
+* `orgMembershipStatus`- String enum that indicates whether the MongoDB Cloud user has a pending invitation to join the organization or they are already active in the organization.
+* `roles`- One or more project-level roles assigned to the MongoDB Cloud user.
+* `username`- Email address that represents the username of the MongoDB Cloud user.
+* `country`- Two-character alphabetical string that identifies the MongoDB Cloud user's geographic location. This parameter uses the ISO 3166-1a2 code format.
+* `createdAt`- Date and time when MongoDB Cloud created the current account. This value is in the ISO 8601 timestamp format in UTC.
+* `firstName`- First or given name that belongs to the MongoDB Cloud user.
+* `lastAuth` - Date and time when the current account last authenticated. This value is in the ISO 8601 timestamp format in UTC.
+* `lastName`- Last name, family name, or surname that belongs to the MongoDB Cloud user.
+* `mobileNumber` - Mobile phone number that belongs to the MongoDB Cloud user.
+
+~> **NOTE:** - Does not return pending users invited via the deprecated [Invite One MongoDB Cloud User to Join One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprojectinvitation) endpoint or pending invitations created using [`mongodbatlas_project_invitation`](../resources/project_invitation.md) resource.
 
 See [MongoDB Atlas API - Projects](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Projects) - [and MongoDB Atlas API - Teams](https://docs.atlas.mongodb.com/reference/api/project-get-teams/) Documentation for more information.
