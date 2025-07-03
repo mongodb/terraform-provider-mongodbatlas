@@ -24,51 +24,35 @@ func TestValidateClusterName(t *testing.T) {
 	assert.Contains(t, err.Error(), "cluster_name must be a string with length between 1 and 64, starting and ending with an alphanumeric character, and containing only alphanumeric characters and hyphens")
 }
 
-func TestImportSplit3(t *testing.T) {
+func TestImportSplit(t *testing.T) {
 	tests := map[string]struct {
-		importRaw string
-		part1     string
-		part2     string
-		part3     string
-		expected  bool
+		importRaw     string
+		parts         []string
+		expectedParts int
+		expected      bool
 	}{
 		"valid input": {
-			importRaw: "part1/part2/part3",
-			expected:  true,
-			part1:     "part1",
-			part2:     "part2",
-			part3:     "part3",
+			importRaw:     "part1/part2/part3",
+			expectedParts: 3,
+			expected:      true,
+			parts:         []string{"part1", "part2", "part3"},
 		},
-		"invalid input with more parts": {
-			importRaw: "part1/part2/part3/part4",
-			expected:  false,
-			part1:     "",
-			part2:     "",
-			part3:     "",
-		},
-		"invalid input with two parts": {
-			importRaw: "part1/part2",
-			expected:  false,
-			part1:     "",
-			part2:     "",
-			part3:     "",
-		},
-		"invalid input with one part": {
-			importRaw: "part1",
-			expected:  false,
-			part1:     "",
-			part2:     "",
-			part3:     "",
+		"invalid input with more parts than expected": {
+			importRaw:     "part1/part2/part3/part4",
+			expectedParts: 3,
+			expected:      false,
+			parts:         nil,
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			ok, parts := conversion.ImportSplit(tc.importRaw, 3)
+			ok, parts := conversion.ImportSplit(tc.importRaw, tc.expectedParts)
+			if tc.expected {
+				assert.Len(t, parts, tc.expectedParts)
+			}
 			assert.Equal(t, tc.expected, ok)
-			assert.Equal(t, tc.part1, parts[0])
-			assert.Equal(t, tc.part2, parts[1])
-			assert.Equal(t, tc.part3, parts[2])
+			assert.Equal(t, tc.parts, parts)
 		})
 	}
 }
