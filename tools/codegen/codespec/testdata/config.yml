@@ -42,18 +42,3 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}
       method: DELETE
-
-  test_resource_with_static_request_body:
-    create:
-      path: /api/atlas/v2/groups/{groupId}/staticRequestBodyTest
-      method: POST
-    read:
-      path: /api/atlas/v2/groups/{groupId}/staticRequestBodyTest
-      method: GET
-    update:
-      path: /api/atlas/v2/groups/{groupId}/staticRequestBodyTest
-      method: PATCH
-    delete:
-      path: /api/atlas/v2/groups/{groupId}/staticRequestBodyTest
-      method: PATCH
-      static_request_body: '{"enabled": false}'

@@ -323,87 +323,6 @@ paths:
       summary: Update the Test Resource feature for a project
       tags:
         - Test Resource
-  "/api/atlas/v2/groups/{groupId}/staticRequestBodyTest":
-    delete:
-      description: DELETE API description
-      operationId: deleteStaticRequestBodyTest
-      parameters:
-        - $ref: "#/components/parameters/groupId"
-      responses:
-        "200":
-          content:
-            application/vnd.atlas.2023-01-01+json:
-              x-xgen-version: 2023-01-01
-          description: OK
-      security:
-        - DigestAuth: []
-      summary: Disable the Static Request Body Test feature for a project.
-      tags:
-        - Test Resource
-    get:
-      description: GET API description
-      operationId: getStaticRequestBodyTest
-      parameters:
-        - $ref: "#/components/parameters/groupId"
-      responses:
-        "200":
-          content:
-            application/vnd.atlas.2023-01-01+json:
-              x-xgen-version: 2023-01-01
-          description: OK
-      security:
-        - DigestAuth: []
-      summary: Get the Static Request Body Test configuration for a project
-      tags:
-        - Test Resource
-    patch:
-      description: PATCH API description
-      operationId: updateStaticRequestBodyTest
-      parameters:
-        - $ref: "#/components/parameters/groupId"
-      requestBody:
-        content:
-          application/vnd.atlas.2023-01-01+json:
-            schema:
-              $ref: "#/components/schemas/StaticRequestBodyTestRequest"
-            x-xgen-version: 2023-01-01
-        description: Patch request description
-        required: true
-      responses:
-        "200":
-          content:
-            application/vnd.atlas.2023-01-01+json:
-              x-xgen-version: 2023-01-01
-          description: OK
-      security:
-        - DigestAuth: []
-      summary: Update the Static Request Body Test feature for a project
-      tags:
-        - Test Resource
-    post:
-      description: POST API description
-      operationId: createStaticRequestBodyTest
-      parameters:
-        - $ref: "#/components/parameters/groupId"
-      requestBody:
-        content:
-          application/vnd.atlas.2023-01-01+json:
-            schema:
-              $ref: "#/components/schemas/StaticRequestBodyTestRequest"
-            x-xgen-version: 2023-01-01
-        description: Create request description
-        required: true
-      responses:
-        "200":
-          content:
-            application/vnd.atlas.2023-01-01+json:
-              x-xgen-version: 2023-01-01
-          description: OK
-      security:
-        - DigestAuth: []
-      summary: Enable the Static Request Body Test feature for a project
-      tags:
-        - Test Resource
 components:
   parameters:
     groupId:
@@ -554,6 +473,7 @@ components:
           $ref: "#/components/schemas/NestedMapObjectAttr"
         optional_string_attr:
           type: string
+          description: Optional string
         attrAlwaysInUpdates:
           type: string
           description: Always in updates
@@ -645,14 +565,3 @@ components:
       properties:
         levelField1:
           type: string
-    StaticRequestBodyTestRequest:
-      type: object
-      properties:
-        groupId:
-          type: string
-          description: Path param test description
-          example: 32b6e34b3d91647abb20e7b8
-          maxLength: 24
-          minLength: 24
-          pattern: ^([a-f0-9]{24})$
-          readOnly: true
