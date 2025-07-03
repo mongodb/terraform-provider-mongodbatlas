@@ -17,6 +17,9 @@ import (
 // Map is not supported yet, will be done in CLOUDP-312797.
 // Attributes that are in JSON but not in the model are ignored, no error is returned.
 func Unmarshal(raw []byte, model any) error {
+	if isEmptyJSON(raw) {
+		return nil // Some operations return an empty response body, in that case there is no need to update the model.
+	}
 	var objJSON map[string]any
 	if err := json.Unmarshal(raw, &objJSON); err != nil {
 		return err

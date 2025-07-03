@@ -289,7 +289,11 @@ func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParam
 	}
 
 	apiResp, err := untypedClient.CallAPI(apiReq)
+	if err != nil || apiResp == nil {
+		return apiResp, err
+	}
 
+	// Returns a GenericOpenAPIError error if HTTP status code is not successful.
 	if apiResp.StatusCode >= 300 {
 		newErr := untypedClient.MakeApiError(apiResp, params.Method, localVarPath)
 		return apiResp, newErr

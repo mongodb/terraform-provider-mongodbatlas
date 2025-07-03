@@ -33,10 +33,11 @@ func GenerateGoCode(input *codespec.Resource) string {
 
 func toCodeTemplateOpModel(op codespec.APIOperation) codetemplate.Operation {
 	return codetemplate.Operation{
-		Path:       op.Path,
-		HTTPMethod: op.HTTPMethod,
-		PathParams: getPathParams(op.Path),
-		Wait:       getWaitValues(op.Wait),
+		Path:              op.Path,
+		HTTPMethod:        op.HTTPMethod,
+		PathParams:        getPathParams(op.Path),
+		Wait:              getWaitValues(op.Wait),
+		StaticRequestBody: op.StaticRequestBody,
 	}
 }
 
