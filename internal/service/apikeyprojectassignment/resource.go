@@ -93,8 +93,8 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 
 	apiKeyID := assignmentState.ApiKeyId.ValueString()
 	newAPIKeyProjectAssignmentModel, diags := NewTFModel(ctx, apiKeys, projectID, apiKeyID)
+	resp.Diagnostics.Append(diags...)
 	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
 		return
 	}
 
@@ -109,8 +109,8 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 
 	assignmentReq, diags := NewAtlasUpdateReq(ctx, &tfModel)
+	resp.Diagnostics.Append(diags...)
 	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
 		return
 	}
 
@@ -125,8 +125,8 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 
 	newAssignmentModel, diags := NewTFModelPatch(ctx, apiResp, projectID)
+	resp.Diagnostics.Append(diags...)
 	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
 		return
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, newAssignmentModel)...)

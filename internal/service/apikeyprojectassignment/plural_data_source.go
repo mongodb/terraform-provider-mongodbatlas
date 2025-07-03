@@ -48,8 +48,8 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 	}
 
 	newAPIKeyProjectAssignmentsModel, diags := NewTFModelDSP(ctx, projectID, apiKeys)
+	resp.Diagnostics.Append(diags...)
 	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
 		return
 	}
 

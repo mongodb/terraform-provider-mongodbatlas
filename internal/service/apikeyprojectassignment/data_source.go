@@ -46,8 +46,8 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 
 	apiKeyID := tfModel.ApiKeyId.ValueString()
 	newAPIKeyProjectAssignmentModel, diags := NewTFModel(ctx, apiKeys, projectID, apiKeyID)
+	resp.Diagnostics.Append(diags...)
 	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
 		return
 	}
 
