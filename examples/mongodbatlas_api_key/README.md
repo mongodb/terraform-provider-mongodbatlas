@@ -45,4 +45,3 @@ If you are currently using `mongodbatlas_project_api_key` resource, see the [Mig
 ## Additional Notes
 - All API keys in Atlas are organization-level keys. Assigning them to a project grants project-level roles for that project.
 - For more details, see the [Terraform MongoDB Atlas Provider documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/api_key_project_assignment).
-

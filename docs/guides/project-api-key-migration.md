@@ -185,4 +185,4 @@ A: See [examples/mongodbatlas_api_key/main.tf](../../examples/mongodbatlas_api_k
 ## Further Resources
 - [Terraform MongoDB Atlas Provider Documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs)
 - [API Key Project Assignment Resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/api_key_project_assignment)
-- [Migration Guide Source](https://github.com/mongodb/terraform-provider-mongodbatlas) 
+- [Migration Guide Source](https://github.com/mongodb/terraform-provider-mongodbatlas)
