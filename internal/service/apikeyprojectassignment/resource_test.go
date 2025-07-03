@@ -58,7 +58,7 @@ func importStateIDFunc(resourceName, attrNameProjectID, attrNameAPIKeyID string)
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		return fmt.Sprintf("%s-%s", rs.Primary.Attributes[attrNameProjectID], rs.Primary.Attributes[attrNameAPIKeyID]), nil
+		return fmt.Sprintf("%s/%s", rs.Primary.Attributes[attrNameProjectID], rs.Primary.Attributes[attrNameAPIKeyID]), nil
 	}
 }
 
