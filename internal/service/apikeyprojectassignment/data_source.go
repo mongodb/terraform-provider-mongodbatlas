@@ -38,14 +38,14 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 
 	connV2 := d.Client.AtlasV2
 	projectID := tfModel.ProjectId.ValueString()
-	apiKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListProjectApiKeys(ctx, projectID).Execute()
+	apiKeys, err := ListAllProjectAPIKeys(ctx, connV2, projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error fetching resource", err.Error())
 		return
 	}
 
 	apiKeyID := tfModel.ApiKeyId.ValueString()
-	newAPIKeyProjectAssignmentModel, diags := NewTFModel(ctx, apiKeys, apiKeyID, projectID)
+	newAPIKeyProjectAssignmentModel, diags := NewTFModel(ctx, apiKeys, projectID, apiKeyID)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

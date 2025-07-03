@@ -3,12 +3,15 @@ package apikeyprojectassignment
 import (
 	"context"
 	"errors"
+	"net/http"
 	"regexp"
+
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -44,8 +47,8 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	}
 
 	assignmentReq, diags := NewAtlasCreateReq(ctx, &tfModel)
+	resp.Diagnostics.Append(diags...)
 	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
 		return
 	}
 
@@ -58,15 +61,15 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
-	apiKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListProjectApiKeys(ctx, projectID).Execute()
+	apiKeys, err := ListAllProjectAPIKeys(ctx, connV2, projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error fetching resource", err.Error())
 		return
 	}
 
-	newAPIKeyProjectAssignmentModel, diags := NewTFModel(ctx, apiKeys, apiKeyID, projectID)
+	newAPIKeyProjectAssignmentModel, diags := NewTFModel(ctx, apiKeys, projectID, apiKeyID)
+	resp.Diagnostics.Append(diags...)
 	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
 		return
 	}
 
@@ -82,18 +85,14 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 
 	connV2 := r.Client.AtlasV2
 	projectID := assignmentState.ProjectId.ValueString()
-	apiKeys, apiResp, err := connV2.ProgrammaticAPIKeysApi.ListProjectApiKeys(ctx, projectID).Execute()
+	apiKeys, err := ListAllProjectAPIKeys(ctx, connV2, projectID)
 	if err != nil {
-		if validate.StatusNotFound(apiResp) {
-			resp.State.RemoveResource(ctx)
-			return
-		}
 		resp.Diagnostics.AddError("error fetching resource", err.Error())
 		return
 	}
 
 	apiKeyID := assignmentState.ApiKeyId.ValueString()
-	newAPIKeyProjectAssignmentModel, diags := NewTFModel(ctx, apiKeys, apiKeyID, projectID)
+	newAPIKeyProjectAssignmentModel, diags := NewTFModel(ctx, apiKeys, projectID, apiKeyID)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -148,6 +147,20 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}
+}
+
+func ListAllProjectAPIKeys(ctx context.Context, connV2 *admin.APIClient, projectID string) ([]admin.ApiKeyUserDetails, error) {
+	apiKeys, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.ApiKeyUserDetails], *http.Response, error) {
+		request := connV2.ProgrammaticAPIKeysApi.ListProjectApiKeysWithParams(ctx, &admin.ListProjectApiKeysApiParams{
+			GroupId: projectID,
+		})
+		request = request.PageNum(pageNum)
+		return request.Execute()
+	})
+	if err != nil {
+		return nil, err
+	}
+	return apiKeys, nil
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

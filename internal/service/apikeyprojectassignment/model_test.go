@@ -11,26 +11,24 @@ import (
 )
 
 type sdkToTFModelTestCase struct {
-	SDKResp         *admin.PaginatedApiApiUser
 	expectedTFModel *apikeyprojectassignment.TFModel
+	SDKResp         []admin.ApiKeyUserDetails
 }
 
 func TestApiKeyProjectAssignmentSDKToTFModel(t *testing.T) {
 	testCases := map[string]sdkToTFModelTestCase{
 		"Complete SDK response": {
-			SDKResp: &admin.PaginatedApiApiUser{
-				Results: &[]admin.ApiKeyUserDetails{
-					{
-						Id: admin.PtrString("TargetAPIKeyID"),
-						Roles: &[]admin.CloudAccessRoleAssignment{
-							{
-								GroupId:  admin.PtrString("TargetProjectID"),
-								RoleName: admin.PtrString("MY_ROLE"),
-							},
-							{
-								GroupId:  admin.PtrString("TargetProjectID"),
-								RoleName: admin.PtrString("MY_ROLE_2"),
-							},
+			SDKResp: []admin.ApiKeyUserDetails{
+				{
+					Id: admin.PtrString("TargetAPIKeyID"),
+					Roles: &[]admin.CloudAccessRoleAssignment{
+						{
+							GroupId:  admin.PtrString("TargetProjectID"),
+							RoleName: admin.PtrString("MY_ROLE"),
+						},
+						{
+							GroupId:  admin.PtrString("TargetProjectID"),
+							RoleName: admin.PtrString("MY_ROLE_2"),
 						},
 					},
 				},
@@ -45,19 +43,17 @@ func TestApiKeyProjectAssignmentSDKToTFModel(t *testing.T) {
 			},
 		},
 		"Complete SDK response - No assigned roles": {
-			SDKResp: &admin.PaginatedApiApiUser{
-				Results: &[]admin.ApiKeyUserDetails{
-					{
-						Id: admin.PtrString("NotMyTargetAPIKeyID"),
-						Roles: &[]admin.CloudAccessRoleAssignment{
-							{
-								GroupId:  admin.PtrString("TargetProjectID"),
-								RoleName: admin.PtrString("MY_ROLE"),
-							},
-							{
-								GroupId:  admin.PtrString("TargetProjectID"),
-								RoleName: admin.PtrString("MY_ROLE_2"),
-							},
+			SDKResp: []admin.ApiKeyUserDetails{
+				{
+					Id: admin.PtrString("NotMyTargetAPIKeyID"),
+					Roles: &[]admin.CloudAccessRoleAssignment{
+						{
+							GroupId:  admin.PtrString("TargetProjectID"),
+							RoleName: admin.PtrString("MY_ROLE"),
+						},
+						{
+							GroupId:  admin.PtrString("TargetProjectID"),
+							RoleName: admin.PtrString("MY_ROLE_2"),
 						},
 					},
 				},
@@ -69,19 +65,17 @@ func TestApiKeyProjectAssignmentSDKToTFModel(t *testing.T) {
 			},
 		},
 		"Complete SDK response - Wrong project": {
-			SDKResp: &admin.PaginatedApiApiUser{
-				Results: &[]admin.ApiKeyUserDetails{
-					{
-						Id: admin.PtrString("TargetAPIKeyID"),
-						Roles: &[]admin.CloudAccessRoleAssignment{
-							{
-								GroupId:  admin.PtrString("NotMyTargetProjectID"),
-								RoleName: admin.PtrString("MY_ROLE"),
-							},
-							{
-								GroupId:  admin.PtrString("NotMyTargetProjectID"),
-								RoleName: admin.PtrString("MY_ROLE_2"),
-							},
+			SDKResp: []admin.ApiKeyUserDetails{
+				{
+					Id: admin.PtrString("TargetAPIKeyID"),
+					Roles: &[]admin.CloudAccessRoleAssignment{
+						{
+							GroupId:  admin.PtrString("NotMyTargetProjectID"),
+							RoleName: admin.PtrString("MY_ROLE"),
+						},
+						{
+							GroupId:  admin.PtrString("NotMyTargetProjectID"),
+							RoleName: admin.PtrString("MY_ROLE_2"),
 						},
 					},
 				},
@@ -96,7 +90,7 @@ func TestApiKeyProjectAssignmentSDKToTFModel(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			resultModel, diags := apikeyprojectassignment.NewTFModel(t.Context(), tc.SDKResp, "TargetAPIKeyID", "TargetProjectID")
+			resultModel, diags := apikeyprojectassignment.NewTFModel(t.Context(), tc.SDKResp, "TargetProjectID", "TargetAPIKeyID")
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
