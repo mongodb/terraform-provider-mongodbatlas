@@ -517,6 +517,53 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 	runTestCase(t, tc)
 }
 
+func TestConvertToProviderSpec_staticRequestBody(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      testDataConfigPath,
+		inputResourceName:    "test_resource_with_static_request_body",
+
+		expectedResult: &codespec.Model{
+			Resources: []codespec.Resource{{
+				Schema: &codespec.Schema{
+					Description: conversion.StringPtr(testResourceDesc),
+					Attributes: codespec.Attributes{
+						{
+							Name:                     "group_id",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr(testPathParamDesc),
+							ReqBodyUsage:             codespec.OmitAlways,
+						},
+					},
+				},
+				Name: "test_resource_with_static_request_body",
+				Operations: codespec.APIOperations{
+					Create: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/staticRequestBodyTest",
+						HTTPMethod: "POST",
+					},
+					Read: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/staticRequestBodyTest",
+						HTTPMethod: "GET",
+					},
+					Update: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/staticRequestBodyTest",
+						HTTPMethod: "PATCH",
+					},
+					Delete: codespec.APIOperation{
+						Path:              "/api/atlas/v2/groups/{groupId}/staticRequestBodyTest",
+						HTTPMethod:        "PATCH",
+						StaticRequestBody: `{"enabled": false}`,
+					},
+					VersionHeader: "application/vnd.atlas.2023-01-01+json",
+				},
+			}},
+		},
+	}
+	runTestCase(t, tc)
+}
+
 func runTestCase(t *testing.T, tc convertToSpecTestCase) {
 	t.Helper()
 	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
