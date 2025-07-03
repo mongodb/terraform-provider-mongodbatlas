@@ -46,4 +46,4 @@ output "vpc_id" {
 - `virtual_network_name` (String) The name of the Azure Virtual Network.
 - `vpc_id` (String) The AWS VPC ID.
 
-For more information see [MongoDB Atlas API - Returns the Account ID, and the VPC ID for the group and region specified](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/getAccountDetails).
+For more information see [MongoDB Atlas API - Returns the Account ID, and the VPC ID for the group and region specified](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getaccountdetails.

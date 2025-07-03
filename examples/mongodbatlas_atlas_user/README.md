@@ -11,4 +11,4 @@ Variables Required to be set:
 
 This example shows the two ways that you can use the data source, either providing the `user_id` or `username` attribute.
 
-For additional documentation, see [MongoDB Atlas API - Get User By ID](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/MongoDB-Cloud-Users/operation/getUser) and [MongoDB Atlas API - Get User By Username](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/MongoDB-Cloud-Users/operation/getUserByUsername) respectively.
+For additional documentation, see [MongoDB Atlas API - Get User By ID](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getuser) and [MongoDB Atlas API - Get User By Username](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getuserbyusername) respectively.
