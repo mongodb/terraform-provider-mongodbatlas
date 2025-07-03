@@ -44,4 +44,4 @@ output "mongodbatlas_flex_snapshots" {
 - `start_time` (String) Date and time when MongoDB Cloud began taking the snapshot. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 - `status` (String) Phase of the restore workflow for this job at the time this resource made this request.
 
-For more information see: [MongoDB Atlas API - Flex Snapshots](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Snapshots/operation/getFlexBackup) Documentation.
+For more information see: [MongoDB Atlas API - Flex Snapshots](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getflexbackup) Documentation.
