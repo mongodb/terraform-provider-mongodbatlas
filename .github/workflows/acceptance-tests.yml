@@ -132,3 +132,4 @@ jobs:
       confluent_cloud_privatelink_access_id: ${{ vars.CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID }}
       mongodb_atlas_asp_project_ear_pe_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_ASP_PROJECT_EAR_PE_ID_QA || vars.MONGODB_ATLAS_ASP_PROJECT_EAR_PE_ID_DEV }}
       mongodb_atlas_asp_project_aws_role_arn: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_ASP_PROJECT_AWS_ROLE_ARN_QA || vars.MONGODB_ATLAS_ASP_PROJECT_AWS_ROLE_ARN_DEV }}
+      mongodb_atlas_asp_project_aws_s3_bucket: ${{ vars.MONGODB_ATLAS_ASP_PROJECT_AWS_S3_BUCKET }}
