@@ -552,7 +552,8 @@ func TestAccProject_basic(t *testing.T) {
 	checks = acc.AddAttrSetChecks(dataSourceNameByID, checks, commonSetChecks...)
 	checks = acc.AddAttrSetChecks(dataSourceNameByName, checks, commonSetChecks...)
 	checks = append(checks, checkExists(resourceName), checkExists(dataSourceNameByID), checkExists(dataSourceNameByName))
-	checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, "total_count", "results.#", "results.0.is_slow_operation_thresholding_enabled", "results.0.users.#")
+	checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, "total_count", "results.#", "results.0.is_slow_operation_thresholding_enabled")
+	checks = append(checks, resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.0.users.#", acc.IntGreatThan(0)))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIDsWithMinCount(t, 3) },

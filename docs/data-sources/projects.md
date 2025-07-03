@@ -99,4 +99,6 @@ data "mongodbatlas_projects" "test" {
 * `lastName`- Last name, family name, or surname that belongs to the MongoDB Cloud user.
 * `mobileNumber` - Mobile phone number that belongs to the MongoDB Cloud user.
 
+~> **NOTE:** - Does not return pending users invited via the deprecated [Invite One MongoDB Cloud User to Join One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprojectinvitation) endpoint or pending invitations created using [`mongodbatlas_project_invitation`](../resources/project_invitation.md) resource.
+
 See [MongoDB Atlas API - Projects](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Projects) - [and MongoDB Atlas API - Teams](https://docs.atlas.mongodb.com/reference/api/project-get-teams/) Documentation for more information.
