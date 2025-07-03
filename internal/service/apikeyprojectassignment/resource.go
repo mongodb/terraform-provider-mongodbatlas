@@ -119,13 +119,20 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	projectID := tfModel.ProjectId.ValueString()
 	apiKeyID := tfModel.ApiKeyId.ValueString()
 
-	apiResp, _, err := connV2.ProgrammaticAPIKeysApi.UpdateApiKeyRoles(ctx, projectID, apiKeyID, assignmentReq).Execute()
+	_, _, err := connV2.ProgrammaticAPIKeysApi.UpdateApiKeyRoles(ctx, projectID, apiKeyID, assignmentReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error updating resource", err.Error())
 		return
 	}
 
-	newAssignmentModel, diags := NewTFModelPatch(ctx, apiResp, projectID)
+	// Once CLOUDP-328946 is done, we would use the single GET API to fetch the specific API key project assignment
+	apiKeys, err := ListAllProjectAPIKeys(ctx, connV2, projectID)
+	if err != nil {
+		resp.Diagnostics.AddError("error fetching resource", err.Error())
+		return
+	}
+
+	newAssignmentModel, diags := NewTFModel(ctx, apiKeys, projectID, apiKeyID)
 	resp.Diagnostics.Append(diags...)
 	if diags.HasError() {
 		return

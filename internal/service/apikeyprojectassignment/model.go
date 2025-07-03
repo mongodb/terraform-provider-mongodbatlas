@@ -30,10 +30,6 @@ func NewTFModel(ctx context.Context, apiKeys []admin.ApiKeyUserDetails, projectI
 	}, nil
 }
 
-func NewTFModelPatch(ctx context.Context, apiKey *admin.ApiKeyUserDetails, projectID string) (*TFModel, diag.Diagnostics) {
-	return apiKeyUserDetailsToTFModel(ctx, apiKey, projectID)
-}
-
 func apiKeyUserDetailsToTFModel(ctx context.Context, apiKey *admin.ApiKeyUserDetails, projectID string) (*TFModel, diag.Diagnostics) {
 	// filter for the specific project roles
 	projectRoles := make([]string, 0, len(apiKey.GetRoles()))
