@@ -39,7 +39,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ### FederatedSettingsOrgRoleMappings
 
-* `external_group_name` - Unique human-readable label that identifies the identity provider group to which this role mapping applies.
+* `external_group_name` - Unique label that identifies the identity provider group to which this role mapping applies.
 * `id` - Unique 24-hexadecimal digit string that identifies this role mapping.
 * `role_assignments` - Atlas roles and the unique identifiers of the groups and organizations associated with each role.
 * `group_id` - Unique identifier of the project to which you want the role mapping to apply.
