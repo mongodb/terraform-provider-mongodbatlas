@@ -33,7 +33,7 @@ output "vpc_id" {
 ### Required
 
 - `cloud_provider` (String) One of `aws` or `azure`.
-- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
+- `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-listprojects) endpoint to retrieve all projects to which the authenticated user has access.
 
 **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
 - `region_name` (String) The cloud provider specific region name, i.e. `US_EAST_1` for cloud provider `aws`.
