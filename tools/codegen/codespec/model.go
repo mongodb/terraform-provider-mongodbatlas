@@ -33,10 +33,10 @@ type APIOperations struct {
 }
 
 type APIOperation struct {
-	Wait             *Wait
-	HTTPMethod       string
-	Path             string
-	FixedRequestBody string
+	Wait              *Wait
+	HTTPMethod        string
+	Path              string
+	StaticRequestBody string
 }
 
 type Wait struct {

@@ -115,11 +115,11 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		Method:        "PATCH",
 	}
 	reqHandle := autogen.HandleDeleteReq{
-		Resp:             resp,
-		Client:           r.Client,
-		State:            &state,
-		CallParams:       &callParams,
-		FixedRequestBody: `{"enabled": "false"}`,
+		Resp:              resp,
+		Client:            r.Client,
+		State:             &state,
+		CallParams:        &callParams,
+		StaticRequestBody: `{"enabled": "false"}`,
 	}
 	autogen.HandleDelete(ctx, reqHandle)
 }

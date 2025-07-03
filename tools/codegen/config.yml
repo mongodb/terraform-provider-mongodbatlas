@@ -14,7 +14,7 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/auditLog
       method: PATCH
-      fixed_request_body: '{"enabled": "false"}'
+      static_request_body: '{"enabled": "false"}'
     version_header: application/vnd.atlas.2023-01-01+json
 
   cluster_api:

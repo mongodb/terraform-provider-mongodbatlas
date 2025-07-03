@@ -145,21 +145,21 @@ func HandleUpdate(ctx context.Context, req HandleUpdateReq) {
 }
 
 type HandleDeleteReq struct {
-	Resp             *resource.DeleteResponse
-	Client           *config.MongoDBClient
-	State            any
-	CallParams       *config.APICallParams
-	Wait             *WaitReq
-	FixedRequestBody string
+	Resp              *resource.DeleteResponse
+	Client            *config.MongoDBClient
+	State             any
+	CallParams        *config.APICallParams
+	Wait              *WaitReq
+	StaticRequestBody string
 }
 
 func HandleDelete(ctx context.Context, req HandleDeleteReq) {
 	d := &req.Resp.Diagnostics
 	var err error
-	if req.FixedRequestBody == "" {
+	if req.StaticRequestBody == "" {
 		_, _, err = callAPIWithoutBody(ctx, req.Client, req.CallParams)
 	} else {
-		_, err = callAPIWithBody(ctx, req.Client, req.CallParams, []byte(req.FixedRequestBody))
+		_, err = callAPIWithBody(ctx, req.Client, req.CallParams, []byte(req.StaticRequestBody))
 	}
 	if err != nil {
 		addError(d, opDelete, errCallingAPI, err)
