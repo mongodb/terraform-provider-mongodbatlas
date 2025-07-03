@@ -33,7 +33,10 @@ type ProjectsDS struct {
 }
 
 func (d *ProjectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = pluralDataSourceProjectSchema(ctx)
+	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
+		OverridenFields: dataSourceOverridenFields(),
+		HasLegacyFields: true,
+	})
 }
 
 func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {

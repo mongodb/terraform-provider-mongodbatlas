@@ -51,6 +51,7 @@ data "mongodbatlas_projects" "test" {
 
 * `name` - The name of the project you want to create.
 * `org_id` - The ID of the organization you want to create the project within.
+* `project_id`- Unique 24-hexadecimal digit string that identifies the MongoDB Cloud project.
 * `cluster_count` - The number of Atlas clusters deployed in the project.
 * `created` - The ISO-8601-formatted timestamp of when Atlas created the project.
 * `tags` - Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the project. To learn more, see [Resource Tags](https://www.mongodb.com/docs/atlas/tags/)

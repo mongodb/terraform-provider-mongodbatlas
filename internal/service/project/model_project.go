@@ -66,82 +66,37 @@ func UsersProjectSchema() schema.SetNestedAttribute {
 	}
 }
 
-func NameProjectSchema() schema.StringAttribute {
-	return schema.StringAttribute{
-		Optional: true,
-		Validators: []validator.String{
-			stringvalidator.ConflictsWith(path.MatchRoot("project_id")),
+func dataSourceOverridenFields() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"name": schema.StringAttribute{
+			Optional: true,
+			Validators: []validator.String{
+				stringvalidator.ConflictsWith(path.MatchRoot("project_id")),
+			},
 		},
-	}
-}
-
-func IDProjectSchema() schema.StringAttribute {
-	return schema.StringAttribute{
-		Optional: true,
-		Validators: []validator.String{
-			stringvalidator.ConflictsWith(path.MatchRoot("name")),
+		"project_id": schema.StringAttribute{
+			Optional: true,
+			Validators: []validator.String{
+				stringvalidator.ConflictsWith(path.MatchRoot("name")),
+			},
 		},
-	}
-}
-
-func TeamsProjectSchema() schema.ListNestedAttribute {
-	return schema.ListNestedAttribute{
-		Computed: true,
-		NestedObject: schema.NestedAttributeObject{
-			Attributes: map[string]schema.Attribute{
-				"team_id": schema.StringAttribute{
-					Computed: true,
-				},
-				"role_names": schema.ListAttribute{
-					Computed:    true,
-					ElementType: types.StringType,
+		"users": UsersProjectSchema(),
+		"teams": schema.ListNestedAttribute{
+			Computed: true,
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					"team_id": schema.StringAttribute{
+						Computed: true,
+					},
+					"role_names": schema.ListAttribute{
+						Computed:    true,
+						ElementType: types.StringType,
+					},
 				},
 			},
 		},
-	}
-}
-
-func dataSourceProjectSchema(ctx context.Context) schema.Schema {
-	return conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.DataSourceSchemaRequest{
-		RequiredFields:  []string{},
-		OverridenFields: dataSourceOverridenFields(),
-	})
-}
-
-func pluralDataSourceProjectSchema(ctx context.Context) schema.Schema {
-	return conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
-		RequiredFields:      []string{},
-		OverridenRootFields: pluralDataSourceOverridenRootFields(),
-		OverridenFields:     dataSourceOverridenFields(),
-	})
-}
-
-func dataSourceOverridenFields() map[string]schema.Attribute {
-	return map[string]schema.Attribute{
-		"name":                         NameProjectSchema(),
-		"project_id":                   IDProjectSchema(),
-		"users":                        UsersProjectSchema(),
-		"teams":                        TeamsProjectSchema(),
 		"project_owner_id":             nil,
 		"with_default_alerts_settings": nil,
-	}
-}
-
-func pluralDataSourceOverridenRootFields() map[string]schema.Attribute {
-	return map[string]schema.Attribute{
-		"id": schema.StringAttribute{ // required by hashicorps terraform plugin testing framework
-			DeprecationMessage: "Please use each project's id attribute instead",
-			Computed:           true,
-		},
-		"page_num": schema.Int64Attribute{
-			Optional: true,
-		},
-		"items_per_page": schema.Int64Attribute{
-			Optional: true,
-		},
-		"total_count": schema.Int64Attribute{
-			Computed: true,
-		},
 	}
 }
 

@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312004/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -28,7 +29,9 @@ type projectDS struct {
 }
 
 func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
-	resp.Schema = dataSourceProjectSchema(ctx)
+	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.DataSourceSchemaRequest{
+		OverridenFields: dataSourceOverridenFields(),
+	})
 }
 
 func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
