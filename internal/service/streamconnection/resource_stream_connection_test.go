@@ -327,12 +327,16 @@ func TestAccStreamRSStreamConnection_AWSS3(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: configureAWSS3(projectID, instanceName, connectionName, roleArn, testBucket),
-				Check:  checkAWSS3Attributes(resourceName, instanceName, connectionName, roleArn, testBucket),
+				Config: configAWSS3WithTestBucket(projectID, instanceName, connectionName, roleArn, testBucket),
+				Check:  checkStreamConnectionExists(),
+			},
+			{
+				Config: configAWSS3(projectID, instanceName, connectionName, roleArn),
+				Check:  checkStreamConnectionExists(),
 			},
 			{
 				ResourceName:      resourceName,
-				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportStateIdFunc: acc.ImportStateProjectIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -618,7 +622,7 @@ func checkAWSLambdaAttributes(
 	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
 }
 
-func configureAWSS3(projectID, instanceName, connectionName, roleArn, testBucket string) string {
+func configAWSS3WithTestBucket(projectID, instanceName, connectionName, roleArn, testBucket string) string {
 	streamInstanceConfig := acc.StreamInstanceConfig(projectID, instanceName, "VIRGINIA_USA", "AWS")
 	return fmt.Sprintf(`
 		%[1]s
@@ -636,12 +640,21 @@ func configureAWSS3(projectID, instanceName, connectionName, roleArn, testBucket
 	`, streamInstanceConfig, connectionName, roleArn, testBucket)
 }
 
-func checkAWSS3Attributes(
-	resourceName, instanceName, connectionName, roleArn, testBucket string) resource.TestCheckFunc {
-	resourceChecks := []resource.TestCheckFunc{
-		checkStreamConnectionExists(),
-	}
-	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
+func configAWSS3(projectID, instanceName, connectionName, roleArn string) string {
+	streamInstanceConfig := acc.StreamInstanceConfig(projectID, instanceName, "VIRGINIA_USA", "AWS")
+	return fmt.Sprintf(`
+		%[1]s
+
+		resource "mongodbatlas_stream_connection" "test" {
+			project_id = mongodbatlas_stream_instance.test.project_id
+			instance_name = mongodbatlas_stream_instance.test.instance_name
+			connection_name = %[2]q
+			type = "S3"
+			aws = {
+				role_arn = %[3]q
+			}
+		}
+	`, streamInstanceConfig, connectionName, roleArn)
 }
 
 func preCheckS3(t *testing.T) {
