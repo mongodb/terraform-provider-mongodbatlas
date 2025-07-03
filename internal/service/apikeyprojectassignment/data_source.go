@@ -38,6 +38,7 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 
 	connV2 := d.Client.AtlasV2
 	projectID := tfModel.ProjectId.ValueString()
+	// Once CLOUDP-328946 is done, we would use the single GET API to fetch the specific API key project assignment
 	apiKeys, err := ListAllProjectAPIKeys(ctx, connV2, projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error fetching resource", err.Error())

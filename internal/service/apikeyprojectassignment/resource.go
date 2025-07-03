@@ -60,6 +60,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
+	// Once CLOUDP-328946 is done, we would use the single GET API to fetch the specific API key project assignment
 	apiKeys, err := ListAllProjectAPIKeys(ctx, connV2, projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error fetching resource", err.Error())
@@ -84,6 +85,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 
 	connV2 := r.Client.AtlasV2
 	projectID := assignmentState.ProjectId.ValueString()
+	// Once CLOUDP-328946 is done, we would use the single GET API to fetch the specific API key project assignment
 	apiKeys, err := ListAllProjectAPIKeys(ctx, connV2, projectID)
 	if err != nil {
 		resp.Diagnostics.AddError("error fetching resource", err.Error())
