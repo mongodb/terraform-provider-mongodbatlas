@@ -13,7 +13,7 @@ See [Encryption at Rest](https://docs.atlas.mongodb.com/security-kms-encryption/
 
 ~> **IMPORTANT** By default, Atlas enables encryption at rest for all cluster storage and snapshot volumes.
 
-~> **IMPORTANT** Atlas limits this feature to dedicated cluster tiers of M10 and greater. For more information see: https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-encryption-at-rest-using-customer-key-management
+~> **IMPORTANT** Atlas limits this feature to dedicated cluster tiers of M10 and greater. For more information see: https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-encryption-at-rest-using-customer-key-management 
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
