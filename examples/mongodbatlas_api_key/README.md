@@ -1,18 +1,48 @@
-# MongoDB Atlas Provider -- MongoDB Atlas Programmatic API Key Examples 
+# MongoDB Atlas Provider — Programmatic API Key Example
 
-In the Terraform MongoDB Atlas Provider v1.8.0 release, we introduced support for MongoDB Atlas Programmatic API Keys (PAK). While this was an exciting development, we quickly realized that some of our customers were facing challenges in optimally leveraging this resource. In response to this, we initiated several enhancements as part of the v1.10.0 release to refine the user experience with this resource. These enhancements encompassed both code revisions and documentation updates.
+This example demonstrates the **recommended approach** for managing MongoDB Atlas Programmatic API Keys (PAKs) using the Terraform MongoDB Atlas Provider:
 
-The most notable improvement among these as part of v1.10.0 release was the deprecation of the `api_keys` parameter from the `mongodbatlas_project` resource. We also extended the functionality of the `mongodbatlas_project_api_key` resource by incorporating the `project_assignment` parameter. This enhancement removes the necessity for users to create multiple `mongodbatlas_project` resource blocks just to assign keys. This update streamlines the process of assigning an API Key to multiple projects, making it less cumbersome and more manageable.
+- **Create API keys independently** using the `mongodbatlas_api_key` resource.
+- **Assign API keys to projects** using the `mongodbatlas_api_key_project_assignment` resource.
 
-To further facilitate the transition, we've included in this atlas-api-key folder, three reference examples for Programmatic API Key (PAK) usage:
+This pattern provides greater flexibility and clarity, allowing you to manage API keys and their project assignments separately.
 
-* "Create and Assign PAK Together" — this demonstrates how to create a PAK and assign it simultaneously.
+## Example Overview
 
-* "Create and Assign PAK to Multiple Projects" — this shows how to create a PAK and assign it to several projects at once.
+The included [`main.tf`](./main.tf) shows how to:
 
-* "Create and Assign PAK Separately" (Deprecated) — this is an older method of creating and assigning PAKs, now deprecated but still available for reference.
+1. **Create an API key** at the organization level with `mongodbatlas_api_key`.
+2. **Create a project** with `mongodbatlas_project`.
+3. **Assign the API key to the project** with `mongodbatlas_api_key_project_assignment`, specifying project-level roles.
 
-Lastly, in MongoDB Atlas, all PAKs are Organization API keys. Once created, a PAK is linked at the organization level with an 'Organization Member' role. However, these Organization API keys can also be assigned to one or more projects within the organization. When a PAK is assigned to a specific project, it essentially takes on the 'Project Owner' role for that particular project. This enables the key to perform operations at the project level, in addition to the organization level. The flexibility of PAKs provides a powerful mechanism for fine-grained access and control, once their functioning is clearly understood. 
+```hcl
+resource "mongodbatlas_api_key" "test" {
+  org_id      = var.org_id
+  description = "Test API Key"
+  role_names  = ["ORG_READ_ONLY"]
+}
 
-Our hope is that these examples will provide clear guidance and help ease your transition to this new PAK workflow in our Terraform Provider.
+resource "mongodbatlas_project" "test1" {
+  name   = var.project_name
+  org_id = var.org_id
+}
+
+resource "mongodbatlas_api_key_project_assignment" "test1" {
+  project_id  = mongodbatlas_project.test1.id
+  api_key_id  = mongodbatlas_api_key.test.api_key_id
+  role_names  = ["GROUP_OWNER"]
+}
+```
+
+## Why Use This Pattern?
+- **Flexibility:** Assign the same API key to multiple projects or update assignments independently.
+- **Clarity:** Separate resources for key creation and project assignment.
+- **Future-proof:** This is the preferred and supported method going forward.
+
+## Migrating from the Old Pattern
+If you are currently using `mongodbatlas_project_api_key` resource, see the [Migration Guide](../../docs/guides/project-api-key-migration.md) for step-by-step instructions on updating your configuration.
+
+## Additional Notes
+- All API keys in Atlas are organization-level keys. Assigning them to a project grants project-level roles for that project.
+- For more details, see the [Terraform MongoDB Atlas Provider documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/api_key_project_assignment).
 
