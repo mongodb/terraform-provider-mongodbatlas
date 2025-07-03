@@ -7,6 +7,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
+// NewWrappedProviderServer returns a new ProviderServer that wraps the old one.
+// This is used to add additional metadata to the User-Agent header and context.
 func NewWrappedProviderServer(old func() tfprotov6.ProviderServer) func() tfprotov6.ProviderServer {
 	return func() tfprotov6.ProviderServer {
 		return &WrappedProviderServer{
@@ -44,57 +46,101 @@ func (s *WrappedProviderServer) StopProvider(ctx context.Context, req *tfprotov6
 }
 
 func (s *WrappedProviderServer) ValidateResourceConfig(ctx context.Context, req *tfprotov6.ValidateResourceConfigRequest) (*tfprotov6.ValidateResourceConfigResponse, error) {
-	ctx = context.WithValue(ctx, config.ContextKeyTFSrc, req.TypeName)
+	ctx = config.AddUserAgentExtra(ctx, config.UserAgentExtra{
+		Type:      "Resource",
+		Name:      req.TypeName,
+		Operation: "ValidateResourceConfig",
+	})
 	return s.OldServer.ValidateResourceConfig(ctx, req)
 }
 
 func (s *WrappedProviderServer) UpgradeResourceState(ctx context.Context, req *tfprotov6.UpgradeResourceStateRequest) (*tfprotov6.UpgradeResourceStateResponse, error) {
-	ctx = context.WithValue(ctx, config.ContextKeyTFSrc, "upgrade."+req.TypeName)
+	ctx = config.AddUserAgentExtra(ctx, config.UserAgentExtra{
+		Type:      "Resource",
+		Name:      req.TypeName,
+		Operation: "UpgradeResourceState",
+	})
 	return s.OldServer.UpgradeResourceState(ctx, req)
 }
 
 func (s *WrappedProviderServer) ReadResource(ctx context.Context, req *tfprotov6.ReadResourceRequest) (*tfprotov6.ReadResourceResponse, error) {
-	ctx = context.WithValue(ctx, config.ContextKeyTFSrc, req.TypeName)
+	ctx = config.AddUserAgentExtra(ctx, config.UserAgentExtra{
+		Type:      "Resource",
+		Name:      req.TypeName,
+		Operation: "ReadResource",
+	})
 	return s.OldServer.ReadResource(ctx, req)
 }
 
 func (s *WrappedProviderServer) PlanResourceChange(ctx context.Context, req *tfprotov6.PlanResourceChangeRequest) (*tfprotov6.PlanResourceChangeResponse, error) {
-	ctx = context.WithValue(ctx, config.ContextKeyTFSrc, req.TypeName)
+	ctx = config.AddUserAgentExtra(ctx, config.UserAgentExtra{
+		Type:      "Resource",
+		Name:      req.TypeName,
+		Operation: "PlanResourceChange",
+	})
 	return s.OldServer.PlanResourceChange(ctx, req)
 }
 
 func (s *WrappedProviderServer) ApplyResourceChange(ctx context.Context, req *tfprotov6.ApplyResourceChangeRequest) (*tfprotov6.ApplyResourceChangeResponse, error) {
-	ctx = context.WithValue(ctx, config.ContextKeyTFSrc, req.TypeName)
+	ctx = config.AddUserAgentExtra(ctx, config.UserAgentExtra{
+		Type:      "Resource",
+		Name:      req.TypeName,
+		Operation: "ApplyResourceChange",
+	})
 	return s.OldServer.ApplyResourceChange(ctx, req)
 }
 
 func (s *WrappedProviderServer) ImportResourceState(ctx context.Context, req *tfprotov6.ImportResourceStateRequest) (*tfprotov6.ImportResourceStateResponse, error) {
-	ctx = context.WithValue(ctx, config.ContextKeyTFSrc, "import."+req.TypeName)
+	ctx = config.AddUserAgentExtra(ctx, config.UserAgentExtra{
+		Type:      "Resource",
+		Name:      req.TypeName,
+		Operation: "ImportResourceState",
+	})
 	return s.OldServer.ImportResourceState(ctx, req)
 }
 
 func (s *WrappedProviderServer) MoveResourceState(ctx context.Context, req *tfprotov6.MoveResourceStateRequest) (*tfprotov6.MoveResourceStateResponse, error) {
-	ctx = context.WithValue(ctx, config.ContextKeyTFSrc, "move."+req.TargetTypeName)
+	ctx = config.AddUserAgentExtra(ctx, config.UserAgentExtra{
+		Type:      "Resource",
+		Name:      req.TargetTypeName,
+		Operation: "MoveResourceState",
+	})
 	return s.OldServer.MoveResourceState(ctx, req)
 }
 
 func (s *WrappedProviderServer) UpgradeResourceIdentity(ctx context.Context, req *tfprotov6.UpgradeResourceIdentityRequest) (*tfprotov6.UpgradeResourceIdentityResponse, error) {
-	ctx = context.WithValue(ctx, config.ContextKeyTFSrc, req.TypeName)
+	ctx = config.AddUserAgentExtra(ctx, config.UserAgentExtra{
+		Type:      "Resource",
+		Name:      req.TypeName,
+		Operation: "UpgradeResourceIdentity",
+	})
 	return s.OldServer.UpgradeResourceIdentity(ctx, req)
 }
 
 func (s *WrappedProviderServer) ValidateDataResourceConfig(ctx context.Context, req *tfprotov6.ValidateDataResourceConfigRequest) (*tfprotov6.ValidateDataResourceConfigResponse, error) {
-	ctx = context.WithValue(ctx, config.ContextKeyTFSrc, "data."+req.TypeName)
+	ctx = config.AddUserAgentExtra(ctx, config.UserAgentExtra{
+		Type:      "Datasource",
+		Name:      req.TypeName,
+		Operation: "ValidateDataResourceConfig",
+	})
 	return s.OldServer.ValidateDataResourceConfig(ctx, req)
 }
 
 func (s *WrappedProviderServer) ReadDataSource(ctx context.Context, req *tfprotov6.ReadDataSourceRequest) (*tfprotov6.ReadDataSourceResponse, error) {
-	ctx = context.WithValue(ctx, config.ContextKeyTFSrc, "data."+req.TypeName)
+	ctx = config.AddUserAgentExtra(ctx, config.UserAgentExtra{
+		Type:      "Datasource",
+		Name:      req.TypeName,
+		Operation: "ReadDataSource",
+	})
 	return s.OldServer.ReadDataSource(ctx, req)
 }
 
 func (s *WrappedProviderServer) CallFunction(ctx context.Context, req *tfprotov6.CallFunctionRequest) (*tfprotov6.CallFunctionResponse, error) {
-	ctx = context.WithValue(ctx, config.ContextKeyTFSrc, "func."+req.Name)
+	ctx = config.AddUserAgentExtra(ctx, config.UserAgentExtra{
+		Type:      "Function",
+		Name:      req.Name,
+		Operation: "CallFunction",
+	})
 	return s.OldServer.CallFunction(ctx, req)
 }
 
@@ -103,21 +149,37 @@ func (s *WrappedProviderServer) GetFunctions(ctx context.Context, req *tfprotov6
 }
 
 func (s *WrappedProviderServer) ValidateEphemeralResourceConfig(ctx context.Context, req *tfprotov6.ValidateEphemeralResourceConfigRequest) (*tfprotov6.ValidateEphemeralResourceConfigResponse, error) {
-	ctx = context.WithValue(ctx, config.ContextKeyTFSrc, req.TypeName)
+	ctx = config.AddUserAgentExtra(ctx, config.UserAgentExtra{
+		Type:      "Ephemeral",
+		Name:      req.TypeName,
+		Operation: "ValidateEphemeralResourceConfig",
+	})
 	return s.OldServer.ValidateEphemeralResourceConfig(ctx, req)
 }
 
 func (s *WrappedProviderServer) OpenEphemeralResource(ctx context.Context, req *tfprotov6.OpenEphemeralResourceRequest) (*tfprotov6.OpenEphemeralResourceResponse, error) {
-	ctx = context.WithValue(ctx, config.ContextKeyTFSrc, req.TypeName)
+	ctx = config.AddUserAgentExtra(ctx, config.UserAgentExtra{
+		Type:      "Ephemeral",
+		Name:      req.TypeName,
+		Operation: "OpenEphemeralResource",
+	})
 	return s.OldServer.OpenEphemeralResource(ctx, req)
 }
 
 func (s *WrappedProviderServer) RenewEphemeralResource(ctx context.Context, req *tfprotov6.RenewEphemeralResourceRequest) (*tfprotov6.RenewEphemeralResourceResponse, error) {
-	ctx = context.WithValue(ctx, config.ContextKeyTFSrc, req.TypeName)
+	ctx = config.AddUserAgentExtra(ctx, config.UserAgentExtra{
+		Type:      "Ephemeral",
+		Name:      req.TypeName,
+		Operation: "RenewEphemeralResource",
+	})
 	return s.OldServer.RenewEphemeralResource(ctx, req)
 }
 
 func (s *WrappedProviderServer) CloseEphemeralResource(ctx context.Context, req *tfprotov6.CloseEphemeralResourceRequest) (*tfprotov6.CloseEphemeralResourceResponse, error) {
-	ctx = context.WithValue(ctx, config.ContextKeyTFSrc, req.TypeName)
+	ctx = config.AddUserAgentExtra(ctx, config.UserAgentExtra{
+		Type:      "Ephemeral",
+		Name:      req.TypeName,
+		Operation: "CloseEphemeralResource",
+	})
 	return s.OldServer.CloseEphemeralResource(ctx, req)
 }

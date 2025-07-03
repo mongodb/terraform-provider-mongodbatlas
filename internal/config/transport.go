@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,24 +9,104 @@ import (
 	"time"
 )
 
-type ContextKey string
+// UserAgentExtra holds additional metadata to be appended to the User-Agent header and context.
+type UserAgentExtra struct {
+	Type           string // Type of the operation (e.g., "Resource", "Datasource", etc.)
+	Name           string // Full name, for example mongodbatlas_database_user
+	Operation      string // GrpcCall for example, ReadResource, see wrapped_provider_server.go for details
+	ScriptLocation string // TODO: Support setting this field as opt-in on resources and datasources
+}
+
+// Combine returns a new UserAgentExtra by merging the receiver with another.
+// Non-empty fields in 'other' take precedence over the receiver's fields.
+func (e UserAgentExtra) Combine(other UserAgentExtra) UserAgentExtra {
+	typeName := e.Type
+	if other.Type != "" {
+		typeName = other.Type
+	}
+	name := e.Name
+	if other.Name != "" {
+		name = other.Name
+	}
+	operation := e.Operation
+	if other.Operation != "" {
+		operation = other.Operation
+	}
+	scriptLocation := e.ScriptLocation
+	if other.ScriptLocation != "" {
+		scriptLocation = other.ScriptLocation
+	}
+	return UserAgentExtra{
+		Type:           typeName,
+		Name:           name,
+		Operation:      operation,
+		ScriptLocation: scriptLocation,
+	}
+}
+
+// ToHeaderValue returns a string representation suitable for use as a User-Agent header value.
+// If oldHeader is non-empty, it is prepended to the new value.
+func (e UserAgentExtra) ToHeaderValue(oldHeader string) string {
+	parts := []string{}
+	addPart := func(key, part string) {
+		if part == "" {
+			return
+		}
+		parts = append(parts, fmt.Sprintf("%s/%s", key, part))
+	}
+	addPart("Type", e.Type)
+	addPart("Name", e.Name)
+	addPart("Operation", e.Operation)
+	addPart("ScriptLocation", e.ScriptLocation)
+	newPart := strings.Join(parts, " ")
+	if oldHeader == "" {
+		return newPart
+	}
+	return fmt.Sprintf("%s %s", oldHeader, newPart)
+}
+
+type UserAgentKey string
 
 const (
-	ContextKeyTFSrc = ContextKey("tf-src")
-	UserAgentHeader = "User-Agent"
+	UserAgentExtraKey = UserAgentKey("user-agent-extra")
+	UserAgentHeader   = "User-Agent"
 )
+
+// ReadUserAgentExtra retrieves the UserAgentExtra from the context if present.
+// Returns a pointer to the UserAgentExtra, or nil if not set or of the wrong type.
+// Logs a warning if the value is not of the expected type.
+func ReadUserAgentExtra(ctx context.Context) *UserAgentExtra {
+	extra := ctx.Value(UserAgentExtraKey)
+	if extra == nil {
+		return nil
+	}
+	if userAgentExtra, ok := extra.(UserAgentExtra); ok {
+		return &userAgentExtra
+	}
+	log.Printf("[WARN] UserAgentExtra in context is not of type UserAgentExtra, got %v", extra)
+	return nil
+}
+
+// AddUserAgentExtra returns a new context with UserAgentExtra merged into any existing value.
+// If a UserAgentExtra is already present in the context, the fields of 'extra' will override non-empty fields.
+func AddUserAgentExtra(ctx context.Context, extra UserAgentExtra) context.Context {
+	oldExtra := ReadUserAgentExtra(ctx)
+	if oldExtra == nil {
+		return context.WithValue(ctx, UserAgentExtraKey, extra)
+	}
+	newExtra := oldExtra.Combine(extra)
+	return context.WithValue(ctx, UserAgentExtraKey, newExtra)
+}
 
 type TFSrcUserAgentAdder struct {
 	Transport http.RoundTripper
 }
 
 func (t *TFSrcUserAgentAdder) RoundTrip(req *http.Request) (*http.Response, error) {
-	ctx := req.Context()
-	tfSrcName := ctx.Value(ContextKeyTFSrc)
-	if tfSrcName != nil {
+	extra := ReadUserAgentExtra(req.Context())
+	if extra != nil {
 		userAgent := req.Header.Get(UserAgentHeader)
-		tfSrcValue := tfSrcName.(string)
-		newVar := fmt.Sprintf("%s %s/%s", userAgent, ContextKeyTFSrc, tfSrcValue)
+		newVar := extra.ToHeaderValue(userAgent)
 		req.Header.Set(UserAgentHeader, newVar)
 	}
 	resp, err := t.Transport.RoundTrip(req)
