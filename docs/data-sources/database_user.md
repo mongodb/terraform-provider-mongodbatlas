@@ -86,7 +86,7 @@ In addition to all arguments above, the following attributes are exported:
   * `USER` - OIDC Workload federated authentication user. To learn more about OIDC federated authentication, see [Set up Workload Identity Federation with OIDC](https://www.mongodb.com/docs/atlas/security-oidc/).
 * `scopes` - Array of clusters and Atlas Data Lakes that this user has access to.
     * `name` - Name of the cluster or Atlas Data Lake that the user has access to.
-    * `type` - Type of resource that the user has access to. See [Database User API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Database-Users/operation/createDatabaseUser) for the list of valid values.
+    * `type` - Type of resource that the user has access to. See [Database User API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createdatabaseuser) for the list of valid values.
 
 ### Roles
 
