@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"regexp"
 
 	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
@@ -169,21 +168,17 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 		resp.Diagnostics.AddError("error splitting import ID", err.Error())
 		return
 	}
-
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("api_key_id"), apiKeyID)...)
 }
 
 func splitAPIKeyProjectAssignmentImportID(id string) (projectID, apiKeyID string, err error) {
-	re := regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)$`)
-	parts := re.FindStringSubmatch(id)
-
-	if len(parts) != 3 {
-		err = errors.New("use the format {project_id}-{api_key_id}")
+	ok, parts := conversion.ImportSplit(id, 2)
+	if ok {
+		projectID, apiKeyID = parts[0], parts[1]
+		err = conversion.ValidateProjectID(projectID)
 		return
 	}
-
-	projectID = parts[1]
-	apiKeyID = parts[2]
+	err = errors.New("import format error: to import use the format {project_id}/{api_key_id}")
 	return
 }

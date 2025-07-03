@@ -64,11 +64,11 @@ func TestImportSplit3(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			ok, part1, part2, part3 := conversion.ImportSplit3(tc.importRaw)
+			ok, parts := conversion.ImportSplit(tc.importRaw, 3)
 			assert.Equal(t, tc.expected, ok)
-			assert.Equal(t, tc.part1, part1)
-			assert.Equal(t, tc.part2, part2)
-			assert.Equal(t, tc.part3, part3)
+			assert.Equal(t, tc.part1, parts[0])
+			assert.Equal(t, tc.part2, parts[1])
+			assert.Equal(t, tc.part3, parts[2])
 		})
 	}
 }
