@@ -116,4 +116,4 @@ Containing key-value pairs that tag and categorize the database user. Each key a
 * `key` - The key that you want to write.
 * `value` - The value that you want to write.
 
-See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Database-Users/operation/getDatabaseUser) Documentation for more information.
+See [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getdatabaseuser) Documentation for more information.
