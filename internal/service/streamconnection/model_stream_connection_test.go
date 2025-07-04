@@ -26,7 +26,9 @@ const (
 	networkingType            = "PUBLIC"
 	privatelinkNetworkingType = "PRIVATE_LINK"
 	awslambdaConnectionName   = "aws_lambda_connection"
+	awss3ConnectionName       = "aws_s3_connection"
 	sampleRoleArn             = "rn:aws:iam::123456789123:role/sample"
+	sampleTestBucket          = "sample_test_bucket"
 	httpsURL                  = "https://example.com"
 )
 
@@ -248,6 +250,29 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				Headers:         types.MapNull(types.StringType),
 			},
 		},
+		{
+			name: "AWS S3 connection type with roleArn",
+			SDKResp: &admin.StreamsConnection{
+				Name: admin.PtrString(awss3ConnectionName),
+				Type: admin.PtrString("S3"),
+				Aws:  &admin.StreamsAWSConnectionConfig{RoleArn: admin.PtrString(sampleRoleArn), TestBucket: admin.PtrString(sampleTestBucket)},
+			},
+			providedProjID:       dummyProjectID,
+			providedInstanceName: instanceName,
+			expectedTFModel: &streamconnection.TFStreamConnectionModel{
+				ProjectID:       types.StringValue(dummyProjectID),
+				InstanceName:    types.StringValue(instanceName),
+				ConnectionName:  types.StringValue(awss3ConnectionName),
+				Type:            types.StringValue("S3"),
+				Authentication:  types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+				Config:          types.MapNull(types.StringType),
+				Security:        types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+				DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+				Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+				AWS:             tfAWSS3ConfigObject(t, sampleRoleArn, sampleTestBucket),
+				Headers:         types.MapNull(types.StringType),
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -314,6 +339,14 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 						Type: admin.PtrString("AWSLambda"),
 						Aws: &admin.StreamsAWSConnectionConfig{
 							RoleArn: admin.PtrString(sampleRoleArn),
+						},
+					},
+					{
+						Name: admin.PtrString(awss3ConnectionName),
+						Type: admin.PtrString("S3"),
+						Aws: &admin.StreamsAWSConnectionConfig{
+							RoleArn:    admin.PtrString(sampleRoleArn),
+							TestBucket: admin.PtrString(sampleTestBucket),
 						},
 					},
 					{
@@ -396,6 +429,21 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 						DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 						Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 						AWS:             tfAWSLambdaConfigObject(t, sampleRoleArn),
+						Headers:         types.MapNull(types.StringType),
+					},
+					{
+						ID:              types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, awss3ConnectionName)),
+						ProjectID:       types.StringValue(dummyProjectID),
+						InstanceName:    types.StringValue(instanceName),
+						ConnectionName:  types.StringValue(awss3ConnectionName),
+						Type:            types.StringValue("S3"),
+						ClusterName:     types.StringNull(),
+						Authentication:  types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+						Config:          types.MapNull(types.StringType),
+						Security:        types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+						DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+						Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+						AWS:             tfAWSS3ConfigObject(t, sampleRoleArn, sampleTestBucket),
 						Headers:         types.MapNull(types.StringType),
 					},
 					{
@@ -552,6 +600,24 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 			},
 		},
 		{
+			name: "AWS S3 type TF state",
+			tfModel: &streamconnection.TFStreamConnectionModel{
+				ProjectID:      types.StringValue(dummyProjectID),
+				InstanceName:   types.StringValue(instanceName),
+				ConnectionName: types.StringValue(awslambdaConnectionName),
+				Type:           types.StringValue("S3"),
+				AWS:            tfAWSS3ConfigObject(t, sampleRoleArn, sampleTestBucket),
+			},
+			expectedSDKReq: &admin.StreamsConnection{
+				Name: admin.PtrString(awslambdaConnectionName),
+				Type: admin.PtrString("S3"),
+				Aws: &admin.StreamsAWSConnectionConfig{
+					RoleArn:    admin.PtrString(sampleRoleArn),
+					TestBucket: admin.PtrString(sampleTestBucket),
+				},
+			},
+		},
+		{
 			name: "Https type TF state",
 			tfModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:      types.StringValue(dummyProjectID),
@@ -663,6 +729,18 @@ func tfAWSLambdaConfigObject(t *testing.T, roleArn string) types.Object {
 	t.Helper()
 	aws, diags := types.ObjectValueFrom(t.Context(), streamconnection.AWSObjectType.AttrTypes, streamconnection.TFAWSModel{
 		RoleArn: types.StringValue(roleArn),
+	})
+	if diags.HasError() {
+		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
+	}
+	return aws
+}
+
+func tfAWSS3ConfigObject(t *testing.T, roleArn, testBucket string) types.Object {
+	t.Helper()
+	aws, diags := types.ObjectValueFrom(t.Context(), streamconnection.AWSObjectType.AttrTypes, streamconnection.TFAWSModel{
+		RoleArn:    types.StringValue(roleArn),
+		TestBucket: types.StringValue(testBucket),
 	})
 	if diags.HasError() {
 		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())

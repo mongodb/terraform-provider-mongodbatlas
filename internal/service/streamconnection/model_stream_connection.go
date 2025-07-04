@@ -85,7 +85,8 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 			return nil, diags
 		}
 		streamConnection.Aws = &admin.StreamsAWSConnectionConfig{
-			RoleArn: awsModel.RoleArn.ValueStringPointer(),
+			RoleArn:    awsModel.RoleArn.ValueStringPointer(),
+			TestBucket: awsModel.TestBucket.ValueStringPointer(),
 		}
 	}
 
@@ -191,7 +192,8 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName string, cur
 	connectionModel.AWS = types.ObjectNull(AWSObjectType.AttrTypes)
 	if apiResp.Aws != nil {
 		aws, diags := types.ObjectValueFrom(ctx, AWSObjectType.AttrTypes, TFAWSModel{
-			RoleArn: types.StringPointerValue(apiResp.Aws.RoleArn),
+			RoleArn:    types.StringPointerValue(apiResp.Aws.RoleArn),
+			TestBucket: types.StringPointerValue(apiResp.Aws.TestBucket),
 		})
 		if diags.HasError() {
 			return nil, diags
