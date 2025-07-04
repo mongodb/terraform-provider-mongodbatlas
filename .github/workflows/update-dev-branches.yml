@@ -31,14 +31,19 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+    - name: Checkout repo
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       with:
         fetch-depth: 0
-    - run: |
+    
+    - name: Config Git
+      run: |
         git config --local user.email svc-api-experience-integrations-escalation@mongodb.com
         git config --local user.name svc-apix-bot
     
-    - run: |
+    - name: Rebase branch with master
+      id: rebase-check
+      run: |
         echo "Updating branch: ${{ matrix.branch }}"
         
         if ! git ls-remote --heads origin ${{ matrix.branch }} | grep -q ${{ matrix.branch }}; then
@@ -78,9 +83,9 @@ jobs:
           echo "Changes detected between rebased branch and original remote branch. PR will introduce changes."
           echo "has-changes=true" >> "${GITHUB_OUTPUT}"
         fi
-      id: rebase-check
 
-    - uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e
+    - name: Create pull request
+      uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e
       if: steps.rebase-check.outputs.has-changes == 'true'
       with:
         token: ${{ secrets.APIX_BOT_PAT }}
@@ -98,7 +103,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: slackapi/slack-github-action@b0fa283ad8fea605de13dc3f449259339835fc52
+      - name: Send Slack notification on failure
+        uses: slackapi/slack-github-action@b0fa283ad8fea605de13dc3f449259339835fc52
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
