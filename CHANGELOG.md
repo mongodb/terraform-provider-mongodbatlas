@@ -1,5 +1,20 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_third_party_integration Adds `send_user_provided_resource_tags` attribute to support sending $querystats to DataDog ([#3454](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3454))
+* data-source/mongodbatlas_third_party_integrations Adds `send_user_provided_resource_tags` attribute to support sending $querystats to DataDog ([#3454](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3454))
+* resource/mongodbatlas_third_party_integration Adds `send_user_provided_resource_tags` attribute to support sending $querystats to DataDog ([#3454](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3454))
+
+BUG FIXES:
+
+* data-source/mongodbatlas_cloud_backup_snapshot_export_buckets: Fix pagination when `items_per_page` or `page_num` are not set ([#3459](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3459))
+* data-source/mongodbatlas_cloud_backup_snapshot_export_jobs: Fix pagination when `items_per_page` or `page_num` are not set ([#3459](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3459))
+* data-source/mongodbatlas_cloud_backup_snapshot_restore_jobs: Fix pagination when `items_per_page` or `page_num` are not set ([#3459](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3459))
+* data-source/mongodbatlas_cloud_backup_snapshots: Fix pagination when `items_per_page` or `page_num` are not set ([#3459](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3459))
+* data-source/mongodbatlas_federated_settings_org_configs: Fix pagination when `items_per_page` or `page_num` are not set ([#3459](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3459))
+* data-source/mongodbatlas_organizations: Fix pagination when `items_per_page` or `page_num` are not set ([#3459](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3459))
+
 ## 1.37.0 (June 26, 2025)
 
 ENHANCEMENTS:

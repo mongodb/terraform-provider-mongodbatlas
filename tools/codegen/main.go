@@ -38,15 +38,11 @@ func main() {
 		if err := writeToFile(schemaFilePath, schemaCode); err != nil {
 			log.Fatalf("an error occurred when writing content to file: %v", err)
 		}
-
-		// Run fieldalignment on the generated schema file
-		cmd := exec.Command("fieldalignment", "-fix", schemaFilePath)
-		if output, err := cmd.CombinedOutput(); err != nil {
-			log.Printf("warning: fieldalignment failed for %s: %v\nOutput: %s", schemaFilePath, err, output)
-		}
+		formatGoFile(schemaFilePath)
 
 		resourceCode := resource.GenerateGoCode(&resourceModel)
-		if err := writeToFile(fmt.Sprintf("internal/serviceapi/%s/resource.go", resourceModel.Name.LowerCaseNoUnderscore()), resourceCode); err != nil {
+		resourceFilePath := fmt.Sprintf("internal/serviceapi/%s/resource.go", resourceModel.Name.LowerCaseNoUnderscore())
+		if err := writeToFile(resourceFilePath, resourceCode); err != nil {
 			log.Fatalf("an error occurred when writing content to file: %v", err)
 		}
 	}
@@ -75,4 +71,17 @@ func writeToFile(fileName, content string) error {
 		return fmt.Errorf("failed to write to file %s: %w", fileName, err)
 	}
 	return nil
+}
+
+// formatGoFile runs goimports and fieldalignment on the specified Go file
+func formatGoFile(filePath string) {
+	goimportsCmd := exec.Command("goimports", "-w", filePath)
+	if output, err := goimportsCmd.CombinedOutput(); err != nil {
+		log.Printf("warning: goimports failed for %s: %v\nOutput: %s", filePath, err, output)
+	}
+
+	fieldalignmentCmd := exec.Command("fieldalignment", "-fix", filePath)
+	if output, err := fieldalignmentCmd.CombinedOutput(); err != nil {
+		log.Printf("warning: fieldalignment failed for %s: %v\nOutput: %s", filePath, err, output)
+	}
 }

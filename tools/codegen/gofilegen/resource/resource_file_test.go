@@ -119,6 +119,32 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 			},
 			goldenFileName: "wait-configuration",
 		},
+		"Defining static request body in delete operation": {
+			inputModel: codespec.Resource{
+				Name: stringcase.SnakeCaseString("test_name"),
+				Operations: codespec.APIOperations{
+					Create: codespec.APIOperation{
+						HTTPMethod: "POST",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Update: codespec.APIOperation{
+						HTTPMethod: "PATCH",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Read: codespec.APIOperation{
+						HTTPMethod: "GET",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Delete: codespec.APIOperation{
+						HTTPMethod:        "PATCH",
+						Path:              "/api/v1/testname/{projectId}",
+						StaticRequestBody: `{"enabled": false}`,
+					},
+					VersionHeader: "application/vnd.atlas.2024-05-30+json",
+				},
+			},
+			goldenFileName: "static-request-body-delete",
+		},
 	}
 
 	for testName, tc := range testCases {
