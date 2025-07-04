@@ -15,6 +15,10 @@ Historically, the `mongodbatlas_project_api_key` resource allowed users to creat
 - **Clarity:** Clear separation of key creation and project assignment.
 - **Best Practices:** Aligns with Terraform and Atlas recommendations for resource management.
 
+## Will `mongodbatlas_project_api_key` continue to work?
+
+While this is not our recommended approach, you can still continue to use the `mongodbatlas_project_api_key` resource. If you are creating a new configuration, use the `mongodbatlas_api_key_project_assignment` resource.
+
 ## Main Changes Between Patterns
 
 | Old Pattern (`mongodbatlas_project_api_key`) | New Pattern (`mongodbatlas_api_key` + `mongodbatlas_api_key_project_assignment`) |

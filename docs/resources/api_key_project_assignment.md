@@ -17,8 +17,8 @@ resource "mongodbatlas_project" "this" {
 }
 
 resource "mongodbatlas_api_key_project_assignment" "this" {
-  project_id = mongodbatlas_project.test1.id
-  api_key_id = mongodbatlas_api_key.test.api_key_id
+  project_id = mongodbatlas_project.this.id
+  api_key_id = mongodbatlas_api_key.this.api_key_id
   roles      = ["GROUP_OWNER"]
 }
 ```

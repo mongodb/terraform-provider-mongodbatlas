@@ -1,6 +1,6 @@
 # Data Source: mongodbatlas_api_key_project_assignments
 
-`mongodbatlas_api_key_project_assignments` provides a API Key Project Assignments data source. The data source lets you list all API key project assignments for an organization.
+`mongodbatlas_api_key_project_assignments` provides an API Key Project Assignments data source. The data source lets you list all API key project assignments for an organization.
 
 ## Example Usages
 
@@ -17,8 +17,8 @@ resource "mongodbatlas_project" "this" {
 }
 
 resource "mongodbatlas_api_key_project_assignment" "this" {
-  project_id = mongodbatlas_project.test1.id
-  api_key_id = mongodbatlas_api_key.test.api_key_id
+  project_id = mongodbatlas_project.this.id
+  api_key_id = mongodbatlas_api_key.this.api_key_id
   roles      = ["GROUP_OWNER"]
 }
 ```
