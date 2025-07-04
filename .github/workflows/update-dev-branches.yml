@@ -67,7 +67,7 @@ jobs:
             echo "3. Add a bypass in dev branch ruleset settings to allow direct push to ${{ matrix.branch }}"
             echo "4. Push changes directly to ${{ matrix.branch }} (DO NOT create a PR)"
             echo "5. Remove the bypass from ruleset settings"
-            echo "6. Creating a PR would squash commits and cause the same conflicts to appear again in future automated runs"
+            echo "NOTE: Do not create a PR - squashed commits will cause the same conflicts to appear again in future updates"
             git merge --abort
             exit 1
           fi
