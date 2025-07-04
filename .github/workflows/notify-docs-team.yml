@@ -31,7 +31,7 @@ jobs:
     steps:
       - uses: slackapi/slack-github-action@b0fa283ad8fea605de13dc3f449259339835fc52
         with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL_DOCS }}
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST }}
           webhook-type: incoming-webhook
           payload: |
             {
