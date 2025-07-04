@@ -78,17 +78,25 @@ If you are migrating from `mongodbatlas_project_api_key` resources already manag
    ```
 2. **Import the existing API key into the API key resource:**
    ```shell
-   terraform import mongodbatlas_api_key.example <ORG_ID>-<API_KEY_ID>
+   terraform import mongodbatlas_api_key.new <ORG_ID>-<API_KEY_ID>
    ```
 3. **Import the existing project assignment into the assignment resource:**
    ```shell
-   terraform import mongodbatlas_api_key_project_assignment.example <PROJECT_ID>/<API_KEY_ID>
+   terraform import mongodbatlas_api_key_project_assignment.new <PROJECT_ID>/<API_KEY_ID>
    ```
 4. **Remove the old resource from the Terraform state:**
    ```shell
-   terraform state rm mongodbatlas_project_api_key.example
+   terraform state rm mongodbatlas_project_api_key.old
    ```
-   This step ensures Terraform will not attempt to delete the underlying Atlas resource.
+   This step ensures Terraform will not attempt to delete the underlying Atlas resource. Alternatively a `removed block` (available in Terraform 1.7 and later) can be used to delete it from the state file, e.g.:
+   ```terraform
+   removed {
+    from = mongodbatlas_project_api_key.old
+     lifecycle {
+      destroy = false
+     }
+   }
+  ```
 5. **Remove the old resource block from your configuration**
 6. **Run `terraform plan` to review the changes.**
    - Ensure that Terraform does not plan to delete or recreate your API keys or assignments.
@@ -96,78 +104,7 @@ If you are migrating from `mongodbatlas_project_api_key` resources already manag
 6. **Run `terraform apply` to apply the migration.**
    - Your resources should now be managed under the new resource types without any disruption.
 
-### Example
-Suppose you previously had:
-```hcl
-resource "mongodbatlas_project_api_key" "old" {
-  description = "example key"
-  project_assignment {
-    project_id = var.project_id
-    role_names = ["GROUP_READ_ONLY"]
-  }
-}
-```
-You would:
-1. Add:
-   ```hcl
-   resource "mongodbatlas_api_key" "new" {
-     org_id      = var.org_id
-     description = "example key"
-     role_names  = ["ORG_READ_ONLY"]
-   }
-
-   resource "mongodbatlas_api_key_project_assignment" "new" {
-     project_id = var.project_id
-     api_key_id = mongodbatlas_api_key.new.api_key_id
-     role_names = ["GROUP_READ_ONLY"]
-   }
-   ```
-2. Import the existing resources:
-   ```shell
-   terraform import mongodbatlas_api_key.new <ORG_ID>-<API_KEY_ID>
-   terraform import mongodbatlas_api_key_project_assignment.new <PROJECT_ID>/<API_KEY_ID>
-   ```
-3. Remove the old resource from state:
-   ```shell
-   terraform state rm mongodbatlas_project_api_key.old
-   ```
-4. Remove the old resource block from your configuration.
-5. Run `terraform plan` and `terraform apply`.
-
 This process ensures that your existing Atlas API keys and assignments are preserved and managed by Terraform under the new resource types, with no deletion or recreation.
-
-## Step-by-Step Migration Example
-1. **Review your current configuration:**
-   ```hcl
-   resource "mongodbatlas_project_api_key" "example" {
-     description = "example key"
-     project_assignment {
-       project_id = var.project_id
-       role_names = ["GROUP_READ_ONLY"]
-     }
-   }
-   ```
-2. **Add the new resources:**
-   ```hcl
-   resource "mongodbatlas_api_key" "example" {
-     org_id      = var.org_id
-     description = "example key"
-     role_names  = ["ORG_READ_ONLY"]
-   }
-
-   resource "mongodbatlas_api_key_project_assignment" "example" {
-     project_id = var.project_id
-     api_key_id = mongodbatlas_api_key.example.api_key_id
-     role_names = ["GROUP_READ_ONLY"]
-   }
-   ```
-3. **Remove the old resource:**
-   - Delete or comment out the `mongodbatlas_project_api_key` block.
-4. **Update references:**
-   - Change any references from `mongodbatlas_project_api_key.example.api_key_id` to `mongodbatlas_api_key.example.api_key_id`.
-5. **Apply the changes:**
-   - Run `terraform plan` to review the changes.
-   - Run `terraform apply` to apply the migration.
 
 ## FAQ
 **Q: Can I assign the same API key to multiple projects?**
