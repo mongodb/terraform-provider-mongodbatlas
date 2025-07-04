@@ -19,6 +19,23 @@ Historically, the `mongodbatlas_project_api_key` resource allowed users to creat
 
 While this is not our recommended approach, you can still continue to use the `mongodbatlas_project_api_key` resource. If you are creating a new configuration, use the `mongodbatlas_api_key_project_assignment` resource.
 
+## Does this work for modules?
+
+If you are using modules to manage your API key assignments, migrating from `mongodbatlas_project_api_key` to the new pattern requires special attention. Because the old resource corresponds to two new resources (`mongodbatlas_api_key` and `mongodbatlas_api_key_project_assignment`), you cannot simply move the resource block inside your module and expect Terraform to handle the migration automatically.
+
+**Key points for module users:**
+- You must use `terraform import` to bring existing API keys and assignments into the new resources, even when they are managed inside a module.
+- The import command must match the resource address as used in your module (e.g., `module.<module_name>.mongodbatlas_api_key.<name>`).
+- After import, remove the old resource from your configuration and state as described above.
+
+**Example import commands for modules:**
+```shell
+terraform import 'module.<module_name>.mongodbatlas_api_key.<name>' <ORG_ID>-<API_KEY_ID>
+terraform import 'module.<module_name>.mongodbatlas_api_key_project_assignment.<name>' <PROJECT_ID>/<API_KEY_ID>
+```
+
+For a working example of module usage, see [examples/mongodbatlas_api_key_assignment/module/](../../examples/mongodbatlas_api_key_assignment/module/).
+
 ## Main Changes Between Patterns
 
 | Old Pattern (`mongodbatlas_project_api_key`) | New Pattern (`mongodbatlas_api_key` + `mongodbatlas_api_key_project_assignment`) |
@@ -109,6 +126,56 @@ If you are migrating from `mongodbatlas_project_api_key` resources already manag
    - Your resources should now be managed under the new resource types without any disruption.
 
 This process ensures that your existing Atlas API keys and assignments are preserved and managed by Terraform under the new resource types, with no deletion or recreation.
+
+## Migration using Modules
+
+This section demonstrates how to migrate from a module using the legacy `mongodbatlas_project_api_key` resource to a module using the new `mongodbatlas_api_key` and `mongodbatlas_api_key_project_assignment` resources.
+
+### 1. Old Module Usage (Legacy)
+
+```hcl
+module "project_api_key" {
+  source     = "./old_module"
+  project_id = var.project_id
+  role_names = var.role_names
+}
+```
+
+### 2. New Module Usage (Recommended)
+
+```hcl
+module "api_key_assignment" {
+  source     = "./new_module"
+  org_id     = var.org_id
+  project_id = var.project_id
+  role_names = var.role_names
+}
+```
+
+### 3. Migration Steps
+
+1. **Add the new module to your configuration:**
+   - Add the new module block as shown above, using the same input variables as appropriate.
+2. **Import the existing API key and assignment into the new resources:**
+   - Use the correct resource addresses for your module:
+   ```shell
+   terraform import 'module.api_key_assignment.mongodbatlas_api_key.this' <ORG_ID>-<API_KEY_ID>
+   terraform import 'module.api_key_assignment.mongodbatlas_api_key_project_assignment.this' <PROJECT_ID>/<API_KEY_ID>
+   ```
+3. **Remove the old resource from the Terraform state:**
+   ```shell
+   terraform state rm 'module.project_api_key.mongodbatlas_project_api_key.this'
+   ```
+   Alternatively a `removed block` (available in Terraform 1.7 and later) can be used to delete it from the state file.
+4. **Remove the old module block from your configuration.**
+5. **Run `terraform plan` to review the changes.**
+   - Ensure that Terraform does not plan to delete or recreate your API keys or assignments.
+6. **Run `terraform apply` to apply the migration.**
+
+For complete working examples, see:
+- [Old module example](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_api_key_assignment/module/old_module/)
+- [New module example](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_api_key_assignment/module/new_module/)
+
 
 ## FAQ
 **Q: Can I assign the same API key to multiple projects?**
