@@ -63,6 +63,7 @@ func PluralDataSource() *schema.Resource {
 								},
 							},
 						},
+						"users": &DSOrgUsersSchema,
 						"api_access_list_required": {
 							Type:     schema.TypeBool,
 							Computed: true,
@@ -138,6 +139,10 @@ func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizati
 	results = make([]map[string]any, len(organizations))
 
 	for k, organization := range organizations {
+		users, err := ListAllOrganizationUsers(ctx, *organization.Id, conn)
+		if err != nil {
+			return nil, fmt.Errorf("error getting organization users (orgID: %s, org Name: %s): %s", organization.GetId(), organization.GetName(), err)
+		}
 		settings, _, err := conn.OrganizationsApi.GetOrganizationSettings(ctx, *organization.Id).Execute()
 		if err != nil {
 			return nil, fmt.Errorf("error getting organization settings (orgID: %s, org Name: %s): %s", organization.GetId(), organization.GetName(), err)
@@ -148,6 +153,7 @@ func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizati
 			"skip_default_alerts_settings": organization.SkipDefaultAlertsSettings,
 			"is_deleted":                   organization.IsDeleted,
 			"links":                        conversion.FlattenLinks(organization.GetLinks()),
+			"users":                        conversion.FlattenUsers(users),
 			"api_access_list_required":     settings.ApiAccessListRequired,
 			"multi_factor_auth_required":   settings.MultiFactorAuthRequired,
 			"restrict_employee_access":     settings.RestrictEmployeeAccess,
