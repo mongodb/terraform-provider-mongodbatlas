@@ -14,6 +14,7 @@ The included [`main.tf`](./main.tf) shows how to:
 1. **Create an API key** at the organization level with `mongodbatlas_api_key`.
 2. **Create a project** with `mongodbatlas_project`.
 3. **Assign the API key to the project** with `mongodbatlas_api_key_project_assignment`, specifying project-level roles.
+4. **Attach an access list to the API key** 
 
 ```hcl
 resource "mongodbatlas_api_key" "this" {
