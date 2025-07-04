@@ -27,7 +27,7 @@ Historically, the `mongodbatlas_project_api_key` resource allowed users to creat
 
 ### Old Pattern (Legacy)
 ```hcl
-resource "mongodbatlas_project_api_key" "example" {
+resource "mongodbatlas_project_api_key" "old" {
   description = "example key"
   project_assignment {
     project_id = var.project_id
@@ -38,15 +38,15 @@ resource "mongodbatlas_project_api_key" "example" {
 
 ### New Pattern (Recommended)
 ```hcl
-resource "mongodbatlas_api_key" "example" {
+resource "mongodbatlas_api_key" "new" {
   org_id      = var.org_id
   description = "example key"
   role_names  = ["ORG_READ_ONLY"]
 }
 
-resource "mongodbatlas_api_key_project_assignment" "example" {
+resource "mongodbatlas_api_key_project_assignment" "new" {
   project_id = var.project_id
-  api_key_id = mongodbatlas_api_key.example.api_key_id
+  api_key_id = mongodbatlas_api_key.new.api_key_id
   role_names = ["GROUP_READ_ONLY"]
 }
 ```
@@ -64,15 +64,15 @@ If you are migrating from `mongodbatlas_project_api_key` resources already manag
 
 1. **Add the new resources to your configuration:**
    ```hcl
-   resource "mongodbatlas_api_key" "example" {
+   resource "mongodbatlas_api_key" "new" {
      org_id      = var.org_id
      description = "example key"
      role_names  = ["ORG_READ_ONLY"]
    }
 
-   resource "mongodbatlas_api_key_project_assignment" "example" {
+   resource "mongodbatlas_api_key_project_assignment" "new" {
      project_id = var.project_id
-     api_key_id = mongodbatlas_api_key.example.api_key_id
+     api_key_id = mongodbatlas_api_key.new.api_key_id
      role_names = ["GROUP_READ_ONLY"]
    }
    ```
@@ -99,7 +99,7 @@ If you are migrating from `mongodbatlas_project_api_key` resources already manag
 ### Example
 Suppose you previously had:
 ```hcl
-resource "mongodbatlas_project_api_key" "example" {
+resource "mongodbatlas_project_api_key" "old" {
   description = "example key"
   project_assignment {
     project_id = var.project_id
@@ -110,28 +110,28 @@ resource "mongodbatlas_project_api_key" "example" {
 You would:
 1. Add:
    ```hcl
-   resource "mongodbatlas_api_key" "example" {
+   resource "mongodbatlas_api_key" "new" {
      org_id      = var.org_id
      description = "example key"
      role_names  = ["ORG_READ_ONLY"]
    }
 
-   resource "mongodbatlas_api_key_project_assignment" "example" {
+   resource "mongodbatlas_api_key_project_assignment" "new" {
      project_id = var.project_id
-     api_key_id = mongodbatlas_api_key.example.api_key_id
+     api_key_id = mongodbatlas_api_key.new.api_key_id
      role_names = ["GROUP_READ_ONLY"]
    }
    ```
 2. Import the existing resources:
    ```shell
-   terraform import mongodbatlas_api_key.example <ORG_ID>-<API_KEY_ID>
-   terraform import mongodbatlas_api_key_project_assignment.example <PROJECT_ID>/<API_KEY_ID>
+   terraform import mongodbatlas_api_key.new <ORG_ID>-<API_KEY_ID>
+   terraform import mongodbatlas_api_key_project_assignment.new <PROJECT_ID>/<API_KEY_ID>
    ```
 3. Remove the old resource from state:
    ```shell
-   terraform state rm mongodbatlas_project_api_key.example
+   terraform state rm mongodbatlas_project_api_key.old
    ```
-4. Remove the old resource block from your configuration (if not already done).
+4. Remove the old resource block from your configuration.
 5. Run `terraform plan` and `terraform apply`.
 
 This process ensures that your existing Atlas API keys and assignments are preserved and managed by Terraform under the new resource types, with no deletion or recreation.
@@ -177,12 +177,10 @@ A: Yes, simply create multiple `mongodbatlas_api_key_project_assignment` resourc
 A: Existing keys will continue to work, but we recommend following the migration guide to move to the new pattern.
 
 **Q: What if I have many project assignments?**
-A: You can use `for_each` or `count` with `mongodbatlas_api_key_project_assignment` to manage multiple assignments efficiently.
+A: You can use [`for_each`](https://developer.hashicorp.com/terraform/language/meta-arguments/for_each) or [`count`](http://developer.hashicorp.com/terraform/language/meta-arguments/count) with `mongodbatlas_api_key_project_assignment` to manage multiple assignments efficiently.
 
 **Q: Where can I find a working example?**
-A: See [examples/mongodbatlas_api_key/main.tf](../../examples/mongodbatlas_api_key/main.tf).
+A: See [examples/mongodbatlas_api_key/main.tf](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_api_key/main.tf).
 
 ## Further Resources
-- [Terraform MongoDB Atlas Provider Documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs)
 - [API Key Project Assignment Resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/api_key_project_assignment)
-- [Migration Guide Source](https://github.com/mongodb/terraform-provider-mongodbatlas)
