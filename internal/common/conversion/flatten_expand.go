@@ -45,7 +45,10 @@ func FlattenUsers(users []admin.OrgUserResponse) []map[string]any {
 
 func FlattenUserRoles(roles admin.OrgUserRolesResponse) []map[string]any {
 	ret := []map[string]any{}
-	roleMap := map[string]any{}
+	roleMap := map[string]any{
+		"org_roles":     []string{},
+		"project_roles": []map[string]any{},
+	}
 	if roles.HasOrgRoles() {
 		roleMap["org_roles"] = roles.GetOrgRoles()
 	}
