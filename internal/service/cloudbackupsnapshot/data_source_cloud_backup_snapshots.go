@@ -129,8 +129,8 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	params := &admin.ListReplicaSetBackupsApiParams{
 		GroupId:      d.Get("project_id").(string),
 		ClusterName:  d.Get("cluster_name").(string),
-		PageNum:      conversion.Pointer(d.Get("page_num").(int)),
-		ItemsPerPage: conversion.Pointer(d.Get("items_per_page").(int)),
+		PageNum:      conversion.IntPtr(d.Get("page_num").(int)),
+		ItemsPerPage: conversion.IntPtr(d.Get("items_per_page").(int)),
 	}
 
 	snapshots, _, err := connV2.CloudBackupsApi.ListReplicaSetBackupsWithParams(ctx, params).Execute()

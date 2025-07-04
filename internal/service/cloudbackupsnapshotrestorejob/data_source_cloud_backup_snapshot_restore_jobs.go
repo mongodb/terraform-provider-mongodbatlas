@@ -116,10 +116,13 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
-	pageNum := d.Get("page_num").(int)
-	itermsPerPage := d.Get("items_per_page").(int)
-
-	cloudProviderSnapshotRestoreJobs, _, err := conn.CloudBackupsApi.ListBackupRestoreJobs(ctx, projectID, clusterName).PageNum(pageNum).ItemsPerPage(itermsPerPage).Execute()
+	params := &admin.ListBackupRestoreJobsApiParams{
+		GroupId:      projectID,
+		ClusterName:  clusterName,
+		PageNum:      conversion.IntPtr(d.Get("page_num").(int)),
+		ItemsPerPage: conversion.IntPtr(d.Get("items_per_page").(int)),
+	}
+	cloudProviderSnapshotRestoreJobs, _, err := conn.CloudBackupsApi.ListBackupRestoreJobsWithParams(ctx, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting cloudProviderSnapshotRestoreJobs information: %s", err))
 	}
