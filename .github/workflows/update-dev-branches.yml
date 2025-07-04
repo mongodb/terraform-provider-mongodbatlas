@@ -50,9 +50,6 @@ jobs:
         git fetch origin ${{ matrix.branch }}        
         git checkout -B ${{ matrix.branch }} origin/${{ matrix.branch }}
         
-        # Store the original commit hash to compare later
-        original_commit=$(git rev-parse HEAD)
-        
         if git rebase origin/master; then
           echo "OK: Rebase completed successfully with no conflicts."
         else
@@ -73,13 +70,12 @@ jobs:
           fi
         fi
         
-        # Check if there are any changes after rebase
-        new_commit=$(git rev-parse HEAD)
-        if [ "$original_commit" = "$new_commit" ]; then
-          echo "No changes detected after rebase. Branch is already up to date."
+        # Check if there are any changes between rebased branch and original remote branch
+        if git diff --quiet origin/${{ matrix.branch }} HEAD; then
+          echo "No changes detected between rebased branch and original remote branch. PR would not introduce any changes."
           echo "has-changes=false" >> $GITHUB_OUTPUT
         else
-          echo "Changes detected after rebase."
+          echo "Changes detected between rebased branch and original remote branch. PR will introduce changes."
           echo "has-changes=true" >> $GITHUB_OUTPUT
         fi
       id: rebase-check
