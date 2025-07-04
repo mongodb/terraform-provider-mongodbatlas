@@ -73,10 +73,10 @@ jobs:
         # Check if there are any changes between rebased branch and original remote branch
         if git diff --quiet origin/${{ matrix.branch }} HEAD; then
           echo "No changes detected between rebased branch and original remote branch. PR would not introduce any changes."
-          echo "has-changes=false" >> $GITHUB_OUTPUT
+          echo "has-changes=false" >> "${GITHUB_OUTPUT}"
         else
           echo "Changes detected between rebased branch and original remote branch. PR will introduce changes."
-          echo "has-changes=true" >> $GITHUB_OUTPUT
+          echo "has-changes=true" >> "${GITHUB_OUTPUT}"
         fi
       id: rebase-check
 
