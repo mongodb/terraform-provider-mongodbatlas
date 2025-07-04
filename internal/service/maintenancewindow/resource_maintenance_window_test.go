@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20250312004/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -42,6 +42,7 @@ func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				// testing hour_of_day set to 0 during creation phase does not return errors
@@ -80,6 +81,7 @@ func TestAccConfigRSMaintenanceWindow_emptyHourOfDay(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(orgID, projectName, dayOfWeek, nil, defaultProtectedHours),
@@ -100,6 +102,7 @@ func TestAccConfigRSMaintenanceWindow_autoDeferActivated(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: configWithAutoDeferEnabled(orgID, projectName, dayOfWeek, hourOfDay),
@@ -133,6 +136,24 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		}
 		return nil
 	}
+}
+
+func checkDestroy(s *terraform.State) error {
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "mongodbatlas_maintenance_window" {
+			continue
+		}
+		projectID := rs.Primary.ID
+		if projectID == "" {
+			return fmt.Errorf("checkDestroy, no ID is set for: %s", resourceName)
+		}
+		maintenanceWindow, _, _ := acc.ConnV2().MaintenanceWindowsApi.GetMaintenanceWindow(context.Background(), projectID).Execute()
+		// Check if it's back to default settings (day_of_week = 0 means it's been reset)
+		if maintenanceWindow.GetDayOfWeek() != 0 {
+			return fmt.Errorf("maintenance window for project (%s) was not properly reset to defaults", projectID)
+		}
+	}
+	return nil
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {

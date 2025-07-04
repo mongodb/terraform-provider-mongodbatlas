@@ -7,11 +7,12 @@ import (
 )
 
 var elementTypeToString = map[codespec.ElemType]string{
-	codespec.Bool:    "types.BoolType",
-	codespec.Float64: "types.Float64Type",
-	codespec.Int64:   "types.Int64Type",
-	codespec.Number:  "types.NumberType",
-	codespec.String:  "types.StringType",
+	codespec.Bool:           "types.BoolType",
+	codespec.Float64:        "types.Float64Type",
+	codespec.Int64:          "types.Int64Type",
+	codespec.Number:         "types.NumberType",
+	codespec.String:         "types.StringType",
+	codespec.CustomTypeJSON: codespec.CustomTypeJSONVar.Schema,
 }
 
 const typesImportStatement = "github.com/hashicorp/terraform-plugin-framework/types"

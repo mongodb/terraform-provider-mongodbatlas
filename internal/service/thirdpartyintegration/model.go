@@ -1,54 +1,12 @@
 package thirdpartyintegration
 
 import (
-	"context"
-	"fmt"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
-	"go.mongodb.org/atlas-sdk/v20250312004/admin"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
-
-func PluralDataSource() *schema.Resource {
-	return &schema.Resource{
-		ReadContext: dataSourceMongoDBAtlasThirdPartyIntegrationsRead,
-		Schema: map[string]*schema.Schema{
-			"project_id": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"results": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem:     thirdPartyIntegrationSchema(),
-			},
-		},
-	}
-}
-
-func dataSourceMongoDBAtlasThirdPartyIntegrationsRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
-
-	projectID := d.Get("project_id").(string)
-	integrations, _, err := connV2.ThirdPartyIntegrationsApi.ListThirdPartyIntegrations(ctx, projectID).Execute()
-
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error getting third party integration list: %s", err))
-	}
-
-	if err = d.Set("results", flattenIntegrations(d, integrations, projectID)); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting results for third party integrations %s", err))
-	}
-
-	d.SetId(id.UniqueId())
-
-	return nil
-}
 
 func flattenIntegrations(d *schema.ResourceData, integrations *admin.PaginatedIntegration, projectID string) (list []map[string]any) {
 	results := integrations.GetResults()
@@ -99,23 +57,24 @@ func integrationToSchema(d *schema.ResourceData, integration *admin.ThirdPartyIn
 	}
 
 	out := map[string]any{
-		"id":                              integration.Id,
-		"type":                            integration.Type,
-		"api_key":                         integrationSchema.ApiKey,
-		"region":                          integration.Region,
-		"service_key":                     integrationSchema.ServiceKey,
-		"team_name":                       integration.TeamName,
-		"channel_name":                    integration.ChannelName,
-		"routing_key":                     integration.RoutingKey,
-		"url":                             integrationSchema.Url,
-		"secret":                          integrationSchema.Secret,
-		"microsoft_teams_webhook_url":     integrationSchema.MicrosoftTeamsWebhookUrl,
-		"user_name":                       integration.Username,
-		"password":                        integrationSchema.Password,
-		"service_discovery":               integration.ServiceDiscovery,
-		"enabled":                         integration.Enabled,
-		"send_collection_latency_metrics": integration.SendCollectionLatencyMetrics,
-		"send_database_metrics":           integration.SendDatabaseMetrics,
+		"id":                               integration.Id,
+		"type":                             integration.Type,
+		"api_key":                          integrationSchema.ApiKey,
+		"region":                           integration.Region,
+		"service_key":                      integrationSchema.ServiceKey,
+		"team_name":                        integration.TeamName,
+		"channel_name":                     integration.ChannelName,
+		"routing_key":                      integration.RoutingKey,
+		"url":                              integrationSchema.Url,
+		"secret":                           integrationSchema.Secret,
+		"microsoft_teams_webhook_url":      integrationSchema.MicrosoftTeamsWebhookUrl,
+		"user_name":                        integration.Username,
+		"password":                         integrationSchema.Password,
+		"service_discovery":                integration.ServiceDiscovery,
+		"enabled":                          integration.Enabled,
+		"send_collection_latency_metrics":  integration.SendCollectionLatencyMetrics,
+		"send_database_metrics":            integration.SendDatabaseMetrics,
+		"send_user_provided_resource_tags": integration.SendUserProvidedResourceTags,
 	}
 
 	// removing optional empty values, terraform complains about unexpected values even though they're empty
@@ -201,6 +160,10 @@ func schemaToIntegration(in *schema.ResourceData) (out *admin.ThirdPartyIntegrat
 		out.SendDatabaseMetrics = admin.PtrBool(sendDatabaseMetrics.(bool))
 	}
 
+	if sendUserProvidedResourceTags, ok := in.GetOk("send_user_provided_resource_tags"); ok {
+		out.SendUserProvidedResourceTags = admin.PtrBool(sendUserProvidedResourceTags.(bool))
+	}
+
 	return out
 }
 
@@ -261,5 +224,9 @@ func updateIntegrationFromSchema(d *schema.ResourceData, integration *admin.Thir
 
 	if d.HasChange("send_database_metrics") {
 		integration.SendDatabaseMetrics = admin.PtrBool(d.Get("send_database_metrics").(bool))
+	}
+
+	if d.HasChange("send_user_provided_resource_tags") {
+		integration.SendUserProvidedResourceTags = admin.PtrBool(d.Get("send_user_provided_resource_tags").(bool))
 	}
 }

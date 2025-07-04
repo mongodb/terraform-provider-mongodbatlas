@@ -280,9 +280,11 @@ jobs:
             - 'internal/provider/*.go'
           autogen:
             - 'internal/common/autogen/*.go'
+            - 'internal/serviceapi/auditingapi/*.go'
             - 'internal/serviceapi/clusterapi/*.go'
             - 'internal/serviceapi/customdbroleapi/*.go'
             - 'internal/serviceapi/databaseuserapi/*.go'
+            - 'internal/serviceapi/maintenancewindowapi/*.go'
             - 'internal/serviceapi/projectapi/*.go'
             - 'internal/serviceapi/pushbasedlogexportapi/*.go'
             - 'internal/serviceapi/resourcepolicyapi/*.go'            
@@ -515,9 +517,11 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
+            ./internal/serviceapi/auditingapi
             ./internal/serviceapi/clusterapi
             ./internal/serviceapi/customdbroleapi
             ./internal/serviceapi/databaseuserapi
+            ./internal/serviceapi/maintenancewindowapi
             ./internal/serviceapi/projectapi
             ./internal/serviceapi/pushbasedlogexportapi
             ./internal/serviceapi/resourcepolicyapi

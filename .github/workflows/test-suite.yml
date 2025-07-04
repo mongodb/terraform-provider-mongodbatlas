@@ -9,7 +9,7 @@ on:
     inputs:
       terraform_matrix:
         description: 'Terraform version matrix (JSON array)'
-        default: '["1.12.x","1.11.x","1.10.x","1.9.x","1.8.x","1.7.x","1.6.x","1.5.x"]'
+        default: '["1.12.x","1.11.x","1.10.x","1.9.x","1.8.x","1.7.x","1.6.x"]'
       provider_matrix:
         description: 'Previous MongoDB Atlas Provider version matrix for migration tests (JSON array)'
         default: '[""]' # "" for latest version

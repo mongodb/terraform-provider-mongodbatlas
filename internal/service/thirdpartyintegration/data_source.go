@@ -23,7 +23,7 @@ func DataSource() *schema.Resource {
 		Description: "Third-party service integration identifier",
 	}
 
-	integration.ReadContext = dataSourceMongoDBAtlasThirdPartyIntegrationRead
+	integration.ReadContext = dataSourceRead
 
 	return integration
 }
@@ -110,11 +110,15 @@ func thirdPartyIntegrationSchema() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+			"send_user_provided_resource_tags": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }
 
-func dataSourceMongoDBAtlasThirdPartyIntegrationRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	projectID := d.Get("project_id").(string)
 	queryType := d.Get("type").(string)
 
