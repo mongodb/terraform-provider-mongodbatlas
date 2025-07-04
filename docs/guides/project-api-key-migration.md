@@ -8,7 +8,7 @@ page_title: "Migration Guide: Project API Key to API Key + Assignment"
 
 ## Why do we have both `mongodbatlas_project_api_key` and the new pattern?
 
-Historically, the `mongodbatlas_project_api_key` resource allowed users to create and assign API keys to projects in a single step. However, this approach limited flexibility, especially for organizations managing many projects or requiring more granular control. The new pattern—creating API keys independently and assigning them to projects with `mongodbatlas_api_key_project_assignment`—offers greater flexibility, clarity, and aligns with best practices for infrastructure as code.
+Historically, the `mongodbatlas_project_api_key` resource allowed users to create and assign API keys to projects in a single step. However, this approach limited flexibility, especially for organizations managing many projects or requiring more granular control. The new pattern—creating API keys independently and assigning them to projects with `mongodbatlas_api_key_project_assignment` —offers greater flexibility, clarity, and aligns with best practices for infrastructure as code.
 
 ## Why should I migrate?
 - **Flexibility:** Manage API keys and assignments independently.
