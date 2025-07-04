@@ -506,7 +506,7 @@ func MuxProviderFactory() func() tfprotov6.ProviderServer {
 	if err != nil {
 		log.Fatal(err)
 	}
-	return muxServer.ProviderServer
+	return NewWrappedProviderServer(muxServer.ProviderServer)
 }
 
 func MultiEnvDefaultFunc(ks []string, def any) any {
