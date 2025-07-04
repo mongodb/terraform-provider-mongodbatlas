@@ -78,7 +78,8 @@ jobs:
         delete-branch: true
         branch: update-${{ matrix.branch }}-from-master
         base: ${{ matrix.branch }}
-        body: "Automated update of ${{ matrix.branch }} branch with latest changes from master branch."
+        body: "Automated update of `${{ matrix.branch }}` branch with latest changes from master branch."
+        labels: "skip-docs-notification"
 
   slack-notification:
     needs: update-branches
