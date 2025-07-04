@@ -36,3 +36,9 @@ variable "send_database_metrics" {
   default     = false
   type        = bool
 }
+
+variable "send_user_provided_resource_tags" {
+  description = "Send user provided resource tags (only for Datadog integrations)"
+  default     = false
+  type        = bool
+}

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"go.mongodb.org/atlas-sdk/v20250312004/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -79,7 +79,7 @@ func (r *resourcePolicyRS) Create(ctx context.Context, req resource.CreateReques
 	policies := NewAdminPolicies(ctx, plan.Policies)
 
 	connV2 := r.Client.AtlasV2
-	policySDK, _, err := connV2.ResourcePoliciesApi.CreateAtlasResourcePolicy(ctx, orgID, &admin.ApiAtlasResourcePolicyCreate{
+	policySDK, _, err := connV2.ResourcePoliciesApi.CreateOrgResourcePolicy(ctx, orgID, &admin.ApiAtlasResourcePolicyCreate{
 		Name:        plan.Name.ValueString(),
 		Description: plan.Description.ValueStringPointer(),
 		Policies:    policies,
@@ -105,7 +105,7 @@ func (r *resourcePolicyRS) Read(ctx context.Context, req resource.ReadRequest, r
 	orgID := state.OrgID.ValueString()
 	resourcePolicyID := state.ID.ValueString()
 	connV2 := r.Client.AtlasV2
-	policySDK, apiResp, err := connV2.ResourcePoliciesApi.GetAtlasResourcePolicy(ctx, orgID, resourcePolicyID).Execute()
+	policySDK, apiResp, err := connV2.ResourcePoliciesApi.GetOrgResourcePolicy(ctx, orgID, resourcePolicyID).Execute()
 
 	if err != nil {
 		if validate.StatusNotFound(apiResp) {
@@ -141,7 +141,7 @@ func (r *resourcePolicyRS) Update(ctx context.Context, req resource.UpdateReques
 		Description: conversion.Pointer(plan.Description.ValueString()),
 		Policies:    &policies,
 	}
-	policySDK, _, err := connV2.ResourcePoliciesApi.UpdateAtlasResourcePolicy(ctx, orgID, resourcePolicyID, &editAdmin).Execute()
+	policySDK, _, err := connV2.ResourcePoliciesApi.UpdateOrgResourcePolicy(ctx, orgID, resourcePolicyID, &editAdmin).Execute()
 
 	if err != nil {
 		resp.Diagnostics.AddError(errorUpdate, err.Error())
@@ -165,7 +165,7 @@ func (r *resourcePolicyRS) Delete(ctx context.Context, req resource.DeleteReques
 	resourcePolicyID := resourcePolicyState.ID.ValueString()
 	connV2 := r.Client.AtlasV2
 	resourcePolicyAPI := connV2.ResourcePoliciesApi
-	if _, err := resourcePolicyAPI.DeleteAtlasResourcePolicy(ctx, orgID, resourcePolicyID).Execute(); err != nil {
+	if _, err := resourcePolicyAPI.DeleteOrgResourcePolicy(ctx, orgID, resourcePolicyID).Execute(); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}

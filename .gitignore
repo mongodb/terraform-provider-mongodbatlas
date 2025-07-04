@@ -3,6 +3,7 @@ bin
 .DS_Store
 .idea
 .vscode
+.windsurf
 *.env
 *.bak
 *.log

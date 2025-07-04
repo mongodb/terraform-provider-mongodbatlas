@@ -179,7 +179,7 @@ func datadogTest(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configDatadog(projectID, apiKey, "US", false, false, false),
+				Config: configDatadog(projectID, apiKey, "US", false, false, false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
@@ -191,10 +191,11 @@ func datadogTest(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(dataSourceName, "region", region),
 					resource.TestCheckResourceAttr(dataSourceName, "send_collection_latency_metrics", "false"),
 					resource.TestCheckResourceAttr(dataSourceName, "send_database_metrics", "false"),
+					resource.TestCheckResourceAttr(dataSourceName, "send_user_provided_resource_tags", "false"),
 				),
 			},
 			{
-				Config: configDatadog(projectID, apiKey, "US", true, true, false),
+				Config: configDatadog(projectID, apiKey, "US", true, true, false, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
@@ -206,10 +207,11 @@ func datadogTest(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(dataSourceName, "region", region),
 					resource.TestCheckResourceAttr(dataSourceName, "send_collection_latency_metrics", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "send_database_metrics", "false"),
+					resource.TestCheckResourceAttr(dataSourceName, "send_user_provided_resource_tags", "false"),
 				),
 			},
 			{
-				Config: configDatadog(projectID, updatedAPIKey, "US", true, false, true),
+				Config: configDatadog(projectID, updatedAPIKey, "US", true, false, true, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
@@ -217,10 +219,11 @@ func datadogTest(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(resourceName, "region", region),
 					resource.TestCheckResourceAttr(resourceName, "send_collection_latency_metrics", "false"),
 					resource.TestCheckResourceAttr(resourceName, "send_database_metrics", "true"),
+					resource.TestCheckResourceAttr(resourceName, "send_user_provided_resource_tags", "false"),
 				),
 			},
 			{
-				Config: configDatadog(projectID, updatedAPIKey, "US", true, true, true),
+				Config: configDatadog(projectID, updatedAPIKey, "US", true, true, true, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "type", intType),
@@ -230,6 +233,7 @@ func datadogTest(tb testing.TB) *resource.TestCase {
 					resource.TestCheckResourceAttr(resourceName, "send_database_metrics", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "send_collection_latency_metrics", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "send_database_metrics", "true"),
+					resource.TestCheckResourceAttr(dataSourceName, "send_user_provided_resource_tags", "true"),
 				),
 			},
 			importStep(resourceName),
@@ -459,12 +463,13 @@ func configVictorOps(projectID, apiKey string) string {
 	) + singularDataStr
 }
 
-func configDatadog(projectID, apiKey, region string, useOptionalAttr, sendCollectionLatencyMetrics, sendDatabaseMetrics bool) string {
+func configDatadog(projectID, apiKey, region string, useOptionalAttr, sendCollectionLatencyMetrics, sendDatabaseMetrics, sendUserProvidedResourceTags bool) string {
 	optionalConfigAttrs := ""
 	if useOptionalAttr {
 		optionalConfigAttrs = fmt.Sprintf(
 			`send_collection_latency_metrics = %[1]t
-		send_database_metrics = %[2]t`, sendCollectionLatencyMetrics, sendDatabaseMetrics)
+		send_database_metrics = %[2]t
+		send_user_provided_resource_tags = %[3]t`, sendCollectionLatencyMetrics, sendDatabaseMetrics, sendUserProvidedResourceTags)
 	}
 	return fmt.Sprintf(`
 	resource "mongodbatlas_third_party_integration" "test" {
