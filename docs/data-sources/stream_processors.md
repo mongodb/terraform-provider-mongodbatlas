@@ -164,4 +164,4 @@ Read-Only:
 - `connection_name` (String) Name of the connection to write DLQ messages to. Must be an Atlas connection.
 - `db` (String) Name of the database to use for the DLQ.
 
-For more information see: [MongoDB Atlas API - Stream Processor](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createStreamProcessor) Documentation.
+For more information see: [MongoDB Atlas API - Stream Processor](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createstreamprocessor) Documentation.

@@ -36,7 +36,7 @@ resource "mongodbatlas_organization" "test" {
 * `security_contact` - (Optional) String that specifies a single email address for the specified organization to receive security-related notifications. Specifying a security contact does not grant them authorization or access to Atlas for security decisions or approvals.
 * `skip_default_alerts_settings` - (Optional) Flag that indicates whether to prevent Atlas from automatically creating organization-level alerts not explicitly managed through Terraform. Defaults to `true`. 
 
-~> **NOTE:** - If you create an organization with our Terraform provider version >=1.30.0, this field is set to `true` by default.<br> - If you have an existing organization created with our Terraform provider version <1.30.0, this field might be `false`, which is the [API default value](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Organizations/operation/createOrganization). To prevent the creation of future default alerts, set this explicitly to `true`.
+~> **NOTE:** - If you create an organization with our Terraform provider version >=1.30.0, this field is set to `true` by default.<br> - If you have an existing organization created with our Terraform provider version <1.30.0, this field might be `false`, which is the [API default value](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createorganization). To prevent the creation of future default alerts, set this explicitly to `true`.
 
 
 
