@@ -93,7 +93,7 @@ jobs:
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "✅ *Dev branch `${{ matrix.branch }}` updated successfully* with latest changes from master ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Action>"
+                  "text": "✅ *Dev branch `${{ matrix.branch }}` updated successfully* with latest changes from master <${{ secrets.SLACK_ONCALL_TAG }}> <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Action>"
                 }
               }
             ]
@@ -118,7 +118,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "❌ *Update dev branches failed* ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Failed Action>"
+                    "text": "❌ *Update dev branches failed* <${{ secrets.SLACK_ONCALL_TAG }}> <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Failed Action>"
                   }
                 }
               ]
