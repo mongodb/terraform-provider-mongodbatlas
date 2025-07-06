@@ -34,7 +34,6 @@ jobs:
       uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
       with:
         go-version-file: 'go.mod'
-        cache: false # see https://github.com/golangci/golangci-lint-action/issues/807
     - name: Config Git
       run: |
         git config --local user.email svc-api-experience-integrations-escalation@mongodb.com
@@ -86,6 +85,8 @@ jobs:
     - name: Project check
       if: steps.merge-check.outputs.has-changes == 'true'
       id: project-check
+      env:
+        MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: "true"
       run: |
         if make tools build lint test; then
           echo "slack-text=✅ Dev branch \`${{ matrix.branch }}\` merged and pushed with latest changes from master. <${{ secrets.SLACK_ONCALL_TAG }}> <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Action>" >> "${GITHUB_OUTPUT}"
