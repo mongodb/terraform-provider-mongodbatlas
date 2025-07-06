@@ -21,7 +21,6 @@ TF_VERSIONS_ARR=$(./scripts/get-terraform-supported-versions.sh "false")
 TEST_SUITE_YAML_FILE=".github/workflows/test-suite.yml"
 ACCEPTANCE_TESTS_YAML_FILE=".github/workflows/acceptance-tests.yml"
 CODE_HEALTH_YAML_FILE=".github/workflows/code-health.yml"
-DEV_BRANCH_YAML_FILE=".github/workflows/update-dev-branches.yml"
 EXAMPLES_YAML_FILE=".github/workflows/examples.yml"
 TOOL_VERSIONS_FILE=".tool-versions"
 DOC_SCRIPT="scripts/generate-doc.sh"
@@ -38,9 +37,6 @@ sed -i.bak -E "s|terraform_version: '.*'|terraform_version: '$LATEST_TF_VERSION'
 
 # Update Terraform version in code-health.yml
 sed -i.bak -E "s|terraform_version: '.*'|terraform_version: '$LATEST_TF_VERSION'|" "$CODE_HEALTH_YAML_FILE"
-
-# Update Terraform version in update-dev-branches.yml
-sed -i.bak -E "s|terraform_version: '.*'|terraform_version: '$LATEST_TF_VERSION'|" "$DEV_BRANCH_YAML_FILE"
 
 # Update Terraform version in acceptance-tests.yml
 sed -i.bak -E "s~terraform_version \|\| '[0-9]+\.[0-9]+\.x'~terraform_version \|\| '$LATEST_TF_VERSION'~" "$ACCEPTANCE_TESTS_YAML_FILE"
