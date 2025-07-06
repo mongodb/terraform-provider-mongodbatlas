@@ -92,7 +92,6 @@ jobs:
         else
           echo "slack-text=⚠️ *Dev branch \`${{ matrix.branch }}\` merged and pushed. This is prefered even if checks failed as there were no merge conflicts. Project checks must be fixed. <${{ secrets.SLACK_ONCALL_TAG }}> <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Action>" >> "${GITHUB_OUTPUT}"
         fi
-      continue-on-error: true
 
     - name: Send Slack notification
       if: steps.merge-check.outputs.has-changes == 'true'
