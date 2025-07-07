@@ -6,7 +6,7 @@ on:
 
 jobs:
   check:
-    if: github.event.pull_request.draft == false && !contains(github.event.pull_request.labels.*.name, 'skip-docs-notification')
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     outputs:
       files: ${{ steps.changes.outputs.files }}
