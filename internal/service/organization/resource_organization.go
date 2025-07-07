@@ -103,32 +103,24 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err := ValidateAPIKeyIsOrgOwner(conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List())); err != nil {
 		return diag.FromErr(err)
 	}
-
-	conn := meta.(*config.MongoDBClient).AtlasV2
+	conn := getAtlasV2Connection(ctx, d, meta) // Using provider credentials.
 	organization, resp, err := conn.OrganizationsApi.CreateOrganization(ctx, newCreateOrganizationRequest(d)).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) && !strings.Contains(err.Error(), "USER_NOT_FOUND") {
 			d.SetId("")
 			return nil
 		}
-
 		return diag.FromErr(fmt.Errorf("error creating Organization: %s", err))
 	}
 
-	orgID := organization.Organization.GetId()
-
-	// update settings using new keys for this created organization because
-	// the provider/requesting API keys are not applicable for performing updates/delete for this new organization
-	cfg := config.Config{
-		PublicKey:        *organization.ApiKey.PublicKey,
-		PrivateKey:       *organization.ApiKey.PrivateKey,
-		BaseURL:          meta.(*config.MongoDBClient).Config.BaseURL,
-		TerraformVersion: meta.(*config.MongoDBClient).Config.TerraformVersion,
+	if err := d.Set("private_key", organization.ApiKey.GetPrivateKey()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `private_key`: %s", err))
 	}
-
-	clients, _ := cfg.NewClient(ctx)
-	conn = clients.(*config.MongoDBClient).AtlasV2
-
+	if err := d.Set("public_key", organization.ApiKey.GetPublicKey()); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
+	}
+	conn = getAtlasV2Connection(ctx, d, meta) // Using new credentials from the created organization.
+	orgID := organization.Organization.GetId()
 	_, _, errUpdate := conn.OrganizationsApi.UpdateOrganizationSettings(ctx, orgID, newOrganizationSettings(d)).Execute()
 	if errUpdate != nil {
 		if _, err := conn.OrganizationsApi.DeleteOrganization(ctx, orgID).Execute(); err != nil {
@@ -139,37 +131,18 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf("an error occurred when updating Organization settings: %s", err))
 	}
 
-	if err := d.Set("private_key", organization.ApiKey.GetPrivateKey()); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `private_key`: %s", err))
-	}
-
-	if err := d.Set("public_key", organization.ApiKey.GetPublicKey()); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
-	}
-
-	if err := d.Set("org_id", organization.Organization.GetId()); err != nil {
+	if err := d.Set("org_id", orgID); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `org_id`: %s", err))
 	}
-
 	d.SetId(conversion.EncodeStateID(map[string]string{
-		"org_id": organization.Organization.GetId(),
+		"org_id": orgID,
 	}))
 
 	return resourceRead(ctx, d, meta)
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	cfg := config.Config{
-		PublicKey:        d.Get("public_key").(string),
-		PrivateKey:       d.Get("private_key").(string),
-		BaseURL:          meta.(*config.MongoDBClient).Config.BaseURL,
-		TerraformVersion: meta.(*config.MongoDBClient).Config.TerraformVersion,
-	}
-
-	clients, _ := cfg.NewClient(ctx)
-	conn := clients.(*config.MongoDBClient).AtlasV2
-
+	conn := getAtlasV2Connection(ctx, d, meta)
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
@@ -210,24 +183,11 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	if err := d.Set("security_contact", settings.SecurityContact); err != nil {
 		return diag.Errorf("error setting `security_contact` for organization (%s): %s", orgID, err)
 	}
-
-	d.SetId(conversion.EncodeStateID(map[string]string{
-		"org_id": organization.GetId(),
-	}))
 	return nil
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	cfg := config.Config{
-		PublicKey:        d.Get("public_key").(string),
-		PrivateKey:       d.Get("private_key").(string),
-		BaseURL:          meta.(*config.MongoDBClient).Config.BaseURL,
-		TerraformVersion: meta.(*config.MongoDBClient).Config.TerraformVersion,
-	}
-
-	clients, _ := cfg.NewClient(ctx)
-	conn := clients.(*config.MongoDBClient).AtlasV2
+	conn := getAtlasV2Connection(ctx, d, meta)
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
@@ -237,9 +197,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		d.HasChange("skip_default_alerts_settings") {
 		updateRequest.Name = d.Get("name").(string)
 		updateRequest.SkipDefaultAlertsSettings = conversion.Pointer(d.Get("skip_default_alerts_settings").(bool))
-
-		_, _, err := conn.OrganizationsApi.UpdateOrganization(ctx, orgID, updateRequest).Execute()
-		if err != nil {
+		if _, _, err := conn.OrganizationsApi.UpdateOrganization(ctx, orgID, updateRequest).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf("error updating Organization name: %s", err))
 		}
 	}
@@ -258,16 +216,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get client connection.
-	cfg := config.Config{
-		PublicKey:        d.Get("public_key").(string),
-		PrivateKey:       d.Get("private_key").(string),
-		BaseURL:          meta.(*config.MongoDBClient).Config.BaseURL,
-		TerraformVersion: meta.(*config.MongoDBClient).Config.TerraformVersion,
-	}
-
-	clients, _ := cfg.NewClient(ctx)
-	conn := clients.(*config.MongoDBClient).AtlasV2
+	conn := getAtlasV2Connection(ctx, d, meta)
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
@@ -329,4 +278,22 @@ func ValidateAPIKeyIsOrgOwner(roles []string) error {
 	}
 
 	return fmt.Errorf("`role_names` for new API Key must have the ORG_OWNER role to use this resource")
+}
+
+// getAtlasV2Connection uses the created credentials for the organization if they exist.
+// Otherwise, it uses the provider credentials, e.g. if the resource was imported.
+func getAtlasV2Connection(ctx context.Context, d *schema.ResourceData, meta any) *admin.APIClient {
+	publicKey := d.Get("public_key").(string)
+	privateKey := d.Get("private_key").(string)
+	if publicKey == "" || privateKey == "" {
+		return meta.(*config.MongoDBClient).AtlasV2
+	}
+	cfg := config.Config{
+		PublicKey:        publicKey,
+		PrivateKey:       privateKey,
+		BaseURL:          meta.(*config.MongoDBClient).Config.BaseURL,
+		TerraformVersion: meta.(*config.MongoDBClient).Config.TerraformVersion,
+	}
+	clients, _ := cfg.NewClient(ctx)
+	return clients.(*config.MongoDBClient).AtlasV2
 }
