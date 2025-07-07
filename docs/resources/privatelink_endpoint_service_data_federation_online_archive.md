@@ -33,7 +33,7 @@ resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archi
 }
 ```
 
-The `service_name` value for the region in question can be found in the [MongoDB Atlas Administration](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Data-Federation/operation/createDataFederationPrivateEndpoint) documentation.
+The `service_name` value for the region in question can be found in the [MongoDB Atlas Administration](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createdatafederationprivateendpoint) documentation.
 
 ## Argument Reference
 
