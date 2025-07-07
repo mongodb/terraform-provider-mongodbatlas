@@ -191,12 +191,22 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
-	updateRequest := new(admin.AtlasOrganization)
+	if d.HasChange("description") {
+		return diag.FromErr(fmt.Errorf("description cannot be changed after creation"))
+	}
+	if d.HasChange("org_owner_id") {
+		return diag.FromErr(fmt.Errorf("org_owner_id cannot be changed after creation"))
+	}
+	if d.HasChange("role_names") {
+		return diag.FromErr(fmt.Errorf("role_names cannot be changed after creation"))
+	}
 
 	if d.HasChange("name") ||
 		d.HasChange("skip_default_alerts_settings") {
-		updateRequest.Name = d.Get("name").(string)
-		updateRequest.SkipDefaultAlertsSettings = conversion.Pointer(d.Get("skip_default_alerts_settings").(bool))
+		updateRequest := &admin.AtlasOrganization{
+			Name:                      d.Get("name").(string),
+			SkipDefaultAlertsSettings: conversion.Pointer(d.Get("skip_default_alerts_settings").(bool)),
+		}
 		if _, _, err := conn.OrganizationsApi.UpdateOrganization(ctx, orgID, updateRequest).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf("error updating Organization name: %s", err))
 		}
