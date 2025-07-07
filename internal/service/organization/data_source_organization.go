@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -13,6 +14,57 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
+
+func FlattenUsers(users []admin.OrgUserResponse) []map[string]any {
+	ret := make([]map[string]any, len(users))
+	for i := range users {
+		user := &users[i]
+		ret[i] = map[string]any{
+			"id":                    user.GetId(),
+			"org_membership_status": user.GetOrgMembershipStatus(),
+			"roles":                 FlattenUserRoles(user.GetRoles()),
+			"team_ids":              user.GetTeamIds(),
+			"username":              user.GetUsername(),
+			"invitation_created_at": user.GetInvitationCreatedAt().Format(time.RFC3339),
+			"invitation_expires_at": user.GetInvitationExpiresAt().Format(time.RFC3339),
+			"inviter_username":      user.GetInviterUsername(),
+			"country":               user.GetCountry(),
+			"created_at":            user.GetCreatedAt().Format(time.RFC3339),
+			"first_name":            user.GetFirstName(),
+			"last_auth":             user.GetLastAuth().Format(time.RFC3339),
+			"last_name":             user.GetLastName(),
+			"mobile_number":         user.GetMobileNumber(),
+		}
+	}
+	return ret
+}
+
+func FlattenUserRoles(roles admin.OrgUserRolesResponse) []map[string]any {
+	ret := []map[string]any{}
+	roleMap := map[string]any{
+		"org_roles":     []string{},
+		"project_roles": []map[string]any{},
+	}
+	if roles.HasOrgRoles() {
+		roleMap["org_roles"] = roles.GetOrgRoles()
+	}
+	if roles.HasGroupRoleAssignments() {
+		roleMap["project_roles"] = FlattenGroupRolesAssignments(roles.GetGroupRoleAssignments())
+	}
+	ret = append(ret, roleMap)
+	return ret
+}
+
+func FlattenGroupRolesAssignments(assignments []admin.GroupRoleAssignment) []map[string]any {
+	ret := make([]map[string]any, len(assignments))
+	for i, assignment := range assignments {
+		ret[i] = map[string]any{
+			"group_id":    assignment.GetGroupId(),
+			"group_roles": assignment.GetGroupRoles(),
+		}
+	}
+	return ret
+}
 
 var (
 	DSOrgUsersSchema = schema.Schema{
@@ -199,7 +251,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting organization users: %s", err))
 	}
-	if err := d.Set("users", conversion.FlattenUsers(users)); err != nil {
+	if err := d.Set("users", FlattenUsers(users)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `users`: %s", err))
 	}
 
