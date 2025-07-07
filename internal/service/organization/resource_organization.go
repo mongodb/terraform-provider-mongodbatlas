@@ -23,7 +23,9 @@ func Resource() *schema.Resource {
 		ReadContext:   resourceRead,
 		UpdateContext: resourceUpdate,
 		DeleteContext: resourceDelete,
-		Importer:      nil, // import is not supported. See CLOUDP-215155
+		Importer: &schema.ResourceImporter{
+			StateContext: resourceImport,
+		},
 		Schema: map[string]*schema.Schema{
 			"org_owner_id": {
 				Type:     schema.TypeString,
@@ -273,6 +275,13 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf("error deleting Organization: %s", err))
 	}
 	return nil
+}
+
+func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+	d.SetId(conversion.EncodeStateID(map[string]string{
+		"org_id": d.Id(),
+	}))
+	return []*schema.ResourceData{d}, nil
 }
 
 func newCreateOrganizationRequest(d *schema.ResourceData) *admin.CreateOrganizationRequest {
