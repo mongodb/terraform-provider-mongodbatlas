@@ -48,7 +48,7 @@ json="{
                 \"type\": \"section\",
                 \"text\": {
                     \"type\": \"mrkdwn\",
-                    \"text\": \"*$text_value* <$oncall_tag>\"
+                    \"text\": \"*$text_value* $oncall_tag\"
                 }
             },
             {
