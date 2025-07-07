@@ -20,6 +20,6 @@ variable "project_id" {
 }
 
 variable "service_name" {
-  description = "AWS VPC endpoint service name associated to the specific region. Values can be found in https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Data-Federation/operation/createDataFederationPrivateEndpoint."
+  description = "AWS VPC endpoint service name associated to the specific region. Values can be found in https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createdatafederationprivateendpoint."
   type        = string
 }
