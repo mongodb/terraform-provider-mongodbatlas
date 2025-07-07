@@ -21,11 +21,15 @@ While this is not our recommended approach, you can still continue to use the `m
 
 ## Main Changes Between Patterns
 
-| Old Pattern (`mongodbatlas_project_api_key`) | New Pattern (`mongodbatlas_api_key` + `mongodbatlas_api_key_project_assignment`) |
-|----------------------------------------------|--------------------------------------------------------------------------|
-| API key creation and assignment are coupled  | API key creation and assignment are decoupled                            |
-| Assignments are defined within the resource  | Assignments are managed by separate resources                            |
-| Less flexible for multi-project assignments  | Easily assign the same key to multiple projects                          |
+### Old Pattern (`mongodbatlas_project_api_key`)
+- API key creation and assignment are coupled
+- Assignments are defined within the resource
+- Less flexible for multi-project assignments
+
+### New Pattern (`mongodbatlas_api_key` + `mongodbatlas_api_key_project_assignment`)
+- API key creation and assignment are decoupled
+- Assignments are managed by separate resources
+- Easily assign the same key to multiple projects
 
 ## Before and After: Example Configurations
 
