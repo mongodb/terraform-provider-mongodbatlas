@@ -84,10 +84,24 @@ If you are migrating from `mongodbatlas_project_api_key` resources already manag
    ```shell
    terraform import mongodbatlas_api_key.new <ORG_ID>-<API_KEY_ID>
    ```
+   Alternatively a `import block` (available in Terraform 1.5 and later) can be used to import the resource, e.g.:
+   ```terraform
+   import {
+    to = mongodbatlas_project_api_key.new
+    id = "<ORG_ID>-<API_KEY_ID>"
+   }
+  ```
 3. **Import the existing project assignment into the assignment resource:**
    ```shell
    terraform import mongodbatlas_api_key_project_assignment.new <PROJECT_ID>/<API_KEY_ID>
    ```
+   Alternatively a `import block` (available in Terraform 1.5 and later) can be used to import the resource, e.g.:
+   ```terraform
+   import {
+    to = mongodbatlas_api_key_project_assignment.new
+    id = "<PROJECT_ID>/<API_KEY_ID>"
+   }
+  ```
 4. **Remove the old resource from the Terraform state:**
    ```shell
    terraform state rm mongodbatlas_project_api_key.old
@@ -125,6 +139,18 @@ terraform import 'module.<module_name>.mongodbatlas_api_key.<name>' <ORG_ID>-<AP
 terraform import 'module.<module_name>.mongodbatlas_api_key_project_assignment.<name>' <PROJECT_ID>/<API_KEY_ID>
 ```
 
+**Example import blocks for modules**
+```terraform
+import {
+   to = module.api_key_assignment.mongodbatlas_api_key.this
+   id = "<ORG_ID>-<API_KEY_ID>"
+}
+import {
+   to = module.api_key_assignment.mongodbatlas_api_key_project_assignment.this
+   id = "<PROJECT_ID>/<API_KEY_ID>"
+}
+```
+
 ### 1. Old Module Usage (Legacy)
 
 ```hcl
@@ -155,6 +181,17 @@ module "api_key_assignment" {
    ```shell
    terraform import 'module.api_key_assignment.mongodbatlas_api_key.this' <ORG_ID>-<API_KEY_ID>
    terraform import 'module.api_key_assignment.mongodbatlas_api_key_project_assignment.this' <PROJECT_ID>/<API_KEY_ID>
+   ```
+   Alternatively a `import block` (available in Terraform 1.5 and later) can be used to import the resource, e.g.:
+   ```terraform
+   import {
+    to = module.api_key_assignment.mongodbatlas_api_key.this
+    id = "<ORG_ID>-<API_KEY_ID>"
+   }
+   import {
+    to = module.api_key_assignment.mongodbatlas_api_key_project_assignment.this
+    id = "<PROJECT_ID>/<API_KEY_ID>"
+   }
    ```
 3. **Remove the old resource from the Terraform state:**
    ```shell
