@@ -233,4 +233,4 @@ output "privatelink_endpoint_id" {
 - `provider_account_id` (String) Account ID from the cloud provider.
 - `state` (String) Status of the connection.
 
-For more information see: [MongoDB Atlas API - Streams Privatelink](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createPrivateLinkConnection) Documentation.
+For more information see: [MongoDB Atlas API - Streams Privatelink](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprivatelinkconnection) Documentation.

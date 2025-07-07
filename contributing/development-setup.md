@@ -160,7 +160,7 @@ You must also configure the following environment variables before running the t
   export MONGODB_ATLAS_FEDERATED_SSO_URL=<ATLAS_FEDERATED_SSO_URL>
   export MONGODB_ATLAS_FEDERATED_ISSUER_URI=<ATLAS_FEDERATED_ISSUER_URI>
   ```
-~> **Notice:** For more information about the Federation configuration resource, see: https://www.mongodb.com/docs/atlas/reference/api/federation-configuration/
+~> **Notice:** For more information about the Federation configuration resource, see: https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-federated-authentication
 
 ##### AWS env variables
 
