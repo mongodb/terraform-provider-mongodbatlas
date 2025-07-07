@@ -78,6 +78,8 @@ jobs:
 
     - name: Push updated branch
       if: steps.merge-check.outputs.has-changes == 'true'
+      env:
+        GITHUB_TOKEN: ${{ secrets.APIX_BOT_PAT }}
       run: |
         echo "Pushing updated branch ${{ matrix.branch }} to remote"
         git push origin ${{ matrix.branch }}
