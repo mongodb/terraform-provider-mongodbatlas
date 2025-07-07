@@ -121,7 +121,7 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstancesRead(ctx context.Context, d
 		return diag.FromErr(fmt.Errorf("error getting MongoDB Atlas Federated Database Instances information: %s", err))
 	}
 
-	if results := flattenFederatedDatabaseInstances(d, projectID, federatedDatabaseInstances); results != nil {
+	if results := flattenFederatedDatabaseInstances(projectID, federatedDatabaseInstances); results != nil {
 		if err := d.Set("results", results); err != nil {
 			return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "results", projectID, err))
 		}
@@ -132,7 +132,7 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstancesRead(ctx context.Context, d
 	return nil
 }
 
-func flattenFederatedDatabaseInstances(d *schema.ResourceData, projectID string, federatedDatabaseInstances []admin.DataLakeTenant) []map[string]any {
+func flattenFederatedDatabaseInstances(projectID string, federatedDatabaseInstances []admin.DataLakeTenant) []map[string]any {
 	var federatedDatabaseInstancesMap []map[string]any
 
 	if len(federatedDatabaseInstances) > 0 {
@@ -144,7 +144,7 @@ func flattenFederatedDatabaseInstances(d *schema.ResourceData, projectID string,
 				"name":                  federatedDatabaseInstances[i].GetName(),
 				"state":                 federatedDatabaseInstances[i].GetState(),
 				"hostnames":             federatedDatabaseInstances[i].GetHostnames(),
-				"cloud_provider_config": flattenCloudProviderConfig(d, federatedDatabaseInstances[i].CloudProviderConfig),
+				"cloud_provider_config": flattenCloudProviderConfig(federatedDatabaseInstances[i].CloudProviderConfig),
 				"data_process_region":   flattenDataProcessRegion(federatedDatabaseInstances[i].DataProcessRegion),
 				"storage_databases":     flattenDataFederationDatabase(federatedDatabaseInstances[i].Storage.GetDatabases()),
 				"storage_stores":        flattenDataFederationStores(federatedDatabaseInstances[i].Storage.GetStores()),

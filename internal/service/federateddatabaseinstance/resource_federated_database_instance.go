@@ -63,7 +63,7 @@ func Resource() *schema.Resource {
 						"aws": {
 							Type:     schema.TypeList,
 							MaxItems: 1,
-							Required: true,
+							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"role_id": {
@@ -83,6 +83,31 @@ func Resource() *schema.Resource {
 										Computed: true,
 									},
 									"external_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+						"azure": {
+							Type:     schema.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"role_id": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"atlas_app_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"service_principal_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"tenant_id": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
@@ -411,7 +436,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	}
 
 	if val, ok := dataFederationInstance.GetCloudProviderConfigOk(); ok {
-		if cloudProviderField := flattenCloudProviderConfig(d, val); cloudProviderField != nil {
+		if cloudProviderField := flattenCloudProviderConfig(val); cloudProviderField != nil {
 			if err = d.Set("cloud_provider_config", cloudProviderField); err != nil {
 				return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "cloud_provider_config", name, err))
 			}
@@ -520,7 +545,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	}
 
 	if val, ok := dataFederationInstance.GetCloudProviderConfigOk(); ok {
-		if cloudProviderField := flattenCloudProviderConfig(d, val); cloudProviderField != nil {
+		if cloudProviderField := flattenCloudProviderConfig(val); cloudProviderField != nil {
 			if err = d.Set("cloud_provider_config", cloudProviderField); err != nil {
 				return nil, fmt.Errorf(errorFederatedDatabaseInstanceSetting, "cloud_provider_config", name, err)
 			}
@@ -708,7 +733,8 @@ func newUrls(urlsFromConfig []any) *[]string {
 func newCloudProviderConfig(d *schema.ResourceData) *admin.DataLakeCloudProviderConfig {
 	if cloudProvider, ok := d.Get("cloud_provider_config").([]any); ok && len(cloudProvider) == 1 {
 		return &admin.DataLakeCloudProviderConfig{
-			Aws: newAWSConfig(cloudProvider),
+			Aws:   newAWSConfig(cloudProvider),
+			Azure: newAzureConfig(cloudProvider),
 		}
 	}
 
@@ -719,6 +745,15 @@ func newAWSConfig(cloudProvider []any) *admin.DataLakeAWSCloudProviderConfig {
 	if aws, ok := cloudProvider[0].(map[string]any)["aws"].([]any); ok && len(aws) == 1 {
 		awsSchema := aws[0].(map[string]any)
 		return admin.NewDataLakeAWSCloudProviderConfig(awsSchema["role_id"].(string), awsSchema["test_s3_bucket"].(string))
+	}
+
+	return nil
+}
+
+func newAzureConfig(cloudProvider []any) *admin.DataFederationAzureCloudProviderConfig {
+	if azure, ok := cloudProvider[0].(map[string]any)["azure"].([]any); ok && len(azure) == 1 {
+		azureSchema := azure[0].(map[string]any)
+		return admin.NewDataFederationAzureCloudProviderConfig(azureSchema["role_id"].(string))
 	}
 
 	return nil
@@ -735,43 +770,35 @@ func newDataProcessRegion(d *schema.ResourceData) *admin.DataLakeDataProcessRegi
 	return nil
 }
 
-func flattenCloudProviderConfig(d *schema.ResourceData, cloudProviderConfig *admin.DataLakeCloudProviderConfig) []map[string]any {
+func flattenCloudProviderConfig(cloudProviderConfig *admin.DataLakeCloudProviderConfig) []map[string]any {
 	if cloudProviderConfig == nil {
 		return nil
 	}
 
-	aws := cloudProviderConfig.GetAws()
+	return []map[string]any{
+		{
+			"aws": flattenAWSCloudProviderConfig(cloudProviderConfig.Aws),
+		},
+	}
 
-	awsOut := []map[string]any{
+}
+
+func flattenAWSCloudProviderConfig(aws *admin.DataLakeAWSCloudProviderConfig) []map[string]any {
+	if aws == nil {
+		return nil
+	}
+
+	// test_s3_bucket is not part of the API response
+
+	return []map[string]any{
 		{
 			"role_id":              aws.GetRoleId(),
+			"test_s3_bucket":       aws.GetTestS3Bucket(),
 			"iam_assumed_role_arn": aws.GetIamAssumedRoleARN(),
 			"iam_user_arn":         aws.GetIamUserARN(),
 			"external_id":          aws.GetExternalId(),
 		},
 	}
-
-	currentCloudProviderConfig, ok := d.Get("cloud_provider_config").([]any)
-	if !ok || len(currentCloudProviderConfig) == 0 {
-		return []map[string]any{
-			{
-				"aws": &awsOut,
-			},
-		}
-	}
-	// test_s3_bucket is not part of the API response
-	if currentAWS, ok := currentCloudProviderConfig[0].(map[string]any)["aws"].([]any); ok {
-		if testS3Bucket, ok := currentAWS[0].(map[string]any)["test_s3_bucket"].(string); ok {
-			awsOut[0]["test_s3_bucket"] = testS3Bucket
-			return []map[string]any{
-				{
-					"aws": &awsOut,
-				},
-			}
-		}
-	}
-
-	return awsOut
 }
 
 func flattenDataProcessRegion(processRegion *admin.DataLakeDataProcessRegion) []map[string]any {
