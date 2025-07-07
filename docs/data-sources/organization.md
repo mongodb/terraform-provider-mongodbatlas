@@ -34,19 +34,19 @@ In addition to all arguments above, the following attributes are exported:
 
 ### Users
 * `id` - Unique 24-hexadecimal digit string that identifies the MongoDB Cloud user.
-* `orgMembershipStatus` - String enum that indicates whether the MongoDB Cloud user has a pending invitation to join the organization or they are already active in the organization.
+* `org_membership_status` - String enum that indicates whether the MongoDB Cloud user has a pending invitation to join the organization or they are already active in the organization.
 * `roles` - Organization- and project-level roles assigned to one MongoDB Cloud user within one organization.
-* `teamIds` - List of unique 24-hexadecimal digit strings that identifies the teams to which this MongoDB Cloud user belongs.
+* `team_ids` - List of unique 24-hexadecimal digit strings that identifies the teams to which this MongoDB Cloud user belongs.
 * `username` - Email address that represents the username of the MongoDB Cloud user.
 * `country` - Two-character alphabetical string that identifies the MongoDB Cloud user's geographic location. This parameter uses the ISO 3166-1a2 code format.
-* `invitationCreatedAt` - Date and time when MongoDB Cloud sent the invitation. MongoDB Cloud represents this timestamp in ISO 8601 format in UTC.
-* `invitationExpiresAt` - Date and time when the invitation from MongoDB Cloud expires. MongoDB Cloud represents this timestamp in ISO 8601 format in UTC.
-* `inviterUsername` - Username of the MongoDB Cloud user who sent the invitation to join the organization.
-* `createdAt` - Date and time when MongoDB Cloud created the current account. This value is in the ISO 8601 timestamp format in UTC.
-* `firstName` - First or given name that belongs to the MongoDB Cloud user.
-* `lastAuth` - Date and time when the current account last authenticated. This value is in the ISO 8601 timestamp format in UTC.
-* `lastName` - Last name, family name, or surname that belongs to the MongoDB Cloud user.
-* `mobileNumber` - Mobile phone number that belongs to the MongoDB Cloud user.
+* `invitation_created_at` - Date and time when MongoDB Cloud sent the invitation. MongoDB Cloud represents this timestamp in ISO 8601 format in UTC.
+* `invitation_expires_at` - Date and time when the invitation from MongoDB Cloud expires. MongoDB Cloud represents this timestamp in ISO 8601 format in UTC.
+* `inviter_username` - Username of the MongoDB Cloud user who sent the invitation to join the organization.
+* `created_at` - Date and time when MongoDB Cloud created the current account. This value is in the ISO 8601 timestamp format in UTC.
+* `first_name` - First or given name that belongs to the MongoDB Cloud user.
+* `last_auth` - Date and time when the current account last authenticated. This value is in the ISO 8601 timestamp format in UTC.
+* `last_name` - Last name, family name, or surname that belongs to the MongoDB Cloud user.
+* `mobile_number` - Mobile phone number that belongs to the MongoDB Cloud user.
 
 ~> **NOTE:** - Does not return pending users invited via the deprecated [Invite One MongoDB Cloud User to Join One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprojectinvitation) endpoint or pending invitations created using [`mongodbatlas_project_invitation`](../resources/project_invitation.md) resource.
 
