@@ -15,14 +15,14 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func FlattenUsers(users []admin.OrgUserResponse) []map[string]any {
+func flattenUsers(users []admin.OrgUserResponse) []map[string]any {
 	ret := make([]map[string]any, len(users))
 	for i := range users {
 		user := &users[i]
 		ret[i] = map[string]any{
 			"id":                    user.GetId(),
 			"org_membership_status": user.GetOrgMembershipStatus(),
-			"roles":                 FlattenUserRoles(user.GetRoles()),
+			"roles":                 flattenUserRoles(user.GetRoles()),
 			"team_ids":              user.GetTeamIds(),
 			"username":              user.GetUsername(),
 			"invitation_created_at": user.GetInvitationCreatedAt().Format(time.RFC3339),
@@ -39,7 +39,7 @@ func FlattenUsers(users []admin.OrgUserResponse) []map[string]any {
 	return ret
 }
 
-func FlattenUserRoles(roles admin.OrgUserRolesResponse) []map[string]any {
+func flattenUserRoles(roles admin.OrgUserRolesResponse) []map[string]any {
 	ret := []map[string]any{}
 	roleMap := map[string]any{
 		"org_roles":     []string{},
@@ -49,13 +49,13 @@ func FlattenUserRoles(roles admin.OrgUserRolesResponse) []map[string]any {
 		roleMap["org_roles"] = roles.GetOrgRoles()
 	}
 	if roles.HasGroupRoleAssignments() {
-		roleMap["project_roles"] = FlattenGroupRolesAssignments(roles.GetGroupRoleAssignments())
+		roleMap["project_roles"] = flattenGroupRolesAssignments(roles.GetGroupRoleAssignments())
 	}
 	ret = append(ret, roleMap)
 	return ret
 }
 
-func FlattenGroupRolesAssignments(assignments []admin.GroupRoleAssignment) []map[string]any {
+func flattenGroupRolesAssignments(assignments []admin.GroupRoleAssignment) []map[string]any {
 	ret := make([]map[string]any, len(assignments))
 	for i, assignment := range assignments {
 		ret[i] = map[string]any{
@@ -251,7 +251,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting organization users: %s", err))
 	}
-	if err := d.Set("users", FlattenUsers(users)); err != nil {
+	if err := d.Set("users", flattenUsers(users)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `users`: %s", err))
 	}
 
