@@ -29,7 +29,7 @@ func Resource() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"org_owner_id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"name": {
 				Type:     schema.TypeString,
@@ -37,7 +37,7 @@ func Resource() *schema.Resource {
 			},
 			"description": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"org_id": {
 				Type:     schema.TypeString,
@@ -55,7 +55,7 @@ func Resource() *schema.Resource {
 			},
 			"role_names": {
 				Type:     schema.TypeSet,
-				Required: true,
+				Optional: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
