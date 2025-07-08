@@ -184,7 +184,40 @@ func TestAccConfigDSOrganization_basic(t *testing.T) {
 			{
 				Config: configWithPluralDS(orgID),
 				Check: checkAggrDS(resource.TestCheckResourceAttr(datasourceName, "gen_ai_features_enabled", "true"),
-					resource.TestCheckResourceAttr(pluralDSName, "results.0.gen_ai_features_enabled", "true")),
+					resource.TestCheckResourceAttr(pluralDSName, "results.0.gen_ai_features_enabled", "true"),
+					resource.TestCheckResourceAttrSet(datasourceName, "users.#"),
+					resource.TestCheckResourceAttrSet(datasourceName, "users.0.id")),
+			},
+		},
+	})
+}
+
+func TestAccConfigDSOrganization_users(t *testing.T) {
+	var (
+		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithPluralDS(orgID),
+				Check: checkAggrDS(
+					resource.TestCheckResourceAttrWith(datasourceName, "users.#", acc.IntGreatThan(0)),
+					resource.TestCheckResourceAttrSet(datasourceName, "users.0.id"),
+					resource.TestCheckResourceAttrSet(datasourceName, "users.0.roles.0.org_roles.#"),
+					resource.TestCheckResourceAttrSet(datasourceName, "users.0.roles.0.project_roles_assignments.#"),
+					resource.TestMatchResourceAttr(datasourceName, "users.0.username", regexp.MustCompile(`.*@mongodb\.com$`)),
+					resource.TestMatchResourceAttr(datasourceName, "users.0.last_auth", regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$`)), // Follows RFC3339 timestamp
+
+					resource.TestCheckResourceAttrWith(pluralDSName, "results.0.users.#", acc.IntGreatThan(0)),
+					resource.TestCheckResourceAttrSet(pluralDSName, "results.0.users.0.id"),
+					resource.TestCheckResourceAttrSet(pluralDSName, "results.0.users.0.roles.0.org_roles.#"),
+					resource.TestCheckResourceAttrSet(pluralDSName, "results.0.users.0.roles.0.project_roles_assignments.#"),
+					resource.TestMatchResourceAttr(pluralDSName, "results.0.users.0.username", regexp.MustCompile(`.*@mongodb\.com$`)),
+					resource.TestMatchResourceAttr(pluralDSName, "results.0.users.0.last_auth", regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$`)), // Follows RFC3339 timestamp
+
+				),
 			},
 		},
 	})

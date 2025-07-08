@@ -1,0 +1,7 @@
+```release-note:enhancement
+data-source/mongodbatlas_organization: Adds `users` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_organizations: Adds `users` attribute
+```
