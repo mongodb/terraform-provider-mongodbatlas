@@ -48,7 +48,11 @@ In addition to all arguments above, the following attributes are exported:
 * `last_name` - Last name, family name, or surname that belongs to the MongoDB Cloud user.
 * `mobile_number` - Mobile phone number that belongs to the MongoDB Cloud user.
 
-~> **NOTE:** - Does not return pending users invited via the deprecated [Invite One MongoDB Cloud User to Join One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprojectinvitation) endpoint or pending invitations created using [`mongodbatlas_project_invitation`](../resources/project_invitation.md) resource.
+
+# TODO: Add the links once created (part of CLOUDP-261814 epic)
+~> **NOTE:** - Users with pending invitations created using [`mongodbatlas_project_invitation`](../resources/project_invitation.md) resource or via the deprecated [Invite One MongoDB Cloud User to Join One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprojectinvitation) endpoint are excluded (or cannot be managed) with this resource. See  [MongoDB Atlas API]<link-to-resource-API> for details. 
+To manage these users with this resource/data source, refer to our [migration guide]<link-to-migration-guide>.
+
 
 
 ~> **NOTE:** - If you create an organization with our Terraform provider version >=1.30.0, this field is set to `true` by default.<br> - If you have an existing organization created with our Terraform provider version <1.30.0, this field might be `false`, which is the [API default value](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createorganization). To prevent the creation of future default alerts, set this explicitly to `true` using the [`mongodbatlas_organization`](../resources/organization.md) resource.
