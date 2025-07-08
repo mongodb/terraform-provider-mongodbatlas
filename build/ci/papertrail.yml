@@ -29,9 +29,9 @@ functions:
           sudo dnf install -y gh
 
   "trace release artifacts":
-    - command: shell.exec        
+    - command: shell.exec
       params:
-        working_dir: /tmp          
+        working_dir: /tmp
         script: |
           sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
           sudo dnf install -y gh
@@ -39,7 +39,7 @@ functions:
     - command: git.get_project
       params:
         directory: src/github.com/mongodb/terraform-provider-mongodbatlas
-    
+
     - command: shell.exec
       params:
         working_dir: "src/github.com/mongodb/terraform-provider-mongodbatlas"
@@ -60,12 +60,13 @@ functions:
 
               # get the latest release workflow run
               run_id=$(gh run list --workflow release.yml --branch master --limit 1 --json databaseId --jq '.[0].databaseId')
-              run_json=$(gh run view "$run_id" --json name,jobs)
+              run_json=$(gh run view "$run_id" --json name,jobs,actor)
 
               conclusion=$(jq -r '.jobs[] | select(.name=="release") | .conclusion' <<<"$run_json")
               version=$(jq -r '.name | match("v[0-9]+\\.[0-9]+\\.[0-9]+") | .string' <<<"$run_json")
+              author=$(jq -r '.actor.login' <<<"$run_json")
 
-              echo "conclusion=$conclusion   version=$version"
+              echo "conclusion=$conclusion   version=$version   author=$author"
 
               # checking the latest tag version (that triggered this task) matches the version in the release workflow run name
               if [[ "$version" != "$release_tag" ]]; then
@@ -107,34 +108,31 @@ functions:
 
           cat >trace-expansions.yml <<EOF
           release_version: "$version"
+          release_author: "$author"
           EOF
 
           echo "✅ Done."
 
-
-    
     - command: expansions.update
       params:
         file: src/github.com/mongodb/terraform-provider-mongodbatlas/trace-expansions.yml
-    
+
     - command: papertrail.trace
       params:
         key_id: ${papertrail_key_id}
         secret_key: ${papertrail_secret_key}
         product: "tmp2-terraform-provider-mongodbatlas"
         version: ${release_version}
-        submitter: "svc-apix-Bot"
+        submitter: "${release_author}"
         filenames:
           - "src/github.com/mongodb/terraform-provider-mongodbatlas/release_artifacts/*.zip"
 
- 
 tasks:
   - name: trace_release_artifacts
     tags: ["release"]
     commands:
       - func: "trace release artifacts"
 
-            
 buildvariants:
   - name: papertrail_github_release
     display_name: "Papertrail - GitHub Release Artifacts"
