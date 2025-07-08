@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -89,12 +90,6 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: networkPeeringConfig + configureKafka(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPublic, true),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkKafkaAttributes(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", networkingTypePublic, true, true),
-				),
-			},
-			{
 				Config: networkPeeringConfig + configureKafka(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingVPC, true),
 				Check:  checkKafkaAttributes(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", networkingTypeVPC, true, true),
 			},
@@ -104,6 +99,55 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"authentication.password"},
+			},
+		},
+	})
+}
+
+func TestAccStreamRSStreamConnection_invalidKafkaNetworkingUpdates(t *testing.T) {
+	var (
+		projectID            = acc.ProjectIDExecution(t)
+		instanceName         = acc.RandomName()
+		vpcID                = os.Getenv("AWS_VPC_ID")
+		vpcCIDRBlock         = os.Getenv("AWS_VPC_CIDR_BLOCK")
+		awsAccountID         = os.Getenv("AWS_ACCOUNT_ID")
+		containerRegion      = os.Getenv("AWS_REGION")
+		peerRegion           = conversion.MongoDBRegionToAWSRegion(containerRegion)
+		providerName         = "AWS"
+		networkPeeringConfig = configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckPeeringEnvAWS(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: networkPeeringConfig + configureKafka(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPublic, false),
+				Check:  checkKafkaAttributes(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", networkingTypePublic, false, true),
+			},
+			{
+				Config:      networkPeeringConfig + configureKafka(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingVPC, false),
+				ExpectError: regexp.MustCompile("Stream networking access type cannot be modified"),
+			},
+		},
+	})
+
+	// // Test the reverse direction: VPC to Public
+	var (
+		instanceName2 = acc.RandomName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckPeeringEnvAWS(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: networkPeeringConfig + configureKafka(projectID, instanceName2, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingVPC, false),
+				Check:  checkKafkaAttributes(resourceName, instanceName2, "user", "rawpassword", "localhost:9092", "earliest", networkingTypeVPC, false, true),
+			},
+			{
+				Config:      networkPeeringConfig + configureKafka(projectID, instanceName2, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPublic, false),
+				ExpectError: regexp.MustCompile("Stream networking access type cannot be modified"),
 			},
 		},
 	})
