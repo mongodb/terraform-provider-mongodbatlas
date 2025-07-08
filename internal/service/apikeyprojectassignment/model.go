@@ -2,6 +2,7 @@ package apikeyprojectassignment
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -17,17 +18,7 @@ func NewTFModel(ctx context.Context, apiKeys []admin.ApiKeyUserDetails, projectI
 		}
 		return apiKeyUserDetailsToTFModel(ctx, &apiKey, projectID)
 	}
-
-	emptyRoleNames, diags := types.SetValueFrom(ctx, types.StringType, []string{})
-	if diags.HasError() {
-		return nil, diags
-	}
-
-	return &TFModel{
-		ProjectId: types.StringValue(projectID),
-		ApiKeyId:  types.StringValue(apiKeyID),
-		Roles:     emptyRoleNames,
-	}, nil
+	return nil, diag.Diagnostics{diag.NewErrorDiagnostic("API key not found", fmt.Sprintf("API key %s not found", apiKeyID))}
 }
 
 func apiKeyUserDetailsToTFModel(ctx context.Context, apiKey *admin.ApiKeyUserDetails, projectID string) (*TFModel, diag.Diagnostics) {

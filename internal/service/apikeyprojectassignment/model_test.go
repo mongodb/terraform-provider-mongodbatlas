@@ -42,28 +42,6 @@ func TestApiKeyProjectAssignmentSDKToTFModel(t *testing.T) {
 				}),
 			},
 		},
-		"Complete SDK response - No assigned roles": {
-			SDKResp: []admin.ApiKeyUserDetails{
-				{
-					Id: admin.PtrString("NotMyTargetAPIKeyID"),
-					Roles: &[]admin.CloudAccessRoleAssignment{
-						{
-							GroupId:  admin.PtrString("TargetProjectID"),
-							RoleName: admin.PtrString("MY_ROLE"),
-						},
-						{
-							GroupId:  admin.PtrString("TargetProjectID"),
-							RoleName: admin.PtrString("MY_ROLE_2"),
-						},
-					},
-				},
-			},
-			expectedTFModel: &apikeyprojectassignment.TFModel{
-				ApiKeyId:  types.StringValue("TargetAPIKeyID"),
-				ProjectId: types.StringValue("TargetProjectID"),
-				Roles:     types.SetValueMust(types.StringType, []attr.Value{}),
-			},
-		},
 		"Complete SDK response - Wrong project": {
 			SDKResp: []admin.ApiKeyUserDetails{
 				{
