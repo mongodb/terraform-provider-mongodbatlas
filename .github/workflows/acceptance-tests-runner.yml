@@ -118,8 +118,6 @@ on:
       mongodb_atlas_asp_project_aws_role_arn:
         type: string
         required: true
-      mongodb_atlas_asp_project_aws_s3_bucket:
-        required: true
     secrets: # all secrets are passed explicitly in this workflow
       mongodb_atlas_public_key:
         required: true
@@ -194,6 +192,8 @@ on:
       confluent_cloud_api_secret:
         required: true
       aws_customer_master_key_id:
+        required: true
+      mongodb_atlas_asp_project_aws_s3_bucket:
         required: true
           
 env:
