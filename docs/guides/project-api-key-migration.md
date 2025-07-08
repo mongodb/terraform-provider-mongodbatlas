@@ -1,5 +1,5 @@
 ---
-page_title: "Migration Guide: Project API Key to API Key + Assignment"
+page_title: "Migration Guide: Project API Key to API Key + Project Assignment"
 ---
 
 # Migration Guide: Project API Key to API Key + Assignment
