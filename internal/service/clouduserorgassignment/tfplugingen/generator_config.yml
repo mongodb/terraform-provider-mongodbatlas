@@ -1,0 +1,41 @@
+provider:
+  name: mongodbatlas
+
+resources:
+  cloud_user_org_assignment:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/users/{userId}
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/users
+      method: POST
+    update:
+      path: /api/atlas/v2/orgs/{orgId}/users/{userId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/users/{userId}
+      method: DELETE
+        schema:
+    # aliases:
+    #   roles.group_role_assignments: project_role_assignments
+    #   roles.project_role_assignments.group_id: project_id
+    #   roles.project_role_assignments.group_roles: project_roles
+    # overrides:
+    #   roles.project_role_assignments:
+    #     computability:
+    #       computed: true
+    #   roles.project_role_assignments.project_id:
+    #     computability:
+    #       computed: true
+    #   roles.project_role_assignments.project_roles:
+    #     computability:
+    #       computed: true
+    #   team_ids:
+    #     computability:
+    #       computed: true
+
+data_sources:
+  cloud_user_org_assignment:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/users/{userId}
+      method: GET
