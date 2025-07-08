@@ -192,13 +192,13 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	orgID := ids["org_id"]
 
 	if d.HasChange("description") {
-		return diag.FromErr(fmt.Errorf("description cannot be changed after creation"))
+		return diag.Errorf("description cannot be changed after creation")
 	}
 	if d.HasChange("org_owner_id") {
-		return diag.FromErr(fmt.Errorf("org_owner_id cannot be changed after creation"))
+		return diag.Errorf("org_owner_id cannot be changed after creation")
 	}
 	if d.HasChange("role_names") {
-		return diag.FromErr(fmt.Errorf("role_names cannot be changed after creation"))
+		return diag.Errorf("role_names cannot be changed after creation")
 	}
 
 	if d.HasChange("name") ||
