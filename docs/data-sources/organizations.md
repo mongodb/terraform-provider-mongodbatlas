@@ -54,7 +54,6 @@ data "mongodbatlas_organizations" "test" {
 * `mobile_number` - Mobile phone number that belongs to the MongoDB Cloud user.
 
 
-# TODO: Add the links once created (part of CLOUDP-261814 epic)
 ~> **NOTE:** - Users with pending invitations created using [`mongodbatlas_project_invitation`](../resources/project_invitation.md) resource or via the deprecated [Invite One MongoDB Cloud User to Join One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprojectinvitation) endpoint are excluded (or cannot be managed) with this resource. See  [MongoDB Atlas API]<link-to-resource-API> for details. 
 To manage these users with this resource/data source, refer to our [migration guide]<link-to-migration-guide>.
 
