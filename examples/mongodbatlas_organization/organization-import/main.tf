@@ -18,11 +18,6 @@ resource "mongodbatlas_organization" "imported" {
 }
 
 # Outputs for reference
-output "org_id" {
-  description = "The imported organization ID"
-  value       = mongodbatlas_organization.imported.org_id
-}
-
 output "org_name" {
   description = "The imported organization name"
   value       = mongodbatlas_organization.imported.name

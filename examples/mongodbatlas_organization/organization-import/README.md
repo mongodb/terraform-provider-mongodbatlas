@@ -47,16 +47,16 @@ You can configure these attributes when importing:
 Create a `terraform.tfvars` file with your Atlas credentials:
 
 ```hcl
-public_key  = "your_atlas_public_key"
-private_key = "your_atlas_private_key"
-org_name    = "Your Existing Organization Name"
+public_key  = "<PUBLIC_KEY>"
+private_key = "<PRIVATE_KEY>"
+org_name    = "<ORG_NAME>"
 
 # Optional: Configure organization settings
 api_access_list_required   = false
 multi_factor_auth_required = true
 restrict_employee_access   = true
 gen_ai_features_enabled    = true
-security_contact          = "security@yourcompany.com"
+security_contact          = "<SECURITY_CONTACT_EMAIL>"
 skip_default_alerts_settings = true
 ```
 
@@ -68,10 +68,10 @@ terraform init
 
 ### 3. Import the organization
 
-Replace `<YOUR_ORG_ID>` with your actual organization ID:
+Replace `<ORG_ID>` with your actual organization ID:
 
 ```bash
-terraform import mongodbatlas_organization.imported <YOUR_ORG_ID>
+terraform import mongodbatlas_organization.imported <ORG_ID>
 ```
 
 To find your organization ID:
@@ -104,7 +104,6 @@ You can find your organization ID in several ways:
 ## Outputs
 
 After successful import, you'll have access to:
-- `org_id` - The organization ID
 - `org_name` - The organization name
 
 **Note**: Unlike when creating a new organization, importing does not provide `public_key` and `private_key` outputs since these are only generated during organization creation.
