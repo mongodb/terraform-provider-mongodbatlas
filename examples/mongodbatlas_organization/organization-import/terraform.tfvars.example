@@ -1,0 +1,17 @@
+# MongoDB Atlas API credentials
+public_key  = "your_atlas_public_key"
+private_key = "your_atlas_private_key"
+
+# Organization configuration
+org_name = "Your Existing Organization Name"
+
+# Optional: Configure organization settings to match your existing organization
+api_access_list_required   = false
+multi_factor_auth_required = true
+restrict_employee_access   = true
+gen_ai_features_enabled    = true
+security_contact          = "security@yourcompany.com"
+skip_default_alerts_settings = true
+
+# Uncomment if your organization uses federation
+# federation_settings_id = "your_federation_settings_id" 
