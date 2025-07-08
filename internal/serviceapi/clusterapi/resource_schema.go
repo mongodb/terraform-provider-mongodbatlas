@@ -201,22 +201,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
-			"links": schema.ListNestedAttribute{
-				Computed:            true,
-				MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"href": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-						},
-						"rel": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-						},
-					},
-				},
-			},
 			"mongo_dbemployee_access_grant": schema.SingleNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "MongoDB employee granted access level and expiration for a cluster.",
@@ -228,22 +212,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"grant_type": schema.StringAttribute{
 						Required:            true,
 						MarkdownDescription: "Level of access to grant to MongoDB Employees.",
-					},
-					"links": schema.ListNestedAttribute{
-						Computed:            true,
-						MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"href": schema.StringAttribute{
-									Computed:            true,
-									MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-								},
-								"rel": schema.StringAttribute{
-									Computed:            true,
-									MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-								},
-							},
-						},
 					},
 				},
 			},
@@ -557,21 +525,20 @@ type TFModel struct {
 	Labels                                    types.List   `tfsdk:"labels"`
 	Tags                                      types.List   `tfsdk:"tags"`
 	ReplicationSpecs                          types.List   `tfsdk:"replication_specs"`
-	Links                                     types.List   `tfsdk:"links" autogen:"omitjson"`
-	CreateDate                                types.String `tfsdk:"create_date" autogen:"omitjson"`
+	GroupId                                   types.String `tfsdk:"group_id" autogen:"omitjson"`
 	BiConnector                               types.Object `tfsdk:"bi_connector"`
+	ConfigServerManagementMode                types.String `tfsdk:"config_server_management_mode"`
 	ConfigServerType                          types.String `tfsdk:"config_server_type" autogen:"omitjson"`
 	ConnectionStrings                         types.Object `tfsdk:"connection_strings" autogen:"omitjson"`
-	AcceptDataRisksAndForceReplicaSetReconfig types.String `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
+	CreateDate                                types.String `tfsdk:"create_date" autogen:"omitjson"`
 	DiskWarmingMode                           types.String `tfsdk:"disk_warming_mode"`
 	EncryptionAtRestProvider                  types.String `tfsdk:"encryption_at_rest_provider"`
 	FeatureCompatibilityVersion               types.String `tfsdk:"feature_compatibility_version" autogen:"omitjson"`
 	FeatureCompatibilityVersionExpirationDate types.String `tfsdk:"feature_compatibility_version_expiration_date" autogen:"omitjson"`
 	VersionReleaseSystem                      types.String `tfsdk:"version_release_system"`
-	GroupId                                   types.String `tfsdk:"group_id" autogen:"omitjson"`
+	AcceptDataRisksAndForceReplicaSetReconfig types.String `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
 	Id                                        types.String `tfsdk:"id" autogen:"omitjson"`
 	ClusterType                               types.String `tfsdk:"cluster_type"`
-	ConfigServerManagementMode                types.String `tfsdk:"config_server_management_mode"`
 	MongoDbemployeeAccessGrant                types.Object `tfsdk:"mongo_dbemployee_access_grant"`
 	MongoDbmajorVersion                       types.String `tfsdk:"mongo_dbmajor_version"`
 	MongoDbversion                            types.String `tfsdk:"mongo_dbversion" autogen:"omitjson"`
@@ -621,18 +588,9 @@ type TFLabelsModel struct {
 	Key   types.String `tfsdk:"key"`
 	Value types.String `tfsdk:"value"`
 }
-type TFLinksModel struct {
-	Href types.String `tfsdk:"href" autogen:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
-}
 type TFMongoDbemployeeAccessGrantModel struct {
 	ExpirationTime types.String `tfsdk:"expiration_time"`
 	GrantType      types.String `tfsdk:"grant_type"`
-	Links          types.List   `tfsdk:"links" autogen:"omitjson"`
-}
-type TFMongoDbemployeeAccessGrantLinksModel struct {
-	Href types.String `tfsdk:"href" autogen:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
 }
 type TFReplicationSpecsModel struct {
 	Id            types.String `tfsdk:"id" autogen:"omitjson"`

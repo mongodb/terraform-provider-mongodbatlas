@@ -12,7 +12,7 @@ import (
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	mockadmin20240530 "go.mongodb.org/atlas-sdk/v20240530005/mockadmin"
-	"go.mongodb.org/atlas-sdk/v20250312004/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -1470,11 +1470,11 @@ func createCleanupTest(t *testing.T, configCall func(t *testing.T, timeoutSectio
 	var (
 		timeoutsStrShort = `
 			timeouts {
-				create = "10s"
+				create = "2s"
 			}
 			delete_on_create_timeout = true
 		`
-		timeoutsStrLong      = strings.ReplaceAll(timeoutsStrShort, "10s", "6000s")
+		timeoutsStrLong      = strings.ReplaceAll(timeoutsStrShort, "2s", "6000s")
 		timeoutsStrLongFalse = strings.ReplaceAll(timeoutsStrLong, "true", "false")
 	)
 	steps := []resource.TestStep{

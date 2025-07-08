@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/mongodbatlas_third_party_integration Adds `send_user_provided_resource_tags` attribute to support sending $querystats to DataDog
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_third_party_integration Adds `send_user_provided_resource_tags` attribute to support sending $querystats to DataDog
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_third_party_integrations Adds `send_user_provided_resource_tags` attribute to support sending $querystats to DataDog
+```

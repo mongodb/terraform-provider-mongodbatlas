@@ -5,6 +5,7 @@ package testname
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -56,19 +57,25 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Required:            true,
 				MarkdownDescription: "string description",
 			},
+			"json_attr": schema.StringAttribute{
+				Required:            true,
+				MarkdownDescription: "json description",
+				CustomType:          jsontypes.NormalizedType{},
+			},
 		},
 	}
 }
 
 type TFModel struct {
-	StringAttr                 types.String  `tfsdk:"string_attr"`
-	BoolAttr                   types.Bool    `tfsdk:"bool_attr"`
-	IntAttr                    types.Int64   `tfsdk:"int_attr"`
-	FloatAttr                  types.Float64 `tfsdk:"float_attr"`
-	NumberAttr                 types.Number  `tfsdk:"number_attr"`
-	SimpleListAttr             types.List    `tfsdk:"simple_list_attr"`
-	SimpleSetAttr              types.Set     `tfsdk:"simple_set_attr"`
-	SimpleMapAttr              types.Map     `tfsdk:"simple_map_attr"`
-	AttrNotIncludedInReqBodies types.String  `tfsdk:"attr_not_included_in_req_bodies" autogen:"omitjson"`
-	AttrOnlyInPostReqBodies    types.String  `tfsdk:"attr_only_in_post_req_bodies" autogen:"omitjsonupdate"`
+	StringAttr                 types.String         `tfsdk:"string_attr"`
+	BoolAttr                   types.Bool           `tfsdk:"bool_attr"`
+	IntAttr                    types.Int64          `tfsdk:"int_attr"`
+	FloatAttr                  types.Float64        `tfsdk:"float_attr"`
+	NumberAttr                 types.Number         `tfsdk:"number_attr"`
+	SimpleListAttr             types.List           `tfsdk:"simple_list_attr"`
+	SimpleSetAttr              types.Set            `tfsdk:"simple_set_attr"`
+	SimpleMapAttr              types.Map            `tfsdk:"simple_map_attr"`
+	AttrNotIncludedInReqBodies types.String         `tfsdk:"attr_not_included_in_req_bodies" autogen:"omitjson"`
+	AttrOnlyInPostReqBodies    types.String         `tfsdk:"attr_only_in_post_req_bodies" autogen:"omitjsonupdate"`
+	JsonAttr                   jsontypes.Normalized `tfsdk:"json_attr"`
 }

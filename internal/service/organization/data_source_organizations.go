@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312004/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
@@ -102,8 +102,8 @@ func pluralDataSourceRead(ctx context.Context, d *schema.ResourceData, meta any)
 	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	organizationOptions := &admin.ListOrganizationsApiParams{
-		PageNum:      conversion.Pointer(d.Get("page_num").(int)),
-		ItemsPerPage: conversion.Pointer(d.Get("items_per_page").(int)),
+		PageNum:      conversion.IntPtr(d.Get("page_num").(int)),
+		ItemsPerPage: conversion.IntPtr(d.Get("items_per_page").(int)),
 		Name:         conversion.Pointer(d.Get("name").(string)),
 	}
 
