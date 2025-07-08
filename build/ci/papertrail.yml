@@ -60,13 +60,13 @@ functions:
 
               # get the latest release workflow run
               run_id=$(gh run list --workflow release.yml --branch master --limit 1 --json databaseId --jq '.[0].databaseId')
-              run_json=$(gh run view "$run_id" --json name,jobs,actor)
-
-              conclusion=$(jq -r '.jobs[] | select(.name=="release") | .conclusion' <<<"$run_json")
+              run_json=$(gh run view "$run_id" --json name,jobs)
+              # Fetch actor.login from the API only
+              repo_full=${GITHUB_REPOSITORY:-$(git config --get remote.origin.url | sed -E 's#.*/([^/]+/[^/.]+)(\\.git)?$#\\1#')}
+              actor=$(gh api repos/$repo_full/actions/runs/$run_id --jq '.actor.login')
               version=$(jq -r '.name | match("v[0-9]+\\.[0-9]+\\.[0-9]+") | .string' <<<"$run_json")
-              author=$(jq -r '.actor.login' <<<"$run_json")
-
-              echo "conclusion=$conclusion   version=$version   author=$author"
+              conclusion=$(jq -r '.jobs[] | select(.name=="release") | .conclusion' <<<"$run_json")
+              echo "conclusion=$conclusion   version=$version   author=$actor"
 
               # checking the latest tag version (that triggered this task) matches the version in the release workflow run name
               if [[ "$version" != "$release_tag" ]]; then
@@ -108,7 +108,7 @@ functions:
 
           cat >trace-expansions.yml <<EOF
           release_version: "$version"
-          release_author: "$author"
+          release_author: "$actor"
           EOF
 
           echo "✅ Done."
@@ -121,7 +121,6 @@ functions:
       params:
         key_id: ${papertrail_key_id}
         secret_key: ${papertrail_secret_key}
-        product: "tmp2-terraform-provider-mongodbatlas"
         product: "tmp2-terraform-provider-mongodbatlas"
         version: ${release_version}
         submitter: "${release_author}"
