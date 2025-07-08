@@ -777,10 +777,10 @@ func flattenCloudProviderConfig(cloudProviderConfig *admin.DataLakeCloudProvider
 
 	return []map[string]any{
 		{
-			"aws": flattenAWSCloudProviderConfig(cloudProviderConfig.Aws),
+			"aws":   flattenAWSCloudProviderConfig(cloudProviderConfig.Aws),
+			"azure": flattenAzureCloudProviderConfig(cloudProviderConfig.Azure),
 		},
 	}
-
 }
 
 func flattenAWSCloudProviderConfig(aws *admin.DataLakeAWSCloudProviderConfig) []map[string]any {
@@ -797,6 +797,21 @@ func flattenAWSCloudProviderConfig(aws *admin.DataLakeAWSCloudProviderConfig) []
 			"iam_assumed_role_arn": aws.GetIamAssumedRoleARN(),
 			"iam_user_arn":         aws.GetIamUserARN(),
 			"external_id":          aws.GetExternalId(),
+		},
+	}
+}
+
+func flattenAzureCloudProviderConfig(azure *admin.DataFederationAzureCloudProviderConfig) []map[string]any {
+	if azure == nil {
+		return nil
+	}
+
+	return []map[string]any{
+		{
+			"role_id":              azure.GetRoleId(),
+			"atlas_app_id":         azure.GetAtlasAppId(),
+			"service_principal_id": azure.GetServicePrincipalId(),
+			"tenant_id":            azure.GetTenantId(),
 		},
 	}
 }
