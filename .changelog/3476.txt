@@ -1,0 +1,11 @@
+```release-note:note
+data-source/mongodbatlas_projects: Deprecates the `id` attribute because it's not used
+```
+
+```release-note:note
+resource/mongodbatlas_stream_connections: Deprecates the `id` attribute because it's not used
+```
+
+```release-note:note
+resource/mongodbatlas_stream_instances: Deprecates the `id` attribute because it's not used
+```
