@@ -195,28 +195,28 @@ func flattenUsers(users []admin.OrgUserResponse) []map[string]any {
 }
 
 func flattenUserRoles(roles admin.OrgUserRolesResponse) []map[string]any {
-	ret := []map[string]any{}
+	ret := make([]map[string]any, 0)
 	roleMap := map[string]any{
-		"org_roles":     []string{},
-		"project_roles": []map[string]any{},
+		"org_roles":                 []string{},
+		"project_roles_assignments": []map[string]any{},
 	}
 	if roles.HasOrgRoles() {
 		roleMap["org_roles"] = roles.GetOrgRoles()
 	}
 	if roles.HasGroupRoleAssignments() {
-		roleMap["project_roles"] = flattenGroupRolesAssignments(roles.GetGroupRoleAssignments())
+		roleMap["project_roles_assignments"] = flattenProjectRolesAssignments(roles.GetGroupRoleAssignments())
 	}
 	ret = append(ret, roleMap)
 	return ret
 }
 
-func flattenGroupRolesAssignments(assignments []admin.GroupRoleAssignment) []map[string]any {
-	ret := make([]map[string]any, len(assignments))
-	for i, assignment := range assignments {
-		ret[i] = map[string]any{
-			"group_id":    assignment.GetGroupId(),
-			"group_roles": assignment.GetGroupRoles(),
-		}
+func flattenProjectRolesAssignments(assignments []admin.GroupRoleAssignment) []map[string]any {
+	ret := make([]map[string]any, 0, len(assignments))
+	for _, assignment := range assignments {
+		ret = append(ret, map[string]any{
+			"project_id":    assignment.GetGroupId(),
+			"project_roles": assignment.GetGroupRoles(),
+		})
 	}
 	return ret
 }
