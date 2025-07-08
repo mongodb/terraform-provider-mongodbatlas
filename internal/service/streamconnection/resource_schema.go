@@ -123,7 +123,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 
-			// AWSLambda type
+			// AWS type
 			"aws": schema.SingleNestedAttribute{
 				Optional: true,
 				Attributes: map[string]schema.Attribute{
@@ -132,6 +132,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 					"test_bucket": schema.StringAttribute{
 						Optional: true,
+						Computed: true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
 					},
 				},
 			},
