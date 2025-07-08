@@ -61,9 +61,7 @@ functions:
               # get the latest release workflow run
               run_id=$(gh run list --workflow release.yml --branch master --limit 1 --json databaseId --jq '.[0].databaseId')
               run_json=$(gh run view "$run_id" --json name,jobs)
-              # Fetch actor.login from the API only
-              repo_full=${GITHUB_REPOSITORY:-$(git config --get remote.origin.url | sed -E 's#.*/([^/]+/[^/.]+)(\\.git)?$#\\1#')}
-              actor=$(gh api repos/$repo_full/actions/runs/$run_id --jq '.actor.login')
+              actor="oriol"
               version=$(jq -r '.name | match("v[0-9]+\\.[0-9]+\\.[0-9]+") | .string' <<<"$run_json")
               conclusion=$(jq -r '.jobs[] | select(.name=="release") | .conclusion' <<<"$run_json")
               echo "conclusion=$conclusion   version=$version   author=$actor"
