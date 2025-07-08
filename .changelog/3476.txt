@@ -1,7 +1,7 @@
 ```release-note:note
-data-source/mongodbatlas_stream_connections: Deprecates the `id` attribute because it's not used
+data-source/mongodbatlas_stream_connections: Deprecates the `id` attribute as it is a random assigned value which should not be used
 ```
 
 ```release-note:note
-data-source/mongodbatlas_stream_instances: Deprecates the `id` attribute because it's not used
+data-source/mongodbatlas_stream_instances: Deprecates the `id` attribute as it is a random assigned value which should not be used
 ```
