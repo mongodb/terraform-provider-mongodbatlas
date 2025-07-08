@@ -15,57 +15,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-func flattenUsers(users []admin.OrgUserResponse) []map[string]any {
-	ret := make([]map[string]any, len(users))
-	for i := range users {
-		user := &users[i]
-		ret[i] = map[string]any{
-			"id":                    user.GetId(),
-			"org_membership_status": user.GetOrgMembershipStatus(),
-			"roles":                 flattenUserRoles(user.GetRoles()),
-			"team_ids":              user.GetTeamIds(),
-			"username":              user.GetUsername(),
-			"invitation_created_at": user.GetInvitationCreatedAt().Format(time.RFC3339),
-			"invitation_expires_at": user.GetInvitationExpiresAt().Format(time.RFC3339),
-			"inviter_username":      user.GetInviterUsername(),
-			"country":               user.GetCountry(),
-			"created_at":            user.GetCreatedAt().Format(time.RFC3339),
-			"first_name":            user.GetFirstName(),
-			"last_auth":             user.GetLastAuth().Format(time.RFC3339),
-			"last_name":             user.GetLastName(),
-			"mobile_number":         user.GetMobileNumber(),
-		}
-	}
-	return ret
-}
-
-func flattenUserRoles(roles admin.OrgUserRolesResponse) []map[string]any {
-	ret := []map[string]any{}
-	roleMap := map[string]any{
-		"org_roles":     []string{},
-		"project_roles": []map[string]any{},
-	}
-	if roles.HasOrgRoles() {
-		roleMap["org_roles"] = roles.GetOrgRoles()
-	}
-	if roles.HasGroupRoleAssignments() {
-		roleMap["project_roles"] = flattenGroupRolesAssignments(roles.GetGroupRoleAssignments())
-	}
-	ret = append(ret, roleMap)
-	return ret
-}
-
-func flattenGroupRolesAssignments(assignments []admin.GroupRoleAssignment) []map[string]any {
-	ret := make([]map[string]any, len(assignments))
-	for i, assignment := range assignments {
-		ret[i] = map[string]any{
-			"group_id":    assignment.GetGroupId(),
-			"group_roles": assignment.GetGroupRoles(),
-		}
-	}
-	return ret
-}
-
 var (
 	DSOrgUsersSchema = schema.Schema{
 		Type:     schema.TypeSet,
@@ -86,21 +35,21 @@ var (
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"org_roles": {
-								Type:     schema.TypeList,
+								Type:     schema.TypeSet,
 								Computed: true,
 								Elem:     &schema.Schema{Type: schema.TypeString},
 							},
-							"project_roles": {
-								Type:     schema.TypeList,
+							"project_roles_assignments": {
+								Type:     schema.TypeSet,
 								Computed: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
-										"group_id": {
+										"project_id": {
 											Type:     schema.TypeString,
 											Computed: true,
 										},
-										"group_roles": {
-											Type:     schema.TypeList,
+										"project_roles": {
+											Type:     schema.TypeSet,
 											Computed: true,
 											Elem:     &schema.Schema{Type: schema.TypeString},
 										},
@@ -221,6 +170,57 @@ func DataSource() *schema.Resource {
 	}
 }
 
+func flattenUsers(users []admin.OrgUserResponse) []map[string]any {
+	ret := make([]map[string]any, len(users))
+	for i := range users {
+		user := &users[i]
+		ret[i] = map[string]any{
+			"id":                    user.GetId(),
+			"org_membership_status": user.GetOrgMembershipStatus(),
+			"roles":                 flattenUserRoles(user.GetRoles()),
+			"team_ids":              user.GetTeamIds(),
+			"username":              user.GetUsername(),
+			"invitation_created_at": user.GetInvitationCreatedAt().Format(time.RFC3339),
+			"invitation_expires_at": user.GetInvitationExpiresAt().Format(time.RFC3339),
+			"inviter_username":      user.GetInviterUsername(),
+			"country":               user.GetCountry(),
+			"created_at":            user.GetCreatedAt().Format(time.RFC3339),
+			"first_name":            user.GetFirstName(),
+			"last_auth":             user.GetLastAuth().Format(time.RFC3339),
+			"last_name":             user.GetLastName(),
+			"mobile_number":         user.GetMobileNumber(),
+		}
+	}
+	return ret
+}
+
+func flattenUserRoles(roles admin.OrgUserRolesResponse) []map[string]any {
+	ret := []map[string]any{}
+	roleMap := map[string]any{
+		"org_roles":     []string{},
+		"project_roles": []map[string]any{},
+	}
+	if roles.HasOrgRoles() {
+		roleMap["org_roles"] = roles.GetOrgRoles()
+	}
+	if roles.HasGroupRoleAssignments() {
+		roleMap["project_roles"] = flattenGroupRolesAssignments(roles.GetGroupRoleAssignments())
+	}
+	ret = append(ret, roleMap)
+	return ret
+}
+
+func flattenGroupRolesAssignments(assignments []admin.GroupRoleAssignment) []map[string]any {
+	ret := make([]map[string]any, len(assignments))
+	for i, assignment := range assignments {
+		ret[i] = map[string]any{
+			"group_id":    assignment.GetGroupId(),
+			"group_roles": assignment.GetGroupRoles(),
+		}
+	}
+	return ret
+}
+
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	orgID := d.Get("org_id").(string)
@@ -247,7 +247,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf("error setting `is_deleted`: %s", err))
 	}
 
-	users, err := ListAllOrganizationUsers(ctx, orgID, conn)
+	users, err := listAllOrganizationUsers(ctx, orgID, conn)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting organization users: %s", err))
 	}
@@ -280,7 +280,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return nil
 }
 
-func ListAllOrganizationUsers(ctx context.Context, orgID string, conn *admin.APIClient) ([]admin.OrgUserResponse, error) {
+func listAllOrganizationUsers(ctx context.Context, orgID string, conn *admin.APIClient) ([]admin.OrgUserResponse, error) {
 	return dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.OrgUserResponse], *http.Response, error) {
 		request := conn.MongoDBCloudUsersApi.ListOrganizationUsers(ctx, orgID)
 		request = request.PageNum(pageNum)

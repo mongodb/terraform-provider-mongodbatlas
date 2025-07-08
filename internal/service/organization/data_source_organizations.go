@@ -139,9 +139,9 @@ func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizati
 	results = make([]map[string]any, len(organizations))
 
 	for k, organization := range organizations {
-		users, err := ListAllOrganizationUsers(ctx, *organization.Id, conn)
+		users, err := listAllOrganizationUsers(ctx, *organization.Id, conn)
 		if err != nil {
-			return nil, fmt.Errorf("error getting organization users (orgID: %s, org Name: %s): %s", organization.GetId(), organization.GetName(), err)
+			return nil, fmt.Errorf("error getting organization users (orgID: %s, name: %s): %s", organization.GetId(), organization.GetName(), err)
 		}
 		settings, _, err := conn.OrganizationsApi.GetOrganizationSettings(ctx, *organization.Id).Execute()
 		if err != nil {
