@@ -1143,6 +1143,7 @@ jobs:
             AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
             MONGODB_ATLAS_ASP_PROJECT_AWS_ROLE_ARN: ${{ inputs.mongodb_atlas_asp_project_aws_role_arn }}
             MONGODB_ATLAS_ASP_PROJECT_EAR_PE_ID: ${{ inputs.mongodb_atlas_asp_project_ear_pe_id }}
+            MONGODB_ATLAS_ASP_PROJECT_AWS_S3_BUCKET: ${{ secrets.mongodb_atlas_asp_project_aws_s3_bucket }}
             ACCTEST_PACKAGES: |
               ./internal/service/streamaccountdetails
               ./internal/service/streamconnection
