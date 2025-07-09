@@ -1,6 +1,4 @@
 # Example configuration for importing an existing MongoDB Atlas organization
-# IMPORTANT: Do NOT include org_owner_id, description, or role_names when importing
-# These are creation-only attributes and will cause errors if specified during import
 
 resource "mongodbatlas_organization" "imported" {
   name = var.org_name
@@ -12,8 +10,6 @@ resource "mongodbatlas_organization" "imported" {
   gen_ai_features_enabled      = var.gen_ai_features_enabled
   security_contact             = var.security_contact
   skip_default_alerts_settings = var.skip_default_alerts_settings
-
-  federation_settings_id = var.federation_settings_id != "" ? var.federation_settings_id : null
 }
 
 # Outputs for reference

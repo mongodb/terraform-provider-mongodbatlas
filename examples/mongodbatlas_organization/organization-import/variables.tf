@@ -50,10 +50,3 @@ variable "skip_default_alerts_settings" {
   description = "Flag that indicates whether to prevent Atlas from automatically creating organization-level alerts"
   default     = true
 }
-
-# Only needed if the organization is federated
-variable "federation_settings_id" {
-  type        = string
-  description = "Unique identifier for the federation settings"
-  default     = ""
-}

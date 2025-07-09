@@ -6,7 +6,7 @@ This example demonstrates how to import an existing MongoDB Atlas organization i
 
 When you have an existing MongoDB Atlas organization that you want to manage with Terraform, you can import it using the organization ID. This is useful when you have an existing organization that was created outside of Terraform and want to start managing its settings with Infrastructure as Code.
 
-Don't include `org_owner_id`, `description` and `role_names` when importing an organization.
+Don't include `org_owner_id`, `description`, `role_names` or `federation_settings_id` when importing an organization as they are creation-only attributes.
 
 ## Dependencies
 
