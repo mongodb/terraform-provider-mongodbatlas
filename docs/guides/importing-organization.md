@@ -25,7 +25,7 @@ With import support, you can now:
 
 ## Important Changes to Required Attributes
 
-To enable import functionality, several attributes that were previously required for creating organizations have been made optional:
+To enable import functionality, several attributes that were previously marked as required have been made optional:
 
 - `org_owner_id`
 - `description` 
