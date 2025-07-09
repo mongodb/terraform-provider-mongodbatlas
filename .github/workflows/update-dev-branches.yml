@@ -6,11 +6,6 @@ on:
       branches:
         description: 'Dev branch names to update from master'
         default: '["CLOUDP-320243-dev-2.0.0"]'
-      force-auto-resolve:
-        description: 'Force auto-resolve conflicts by favoring master changes. Some changes in dev branch might be lost.'
-        required: false
-        default: false
-        type: boolean
   schedule:
     - cron: "0 5 * * 3" # workflow runs every Wednesday at 5 AM UTC
 
@@ -35,14 +30,18 @@ jobs:
       uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       with:
         fetch-depth: 0
-    
+        token: ${{ secrets.APIX_BOT_PAT }}
+    - name: Install Go
+      uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
+      with:
+        go-version-file: 'go.mod'
     - name: Config Git
       run: |
         git config --local user.email svc-api-experience-integrations-escalation@mongodb.com
         git config --local user.name svc-apix-bot
     
-    - name: Rebase branch with master
-      id: rebase-check
+    - name: Merge branch with master
+      id: merge-check
       run: |
         echo "Updating branch: ${{ matrix.branch }}"
         
@@ -55,49 +54,68 @@ jobs:
         git fetch origin ${{ matrix.branch }}        
         git checkout -B ${{ matrix.branch }} origin/${{ matrix.branch }}
         
-        if git rebase origin/master; then
-          echo "OK: Rebase completed successfully with no conflicts."
+        # Check if there are commits in master not in dev branch
+        commits_to_merge=$(git rev-list --count origin/${{ matrix.branch }}..origin/master)
+        if [ "$commits_to_merge" -eq 0 ]; then
+          echo "OK: No commits to merge from master. Branch is already up to date."
+          echo "has-changes=false" >> "${GITHUB_OUTPUT}"
         else
-          # Check if conflicts can be auto-resolved
-          git rebase --abort
-          if git rebase origin/master -X theirs; then
-            if [ "${{ inputs.force-auto-resolve }}" = "true" ]; then
-              echo "WARNING: Rebase conflicts detected but auto-resolved by favoring master changes because force-auto-resolve is true."
-            else
-              echo "ERROR: Rebase conflicts detected that can be auto-resolved by favoring master changes."
-              echo "Manual review required to ensure no important changes are lost. Set force-auto-resolve to true to auto-resolve these conflicts."
-              git rebase --abort
-              exit 1
-            fi
+          echo "Found $commits_to_merge commits to merge from master."
+          if git merge origin/master --no-edit; then
+            echo "OK: Merge completed successfully with no conflicts."
+            echo "has-changes=true" >> "${GITHUB_OUTPUT}"
           else
-            echo "ERROR: Rebase conflicts detected that need manual intervention, they can't be auto-resolved."
+            echo "ERROR: Merge conflicts detected. Manual intervention required:"
+            echo "1. Perform a manual merge of master into ${{ matrix.branch }}"
+            echo "2. Resolve all conflicts manually"
+            echo "3. Add a bypass in dev branch ruleset settings to allow direct push to ${{ matrix.branch }}"
+            echo "4. Push changes directly to ${{ matrix.branch }} (DO NOT create a PR)"
+            echo "5. Remove the bypass from ruleset settings"
+            echo "NOTE: Do not create a PR - squashed commits will cause the same conflicts to appear again in future updates"
+            git merge --abort
             exit 1
           fi
         fi
-        
-        # Check if there are any changes between rebased branch and original remote branch
-        if git diff --quiet origin/${{ matrix.branch }} HEAD; then
-          echo "No changes detected between rebased branch and original remote branch. PR would not introduce any changes."
-          echo "has-changes=false" >> "${GITHUB_OUTPUT}"
+
+    - name: Push updated branch
+      if: steps.merge-check.outputs.has-changes == 'true'
+      run: |
+        echo "Pushing updated branch ${{ matrix.branch }} to remote"
+        git push origin ${{ matrix.branch }}
+
+    - name: Project check
+      if: steps.merge-check.outputs.has-changes == 'true'
+      id: project-check
+      env:
+        MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: "true"
+      run: |
+        if make tools build lint test; then
+          echo "slack-text=✅ Dev branch \`${{ matrix.branch }}\` merged and pushed with latest changes from master. ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Action>" >> "${GITHUB_OUTPUT}"
         else
-          echo "Changes detected between rebased branch and original remote branch. PR will introduce changes."
-          echo "has-changes=true" >> "${GITHUB_OUTPUT}"
+          echo "slack-text=⚠️ Dev branch \`${{ matrix.branch }}\` merged and pushed. This is prefered even if checks failed as there were no merge conflicts. Project checks must be fixed. ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Action>" >> "${GITHUB_OUTPUT}"
         fi
 
-    - name: Create pull request
-      uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e
-      if: steps.rebase-check.outputs.has-changes == 'true'
+    - name: Send Slack notification
+      if: steps.merge-check.outputs.has-changes == 'true'
+      uses: slackapi/slack-github-action@b0fa283ad8fea605de13dc3f449259339835fc52
       with:
-        token: ${{ secrets.APIX_BOT_PAT }}
-        title: "chore: Update ${{ matrix.branch }} from master"
-        commit-message: "Update ${{ matrix.branch }} from master"
-        delete-branch: true
-        branch: update-${{ matrix.branch }}-from-master
-        base: ${{ matrix.branch }}
-        body: "Automated update of `${{ matrix.branch }}` branch with latest changes from master branch."
-        labels: "skip-docs-notification"
+        webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+        webhook-type: incoming-webhook
+        payload: |
+          {
+            "text": "Dev branch updated",
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "${{ steps.project-check.outputs.slack-text }}"
+                }
+              }
+            ]
+          }
 
-  slack-notification:
+  slack-notification-failure:
     needs: update-branches
     if: ${{ !cancelled() && needs.update-branches.result == 'failure' }}
     runs-on: ubuntu-latest
@@ -116,7 +134,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Update dev branches failed* ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Failed Action>"
+                    "text": "❌ *Update dev branches failed* ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Failed Action>"
                   }
                 }
               ]

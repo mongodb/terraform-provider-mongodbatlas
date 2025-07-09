@@ -43,7 +43,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Automatic Changelog update failed* ${{ secrets.SLACK_ONCALL_TAG }} . <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|Failed action >"
+                    "text": "❌ *Automatic Changelog update failed* ${{ secrets.SLACK_ONCALL_TAG }} . <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|Failed action >"
                   }
                 }
               ]
