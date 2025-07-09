@@ -17,6 +17,11 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
+var (
+	attrsCreateRequired = []string{"org_owner_id", "description", "role_names"} // name not included as it's already required in the schema.
+	attrsCreateOnly     = []string{"org_owner_id", "description", "role_names", "federation_settings_id"}
+)
+
 func Resource() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceCreate,
@@ -100,6 +105,11 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	for _, attr := range attrsCreateRequired {
+		if _, ok := d.GetOk(attr); !ok {
+			return diag.FromErr(fmt.Errorf("%s is required during organization creation", attr))
+		}
+	}
 	if err := ValidateAPIKeyIsOrgOwner(conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List())); err != nil {
 		return diag.FromErr(err)
 	}
@@ -112,7 +122,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 		return diag.FromErr(fmt.Errorf("error creating Organization: %s", err))
 	}
-
 	if err := d.Set("private_key", organization.ApiKey.GetPrivateKey()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `private_key`: %s", err))
 	}
@@ -130,14 +139,12 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		d.SetId("")
 		return diag.FromErr(fmt.Errorf("an error occurred when updating Organization settings: %s", err))
 	}
-
 	if err := d.Set("org_id", orgID); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `org_id`: %s", err))
 	}
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"org_id": orgID,
 	}))
-
 	return resourceRead(ctx, d, meta)
 }
 
@@ -190,17 +197,11 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	conn := getAtlasV2Connection(ctx, d, meta)
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
-
-	if d.HasChange("description") {
-		return diag.Errorf("description cannot be changed after creation")
+	for _, attr := range attrsCreateOnly {
+		if d.HasChange(attr) {
+			return diag.Errorf("%s cannot be changed after creation", attr)
+		}
 	}
-	if d.HasChange("org_owner_id") {
-		return diag.Errorf("org_owner_id cannot be changed after creation")
-	}
-	if d.HasChange("role_names") {
-		return diag.Errorf("role_names cannot be changed after creation")
-	}
-
 	if d.HasChange("name") ||
 		d.HasChange("skip_default_alerts_settings") {
 		updateRequest := &admin.AtlasOrganization{
