@@ -8,36 +8,24 @@
 
 ## Example Usage
 
-### Creating a New Organization
-
 ```terraform
 resource "mongodbatlas_organization" "test" {
-  org_owner_id = "6205e5fffff79cde6f"
+  org_owner_id = "<ORG_OWNER_ID>"
   name = "testCreateORG"
   description = "test API key from Org Creation Test"
   role_names = ["ORG_OWNER"]
 }
 ```
 
-### Importing an Existing Organization
-
-```terraform
-resource "mongodbatlas_organization" "imported" {
-  name = "ExistingOrganization"
-  # Note: org_owner_id, description, and role_names are creation-only
-  # and should not be specified when importing
-}
-```
-
 ## Argument Reference
 
 * `name` - (Required) The name of the organization.
-* `org_owner_id` - Unique 24-hexadecimal digit string that identifies the Atlas user that you want to assign the Organization Owner role. This user must be a member of the same organization as the calling API key.  This is only required when authenticating with Programmatic API Keys. [MongoDB Atlas Admin API - Get User By Username](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/MongoDB-Cloud-Users/operation/getUserByUsername). This attribute is used only in creation and can't be updated later. Don't use it in import.
-* `description` - Programmatic API Key description. This attribute is used only in creation and can't be updated later. Don't use it in import.
+* `org_owner_id` - (Optional) Unique 24-hexadecimal digit string that identifies the Atlas user that you want to assign the Organization Owner role. This user must be a member of the same organization as the calling API key.  This is only required when authenticating with Programmatic API Keys. [MongoDB Atlas Admin API - Get User By Username](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/MongoDB-Cloud-Users/operation/getUserByUsername). This attribute is required in creation and can't be updated later.
+* `description` - (Optional) Programmatic API Key description. This attribute is required in creation and can't be updated later.
 
 ~> **NOTE:** Creating an organization will return a new API Key pair that can be used to authenticate and manage the new organization  with MongoDB Atlas Terraform modules/blueprints.  These credentials will be used by the `mongodbatlas_organization` resource. In case of importing the resource, these credentials will be empty so the provider credentials will be used instead.
 
-* `role_names` - List of Organization roles that the Programmatic API key needs to have. Ensure that you provide at least one role and ensure all roles are valid for the Organization.  You must specify an array even if you are only associating a single role with the Programmatic API key. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#organization-roles) describes the roles that you can assign to a Programmatic API key. This attribute is used only in creation and can't be updated later. Don't use it in import.
+* `role_names` - (Optional) List of Organization roles that the Programmatic API key needs to have. Ensure that you provide at least one role and ensure all roles are valid for the Organization.  You must specify an array even if you are only associating a single role with the Programmatic API key. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#organization-roles) describes the roles that you can assign to a Programmatic API key. This attribute is required in creation and can't be updated later.
 * `federation_settings_id` - (Optional) Unique 24-hexadecimal digit string that identifies the federation to link the newly created organization to. If specified, the proposed Organization Owner of the new organization must have the Organization Owner role in an organization associated with the federation.
 * `api_access_list_required` - (Optional) Flag that indicates whether to require API operations to originate from an IP Address added to the API access list for the specified organization.
 * `multi_factor_auth_required` - (Optional) Flag that indicates whether to require users to set up Multi-Factor Authentication (MFA) before accessing the specified organization. To learn more, see: https://www.mongodb.com/docs/atlas/security-multi-factor-authentication/.
@@ -66,4 +54,4 @@ $ terraform import mongodbatlas_organization.example 5d09d6a59ccf6445652a444a
 
 ~> **IMPORTANT:** When importing an existing organization, you should **NOT** specify the creation-only attributes (`org_owner_id`, `description`, `role_names`) in your Terraform configuration.
 
-For more information see: [MongoDB Atlas Admin API Organization](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Organizations/operation/createOrganization)  Documentation for more information.
+For more information see: [MongoDB Atlas Admin API Organization](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-organizations).
