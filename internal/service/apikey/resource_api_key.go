@@ -173,6 +173,10 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 		return nil, fmt.Errorf("couldn't import api key %s in project %s, error: %s", orgID, apiKeyID, err)
 	}
 
+	if err := d.Set("org_id", orgID); err != nil {
+		return nil, fmt.Errorf("error setting `org_id`: %s", err)
+	}
+
 	if err := d.Set("description", r.Desc); err != nil {
 		return nil, fmt.Errorf("error setting `description`: %s", err)
 	}
