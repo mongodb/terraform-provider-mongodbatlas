@@ -122,11 +122,11 @@ func TestAccStreamRSStreamConnection_invalidKafkaNetworkingUpdates(t *testing.T)
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: networkPeeringConfig + configureKafka(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPublic, false),
-				Check:  checkKafkaAttributes(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", networkingTypePublic, false, true),
+				Config: networkPeeringConfig + configureKafka(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPublic, true),
+				Check:  checkKafkaAttributes(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", networkingTypePublic, true, true),
 			},
 			{
-				Config:      networkPeeringConfig + configureKafka(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingVPC, false),
+				Config:      networkPeeringConfig + configureKafka(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingVPC, true),
 				ExpectError: regexp.MustCompile("Stream networking access type cannot be modified"),
 			},
 		},
@@ -142,11 +142,11 @@ func TestAccStreamRSStreamConnection_invalidKafkaNetworkingUpdates(t *testing.T)
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: networkPeeringConfig + configureKafka(projectID, instanceName2, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingVPC, false),
-				Check:  checkKafkaAttributes(resourceName, instanceName2, "user", "rawpassword", "localhost:9092", "earliest", networkingTypeVPC, false, true),
+				Config: networkPeeringConfig + configureKafka(projectID, instanceName2, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingVPC, true),
+				Check:  checkKafkaAttributes(resourceName, instanceName2, "user", "rawpassword", "localhost:9092", "earliest", networkingTypeVPC, true, true),
 			},
 			{
-				Config:      networkPeeringConfig + configureKafka(projectID, instanceName2, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPublic, false),
+				Config:      networkPeeringConfig + configureKafka(projectID, instanceName2, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPublic, true),
 				ExpectError: regexp.MustCompile("Stream networking access type cannot be modified"),
 			},
 		},
