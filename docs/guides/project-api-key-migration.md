@@ -215,7 +215,7 @@ For complete working examples, see:
 ## Limitations When Migrating Modules
 
 - **Importing inside modules:** Terraform's `import` block cannot be placed inside a module's source code—`import` blocks are only supported in the root module. To migrate resources managed by a module, you must use the `import` block from the root configuration, specifying the full resource address (e.g., `module.<module_name>.resource_type.resource_name`).
-- **Moved blocks are not helpful:** The `moved` block in Terraform is designed for refactoring resources with the same type and similar addresses. In this migration, because you are splitting one resource into two different resource types, `moved` blocks cannot be used to automate the migration.
+- **Moved blocks from one to many resources:** The [`moved`](https://developer.hashicorp.com/terraform/language/moved) block in Terraform is designed for refactoring resources with the same type and similar addresses. In this migration, because you are splitting one resource into two different resource types, `moved` blocks cannot be used to automate the migration.
 
 ## FAQ
 **Q: Can I assign the same API key to multiple projects?**
