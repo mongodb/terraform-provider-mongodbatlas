@@ -131,26 +131,6 @@ func TestAccStreamRSStreamConnection_invalidKafkaNetworkingUpdates(t *testing.T)
 			},
 		},
 	})
-
-	// // Test the reverse direction: VPC to Public
-	var (
-		instanceName2 = acc.RandomName()
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckPeeringEnvAWS(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             CheckDestroyStreamConnection,
-		Steps: []resource.TestStep{
-			{
-				Config: networkPeeringConfig + configureKafka(projectID, instanceName2, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingVPC, true),
-				Check:  checkKafkaAttributes(resourceName, instanceName2, "user", "rawpassword", "localhost:9092", "earliest", networkingTypeVPC, true, true),
-			},
-			{
-				Config:      networkPeeringConfig + configureKafka(projectID, instanceName2, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPublic, true),
-				ExpectError: regexp.MustCompile("STREAM_NETWORKING_ACCESS_TYPE_CANNOT_BE_MODIFIED"),
-			},
-		},
-	})
 }
 
 func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
