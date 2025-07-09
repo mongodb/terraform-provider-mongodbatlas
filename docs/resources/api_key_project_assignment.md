@@ -11,13 +11,24 @@ resource "mongodbatlas_api_key" "this" {
   role_names  = ["ORG_READ_ONLY"]
 }
 
-resource "mongodbatlas_project" "this" {
-  name   = var.project_name
+resource "mongodbatlas_project" "first_project" {
+  name   = "First Project"
   org_id = var.org_id
 }
 
-resource "mongodbatlas_api_key_project_assignment" "this" {
-  project_id = mongodbatlas_project.this.id
+resource "mongodbatlas_project" "second_project" {
+  name   = "Second Project"
+  org_id = var.org_id
+}
+
+resource "mongodbatlas_api_key_project_assignment" "first_assignment" {
+  project_id = mongodbatlas_project.first_project.id
+  api_key_id = mongodbatlas_api_key.this.api_key_id
+  roles      = ["GROUP_OWNER"]
+}
+
+resource "mongodbatlas_api_key_project_assignment" "second_assignment" {
+  project_id = mongodbatlas_project.second_project.id
   api_key_id = mongodbatlas_api_key.this.api_key_id
   roles      = ["GROUP_OWNER"]
 }
