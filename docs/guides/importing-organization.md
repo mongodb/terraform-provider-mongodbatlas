@@ -144,7 +144,7 @@ For a complete example of importing an organization, including all configuration
 ### Common Issues
 
 1. **"cannot be changed after creation" errors during import**: Ensure you haven't included creation-only attributes in your configuration
-2. **Permission errors**: Verify your API key has Organization Owner role
+2. **Permission errors**: Verify your provider API key has Organization Owner role
 3. **Resource not found**: Double-check the organization ID is correct
 
 ## See Also
