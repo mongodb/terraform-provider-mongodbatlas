@@ -120,7 +120,7 @@ When importing an organization:
 
 ### Creation-Only Attributes
 
-Remember that the following attributes **cannot be specified** when importing:
+The newly-declared optional attributes **cannot be specified** when importing:
 - `org_owner_id` - The organization owner is already set.
 - `description` - API key description from organization creation.
 - `role_names` - API key roles from organization creation.
