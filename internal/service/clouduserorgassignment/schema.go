@@ -3,11 +3,14 @@ package clouduserorgassignment
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func ResourceSchema(ctx context.Context) schema.Schema {
+func resourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"country": schema.StringAttribute{
@@ -22,7 +25,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "First or given name that belongs to the MongoDB Cloud user.",
 			},
-			"id": schema.StringAttribute{
+			"user_id": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the MongoDB Cloud user.",
 			},
@@ -51,7 +54,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Mobile phone number that belongs to the MongoDB Cloud user.",
 			},
 			"org_id": schema.StringAttribute{
-				Required:            true,
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.",
 			},
 			"org_membership_status": schema.StringAttribute{
@@ -92,26 +98,50 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				ElementType:         types.StringType,
 			},
 			"username": schema.StringAttribute{
-				Required:            true,
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 				MarkdownDescription: "Email address that represents the username of the MongoDB Cloud user.",
 			},
 		},
 	}
 }
 
+// func dataSourceSchema(ctx context.Context) dsschema.Schema {
+// 	return conversion.DataSourceSchemaFromResource(resourceSchema(ctx), &conversion.DataSourceSchemaRequest{
+// 		RequiredFields: []string{"org_id"},
+
+// 		OverridenFields: dataSourceOverridenFields(),
+// 	})
+// }
+
+// func dataSourceOverridenFields() map[string]dsschema.Attribute {
+// 	return map[string]dsschema.Attribute{
+// 		"user_id": dsschema.BoolAttribute{
+// 			Optional:            true,
+// 			MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the MongoDB Cloud user.",
+// 		},
+// 		"username": dsschema.BoolAttribute{
+// 			Optional:            true,
+// 			MarkdownDescription: "Email address that represents the username of the MongoDB Cloud user.",
+// 		},
+// 	}
+// }
+
 type TFModel struct {
-	Country             types.String `tfsdk:"country" autogen:"omitjson"`
-	CreatedAt           types.String `tfsdk:"created_at" autogen:"omitjson"`
-	FirstName           types.String `tfsdk:"first_name" autogen:"omitjson"`
-	Id                  types.String `tfsdk:"id" autogen:"omitjson"`
-	InvitationCreatedAt types.String `tfsdk:"invitation_created_at" autogen:"omitjson"`
-	InvitationExpiresAt types.String `tfsdk:"invitation_expires_at" autogen:"omitjson"`
-	InviterUsername     types.String `tfsdk:"inviter_username" autogen:"omitjson"`
-	LastAuth            types.String `tfsdk:"last_auth" autogen:"omitjson"`
-	LastName            types.String `tfsdk:"last_name" autogen:"omitjson"`
-	MobileNumber        types.String `tfsdk:"mobile_number" autogen:"omitjson"`
-	OrgId               types.String `tfsdk:"org_id" autogen:"omitjson"`
-	OrgMembershipStatus types.String `tfsdk:"org_membership_status" autogen:"omitjson"`
+	Country             types.String `tfsdk:"country"`
+	CreatedAt           types.String `tfsdk:"created_at"`
+	FirstName           types.String `tfsdk:"first_name"`
+	UserId              types.String `tfsdk:"user_id"`
+	InvitationCreatedAt types.String `tfsdk:"invitation_created_at"`
+	InvitationExpiresAt types.String `tfsdk:"invitation_expires_at"`
+	InviterUsername     types.String `tfsdk:"inviter_username"`
+	LastAuth            types.String `tfsdk:"last_auth"`
+	LastName            types.String `tfsdk:"last_name"`
+	MobileNumber        types.String `tfsdk:"mobile_number"`
+	OrgId               types.String `tfsdk:"org_id"`
+	OrgMembershipStatus types.String `tfsdk:"org_membership_status"`
 	Roles               types.Object `tfsdk:"roles"`
 	TeamIds             types.Set    `tfsdk:"team_ids"`
 	Username            types.String `tfsdk:"username" autogen:"omitjsonupdate"`
@@ -123,4 +153,14 @@ type TFRolesModel struct {
 type TFRolesProjectRoleAssignmentsModel struct {
 	ProjectId    types.String `tfsdk:"project_id"`
 	ProjectRoles types.Set    `tfsdk:"project_roles"`
+}
+
+var ProjectRoleAssignmentsAttrType = types.ListType{ElemType: types.ObjectType{AttrTypes: map[string]attr.Type{
+	"project_id":    types.StringType,
+	"project_roles": types.SetType{ElemType: types.StringType},
+}}}
+
+var RolesObjectAttrTypes = map[string]attr.Type{
+	"org_roles":                types.SetType{ElemType: types.StringType},
+	"project_role_assignments": ProjectRoleAssignmentsAttrType,
 }
