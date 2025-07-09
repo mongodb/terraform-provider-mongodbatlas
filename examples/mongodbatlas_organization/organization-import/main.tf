@@ -13,8 +13,7 @@ resource "mongodbatlas_organization" "imported" {
   security_contact             = var.security_contact
   skip_default_alerts_settings = var.skip_default_alerts_settings
 
-  # federation_settings_id can be set if your organization is federated
-  # federation_settings_id = var.federation_settings_id
+  federation_settings_id = var.federation_settings_id != "" ? var.federation_settings_id : null
 }
 
 # Outputs for reference

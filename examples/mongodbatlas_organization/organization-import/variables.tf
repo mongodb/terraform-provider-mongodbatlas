@@ -51,9 +51,9 @@ variable "skip_default_alerts_settings" {
   default     = true
 }
 
-# Uncomment if your organization uses federation
-# variable "federation_settings_id" {
-#   type        = string
-#   description = "Unique identifier for the federation settings"
-#   default     = ""
-# } 
+# Only needed if the organization is federated
+variable "federation_settings_id" {
+  type        = string
+  description = "Unique identifier for the federation settings"
+  default     = ""
+}
