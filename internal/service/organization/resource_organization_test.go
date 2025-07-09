@@ -206,6 +206,7 @@ func TestAccConfigDSOrganizations_withPagination(t *testing.T) {
 }
 
 func TestAccConfigRSOrganization_import(t *testing.T) {
+	acc.SkipInUnitTest(t) // needed so OrganizationsApi is not called in unit tests
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	resp, _, _ := acc.ConnV2().OrganizationsApi.GetOrganization(t.Context(), orgID).Execute()
 	orgName := resp.GetName()
