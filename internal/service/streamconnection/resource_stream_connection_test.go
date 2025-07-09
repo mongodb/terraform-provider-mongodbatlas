@@ -127,7 +127,7 @@ func TestAccStreamRSStreamConnection_invalidKafkaNetworkingUpdates(t *testing.T)
 			},
 			{
 				Config:      networkPeeringConfig + configureKafka(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingVPC, true),
-				ExpectError: regexp.MustCompile("Stream networking access type cannot be modified"),
+				ExpectError: regexp.MustCompile("STREAM_NETWORKING_ACCESS_TYPE_CANNOT_BE_MODIFIED"),
 			},
 		},
 	})
@@ -147,7 +147,7 @@ func TestAccStreamRSStreamConnection_invalidKafkaNetworkingUpdates(t *testing.T)
 			},
 			{
 				Config:      networkPeeringConfig + configureKafka(projectID, instanceName2, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPublic, true),
-				ExpectError: regexp.MustCompile("Stream networking access type cannot be modified"),
+				ExpectError: regexp.MustCompile("STREAM_NETWORKING_ACCESS_TYPE_CANNOT_BE_MODIFIED"),
 			},
 		},
 	})
