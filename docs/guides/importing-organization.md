@@ -34,7 +34,7 @@ To enable import functionality, several attributes that were previously marked a
 
 ### Why These Changes Were Necessary
 
-These attributes are **creation-only** attributes that:
+These attributes were required attributes that:
 1. Are only needed when creating a new organization.
 2. Cannot be modified after the organization is created.
 3. Are not returned by the Atlas API when reading existing organizations.
