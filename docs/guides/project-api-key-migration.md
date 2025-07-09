@@ -2,6 +2,8 @@
 page_title: "Migration Guide: Project API Key to API Key + Project Assignment"
 ---
 
+**Note:** Migration to the new pattern is **not required**. If you are currently using the `mongodbatlas_project_api_key` resource, you may continue to do so. This guide is for users who wish to adopt the new pattern for greater flexibility or best practices, but existing configurations will continue to work and are supported.
+
 # Migration Guide: Project API Key to API Key + Assignment
 
 **Objective**: This guide explains how to migrate from the legacy `mongodbatlas_project_api_key` resource/data source to the more flexible and future-proof pattern of managing API keys and project assignments separately using `mongodbatlas_api_key` and `mongodbatlas_api_key_project_assignment`.
@@ -211,6 +213,10 @@ For complete working examples, see:
 - [Old module example](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_api_key_assignment/module/old_module/)
 - [New module example](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_api_key_assignment/module/new_module/)
 
+## Limitations When Migrating Modules
+
+- **Importing inside modules:** Terraform's `import` block cannot be placed inside a module's source code—`import` blocks are only supported in the root module. To migrate resources managed by a module, you must use the `import` block from the root configuration, specifying the full resource address (e.g., `module.<module_name>.resource_type.resource_name`).
+- **Moved blocks are not helpful:** The `moved` block in Terraform is designed for refactoring resources with the same type and similar addresses. In this migration, because you are splitting one resource into two different resource types, `moved` blocks cannot be used to automate the migration.
 
 ## FAQ
 **Q: Can I assign the same API key to multiple projects?**
