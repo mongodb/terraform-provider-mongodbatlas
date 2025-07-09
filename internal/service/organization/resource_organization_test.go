@@ -13,6 +13,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -204,6 +205,34 @@ func TestAccConfigDSOrganizations_withPagination(t *testing.T) {
 	})
 }
 
+func TestAccConfigRSOrganization_import(t *testing.T) {
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	resp, _, _ := acc.ConnV2().OrganizationsApi.GetOrganization(t.Context(), orgID).Execute()
+	orgName := resp.GetName()
+	require.NotEmpty(t, orgName)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheck(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configImportSet(orgID, orgName), // Use import so a new organization is not created, the resource must exist in a step before import state is verified.
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateId:     orgID,
+				ImportState:       true, // Do the import check.
+				ImportStateVerify: true,
+			},
+			{
+				// Use removed block so the organization is not deleted.
+				// Even if something goes wrong, the organization wouldn't be deleted if it has some projects, it would return ORG_NOT_EMPTY error.
+				Config: configImportRemove(),
+			},
+		},
+	})
+}
+
 func configWithPluralDS(orgID string) string {
 	cfg := fmt.Sprintf(`
 		
@@ -226,6 +255,30 @@ func configWithPagination(pageNum, itemPage int) string {
 			items_per_page = %d
 		}
 	`, pageNum, itemPage)
+}
+
+func configImportSet(orgID, orgName string) string {
+	return fmt.Sprintf(`
+		import {
+			id = %[1]q
+			to = mongodbatlas_organization.test
+		}
+
+		resource "mongodbatlas_organization" "test" {
+			name = %[2]q
+		}
+	`, orgID, orgName)
+}
+
+func configImportRemove() string {
+	return `
+		removed {
+			from = mongodbatlas_organization.test
+			lifecycle {
+				destroy = false
+			}
+		}
+	`
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
