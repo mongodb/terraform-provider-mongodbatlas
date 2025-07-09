@@ -96,7 +96,7 @@ If you are migrating from `mongodbatlas_project_api_key` resources already manag
     to = mongodbatlas_project_api_key.new
     id = "<ORG_ID>-<API_KEY_ID>"
    }
-  ```
+   ```
 3. **Import the existing project assignment into the assignment resource:**
    ```shell
    terraform import mongodbatlas_api_key_project_assignment.new <PROJECT_ID>/<API_KEY_ID>
@@ -107,7 +107,7 @@ If you are migrating from `mongodbatlas_project_api_key` resources already manag
     to = mongodbatlas_api_key_project_assignment.new
     id = "<PROJECT_ID>/<API_KEY_ID>"
    }
-  ```
+   ```
 4. **Remove the old resource from the Terraform state:**
    ```shell
    terraform state rm mongodbatlas_project_api_key.old
@@ -120,11 +120,10 @@ If you are migrating from `mongodbatlas_project_api_key` resources already manag
       destroy = false
      }
    }
-  ```
+   ```
 5. **Remove the old resource block from your configuration**
 6. **Run `terraform plan` to review the changes.**
    - Ensure that Terraform does not plan to delete or recreate your API keys or assignments.
-   - **Note:** After import, Terraform may show an in-place update for attributes like `org_id` on the `mongodbatlas_api_key` resource. This is expected and only updates the Terraform state to match your configuration; it does not change the actual resource in Atlas. You can safely apply this change.
 6. **Run `terraform apply` to apply the migration.**
    - Your resources should now be managed under the new resource types without any disruption.
 
