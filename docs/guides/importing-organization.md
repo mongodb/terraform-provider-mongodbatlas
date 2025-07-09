@@ -111,12 +111,12 @@ resource "mongodbatlas_organization" "imported" {
 
 ## Important Considerations
 
-### API Credentials
+### API Credentials Usage  
 
-When importing an organization:
-- The provider will use the API credentials configured in the provider block.
-- Unlike creating a new organization (which generates new API keys), importing uses your existing credentials.
-- Ensure your API key has Organization Owner permissions for the organization being imported.
+- When importing an organization, the provider API credentials are used. Ensure that your API key has Organization Owner permissions for the organization being imported.
+- When creating an organization, the process remains unchanged: new API keys are generated as part of the resource creation, and these keys will be used for subsequent `mongodbatlas_organization` resource operations.
+
+**Important**: API credentials stored in the `mongodbatlas_organization` Terraform state will take precedence, regardless of their validity.
 
 ### Creation-Only Attributes
 
