@@ -30,16 +30,10 @@ To enable import functionality, several attributes that were previously marked a
 - `org_owner_id`
 - `description` 
 - `role_names`
-- `federation_settings_id` (was already optional but it's also creation-only)
 
-### Why These Changes Were Necessary
+This changes was done because these attributes are only needed when creating a new organization and are not returned by the Atlas API when reading existing organizations so they will be empty if the resource is imported.
 
-These attributes were required attributes that:
-1. Are only needed when creating a new organization.
-2. Cannot be modified after the organization is created.
-3. Are not returned by the Atlas API when reading existing organizations.
-
-**Important:** While these attributes are now optional in the schema, they are still **required when creating a new organization**. The provider will validate that these attributes are present during the creation process.
+While these attributes are now optional in the schema, they are still **required when creating a new organization**. The provider will validate that these attributes are present during the creation process.
 
 ## How to Import an Organization
 
