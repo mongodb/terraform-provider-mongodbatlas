@@ -332,7 +332,7 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstanceRead(ctx context.Context, d 
 		return diag.FromErr(fmt.Errorf("error setting `name` for data lakes (%s): %s", d.Id(), err))
 	}
 
-	if cloudProviderField := flattenCloudProviderConfig(dataFederationInstance.CloudProviderConfig); cloudProviderField != nil {
+	if cloudProviderField := flattenCloudProviderConfig(d, dataFederationInstance.CloudProviderConfig); cloudProviderField != nil {
 		if err = d.Set("cloud_provider_config", cloudProviderField); err != nil {
 			return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceSetting, "cloud_provider_config", name, err))
 		}
