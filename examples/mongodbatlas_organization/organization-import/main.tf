@@ -11,12 +11,3 @@ resource "mongodbatlas_organization" "imported" {
   security_contact             = var.security_contact
   skip_default_alerts_settings = var.skip_default_alerts_settings
 }
-
-# Outputs for reference
-output "org_name" {
-  description = "The imported organization name"
-  value       = mongodbatlas_organization.imported.name
-}
-
-# Note: public_key and private_key are not available when importing
-# These are only generated when creating a new organization 
