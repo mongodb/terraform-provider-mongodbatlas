@@ -53,6 +53,7 @@ func Resource() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			// attribute not required in the create operation and not returned from the API when it is not set.
 			"cloud_provider_config": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
@@ -63,6 +64,7 @@ func Resource() *schema.Resource {
 						"aws": {
 							Type:     schema.TypeList,
 							MaxItems: 1,
+							// Changing from required to optional to allow azure usage
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
