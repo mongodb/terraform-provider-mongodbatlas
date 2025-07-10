@@ -31,7 +31,7 @@ To enable import functionality, several attributes that were previously marked a
 - `description` 
 - `role_names`
 
-This changes was done because these attributes are only needed when creating a new organization and are not returned by the Atlas API when reading existing organizations so they will be empty if the resource is imported.
+This change was done because these attributes are only needed when creating a new organization and are not returned by the Atlas API when reading existing organizations so they will be empty if the resource is imported.
 
 While these attributes are now optional in the schema, they are still **required when creating a new organization**. The provider will validate that these attributes are present during the creation process.
 
