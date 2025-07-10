@@ -48,7 +48,6 @@ These attributes were required attributes that:
 Before importing an organization, ensure you have:
 - MongoDB Atlas API credentials with Organization Owner permissions.
 - The Organization ID of the organization you want to import.
-- Terraform version 0.15 or later.
 - MongoDB Atlas Provider version 1.38.0 or later.
 
 ### Finding Your Organization ID
