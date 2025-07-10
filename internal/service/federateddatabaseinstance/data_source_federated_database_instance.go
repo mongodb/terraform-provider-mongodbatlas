@@ -71,6 +71,31 @@ func DataSource() *schema.Resource {
 								},
 							},
 						},
+						"azure": {
+							Type:     schema.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"role_id": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"atlas_app_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"service_principal_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"tenant_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
