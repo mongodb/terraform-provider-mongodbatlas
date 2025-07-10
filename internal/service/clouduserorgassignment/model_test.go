@@ -24,14 +24,12 @@ const (
 	testInviter             = "admin"
 	testOrgMembershipStatus = "ACTIVE"
 
-	// Role constants
 	testOrgRoleOwner      = "ORG_OWNER"
 	testOrgRoleMember     = "ORG_MEMBER"
 	testProjectRoleOwner  = "PROJECT_OWNER"
 	testProjectRoleRead   = "PROJECT_READ_ONLY"
 	testProjectRoleMember = "PROJECT_MEMBER"
 
-	// Project constants
 	testProjectID1 = "project1"
 	testProjectID2 = "project2"
 )

@@ -76,7 +76,7 @@ func TestTFSetValueOrNull(t *testing.T) {
 	for name, value := range testCases {
 		t.Run(name, func(t *testing.T) {
 			result := conversion.TFSetValueOrNull(ctx, value, types.StringType)
-			if value == nil {
+			if value == nil || len(*value) == 0 {
 				assert.True(t, result.IsNull())
 			} else {
 				assert.False(t, result.IsNull())

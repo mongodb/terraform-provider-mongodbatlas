@@ -150,27 +150,6 @@ func resourceSchema() schema.Schema {
 	}
 }
 
-// func dataSourceSchema(ctx context.Context) dsschema.Schema {
-// 	return conversion.DataSourceSchemaFromResource(resourceSchema(ctx), &conversion.DataSourceSchemaRequest{
-// 		RequiredFields: []string{"org_id"},
-
-// 		OverridenFields: dataSourceOverridenFields(),
-// 	})
-// }
-
-// func dataSourceOverridenFields() map[string]dsschema.Attribute {
-// 	return map[string]dsschema.Attribute{
-// 		"user_id": dsschema.BoolAttribute{
-// 			Optional:            true,
-// 			MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the MongoDB Cloud user.",
-// 		},
-// 		"username": dsschema.BoolAttribute{
-// 			Optional:            true,
-// 			MarkdownDescription: "Email address that represents the username of the MongoDB Cloud user.",
-// 		},
-// 	}
-// }
-
 type TFModel struct {
 	Country             types.String `tfsdk:"country"`
 	CreatedAt           types.String `tfsdk:"created_at"`

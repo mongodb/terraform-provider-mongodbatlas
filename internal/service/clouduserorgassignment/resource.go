@@ -2,6 +2,7 @@ package clouduserorgassignment
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -56,17 +57,11 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 
 	apiResp, _, err := connV2.MongoDBCloudUsersApi.CreateOrganizationUser(ctx, orgID, orgUserRequest).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("error creating resource", err.Error())
+		resp.Diagnostics.AddError(fmt.Sprintf("error assigning user to OrgID(%s):", orgID), err.Error())
 		return
 	}
 
-	getUserResp, _, err := connV2.MongoDBCloudUsersApi.GetOrganizationUser(ctx, orgID, apiResp.Id).Execute()
-	if err != nil {
-		resp.Diagnostics.AddError("error creating resource", err.Error())
-		return
-	}
-
-	newCloudUserOrgAssignmentModel, diags := NewTFModel(ctx, getUserResp)
+	newCloudUserOrgAssignmentModel, diags := NewTFModel(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -113,7 +108,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	}
 
 	if err != nil {
-		resp.Diagnostics.AddError("error fetching resource", err.Error())
+		resp.Diagnostics.AddError(fmt.Sprintf("error fetching user(%s) from OrgID(%s):", userResp.Username, orgID), err.Error())
 		return
 	}
 
@@ -137,10 +132,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	connV2 := r.Client.AtlasV2
 	orgID := plan.OrgId.ValueString()
 	userID := plan.UserId.ValueString()
-	if userID == "" {
-		resp.Diagnostics.AddError("missing user_id", "user_id (id) must be set in state for update operation")
-		return
-	}
+	username := plan.Username.ValueString()
 
 	updateReq, diags := NewAtlasUpdateReq(ctx, &plan)
 	if diags.HasError() {
@@ -148,19 +140,13 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 
-	_, _, err := connV2.MongoDBCloudUsersApi.UpdateOrganizationUser(ctx, orgID, userID, updateReq).Execute()
+	apiResp, _, err := connV2.MongoDBCloudUsersApi.UpdateOrganizationUser(ctx, orgID, userID, updateReq).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("error updating resource", err.Error())
+		resp.Diagnostics.AddError(fmt.Sprintf("error updating user(%s) in OrgID(%s):", username, orgID), err.Error())
 		return
 	}
 
-	getUserResp, _, err := connV2.MongoDBCloudUsersApi.GetOrganizationUser(ctx, orgID, userID).Execute()
-	if err != nil {
-		resp.Diagnostics.AddError("error fetching updated resource", err.Error())
-		return
-	}
-
-	newCloudUserOrgAssignmentModel, diags := NewTFModel(ctx, getUserResp)
+	newCloudUserOrgAssignmentModel, diags := NewTFModel(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -179,10 +165,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	connV2 := r.Client.AtlasV2
 	orgID := state.OrgId.ValueString()
 	userID := state.UserId.ValueString()
-	if userID == "" {
-		resp.Diagnostics.AddError("missing user_id", "user_id (id) must be set in state for delete operation")
-		return
-	}
+	username := state.Username.ValueString()
 
 	httpResp, err := connV2.MongoDBCloudUsersApi.RemoveOrganizationUser(ctx, orgID, userID).Execute()
 	if err != nil {
@@ -190,7 +173,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError("error deleting resource", err.Error())
+		resp.Diagnostics.AddError(fmt.Sprintf("error deleting user(%s) from OrgID(%s):", username, orgID), err.Error())
 		return
 	}
 }
