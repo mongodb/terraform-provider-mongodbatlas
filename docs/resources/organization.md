@@ -54,4 +54,6 @@ $ terraform import mongodbatlas_organization.example 5d09d6a59ccf6445652a444a
 
 ~> **IMPORTANT:** When importing an existing organization, you should **NOT** specify the creation-only attributes (`org_owner_id`, `description`, `role_names`, `federation_settings_id`) in your Terraform configuration.
 
-For more information see: [MongoDB Atlas Admin API Organization](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-organizations).
+See the [Guide: Importing MongoDB Atlas Organizations](../guides/importing-organization) for more information.
+
+For more information about the `mongodbatlas_organization` resource see: [MongoDB Atlas Admin API Organization](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-organizations).
