@@ -55,7 +55,7 @@ In addition to all arguments above, the following attributes are exported:
 
 ### Users
 * `id` - Unique 24-hexadecimal digit string that identifies the MongoDB Cloud user.
-* `org_membership_status` - String enum that indicates whether the MongoDB Cloud user has a pending invitation to join the organization or they are already active in the organization.
+* `org_membership_status` - String enum that indicates whether the MongoDB Cloud user has a pending invitation to join the organization or are already active in the organization.
 * `roles` - Organization and project-level roles assigned to one MongoDB Cloud user within one organization.
 * `team_ids` - List of unique 24-hexadecimal digit strings that identifies the teams to which this MongoDB Cloud user belongs.
 * `username` - Email address that represents the username of the MongoDB Cloud user.
