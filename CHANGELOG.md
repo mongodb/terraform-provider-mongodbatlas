@@ -15,6 +15,7 @@ ENHANCEMENTS:
 
 * data-source/mongodbatlas_third_party_integration Adds `send_user_provided_resource_tags` attribute to support sending $querystats to DataDog ([#3454](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3454))
 * data-source/mongodbatlas_third_party_integrations Adds `send_user_provided_resource_tags` attribute to support sending $querystats to DataDog ([#3454](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3454))
+* resource/mongodbatlas_organization: Adds import support ([#3475](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3475))
 * resource/mongodbatlas_third_party_integration Adds `send_user_provided_resource_tags` attribute to support sending $querystats to DataDog ([#3454](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3454))
 
 BUG FIXES:
