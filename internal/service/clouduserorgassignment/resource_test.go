@@ -19,12 +19,18 @@ import (
 var resourceName = "mongodbatlas_cloud_user_org_assignment.test"
 
 func TestAccCloudUserOrgAssignmentRS_basic(t *testing.T) {
+	resource.ParallelTest(t, *basicTestCase(t))
+}
+
+func basicTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
+
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	username := "test-cloud-user-org-assignment@example.com"
 	roles := []string{"ORG_MEMBER"}
 	rolesUpdated := []string{"ORG_MEMBER", "ORG_GROUP_CREATOR"}
 
-	resource.ParallelTest(t, resource.TestCase{
+	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
@@ -62,7 +68,7 @@ func TestAccCloudUserOrgAssignmentRS_basic(t *testing.T) {
 				},
 			},
 		},
-	})
+	}
 }
 
 func testAccCloudUserOrgAssignmentConfig(orgID, username string, roles []string) string {
