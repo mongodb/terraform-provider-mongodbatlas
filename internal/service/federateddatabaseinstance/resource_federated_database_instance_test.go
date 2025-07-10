@@ -438,8 +438,8 @@ func configAzureCloudProvider(name, projectID, atlasAzureAppID, servicePrincipal
 	return azureCloudProviderAccess + fmt.Sprintf(`
 
 resource "mongodbatlas_federated_database_instance" "test" {
-  project_id = %[2]q
   name       = %[1]q
+  project_id = %[2]q
 
   cloud_provider_config {
     azure {
