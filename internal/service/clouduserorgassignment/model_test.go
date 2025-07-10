@@ -37,19 +37,16 @@ const (
 )
 
 var (
-	when                    = time.Date(2020, 1, 2, 3, 4, 5, 0, time.UTC)
-	testCreatedAt           = when.Format(time.RFC3339)
-	testInvitationCreatedAt = when.Add(-24 * time.Hour).Format(time.RFC3339)
-	testInvitationExpiresAt = when.Add(24 * time.Hour).Format(time.RFC3339)
-	testLastAuth            = when.Add(-2 * time.Hour).Format(time.RFC3339)
+	when          = time.Date(2020, 1, 2, 3, 4, 5, 0, time.UTC)
+	testCreatedAt = when.Format(time.RFC3339)
+
+	testLastAuth = when.Add(-2 * time.Hour).Format(time.RFC3339)
 
 	testTeamIDs  = []string{"teamA", "teamB"}
 	testOrgRoles = []string{"owner", "readWrite"}
 
-	testOrgRolesSingle       = []string{testOrgRoleOwner}
-	testOrgRolesMultiple     = []string{testOrgRoleOwner, testOrgRoleMember}
-	testProjectRolesSingle   = []string{testProjectRoleOwner}
-	testProjectRolesMultiple = []string{testProjectRoleOwner, testProjectRoleRead}
+	testOrgRolesMultiple   = []string{testOrgRoleOwner, testOrgRoleMember}
+	testProjectRolesSingle = []string{testProjectRoleOwner}
 )
 
 func createRolesObject(ctx context.Context, orgRoles []string, projectAssignments []clouduserorgassignment.TFRolesProjectRoleAssignmentsModel) types.Object {
@@ -79,7 +76,7 @@ type sdkToTFModelTestCase struct {
 }
 
 func TestNewTFModel_SDKToTFModel(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	fullResp := &admin.OrgUserResponse{
 		Id:                  testUserID,
@@ -146,7 +143,7 @@ func TestNewTFModel_SDKToTFModel(t *testing.T) {
 }
 
 func TestNewOrgUserReq(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	singleOrgRole := []string{"owner"}
 	projectAssignment := clouduserorgassignment.TFRolesProjectRoleAssignmentsModel{
@@ -190,7 +187,7 @@ func TestNewOrgUserReq(t *testing.T) {
 }
 
 func TestNewAtlasUpdateReq(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	singleOrgRole := []string{"owner"}
 
@@ -226,7 +223,7 @@ func TestNewAtlasUpdateReq(t *testing.T) {
 }
 
 func TestNewTFRoles(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	testCases := map[string]struct {
 		roles          *admin.OrgUserRolesResponse

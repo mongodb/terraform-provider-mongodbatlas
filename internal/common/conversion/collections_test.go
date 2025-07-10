@@ -1,7 +1,6 @@
 package conversion_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -66,7 +65,7 @@ func TestToAnySlicePointer(t *testing.T) {
 }
 
 func TestTFSetValueOrNull(t *testing.T) {
-	ctx := context.Background()
+	ctx := t.Context()
 
 	testCases := map[string]*[]string{
 		"nil":       nil,
@@ -81,7 +80,7 @@ func TestTFSetValueOrNull(t *testing.T) {
 				assert.True(t, result.IsNull())
 			} else {
 				assert.False(t, result.IsNull())
-				assert.Equal(t, len(*value), len(result.Elements()))
+				assert.Len(t, result.Elements(), len(*value))
 			}
 		})
 	}

@@ -43,7 +43,6 @@ func NewTFModel(ctx context.Context, apiResp *admin.OrgUserResponse) (*TFModel, 
 		TeamIds:             teamIDs,
 		Username:            types.StringValue(apiResp.GetUsername()),
 	}, diags
-
 }
 
 func NewTFRoles(ctx context.Context, roles *admin.OrgUserRolesResponse) (types.Object, diag.Diagnostics) {
