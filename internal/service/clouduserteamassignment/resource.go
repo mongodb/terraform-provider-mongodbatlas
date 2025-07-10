@@ -46,8 +46,8 @@ type TFUserTeamAssignmentModel struct {
 }
 
 type TFRolesModel struct {
-	ProjectRoleAssignments TFProjectRoleAssignmentsModel `tfsdk:"project_role_assignments"`
-	OrgRoles               types.Set                     `tfsdk:"org_roles"`
+	ProjectRoleAssignments []*TFProjectRoleAssignmentsModel `tfsdk:"project_role_assignments"`
+	OrgRoles               types.Set                        `tfsdk:"org_roles"`
 }
 
 type TFProjectRoleAssignmentsModel struct {
@@ -67,13 +67,6 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	cloudUserTeamAssignmentReq, diags := NewAtlasReq(ctx, &userTeamAssignment)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-
 	// TODO: make POST request to Atlas API and handle error in response
 
 	// connV2 := r.Client.AtlasV2
@@ -81,9 +74,23 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	//	resp.Diagnostics.AddError("error creating resource", err.Error())
 	//	return
 	//}
+	connV2 := r.Client.AtlasV2
+	orgID := userTeamAssignment.OrgID.ValueString()
+	teamID := userTeamAssignment.TeamID.ValueString()
+	cloudUserTeamAssignmentReq, diags := NewCloudUserTeamAssignmentReq(ctx, &userTeamAssignment)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+
+	apiResp, _, err := connV2.MongoDBCloudUsersApi.AddUserToTeam(ctx, orgID, teamID, cloudUserTeamAssignmentReq).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError("error creating resource", err.Error())
+		return
+	}
 
 	// TODO: process response into new terraform state
-	newCloudUserTeamAssignmentModel, diags := NewTFModel(ctx, apiResp)
+	newCloudUserTeamAssignmentModel, diags := NewTFUserTeamAssignmentModel(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

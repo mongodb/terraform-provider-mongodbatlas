@@ -34,15 +34,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"roles": schema.SingleNestedAttribute{
 				Computed: true,
 				Attributes: map[string]schema.Attribute{
-					"project_role_assignmets": schema.SingleNestedAttribute{
+					"project_role_assignmets": schema.SetNestedAttribute{
 						Computed: true,
-						Attributes: map[string]schema.Attribute{
-							"project_id": schema.StringAttribute{
-								Computed: true,
-							},
-							"project_roles": schema.SetAttribute{
-								ElementType: types.StringType,
-								Computed:    true,
+						NestedObject: schema.NestedAttributeObject{
+							Attributes: map[string]schema.Attribute{
+								"project_id": schema.StringAttribute{
+									Computed: true,
+								},
+								"project_roles": schema.SetAttribute{
+									ElementType: types.StringType,
+									Computed:    true,
+								},
 							},
 						},
 					},
