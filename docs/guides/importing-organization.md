@@ -62,17 +62,23 @@ You can find your organization ID in several ways:
 
 #### Step 1: Create the Terraform Configuration
 
-Create a Terraform configuration file that describes the organization you want to import. **Do not include** the creation-only attributes:
+Create a Terraform configuration file that describes the organization you want to import and the `import block`. **Do not include** the creation-only attributes:
 
 ```hcl
 resource "mongodbatlas_organization" "imported" {
   name = "My Existing Organization"
 }
+
+import {
+  id = "<ORG_ID>"
+  to = mongodbatlas_organization.imported
+}
+
 ```
 
 #### Step 2: Run the Import Command
 
-Execute the import command with your organization ID:
+Alternatively, you can use the `import command` instead of the `import block`:
 
 ```bash
 terraform import mongodbatlas_organization.imported <ORG_ID>
