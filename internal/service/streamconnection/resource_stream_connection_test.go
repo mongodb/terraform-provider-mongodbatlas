@@ -23,9 +23,17 @@ data "mongodbatlas_stream_connection" "test" {
 		connection_name = mongodbatlas_stream_connection.test.connection_name
 }
 `
+
+	dataSourcePluralConfig = `
+data "mongodbatlas_stream_connections" "test" {
+		project_id = mongodbatlas_stream_connection.test.project_id
+		instance_name = mongodbatlas_stream_connection.test.instance_name
+}
+`
 )
 
 var (
+	dataSourcesConfig = dataSourceConfig + dataSourcePluralConfig
 	//go:embed testdata/dummy-ca.pem
 	DummyCACert               string
 	networkingTypeVPC         = "VPC"
@@ -42,8 +50,9 @@ var (
 			}
 		}`, networkingTypePublic)
 
-	resourceName   = "mongodbatlas_stream_connection.test"
-	dataSourceName = "data.mongodbatlas_stream_connection.test"
+	resourceName         = "mongodbatlas_stream_connection.test"
+	dataSourceName       = "data.mongodbatlas_stream_connection.test"
+	pluralDataSourceName = "data.mongodbatlas_stream_connections.test"
 )
 
 func TestAccStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
@@ -62,17 +71,19 @@ func testCaseKafkaPlaintext(t *testing.T) *resource.TestCase {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf("%s\n%s", configureKafka(projectID, instanceName, "kafka-conn-plaintext", "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", "", false), dataSourceConfig),
+				Config: dataSourcesConfig + configureKafka(projectID, instanceName, "kafka-conn-plaintext", "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", "", false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkKafkaAttributes(resourceName, instanceName, "kafka-conn-plaintext", "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, true),
 					checkKafkaAttributes(dataSourceName, instanceName, "kafka-conn-plaintext", "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, false),
+					streamConnectionsAttributeChecks(pluralDataSourceName, nil, nil),
 				),
 			},
 			{
-				Config: fmt.Sprintf("%s\n%s", configureKafka(projectID, instanceName, "kafka-conn-plaintext2", "user2", "otherpassword", "localhost:9093", "latest", kafkaNetworkingPublic, false), dataSourceConfig),
+				Config: dataSourcesConfig + configureKafka(projectID, instanceName, "kafka-conn-plaintext2", "user2", "otherpassword", "localhost:9093", "latest", kafkaNetworkingPublic, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkKafkaAttributes(resourceName, instanceName, "kafka-conn-plaintext2", "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, true),
 					checkKafkaAttributes(dataSourceName, instanceName, "kafka-conn-plaintext2", "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, false),
+					streamConnectionsAttributeChecks(pluralDataSourceName, nil, nil),
 				),
 			},
 			{
