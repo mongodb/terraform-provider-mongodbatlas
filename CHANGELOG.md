@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.38.0 (July 10, 2025)
+
 NOTES:
 
 * data-source/mongodbatlas_stream_connections: Deprecates the `id` attribute as it is a random assigned value which should not be used ([#3476](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3476))
