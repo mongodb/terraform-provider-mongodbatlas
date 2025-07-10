@@ -755,7 +755,6 @@ func newAzureConfig(cloudProvider []any) *admin.DataFederationAzureCloudProvider
 		azureSchema := azure[0].(map[string]any)
 		return admin.NewDataFederationAzureCloudProviderConfig(azureSchema["role_id"].(string))
 	}
-
 	return nil
 }
 
