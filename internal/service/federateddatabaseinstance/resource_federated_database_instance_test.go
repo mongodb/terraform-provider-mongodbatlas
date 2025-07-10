@@ -137,47 +137,6 @@ func TestAccFederatedDatabaseInstance_azureCloudProviderConfig(t *testing.T) {
 	})
 }
 
-func configAzureCloudProvider(name, projectID, atlasAzureAppID, servicePrincipalID, tenantID string) string {
-	azureCloudProviderAccess := acc.ConfigSetupAzure(projectID, atlasAzureAppID, servicePrincipalID, tenantID)
-
-	return azureCloudProviderAccess + fmt.Sprintf(`
-
-resource "mongodbatlas_federated_database_instance" "test" {
-  project_id = %[2]q
-  name       = %[1]q
-
-  cloud_provider_config {
-    azure {
-		role_id         = mongodbatlas_cloud_provider_access_setup.test.role_id
-
-    }
-  }
-
-  storage_stores {
-    name         = "azure_store"
-    cluster_name = "azure_cluster"
-    project_id   = %[2]q
-    provider     = "atlas"
-    read_preference {
-      mode = "secondary"
-    }
-  }
-
-  storage_databases {
-    name = "VirtualDatabase0"
-    collections {
-      name = "VirtualCollection0"
-      data_sources {
-        collection = "listingsAndReviews"
-        database   = "sample_airbnb"
-        store_name = "azure_store"
-      }
-    }
-  }
-}
-`, name, projectID)
-}
-
 func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 	var (
 		specs = []acc.ReplicationSpecRequest{
@@ -471,6 +430,47 @@ resource "mongodbatlas_federated_database_instance" "test" {
    }
 }
 	`, name, testS3Bucket)
+}
+
+func configAzureCloudProvider(name, projectID, atlasAzureAppID, servicePrincipalID, tenantID string) string {
+	azureCloudProviderAccess := acc.ConfigSetupAzure(projectID, atlasAzureAppID, servicePrincipalID, tenantID)
+
+	return azureCloudProviderAccess + fmt.Sprintf(`
+
+resource "mongodbatlas_federated_database_instance" "test" {
+  project_id = %[2]q
+  name       = %[1]q
+
+  cloud_provider_config {
+    azure {
+		role_id         = mongodbatlas_cloud_provider_access_setup.test.role_id
+
+    }
+  }
+
+  storage_stores {
+    name         = "azure_store"
+    cluster_name = "azure_cluster"
+    project_id   = %[2]q
+    provider     = "atlas"
+    read_preference {
+      mode = "secondary"
+    }
+  }
+
+  storage_databases {
+    name = "VirtualDatabase0"
+    collections {
+      name = "VirtualCollection0"
+      data_sources {
+        collection = "listingsAndReviews"
+        database   = "sample_airbnb"
+        store_name = "azure_store"
+      }
+    }
+  }
+}
+`, name, projectID)
 }
 
 func configFirstSteps(federatedInstanceName, projectName, orgID string) string {
