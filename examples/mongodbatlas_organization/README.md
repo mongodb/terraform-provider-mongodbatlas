@@ -1,7 +1,7 @@
 
-# Example - A basic example to create and Orgnization with MongoDB Atlas and Terraform
+# Example - MongoDB Atlas Organization with Terraform
 
-This project aims to provide a very straight-forward example of setting up a MongoDB Atlas Organization with Terraform. This will create the following resources in MongoDB Atlas:
+This project provides examples for both creating new MongoDB Atlas Organizations and importing existing ones using Terraform.
 
 - MongoDB Atlas organization
 - Private Key
@@ -13,11 +13,11 @@ This project aims to provide a very straight-forward example of setting up a Mon
 
 * Terraform v0.15 or greater
 * A MongoDB Atlas account 
-* provider.mongodbatlas: version = "~> 1.10.0"
+* provider.mongodbatlas: version = "~> 1.10.0" for creating an organization, 1.38.0 for importing an existing organization.
 * [Cross-organization billing](https://www.mongodb.com/docs/atlas/billing/#cross-organization-billing) enabled and the requesting API Key's organization must be a paying organization. 
 * Some users (see [here](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1083)) have reported issues deploying this starter example with Mac M1 CPU. you encounter this issue, try deploying instead on x86 linux if possible. See list of supported binaries [here](https://github.com/mongodb/terraform-provider-mongodbatlas/releases/tag/v1.8.1)  
 
-## Usage
+## Usage - New organization
 **1\. change working directry to folder organization-step-1.**
 
 **2\. Ensure your MongoDB Atlas credentials are set up.**
@@ -67,9 +67,9 @@ Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
 
 Outputs:
 
-org_id = "647ffffffe9903b4"
-org_private_key = "a6300e-ffffffff-8c1168f0"
-org_public_key = "yqffje"
+org_id = "<ORG_ID>"
+org_private_key = "<ORG_PRIVATE_KEY>"
+org_public_key = "<ORG_PUBLIC_KEY>"
 
 **5\. Retain values for org_private_key and org_public_key for next stage of example as new API key has access to create resources in new organization.**
 
@@ -153,3 +153,9 @@ mongodbatlas_organization.test: Destruction complete after 9s
 
 Destroy complete! Resources: 1 destroyed.
 
+
+## Usage - Importing an existing organization
+
+This is useful when you already have the MongoDB Atlas organization created but you want to start managing its settings with Infrastructure as Code.
+
+See the example in directory [./organization-import](./organization-import).
