@@ -1,6 +1,7 @@
 package acc
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"sync"
@@ -8,6 +9,7 @@ import (
 	"time"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/clean"
 	"github.com/stretchr/testify/require"
 )
 
@@ -32,7 +34,16 @@ func cleanupSharedResources() {
 		fmt.Printf("Deleting execution cluster: %s, project id: %s\n", sharedInfo.clusterName, projectID)
 		deleteCluster(projectID, sharedInfo.clusterName)
 	}
-
+	if !ExistingStreamInstanceUsed() && sharedInfo.streamInstanceName != "" {
+		projectID := sharedInfo.projectID
+		if projectID == "" {
+			projectID = projectIDLocal() // Maybe we are using an existing project, but stream instance is not used
+		}
+		_, err := clean.RemoveStreamInstances(context.TODO(), false, ConnV2(), projectID)
+		if err != nil {
+			fmt.Printf("Failed to delete stream instances: for execution project %s, error: %s\n", projectID, err)
+		}
+	}
 	if sharedInfo.projectID != "" {
 		fmt.Printf("Deleting execution project: %s, id: %s\n", sharedInfo.projectName, sharedInfo.projectID)
 		deleteProject(sharedInfo.projectID)
@@ -120,6 +131,26 @@ func ClusterNameExecution(tb testing.TB, populateSampleData bool) (projectID, cl
 	return projectID, sharedInfo.clusterName
 }
 
+func ProjectIDExecutionWithStreamInstance(tb testing.TB) (projectID, streamInstanceName string) {
+	tb.Helper()
+	SkipInUnitTest(tb)
+	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
+	projectID = ProjectIDExecution(tb)
+	if ExistingStreamInstanceUsed() {
+		return projectID, existingStreamInstanceName()
+	}
+	sharedInfo.mu.Lock()
+	defer sharedInfo.mu.Unlock()
+	if sharedInfo.streamInstanceName == "" {
+		name := RandomStreamInstanceName()
+		tb.Logf("Creating execution stream instance: %s\n", name)
+		sharedInfo.streamInstanceName = name
+		createStreamInstance(tb, projectID, name)
+	}
+
+	return projectID, sharedInfo.streamInstanceName
+}
+
 // SerialSleep waits a few seconds so clusters in a project are not created concurrently, see HELP-65223.
 // This must be called once the test is marked as parallel, e.g. in PreCheck inside Terraform tests.
 func SerialSleep(tb testing.TB) {
@@ -140,13 +171,14 @@ type projectInfo struct {
 }
 
 var sharedInfo = struct {
-	projectID   string
-	projectName string
-	clusterName string
-	projects    []projectInfo
-	mu          sync.Mutex
-	muSleep     sync.Mutex
-	init        bool
+	projectID          string
+	projectName        string
+	clusterName        string
+	streamInstanceName string
+	projects           []projectInfo
+	mu                 sync.Mutex
+	muSleep            sync.Mutex
+	init               bool
 }{
 	projects: []projectInfo{},
 }
