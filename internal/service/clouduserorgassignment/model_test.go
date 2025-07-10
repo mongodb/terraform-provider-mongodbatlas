@@ -3,6 +3,7 @@ package clouduserorgassignment_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
@@ -13,108 +14,253 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clouduserorgassignment"
 )
 
+const (
+	testUserID              = "user-123"
+	testUsername            = "jdoe"
+	testFirstName           = "John"
+	testLastName            = "Doe"
+	testCountry             = "CA"
+	testMobile              = "+1555123456"
+	testInviter             = "admin"
+	testOrgMembershipStatus = "ACTIVE"
+
+	// Role constants
+	testOrgRoleOwner      = "ORG_OWNER"
+	testOrgRoleMember     = "ORG_MEMBER"
+	testProjectRoleOwner  = "PROJECT_OWNER"
+	testProjectRoleRead   = "PROJECT_READ_ONLY"
+	testProjectRoleMember = "PROJECT_MEMBER"
+
+	// Project constants
+	testProjectID1 = "project1"
+	testProjectID2 = "project2"
+)
+
+var (
+	when                    = time.Date(2020, 1, 2, 3, 4, 5, 0, time.UTC)
+	testCreatedAt           = when.Format(time.RFC3339)
+	testInvitationCreatedAt = when.Add(-24 * time.Hour).Format(time.RFC3339)
+	testInvitationExpiresAt = when.Add(24 * time.Hour).Format(time.RFC3339)
+	testLastAuth            = when.Add(-2 * time.Hour).Format(time.RFC3339)
+
+	testTeamIDs  = []string{"teamA", "teamB"}
+	testOrgRoles = []string{"owner", "readWrite"}
+
+	testOrgRolesSingle       = []string{testOrgRoleOwner}
+	testOrgRolesMultiple     = []string{testOrgRoleOwner, testOrgRoleMember}
+	testProjectRolesSingle   = []string{testProjectRoleOwner}
+	testProjectRolesMultiple = []string{testProjectRoleOwner, testProjectRoleRead}
+)
+
+func createRolesObject(ctx context.Context, orgRoles []string, projectAssignments []clouduserorgassignment.TFRolesProjectRoleAssignmentsModel) types.Object {
+	orgRolesSet, _ := types.SetValueFrom(ctx, types.StringType, orgRoles)
+	var praList types.List
+	if len(projectAssignments) == 0 {
+		praList = types.ListNull(clouduserorgassignment.ProjectRoleAssignmentsAttrType.ElemType.(types.ObjectType))
+	} else {
+		praList, _ = types.ListValueFrom(ctx,
+			clouduserorgassignment.ProjectRoleAssignmentsAttrType.ElemType.(types.ObjectType),
+			projectAssignments,
+		)
+	}
+	obj, _ := types.ObjectValue(
+		clouduserorgassignment.RolesObjectAttrTypes,
+		map[string]attr.Value{
+			"org_roles":                orgRolesSet,
+			"project_role_assignments": praList,
+		},
+	)
+	return obj
+}
+
 type sdkToTFModelTestCase struct {
 	SDKResp         *admin.OrgUserResponse
 	expectedTFModel *clouduserorgassignment.TFModel
 }
 
-func TestCloudUserOrgAssignmentSDKToTFModel(t *testing.T) {
-	testCases := map[string]sdkToTFModelTestCase{ // TODO: consider adding test cases to contemplate all possible API responses
-		"Complete SDK response": {
-			SDKResp:         &admin.OrgUserResponse{},
-			expectedTFModel: &clouduserorgassignment.TFModel{},
+func TestNewTFModel_SDKToTFModel(t *testing.T) {
+	ctx := context.Background()
+
+	fullResp := &admin.OrgUserResponse{
+		Id:                  testUserID,
+		Username:            testUsername,
+		FirstName:           admin.PtrString(testFirstName),
+		LastName:            admin.PtrString(testLastName),
+		Country:             admin.PtrString(testCountry),
+		MobileNumber:        admin.PtrString(testMobile),
+		OrgMembershipStatus: testOrgMembershipStatus,
+		CreatedAt:           admin.PtrTime(when),
+		LastAuth:            admin.PtrTime(when.Add(-2 * time.Hour)),
+		TeamIds:             &testTeamIDs,
+		Roles: admin.OrgUserRolesResponse{
+			OrgRoles: &testOrgRoles,
 		},
 	}
 
-	for testName, tc := range testCases {
-		t.Run(testName, func(t *testing.T) {
-			resultModel, diags := clouduserorgassignment.NewTFModel(context.Background(), tc.SDKResp)
-			if diags.HasError() {
-				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
-			}
-			assert.Equal(t, tc.expectedTFModel, resultModel, "created terraform model did not match expected output")
+	orgRolesSet, _ := types.SetValueFrom(ctx, types.StringType, testOrgRoles)
+	expectedRoles, _ := types.ObjectValue(
+		clouduserorgassignment.RolesObjectAttrTypes,
+		map[string]attr.Value{
+			"org_roles":                orgRolesSet,
+			"project_role_assignments": types.ListNull(clouduserorgassignment.ProjectRoleAssignmentsAttrType),
+		},
+	)
+
+	expectedTeams, _ := types.SetValueFrom(ctx, types.StringType, testTeamIDs)
+
+	expectedFullModel := &clouduserorgassignment.TFModel{
+		UserId:              types.StringValue(testUserID),
+		Username:            types.StringValue(testUsername),
+		FirstName:           types.StringValue(testFirstName),
+		LastName:            types.StringValue(testLastName),
+		Country:             types.StringValue(testCountry),
+		MobileNumber:        types.StringValue(testMobile),
+		InviterUsername:     types.StringNull(),
+		OrgMembershipStatus: types.StringValue(testOrgMembershipStatus),
+		CreatedAt:           types.StringValue(testCreatedAt),
+		InvitationCreatedAt: types.StringNull(),
+		InvitationExpiresAt: types.StringNull(),
+		LastAuth:            types.StringValue(testLastAuth),
+		Roles:               expectedRoles,
+		TeamIds:             expectedTeams,
+	}
+
+	testCases := map[string]sdkToTFModelTestCase{
+		"nil SDK response": {
+			SDKResp:         nil,
+			expectedTFModel: nil,
+		},
+		"fully populated SDK response": {
+			SDKResp:         fullResp,
+			expectedTFModel: expectedFullModel,
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			gotModel, diags := clouduserorgassignment.NewTFModel(ctx, tc.SDKResp)
+			assert.False(t, diags.HasError(), "expected no diagnostics")
+			assert.Equal(t, tc.expectedTFModel, gotModel, "TFModel did not match expected")
 		})
 	}
 }
 
-type tfToSDKModelTestCase struct {
-	tfModel        *clouduserorgassignment.TFModel
-	expectedSDKReq *admin.OrgUserResponse
-}
+func TestNewOrgUserReq(t *testing.T) {
+	ctx := context.Background()
 
-func TestCloudUserOrgAssignmentTFModelToSDK(t *testing.T) {
-	testCases := map[string]tfToSDKModelTestCase{
-		"Complete TF state": {
-			tfModel:        &clouduserorgassignment.TFModel{},
-			expectedSDKReq: &admin.OrgUserResponse{},
+	singleOrgRole := []string{"owner"}
+	projectAssignment := clouduserorgassignment.TFRolesProjectRoleAssignmentsModel{
+		ProjectId:    types.StringValue(testProjectID1),
+		ProjectRoles: types.SetValueMust(types.StringType, []attr.Value{types.StringValue(testProjectRoleOwner)}),
+	}
+
+	testCases := map[string]struct {
+		plan     *clouduserorgassignment.TFModel
+		expected *admin.OrgUserRequest
+	}{
+		"with org roles": {
+			plan: &clouduserorgassignment.TFModel{
+				Username: types.StringValue("bob"),
+				Roles:    createRolesObject(ctx, singleOrgRole, nil),
+			},
+			expected: &admin.OrgUserRequest{
+				Username: "bob",
+				Roles:    admin.OrgUserRolesRequest{OrgRoles: singleOrgRole},
+			},
+		},
+		"with both org roles and project role assignments": {
+			plan: &clouduserorgassignment.TFModel{
+				Username: types.StringValue("alice"),
+				Roles:    createRolesObject(ctx, testOrgRolesMultiple, []clouduserorgassignment.TFRolesProjectRoleAssignmentsModel{projectAssignment}),
+			},
+			expected: &admin.OrgUserRequest{
+				Username: "alice",
+				Roles:    admin.OrgUserRolesRequest{OrgRoles: testOrgRolesMultiple},
+			},
 		},
 	}
 
-	for testName, tc := range testCases {
-		t.Run(testName, func(t *testing.T) {
-			apiReqResult, diags := clouduserorgassignment.NewOrgUserReq(context.Background(), tc.tfModel)
-			if diags.HasError() {
-				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
-			}
-			assert.Equal(t, tc.expectedSDKReq, apiReqResult, "created sdk model did not match expected output")
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			req, diags := clouduserorgassignment.NewOrgUserReq(ctx, tc.plan)
+			assert.False(t, diags.HasError(), "expected no diagnostics")
+			assert.Equal(t, tc.expected, req)
+		})
+	}
+}
+
+func TestNewAtlasUpdateReq(t *testing.T) {
+	ctx := context.Background()
+
+	singleOrgRole := []string{"owner"}
+
+	testCases := map[string]struct {
+		plan     *clouduserorgassignment.TFModel
+		expected *admin.OrgUserUpdateRequest
+	}{
+		"null roles": {
+			plan: &clouduserorgassignment.TFModel{
+				Roles: types.ObjectNull(clouduserorgassignment.RolesObjectAttrTypes),
+			},
+			expected: &admin.OrgUserUpdateRequest{
+				Roles: &admin.OrgUserRolesRequest{OrgRoles: nil},
+			},
+		},
+		"with org roles": {
+			plan: &clouduserorgassignment.TFModel{
+				Roles: createRolesObject(ctx, singleOrgRole, nil),
+			},
+			expected: &admin.OrgUserUpdateRequest{
+				Roles: &admin.OrgUserRolesRequest{OrgRoles: singleOrgRole},
+			},
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			req, diags := clouduserorgassignment.NewAtlasUpdateReq(ctx, tc.plan)
+			assert.False(t, diags.HasError(), "expected no diagnostics")
+			assert.Equal(t, tc.expected, req)
 		})
 	}
 }
 
 func TestNewTFRoles(t *testing.T) {
-	t.Run("nil roles returns null object", func(t *testing.T) {
-		obj, diags := clouduserorgassignment.NewTFRoles(context.Background(), nil)
-		assert.False(t, diags.HasError())
-		assert.True(t, obj.IsNull())
-	})
+	ctx := context.Background()
 
-	t.Run("empty roles returns non-null object", func(t *testing.T) {
-		roles := &admin.OrgUserRolesResponse{}
-		obj, diags := clouduserorgassignment.NewTFRoles(context.Background(), roles)
-		assert.False(t, diags.HasError())
-		assert.False(t, obj.IsNull())
-	})
-}
+	testCases := map[string]struct {
+		roles          *admin.OrgUserRolesResponse
+		expectedObject types.Object
+	}{
+		"nil roles": {
+			roles:          nil,
+			expectedObject: types.ObjectNull(clouduserorgassignment.RolesObjectAttrTypes),
+		},
 
-func TestNewTFProjectRoleAssignments(t *testing.T) {
-	t.Run("nil groupRoleAssignments returns empty list", func(t *testing.T) {
-		lst := clouduserorgassignment.NewTFProjectRoleAssignments(context.Background(), nil)
-		assert.True(t, lst.IsNull() || len(lst.Elements()) == 0)
-	})
-
-	t.Run("populated groupRoleAssignments returns non-empty list", func(t *testing.T) {
-		groupRoles := []admin.GroupRoleAssignment{
-			{
-				GroupId:    admin.PtrString("project1"),
-				GroupRoles: &[]string{"ROLE1", "ROLE2"},
+		"roles with both roles": {
+			roles: &admin.OrgUserRolesResponse{
+				OrgRoles: &testOrgRolesMultiple,
+				GroupRoleAssignments: &[]admin.GroupRoleAssignment{
+					{
+						GroupId:    admin.PtrString(testProjectID1),
+						GroupRoles: &testProjectRolesSingle,
+					},
+				},
 			},
-		}
-		lst := clouduserorgassignment.NewTFProjectRoleAssignments(context.Background(), &groupRoles)
-		assert.False(t, lst.IsNull())
-		assert.False(t, len(lst.Elements()) == 0)
-	})
-}
+			expectedObject: createRolesObject(ctx, testOrgRolesMultiple, []clouduserorgassignment.TFRolesProjectRoleAssignmentsModel{
+				{
+					ProjectId:    types.StringValue(testProjectID1),
+					ProjectRoles: types.SetValueMust(types.StringType, []attr.Value{types.StringValue(testProjectRoleOwner)}),
+				},
+			}),
+		},
+	}
 
-func TestNewOrgUserRolesRequest(t *testing.T) {
-	t.Run("null object returns empty OrgUserRolesRequest", func(t *testing.T) {
-		obj := types.ObjectNull(clouduserorgassignment.RolesObjectAttrTypes)
-		req, diags := clouduserorgassignment.NewOrgUserRolesRequest(context.Background(), obj)
-		assert.False(t, diags.HasError())
-		assert.NotNil(t, req)
-		assert.Empty(t, req.OrgRoles)
-	})
-
-	t.Run("populated object returns OrgUserRolesRequest with org_roles", func(t *testing.T) {
-		rolesObj, _ := types.ObjectValue(
-			clouduserorgassignment.RolesObjectAttrTypes,
-			map[string]attr.Value{
-				"org_roles":                types.SetValueMust(types.StringType, []attr.Value{types.StringValue("ORG_ROLE1")}),
-				"project_role_assignments": types.ListNull(types.ObjectType{AttrTypes: clouduserorgassignment.ProjectRoleAssignmentsAttrType.ElemType.(types.ObjectType).AttrTypes}),
-			},
-		)
-		req, diags := clouduserorgassignment.NewOrgUserRolesRequest(context.Background(), rolesObj)
-		assert.False(t, diags.HasError())
-		assert.NotNil(t, req)
-		assert.Equal(t, []string{"ORG_ROLE1"}, req.OrgRoles)
-	})
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			obj, diags := clouduserorgassignment.NewTFRoles(ctx, tc.roles)
+			assert.False(t, diags.HasError(), "unexpected diagnostics")
+			assert.Equal(t, tc.expectedObject, obj, "created roles object did not match expected")
+		})
+	}
 }

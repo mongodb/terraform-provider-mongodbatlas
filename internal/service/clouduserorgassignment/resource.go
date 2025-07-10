@@ -2,6 +2,7 @@ package clouduserorgassignment
 
 import (
 	"context"
+	"net/http"
 	"regexp"
 	"strings"
 
@@ -35,7 +36,7 @@ type rs struct {
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = resourceSchema(ctx)
+	resp.Schema = resourceSchema()
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
@@ -49,6 +50,10 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	connV2 := r.Client.AtlasV2
 	orgID := plan.OrgId.ValueString()
 	orgUserRequest, diags := NewOrgUserReq(ctx, &plan)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
 
 	apiResp, _, err := connV2.MongoDBCloudUsersApi.CreateOrganizationUser(ctx, orgID, orgUserRequest).Execute()
 	if err != nil {
@@ -82,11 +87,16 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	connV2 := r.Client.AtlasV2
 	orgID := state.OrgId.ValueString()
 	var userResp *admin.OrgUserResponse
+	var httpResp *http.Response
 	var err error
 
 	if !state.UserId.IsNull() && state.UserId.ValueString() != "" {
 		userID := state.UserId.ValueString()
-		userResp, _, err = connV2.MongoDBCloudUsersApi.GetOrganizationUser(ctx, orgID, userID).Execute()
+		userResp, httpResp, err = connV2.MongoDBCloudUsersApi.GetOrganizationUser(ctx, orgID, userID).Execute()
+		if validate.StatusNotFound(httpResp) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 	} else if !state.Username.IsNull() && state.Username.ValueString() != "" {
 		username := state.Username.ValueString()
 		params := &admin.ListOrganizationUsersApiParams{
@@ -94,16 +104,16 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 			Username: &username,
 		}
 		usersResp, _, err := connV2.MongoDBCloudUsersApi.ListOrganizationUsersWithParams(ctx, params).Execute()
-		if err == nil && usersResp != nil && usersResp.Results != nil && len(*usersResp.Results) > 0 {
+		if err == nil && usersResp != nil && usersResp.Results != nil {
+			if len(*usersResp.Results) == 0 {
+				resp.State.RemoveResource(ctx)
+				return
+			}
 			userResp = &(*usersResp.Results)[0]
-		} else if err == nil {
-			resp.State.RemoveResource(ctx)
-			return
 		}
 	}
 
 	if err != nil {
-		// Note: validate.StatusNotFound expects *http.Response, but we don't have it here. This is a limitation for username path.
 		resp.Diagnostics.AddError("error fetching resource", err.Error())
 		return
 	}

@@ -19,6 +19,7 @@ var resourceName = "mongodbatlas_cloud_user_org_assignment.test"
 func TestAccCloudUserOrgAssignmentRS_basic(t *testing.T) {
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	username := "test-cloud-user-org-assignment@example.com"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -26,17 +27,13 @@ func TestAccCloudUserOrgAssignmentRS_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCloudUserOrgAssignmentConfig(orgID, username),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "user_id"),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "roles.org_roles.0", "ORG_MEMBER"),
-				),
+				Check:  cloudUserOrgAssignmentChecks(orgID, username, "PENDING"),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:                         resourceName,
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "user_id",
 				ImportStateIdFunc: func(s *terraform.State) (string, error) {
 					attrs := s.RootModule().Resources[resourceName].Primary.Attributes
 					orgID := attrs["org_id"]
@@ -45,9 +42,10 @@ func TestAccCloudUserOrgAssignmentRS_basic(t *testing.T) {
 				},
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:                         resourceName,
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "user_id",
 				ImportStateIdFunc: func(s *terraform.State) (string, error) {
 					attrs := s.RootModule().Resources[resourceName].Primary.Attributes
 					orgID := attrs["org_id"]
@@ -61,35 +59,41 @@ func TestAccCloudUserOrgAssignmentRS_basic(t *testing.T) {
 
 func TestAccCloudUserOrgAssignmentRS_importByUsername(t *testing.T) {
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	username := os.Getenv("MONGODB_ATLAS_USERNAME")
+	// username := os.Getenv("MONGODB_ATLAS_USERNAME")
+	username := "aastha.mahendru@mongodb.com"
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCloudUserOrgAssignmentConfig(orgID, username),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "user_id"),
-					resource.TestCheckResourceAttr(resourceName, "username", username),
-					resource.TestCheckResourceAttr(resourceName, "roles.org_roles.0", "ORG_MEMBER"),
-				),
+				Config: testAccCloudUserOrgAssignmentImportConfig(orgID, username),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateIdFunc: func(s *terraform.State) (string, error) {
-					attrs := s.RootModule().Resources[resourceName].Primary.Attributes
-					orgID := attrs["org_id"]
-					username := attrs["username"]
-					return orgID + "/" + username, nil
-				},
+				ImportState:                          true,
+				ResourceName:                         resourceName,
+				ImportStateVerify:                    true,
+				ImportStatePersist:                   true, // Prevent resource destruction at the end
+				ImportStateVerifyIdentifierAttribute: "user_id",
+				Check:                                cloudUserOrgAssignmentChecks(orgID, username, "ACTIVE"),
+			},
+			{
+				Config: configImportRemove(),
 			},
 		},
 	})
 }
 
+func configImportRemove() string {
+	return `
+		removed {
+			from = mongodbatlas_cloud_user_org_assignment.test
+			lifecycle {
+				prevent_destroy = true
+			}
+		}
+	`
+}
 func testAccCloudUserOrgAssignmentConfig(orgID, username string) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_cloud_user_org_assignment" "test" {
@@ -100,6 +104,39 @@ resource "mongodbatlas_cloud_user_org_assignment" "test" {
   }
 }
 `, orgID, username)
+}
+
+func testAccCloudUserOrgAssignmentImportConfig(orgID, username string) string {
+	return fmt.Sprintf(`
+resource "mongodbatlas_cloud_user_org_assignment" "test" {
+  org_id   = "%s"
+  username = "%s"
+}
+
+import {
+  to = mongodbatlas_cloud_user_org_assignment.test
+  id = "%s/%s"
+}
+`, orgID, username, orgID, username)
+}
+
+func cloudUserOrgAssignmentChecks(orgID, username, orgMembershipStatus string) resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{}
+	attributes := map[string]string{
+		"org_id":                orgID,
+		"username":              username,
+		"org_membership_status": orgMembershipStatus,
+		"roles.org_roles.0":     "ORG_MEMBER",
+	}
+	checks = acc.AddAttrChecks(resourceName, checks, attributes)
+
+	if orgMembershipStatus == "PENDING" {
+		checks = acc.AddAttrSetChecks(resourceName, checks, "user_id", "invitation_created_at", "invitation_expires_at", "inviter_username")
+	} else {
+		checks = acc.AddAttrSetChecks(resourceName, checks, "user_id", "country", "created_at", "first_name", "last_auth", "last_name", "mobile_number")
+	}
+
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func checkDestroy(s *terraform.State) error {
