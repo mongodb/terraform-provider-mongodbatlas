@@ -125,7 +125,7 @@ func resourceSchema() schema.Schema {
 					},
 					"org_roles": schema.SetAttribute{
 						Validators:          []validator.Set{setvalidator.SizeAtLeast(1)},
-						Required:            true,
+						Optional:            true,
 						MarkdownDescription: "One or more organization level roles to assign the MongoDB Cloud user.",
 						ElementType:         types.StringType,
 					},

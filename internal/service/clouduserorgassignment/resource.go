@@ -20,8 +20,7 @@ const resourceName = "cloud_user_org_assignment"
 
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
-
-// var _ resource.ResourceWithMoveState = &rs{} TODO: follow up ticket to implement move state
+var _ resource.ResourceWithMoveState = &rs{}
 
 func Resource() resource.Resource {
 	return &rs{

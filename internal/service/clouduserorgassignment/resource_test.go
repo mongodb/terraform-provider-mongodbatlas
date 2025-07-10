@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 	"testing"
 
 	"go.mongodb.org/atlas-sdk/v20250312005/admin"
@@ -19,6 +21,8 @@ var resourceName = "mongodbatlas_cloud_user_org_assignment.test"
 func TestAccCloudUserOrgAssignmentRS_basic(t *testing.T) {
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	username := "test-cloud-user-org-assignment@example.com"
+	roles := []string{"ORG_MEMBER"}
+	rolesUpdated := []string{"ORG_MEMBER", "ORG_GROUP_CREATOR"}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -26,8 +30,12 @@ func TestAccCloudUserOrgAssignmentRS_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCloudUserOrgAssignmentConfig(orgID, username),
-				Check:  cloudUserOrgAssignmentChecks(orgID, username, "PENDING"),
+				Config: testAccCloudUserOrgAssignmentConfig(orgID, username, roles),
+				Check:  cloudUserOrgAssignmentChecks(orgID, username, "PENDING", roles),
+			},
+			{
+				Config: testAccCloudUserOrgAssignmentConfig(orgID, username, rolesUpdated),
+				Check:  cloudUserOrgAssignmentChecks(orgID, username, "PENDING", rolesUpdated),
 			},
 			{
 				ResourceName:                         resourceName,
@@ -57,76 +65,27 @@ func TestAccCloudUserOrgAssignmentRS_basic(t *testing.T) {
 	})
 }
 
-func TestAccCloudUserOrgAssignmentRS_importByUsername(t *testing.T) {
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	// username := os.Getenv("MONGODB_ATLAS_USERNAME")
-	username := "aastha.mahendru@mongodb.com"
+func testAccCloudUserOrgAssignmentConfig(orgID, username string, roles []string) string {
+	rolesStr := `"` + strings.Join(roles, `", "`) + `"`
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccCloudUserOrgAssignmentImportConfig(orgID, username),
-			},
-			{
-				ImportState:                          true,
-				ResourceName:                         resourceName,
-				ImportStateVerify:                    true,
-				ImportStatePersist:                   true, // Prevent resource destruction at the end
-				ImportStateVerifyIdentifierAttribute: "user_id",
-				Check:                                cloudUserOrgAssignmentChecks(orgID, username, "ACTIVE"),
-			},
-			{
-				Config: configImportRemove(),
-			},
-		},
-	})
-}
-
-func configImportRemove() string {
-	return `
-		removed {
-			from = mongodbatlas_cloud_user_org_assignment.test
-			lifecycle {
-				prevent_destroy = true
-			}
-		}
-	`
-}
-func testAccCloudUserOrgAssignmentConfig(orgID, username string) string {
 	return fmt.Sprintf(`
 resource "mongodbatlas_cloud_user_org_assignment" "test" {
   org_id   = "%s"
   username = "%s"
   roles = {
-    org_roles = ["ORG_MEMBER"]
+    org_roles = [%s]
   }
 }
-`, orgID, username)
+`, orgID, username, rolesStr)
 }
 
-func testAccCloudUserOrgAssignmentImportConfig(orgID, username string) string {
-	return fmt.Sprintf(`
-resource "mongodbatlas_cloud_user_org_assignment" "test" {
-  org_id   = "%s"
-  username = "%s"
-}
-
-import {
-  to = mongodbatlas_cloud_user_org_assignment.test
-  id = "%s/%s"
-}
-`, orgID, username, orgID, username)
-}
-
-func cloudUserOrgAssignmentChecks(orgID, username, orgMembershipStatus string) resource.TestCheckFunc {
+func cloudUserOrgAssignmentChecks(orgID, username, orgMembershipStatus string, roles []string) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{}
 	attributes := map[string]string{
 		"org_id":                orgID,
 		"username":              username,
 		"org_membership_status": orgMembershipStatus,
-		"roles.org_roles.0":     "ORG_MEMBER",
+		"roles.org_roles.#":     strconv.Itoa(len(roles)),
 	}
 	checks = acc.AddAttrChecks(resourceName, checks, attributes)
 
