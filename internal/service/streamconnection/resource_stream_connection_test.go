@@ -94,40 +94,15 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 				Check:  checkKafkaAttributes(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", networkingTypeVPC, true, true),
 			},
 			{
+				Config:      networkPeeringConfig + configureKafka(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingVPC, true),
+				ExpectError: regexp.MustCompile("STREAM_NETWORKING_ACCESS_TYPE_CANNOT_BE_MODIFIED"),
+			},
+			{
 				ResourceName:            resourceName,
 				ImportStateIdFunc:       checkStreamConnectionImportStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"authentication.password"},
-			},
-		},
-	})
-}
-
-func TestAccStreamRSStreamConnection_invalidKafkaNetworkingUpdates(t *testing.T) {
-	var (
-		projectID            = acc.ProjectIDExecution(t)
-		instanceName         = acc.RandomName()
-		vpcID                = os.Getenv("AWS_VPC_ID")
-		vpcCIDRBlock         = os.Getenv("AWS_VPC_CIDR_BLOCK")
-		awsAccountID         = os.Getenv("AWS_ACCOUNT_ID")
-		containerRegion      = os.Getenv("AWS_REGION")
-		peerRegion           = conversion.MongoDBRegionToAWSRegion(containerRegion)
-		providerName         = "AWS"
-		networkPeeringConfig = configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckPeeringEnvAWS(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             CheckDestroyStreamConnection,
-		Steps: []resource.TestStep{
-			{
-				Config: networkPeeringConfig + configureKafka(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPublic, true),
-				Check:  checkKafkaAttributes(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", networkingTypePublic, true, true),
-			},
-			{
-				Config:      networkPeeringConfig + configureKafka(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingVPC, true),
-				ExpectError: regexp.MustCompile("STREAM_NETWORKING_ACCESS_TYPE_CANNOT_BE_MODIFIED"),
 			},
 		},
 	})
