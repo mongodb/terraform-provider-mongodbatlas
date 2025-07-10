@@ -93,8 +93,9 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 				Config: networkPeeringConfig + configureKafka(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingVPC, true),
 				Check:  checkKafkaAttributes(resourceName, instanceName, "user", "rawpassword", "localhost:9092", "earliest", networkingTypeVPC, true, true),
 			},
+			// cannot change networking access type once set
 			{
-				Config:      networkPeeringConfig + configureKafka(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingVPC, true),
+				Config:      configureKafka(projectID, instanceName, "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPublic, true),
 				ExpectError: regexp.MustCompile("STREAM_NETWORKING_ACCESS_TYPE_CANNOT_BE_MODIFIED"),
 			},
 			{
