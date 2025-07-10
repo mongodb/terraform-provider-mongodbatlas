@@ -17,6 +17,16 @@ func TestAccCloudProviderAccessSetupAWS_basic(t *testing.T) {
 	resource.ParallelTest(t, *basicSetupTestCase(t))
 }
 
+const (
+	cloudProviderDataSource = `
+	     data "mongodbatlas_cloud_provider_access_setup" "test" {
+        project_id = mongodbatlas_cloud_provider_access_setup.test.project_id
+        provider_name = "AWS"
+        role_id =  mongodbatlas_cloud_provider_access_setup.test.role_id
+     }
+	`
+)
+
 func TestAccCloudProviderAccessSetupAzure_basic(t *testing.T) {
 	var (
 		resourceName       = "mongodbatlas_cloud_provider_access_setup.test"
@@ -31,7 +41,7 @@ func TestAccCloudProviderAccessSetupAzure_basic(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigSetupAzure(projectID, atlasAzureAppID, servicePrincipalID, tenantID),
+				Config: acc.ConfigSetupAzure(projectID, atlasAzureAppID, servicePrincipalID, tenantID) + cloudProviderDataSource,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "role_id"),
