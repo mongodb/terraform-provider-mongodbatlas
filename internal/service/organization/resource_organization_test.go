@@ -267,6 +267,9 @@ func configImportSet(orgID, orgName string) string {
 
 		resource "mongodbatlas_organization" "test" {
 			name = %[2]q
+			lifecycle {
+   		 prevent_destroy = true
+  		}
 		}
 	`, orgID, orgName)
 }
