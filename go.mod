@@ -10,7 +10,7 @@ require (
 	github.com/hashicorp/go-cty v1.5.0
 	github.com/hashicorp/go-version v1.7.0
 	github.com/hashicorp/hc-install v0.9.2
-	github.com/hashicorp/hcl/v2 v2.23.0
+	github.com/hashicorp/hcl/v2 v2.24.0
 	github.com/hashicorp/terraform-exec v0.23.0
 	github.com/hashicorp/terraform-plugin-framework v1.15.0
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.5.0
@@ -24,9 +24,9 @@ require (
 	github.com/huandu/xstrings v1.5.0
 	github.com/jarcoal/httpmock v1.4.0
 	github.com/mongodb-forks/digest v1.1.0
-	github.com/mongodb/atlas-sdk-go v1.0.1-0.20250630084102-6f6edd2e6f1f
-	github.com/pb33f/libopenapi v0.22.3
-	github.com/sebdah/goldie/v2 v2.5.5
+	github.com/mongodb/atlas-sdk-go v1.0.1-0.20250709084037-30b22cb7796e
+	github.com/pb33f/libopenapi v0.23.0
+	github.com/sebdah/goldie/v2 v2.7.1
 	github.com/spf13/cast v1.9.2
 	github.com/stretchr/testify v1.10.0
 	github.com/wI2L/jsondiff v0.7.0

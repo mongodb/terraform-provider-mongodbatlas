@@ -27,6 +27,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/apikeyprojectassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clouduserorgassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/controlplaneipaddresses"
@@ -457,6 +458,8 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		flexrestorejob.PluralDataSource,
 		resourcepolicy.DataSource,
 		resourcepolicy.PluralDataSource,
+		apikeyprojectassignment.DataSource,
+		apikeyprojectassignment.PluralDataSource,
 	}
 	if config.PreviewProviderV2AdvancedCluster() {
 		dataSources = append(dataSources, advancedclustertpf.DataSource, advancedclustertpf.PluralDataSource)
@@ -482,6 +485,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		flexcluster.Resource,
 		resourcepolicy.Resource,
 		clouduserorgassignment.Resource,
+		apikeyprojectassignment.Resource,
 	}
 	if config.PreviewProviderV2AdvancedCluster() {
 		resources = append(resources, advancedclustertpf.Resource)

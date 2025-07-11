@@ -4,6 +4,8 @@ bin
 .idea
 .vscode
 .windsurf
+CLAUDE.md
+.claude
 *.env
 *.bak
 *.log
