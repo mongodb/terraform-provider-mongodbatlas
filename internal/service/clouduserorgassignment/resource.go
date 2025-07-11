@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
-	"strings"
 
 	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
@@ -180,13 +179,12 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	importID := req.ID
-	var orgID, userID string
-	parts := strings.Split(importID, "/")
-	if len(parts) != 2 {
+	ok, parts := conversion.ImportSplit(req.ID, 2)
+	if !ok {
 		resp.Diagnostics.AddError("invalid import ID format", "expected 'org_id/user_id' or 'org_id/username', got: "+importID)
 		return
 	}
-	orgID, userID = parts[0], parts[1]
+	orgID, userID := parts[0], parts[1]
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("org_id"), orgID)...)
 
