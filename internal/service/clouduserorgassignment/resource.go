@@ -91,7 +91,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 			resp.State.RemoveResource(ctx)
 			return
 		}
-	} else if !state.Username.IsNull() && state.Username.ValueString() != "" {
+	} else if !state.Username.IsNull() && state.Username.ValueString() != "" { // required for import
 		username := state.Username.ValueString()
 		params := &admin.ListOrganizationUsersApiParams{
 			OrgId:    orgID,

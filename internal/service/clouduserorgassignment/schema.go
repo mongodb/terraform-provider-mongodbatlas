@@ -4,9 +4,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -67,9 +65,6 @@ func resourceSchema() schema.Schema {
 			"last_auth": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Date and time when the current account last authenticated. This value is in the ISO 8601 timestamp format in UTC.",
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
 			},
 			"last_name": schema.StringAttribute{
 				Computed:            true,
@@ -119,9 +114,6 @@ func resourceSchema() schema.Schema {
 								},
 							},
 						},
-						PlanModifiers: []planmodifier.List{
-							listplanmodifier.UseStateForUnknown(),
-						},
 					},
 					"org_roles": schema.SetAttribute{
 						Validators:          []validator.Set{setvalidator.SizeAtLeast(1)},
@@ -135,9 +127,6 @@ func resourceSchema() schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "List of unique 24-hexadecimal digit strings that identifies the teams to which this MongoDB Cloud user belongs.",
 				ElementType:         types.StringType,
-				PlanModifiers: []planmodifier.Set{
-					setplanmodifier.UseStateForUnknown(),
-				},
 			},
 			"username": schema.StringAttribute{
 				Required: true,
