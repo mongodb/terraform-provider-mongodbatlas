@@ -18,6 +18,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/clean"
 )
 
 const (
@@ -331,35 +332,9 @@ func removeDataLakePipelines(ctx context.Context, t *testing.T, dryRun bool, cli
 
 func removeStreamInstances(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
 	t.Helper()
-	streamInstances, _, err := client.StreamsApi.ListStreamInstances(ctx, projectID).Execute()
+	count, err := clean.RemoveStreamInstances(ctx, dryRun, client, projectID)
 	require.NoError(t, err)
-
-	for _, instance := range *streamInstances.Results {
-		instanceName := *instance.Name
-		id := instance.GetId()
-		t.Logf("delete stream instance %s", id)
-
-		if !dryRun {
-			_, err = client.StreamsApi.DeleteStreamInstance(ctx, projectID, instanceName).Execute()
-			if err != nil && admin.IsErrorCode(err, "STREAM_TENANT_HAS_STREAM_PROCESSORS") {
-				t.Logf("stream instance %s has stream processors, attempting to delete", id)
-				streamProcessors, _, spErr := client.StreamsApi.ListStreamProcessors(ctx, projectID, instanceName).Execute()
-				require.NoError(t, spErr)
-
-				for _, processor := range *streamProcessors.Results {
-					t.Logf("delete stream processor %s", processor.Id)
-					_, err = client.StreamsApi.DeleteStreamProcessor(ctx, projectID, instanceName, processor.Name).Execute()
-					require.NoError(t, err)
-				}
-				t.Logf("retry delete stream instance %s after removing stream processors", id)
-				_, err = client.StreamsApi.DeleteStreamInstance(ctx, projectID, instanceName).Execute()
-				require.NoError(t, err)
-			} else {
-				require.NoError(t, err)
-			}
-		}
-	}
-	return len(*streamInstances.Results)
+	return count
 }
 
 func removePrivateEndpointServices(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
