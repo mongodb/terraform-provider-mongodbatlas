@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
 // MoveState is used with moved block to upgrade from cluster to adv_cluster
@@ -112,17 +113,9 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 	diags.Append(stateOut.Set(ctx, model)...)
 }
 
-func getAttrFromStateObj[T any](rawState map[string]tftypes.Value, attrName string) *T {
-	var ret *T
-	if err := rawState[attrName].As(&ret); err != nil {
-		return nil
-	}
-	return ret
-}
-
 func getProjectIDNameFromStateObj(diags *diag.Diagnostics, stateObj map[string]tftypes.Value) (projectID, name *string) {
-	projectID = getAttrFromStateObj[string](stateObj, "project_id")
-	name = getAttrFromStateObj[string](stateObj, "name")
+	projectID = schemafunc.GetAttrFromStateObj[string](stateObj, "project_id")
+	name = schemafunc.GetAttrFromStateObj[string](stateObj, "name")
 	if !conversion.IsStringPresent(projectID) || !conversion.IsStringPresent(name) {
 		diags.AddError("Unable to read project_id or name from state", fmt.Sprintf("project_id: %s, name: %s",
 			conversion.SafeString(projectID), conversion.SafeString(name)))
@@ -138,13 +131,13 @@ func getTimeoutFromStateObj(stateObj map[string]tftypes.Value) timeouts.Value {
 		"delete": types.StringType,
 	}
 	nullObj := timeouts.Value{Object: types.ObjectNull(attrTypes)}
-	timeoutState := getAttrFromStateObj[map[string]tftypes.Value](stateObj, "timeouts")
+	timeoutState := schemafunc.GetAttrFromStateObj[map[string]tftypes.Value](stateObj, "timeouts")
 	if timeoutState == nil {
 		return nullObj
 	}
 	timeoutMap := make(map[string]attr.Value)
 	for action := range attrTypes {
-		actionTimeout := getAttrFromStateObj[string](*timeoutState, action)
+		actionTimeout := schemafunc.GetAttrFromStateObj[string](*timeoutState, action)
 		if actionTimeout == nil {
 			timeoutMap[action] = types.StringNull()
 		} else {
@@ -159,16 +152,16 @@ func getTimeoutFromStateObj(stateObj map[string]tftypes.Value) timeouts.Value {
 }
 
 func setOptionalModelAttrs(stateObj map[string]tftypes.Value, model *TFModel) {
-	if retainBackupsEnabled := getAttrFromStateObj[bool](stateObj, "retain_backups_enabled"); retainBackupsEnabled != nil {
+	if retainBackupsEnabled := schemafunc.GetAttrFromStateObj[bool](stateObj, "retain_backups_enabled"); retainBackupsEnabled != nil {
 		model.RetainBackupsEnabled = types.BoolPointerValue(retainBackupsEnabled)
 	}
-	if mongoDBMajorVersion := getAttrFromStateObj[string](stateObj, "mongo_db_major_version"); mongoDBMajorVersion != nil {
+	if mongoDBMajorVersion := schemafunc.GetAttrFromStateObj[string](stateObj, "mongo_db_major_version"); mongoDBMajorVersion != nil {
 		model.MongoDBMajorVersion = types.StringPointerValue(mongoDBMajorVersion)
 	}
 }
 
 func setReplicationSpecNumShardsAttr(ctx context.Context, stateObj map[string]tftypes.Value, model *TFModel) {
-	specsVal := getAttrFromStateObj[[]tftypes.Value](stateObj, "replication_specs")
+	specsVal := schemafunc.GetAttrFromStateObj[[]tftypes.Value](stateObj, "replication_specs")
 	if specsVal == nil {
 		return
 	}

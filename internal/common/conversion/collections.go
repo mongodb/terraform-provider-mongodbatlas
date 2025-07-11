@@ -1,6 +1,12 @@
 package conversion
 
-import "reflect"
+import (
+	"context"
+	"reflect"
+
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
 
 // HasElementsSliceOrMap checks if param is a non-empty slice or map
 func HasElementsSliceOrMap(value any) bool {
@@ -21,4 +27,12 @@ func ToAnySlicePointer(value *[]map[string]any) *[]any {
 		ret[i] = item
 	}
 	return &ret
+}
+
+func TFSetValueOrNull[T any](ctx context.Context, ptr *[]T, elemType attr.Type) types.Set {
+	if ptr == nil || len(*ptr) == 0 {
+		return types.SetNull(elemType)
+	}
+	set, _ := types.SetValueFrom(ctx, elemType, *ptr)
+	return set
 }
