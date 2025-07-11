@@ -483,6 +483,7 @@ func checkAttributesFromBasicUpdateFlow(projectID, instanceName, processorName, 
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
+// pluralConfigStateChecks allows checking one of the results returned by the plural data source
 func pluralConfigStateChecks(processorName, state, instanceName string, includeStats, includeOptions bool) []statecheck.StateCheck {
 	return []statecheck.StateCheck{
 		acc.PluralResultCheck(pluralDataSourceName, "processor_name", knownvalue.StringExact(processorName), pluralValueChecks(processorName, state, instanceName, includeStats, includeOptions)),

@@ -69,11 +69,11 @@ func TestAccStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 	resource.ParallelTest(t, *testCase)
 }
 
-func testCaseKafkaPlaintext(t *testing.T, suffix string) *resource.TestCase {
+func testCaseKafkaPlaintext(t *testing.T, nameSuffix string) *resource.TestCase {
 	t.Helper()
 	var (
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		connectionName          = "kafka-conn-plaintext" + suffix
+		connectionName          = "kafka-conn-plaintext" + nameSuffix
 	)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -164,7 +164,7 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 			},
 			// cannot change networking access type once set
 			{
-				Config:      networkPeeringConfig + configureKafka(projectID, instanceName, "kafka-conn-ssl", "user2", "otherpassword", "localhost:9093", "latest", kafkaNetworkingVPC, true),
+				Config:      networkPeeringConfig + configureKafka(projectID, instanceName, "kafka-conn-ssl", "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingVPC, true),
 				ExpectError: regexp.MustCompile("STREAM_NETWORKING_ACCESS_TYPE_CANNOT_BE_MODIFIED"),
 			},
 			{

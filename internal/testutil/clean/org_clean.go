@@ -6,6 +6,8 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
+// RemoveStreamInstances deletes all stream instances in the project.
+// It will also remove all stream processors associated with the stream instance.
 func RemoveStreamInstances(ctx context.Context, dryRun bool, client *admin.APIClient, projectID string) (int, error) {
 	streamInstances, _, err := client.StreamsApi.ListStreamInstances(ctx, projectID).Execute()
 	if err != nil {
