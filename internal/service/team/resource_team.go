@@ -56,7 +56,8 @@ func Resource() *schema.Resource {
 			},
 			"usernames": {
 				Type:     schema.TypeSet,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
