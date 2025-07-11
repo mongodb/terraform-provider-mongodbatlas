@@ -53,7 +53,7 @@ func Resource() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			// attribute not required in the create operation and not returned from the API when it is not set.
+			// Optional-only behavior from the API, but keeping O+C to avoid behavior changes.
 			"cloud_provider_config": cloudProviderConfig(false),
 			"data_process_region": {
 				Type:     schema.TypeList,
