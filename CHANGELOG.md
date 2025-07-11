@@ -1,9 +1,23 @@
 ## (Unreleased)
 
+## 1.38.0 (July 10, 2025)
+
+NOTES:
+
+* data-source/mongodbatlas_stream_connections: Deprecates the `id` attribute as it is a random assigned value which should not be used ([#3476](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3476))
+* data-source/mongodbatlas_stream_instances: Deprecates the `id` attribute as it is a random assigned value which should not be used ([#3476](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3476))
+
+FEATURES:
+
+* **New Data Source:** `data-source/mongodbatlas_api_key_project_assignment` ([#3461](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3461))
+* **New Data Source:** `data-source/mongodbatlas_api_key_project_assignments` ([#3461](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3461))
+* **New Resource:** `resource/mongodbatlas_api_key_project_assignment` ([#3461](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3461))
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_third_party_integration Adds `send_user_provided_resource_tags` attribute to support sending $querystats to DataDog ([#3454](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3454))
 * data-source/mongodbatlas_third_party_integrations Adds `send_user_provided_resource_tags` attribute to support sending $querystats to DataDog ([#3454](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3454))
+* resource/mongodbatlas_organization: Adds import support ([#3475](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3475))
 * resource/mongodbatlas_third_party_integration Adds `send_user_provided_resource_tags` attribute to support sending $querystats to DataDog ([#3454](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3454))
 
 BUG FIXES:
