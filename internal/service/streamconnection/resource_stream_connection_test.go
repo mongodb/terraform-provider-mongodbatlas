@@ -214,8 +214,9 @@ func testCaseCluster(t *testing.T, nameSuffix string) *resource.TestCase {
 
 func TestAccStreamRSStreamConnection_sample(t *testing.T) {
 	var (
-		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		sampleName              = "sample_stream_solar"
+		projectID, _ = acc.ProjectIDExecutionWithStreamInstance(t)
+		instanceName = acc.RandomStreamInstanceName() // The execution stream instance use sample stream, so we need to create this in a different instance
+		sampleName   = "sample_stream_solar"
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -223,7 +224,7 @@ func TestAccStreamRSStreamConnection_sample(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf("%s\n%s", configureSampleStream(projectID, instanceName, sampleName), dataSourceConfig),
+				Config: dataSourcesConfig + configureSampleStream(projectID, instanceName, sampleName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkSampleStreamAttributes(resourceName, instanceName, sampleName),
 					checkSampleStreamAttributes(dataSourceName, instanceName, sampleName),
@@ -395,14 +396,18 @@ func configureKafka(projectID, instanceName, connectionName, username, password,
 }
 
 func configureSampleStream(projectID, instanceName, sampleName string) string {
+	streamInstanceConfig := acc.StreamInstanceConfig(projectID, instanceName, "VIRGINIA_USA", "AWS")
+
 	return fmt.Sprintf(`
+		%[1]s
+		
 		resource "mongodbatlas_stream_connection" "test" {
-		    project_id = %[1]q
-			instance_name = %[2]q
-		 	connection_name = %[3]q
+		    project_id = mongodbatlas_stream_instance.test.project_id
+			instance_name = mongodbatlas_stream_instance.test.instance_name
+		 	connection_name = %[2]q
 		 	type = "Sample"
 		}
-	`, projectID, instanceName, sampleName)
+	`, streamInstanceConfig, sampleName)
 }
 
 func checkSampleStreamAttributes(

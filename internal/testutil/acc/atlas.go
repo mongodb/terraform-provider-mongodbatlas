@@ -96,6 +96,9 @@ func createStreamInstance(tb testing.TB, projectID, name string) {
 		StreamConfig: &admin.StreamConfig{
 			Tier: admin.PtrString("SP10"),
 		},
+		SampleConnections: &admin.StreamsSampleConnections{
+			Solar: admin.PtrBool(true),
+		},
 	}
 	_, _, err := ConnV2().StreamsApi.CreateStreamInstance(tb.Context(), projectID, &req).Execute()
 	require.NoError(tb, err, "Stream instance creation failed: %s, err: %s", name, err)
