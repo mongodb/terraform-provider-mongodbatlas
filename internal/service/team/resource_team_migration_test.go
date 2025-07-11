@@ -63,8 +63,10 @@ func TestMigConfigTeams_usernamesDeprecation(t *testing.T) {
 					resource.TestCheckTypeSetElemAttr(resourceName, "usernames.*", username),
 				),
 			},
+			mig.TestStepCheckEmptyPlan(configBasic(orgID, name, &usernames)),
 			{
-				Config: configBasic(orgID, name, nil),
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   configBasic(orgID, name, nil),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
@@ -74,6 +76,7 @@ func TestMigConfigTeams_usernamesDeprecation(t *testing.T) {
 					resource.TestCheckTypeSetElemAttr(resourceName, "usernames.*", username),
 				),
 			},
+			mig.TestStepCheckEmptyPlan(configBasic(orgID, name, nil)),
 		},
 	})
 }
