@@ -1,8 +1,8 @@
 # Data Source: mongodbatlas_cloud_user_org_assignment
 
-`mongodbatlas_cloud_user_org_assignment` provides a Cloud User Org Assignment data source. The data source lets you retrieve a user assigned to an organization.
+`mongodbatlas_cloud_user_org_assignment` provides a Cloud User Organization Assignment data source. The data source lets you retrieve a user assigned to an organization.
 
-**NOTE**: Users with pending invitations created using `mongodbatlas_project_invitation` resource or via the deprecated [Invite One MongoDB Cloud User to One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser#tag/Projects/operation/createProjectInvitation) 
+**NOTE**: Users with pending invitations created using the deprecated`mongodbatlas_project_invitation` resource or via the deprecated [Invite One MongoDB Cloud User to One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser#tag/Projects/operation/createProjectInvitation) 
 endpoint are not returned with this resource. See  [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser) for details. 
 To manage such users with this resource, refer to our [migration guide]<link-to-migration-guide>.
 
