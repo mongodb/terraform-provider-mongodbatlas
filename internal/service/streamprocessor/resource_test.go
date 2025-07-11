@@ -57,12 +57,14 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config: config(t, projectID, instanceName, processorName, "", randomSuffix, sampleSrcConfig, testLogDestConfig),
-				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
+				Config:            config(t, projectID, instanceName, processorName, "", randomSuffix, sampleSrcConfig, testLogDestConfig),
+				Check:             composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
+				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.CreatedState, instanceName, false, false),
 			},
 			{
-				Config: config(t, projectID, instanceName, processorName, streamprocessor.StartedState, randomSuffix, sampleSrcConfig, testLogDestConfig),
-				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StartedState, true, false),
+				Config:            config(t, projectID, instanceName, processorName, streamprocessor.StartedState, randomSuffix, sampleSrcConfig, testLogDestConfig),
+				Check:             composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StartedState, true, false),
+				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.StartedState, instanceName, true, false),
 			},
 			{
 				ResourceName:            resourceName,
@@ -87,8 +89,9 @@ func TestAccStreamProcessor_JSONWhiteSpaceFormat(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config: config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, randomSuffix, sampleSrcConfigExtraSpaces, testLogDestConfig),
-				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
+				Config:            config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, randomSuffix, sampleSrcConfigExtraSpaces, testLogDestConfig),
+				Check:             composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
+				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.CreatedState, instanceName, false, false),
 			},
 		}})
 }
@@ -109,8 +112,9 @@ func TestAccStreamProcessor_withOptions(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config: config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, randomSuffix, src, dest),
-				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, true),
+				Config:            config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, randomSuffix, src, dest),
+				Check:             composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, true),
+				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.CreatedState, instanceName, false, true),
 			},
 			{
 				ResourceName:            resourceName,
@@ -274,7 +278,7 @@ func TestAccStreamProcessor_clusterType(t *testing.T) {
 			{
 				Config:            config(t, projectID, instanceName, processorName, streamprocessor.StartedState, randomSuffix, srcConfig, testLogDestConfig),
 				Check:             composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StartedState, true, false),
-				ConfigStateChecks: []statecheck.StateCheck{acc.PluralResultCheck(pluralDataSourceName, "processor_name", knownvalue.StringExact(processorName), pluralValueChecks(processorName, streamprocessor.StartedState, instanceName, true, false))},
+				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.StartedState, instanceName, true, false),
 			},
 		}})
 }
@@ -477,6 +481,12 @@ func checkAttributesFromBasicUpdateFlow(projectID, instanceName, processorName, 
 
 	checks = acc.AddAttrChecks(resourceName, checks, attributes)
 	return resource.ComposeAggregateTestCheckFunc(checks...)
+}
+
+func pluralConfigStateChecks(processorName, state, instanceName string, includeStats, includeOptions bool) []statecheck.StateCheck {
+	return []statecheck.StateCheck{
+		acc.PluralResultCheck(pluralDataSourceName, "processor_name", knownvalue.StringExact(processorName), pluralValueChecks(processorName, state, instanceName, includeStats, includeOptions)),
+	}
 }
 
 func pluralValueChecks(processorName, state, instanceName string, includeStats, includeOptions bool) map[string]knownvalue.Check {
