@@ -457,6 +457,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		flexrestorejob.PluralDataSource,
 		resourcepolicy.DataSource,
 		resourcepolicy.PluralDataSource,
+		clouduserorgassignment.DataSource,
 	}
 	if config.PreviewProviderV2AdvancedCluster() {
 		dataSources = append(dataSources, advancedclustertpf.DataSource, advancedclustertpf.PluralDataSource)

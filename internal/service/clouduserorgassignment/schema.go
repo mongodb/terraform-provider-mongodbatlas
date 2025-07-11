@@ -3,6 +3,7 @@ package clouduserorgassignment
 import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -10,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
 func resourceSchema() schema.Schema {
@@ -146,6 +149,27 @@ func resourceSchema() schema.Schema {
 				},
 				MarkdownDescription: "Email address that represents the username of the MongoDB Cloud user.",
 			},
+		},
+	}
+}
+
+func dataSourceSchema() dsschema.Schema {
+	return conversion.DataSourceSchemaFromResource(resourceSchema(), &conversion.DataSourceSchemaRequest{
+		RequiredFields: []string{"org_id"},
+
+		OverridenFields: dataSourceOverridenFields(),
+	})
+}
+
+func dataSourceOverridenFields() map[string]dsschema.Attribute {
+	return map[string]dsschema.Attribute{
+		"user_id": dsschema.StringAttribute{
+			Optional:            true,
+			MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the MongoDB Cloud user.",
+		},
+		"username": dsschema.StringAttribute{
+			Optional:            true,
+			MarkdownDescription: "Email address that represents the username of the MongoDB Cloud user.",
 		},
 	}
 }
