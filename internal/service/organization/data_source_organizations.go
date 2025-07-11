@@ -64,7 +64,7 @@ func PluralDataSource() *schema.Resource {
 								},
 							},
 						},
-						"users": &dsschema.DSOrgUsersSchema,
+						"users": dsschema.DSOrgUsersSchema(),
 						"api_access_list_required": {
 							Type:     schema.TypeBool,
 							Computed: true,
@@ -154,7 +154,7 @@ func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizati
 			"skip_default_alerts_settings": organization.SkipDefaultAlertsSettings,
 			"is_deleted":                   organization.IsDeleted,
 			"links":                        conversion.FlattenLinks(organization.GetLinks()),
-			"users":                        dsschema.FlattenUsers(users),
+			"users":                        conversion.FlattenUsers(users),
 			"api_access_list_required":     settings.ApiAccessListRequired,
 			"multi_factor_auth_required":   settings.MultiFactorAuthRequired,
 			"restrict_employee_access":     settings.RestrictEmployeeAccess,

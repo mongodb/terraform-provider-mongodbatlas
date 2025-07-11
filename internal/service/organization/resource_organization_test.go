@@ -207,16 +207,16 @@ func TestAccConfigDSOrganization_users(t *testing.T) {
 					resource.TestCheckResourceAttrSet(datasourceName, "users.0.id"),
 					resource.TestCheckResourceAttrSet(datasourceName, "users.0.roles.0.org_roles.#"),
 					resource.TestCheckResourceAttrSet(datasourceName, "users.0.roles.0.project_roles_assignments.#"),
-					resource.TestMatchResourceAttr(datasourceName, "users.0.username", regexp.MustCompile(`.*@mongodb\.com$`)),
-					resource.TestMatchResourceAttr(datasourceName, "users.0.last_auth", regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$`)), // Follows RFC3339 timestamp
+					resource.TestCheckResourceAttrWith(datasourceName, "users.0.username", acc.IsUsername()),
+					resource.TestCheckResourceAttrWith(datasourceName, "users.0.last_auth", acc.IsTimestamp()),
+					resource.TestCheckResourceAttrWith(datasourceName, "users.0.created_at", acc.IsTimestamp()),
 
 					resource.TestCheckResourceAttrWith(pluralDSName, "results.0.users.#", acc.IntGreatThan(0)),
 					resource.TestCheckResourceAttrSet(pluralDSName, "results.0.users.0.id"),
 					resource.TestCheckResourceAttrSet(pluralDSName, "results.0.users.0.roles.0.org_roles.#"),
 					resource.TestCheckResourceAttrSet(pluralDSName, "results.0.users.0.roles.0.project_roles_assignments.#"),
-					resource.TestMatchResourceAttr(pluralDSName, "results.0.users.0.username", regexp.MustCompile(`.*@mongodb\.com$`)),
-					resource.TestMatchResourceAttr(pluralDSName, "results.0.users.0.last_auth", regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$`)), // Follows RFC3339 timestamp
-
+					resource.TestCheckResourceAttrWith(pluralDSName, "results.0.users.0.username", acc.IsUsername()),
+					resource.TestCheckResourceAttrWith(pluralDSName, "results.0.users.0.last_auth", acc.IsTimestamp()),
 				),
 			},
 		},
