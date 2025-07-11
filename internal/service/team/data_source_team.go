@@ -45,7 +45,7 @@ func DataSource() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			"users": &dsschema.DSOrgUsersSchema,
+			"users": dsschema.DSOrgUsersSchema(),
 		},
 	}
 }
@@ -58,8 +58,12 @@ func LegacyTeamsDataSource() *schema.Resource {
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	var (
-		connV2           = meta.(*config.MongoDBClient).AtlasV220241113
-		conn             = meta.(*config.MongoDBClient).AtlasV2
+		/* Note: We continue using the legacy API for usernames endpoint due to behavioral differences
+		 	between API versions. The newer SDK returns both pending & active users.
+			The legacy API returns only active.*/
+
+		connV220241113   = meta.(*config.MongoDBClient).AtlasV220241113
+		connV2           = meta.(*config.MongoDBClient).AtlasV2
 		orgID            = d.Get("org_id").(string)
 		teamID, teamIDOk = d.GetOk("team_id")
 		name, nameOk     = d.GetOk("name")
@@ -73,9 +77,9 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if teamIDOk {
-		team, _, err = connV2.TeamsApi.GetTeamById(ctx, orgID, teamID.(string)).Execute()
+		team, _, err = connV220241113.TeamsApi.GetTeamById(ctx, orgID, teamID.(string)).Execute()
 	} else {
-		team, _, err = connV2.TeamsApi.GetTeamByName(ctx, orgID, name.(string)).Execute()
+		team, _, err = connV220241113.TeamsApi.GetTeamByName(ctx, orgID, name.(string)).Execute()
 	}
 
 	if err != nil {
@@ -90,7 +94,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(errorTeamSetting, "name", d.Id(), err))
 	}
 
-	teamUsers, err := listAllTeamUsersDS(ctx, conn, orgID, team.GetId())
+	teamUsers, err := listAllTeamUsers(ctx, connV220241113, orgID, team.GetId())
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorTeamRead, err))
@@ -105,7 +109,12 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(errorTeamSetting, "usernames", d.Id(), err))
 	}
 
-	if err := d.Set("users", dsschema.FlattenUsers(teamUsers)); err != nil {
+	users, err := listAllTeamUsersDS(ctx, connV2, orgID, team.GetId())
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorTeamRead, err))
+	}
+
+	if err := d.Set("users", conversion.FlattenUsers(users)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `users`: %s", err))
 	}
 

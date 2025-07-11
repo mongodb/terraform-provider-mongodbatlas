@@ -46,7 +46,7 @@ func DataSource() *schema.Resource {
 					},
 				},
 			},
-			"users": &dsschema.DSOrgUsersSchema,
+			"users": dsschema.DSOrgUsersSchema(),
 			"api_access_list_required": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -105,7 +105,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting organization users: %s", err))
 	}
-	if err := d.Set("users", dsschema.FlattenUsers(users)); err != nil {
+	if err := d.Set("users", conversion.FlattenUsers(users)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `users`: %s", err))
 	}
 

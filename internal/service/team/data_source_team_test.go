@@ -3,7 +3,6 @@ package team_test
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -32,9 +31,9 @@ func TestAccConfigDSTeam_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "usernames.#", "1"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "users.0.team_ids.0"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "users.0.roles.0.project_roles_assignments.#"),
-					resource.TestMatchResourceAttr(dataSourceName, "users.0.username", regexp.MustCompile(`.*@mongodb\.com$`)),
-					resource.TestMatchResourceAttr(dataSourceName, "users.0.last_auth", regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$`)),  // Follows RFC3339 timestamp
-					resource.TestMatchResourceAttr(dataSourceName, "users.0.created_at", regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$`)), // Follows RFC3339 timestamp
+					resource.TestCheckResourceAttrWith(dataSourceName, "users.0.username", acc.IsUsername()),
+					resource.TestCheckResourceAttrWith(dataSourceName, "users.0.last_auth", acc.IsTimestamp()),
+					resource.TestCheckResourceAttrWith(dataSourceName, "users.0.created_at", acc.IsTimestamp()),
 				),
 			},
 		},
@@ -96,9 +95,9 @@ func TestAccConfigDSTeam_NoUsers(t *testing.T) {
 func dataSourceConfigBasic(orgID, name, username string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_team" "test" {
-			org_id     = "%s"
-			name       = "%s"
-			usernames  = ["%s"]
+			org_id     = %[1]q
+			name       = %[2]q
+			usernames  = [%[3]q]
 		}
 
 		data "mongodbatlas_team" "test" {
@@ -112,9 +111,9 @@ func dataSourceConfigBasic(orgID, name, username string) string {
 func dataSourceConfigBasicByName(orgID, name, username string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_team" "test" {
-			org_id     = "%s"
-			name       = "%s"
-			usernames  = ["%s"]
+			org_id     = %[1]q
+			name       = %[2]q
+			usernames  = [%[3]q]
 		}
 
 		data "mongodbatlas_team" "test2" {
@@ -127,8 +126,8 @@ func dataSourceConfigBasicByName(orgID, name, username string) string {
 func dataSourceConfigNoUsers(orgID, name string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_team" "test" {
-			org_id     = "%s"
-			name       = "%s"
+			org_id     = %[1]q
+			name       = %[2]q
 			usernames  = []
 		}
 

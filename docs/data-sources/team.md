@@ -50,13 +50,13 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - Terraform's unique identifier used internally for state management.
 * `team_id` -  The unique identifier for the team.
 * `name` -  The name of the team you want to create.
-* `usernames` - The users who are part of the organization.
-* `users`- Returns a list of all pending and active MongoDB Cloud users associated with the specified organization.
+* `usernames` - The users who are part of the team.
+* `users`- Returns a list of all pending and active MongoDB Cloud users associated with the specified team.
 
 ### Users
 * `id` - Unique 24-hexadecimal digit string that identifies the MongoDB Cloud user.
-* `org_membership_status` - String enum that indicates whether the MongoDB Cloud user has a pending invitation to join the organization or they are already active in the organization.
-* `roles` - Organization- and project-level roles assigned to one MongoDB Cloud user within one organization.
+* `org_membership_status` - String enum that indicates whether the MongoDB Cloud user has a pending invitation to join the organization or are already active in the organization.
+* `roles` - Organization and project-level roles assigned to one MongoDB Cloud user within one organization.
 * `team_ids` - List of unique 24-hexadecimal digit strings that identifies the teams to which this MongoDB Cloud user belongs.
 * `username` - Email address that represents the username of the MongoDB Cloud user.
 * `country` - Two-character alphabetical string that identifies the MongoDB Cloud user's geographic location. This parameter uses the ISO 3166-1a2 code format.
@@ -70,7 +70,7 @@ In addition to all arguments above, the following attributes are exported:
 * `mobile_number` - Mobile phone number that belongs to the MongoDB Cloud user.
 
 
-~> **NOTE:** - Users with pending invitations created using [`mongodbatlas_project_invitation`](../resources/project_invitation.md) resource or via the deprecated [Invite One MongoDB Cloud User to Join One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprojectinvitation) endpoint are excluded (or cannot be managed) with this resource. See  [MongoDB Atlas API]<link-to-resource-API> for details. 
+~> **NOTE:** - Users with pending invitations created using [`mongodbatlas_project_invitation`](../resources/project_invitation.md) resource or via the deprecated [Invite One MongoDB Cloud User to Join One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprojectinvitation) endpoint are excluded (or cannot be managed) with this resource. See  [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-mongodb-cloud-users) for details. 
 To manage these users with this resource/data source, refer to our [migration guide]<link-to-migration-guide>.
 
 See detailed information for arguments and attributes: [MongoDB API Teams](https://docs.atlas.mongodb.com/reference/api/teams-create-one/)
