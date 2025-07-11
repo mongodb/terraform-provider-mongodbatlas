@@ -11,7 +11,7 @@ Don't include `org_owner_id`, `description`, `role_names` or `federation_setting
 ## Dependencies
 
 - Terraform v0.15 or greater
-- provider.mongodbatlas: version = "~> 1.38.0"
+- provider.mongodbatlas: version = "~> 1.38"
 - MongoDB Atlas account with an existing organization
 - API key with Organization Owner permissions for the organization you want to import
 - Organization ID of the existing organization
