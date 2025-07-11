@@ -45,7 +45,7 @@ func DataSource() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			"users": &dsschema.DSOrgUsersSchema,
+			"users": dsschema.DSOrgUsersSchema(),
 		},
 	}
 }
@@ -58,6 +58,10 @@ func LegacyTeamsDataSource() *schema.Resource {
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	var (
+		/* Note: We continue using the legacy API for usernames endpoint due to behavioral differences
+		 	between API versions. The newer SDK returns both pending & active users.
+			The legacy API returns only active.*/
+
 		connV220241113   = meta.(*config.MongoDBClient).AtlasV220241113
 		connV2           = meta.(*config.MongoDBClient).AtlasV2
 		orgID            = d.Get("org_id").(string)
@@ -110,7 +114,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(errorTeamRead, err))
 	}
 
-	if err := d.Set("users", dsschema.FlattenUsers(users)); err != nil {
+	if err := d.Set("users", conversion.FlattenUsers(users)); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `users`: %s", err))
 	}
 

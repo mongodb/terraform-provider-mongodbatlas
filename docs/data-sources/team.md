@@ -50,8 +50,8 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - Terraform's unique identifier used internally for state management.
 * `team_id` -  The unique identifier for the team.
 * `name` -  The name of the team you want to create.
-* `usernames` - The users who are part of the organization.
-* `users`- Returns a list of all pending and active MongoDB Cloud users associated with the specified organization.
+* `usernames` - The users who are part of the team.
+* `users`- Returns a list of all pending and active MongoDB Cloud users associated with the specified team.
 
 ### Users
 * `id` - Unique 24-hexadecimal digit string that identifies the MongoDB Cloud user.
