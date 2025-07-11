@@ -39,8 +39,9 @@ func DataSource() *schema.Resource {
 				ConflictsWith: []string{"team_id"},
 			},
 			"usernames": {
-				Type:     schema.TypeSet,
-				Computed: true,
+				Type:       schema.TypeSet,
+				Computed:   true,
+				Deprecated: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "parameter", "data.mongodbatlas_team.users", "<link-to-migration-guide>"),
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},

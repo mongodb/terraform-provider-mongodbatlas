@@ -13,4 +13,5 @@ const (
 	DeprecationParamByDateWithExternalLink      = "This parameter is deprecated and will be removed in %s. For more details see %s."
 	DeprecationSharedTier                       = "Shared-tier instance sizes are deprecated and will reach End of Life in %s. For more details see %s"
 	ServerlessSharedEOLDate                     = "January 2026"
+	DeprecationNextMajorWithReplacementGuide    = "This %s is deprecated and will be removed in the next major release. Please transition to `%s`. For more details, see %s."
 )
