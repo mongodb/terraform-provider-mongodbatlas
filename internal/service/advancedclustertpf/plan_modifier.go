@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
@@ -18,6 +17,7 @@ var (
 	attributeRootChangeMapping = map[string][]string{
 		"disk_size_gb":           {}, // disk_size_gb can be change at any level/spec
 		"replication_specs":      {},
+		"mongo_db_major_version": {"mongo_db_version"},
 		"tls_cipher_config_mode": {"custom_openssl_cipher_config_tls12"},
 		"cluster_type":           {"config_server_management_mode", "config_server_type"}, // computed values of config server change when REPLICA_SET changes to SHARDED
 	}
@@ -62,7 +62,7 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 		return
 	}
 	attributeChanges := schemafunc.NewAttributeChanges(ctx, state, plan)
-	keepUnknown := []string{"connection_strings", "state_name", "mongo_db_version"} // Volatile attributes, should not be copied from state
+	keepUnknown := []string{"connection_strings", "state_name"} // Volatile attributes, should not be copied from state
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
@@ -114,39 +114,23 @@ func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 	for i := range minLen(planRepSpecsTF, stateRepSpecsTF) {
 		stateRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, stateRepSpecsTF[i].RegionConfigs)
 		planRegionConfigsTF := TFModelList[TFRegionConfigsModel](ctx, diags, planRepSpecsTF[i].RegionConfigs)
-		planElectableSpecInReplicationSpec := findDefinedElectableSpecInReplicationSpec(ctx, planRegionConfigsTF)
 		if diags.HasError() {
 			return
 		}
 		for j := range minLen(planRegionConfigsTF, stateRegionConfigsTF) {
-			stateElectableSpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].ElectableSpecs)
-			planElectableSpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ElectableSpecs)
-			if planElectableSpecs == nil && stateElectableSpecs != nil && stateElectableSpecs.NodeCount.ValueInt64() > 0 {
-				planRegionConfigsTF[j].ElectableSpecs = stateRegionConfigsTF[j].ElectableSpecs
-				planElectableSpecs = stateElectableSpecs
-			}
 			stateReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].ReadOnlySpecs)
 			planReadOnlySpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ReadOnlySpecs)
-			if stateReadOnlySpecs != nil { // read_only_specs is present in state
-				// logic below ensures that if read only specs is present in state but not in the plan, plan will be populated so that read only spec configuration is not removed on update operations
+			planElectableSpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].ElectableSpecs)
+			if stateReadOnlySpecs != nil && planElectableSpecs != nil { // read_only_specs is present in state and electable_specs in the plan
 				newPlanReadOnlySpecs := planReadOnlySpecs
 				if newPlanReadOnlySpecs == nil {
 					newPlanReadOnlySpecs = new(TFSpecsModel) // start with null attributes if not present plan
 				}
-				baseReadOnlySpecs := stateReadOnlySpecs        // using values directly from state if no electable specs are present in plan
-				if planElectableSpecInReplicationSpec != nil { // ensures values are taken from a defined electable spec if not present in current region config
-					baseReadOnlySpecs = planElectableSpecInReplicationSpec
-				}
-				if planElectableSpecs != nil {
-					// we favor plan electable spec defined in same region config over one defined in replication spec
-					// with current API this is redudant but is more future proof in case scaling between regions becomes independent in the future
-					baseReadOnlySpecs = planElectableSpecs
-				}
-				copyAttrIfDestNotKnown(&baseReadOnlySpecs.DiskSizeGb, &newPlanReadOnlySpecs.DiskSizeGb)
-				copyAttrIfDestNotKnown(&baseReadOnlySpecs.EbsVolumeType, &newPlanReadOnlySpecs.EbsVolumeType)
-				copyAttrIfDestNotKnown(&baseReadOnlySpecs.InstanceSize, &newPlanReadOnlySpecs.InstanceSize)
-				copyAttrIfDestNotKnown(&baseReadOnlySpecs.DiskIops, &newPlanReadOnlySpecs.DiskIops)
-				// unknown node_count is always taken from state as it not dependent on electable_specs changes
+				// unknown node_count is got from state, all other unknowns are got from electable_specs plan
+				copyAttrIfDestNotKnown(&planElectableSpecs.DiskSizeGb, &newPlanReadOnlySpecs.DiskSizeGb)
+				copyAttrIfDestNotKnown(&planElectableSpecs.EbsVolumeType, &newPlanReadOnlySpecs.EbsVolumeType)
+				copyAttrIfDestNotKnown(&planElectableSpecs.InstanceSize, &newPlanReadOnlySpecs.InstanceSize)
+				copyAttrIfDestNotKnown(&planElectableSpecs.DiskIops, &newPlanReadOnlySpecs.DiskIops)
 				copyAttrIfDestNotKnown(&stateReadOnlySpecs.NodeCount, &newPlanReadOnlySpecs.NodeCount)
 				objType, diagsLocal := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, newPlanReadOnlySpecs)
 				diags.Append(diagsLocal...)
@@ -199,16 +183,6 @@ func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 		return
 	}
 	plan.ReplicationSpecs = listRepSpecs
-}
-
-func findDefinedElectableSpecInReplicationSpec(ctx context.Context, regionConfigs []TFRegionConfigsModel) *TFSpecsModel {
-	for i := range regionConfigs {
-		electableSpecs := TFModelObject[TFSpecsModel](ctx, regionConfigs[i].ElectableSpecs)
-		if electableSpecs != nil {
-			return electableSpecs
-		}
-	}
-	return nil
 }
 
 // determineKeepUnknownsChangedReplicationSpec: These fields must be kept unknown in the replication_specs[index_of_changes]
@@ -292,9 +266,14 @@ func TFModelObject[T any](ctx context.Context, input types.Object) *T {
 }
 
 func copyAttrIfDestNotKnown[T attr.Value](src, dest *T) {
-	if !customplanmodifier.IsKnown(*dest) {
+	if !isKnown(*dest) {
 		*dest = *src
 	}
+}
+
+// isKnown returns true if the attribute is known (not null or unknown). Note that !isKnown is not the same as IsUnknown because null is !isKnown but not IsUnknown.
+func isKnown(attribute attr.Value) bool {
+	return !attribute.IsNull() && !attribute.IsUnknown()
 }
 
 func minLen[T any](a, b []T) int {
