@@ -50,6 +50,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"project_owner_id": schema.StringAttribute{
 				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					customplanmodifier.CreateOnlyAttributePlanModifier(),
+				},
 			},
 			"with_default_alerts_settings": schema.BoolAttribute{
 				// Default values also must be Computed otherwise Terraform throws error:
