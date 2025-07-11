@@ -14,7 +14,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
 func Resource() *schema.Resource {
@@ -24,6 +24,9 @@ func Resource() *schema.Resource {
 		DeleteContext: resourceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceImport,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(1 * time.Hour),
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -151,7 +154,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Pending:    []string{"queued", "inProgress"},
 		Target:     []string{"completed", "failed"},
 		Refresh:    resourceRefreshFunc(ctx, requestParams, connV2),
-		Timeout:    1 * time.Hour,
+		Timeout:    d.Timeout(schema.TimeoutCreate) - time.Minute,
 		MinTimeout: 60 * time.Second,
 		Delay:      1 * time.Minute,
 	}
@@ -248,7 +251,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	groupID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 	snapshotID := ids["snapshot_id"]
-	_, _, err := connV2.CloudBackupsApi.DeleteReplicaSetBackup(ctx, groupID, clusterName, snapshotID).Execute()
+	_, err := connV2.CloudBackupsApi.DeleteReplicaSetBackup(ctx, groupID, clusterName, snapshotID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting a snapshot (%s): %s", snapshotID, err))
 	}

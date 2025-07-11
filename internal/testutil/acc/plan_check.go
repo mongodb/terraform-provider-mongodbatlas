@@ -6,8 +6,21 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 )
+
+func TestStepCheckEmptyPlan(config string) resource.TestStep {
+	return resource.TestStep{
+		Config: config,
+		ConfigPlanChecks: resource.ConfigPlanChecks{
+			PreApply: []plancheck.PlanCheck{
+				DebugPlan(),
+				plancheck.ExpectEmptyPlan(),
+			},
+		},
+	}
+}
 
 var _ plancheck.PlanCheck = debugPlan{}
 

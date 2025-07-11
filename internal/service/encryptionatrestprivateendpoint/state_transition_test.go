@@ -1,14 +1,13 @@
 package encryptionatrestprivateendpoint_test
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
-	"go.mongodb.org/atlas-sdk/v20250219001/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/mockadmin"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -68,7 +67,7 @@ func TestStateTransition(t *testing.T) {
 				modelResp, httpResp, err := resp.get()
 				m.EXPECT().GetEncryptionAtRestPrivateEndpointExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			resp, err := encryptionatrestprivateendpoint.WaitStateTransitionWithMinTimeout(context.Background(), 1*time.Second, "project-id", "cloud-provider", "endpoint-id", m)
+			resp, err := encryptionatrestprivateendpoint.WaitStateTransitionWithMinTimeout(t.Context(), 1*time.Second, "project-id", "cloud-provider", "endpoint-id", m)
 			assert.Equal(t, tc.expectedError, err != nil)
 			if resp != nil {
 				assert.Equal(t, tc.expectedState, resp.Status)
@@ -112,7 +111,7 @@ func TestDeleteStateTransition(t *testing.T) {
 				modelResp, httpResp, err := resp.get()
 				m.EXPECT().GetEncryptionAtRestPrivateEndpointExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			resp, err := encryptionatrestprivateendpoint.WaitDeleteStateTransitionWithMinTimeout(context.Background(), 1*time.Second, "project-id", "cloud-provider", "endpoint-id", m)
+			resp, err := encryptionatrestprivateendpoint.WaitDeleteStateTransitionWithMinTimeout(t.Context(), 1*time.Second, "project-id", "cloud-provider", "endpoint-id", m)
 			assert.Equal(t, tc.expectedError, err != nil)
 			if resp != nil {
 				assert.Equal(t, tc.expectedState, resp.Status)

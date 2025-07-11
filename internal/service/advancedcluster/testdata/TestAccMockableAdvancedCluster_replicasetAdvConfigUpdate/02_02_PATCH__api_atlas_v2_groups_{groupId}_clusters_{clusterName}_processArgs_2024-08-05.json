@@ -1,13 +1,9 @@
 {
  "changeStreamOptionsPreAndPostImagesExpireAfterSeconds": 100,
- "customOpensslCipherConfigTls12": [
-  "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
- ],
  "defaultMaxTimeMS": 65,
  "defaultWriteConcern": "majority",
  "noTableScan": true,
  "sampleRefreshIntervalBIConnector": 310,
  "sampleSizeBIConnector": 110,
- "tlsCipherConfigMode": "CUSTOM",
  "transactionLifetimeLimitSeconds": 300
 }

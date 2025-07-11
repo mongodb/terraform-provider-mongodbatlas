@@ -3,12 +3,12 @@ package streamprocessor
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/fwtypes"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -26,7 +26,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Human-readable label that identifies the stream instance.",
 			},
 			"pipeline": schema.StringAttribute{
-				CustomType: fwtypes.JSONStringType,
+				CustomType: jsontypes.NormalizedType{},
 				Required:   true,
 				MarkdownDescription: "Stream aggregation pipeline you want to apply to your streaming data. [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/#std-label-stream-aggregation)" +
 					" contain more information. Using [jsonencode](https://developer.hashicorp.com/terraform/language/functions/jsonencode) is recommended when setting this attribute. For more details see the [Aggregation Pipelines Documentation](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/)",
@@ -43,7 +43,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional: true,
 				Computed: true,
 				MarkdownDescription: "The state of the stream processor. Commonly occurring states are 'CREATED', 'STARTED', 'STOPPED' and 'FAILED'. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`." +
-					" When a Stream Processor is created without specifying the state, it will default to `CREATED` state.\n\n**NOTE** When creating a stream processor, setting the state to STARTED can automatically start the stream processor.",
+					" When a Stream Processor is created without specifying the state, it will default to `CREATED` state. When a Stream Processor is updated without specifying the state, it will default to the Previous state. \n\n**NOTE** When a Stream Processor is updated without specifying the state, it is stopped and then restored to previous state upon update completion.",
 			},
 			"options": schema.SingleNestedAttribute{
 				Optional:            true,
@@ -78,14 +78,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFStreamProcessorRSModel struct {
-	InstanceName  types.String       `tfsdk:"instance_name"`
-	Options       types.Object       `tfsdk:"options"`
-	Pipeline      fwtypes.JSONString `tfsdk:"pipeline"`
-	ProcessorID   types.String       `tfsdk:"id"`
-	ProcessorName types.String       `tfsdk:"processor_name"`
-	ProjectID     types.String       `tfsdk:"project_id"`
-	State         types.String       `tfsdk:"state"`
-	Stats         types.String       `tfsdk:"stats"`
+	InstanceName  types.String         `tfsdk:"instance_name"`
+	Options       types.Object         `tfsdk:"options"`
+	Pipeline      jsontypes.Normalized `tfsdk:"pipeline"`
+	ProcessorID   types.String         `tfsdk:"id"`
+	ProcessorName types.String         `tfsdk:"processor_name"`
+	ProjectID     types.String         `tfsdk:"project_id"`
+	State         types.String         `tfsdk:"state"`
+	Stats         types.String         `tfsdk:"stats"`
 }
 
 type TFOptionsModel struct {

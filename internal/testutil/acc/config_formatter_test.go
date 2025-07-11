@@ -104,3 +104,39 @@ func TestFormatToHCLLifecycleIgnore(t *testing.T) {
 		})
 	}
 }
+
+func TestConfigAddResourceStr(t *testing.T) {
+	testCases := map[string]struct {
+		hclConfig         string
+		resourceID        string
+		extraResourceStr  string
+		expectedHCLConfig string
+	}{
+		"add tags": {
+			hclConfig:        `resource "mongodbatlas_project" "test" {}`,
+			resourceID:       "mongodbatlas_project.test",
+			extraResourceStr: `tags = {}`,
+			expectedHCLConfig: `resource "mongodbatlas_project" "test" {
+  tags = {}
+}
+`},
+		"add timeout on create": {
+			hclConfig:  `resource "mongodbatlas_project" "test" {}`,
+			resourceID: "mongodbatlas_project.test",
+			extraResourceStr: `timeouts = { 
+			create = "1m" 
+		}`,
+			expectedHCLConfig: `resource "mongodbatlas_project" "test" {
+  timeouts = {
+    create = "1m"
+  }
+}
+`,
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.expectedHCLConfig, acc.ConfigAddResourceStr(t, tc.hclConfig, tc.resourceID, tc.extraResourceStr))
+		})
+	}
+}

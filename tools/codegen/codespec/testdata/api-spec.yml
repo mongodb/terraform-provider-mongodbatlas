@@ -1,33 +1,8 @@
 openapi: 3.0.1
 info:
-  description: >-
-    The MongoDB Atlas Administration API allows developers to manage all
-    components in MongoDB Atlas.
-
-
-    The Atlas Administration API uses HTTP Digest Authentication to authenticate requests. Provide a programmatic API public key and corresponding private key as the username and password when constructing the HTTP request. For example, to [return database access history](#tag/Access-Tracking/operation/listAccessLogsByClusterName) with [cURL](https://en.wikipedia.org/wiki/CURL), run the following command in the terminal:
-
-
-    ```
-
-    curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" \
-      --digest \
-      --header "Accept: application/vnd.atlas.2024-08-05+json" \
-      -X GET "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/dbAccessHistory/clusters/{clusterName}?pretty=true"
-    ```
-
-
-    To learn more, see [Get Started with the Atlas Administration API](https://www.mongodb.com/docs/atlas/configure-api-access/). For support, see [MongoDB Support](https://www.mongodb.com/support/get-started).
-
-
-    You can also explore the various endpoints available through the Atlas Administration API in MongoDB's [Postman workspace](https://www.postman.com/mongodb-devrel/workspace/mongodb-atlas-administration-apis/).
-  license:
-    name: CC BY-NC-SA 3.0 US
-    url: https://creativecommons.org/licenses/by-nc-sa/3.0/us/
-  termsOfService: https://www.mongodb.com/mongodb-management-service-terms-and-conditions
+  description: ""
   title: MongoDB Atlas Administration API
   version: "2.0"
-  x-xgen-sha: 991036ecf95ec6855a39cd80bd2a15a90e012e7d
 servers:
   - url: https://cloud.mongodb.com
 tags:
@@ -78,7 +53,7 @@ paths:
         content:
           application/vnd.atlas.2023-01-01+json:
             schema:
-              $ref: "#/components/schemas/TestResource"
+              $ref: "#/components/schemas/TestResourceRequest"
             x-xgen-version: 2023-01-01
         description: Patch request description
         required: true
@@ -102,7 +77,7 @@ paths:
         content:
           application/vnd.atlas.2023-01-01+json:
             schema:
-              $ref: "#/components/schemas/CreateTestResourceRequest"
+              $ref: "#/components/schemas/TestResourceRequest"
             x-xgen-version: 2023-01-01
         description: Create request description
         required: true
@@ -207,7 +182,7 @@ paths:
       tags:
         - Atlas Search
     post:
-      description: POST API description      
+      description: POST API description
       operationId: createNestedTestResource
       parameters:
         - $ref: "#/components/parameters/groupId"
@@ -239,7 +214,115 @@ paths:
         - DigestAuth: []
       summary: Create Nested Test Resource
       tags:
-        - Atlas Search 
+        - Atlas Search
+  "/api/atlas/v2/groups/{groupId}/pathparaminpostreq":
+    post:
+      description: POST API description
+      operationId: createTestResourceConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              type: object
+              required:
+                - specialParam
+              properties:
+                specialParam:
+                  type: string
+                  description: Path param test description
+                strReqAttr1:
+                  type: string
+                  description: Test field description
+            x-xgen-version: 2023-01-01
+        description: Create request description
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Enable the Test Resource feature for a project
+  "/api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}":
+    delete:
+      description: DELETE API description
+      operationId: deleteTestResourceConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/specialParam"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Disable the Test Resource feature for a project.
+      tags:
+        - Test Resource
+    get:
+      description: GET API description
+      operationId: getTestResourceConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/specialParam"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              schema:
+                type: object
+                properties:
+                  strReqAttr1:
+                    type: string
+                    description: Test field description
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Get the Test Resource configuration for a project
+      tags:
+        - Test Resource
+    patch:
+      description: PATCH API description
+      operationId: updateTestResourceConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+        - $ref: "#/components/parameters/specialParam"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              type: object
+              properties:
+                strReqAttr1:
+                  type: string
+                  description: Test field description
+            x-xgen-version: 2023-01-01
+        description: Patch request description
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              schema:
+                type: object
+                properties:
+                  strReqAttr1:
+                    type: string
+                    description: Test field description
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Update the Test Resource feature for a project
+      tags:
+        - Test Resource
 components:
   parameters:
     groupId:
@@ -254,11 +337,19 @@ components:
         maxLength: 24
         minLength: 24
         pattern: ^([a-f0-9]{24})$
+    specialParam:
+      description: Path param test description
+      in: path
+      name: specialParam
+      required: true
+      schema:
+        type: string
+        description: Path param test description
   responses:
     accepted:
       description: Accepted.
   schemas:
-    CreateTestResourceRequest:
+    TestResourceRequest:
       type: object
       properties:
         strReqAttr1:
@@ -383,6 +474,9 @@ components:
         optional_string_attr:
           type: string
           description: Optional string
+        attrAlwaysInUpdates:
+          type: string
+          description: Always in updates
     SingleNestedAttrWithNestedMaps:
       type: object
       description: Test field description
@@ -443,6 +537,9 @@ components:
         optional_string_attr:
           type: string
           description: Optional string
+        attrAlwaysInUpdates:
+          type: string
+          description: Always in updates
       required:
         - nestedListArrayAttr
     SimpleStringRefObject:
@@ -462,10 +559,9 @@ components:
       type: object
       properties:
         nestedLevel1:
-          $ref: '#/components/schemas/NestedLevel1Object'
+          $ref: "#/components/schemas/NestedLevel1Object"
     NestedLevel1Object:
       type: object
       properties:
         levelField1:
           type: string
-

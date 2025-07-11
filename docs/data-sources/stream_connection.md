@@ -20,21 +20,26 @@ data "mongodbatlas_stream_connection" "example" {
 
 ## Attributes Reference
 
-* `type` - Type of connection. Can be `Cluster`, `Kafka`, `Sample`, or `AWSLambda`.
+* `type` - Type of connection. Can be `AWSLambda`, `Cluster`, `Https`, `Kafka` or `Sample`.
 
 If `type` is of value `Cluster` the following additional attributes are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
 * `db_role_to_execute` - The name of a Built in or Custom DB Role to connect to an Atlas Cluster. See [DBRoleToExecute](#DBRoleToExecute).
+* `cluster_project_id` - Unique 24-hexadecimal digit string that identifies the project that contains the configured cluster. Required if the ID does not match the project containing the streams instance. You must first enable the organization setting.
 
 If `type` is of value `Kafka` the following additional attributes are defined:
 * `authentication` - User credentials required to connect to a Kafka cluster. Includes the authentication type, as well as the parameters for that authentication mode. See [authentication](#authentication).
 * `bootstrap_servers` - Comma separated list of server addresses.
 * `config` - A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.
-* `security` - Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use. See [security](#security).
+* `security` - Properties for the secure transport connection to Kafka. For SASL_SSL, this can include the trusted certificate to use. See [security](#security).
 * `networking` - Networking Access Type can either be `PUBLIC` (default) or `VPC`. See [networking](#networking).
 
 If `type` is of value `AWSLambda` the following additional attributes are defined:
 * `aws` - The configuration for AWS Lambda connection. See [AWS](#AWS)
+
+If `type` is of value `Https` the following additional attributes are defined:
+* `url` - URL of the HTTPs endpoint that will be used for creating a connection.
+* `headers` - A map of key-value pairs for optional headers.
 
 ### Authentication
 
@@ -45,7 +50,7 @@ If `type` is of value `AWSLambda` the following additional attributes are define
 ### Security
 
 * `broker_public_certificate` - A trusted, public x509 certificate for connecting to Kafka over SSL. String value of the certificate must be defined in the attribute.
-* `protocol` - Describes the transport type. Can be either `PLAINTEXT` or `SSL`.
+* `protocol` - Describes the transport type. Can be either `SASL_PLAINTEXT` or `SASL_SSL`.
 
 ### DBRoleToExecute
 

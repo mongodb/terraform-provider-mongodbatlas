@@ -8,10 +8,12 @@ import (
 
 	high "github.com/pb33f/libopenapi/datamodel/high/v3"
 	low "github.com/pb33f/libopenapi/datamodel/low/v3"
+	"github.com/pb33f/libopenapi/orderedmap"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
+	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
 )
 
 func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName *string) (*Model, error) {
@@ -36,27 +38,35 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 	for name, resourceConfig := range resourceConfigsToIterate {
 		log.Printf("Generating resource: %s", name)
 		// find resource operations, schemas, etc from OAS
-		oasResource, err := getAPISpecResource(&apiSpec.Model, &resourceConfig, SnakeCaseString(name))
+		oasResource, err := getAPISpecResource(&apiSpec.Model, &resourceConfig, stringcase.SnakeCaseString(name))
 		if err != nil {
 			return nil, fmt.Errorf("unable to get APISpecResource schema: %v", err)
 		}
 		// map OAS resource model to CodeSpecModel
-		results = append(results, *apiSpecResourceToCodeSpecModel(oasResource, &resourceConfig, SnakeCaseString(name)))
+		results = append(results, *apiSpecResourceToCodeSpecModel(oasResource, &resourceConfig, stringcase.SnakeCaseString(name)))
 	}
 
 	return &Model{Resources: results}, nil
 }
 
-func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig *config.Resource, name SnakeCaseString) *Resource {
+func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig *config.Resource, name stringcase.SnakeCaseString) *Resource {
 	createOp := oasResource.CreateOp
+	updateOp := oasResource.UpdateOp
 	readOp := oasResource.ReadOp
 
-	pathParamAttributes := pathParamsToAttributes(createOp)
+	createPathParams := pathParamsToAttributes(createOp)
 	createRequestAttributes := opRequestToAttributes(createOp)
+	updateRequestAttributes := opRequestToAttributes(updateOp)
 	createResponseAttributes := opResponseToAttributes(createOp)
 	readResponseAttributes := opResponseToAttributes(readOp)
 
-	attributes := mergeAttributes(pathParamAttributes, createRequestAttributes, createResponseAttributes, readResponseAttributes)
+	attributes := mergeAttributes(&attributeDefinitionSources{
+		createPathParams: createPathParams,
+		createRequest:    createRequestAttributes,
+		updateRequest:    updateRequestAttributes,
+		createResponse:   createResponseAttributes,
+		readResponse:     readResponseAttributes,
+	})
 
 	schema := &Schema{
 		Description:        oasResource.Description,
@@ -64,14 +74,64 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 		Attributes:         attributes,
 	}
 
+	operations := getOperationsFromConfig(resourceConfig)
+	if operations.VersionHeader == "" { // version was not defined in config file
+		operations.VersionHeader = getLatestVersionFromAPISpec(readOp)
+	}
 	resource := &Resource{
-		Name:   name,
-		Schema: schema,
+		Name:       name,
+		Schema:     schema,
+		Operations: operations,
 	}
 
 	applyConfigSchemaOptions(resourceConfig, resource)
 
 	return resource
+}
+
+func getLatestVersionFromAPISpec(readOp *high.Operation) string {
+	okResponse, ok := readOp.Responses.Codes.Get(OASResponseCodeOK)
+	if !ok {
+		return ""
+	}
+	versionsMap := okResponse.Content
+	if versionsMap == nil {
+		return ""
+	}
+	return orderedmap.SortAlpha(versionsMap).First().Key()
+}
+
+func getOperationsFromConfig(resourceConfig *config.Resource) APIOperations {
+	return APIOperations{
+		Create:        operationConfigToModel(resourceConfig.Create),
+		Read:          operationConfigToModel(resourceConfig.Read),
+		Update:        operationConfigToModel(resourceConfig.Update),
+		Delete:        operationConfigToModel(resourceConfig.Delete),
+		VersionHeader: resourceConfig.VersionHeader,
+	}
+}
+
+func operationConfigToModel(opConfig *config.APIOperation) APIOperation {
+	return APIOperation{
+		HTTPMethod:        opConfig.Method,
+		Path:              opConfig.Path,
+		Wait:              waitConfigToModel(opConfig.Wait),
+		StaticRequestBody: opConfig.StaticRequestBody,
+	}
+}
+
+func waitConfigToModel(waitConfig *config.Wait) *Wait {
+	if waitConfig == nil {
+		return nil
+	}
+	return &Wait{
+		StateProperty:     waitConfig.StateProperty,
+		PendingStates:     waitConfig.PendingStates,
+		TargetStates:      waitConfig.TargetStates,
+		TimeoutSeconds:    waitConfig.TimeoutSeconds,
+		MinTimeoutSeconds: waitConfig.MinTimeoutSeconds,
+		DelaySeconds:      waitConfig.DelaySeconds,
+	}
 }
 
 func pathParamsToAttributes(createOp *high.Operation) Attributes {
@@ -90,7 +150,7 @@ func pathParamsToAttributes(createOp *high.Operation) Attributes {
 
 		paramName := param.Name
 		s.Schema.Description = param.Description
-		parameterAttribute, err := s.buildResourceAttr(paramName, Required)
+		parameterAttribute, err := s.buildResourceAttr(paramName, Required, false)
 		if err != nil {
 			log.Printf("[WARN] Path param %s could not be mapped: %s", paramName, err)
 			continue
@@ -108,7 +168,7 @@ func opRequestToAttributes(op *high.Operation) Attributes {
 		return nil
 	}
 
-	requestAttributes, err = buildResourceAttrs(requestSchema)
+	requestAttributes, err = buildResourceAttrs(requestSchema, true)
 	if err != nil {
 		log.Printf("[WARN] Request attributes could not be mapped (OperationId: %s): %s", op.OperationId, err)
 		return nil
@@ -127,7 +187,7 @@ func opResponseToAttributes(op *high.Operation) Attributes {
 			log.Printf("[WARN] Operation response body schema could not be mapped (OperationId: %s): %s", op.OperationId, err)
 		}
 	} else {
-		responseAttributes, err = buildResourceAttrs(responseSchema)
+		responseAttributes, err = buildResourceAttrs(responseSchema, false)
 		if err != nil {
 			log.Printf("[WARN] Operation response body schema could not be mapped (OperationId: %s): %s", op.OperationId, err)
 		}
@@ -135,7 +195,7 @@ func opResponseToAttributes(op *high.Operation) Attributes {
 	return responseAttributes
 }
 
-func getAPISpecResource(spec *high.Document, resourceConfig *config.Resource, name SnakeCaseString) (APISpecResource, error) {
+func getAPISpecResource(spec *high.Document, resourceConfig *config.Resource, name stringcase.SnakeCaseString) (APISpecResource, error) {
 	var errResult error
 	var resourceDeprecationMsg *string
 

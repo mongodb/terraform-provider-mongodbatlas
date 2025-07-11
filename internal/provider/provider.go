@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"regexp"
-	"strconv"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
@@ -28,6 +27,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/apikeyprojectassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/controlplaneipaddresses"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
@@ -43,15 +43,12 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/pushbasedlogexport"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/resourcepolicy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamaccountdetails"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprivatelinkendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
-)
-
-var (
-	providerEnablePreview, _ = strconv.ParseBool(os.Getenv("MONGODB_ATLAS_ENABLE_PREVIEW"))
 )
 
 const (
@@ -243,11 +240,12 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 	}
 
 	cfg := config.Config{
-		PublicKey:        data.PublicKey.ValueString(),
-		PrivateKey:       data.PrivateKey.ValueString(),
-		BaseURL:          data.BaseURL.ValueString(),
-		RealmBaseURL:     data.RealmBaseURL.ValueString(),
-		TerraformVersion: req.TerraformVersion,
+		PublicKey:                       data.PublicKey.ValueString(),
+		PrivateKey:                      data.PrivateKey.ValueString(),
+		BaseURL:                         data.BaseURL.ValueString(),
+		RealmBaseURL:                    data.RealmBaseURL.ValueString(),
+		TerraformVersion:                req.TerraformVersion,
+		PreviewV2AdvancedClusterEnabled: config.PreviewProviderV2AdvancedCluster(),
 	}
 
 	var assumeRoles []tfAssumeRoleModel
@@ -448,6 +446,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		encryptionatrestprivateendpoint.DataSource,
 		encryptionatrestprivateendpoint.PluralDataSource,
 		mongodbemployeeaccessgrant.DataSource,
+		streamaccountdetails.DataSource,
 		streamprivatelinkendpoint.DataSource,
 		streamprivatelinkendpoint.PluralDataSource,
 		flexcluster.DataSource,
@@ -456,16 +455,13 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		flexsnapshot.PluralDataSource,
 		flexrestorejob.DataSource,
 		flexrestorejob.PluralDataSource,
+		resourcepolicy.DataSource,
+		resourcepolicy.PluralDataSource,
+		apikeyprojectassignment.DataSource,
+		apikeyprojectassignment.PluralDataSource,
 	}
 	if config.PreviewProviderV2AdvancedCluster() {
 		dataSources = append(dataSources, advancedclustertpf.DataSource, advancedclustertpf.PluralDataSource)
-	}
-	previewDataSources := []func() datasource.DataSource{
-		resourcepolicy.DataSource,
-		resourcepolicy.PluralDataSource,
-	} // Data sources not yet in GA
-	if providerEnablePreview {
-		dataSources = append(dataSources, previewDataSources...)
 	}
 	return dataSources
 }
@@ -486,15 +482,11 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		mongodbemployeeaccessgrant.Resource,
 		streamprivatelinkendpoint.Resource,
 		flexcluster.Resource,
+		resourcepolicy.Resource,
+		apikeyprojectassignment.Resource,
 	}
 	if config.PreviewProviderV2AdvancedCluster() {
 		resources = append(resources, advancedclustertpf.Resource)
-	}
-	previewResources := []func() resource.Resource{
-		resourcepolicy.Resource,
-	} // Resources not yet in GA
-	if providerEnablePreview {
-		resources = append(resources, previewResources...)
 	}
 	return resources
 }

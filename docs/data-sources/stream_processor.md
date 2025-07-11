@@ -47,7 +47,7 @@ resource "mongodbatlas_stream_connection" "example-kafka" {
     "auto.offset.reset" : "earliest"
   }
   security = {
-    protocol = "PLAINTEXT"
+    protocol = "SASL_PLAINTEXT"
   }
 }
 
@@ -128,9 +128,9 @@ output "stream_processors_results" {
 - `id` (String) Unique 24-hexadecimal character string that identifies the stream processor.
 - `options` (Attributes) Optional configuration for the stream processor. (see [below for nested schema](#nestedatt--options))
 - `pipeline` (String) Stream aggregation pipeline you want to apply to your streaming data. [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/#std-label-stream-aggregation) contain more information. Using [jsonencode](https://developer.hashicorp.com/terraform/language/functions/jsonencode) is recommended when setting this attribute. For more details see the [Aggregation Pipelines Documentation](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/)
-- `state` (String) The state of the stream processor. Commonly occurring states are 'CREATED', 'STARTED', 'STOPPED' and 'FAILED'. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`. When a Stream Processor is created without specifying the state, it will default to `CREATED` state.
+- `state` (String) The state of the stream processor. Commonly occurring states are 'CREATED', 'STARTED', 'STOPPED' and 'FAILED'. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`. When a Stream Processor is created without specifying the state, it will default to `CREATED` state. When a Stream Processor is updated without specifying the state, it will default to the Previous state. 
 
-**NOTE** When creating a stream processor, setting the state to STARTED can automatically start the stream processor.
+**NOTE** When a Stream Processor is updated without specifying the state, it is stopped and then restored to previous state upon update completion.
 - `stats` (String) The stats associated with the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/manage-stream-processor/#view-statistics-of-a-stream-processor) for more information.
 
 <a id="nestedatt--options"></a>
@@ -149,4 +149,4 @@ Read-Only:
 - `connection_name` (String) Name of the connection to write DLQ messages to. Must be an Atlas connection.
 - `db` (String) Name of the database to use for the DLQ.
 
-For more information see: [MongoDB Atlas API - Stream Processor](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createStreamProcessor) Documentation.
+For more information see: [MongoDB Atlas API - Stream Processor](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createstreamprocessor) Documentation.

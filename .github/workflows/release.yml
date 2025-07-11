@@ -54,16 +54,19 @@ jobs:
       && !contains(needs.*.result, 'failure')
       && needs.release-config.outputs.creates_new_tag == 'true'
       && needs.release-config.outputs.is_official_release == 'true'
-    uses: ./.github/workflows/run-script-and-commit.yml
-    with:
-      script_call: './scripts/update-examples-reference-in-docs.sh ${{inputs.version_number}}'
-      file_to_commit: 'docs/index.md'
-      commit_message: 'chore: Updates examples link in index.md for ${{ github.event.inputs.version_number }} release'
-    secrets:
-      apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
-      remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
-      gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
-      passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}      
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: ./.github/templates/run-script-and-commit
+        with:
+          script_call: './scripts/update-examples-reference-in-docs.sh ${{inputs.version_number}}'
+          file_to_commit: 'docs/index.md'
+          commit_message: 'chore: Updates examples link in index.md for ${{ github.event.inputs.version_number }} release'
+          apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
+          remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
+          gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}      
 
   update-changelog-header:
     needs: [ release-config, validate-inputs, update-examples-reference-in-docs ]
@@ -72,16 +75,19 @@ jobs:
       && !contains(needs.*.result, 'failure')
       && needs.release-config.outputs.creates_new_tag == 'true'
       && needs.release-config.outputs.is_official_release == 'true'
-    uses: ./.github/workflows/run-script-and-commit.yml
-    with:
-      script_call: './scripts/update-changelog-header-for-release.sh ${{inputs.version_number}}'
-      file_to_commit: 'CHANGELOG.md'
-      commit_message: 'chore: Updates CHANGELOG.md header for ${{ github.event.inputs.version_number }} release'
-    secrets:
-      apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
-      remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
-      gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
-      passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}     
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: ./.github/templates/run-script-and-commit
+        with:
+          script_call: './scripts/update-changelog-header-for-release.sh ${{inputs.version_number}}'
+          file_to_commit: 'CHANGELOG.md'
+          commit_message: 'chore: Updates CHANGELOG.md header for ${{ github.event.inputs.version_number }} release'
+          apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
+          remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
+          gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}     
 
   create-tag:
     runs-on: ubuntu-latest
@@ -135,23 +141,79 @@ jobs:
         with:
           ref: ${{ inputs.version_number }}
       - name: Set up Go
-        uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - name: Import GPG key
         id: import_gpg
-        uses: crazy-max/ghaction-import-gpg@cb9bde2e2525e640591a934b1fd28eef1dcaf5e5
+        uses: crazy-max/ghaction-import-gpg@e89d40939c28e39f97cf32126055eeae86ba74ec
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@90a3faa9d0182683851fbfa97ca1a2cb983bfca3
+        uses: goreleaser/goreleaser-action@9c156ee8a17a598857849441385a2041ef570552
         with:
           version: '~> v2'
           args: release --clean
         env:
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  compliance:
+    runs-on: ubuntu-latest
+    needs: [ release-config, release ]
+    if: >-
+      !cancelled()
+      && needs.release.result == 'success'
+      && needs.release-config.outputs.is_official_release == 'true'
+    env:
+      SILKBOMB_IMG: ${{ vars.SILKBOMB_IMG }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.version_number }}
+      - name: Generate SBOM
+        run: make gen-purls generate-sbom
+      - name: Upload SBOM to Kondukto
+        run: make upload-sbom
+        env:
+          KONDUKTO_TOKEN: ${{ secrets.KONDUKTO_TOKEN }}
+          KONDUKTO_REPO: ${{ vars.KONDUKTO_REPO }}
+          KONDUKTO_BRANCH_PREFIX: ${{ vars.KONDUKTO_BRANCH_PREFIX }}
+      - name: Upload SBOM as release artifact
+        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8
+        with:
+          files: compliance/sbom.json
+          tag_name: ${{ inputs.version_number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  generate-ssdlc-report:
+    needs: [ release-config, release, compliance ]
+    if: >-
+      !cancelled()
+      && needs.release.result == 'success'
+      && needs.release-config.outputs.is_official_release == 'true'
+      && needs.compliance.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: ./.github/templates/run-script-and-commit
+        with:
+          script_call: |
+            TAG="${{ inputs.version_number }}"
+            VERSION="${TAG#v}"
+            AUTHOR="${{ github.actor }}"
+            export AUTHOR VERSION
+            ./scripts/compliance/gen-ssdlc-report.sh
+          file_to_commit: 'compliance/v*/ssdlc-compliance-*.md'
+          commit_message: "chore: Update SSDLC report for ${{ inputs.version_number }}"
+          apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
+          remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
+          gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}
 
   jira-release-version:
     needs: [ release-config, release ]

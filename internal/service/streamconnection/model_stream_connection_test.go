@@ -1,14 +1,13 @@
 package streamconnection_test
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
 const (
@@ -19,7 +18,7 @@ const (
 	instanceName              = "InstanceName"
 	authMechanism             = "PLAIN"
 	authUsername              = "user1"
-	securityProtocol          = "SSL"
+	securityProtocol          = "SASL_SSL"
 	bootstrapServers          = "localhost:9092,another.host:9092"
 	dbRole                    = "customRole"
 	dbRoleType                = "CUSTOM"
@@ -28,11 +27,17 @@ const (
 	privatelinkNetworkingType = "PRIVATE_LINK"
 	awslambdaConnectionName   = "aws_lambda_connection"
 	sampleRoleArn             = "rn:aws:iam::123456789123:role/sample"
+	httpsURL                  = "https://example.com"
 )
 
-var configMap = map[string]string{
-	"auto.offset.reset": "earliest",
-}
+var (
+	configMap = map[string]string{
+		"auto.offset.reset": "earliest",
+	}
+	headersMap = map[string]string{
+		"header1": "value1",
+	}
+)
 
 type sdkToTFModelTestCase struct {
 	SDKResp              *admin.StreamsConnection
@@ -73,6 +78,38 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				DBRoleToExecute: tfDBRoleToExecuteObject(t, dbRole, dbRoleType),
 				Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 				AWS:             types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+				Headers:         types.MapNull(types.StringType),
+			},
+		},
+		{
+			name: "Cluster cross project connection type SDK response",
+			SDKResp: &admin.StreamsConnection{
+				Name:           admin.PtrString(connectionName),
+				Type:           admin.PtrString("Cluster"),
+				ClusterName:    admin.PtrString(clusterName),
+				ClusterGroupId: admin.PtrString("foo"),
+				DbRoleToExecute: &admin.DBRoleToExecute{
+					Role: admin.PtrString(dbRole),
+					Type: admin.PtrString(dbRoleType),
+				},
+			},
+			providedProjID:       dummyProjectID,
+			providedInstanceName: instanceName,
+			providedAuthConfig:   nil,
+			expectedTFModel: &streamconnection.TFStreamConnectionModel{
+				ProjectID:        types.StringValue(dummyProjectID),
+				InstanceName:     types.StringValue(instanceName),
+				ConnectionName:   types.StringValue(connectionName),
+				Type:             types.StringValue("Cluster"),
+				ClusterName:      types.StringValue(clusterName),
+				ClusterProjectID: types.StringValue("foo"),
+				Authentication:   types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+				Config:           types.MapNull(types.StringType),
+				Security:         types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+				DBRoleToExecute:  tfDBRoleToExecuteObject(t, dbRole, dbRoleType),
+				Networking:       types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+				AWS:              types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+				Headers:          types.MapNull(types.StringType),
 			},
 		},
 		{
@@ -106,6 +143,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				DBRoleToExecute:  types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 				Networking:       types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 				AWS:              types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+				Headers:          types.MapNull(types.StringType),
 			},
 		},
 		{
@@ -128,6 +166,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 				Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 				AWS:             types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+				Headers:         types.MapNull(types.StringType),
 			},
 		},
 		{
@@ -161,6 +200,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				DBRoleToExecute:  types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 				Networking:       types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 				AWS:              types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+				Headers:          types.MapNull(types.StringType),
 			},
 		},
 		{
@@ -182,6 +222,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 				Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 				AWS:             types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+				Headers:         types.MapNull(types.StringType),
 			},
 		},
 		{
@@ -204,13 +245,14 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 				Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 				AWS:             tfAWSLambdaConfigObject(t, sampleRoleArn),
+				Headers:         types.MapNull(types.StringType),
 			},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := streamconnection.NewTFStreamConnection(context.Background(), tc.providedProjID, tc.providedInstanceName, tc.providedAuthConfig, tc.SDKResp)
+			resultModel, diags := streamconnection.NewTFStreamConnection(t.Context(), tc.providedProjID, tc.providedInstanceName, tc.providedAuthConfig, tc.SDKResp)
 			if diags.HasError() {
 				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -274,8 +316,14 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 							RoleArn: admin.PtrString(sampleRoleArn),
 						},
 					},
+					{
+						Name:    admin.PtrString(connectionName),
+						Type:    admin.PtrString("Https"),
+						Url:     admin.PtrString(httpsURL),
+						Headers: &headersMap,
+					},
 				},
-				TotalCount: admin.PtrInt(4),
+				TotalCount: admin.PtrInt(5),
 			},
 			providedConfig: &streamconnection.TFStreamConnectionsDSModel{
 				ProjectID:    types.StringValue(dummyProjectID),
@@ -288,7 +336,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 				InstanceName: types.StringValue(instanceName),
 				PageNum:      types.Int64Value(1),
 				ItemsPerPage: types.Int64Value(3),
-				TotalCount:   types.Int64Value(4),
+				TotalCount:   types.Int64Value(5),
 				Results: []streamconnection.TFStreamConnectionModel{
 					{
 						ID:               types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, connectionName)),
@@ -303,6 +351,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 						DBRoleToExecute:  types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 						Networking:       tfNetworkingObject(t, networkingType, nil),
 						AWS:              types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+						Headers:          types.MapNull(types.StringType),
 					},
 					{
 						ID:              types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, connectionName)),
@@ -317,6 +366,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 						DBRoleToExecute: tfDBRoleToExecuteObject(t, dbRole, dbRoleType),
 						Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 						AWS:             types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+						Headers:         types.MapNull(types.StringType),
 					},
 					{
 						ID:              types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, sampleConnectionName)),
@@ -331,6 +381,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 						DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 						Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 						AWS:             types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+						Headers:         types.MapNull(types.StringType),
 					},
 					{
 						ID:              types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, awslambdaConnectionName)),
@@ -345,6 +396,23 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 						DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
 						Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 						AWS:             tfAWSLambdaConfigObject(t, sampleRoleArn),
+						Headers:         types.MapNull(types.StringType),
+					},
+					{
+						ID:              types.StringValue(fmt.Sprintf("%s-%s-%s", instanceName, dummyProjectID, connectionName)),
+						ProjectID:       types.StringValue(dummyProjectID),
+						InstanceName:    types.StringValue(instanceName),
+						ConnectionName:  types.StringValue(connectionName),
+						Type:            types.StringValue("Https"),
+						ClusterName:     types.StringNull(),
+						Authentication:  types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+						Config:          types.MapNull(types.StringType),
+						Security:        types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+						DBRoleToExecute: types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+						Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+						AWS:             types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+						Headers:         tfConfigMap(t, headersMap),
+						URL:             types.StringValue(httpsURL),
 					},
 				},
 			},
@@ -372,7 +440,7 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := streamconnection.NewTFStreamConnections(context.Background(), tc.providedConfig, tc.SDKResp)
+			resultModel, diags := streamconnection.NewTFStreamConnections(t.Context(), tc.providedConfig, tc.SDKResp)
 			if diags.HasError() {
 				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -483,11 +551,28 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "Https type TF state",
+			tfModel: &streamconnection.TFStreamConnectionModel{
+				ProjectID:      types.StringValue(dummyProjectID),
+				InstanceName:   types.StringValue(instanceName),
+				ConnectionName: types.StringValue(connectionName),
+				Type:           types.StringValue("Https"),
+				URL:            types.StringValue(httpsURL),
+				Headers:        tfConfigMap(t, headersMap),
+			},
+			expectedSDKReq: &admin.StreamsConnection{
+				Name:    admin.PtrString(connectionName),
+				Type:    admin.PtrString("Https"),
+				Url:     admin.PtrString(httpsURL),
+				Headers: &headersMap,
+			},
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			apiReqResult, diags := streamconnection.NewStreamConnectionReq(context.Background(), tc.tfModel)
+			apiReqResult, diags := streamconnection.NewStreamConnectionReq(t.Context(), tc.tfModel)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -500,7 +585,7 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 
 func tfAuthenticationObject(t *testing.T, mechanism, username, password string) types.Object {
 	t.Helper()
-	auth, diags := types.ObjectValueFrom(context.Background(), streamconnection.ConnectionAuthenticationObjectType.AttrTypes, streamconnection.TFConnectionAuthenticationModel{
+	auth, diags := types.ObjectValueFrom(t.Context(), streamconnection.ConnectionAuthenticationObjectType.AttrTypes, streamconnection.TFConnectionAuthenticationModel{
 		Mechanism: types.StringValue(mechanism),
 		Username:  types.StringValue(username),
 		Password:  types.StringValue(password),
@@ -513,7 +598,7 @@ func tfAuthenticationObject(t *testing.T, mechanism, username, password string) 
 
 func tfAuthenticationObjectWithNoPassword(t *testing.T, mechanism, username string) types.Object {
 	t.Helper()
-	auth, diags := types.ObjectValueFrom(context.Background(), streamconnection.ConnectionAuthenticationObjectType.AttrTypes, streamconnection.TFConnectionAuthenticationModel{
+	auth, diags := types.ObjectValueFrom(t.Context(), streamconnection.ConnectionAuthenticationObjectType.AttrTypes, streamconnection.TFConnectionAuthenticationModel{
 		Mechanism: types.StringValue(mechanism),
 		Username:  types.StringValue(username),
 	})
@@ -525,7 +610,7 @@ func tfAuthenticationObjectWithNoPassword(t *testing.T, mechanism, username stri
 
 func tfSecurityObject(t *testing.T, brokerPublicCertificate, protocol string) types.Object {
 	t.Helper()
-	auth, diags := types.ObjectValueFrom(context.Background(), streamconnection.ConnectionSecurityObjectType.AttrTypes, streamconnection.TFConnectionSecurityModel{
+	auth, diags := types.ObjectValueFrom(t.Context(), streamconnection.ConnectionSecurityObjectType.AttrTypes, streamconnection.TFConnectionSecurityModel{
 		BrokerPublicCertificate: types.StringValue(brokerPublicCertificate),
 		Protocol:                types.StringValue(protocol),
 	})
@@ -537,7 +622,7 @@ func tfSecurityObject(t *testing.T, brokerPublicCertificate, protocol string) ty
 
 func tfConfigMap(t *testing.T, config map[string]string) types.Map {
 	t.Helper()
-	mapValue, diags := types.MapValueFrom(context.Background(), types.StringType, config)
+	mapValue, diags := types.MapValueFrom(t.Context(), types.StringType, config)
 	if diags.HasError() {
 		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
 	}
@@ -546,7 +631,7 @@ func tfConfigMap(t *testing.T, config map[string]string) types.Map {
 
 func tfDBRoleToExecuteObject(t *testing.T, role, roleType string) types.Object {
 	t.Helper()
-	auth, diags := types.ObjectValueFrom(context.Background(), streamconnection.DBRoleToExecuteObjectType.AttrTypes, streamconnection.TFDbRoleToExecuteModel{
+	auth, diags := types.ObjectValueFrom(t.Context(), streamconnection.DBRoleToExecuteObjectType.AttrTypes, streamconnection.TFDbRoleToExecuteModel{
 		Role: types.StringValue(role),
 		Type: types.StringValue(roleType),
 	})
@@ -558,14 +643,14 @@ func tfDBRoleToExecuteObject(t *testing.T, role, roleType string) types.Object {
 
 func tfNetworkingObject(t *testing.T, networkingType string, connectionID *string) types.Object {
 	t.Helper()
-	networkingAccessModel, diags := types.ObjectValueFrom(context.Background(), streamconnection.NetworkingAccessObjectType.AttrTypes, streamconnection.TFNetworkingAccessModel{
+	networkingAccessModel, diags := types.ObjectValueFrom(t.Context(), streamconnection.NetworkingAccessObjectType.AttrTypes, streamconnection.TFNetworkingAccessModel{
 		Type:         types.StringValue(networkingType),
 		ConnectionID: types.StringPointerValue(connectionID),
 	})
 	if diags.HasError() {
 		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
 	}
-	networking, diags := types.ObjectValueFrom(context.Background(), streamconnection.NetworkingObjectType.AttrTypes, streamconnection.TFNetworkingModel{
+	networking, diags := types.ObjectValueFrom(t.Context(), streamconnection.NetworkingObjectType.AttrTypes, streamconnection.TFNetworkingModel{
 		Access: networkingAccessModel,
 	})
 	if diags.HasError() {
@@ -576,7 +661,7 @@ func tfNetworkingObject(t *testing.T, networkingType string, connectionID *strin
 
 func tfAWSLambdaConfigObject(t *testing.T, roleArn string) types.Object {
 	t.Helper()
-	aws, diags := types.ObjectValueFrom(context.Background(), streamconnection.AWSObjectType.AttrTypes, streamconnection.TFAWSModel{
+	aws, diags := types.ObjectValueFrom(t.Context(), streamconnection.AWSObjectType.AttrTypes, streamconnection.TFAWSModel{
 		RoleArn: types.StringValue(roleArn),
 	})
 	if diags.HasError() {

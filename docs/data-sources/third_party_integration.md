@@ -45,10 +45,13 @@ Additional values based on Type
   * `service_key` - Your Service Key.
 * `DATADOG`
   * `api_key` - Your API Key.
-  * `region` - Two-letter code that indicates which API URL to use. See the `region` response field of [MongoDB API Third-Party Service Integration documentation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Third-Party-Integrations/operation/getThirdPartyIntegration) for more details. Datadog will use "US" by default.
+  * `region` - Two-letter code that indicates which API URL to use. See the `region` response field of [MongoDB API Third-Party Service Integration documentation](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getthirdpartyintegration) for more details. Datadog will use "US" by default.
+  * `send_collection_latency_metrics` - Toggle sending collection latency metrics that includes database names and collection name sand latency metrics on reads, writes, commands, and transactions.
+  * `send_database_metrics` - Toggle sending database metrics that includes database names and metrics on the number of collections, storage size, and index size.
+  * `send_user_provided_resource_tags` - Toggle sending user provided group and cluster resource tags with the datadog metrics.
 * `OPS_GENIE`
   * `api_key` - Your API Key.
-  * `region` - Two-letter code that indicates which API URL to use. See the `region` response field of [MongoDB API Third-Party Service Integration documentation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Third-Party-Integrations/operation/getThirdPartyIntegration) for more details. Opsgenie will use US by default.
+  * `region` - Two-letter code that indicates which API URL to use. See the `region` response field of [MongoDB API Third-Party Service Integration documentation](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getthirdpartyintegration) for more details. Opsgenie will use US by default.
 * `VICTOR_OPS`
   * `api_key` - 	Your API Key.
   * `routing_key` - An optional field for your Routing Key.

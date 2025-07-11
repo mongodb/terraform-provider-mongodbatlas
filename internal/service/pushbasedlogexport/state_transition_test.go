@@ -1,14 +1,13 @@
 package pushbasedlogexport_test
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
-	"go.mongodb.org/atlas-sdk/v20250219001/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/mockadmin"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -82,7 +81,7 @@ func TestPushBasedLogExportStateTransition(t *testing.T) {
 				modelResp, httpResp, err := resp.get()
 				m.EXPECT().GetPushBasedLogConfigurationExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			resp, err := pushbasedlogexport.WaitStateTransition(context.Background(), testProjectID, m, testTimeoutConfig)
+			resp, err := pushbasedlogexport.WaitStateTransition(t.Context(), testProjectID, m, testTimeoutConfig)
 			assert.Equal(t, tc.expectedError, err != nil)
 			assert.Equal(t, responseWithState(tc.expectedState), resp)
 		})
@@ -132,7 +131,7 @@ func TestPushBasedLogExportStateTransitionForDelete(t *testing.T) {
 				modelResp, httpResp, err := resp.get()
 				m.EXPECT().GetPushBasedLogConfigurationExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			err := pushbasedlogexport.WaitResourceDelete(context.Background(), testProjectID, m, testTimeoutConfig)
+			err := pushbasedlogexport.WaitResourceDelete(t.Context(), testProjectID, m, testTimeoutConfig)
 			assert.Equal(t, tc.expectedError, err != nil)
 		})
 	}

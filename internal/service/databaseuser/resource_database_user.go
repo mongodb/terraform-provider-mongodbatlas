@@ -52,6 +52,7 @@ type TfDatabaseUserModel struct {
 	OIDCAuthType     types.String `tfsdk:"oidc_auth_type"`
 	LDAPAuthType     types.String `tfsdk:"ldap_auth_type"`
 	AWSIAMType       types.String `tfsdk:"aws_iam_type"`
+	Description      types.String `tfsdk:"description"`
 	Roles            types.Set    `tfsdk:"roles"`
 	Labels           types.Set    `tfsdk:"labels"`
 	Scopes           types.Set    `tfsdk:"scopes"`
@@ -123,6 +124,9 @@ func (r *databaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 						path.MatchRelative().AtParent().AtName("aws_iam_type"),
 					}...),
 				},
+			},
+			"description": schema.StringAttribute{
+				Optional: true,
 			},
 			"x509_type": schema.StringAttribute{
 				Optional: true,
@@ -204,28 +208,28 @@ func (r *databaseUserRS) Schema(ctx context.Context, req resource.SchemaRequest,
 }
 
 func (r *databaseUserRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var databaseUserPlan *TfDatabaseUserModel
+	var plan *TfDatabaseUserModel
 
-	diags := req.Plan.Get(ctx, &databaseUserPlan)
+	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	dbUserReq, d := NewMongoDBDatabaseUser(ctx, types.StringNull(), databaseUserPlan)
-	resp.Diagnostics.Append(d...)
+	dbUserReq, localDiags := NewMongoDBDatabaseUser(ctx, types.StringNull(), types.StringNull(), plan)
+	resp.Diagnostics.Append(localDiags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	connV2 := r.Client.AtlasV2
-	dbUser, _, err := connV2.DatabaseUsersApi.CreateDatabaseUser(ctx, databaseUserPlan.ProjectID.ValueString(), dbUserReq).Execute()
+	dbUser, _, err := connV2.DatabaseUsersApi.CreateDatabaseUser(ctx, plan.ProjectID.ValueString(), dbUserReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error during database user creation", err.Error())
 		return
 	}
 
-	dbUserModel, diagnostic := NewTfDatabaseUserModel(ctx, databaseUserPlan, dbUser)
+	dbUserModel, diagnostic := NewTfDatabaseUserModel(ctx, plan, dbUser)
 	resp.Diagnostics.Append(diagnostic...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -240,26 +244,16 @@ func (r *databaseUserRS) Create(ctx context.Context, req resource.CreateRequest,
 }
 
 func (r *databaseUserRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var databaseUserState *TfDatabaseUserModel
+	var state *TfDatabaseUserModel
 	var err error
-	resp.Diagnostics.Append(req.State.Get(ctx, &databaseUserState)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	username := databaseUserState.Username.ValueString()
-	projectID := databaseUserState.ProjectID.ValueString()
-	authDatabaseName := databaseUserState.AuthDatabaseName.ValueString()
-
-	// Use the ID only with the IMPORT operation
-	if databaseUserState.ID.ValueString() != "" && (username == "" || projectID == "" || authDatabaseName == "") {
-		projectID, username, authDatabaseName, err = SplitDatabaseUserImportID(databaseUserState.ID.ValueString())
-		if err != nil {
-			resp.Diagnostics.AddError("error splitting database User info from ID", err.Error())
-			return
-		}
-	}
-
+	username := state.Username.ValueString()
+	projectID := state.ProjectID.ValueString()
+	authDatabaseName := state.AuthDatabaseName.ValueString()
 	connV2 := r.Client.AtlasV2
 	dbUser, httpResponse, err := connV2.DatabaseUsersApi.GetDatabaseUser(ctx, projectID, authDatabaseName, username).Execute()
 	if err != nil {
@@ -273,7 +267,7 @@ func (r *databaseUserRS) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 
-	dbUserModel, diagnostic := NewTfDatabaseUserModel(ctx, databaseUserState, dbUser)
+	dbUserModel, diagnostic := NewTfDatabaseUserModel(ctx, state, dbUser)
 	resp.Diagnostics.Append(diagnostic...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -286,32 +280,31 @@ func (r *databaseUserRS) Read(ctx context.Context, req resource.ReadRequest, res
 }
 
 func (r *databaseUserRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var databaseUserPlan *TfDatabaseUserModel
-	var databaseUserState *TfDatabaseUserModel
+	var plan, state *TfDatabaseUserModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &databaseUserPlan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &databaseUserState)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	dbUserReq, d := NewMongoDBDatabaseUser(ctx, databaseUserState.Password, databaseUserPlan)
-	resp.Diagnostics.Append(d...)
+	dbUserReq, localDiags := NewMongoDBDatabaseUser(ctx, state.Password, state.Description, plan)
+	resp.Diagnostics.Append(localDiags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	connV2 := r.Client.AtlasV2
 	dbUser, _, err := connV2.DatabaseUsersApi.UpdateDatabaseUser(ctx,
-		databaseUserPlan.ProjectID.ValueString(),
-		databaseUserPlan.AuthDatabaseName.ValueString(),
-		databaseUserPlan.Username.ValueString(), dbUserReq).Execute()
+		plan.ProjectID.ValueString(),
+		plan.AuthDatabaseName.ValueString(),
+		plan.Username.ValueString(), dbUserReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error during database user creation", err.Error())
 		return
 	}
 
-	dbUserModel, diagnostic := NewTfDatabaseUserModel(ctx, databaseUserPlan, dbUser)
+	dbUserModel, diagnostic := NewTfDatabaseUserModel(ctx, plan, dbUser)
 	resp.Diagnostics.Append(diagnostic...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -324,19 +317,19 @@ func (r *databaseUserRS) Update(ctx context.Context, req resource.UpdateRequest,
 }
 
 func (r *databaseUserRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var databaseUserState *TfDatabaseUserModel
+	var state *TfDatabaseUserModel
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &databaseUserState)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	connV2 := r.Client.AtlasV2
-	_, _, err := connV2.DatabaseUsersApi.DeleteDatabaseUser(
+	_, err := connV2.DatabaseUsersApi.DeleteDatabaseUser(
 		ctx,
-		databaseUserState.ProjectID.ValueString(),
-		databaseUserState.AuthDatabaseName.ValueString(),
-		databaseUserState.Username.ValueString()).Execute()
+		state.ProjectID.ValueString(),
+		state.AuthDatabaseName.ValueString(),
+		state.Username.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error when destroying the database user resource", err.Error())
 		return
@@ -344,12 +337,20 @@ func (r *databaseUserRS) Delete(ctx context.Context, req resource.DeleteRequest,
 }
 
 func (r *databaseUserRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	projectID, username, authDatabaseName, err := SplitDatabaseUserImportID(req.ID)
+	if err != nil {
+		resp.Diagnostics.AddError("error splitting database User info from ID", err.Error())
+		return
+	}
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("username"), username)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("auth_database_name"), authDatabaseName)...)
 }
 
 func SplitDatabaseUserImportID(id string) (projectID, username, authDatabaseName string, err error) {
-	ok, projectID, username, authDatabaseName := conversion.ImportSplit3(id)
+	ok, splitParts := conversion.ImportSplit(id, 3)
 	if ok {
+		projectID, username, authDatabaseName = splitParts[0], splitParts[1], splitParts[2]
 		err = conversion.ValidateProjectID(projectID)
 		return
 	}

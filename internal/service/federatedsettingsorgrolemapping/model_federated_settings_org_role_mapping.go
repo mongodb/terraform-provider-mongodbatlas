@@ -6,10 +6,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
-type mRoleAssignment []admin.RoleAssignment
+type mRoleAssignment []admin.ConnectedOrgConfigRoleAssignment
 
 func (ra mRoleAssignment) Len() int      { return len(ra) }
 func (ra mRoleAssignment) Swap(i, j int) { ra[i], ra[j] = ra[j], ra[i] }
@@ -29,7 +29,7 @@ func (ra mRoleAssignment) Less(i, j int) bool {
 	return ra[i].GetRole() < ra[j].GetRole()
 }
 
-func FlattenRoleAssignments(roleAssignments []admin.RoleAssignment) []map[string]any {
+func FlattenRoleAssignments(roleAssignments []admin.ConnectedOrgConfigRoleAssignment) []map[string]any {
 	sort.Sort(mRoleAssignment(roleAssignments))
 
 	var roleAssignmentsMap []map[string]any
@@ -49,8 +49,8 @@ func FlattenRoleAssignments(roleAssignments []admin.RoleAssignment) []map[string
 	return roleAssignmentsMap
 }
 
-func expandRoleAssignments(d *schema.ResourceData) *[]admin.RoleAssignment {
-	var roleAssignments []admin.RoleAssignment
+func expandRoleAssignments(d *schema.ResourceData) *[]admin.ConnectedOrgConfigRoleAssignment {
+	var roleAssignments []admin.ConnectedOrgConfigRoleAssignment
 
 	if v, ok := d.GetOk("role_assignments"); ok {
 		if rs := v.(*schema.Set); rs.Len() > 0 {
@@ -58,7 +58,7 @@ func expandRoleAssignments(d *schema.ResourceData) *[]admin.RoleAssignment {
 				roleMap := r.(map[string]any)
 
 				for _, role := range roleMap["roles"].(*schema.Set).List() {
-					roleAssignment := admin.RoleAssignment{
+					roleAssignment := admin.ConnectedOrgConfigRoleAssignment{
 						OrgId:   conversion.StringPtr(roleMap["org_id"].(string)),
 						GroupId: conversion.StringPtr(roleMap["group_id"].(string)),
 						Role:    conversion.StringPtr(role.(string)),
@@ -73,7 +73,7 @@ func expandRoleAssignments(d *schema.ResourceData) *[]admin.RoleAssignment {
 	return &roleAssignments
 }
 
-func flattenRoleAssignmentsResource(roleAssignments []admin.RoleAssignment) []map[string]any {
+func flattenRoleAssignmentsResource(roleAssignments []admin.ConnectedOrgConfigRoleAssignment) []map[string]any {
 	if len(roleAssignments) == 0 {
 		return nil
 	}

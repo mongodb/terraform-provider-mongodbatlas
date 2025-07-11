@@ -40,6 +40,7 @@ type TFStreamConnectionModel struct {
 	ConnectionName   types.String `tfsdk:"connection_name"`
 	Type             types.String `tfsdk:"type"`
 	ClusterName      types.String `tfsdk:"cluster_name"`
+	ClusterProjectID types.String `tfsdk:"cluster_project_id"`
 	Authentication   types.Object `tfsdk:"authentication"`
 	BootstrapServers types.String `tfsdk:"bootstrap_servers"`
 	Config           types.Map    `tfsdk:"config"`
@@ -47,6 +48,9 @@ type TFStreamConnectionModel struct {
 	DBRoleToExecute  types.Object `tfsdk:"db_role_to_execute"`
 	Networking       types.Object `tfsdk:"networking"`
 	AWS              types.Object `tfsdk:"aws"`
+	// https connection
+	Headers types.Map    `tfsdk:"headers"`
+	URL     types.String `tfsdk:"url"`
 }
 
 type TFConnectionAuthenticationModel struct {
@@ -181,7 +185,7 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 	projectID := streamConnectionPlan.ProjectID.ValueString()
 	instanceName := streamConnectionPlan.InstanceName.ValueString()
 	connectionName := streamConnectionPlan.ConnectionName.ValueString()
-	streamConnectionReq, diags := NewStreamConnectionReq(ctx, &streamConnectionPlan)
+	streamConnectionReq, diags := NewStreamConnectionUpdateReq(ctx, &streamConnectionPlan)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

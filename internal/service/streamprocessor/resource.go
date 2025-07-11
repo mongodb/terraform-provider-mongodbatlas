@@ -3,10 +3,9 @@ package streamprocessor
 import (
 	"context"
 	"errors"
-	"fmt"
 	"regexp"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -94,7 +93,7 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	if needsStarting {
-		_, _, err := connV2.StreamsApi.StartStreamProcessorWithParams(ctx,
+		_, err := connV2.StreamsApi.StartStreamProcessorWithParams(ctx,
 			&admin.StartStreamProcessorApiParams{
 				GroupId:       projectID,
 				TenantName:    instanceName,
@@ -159,22 +158,67 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	connV2 := r.Client.AtlasV2
-	pendingStates := []string{CreatedState}
-	desiredState := []string{}
+	plannedState := plan.State.ValueString()
+	if plannedState == "" {
+		plannedState = state.State.ValueString()
+	}
+
 	projectID := plan.ProjectID.ValueString()
 	instanceName := plan.InstanceName.ValueString()
 	processorName := plan.ProcessorName.ValueString()
 	currentState := state.State.ValueString()
-	if !updatedStateOnly(&plan, &state) {
-		resp.Diagnostics.AddError("updating a Stream Processor is not supported", "")
+	connV2 := r.Client.AtlasV2
+	var streamProcessorResp *admin.StreamsProcessorWithStats
+
+	// requestParams are needed for the state transition via the GET API
+	requestParams := &admin.GetStreamProcessorApiParams{
+		GroupId:       projectID,
+		TenantName:    instanceName,
+		ProcessorName: processorName,
+	}
+
+	if errMsg, isValidStateTransition := ValidateUpdateStateTransition(currentState, plannedState); !isValidStateTransition {
+		resp.Diagnostics.AddError(errMsg, "")
 		return
 	}
-	switch plan.State.ValueString() {
-	case StartedState:
-		desiredState = append(desiredState, StartedState)
-		pendingStates = append(pendingStates, StoppedState)
-		_, _, err := connV2.StreamsApi.StartStreamProcessorWithParams(ctx,
+
+	// we must stop the current stream processor if the current state is started
+	if currentState == StartedState {
+		_, err := connV2.StreamsApi.StopStreamProcessorWithParams(ctx,
+			&admin.StopStreamProcessorApiParams{
+				GroupId:       plan.ProjectID.ValueString(),
+				TenantName:    plan.InstanceName.ValueString(),
+				ProcessorName: plan.ProcessorName.ValueString(),
+			},
+		).Execute()
+		if err != nil {
+			resp.Diagnostics.AddError("Error stopping stream processor", err.Error())
+			return
+		}
+
+		// wait for transition from started to stopped
+		_, err = WaitStateTransition(ctx, requestParams, r.Client.AtlasV2.StreamsApi, []string{StartedState}, []string{StoppedState})
+		if err != nil {
+			resp.Diagnostics.AddError("Error changing state of stream processor", err.Error())
+			return
+		}
+	}
+
+	// modify the stream processor
+	modifyAPIRequestParams, diags := NewStreamProcessorUpdateReq(ctx, &plan)
+	if diags.HasError() {
+		resp.Diagnostics.Append(diags...)
+		return
+	}
+	streamProcessorResp, _, err := r.Client.AtlasV2.StreamsApi.ModifyStreamProcessorWithParams(ctx, modifyAPIRequestParams).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError("Error modifying stream processor", err.Error())
+		return
+	}
+
+	// start the stream processor if the desired state is started
+	if plannedState == StartedState {
+		_, err := r.Client.AtlasV2.StreamsApi.StartStreamProcessorWithParams(ctx,
 			&admin.StartStreamProcessorApiParams{
 				GroupId:       projectID,
 				TenantName:    instanceName,
@@ -183,39 +227,15 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError("Error starting stream processor", err.Error())
-		}
-	case StoppedState:
-		if currentState != StartedState {
-			resp.Diagnostics.AddError(fmt.Sprintf("Stream Processor must be in %s state to transition to %s state", StartedState, StoppedState), "")
 			return
 		}
-		desiredState = append(desiredState, StoppedState)
-		pendingStates = append(pendingStates, StartedState)
-		_, _, err := connV2.StreamsApi.StopStreamProcessorWithParams(ctx,
-			&admin.StopStreamProcessorApiParams{
-				GroupId:       projectID,
-				TenantName:    instanceName,
-				ProcessorName: processorName,
-			},
-		).Execute()
+
+		// wait for transition from stopped to started
+		streamProcessorResp, err = WaitStateTransition(ctx, requestParams, r.Client.AtlasV2.StreamsApi, []string{StoppedState}, []string{StartedState})
 		if err != nil {
-			resp.Diagnostics.AddError("Error stopping stream processor", err.Error())
+			resp.Diagnostics.AddError("Error changing state of stream processor", err.Error())
 			return
 		}
-	default:
-		resp.Diagnostics.AddError("transitions to states other than STARTED or STOPPED are not supported", "")
-		return
-	}
-
-	requestParams := &admin.GetStreamProcessorApiParams{
-		GroupId:       projectID,
-		TenantName:    instanceName,
-		ProcessorName: processorName,
-	}
-
-	streamProcessorResp, err := WaitStateTransition(ctx, requestParams, connV2.StreamsApi, pendingStates, desiredState)
-	if err != nil {
-		resp.Diagnostics.AddError("Error changing state of stream processor", err.Error())
 	}
 
 	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessorResp)
@@ -266,13 +286,4 @@ func splitImportID(id string) (projectID, instanceName, processorName *string, e
 	processorName = &parts[3]
 
 	return
-}
-
-func updatedStateOnly(plan, state *TFStreamProcessorRSModel) bool {
-	return plan.ProjectID.Equal(state.ProjectID) &&
-		plan.InstanceName.Equal(state.InstanceName) &&
-		plan.ProcessorName.Equal(state.ProcessorName) &&
-		plan.Pipeline.Equal(state.Pipeline) &&
-		(plan.Options.Equal(state.Options) || plan.Options.IsUnknown()) &&
-		!plan.State.Equal(state.State)
 }

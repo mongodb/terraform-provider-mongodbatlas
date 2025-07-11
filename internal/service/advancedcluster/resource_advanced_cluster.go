@@ -13,14 +13,16 @@ import (
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/spf13/cast"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
@@ -44,7 +46,7 @@ const (
 	ErrorAdvancedClusterListStatus = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
 	ErrorOperationNotPermitted     = "error operation not permitted"
 	ErrorDefaultMaxTimeMinVersion  = "`advanced_configuration.default_max_time_ms` can only be configured if the mongo_db_major_version is 8.0 or higher"
-	DeprecationOldSchemaAction     = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
+	DeprecationOldSchemaAction     = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide"
 	V20240530                      = "(v20240530)"
 )
 
@@ -86,6 +88,11 @@ func Resource() *schema.Resource {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Description: "Flag that indicates whether to retain backup snapshots for the deleted dedicated cluster",
+			},
+			"delete_on_create_timeout": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Flag that indicates whether to delete the cluster if the cluster creation times out. Default is false.",
 			},
 			"bi_connector_config": {
 				Type:     schema.TypeList,
@@ -428,9 +435,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return diag.FromErr(fmt.Errorf("accept_data_risks_and_force_replica_set_reconfig can not be set in creation, only in update"))
 		}
 	}
-	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
-	connV220240805 := meta.(*config.MongoDBClient).AtlasV220240805
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	client := meta.(*config.MongoDBClient)
+	connV220240530 := client.AtlasV220240530
+	connV220240805 := client.AtlasV220240805
+	connV2 := client.AtlasV2
 	projectID := d.Get("project_id").(string)
 
 	var rootDiskSizeGB *float64
@@ -439,9 +447,20 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	replicationSpecs := expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), rootDiskSizeGB)
+	isFlex := advancedclustertpf.IsFlex(replicationSpecs)
+	timeout := d.Timeout(schema.TimeoutCreate)
+	clusterName := d.Get("name").(string)
+	if d.Get("delete_on_create_timeout").(bool) {
+		var deferCall func()
+		warningDetail := fmt.Sprintf("Cluster name %s (project_id=%s).", clusterName, projectID)
+		logWarnings := func(summary, details string) {
+			tflog.Warn(ctx, summary+" details: "+details)
+		}
+		ctx, deferCall = cleanup.OnTimeout(ctx, timeout, logWarnings, warningDetail, advancedclustertpf.DeleteClusterNoWait(client, projectID, clusterName, isFlex))
+		defer deferCall()
+	}
 
-	if advancedclustertpf.IsFlex(replicationSpecs) {
-		clusterName := d.Get("name").(string)
+	if isFlex {
 		flexClusterReq := advancedclustertpf.NewFlexCreateReq(clusterName, d.Get("termination_protection_enabled").(bool), conversion.ExpandTagsFromSetSchema(d), replicationSpecs)
 		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
 		if err != nil {
@@ -458,9 +477,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	params := &admin.ClusterDescription20240805{
-		Name:             conversion.StringPtr(cast.ToString(d.Get("name"))),
-		ClusterType:      conversion.StringPtr(cast.ToString(d.Get("cluster_type"))),
-		ReplicationSpecs: replicationSpecs,
+		Name:                  conversion.StringPtr(cast.ToString(d.Get("name"))),
+		ClusterType:           conversion.StringPtr(cast.ToString(d.Get("cluster_type"))),
+		ReplicationSpecs:      replicationSpecs,
+		AdvancedConfiguration: expandClusterAdvancedConfiguration(d),
 	}
 
 	if v, ok := d.GetOk("backup_enabled"); ok {
@@ -529,7 +549,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(err)
 	}
 
-	var clusterName string
 	var clusterID string
 	var err error
 	// With old sharding config we call older API (2024-08-05) to avoid cluster having asymmetric autoscaling mode. Old sharding config can only represent symmetric clusters.
@@ -551,7 +570,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		clusterID = cluster.GetId()
 	}
 
-	timeout := d.Timeout(schema.TimeoutCreate)
 	stateConf := CreateStateChangeConfig(ctx, connV2, projectID, d.Get("name").(string), timeout)
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
@@ -688,7 +706,12 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorConfigRead, clusterName, err))
 	}
 
-	if err := d.Set("advanced_configuration", flattenProcessArgs(processArgs20240530, processArgs)); err != nil {
+	advConfigAttr := flattenProcessArgs(&advancedclustertpf.ProcessArgs{
+		ArgsLegacy:            processArgs20240530,
+		ArgsDefault:           processArgs,
+		ClusterAdvancedConfig: cluster.AdvancedConfiguration,
+	})
+	if err := d.Set("advanced_configuration", advConfigAttr); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "advanced_configuration", clusterName, err))
 	}
 
@@ -950,6 +973,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if d.HasChange("config_server_management_mode") {
 				request.ConfigServerManagementMode = conversion.StringPtr(d.Get("config_server_management_mode").(string))
 			}
+
 			// can call latest API (2024-10-23 or newer) as replications specs (with nested autoscaling property) is not specified
 			if _, _, err := connV2.ClustersApi.UpdateCluster(ctx, projectID, clusterName, request).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
@@ -1038,7 +1062,7 @@ func HandlePinnedFCVUpdate(ctx context.Context, connV2 *admin.APIClient, project
 			}
 		} else {
 			// pinned_fcv has been removed from the config so unpin method is called
-			if _, _, err := connV2.ClustersApi.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
+			if _, err := connV2.ClustersApi.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
 			}
 		}
@@ -1147,6 +1171,11 @@ func updateRequest(ctx context.Context, d *schema.ResourceData, projectID, clust
 	}
 	if d.HasChange("config_server_management_mode") {
 		cluster.ConfigServerManagementMode = conversion.StringPtr(d.Get("config_server_management_mode").(string))
+	}
+	if d.HasChange("advanced_configuration") {
+		if aclist, ok := d.Get("advanced_configuration").([]any); ok && len(aclist) > 0 {
+			cluster.AdvancedConfiguration = expandClusterAdvancedConfiguration(d)
+		}
 	}
 
 	return cluster, nil

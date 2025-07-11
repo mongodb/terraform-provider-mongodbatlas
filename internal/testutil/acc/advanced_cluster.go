@@ -3,6 +3,7 @@ package acc
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -11,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
 var (
@@ -52,9 +53,10 @@ var (
 
 func TestStepImportCluster(resourceName string, ignorePrefixFields ...string) resource.TestStep {
 	ignorePrefixFields = append(ignorePrefixFields,
-		"retain_backups_enabled", // This field is TF specific and not returned by Atlas, so Import can't fill it in.
-		"mongo_db_major_version", // Risks plan change of 8 --> 8.0 (always normalized to `major.minor`)
-		"state_name",             // Cluster state can change from IDLE to UPDATING and risks making the test flaky
+		"retain_backups_enabled",   // This field is TF specific and not returned by Atlas, so Import can't fill it in.
+		"mongo_db_major_version",   // Risks plan change of 8 --> 8.0 (always normalized to `major.minor`)
+		"state_name",               // Cluster state can change from IDLE to UPDATING and risks making the test flaky
+		"delete_on_create_timeout", // This field is TF specific and not returned by Atlas, so Import can't fill it in.
 	)
 
 	// auto_scaling & specs (electable_specs, read_only_specs, etc.) are only set in state in SDKv2 if present in the definition.
@@ -102,27 +104,14 @@ func CheckExistsCluster(resourceName string) resource.TestCheckFunc {
 		if projectID == "" || clusterName == "" {
 			return fmt.Errorf("projectID or clusterName is empty: %s, %s", projectID, clusterName)
 		}
-		if err := CheckExistsClusterHandlingRetry(projectID, clusterName); err != nil {
+		if _, _, err := ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute(); err != nil {
 			return fmt.Errorf("cluster(%s:%s) does not exist: %w", projectID, clusterName, err)
 		}
 		return nil
 	}
 }
 
-func CheckExistsClusterHandlingRetry(projectID, clusterName string) error {
-	return retry.RetryContext(context.Background(), 3*time.Minute, func() *retry.RetryError {
-		if _, _, err := ConnV2().ClustersApi.GetCluster(context.Background(), projectID, clusterName).Execute(); err != nil {
-			if admin.IsErrorCode(err, "SERVICE_UNAVAILABLE") {
-				// retrying get operation because for migration test it can be the first time new API is called for a cluster so API responds with temporary error as it transition to enabling ISS FF
-				return retry.RetryableError(err)
-			}
-			return retry.NonRetryableError(err)
-		}
-		return nil
-	})
-}
-
-func CheckFCVPinningConfig(isAcc bool, resourceName, dataSourceName, pluralDataSourceName string, mongoDBMajorVersion int, pinningExpirationDate *string, fcvVersion *int) resource.TestCheckFunc {
+func CheckFCVPinningConfig(usePreviewProvider bool, resourceName, dataSourceName, pluralDataSourceName string, mongoDBMajorVersion int, pinningExpirationDate *string, fcvVersion *int) resource.TestCheckFunc {
 	mapChecks := map[string]string{
 		"mongo_db_major_version": fmt.Sprintf("%d.0", mongoDBMajorVersion),
 	}
@@ -139,7 +128,7 @@ func CheckFCVPinningConfig(isAcc bool, resourceName, dataSourceName, pluralDataS
 
 	additionalCheck := resource.TestCheckResourceAttrWith(resourceName, "mongo_db_version", MatchesExpression(fmt.Sprintf("%d..*", mongoDBMajorVersion)))
 
-	return CheckRSAndDSPreviewProviderV2(isAcc, resourceName, admin.PtrString(dataSourceName), admin.PtrString(pluralDataSourceName), []string{}, mapChecks, additionalCheck)
+	return CheckRSAndDSPreviewProviderV2(usePreviewProvider, resourceName, admin.PtrString(dataSourceName), admin.PtrString(pluralDataSourceName), []string{}, mapChecks, additionalCheck)
 }
 
 func CheckIndependentShardScalingMode(resourceName, clusterName, expectedMode string) resource.TestCheckFunc {
@@ -192,4 +181,51 @@ func PopulateWithSampleData(projectID, clusterName string) error {
 	}
 	_, err = stateConf.WaitForStateContext(ctx)
 	return err
+}
+
+func ConfigBasicDedicated(projectID, name, zoneName string) string {
+	zoneNameLine := ""
+	if zoneName != "" {
+		zoneNameLine = fmt.Sprintf("zone_name = %q", zoneName)
+	}
+	return fmt.Sprintf(`
+	resource "mongodbatlas_advanced_cluster" "test" {
+		project_id   = %[1]q
+		name         = %[2]q
+		cluster_type = "REPLICASET"
+		
+		replication_specs {
+			region_configs {
+				priority        = 7
+				provider_name = "AWS"
+				region_name     = "US_EAST_1"
+				electable_specs {
+					node_count = 3
+					instance_size = "M10"
+				}
+			}
+			%[3]s
+		}
+	}
+	data "mongodbatlas_advanced_cluster" "test" {
+		project_id = mongodbatlas_advanced_cluster.test.project_id
+		name 	     = mongodbatlas_advanced_cluster.test.name
+		use_replication_spec_per_shard = true
+		depends_on = [mongodbatlas_advanced_cluster.test]
+	}
+			
+	data "mongodbatlas_advanced_clusters" "test" {
+		use_replication_spec_per_shard = true
+		project_id = mongodbatlas_advanced_cluster.test.project_id
+		depends_on = [mongodbatlas_advanced_cluster.test]
+	}
+	`, projectID, name, zoneNameLine)
+}
+
+func JoinQuotedStrings(list []string) string {
+	quoted := make([]string, len(list))
+	for i, item := range list {
+		quoted[i] = fmt.Sprintf("%q", item)
+	}
+	return strings.Join(quoted, ", ")
 }

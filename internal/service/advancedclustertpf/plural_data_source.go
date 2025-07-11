@@ -6,10 +6,11 @@ import (
 	"net/http"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -82,7 +83,11 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 		if extraInfo.UseOldShardingConfigFailed {
 			continue
 		}
-		updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, nil, nil)
+		updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, &ProcessArgs{
+			ArgsLegacy:            nil,
+			ArgsDefault:           nil,
+			ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
+		})
 		if diags.HasError() {
 			if DiagsHasOnlyClusterNotFoundErrors(diags) {
 				diags = ResetClusterNotFoundErrors(diags)

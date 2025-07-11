@@ -1,5 +1,136 @@
 ## (Unreleased)
 
+## 1.38.0 (July 10, 2025)
+
+NOTES:
+
+* data-source/mongodbatlas_stream_connections: Deprecates the `id` attribute as it is a random assigned value which should not be used ([#3476](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3476))
+* data-source/mongodbatlas_stream_instances: Deprecates the `id` attribute as it is a random assigned value which should not be used ([#3476](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3476))
+
+FEATURES:
+
+* **New Data Source:** `data-source/mongodbatlas_api_key_project_assignment` ([#3461](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3461))
+* **New Data Source:** `data-source/mongodbatlas_api_key_project_assignments` ([#3461](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3461))
+* **New Resource:** `resource/mongodbatlas_api_key_project_assignment` ([#3461](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3461))
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_third_party_integration Adds `send_user_provided_resource_tags` attribute to support sending $querystats to DataDog ([#3454](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3454))
+* data-source/mongodbatlas_third_party_integrations Adds `send_user_provided_resource_tags` attribute to support sending $querystats to DataDog ([#3454](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3454))
+* resource/mongodbatlas_organization: Adds import support ([#3475](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3475))
+* resource/mongodbatlas_third_party_integration Adds `send_user_provided_resource_tags` attribute to support sending $querystats to DataDog ([#3454](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3454))
+
+BUG FIXES:
+
+* data-source/mongodbatlas_cloud_backup_snapshot_export_buckets: Fix pagination when `items_per_page` or `page_num` are not set ([#3459](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3459))
+* data-source/mongodbatlas_cloud_backup_snapshot_export_jobs: Fix pagination when `items_per_page` or `page_num` are not set ([#3459](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3459))
+* data-source/mongodbatlas_cloud_backup_snapshot_restore_jobs: Fix pagination when `items_per_page` or `page_num` are not set ([#3459](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3459))
+* data-source/mongodbatlas_cloud_backup_snapshots: Fix pagination when `items_per_page` or `page_num` are not set ([#3459](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3459))
+* data-source/mongodbatlas_federated_settings_org_configs: Fix pagination when `items_per_page` or `page_num` are not set ([#3459](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3459))
+* data-source/mongodbatlas_organizations: Fix pagination when `items_per_page` or `page_num` are not set ([#3459](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3459))
+
+## 1.37.0 (June 26, 2025)
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_stream_connection Adds `cluster_project_id` to allow connections to clusters in other projects within an organization ([#3424](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3424))
+* resource/mongodbatlas_stream_connection Adds `cluster_project_id` to allow connections to clusters in other projects within an organization ([#3424](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3424))
+
+## 1.36.0 (June 11, 2025)
+
+FEATURES:
+
+* **New Data Source:** `mongodbatlas_stream_account_details` ([#3364](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3364))
+
+## 1.35.1 (May 29, 2025)
+
+BUG FIXES:
+
+* provider: Fixes Realm Client authentication ([#3362](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3362))
+
+## 1.35.0 (May 28, 2025)
+
+ENHANCEMENTS:
+
+* resource/mongodbatlas_advanced_cluster (preview provider 2.0.0): Adds `delete_on_create_timeout` a flag that indicates whether to delete the cluster if the cluster creation times out, default is false ([#3333](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3333))
+* resource/mongodbatlas_advanced_cluster: Adds `delete_on_create_timeout` a flag that indicates whether to delete the cluster if the cluster creation times out, default is false ([#3333](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3333))
+* resource/mongodbatlas_search_deployment: Adds `delete_on_create_timeout` a flag that indicates whether to delete the search deployment if the search deployment creation times out, default is false ([#3344](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3344))
+
+BUG FIXES:
+
+* resource/mongodbatlas_private_endpoint_regional_mode: Increases update wait time so cluster connection strings are updated ([#3320](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3320))
+
+## 1.34.0 (April 30, 2025)
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_database_user: Adds `description` field ([#3280](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3280))
+* data-source/mongodbatlas_database_users: Adds `description` field ([#3280](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3280))
+* data-source/mongodbatlas_maintenance_window: Adds `protected_hours` and `time_zone_id` ([#3195](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3195))
+* resource/mongodbatlas_database_user: Adds `description` field ([#3280](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3280))
+* resource/mongodbatlas_maintenance_window: Adds `protected_hours` and `time_zone_id` ([#3195](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3195))
+
+BUG FIXES:
+
+* resource/mongodbatlas_auditing: Fixes JSON comparison in `audit_filter` field ([#3302](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3302))
+
+## 1.33.0 (April 16, 2025)
+
+NOTES:
+
+* data-source/mongodbatlas_resource_policies: Enables usage without preview environment flag ([#3276](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3276))
+* data-source/mongodbatlas_resource_policy: Enables usage without preview environment flag ([#3276](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3276))
+* resource/mongodbatlas_resource_policy: Enables usage without preview environment flag ([#3276](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3276))
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_organization: Adds `security_contact` attribute ([#3263](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3263))
+* data-source/mongodbatlas_organizations: Adds `security_contact` attribute ([#3263](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3263))
+* data-source/mongodbatlas_third_party_integration: Adds support for `send_collection_latency_metrics` and `send_database_metrics` for Datadog integrations ([#3259](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3259))
+* data-source/mongodbatlas_third_party_integrations: Adds support for `send_collection_latency_metrics` and `send_database_metrics` for Datadog integrations ([#3259](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3259))
+* resource/mongodbatlas_organization: Adds `security_contact` attribute ([#3263](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3263))
+* resource/mongodbatlas_third_party_integration: Adds support for `send_collection_latency_metrics` and `send_database_metrics` for Datadog integrations ([#3259](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3259))
+
+## 1.32.0 (April 09, 2025)
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_encryption_at_rest: Adds `enabled_for_search_nodes` attribute ([#3142](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3142))
+* data-source/mongodbatlas_resource_policies: Adds support for the new `description` field ([#3214](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3214))
+* data-source/mongodbatlas_resource_policy: Adds support for the new `description` field ([#3214](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3214))
+* data-source/mongodbatlas_search_deployment: Adds `encryption_at_rest_provider` computed attribute ([#3152](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3152))
+* resource/mongodbatlas_encryption_at_rest: Adds `enabled_for_search_nodes` attribute ([#3142](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3142))
+* resource/mongodbatlas_resource_policy: Adds support for the new `description` field ([#3214](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3214))
+* resource/mongodbatlas_search_deployment: Adds `encryption_at_rest_provider` computed attribute ([#3152](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3152))
+* resource/mongodbatlas_search_deployment: Adds `skip_wait_on_update` to avoid waiting for completion of update operations ([#3237](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3237))
+* resource/mongodbatlas_stream_processor: Adds update support ([#3180](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3180))
+
+## 1.31.0 (March 25, 2025)
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_organization: Adds support for `skip_default_alerts_settings` setting ([#2933](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2933))
+* data-source/mongodbatlas_organizations: Adds support for `skip_default_alerts_settings` setting ([#2933](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2933))
+* resource/mongodbatlas_organization: Adds support for `skip_default_alerts_settings` setting ([#2933](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/2933))
+
+## 1.30.0 (March 20, 2025)
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_stream_connection: Adds `Https` connection ([#3150](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3150))
+* data-source/mongodbatlas_stream_connections: Adds `Https` connection ([#3150](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3150))
+* resource/mongodbatlas_cloud_backup_snapshot: Adds `timeouts` attribute for create operation ([#3171](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3171))
+* resource/mongodbatlas_cloud_backup_snapshot: Adjusts creation default timeout from 20 minutes to 1 hour ([#3171](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3171))
+* resource/mongodbatlas_stream_connection: Adds `Https` connection ([#3150](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3150))
+* resource/mongodbatlas_stream_privatelink_endpoint: Adds `error_message`, `interface_endpoint_name`, and `provider_account_id` attributes ([#3161](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3161))
+* resource/mongodbatlas_stream_privatelink_endpoint: Adds support for AWS MSK clusters ([#3179](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3179))
+
+BUG FIXES:
+
+* data-source/mongodbatlas_global_cluster_config: Adds support for reading clusters with independent shard scaling ([#3177](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3177))
+* resource/mongodbatlas_advanced_cluster (preview provider 2.0.0): Avoids error when removing `read_only_specs` in `region_configs` that does not define `electable_specs` ([#3162](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3162))
+* resource/mongodbatlas_global_cluster_config: Adds support for reading clusters with independent shard scaling ([#3177](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3177))
+
 ## 1.29.0 (March 12, 2025)
 
 ENHANCEMENTS:

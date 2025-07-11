@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
 const (
@@ -110,7 +110,7 @@ func NewLabelsObjType(ctx context.Context, diags *diag.Diagnostics, input *[]adm
 			elms[key] = value
 		}
 	}
-	return conversion.ToTFMapOfString(ctx, diags, &elms)
+	return conversion.ToTFMapOfString(ctx, diags, elms)
 }
 
 func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, apiInfo *ExtraAPIInfo) types.List {
@@ -159,7 +159,7 @@ func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec
 			Id:            types.StringValue(legacyID),
 			ExternalId:    types.StringValue(conversion.SafeValue(item.Id)),
 			NumShards:     types.Int64Value(1),
-			ContainerId:   conversion.ToTFMapOfString(ctx, diags, &containerIDs),
+			ContainerId:   conversion.ToTFMapOfString(ctx, diags, containerIDs),
 			RegionConfigs: regionConfigs,
 			ZoneId:        types.StringValue(conversion.SafeValue(item.ZoneId)),
 			ZoneName:      types.StringValue(conversion.SafeValue(item.ZoneName)),
@@ -218,7 +218,7 @@ func convertReplicationSpecsLegacy(ctx context.Context, input *[]admin.Replicati
 		}
 		containerIDs := selectContainerIDs(&item, apiInfo.ContainerIDs)
 		tfModels = append(tfModels, TFReplicationSpecsModel{
-			ContainerId:   conversion.ToTFMapOfString(ctx, diags, &containerIDs),
+			ContainerId:   conversion.ToTFMapOfString(ctx, diags, containerIDs),
 			ExternalId:    types.StringValue(""), // Not meaningful with legacy schema
 			Id:            types.StringValue(legacyID),
 			RegionConfigs: regionConfigs,
@@ -237,7 +237,7 @@ func NewTagsObjType(ctx context.Context, diags *diag.Diagnostics, input *[]admin
 			elms[item.GetKey()] = item.GetValue()
 		}
 	}
-	return conversion.ToTFMapOfString(ctx, diags, &elms)
+	return conversion.ToTFMapOfString(ctx, diags, elms)
 }
 
 func NewPrivateEndpointObjType(ctx context.Context, input *[]admin.ClusterDescriptionConnectionStringsPrivateEndpoint, diags *diag.Diagnostics) types.List {

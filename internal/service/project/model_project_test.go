@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -172,7 +172,7 @@ func TestTeamsDataSourceSDKToTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel := project.NewTFTeamsDataSourceModel(context.Background(), tc.paginatedTeamRole)
+			resultModel := project.NewTFTeamsDataSourceModel(t.Context(), tc.paginatedTeamRole)
 			assert.Equal(t, tc.expectedTFModel, resultModel)
 		})
 	}
@@ -193,7 +193,7 @@ func TestLimitsDataSourceSDKToTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel := project.NewTFLimitsDataSourceModel(context.Background(), tc.dataFederationLimits)
+			resultModel := project.NewTFLimitsDataSourceModel(t.Context(), tc.dataFederationLimits)
 			assert.Equal(t, tc.expectedTFModel, resultModel)
 		})
 	}
@@ -278,7 +278,7 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := project.NewTFProjectDataSourceModel(context.Background(), tc.project, tc.projectProps)
+			resultModel, diags := project.NewTFProjectDataSourceModel(t.Context(), tc.project, tc.projectProps)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -363,7 +363,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := project.NewTFProjectResourceModel(context.Background(), tc.project, tc.projectProps)
+			resultModel, diags := project.NewTFProjectResourceModel(t.Context(), tc.project, tc.projectProps)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -373,7 +373,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 }
 
 func TestTeamRoleListTFtoSDK(t *testing.T) {
-	var rolesSet, _ = types.SetValueFrom(context.Background(), types.StringType, roles)
+	var rolesSet, _ = types.SetValueFrom(t.Context(), types.StringType, roles)
 	teamsTF := []project.TFTeamModel{
 		{
 			TeamID:    types.StringValue("teamId"),
@@ -394,7 +394,7 @@ func TestTeamRoleListTFtoSDK(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel := project.NewTeamRoleList(context.Background(), tc.teamRolesTF)
+			resultModel := project.NewTeamRoleList(t.Context(), tc.teamRolesTF)
 			assert.Equal(t, tc.expectedResult, resultModel)
 		})
 	}
@@ -499,7 +499,7 @@ func TestIPAddressesModelToTF(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := project.NewTFIPAddressesModel(context.Background(), tc.sdkModel)
+			resultModel, diags := project.NewTFIPAddressesModel(t.Context(), tc.sdkModel)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}

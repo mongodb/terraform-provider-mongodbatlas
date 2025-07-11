@@ -4,31 +4,53 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
-	adminpreview "github.com/mongodb/atlas-sdk-go/admin"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"github.com/mongodb-forks/digest"
+	adminpreview "github.com/mongodb/atlas-sdk-go/admin"
 	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
 const (
-	toolName              = "terraform-provider-mongodbatlas"
-	terraformPlatformName = "Terraform"
+	toolName                             = "terraform-provider-mongodbatlas"
+	terraformPlatformName                = "Terraform"
+	previewV2AdvancedClusterEnabledUAKey = "AdvancedClusterPreview"
+
+	timeout               = 5 * time.Second
+	keepAlive             = 30 * time.Second
+	maxIdleConns          = 10
+	maxIdleConnsPerHost   = 5
+	idleConnTimeout       = 30 * time.Second
+	expectContinueTimeout = 1 * time.Second
 )
+
+var baseTransport = &http.Transport{
+	DialContext: (&net.Dialer{
+		Timeout:   timeout,
+		KeepAlive: keepAlive,
+	}).DialContext,
+	MaxIdleConns:          maxIdleConns,
+	MaxIdleConnsPerHost:   maxIdleConnsPerHost,
+	Proxy:                 http.ProxyFromEnvironment,
+	IdleConnTimeout:       idleConnTimeout,
+	ExpectContinueTimeout: expectContinueTimeout,
+}
 
 // MongoDBClient contains the mongodbatlas clients and configurations
 type MongoDBClient struct {
@@ -43,12 +65,13 @@ type MongoDBClient struct {
 
 // Config contains the configurations needed to use SDKs
 type Config struct {
-	AssumeRole       *AssumeRole
-	PublicKey        string
-	PrivateKey       string
-	BaseURL          string
-	RealmBaseURL     string
-	TerraformVersion string
+	AssumeRole                      *AssumeRole
+	PublicKey                       string
+	PrivateKey                      string
+	BaseURL                         string
+	RealmBaseURL                    string
+	TerraformVersion                string
+	PreviewV2AdvancedClusterEnabled bool
 }
 
 type AssumeRole struct {
@@ -68,23 +91,19 @@ type SecretData struct {
 	PrivateKey string `json:"private_key"`
 }
 
-type PlatformVersion struct {
-	Name    string
-	Version string
+type UAMetadata struct {
+	Name  string
+	Value string
 }
 
-// NewClient func...
 func (c *Config) NewClient(ctx context.Context) (any, error) {
-	// setup a transport to handle digest
-	transport := digest.NewTransport(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey))
-
-	// initialize the client
-	client, err := transport.Client()
-	if err != nil {
-		return nil, err
-	}
-
-	client.Transport = logging.NewTransport("MongoDB Atlas", transport)
+	// Network Logging transport is before Digest transport so it can log the first Digest requests with 401 Unauthorized.
+	// Terraform logging transport is after Digest transport so the Unauthorized request bodies are not logged.
+	networkLoggingTransport := NewTransportWithNetworkLogging(baseTransport, logging.IsDebugOrHigher())
+	digestTransport := digest.NewTransportWithHTTPRoundTripper(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey), networkLoggingTransport)
+	// Don't change logging.NewTransport to NewSubsystemLoggingHTTPTransport until all resources are in TPF.
+	tfLoggingTransport := logging.NewTransport("Atlas", digestTransport)
+	client := &http.Client{Transport: tfLoggingTransport}
 
 	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
 	if c.BaseURL != "" {
@@ -224,8 +243,12 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 		return nil, err
 	}
 
-	clientRealm := realmAuth.NewClient(realmAuth.BasicTokenSource(token))
-	clientRealm.Transport = logging.NewTransport("MongoDB Realm", clientRealm.Transport)
+	clientRealm := &http.Client{
+		Transport: &realmAuth.Transport{
+			Source: realmAuth.BasicTokenSource(token),
+			Base:   logging.NewTransport("MongoDB Realm", baseTransport),
+		},
+	}
 
 	// Initialize the MongoDB Realm API Client.
 	realmClient, err := realm.New(clientRealm, optsRealm...)
@@ -236,15 +259,61 @@ func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, erro
 	return realmClient, nil
 }
 
+type APICallParams struct {
+	VersionHeader string
+	RelativePath  string
+	PathParams    map[string]string
+	Method        string
+}
+
+func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParams, bodyReq []byte) (*http.Response, error) {
+	localBasePath, _ := c.AtlasV2.GetConfig().ServerURLWithContext(ctx, "")
+	localVarPath := localBasePath + params.RelativePath
+
+	for key, value := range params.PathParams {
+		localVarPath = strings.ReplaceAll(localVarPath, "{"+key+"}", url.PathEscape(value))
+	}
+
+	headerParams := make(map[string]string)
+	headerParams["Content-Type"] = params.VersionHeader
+	headerParams["Accept"] = params.VersionHeader
+
+	var bodyPost any
+	if bodyReq != nil { // if nil slice is sent with application/json content type SDK method returns an error
+		bodyPost = bodyReq
+	}
+	untypedClient := c.AtlasV2.UntypedClient
+	apiReq, err := untypedClient.PrepareRequest(ctx, localVarPath, params.Method, bodyPost, headerParams, nil, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	apiResp, err := untypedClient.CallAPI(apiReq)
+	if err != nil || apiResp == nil {
+		return apiResp, err
+	}
+
+	// Returns a GenericOpenAPIError error if HTTP status code is not successful.
+	if apiResp.StatusCode >= 300 {
+		newErr := untypedClient.MakeApiError(apiResp, params.Method, localVarPath)
+		return apiResp, newErr
+	}
+
+	return apiResp, err
+}
+
 func userAgent(c *Config) string {
-	platformVersions := []PlatformVersion{
+	isPreviewV2AdvancedClusterEnabled := c.PreviewV2AdvancedClusterEnabled
+
+	metadata := []UAMetadata{
 		{toolName, version.ProviderVersion},
 		{terraformPlatformName, c.TerraformVersion},
+		{previewV2AdvancedClusterEnabledUAKey, strconv.FormatBool(isPreviewV2AdvancedClusterEnabled)},
 	}
 
 	var parts []string
-	for _, info := range platformVersions {
-		part := fmt.Sprintf("%s/%s", info.Name, info.Version)
+	for _, info := range metadata {
+		part := fmt.Sprintf("%s/%s", info.Name, info.Value)
 		parts = append(parts, part)
 	}
 

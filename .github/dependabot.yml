@@ -7,8 +7,6 @@ updates:
       day: tuesday
     commit-message:
       prefix: "chore"
-    reviewers:
-      - "mongodb/apix-integrations"
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
@@ -16,6 +14,4 @@ updates:
       day: tuesday
     commit-message:
       prefix: "chore"
-    reviewers:
-      - "mongodb/apix-integrations"
 

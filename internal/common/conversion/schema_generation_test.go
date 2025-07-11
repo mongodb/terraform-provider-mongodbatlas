@@ -1,7 +1,6 @@
 package conversion_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
@@ -11,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/stretchr/testify/assert"
 )
@@ -104,7 +104,7 @@ func TestDataSourceSchemaFromResource(t *testing.T) {
 					},
 				},
 			},
-			"timeouts": timeouts.Attributes(context.Background(), timeouts.Opts{
+			"timeouts": timeouts.Attributes(t.Context(), timeouts.Opts{
 				Create: true,
 				Update: true,
 				Delete: true,
@@ -569,7 +569,8 @@ func TestPluralDataSourceSchemaFromResource_legacyFields(t *testing.T) {
 				Description:         "desc requiredAttrString",
 			},
 			"id": dsschema.StringAttribute{
-				Computed: true,
+				Computed:           true,
+				DeprecationMessage: constant.DeprecationParam,
 			},
 			"page_num": dsschema.Int64Attribute{
 				Optional: true,

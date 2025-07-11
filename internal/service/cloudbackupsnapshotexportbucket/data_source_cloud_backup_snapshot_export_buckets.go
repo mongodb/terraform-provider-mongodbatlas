@@ -3,12 +3,14 @@ package cloudbackupsnapshotexportbucket
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -58,8 +60,9 @@ func PluralDataSource() *schema.Resource {
 							Computed: true,
 						},
 						"tenant_id": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Deprecated: constant.DeprecationParam, // added deprecation in CLOUDP-293855 because was deprecated in the doc
+							Type:       schema.TypeString,
+							Computed:   true,
 						},
 					},
 				},
@@ -76,10 +79,13 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	conn := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
-	itemsPerPage := d.Get("items_per_page").(int)
-	pageNum := d.Get("page_num").(int)
+	request := admin.ListExportBucketsApiParams{
+		GroupId:      projectID,
+		ItemsPerPage: conversion.IntPtr(d.Get("items_per_page").(int)),
+		PageNum:      conversion.IntPtr(d.Get("page_num").(int)),
+	}
 
-	buckets, _, err := conn.CloudBackupsApi.ListExportBuckets(ctx, projectID).ItemsPerPage(itemsPerPage).PageNum(pageNum).Execute()
+	buckets, _, err := conn.CloudBackupsApi.ListExportBucketsWithParams(ctx, &request).Execute()
 	if err != nil {
 		return diag.Errorf("error getting CloudProviderSnapshotExportBuckets information: %s", err)
 	}

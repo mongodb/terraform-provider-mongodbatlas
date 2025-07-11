@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -21,11 +21,14 @@ import (
 )
 
 const (
-	errorGlobalClusterCreate = "error creating MongoDB Global Cluster Configuration: %s"
-	errorGlobalClusterRead   = "error reading MongoDB Global Cluster Configuration (%s): %s"
-	errorGlobalClusterDelete = "error deleting MongoDB Global Cluster Configuration (%s): %s"
-	errorGlobalClusterUpdate = "error updating MongoDB Global Cluster Configuration (%s): %s"
+	errorGlobalClusterCreate           = "error creating MongoDB Global Cluster Configuration: %s"
+	errorGlobalClusterRead             = "error reading MongoDB Global Cluster Configuration (%s): %s"
+	errorGlobalClusterDelete           = "error deleting MongoDB Global Cluster Configuration (%s): %s"
+	errorGlobalClusterUpdate           = "error updating MongoDB Global Cluster Configuration (%s): %s"
+	deprecationOldShardingSchemaAction = "To learn more, see our examples, documentation, and 1.18.0 migration guide at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide"
 )
+
+var deprecationMsgOldSchema = fmt.Sprintf("%s %s", fmt.Sprintf(constant.DeprecationParamWithReplacement, "`custom_zone_mapping_zone_id`"), deprecationOldShardingSchemaAction)
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
@@ -97,7 +100,7 @@ func Resource() *schema.Resource {
 				},
 			},
 			"custom_zone_mapping": {
-				Deprecated: fmt.Sprintf(constant.DeprecationParamByVersionWithReplacement, "1.23.0", "custom_zone_mapping_zone_id"),
+				Deprecated: deprecationMsgOldSchema,
 				Type:       schema.TypeMap,
 				Computed:   true,
 			},
@@ -175,40 +178,55 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
+	notFound, err := readGlobalClusterConfig(ctx, meta, projectID, clusterName, d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	if notFound {
+		d.SetId("")
+	}
+	return nil
+}
+
+func readGlobalClusterConfig(ctx context.Context, meta any, projectID, clusterName string, d *schema.ResourceData) (notFound bool, err error) {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	resp, httpResp, err := connV2.GlobalClustersApi.GetManagedNamespace(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if validate.StatusNotFound(httpResp) {
-			d.SetId("")
-			return nil
+			return true, nil
 		}
-		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
+		return false, fmt.Errorf(errorGlobalClusterRead, clusterName, err)
 	}
+	if err := d.Set("managed_namespaces", flattenManagedNamespaces(resp.GetManagedNamespaces())); err != nil {
+		return false, fmt.Errorf(errorGlobalClusterRead, clusterName, err)
+	}
+	if err := d.Set("custom_zone_mapping_zone_id", resp.GetCustomZoneMapping()); err != nil {
+		return false, fmt.Errorf(errorGlobalClusterRead, clusterName, err)
+	}
+
 	oldResp, httpResp, err := connV220240530.GlobalClustersApi.GetManagedNamespace(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if validate.StatusNotFound(httpResp) {
-			d.SetId("")
-			return nil
+			return true, nil
 		}
-		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
-	}
-
-	if err := d.Set("managed_namespaces", flattenManagedNamespaces(resp.GetManagedNamespaces())); err != nil {
-		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
-	}
-	if err := d.Set("custom_zone_mapping_zone_id", resp.GetCustomZoneMapping()); err != nil {
-		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
+		if validate.ErrorClusterIsAsymmetrics(err) {
+			// Avoid non-empty plan by setting an empty custom_zone_mapping.
+			if err := d.Set("custom_zone_mapping", map[string]string{}); err != nil {
+				return false, fmt.Errorf(errorGlobalClusterRead, clusterName, err)
+			}
+			return false, nil
+		}
+		return false, fmt.Errorf(errorGlobalClusterRead, clusterName, err)
 	}
 	if err := d.Set("custom_zone_mapping", oldResp.GetCustomZoneMapping()); err != nil {
-		return diag.FromErr(fmt.Errorf(errorGlobalClusterRead, clusterName, err))
+		return false, fmt.Errorf(errorGlobalClusterRead, clusterName, err)
 	}
-
-	return nil
+	return false, nil
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {

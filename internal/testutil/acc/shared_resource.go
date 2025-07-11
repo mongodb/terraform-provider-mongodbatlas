@@ -2,10 +2,12 @@ package acc
 
 import (
 	"fmt"
+	"os"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,6 +19,7 @@ const (
 // It returns the cleanup function that must be called at the end of TestMain.
 func SetupSharedResources() func() {
 	sharedInfo.init = true
+	setupTestsSDKv2ToTPF()
 	return cleanupSharedResources
 }
 
@@ -71,12 +74,12 @@ func ProjectIDExecution(tb testing.TB) string {
 // When `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_CLUSTER_NAME` are defined, they are used instead of creating a project and clusterName.
 func ProjectIDExecutionWithCluster(tb testing.TB, totalNodeCount int) (projectID, clusterName string) {
 	tb.Helper()
-	SkipInUnitTest(tb)
-	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
-
 	if ExistingClusterUsed() {
 		return existingProjectIDClusterName()
 	}
+	// Only skip after ExistingClusterUsed() to allow MacT (Mocked-Acceptance Tests) to return early instead of being skipped.
+	SkipInUnitTest(tb)
+	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
 	return NextProjectIDClusterName(totalNodeCount, func(projectName string) string {
 		return createProject(tb, projectName)
 	})
@@ -165,4 +168,12 @@ func NextProjectIDClusterName(totalNodeCount int, projectCreator func(string) st
 		sharedInfo.projects[len(sharedInfo.projects)-1].nodeCount += totalNodeCount
 	}
 	return project.id, RandomClusterName()
+}
+
+// setupTestsSDKv2ToTPF sets the Preview environment variable to false so the previous version in migration tests uses SDKv2.
+// However the current version will use TPF as the variable is only read once during import when it was true.
+func setupTestsSDKv2ToTPF() {
+	if IsTestSDKv2ToTPF() && config.PreviewProviderV2AdvancedCluster() {
+		os.Setenv(config.PreviewProviderV2AdvancedClusterEnvVar, "false")
+	}
 }

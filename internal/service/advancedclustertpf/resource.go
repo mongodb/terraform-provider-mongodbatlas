@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -14,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/update"
@@ -31,7 +31,7 @@ const (
 	resourceName                  = "advanced_cluster"
 	errorSchemaDowngrade          = "error operation not permitted, nums_shards from 1 -> > 1"
 	errorPatchPayload             = "error creating patch payload"
-	errorDetailDefault            = "cluster name %s. API error detail %s"
+	errorDetailDefault            = "cluster name: %s, API error details: %s"
 	errorSchemaUpgradeReadIDs     = "error reading IDs from API when upgrading schema"
 	errorReadResource             = "error reading advanced cluster"
 	errorAdvancedConfRead         = "error reading Advanced Configuration"
@@ -44,7 +44,7 @@ const (
 	errorRegionPriorities         = "priority values in region_configs must be in descending order"
 	errorAdvancedConfUpdateLegacy = "error updating Advanced Configuration from legacy API"
 
-	DeprecationOldSchemaAction                   = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide.html.markdown"
+	DeprecationOldSchemaAction                   = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide"
 	ErrorCodeClusterNotFound                     = "CLUSTER_NOT_FOUND"
 	operationUpdate                              = "update"
 	operationCreate                              = "create"
@@ -132,11 +132,25 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	if IsFlex(latestReq.ReplicationSpecs) {
+	waitParams := resolveClusterWaitParams(ctx, &plan, diags, operationCreate)
+	if diags.HasError() {
+		return
+	}
+	isFlex := IsFlex(latestReq.ReplicationSpecs)
+	projectID, clusterName := waitParams.ProjectID, waitParams.ClusterName
+	clusterDetailStr := fmt.Sprintf("Cluster name %s (project_id=%s).", clusterName, projectID)
+	if plan.DeleteOnCreateTimeout.ValueBool() {
+		var deferCall func()
+		ctx, deferCall = cleanup.OnTimeout(
+			ctx, waitParams.Timeout, diags.AddWarning, clusterDetailStr, DeleteClusterNoWait(r.Client, projectID, clusterName, isFlex),
+		)
+		defer deferCall()
+	}
+	if isFlex {
 		flexClusterReq := NewFlexCreateReq(latestReq.GetName(), latestReq.GetTerminationProtectionEnabled(), latestReq.Tags, latestReq.ReplicationSpecs)
 		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, plan.ProjectID.ValueString(), latestReq.GetName(), flexClusterReq, r.Client.AtlasV2.FlexClustersApi)
 		if err != nil {
-			diags.AddError(flexcluster.ErrorCreateFlex, err.Error())
+			diags.AddError(fmt.Sprintf(flexcluster.ErrorCreateFlex, clusterDetailStr), err.Error())
 			return
 		}
 		newFlexClusterModel := NewTFModelFlexResource(ctx, diags, flexClusterResp, GetPriorityOfFlexReplicationSpecs(latestReq.ReplicationSpecs), &plan)
@@ -146,11 +160,6 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		diags.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 		return
 	}
-
-	waitParams := resolveClusterWaitParams(ctx, &plan, diags, operationCreate)
-	if diags.HasError() {
-		return
-	}
 	clusterResp := CreateCluster(ctx, diags, r.Client, latestReq, waitParams, usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags))
 	emptyAdvancedConfiguration := types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
 	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
@@ -158,7 +167,12 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	legacyAdvConfig, advConfig, _ := UpdateAdvancedConfiguration(ctx, diags, r.Client, patchReqProcessArgsLegacy, patchReqProcessArgs, waitParams)
+	p := &ProcessArgs{
+		ArgsLegacy:            patchReqProcessArgsLegacy,
+		ArgsDefault:           patchReqProcessArgs,
+		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
+	}
+	legacyAdvConfig, advConfig, _ := UpdateAdvancedConfiguration(ctx, diags, r.Client, p, waitParams)
 	if diags.HasError() {
 		return
 	}
@@ -174,11 +188,15 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 	legacyAdvConfig, advConfig = ReadIfUnsetAdvancedConfiguration(ctx, diags, r.Client, waitParams.ProjectID, waitParams.ClusterName, legacyAdvConfig, advConfig)
-	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, legacyAdvConfig, advConfig)
+
+	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
+		ArgsLegacy:            legacyAdvConfig,
+		ArgsDefault:           advConfig,
+		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
+	})
 	if diags.HasError() {
 		return
 	}
-	AddAdvancedConfig(ctx, modelOut, advConfig, legacyAdvConfig, diags)
 	diags.Append(resp.State.Set(ctx, modelOut)...)
 }
 
@@ -211,7 +229,11 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	if diags.HasError() {
 		return
 	}
-	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, nil, nil)
+	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
+		ArgsLegacy:            nil,
+		ArgsDefault:           nil,
+		ClusterAdvancedConfig: cluster.AdvancedConfiguration,
+	})
 	if diags.HasError() {
 		return
 	}
@@ -264,27 +286,43 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			return
 		}
 	}
+	// clusterResp can be nil if there are no changes to the cluster, for example when `delete_on_create_timeout` is changed or only advanced configuration is changed
+	if clusterResp == nil {
+		var flexResp *admin.FlexClusterDescription20241113
+		clusterResp, flexResp = GetClusterDetails(ctx, diags, waitParams.ProjectID, waitParams.ClusterName, r.Client, false)
+		// This should never happen since the switch case should handle the two flex cases (update/upgrade) and return, but keeping it here for safety.
+		if flexResp != nil {
+			flexPriority := GetPriorityOfFlexReplicationSpecs(normalizeFromTFModel(ctx, &plan, diags, false).ReplicationSpecs)
+			if flexOut := NewTFModelFlexResource(ctx, diags, flexResp, flexPriority, &plan); flexOut != nil {
+				diags.Append(resp.State.Set(ctx, flexOut)...)
+			}
+			return
+		}
+	}
+	modelOut, _ := getBasicClusterModelResource(ctx, diags, r.Client, clusterResp, &plan)
+	if diags.HasError() {
+		return
+	}
 	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
 	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
 	if diags.HasError() {
 		return
 	}
-	legacyAdvConfig, advConfig, advConfigChanged := UpdateAdvancedConfiguration(ctx, diags, r.Client, patchReqProcessArgsLegacy, patchReqProcessArgs, waitParams)
+	p := &ProcessArgs{
+		ArgsLegacy:            patchReqProcessArgsLegacy,
+		ArgsDefault:           patchReqProcessArgs,
+		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
+	}
+	legacyAdvConfig, advConfig, advConfigChanged := UpdateAdvancedConfiguration(ctx, diags, r.Client, p, waitParams)
 	if diags.HasError() {
 		return
 	}
-	var modelOut *TFModel
-	if clusterResp == nil { // no Atlas updates needed but override is still needed (e.g. tags going from nil to [] or vice versa)
-		modelOut = &state
-		overrideAttributesWithPrevStateValue(&plan, modelOut)
-	} else {
-		modelOut, _ = getBasicClusterModelResource(ctx, diags, r.Client, clusterResp, &plan)
-		if diags.HasError() {
-			return
-		}
-	}
 	if advConfigChanged {
-		updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, legacyAdvConfig, advConfig)
+		updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
+			ArgsLegacy:            legacyAdvConfig,
+			ArgsDefault:           advConfig,
+			ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
+		})
 		if diags.HasError() {
 			return
 		}
@@ -337,7 +375,7 @@ func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics,
 		return AwaitChanges(ctx, r.Client, waitParams, operationFCVPinning, diags)
 	}
 	// pinned_fcv has been removed from the config so unpin method is called
-	if _, _, err := api.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
+	if _, err := api.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
 		addErrorDiag(diags, operationFCVUnpinning, defaultAPIErrorDetails(clusterName, err))
 		return nil
 	}
@@ -439,14 +477,18 @@ func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *
 	return modelOut, extraInfo
 }
 
-func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModel, legacyAdvConfig *admin20240530.ClusterDescriptionProcessArgs, advConfig *admin.ClusterDescriptionProcessArgs20240805) {
+func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModel,
+	p *ProcessArgs) {
 	projectID := model.ProjectID.ValueString()
 	clusterName := model.Name.ValueString()
-	legacyAdvConfig, advConfig = ReadIfUnsetAdvancedConfiguration(ctx, diags, client, projectID, clusterName, legacyAdvConfig, advConfig)
+	legacyAdvConfig, advConfig := ReadIfUnsetAdvancedConfiguration(ctx, diags, client, projectID, clusterName, p.ArgsLegacy, p.ArgsDefault)
 	if diags.HasError() {
 		return
 	}
-	AddAdvancedConfig(ctx, model, advConfig, legacyAdvConfig, diags)
+	p.ArgsDefault = advConfig
+	p.ArgsLegacy = legacyAdvConfig
+
+	AddAdvancedConfig(ctx, model, p, diags)
 }
 
 func resolveClusterWaitParams(ctx context.Context, model *TFModel, diags *diag.Diagnostics, operation string) *ClusterWaitParams {
@@ -575,11 +617,12 @@ func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *conf
 	if diags.HasError() {
 		return nil
 	}
-	flexCluster, err := flexcluster.UpdateFlexCluster(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(),
+	clusterName := plan.Name.ValueString()
+	flexCluster, err := flexcluster.UpdateFlexCluster(ctx, plan.ProjectID.ValueString(), clusterName,
 		GetFlexClusterUpdateRequest(configReq.Tags, configReq.TerminationProtectionEnabled),
 		client.AtlasV2.FlexClustersApi)
 	if err != nil {
-		diags.AddError(flexcluster.ErrorUpdateFlex, err.Error())
+		diags.AddError(fmt.Sprintf(flexcluster.ErrorUpdateFlex, clusterName), err.Error())
 		return nil
 	}
 	return NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(configReq.ReplicationSpecs), plan)

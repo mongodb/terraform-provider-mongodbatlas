@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 )
 
 const defaultZoneName = "ZoneName managed by Terraform"
@@ -23,6 +25,7 @@ func NewAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		majorVersionFormatted := FormatMongoDBMajorVersion(*majorVersion)
 		majorVersion = &majorVersionFormatted
 	}
+
 	return &admin.ClusterDescription20240805{
 		AcceptDataRisksAndForceReplicaSetReconfig: acceptDataRisksAndForceReplicaSetReconfig,
 		BackupEnabled:                    conversion.NilForUnknown(input.BackupEnabled, input.BackupEnabled.ValueBoolPointer()),
@@ -43,8 +46,28 @@ func NewAtlasReq(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *
 		Tags:                             newResourceTag(ctx, diags, input.Tags),
 		TerminationProtectionEnabled:     conversion.NilForUnknown(input.TerminationProtectionEnabled, input.TerminationProtectionEnabled.ValueBoolPointer()),
 		VersionReleaseSystem:             conversion.NilForUnknown(input.VersionReleaseSystem, input.VersionReleaseSystem.ValueStringPointer()),
+		AdvancedConfiguration:            newClusterAdvancedConfiguration(ctx, &input.AdvancedConfiguration, diags),
 	}
 }
+
+func newClusterAdvancedConfiguration(ctx context.Context, objInput *types.Object, diags *diag.Diagnostics) *admin.ApiAtlasClusterAdvancedConfiguration {
+	if objInput == nil || objInput.IsUnknown() || objInput.IsNull() {
+		return nil
+	}
+
+	inputAdvConfig := &TFAdvancedConfigurationModel{}
+	if localDiags := objInput.As(ctx, inputAdvConfig, basetypes.ObjectAsOptions{}); len(localDiags) > 0 {
+		diags.Append(localDiags...)
+		return nil
+	}
+
+	return &admin.ApiAtlasClusterAdvancedConfiguration{
+		MinimumEnabledTlsProtocol:      conversion.NilForUnknown(inputAdvConfig.MinimumEnabledTlsProtocol, inputAdvConfig.MinimumEnabledTlsProtocol.ValueStringPointer()),
+		TlsCipherConfigMode:            conversion.NilForUnknown(inputAdvConfig.TlsCipherConfigMode, inputAdvConfig.TlsCipherConfigMode.ValueStringPointer()),
+		CustomOpensslCipherConfigTls12: conversion.Pointer(conversion.TypesSetToString(ctx, inputAdvConfig.CustomOpensslCipherConfigTls12)),
+	}
+}
+
 func newBiConnector(ctx context.Context, input types.Object, diags *diag.Diagnostics) *admin.BiConnector {
 	var resp *admin.BiConnector
 	if input.IsUnknown() || input.IsNull() {

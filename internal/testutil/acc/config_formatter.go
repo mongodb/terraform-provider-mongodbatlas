@@ -6,12 +6,33 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"testing"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/zclconf/go-cty/cty"
+
+	localHcl "github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
 )
+
+// ConfigAddResourceStr is useful when you need to add one or more attributes to a resource block.
+func ConfigAddResourceStr(t *testing.T, hclConfig, resourceID, extraResourceStr string) string {
+	t.Helper()
+	resourceParts := strings.Split(resourceID, ".")
+	if len(resourceParts) != 2 {
+		t.Fatalf("resourceID must be in the format <type>.<name>, got %s", resourceID)
+	}
+	resourceType := resourceParts[0]
+	resourceName := resourceParts[1]
+	resourceBlockDef := fmt.Sprintf("resource %q %q {", resourceType, resourceName)
+	if !strings.Contains(hclConfig, resourceBlockDef) {
+		t.Fatalf("resource block %q not found in config: %s", resourceBlockDef, hclConfig)
+	}
+	resourceBlockDefWithExtraResourceStr := fmt.Sprintf("%s\n%s\n", resourceBlockDef, extraResourceStr)
+	hclConfigModified := strings.Replace(hclConfig, resourceBlockDef, resourceBlockDefWithExtraResourceStr, 1)
+	return localHcl.PrettyHCL(t, hclConfigModified)
+}
 
 func FormatToHCLMap(m map[string]string, indent, varName string) string {
 	if m == nil {
@@ -114,7 +135,7 @@ func addPrimitiveAttributes(b *hclwrite.Body, values map[string]any) {
 func setAttributeHcl(body *hclwrite.Body, tfExpression string) error {
 	src := []byte(tfExpression)
 
-	f, diags := hclwrite.ParseConfig(src, "", hcl.Pos{Line: 1, Column: 1})
+	f, diags := hclwrite.ParseConfig(src, "", hcl.InitialPos)
 	if diags.HasErrors() {
 		return fmt.Errorf("extract attribute error %s\nparsing %s", diags, tfExpression)
 	}

@@ -37,6 +37,9 @@ on:
       mongodb_atlas_base_url:
         type: string
         required: true
+      mongodb_realm_base_url:
+        type: string
+        required: true
       mongodb_atlas_project_owner_id:
         type: string
         required: true
@@ -94,13 +97,7 @@ on:
       mongodb_atlas_project_ear_pe_id:
         type: string
         required: true
-      mongodb_atlas_enable_preview:
-        type: string
-        required: true
       azure_private_endpoint_region:
-        type: string
-        required: true
-      mongodb_atlas_flex_project_id:
         type: string
         required: true
       confluent_cloud_network_id:
@@ -205,6 +202,7 @@ env:
   # If the name (regex) of the test is set, only that test is run
   ACCTEST_REGEX_RUN: ${{ inputs.test_name || inputs.provider_version == '' && '^Test(Acc|Mig)' || '^TestMig' }}
   MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
+  MONGODB_REALM_BASE_URL: ${{ inputs.mongodb_realm_base_url }}
   MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
   MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
   MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
@@ -243,6 +241,7 @@ jobs:
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
       advanced_cluster_tpf: ${{ steps.filter.outputs.advanced_cluster_tpf == 'true' || env.mustTrigger == 'true' }}
       assume_role: ${{ steps.filter.outputs.assume_role == 'true' || env.mustTrigger == 'true' }}
+      autogen: ${{ steps.filter.outputs.autogen == 'true' || env.mustTrigger == 'true' }}
       backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
       control_plane_ip_addresses: ${{ steps.filter.outputs.control_plane_ip_addresses == 'true' || env.mustTrigger == 'true' }}
       cluster: ${{ steps.filter.outputs.cluster == 'true' || env.mustTrigger == 'true' }}
@@ -279,6 +278,18 @@ jobs:
             - 'internal/service/advancedcluster/*_test.go'
           assume_role:
             - 'internal/provider/*.go'
+          autogen:
+            - 'internal/common/autogen/*.go'
+            - 'internal/serviceapi/auditingapi/*.go'
+            - 'internal/serviceapi/clusterapi/*.go'
+            - 'internal/serviceapi/customdbroleapi/*.go'
+            - 'internal/serviceapi/databaseuserapi/*.go'
+            - 'internal/serviceapi/maintenancewindowapi/*.go'
+            - 'internal/serviceapi/projectapi/*.go'
+            - 'internal/serviceapi/pushbasedlogexportapi/*.go'
+            - 'internal/serviceapi/resourcepolicyapi/*.go'            
+            - 'internal/serviceapi/searchdeploymentapi/*.go'
+            - 'internal/serviceapi/streaminstanceapi/*.go'
           backup:
             - 'internal/service/cloudbackupschedule/*.go'
             - 'internal/service/cloudbackupsnapshot/*.go'
@@ -293,8 +304,10 @@ jobs:
           cluster_outage_simulation:
             - 'internal/service/clusteroutagesimulation/*.go'  
           config:
+            - 'internal/config/*.go'
             - 'internal/service/alertconfiguration/*.go'
             - 'internal/service/apikey/*.go'
+            - 'internal/service/apikeyprojectassignment/*.go'
             - 'internal/service/atlasuser/*.go'
             - 'internal/service/cloudprovideraccess/*.go'
             - 'internal/service/customdbrole/*.go'
@@ -357,6 +370,7 @@ jobs:
             - 'internal/service/privatelinkendpointserviceserverless/*.go'
             - 'internal/service/serverlessinstance/*.go'
           stream:
+            - 'internal/service/streamaccountdetails/*.go'
             - 'internal/service/streamconnection/*.go'
             - 'internal/service/streaminstance/*.go'
             - 'internal/service/streamprocessor/*.go'
@@ -371,7 +385,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -396,20 +410,13 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false  
-      - name: Unit tests
-        run: go test -v ./internal/testutil/acc/advanced_cluster_preview_provider_v2_test.go
-      - name: Mocked Acceptance Tests
-        env:
-          ACCTEST_REGEX_RUN: '^TestAccMockable'
-          ACCTEST_PACKAGES: ./internal/service/advancedcluster
-        run: make testmact
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
@@ -420,6 +427,32 @@ jobs:
             ./internal/service/advancedclustertpf
         run: make testacc
  
+  advanced_cluster_tpf_mig_from_sdkv2:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ inputs.reduced_tests == false && (needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf') }}
+    env:
+      MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: 'true'
+      MONGODB_ATLAS_TEST_SDKV2_TO_TPF: 'true'
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false  
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          ACCTEST_REGEX_RUN: '^TestMig'
+          ACCTEST_PACKAGES: ./internal/service/advancedcluster
+        run: make testacc
+
   assume_role:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.assume_role == 'true' || inputs.test_group == 'assume_role' }}
@@ -429,7 +462,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -460,6 +493,43 @@ jobs:
           ACCTEST_PACKAGES: ./internal/provider
         run: make testacc
 
+  autogen:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ needs.change-detection.outputs.autogen == 'true' || inputs.test_group == 'autogen' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false
+      - name: Enable autogen
+        run: make tools enable-autogen
+      - name: Acceptance Tests
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION_LOWERCASE }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          ACCTEST_PACKAGES: |
+            ./internal/serviceapi/auditingapi
+            ./internal/serviceapi/clusterapi
+            ./internal/serviceapi/customdbroleapi
+            ./internal/serviceapi/databaseuserapi
+            ./internal/serviceapi/maintenancewindowapi
+            ./internal/serviceapi/projectapi
+            ./internal/serviceapi/pushbasedlogexportapi
+            ./internal/serviceapi/resourcepolicyapi
+            ./internal/serviceapi/searchdeploymentapi
+            ./internal/serviceapi/streaminstanceapi
+        run: make testacc
+        
   backup:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.backup == 'true' || inputs.test_group == 'backup' }}
@@ -469,7 +539,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -507,7 +577,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -529,7 +599,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -551,7 +621,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -573,7 +643,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -594,6 +664,7 @@ jobs:
           AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_federation }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
+            ./internal/config
             ./internal/service/alertconfiguration
             ./internal/service/atlasuser
             ./internal/service/cloudprovideraccess
@@ -604,6 +675,7 @@ jobs:
             ./internal/service/organization
             ./internal/service/orginvitation
             ./internal/service/projectapikey
+            ./internal/service/apikeyprojectassignment
             ./internal/service/apikey
             ./internal/service/rolesorgid
             ./internal/service/team
@@ -621,7 +693,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -639,13 +711,12 @@ jobs:
           AZURE_CLIENT_ID: ${{ secrets.azure_client_id }}
           AZURE_RESOURCE_GROUP_NAME: ${{ secrets.azure_resource_group_name }}
           AZURE_SUBSCRIPTION_ID: ${{ secrets.azure_subscription_id }}
-          AZURE_TENANT_ID: ${{ vars.azure_tenant_id }}
+          AZURE_TENANT_ID: ${{ inputs.azure_tenant_id }}
           AZURE_APP_SECRET: ${{ secrets.azure_app_secret }}
           AZURE_KEY_VAULT_NAME: ${{ secrets.azure_key_vault_name }}
           AZURE_KEY_IDENTIFIER: ${{ secrets.azure_key_identifier }}
           AZURE_KEY_VAULT_NAME_UPDATED: ${{ secrets.azure_key_vault_name_updated }}
           AZURE_KEY_IDENTIFIER_UPDATED: ${{ secrets.azure_key_identifier_updated }}
-          MONGODB_ATLAS_ENABLE_PREVIEW: ${{ inputs.mongodb_atlas_enable_preview }}
           AWS_REGION: ${{ vars.AWS_REGION_LOWERCASE }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
@@ -665,7 +736,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -687,7 +758,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -704,7 +775,7 @@ jobs:
           MONGODB_ATLAS_FEDERATED_ORG_ID: ${{ inputs.mongodb_atlas_federated_org_id }}
           MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN: ${{ inputs.mongodb_atlas_federated_settings_associated_domain }}
           AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_federation }}
-          AWS_REGION: ${{ vars.aws_region_federation }}
+          AWS_REGION: ${{ inputs.aws_region_federation }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
@@ -725,7 +796,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -735,7 +806,6 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          MONGODB_ATLAS_FLEX_PROJECT_ID: ${{ inputs.mongodb_atlas_flex_project_id }}
           ACCTEST_PACKAGES: ./internal/service/flexcluster
         run: make testacc
 
@@ -748,7 +818,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -775,7 +845,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -797,7 +867,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -826,7 +896,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -848,7 +918,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -893,7 +963,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -931,7 +1001,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -956,7 +1026,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -969,7 +1039,6 @@ jobs:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_rp_public_key }}
           MONGODB_ATLAS_PRIVATE_KEY:  ${{ secrets.mongodb_atlas_rp_private_key }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          MONGODB_ATLAS_ENABLE_PREVIEW: "true"
           ACCTEST_PACKAGES: |
             ./internal/service/resourcepolicy
         run: make testacc
@@ -983,7 +1052,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -1005,7 +1074,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -1027,7 +1096,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
           go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -1053,7 +1122,7 @@ jobs:
         - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
           with:
             ref: ${{ inputs.ref || github.ref }}
-        - uses: actions/setup-go@f111f3307d8850f501ac008e886eec1fd1932a34
+        - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
           with:
             go-version-file: 'go.mod'
         - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -1074,6 +1143,7 @@ jobs:
             MONGODB_ATLAS_ASP_PROJECT_AWS_ROLE_ARN: ${{ inputs.mongodb_atlas_asp_project_aws_role_arn }}
             MONGODB_ATLAS_ASP_PROJECT_EAR_PE_ID: ${{ inputs.mongodb_atlas_asp_project_ear_pe_id }}
             ACCTEST_PACKAGES: |
+              ./internal/service/streamaccountdetails
               ./internal/service/streamconnection
               ./internal/service/streaminstance
               ./internal/service/streamprocessor

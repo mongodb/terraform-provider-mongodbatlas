@@ -1,14 +1,13 @@
 package conversion_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
 func TestNewResourceTags(t *testing.T) {
@@ -26,7 +25,7 @@ func TestNewResourceTags(t *testing.T) {
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tc.expected, conversion.NewResourceTags(context.Background(), tc.plan))
+			assert.Equal(t, tc.expected, conversion.NewResourceTags(t.Context(), tc.plan))
 		})
 	}
 }

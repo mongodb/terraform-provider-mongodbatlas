@@ -87,7 +87,7 @@ func ReadAPISpecPaths() map[string][]APISpecPath {
 	return apiSpecPaths
 }
 
-func fileExist(fullPath string) bool {
+func FileExist(fullPath string) bool {
 	_, err := os.Stat(fullPath)
 	if err == nil {
 		return true
@@ -95,7 +95,7 @@ func fileExist(fullPath string) bool {
 	return !os.IsNotExist(err)
 }
 
-func fullPath(relPath string) string {
+func RepoPath(relPath string) string {
 	workDir, err := os.Getwd()
 	if err != nil {
 		panic(fmt.Sprintf("error getting working directory: %s", err))
@@ -106,7 +106,7 @@ func fullPath(relPath string) string {
 		parentCandidate := workdDirParts[:len(workdDirParts)-i]
 		parentCandidate = append(parentCandidate, ".git")
 		gitDir := path.Join(parentCandidate...)
-		if fileExist(gitDir) {
+		if FileExist(gitDir) {
 			repoPath, _ := strings.CutSuffix(gitDir, ".git")
 			return path.Join(repoPath, relPath)
 		}
@@ -119,9 +119,9 @@ func init() {
 }
 
 func InitializeAPISpecPaths() {
-	specPath := fullPath(specFileRelPath)
+	specPath := RepoPath(specFileRelPath)
 	var err error
-	if !fileExist(specPath) {
+	if !FileExist(specPath) {
 		err = DownloadOpenAPISpec(atlasAdminAPISpecURL, specPath)
 		if err != nil {
 			panic(fmt.Sprintf("error downloading OpenAPI spec: %s", err))

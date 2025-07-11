@@ -7,9 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
 const (
@@ -40,9 +41,10 @@ func Resource() *schema.Resource {
 				Computed: true,
 			},
 			"audit_filter": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				DiffSuppressFunc: diffSuppressJSON,
 			},
 			"enabled": {
 				Type:     schema.TypeBool,
@@ -149,4 +151,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	d.SetId("")
 	return nil
+}
+
+func diffSuppressJSON(k, old, newStr string, d *schema.ResourceData) bool {
+	return schemafunc.EqualJSON(old, newStr, "audit_filter")
 }

@@ -2,8 +2,9 @@ package advancedclustertpf
 
 import (
 	"context"
+	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -142,7 +143,7 @@ func NewTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *a
 
 func FlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.FlexClusterDescription20241113 {
 	if _, _, err := client.AtlasV2.ClustersApi.UpgradeSharedCluster(ctx, waitParams.ProjectID, req).Execute(); err != nil {
-		diags.AddError(flexcluster.ErrorUpgradeFlex, err.Error())
+		diags.AddError(fmt.Sprintf(flexcluster.ErrorUpgradeFlex, req.Name), err.Error())
 		return nil
 	}
 
@@ -153,7 +154,7 @@ func FlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.Mo
 
 	flexClusterResp, err := flexcluster.WaitStateTransition(ctx, flexClusterParams, client.AtlasV2.FlexClustersApi, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState}, true, &waitParams.Timeout)
 	if err != nil {
-		diags.AddError(flexcluster.ErrorUpgradeFlex, err.Error())
+		diags.AddError(fmt.Sprintf(flexcluster.ErrorUpgradeFlex, req.Name), err.Error())
 		return nil
 	}
 	return flexClusterResp

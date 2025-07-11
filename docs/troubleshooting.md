@@ -77,4 +77,4 @@ variable "region_configs_list" {
 ```
 
 ### Cause:
-Due to recent updates in the Atlas API [Alert Configuration](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Alert-Configurations/operation/getAlertConfiguration), a computed value for `integration_id` might be returned. This affects MongoDB Atlas Provider versions **1.16.0 to 1.19.0**. Please review the Breaking Changes section in our [1.20.0 upgrade guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.20.0-upgrade-guide) to learn more.
+Due to recent updates in the Atlas API [Alert Configuration](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getalertconfiguration), a computed value for `integration_id` might be returned. This affects MongoDB Atlas Provider versions **1.16.0 to 1.19.0**. Please review the Breaking Changes section in our [1.20.0 upgrade guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.20.0-upgrade-guide) to learn more.

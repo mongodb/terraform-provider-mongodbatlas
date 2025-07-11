@@ -47,7 +47,7 @@ resource "mongodbatlas_stream_connection" "example-kafka" {
     "auto.offset.reset" : "earliest"
   }
   security = {
-    protocol = "PLAINTEXT"
+    protocol = "SASL_PLAINTEXT"
   }
 }
 
@@ -143,9 +143,9 @@ Read-Only:
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
 
 **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
-- `state` (String) The state of the stream processor. Commonly occurring states are 'CREATED', 'STARTED', 'STOPPED' and 'FAILED'. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`. When a Stream Processor is created without specifying the state, it will default to `CREATED` state.
+- `state` (String) The state of the stream processor. Commonly occurring states are 'CREATED', 'STARTED', 'STOPPED' and 'FAILED'. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`. When a Stream Processor is created without specifying the state, it will default to `CREATED` state. When a Stream Processor is updated without specifying the state, it will default to the Previous state. 
 
-**NOTE** When creating a stream processor, setting the state to STARTED can automatically start the stream processor.
+**NOTE** When a Stream Processor is updated without specifying the state, it is stopped and then restored to previous state upon update completion.
 - `stats` (String) The stats associated with the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/manage-stream-processor/#view-statistics-of-a-stream-processor) for more information.
 
 <a id="nestedatt--results--options"></a>
@@ -164,4 +164,4 @@ Read-Only:
 - `connection_name` (String) Name of the connection to write DLQ messages to. Must be an Atlas connection.
 - `db` (String) Name of the database to use for the DLQ.
 
-For more information see: [MongoDB Atlas API - Stream Processor](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createStreamProcessor) Documentation.
+For more information see: [MongoDB Atlas API - Stream Processor](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createstreamprocessor) Documentation.

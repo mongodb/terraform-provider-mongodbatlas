@@ -17,7 +17,7 @@
 - Fork the repository.
 - Clone your forked repository locally.
 - We use Go Modules to manage dependencies, so you can develop outside your `$GOPATH`.
-- We use [golangci-lint](https://github.com/golangci/golangci-lint) to lint our code, you can install it locally via `make setup`.
+- We use [golangci-lint](https://github.com/golangci/golangci-lint) to lint our code, you can install it locally via `make tools`.
 ### Building
 - Enter the provider directory
 - Run `make tools` to install the needed tools for the provider
@@ -50,6 +50,7 @@ For more explained information about plugin override check [Development Override
 - Make sure that the PR title follows [*Conventional Commits*](https://www.conventionalcommits.org/).
 - Add comments around your new code that explain what's happening.
 - Commit and push your changes to your branch then submit a pull request against the `master` branch.
+  - We recommend squashing commits into one. This enables us to correctly cherry-pick your changes for merge, see [Merging a Pull Request](#merging-a-pull-request) below for details.
 - A repo maintainer will review your pull request. **Note**: If you have an active [MongoDB Atlas Support](https://www.mongodb.com/services/support/atlas-support-plans) contract, we recommend also creating a support ticket for any questions related to this process.
 
 ### Merging a Pull Request
@@ -129,10 +130,10 @@ You must also configure the following environment variables before running the t
 ##### MongoDB Atlas env variables
 - Required env variables:
   ```bash
-  export MONGODB_ATLAS_PROJECT_ID=<YOUR_PROJECT_ID>
-  export MONGODB_ATLAS_ORG_ID=<YOUR_ORG_ID>
-  export MONGODB_ATLAS_PUBLIC_KEY=<YOUR_PUBLIC_KEY>
-  export MONGODB_ATLAS_PRIVATE_KEY=<YOUR_PRIVATE_KEY>
+  export MONGODB_ATLAS_PUBLIC_KEY=<ATLAS_PUBLIC_KEY>
+  export MONGODB_ATLAS_PRIVATE_KEY=<ATLAS_PRIVATE_KEY>
+  export MONGODB_ATLAS_ORG_ID=<ATLAS_ORG_ID>
+  export MONGODB_ATLAS_PROJECT_ID=<ATLAS_PROJECT_ID>
 
   # This env variable is optional and allow you to run terraform with a custom server
   export MONGODB_ATLAS_BASE_URL=<CUSTOM_SERVER_URL>
@@ -140,63 +141,63 @@ You must also configure the following environment variables before running the t
 
 - For `Authentication database user` resource configuration:
   ```bash
-  $ export MONGODB_ATLAS_DB_USERNAME=<YOUR_DATABASE_NAME>
+  export MONGODB_ATLAS_DB_USERNAME=<ATLAS_DATABASE_NAME>
   ```
 
 - For `Project(s)` resource configuration:
   ```bash
-  $ export MONGODB_ATLAS_TEAMS_IDS=<YOUR_TEAMS_IDS>
+  export MONGODB_ATLAS_TEAMS_IDS=<ATLAS_TEAMS_IDS>
   ```
 ~> **Notice:** It should be at least one team id up to 3 teams ids depending of acceptance testing using separator comma like this `teamId1,teamdId2,teamId3`.
 
 - For `Federated Settings` resource configuration:
   ```bash
-  $ export MONGODB_ATLAS_FEDERATION_SETTINGS_ID=<YOUR_FEDERATION_SETTINGS_ID>
-  $ export ONGODB_ATLAS_FEDERATED_ORG_ID=<YOUR_FEDERATED_ORG_ID>
-  $ export MONGODB_ATLAS_FEDERATED_GROUP_ID=<YOUR_FEDERATED_GROUP_ID>
-  $ export MONGODB_ATLAS_FEDERATED_ROLE_MAPPING_ID=<YOUR_FEDERATED_ROLE_MAPPING_ID>
-  $ export MONGODB_ATLAS_FEDERATED_OKTA_IDP_ID=<YOUR_FEDERATED_OKTA_IDP_ID>
-  $ export MONGODB_ATLAS_FEDERATED_SSO_URL=<YOUR_FEDERATED_SSO_URL>
-  $ export MONGODB_ATLAS_FEDERATED_ISSUER_URI=<YOUR_FEDERATED_ISSUER_URI>
+  export MONGODB_ATLAS_FEDERATION_SETTINGS_ID=<ATLAS_FEDERATION_SETTINGS_ID>
+  export MONGODB_ATLAS_FEDERATED_ORG_ID=<ATLAS_FEDERATED_ORG_ID>
+  export MONGODB_ATLAS_FEDERATED_GROUP_ID=<ATLAS_FEDERATED_GROUP_ID>
+  export MONGODB_ATLAS_FEDERATED_ROLE_MAPPING_ID=<ATLAS_FEDERATED_ROLE_MAPPING_ID>
+  export MONGODB_ATLAS_FEDERATED_OKTA_IDP_ID=<ATLAS_FEDERATED_OKTA_IDP_ID>
+  export MONGODB_ATLAS_FEDERATED_SSO_URL=<ATLAS_FEDERATED_SSO_URL>
+  export MONGODB_ATLAS_FEDERATED_ISSUER_URI=<ATLAS_FEDERATED_ISSUER_URI>
   ```
-~> **Notice:** For more information about the Federation configuration resource, see: https://www.mongodb.com/docs/atlas/reference/api/federation-configuration/
+~> **Notice:** For more information about the Federation configuration resource, see: https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-federated-authentication
 
 ##### AWS env variables
 
 - For `Network Peering` resource configuration:
   ```bash
-  $ export AWS_ACCOUNT_ID=<YOUR_ACCOUNT_ID>
-  $ export AWS_VPC_ID=<YOUR_VPC_ID>
-  $ export AWS_VPC_CIDR_BLOCK=<YOUR_VPC_CIDR_BLOCK>
-  $ export AWS_REGION=<YOUR_REGION>
-  $ export AWS_SUBNET_ID=<YOUR_SUBNET_ID>
-  $ export AWS_SECURITY_GROUP_ID=<YOUR_SECURITY_GROUP_ID>
+  export AWS_ACCOUNT_ID=<AWS_ACCOUNT_ID>
+  export AWS_VPC_ID=<AWS_VPC_ID>
+  export AWS_VPC_CIDR_BLOCK=<AWS_VPC_CIDR_BLOCK>
+  export AWS_REGION=<AWS_REGION>
+  export AWS_SUBNET_ID=<AWS_SUBNET_ID>
+  export AWS_SECURITY_GROUP_ID=<AWS_SECURITY_GROUP_ID>
   ```
 ~> **Notice:** For more information about the Network Peering resource, see: https://docs.atlas.mongodb.com/reference/api/vpc/
 
 - For `Encryption at Rest` resource configuration:
   ```bash
-  $ export AWS_ACCESS_KEY_ID=<YOUR_ACCESS_KEY_ID>
-  $ export AWS_SECRET_ACCESS_KEY=<YOUR_SECRET_ACCESS_KEY>
-  $ export AWS_CUSTOMER_MASTER_KEY_ID=<YOUR_CUSTOMER_MASTER_KEY_ID>
-  $ export AWS_REGION=<YOUR_REGION>
+  export AWS_ACCESS_KEY_ID=<AWS_ACCESS_KEY_ID>
+  export AWS_SECRET_ACCESS_KEY=<AWS_SECRET_ACCESS_KEY>
+  export AWS_CUSTOMER_MASTER_KEY_ID=<AWS_CUSTOMER_MASTER_KEY_ID>
+  export AWS_REGION=<AWS_REGION>
 
-  $ export AWS_ACCESS_KEY_ID_UPDATED=<YOUR_ACCESS_KEY_ID_UPDATED>
-  $ export AWS_SECRET_ACCESS_KEY_UPDATED=<YOUR_SECRET_ACCESS_KEY_UPDATED>
-  $ export AWS_CUSTOMER_MASTER_KEY_ID_UPDATED=<YOUR_CUSTOMER_MASTER_KEY_ID_UPDATED>
-  $ export AWS_REGION_UPDATED=<YOUR_REGION_UPDATED>
+  export AWS_ACCESS_KEY_ID_UPDATED=<AWS_ACCESS_KEY_ID_UPDATED>
+  export AWS_SECRET_ACCESS_KEY_UPDATED=<AWS_SECRET_ACCESS_KEY_UPDATED>
+  export AWS_CUSTOMER_MASTER_KEY_ID_UPDATED=<AWS_CUSTOMER_MASTER_KEY_ID_UPDATED>
+  export AWS_REGION_UPDATED=<AWS_REGION_UPDATED>
   ```
 ~> **Notice:** For more information about the Encryption at Rest resource, see: https://docs.atlas.mongodb.com/reference/api/encryption-at-rest/
 
 - For `Private Endpoint Link` resource configuration:
   ```bash
-  $ export AWS_ACCESS_KEY_ID=<YOUR_ACCESS_KEY_ID>
-  $ export AWS_SECRET_ACCESS_KEY=<YOUR_SECRET_ACCESS_KEY>
-  $ export AWS_CUSTOMER_MASTER_KEY_ID=<YOUR_CUSTOMER_MASTER_KEY_ID>
-  $ export AWS_REGION=<YOUR_REGION>
-  $ export AWS_VPC_ID=<YOUR_VPC_ID>
-  $ export AWS_SUBNET_ID=<YOUR_SUBNET_ID>
-  $ export AWS_SECURITY_GROUP_ID=<YOUR_SECURITY_GROUP_ID>
+  export AWS_ACCESS_KEY_ID=<AWS_ACCESS_KEY_ID>
+  export AWS_SECRET_ACCESS_KEY=<AWS_SECRET_ACCESS_KEY>
+  export AWS_CUSTOMER_MASTER_KEY_ID=<AWS_CUSTOMER_MASTER_KEY_ID>
+  export AWS_REGION=<AWS_REGION>
+  export AWS_VPC_ID=<AWS_VPC_ID>
+  export AWS_SUBNET_ID=<AWS_SUBNET_ID>
+  export AWS_SECURITY_GROUP_ID=<AWS_SECURITY_GROUP_ID>
   ```
 ~> **Notice:** For more information about the PrivateLink (for AWS only), see: https://docs.atlas.mongodb.com/reference/api/encryption-at-rest/https://docs.atlas.mongodb.com/reference/api/private-endpoint/
 
@@ -204,42 +205,41 @@ You must also configure the following environment variables before running the t
 
 - For `Network Peering` resource configuration:
   ```bash
-  $ export AZURE_DIRECTORY_ID=<YOUR_DIRECTORY_ID>
-  $ export AZURE_SUBSCRIPTION_ID=<YOUR_SUBSCRIPTION_ID>
-  $ export AZURE_RESOURCE_GROUP_NAME=<YOUR_RESOURCE_GROUP_NAME>
-  $ export AZURE_VNET_NAME=<YOUR_VNET_NAME>
+  export AZURE_DIRECTORY_ID=<AZURE_DIRECTORY_ID>
+  export AZURE_SUBSCRIPTION_ID=<AZURE_SUBSCRIPTION_ID>
+  export AZURE_RESOURCE_GROUP_NAME=<AZURE_RESOURCE_GROUP_NAME>
+  export AZURE_VNET_NAME=<AZURE_VNET_NAME>
   ```
 ~> **Notice:** For more information about the Network Peering resource, see: https://docs.atlas.mongodb.com/reference/api/vpc/
 
 
 - For Encryption at Rest resource configuration:
   ```bash
-  export AZURE_CLIENT_ID=<YOUR_CLIENT_ID>
-  export AZURE_SUBSCRIPTION_ID=<YOUR_SUBSCRIPTION_ID>
-  export AZURE_RESOURCE_GROUP_NAME=<YOUR_RESOURCE_GROUP_NAME>
-  export AZURE_APP_SECRET=<YOUR_SECRET>
-  export AZURE_KEY_VAULT_NAME=<YOUR_KEY_VAULT_NAME>
-  export AZURE_KEY_IDENTIFIER=<YOUR_KEY_IDENTIFIER>
-  export AZURE_TENANT_ID=<YOUR_TENANT_ID>
-  export AZURE_DIRECTORY_ID=<YOUR_DIRECTORY_ID>
-
-  export AZURE_KEY_VAULT_NAME_UPDATED=<YOUR_KEY_VAULT_NAME_UPDATED>
-  export AZURE_KEY_IDENTIFIER_UPDATED=<YOUR_KEY_IDENTIFIER_UPDATED>
+  export AZURE_CLIENT_ID=<AZURE_CLIENT_ID>
+  export AZURE_SUBSCRIPTION_ID=<AZURE_SUBSCRIPTION_ID>
+  export AZURE_RESOURCE_GROUP_NAME=<AZURE_RESOURCE_GROUP_NAME>
+  export AZURE_APP_SECRET=<AZURE_APP_SECRET>
+  export AZURE_KEY_VAULT_NAME=<AZURE_KEY_VAULT_NAME>
+  export AZURE_KEY_IDENTIFIER=<AZURE_KEY_IDENTIFIER>
+  export AZURE_TENANT_ID=<AZURE_TENANT_ID>
+  export AZURE_DIRECTORY_ID=<AZURE_DIRECTORY_ID>
+  export AZURE_KEY_VAULT_NAME_UPDATED=<AZURE_KEY_VAULT_NAME_UPDATED>
+  export AZURE_KEY_IDENTIFIER_UPDATED=<AZURE_KEY_IDENTIFIER_UPDATED>
   ```
 ~> **Notice:** For more information about the Encryption at Rest resource, see: https://docs.atlas.mongodb.com/reference/api/encryption-at-rest/
 
 ##### GCP env variables
 - For `Network Peering` resource configuration:
   ```bash
-  $export GCP_PROJECT_ID=<YOUR_PROJECT_ID>
+  $export GCP_PROJECT_ID=<GCP_PROJECT_ID>
   ```
 ~> **Notice:** For more information about the Network Peering resource, see: https://docs.atlas.mongodb.com/reference/api/vpc/
 
 
 - For Encryption at Rest resource configuration:
   ```bash
-  $ export GCP_SERVICE_ACCOUNT_KEY=<YOUR_GCP_SERVICE_ACCOUNT_KEY>
-  $ export GCP_KEY_VERSION_RESOURCE_ID=<YOUR_GCP_KEY_VERSION_RESOURCE_ID>
+  export GCP_SERVICE_ACCOUNT_KEY=<GCP_SERVICE_ACCOUNT_KEY>
+  export GCP_KEY_VERSION_RESOURCE_ID=<GCP_KEY_VERSION_RESOURCE_ID>
   ```
 ~> **Notice:** For more information about the Encryption at Rest resource, see: https://docs.atlas.mongodb.com/reference/api/encryption-at-rest/
 

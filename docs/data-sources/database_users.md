@@ -77,6 +77,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `project_id` - ID of the Atlas project the user belongs to.
 * `username` - Username for authenticating to MongoDB.
+* `description` - Description of this database user.
 * `roles` - List of user’s roles and the databases / collections on which the roles apply. A role allows the user to perform particular actions on the specified database. A role on the admin database can include privileges that apply to the other databases as well. See [Roles](#roles) below for more details.
 * `auth_database_name` - (Required) Database against which Atlas authenticates the user. A user must provide both a username and authentication database to log into MongoDB.
 Possible values include:
@@ -95,7 +96,7 @@ Possible values include:
   * `USER` - OIDC Workload federated authentication user. To learn more about OIDC federated authentication, see [Set up Workload Identity Federation with OIDC](https://www.mongodb.com/docs/atlas/security-oidc/).
 * `scopes` - Array of clusters and Atlas Data Lakes that this user has access to.
     * `name` - Name of the cluster or Atlas Data Lake that the user has access to.
-    * `type` - Type of resource that the user has access to. Valid values are: `CLUSTER` and `DATA_LAKE`
+    * `type` - Type of resource that the user has access to. See [Database User API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createdatabaseuser) for the list of valid values.
 
 ### Roles
 
@@ -115,4 +116,4 @@ Containing key-value pairs that tag and categorize the database user. Each key a
 * `key` - The key that you want to write.
 * `value` - The value that you want to write.
 
-See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Database-Users/operation/getDatabaseUser) Documentation for more information.
+See [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getdatabaseuser) Documentation for more information.

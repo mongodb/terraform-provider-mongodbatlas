@@ -19,6 +19,19 @@ resource "mongodbatlas_stream_connection" "example-cluster" {
   }
 }
 
+resource "mongodbatlas_stream_connection" "example-cross-project-cluster" {
+  project_id         = var.project_id
+  instance_name      = mongodbatlas_stream_instance.example.instance_name
+  connection_name    = "ClusterCrossProjectConnection"
+  type               = "Cluster"
+  cluster_name       = var.other_cluster
+  cluster_project_id = var.other_project_id
+  db_role_to_execute = {
+    role = "atlasAdmin"
+    type = "BUILT_IN"
+  }
+}
+
 resource "mongodbatlas_stream_connection" "example-kafka-plaintext" {
   project_id      = var.project_id
   instance_name   = mongodbatlas_stream_instance.example.instance_name
@@ -34,7 +47,7 @@ resource "mongodbatlas_stream_connection" "example-kafka-plaintext" {
     "auto.offset.reset" : "earliest"
   }
   security = {
-    protocol = "PLAINTEXT"
+    protocol = "SASL_PLAINTEXT"
   }
   networking = {
     access = {
@@ -59,7 +72,7 @@ resource "mongodbatlas_stream_connection" "example-kafka-ssl" {
   }
   security = {
     broker_public_certificate = var.kafka_ssl_cert
-    protocol                  = "SSL"
+    protocol                  = "SASL_SSL"
   }
 }
 
@@ -76,7 +89,19 @@ resource "mongodbatlas_stream_connection" "example-aws-lambda" {
   connection_name = "AWSLambdaConnection"
   type            = "AWSLambda"
   aws = {
-    role_arn = "arn:aws:iam::123456789123:role/lambdaRole"
+    role_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/lambdaRole"
+  }
+}
+
+resource "mongodbatlas_stream_connection" "example-https" {
+  project_id      = var.project_id
+  instance_name   = mongodbatlas_stream_instance.example.instance_name
+  connection_name = "HttpsConnection"
+  type            = "Https"
+  url             = "https://example.com"
+  headers = {
+    key1 = "value1"
+    key2 = "value2"
   }
 }
 

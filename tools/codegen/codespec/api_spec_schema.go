@@ -48,12 +48,6 @@ func (s *APISpecSchema) GetDescription() *string {
 	return &s.Schema.Description
 }
 
-func (s *APISpecSchema) IsSensitive() *bool {
-	isSensitive := s.Schema.Format == OASFormatPassword
-
-	if !isSensitive {
-		return nil
-	}
-
-	return &isSensitive
+func (s *APISpecSchema) IsSensitive() bool {
+	return s.Schema.Format == OASFormatPassword
 }

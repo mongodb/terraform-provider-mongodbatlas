@@ -1,0 +1,19 @@
+{
+ "changeStreamOptionsPreAndPostImagesExpireAfterSeconds": null,
+ "chunkMigrationConcurrency": null,
+ "customOpensslCipherConfigTls12": [],
+ "defaultMaxTimeMS": null,
+ "defaultReadConcern": null,
+ "defaultWriteConcern": null,
+ "failIndexKeyTooLong": null,
+ "javascriptEnabled": true,
+ "minimumEnabledTlsProtocol": "TLS1_2",
+ "noTableScan": false,
+ "oplogMinRetentionHours": null,
+ "oplogSizeMB": null,
+ "queryStatsLogVerbosity": 1,
+ "sampleRefreshIntervalBIConnector": null,
+ "sampleSizeBIConnector": null,
+ "tlsCipherConfigMode": "DEFAULT",
+ "transactionLifetimeLimitSeconds": null
+}

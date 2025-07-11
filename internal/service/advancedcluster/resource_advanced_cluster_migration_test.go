@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
@@ -14,29 +15,24 @@ import (
 const versionBeforeISSRelease = "1.17.6"
 
 func TestMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
-	testCase := replicaSetAWSProviderTestCase(t, false)
-	mig.CreateAndRunTest(t, &testCase)
+	migTest(t, replicaSetAWSProviderTestCase)
 }
 
 func TestMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
-	testCase := replicaSetMultiCloudTestCase(t, false)
-	mig.CreateAndRunTest(t, &testCase)
+	migTest(t, replicaSetMultiCloudTestCase)
 }
 
 func TestMigAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
-	testCase := singleShardedMultiCloudTestCase(t, false)
-	mig.CreateAndRunTest(t, &testCase)
+	migTest(t, singleShardedMultiCloudTestCase)
 }
 
 func TestMigAdvancedCluster_symmetricGeoShardedOldSchema(t *testing.T) {
-	testCase := symmetricGeoShardedOldSchemaTestCase(t, false)
-	mig.CreateAndRunTest(t, &testCase)
+	migTest(t, symmetricGeoShardedOldSchemaTestCase)
 }
 
 func TestMigAdvancedCluster_asymmetricShardedNewSchema(t *testing.T) {
 	mig.SkipIfVersionBelow(t, "1.23.0") // version where sharded cluster tier auto-scaling was introduced
-	testCase := asymmetricShardedNewSchemaTestCase(t, false)
-	mig.CreateAndRunTest(t, &testCase)
+	migTest(t, asymmetricShardedNewSchemaTestCase)
 }
 
 func TestMigAdvancedCluster_replicaSetAWSProviderUpdate(t *testing.T) {
@@ -187,7 +183,7 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 					enabled = false
 					read_preference = "secondary"
 			}`
-		config        = configPartialAdvancedConfig(projectID, clusterName, extraArgs, autoScalingConfigured)
+		configInitial = configPartialAdvancedConfig(projectID, clusterName, extraArgs, autoScalingConfigured)
 		configUpdated = configPartialAdvancedConfig(projectID, clusterName, extraArgsUpdated, "")
 	)
 
@@ -197,7 +193,7 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            config,
+				Config:            configInitial,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "advanced_configuration.0.fail_index_key_too_long", "false"),
@@ -209,7 +205,7 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "bi_connector_config.0.enabled", "true"),
 				),
 			},
-			mig.TestStepCheckEmptyPlan(config),
+			mig.TestStepCheckEmptyPlan(configInitial),
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configUpdated,
@@ -281,4 +277,16 @@ func configPartialAdvancedConfig(projectID, clusterName, extraArgs, autoScaling 
 			%[3]s
 		}
 	`, projectID, clusterName, extraArgs, autoScaling)
+}
+
+// migTest is a helper function to run migration tests in normal case (SDKv2 -> SDKv2, TPF -> TPF), or in mixed case (SDKv2 -> TPF).
+func migTest(t *testing.T, testCaseFunc func(t *testing.T, usePreviewProvider bool) resource.TestCase) {
+	t.Helper()
+	usePreviewProvider := config.PreviewProviderV2AdvancedCluster()
+	if acc.IsTestSDKv2ToTPF() {
+		usePreviewProvider = false
+		t.Log("Running test SDKv2 to TPF")
+	}
+	testCase := testCaseFunc(t, usePreviewProvider)
+	mig.CreateAndRunTest(t, &testCase)
 }

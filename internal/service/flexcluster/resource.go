@@ -3,10 +3,11 @@ package flexcluster
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"regexp"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -70,7 +71,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	connV2 := r.Client.AtlasV2
 	flexClusterResp, err := CreateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
 	if err != nil {
-		resp.Diagnostics.AddError(ErrorCreateFlex, err.Error())
+		resp.Diagnostics.AddError(fmt.Sprintf(ErrorCreateFlex, err.Error()), fmt.Sprintf("Name: %s, Project ID: %s", clusterName, projectID))
 		return
 	}
 
@@ -95,13 +96,15 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	}
 
 	connV2 := r.Client.AtlasV2
-	flexCluster, apiResp, err := connV2.FlexClustersApi.GetFlexCluster(ctx, flexClusterState.ProjectId.ValueString(), flexClusterState.Name.ValueString()).Execute()
+	projectID := flexClusterState.ProjectId.ValueString()
+	clusterName := flexClusterState.Name.ValueString()
+	flexCluster, apiResp, err := connV2.FlexClustersApi.GetFlexCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if validate.StatusNotFound(apiResp) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError(ErrorReadFlex, err.Error())
+		resp.Diagnostics.AddError(fmt.Sprintf(ErrorReadFlex, projectID, clusterName), err.Error())
 		return
 	}
 
@@ -138,7 +141,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 
 	flexClusterResp, err := UpdateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
 	if err != nil {
-		resp.Diagnostics.AddError(ErrorUpdateFlex, err.Error())
+		resp.Diagnostics.AddError(fmt.Sprintf(ErrorUpdateFlex, clusterName), err.Error())
 		return
 	}
 
@@ -164,10 +167,12 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 
 	connV2 := r.Client.AtlasV2
 
-	err := DeleteFlexCluster(ctx, flexClusterState.ProjectId.ValueString(), flexClusterState.Name.ValueString(), connV2.FlexClustersApi)
+	projectID := flexClusterState.ProjectId.ValueString()
+	clusterName := flexClusterState.Name.ValueString()
+	err := DeleteFlexCluster(ctx, projectID, clusterName, connV2.FlexClustersApi)
 
 	if err != nil {
-		resp.Diagnostics.AddError(ErrorDeleteFlex, err.Error())
+		resp.Diagnostics.AddError(fmt.Sprintf(ErrorDeleteFlex, projectID, clusterName), err.Error())
 		return
 	}
 }
@@ -243,7 +248,7 @@ func UpdateFlexCluster(ctx context.Context, projectID, clusterName string, flexC
 }
 
 func DeleteFlexCluster(ctx context.Context, projectID, clusterName string, client admin.FlexClustersApi) error {
-	if _, _, err := client.DeleteFlexCluster(ctx, projectID, clusterName).Execute(); err != nil {
+	if _, err := client.DeleteFlexCluster(ctx, projectID, clusterName).Execute(); err != nil {
 		return err
 	}
 

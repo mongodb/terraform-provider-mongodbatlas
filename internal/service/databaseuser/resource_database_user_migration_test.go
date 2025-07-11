@@ -3,7 +3,7 @@ package databaseuser_test
 import (
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -94,7 +94,7 @@ func TestMigConfigRSDatabaseUser_withLabels(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		username  = acc.RandomName()
-		config    = acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin",
+		config    = acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin", "",
 			[]admin.ComponentLabel{
 				{
 					Key:   conversion.StringPtr("key 1"),
@@ -133,7 +133,7 @@ func TestMigConfigRSDatabaseUser_withEmptyLabels(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
 		username  = acc.RandomName()
-		config    = acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin", nil)
+		config    = acc.ConfigDatabaseUserWithLabels(projectID, username, "atlasAdmin", "", nil)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

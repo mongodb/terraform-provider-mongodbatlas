@@ -3,7 +3,7 @@ package acc
 import (
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
 func ConfigDatabaseUserBasic(projectID, username, roleName, keyLabel, valueLabel string) string {
@@ -48,7 +48,7 @@ func ConfigDatabaseUserWithX509Type(projectID, username, x509Type, roleName, key
 	`, projectID, username, x509Type, roleName, keyLabel, valueLabel)
 }
 
-func ConfigDatabaseUserWithLabels(projectID, username, roleName string, labels []admin.ComponentLabel) string {
+func ConfigDatabaseUserWithLabels(projectID, username, roleName, description string, labels []admin.ComponentLabel) string {
 	var labelsConf string
 	for _, label := range labels {
 		labelsConf += fmt.Sprintf(`
@@ -57,6 +57,10 @@ func ConfigDatabaseUserWithLabels(projectID, username, roleName string, labels [
 				value = %q
 			}
 		`, label.GetKey(), label.GetValue())
+	}
+	var descriptionConf string
+	if description != "" {
+		descriptionConf = fmt.Sprintf(`	description = %q`, description)
 	}
 
 	return fmt.Sprintf(`
@@ -72,8 +76,9 @@ func ConfigDatabaseUserWithLabels(projectID, username, roleName string, labels [
 			}
 
 			%[4]s
+			%[5]s
 		}
-	`, projectID, username, roleName, labelsConf)
+	`, projectID, username, roleName, labelsConf, descriptionConf)
 }
 
 func ConfigDatabaseUserWithRoles(projectID, username, password string, rolesArr []*admin.DatabaseUserRole) string {

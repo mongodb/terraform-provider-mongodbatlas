@@ -2,9 +2,11 @@ package maintenancewindow
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -35,6 +37,26 @@ func DataSource() *schema.Resource {
 			"auto_defer_once_enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
+			},
+			"time_zone_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"protected_hours": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"end_hour_of_day": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"start_hour_of_day": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -67,6 +89,16 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if err := d.Set("auto_defer_once_enabled", maintenance.GetAutoDeferOnceEnabled()); err != nil {
 		return diag.Errorf(errorMaintenanceRead, projectID, err)
+	}
+
+	if err := d.Set("time_zone_id", maintenance.GetTimeZoneId()); err != nil {
+		return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
+	}
+
+	if maintenance.ProtectedHours != nil {
+		if err := d.Set("protected_hours", flattenProtectedHours(maintenance.GetProtectedHours())); err != nil {
+			return diag.FromErr(fmt.Errorf(errorMaintenanceRead, projectID, err))
+		}
 	}
 
 	d.SetId(projectID)

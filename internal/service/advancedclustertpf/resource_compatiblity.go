@@ -8,9 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
 func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
@@ -21,6 +22,9 @@ func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
 	retainBackups := conversion.NilForUnknown(modelIn.RetainBackupsEnabled, modelIn.RetainBackupsEnabled.ValueBoolPointer())
 	if retainBackups != nil && !modelIn.RetainBackupsEnabled.Equal(modelOut.RetainBackupsEnabled) {
 		modelOut.RetainBackupsEnabled = types.BoolPointerValue(retainBackups)
+	}
+	if modelIn.DeleteOnCreateTimeout.ValueBoolPointer() != nil {
+		modelOut.DeleteOnCreateTimeout = modelIn.DeleteOnCreateTimeout
 	}
 	overrideMapStringWithPrevStateValue(&modelIn.Labels, &modelOut.Labels)
 	overrideMapStringWithPrevStateValue(&modelIn.Tags, &modelOut.Tags)
@@ -60,7 +64,7 @@ func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config
 	)
 	clusterRespOld, _, err := api20240530.GetCluster(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		if admin20240530.IsErrorCode(err, "ASYMMETRIC_SHARD_UNSUPPORTED") {
+		if validate.ErrorClusterIsAsymmetrics(err) {
 			useOldShardingConfigFailed = !useReplicationSpecPerShard
 		} else {
 			diags.AddError(errorReadLegacy20240530, defaultAPIErrorDetails(clusterName, err))

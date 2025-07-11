@@ -1,7 +1,6 @@
 package projectipaccesslist_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
@@ -9,7 +8,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectipaccesslist"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
 var (
@@ -207,7 +206,7 @@ func TestNewTfProjectIPAccessListDSModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, _ := projectipaccesslist.NewTfProjectIPAccessListDSModel(context.Background(), tc.sdkModel)
+			resultModel, _ := projectipaccesslist.NewTfProjectIPAccessListDSModel(t.Context(), tc.sdkModel)
 
 			assert.Equal(t, tc.expectedResult, resultModel)
 		})

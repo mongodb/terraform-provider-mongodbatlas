@@ -1,13 +1,12 @@
 package streaminstance_test
 
 import (
-	"context"
 	"reflect"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
 const (
@@ -73,7 +72,7 @@ func TestStreamInstanceSDKToTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := streaminstance.NewTFStreamInstance(context.Background(), tc.SDKResp)
+			resultModel, diags := streaminstance.NewTFStreamInstance(t.Context(), tc.SDKResp)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -156,7 +155,7 @@ func TestStreamInstancesSDKToTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := streaminstance.NewTFStreamInstances(context.Background(), tc.providedConfig, tc.SDKResp)
+			resultModel, diags := streaminstance.NewTFStreamInstances(t.Context(), tc.providedConfig, tc.SDKResp)
 			tc.expectedTFModel.ID = resultModel.ID // id is auto-generated, have no way of defining within expected model
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
@@ -216,7 +215,7 @@ func TestStreamInstanceTFToSDKCreateModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			apiReqResult, diags := streaminstance.NewStreamInstanceCreateReq(context.Background(), tc.tfModel)
+			apiReqResult, diags := streaminstance.NewStreamInstanceCreateReq(t.Context(), tc.tfModel)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -253,7 +252,7 @@ func TestStreamInstanceTFToSDKUpdateModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			apiReqResult, diags := streaminstance.NewStreamInstanceUpdateReq(context.Background(), tc.tfModel)
+			apiReqResult, diags := streaminstance.NewStreamInstanceUpdateReq(t.Context(), tc.tfModel)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -266,7 +265,7 @@ func TestStreamInstanceTFToSDKUpdateModel(t *testing.T) {
 
 func tfRegionObject(t *testing.T, cloudProvider, region string) types.Object {
 	t.Helper()
-	dataProcessRegion, diags := types.ObjectValueFrom(context.Background(), streaminstance.ProcessRegionObjectType.AttrTypes, streaminstance.TFInstanceProcessRegionSpecModel{
+	dataProcessRegion, diags := types.ObjectValueFrom(t.Context(), streaminstance.ProcessRegionObjectType.AttrTypes, streaminstance.TFInstanceProcessRegionSpecModel{
 		CloudProvider: types.StringValue(cloudProvider),
 		Region:        types.StringValue(region),
 	})
@@ -278,7 +277,7 @@ func tfRegionObject(t *testing.T, cloudProvider, region string) types.Object {
 
 func tfStreamConfigObject(t *testing.T, tier string) types.Object {
 	t.Helper()
-	streamConfig, diags := types.ObjectValueFrom(context.Background(), streaminstance.StreamConfigObjectType.AttrTypes, streaminstance.TFInstanceStreamConfigSpecModel{
+	streamConfig, diags := types.ObjectValueFrom(t.Context(), streaminstance.StreamConfigObjectType.AttrTypes, streaminstance.TFInstanceStreamConfigSpecModel{
 		Tier: types.StringValue(tier),
 	})
 	if diags.HasError() {
@@ -289,7 +288,7 @@ func tfStreamConfigObject(t *testing.T, tier string) types.Object {
 
 func tfHostnamesList(t *testing.T, hostnames *[]string) types.List {
 	t.Helper()
-	resultList, diags := types.ListValueFrom(context.Background(), types.StringType, hostnames)
+	resultList, diags := types.ListValueFrom(t.Context(), types.StringType, hostnames)
 	if diags.HasError() {
 		t.Errorf("failed to create terraform hostnames list: %s", diags.Errors()[0].Summary())
 	}

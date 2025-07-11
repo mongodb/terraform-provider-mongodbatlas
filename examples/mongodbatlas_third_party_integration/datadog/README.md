@@ -14,15 +14,15 @@
 This can be done using environment variables:
 
 ```bash
-export MONGODB_ATLAS_PUBLIC_KEY="xxxx"
-export MONGODB_ATLAS_PRIVATE_KEY="xxxx"
+export MONGODB_ATLAS_PUBLIC_KEY="<ATLAS_PUBLIC_KEY>"
+export MONGODB_ATLAS_PRIVATE_KEY="<ATLAS_PRIVATE_KEY>"
 ```
 
 ... or follow as in the `variables.tf` file and create **terraform.tfvars** file with all the variable values, ex:
 ```
-public_key      = "<MONGODB_ATLAS_PUBLIC_KEY>"
-private_key     = "<MONGODB_ATLAS_PRIVATE_KEY>"
-project_id      = "<MONGODB_ATLAS_PROJECT_ID>"
+public_key      = "<ATLAS_PUBLIC_KEY>"
+private_key     = "<ATLAS_PRIVATE_KEY>"
+project_id      = "<ATLAS_PROJECT_ID>"
 datadog_api_key = "<DATADOG_API_KEY>"
 ```
 

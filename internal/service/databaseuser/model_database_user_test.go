@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
 var (
@@ -65,6 +65,7 @@ var (
 		GroupId:      projectID,
 		DatabaseName: authDatabaseName,
 		Username:     username,
+		Description:  conversion.Pointer(""),
 		Password:     &password,
 		X509Type:     &x509Type,
 		OidcAuthType: &oidCAuthType,
@@ -77,6 +78,7 @@ var (
 	cloudDatabaseUserWithoutPassword = &admin.CloudDatabaseUser{
 		GroupId:      projectID,
 		DatabaseName: authDatabaseName,
+		Description:  conversion.Pointer(""),
 		Username:     username,
 		X509Type:     &x509Type,
 		OidcAuthType: &oidCAuthType,
@@ -143,7 +145,7 @@ func TestNewMongoDBDatabaseUser(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, err := databaseuser.NewMongoDBDatabaseUser(context.Background(), tc.passwordStateValue, &testCases[i].tfDatabaseUserModel)
+			resultModel, err := databaseuser.NewMongoDBDatabaseUser(t.Context(), tc.passwordStateValue, types.StringValue(""), &testCases[i].tfDatabaseUserModel)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -164,7 +166,7 @@ func TestNewTfDatabaseUserModel(t *testing.T) {
 		{
 			name:            "Success TfDatabaseUserModel",
 			sdkDatabaseUser: cloudDatabaseUser,
-			currentModel:    databaseuser.TfDatabaseUserModel{Password: types.StringValue(password)},
+			currentModel:    databaseuser.TfDatabaseUserModel{Password: types.StringValue(password), Description: types.StringValue("")},
 			expectedResult:  getDatabaseUserModel(rolesSet, labelsSet, scopesSet, types.StringValue(password)),
 			expectedError:   false,
 		},
@@ -172,7 +174,7 @@ func TestNewTfDatabaseUserModel(t *testing.T) {
 
 	for i, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, err := databaseuser.NewTfDatabaseUserModel(context.Background(), &testCases[i].currentModel, testCases[i].sdkDatabaseUser)
+			resultModel, err := databaseuser.NewTfDatabaseUserModel(t.Context(), &testCases[i].currentModel, testCases[i].sdkDatabaseUser)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -355,6 +357,7 @@ func getDatabaseUserModel(roles, labels, scopes basetypes.SetValue, password typ
 		ProjectID:        types.StringValue(projectID),
 		AuthDatabaseName: types.StringValue(authDatabaseName),
 		Username:         types.StringValue(username),
+		Description:      types.StringValue(""),
 		Password:         password,
 		X509Type:         types.StringValue(x509Type),
 		OIDCAuthType:     types.StringValue(oidCAuthType),

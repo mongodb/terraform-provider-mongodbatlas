@@ -1,15 +1,14 @@
 package advancedcluster_test
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
 	"testing"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
-	"go.mongodb.org/atlas-sdk/v20250219001/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
@@ -145,7 +144,7 @@ func TestFlattenAdvancedReplicationSpecsOldShardingConfig(t *testing.T) {
 			}
 			resourceData := schema.TestResourceDataRaw(t, testSchema, map[string]any{"project_id": "p1"})
 
-			tfOutputSpecs, err := advancedcluster.FlattenAdvancedReplicationSpecsOldShardingConfig(context.Background(), tc.adminSpecs, tc.zoneNameToOldReplicationSpecMeta, tc.tfInputSpecs, resourceData, client)
+			tfOutputSpecs, err := advancedcluster.FlattenAdvancedReplicationSpecsOldShardingConfig(t.Context(), tc.adminSpecs, tc.zoneNameToOldReplicationSpecMeta, tc.tfInputSpecs, resourceData, client)
 
 			require.NoError(t, err)
 			assert.Len(t, tfOutputSpecs, tc.expectedLen)
@@ -296,7 +295,7 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 			testObject.EXPECT().ListClusters(mock.Anything, mock.Anything).Return(admin.ListClustersApiRequest{ApiService: testObject}).Once()
 			testObject.EXPECT().ListClustersExecute(mock.Anything).Return(tc.mockCluster, tc.mockResponse, tc.mockError).Once()
 
-			result, stateName, err := advancedcluster.ResourceClusterListAdvancedRefreshFunc(context.Background(), dummyProjectID, testObject)()
+			result, stateName, err := advancedcluster.ResourceClusterListAdvancedRefreshFunc(t.Context(), dummyProjectID, testObject)()
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
 			}

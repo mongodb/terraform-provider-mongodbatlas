@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
-	"go.mongodb.org/atlas-sdk/v20250219001/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
 const (
@@ -19,6 +19,11 @@ const (
 	StoppedState    = "STOPPED"
 	DroppedState    = "DROPPED"
 	FailedState     = "FAILED"
+)
+
+const (
+	ErrorUpdateStateTransition = "Stream Processor must be in %s state to transition to %s state"
+	ErrorUpdateToCreatedState  = "Stream Processor cannot transition from %s to CREATED"
 )
 
 func WaitStateTransition(ctx context.Context, requestParams *admin.GetStreamProcessorApiParams, client admin.StreamsApi, pendingStates, desiredStates []string) (*admin.StreamsProcessorWithStats, error) {
@@ -41,6 +46,22 @@ func WaitStateTransition(ctx context.Context, requestParams *admin.GetStreamProc
 	}
 
 	return nil, errors.New("did not obtain valid result when waiting for stream processor state transition")
+}
+
+func ValidateUpdateStateTransition(currentState, plannedState string) (errMsg string, isValidTransition bool) {
+	if currentState == plannedState {
+		return "", true
+	}
+
+	if plannedState == StoppedState && currentState != StartedState {
+		return fmt.Sprintf(ErrorUpdateStateTransition, StartedState, StoppedState), false
+	}
+
+	if plannedState == CreatedState && currentState != CreatedState {
+		return fmt.Sprintf(ErrorUpdateToCreatedState, currentState), false
+	}
+
+	return "", true
 }
 
 func refreshFunc(ctx context.Context, requestParams *admin.GetStreamProcessorApiParams, client admin.StreamsApi) retry.StateRefreshFunc {
