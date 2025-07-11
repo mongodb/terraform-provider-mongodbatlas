@@ -22,7 +22,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/project"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
 var (
@@ -688,14 +687,7 @@ func TestAccProject_withFalseDefaultSettings(t *testing.T) {
 				ImportState:        true,
 				ImportStatePersist: true, // save the state to use it in the next plan
 			},
-			{
-				Config:      alertSettingsFalseImport, // when the value is set after import, the first plan will fail since the value cannot be read from API and the plan modifier will detect the change from null --> false
-				ExpectError: regexp.MustCompile("with_default_alerts_settings cannot be updated or set after import, remove it from the configuration or use state value"),
-			},
-			{
-				Config:           alertSettingsAbsent, // removing `with_default_alerts_settings` from the configuration should have no plan changes
-				ConfigPlanChecks: mig.TestStepConfigPlanChecksEmptyPlan(),
-			},
+			acc.TestStepCheckEmptyPlan(alertSettingsAbsent),
 		},
 	})
 }
