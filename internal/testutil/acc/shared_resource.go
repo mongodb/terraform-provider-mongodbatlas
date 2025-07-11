@@ -131,11 +131,16 @@ func ClusterNameExecution(tb testing.TB, populateSampleData bool) (projectID, cl
 	return projectID, sharedInfo.clusterName
 }
 
+// ProjectIDExecutionWithStreamInstance returns the project ID and stream instance name for test execution.
+// The same ProjectID as the ProjectIDExecution is used.
+// The stream instance will include the `sample_stream_solar` connection. It is included to avoid ALREADY_EXIST errors as many different tests depends on this stream connection. Use a data source whenever you need it.
+// You can use `MONGODB_ATLAS_STREAM_INSTANCE_NAME` to use an "externally" managed stream instance.
 func ProjectIDExecutionWithStreamInstance(tb testing.TB) (projectID, streamInstanceName string) {
 	tb.Helper()
 	SkipInUnitTest(tb)
 	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
 	projectID = ProjectIDExecution(tb)
+	
 	if ExistingStreamInstanceUsed() {
 		return projectID, existingStreamInstanceName()
 	}
