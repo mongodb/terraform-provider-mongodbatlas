@@ -54,71 +54,7 @@ func Resource() *schema.Resource {
 				},
 			},
 			// attribute not required in the create operation and not returned from the API when it is not set.
-			"cloud_provider_config": {
-				Type:     schema.TypeList,
-				MaxItems: 1,
-				Computed: true,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"aws": {
-							Type:     schema.TypeList,
-							MaxItems: 1,
-							// Changing from required to optional to allow azure usage
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"role_id": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"test_s3_bucket": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"iam_assumed_role_arn": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"iam_user_arn": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"external_id": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-								},
-							},
-						},
-						"azure": {
-							Type:     schema.TypeList,
-							MaxItems: 1,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"role_id": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"atlas_app_id": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"service_principal_id": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"tenant_id": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
+			"cloud_provider_config": cloudProviderConfig(false),
 			"data_process_region": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
