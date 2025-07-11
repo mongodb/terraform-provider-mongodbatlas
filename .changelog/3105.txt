@@ -1,3 +1,0 @@
-```release-note:bug
-resource/mongodbatlas_project: Fixes import when `with_default_alerts_settings` is set 
-```
