@@ -22,6 +22,10 @@ func TestAccCloudUserOrgAssignmentRS_basic(t *testing.T) {
 	resource.ParallelTest(t, *basicTestCase(t))
 }
 
+func TestAccCloudUserOrgAssignmentDS_basic(t *testing.T) {
+	resource.ParallelTest(t, *dataSourceTestCase(t))
+}
+
 func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 
@@ -37,11 +41,11 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCloudUserOrgAssignmentConfig(orgID, username, roles),
-				Check:  cloudUserOrgAssignmentChecks(orgID, username, "PENDING", roles),
+				Check:  cloudUserOrgAssignmentChecks(resourceName, orgID, username, "PENDING", roles),
 			},
 			{
 				Config: testAccCloudUserOrgAssignmentConfig(orgID, username, rolesUpdated),
-				Check:  cloudUserOrgAssignmentChecks(orgID, username, "PENDING", rolesUpdated),
+				Check:  cloudUserOrgAssignmentChecks(resourceName, orgID, username, "PENDING", rolesUpdated),
 			},
 			{
 				ResourceName:                         resourceName,
@@ -85,7 +89,54 @@ resource "mongodbatlas_cloud_user_org_assignment" "test" {
 `, orgID, username, rolesStr)
 }
 
-func cloudUserOrgAssignmentChecks(orgID, username, orgMembershipStatus string, roles []string) resource.TestCheckFunc {
+func dataSourceTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
+
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	username := "test-cloud-user-org-assignment-ds@example.com"
+	roles := []string{"ORG_MEMBER"}
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCloudUserOrgAssignmentWithDataSourceConfig(orgID, username, roles),
+				Check: resource.ComposeTestCheckFunc(
+					cloudUserOrgAssignmentChecks("data.mongodbatlas_cloud_user_org_assignment.by_username", orgID, username, "PENDING", roles),
+					cloudUserOrgAssignmentChecks("data.mongodbatlas_cloud_user_org_assignment.by_user_id", orgID, username, "PENDING", roles),
+				),
+			},
+		},
+	}
+}
+
+func testAccCloudUserOrgAssignmentWithDataSourceConfig(orgID, username string, roles []string) string {
+	rolesStr := `"` + strings.Join(roles, `", "`) + `"`
+
+	return fmt.Sprintf(`
+resource "mongodbatlas_cloud_user_org_assignment" "test" {
+  org_id   = "%s"
+  username = "%s"
+  roles = {
+    org_roles = [%s]
+  }
+}
+
+data "mongodbatlas_cloud_user_org_assignment" "by_username" {
+  org_id   = "%s"
+  username = mongodbatlas_cloud_user_org_assignment.test.username
+}
+
+data "mongodbatlas_cloud_user_org_assignment" "by_user_id" {
+  org_id   = "%s"
+  user_id  = mongodbatlas_cloud_user_org_assignment.test.user_id
+}
+`, orgID, username, rolesStr, orgID, orgID)
+}
+
+func cloudUserOrgAssignmentChecks(resourceName, orgID, username, orgMembershipStatus string, roles []string) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{}
 	attributes := map[string]string{
 		"org_id":                orgID,

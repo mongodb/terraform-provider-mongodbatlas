@@ -458,6 +458,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		flexrestorejob.PluralDataSource,
 		resourcepolicy.DataSource,
 		resourcepolicy.PluralDataSource,
+		clouduserorgassignment.DataSource,
 		apikeyprojectassignment.DataSource,
 		apikeyprojectassignment.PluralDataSource,
 	}

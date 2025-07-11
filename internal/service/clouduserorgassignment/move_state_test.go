@@ -28,7 +28,7 @@ func TestAccCloudUserOrgAssignmentRS_moveFromOrgInvitation(t *testing.T) {
 			{
 				Config: configMoveFromOrgInvitationSecond(orgID, username, roles),
 				Check: resource.ComposeTestCheckFunc(
-					cloudUserOrgAssignmentChecks(orgID, username, "PENDING", roles),
+					cloudUserOrgAssignmentChecks("mongodbatlas_cloud_user_org_assignment.test", orgID, username, "PENDING", roles),
 					resource.TestCheckResourceAttr("mongodbatlas_cloud_user_org_assignment.test", "team_ids.#", "2"),
 				),
 			},
