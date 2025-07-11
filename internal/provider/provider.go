@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/myip"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
@@ -430,6 +431,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		alertconfiguration.DataSource,
 		alertconfiguration.PluralDataSource,
 		projectipaccesslist.DataSource,
+		myip.DataSource,
 		atlasuser.DataSource,
 		atlasuser.PluralDataSource,
 		searchdeployment.DataSource,
