@@ -2,6 +2,8 @@
 
 `mongodbatlas_project_api_key` describes a MongoDB Atlas Project API Key. This represents a Project API Key that has been created.
 
+~> **IMPORTANT NOTE** The use of `mongodbatlas_project_api_key` data source is no longer the recommended approach. For new configurations, we recommend using the `mongodbatlas_api_key` resource and the `mongodbatlas_api_key_project_assignment` resource to assign the API Keys to projects. This approach is more flexible and aligns with best practices. For existing configurations, the migration to the new pattern is **not required**. If you want to migrate, see the [Migration Guide](../guides/project-api-key-migration.md) for step-by-step instructions on migrating from `mongodbatlas_project_api_key` to the new pattern.
+
 ~> **IMPORTANT WARNING:** Managing Atlas Programmatic API Keys (PAKs) with Terraform will expose sensitive organizational secrets in Terraform's state. We suggest following [Terraform's best practices](https://developer.hashicorp.com/terraform/language/state/sensitive-data). You may also want to consider managing your PAKs via a more secure method, such as the [HashiCorp Vault MongoDB Atlas Secrets Engine](https://developer.hashicorp.com/vault/docs/secrets/mongodbatlas).
 
 -> **NOTE:** You may find project_id in the official documentation.
