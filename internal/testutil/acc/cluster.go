@@ -99,8 +99,8 @@ func existingProjectIDClusterName() (projectID, clusterName string) {
 	return os.Getenv("MONGODB_ATLAS_PROJECT_ID"), os.Getenv("MONGODB_ATLAS_CLUSTER_NAME")
 }
 
-func ExistingStreamInstanceUsed() bool {
-	return existingStreamInstanceName() != "" && os.Getenv("MONGODB_ATLAS_PROJECT_ID") != ""
+func existingStreamInstanceUsed() bool {
+	return existingStreamInstanceName() != "" && projectIDLocal() != ""
 }
 
 func existingStreamInstanceName() string {

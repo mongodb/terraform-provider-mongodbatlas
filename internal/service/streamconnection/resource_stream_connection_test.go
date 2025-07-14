@@ -34,7 +34,7 @@ data "mongodbatlas_stream_connections" "test" {
 data "mongodbatlas_stream_connections" "test" {
 		project_id = mongodbatlas_stream_connection.test.project_id
 		instance_name = mongodbatlas_stream_connection.test.instance_name
-		page_num = 2
+		page_num = 2 # no specific reason for 2, just to test pagination
 		items_per_page = 1
 	}
 	`

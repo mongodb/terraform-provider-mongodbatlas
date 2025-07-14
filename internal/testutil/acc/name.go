@@ -55,3 +55,7 @@ func RandomLDAPName() string {
 func RandomS3BucketName() string {
 	return fmt.Sprintf("%s-%s", prefixS3Bucket, acctest.RandString(10))
 }
+
+func RandonNameWithSuffix(name string) string {
+	return name + acctest.RandString(5)
+}

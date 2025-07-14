@@ -34,7 +34,7 @@ func cleanupSharedResources() {
 		fmt.Printf("Deleting execution cluster: %s, project id: %s\n", sharedInfo.clusterName, projectID)
 		deleteCluster(projectID, sharedInfo.clusterName)
 	}
-	if !ExistingStreamInstanceUsed() && sharedInfo.streamInstanceName != "" {
+	if sharedInfo.streamInstanceName != "" {
 		projectID := sharedInfo.projectID
 		if projectID == "" {
 			projectID = projectIDLocal() // Maybe we are using an existing project, but stream instance is not used
@@ -135,13 +135,14 @@ func ClusterNameExecution(tb testing.TB, populateSampleData bool) (projectID, cl
 // Uses the same ProjectID as the ProjectIDExecution.
 // The stream instance will include the `sample_stream_solar` connection. It is included to avoid ALREADY_EXIST errors as many different tests depends on this stream connection. Use a data source whenever you need it.
 // You can use `MONGODB_ATLAS_STREAM_INSTANCE_NAME` to use an "externally" managed stream instance.
+// We reuse a SPI to reduce the resource allocation (specially relevant for cloud dev).
 func ProjectIDExecutionWithStreamInstance(tb testing.TB) (projectID, streamInstanceName string) {
 	tb.Helper()
 	SkipInUnitTest(tb)
 	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
 	projectID = ProjectIDExecution(tb)
 
-	if ExistingStreamInstanceUsed() {
+	if existingStreamInstanceUsed() {
 		return projectID, existingStreamInstanceName()
 	}
 	sharedInfo.mu.Lock()
