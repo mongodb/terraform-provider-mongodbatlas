@@ -2,9 +2,9 @@ package clouduserteamassignment
 
 import (
 	"context"
-	"errors"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"go.mongodb.org/atlas-sdk/v20250312005/admin"
@@ -16,22 +16,25 @@ func NewTFUserTeamAssignmentModel(ctx context.Context, orgID, teamID string, api
 	// if diagnostics.HasError() {
 	// 	return nil, diagnostics
 	// }
-	var diags diag.Diagnostics
+	diags := diag.Diagnostics{}
+	var rolesObj types.Object
+	var rolesDiags diag.Diagnostics
+
 	if apiResp == nil {
 		diags.AddError("Invalid data", "The API response for the user team assignment is nil and cannot be processed.")
 		return nil, diags
 	}
-	rolesModel, diags := NewTFRolesModel(ctx, &apiResp.Roles)
-	if diags.HasError() {
-		return nil, diags
-	}
+	
+	rolesObj, rolesDiags = NewTFRolesModel(ctx, &apiResp.Roles)
+	diags.Append(rolesDiags...)
+	
 	userTeamAssignment := TFUserTeamAssignmentModel{
 		OrgID:               types.StringValue(orgID),
 		TeamID:              types.StringValue(teamID),
-		UserID:              types.StringValue(apiResp.Id),
-		Username:            types.StringValue(apiResp.Username),
-		OrgMembershipStatus: types.StringValue(apiResp.OrgMembershipStatus),
-		Roles:               rolesModel,
+		UserID:              types.StringValue(apiResp.GetId()),
+		Username:            types.StringValue(apiResp.GetUsername()),
+		OrgMembershipStatus: types.StringValue(apiResp.GetOrgMembershipStatus()),
+		Roles:               rolesObj,
 		InvitationCreatedAt: types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.InvitationCreatedAt)),
 		InvitationExpiresAt: types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.InvitationExpiresAt)),
 		InviterUsername:     types.StringPointerValue(apiResp.InviterUsername),
@@ -54,30 +57,56 @@ func NewTFUserTeamAssignmentModel(ctx context.Context, orgID, teamID string, api
 	return &userTeamAssignment, nil
 }
 
-func NewTFRolesModel(ctx context.Context, apiResp *admin.OrgUserRolesResponse) (*TFRolesModel, diag.Diagnostics) {
-	var diags diag.Diagnostics
+func NewTFRolesModel(ctx context.Context, roles *admin.OrgUserRolesResponse) (types.Object, diag.Diagnostics) {
+	diags := diag.Diagnostics{}
 
-	projectRoleAssignments := make([]*TFProjectRoleAssignmentsModel, len(*apiResp.GroupRoleAssignments))
-	for i, roleAssignment := range *apiResp.GroupRoleAssignments {
-		projectRoleAssignments[i] = &TFProjectRoleAssignmentsModel{
-			ProjectID:    types.StringValue(roleAssignment.GetGroupId()),
-			ProjectRoles: types.SetNull(types.StringType),
-		}
-		if roleAssignment.GetGroupRoles() != nil {
-			projectRoles, diags := types.SetValueFrom(ctx, types.StringType, roleAssignment.GetGroupRoles())
-			if diags.HasError() {
-				return nil, diags
-			}
-			projectRoleAssignments[i].ProjectRoles = projectRoles
-		}
+	if roles == nil {
+		return types.ObjectNull(RolesObjectAttrTypes), diags
 	}
 
-	orgRoles, _ := types.SetValueFrom(ctx, types.StringType, *apiResp.OrgRoles)
+	var orgRoles types.Set
+	if roles.OrgRoles == nil || len(*roles.OrgRoles) == 0 {
+		orgRoles = types.SetNull(types.StringType)
+	} else {
+		orgRoles, _ = types.SetValueFrom(ctx, types.StringType, *roles.OrgRoles)
+	}
+	
+	projectRoleAssignmentsList := NewTFProjectRoleAssignments(ctx, roles.GroupRoleAssignments)
 
-	return &TFRolesModel{
-		ProjectRoleAssignments: projectRoleAssignments,
-		OrgRoles:               orgRoles,
-	}, diags
+	rolesObj, _ := types.ObjectValue(
+		RolesObjectAttrTypes,
+		map[string]attr.Value{
+			"project_role_assignments": projectRoleAssignmentsList,
+			"org_roles":                orgRoles,
+		},
+	)
+
+	return rolesObj, diags
+}
+
+func NewTFProjectRoleAssignments(ctx context.Context, groupRoleAssignments *[]admin.GroupRoleAssignment) types.List {
+	if groupRoleAssignments == nil {
+		return types.ListNull(ProjectRoleAssignmentsAttrType)
+	}
+
+	var projectRoleAssignments []TFProjectRoleAssignmentsModel
+
+	for _, pra := range *groupRoleAssignments {
+		projectID := types.StringPointerValue(pra.GroupId)
+		var projectRoles types.Set
+		if pra.GroupRoles == nil || len(*pra.GroupRoles) == 0 {
+			projectRoles = types.SetNull(types.StringType)
+		} else {
+			projectRoles, _ = types.SetValueFrom(ctx, types.StringType, pra.GroupRoles)
+		}
+		projectRoleAssignments = append(projectRoleAssignments, TFProjectRoleAssignmentsModel{
+			ProjectID:    projectID,
+			ProjectRoles: projectRoles,
+		})
+	}
+
+	praList, _ := types.ListValueFrom(ctx, ProjectRoleAssignmentsAttrType.ElemType.(types.ObjectType), projectRoleAssignments)
+	return praList
 }
 
 func NewCloudUserTeamAssignmentReq(ctx context.Context, plan *TFUserTeamAssignmentModel) (*admin.AddOrRemoveUserFromTeam, diag.Diagnostics) {

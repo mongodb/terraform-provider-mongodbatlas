@@ -26,35 +26,6 @@ type rs struct {
 	config.RSCommon
 }
 
-type TFUserTeamAssignmentModel struct {
-	OrgID               types.String `tfsdk:"org_id"`
-	TeamID              types.String `tfsdk:"team_id"`
-	UserID              types.String `tfsdk:"user_id"`
-	Username            types.String `tfsdk:"username"`
-	OrgMembershipStatus types.String `tfsdk:"org_membership_status"`
-	Roles               TFRolesModel `tfsdk:"roles"`
-	TeamIDs             types.Set    `tfsdk:"team_ids"`
-	InvitationCreatedAt types.String `tfsdk:"invitation_created_at"`
-	InvitationExpiresAt types.String `tfsdk:"invitation_expires_at"`
-	InviterUsername     types.String `tfsdk:"inviter_username"`
-	Country             types.String `tfsdk:"country"`
-	FirstName           types.String `tfsdk:"first_name"`
-	LastName            types.String `tfsdk:"last_name"`
-	CreatedAt           types.String `tfsdk:"created_at"`
-	LastAuth            types.String `tfsdk:"last_auth"`
-	MobileNumber        types.String `tfsdk:"mobile_number"`
-}
-
-type TFRolesModel struct {
-	ProjectRoleAssignments []*TFProjectRoleAssignmentsModel `tfsdk:"project_role_assignments"`
-	OrgRoles               types.Set                        `tfsdk:"org_roles"`
-}
-
-type TFProjectRoleAssignmentsModel struct {
-	ProjectID    types.String `tfsdk:"project_id"`
-	ProjectRoles types.Set    `tfsdk:"project_roles"`
-}
-
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	// TODO: Schema and model must be defined in resource_schema.go. Details on scaffolding this file found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
 	resp.Schema = ResourceSchema(ctx)
