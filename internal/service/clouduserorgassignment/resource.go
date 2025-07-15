@@ -60,12 +60,11 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
-	newCloudUserOrgAssignmentModel, diags := NewTFModel(ctx, apiResp)
+	newCloudUserOrgAssignmentModel, diags := NewTFModel(ctx, apiResp, plan.OrgId.ValueString())
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	newCloudUserOrgAssignmentModel.OrgId = plan.OrgId
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, newCloudUserOrgAssignmentModel)...)
 }
@@ -111,12 +110,11 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 
-	newCloudUserOrgAssignmentModel, diags := NewTFModel(ctx, userResp)
+	newCloudUserOrgAssignmentModel, diags := NewTFModel(ctx, userResp, state.OrgId.ValueString())
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	newCloudUserOrgAssignmentModel.OrgId = state.OrgId
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, newCloudUserOrgAssignmentModel)...)
 }
@@ -145,12 +143,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 
-	newCloudUserOrgAssignmentModel, diags := NewTFModel(ctx, apiResp)
+	newCloudUserOrgAssignmentModel, diags := NewTFModel(ctx, apiResp, plan.OrgId.ValueString())
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	newCloudUserOrgAssignmentModel.OrgId = plan.OrgId
 	resp.Diagnostics.Append(resp.State.Set(ctx, newCloudUserOrgAssignmentModel)...)
 }
 

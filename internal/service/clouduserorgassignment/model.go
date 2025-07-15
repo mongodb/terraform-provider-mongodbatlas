@@ -13,7 +13,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
-func NewTFModel(ctx context.Context, apiResp *admin.OrgUserResponse) (*TFModel, diag.Diagnostics) {
+func NewTFModel(ctx context.Context, apiResp *admin.OrgUserResponse, orgID string) (*TFModel, diag.Diagnostics) {
 	diags := diag.Diagnostics{}
 	var rolesObj types.Object
 	var rolesDiags diag.Diagnostics
