@@ -32,6 +32,8 @@ const (
 
 	testProjectID1 = "project1"
 	testProjectID2 = "project2"
+
+	testOrgID = "org-123"
 )
 
 var (
@@ -133,7 +135,7 @@ func TestNewTFModel_SDKToTFModel(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			gotModel, diags := clouduserorgassignment.NewTFModel(ctx, tc.SDKResp)
+			gotModel, diags := clouduserorgassignment.NewTFModel(ctx, tc.SDKResp, testOrgID)
 			assert.False(t, diags.HasError(), "expected no diagnostics")
 			assert.Equal(t, tc.expectedTFModel, gotModel, "TFModel did not match expected")
 		})
