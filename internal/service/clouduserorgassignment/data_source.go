@@ -75,13 +75,11 @@ func (d *cloudUserOrgAssignmentDS) Read(ctx context.Context, req datasource.Read
 		orgUser = &(*usersResp.Results)[0]
 	}
 
-	tfModel, diags := NewTFModel(ctx, orgUser)
+	tfModel, diags := NewTFModel(ctx, orgUser, cloudUserOrgAssignmentConfig.OrgId.ValueString())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	tfModel.OrgId = cloudUserOrgAssignmentConfig.OrgId
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, tfModel)...)
 }
