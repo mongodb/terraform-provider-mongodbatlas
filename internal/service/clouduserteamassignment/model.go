@@ -3,19 +3,14 @@ package clouduserteamassignment
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
-// TODO: `ctx` parameter and `diags` return value can be removed if tf schema has no complex data types (e.g., schema.ListAttribute, schema.SetAttribute)
 func NewTFUserTeamAssignmentModel(ctx context.Context, orgID, teamID string, apiResp *admin.OrgUserResponse) (*TFUserTeamAssignmentModel, diag.Diagnostics) {
-	// complexAttr, diagnostics := types.ListValueFrom(ctx, InnerObjectType, newTFComplexAttrModel(apiResp.ComplexAttr))
-	// if diagnostics.HasError() {
-	// 	return nil, diagnostics
-	// }
 	diags := diag.Diagnostics{}
 	var rolesObj types.Object
 	var rolesDiags diag.Diagnostics
@@ -24,14 +19,14 @@ func NewTFUserTeamAssignmentModel(ctx context.Context, orgID, teamID string, api
 		diags.AddError("Invalid data", "The API response for the user team assignment is nil and cannot be processed.")
 		return nil, diags
 	}
-	
+
 	rolesObj, rolesDiags = NewTFRolesModel(ctx, &apiResp.Roles)
 	diags.Append(rolesDiags...)
-	
+
 	userTeamAssignment := TFUserTeamAssignmentModel{
-		OrgID:               types.StringValue(orgID),
-		TeamID:              types.StringValue(teamID),
-		UserID:              types.StringValue(apiResp.GetId()),
+		OrgId:               types.StringValue(orgID),
+		TeamId:              types.StringValue(teamID),
+		UserId:              types.StringValue(apiResp.GetId()),
 		Username:            types.StringValue(apiResp.GetUsername()),
 		OrgMembershipStatus: types.StringValue(apiResp.GetOrgMembershipStatus()),
 		Roles:               rolesObj,
@@ -70,7 +65,7 @@ func NewTFRolesModel(ctx context.Context, roles *admin.OrgUserRolesResponse) (ty
 	} else {
 		orgRoles, _ = types.SetValueFrom(ctx, types.StringType, *roles.OrgRoles)
 	}
-	
+
 	projectRoleAssignmentsList := NewTFProjectRoleAssignments(ctx, roles.GroupRoleAssignments)
 
 	rolesObj, _ := types.ObjectValue(
@@ -109,9 +104,9 @@ func NewTFProjectRoleAssignments(ctx context.Context, groupRoleAssignments *[]ad
 	return praList
 }
 
-func NewCloudUserTeamAssignmentReq(ctx context.Context, plan *TFUserTeamAssignmentModel) (*admin.AddOrRemoveUserFromTeam, diag.Diagnostics) {
+func NewUserTeamAssignmentReq(ctx context.Context, plan *TFUserTeamAssignmentModel) (*admin.AddOrRemoveUserFromTeam, diag.Diagnostics) {
 	addOrRemoveUserFromTeam := admin.AddOrRemoveUserFromTeam{
-		Id: plan.UserID.ValueString(),
+		Id: plan.UserId.ValueString(),
 	}
 	return &addOrRemoveUserFromTeam, nil
 }

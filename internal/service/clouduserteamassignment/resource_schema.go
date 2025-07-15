@@ -3,124 +3,124 @@ package clouduserteamassignment
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"org_id": schema.StringAttribute{
-				Required: true,
+				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.",
 			},
 			"team_id": schema.StringAttribute{
-				Required: true,
+				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the team to which you want to assign the MongoDB Cloud user. Use the [/teams](#tag/Teams/operation/listTeams) endpoint to retrieve all teams to which the authenticated user has access.",
 			},
 			"user_id": schema.StringAttribute{
-				Required: true,
+				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the MongoDB Cloud user.",
 			},
 			"username": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
 				MarkdownDescription: "Email address that represents the username of the MongoDB Cloud user.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"org_membership_status": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
 				MarkdownDescription: "String enum that indicates whether the MongoDB Cloud user has a pending invitation to join the organization or they are already active in the organization.",
 			},
 			"roles": schema.SingleNestedAttribute{
-				Computed: true,
+				Computed:            true,
 				MarkdownDescription: "Organization and project level roles to assign the MongoDB Cloud user within one organization.",
 				Attributes: map[string]schema.Attribute{
 					"project_role_assignmets": schema.SetNestedAttribute{
-						Computed: true,
+						Computed:            true,
 						MarkdownDescription: "List of project level role assignments to assign the MongoDB Cloud user.",
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"project_id": schema.StringAttribute{
-									Computed: true,
+									Computed:            true,
 									MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the project to which these roles belong.",
 								},
 								"project_roles": schema.SetAttribute{
-									ElementType: types.StringType,
-									Computed:    true,
+									ElementType:         types.StringType,
+									Computed:            true,
 									MarkdownDescription: "One or more project-level roles assigned to the MongoDB Cloud user.",
 								},
 							},
 						},
 					},
 					"org_roles": schema.SetAttribute{
-						ElementType: types.StringType,
-						Computed:    true,
+						ElementType:         types.StringType,
+						Computed:            true,
 						MarkdownDescription: "One or more organization level roles to assign the MongoDB Cloud user.",
 					},
 				},
 			},
 			"team_ids": schema.SetAttribute{
-				ElementType: types.StringType,
-				Computed:    true,
+				ElementType:         types.StringType,
+				Computed:            true,
 				MarkdownDescription: "List of unique 24-hexadecimal digit strings that identifies the teams to which this MongoDB Cloud user belongs.",
 			},
 			"invitation_created_at": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
 				MarkdownDescription: "Date and time when MongoDB Cloud sent the invitation. MongoDB Cloud represents this timestamp in ISO 8601 format in UTC.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"invitation_expires_at": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
 				MarkdownDescription: "Date and time when the invitation from MongoDB Cloud expires. MongoDB Cloud represents this timestamp in ISO 8601 format in UTC.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"inviter_username": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
 				MarkdownDescription: "Username of the MongoDB Cloud user who sent the invitation to join the organization.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"country": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
 				MarkdownDescription: "Two-character alphabetical string that identifies the MongoDB Cloud user's geographic location. This parameter uses the ISO 3166-1a2 code format.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"first_name": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
 				MarkdownDescription: "First or given name that belongs to the MongoDB Cloud user.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"last_name": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
 				MarkdownDescription: "Last name, family name, or surname that belongs to the MongoDB Cloud user.",
 			},
 			"created_at": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
 				MarkdownDescription: "Date and time when MongoDB Cloud created the current account. This value is in the ISO 8601 timestamp format in UTC.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"last_auth": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
 				MarkdownDescription: "Date and time when the current account last authenticated. This value is in the ISO 8601 timestamp format in UTC.",
 			},
 			"mobile_number": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
 				MarkdownDescription: "Mobile phone number that belongs to the MongoDB Cloud user.",
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
@@ -131,9 +131,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFUserTeamAssignmentModel struct {
-	OrgID               types.String `tfsdk:"org_id"`
-	TeamID              types.String `tfsdk:"team_id"`
-	UserID              types.String `tfsdk:"user_id"`
+	OrgId               types.String `tfsdk:"org_id"`
+	TeamId              types.String `tfsdk:"team_id"`
+	UserId              types.String `tfsdk:"user_id"`
 	Username            types.String `tfsdk:"username"`
 	OrgMembershipStatus types.String `tfsdk:"org_membership_status"`
 	Roles               types.Object `tfsdk:"roles"`
@@ -151,7 +151,7 @@ type TFUserTeamAssignmentModel struct {
 
 type TFRolesModel struct {
 	ProjectRoleAssignments types.List `tfsdk:"project_role_assignments"`
-	OrgRoles               types.Set                        `tfsdk:"org_roles"`
+	OrgRoles               types.Set  `tfsdk:"org_roles"`
 }
 
 type TFProjectRoleAssignmentsModel struct {
