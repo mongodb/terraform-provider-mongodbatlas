@@ -2,11 +2,16 @@ package clouduserteamassignment
 
 import (
 	"context"
+	"fmt"
+	"net/http"
+	"regexp"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
 const resourceName = "cloud_user_team_assignment"
@@ -27,28 +32,20 @@ type rs struct {
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	// TODO: Schema and model must be defined in resource_schema.go. Details on scaffolding this file found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
 	resp.Schema = ResourceSchema(ctx)
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
 func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var userTeamAssignment TFUserTeamAssignmentModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &userTeamAssignment)...)
+	var plan TFUserTeamAssignmentModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	// TODO: make POST request to Atlas API and handle error in response
-
-	// connV2 := r.Client.AtlasV2
-	//if err != nil {
-	//	resp.Diagnostics.AddError("error creating resource", err.Error())
-	//	return
-	//}
 	connV2 := r.Client.AtlasV2
-	orgID := userTeamAssignment.OrgID.ValueString()
-	teamID := userTeamAssignment.TeamID.ValueString()
-	cloudUserTeamAssignmentReq, diags := NewCloudUserTeamAssignmentReq(ctx, &userTeamAssignment)
+	orgID := plan.OrgId.ValueString()
+	teamID := plan.TeamId.ValueString()
+	cloudUserTeamAssignmentReq, diags := NewUserTeamAssignmentReq(ctx, &plan)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -56,40 +53,67 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 
 	apiResp, _, err := connV2.MongoDBCloudUsersApi.AddUserToTeam(ctx, orgID, teamID, cloudUserTeamAssignmentReq).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError("error creating resource", err.Error())
+		resp.Diagnostics.AddError(fmt.Sprintf("error assigning user to TeamID(%s):", teamID), err.Error())
 		return
 	}
 
-	// TODO: process response into new terraform state
-	newCloudUserTeamAssignmentModel, diags := NewTFUserTeamAssignmentModel(ctx, apiResp)
+	newUserTeamAssignmentModel, diags := NewTFUserTeamAssignmentModel(ctx, orgID, teamID, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, newCloudUserTeamAssignmentModel)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, newUserTeamAssignmentModel)...)
 }
 
 func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var cloudUserTeamAssignmentState TFModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &cloudUserTeamAssignmentState)...)
+	var state TFUserTeamAssignmentModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	connV2 := r.Client.AtlasV2
+	orgID := state.OrgId.ValueString()
+	teamID := state.TeamId.ValueString()
 
-	// TODO: make get request to resource
+	var userListResp *admin.PaginatedOrgUser
+	var httpResp *http.Response
+	var err error
 
-	// connV2 := r.Client.AtlasV2
-	//if err != nil {
-	//	if validate.StatusNotFound(apiResp) {
-	//		resp.State.RemoveResource(ctx)
-	//		return
-	//	}
-	//	resp.Diagnostics.AddError("error fetching resource", err.Error())
-	//	return
-	//}
+	userListResp, httpResp, err = connV2.MongoDBCloudUsersApi.ListTeamUsers(ctx, orgID, teamID).Execute()
+	if validate.StatusNotFound(httpResp) {
+		resp.State.RemoveResource(ctx)
+		return
+	}
 
-	// TODO: process response into new terraform state
-	newCloudUserTeamAssignmentModel, diags := NewTFModel(ctx, apiResp)
+	var userResp *admin.OrgUserResponse
+	if !state.UserId.IsNull() && state.UserId.ValueString() != "" {
+		userID := state.UserId.ValueString()
+		for _, user := range userListResp.GetResults() {
+			if user.GetId() == userID {
+				userResp = &user
+				break
+			}
+		}
+	} else if !state.Username.IsNull() && state.Username.ValueString() != "" { // required for import
+		username := state.Username.ValueString()
+		for _, user := range userListResp.GetResults() {
+			if user.GetUsername() == username {
+				userResp = &user
+				break
+			}
+		}
+	}
+	if err != nil {
+		resp.Diagnostics.AddError(fmt.Sprintf("error fetching user(%s) from TeamID(%s):", userResp.Username, teamID), err.Error())
+		return
+	}
+
+	if userResp == nil {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
+	newCloudUserTeamAssignmentModel, diags := NewTFUserTeamAssignmentModel(ctx, orgID, teamID, userResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -98,61 +122,52 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var tfModel TFModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &tfModel)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	cloudUserTeamAssignmentReq, diags := NewAtlasReq(ctx, &tfModel)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-
-	// TODO: make PATCH request to Atlas API and handle error in response
-	// connV2 := r.Client.AtlasV2
-	//if err != nil {
-	//	resp.Diagnostics.AddError("error updating resource", err.Error())
-	//	return
-	//}
-
-	// TODO: process response into new terraform state
-
-	newCloudUserTeamAssignmentModel, diags := NewTFModel(ctx, apiResp)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, newCloudUserTeamAssignmentModel)...)
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var cloudUserTeamAssignmentState *TFModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &cloudUserTeamAssignmentState)...)
+	var state *TFUserTeamAssignmentModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// TODO: make Delete request to Atlas API
+	connV2 := r.Client.AtlasV2
+	orgID := state.OrgId.ValueString()
+	userID := state.UserId.ValueString()
+	teamID := state.TeamId.ValueString()
 
-	// connV2 := r.Client.AtlasV2
-	// if _, _, err := connV2.Api.Delete().Execute(); err != nil {
-	// 	 resp.Diagnostics.AddError("error deleting resource", err.Error())
-	// 	 return
-	// }
+	userInfo := &admin.AddOrRemoveUserFromTeam{
+		Id: userID,
+	}
+
+	_, httpResp, err := connV2.MongoDBCloudUsersApi.RemoveUserFromTeam(ctx, orgID, teamID, userInfo).Execute()
+	if err != nil {
+		if validate.StatusNotFound(httpResp) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		resp.Diagnostics.AddError(fmt.Sprintf("error deleting user(%s) from TeamID(%s):", userID, teamID), err.Error())
+		return
+	}
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	// TODO: parse req.ID string taking into account documented format. Example:
+	importID := req.ID
+	ok, part1, part2, part3 := conversion.ImportSplit3(req.ID)
+	if !ok {
+		resp.Diagnostics.AddError("invalid import ID format", "expected 'org_id/team_id/user_id' or 'org_id/team_id/username', got: "+importID)
+		return
+	}
+	orgID, teamID, user := part1, part2, part3
 
-	// projectID, other, err := splitCloudUserTeamAssignmentImportID(req.ID)
-	// if err != nil {
-	//	resp.Diagnostics.AddError("error splitting import ID", err.Error())
-	//	return
-	//}
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("org_id"), orgID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("team_id"), teamID)...)
 
-	// TODO: define attributes that are required for read operation to work correctly. Example:
+	emailRegex := regexp.MustCompile(`^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$`)
 
-	// resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
+	if emailRegex.MatchString(user) {
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("username"), user)...)
+	} else {
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("user_id"), user)...)
+	}
 }
