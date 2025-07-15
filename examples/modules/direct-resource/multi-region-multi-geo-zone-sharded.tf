@@ -1,9 +1,9 @@
 # - multiple regions (different geographies) 
 # - sharded zones
 
-resource "mongodbatlas_advanced_cluster" "atlas-cluster-multiregion-multigeo-sharded" {
+resource "mongodbatlas_advanced_cluster" "multi-region-multi-geo-zone-sharded" {
   project_id = var.project_id
-  name = "MultiRegionMultiGeoShardedCluster"
+  name = "multi-region-multi-geo-zone-sharded"
   cluster_type = "GEOSHARDED"
   mongo_db_major_version = "8.0"
 

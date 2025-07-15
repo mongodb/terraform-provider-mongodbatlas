@@ -1,9 +1,9 @@
 # multiple providers, multi-region single geo
 # multi-cloud can also apply to multi-region multi geo, with sharding.
 
-resource "mongodbatlas_advanced_cluster" "atlas-cluster-multiregion-same-geography" {
+resource "mongodbatlas_advanced_cluster" "multi-cloud" {
   project_id = var.project_id
-  name = "MultiCloudCluster"
+  name = "multi-cloud"
   cluster_type = "REPLICASET"
   mongo_db_major_version = "8.0"
   replication_specs {

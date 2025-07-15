@@ -1,10 +1,9 @@
 # - single region
 # - no sharding
 
-
-resource "mongodbatlas_advanced_cluster" "atlas-cluster" {
+resource "mongodbatlas_advanced_cluster" "single-region" {
   project_id = var.project_id
-  name = "SingleRegionCluster"
+  name = "single-region"
   cluster_type = "REPLICASET"
   mongo_db_major_version = "8.0"
   replication_specs {
