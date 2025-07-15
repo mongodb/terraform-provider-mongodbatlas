@@ -4,7 +4,7 @@ resource "mongodbatlas_cloud_user_org_assignment" "example" {
   roles = {
     org_roles = ["ORG_MEMBER"]
   }
-} 
+}
 
 data "mongodbatlas_cloud_user_org_assignment" "example_username" {
   org_id   = var.org_id
