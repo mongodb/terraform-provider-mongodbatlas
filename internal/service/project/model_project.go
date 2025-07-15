@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
-func UsersProjectSchema() schema.SetNestedAttribute {
-	return schema.SetNestedAttribute{
+func UsersProjectSchema() schema.ListNestedAttribute {
+	return schema.ListNestedAttribute{
 		Computed: true,
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
@@ -27,7 +27,7 @@ func UsersProjectSchema() schema.SetNestedAttribute {
 				"org_membership_status": schema.StringAttribute{
 					Computed: true,
 				},
-				"roles": schema.ListAttribute{
+				"roles": schema.SetAttribute{
 					Computed:    true,
 					ElementType: types.StringType,
 				},
@@ -138,7 +138,7 @@ type TFTeamDSModel struct {
 type TFCloudUsersDSModel struct {
 	ID                  types.String `tfsdk:"id"`
 	OrgMembershipStatus types.String `tfsdk:"org_membership_status"`
-	Roles               types.List   `tfsdk:"roles"`
+	Roles               types.Set    `tfsdk:"roles"`
 	Username            types.String `tfsdk:"username"`
 	InvitationCreatedAt types.String `tfsdk:"invitation_created_at"`
 	InvitationExpiresAt types.String `tfsdk:"invitation_expires_at"`
@@ -229,7 +229,7 @@ func NewTFCloudUsersDataSourceModel(ctx context.Context, cloudUsers []admin.Grou
 	users := make([]*TFCloudUsersDSModel, len(cloudUsers))
 	for i := range cloudUsers {
 		cloudUser := &cloudUsers[i]
-		roles, _ := types.ListValueFrom(ctx, types.StringType, cloudUser.Roles)
+		roles, _ := types.SetValueFrom(ctx, types.StringType, cloudUser.Roles)
 		users[i] = &TFCloudUsersDSModel{
 			ID:                  types.StringValue(cloudUser.Id),
 			OrgMembershipStatus: types.StringValue(cloudUser.OrgMembershipStatus),
