@@ -1,4 +1,5 @@
-# - multiple regions (different geographies) with sharded zones
+# - multiple regions (different geographies) 
+# - sharded zones
 
 resource "mongodbatlas_advanced_cluster" "atlas-cluster-multiregion-multigeo-sharded" {
   project_id = var.project_id

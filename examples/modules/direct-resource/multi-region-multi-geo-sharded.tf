@@ -1,8 +1,9 @@
-# - multiple regions (different geographies)
+# - multiple regions (different geographies) 
+# - with shards (single zone)
 
 resource "mongodbatlas_advanced_cluster" "atlas-cluster-multiregion-multigeo" {
   project_id = var.project_id
-  name = "MultiRegionMultiGeoCluster"
+  name = "Cluster"
   cluster_type = "SHARDED"
   mongo_db_major_version = "8.0"
   replication_specs { # shard 1 (single zone)

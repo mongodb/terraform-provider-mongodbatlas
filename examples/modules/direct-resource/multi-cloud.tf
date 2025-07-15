@@ -1,5 +1,5 @@
 # multiple providers, multi-region single geo
-# multi-cloud can also apply to multi-region multi geo, or geo-sharded.
+# multi-cloud can also apply to multi-region multi geo, with sharding.
 
 resource "mongodbatlas_advanced_cluster" "atlas-cluster-multiregion-same-geography" {
   project_id = var.project_id

@@ -1,5 +1,8 @@
-# single provider, multiple regions (same geography)
+
 # 5-Node 2-Region Architecture
+
+# - multiple regions (same geography)
+# no sharding
 
 resource "mongodbatlas_advanced_cluster" "atlas-cluster-multiregion-same-geography" {
   project_id = var.project_id

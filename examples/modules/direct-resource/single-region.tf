@@ -1,4 +1,7 @@
 # - single region
+# - no sharding
+
+
 resource "mongodbatlas_advanced_cluster" "atlas-cluster" {
   project_id = var.project_id
   name = "SingleRegionCluster"
