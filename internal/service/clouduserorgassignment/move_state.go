@@ -49,7 +49,7 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 		diags.AddError("Unable to Parse state", err.Error())
 		return
 	}
-	orgID, username, roles := getOrgIDUsernameRolesFromStateObj(diags, stateObj)
+	orgID, username := getOrgIDUsernameRolesFromStateObj(diags, stateObj)
 	if diags.HasError() {
 		return
 	}
@@ -57,59 +57,21 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 	model := TFModel{
 		OrgId:    types.StringPointerValue(orgID),
 		Username: types.StringPointerValue(username),
-		Roles:    createRolesObject(roles),
+		Roles:    types.ObjectNull(RolesObjectAttrTypes),               // Let roles be populated during Read
 		TeamIds:  types.SetValueMust(types.StringType, []attr.Value{}), // Empty set for team IDs, will be populated during Read
 	}
 
 	diags.Append(stateOut.Set(ctx, model)...)
 }
 
-func getOrgIDUsernameRolesFromStateObj(diags *diag.Diagnostics, stateObj map[string]tftypes.Value) (orgID, username *string, roles []string) {
+func getOrgIDUsernameRolesFromStateObj(diags *diag.Diagnostics, stateObj map[string]tftypes.Value) (orgID, username *string) {
 	orgID = schemafunc.GetAttrFromStateObj[string](stateObj, "org_id")
 	username = schemafunc.GetAttrFromStateObj[string](stateObj, "username")
-	rolesPtr := schemafunc.GetAttrFromStateObj[[]string](stateObj, "roles")
 	if !conversion.IsStringPresent(orgID) || !conversion.IsStringPresent(username) {
 		diags.AddError("Unable to read org_id or username from state", fmt.Sprintf("org_id: %s, username: %s",
 			conversion.SafeString(orgID), conversion.SafeString(username)))
 		return
 	}
-	if rolesPtr != nil {
-		roles = *rolesPtr
-	}
-	return orgID, username, roles
-}
 
-func createRolesObject(roles []string) types.Object {
-	rolesSet := types.SetValueMust(types.StringType, func() []attr.Value {
-		values := make([]attr.Value, len(roles))
-		for i, role := range roles {
-			values[i] = types.StringValue(role)
-		}
-		return values
-	}())
-
-	projectRoleAssignments := types.ListValueMust(
-		types.ObjectType{
-			AttrTypes: map[string]attr.Type{
-				"project_id":    types.StringType,
-				"project_roles": types.SetType{ElemType: types.StringType},
-			},
-		},
-		[]attr.Value{},
-	)
-
-	rolesObj, _ := types.ObjectValue(map[string]attr.Type{
-		"org_roles": types.SetType{ElemType: types.StringType},
-		"project_role_assignments": types.ListType{ElemType: types.ObjectType{
-			AttrTypes: map[string]attr.Type{
-				"project_id":    types.StringType,
-				"project_roles": types.SetType{ElemType: types.StringType},
-			},
-		}},
-	}, map[string]attr.Value{
-		"org_roles":                rolesSet,
-		"project_role_assignments": projectRoleAssignments,
-	})
-
-	return rolesObj
+	return orgID, username
 }
