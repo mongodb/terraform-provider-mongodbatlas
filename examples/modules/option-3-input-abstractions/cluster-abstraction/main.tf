@@ -18,8 +18,25 @@ locals {
               disk_size_gb    = var.single_region.disk_size_gb    != null ? var.single_region.disk_size_gb    : null
               disk_iops       = var.single_region.disk_iops       != null ? var.single_region.disk_iops       : null
             }
-            read_only_specs = null
+            read_only_specs = ( // Holds assumption that electable_specs and read_only_specs have same characteristics besides node_count
+              var.single_region.read_only_node_count > 0 ? {
+                instance_size = var.single_region.instance_size
+                node_count    = var.single_region.read_only_node_count
+                ebs_volume_type = var.single_region.ebs_volume_type != null ? var.single_region.ebs_volume_type : null
+              disk_size_gb    = var.single_region.disk_size_gb    != null ? var.single_region.disk_size_gb    : null
+              disk_iops       = var.single_region.disk_iops       != null ? var.single_region.disk_iops       : null
+              } : null
+            )
             auto_scaling    = var.auto_scaling
+            analytics_specs = (
+              var.single_region.analytics_specs != null ? {
+                instance_size   = var.single_region.analytics_specs.instance_size
+                node_count      = var.single_region.analytics_specs.node_count
+                ebs_volume_type = var.single_region.analytics_specs.ebs_volume_type != null ? var.single_region.analytics_specs.ebs_volume_type : null
+                disk_size_gb    = var.single_region.analytics_specs.disk_size_gb    != null ? var.single_region.analytics_specs.disk_size_gb    : null
+                disk_iops       = var.single_region.analytics_specs.disk_iops       != null ? var.single_region.analytics_specs.disk_iops       : null
+              } : null
+            )
           }
         ]
       }
@@ -58,6 +75,20 @@ resource "mongodbatlas_advanced_cluster" "this" {
             content {
               instance_size = read_only_specs.value.instance_size
               node_count    = read_only_specs.value.node_count
+              ebs_volume_type = read_only_specs.value.ebs_volume_type != null ? read_only_specs.value.ebs_volume_type : null
+              disk_size_gb    = read_only_specs.value.disk_size_gb    != null ? read_only_specs.value.disk_size_gb    : null
+              disk_iops       = read_only_specs.value.disk_iops       != null ? read_only_specs.value.disk_iops       : null
+            }
+          }
+
+          dynamic "analytics_specs" {
+            for_each = region_configs.value.analytics_specs != null ? [region_configs.value.analytics_specs] : []
+            content {
+              instance_size   = analytics_specs.value.instance_size
+              node_count      = analytics_specs.value.node_count
+              ebs_volume_type = analytics_specs.value.ebs_volume_type != null ? analytics_specs.value.ebs_volume_type : null
+              disk_size_gb    = analytics_specs.value.disk_size_gb    != null ? analytics_specs.value.disk_size_gb    : null
+              disk_iops       = analytics_specs.value.disk_iops       != null ? analytics_specs.value.disk_iops       : null
             }
           }
 
@@ -70,6 +101,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
               compute_max_instance_size = region_configs.value.auto_scaling.compute_max_instance_size
             }
           }
+          
         }
       }
     }

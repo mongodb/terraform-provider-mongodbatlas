@@ -6,8 +6,7 @@ variable "private_key" {
   description = "Private API key to authenticate to Atlas"
   type        = string
 }
-variable "cluster_name" {
-  description = "Atlas cluster name"
+variable "project_id" {
+  description = "Atlas project ID"
   type        = string
-  default     = "GlobalCluster"
 }

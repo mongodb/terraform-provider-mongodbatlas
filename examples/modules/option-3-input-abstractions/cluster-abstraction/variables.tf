@@ -9,6 +9,13 @@ variable "single_region" {
     disk_iops = optional(number)
     node_count     = number
     read_only_node_count = optional(number, 0)
+    analytics_specs = optional(object({
+      instance_size   = string
+      ebs_volume_type = optional(string)
+      disk_size_gb    = optional(number)
+      disk_iops       = optional(number)
+      node_count      = number
+    }))
   })
   default = null
 }
@@ -24,7 +31,7 @@ variable "auto_scaling" {
   default = {
     disk_gb_enabled           = true
     compute_enabled           = true
-    compute_max_instance_size = "M60"
+    compute_max_instance_size = "M60" // TODO do we want to keep this as the default?
     compute_min_instance_size = "M30"
   }
 }

@@ -3,7 +3,7 @@
 module "cluster_abstraction" {
   source = "./cluster-abstraction"
 
-  project_id = ""
+  project_id = var.project_id
   name       = "example-single-region-cluster"
   cluster_type = "REPLICASET"
   mongo_db_major_version = "8.0"
