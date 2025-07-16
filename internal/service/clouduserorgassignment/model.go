@@ -28,6 +28,7 @@ func NewTFModel(ctx context.Context, apiResp *admin.OrgUserResponse, orgID strin
 	teamIDs := conversion.TFSetValueOrNull(ctx, apiResp.TeamIds, types.StringType)
 
 	return &TFModel{
+		OrgId:               types.StringValue(orgID),
 		Country:             types.StringPointerValue(apiResp.Country),
 		CreatedAt:           types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.CreatedAt)),
 		FirstName:           types.StringPointerValue(apiResp.FirstName),

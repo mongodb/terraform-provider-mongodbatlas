@@ -13,7 +13,7 @@ import (
 
 func TestAccCloudUserOrgAssignmentRS_moveFromOrgInvitation(t *testing.T) {
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	username := "test-move-from-org-invitation@example.com"
+	username := acc.RandomEmail()
 	roles := []string{"ORG_MEMBER", "ORG_GROUP_CREATOR"}
 	teamsIDs := []string{acc.GetProjectTeamsIDsWithPos(0), acc.GetProjectTeamsIDsWithPos(1)}
 
