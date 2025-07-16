@@ -49,10 +49,8 @@ func Resource() *schema.Resource {
 				},
 			},
 			"hour_of_day": {
-				Type:          schema.TypeInt,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"start_asap"},
+				Type:     schema.TypeInt,
+				Required: true,
 				ValidateFunc: func(val any, key string) (warns []string, errs []error) {
 					v := val.(int)
 					if v < 0 || v > 23 {
@@ -124,9 +122,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	params := new(admin.GroupMaintenanceWindow)
 
 	params.DayOfWeek = cast.ToInt(d.Get("day_of_week"))
-
-	hourOfDay := d.Get("hour_of_day")
-	params.HourOfDay = conversion.Pointer(cast.ToInt(hourOfDay)) // during creation of maintenance window hourOfDay needs to be set in PATCH to avoid errors, 0 value is sent when absent
+	params.HourOfDay = conversion.Pointer(cast.ToInt(d.Get("hour_of_day")))
 
 	if autoDeferOnceEnabled, ok := d.GetOk("auto_defer_once_enabled"); ok {
 		params.AutoDeferOnceEnabled = conversion.Pointer(autoDeferOnceEnabled.(bool))
