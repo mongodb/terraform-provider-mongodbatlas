@@ -61,7 +61,6 @@ func Resource() *schema.Resource {
 			},
 			"start_asap": {
 				Type:     schema.TypeBool,
-				Optional: true,
 				Computed: true,
 			},
 			"number_of_deferrals": {
