@@ -1,47 +1,43 @@
 # Main resource logic for cluster-abstraction module
 
 locals {
-  # If single_region is set, build the specs from it; else, empty list
-  effective_replication_specs = (
-    var.single_region != null ? [
-      {
-        zone_name      = null
-        region_configs = [
-          {
-            provider_name   = var.single_region.provider_name
-            region_name     = var.single_region.region_name
-            priority        = 7
-            electable_specs = {
-              instance_size = var.single_region.instance_size
-              node_count    = var.single_region.node_count
-              ebs_volume_type = var.single_region.ebs_volume_type != null ? var.single_region.ebs_volume_type : null
-              disk_size_gb    = var.single_region.disk_size_gb    != null ? var.single_region.disk_size_gb    : null
-              disk_iops       = var.single_region.disk_iops       != null ? var.single_region.disk_iops       : null
-            }
-            read_only_specs = ( // Holds assumption that electable_specs and read_only_specs have same characteristics besides node_count
-              var.single_region.read_only_node_count > 0 ? {
-                instance_size = var.single_region.instance_size
-                node_count    = var.single_region.read_only_node_count
-                ebs_volume_type = var.single_region.ebs_volume_type != null ? var.single_region.ebs_volume_type : null
-              disk_size_gb    = var.single_region.disk_size_gb    != null ? var.single_region.disk_size_gb    : null
-              disk_iops       = var.single_region.disk_iops       != null ? var.single_region.disk_iops       : null
-              } : null
-            )
-            auto_scaling    = var.auto_scaling
-            analytics_specs = (
-              var.single_region.analytics_specs != null ? {
-                instance_size   = var.single_region.analytics_specs.instance_size
-                node_count      = var.single_region.analytics_specs.node_count
-                ebs_volume_type = var.single_region.analytics_specs.ebs_volume_type != null ? var.single_region.analytics_specs.ebs_volume_type : null
-                disk_size_gb    = var.single_region.analytics_specs.disk_size_gb    != null ? var.single_region.analytics_specs.disk_size_gb    : null
-                disk_iops       = var.single_region.analytics_specs.disk_iops       != null ? var.single_region.analytics_specs.disk_iops       : null
-              } : null
-            )
-          }
-        ]
-      }
-    ] : []
-  )
+  # Build the specs from the list of replica_set_regions
+  effective_replication_specs = [
+    {
+      zone_name      = null
+      region_configs = [for region in var.replica_set_regions : {
+        provider_name   = region.provider_name
+        region_name     = region.region_name
+        priority        = region.priority
+        electable_specs = {
+          instance_size = region.instance_size
+          node_count    = region.electable_node_count
+          ebs_volume_type = region.ebs_volume_type != null ? region.ebs_volume_type : null
+          disk_size_gb    = region.disk_size_gb    != null ? region.disk_size_gb    : null
+          disk_iops       = region.disk_iops       != null ? region.disk_iops       : null
+        }
+        read_only_specs = (
+          region.read_only_node_count > 0 ? {
+            instance_size = region.instance_size
+            node_count    = region.read_only_node_count
+            ebs_volume_type = region.ebs_volume_type != null ? region.ebs_volume_type : null
+            disk_size_gb    = region.disk_size_gb    != null ? region.disk_size_gb    : null
+            disk_iops       = region.disk_iops       != null ? region.disk_iops       : null
+          } : null
+        )
+        auto_scaling    = var.auto_scaling
+        analytics_specs = (
+          region.analytics_specs != null ? {
+            instance_size   = region.analytics_specs.instance_size
+            node_count      = region.analytics_specs.node_count
+            ebs_volume_type = region.analytics_specs.ebs_volume_type != null ? region.analytics_specs.ebs_volume_type : null
+            disk_size_gb    = region.analytics_specs.disk_size_gb    != null ? region.analytics_specs.disk_size_gb    : null
+            disk_iops       = region.analytics_specs.disk_iops       != null ? region.analytics_specs.disk_iops       : null
+          } : null
+        )
+      }]
+    }
+  ]
 }
 
 resource "mongodbatlas_advanced_cluster" "this" {
