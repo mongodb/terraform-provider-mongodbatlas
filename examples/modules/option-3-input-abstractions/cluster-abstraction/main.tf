@@ -27,6 +27,7 @@ locals {
             } : null
           )
           auto_scaling    = var.auto_scaling
+          analytics_auto_scaling = var.analytics_auto_scaling
           analytics_specs = (
             region.analytics_specs != null ? {
               instance_size   = region.analytics_specs.instance_size
@@ -52,7 +53,7 @@ locals {
             disk_size_gb    = try(region.disk_size_gb, null)
             disk_iops       = try(region.disk_iops, null)
           }
-          read_only_specs = (
+          read_only_specs = ( # read_only_specs uses same compute and storage configs as electable_specs, this is how API currently works
             try(region.read_only_node_count, 0) > 0 ? {
               instance_size   = region.instance_size
               node_count      = region.read_only_node_count
@@ -61,7 +62,8 @@ locals {
               disk_iops       = try(region.disk_iops, null)
             } : null
           )
-          auto_scaling    = var.auto_scaling
+          auto_scaling    = var.auto_scaling # all autoscaling configs are the same cluster wide, this how API currently works
+          analytics_auto_scaling = var.analytics_auto_scaling # all analytics autoscaling configs are the same cluster wide, this how API currently works
           analytics_specs = (
             region.analytics_specs != null ? {
               instance_size   = region.analytics_specs.instance_size
@@ -130,11 +132,22 @@ resource "mongodbatlas_advanced_cluster" "this" {
             content {
               disk_gb_enabled           = region_configs.value.auto_scaling.disk_gb_enabled
               compute_enabled           = region_configs.value.auto_scaling.compute_enabled
-              compute_min_instance_size = region_configs.value.auto_scaling.compute_min_instance_size
-              compute_max_instance_size = region_configs.value.auto_scaling.compute_max_instance_size
+              compute_scale_down_enabled = region_configs.value.auto_scaling.compute_scale_down_enabled != null ? region_configs.value.auto_scaling.compute_scale_down_enabled : null
+              compute_min_instance_size = region_configs.value.auto_scaling.compute_min_instance_size != null ? region_configs.value.auto_scaling.compute_min_instance_size : null
+              compute_max_instance_size = region_configs.value.auto_scaling.compute_max_instance_size != null ? region_configs.value.auto_scaling.compute_max_instance_size : null
             }
           }
-          
+
+          dynamic "analytics_auto_scaling" {
+            for_each = region_configs.value.analytics_auto_scaling != null ? [region_configs.value.analytics_auto_scaling] : []
+            content {
+              disk_gb_enabled           = region_configs.value.analytics_auto_scaling.disk_gb_enabled
+              compute_enabled           = region_configs.value.analytics_auto_scaling.compute_enabled
+              compute_scale_down_enabled = region_configs.value.analytics_auto_scaling.compute_scale_down_enabled != null ? region_configs.value.analytics_auto_scaling.compute_scale_down_enabled : null
+              compute_min_instance_size = region_configs.value.analytics_auto_scaling.compute_min_instance_size != null ? region_configs.value.analytics_auto_scaling.compute_min_instance_size : null
+              compute_max_instance_size = region_configs.value.analytics_auto_scaling.compute_max_instance_size != null ? region_configs.value.analytics_auto_scaling.compute_max_instance_size : null
+            }
+          }
         }
       }
     }

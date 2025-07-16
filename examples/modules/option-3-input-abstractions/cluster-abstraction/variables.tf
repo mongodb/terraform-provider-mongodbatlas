@@ -52,14 +52,28 @@ variable "auto_scaling" {
   type = object({
     disk_gb_enabled           = bool
     compute_enabled           = bool
-    compute_max_instance_size = string
-    compute_min_instance_size = string
+    compute_scale_down_enabled = optional(bool)
+    compute_max_instance_size = optional(string)
+    compute_min_instance_size = optional(string)
   })
   default = {
-    disk_gb_enabled           = true
-    compute_enabled           = true
-    compute_max_instance_size = "M60" // TODO do we want to keep this as the default?
-    compute_min_instance_size = "M30"
+    disk_gb_enabled           = false # defaults to false, default to true would imply being opinionated on a max_instance_size which can vary significantly
+    compute_enabled           = false
+  }
+}
+
+variable "analytics_auto_scaling" {
+  description = "Configuration for analytics auto-scaling."
+  type = object({
+    disk_gb_enabled           = bool
+    compute_enabled           = bool
+    compute_scale_down_enabled = optional(bool)
+    compute_max_instance_size = optional(string)
+    compute_min_instance_size = optional(string)
+  })
+  default = {
+    disk_gb_enabled           = false # defaults to false, default to true would imply being opinionated on a max_instance_size which can vary significantly
+    compute_enabled           = false
   }
 }
 
