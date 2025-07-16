@@ -60,7 +60,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
-	newCloudUserOrgAssignmentModel, diags := NewTFModel(ctx, apiResp, plan.OrgId.ValueString())
+	newCloudUserOrgAssignmentModel, diags := NewTFModel(ctx, apiResp, orgID)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -110,7 +110,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 
-	newCloudUserOrgAssignmentModel, diags := NewTFModel(ctx, userResp, state.OrgId.ValueString())
+	newCloudUserOrgAssignmentModel, diags := NewTFModel(ctx, userResp, orgID)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -143,7 +143,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 
-	newCloudUserOrgAssignmentModel, diags := NewTFModel(ctx, apiResp, plan.OrgId.ValueString())
+	newCloudUserOrgAssignmentModel, diags := NewTFModel(ctx, apiResp, orgID)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

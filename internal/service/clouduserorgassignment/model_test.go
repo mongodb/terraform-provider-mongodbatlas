@@ -120,6 +120,7 @@ func TestNewTFModel_SDKToTFModel(t *testing.T) {
 		LastAuth:            types.StringValue(testLastAuth),
 		Roles:               expectedRoles,
 		TeamIds:             expectedTeams,
+		OrgId:               types.StringValue(testOrgID),
 	}
 
 	testCases := map[string]sdkToTFModelTestCase{
