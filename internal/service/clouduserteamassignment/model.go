@@ -10,13 +10,12 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
-func NewTFUserTeamAssignmentModel(ctx context.Context, orgID, teamID string, apiResp *admin.OrgUserResponse) (*TFUserTeamAssignmentModel, diag.Diagnostics) {
+func NewTFUserTeamAssignmentModel(ctx context.Context, apiResp *admin.OrgUserResponse) (*TFUserTeamAssignmentModel, diag.Diagnostics) {
 	diags := diag.Diagnostics{}
 	var rolesObj types.Object
 	var rolesDiags diag.Diagnostics
 
 	if apiResp == nil {
-		diags.AddError("Invalid data", "The API response for the user team assignment is nil and cannot be processed.")
 		return nil, diags
 	}
 
@@ -24,8 +23,6 @@ func NewTFUserTeamAssignmentModel(ctx context.Context, orgID, teamID string, api
 	diags.Append(rolesDiags...)
 
 	userTeamAssignment := TFUserTeamAssignmentModel{
-		OrgId:               types.StringValue(orgID),
-		TeamId:              types.StringValue(teamID),
 		UserId:              types.StringValue(apiResp.GetId()),
 		Username:            types.StringValue(apiResp.GetUsername()),
 		OrgMembershipStatus: types.StringValue(apiResp.GetOrgMembershipStatus()),
@@ -95,7 +92,7 @@ func NewTFProjectRoleAssignments(ctx context.Context, groupRoleAssignments *[]ad
 			projectRoles, _ = types.SetValueFrom(ctx, types.StringType, pra.GroupRoles)
 		}
 		projectRoleAssignments = append(projectRoleAssignments, TFProjectRoleAssignmentsModel{
-			ProjectID:    projectID,
+			ProjectId:    projectID,
 			ProjectRoles: projectRoles,
 		})
 	}
