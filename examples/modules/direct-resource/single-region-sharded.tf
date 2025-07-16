@@ -3,7 +3,7 @@
 
 resource "mongodbatlas_advanced_cluster" "single_region_sharded" {
   project_id = var.project_id
-  name = "single_region_sharded"
+  name = "single-region-sharded"
   cluster_type = "SHARDED"
   mongo_db_major_version = "8.0"
   replication_specs { # shard 1 (single zone)
@@ -15,7 +15,7 @@ resource "mongodbatlas_advanced_cluster" "single_region_sharded" {
         compute_min_instance_size = "M30"
       }
       electable_specs {
-        instance_size = "M30"
+        instance_size = "M40" # Independently scaled shard
         node_count    = 3
       }
       priority      = 7

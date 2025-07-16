@@ -5,7 +5,7 @@ module "multi_geo_sharded" {
   source = "./cluster-abstraction"
 
   project_id = var.project_id
-  name       = "multi_geo_sharded"
+  name       = "multi-geo-sharded"
   cluster_type = "SHARDED"
   mongo_db_major_version = "8.0"
 

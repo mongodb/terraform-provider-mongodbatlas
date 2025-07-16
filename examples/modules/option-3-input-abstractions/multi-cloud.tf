@@ -5,7 +5,7 @@ module "multi_cloud" {
   source = "./cluster-abstraction"
 
   project_id = var.project_id
-  name       = "multi_cloud"
+  name       = "multi-cloud"
   cluster_type = "REPLICASET"
   mongo_db_major_version = "8.0"
 

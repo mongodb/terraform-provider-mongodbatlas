@@ -6,7 +6,7 @@
 
 resource "mongodbatlas_advanced_cluster" "multi_region_single_geo_no_sharding" {
   project_id = var.project_id
-  name = "multi_region_single_geo_no_sharding"
+  name = "multi-region-single-geo-no-sharding"
   cluster_type = "REPLICASET"
   mongo_db_major_version = "8.0"
   replication_specs {

@@ -3,7 +3,7 @@
 
 resource "mongodbatlas_advanced_cluster" "multi_geo_zone_sharded" {
   project_id = var.project_id
-  name = "multi_geo_zone_sharded"
+  name = "multi-geo-zone-sharded"
   cluster_type = "GEOSHARDED"
   mongo_db_major_version = "8.0"
 

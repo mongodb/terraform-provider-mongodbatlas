@@ -1,7 +1,7 @@
 # - single region
 # - no sharding
 
-resource "mongodbatlas_advanced_cluster" "single-region" {
+resource "mongodbatlas_advanced_cluster" "single_region" {
   project_id = var.project_id
   name = "single-region"
   cluster_type = "REPLICASET"

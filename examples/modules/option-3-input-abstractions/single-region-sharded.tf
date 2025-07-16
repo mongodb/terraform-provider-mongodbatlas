@@ -5,7 +5,7 @@ module "single_region_sharded" {
   source = "./cluster-abstraction"
 
   project_id = var.project_id
-  name       = "single_region_sharded"
+  name       = "single-region-sharded"
   cluster_type = "SHARDED"
   mongo_db_major_version = "8.0"
 
@@ -15,7 +15,7 @@ module "single_region_sharded" {
         {
           provider_name  = "AWS"
           region_name    = "US_EAST_1"
-          instance_size  = "M30"
+          instance_size  = "M40" # Independently scaled shard
           electable_node_count = 3
         }
       ]
