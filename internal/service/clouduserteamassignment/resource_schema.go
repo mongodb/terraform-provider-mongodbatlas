@@ -40,7 +40,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Organization and project level roles to assign the MongoDB Cloud user within one organization.",
 				Attributes: map[string]schema.Attribute{
-					"project_role_assignmets": schema.SetNestedAttribute{
+					"project_role_assignments": schema.ListNestedAttribute{
 						Computed:            true,
 						MarkdownDescription: "List of project level role assignments to assign the MongoDB Cloud user.",
 						NestedObject: schema.NestedAttributeObject{
@@ -155,7 +155,7 @@ type TFRolesModel struct {
 }
 
 type TFProjectRoleAssignmentsModel struct {
-	ProjectID    types.String `tfsdk:"project_id"`
+	ProjectId    types.String `tfsdk:"project_id"`
 	ProjectRoles types.Set    `tfsdk:"project_roles"`
 }
 
