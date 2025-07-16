@@ -2,8 +2,8 @@
 
 `mongodbatlas_cloud_user_org_assignment` provides a Cloud User Organization Assignment resource. The resource lets you import, assign, remove, or update a user to an organization.
 
-**NOTE**: Users with pending invitations created using the deprecated `mongodbatlas_project_invitation` resource or via the deprecated [Invite One MongoDB Cloud User to One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser#tag/Projects/operation/createProjectInvitation) 
-endpoint cannot be managed with this resource. See [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser) for details. 
+**NOTE**: Users with pending invitations created using the deprecated `mongodbatlas_project_invitation` resource or via the deprecated [Invite One MongoDB Cloud User to One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser#tag/Projects/operation/createProjectInvitation)
+endpoint cannot be managed with this resource. See [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser) for details.
 To manage such users with this resource, refer to our [migration guide]<link-to-migration-guide>.
 
 ## Example Usages
@@ -15,7 +15,7 @@ resource "mongodbatlas_cloud_user_org_assignment" "example" {
   roles = {
     org_roles = ["ORG_MEMBER"]
   }
-} 
+}
 
 data "mongodbatlas_cloud_user_org_assignment" "example_username" {
   org_id   = var.org_id
@@ -71,7 +71,7 @@ Read-Only:
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies the project to which these roles belong.
 - `project_roles` (Set of String) One or more project-level roles assigned to the MongoDB Cloud user.
 
-## Import 
+## Import
 
 Cloud User Org Assignment resource can be imported using the Org ID & Username OR Org ID & User ID, in the format `ORG_ID/USERNAME` OR `ORG_ID/USER_ID`.
 
