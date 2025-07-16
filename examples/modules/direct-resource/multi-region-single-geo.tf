@@ -4,9 +4,9 @@
 # - multiple regions (same geography)
 # no sharding
 
-resource "mongodbatlas_advanced_cluster" "multi-region-single-geo-no-sharding" {
+resource "mongodbatlas_advanced_cluster" "multi_region_single_geo_no_sharding" {
   project_id = var.project_id
-  name = "multi-region-single-geo-no-sharding"
+  name = "multi_region_single_geo_no_sharding"
   cluster_type = "REPLICASET"
   mongo_db_major_version = "8.0"
   replication_specs {

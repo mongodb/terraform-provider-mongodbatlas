@@ -1,20 +1,18 @@
-# 5-Node 2-Region Architecture
+# multiple providers, multi-region single geo
+# multi-cloud can also apply to multi-region multi geo, with sharding.
 
-# - multiple regions (same geography)
-# no sharding
-
-module "multi_region_single_geo_no_sharding" {
+module "multi_cloud" {
   source = "./cluster-abstraction"
 
   project_id = var.project_id
-  name       = "multi_region_single_geo_no_sharding"
+  name       = "multi_cloud"
   cluster_type = "REPLICASET"
   mongo_db_major_version = "8.0"
 
   region_configs = [
     {
-      provider_name  = "AWS"
-      region_name    = "US_EAST_1"
+      provider_name  = "AZURE"
+      region_name    = "US_WEST_2"
       instance_size  = "M30"
       electable_node_count = 2
       priority       = 7

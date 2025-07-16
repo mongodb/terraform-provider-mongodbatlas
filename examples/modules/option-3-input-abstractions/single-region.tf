@@ -8,7 +8,7 @@ module "single_region" {
   cluster_type = "REPLICASET"
   mongo_db_major_version = "8.0"
 
-  replica_set_regions = [
+  region_configs = [
     {
       provider_name  = "AWS"
       region_name    = "US_EAST_1"
@@ -24,12 +24,4 @@ module "single_region" {
     compute_max_instance_size = "M20"
     compute_min_instance_size = "M10"
   }
-}
-
-output "cluster_id" {
-  value = module.single_region.cluster_id
-}
-
-output "connection_strings" {
-  value = module.single_region.connection_strings
 }
