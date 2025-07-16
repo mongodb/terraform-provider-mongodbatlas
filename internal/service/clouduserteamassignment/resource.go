@@ -178,12 +178,12 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	importID := req.ID
-	ok, part1, part2, part3 := conversion.ImportSplit3(req.ID)
+	ok, parts := conversion.ImportSplit(req.ID, 3)
 	if !ok {
 		resp.Diagnostics.AddError("invalid import ID format", "expected 'org_id/team_id/user_id' or 'org_id/team_id/username', got: "+importID)
 		return
 	}
-	orgID, teamID, user := part1, part2, part3
+	orgID, teamID, user := parts[0], parts[1], parts[2]
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("org_id"), orgID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("team_id"), teamID)...)
