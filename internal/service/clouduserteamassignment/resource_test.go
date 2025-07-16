@@ -30,8 +30,8 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: cloudUserTeamAssignmentConfig(orgID, userID, teamName),
-				Check:  cloudUserTeamAssignmentAttributeChecks(orgID, userID),
+				Config: configBasic(orgID, userID, teamName),
+				Check:  checks(orgID, userID),
 			},
 			{
 				ResourceName:                         resourceName,
@@ -63,7 +63,7 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 	}
 }
 
-func cloudUserTeamAssignmentConfig(orgID, userID, teamName string) string {
+func configBasic(orgID, userID, teamName string) string {
 	return fmt.Sprintf(` 
 		resource "mongodbatlas_team" "test" {
 			org_id     = %[1]q
@@ -78,7 +78,7 @@ func cloudUserTeamAssignmentConfig(orgID, userID, teamName string) string {
 		orgID, userID, teamName)
 }
 
-func cloudUserTeamAssignmentAttributeChecks(orgID, userID string) resource.TestCheckFunc {
+func checks(orgID, userID string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 		resource.TestCheckResourceAttr(resourceName, "user_id", userID),
