@@ -310,6 +310,7 @@ jobs:
             - 'internal/config/*.go'
             - 'internal/service/alertconfiguration/*.go'
             - 'internal/service/apikey/*.go'
+            - 'internal/service/apikeyprojectassignment/*.go'
             - 'internal/service/atlasuser/*.go'
             - 'internal/service/cloudprovideraccess/*.go'
             - 'internal/service/customdbrole/*.go'
@@ -701,6 +702,7 @@ jobs:
             ./internal/service/organization
             ./internal/service/orginvitation
             ./internal/service/projectapikey
+            ./internal/service/apikeyprojectassignment
             ./internal/service/apikey
             ./internal/service/rolesorgid
             ./internal/service/team

@@ -10,6 +10,7 @@ const (
 	prefixName     = "test-acc-tf"
 	prefixProject  = prefixName + "-p"
 	prefixCluster  = prefixName + "-c"
+	prefixStream   = prefixName + "-s"
 	prefixIAMRole  = "mongodb-atlas-" + prefixName
 	prefixIAMUser  = "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user"
 	prefixS3Bucket = "mongodb-atlas-tf"
@@ -25,6 +26,10 @@ func RandomProjectName() string {
 
 func RandomClusterName() string {
 	return acctest.RandomWithPrefix(prefixCluster)
+}
+
+func RandomStreamInstanceName() string {
+	return acctest.RandomWithPrefix(prefixStream)
 }
 
 func RandomIAMRole() string {
@@ -49,4 +54,8 @@ func RandomLDAPName() string {
 
 func RandomS3BucketName() string {
 	return fmt.Sprintf("%s-%s", prefixS3Bucket, acctest.RandString(10))
+}
+
+func RandonNameWithSuffix(name string) string {
+	return name + acctest.RandString(5)
 }

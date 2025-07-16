@@ -99,6 +99,14 @@ func existingProjectIDClusterName() (projectID, clusterName string) {
 	return os.Getenv("MONGODB_ATLAS_PROJECT_ID"), os.Getenv("MONGODB_ATLAS_CLUSTER_NAME")
 }
 
+func existingStreamInstanceUsed() bool {
+	return existingStreamInstanceName() != "" && projectIDLocal() != ""
+}
+
+func existingStreamInstanceName() string {
+	return os.Getenv("MONGODB_ATLAS_STREAM_INSTANCE_NAME")
+}
+
 // ReplicationSpecRequest can be used to customize the ReplicationSpecs of a Cluster.
 // No fields are required.
 // Use `ExtraRegionConfigs` to specify multiple region configs.
