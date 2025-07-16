@@ -63,7 +63,6 @@ func Resource() *schema.Resource {
 			"auto_export_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Computed: true,
 			},
 			"use_org_and_group_names_in_export_prefix": {
 				Type:     schema.TypeBool,
@@ -116,7 +115,6 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"export_bucket_id": {
@@ -436,14 +434,6 @@ func setSchemaFieldsExceptCopySettings(d *schema.ResourceData, backupPolicy *adm
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "id_policy", clusterName, err)
 	}
 
-	if err := d.Set("export", FlattenExport(backupPolicy)); err != nil {
-		return diag.Errorf(errorSnapshotBackupScheduleSetting, "export", clusterName, err)
-	}
-
-	if err := d.Set("auto_export_enabled", backupPolicy.GetAutoExportEnabled()); err != nil {
-		return diag.Errorf(errorSnapshotBackupScheduleSetting, "auto_export_enabled", clusterName, err)
-	}
-
 	if err := d.Set("use_org_and_group_names_in_export_prefix", backupPolicy.GetUseOrgAndGroupNamesInExportPrefix()); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "use_org_and_group_names_in_export_prefix", clusterName, err)
 	}
@@ -573,7 +563,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV220240530 *admi
 	}
 
 	if v, ok := d.GetOk("export"); ok {
-		req.Export = expandAutoExportPolicy(v.([]any), d)
+		req.Export = expandAutoExportPolicy(v.([]any))
 	}
 
 	if d.HasChange("use_org_and_group_names_in_export_prefix") {
@@ -700,16 +690,12 @@ func expandCopySettingOldSDK(tfMap map[string]any) *admin20240530.DiskBackupCopy
 	return copySetting
 }
 
-func expandAutoExportPolicy(items []any, d *schema.ResourceData) *admin.AutoExportPolicy {
+func expandAutoExportPolicy(items []any) *admin.AutoExportPolicy {
 	itemObj := items[0].(map[string]any)
-
-	if autoExportEnabled := d.Get("auto_export_enabled"); autoExportEnabled != nil && autoExportEnabled.(bool) {
-		return &admin.AutoExportPolicy{
-			ExportBucketId: conversion.StringPtr(itemObj["export_bucket_id"].(string)),
-			FrequencyType:  conversion.StringPtr(itemObj["frequency_type"].(string)),
-		}
+	return &admin.AutoExportPolicy{
+		ExportBucketId: conversion.StringPtr(itemObj["export_bucket_id"].(string)),
+		FrequencyType:  conversion.StringPtr(itemObj["frequency_type"].(string)),
 	}
-	return nil
 }
 
 func ExpandPolicyItems(items []any, frequencyType string) *[]admin.DiskBackupApiPolicyItem {
