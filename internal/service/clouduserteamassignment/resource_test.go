@@ -108,11 +108,12 @@ func checkDestroy(s *terraform.State) error {
 		}
 
 		if userListResp != nil && userListResp.Results != nil {
-			for _, user := range *userListResp.Results {
-				if userID != "" && user.GetId() == userID {
+			results := *userListResp.Results
+			for i := range results {
+				if userID != "" && results[i].GetId() == userID {
 					return fmt.Errorf("cloud user team assignment for user (%s) in team (%s) still exists", userID, teamID)
 				}
-				if username != "" && user.GetUsername() == username {
+				if username != "" && results[i].GetUsername() == username {
 					return fmt.Errorf("cloud user team assignment for user (%s) in team (%s) still exists", username, teamID)
 				}
 			}
