@@ -30,7 +30,7 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	username := "test-cloud-user-org-assignment@example.com"
+	username := acc.RandomEmail()
 	roles := []string{"ORG_MEMBER"}
 	rolesUpdated := []string{"ORG_MEMBER", "ORG_GROUP_CREATOR"}
 
@@ -93,7 +93,7 @@ func dataSourceTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	username := "test-cloud-user-org-assignment-ds@example.com"
+	username := acc.RandomEmail()
 	roles := []string{"ORG_MEMBER"}
 
 	return &resource.TestCase{
