@@ -9,10 +9,10 @@ import (
 
 func TestMigStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
 	mig.SkipIfVersionBelow(t, "1.16.0") // when reached GA
-	mig.CreateAndRunTest(t, testCaseKafkaPlaintext(t))
+	mig.CreateAndRunTest(t, testCaseKafkaPlaintext(t, "-mig"))
 }
 
 func TestMigStreamRSStreamConnection_cluster(t *testing.T) {
 	mig.SkipIfVersionBelow(t, "1.16.0") // when reached GA
-	mig.CreateAndRunTest(t, testCaseCluster(t))
+	mig.CreateAndRunTest(t, testCaseCluster(t, "-mig"))
 }
