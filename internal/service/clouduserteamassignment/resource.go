@@ -57,11 +57,13 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
-	newUserTeamAssignmentModel, diags := NewTFUserTeamAssignmentModel(ctx, orgID, teamID, apiResp)
+	newUserTeamAssignmentModel, diags := NewTFUserTeamAssignmentModel(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
+	newUserTeamAssignmentModel.OrgId = plan.OrgId
+	newUserTeamAssignmentModel.TeamId = plan.TeamId
 	resp.Diagnostics.Append(resp.State.Set(ctx, newUserTeamAssignmentModel)...)
 }
 
@@ -79,33 +81,54 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	var httpResp *http.Response
 	var err error
 
-	userListResp, httpResp, err = connV2.MongoDBCloudUsersApi.ListTeamUsers(ctx, orgID, teamID).Execute()
-	if validate.StatusNotFound(httpResp) {
-		resp.State.RemoveResource(ctx)
-		return
-	}
-
 	var userResp *admin.OrgUserResponse
 	if !state.UserId.IsNull() && state.UserId.ValueString() != "" {
 		userID := state.UserId.ValueString()
-		for _, user := range userListResp.GetResults() {
-			if user.GetId() == userID {
-				userResp = &user
+		userListResp, httpResp, err = connV2.MongoDBCloudUsersApi.ListTeamUsers(ctx, orgID, teamID).Execute()
+
+		if err != nil {
+			if validate.StatusNotFound(httpResp) {
+				resp.State.RemoveResource(ctx)
+				return
+			}
+			resp.Diagnostics.AddError("Error getting team users by username", err.Error())
+			return
+		}
+		if len(userListResp.GetResults()) == 0 {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		results := userListResp.GetResults()
+		for i := range results {
+			if results[i].GetId() == userID {
+				userResp = &results[i]
 				break
 			}
 		}
 	} else if !state.Username.IsNull() && state.Username.ValueString() != "" { // required for import
 		username := state.Username.ValueString()
-		for _, user := range userListResp.GetResults() {
-			if user.GetUsername() == username {
-				userResp = &user
-				break
-			}
+		params := &admin.ListTeamUsersApiParams{
+			Username: &username,
+			OrgId:    orgID,
+			TeamId:   teamID,
 		}
-	}
-	if err != nil {
-		resp.Diagnostics.AddError(fmt.Sprintf("error fetching user(%s) from TeamID(%s):", userResp.Username, teamID), err.Error())
-		return
+		userListResp, httpResp, err = connV2.MongoDBCloudUsersApi.ListTeamUsersWithParams(ctx, params).Execute()
+
+		if err != nil {
+			if validate.StatusNotFound(httpResp) {
+				resp.State.RemoveResource(ctx)
+				return
+			}
+			resp.Diagnostics.AddError("Error getting team users by username", err.Error())
+			return
+		}
+		if userListResp != nil && userListResp.Results != nil {
+			if len(*userListResp.Results) == 0 {
+				resp.State.RemoveResource(ctx)
+				return
+			}
+			userResp = &(*userListResp.Results)[0]
+		}
 	}
 
 	if userResp == nil {
@@ -113,11 +136,13 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 
-	newCloudUserTeamAssignmentModel, diags := NewTFUserTeamAssignmentModel(ctx, orgID, teamID, userResp)
+	newCloudUserTeamAssignmentModel, diags := NewTFUserTeamAssignmentModel(ctx, userResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
+	newCloudUserTeamAssignmentModel.OrgId = state.OrgId
+	newCloudUserTeamAssignmentModel.TeamId = state.TeamId
 	resp.Diagnostics.Append(resp.State.Set(ctx, newCloudUserTeamAssignmentModel)...)
 }
 
