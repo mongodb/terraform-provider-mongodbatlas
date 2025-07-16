@@ -244,6 +244,7 @@ jobs:
       autogen: ${{ steps.filter.outputs.autogen == 'true' || env.mustTrigger == 'true' }}
       backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
       control_plane_ip_addresses: ${{ steps.filter.outputs.control_plane_ip_addresses == 'true' || env.mustTrigger == 'true' }}
+      cloud_user: ${{ steps.filter.outputs.cloud_user == 'true' || env.mustTrigger == 'true' }}
       cluster: ${{ steps.filter.outputs.cluster == 'true' || env.mustTrigger == 'true' }}
       cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation == 'true' || env.mustTrigger == 'true' }}
       config: ${{ steps.filter.outputs.config == 'true' || env.mustTrigger == 'true' }}
@@ -299,6 +300,8 @@ jobs:
             - 'internal/service/onlinearchive/*.go'
           control_plane_ip_addresses:
             - 'internal/service/controlplaneipaddresses/*.go'
+          cloud_user:
+            - 'internal/service/clouduserorgassignment/*.go'
           cluster:
             - 'internal/service/cluster/*.go'
           cluster_outage_simulation:
@@ -588,6 +591,29 @@ jobs:
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: ./internal/service/controlplaneipaddresses
+        run: make testacc
+
+  cloud_user:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ needs.change-detection.outputs.cloud_user == 'true' || inputs.test_group == 'cloud_user' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false  
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          MONGODB_ATLAS_TEAMS_IDS: ${{ inputs.mongodb_atlas_teams_ids }}
+          ACCTEST_PACKAGES: ./internal/service/clouduserorgassignment
         run: make testacc
       
   cluster:

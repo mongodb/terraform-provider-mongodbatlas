@@ -29,6 +29,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/apikeyprojectassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clouduserorgassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/controlplaneipaddresses"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
@@ -457,6 +458,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		flexrestorejob.PluralDataSource,
 		resourcepolicy.DataSource,
 		resourcepolicy.PluralDataSource,
+		clouduserorgassignment.DataSource,
 		apikeyprojectassignment.DataSource,
 		apikeyprojectassignment.PluralDataSource,
 	}
@@ -483,6 +485,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		streamprivatelinkendpoint.Resource,
 		flexcluster.Resource,
 		resourcepolicy.Resource,
+		clouduserorgassignment.Resource,
 		apikeyprojectassignment.Resource,
 	}
 	if config.PreviewProviderV2AdvancedCluster() {
