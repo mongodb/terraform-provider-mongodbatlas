@@ -1,0 +1,3 @@
+```release-note:note
+New environment variables: We added support for the `MONGODB_ATLAS_PUBLIC_API_KEY` and `MONGODB_ATLAS_PRIVATE_API_KEY` environment variables which are widely used across the MongoDB ecosystem.
+```
