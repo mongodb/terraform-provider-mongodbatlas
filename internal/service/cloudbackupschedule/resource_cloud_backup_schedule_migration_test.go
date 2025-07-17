@@ -130,8 +130,7 @@ func TestMigBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 }
 
 func TestMigBackupRSCloudBackupSchedule_export(t *testing.T) {
-	// TODO: uncomment before merging this, this is temporary to make sure the test is working
-	// mig.SkipIfVersionBelow(t, "2.0.0")
+	mig.SkipIfVersionBelow(t, "2.0.0") // in 2.0.0 we made auto_export_enabled and export fields optional only
 	var (
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true, ResourceDependencyName: "mongodbatlas_cloud_backup_snapshot_export_bucket.test"})
 		policyName  = acc.RandomName()
