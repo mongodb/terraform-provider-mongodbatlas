@@ -4,10 +4,10 @@
 # - multiple regions (same geography)
 # no sharding
 
-resource "mongodbatlas_advanced_cluster" "multi-region-single-geo-no-sharding" {
-  project_id = var.project_id
-  name = "multi-region-single-geo-no-sharding"
-  cluster_type = "REPLICASET"
+resource "mongodbatlas_advanced_cluster" "multi_region_single_geo_no_sharding" {
+  project_id             = var.project_id
+  name                   = "multi-region-single-geo-no-sharding"
+  cluster_type           = "REPLICASET"
   mongo_db_major_version = "8.0"
   replication_specs {
     region_configs {
@@ -19,8 +19,8 @@ resource "mongodbatlas_advanced_cluster" "multi-region-single-geo-no-sharding" {
         node_count    = 2
       }
       auto_scaling {
-        disk_gb_enabled = true
-        compute_enabled = true
+        disk_gb_enabled           = true
+        compute_enabled           = true
         compute_max_instance_size = "M60"
         compute_min_instance_size = "M30"
       }
@@ -38,8 +38,8 @@ resource "mongodbatlas_advanced_cluster" "multi-region-single-geo-no-sharding" {
         node_count    = 2
       }
       auto_scaling {
-        disk_gb_enabled = true
-        compute_enabled = true
+        disk_gb_enabled           = true
+        compute_enabled           = true
         compute_max_instance_size = "M60"
         compute_min_instance_size = "M30"
       }
