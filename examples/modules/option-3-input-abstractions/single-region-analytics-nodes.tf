@@ -5,16 +5,16 @@
 module "single_region_analytics" {
   source = "./cluster-abstraction"
 
-  project_id = var.project_id
-  name       = "single-region-analytics"
-  cluster_type = "REPLICASET"
+  project_id             = var.project_id
+  name                   = "single-region-analytics"
+  cluster_type           = "REPLICASET"
   mongo_db_major_version = "8.0"
 
   region_configs = [
     {
-      provider_name  = "AWS"
-      region_name    = "US_EAST_1"
-      instance_size  = "M30"
+      provider_name        = "AWS"
+      region_name          = "US_EAST_1"
+      instance_size        = "M30"
       electable_node_count = 3
       analytics_specs = {
         instance_size = "M10"

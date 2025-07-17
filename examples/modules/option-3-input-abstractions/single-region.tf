@@ -3,16 +3,16 @@
 module "single_region" {
   source = "./cluster-abstraction"
 
-  project_id = var.project_id
-  name       = "single-region"
-  cluster_type = "REPLICASET"
+  project_id             = var.project_id
+  name                   = "single-region"
+  cluster_type           = "REPLICASET"
   mongo_db_major_version = "8.0"
 
   region_configs = [
     {
-      provider_name  = "AWS"
-      region_name    = "US_EAST_1"
-      instance_size  = "M10"
+      provider_name        = "AWS"
+      region_name          = "US_EAST_1"
+      instance_size        = "M10"
       electable_node_count = 3
       read_only_node_count = 2
     }

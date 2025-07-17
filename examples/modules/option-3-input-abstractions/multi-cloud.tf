@@ -4,26 +4,26 @@
 module "multi_cloud" {
   source = "./cluster-abstraction"
 
-  project_id = var.project_id
-  name       = "multi-cloud"
-  cluster_type = "REPLICASET"
+  project_id             = var.project_id
+  name                   = "multi-cloud"
+  cluster_type           = "REPLICASET"
   mongo_db_major_version = "8.0"
 
   region_configs = [
     {
-      provider_name  = "AZURE"
-      region_name    = "US_WEST_2"
-      instance_size  = "M30"
+      provider_name        = "AZURE"
+      region_name          = "US_WEST_2"
+      instance_size        = "M30"
       electable_node_count = 2
-      priority       = 7
+      priority             = 7
     },
     {
-      provider_name  = "AWS"
-      region_name    = "US_EAST_2"
-      instance_size  = "M30"
+      provider_name        = "AWS"
+      region_name          = "US_EAST_2"
+      instance_size        = "M30"
       electable_node_count = 1
       read_only_node_count = 2
-      priority       = 6
+      priority             = 6
     },
   ]
 

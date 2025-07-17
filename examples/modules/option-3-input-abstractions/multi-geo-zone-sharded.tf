@@ -4,19 +4,19 @@
 module "multi_geo_zone_sharded" {
   source = "./cluster-abstraction"
 
-  project_id = var.project_id
-  name       = "multi-geo-zone-sharded"
-  cluster_type = "GEOSHARDED"
+  project_id             = var.project_id
+  name                   = "multi-geo-zone-sharded"
+  cluster_type           = "GEOSHARDED"
   mongo_db_major_version = "8.0"
 
-  shards = [ 
+  shards = [
     {
       zone_name = "US" # shard 1 (US zone)
       region_configs = [
         {
-          provider_name  = "AWS"
-          region_name    = "US_EAST_1"
-          instance_size  = "M30"
+          provider_name        = "AWS"
+          region_name          = "US_EAST_1"
+          instance_size        = "M30"
           electable_node_count = 3
         }
       ]
@@ -25,9 +25,9 @@ module "multi_geo_zone_sharded" {
       zone_name = "EU" # shard 2 (EU zone)
       region_configs = [
         {
-          provider_name  = "AWS"
-          region_name    = "EU_WEST_1"
-          instance_size  = "M30"
+          provider_name        = "AWS"
+          region_name          = "EU_WEST_1"
+          instance_size        = "M30"
           electable_node_count = 3
         }
       ]

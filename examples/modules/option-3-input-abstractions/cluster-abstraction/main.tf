@@ -5,11 +5,11 @@ locals {
   effective_replication_specs = (
     length(var.shards) > 0 ? [
       for shard in var.shards : {
-        zone_name      = shard.zone_name
+        zone_name = shard.zone_name
         region_configs = [for region in shard.region_configs : {
-          provider_name   = region.provider_name
-          region_name     = region.region_name
-          priority        = region.priority
+          provider_name = region.provider_name
+          region_name   = region.region_name
+          priority      = region.priority
           electable_specs = {
             instance_size   = region.instance_size
             node_count      = region.electable_node_count
@@ -26,7 +26,7 @@ locals {
               disk_iops       = try(region.disk_iops, null)
             } : null
           )
-          auto_scaling    = var.auto_scaling
+          auto_scaling           = var.auto_scaling
           analytics_auto_scaling = var.analytics_auto_scaling
           analytics_specs = (
             region.analytics_specs != null ? {
@@ -39,13 +39,13 @@ locals {
           )
         }]
       }
-    ] : [
+      ] : [
       {
-        zone_name      = null
+        zone_name = null
         region_configs = [for region in var.region_configs : {
-          provider_name   = region.provider_name
-          region_name     = region.region_name
-          priority        = region.priority
+          provider_name = region.provider_name
+          region_name   = region.region_name
+          priority      = region.priority
           electable_specs = {
             instance_size   = region.instance_size
             node_count      = region.electable_node_count
@@ -62,7 +62,7 @@ locals {
               disk_iops       = try(region.disk_iops, null)
             } : null
           )
-          auto_scaling    = var.auto_scaling # all autoscaling configs are the same cluster wide, this how API currently works
+          auto_scaling           = var.auto_scaling           # all autoscaling configs are the same cluster wide, this how API currently works
           analytics_auto_scaling = var.analytics_auto_scaling # all analytics autoscaling configs are the same cluster wide, this how API currently works
           analytics_specs = (
             region.analytics_specs != null ? {
@@ -98,21 +98,21 @@ resource "mongodbatlas_advanced_cluster" "this" {
           priority      = region_configs.value.priority
 
           electable_specs {
-            instance_size = region_configs.value.electable_specs.instance_size
-            node_count    = region_configs.value.electable_specs.node_count
+            instance_size   = region_configs.value.electable_specs.instance_size
+            node_count      = region_configs.value.electable_specs.node_count
             ebs_volume_type = region_configs.value.electable_specs.ebs_volume_type != null ? region_configs.value.electable_specs.ebs_volume_type : null
-            disk_size_gb    = region_configs.value.electable_specs.disk_size_gb    != null ? region_configs.value.electable_specs.disk_size_gb    : null
-            disk_iops       = region_configs.value.electable_specs.disk_iops       != null ? region_configs.value.electable_specs.disk_iops       : null
+            disk_size_gb    = region_configs.value.electable_specs.disk_size_gb != null ? region_configs.value.electable_specs.disk_size_gb : null
+            disk_iops       = region_configs.value.electable_specs.disk_iops != null ? region_configs.value.electable_specs.disk_iops : null
           }
 
           dynamic "read_only_specs" {
             for_each = region_configs.value.read_only_specs != null ? [region_configs.value.read_only_specs] : []
             content {
-              instance_size = read_only_specs.value.instance_size
-              node_count    = read_only_specs.value.node_count
+              instance_size   = read_only_specs.value.instance_size
+              node_count      = read_only_specs.value.node_count
               ebs_volume_type = read_only_specs.value.ebs_volume_type != null ? read_only_specs.value.ebs_volume_type : null
-              disk_size_gb    = read_only_specs.value.disk_size_gb    != null ? read_only_specs.value.disk_size_gb    : null
-              disk_iops       = read_only_specs.value.disk_iops       != null ? read_only_specs.value.disk_iops       : null
+              disk_size_gb    = read_only_specs.value.disk_size_gb != null ? read_only_specs.value.disk_size_gb : null
+              disk_iops       = read_only_specs.value.disk_iops != null ? read_only_specs.value.disk_iops : null
             }
           }
 
@@ -122,30 +122,30 @@ resource "mongodbatlas_advanced_cluster" "this" {
               instance_size   = analytics_specs.value.instance_size
               node_count      = analytics_specs.value.node_count
               ebs_volume_type = analytics_specs.value.ebs_volume_type != null ? analytics_specs.value.ebs_volume_type : null
-              disk_size_gb    = analytics_specs.value.disk_size_gb    != null ? analytics_specs.value.disk_size_gb    : null
-              disk_iops       = analytics_specs.value.disk_iops       != null ? analytics_specs.value.disk_iops       : null
+              disk_size_gb    = analytics_specs.value.disk_size_gb != null ? analytics_specs.value.disk_size_gb : null
+              disk_iops       = analytics_specs.value.disk_iops != null ? analytics_specs.value.disk_iops : null
             }
           }
 
           dynamic "auto_scaling" {
             for_each = region_configs.value.auto_scaling != null ? [region_configs.value.auto_scaling] : []
             content {
-              disk_gb_enabled           = region_configs.value.auto_scaling.disk_gb_enabled
-              compute_enabled           = region_configs.value.auto_scaling.compute_enabled
+              disk_gb_enabled            = region_configs.value.auto_scaling.disk_gb_enabled
+              compute_enabled            = region_configs.value.auto_scaling.compute_enabled
               compute_scale_down_enabled = region_configs.value.auto_scaling.compute_scale_down_enabled != null ? region_configs.value.auto_scaling.compute_scale_down_enabled : null
-              compute_min_instance_size = region_configs.value.auto_scaling.compute_min_instance_size != null ? region_configs.value.auto_scaling.compute_min_instance_size : null
-              compute_max_instance_size = region_configs.value.auto_scaling.compute_max_instance_size != null ? region_configs.value.auto_scaling.compute_max_instance_size : null
+              compute_min_instance_size  = region_configs.value.auto_scaling.compute_min_instance_size != null ? region_configs.value.auto_scaling.compute_min_instance_size : null
+              compute_max_instance_size  = region_configs.value.auto_scaling.compute_max_instance_size != null ? region_configs.value.auto_scaling.compute_max_instance_size : null
             }
           }
 
           dynamic "analytics_auto_scaling" {
             for_each = region_configs.value.analytics_auto_scaling != null ? [region_configs.value.analytics_auto_scaling] : []
             content {
-              disk_gb_enabled           = region_configs.value.analytics_auto_scaling.disk_gb_enabled
-              compute_enabled           = region_configs.value.analytics_auto_scaling.compute_enabled
+              disk_gb_enabled            = region_configs.value.analytics_auto_scaling.disk_gb_enabled
+              compute_enabled            = region_configs.value.analytics_auto_scaling.compute_enabled
               compute_scale_down_enabled = region_configs.value.analytics_auto_scaling.compute_scale_down_enabled != null ? region_configs.value.analytics_auto_scaling.compute_scale_down_enabled : null
-              compute_min_instance_size = region_configs.value.analytics_auto_scaling.compute_min_instance_size != null ? region_configs.value.analytics_auto_scaling.compute_min_instance_size : null
-              compute_max_instance_size = region_configs.value.analytics_auto_scaling.compute_max_instance_size != null ? region_configs.value.analytics_auto_scaling.compute_max_instance_size : null
+              compute_min_instance_size  = region_configs.value.analytics_auto_scaling.compute_min_instance_size != null ? region_configs.value.analytics_auto_scaling.compute_min_instance_size : null
+              compute_max_instance_size  = region_configs.value.analytics_auto_scaling.compute_max_instance_size != null ? region_configs.value.analytics_auto_scaling.compute_max_instance_size : null
             }
           }
         }

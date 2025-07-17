@@ -3,21 +3,21 @@
 # - with analytics nodes defined
 
 resource "mongodbatlas_advanced_cluster" "single_region_analytics" {
-  project_id = var.project_id
-  name = "single-region-analytics"
-  cluster_type = "REPLICASET"
+  project_id             = var.project_id
+  name                   = "single-region-analytics"
+  cluster_type           = "REPLICASET"
   mongo_db_major_version = "8.0"
   replication_specs {
     region_configs {
       auto_scaling {
-        disk_gb_enabled = true
-        compute_enabled = true
+        disk_gb_enabled           = true
+        compute_enabled           = true
         compute_max_instance_size = "M60"
         compute_min_instance_size = "M30"
       }
       analytics_auto_scaling {
-        disk_gb_enabled = true
-        compute_enabled = true
+        disk_gb_enabled           = true
+        compute_enabled           = true
         compute_max_instance_size = "M30"
         compute_min_instance_size = "M10"
       }

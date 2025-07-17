@@ -2,9 +2,9 @@
 # multi-cloud can also apply to multi-region multi geo, with sharding.
 
 resource "mongodbatlas_advanced_cluster" "multi_cloud" {
-  project_id = var.project_id
-  name = "multi-cloud"
-  cluster_type = "REPLICASET"
+  project_id             = var.project_id
+  name                   = "multi-cloud"
+  cluster_type           = "REPLICASET"
   mongo_db_major_version = "8.0"
   replication_specs {
     region_configs {
@@ -16,8 +16,8 @@ resource "mongodbatlas_advanced_cluster" "multi_cloud" {
         node_count    = 2
       }
       auto_scaling {
-        disk_gb_enabled = true
-        compute_enabled = true
+        disk_gb_enabled           = true
+        compute_enabled           = true
         compute_max_instance_size = "M60"
         compute_min_instance_size = "M30"
       }
@@ -35,8 +35,8 @@ resource "mongodbatlas_advanced_cluster" "multi_cloud" {
         node_count    = 2
       }
       auto_scaling {
-        disk_gb_enabled = true
-        compute_enabled = true
+        disk_gb_enabled           = true
+        compute_enabled           = true
         compute_max_instance_size = "M60"
         compute_min_instance_size = "M30"
       }
