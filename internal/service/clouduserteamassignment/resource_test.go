@@ -42,8 +42,8 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 					attrs := s.RootModule().Resources[resourceName].Primary.Attributes
 					orgID := attrs["org_id"]
 					teamID := attrs["team_id"]
-					userID := attrs["user_id"]
-					return orgID + "/" + teamID + "/" + userID, nil
+					username := attrs["username"]
+					return orgID + "/" + teamID + "/" + username, nil
 				},
 			},
 			{
@@ -55,8 +55,8 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 					attrs := s.RootModule().Resources[resourceName].Primary.Attributes
 					orgID := attrs["org_id"]
 					teamID := attrs["team_id"]
-					username := attrs["username"]
-					return orgID + "/" + teamID + "/" + username, nil
+					userID := attrs["user_id"]
+					return orgID + "/" + teamID + "/" + userID, nil
 				},
 			},
 		},
