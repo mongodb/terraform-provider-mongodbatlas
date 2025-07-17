@@ -49,7 +49,7 @@ You can use any the following methods:
 ### Environment Variables
 
 You can also provide your credentials via the environment variables, 
-`MONGODB_ATLAS_PUBLIC_KEY` and `MONGODB_ATLAS_PRIVATE_KEY`,
+`MONGODB_ATLAS_PUBLIC_API_KEY` and `MONGODB_ATLAS_PRIVATE_API_KEY`,
 for your public and private MongoDB Atlas programmatic API key pair respectively:
 
 ```terraform
@@ -59,14 +59,13 @@ provider "mongodbatlas" {}
 Usage (prefix the export commands with a space to avoid the keys being recorded in OS history):
 
 ```shell
-$  export MONGODB_ATLAS_PUBLIC_KEY="<ATLAS_PUBLIC_KEY>"
-$  export MONGODB_ATLAS_PRIVATE_KEY="<ATLAS_PRIVATE_KEY>"
+$  export MONGODB_ATLAS_PUBLIC_API_KEY="<ATLAS_PUBLIC_KEY>"
+$  export MONGODB_ATLAS_PRIVATE_API_KEY="<ATLAS_PRIVATE_KEY>"
 $ terraform plan
 ```
 
-As an alternative to `MONGODB_ATLAS_PUBLIC_KEY` and `MONGODB_ATLAS_PRIVATE_KEY`
-if you are using [MongoDB CLI](https://docs.mongodb.com/mongocli/stable/) 
-then `MCLI_PUBLIC_API_KEY` and `MCLI_PRIVATE_API_KEY` are also supported.
+We recommend using `MONGODB_ATLAS_PUBLIC_API_KEY` and `MONGODB_ATLAS_PRIVATE_API_KEY` environment variables as they maintain compatibility with other MongoDB tools. 
+While `MONGODB_ATLAS_PUBLIC_KEY` and `MONGODB_ATLAS_PRIVATE_KEY` are also supported as alternatives, they are not as widely used across the MongoDB ecosystem.
 
 ### AWS Secrets Manager
 AWS Secrets Manager (AWS SM) helps to manage, retrieve, and rotate database credentials, API keys, and other secrets throughout their lifecycles. See [product page](https://aws.amazon.com/secrets-manager/) and [documentation](https://docs.aws.amazon.com/systems-manager/latest/userguide/what-is-systems-manager.html) for more details.

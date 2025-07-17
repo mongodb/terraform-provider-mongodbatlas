@@ -351,6 +351,7 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 	}
 
 	if err := setValueFromConfigOrEnv(d, "public_key", []string{
+		"MONGODB_ATLAS_PUBLIC_API_KEY",
 		"MONGODB_ATLAS_PUBLIC_KEY",
 		"MCLI_PUBLIC_API_KEY",
 	}); err != nil {
@@ -361,6 +362,7 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 	}
 
 	if err := setValueFromConfigOrEnv(d, "private_key", []string{
+		"MONGODB_ATLAS_PRIVATE_API_KEY",
 		"MONGODB_ATLAS_PRIVATE_KEY",
 		"MCLI_PRIVATE_API_KEY",
 	}); err != nil {
