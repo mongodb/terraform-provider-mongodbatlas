@@ -143,8 +143,9 @@ func TestMigBackupRSCloudBackupSchedule_export(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     mig.PreCheckBasicSleep(t),
-		CheckDestroy: checkDestroy,
+		PreCheck:          mig.PreCheckBasicSleep(t),
+		ExternalProviders: acc.ExternalProvidersOnlyAWS(),
+		CheckDestroy:      checkDestroy,
 		Steps: []resource.TestStep{
 			// Step 1: Apply config with export and auto_export_enabled (old provider)
 			{
