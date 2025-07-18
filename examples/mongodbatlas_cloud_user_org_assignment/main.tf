@@ -12,6 +12,6 @@ data "mongodbatlas_cloud_user_org_assignment" "example_username" {
 }
 
 data "mongodbatlas_cloud_user_org_assignment" "example_user_id" {
-  org_id   = var.org_id
-  user_id  = var.user_id
+  org_id  = var.org_id
+  user_id = var.user_id
 }
