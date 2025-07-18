@@ -1,5 +1,9 @@
 ## (Unreleased)
 
+NOTES:
+
+* New environment variables: We added support for the `MONGODB_ATLAS_PUBLIC_API_KEY` and `MONGODB_ATLAS_PRIVATE_API_KEY` environment variables which are widely used across the MongoDB ecosystem. ([#3505](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3505))
+
 ## 1.38.0 (July 10, 2025)
 
 NOTES:
