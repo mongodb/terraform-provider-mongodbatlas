@@ -63,12 +63,12 @@ func NewTFRolesModel(ctx context.Context, roles *admin.OrgUserRolesResponse) (ty
 		orgRoles, _ = types.SetValueFrom(ctx, types.StringType, *roles.OrgRoles)
 	}
 
-	projectRoleAssignmentsList := NewTFProjectRoleAssignments(ctx, roles.GroupRoleAssignments)
+	projectRoleAssignmentsSet := NewTFProjectRoleAssignments(ctx, roles.GroupRoleAssignments)
 
 	rolesObj, _ := types.ObjectValue(
 		RolesObjectAttrTypes,
 		map[string]attr.Value{
-			"project_role_assignments": projectRoleAssignmentsList,
+			"project_role_assignments": projectRoleAssignmentsSet,
 			"org_roles":                orgRoles,
 		},
 	)
@@ -76,9 +76,9 @@ func NewTFRolesModel(ctx context.Context, roles *admin.OrgUserRolesResponse) (ty
 	return rolesObj, diags
 }
 
-func NewTFProjectRoleAssignments(ctx context.Context, groupRoleAssignments *[]admin.GroupRoleAssignment) types.List {
+func NewTFProjectRoleAssignments(ctx context.Context, groupRoleAssignments *[]admin.GroupRoleAssignment) types.Set {
 	if groupRoleAssignments == nil {
-		return types.ListNull(ProjectRoleAssignmentsAttrType)
+		return types.SetNull(ProjectRoleAssignmentsAttrType)
 	}
 
 	var projectRoleAssignments []TFProjectRoleAssignmentsModel
@@ -97,8 +97,8 @@ func NewTFProjectRoleAssignments(ctx context.Context, groupRoleAssignments *[]ad
 		})
 	}
 
-	praList, _ := types.ListValueFrom(ctx, ProjectRoleAssignmentsAttrType.ElemType.(types.ObjectType), projectRoleAssignments)
-	return praList
+	praSet, _ := types.SetValueFrom(ctx, ProjectRoleAssignmentsAttrType.ElemType.(types.ObjectType), projectRoleAssignments)
+	return praSet
 }
 
 func NewUserTeamAssignmentReq(ctx context.Context, plan *TFUserTeamAssignmentModel) (*admin.AddOrRemoveUserFromTeam, diag.Diagnostics) {
