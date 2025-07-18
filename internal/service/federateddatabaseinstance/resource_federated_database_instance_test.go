@@ -101,6 +101,42 @@ func TestAccFederatedDatabaseInstance_s3bucket(t *testing.T) {
 	})
 }
 
+func TestAccFederatedDatabaseInstance_azureCloudProviderConfig(t *testing.T) {
+	var (
+		resourceName       = "mongodbatlas_federated_database_instance.test"
+		projectID          = acc.ProjectIDExecution(t)
+		name               = acc.RandomName()
+		atlasAzureAppID    = os.Getenv("AZURE_ATLAS_APP_ID")
+		servicePrincipalID = os.Getenv("AZURE_SERVICE_PRINCIPAL_ID")
+		tenantID           = os.Getenv("AZURE_TENANT_ID")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckCloudProviderAccessAzure(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyFederatedDatabaseInstance,
+		Steps: []resource.TestStep{
+			{
+				Config: configAzureCloudProvider(name, projectID, atlasAzureAppID, servicePrincipalID, tenantID),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttrSet(resourceName, "cloud_provider_config.0.azure.0.role_id"),
+					resource.TestCheckResourceAttr(resourceName, "cloud_provider_config.0.azure.0.atlas_app_id", atlasAzureAppID),
+					resource.TestCheckResourceAttr(resourceName, "cloud_provider_config.0.azure.0.service_principal_id", servicePrincipalID),
+					resource.TestCheckResourceAttr(resourceName, "cloud_provider_config.0.azure.0.tenant_id", tenantID),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccFederatedDatabaseInstance_atlasCluster(t *testing.T) {
 	var (
 		specs = []acc.ReplicationSpecRequest{
@@ -394,6 +430,47 @@ resource "mongodbatlas_federated_database_instance" "test" {
    }
 }
 	`, name, testS3Bucket)
+}
+
+func configAzureCloudProvider(name, projectID, atlasAzureAppID, servicePrincipalID, tenantID string) string {
+	azureCloudProviderAccess := acc.ConfigSetupAzure(projectID, atlasAzureAppID, servicePrincipalID, tenantID)
+
+	return azureCloudProviderAccess + fmt.Sprintf(`
+
+resource "mongodbatlas_federated_database_instance" "test" {
+  name       = %[1]q
+  project_id = %[2]q
+
+  cloud_provider_config {
+    azure {
+		role_id         = mongodbatlas_cloud_provider_access_setup.test.role_id
+
+    }
+  }
+
+  storage_stores {
+    name         = "azure_store"
+    cluster_name = "azure_cluster"
+    project_id   = %[2]q
+    provider     = "atlas"
+    read_preference {
+      mode = "secondary"
+    }
+  }
+
+  storage_databases {
+    name = "VirtualDatabase0"
+    collections {
+      name = "VirtualCollection0"
+      data_sources {
+        collection = "listingsAndReviews"
+        database   = "sample_airbnb"
+        store_name = "azure_store"
+      }
+    }
+  }
+}
+`, name, projectID)
 }
 
 func configFirstSteps(federatedInstanceName, projectName, orgID string) string {

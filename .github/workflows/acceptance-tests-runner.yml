@@ -774,6 +774,9 @@ jobs:
           MONGODB_ATLAS_FEDERATED_ISSUER_URI: ${{ inputs.mongodb_atlas_federated_issuer_uri }}
           MONGODB_ATLAS_FEDERATED_ORG_ID: ${{ inputs.mongodb_atlas_federated_org_id }}
           MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN: ${{ inputs.mongodb_atlas_federated_settings_associated_domain }}
+          AZURE_ATLAS_APP_ID: ${{ inputs.azure_atlas_app_id }}
+          AZURE_SERVICE_PRINCIPAL_ID: ${{ inputs.azure_service_principal_id }}
+          AZURE_TENANT_ID: ${{ inputs.azure_tenant_id }}
           AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_federation }}
           AWS_REGION: ${{ inputs.aws_region_federation }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
