@@ -1,0 +1,87 @@
+{
+ "$or": [
+  {
+   "users": []
+  },
+  {
+   "$and": [
+    {
+     "$or": [
+      {
+       "users": {
+        "$elemMatch": {
+         "$or": [
+          {
+           "db": "admin"
+          },
+          {
+           "db": "$external"
+          }
+         ]
+        }
+       }
+      },
+      {
+       "roles": {
+        "$elemMatch": {
+         "$or": [
+          {
+           "db": "admin"
+          }
+         ]
+        }
+       }
+      }
+     ]
+    },
+    {
+     "$or": [
+      {
+       "atype": "authCheck",
+       "param.command": {
+        "$in": [
+         "aggregate",
+         "count",
+         "distinct",
+         "group",
+         "mapReduce",
+         "geoNear",
+         "geoSearch",
+         "eval",
+         "find",
+         "getLastError",
+         "getMore",
+         "getPrevError",
+         "parallelCollectionScan",
+         "delete",
+         "findAndModify",
+         "insert",
+         "update",
+         "resetError"
+        ]
+       }
+      },
+      {
+       "atype": {
+        "$in": [
+         "authenticate",
+         "updateUser",
+         "grantRolesToUser",
+         "revokeRolesFromUser",
+         "createRole",
+         "updateRole",
+         "dropRole",
+         "dropAllRolesFromDatabase",
+         "grantRolesToRole",
+         "revokeRolesFromRole",
+         "grantPrivilegesToRole",
+         "revokePrivilegesFromRole"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
