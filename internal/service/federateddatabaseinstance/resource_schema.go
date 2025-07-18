@@ -18,13 +18,13 @@ func cloudProviderConfig(isDataSource bool) *schema.Schema {
 		Type:     schema.TypeList,
 		MaxItems: maxItems,
 		Computed: true,
-		Optional: optional,
+		Optional: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"aws": {
 					Type:     schema.TypeList,
 					MaxItems: maxItems,
-					Optional: optional,
+					Optional: true,
 					Computed: computed,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
@@ -36,7 +36,7 @@ func cloudProviderConfig(isDataSource bool) *schema.Schema {
 							"test_s3_bucket": {
 								Type:     schema.TypeString,
 								Required: required,
-								Computed: computed,
+								Optional: isDataSource,
 							},
 							"iam_assumed_role_arn": {
 								Type:     schema.TypeString,
