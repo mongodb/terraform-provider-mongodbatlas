@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -36,6 +37,10 @@ const (
 
 func TestAccCustomDBRoles_Basic(t *testing.T) {
 	resource.ParallelTest(t, *basicTestCase(t))
+}
+
+func TestAccCustomDBRoles_BasicWithTwoActions(t *testing.T) {
+	resource.ParallelTest(t, *basicTestCaseWithTwoActions(t))
 }
 
 func basicTestCase(t *testing.T) *resource.TestCase {
@@ -79,6 +84,39 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"actions.0.resources.0.cluster"},
+			},
+		},
+	}
+}
+
+func basicTestCaseWithTwoActions(t *testing.T) *resource.TestCase {
+	t.Helper()
+	var (
+		projectID     = acc.ProjectIDExecution(t)
+		roleName      = acc.RandomName()
+		action1       = "INSERT"
+		action2       = "UPDATE"
+		databaseName1 = acc.RandomClusterName()
+		databaseName2 = acc.RandomClusterName()
+	)
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasicWithTwoActions(projectID, roleName, action1, databaseName1, action2, databaseName2),
+				Check:  checkExists(resourceName),
+			},
+			{
+				Config: configBasicWithTwoActions(projectID, roleName, action2, databaseName2, action1, databaseName1), // reverse the actions order
+				Check:  checkExists(resourceName),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
 			},
 		},
 	}
@@ -601,6 +639,35 @@ func configBasic(projectID, roleName, action, databaseName string) string {
 			}
 		}
 	`, projectID, roleName, action, databaseName)
+}
+
+func generateActionConfig(action, databaseName string) string {
+	return fmt.Sprintf(`
+		actions {
+			action = %q
+			resources {
+				collection_name = ""
+				database_name   = %q
+			}
+		}
+	`, action, databaseName)
+}
+
+func configBasicWithTwoActions(projectID, roleName, action1, databaseName1, action2, databaseName2 string) string {
+	actions := []string{
+		generateActionConfig(action1, databaseName1),
+		generateActionConfig(action2, databaseName2),
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_custom_db_role" "test" {
+			project_id = %[1]q
+			role_name  = %[2]q
+
+			%[3]s
+			%[4]s
+		}
+	`, projectID, roleName, actions[0], actions[1])
 }
 
 func configWithInheritedRoles(orgID, projectName string, inheritedRole []admin.UserCustomDBRole, testRole *admin.UserCustomDBRole) string {

@@ -51,7 +51,7 @@ func Resource() *schema.Resource {
 				),
 			},
 			"actions": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -269,8 +269,8 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 }
 
 func expandActions(d *schema.ResourceData) *[]admin.DatabasePrivilegeAction {
-	actions := make([]admin.DatabasePrivilegeAction, len(d.Get("actions").([]any)))
-	for k, v := range d.Get("actions").([]any) {
+	actions := make([]admin.DatabasePrivilegeAction, len(d.Get("actions").(*schema.Set).List()))
+	for k, v := range d.Get("actions").(*schema.Set).List() {
 		a := v.(map[string]any)
 		actions[k] = admin.DatabasePrivilegeAction{
 			Action:    a["action"].(string),
