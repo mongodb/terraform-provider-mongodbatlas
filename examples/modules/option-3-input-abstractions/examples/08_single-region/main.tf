@@ -1,7 +1,7 @@
 # Example usage of the cluster-abstraction module for a single-region cluster
 
 module "single_region" {
-  source = "./cluster-abstraction"
+  source = "../.."
 
   project_id             = var.project_id
   name                   = "single-region"

@@ -2,7 +2,7 @@
 # multi-cloud can also apply to multi-region multi geo, with sharding.
 
 module "multi_cloud" {
-  source = "./cluster-abstraction"
+  source = "../.."
 
   project_id             = var.project_id
   name                   = "multi-cloud"

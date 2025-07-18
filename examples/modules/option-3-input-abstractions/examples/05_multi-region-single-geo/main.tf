@@ -4,7 +4,7 @@
 # no sharding
 
 module "multi_region_single_geo_no_sharding" {
-  source = "./cluster-abstraction"
+  source = "../.."
 
   project_id             = var.project_id
   name                   = "multi-region-single-geo-no-sharding"
