@@ -21,7 +21,7 @@ variable "advanced_configuration" {
     oplog_size_mb                                                  = optional(number)
     sample_refresh_interval_bi_connector                           = optional(number)
     sample_size_bi_connector                                       = optional(number)
-    tls_cipher_config_mode                                         = optional(string, "DEFAULT")
+    tls_cipher_config_mode                                         = optional(string)
     transaction_lifetime_limit_seconds                             = optional(number)
   })
   nullable = true
@@ -29,7 +29,6 @@ variable "advanced_configuration" {
     default_write_concern        = "majority"
     javascript_enabled           = false
     minimum_enabled_tls_protocol = "TLS1_2"
-    tls_cipher_config_mode       = "DEFAULT"
   }
 }
 
