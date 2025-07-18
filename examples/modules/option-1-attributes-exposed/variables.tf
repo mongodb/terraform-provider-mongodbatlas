@@ -183,7 +183,7 @@ Unique 24-hexadecimal digit string that identifies your project. Use the [/group
 **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
 EOT
 
-  type     = string
+  type = string
 }
 
 variable "redact_client_log_data" {
