@@ -3,7 +3,7 @@
 # - with analytics nodes defined
 
 module "single_region_analytics" {
-  source = "./cluster-abstraction"
+  source = "../.."
 
   project_id             = var.project_id
   name                   = "single-region-analytics"

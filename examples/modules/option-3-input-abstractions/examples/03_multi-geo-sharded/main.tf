@@ -2,7 +2,7 @@
 # - with shards (single zone)
 
 module "multi_geo_sharded" {
-  source = "./cluster-abstraction"
+  source = "../.."
 
   project_id             = var.project_id
   name                   = "multi-geo-sharded"

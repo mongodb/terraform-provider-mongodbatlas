@@ -1,30 +1,32 @@
-# - single region
-# - with shards (single zone)
+# - multiple regions (different geographies) 
+# - sharded zones
 
-module "single_region_sharded" {
-  source = "./cluster-abstraction"
+module "multi_geo_zone_sharded" {
+  source = "../.."
 
   project_id             = var.project_id
-  name                   = "single-region-sharded"
-  cluster_type           = "SHARDED"
+  name                   = "multi-geo-zone-sharded"
+  cluster_type           = "GEOSHARDED"
   mongo_db_major_version = "8.0"
 
   shards = [
-    { # shard 1 (single zone)
+    {
+      zone_name = "US" # shard 1 (US zone)
       region_configs = [
         {
           provider_name        = "AWS"
           region_name          = "US_EAST_1"
-          instance_size        = "M40" # Independently scaled shard
+          instance_size        = "M30"
           electable_node_count = 3
         }
       ]
     },
-    { # shard 2 (single zone)
+    {
+      zone_name = "EU" # shard 2 (EU zone)
       region_configs = [
         {
           provider_name        = "AWS"
-          region_name          = "US_EAST_1"
+          region_name          = "EU_WEST_1"
           instance_size        = "M30"
           electable_node_count = 3
         }

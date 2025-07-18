@@ -5,5 +5,10 @@ terraform {
       version = "~> 1.0"
     }
   }
-  required_version = ">= 1.0" // TODO revisit versions
+  required_version = ">= 1.0"
+}
+
+provider "mongodbatlas" {
+  public_key  = var.public_key
+  private_key = var.private_key
 }
