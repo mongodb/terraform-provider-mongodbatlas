@@ -1,8 +1,6 @@
 package clouduserteamassignment
 
 import (
-	"context"
-
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -10,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func ResourceSchema(ctx context.Context) schema.Schema {
+func resourceSchema() schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"org_id": schema.StringAttribute{
@@ -137,7 +135,7 @@ type TFUserTeamAssignmentModel struct {
 	Username            types.String `tfsdk:"username"`
 	OrgMembershipStatus types.String `tfsdk:"org_membership_status"`
 	Roles               types.Object `tfsdk:"roles"`
-	TeamIDs             types.Set    `tfsdk:"team_ids"`
+	TeamIds             types.Set    `tfsdk:"team_ids"`
 	InvitationCreatedAt types.String `tfsdk:"invitation_created_at"`
 	InvitationExpiresAt types.String `tfsdk:"invitation_expires_at"`
 	InviterUsername     types.String `tfsdk:"inviter_username"`

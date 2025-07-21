@@ -95,7 +95,7 @@ func TestUserTeamAssignmentSDKToTFModel(t *testing.T) {
 		OrgId:               types.StringNull(),
 		TeamId:              types.StringNull(),
 		Roles:               expectedRoles,
-		TeamIDs:             expectedTeams,
+		TeamIds:             expectedTeams,
 	}
 
 	testCases := map[string]sdkToTFModelTestCase{
@@ -159,7 +159,7 @@ func TestNewUserTeamAssignmentReq(t *testing.T) {
 				Roles: createRolesObject(ctx, testOrgRoles, []clouduserteamassignment.TFProjectRoleAssignmentsModel{
 					projectAssignment,
 				}),
-				TeamIDs:             teams,
+				TeamIds:             teams,
 				InvitationCreatedAt: types.StringValue(testInvitationCreatedAt),
 				InvitationExpiresAt: types.StringValue(testInvitationExpiresAt),
 				InviterUsername:     types.StringValue(testInviterUsername),

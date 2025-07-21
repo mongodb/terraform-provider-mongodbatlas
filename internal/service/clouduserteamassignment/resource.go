@@ -32,7 +32,7 @@ type rs struct {
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = ResourceSchema(ctx)
+	resp.Schema = resourceSchema()
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 

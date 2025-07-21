@@ -22,11 +22,14 @@ func NewTFUserTeamAssignmentModel(ctx context.Context, apiResp *admin.OrgUserRes
 	rolesObj, rolesDiags = NewTFRolesModel(ctx, &apiResp.Roles)
 	diags.Append(rolesDiags...)
 
+	teamIDs := conversion.TFSetValueOrNull(ctx, apiResp.TeamIds, types.StringType)
+
 	userTeamAssignment := TFUserTeamAssignmentModel{
 		UserId:              types.StringValue(apiResp.GetId()),
 		Username:            types.StringValue(apiResp.GetUsername()),
 		OrgMembershipStatus: types.StringValue(apiResp.GetOrgMembershipStatus()),
 		Roles:               rolesObj,
+		TeamIds:             teamIDs,
 		InvitationCreatedAt: types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.InvitationCreatedAt)),
 		InvitationExpiresAt: types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.InvitationExpiresAt)),
 		InviterUsername:     types.StringPointerValue(apiResp.InviterUsername),
@@ -36,14 +39,6 @@ func NewTFUserTeamAssignmentModel(ctx context.Context, apiResp *admin.OrgUserRes
 		CreatedAt:           types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.CreatedAt)),
 		LastAuth:            types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.LastAuth)),
 		MobileNumber:        types.StringPointerValue(apiResp.MobileNumber),
-	}
-
-	userTeamAssignment.TeamIDs = types.SetNull(types.StringType)
-	if apiResp.TeamIds != nil {
-		userTeamAssignment.TeamIDs, diags = types.SetValueFrom(ctx, types.StringType, apiResp.TeamIds)
-		if diags.HasError() {
-			return nil, diags
-		}
 	}
 
 	return &userTeamAssignment, nil
@@ -63,16 +58,15 @@ func NewTFRolesModel(ctx context.Context, roles *admin.OrgUserRolesResponse) (ty
 		orgRoles, _ = types.SetValueFrom(ctx, types.StringType, *roles.OrgRoles)
 	}
 
-	projectRoleAssignmentsSet := NewTFProjectRoleAssignments(ctx, roles.GroupRoleAssignments)
+	projectRoleAssignmentsList := NewTFProjectRoleAssignments(ctx, roles.GroupRoleAssignments)
 
 	rolesObj, _ := types.ObjectValue(
 		RolesObjectAttrTypes,
 		map[string]attr.Value{
-			"project_role_assignments": projectRoleAssignmentsSet,
+			"project_role_assignments": projectRoleAssignmentsList,
 			"org_roles":                orgRoles,
 		},
 	)
-
 	return rolesObj, diags
 }
 
@@ -85,12 +79,8 @@ func NewTFProjectRoleAssignments(ctx context.Context, groupRoleAssignments *[]ad
 
 	for _, pra := range *groupRoleAssignments {
 		projectID := types.StringPointerValue(pra.GroupId)
-		var projectRoles types.Set
-		if pra.GroupRoles == nil || len(*pra.GroupRoles) == 0 {
-			projectRoles = types.SetNull(types.StringType)
-		} else {
-			projectRoles, _ = types.SetValueFrom(ctx, types.StringType, pra.GroupRoles)
-		}
+		projectRoles := conversion.TFSetValueOrNull(ctx, pra.GroupRoles, types.StringType)
+
 		projectRoleAssignments = append(projectRoleAssignments, TFProjectRoleAssignmentsModel{
 			ProjectId:    projectID,
 			ProjectRoles: projectRoles,
