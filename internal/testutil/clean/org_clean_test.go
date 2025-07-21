@@ -210,6 +210,10 @@ func removeProjectResources(ctx context.Context, t *testing.T, dryRun bool, clie
 	if privateEndpointServicesRemoved > 0 {
 		changes = append(changes, fmt.Sprintf("removed %d private endpoint services", privateEndpointServicesRemoved))
 	}
+	earPrivateEndpointsRemoved := removeEARPrivateEndpoints(ctx, t, dryRun, client, projectID)
+	if earPrivateEndpointsRemoved > 0 {
+		changes = append(changes, fmt.Sprintf("removed %d EAR private endpoints", earPrivateEndpointsRemoved))
+	}
 	return strings.Join(changes, ", ")
 }
 
@@ -358,6 +362,37 @@ func removePrivateEndpointServices(ctx context.Context, t *testing.T, dryRun boo
 			}
 		}
 		totalCount += len(endpointServices)
+	}
+
+	return totalCount
+}
+
+func removeEARPrivateEndpoints(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
+	t.Helper()
+	totalCount := 0
+	cloudProviders := []string{"AWS", "AZURE"}
+
+	for _, provider := range cloudProviders {
+		params := admin.GetEncryptionAtRestPrivateEndpointsForCloudProviderApiParams{
+			GroupId:       projectID,
+			CloudProvider: provider,
+		}
+		endpoints, _, err := client.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRestPrivateEndpointsForCloudProviderWithParams(ctx, &params).Execute()
+		if err != nil {
+			t.Errorf("failed to list EAR private endpoint for %s: %v", provider, err)
+			continue
+		}
+
+		for _, endpoint := range endpoints.GetResults() {
+			id := endpoint.GetId()
+			t.Logf("delete EAR private endpoint %s for provider %s", id, provider)
+			if !dryRun {
+				if _, err := client.EncryptionAtRestUsingCustomerKeyManagementApi.RequestEncryptionAtRestPrivateEndpointDeletion(ctx, projectID, provider, id).Execute(); err != nil {
+					require.NoError(t, err)
+				}
+			}
+		}
+		totalCount += len(endpoints.GetResults())
 	}
 
 	return totalCount
