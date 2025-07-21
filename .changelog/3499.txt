@@ -1,0 +1,7 @@
+```release-note:breaking-change
+resource/mongodbatlas_maintenance_window: Changes `hour_of_day` to Required
+```
+
+```release-note:breaking-change
+resource/mongodbatlas_maintenance_window: Changes `start_asap` to Computed only
+```
