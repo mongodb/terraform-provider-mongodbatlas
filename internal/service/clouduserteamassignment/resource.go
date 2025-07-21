@@ -91,7 +91,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 				resp.State.RemoveResource(ctx)
 				return
 			}
-			resp.Diagnostics.AddError("Error getting team users by username", err.Error())
+			resp.Diagnostics.AddError("Error getting team users by user_id", err.Error())
 			return
 		}
 		if userListResp != nil && userListResp.Results != nil {
