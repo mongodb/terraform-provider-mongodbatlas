@@ -91,18 +91,20 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 				resp.State.RemoveResource(ctx)
 				return
 			}
-			resp.Diagnostics.AddError("Error getting team users by username", err.Error())
+			resp.Diagnostics.AddError("Error getting team users by user_id", err.Error())
 			return
 		}
-		if len(userListResp.GetResults()) == 0 {
-			resp.State.RemoveResource(ctx)
-			return
-		}
-		results := userListResp.GetResults()
-		for i := range results {
-			if results[i].GetId() == userID {
-				userResp = &results[i]
-				break
+		if userListResp != nil && userListResp.Results != nil {
+			if len(userListResp.GetResults()) == 0 {
+				resp.State.RemoveResource(ctx)
+				return
+			}
+			results := userListResp.GetResults()
+			for i := range results {
+				if results[i].GetId() == userID {
+					userResp = &results[i]
+					break
+				}
 			}
 		}
 	} else if !state.Username.IsNull() && state.Username.ValueString() != "" { // required for import
