@@ -17,6 +17,16 @@ func TestAccCloudProviderAccessSetupAWS_basic(t *testing.T) {
 	resource.ParallelTest(t, *basicSetupTestCase(t))
 }
 
+const (
+	cloudProviderAzureDataSource = `
+	     data "mongodbatlas_cloud_provider_access_setup" "test" {
+        project_id = mongodbatlas_cloud_provider_access_setup.test.project_id
+        provider_name = "AZURE"
+        role_id =  mongodbatlas_cloud_provider_access_setup.test.role_id
+     }
+	`
+)
+
 func TestAccCloudProviderAccessSetupAzure_basic(t *testing.T) {
 	var (
 		resourceName       = "mongodbatlas_cloud_provider_access_setup.test"
@@ -26,13 +36,12 @@ func TestAccCloudProviderAccessSetupAzure_basic(t *testing.T) {
 		tenantID           = os.Getenv("AZURE_TENANT_ID")
 		projectID          = acc.ProjectIDExecution(t)
 	)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckCloudProviderAccessAzure(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configSetupAzure(projectID, atlasAzureAppID, servicePrincipalID, tenantID),
+				Config: acc.ConfigSetupAzure(projectID, atlasAzureAppID, servicePrincipalID, tenantID) + cloudProviderAzureDataSource,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "role_id"),
@@ -102,26 +111,6 @@ func configSetupAWS(projectID string) string {
 	 }
 
 	`, projectID)
-}
-
-func configSetupAzure(projectID, atlasAzureAppID, servicePrincipalID, tenantID string) string {
-	return fmt.Sprintf(`
-	resource "mongodbatlas_cloud_provider_access_setup" "test" {
-		project_id = %[1]q
-		provider_name = "AZURE"
-		azure_config {
-			atlas_azure_app_id = %[2]q
-			service_principal_id = %[3]q
-			tenant_id = %[4]q
-		}
-	 }
-
-	 data "mongodbatlas_cloud_provider_access_setup" "test" {
-		project_id = mongodbatlas_cloud_provider_access_setup.test.project_id
-		provider_name = "AWS"
-		role_id =  mongodbatlas_cloud_provider_access_setup.test.role_id
-	 }
-	`, projectID, atlasAzureAppID, servicePrincipalID, tenantID)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
