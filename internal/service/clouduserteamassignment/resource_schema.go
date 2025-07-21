@@ -148,8 +148,8 @@ type TFUserTeamAssignmentModel struct {
 }
 
 type TFRolesModel struct {
-	ProjectRoleAssignments types.List `tfsdk:"project_role_assignments"`
-	OrgRoles               types.Set  `tfsdk:"org_roles"`
+	ProjectRoleAssignments types.Set `tfsdk:"project_role_assignments"`
+	OrgRoles               types.Set `tfsdk:"org_roles"`
 }
 
 type TFProjectRoleAssignmentsModel struct {
