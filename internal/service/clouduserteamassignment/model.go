@@ -51,20 +51,15 @@ func NewTFRolesModel(ctx context.Context, roles *admin.OrgUserRolesResponse) (ty
 		return types.ObjectNull(RolesObjectAttrTypes), diags
 	}
 
-	var orgRoles types.Set
-	if roles.OrgRoles == nil || len(*roles.OrgRoles) == 0 {
-		orgRoles = types.SetNull(types.StringType)
-	} else {
-		orgRoles, _ = types.SetValueFrom(ctx, types.StringType, *roles.OrgRoles)
-	}
+	orgRoles := conversion.TFSetValueOrNull(ctx, roles.OrgRoles, types.StringType)
 
 	projectRoleAssignmentsList := NewTFProjectRoleAssignments(ctx, roles.GroupRoleAssignments)
 
 	rolesObj, _ := types.ObjectValue(
 		RolesObjectAttrTypes,
 		map[string]attr.Value{
-			"project_role_assignments": projectRoleAssignmentsList,
 			"org_roles":                orgRoles,
+			"project_role_assignments": projectRoleAssignmentsList,
 		},
 	)
 	return rolesObj, diags
