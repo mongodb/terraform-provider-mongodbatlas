@@ -416,16 +416,28 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "project_id"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "role_name", inheritRole.RoleName),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.#", cast.ToString(len(inheritRole.GetActions()))),
-					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.action", inheritRole.GetActions()[0].Action),
-					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.resources.#", cast.ToString(len(inheritRole.GetActions()[0].GetResources()))),
+					resource.TestCheckTypeSetElemNestedAttrs(InheritedRoleResourceName, "actions.*", map[string]string{
+						"action":      inheritRole.GetActions()[0].Action,
+						"resources.#": cast.ToString(len(inheritRole.GetActions()[0].GetResources())),
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(InheritedRoleResourceName, "actions.*", map[string]string{
+						"action":      inheritRole.GetActions()[1].Action,
+						"resources.#": cast.ToString(len(inheritRole.GetActions()[1].GetResources())),
+					}),
 
 					// For Test Role
 					checkExists(testRoleResourceName),
 					resource.TestCheckResourceAttrSet(testRoleResourceName, "project_id"),
 					resource.TestCheckResourceAttr(testRoleResourceName, "role_name", testRole.RoleName),
 					resource.TestCheckResourceAttr(testRoleResourceName, "actions.#", cast.ToString(len(testRole.GetActions()))),
-					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.action", testRole.GetActions()[0].Action),
-					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.resources.#", cast.ToString(len(testRole.GetActions()[0].GetResources()))),
+					resource.TestCheckTypeSetElemNestedAttrs(testRoleResourceName, "actions.*", map[string]string{
+						"action":      testRole.GetActions()[0].Action,
+						"resources.#": cast.ToString(len(testRole.GetActions()[0].GetResources())),
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(testRoleResourceName, "actions.*", map[string]string{
+						"action":      testRole.GetActions()[1].Action,
+						"resources.#": cast.ToString(len(testRole.GetActions()[1].GetResources())),
+					}),
 				),
 			},
 			{
@@ -437,16 +449,28 @@ func TestAccConfigRSCustomDBRoles_MultipleCustomRoles(t *testing.T) {
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "project_id"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "role_name", inheritRoleUpdated.RoleName),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.#", cast.ToString(len(inheritRoleUpdated.GetActions()))),
-					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.action", inheritRoleUpdated.GetActions()[0].Action),
-					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.resources.#", cast.ToString(len(inheritRoleUpdated.GetActions()[0].GetResources()))),
+					resource.TestCheckTypeSetElemNestedAttrs(InheritedRoleResourceName, "actions.*", map[string]string{
+						"action":      inheritRoleUpdated.GetActions()[0].Action,
+						"resources.#": cast.ToString(len(inheritRoleUpdated.GetActions()[0].GetResources())),
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(InheritedRoleResourceName, "actions.*", map[string]string{
+						"action":      inheritRoleUpdated.GetActions()[1].Action,
+						"resources.#": cast.ToString(len(inheritRoleUpdated.GetActions()[1].GetResources())),
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(InheritedRoleResourceName, "actions.*", map[string]string{
+						"action":      inheritRoleUpdated.GetActions()[2].Action,
+						"resources.#": cast.ToString(len(inheritRoleUpdated.GetActions()[2].GetResources())),
+					}),
 
 					// For Test Role
 					checkExists(testRoleResourceName),
 					resource.TestCheckResourceAttrSet(testRoleResourceName, "project_id"),
 					resource.TestCheckResourceAttr(testRoleResourceName, "role_name", testRoleUpdated.RoleName),
 					resource.TestCheckResourceAttr(testRoleResourceName, "actions.#", cast.ToString(len(testRoleUpdated.GetActions()))),
-					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.action", testRoleUpdated.GetActions()[0].Action),
-					resource.TestCheckResourceAttr(testRoleResourceName, "actions.0.resources.#", cast.ToString(len(testRoleUpdated.GetActions()[0].GetResources()))),
+					resource.TestCheckTypeSetElemNestedAttrs(testRoleResourceName, "actions.*", map[string]string{
+						"action":      testRoleUpdated.GetActions()[0].Action,
+						"resources.#": cast.ToString(len(testRoleUpdated.GetActions()[0].GetResources())),
+					}),
 					resource.TestCheckResourceAttr(testRoleResourceName, "inherited_roles.#", "1"),
 				),
 			},
@@ -547,8 +571,14 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "project_id"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "role_name", inheritRole.RoleName),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.#", cast.ToString(len(inheritRole.GetActions()))),
-					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.action", inheritRole.GetActions()[0].Action),
-					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.resources.#", cast.ToString(len(inheritRole.GetActions()[0].GetResources()))),
+					resource.TestCheckTypeSetElemNestedAttrs(InheritedRoleResourceName, "actions.*", map[string]string{
+						"action":      inheritRole.GetActions()[0].Action,
+						"resources.#": cast.ToString(len(inheritRole.GetActions()[0].GetResources())),
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(InheritedRoleResourceName, "actions.*", map[string]string{
+						"action":      inheritRole.GetActions()[1].Action,
+						"resources.#": cast.ToString(len(inheritRole.GetActions()[1].GetResources())),
+					}),
 
 					// For Test Role
 					checkExists(testRoleResourceName),
@@ -567,8 +597,18 @@ func TestAccConfigRSCustomDBRoles_UpdatedInheritRoles(t *testing.T) {
 					resource.TestCheckResourceAttrSet(InheritedRoleResourceName, "project_id"),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "role_name", inheritRoleUpdated.RoleName),
 					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.#", cast.ToString(len(inheritRoleUpdated.GetActions()))),
-					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.action", inheritRoleUpdated.GetActions()[0].Action),
-					resource.TestCheckResourceAttr(InheritedRoleResourceName, "actions.0.resources.#", cast.ToString(len(inheritRoleUpdated.GetActions()[0].GetResources()))),
+					resource.TestCheckTypeSetElemNestedAttrs(InheritedRoleResourceName, "actions.*", map[string]string{
+						"action":      inheritRoleUpdated.GetActions()[0].Action,
+						"resources.#": cast.ToString(len(inheritRoleUpdated.GetActions()[0].GetResources())),
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(InheritedRoleResourceName, "actions.*", map[string]string{
+						"action":      inheritRoleUpdated.GetActions()[1].Action,
+						"resources.#": cast.ToString(len(inheritRoleUpdated.GetActions()[1].GetResources())),
+					}),
+					resource.TestCheckTypeSetElemNestedAttrs(InheritedRoleResourceName, "actions.*", map[string]string{
+						"action":      inheritRoleUpdated.GetActions()[2].Action,
+						"resources.#": cast.ToString(len(inheritRoleUpdated.GetActions()[2].GetResources())),
+					}),
 
 					// For Test Role
 					checkExists(testRoleResourceName),
