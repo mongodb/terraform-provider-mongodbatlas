@@ -266,13 +266,13 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		MinTimeout: minTimeout,
 		Delay:      minTimeout,
 	}
-	_, err = stateConf.WaitForStateContext(ctx)
-	err = cleanup.HandleCreateTimeout(d.Get("delete_on_create_timeout").(bool), err, func() error {
+	_, errWait := stateConf.WaitForStateContext(ctx)
+	errWait = cleanup.HandleCreateTimeout(d.Get("delete_on_create_timeout").(bool), errWait, func() error {
 		_, _, errCleanup := conn.NetworkPeeringApi.DeletePeeringConnection(ctx, projectID, peerID).Execute()
 		return errCleanup
 	})
-	if err != nil {
-		return diag.Errorf(errorPeersCreate, err)
+	if errWait != nil {
+		return diag.Errorf(errorPeersCreate, errWait)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
