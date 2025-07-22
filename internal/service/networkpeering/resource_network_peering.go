@@ -266,8 +266,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Delay:      minTimeout,
 	}
 	_, errWait := stateConf.WaitForStateContext(ctx)
-	deleteOnCreateTimeoutValue, exists := d.GetOk("delete_on_create_timeout")
-	deleteOnCreateTimeout := !exists || deleteOnCreateTimeoutValue.(bool)
+	deleteOnCreateTimeout := true // default value when not set
+	if v, ok := d.GetOkExists("delete_on_create_timeout"); ok {
+		deleteOnCreateTimeout = v.(bool)
+	}
 	errWait = cleanup.HandleCreateTimeout(deleteOnCreateTimeout, errWait, func() error {
 		_, _, errCleanup := conn.NetworkPeeringApi.DeletePeeringConnection(ctx, projectID, peerID).Execute()
 		return errCleanup
