@@ -167,7 +167,7 @@ func Resource() *schema.Resource {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     true,
-				Description: "Flag that indicates whether to delete the network peering connection if creation times out. Default is true.",
+				Description: "Flag that indicates whether to delete the resource if creation times out, default is true.",
 			},
 		},
 	}

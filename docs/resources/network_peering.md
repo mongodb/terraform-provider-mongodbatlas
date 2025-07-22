@@ -331,7 +331,7 @@ resource "mongodbatlas_network_peering" "test" {
 * `container_id` - (Required) Unique identifier of the MongoDB Atlas container for the provider (GCP) or provider/region (AWS, AZURE). You can create an MongoDB Atlas container using the network_container resource or it can be obtained from the cluster returned values if a cluster has been created before the first container.
 * `provider_name` - (Required) Cloud provider to whom the peering connection is being made. (Possible Values `AWS`, `AZURE`, `GCP`).
 * `timeouts`- (Optional) The duration of time to wait for the resource to be created, updated, or deleted. The default timeout is `1h`. The timeout value is defined by a signed sequence of decimal numbers with a time unit suffix such as: `1h45m`, `300s`, `10m`, etc. The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. Learn more about timeouts [here](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
-* `delete_on_create_timeout`- (Optional) Flag that indicates whether to delete the resource if creation times out. Default is true.
+* `delete_on_create_timeout`- (Optional) Flag that indicates whether to delete the resource if creation times out, default is true.
 
 **AWS ONLY:**
 
