@@ -1,3 +1,3 @@
-```release-note:bug
+```release-note:breaking-change
 resource/mongodbatlas_custom_db_role: Changes actions attribute to not be sensitive to order
 ```
