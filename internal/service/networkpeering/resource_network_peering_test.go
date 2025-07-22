@@ -249,7 +249,7 @@ func basicAWSTestCase(tb testing.TB) *resource.TestCase {
 				ImportStateIdFunc:       importStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"accepter_region_name", "container_id", "delete_on_create_timeout"},
+				ImportStateVerifyIgnore: []string{"accepter_region_name", "container_id"},
 			},
 		},
 	}

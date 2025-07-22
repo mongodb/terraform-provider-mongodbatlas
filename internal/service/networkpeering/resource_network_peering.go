@@ -163,7 +163,7 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"delete_on_create_timeout": { // Don't use Default to avoid unplanned changes when upgrading from previous versions.
+			"delete_on_create_timeout": { // Don't use Default: true to avoid unplanned changes when upgrading from previous versions.
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Description: "Flag that indicates whether to delete the resource if creation times out. Default is true.",
