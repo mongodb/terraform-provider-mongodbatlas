@@ -33,27 +33,4 @@ resource "mongodbatlas_federated_database_instance" "azure_example" {
       role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
     }
   }
-
-  # Minimal storage configuration using only Atlas cluster
-  storage_databases {
-    name = "VirtualDatabase0"
-    collections {
-      name = "VirtualCollection0"
-      data_sources {
-        store_name = "azure_cluster_store"
-        database   = var.database_name
-        collection = var.collection_name
-      }
-    }
-  }
-
-  storage_stores {
-    name         = "azure_cluster_store"
-    provider     = "atlas"
-    cluster_name = var.cluster_name
-    project_id   = var.project_id
-    read_preference {
-      mode = "secondary"
-    }
-  }
 }

@@ -32,20 +32,3 @@ variable "federated_instance_name" {
   type        = string
   default     = "azure-federated-instance"
 }
-
-variable "cluster_name" {
-  description = "Name of existing Atlas cluster"
-  type        = string
-}
-
-variable "database_name" {
-  description = "Database name in Atlas cluster"
-  type        = string
-  default     = "sample_airbnb"
-}
-
-variable "collection_name" {
-  description = "Collection name in Atlas cluster"
-  type        = string
-  default     = "listingsAndReviews"
-}
