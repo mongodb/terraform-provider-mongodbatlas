@@ -27,4 +27,11 @@ resource "mongodbatlas_advanced_cluster" "single_region" {
       ]
     }
   ]
+
+  lifecycle {
+    ignore_changes = [
+      replication_specs[0].region_configs[0].electable_specs.instance_size
+    ]
+  }
 }
+

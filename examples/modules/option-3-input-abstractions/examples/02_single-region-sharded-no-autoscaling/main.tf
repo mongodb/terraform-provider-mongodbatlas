@@ -1,11 +1,11 @@
 # - single region
 # - with shards (single zone)
 
-module "single_region_sharded" {
+module "single_region_sharded_no_autoscaling" {
   source = "../.."
 
   project_id             = var.project_id
-  name                   = "single-region-sharded"
+  name                   = "single-region-sharded-no-autoscaling"
   cluster_type           = "SHARDED"
   mongo_db_major_version = "8.0"
 
@@ -31,11 +31,4 @@ module "single_region_sharded" {
       ]
     }
   ]
-
-  auto_scaling = {
-    disk_gb_enabled           = true
-    compute_enabled           = true
-    compute_max_instance_size = "M60"
-    compute_min_instance_size = "M30"
-  }
 }

@@ -1,17 +1,20 @@
-# multiple providers, multi-region single geo
-# multi-cloud can also apply to multi-region multi geo, with sharding.
 
-resource "mongodbatlas_advanced_cluster" "multi_cloud" {
+# 5-Node 2-Region Architecture
+
+# - multiple regions (same geography)
+# no sharding
+
+resource "mongodbatlas_advanced_cluster" "multi_region_single_geo_no_sharding" {
   project_id             = var.project_id
-  name                   = "multi-cloud"
+  name                   = "multi-region-single-geo"
   cluster_type           = "REPLICASET"
   mongo_db_major_version = "8.0"
   replication_specs = [
     {
       region_configs = [
         {
-          provider_name = "AZURE"
-          region_name   = "US_WEST_2"
+          provider_name = "AWS"
+          region_name   = "US_EAST_1"
           priority      = 7
           electable_specs = {
             instance_size = "M30"
@@ -46,4 +49,12 @@ resource "mongodbatlas_advanced_cluster" "multi_cloud" {
       ]
     }
   ]
+
+  lifecycle {
+    ignore_changes = [
+      replication_specs[0].region_configs[0].electable_specs.instance_size,
+      replication_specs[0].region_configs[1].electable_specs.instance_size,
+      replication_specs[0].region_configs[1].read_only_specs.instance_size
+    ]
+  }
 }
