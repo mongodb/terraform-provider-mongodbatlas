@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -483,8 +482,6 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(errorPeersDelete, peerID, err))
 	}
 
-	log.Println("[INFO] Waiting for MongoDB Network Peering Connection to be destroyed")
-
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"AVAILABLE", "INITIATING", "PENDING_ACCEPTANCE", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER", "TERMINATING", "DELETING"},
 		Target:     []string{"DELETED"},
@@ -516,19 +513,19 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 
 	peer, _, err := conn.NetworkPeeringApi.GetPeeringConnection(ctx, projectID, peerID).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("couldn't import peer %s in project %s, error: %s", peerID, projectID, err)
+		return nil, fmt.Errorf("couldn't import peer %s in project %s, error: %w", peerID, projectID, err)
 	}
 
 	if err := d.Set("project_id", projectID); err != nil {
-		log.Printf("[WARN] Error setting project_id for (%s): %s", peerID, err)
+		return nil, fmt.Errorf("error setting project_id while importing peer %s in project %s, error: %w", peerID, projectID, err)
 	}
 
 	if err := d.Set("container_id", peer.GetContainerId()); err != nil {
-		log.Printf("[WARN] Error setting container_id for (%s): %s", peerID, err)
+		return nil, fmt.Errorf("error setting container_id while importing peer %s in project %s, error: %w", peerID, projectID, err)
 	}
 
 	if err := d.Set("provider_name", providerName); err != nil {
-		log.Printf("[WARN] Error setting provider_name for (%s): %s", peerID, err)
+		return nil, fmt.Errorf("error setting provider_name while importing peer %s in project %s, error: %w", peerID, projectID, err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
@@ -547,9 +544,6 @@ func resourceRefreshFunc(ctx context.Context, peerID, projectID, containerID str
 			if validate.StatusNotFound(resp) {
 				return "", "DELETED", nil
 			}
-
-			log.Printf("error reading MongoDB Network Peering Connection %s: %s", peerID, err)
-
 			return nil, "", err
 		}
 
@@ -558,8 +552,6 @@ func resourceRefreshFunc(ctx context.Context, peerID, projectID, containerID str
 		if c.GetStatusName() != "" {
 			status = c.GetStatusName()
 		}
-
-		log.Printf("[DEBUG] status for MongoDB Network Peering Connection: %s: %s", peerID, status)
 
 		/* We need to get the provisioned status from Mongo container that contains the peering connection
 		 * to validate if it has changed to true. This means that the reciprocal connection in Mongo side
