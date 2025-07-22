@@ -24,7 +24,7 @@ func HandleCreateTimeout(deleteOnCreateTimeout bool, errWait error, cleanup func
 	if !deleteOnCreateTimeout {
 		return errors.Join(errWait, errors.New("cleanup won't be run because delete_on_create_timeout is false"))
 	}
-	errWait = errors.Join(errWait, errors.New("will run cleanup because delete_on_create_timeout is true, if you think this error is transient, please try creating the resource again in a few minutes"))
+	errWait = errors.Join(errWait, errors.New("will run cleanup because delete_on_create_timeout is true. If you suspect a transient error, wait before retrying to allow resource deletion to finish"))
 	if errCleanup := cleanup(); errCleanup != nil {
 		errWait = errors.Join(errWait, errors.New("cleanup failed: "+errCleanup.Error()))
 	}
