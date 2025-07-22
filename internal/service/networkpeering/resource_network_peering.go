@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -98,7 +99,6 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
 			"atlas_cidr_block": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -162,6 +162,12 @@ func Resource() *schema.Resource {
 			"error_message": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"delete_on_create_timeout": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     true,
+				Description: "Flag that indicates whether to delete the network peering connection if creation times out. Default is true.",
 			},
 		},
 	}
@@ -250,19 +256,23 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPeersCreate, err))
 	}
+	peerID := peer.GetId()
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
 		Target:     []string{"FAILED", "AVAILABLE", "PENDING_ACCEPTANCE"},
-		Refresh:    resourceRefreshFunc(ctx, peer.GetId(), projectID, peerRequest.GetContainerId(), conn.NetworkPeeringApi),
+		Refresh:    resourceRefreshFunc(ctx, peerID, projectID, peerRequest.GetContainerId(), conn.NetworkPeeringApi),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: minTimeout,
 		Delay:      minTimeout,
 	}
-
 	_, err = stateConf.WaitForStateContext(ctx)
+	err = cleanup.HandleCreateTimeout(d.Get("delete_on_create_timeout").(bool), err, func() error {
+		_, _, errCleanup := conn.NetworkPeeringApi.DeletePeeringConnection(ctx, projectID, peerID).Execute()
+		return errCleanup
+	})
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorPeersCreate, err))
+		return diag.Errorf(errorPeersCreate, err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{

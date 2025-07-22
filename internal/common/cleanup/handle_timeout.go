@@ -7,11 +7,29 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 )
 
 const (
 	CleanupWarning = "Failed to create resource. Will run cleanup due to the operation timing out"
 )
+
+// HandleCreateTimeout helps to implement Create in long-running operations.
+// It will delete the resource if the creation times out and delete_on_create_timeout is enabled.
+// It returns an error with additional information which should be used instead of the original error.
+func HandleCreateTimeout(deleteOnCreateTimeout bool, err error, cleanup func() error) error {
+	if _, isTimeoutErr := err.(*retry.TimeoutError); !isTimeoutErr {
+		return err
+	}
+	if !deleteOnCreateTimeout {
+		return errors.Join(err, errors.New("cleanup won't be run because delete_on_create_timeout is false"))
+	}
+	err = errors.Join(err, errors.New("will run cleanup because delete_on_create_timeout is true, if you think this error is transient, please try creating the resource again in a few minutes"))
+	if errCleanup := cleanup(); errCleanup != nil {
+		err = errors.Join(err, errors.New("cleanup failed: "+errCleanup.Error()))
+	}
+	return err
+}
 
 // OnTimeout creates a new context with a timeout and a deferred function that will run `cleanup` when the context hit the timeout (no timeout=no-op).
 // Remember to always call the returned `deferCall` function: `defer deferCall()`.
