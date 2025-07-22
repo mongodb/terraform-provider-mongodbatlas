@@ -694,11 +694,6 @@ func generateActionConfig(action, databaseName string) string {
 }
 
 func configBasicWithTwoActions(projectID, roleName, action1, databaseName1, action2, databaseName2 string) string {
-	actions := []string{
-		generateActionConfig(action1, databaseName1),
-		generateActionConfig(action2, databaseName2),
-	}
-
 	return fmt.Sprintf(`
 		resource "mongodbatlas_custom_db_role" "test" {
 			project_id = %[1]q
@@ -707,7 +702,7 @@ func configBasicWithTwoActions(projectID, roleName, action1, databaseName1, acti
 			%[3]s
 			%[4]s
 		}
-	`, projectID, roleName, actions[0], actions[1])
+	`, projectID, roleName, generateActionConfig(action1, databaseName1), generateActionConfig(action2, databaseName2))
 }
 
 func configWithInheritedRoles(orgID, projectName string, inheritedRole []admin.UserCustomDBRole, testRole *admin.UserCustomDBRole) string {
