@@ -119,4 +119,77 @@ resource "mongodbatlas_advanced_cluster" "this" {
   timeouts                                         = var.timeouts
   version_release_system                           = var.version_release_system
 
+  
+  
+  lifecycle {
+    # Terraform cannot make the ignore_changes block fully dynamic based on input variables or locals. The list must be static and known at plan time.
+    # This static list supports up to 3 shards (replication specs) with up to 3 regions
+  ignore_changes = [
+    // replication_specs[0]
+    replication_specs[0].region_configs[0].electable_specs.instance_size,
+    replication_specs[0].region_configs[0].read_only_specs.instance_size,
+    replication_specs[0].region_configs[0].analytics_specs.instance_size,
+    replication_specs[0].region_configs[0].electable_specs.disk_size_gb,
+    replication_specs[0].region_configs[0].read_only_specs.disk_size_gb,
+    replication_specs[0].region_configs[0].analytics_specs.disk_size_gb,
+
+    replication_specs[0].region_configs[1].electable_specs.instance_size,
+    replication_specs[0].region_configs[1].read_only_specs.instance_size,
+    replication_specs[0].region_configs[1].analytics_specs.instance_size,
+    replication_specs[0].region_configs[1].electable_specs.disk_size_gb,
+    replication_specs[0].region_configs[1].read_only_specs.disk_size_gb,
+    replication_specs[0].region_configs[1].analytics_specs.disk_size_gb,
+
+    replication_specs[0].region_configs[2].electable_specs.instance_size,
+    replication_specs[0].region_configs[2].read_only_specs.instance_size,
+    replication_specs[0].region_configs[2].analytics_specs.instance_size,
+    replication_specs[0].region_configs[2].electable_specs.disk_size_gb,
+    replication_specs[0].region_configs[2].read_only_specs.disk_size_gb,
+    replication_specs[0].region_configs[2].analytics_specs.disk_size_gb,
+
+    // replication_specs[1]
+    replication_specs[1].region_configs[0].electable_specs.instance_size,
+    replication_specs[1].region_configs[0].read_only_specs.instance_size,
+    replication_specs[1].region_configs[0].analytics_specs.instance_size,
+    replication_specs[1].region_configs[0].electable_specs.disk_size_gb,
+    replication_specs[1].region_configs[0].read_only_specs.disk_size_gb,
+    replication_specs[1].region_configs[0].analytics_specs.disk_size_gb,
+
+    replication_specs[1].region_configs[1].electable_specs.instance_size,
+    replication_specs[1].region_configs[1].read_only_specs.instance_size,
+    replication_specs[1].region_configs[1].analytics_specs.instance_size,
+    replication_specs[1].region_configs[1].electable_specs.disk_size_gb,
+    replication_specs[1].region_configs[1].read_only_specs.disk_size_gb,
+    replication_specs[1].region_configs[1].analytics_specs.disk_size_gb,
+
+    replication_specs[1].region_configs[2].electable_specs.instance_size,
+    replication_specs[1].region_configs[2].read_only_specs.instance_size,
+    replication_specs[1].region_configs[2].analytics_specs.instance_size,
+    replication_specs[1].region_configs[2].electable_specs.disk_size_gb,
+    replication_specs[1].region_configs[2].read_only_specs.disk_size_gb,
+    replication_specs[1].region_configs[2].analytics_specs.disk_size_gb,
+
+    // replication_specs[2]
+    replication_specs[2].region_configs[0].electable_specs.instance_size,
+    replication_specs[2].region_configs[0].read_only_specs.instance_size,
+    replication_specs[2].region_configs[0].analytics_specs.instance_size,
+    replication_specs[2].region_configs[0].electable_specs.disk_size_gb,
+    replication_specs[2].region_configs[0].read_only_specs.disk_size_gb,
+    replication_specs[2].region_configs[0].analytics_specs.disk_size_gb,
+
+    replication_specs[2].region_configs[1].electable_specs.instance_size,
+    replication_specs[2].region_configs[1].read_only_specs.instance_size,
+    replication_specs[2].region_configs[1].analytics_specs.instance_size,
+    replication_specs[2].region_configs[1].electable_specs.disk_size_gb,
+    replication_specs[2].region_configs[1].read_only_specs.disk_size_gb,
+    replication_specs[2].region_configs[1].analytics_specs.disk_size_gb,
+
+    replication_specs[2].region_configs[2].electable_specs.instance_size,
+    replication_specs[2].region_configs[2].read_only_specs.instance_size,
+    replication_specs[2].region_configs[2].analytics_specs.instance_size,
+    replication_specs[2].region_configs[2].electable_specs.disk_size_gb,
+    replication_specs[2].region_configs[2].read_only_specs.disk_size_gb,
+    replication_specs[2].region_configs[2].analytics_specs.disk_size_gb
+  ]
+}
 }
