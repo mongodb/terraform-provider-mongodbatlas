@@ -163,10 +163,9 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"delete_on_create_timeout": {
+			"delete_on_create_timeout": { // Don't use Default to avoid unplanned changes when upgrading from previous versions.
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Default:     true,
 				Description: "Flag that indicates whether to delete the resource if creation times out. Default is true.",
 			},
 		},
@@ -267,7 +266,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Delay:      minTimeout,
 	}
 	_, errWait := stateConf.WaitForStateContext(ctx)
-	errWait = cleanup.HandleCreateTimeout(d.Get("delete_on_create_timeout").(bool), errWait, func() error {
+	deleteOnCreateTimeoutValue, exists := d.GetOk("delete_on_create_timeout")
+	deleteOnCreateTimeout := !exists || deleteOnCreateTimeoutValue.(bool)
+	errWait = cleanup.HandleCreateTimeout(deleteOnCreateTimeout, errWait, func() error {
 		_, _, errCleanup := conn.NetworkPeeringApi.DeletePeeringConnection(ctx, projectID, peerID).Execute()
 		return errCleanup
 	})
