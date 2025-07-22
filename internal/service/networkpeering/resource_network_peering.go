@@ -23,6 +23,8 @@ const (
 	errorPeersRead   = "error reading MongoDB Network Peering Connection (%s): %s"
 	errorPeersDelete = "error deleting MongoDB Network Peering Connection (%s): %s"
 	errorPeersUpdate = "error updating MongoDB Network Peering Connection (%s): %s"
+
+	minTimeout = 10 * time.Second
 )
 
 func Resource() *schema.Resource {
@@ -33,6 +35,11 @@ func Resource() *schema.Resource {
 		DeleteWithoutTimeout: resourceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceImportState,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(1 * time.Hour),
+			Update: schema.DefaultTimeout(1 * time.Hour),
+			Delete: schema.DefaultTimeout(1 * time.Hour),
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -248,9 +255,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
 		Target:     []string{"FAILED", "AVAILABLE", "PENDING_ACCEPTANCE"},
 		Refresh:    resourceRefreshFunc(ctx, peer.GetId(), projectID, peerRequest.GetContainerId(), conn.NetworkPeeringApi),
-		Timeout:    1 * time.Hour,
-		MinTimeout: 10 * time.Second,
-		Delay:      30 * time.Second,
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+		MinTimeout: minTimeout,
+		Delay:      minTimeout,
 	}
 
 	_, err = stateConf.WaitForStateContext(ctx)
@@ -458,9 +465,9 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
 		Target:     []string{"FAILED", "AVAILABLE", "PENDING_ACCEPTANCE"},
 		Refresh:    resourceRefreshFunc(ctx, peerID, projectID, "", conn.NetworkPeeringApi),
-		Timeout:    d.Timeout(schema.TimeoutCreate),
-		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute,
+		Timeout:    d.Timeout(schema.TimeoutUpdate),
+		MinTimeout: minTimeout,
+		Delay:      minTimeout,
 	}
 
 	_, err = stateConf.WaitForStateContext(ctx)
@@ -486,9 +493,9 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Pending:    []string{"AVAILABLE", "INITIATING", "PENDING_ACCEPTANCE", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER", "TERMINATING", "DELETING"},
 		Target:     []string{"DELETED"},
 		Refresh:    resourceRefreshFunc(ctx, peerID, projectID, "", conn.NetworkPeeringApi),
-		Timeout:    1 * time.Hour,
-		MinTimeout: 30 * time.Second,
-		Delay:      10 * time.Second, // Wait 10 secs before starting
+		Timeout:    d.Timeout(schema.TimeoutDelete),
+		MinTimeout: minTimeout,
+		Delay:      minTimeout,
 	}
 
 	_, err = stateConf.WaitForStateContext(ctx)
