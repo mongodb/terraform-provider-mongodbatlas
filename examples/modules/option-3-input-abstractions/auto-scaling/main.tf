@@ -11,7 +11,7 @@ locals {
           region_name   = region.region_name
           priority      = region.priority
           electable_specs = {
-            instance_size   = region.instance_size
+            instance_size   = coalesce(region.instance_size, var.auto_scaling.compute_min_instance_size) # coalesce is used to fallback to the required autoscaling input if instance_size is not provided
             node_count      = region.electable_node_count
             ebs_volume_type = try(region.ebs_volume_type, null)
             disk_size_gb    = try(region.disk_size_gb, null)
@@ -19,18 +19,24 @@ locals {
           }
           read_only_specs = (
             try(region.read_only_node_count, 0) > 0 ? {
-              instance_size   = region.instance_size
+              instance_size   = coalesce(region.instance_size, var.auto_scaling.compute_min_instance_size)
               node_count      = region.read_only_node_count
               ebs_volume_type = try(region.ebs_volume_type, null)
               disk_size_gb    = try(region.disk_size_gb, null)
               disk_iops       = try(region.disk_iops, null)
             } : null
           )
-          auto_scaling           = var.auto_scaling
-          analytics_auto_scaling = var.analytics_auto_scaling
+          auto_scaling           = merge({
+            compute_enabled = true
+            disk_gb_enabled = true
+          }, var.auto_scaling)           # all autoscaling configs are the same cluster wide, this how API currently works
+          analytics_auto_scaling = merge({
+            compute_enabled = true
+            disk_gb_enabled = true
+          }, var.analytics_auto_scaling) # all analytics autoscaling configs are the same cluster wide, this how API currently works
           analytics_specs = (
             region.analytics_specs != null ? {
-              instance_size   = region.analytics_specs.instance_size
+              instance_size   = coalesce(region.analytics_specs.instance_size, var.analytics_auto_scaling.compute_min_instance_size)
               node_count      = region.analytics_specs.node_count
               ebs_volume_type = try(region.analytics_specs.ebs_volume_type, null)
               disk_size_gb    = try(region.analytics_specs.disk_size_gb, null)
@@ -47,7 +53,7 @@ locals {
           region_name   = region.region_name
           priority      = region.priority
           electable_specs = {
-            instance_size   = region.instance_size
+            instance_size   = coalesce(region.instance_size, var.auto_scaling.compute_min_instance_size)
             node_count      = region.electable_node_count
             ebs_volume_type = try(region.ebs_volume_type, null)
             disk_size_gb    = try(region.disk_size_gb, null)
@@ -55,18 +61,24 @@ locals {
           }
           read_only_specs = ( # read_only_specs uses same compute and storage configs as electable_specs, this is how API currently works
             try(region.read_only_node_count, 0) > 0 ? {
-              instance_size   = region.instance_size
+              instance_size   = coalesce(region.instance_size, var.auto_scaling.compute_min_instance_size)
               node_count      = region.read_only_node_count
               ebs_volume_type = try(region.ebs_volume_type, null)
               disk_size_gb    = try(region.disk_size_gb, null)
               disk_iops       = try(region.disk_iops, null)
             } : null
           )
-          auto_scaling           = var.auto_scaling           # all autoscaling configs are the same cluster wide, this how API currently works
-          analytics_auto_scaling = var.analytics_auto_scaling # all analytics autoscaling configs are the same cluster wide, this how API currently works
+          auto_scaling           = merge({
+            compute_enabled = true
+            disk_gb_enabled = true
+          }, var.auto_scaling)           # all autoscaling configs are the same cluster wide, this how API currently works
+          analytics_auto_scaling = merge({
+            compute_enabled = true
+            disk_gb_enabled = true
+          }, var.analytics_auto_scaling) # all analytics autoscaling configs are the same cluster wide, this how API currently works
           analytics_specs = (
             region.analytics_specs != null ? {
-              instance_size   = region.analytics_specs.instance_size
+              instance_size   = coalesce(region.analytics_specs.instance_size, var.analytics_auto_scaling.compute_min_instance_size)
               node_count      = region.analytics_specs.node_count
               ebs_volume_type = try(region.analytics_specs.ebs_volume_type, null)
               disk_size_gb    = try(region.analytics_specs.disk_size_gb, null)
