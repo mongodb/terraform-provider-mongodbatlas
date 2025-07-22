@@ -68,7 +68,7 @@ func TestAccNetworkRSNetworkPeering_Azure(t *testing.T) {
 				ImportStateIdFunc:       importStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"container_id"},
+				ImportStateVerifyIgnore: []string{"container_id", "delete_on_create_timeout"},
 			},
 		},
 	})
