@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -34,11 +35,11 @@ func TestAccApiKeyProjectAssignmentRS_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: apiKeyProjectAssignmentConfig(orgID, roleName, projectName),
-				Check:  apiKeyProjectAssignmentAttributeChecks(),
+				Check:  apiKeyProjectAssignmentAttributeChecks(roleName),
 			},
 			{
 				Config: apiKeyProjectAssignmentConfig(orgID, roleNameUpdated, projectName),
-				Check:  apiKeyProjectAssignmentAttributeChecks(),
+				Check:  apiKeyProjectAssignmentAttributeChecks(roleNameUpdated),
 			},
 			{
 				Config:                               apiKeyProjectAssignmentConfig(orgID, roleNameUpdated, projectName),
@@ -62,15 +63,36 @@ func importStateIDFunc(resourceName, attrNameProjectID, attrNameAPIKeyID string)
 	}
 }
 
-func apiKeyProjectAssignmentAttributeChecks() resource.TestCheckFunc {
+func apiKeyProjectAssignmentAttributeChecks(expectedRole string) resource.TestCheckFunc {
 	attrsMap := map[string]string{
 		"roles.#": "1",
 	}
-	attrsSet := []string{"project_id", "api_key_id", "roles.0"}
+	attrsSet := []string{"project_id", "api_key_id"}
 	checks := []resource.TestCheckFunc{
 		checkExists(resourceName),
+		checkRolePresent(resourceName, expectedRole),
 	}
 	return acc.CheckRSAndDS(resourceName, conversion.Pointer(singularDSName), conversion.Pointer(pluralDSName), attrsSet, attrsMap, checks...)
+}
+
+func checkRolePresent(resourceName, expectedRole string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("not found: %s", resourceName)
+		}
+		found := false
+		for k, v := range rs.Primary.Attributes {
+			if strings.HasPrefix(k, "roles.") && k != "roles.#" && v == expectedRole {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return fmt.Errorf("role %q not found in roles attribute", expectedRole)
+		}
+		return nil
+	}
 }
 
 func apiKeyProjectAssignmentConfig(orgID, roleName, projectName string) string {
