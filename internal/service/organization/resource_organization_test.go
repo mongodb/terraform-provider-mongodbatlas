@@ -220,10 +220,11 @@ func TestAccConfigRSOrganization_import(t *testing.T) {
 				Config: configImportSet(orgID, orgName), // Use import so a new organization is not created, the resource must exist in a step before import state is verified.
 			},
 			{
-				ResourceName:      resourceName,
-				ImportStateId:     orgID,
-				ImportState:       true, // Do the import check.
-				ImportStateVerify: true,
+				ResourceName:                         resourceName,
+				ImportStateId:                        orgID,
+				ImportState:                          true, // Do the import check.
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "org_id",
 			},
 			{
 				// Use removed block so the organization is not deleted.
