@@ -51,8 +51,8 @@ variable "auto_scaling" {
   description = "Configuration for auto-scaling."
   type = object({
     compute_scale_down_enabled = optional(bool)
-    compute_max_instance_size  = optional(string)
-    compute_min_instance_size  = optional(string)
+    compute_max_instance_size  = string
+    compute_min_instance_size  = string
   })
 }
 
@@ -60,7 +60,7 @@ variable "analytics_auto_scaling" {
   description = "Configuration for analytics auto-scaling."
   type = object({
     compute_scale_down_enabled = optional(bool)
-    compute_max_instance_size  = optional(string)
-    compute_min_instance_size  = optional(string)
+    compute_max_instance_size  = string
+    compute_min_instance_size  = string
   })
 }

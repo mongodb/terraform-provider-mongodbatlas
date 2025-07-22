@@ -16,7 +16,6 @@ module "multi_geo_zone_sharded" {
         {
           provider_name        = "AWS"
           region_name          = "US_EAST_1"
-          instance_size        = "M30"
           electable_node_count = 3
         }
       ]
@@ -27,7 +26,6 @@ module "multi_geo_zone_sharded" {
         {
           provider_name        = "AWS"
           region_name          = "EU_WEST_1"
-          instance_size        = "M30"
           electable_node_count = 3
         }
       ]
@@ -35,9 +33,11 @@ module "multi_geo_zone_sharded" {
   ]
 
   auto_scaling = {
-    disk_gb_enabled           = true
-    compute_enabled           = true
     compute_max_instance_size = "M60"
     compute_min_instance_size = "M30"
+  }
+  analytics_auto_scaling = {
+    compute_max_instance_size = "M30"
+    compute_min_instance_size = "M10"
   }
 }
