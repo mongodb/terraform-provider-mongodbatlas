@@ -68,7 +68,7 @@ func (d *cloudUserTeamAssignmentDS) Read(ctx context.Context, req datasource.Rea
 				break
 			}
 		}
-	} else {
+	} else if username != "" {
 		params := &admin.ListTeamUsersApiParams{
 			OrgId:    orgID,
 			TeamId:   teamID,
