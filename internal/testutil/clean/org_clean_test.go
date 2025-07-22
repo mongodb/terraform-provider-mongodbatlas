@@ -405,7 +405,7 @@ func removeFederatedDatabases(ctx context.Context, t *testing.T, dryRun bool, cl
 func removeEncryptionAtRestPrivateEndpoints(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
 	t.Helper()
 	endpointsCount := 0
-	for _, cloudProvider := range []string{"AWS", "AZURE"} {
+	for _, cloudProvider := range []string{constant.AWS, constant.AZURE} {
 		privateEndpoints, _, err := client.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRestPrivateEndpointsForCloudProvider(ctx, projectID, cloudProvider).Execute()
 		require.NoError(t, err)
 		endpoints := privateEndpoints.GetResults()
@@ -416,6 +416,7 @@ func removeEncryptionAtRestPrivateEndpoints(ctx context.Context, t *testing.T, d
 			if !dryRun {
 				_, err = client.EncryptionAtRestUsingCustomerKeyManagementApi.RequestEncryptionAtRestPrivateEndpointDeletion(ctx, projectID, cloudProvider, endpointID).Execute()
 				require.NoError(t, err)
+				time.Sleep(30 * time.Second)
 			}
 		}
 	}
