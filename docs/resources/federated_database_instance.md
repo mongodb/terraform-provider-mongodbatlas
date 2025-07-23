@@ -89,12 +89,12 @@ resource "mongodbatlas_federated_database_instance" "test" {
 
 ```terraform
 resource "mongodbatlas_federated_database_instance" "test" {
-  project_id = "PROJECT ID"
-  name       = "TENANT NAME OF THE FEDERATED DATABASE INSTANCE"
+  project_id = "<PROJECT_ID>"
+  name       = "<TENANT_NAME_OF_THE_FEDERATED DATABASE_INSTANCE>"
   
   cloud_provider_config {
     azure {
-      role_id = "AZURE ROLE ID"
+      role_id = "<AZURE_ROLE_ID>"
     }
   }
   
@@ -215,10 +215,10 @@ In addition to all arguments above, the following attributes are exported:
       * `s3:GetObjectVersion` 
     
   For more information on S3 actions, see [Actions, Resources, and Condition Keys for Amazon S3](https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazons3.html).
-  * `iam_user_arn` - Amazon Resource Name (ARN) of the user that the Federated Database Instance assumes when accessing S3 Bucket data stores.
-  * `external_id` - Unique identifier associated with the IAM Role that the Federated Database Instance assumes when accessing the data stores.
+      * `iam_user_arn` - Amazon Resource Name (ARN) of the user that the Federated Database Instance assumes when accessing S3 Bucket data stores.
+      * `external_id` - Unique identifier associated with the IAM Role that the Federated Database Instance assumes when accessing the data stores.
 
-  * `cloud_provider_config.azure` - Azure cloud service configuration.
+* `cloud_provider_config.azure` - Azure cloud service configuration.
   * `atlas_azure_app_id` - Unique identifier of the Azure Active Directory application associated with the service principal.
   * `service_principal_id` - Unique identifier of the Azure service principal that the Federated Database instance uses to access Azure Blob Storage.
   * `tenant_id` - Unique identifier of the Azure Active Directory tenant where the service principal resides.

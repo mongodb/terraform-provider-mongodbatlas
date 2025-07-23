@@ -10,7 +10,7 @@
 
 ```terraform
 data "mongodbatlas_federated_database_instance" "test" {
-  project_id         = "PROJECT ID"
+  project_id         = "<PROJECT_ID>"
   name               = "TENANT NAME OF THE FEDERATED DATABASE INSTANCE"
 }
 ```
@@ -19,8 +19,8 @@ data "mongodbatlas_federated_database_instance" "test" {
 
 ```terraform
 data "mongodbatlas_federated_database_instance" "test" {
-  project_id         = "PROJECT ID"
-  name               = "TENANT NAME OF THE FEDERATED DATABASE INSTANCE"
+  project_id         = "<PROJECT_ID>"
+  name               = "<TENANT_NAME_OF_THE_FEDERATED_DATABASE_INSTANCE>"
   cloud_provider_config {
 		aws {
 			test_s3_bucket = "Amazon S3 Bucket Name"
@@ -33,11 +33,11 @@ data "mongodbatlas_federated_database_instance" "test" {
 
 ```terraform
 data "mongodbatlas_federated_database_instance" "test" {
-  project_id = "PROJECT ID"
-  name       = "TENANT NAME OF THE FEDERATED DATABASE INSTANCE"
+  project_id = "<PROJECT_ID>"
+  name       = "<TENANT_NAME_OF_THE_FEDERATED_DATABASE_INSTANCE>"
   cloud_provider_config {
     azure {
-      role_id = "AZURE ROLE ID"
+      role_id = "<AZURE_ROLE_ID>"
     }
   }
 }
