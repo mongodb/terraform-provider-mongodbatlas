@@ -10,7 +10,7 @@ This project aims to provide an example of using [MongoDB Atlas Federated Databa
 
 ```
 Terraform v1.39.0
-+ provider registry.terraform.io/terraform-providers/mongodbatlas v1.39.0
++ provider registry.terraform.io/mongodb/mongodbatlas v1.39.0
 ```
 
 ## Usage
