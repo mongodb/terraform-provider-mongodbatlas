@@ -57,7 +57,7 @@ func (d *cloudUserTeamAssignmentDS) Read(ctx context.Context, req datasource.Rea
 			return
 		}
 
-		if userListResp == nil || userListResp.Results == nil || len(*userListResp.Results) == 0 {
+		if userListResp == nil || len(userListResp.GetResults()) == 0 {
 			resp.Diagnostics.AddError("resource not found", "no user found with the specified user_id")
 			return
 		}
@@ -80,12 +80,12 @@ func (d *cloudUserTeamAssignmentDS) Read(ctx context.Context, req datasource.Rea
 			return
 		}
 
-		if userListResp == nil || userListResp.Results == nil || len(*userListResp.Results) == 0 {
+		if userListResp == nil || len(userListResp.GetResults()) == 0 {
 			resp.Diagnostics.AddError("resource not found", "no user found with the specified username")
 			return
 		}
 
-		userResp = &(*userListResp.Results)[0]
+		userResp = &(userListResp.GetResults())[0]
 	}
 
 	if userResp == nil {
