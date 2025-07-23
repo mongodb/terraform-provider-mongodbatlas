@@ -14,7 +14,13 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
-const resourceName = "cloud_user_team_assignment"
+const (
+	resourceName             = "cloud_user_team_assignment"
+	warnUnsupportedOperation = "Operation not supported"
+	errorReadingByUserID     = "Error getting team users by user_id"
+	errorReadingByUsername   = "Error getting team users by username"
+	invalidImportID          = "Invalid import ID format"
+)
 
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
@@ -91,7 +97,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 				resp.State.RemoveResource(ctx)
 				return
 			}
-			resp.Diagnostics.AddError("Error getting team users by user_id", err.Error())
+			resp.Diagnostics.AddError(errorReadingByUserID, err.Error())
 			return
 		}
 		if userListResp != nil {
@@ -121,7 +127,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 				resp.State.RemoveResource(ctx)
 				return
 			}
-			resp.Diagnostics.AddError("Error getting team users by username", err.Error())
+			resp.Diagnostics.AddError(errorReadingByUsername, err.Error())
 			return
 		}
 		if userListResp != nil {
@@ -149,6 +155,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	resp.Diagnostics.AddError(warnUnsupportedOperation, "Updating the cloud user team assignment is not supported. To modify your infrastructure, please delete the existing mongodbatlas_cloud_user_team_assignment resource and create a new one with the necessary updates")
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -182,7 +189,7 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	importID := req.ID
 	ok, parts := conversion.ImportSplit(req.ID, 3)
 	if !ok {
-		resp.Diagnostics.AddError("invalid import ID format", "expected 'org_id/team_id/user_id' or 'org_id/team_id/username', got: "+importID)
+		resp.Diagnostics.AddError(invalidImportID, "expected 'org_id/team_id/user_id' or 'org_id/team_id/username', got: "+importID)
 		return
 	}
 	orgID, teamID, user := parts[0], parts[1], parts[2]

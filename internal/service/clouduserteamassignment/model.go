@@ -3,7 +3,6 @@ package clouduserteamassignment
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -12,14 +11,12 @@ import (
 
 func NewTFUserTeamAssignmentModel(ctx context.Context, apiResp *admin.OrgUserResponse) (*TFUserTeamAssignmentModel, diag.Diagnostics) {
 	diags := diag.Diagnostics{}
-	var rolesObj types.Object
-	var rolesDiags diag.Diagnostics
 
 	if apiResp == nil {
 		return nil, diags
 	}
 
-	rolesObj, rolesDiags = NewTFRolesModel(ctx, &apiResp.Roles)
+	rolesObj, rolesDiags := NewTFRolesModel(ctx, &apiResp.Roles)
 	diags.Append(rolesDiags...)
 
 	teamIDs := conversion.TFSetValueOrNull(ctx, apiResp.TeamIds, types.StringType)
@@ -55,13 +52,12 @@ func NewTFRolesModel(ctx context.Context, roles *admin.OrgUserRolesResponse) (ty
 
 	projectRoleAssignmentsSet := NewTFProjectRoleAssignments(ctx, roles.GroupRoleAssignments)
 
-	rolesObj, _ := types.ObjectValue(
-		RolesObjectAttrTypes,
-		map[string]attr.Value{
-			"org_roles":                orgRoles,
-			"project_role_assignments": projectRoleAssignmentsSet,
-		},
-	)
+	rolesModel := TFRolesModel{
+		OrgRoles:               orgRoles,
+		ProjectRoleAssignments: projectRoleAssignmentsSet,
+	}
+
+	rolesObj, _ := types.ObjectValueFrom(ctx, RolesObjectAttrTypes, rolesModel)
 	return rolesObj, diags
 }
 
