@@ -353,6 +353,7 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 
 	if data.PublicKey.ValueString() == "" {
 		data.PublicKey = types.StringValue(MultiEnvDefaultFunc([]string{
+			"MONGODB_ATLAS_PUBLIC_API_KEY",
 			"MONGODB_ATLAS_PUBLIC_KEY",
 			"MCLI_PUBLIC_API_KEY",
 		}, "").(string))
@@ -363,6 +364,7 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 
 	if data.PrivateKey.ValueString() == "" {
 		data.PrivateKey = types.StringValue(MultiEnvDefaultFunc([]string{
+			"MONGODB_ATLAS_PRIVATE_API_KEY",
 			"MONGODB_ATLAS_PRIVATE_KEY",
 			"MCLI_PRIVATE_API_KEY",
 		}, "").(string))
