@@ -14,6 +14,9 @@ __debug_*
 *~
 compliance/sbom.json
 compliance/augmented-sbom-v*.json
+.terraform
+.terraform.lock.hcl
+terraform.tfvars
 
 #used for schema code generation but is not commited to avoid constant updates
 tools/codegen/open-api-spec.yml
