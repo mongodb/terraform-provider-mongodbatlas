@@ -1,8 +1,8 @@
 module "multi_cloud" {
-  source = "../.."
-  project_id = var.project_id
-  name = "multi-cloud"
-  cluster_type = "REPLICASET"
+  source                 = "../.."
+  project_id             = var.project_id
+  name                   = "multi-cloud"
+  cluster_type           = "REPLICASET"
   mongo_db_major_version = "8.0"
   replication_specs = [
     {

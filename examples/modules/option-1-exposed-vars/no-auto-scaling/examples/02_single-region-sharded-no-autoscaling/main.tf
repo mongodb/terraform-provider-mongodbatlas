@@ -1,8 +1,8 @@
 module "single_region_sharded_no_autoscaling" {
-  source = "../.."
-  project_id = var.project_id
-  name = "single-region-sharded-no-autoscaling"
-  cluster_type = "SHARDED"
+  source                 = "../.."
+  project_id             = var.project_id
+  name                   = "single-region-sharded-no-autoscaling"
+  cluster_type           = "SHARDED"
   mongo_db_major_version = "8.0"
   replication_specs = [
     { # shard 1 (single zone)

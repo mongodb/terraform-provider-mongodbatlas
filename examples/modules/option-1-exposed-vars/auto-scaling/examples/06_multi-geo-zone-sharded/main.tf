@@ -1,8 +1,8 @@
 module "multi_geo_zone_sharded" {
-  source = "../.."
-  project_id = var.project_id
-  name = "multi-geo-zone-sharded"
-  cluster_type = "GEOSHARDED"
+  source                 = "../.."
+  project_id             = var.project_id
+  name                   = "multi-geo-zone-sharded"
+  cluster_type           = "GEOSHARDED"
   mongo_db_major_version = "8.0"
   replication_specs = [
     { # shard 1 (US zone)

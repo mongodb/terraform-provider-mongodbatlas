@@ -16,7 +16,7 @@ module "single_region_analytics" {
       region_name          = "US_EAST_1"
       electable_node_count = 3
       analytics_specs = {
-        node_count    = 1
+        node_count = 1
       }
     }
   ]

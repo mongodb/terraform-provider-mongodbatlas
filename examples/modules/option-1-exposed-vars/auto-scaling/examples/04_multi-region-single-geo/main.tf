@@ -1,8 +1,8 @@
 module "multi_region_single_geo_no_sharding" {
-  source = "../.."
-  project_id = var.project_id
-  name = "multi-region-single-geo"
-  cluster_type = "REPLICASET"
+  source                 = "../.."
+  project_id             = var.project_id
+  name                   = "multi-region-single-geo"
+  cluster_type           = "REPLICASET"
   mongo_db_major_version = "8.0"
   replication_specs = [
     {

@@ -26,10 +26,10 @@ locals {
               disk_iops       = try(region.disk_iops, null)
             } : null
           )
-          auto_scaling           = merge({
+          auto_scaling = merge({
             compute_enabled = true
             disk_gb_enabled = true
-          }, var.auto_scaling)           # all autoscaling configs are the same cluster wide, this how API currently works
+          }, var.auto_scaling) # all autoscaling configs are the same cluster wide, this how API currently works
           analytics_auto_scaling = merge({
             compute_enabled = true
             disk_gb_enabled = true
@@ -68,10 +68,10 @@ locals {
               disk_iops       = try(region.disk_iops, null)
             } : null
           )
-          auto_scaling           = merge({
+          auto_scaling = merge({
             compute_enabled = true
             disk_gb_enabled = true
-          }, var.auto_scaling)           # all autoscaling configs are the same cluster wide, this how API currently works
+          }, var.auto_scaling) # all autoscaling configs are the same cluster wide, this how API currently works
           analytics_auto_scaling = merge({
             compute_enabled = true
             disk_gb_enabled = true
@@ -119,8 +119,8 @@ resource "mongodbatlas_advanced_cluster" "this" {
   timeouts                                         = var.timeouts
   version_release_system                           = var.version_release_system
 
-  
-  
+
+
   lifecycle {
     # Terraform cannot make the ignore_changes block fully dynamic based on input variables or locals. The list must be static and known at plan time.
     # This static list supports up to 3 shards (replication specs) with up to 3 regions

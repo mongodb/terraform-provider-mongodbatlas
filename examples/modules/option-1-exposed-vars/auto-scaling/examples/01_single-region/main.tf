@@ -1,8 +1,8 @@
 module "single_region" {
-  source = "../.."
-  project_id = var.project_id
-  name = "single-region"
-  cluster_type = "REPLICASET"
+  source                 = "../.."
+  project_id             = var.project_id
+  name                   = "single-region"
+  cluster_type           = "REPLICASET"
   mongo_db_major_version = "8.0"
   replication_specs = [
     {
