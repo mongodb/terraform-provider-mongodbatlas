@@ -18,11 +18,60 @@ check "validate_only_one_defined" {
   }
 }
 
-
 locals {
-  # Build the specs from either shards (geo-sharded) or replica_set_regions (replica set)
+
+  # Build the specs from replication_specs (with autoscaling), shards (geo-sharded), or region_configs (replica set)
   effective_replication_specs = (
-    length(var.shards) > 0 ? [
+    length(var.replication_specs) > 0 ? tolist([
+      for spec in var.replication_specs : {
+        zone_name  = try(spec.zone_name, null)
+        region_configs = [
+          for region in spec.region_configs : merge(
+            region,
+            {
+              auto_scaling = merge(
+                try(region.auto_scaling, {}),
+                {
+                  compute_enabled = true
+                  disk_gb_enabled = true
+                }
+              ),
+              analytics_auto_scaling = merge(
+                try(region.analytics_auto_scaling, {}),
+                {
+                  compute_enabled = true
+                  disk_gb_enabled = true
+                }
+              ),
+              electable_specs = (
+                region.electable_specs == null ? null : merge(
+                  region.electable_specs,
+                  {
+                    instance_size = try(region.auto_scaling.compute_min_instance_size, null)
+                  }
+                )
+              ),
+              read_only_specs = (
+                region.read_only_specs == null ? null : merge(
+                  region.read_only_specs,
+                  {
+                    instance_size = try(region.auto_scaling.compute_min_instance_size, null)
+                  }
+                )
+              ),
+              analytics_specs = (
+                region.analytics_specs == null ? null : merge(
+                  region.analytics_specs,
+                  {
+                    instance_size = try(region.analytics_auto_scaling.compute_min_instance_size, null)
+                  }
+                )
+              )
+            }
+          )
+        ]
+      }
+    ]) : ( length(var.shards) > 0 ? tolist([
       for shard in var.shards : {
         zone_name = shard.zone_name
         region_configs = [for region in shard.region_configs : {
@@ -30,18 +79,18 @@ locals {
           region_name   = region.region_name
           priority      = region.priority
           electable_specs = {
-            instance_size   = coalesce(region.instance_size, var.auto_scaling.compute_min_instance_size) # coalesce is used to fallback to the required autoscaling input if instance_size is not provided
+            instance_size   = var.auto_scaling.compute_min_instance_size
             node_count      = region.electable_node_count
             ebs_volume_type = try(region.ebs_volume_type, null)
-            disk_size_gb    = try(region.disk_size_gb, null)
+            disk_size_gb    = null
             disk_iops       = try(region.disk_iops, null)
           }
           read_only_specs = (
             try(region.read_only_node_count, 0) > 0 ? {
-              instance_size   = coalesce(region.instance_size, var.auto_scaling.compute_min_instance_size)
+              instance_size   = var.auto_scaling.compute_min_instance_size
               node_count      = region.read_only_node_count
               ebs_volume_type = try(region.ebs_volume_type, null)
-              disk_size_gb    = try(region.disk_size_gb, null)
+              disk_size_gb    = null
               disk_iops       = try(region.disk_iops, null)
             } : null
           )
@@ -55,16 +104,16 @@ locals {
           }, var.analytics_auto_scaling) # all analytics autoscaling configs are the same cluster wide, this how API currently works
           analytics_specs = (
             region.analytics_specs != null ? {
-              instance_size   = coalesce(region.analytics_specs.instance_size, var.analytics_auto_scaling.compute_min_instance_size)
+              instance_size   = var.analytics_auto_scaling.compute_min_instance_size
               node_count      = region.analytics_specs.node_count
               ebs_volume_type = try(region.analytics_specs.ebs_volume_type, null)
-              disk_size_gb    = try(region.analytics_specs.disk_size_gb, null)
+              disk_size_gb    = null
               disk_iops       = try(region.analytics_specs.disk_iops, null)
             } : null
           )
         }]
       }
-      ] : [
+      ]) : tolist([
       {
         zone_name = null
         region_configs = [for region in var.region_configs : {
@@ -72,18 +121,18 @@ locals {
           region_name   = region.region_name
           priority      = region.priority
           electable_specs = {
-            instance_size   = coalesce(region.instance_size, var.auto_scaling.compute_min_instance_size)
+            instance_size   = var.auto_scaling.compute_min_instance_size
             node_count      = region.electable_node_count
             ebs_volume_type = try(region.ebs_volume_type, null)
-            disk_size_gb    = try(region.disk_size_gb, null)
+            disk_size_gb    = null
             disk_iops       = try(region.disk_iops, null)
           }
           read_only_specs = ( # read_only_specs uses same compute and storage configs as electable_specs, this is how API currently works
             try(region.read_only_node_count, 0) > 0 ? {
-              instance_size   = coalesce(region.instance_size, var.auto_scaling.compute_min_instance_size)
+              instance_size   = var.auto_scaling.compute_min_instance_size
               node_count      = region.read_only_node_count
               ebs_volume_type = try(region.ebs_volume_type, null)
-              disk_size_gb    = try(region.disk_size_gb, null)
+              disk_size_gb    = null
               disk_iops       = try(region.disk_iops, null)
             } : null
           )
@@ -97,16 +146,16 @@ locals {
           }, var.analytics_auto_scaling) # all analytics autoscaling configs are the same cluster wide, this how API currently works
           analytics_specs = (
             region.analytics_specs != null ? {
-              instance_size   = coalesce(region.analytics_specs.instance_size, var.analytics_auto_scaling.compute_min_instance_size)
+              instance_size   = var.analytics_auto_scaling.compute_min_instance_size
               node_count      = region.analytics_specs.node_count
               ebs_volume_type = try(region.analytics_specs.ebs_volume_type, null)
-              disk_size_gb    = try(region.analytics_specs.disk_size_gb, null)
+              disk_size_gb    = null
               disk_iops       = try(region.analytics_specs.disk_iops, null)
             } : null
           )
         }]
       }
-    ]
+    ]))
   )
 }
 
@@ -138,8 +187,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
   timeouts                                         = var.timeouts
   version_release_system                           = var.version_release_system
 
-  disk_size_gb                                     = var.disk_size_gb
-  labels                                           = var.labels
+
 
   lifecycle {
     # Terraform cannot make the ignore_changes block fully dynamic based on input variables or locals. The list must be static and known at plan time.
