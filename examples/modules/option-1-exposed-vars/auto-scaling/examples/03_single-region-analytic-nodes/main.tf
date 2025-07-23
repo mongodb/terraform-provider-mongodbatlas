@@ -21,11 +21,9 @@ module "single_region_analytics" {
             compute_min_instance_size = "M10"
           }
           electable_specs = {
-            instance_size = "M30"
             node_count    = 3
           }
           analytics_specs = {
-            instance_size = "M10"
             node_count    = 1
           }
           priority      = 7

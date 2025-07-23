@@ -224,36 +224,30 @@ variable "replication_specs" {
     region_configs = list(object({
       analytics_auto_scaling = optional(object({
         compute_max_instance_size  = optional(string)
-        compute_min_instance_size  = optional(string)
+        compute_min_instance_size  = string
         compute_scale_down_enabled = optional(bool)
       }))
       analytics_specs = optional(object({
         disk_iops       = optional(number)
-        disk_size_gb    = optional(number)
         ebs_volume_type = optional(string)
-        instance_size   = optional(string)
         node_count      = optional(number)
       }))
       auto_scaling = optional(object({
         compute_max_instance_size  = optional(string)
-        compute_min_instance_size  = optional(string)
+        compute_min_instance_size  = string
         compute_scale_down_enabled = optional(bool)
       }))
       backing_provider_name = optional(string)
       electable_specs = optional(object({
         disk_iops       = optional(number)
-        disk_size_gb    = optional(number)
         ebs_volume_type = optional(string)
-        instance_size   = optional(string)
         node_count      = optional(number)
       }))
       priority      = number
       provider_name = string
       read_only_specs = optional(object({
         disk_iops       = optional(number)
-        disk_size_gb    = optional(number)
         ebs_volume_type = optional(string)
-        instance_size   = optional(string)
         node_count      = optional(number)
       }))
       region_name = string

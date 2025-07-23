@@ -12,7 +12,6 @@ module "multi_geo_sharded" {
           region_name   = "US_EAST_1" # North America
           priority      = 7
           electable_specs = {
-            instance_size = "M30"
             node_count    = 3
           }
           auto_scaling = {
@@ -27,7 +26,6 @@ module "multi_geo_sharded" {
           region_name   = "EU_WEST_1" # Europe
           priority      = 6
           electable_specs = {
-            instance_size = "M30"
             node_count    = 2
           }
           auto_scaling = {
@@ -46,7 +44,6 @@ module "multi_geo_sharded" {
           region_name   = "US_EAST_1" # North America
           priority      = 7
           electable_specs = {
-            instance_size = "M30"
             node_count    = 3
           }
           auto_scaling = {
@@ -61,7 +58,6 @@ module "multi_geo_sharded" {
           region_name   = "EU_WEST_1" # Europe
           priority      = 6
           electable_specs = {
-            instance_size = "M30"
             node_count    = 2
           }
           auto_scaling = {
