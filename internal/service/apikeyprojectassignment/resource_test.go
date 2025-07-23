@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -38,31 +38,27 @@ func TestAccApiKeyProjectAssignmentRS_basic(t *testing.T) {
 			{
 				Config: apiKeyProjectAssignmentConfig(orgID, roleName, projectName),
 				Check:  apiKeyProjectAssignmentAttributeChecks(),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						plancheck.ExpectKnownValue(
-							resourceName,
-							tfjsonpath.New("roles"),
-							knownvalue.SetPartial([]knownvalue.Check{
-								knownvalue.StringExact(roleName),
-							}),
-						),
-					},
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(
+						resourceName,
+						tfjsonpath.New("roles"),
+						knownvalue.SetExact([]knownvalue.Check{
+							knownvalue.StringExact(roleName),
+						}),
+					),
 				},
 			},
 			{
 				Config: apiKeyProjectAssignmentConfig(orgID, roleNameUpdated, projectName),
 				Check:  apiKeyProjectAssignmentAttributeChecks(),
-				ConfigPlanChecks: resource.ConfigPlanChecks{
-					PreApply: []plancheck.PlanCheck{
-						plancheck.ExpectKnownValue(
-							resourceName,
-							tfjsonpath.New("roles"),
-							knownvalue.SetPartial([]knownvalue.Check{
-								knownvalue.StringExact(roleNameUpdated),
-							}),
-						),
-					},
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(
+						resourceName,
+						tfjsonpath.New("roles"),
+						knownvalue.SetExact([]knownvalue.Check{
+							knownvalue.StringExact(roleNameUpdated),
+						}),
+					),
 				},
 			},
 			{
