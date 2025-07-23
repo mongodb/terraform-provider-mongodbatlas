@@ -92,10 +92,10 @@ In addition to all arguments above, the following attributes are exported:
 * `atlas_azure_app_id` - Unique identifier of the Azure Active Directory application associated with the service principal.
 * `service_principal_id` - Unique identifier of the Azure service principal that the Federated Database instance uses to access Azure Blob Storage.
 * `tenant_id` - Unique identifier of the Azure Active Directory tenant where the service principal resides.
-* `role_id` - Unique identifier of the role that the Federated Database Instance can use to access the data stores. 
+* `role_id` - Unique identifier of the role that the Federated Database Instance can use to access the data stores.
 
 ### `data_process_region` - The cloud provider region to which the Federated Instance routes client connections for data processing.
 * `cloud_provider` -  Name of the cloud service provider. Supported providers: `AWS`, `AZURE`.
-* `region` - Name of the region to which the Federated Instance routes client connections for data processing. 
+* `region` - Name of the region to which the Federated Instance routes client connections for data processing.
 
 See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation) Documentation for more information.
