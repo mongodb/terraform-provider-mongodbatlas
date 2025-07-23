@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -24,16 +24,23 @@ const (
 	errorPeersRead   = "error reading MongoDB Network Peering Connection (%s): %s"
 	errorPeersDelete = "error deleting MongoDB Network Peering Connection (%s): %s"
 	errorPeersUpdate = "error updating MongoDB Network Peering Connection (%s): %s"
+
+	minTimeout = 10 * time.Second
 )
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceCreate,
-		ReadContext:   resourceRead,
-		UpdateContext: resourceUpdate,
-		DeleteContext: resourceDelete,
+		CreateWithoutTimeout: resourceCreate,
+		ReadWithoutTimeout:   resourceRead,
+		UpdateWithoutTimeout: resourceUpdate,
+		DeleteWithoutTimeout: resourceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceImportState,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(1 * time.Hour),
+			Update: schema.DefaultTimeout(1 * time.Hour),
+			Delete: schema.DefaultTimeout(1 * time.Hour),
 		},
 		Schema: map[string]*schema.Schema{
 			"project_id": {
@@ -92,7 +99,6 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
 			"atlas_cidr_block": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -156,6 +162,11 @@ func Resource() *schema.Resource {
 			"error_message": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"delete_on_create_timeout": { // Don't use Default: true to avoid unplanned changes when upgrading from previous versions.
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Flag that indicates whether to delete the resource if creation times out. Default is true.",
 			},
 		},
 	}
@@ -244,19 +255,27 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPeersCreate, err))
 	}
+	peerID := peer.GetId()
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
 		Target:     []string{"FAILED", "AVAILABLE", "PENDING_ACCEPTANCE"},
-		Refresh:    resourceRefreshFunc(ctx, peer.GetId(), projectID, peerRequest.GetContainerId(), conn.NetworkPeeringApi),
-		Timeout:    1 * time.Hour,
-		MinTimeout: 10 * time.Second,
-		Delay:      30 * time.Second,
+		Refresh:    resourceRefreshFunc(ctx, peerID, projectID, peerRequest.GetContainerId(), conn.NetworkPeeringApi),
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+		MinTimeout: minTimeout,
+		Delay:      minTimeout,
 	}
-
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorPeersCreate, err))
+	_, errWait := stateConf.WaitForStateContext(ctx)
+	deleteOnCreateTimeout := true // default value when not set
+	if v, ok := d.GetOkExists("delete_on_create_timeout"); ok {
+		deleteOnCreateTimeout = v.(bool)
+	}
+	errWait = cleanup.HandleCreateTimeout(deleteOnCreateTimeout, errWait, func(ctxCleanup context.Context) error {
+		_, _, errCleanup := conn.NetworkPeeringApi.DeletePeeringConnection(ctxCleanup, projectID, peerID).Execute()
+		return errCleanup
+	})
+	if errWait != nil {
+		return diag.Errorf(errorPeersCreate, errWait)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
@@ -459,9 +478,9 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
 		Target:     []string{"FAILED", "AVAILABLE", "PENDING_ACCEPTANCE"},
 		Refresh:    resourceRefreshFunc(ctx, peerID, projectID, "", conn.NetworkPeeringApi),
-		Timeout:    d.Timeout(schema.TimeoutCreate),
-		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute,
+		Timeout:    d.Timeout(schema.TimeoutUpdate),
+		MinTimeout: minTimeout,
+		Delay:      minTimeout,
 	}
 
 	_, err = stateConf.WaitForStateContext(ctx)
@@ -483,15 +502,13 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(errorPeersDelete, peerID, err))
 	}
 
-	log.Println("[INFO] Waiting for MongoDB Network Peering Connection to be destroyed")
-
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"AVAILABLE", "INITIATING", "PENDING_ACCEPTANCE", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER", "TERMINATING", "DELETING"},
 		Target:     []string{"DELETED"},
 		Refresh:    resourceRefreshFunc(ctx, peerID, projectID, "", conn.NetworkPeeringApi),
-		Timeout:    1 * time.Hour,
-		MinTimeout: 30 * time.Second,
-		Delay:      10 * time.Second, // Wait 10 secs before starting
+		Timeout:    d.Timeout(schema.TimeoutDelete),
+		MinTimeout: minTimeout,
+		Delay:      minTimeout,
 	}
 
 	_, err = stateConf.WaitForStateContext(ctx)
@@ -516,19 +533,19 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 
 	peer, _, err := conn.NetworkPeeringApi.GetPeeringConnection(ctx, projectID, peerID).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("couldn't import peer %s in project %s, error: %s", peerID, projectID, err)
+		return nil, fmt.Errorf("couldn't import peer %s in project %s, error: %w", peerID, projectID, err)
 	}
 
 	if err := d.Set("project_id", projectID); err != nil {
-		log.Printf("[WARN] Error setting project_id for (%s): %s", peerID, err)
+		return nil, fmt.Errorf("error setting project_id while importing peer %s in project %s, error: %w", peerID, projectID, err)
 	}
 
 	if err := d.Set("container_id", peer.GetContainerId()); err != nil {
-		log.Printf("[WARN] Error setting container_id for (%s): %s", peerID, err)
+		return nil, fmt.Errorf("error setting container_id while importing peer %s in project %s, error: %w", peerID, projectID, err)
 	}
 
 	if err := d.Set("provider_name", providerName); err != nil {
-		log.Printf("[WARN] Error setting provider_name for (%s): %s", peerID, err)
+		return nil, fmt.Errorf("error setting provider_name while importing peer %s in project %s, error: %w", peerID, projectID, err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
@@ -547,9 +564,6 @@ func resourceRefreshFunc(ctx context.Context, peerID, projectID, containerID str
 			if validate.StatusNotFound(resp) {
 				return "", "DELETED", nil
 			}
-
-			log.Printf("error reading MongoDB Network Peering Connection %s: %s", peerID, err)
-
 			return nil, "", err
 		}
 
@@ -558,8 +572,6 @@ func resourceRefreshFunc(ctx context.Context, peerID, projectID, containerID str
 		if c.GetStatusName() != "" {
 			status = c.GetStatusName()
 		}
-
-		log.Printf("[DEBUG] status for MongoDB Network Peering Connection: %s: %s", peerID, status)
 
 		/* We need to get the provisioned status from Mongo container that contains the peering connection
 		 * to validate if it has changed to true. This means that the reciprocal connection in Mongo side
