@@ -46,6 +46,19 @@ func IsTimestamp() resource.CheckResourceAttrWithFunc {
 	}
 }
 
+func IsUserID() resource.CheckResourceAttrWithFunc {
+	return func(value string) error {
+		matched, err := regexp.MatchString(`^[0-9a-f]{24}$`, value)
+		if err != nil {
+			return err
+		}
+		if !matched {
+			return fmt.Errorf("expected a user id, got %s", value)
+		}
+		return nil
+	}
+}
+
 func IsUsername() resource.CheckResourceAttrWithFunc {
 	return func(value string) error {
 		matched, err := regexp.MatchString(matchUsername.String(), value)

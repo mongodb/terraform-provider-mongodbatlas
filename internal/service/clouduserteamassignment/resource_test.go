@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -12,9 +13,15 @@ import (
 )
 
 var resourceName = "mongodbatlas_cloud_user_team_assignment.test"
+var dataSourceName1 = "data.mongodbatlas_cloud_user_team_assignment.test1"
+var dataSourceName2 = "data.mongodbatlas_cloud_user_team_assignment.test2"
 
-func TestAccCloudUserTeamAssignmentRS_basic(t *testing.T) {
+func TestAccCloudUserTeamAssignment_basic(t *testing.T) {
 	resource.ParallelTest(t, *basicTestCase(t))
+}
+
+func TestAccCloudUserTeamAssignmentDS_error(t *testing.T) {
+	resource.ParallelTest(t, *errorTestCase(t))
 }
 
 func basicTestCase(t *testing.T) *resource.TestCase {
@@ -63,6 +70,24 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 	}
 }
 
+func errorTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
+
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	teamName := acc.RandomName()
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:      configError(orgID, teamName),
+				ExpectError: regexp.MustCompile("either username or user_id must be provided"),
+			},
+		},
+	}
+}
+
 func configBasic(orgID, userID, teamName string) string {
 	return fmt.Sprintf(` 
 		resource "mongodbatlas_team" "test" {
@@ -73,21 +98,53 @@ func configBasic(orgID, userID, teamName string) string {
 			org_id  = %[1]q  
 			team_id = mongodbatlas_team.test.team_id
 			user_id = %[2]q    
-		}  
+		} 
+		data "mongodbatlas_cloud_user_team_assignment" "test1" {
+			org_id   = %[1]q
+			team_id  = mongodbatlas_team.test.team_id
+			user_id  = mongodbatlas_cloud_user_team_assignment.test.user_id
+		}
+
+		data "mongodbatlas_cloud_user_team_assignment" "test2" {
+			org_id   = %[1]q
+			team_id  = mongodbatlas_team.test.team_id
+			username = mongodbatlas_cloud_user_team_assignment.test.username
+		}
 		`,
 		orgID, userID, teamName)
+}
+
+func configError(orgID, teamName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_team" "test" {
+			org_id     = %[1]q
+			name       = %[2]q
+		}
+
+
+		data "mongodbatlas_cloud_user_team_assignment" "test" {
+		org_id  = %[1]q
+		team_id = mongodbatlas_team.test.team_id
+		}
+		`, orgID, teamName)
 }
 
 func checks(orgID, userID string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 		resource.TestCheckResourceAttr(resourceName, "user_id", userID),
-
 		resource.TestCheckResourceAttrSet(resourceName, "username"),
 		resource.TestCheckResourceAttrWith(resourceName, "username", acc.IsUsername()),
 		resource.TestCheckResourceAttrWith(resourceName, "created_at", acc.IsTimestamp()),
-
 		resource.TestCheckResourceAttrWith(resourceName, "team_ids.#", acc.IntGreatThan(0)),
+
+		resource.TestCheckResourceAttr(dataSourceName1, "user_id", userID),
+		resource.TestCheckResourceAttrWith(dataSourceName1, "username", acc.IsUsername()),
+		resource.TestCheckResourceAttr(dataSourceName1, "org_id", orgID),
+
+		resource.TestCheckResourceAttr(dataSourceName2, "user_id", userID),
+		resource.TestCheckResourceAttrWith(dataSourceName2, "username", acc.IsUsername()),
+		resource.TestCheckResourceAttr(dataSourceName2, "org_id", orgID),
 	)
 }
 
