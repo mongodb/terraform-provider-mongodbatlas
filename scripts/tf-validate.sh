@@ -41,9 +41,9 @@ is_v2_dir() {
   parent_dir=$(basename "$1")
   grand_parent_dir=$(basename "$(dirname "$1")")
   grand_grand_parent_dir=$(basename "$(dirname "$(dirname "$1")")")
-  local v2_parent_dirs=("cluster_with_schedule" "direct-resource" "option-1-attributes-exposed")
+  local v2_parent_dirs=("cluster_with_schedule" "direct-resource")
   local v2_grand_parent_dirs=("module_maintainer" "module_user" "migrate_cluster_to_advanced_cluster" "mongodbatlas_backup_compliance_policy") # module_maintainer and module_user uses {PARENT_DIR}/vX/main.tf
-  local v2_grand_grand_parent_dirs=("option-1-attributes-exposed") # module uses {grand_grand_parent}/examples/{example_name}/main.tf
+  local v2_grand_grand_parent_dirs=("option-1-exposed-vars" "option-3-abstraction-vars") # module uses {grand_grand_parent}/examples/{example_name}/main.tf
   
   for dir in "${v2_parent_dirs[@]}"; do
     if [[ $parent_dir == "$dir" ]]; then
