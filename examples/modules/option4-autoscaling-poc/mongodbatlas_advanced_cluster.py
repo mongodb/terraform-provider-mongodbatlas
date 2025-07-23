@@ -408,7 +408,7 @@ class ResourceExt(Resource):
             self.auto_scaling = Autoscaling(**self.auto_scaling)
         if self.auto_scaling_analytics is not None and not isinstance(self.auto_scaling_analytics, Autoscaling):
             assert isinstance(self.auto_scaling_analytics, dict), (
-                f"Expected auto_scaling_anlytics to be an Autoscaling or a dict, got {type(self.auto_scaling_analytics)}"
+                f"Expected auto_scaling_analytics to be an Autoscaling or a dict, got {type(self.auto_scaling_analytics)}"
             )
             self.auto_scaling_analytics = Autoscaling(**self.auto_scaling_analytics)
         if self.regions is not None:
@@ -537,7 +537,7 @@ def errors(resource: ResourceExt) -> Iterable[str]:
             if region.instance_size_analytics is not None
         ]
         if invalid_instance_sizes:
-            yield f"Cannot use `regions.*.instance_size_analytics` when auto_scaling_anlytics is used: {','.join(invalid_instance_sizes)}"
+            yield f"Cannot use `regions.*.instance_size_analytics` when auto_scaling_analytics is used: {','.join(invalid_instance_sizes)}"
     found_cluster_type = resource.infer_cluster_type()
     zone_names_found = [
         f"regions[{i}].zone_name={region.zone_name}"

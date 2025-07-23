@@ -244,6 +244,8 @@ The following requirements are needed by this module:
 
 - <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.8)
 
+- <a name="requirement_external"></a> [external](#requirement\_external) (~>2.0)
+
 - <a name="requirement_mongodbatlas"></a> [mongodbatlas](#requirement\_mongodbatlas) (~> 1.26)
 
 ## Providers
@@ -427,7 +429,7 @@ Description: Storage capacity of instance data volumes expressed in gigabytes. I
 
  This value is not configurable on M0/M2/M5 clusters.
 
- MongoDB Cloud requires thisparameter if you set **replicationSpecs**.
+ MongoDB Cloud requires this parameter if you set **replicationSpecs**.
 
  If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value.
 
@@ -441,7 +443,7 @@ Default: `null`
 
 ### <a name="input_encryption_at_rest_provider"></a> [encryption\_at\_rest\_provider](#input\_encryption\_at\_rest\_provider)
 
-Description: Cloud service provider that manages your customer keys to provide an additional layer of encryption at rest for the cluster. To enable customer key management for encryption at rest, the cluster **replicationSpecs[n].regionConfigs[m].{type}Specs.instanceSize** setting must be `M10` or higher and `"backupEnabled" : false` or omittedentirely.
+Description: Cloud service provider that manages your customer keys to provide an additional layer of encryption at rest for the cluster. To enable customer key management for encryption at rest, the cluster **replicationSpecs[n].regionConfigs[m].{type}Specs.instanceSize** setting must be `M10` or higher and `"backupEnabled" : false` or omitted entirely.
 
 Type: `string`
 
@@ -479,9 +481,7 @@ Default: `null`
 
 ### <a name="input_labels"></a> [labels](#input\_labels)
 
-Description: Map of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.
-
-Cluster labels are deprecated andwill be removed in a future release. We strongly recommend that you use [resource tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas) instead.
+Description: Map of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels. Cluster labels are deprecated and will be removed in a future release. We strongly recommend that you use [resource tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas) instead.
 
 Type: `map(any)`
 
@@ -493,7 +493,7 @@ Description: MongoDB major version of the cluster.
 
 On creation: Choose from the available versions of MongoDB, or leave unspecified for the current recommended default in the MongoDB Cloud platform. The recommended version is a recent Long Term Support version. The default is not guaranteed to be the most recently released version throughout the entire release cycle. For versions available in a specific project, see the linked documentation or use the API endpoint for [project LTS versions endpoint](#tag/Projects/operation/getProjectLTSVersions).
 
- On update: Increase version only by 1 major version at a time. If the cluster is pinned to a MongoDB feature compatibility version exactly one major version below the current MongoDB version, theMongoDB version can be downgraded to the previous major version.
+ On update: Increase version only by 1 major version at a time. If the cluster is pinned to a MongoDB feature compatibility version exactly one major version below the current MongoDB version, the MongoDB version can be downgraded to the previous major version.
 
 Type: `string`
 
@@ -509,7 +509,7 @@ Default: `null`
 
 ### <a name="input_pinned_fcv"></a> [pinned\_fcv](#input\_pinned\_fcv)
 
-Description: Pins the Feature Compatibility Version (FCV) to the current MongoDB version with a provided expiration date. To unpin the FCV the `pinned_fcv` attribute must be removed. This operation can take several minutes as the request processes through the MongoDB data plane. Once FCV is unpinned it will not be possible to downgrade the `mongo_db_major_version`. It is advised that updates to `pinned_fcv` are done isolated from other cluster changes. If a plan contains multiple changes, the FCV change will be applied first. If FCV is unpinned past the expiration date the `pinned_fcv` attribute must be removed. The following [knowledge hub article](https://kb.corp.mongodb.com/article/000021785/) and [FCV documentation](https://www.mongodb.com/docs/atlas/tutorial/major-version-change/#manage-feature-compatibility--fcv--during-upgrades) can be referenced for moredetails.
+Description: Pins the Feature Compatibility Version (FCV) to the current MongoDB version with a provided expiration date. To unpin the FCV the `pinned_fcv` attribute must be removed. This operation can take several minutes as the request processes through the MongoDB data plane. Once FCV is unpinned it will not be possible to downgrade the `mongo_db_major_version`. It is advised that updates to `pinned_fcv` are done isolated from other cluster changes. If a plan contains multiple changes, the FCV change will be applied first. If FCV is unpinned past the expiration date the `pinned_fcv` attribute must be removed. The following [knowledge hub article](https://kb.corp.mongodb.com/article/000021785/) and [FCV documentation](https://www.mongodb.com/docs/atlas/tutorial/major-version-change/#manage-feature-compatibility--fcv--during-upgrades) can be referenced for more details.
 
 Type:
 
@@ -582,9 +582,7 @@ Description: Set this field to configure the replica set scaling mode for your c
 
 By default, Atlas scales under WORKLOAD\_TYPE. This mode allows Atlas to scale your analytics nodes in parallel to your operational nodes.
 
-When configured as SEQUENTIAL, Atlas scales all nodes sequentially. This mode is intended for steady-state workloads and applications performing latency-sensitivesecondary reads.
-
-When configured as NODE\_TYPE, Atlas scales your electable nodes in parallel with your read-only and analytics nodes. This mode is intended for large, dynamic workloads requiring frequent and timely cluster tier scaling. This is the fastest scaling strategy, but it might impact latency of workloads when performing extensive secondary reads.
+When configured as SEQUENTIAL, Atlas scales all nodes sequentially. This mode is intended for steady-state workloads and applications performing latency-sensitive secondary reads.
 
 Type: `string`
 
@@ -680,7 +678,7 @@ Default: `null`
 
 ### <a name="input_timeouts"></a> [timeouts](#input\_timeouts)
 
-Description: Timeouts for create/update/delete operatons.
+Description: Timeouts for create/update/delete operations.
 
 Type:
 
@@ -696,7 +694,7 @@ Default: `null`
 
 ### <a name="input_version_release_system"></a> [version\_release\_system](#input\_version\_release\_system)
 
-Description: Method by which the cluster maintains the MongoDB versions. If value is `CONTINUOUS`, you must not specify**mongoDBMajorVersion**.
+Description: Method by which the cluster maintains the MongoDB versions. If value is `CONTINUOUS`, you must not specify **mongoDBMajorVersion**.
 
 Type: `string`
 
@@ -728,5 +726,5 @@ Description: Version of MongoDB that the cluster runs.
 
 ### <a name="output_state_name"></a> [state\_name](#output\_state\_name)
 
-Description: Human-readable label that indicates the current operating condition of thiscluster.
+Description: Human-readable label that indicates the current operating condition of this cluster.
 <!-- END_TF_DOCS -->

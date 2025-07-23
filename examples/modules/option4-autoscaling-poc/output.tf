@@ -30,6 +30,6 @@ output "mongo_db_version" {
 
 
 output "state_name" {
-  description = "Human-readable label that indicates the current operating condition of thiscluster."
+  description = "Human-readable label that indicates the current operating condition of this cluster."
   value       = mongodbatlas_advanced_cluster.this.state_name
 }
