@@ -37,7 +37,7 @@ func TestAccApiKeyProjectAssignmentRS_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: apiKeyProjectAssignmentConfig(orgID, roleName, projectName),
-				Check:  apiKeyProjectAssignmentAttributeChecks(roleName),
+				Check:  apiKeyProjectAssignmentAttributeChecks(),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						plancheck.ExpectKnownValue(
@@ -52,7 +52,7 @@ func TestAccApiKeyProjectAssignmentRS_basic(t *testing.T) {
 			},
 			{
 				Config: apiKeyProjectAssignmentConfig(orgID, roleNameUpdated, projectName),
-				Check:  apiKeyProjectAssignmentAttributeChecks(roleNameUpdated),
+				Check:  apiKeyProjectAssignmentAttributeChecks(),
 				ConfigPlanChecks: resource.ConfigPlanChecks{
 					PreApply: []plancheck.PlanCheck{
 						plancheck.ExpectKnownValue(
@@ -87,7 +87,7 @@ func importStateIDFunc(resourceName, attrNameProjectID, attrNameAPIKeyID string)
 	}
 }
 
-func apiKeyProjectAssignmentAttributeChecks(expectedRole string) resource.TestCheckFunc {
+func apiKeyProjectAssignmentAttributeChecks() resource.TestCheckFunc {
 	attrsMap := map[string]string{
 		"roles.#": "1",
 	}
