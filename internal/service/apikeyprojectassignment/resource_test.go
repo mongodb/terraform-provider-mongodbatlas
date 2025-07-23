@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -36,10 +38,32 @@ func TestAccApiKeyProjectAssignmentRS_basic(t *testing.T) {
 			{
 				Config: apiKeyProjectAssignmentConfig(orgID, roleName, projectName),
 				Check:  apiKeyProjectAssignmentAttributeChecks(roleName),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectKnownValue(
+							resourceName,
+							tfjsonpath.New("roles"),
+							knownvalue.SetPartial([]knownvalue.Check{
+								knownvalue.StringExact(roleName),
+							}),
+						),
+					},
+				},
 			},
 			{
 				Config: apiKeyProjectAssignmentConfig(orgID, roleNameUpdated, projectName),
 				Check:  apiKeyProjectAssignmentAttributeChecks(roleNameUpdated),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectKnownValue(
+							resourceName,
+							tfjsonpath.New("roles"),
+							knownvalue.SetPartial([]knownvalue.Check{
+								knownvalue.StringExact(roleNameUpdated),
+							}),
+						),
+					},
+				},
 			},
 			{
 				Config:                               apiKeyProjectAssignmentConfig(orgID, roleNameUpdated, projectName),
@@ -70,29 +94,8 @@ func apiKeyProjectAssignmentAttributeChecks(expectedRole string) resource.TestCh
 	attrsSet := []string{"project_id", "api_key_id"}
 	checks := []resource.TestCheckFunc{
 		checkExists(resourceName),
-		checkRolePresent(resourceName, expectedRole),
 	}
 	return acc.CheckRSAndDS(resourceName, conversion.Pointer(singularDSName), conversion.Pointer(pluralDSName), attrsSet, attrsMap, checks...)
-}
-
-func checkRolePresent(resourceName, expectedRole string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-		found := false
-		for k, v := range rs.Primary.Attributes {
-			if strings.HasPrefix(k, "roles.") && k != "roles.#" && v == expectedRole {
-				found = true
-				break
-			}
-		}
-		if !found {
-			return fmt.Errorf("role %q not found in roles attribute", expectedRole)
-		}
-		return nil
-	}
 }
 
 func apiKeyProjectAssignmentConfig(orgID, roleName, projectName string) string {
