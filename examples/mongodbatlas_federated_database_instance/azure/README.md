@@ -17,9 +17,9 @@ Terraform v1.39.0
 
 **1\. Set up your Azure credentials.**
 
-1. Install the Azure CLI by following the steps from the [official Azure documentation](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli).
-2. Run the command `az login` and this will take you to the default browser and perform the authentication.
-3. Once authenticated, it will print the user details as below:
+1. Install the Azure CLI by following the steps from the [Azure documentation](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli).
+2. Run the command `az login`. This takes you to the default browser where you can authenticate with Azure.
+3. Once authenticated, it will print the user details as follows:
 
 ```
 ⇒  az login
@@ -44,9 +44,9 @@ XXXXX
 ]
 ```
 
-**2\. Ensure your MongoDB Atlas credentials are set up.**
+**2\. Set up your MongoDB Atlas credentials.**
 
-This can be done using environment variables:
+You can use environment variables to set up credentials for Atlas as follows:
 
 ```bash
 export MONGODB_ATLAS_PUBLIC_KEY="<ATLAS_PUBLIC_KEY>"
@@ -66,7 +66,7 @@ azure_tenant_id            = "<AZURE_TENANT_ID>"
 
 **3\. Review the Terraform plan.**
 
-Execute the below command and ensure you are happy with the plan.
+Run the following command and review the plan you created.
 
 ``` bash
 $ terraform plan
