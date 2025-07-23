@@ -3,9 +3,9 @@ locals {
   # Count how many of the three options are defined (with length > 0)
   defined_count = (
     length(var.replication_specs) > 0 ? 1 : 0
-  ) + (
+    ) + (
     length(var.shards) > 0 ? 1 : 0
-  ) + (
+    ) + (
     length(var.region_configs) > 0 ? 1 : 0
   )
 
@@ -13,7 +13,7 @@ locals {
 
 check "validate_only_one_defined" {
   assert {
-    condition = local.defined_count <= 1
+    condition     = local.defined_count <= 1
     error_message = "Only one of replication_specs, shards, or region_configs can be defined"
   }
 }
@@ -24,7 +24,7 @@ locals {
   effective_replication_specs = (
     length(var.replication_specs) > 0 ? tolist([
       for spec in var.replication_specs : {
-        zone_name  = try(spec.zone_name, null)
+        zone_name = try(spec.zone_name, null)
         region_configs = [
           for region in spec.region_configs : merge(
             region,
@@ -71,90 +71,90 @@ locals {
           )
         ]
       }
-    ]) : ( length(var.shards) > 0 ? tolist([
-      for shard in var.shards : {
-        zone_name = shard.zone_name
-        region_configs = [for region in shard.region_configs : {
-          provider_name = region.provider_name
-          region_name   = region.region_name
-          priority      = region.priority
-          electable_specs = {
-            instance_size   = var.auto_scaling.compute_min_instance_size
-            node_count      = region.electable_node_count
-            ebs_volume_type = try(region.ebs_volume_type, null)
-            disk_size_gb    = null
-            disk_iops       = try(region.disk_iops, null)
-          }
-          read_only_specs = (
-            try(region.read_only_node_count, 0) > 0 ? {
+      ]) : (length(var.shards) > 0 ? tolist([
+        for shard in var.shards : {
+          zone_name = shard.zone_name
+          region_configs = [for region in shard.region_configs : {
+            provider_name = region.provider_name
+            region_name   = region.region_name
+            priority      = region.priority
+            electable_specs = {
               instance_size   = var.auto_scaling.compute_min_instance_size
-              node_count      = region.read_only_node_count
+              node_count      = region.electable_node_count
               ebs_volume_type = try(region.ebs_volume_type, null)
               disk_size_gb    = null
               disk_iops       = try(region.disk_iops, null)
-            } : null
-          )
-          auto_scaling = merge({
-            compute_enabled = true
-            disk_gb_enabled = true
-          }, var.auto_scaling) # all autoscaling configs are the same cluster wide, this how API currently works
-          analytics_auto_scaling = merge({
-            compute_enabled = true
-            disk_gb_enabled = true
-          }, var.analytics_auto_scaling) # all analytics autoscaling configs are the same cluster wide, this how API currently works
-          analytics_specs = (
-            region.analytics_specs != null ? {
-              instance_size   = var.analytics_auto_scaling.compute_min_instance_size
-              node_count      = region.analytics_specs.node_count
-              ebs_volume_type = try(region.analytics_specs.ebs_volume_type, null)
-              disk_size_gb    = null
-              disk_iops       = try(region.analytics_specs.disk_iops, null)
-            } : null
-          )
-        }]
-      }
-      ]) : tolist([
-      {
-        zone_name = null
-        region_configs = [for region in var.region_configs : {
-          provider_name = region.provider_name
-          region_name   = region.region_name
-          priority      = region.priority
-          electable_specs = {
-            instance_size   = var.auto_scaling.compute_min_instance_size
-            node_count      = region.electable_node_count
-            ebs_volume_type = try(region.ebs_volume_type, null)
-            disk_size_gb    = null
-            disk_iops       = try(region.disk_iops, null)
-          }
-          read_only_specs = ( # read_only_specs uses same compute and storage configs as electable_specs, this is how API currently works
-            try(region.read_only_node_count, 0) > 0 ? {
+            }
+            read_only_specs = (
+              try(region.read_only_node_count, 0) > 0 ? {
+                instance_size   = var.auto_scaling.compute_min_instance_size
+                node_count      = region.read_only_node_count
+                ebs_volume_type = try(region.ebs_volume_type, null)
+                disk_size_gb    = null
+                disk_iops       = try(region.disk_iops, null)
+              } : null
+            )
+            auto_scaling = merge({
+              compute_enabled = true
+              disk_gb_enabled = true
+            }, var.auto_scaling) # all autoscaling configs are the same cluster wide, this how API currently works
+            analytics_auto_scaling = merge({
+              compute_enabled = true
+              disk_gb_enabled = true
+            }, var.analytics_auto_scaling) # all analytics autoscaling configs are the same cluster wide, this how API currently works
+            analytics_specs = (
+              region.analytics_specs != null ? {
+                instance_size   = var.analytics_auto_scaling.compute_min_instance_size
+                node_count      = region.analytics_specs.node_count
+                ebs_volume_type = try(region.analytics_specs.ebs_volume_type, null)
+                disk_size_gb    = null
+                disk_iops       = try(region.analytics_specs.disk_iops, null)
+              } : null
+            )
+          }]
+        }
+        ]) : tolist([
+        {
+          zone_name = null
+          region_configs = [for region in var.region_configs : {
+            provider_name = region.provider_name
+            region_name   = region.region_name
+            priority      = region.priority
+            electable_specs = {
               instance_size   = var.auto_scaling.compute_min_instance_size
-              node_count      = region.read_only_node_count
+              node_count      = region.electable_node_count
               ebs_volume_type = try(region.ebs_volume_type, null)
               disk_size_gb    = null
               disk_iops       = try(region.disk_iops, null)
-            } : null
-          )
-          auto_scaling = merge({
-            compute_enabled = true
-            disk_gb_enabled = true
-          }, var.auto_scaling) # all autoscaling configs are the same cluster wide, this how API currently works
-          analytics_auto_scaling = merge({
-            compute_enabled = true
-            disk_gb_enabled = true
-          }, var.analytics_auto_scaling) # all analytics autoscaling configs are the same cluster wide, this how API currently works
-          analytics_specs = (
-            region.analytics_specs != null ? {
-              instance_size   = var.analytics_auto_scaling.compute_min_instance_size
-              node_count      = region.analytics_specs.node_count
-              ebs_volume_type = try(region.analytics_specs.ebs_volume_type, null)
-              disk_size_gb    = null
-              disk_iops       = try(region.analytics_specs.disk_iops, null)
-            } : null
-          )
-        }]
-      }
+            }
+            read_only_specs = ( # read_only_specs uses same compute and storage configs as electable_specs, this is how API currently works
+              try(region.read_only_node_count, 0) > 0 ? {
+                instance_size   = var.auto_scaling.compute_min_instance_size
+                node_count      = region.read_only_node_count
+                ebs_volume_type = try(region.ebs_volume_type, null)
+                disk_size_gb    = null
+                disk_iops       = try(region.disk_iops, null)
+              } : null
+            )
+            auto_scaling = merge({
+              compute_enabled = true
+              disk_gb_enabled = true
+            }, var.auto_scaling) # all autoscaling configs are the same cluster wide, this how API currently works
+            analytics_auto_scaling = merge({
+              compute_enabled = true
+              disk_gb_enabled = true
+            }, var.analytics_auto_scaling) # all analytics autoscaling configs are the same cluster wide, this how API currently works
+            analytics_specs = (
+              region.analytics_specs != null ? {
+                instance_size   = var.analytics_auto_scaling.compute_min_instance_size
+                node_count      = region.analytics_specs.node_count
+                ebs_volume_type = try(region.analytics_specs.ebs_volume_type, null)
+                disk_size_gb    = null
+                disk_iops       = try(region.analytics_specs.disk_iops, null)
+              } : null
+            )
+          }]
+        }
     ]))
   )
 }

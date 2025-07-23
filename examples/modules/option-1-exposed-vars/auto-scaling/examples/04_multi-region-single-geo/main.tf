@@ -12,7 +12,7 @@ module "multi_region_single_geo_no_sharding" {
           region_name   = "US_EAST_1"
           priority      = 7
           electable_specs = {
-            node_count    = 2
+            node_count = 2
           }
           auto_scaling = {
             disk_gb_enabled           = true
@@ -26,10 +26,10 @@ module "multi_region_single_geo_no_sharding" {
           region_name   = "US_EAST_2"
           priority      = 6
           electable_specs = {
-            node_count    = 1
+            node_count = 1
           }
           read_only_specs = {
-            node_count    = 2
+            node_count = 2
           }
           auto_scaling = {
             disk_gb_enabled           = true

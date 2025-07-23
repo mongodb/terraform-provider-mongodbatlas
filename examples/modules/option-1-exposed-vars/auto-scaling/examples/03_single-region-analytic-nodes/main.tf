@@ -21,10 +21,10 @@ module "single_region_analytics" {
             compute_min_instance_size = "M10"
           }
           electable_specs = {
-            node_count    = 3
+            node_count = 3
           }
           analytics_specs = {
-            node_count    = 1
+            node_count = 1
           }
           priority      = 7
           provider_name = "AWS"
