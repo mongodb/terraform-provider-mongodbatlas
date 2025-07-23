@@ -93,12 +93,11 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(errorClusterOutageSimulationCreate, projectID, clusterName, err))
 	}
 
-	timeout := d.Timeout(schema.TimeoutCreate)
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"START_REQUESTED", "STARTING"},
 		Target:     []string{"SIMULATING"},
 		Refresh:    resourceRefreshFunc(ctx, clusterName, projectID, connV2),
-		Timeout:    timeout,
+		Timeout:    d.Timeout(schema.TimeoutCreate) - time.Minute, // If using a CRUD function with a timeout, any StateChangeConf timeouts should be configured below that duration to avoid returning the SDK context: deadline exceeded error instead of the retry logic error.
 		MinTimeout: 1 * time.Minute,
 		Delay:      3 * time.Minute,
 	}
