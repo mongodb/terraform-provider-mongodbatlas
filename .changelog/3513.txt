@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_organization: Sets org_id on import
+```
