@@ -18,7 +18,7 @@ variable "azure_atlas_app_id" {
 }
 
 variable "azure_service_principal_id" {
-  description = "Azure Service Principal ID" 
+  description = "Azure Service Principal ID"
   type        = string
 }
 
