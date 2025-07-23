@@ -15,7 +15,7 @@ const (
 )
 
 // HandleCreateTimeout helps to implement Create in long-running operations.
-// It will delete the resource if the creation times out and delete_on_create_timeout is enabled.
+// It deletes the resource if the creation times out and `delete_on_create_timeout` is enabled.
 // It returns an error with additional information which should be used instead of the original error.
 func HandleCreateTimeout(deleteOnCreateTimeout bool, errWait error, cleanup func() error) error {
 	if _, isTimeoutErr := errWait.(*retry.TimeoutError); !isTimeoutErr {
