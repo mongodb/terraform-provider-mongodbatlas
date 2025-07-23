@@ -1,4 +1,23 @@
-# Main resource logic for cluster-abstraction module
+# Validate that only one of replication_specs, shards, or region_configs is defined
+locals {
+  # Count how many of the three options are defined (with length > 0)
+  defined_count = (
+    length(var.replication_specs) > 0 ? 1 : 0
+  ) + (
+    length(var.shards) > 0 ? 1 : 0
+  ) + (
+    length(var.region_configs) > 0 ? 1 : 0
+  )
+
+}
+
+check "validate_only_one_defined" {
+  assert {
+    condition = local.defined_count <= 1
+    error_message = "Only one of replication_specs, shards, or region_configs can be defined"
+  }
+}
+
 
 locals {
   # Build the specs from either shards (geo-sharded) or replica_set_regions (replica set)
@@ -11,18 +30,18 @@ locals {
           region_name   = region.region_name
           priority      = region.priority
           electable_specs = {
-            instance_size   = var.auto_scaling.compute_min_instance_size
+            instance_size   = coalesce(region.instance_size, var.auto_scaling.compute_min_instance_size) # coalesce is used to fallback to the required autoscaling input if instance_size is not provided
             node_count      = region.electable_node_count
             ebs_volume_type = try(region.ebs_volume_type, null)
-            disk_size_gb    = null
+            disk_size_gb    = try(region.disk_size_gb, null)
             disk_iops       = try(region.disk_iops, null)
           }
           read_only_specs = (
             try(region.read_only_node_count, 0) > 0 ? {
-              instance_size   = var.auto_scaling.compute_min_instance_size
+              instance_size   = coalesce(region.instance_size, var.auto_scaling.compute_min_instance_size)
               node_count      = region.read_only_node_count
               ebs_volume_type = try(region.ebs_volume_type, null)
-              disk_size_gb    = null
+              disk_size_gb    = try(region.disk_size_gb, null)
               disk_iops       = try(region.disk_iops, null)
             } : null
           )
@@ -36,10 +55,10 @@ locals {
           }, var.analytics_auto_scaling) # all analytics autoscaling configs are the same cluster wide, this how API currently works
           analytics_specs = (
             region.analytics_specs != null ? {
-              instance_size   = var.analytics_auto_scaling.compute_min_instance_size
+              instance_size   = coalesce(region.analytics_specs.instance_size, var.analytics_auto_scaling.compute_min_instance_size)
               node_count      = region.analytics_specs.node_count
               ebs_volume_type = try(region.analytics_specs.ebs_volume_type, null)
-              disk_size_gb    = null
+              disk_size_gb    = try(region.analytics_specs.disk_size_gb, null)
               disk_iops       = try(region.analytics_specs.disk_iops, null)
             } : null
           )
@@ -53,18 +72,18 @@ locals {
           region_name   = region.region_name
           priority      = region.priority
           electable_specs = {
-            instance_size   = var.auto_scaling.compute_min_instance_size
+            instance_size   = coalesce(region.instance_size, var.auto_scaling.compute_min_instance_size)
             node_count      = region.electable_node_count
             ebs_volume_type = try(region.ebs_volume_type, null)
-            disk_size_gb    = null
+            disk_size_gb    = try(region.disk_size_gb, null)
             disk_iops       = try(region.disk_iops, null)
           }
           read_only_specs = ( # read_only_specs uses same compute and storage configs as electable_specs, this is how API currently works
             try(region.read_only_node_count, 0) > 0 ? {
-              instance_size   = var.auto_scaling.compute_min_instance_size
+              instance_size   = coalesce(region.instance_size, var.auto_scaling.compute_min_instance_size)
               node_count      = region.read_only_node_count
               ebs_volume_type = try(region.ebs_volume_type, null)
-              disk_size_gb    = null
+              disk_size_gb    = try(region.disk_size_gb, null)
               disk_iops       = try(region.disk_iops, null)
             } : null
           )
@@ -78,10 +97,10 @@ locals {
           }, var.analytics_auto_scaling) # all analytics autoscaling configs are the same cluster wide, this how API currently works
           analytics_specs = (
             region.analytics_specs != null ? {
-              instance_size   = var.analytics_auto_scaling.compute_min_instance_size
+              instance_size   = coalesce(region.analytics_specs.instance_size, var.analytics_auto_scaling.compute_min_instance_size)
               node_count      = region.analytics_specs.node_count
               ebs_volume_type = try(region.analytics_specs.ebs_volume_type, null)
-              disk_size_gb    = null
+              disk_size_gb    = try(region.analytics_specs.disk_size_gb, null)
               disk_iops       = try(region.analytics_specs.disk_iops, null)
             } : null
           )
@@ -119,7 +138,8 @@ resource "mongodbatlas_advanced_cluster" "this" {
   timeouts                                         = var.timeouts
   version_release_system                           = var.version_release_system
 
-
+  disk_size_gb                                     = var.disk_size_gb
+  labels                                           = var.labels
 
   lifecycle {
     # Terraform cannot make the ignore_changes block fully dynamic based on input variables or locals. The list must be static and known at plan time.
