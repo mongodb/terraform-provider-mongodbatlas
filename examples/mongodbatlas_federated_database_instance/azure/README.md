@@ -1,4 +1,4 @@
-# Example - MongoDB Atlas Federated Database Instance with Azure Blob Storage and MongoDB Cluster as storage databases
+# Example - MongoDB Atlas Federated Database Instance with Microsoft Azure Blob Storage and MongoDB Cluster as storage databases
 
 This project aims to provide an example of using [MongoDB Atlas Federated Database Instance](https://www.mongodb.com/docs/atlas/data-federation/overview/).
 
@@ -15,7 +15,7 @@ Terraform v1.39.0
 
 ## Usage
 
-**1\. Ensure your Azure credentials are set up.**
+**1\. Set up your Azure credentials.**
 
 1. Install the Azure CLI by following the steps from the [official Azure documentation](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli).
 2. Run the command `az login` and this will take you to the default browser and perform the authentication.
@@ -71,15 +71,15 @@ Execute the below command and ensure you are happy with the plan.
 ``` bash
 $ terraform plan
 ```
-This project currently supports the below deployments:
+This project currently supports the following deployments:
 
 - MongoDB Atlas Cloud Provider Access Setup for Azure
 - MongoDB Atlas Cloud Provider Access Authorization
 - MongoDB Atlas Federated Database Instance with Azure cloud provider configuration
 
-**5\. Execute the Terraform apply.**
+**5\. Run the Terraform apply command to apply the plan.**
 
-Now execute the plan to provision the resources.
+Now run the plan to provision the resources.
 
 ``` bash
 $ terraform apply
@@ -87,7 +87,7 @@ $ terraform apply
 
 **6\. Destroy the resources.**
 
-Once you are finished your testing, ensure you destroy the resources to avoid unnecessary Atlas charges.
+Once you are finished with our testing, ensure you destroy the resources to avoid unnecessary Atlas charges.
 
 ``` bash
 $ terraform destroy

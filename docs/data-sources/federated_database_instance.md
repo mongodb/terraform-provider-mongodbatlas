@@ -29,7 +29,7 @@ data "mongodbatlas_federated_database_instance" "test" {
 }
 ```
 
-## Example Usages with Azure Blob Storage as storage database
+## Example of Azure Blob Storage as storage database
 
 ```terraform
 data "mongodbatlas_federated_database_instance" "test" {
@@ -112,7 +112,7 @@ In addition to all arguments above, the following attributes are exported:
 * `external_id` - Unique identifier associated with the IAM Role that the Federated Database Instance assumes when accessing the data stores.
 * `role_id` - Unique identifier of the role that the data lake can use to access the data stores.
 
-#### `azure` - Azure provider of the cloud service where the Federated Database Instance can access Blob Storage.
+#### `azure` - Microsoft Azure provider of the cloud service where the Federated Database Instance can access Blob Storage.
 * `atlas_azure_app_id` - Unique identifier of the Azure Active Directory application associated with the service principal.
 * `service_principal_id` - Unique identifier of the Azure service principal that the Federated Database instance uses to access Azure Blob Storage.
 * `tenant_id` - Unique identifier of the Azure Active Directory tenant where the service principal resides.
@@ -122,4 +122,4 @@ In addition to all arguments above, the following attributes are exported:
 * `cloud_provider` -  Name of the cloud service provider. Supported providers: `AWS`, `AZURE`.
 * `region` - Name of the region to which the Federated Instance routes client connections for data processing.
 
-See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation) Documentation for more information.
+To learn more, see the [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation) documentation.
