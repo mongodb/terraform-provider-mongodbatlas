@@ -74,5 +74,4 @@ module "multi_geo_sharded" {
       ]
     }
   ]
-  # Add any required variables here
 }

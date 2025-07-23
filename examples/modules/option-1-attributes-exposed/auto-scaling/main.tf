@@ -1,117 +1,26 @@
-# Main resource logic for cluster-abstraction module
 
-locals {
-  # Build the specs from either shards (geo-sharded) or replica_set_regions (replica set)
-  effective_replication_specs = (
-    length(var.shards) > 0 ? [
-      for shard in var.shards : {
-        zone_name = shard.zone_name
-        region_configs = [for region in shard.region_configs : {
-          provider_name = region.provider_name
-          region_name   = region.region_name
-          priority      = region.priority
-          electable_specs = {
-            instance_size   = coalesce(region.instance_size, var.auto_scaling.compute_min_instance_size) # coalesce is used to fallback to the required autoscaling input if instance_size is not provided
-            node_count      = region.electable_node_count
-            ebs_volume_type = try(region.ebs_volume_type, null)
-            disk_size_gb    = try(region.disk_size_gb, null)
-            disk_iops       = try(region.disk_iops, null)
-          }
-          read_only_specs = (
-            try(region.read_only_node_count, 0) > 0 ? {
-              instance_size   = coalesce(region.instance_size, var.auto_scaling.compute_min_instance_size)
-              node_count      = region.read_only_node_count
-              ebs_volume_type = try(region.ebs_volume_type, null)
-              disk_size_gb    = try(region.disk_size_gb, null)
-              disk_iops       = try(region.disk_iops, null)
-            } : null
-          )
-          auto_scaling           = merge({
-            compute_enabled = true
-            disk_gb_enabled = true
-          }, var.auto_scaling)           # all autoscaling configs are the same cluster wide, this how API currently works
-          analytics_auto_scaling = merge({
-            compute_enabled = true
-            disk_gb_enabled = true
-          }, var.analytics_auto_scaling) # all analytics autoscaling configs are the same cluster wide, this how API currently works
-          analytics_specs = (
-            region.analytics_specs != null ? {
-              instance_size   = coalesce(region.analytics_specs.instance_size, var.analytics_auto_scaling.compute_min_instance_size)
-              node_count      = region.analytics_specs.node_count
-              ebs_volume_type = try(region.analytics_specs.ebs_volume_type, null)
-              disk_size_gb    = try(region.analytics_specs.disk_size_gb, null)
-              disk_iops       = try(region.analytics_specs.disk_iops, null)
-            } : null
-          )
-        }]
-      }
-      ] : [
-      {
-        zone_name = null
-        region_configs = [for region in var.region_configs : {
-          provider_name = region.provider_name
-          region_name   = region.region_name
-          priority      = region.priority
-          electable_specs = {
-            instance_size   = coalesce(region.instance_size, var.auto_scaling.compute_min_instance_size)
-            node_count      = region.electable_node_count
-            ebs_volume_type = try(region.ebs_volume_type, null)
-            disk_size_gb    = try(region.disk_size_gb, null)
-            disk_iops       = try(region.disk_iops, null)
-          }
-          read_only_specs = ( # read_only_specs uses same compute and storage configs as electable_specs, this is how API currently works
-            try(region.read_only_node_count, 0) > 0 ? {
-              instance_size   = coalesce(region.instance_size, var.auto_scaling.compute_min_instance_size)
-              node_count      = region.read_only_node_count
-              ebs_volume_type = try(region.ebs_volume_type, null)
-              disk_size_gb    = try(region.disk_size_gb, null)
-              disk_iops       = try(region.disk_iops, null)
-            } : null
-          )
-          auto_scaling           = merge({
-            compute_enabled = true
-            disk_gb_enabled = true
-          }, var.auto_scaling)           # all autoscaling configs are the same cluster wide, this how API currently works
-          analytics_auto_scaling = merge({
-            compute_enabled = true
-            disk_gb_enabled = true
-          }, var.analytics_auto_scaling) # all analytics autoscaling configs are the same cluster wide, this how API currently works
-          analytics_specs = (
-            region.analytics_specs != null ? {
-              instance_size   = coalesce(region.analytics_specs.instance_size, var.analytics_auto_scaling.compute_min_instance_size)
-              node_count      = region.analytics_specs.node_count
-              ebs_volume_type = try(region.analytics_specs.ebs_volume_type, null)
-              disk_size_gb    = try(region.analytics_specs.disk_size_gb, null)
-              disk_iops       = try(region.analytics_specs.disk_iops, null)
-            } : null
-          )
-        }]
-      }
-    ]
-  )
-}
 
 resource "mongodbatlas_advanced_cluster" "this" {
-  project_id             = var.project_id
-  name                   = var.name
-  cluster_type           = var.cluster_type
-  mongo_db_major_version = var.mongo_db_major_version
-
-  replication_specs = local.effective_replication_specs
-
   accept_data_risks_and_force_replica_set_reconfig = var.accept_data_risks_and_force_replica_set_reconfig
   advanced_configuration                           = var.advanced_configuration
   backup_enabled                                   = var.backup_enabled
   bi_connector_config                              = var.bi_connector_config
+  cluster_type                                     = var.cluster_type
   config_server_management_mode                    = var.config_server_management_mode
   delete_on_create_timeout                         = var.delete_on_create_timeout
+  disk_size_gb                                     = var.disk_size_gb
   encryption_at_rest_provider                      = var.encryption_at_rest_provider
   global_cluster_self_managed_sharding             = var.global_cluster_self_managed_sharding
+  labels                                           = var.labels
+  mongo_db_major_version                           = var.mongo_db_major_version
+  name                                             = var.name
   paused                                           = var.paused
   pinned_fcv                                       = var.pinned_fcv
   pit_enabled                                      = var.pit_enabled
+  project_id                                       = var.project_id
   redact_client_log_data                           = var.redact_client_log_data
   replica_set_scaling_strategy                     = var.replica_set_scaling_strategy
+  replication_specs                                = local.replication_specs_with_autoscaling
   retain_backups_enabled                           = var.retain_backups_enabled
   root_cert_type                                   = var.root_cert_type
   tags                                             = var.tags
@@ -119,8 +28,6 @@ resource "mongodbatlas_advanced_cluster" "this" {
   timeouts                                         = var.timeouts
   version_release_system                           = var.version_release_system
 
-  
-  
   lifecycle {
     # Terraform cannot make the ignore_changes block fully dynamic based on input variables or locals. The list must be static and known at plan time.
     # This static list supports up to 3 shards (replication specs) with up to 3 regions
@@ -193,3 +100,4 @@ resource "mongodbatlas_advanced_cluster" "this" {
     ]
   }
 }
+

@@ -1,3 +1,4 @@
+
 terraform {
   required_providers {
     mongodbatlas = {
@@ -7,3 +8,4 @@ terraform {
   }
   required_version = ">= 1.8"
 }
+

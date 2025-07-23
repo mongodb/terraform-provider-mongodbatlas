@@ -27,5 +27,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
   termination_protection_enabled                   = var.termination_protection_enabled
   timeouts                                         = var.timeouts
   version_release_system                           = var.version_release_system
+
+  // no lifecycle ingore, auto-scaling will causes non-empty plans when using this module
 }
 

@@ -44,5 +44,4 @@ module "multi_cloud" {
       ]
     }
   ]
-  # Add any required variables here
 }
