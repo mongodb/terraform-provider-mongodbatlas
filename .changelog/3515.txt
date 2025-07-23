@@ -3,5 +3,5 @@ resource/mongodbatlas_network_peering: Adds `timeouts` attribute for create, upd
 ```
 
 ```release-note:enhancement
-resource/mongodbatlas_network_peering: Adds `delete_on_create_timeout` attribute to indicate whether to delete the resource if its creation times out. Default is `true`. 
+resource/mongodbatlas_network_peering: Adds `delete_on_create_timeout` attribute to indicate whether to delete the resource if its creation times out
 ```
