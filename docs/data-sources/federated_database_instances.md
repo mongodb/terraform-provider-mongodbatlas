@@ -1,6 +1,6 @@
 # Data Source: mongodbatlas_federated_database_instances
 
-`mongodbatlas_federated_database_instancess` provides a Federated Database Instance data source.
+`mongodbatlas_federated_database_instances` provides a Federated Database Instance data source.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
@@ -87,8 +87,15 @@ In addition to all arguments above, the following attributes are exported:
 * `iam_user_arn` - Amazon Resource Name (ARN) of the user that the Federated Database Instance assumes when accessing S3 Bucket data stores.
 * `external_id` - Unique identifier associated with the IAM Role that the Federated Database Instance assumes when accessing the data stores.
 * `role_id` - Unique identifier of the role that the data lake can use to access the data stores.
-#### `data_process_region` - The cloud provider region to which the Federated Instance routes client connections for data processing.
-* `cloud_provider` -  Name of the cloud service provider. Atlas Federated Database only supports AWS.
-* `region` - Name of the region to which the Federanted Instnace routes client connections for data processing. 
+
+#### `azure` - Azure provider of the cloud service where the Federated Database Instance can access Blob Storage.
+* `atlas_azure_app_id` - Unique identifier of the Azure Active Directory application associated with the service principal.
+* `service_principal_id` - Unique identifier of the Azure service principal that the Federated Database instance uses to access Azure Blob Storage.
+* `tenant_id` - Unique identifier of the Azure Active Directory tenant where the service principal resides.
+* `role_id` - Unique identifier of the role that the Federated Database Instance can use to access the data stores. 
+
+### `data_process_region` - The cloud provider region to which the Federated Instance routes client connections for data processing.
+* `cloud_provider` -  Name of the cloud service provider. Supported providers: `AWS`, `AZURE`.
+* `region` - Name of the region to which the Federated Instance routes client connections for data processing. 
 
 See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation) Documentation for more information.

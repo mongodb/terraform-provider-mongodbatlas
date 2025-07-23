@@ -85,6 +85,52 @@ resource "mongodbatlas_federated_database_instance" "test" {
 }
 ```
 
+## Example Usages with Azure Blob Storage as storage database
+
+```terraform
+resource "mongodbatlas_federated_database_instance" "test" {
+  project_id = "PROJECT ID"
+  name       = "TENANT NAME OF THE FEDERATED DATABASE INSTANCE"
+  
+  cloud_provider_config {
+    azure {
+      role_id = "AZURE ROLE ID"
+    }
+  }
+  
+  storage_databases {
+    name = "VirtualDatabase0"
+    collections {
+      name = "NAME OF THE COLLECTION"
+      data_sources {
+        collection = "COLLECTION IN THE CLUSTER"
+        database   = "DB IN THE CLUSTER"
+        store_name = "CLUSTER NAME"
+      }
+      data_sources {
+        store_name = "AZURE BLOB STORAGE NAME"
+        path       = "AZURE BLOB PATH"
+      }
+    }
+  }
+
+  storage_stores {
+    name         = "STORE NAME"
+    cluster_name = "CLUSTER NAME"
+    project_id   = "PROJECT ID"
+    provider     = "atlas"
+    read_preference {
+      mode = "secondary"
+    }
+  }
+
+  storage_stores {
+    name     = "AZURE BLOB STORAGE NAME"
+    provider = "azure"
+  }
+}
+```
+
 ## Example specifying data process region and provider
 ```terraform
 resource "mongodbatlas_federated_database_instance" "test" {
@@ -103,12 +149,14 @@ resource "mongodbatlas_federated_database_instance" "test" {
 * `project_id` - (Required) The unique ID for the project to create a Federated Database Instance.
 * `name` - (Required) Name of the Atlas Federated Database Instance.
 * `cloud_provider_config` - (Optional) Cloud provider linked to this data federated instance.
-  * `cloud_provider_config.aws` - (Required) AWS provider of the cloud service where the Federated Database Instance can access the S3 Bucket. Note this parameter is only required if using `cloud_provider_config` since AWS is currently the only supported Cloud vendor on this feature at this time. 
+  * `cloud_provider_config.aws` - AWS provider of the cloud service where the Federated Database Instance can access the S3 Bucket.
       * `cloud_provider_config.aws.role_id` - (Required) Unique identifier of the role that the Federated Instance can use to access the data stores. If necessary, use the Atlas [UI](https://docs.atlas.mongodb.com/security/manage-iam-roles/) or [API](https://docs.atlas.mongodb.com/reference/api/cloud-provider-access-get-roles/) to retrieve the role ID. You must also specify the `test_s3_bucket`.
       * `cloud_provider_config.aws.test_s3_bucket` - (Required) Name of the S3 data bucket that the provided role ID is authorized to access. You must also specify the `role_id`.
+    * `cloud_provider_config.azure` - Azure provider of the cloud service where the Federated Database Instance can access Blob Storage.
+      * `cloud_provider_config.azure.role_id` - (Required) Unique identifier of the role that the Federated Database Instance can use to access the data stores. 
 * `data_process_region` - (Optional) The cloud provider region to which the Federated Instance routes client connections for data processing.
-  * `data_process_region.cloud_provider` - (Required) Name of the cloud service provider. Atlas Federated Database only supports AWS.
-  * `data_process_region.region` - (Required) Name of the region to which the Federanted Instnace routes client connections for data processing. See the [documention](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createFederatedDatabase) for the available region.
+  * `data_process_region.cloud_provider` - (Required) Name of the cloud service provider. Supported providers: `AWS`, `AZURE`. 
+  * `data_process_region.region` - (Required) Name of the region to which the Federated Instance routes client connections for data processing. See the [documentation](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createFederatedDatabase) for the available region.
 * `storage_databases` - Configuration details for mapping each data store to queryable databases and collections. For complete documentation on this object and its nested fields, see [databases](https://docs.mongodb.com/datalake/reference/format/data-lake-configuration#std-label-datalake-databases-reference). An empty object indicates that the Federated Database Instance has no mapping configuration for any data store.
   * `storage_databases.#.name` - Name of the database to which the Federated Database Instance maps the data contained in the data store.
   * `storage_databases.#.collections` -     Array of objects where each object represents a collection and data sources that map to a [stores](https://docs.mongodb.com/datalake/reference/format/data-lake-configuration#mongodb-datalakeconf-datalakeconf.stores) data store.

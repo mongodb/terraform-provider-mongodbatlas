@@ -1,4 +1,3 @@
-# MongoDB Atlas Cloud Provider Access Setup for Azure
 resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
   project_id    = var.project_id
   provider_name = "AZURE"
@@ -10,7 +9,6 @@ resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
   }
 }
 
-# MongoDB Atlas Cloud Provider Access Authorization
 resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
   project_id = var.project_id
   role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
@@ -21,13 +19,9 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
     tenant_id            = var.azure_tenant_id
   }
 }
-
-# MongoDB Atlas Federated Database Instance with Azure
 resource "mongodbatlas_federated_database_instance" "azure_example" {
   project_id = var.project_id
   name       = var.federated_instance_name
-
-  # Azure cloud provider configuration
   cloud_provider_config {
     azure {
       role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
