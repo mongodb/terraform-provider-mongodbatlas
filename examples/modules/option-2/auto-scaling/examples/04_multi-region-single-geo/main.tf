@@ -56,8 +56,6 @@ module "direct_variables_multi_region_single_geo_no_sharding" {
             node_count = 2
           }
           auto_scaling = {
-            disk_gb_enabled           = true
-            compute_enabled           = true
             compute_max_instance_size = "M60"
             compute_min_instance_size = "M30"
           }
@@ -73,8 +71,6 @@ module "direct_variables_multi_region_single_geo_no_sharding" {
             node_count = 2
           }
           auto_scaling = {
-            disk_gb_enabled           = true
-            compute_enabled           = true
             compute_max_instance_size = "M60"
             compute_min_instance_size = "M30"
           }

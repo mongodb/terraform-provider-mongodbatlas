@@ -16,8 +16,6 @@ module "multi_geo_zone_sharded" {
             node_count = 3
           }
           auto_scaling = {
-            disk_gb_enabled           = true
-            compute_enabled           = true
             compute_max_instance_size = "M60"
             compute_min_instance_size = "M30"
           }
@@ -35,8 +33,6 @@ module "multi_geo_zone_sharded" {
             node_count = 3
           }
           auto_scaling = {
-            disk_gb_enabled           = true
-            compute_enabled           = true
             compute_max_instance_size = "M60"
             compute_min_instance_size = "M30"
           }

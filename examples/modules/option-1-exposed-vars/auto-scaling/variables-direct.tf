@@ -232,11 +232,11 @@ variable "replication_specs" {
         ebs_volume_type = optional(string)
         node_count      = optional(number)
       }))
-      auto_scaling = optional(object({
+      auto_scaling = object({
         compute_max_instance_size  = optional(string)
         compute_min_instance_size  = string
         compute_scale_down_enabled = optional(bool)
-      }))
+      })
       backing_provider_name = optional(string)
       electable_specs = optional(object({
         disk_iops       = optional(number)

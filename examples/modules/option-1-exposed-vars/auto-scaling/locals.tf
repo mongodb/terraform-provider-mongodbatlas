@@ -10,24 +10,24 @@ locals {
           region,
           {
             auto_scaling = merge(
-              try(region.auto_scaling, {}),
+              region.auto_scaling,
               {
                 compute_enabled = true
                 disk_gb_enabled = true
               }
             ),
-            analytics_auto_scaling = merge(
-              try(region.analytics_auto_scaling, {}),
+            analytics_auto_scaling = ( region.analytics_auto_scaling == null ? null : merge(
+              region.analytics_auto_scaling,
               {
                 compute_enabled = true
                 disk_gb_enabled = true
               }
-            ),
+            )),
             electable_specs = (
               region.electable_specs == null ? null : merge(
                 region.electable_specs,
                 {
-                  instance_size = try(region.auto_scaling.compute_min_instance_size, null)
+                  instance_size = region.auto_scaling.compute_min_instance_size
                 }
               )
             ),
@@ -35,7 +35,7 @@ locals {
               region.read_only_specs == null ? null : merge(
                 region.read_only_specs,
                 {
-                  instance_size = try(region.auto_scaling.compute_min_instance_size, null)
+                  instance_size = region.auto_scaling.compute_min_instance_size
                 }
               )
             ),
