@@ -80,6 +80,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		resp.Diagnostics.Append(diags...)
 		return
 	}
+	newFlexClusterModel.Timeouts = tfModel.Timeouts
 
 	if conversion.UseNilForEmpty(tfModel.Tags, newFlexClusterModel.Tags) {
 		newFlexClusterModel.Tags = types.MapNull(types.StringType)
@@ -113,6 +114,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		resp.Diagnostics.Append(diags...)
 		return
 	}
+	newFlexClusterModel.Timeouts = flexClusterState.Timeouts
 
 	if conversion.UseNilForEmpty(flexClusterState.Tags, newFlexClusterModel.Tags) {
 		newFlexClusterModel.Tags = types.MapNull(types.StringType)
@@ -150,6 +152,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		resp.Diagnostics.Append(diags...)
 		return
 	}
+	newFlexClusterModel.Timeouts = plan.Timeouts
 
 	if conversion.UseNilForEmpty(plan.Tags, newFlexClusterModel.Tags) {
 		newFlexClusterModel.Tags = types.MapNull(types.StringType)
