@@ -96,6 +96,13 @@ func TestAccStreamPrivatelinkEndpointMsk_fields(t *testing.T) {
 	}
 }
 
+func TestAccStreamPrivatelinkEndpointS3_basic(t *testing.T) {
+	acc.SkipTestForCI(t) // needs an AWS S3 bucket
+	tc := basicS3TestCase(t)
+	// Tests include testing of plural data source and so cannot be run in parallel
+	resource.Test(t, *tc)
+}
+
 func basicConfluentTestCase(t *testing.T, withDNSSubdomains bool) *resource.TestCase {
 	t.Helper()
 
@@ -106,7 +113,7 @@ func basicConfluentTestCase(t *testing.T, withDNSSubdomains bool) *resource.Test
 		awsAccountID        = os.Getenv("AWS_ACCOUNT_ID")
 		networkID           = os.Getenv("CONFLUENT_CLOUD_NETWORK_ID")
 		privatelinkAccessID = os.Getenv("CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID")
-		config              = acc.GetCompleteConfluentConfig(true, withDNSSubdomains, projectID, provider, region, vendor, awsAccountID, networkID, privatelinkAccessID)
+		config              = acc.GetCompleteConfluentConfig(true, withDNSSubdomains, projectID, provider, region, vendorConfluent, awsAccountID, networkID, privatelinkAccessID)
 	)
 
 	return &resource.TestCase{
@@ -118,7 +125,7 @@ func basicConfluentTestCase(t *testing.T, withDNSSubdomains bool) *resource.Test
 			{
 
 				Config: config,
-				Check:  checksStreamPrivatelinkEndpointConfluent(projectID, provider, region, vendor, false),
+				Check:  checksStreamPrivatelinkEndpointConfluent(projectID, provider, region, vendorConfluent, false),
 			},
 			{
 				ResourceName:      resourceName,
@@ -281,4 +288,54 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 
 		return fmt.Sprintf("%s-%s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["id"]), nil
 	}
+}
+
+func basicS3TestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
+
+	var (
+		projectID = acc.ProjectIDExecution(t)
+		provider  = "AWS"
+		vendor    = "S3"
+		region    = "us-east-1"
+	)
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckAwsEnvBasic(t) },
+		CheckDestroy:             checkDestroy,
+		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: acc.GetCompleteS3Config(projectID, region),
+				Check:  checksStreamPrivatelinkEndpointS3(projectID, provider, vendor, region),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: importStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	}
+}
+
+func checksStreamPrivatelinkEndpointS3(projectID, provider, vendor, region string) resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{checkExists()}
+	attrMap := map[string]string{
+		"project_id":    projectID,
+		"provider_name": provider,
+		"vendor":        vendor,
+		"region":        region,
+	}
+	pluralMap := map[string]string{
+		"project_id": projectID,
+		"results.#":  "1",
+	}
+	attrSet := []string{
+		"id",
+		"state",
+	}
+	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
+	return acc.CheckRSAndDS(resourceName, &dataSourceName, &dataSourcePluralName, attrSet, attrMap, checks...)
 }

@@ -13,6 +13,7 @@ import (
 const (
 	VendorConfluent = "CONFLUENT"
 	VendorMSK       = "MSK"
+	VendorS3        = "S3"
 )
 
 func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPrivateLinkConnection) (*TFModel, diag.Diagnostics) {
@@ -65,6 +66,19 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 		}
 		if plan.Region.ValueString() != "" {
 			diags.AddError(fmt.Sprintf("region cannot be set for vendor %s", VendorMSK), "")
+		}
+		if diags.HasError() {
+			return nil, diags
+		}
+	}
+
+	if plan.Vendor.ValueString() == VendorS3 {
+		diags := diag.Diagnostics{}
+		if plan.Region.IsNull() {
+			diags.AddError(fmt.Sprintf("region is required for vendor %s", VendorS3), "")
+		}
+		if plan.ServiceEndpointId.IsNull() {
+			diags.AddError(fmt.Sprintf("service_endpoint_id is required for vendor %s. It should follow the format of com.amazonaws.<region>.s3", VendorS3), "")
 		}
 		if diags.HasError() {
 			return nil, diags

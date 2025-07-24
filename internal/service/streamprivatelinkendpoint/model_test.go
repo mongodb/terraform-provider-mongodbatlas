@@ -26,12 +26,14 @@ var (
 	dnsSubDomain          = "dnsSubDomain"
 	interfaceEndpointID   = "interfaceEndpointId"
 	interfaceEndpointName = "interfaceEndpointName"
-	provider              = "AWS"
+	providerAWS           = "AWS"
 	providerAccountID     = "providerAccountId"
 	region                = "us-east-1"
 	serviceEndpointID     = "serviceEndpointId"
+	serviceEndpointIDS3   = "com.amazonaws.us-east-1.s3"
 	state                 = "DONE"
-	vendor                = "CONFLUENT"
+	vendorConfluent       = "CONFLUENT"
+	vendorS3              = "S3"
 )
 
 func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
@@ -44,12 +46,12 @@ func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 				DnsSubDomain:          conversion.Pointer([]string{dnsSubDomain, dnsSubDomain}),
 				InterfaceEndpointId:   &interfaceEndpointID,
 				InterfaceEndpointName: &interfaceEndpointName,
-				Provider:              provider,
+				Provider:              providerAWS,
 				ProviderAccountId:     &providerAccountID,
 				Region:                &region,
 				ServiceEndpointId:     &serviceEndpointID,
 				State:                 &state,
-				Vendor:                &vendor,
+				Vendor:                &vendorConfluent,
 			},
 			projectID: projectID,
 			expectedTFModel: &streamprivatelinkendpoint.TFModel{
@@ -63,12 +65,12 @@ func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 				ProjectId:             types.StringValue(projectID),
 				InterfaceEndpointId:   types.StringValue(interfaceEndpointID),
 				InterfaceEndpointName: types.StringValue(interfaceEndpointName),
-				Provider:              types.StringValue(provider),
+				Provider:              types.StringValue(providerAWS),
 				ProviderAccountId:     types.StringValue(providerAccountID),
 				Region:                types.StringValue(region),
 				ServiceEndpointId:     types.StringValue(serviceEndpointID),
 				State:                 types.StringValue(state),
-				Vendor:                types.StringValue(vendor),
+				Vendor:                types.StringValue(vendorConfluent),
 			},
 		},
 		"SDK response without dns subdomains": {
@@ -77,11 +79,11 @@ func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 				Arn:                 &arn,
 				DnsDomain:           &dnsDomain,
 				InterfaceEndpointId: &interfaceEndpointID,
-				Provider:            provider,
+				Provider:            providerAWS,
 				Region:              &region,
 				ServiceEndpointId:   &serviceEndpointID,
 				State:               &state,
-				Vendor:              &vendor,
+				Vendor:              &vendorConfluent,
 			},
 			projectID: projectID,
 			expectedTFModel: &streamprivatelinkendpoint.TFModel{
@@ -91,11 +93,11 @@ func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 				DnsSubDomain:        types.ListNull(types.StringType),
 				ProjectId:           types.StringValue(projectID),
 				InterfaceEndpointId: types.StringValue(interfaceEndpointID),
-				Provider:            types.StringValue(provider),
+				Provider:            types.StringValue(providerAWS),
 				Region:              types.StringValue(region),
 				ServiceEndpointId:   types.StringValue(serviceEndpointID),
 				State:               types.StringValue(state),
-				Vendor:              types.StringValue(vendor),
+				Vendor:              types.StringValue(vendorConfluent),
 			},
 		},
 		"SDK response without arn": {
@@ -104,11 +106,11 @@ func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 				DnsDomain:           &dnsDomain,
 				DnsSubDomain:        conversion.Pointer([]string{dnsSubDomain, dnsSubDomain}),
 				InterfaceEndpointId: &interfaceEndpointID,
-				Provider:            provider,
+				Provider:            providerAWS,
 				Region:              &region,
 				ServiceEndpointId:   &serviceEndpointID,
 				State:               &state,
-				Vendor:              &vendor,
+				Vendor:              &vendorConfluent,
 			},
 			projectID: projectID,
 			expectedTFModel: &streamprivatelinkendpoint.TFModel{
@@ -120,11 +122,28 @@ func TestStreamPrivatelinkEndpointSDKToTFModel(t *testing.T) {
 				}),
 				ProjectId:           types.StringValue(projectID),
 				InterfaceEndpointId: types.StringValue(interfaceEndpointID),
-				Provider:            types.StringValue(provider),
+				Provider:            types.StringValue(providerAWS),
 				Region:              types.StringValue(region),
 				ServiceEndpointId:   types.StringValue(serviceEndpointID),
 				State:               types.StringValue(state),
-				Vendor:              types.StringValue(vendor),
+				Vendor:              types.StringValue(vendorConfluent),
+			},
+		},
+		"SDK response with vendor S3": {
+			SDKResp: &admin.StreamsPrivateLinkConnection{
+				Id:       &id,
+				Provider: providerAWS,
+				Vendor:   &vendorS3,
+				Region:   &region,
+			},
+			projectID: projectID,
+			expectedTFModel: &streamprivatelinkendpoint.TFModel{
+				Id:           types.StringValue(id),
+				Provider:     types.StringValue(providerAWS),
+				Vendor:       types.StringValue(vendorS3),
+				Region:       types.StringValue(region),
+				ProjectId:    types.StringValue(projectID),
+				DnsSubDomain: types.ListNull(types.StringType),
 			},
 		},
 		"Empty SDK response": {
@@ -167,22 +186,22 @@ func TestStreamPrivatelinkEndpointTFModelToSDK(t *testing.T) {
 				ProjectId:             types.StringValue(projectID),
 				InterfaceEndpointId:   types.StringValue(interfaceEndpointID),
 				InterfaceEndpointName: types.StringValue(interfaceEndpointName),
-				Provider:              types.StringValue(provider),
+				Provider:              types.StringValue(providerAWS),
 				ProviderAccountId:     types.StringValue(providerAccountID),
 				Region:                types.StringValue(region),
 				ServiceEndpointId:     types.StringValue(serviceEndpointID),
 				State:                 types.StringValue(state),
-				Vendor:                types.StringValue(vendor),
+				Vendor:                types.StringValue(vendorConfluent),
 			},
 			expectedSDKReq: &admin.StreamsPrivateLinkConnection{
 				Arn:               &arn,
 				DnsDomain:         &dnsDomain,
 				DnsSubDomain:      conversion.Pointer([]string{dnsSubDomain, dnsSubDomain}),
-				Provider:          provider,
+				Provider:          providerAWS,
 				Region:            &region,
 				ServiceEndpointId: &serviceEndpointID,
 				State:             &state,
-				Vendor:            &vendor,
+				Vendor:            &vendorConfluent,
 			},
 		},
 		"TF state without dns subdomains": {
@@ -192,20 +211,20 @@ func TestStreamPrivatelinkEndpointTFModelToSDK(t *testing.T) {
 				DnsDomain:           types.StringValue(dnsDomain),
 				ProjectId:           types.StringValue(projectID),
 				InterfaceEndpointId: types.StringValue(interfaceEndpointID),
-				Provider:            types.StringValue(provider),
+				Provider:            types.StringValue(providerAWS),
 				Region:              types.StringValue(region),
 				ServiceEndpointId:   types.StringValue(serviceEndpointID),
 				State:               types.StringValue(state),
-				Vendor:              types.StringValue(vendor),
+				Vendor:              types.StringValue(vendorConfluent),
 			},
 			expectedSDKReq: &admin.StreamsPrivateLinkConnection{
 				Arn:               &arn,
 				DnsDomain:         &dnsDomain,
-				Provider:          provider,
+				Provider:          providerAWS,
 				Region:            &region,
 				ServiceEndpointId: &serviceEndpointID,
 				State:             &state,
-				Vendor:            &vendor,
+				Vendor:            &vendorConfluent,
 			},
 		},
 		"TF state without arn": {
@@ -219,21 +238,36 @@ func TestStreamPrivatelinkEndpointTFModelToSDK(t *testing.T) {
 				ProjectId:             types.StringValue(projectID),
 				InterfaceEndpointId:   types.StringValue(interfaceEndpointID),
 				InterfaceEndpointName: types.StringValue(interfaceEndpointName),
-				Provider:              types.StringValue(provider),
+				Provider:              types.StringValue(providerAWS),
 				ProviderAccountId:     types.StringValue(providerAccountID),
 				Region:                types.StringValue(region),
 				ServiceEndpointId:     types.StringValue(serviceEndpointID),
 				State:                 types.StringValue(state),
-				Vendor:                types.StringValue(vendor),
+				Vendor:                types.StringValue(vendorConfluent),
 			},
 			expectedSDKReq: &admin.StreamsPrivateLinkConnection{
 				DnsDomain:         &dnsDomain,
 				DnsSubDomain:      conversion.Pointer([]string{dnsSubDomain, dnsSubDomain}),
-				Provider:          provider,
+				Provider:          providerAWS,
 				Region:            &region,
 				ServiceEndpointId: &serviceEndpointID,
 				State:             &state,
-				Vendor:            &vendor,
+				Vendor:            &vendorConfluent,
+			},
+		},
+		"TF state with s3 vendor": {
+			tfModel: &streamprivatelinkendpoint.TFModel{
+				Id:                types.StringValue(id),
+				Provider:          types.StringValue(providerAWS),
+				Vendor:            types.StringValue(vendorS3),
+				Region:            types.StringValue(region),
+				ServiceEndpointId: types.StringValue(serviceEndpointIDS3),
+			},
+			expectedSDKReq: &admin.StreamsPrivateLinkConnection{
+				Provider:          providerAWS,
+				Vendor:            &vendorS3,
+				Region:            &region,
+				ServiceEndpointId: &serviceEndpointIDS3,
 			},
 		},
 	}
