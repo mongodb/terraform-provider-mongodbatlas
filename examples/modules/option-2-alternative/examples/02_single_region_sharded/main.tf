@@ -1,4 +1,4 @@
-module "option4-autoscaling-poc" {
+module "option-2-alternative" {
   source = "../.."
 
   name       = "single-region-sharded"

@@ -1,15 +1,20 @@
-module "option4-autoscaling-poc" {
+module "option-2-alternative" {
   source = "../.."
 
-  name       = "single-region"
+  name       = "multi-region-multi-geo"
   project_id = var.project_id
   regions = [
     {
-      name          = "US_EAST_1"
-      node_count    = 3
-      provider_name = "AWS"
+      name        = "US_EAST_1"
+      node_count  = 3
+      shard_index = 0
+      }, {
+      name        = "EU_WEST_1"
+      node_count  = 2
+      shard_index = 1
     }
   ]
+  provider_name = "AWS"
   auto_scaling = {
     compute_enabled            = true
     compute_max_instance_size  = "M60"

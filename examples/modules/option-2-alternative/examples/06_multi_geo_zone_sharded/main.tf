@@ -1,17 +1,17 @@
-module "option4-autoscaling-poc" {
+module "option-2-alternative" {
   source = "../.."
 
-  name       = "multi-region-multi-geo"
+  name       = "multi-geo-zone-sharded"
   project_id = var.project_id
   regions = [
     {
-      name        = "US_EAST_1"
-      node_count  = 3
-      shard_index = 0
+      name       = "US_EAST_1"
+      node_count = 3
+      zone_name  = "US"
       }, {
-      name        = "EU_WEST_1"
-      node_count  = 2
-      shard_index = 1
+      name       = "EU_WEST_1"
+      node_count = 3
+      zone_name  = "EU"
     }
   ]
   provider_name = "AWS"
