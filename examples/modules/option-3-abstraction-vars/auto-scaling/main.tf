@@ -1,9 +1,17 @@
 # Main resource logic for cluster-abstraction module
 
 locals {
+
+  # Count how many of the three options are defined (with length > 0)
+  defined_count = (
+    length(var.shards) > 0 ? 1 : 0
+    ) + (
+    length(var.region_configs) > 0 ? 1 : 0
+  )
+
   # Build the specs from either shards (geo-sharded) or replica_set_regions (replica set)
-  effective_replication_specs = (
-    length(var.shards) > 0 ? [
+  effective_replication_specs = coalescelist(
+    tolist([
       for shard in var.shards : {
         zone_name = shard.zone_name
         region_configs = [for region in shard.region_configs : {
@@ -45,7 +53,8 @@ locals {
           )
         }]
       }
-      ] : [
+    ]), 
+    tolist([
       {
         zone_name = null
         region_configs = [for region in var.region_configs : {
@@ -87,7 +96,7 @@ locals {
           )
         }]
       }
-    ]
+    ])
   )
 }
 
@@ -122,6 +131,13 @@ resource "mongodbatlas_advanced_cluster" "this" {
 
 
   lifecycle {
+
+    # Validate that only one of shards, or region_configs is defined
+    precondition {
+      condition     = local.defined_count <= 1
+      error_message = "Only one of shards, or region_configs can be defined"
+    }
+
     # Terraform cannot make the ignore_changes block fully dynamic based on input variables or locals. The list must be static and known at plan time.
     # This static list supports up to 3 shards (replication specs) with up to 3 regions
     ignore_changes = [
