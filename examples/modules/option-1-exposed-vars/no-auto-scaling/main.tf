@@ -8,10 +8,8 @@ resource "mongodbatlas_advanced_cluster" "this" {
   cluster_type                                     = var.cluster_type
   config_server_management_mode                    = var.config_server_management_mode
   delete_on_create_timeout                         = var.delete_on_create_timeout
-  disk_size_gb                                     = var.disk_size_gb
   encryption_at_rest_provider                      = var.encryption_at_rest_provider
   global_cluster_self_managed_sharding             = var.global_cluster_self_managed_sharding
-  labels                                           = var.labels
   mongo_db_major_version                           = var.mongo_db_major_version
   name                                             = var.name
   paused                                           = var.paused
@@ -30,4 +28,3 @@ resource "mongodbatlas_advanced_cluster" "this" {
 
   // no lifecycle ingore, auto-scaling will causes non-empty plans when using this module
 }
-

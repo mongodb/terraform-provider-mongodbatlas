@@ -3,8 +3,7 @@ locals {
   replication_specs_with_autoscaling = [
     for spec in var.replication_specs : {
       # Copy all fields from the original spec
-      num_shards = try(spec.num_shards, null)
-      zone_name  = try(spec.zone_name, null)
+      zone_name = try(spec.zone_name, null)
       region_configs = [
         for region in spec.region_configs : merge(
           region,

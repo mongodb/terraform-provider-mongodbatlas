@@ -476,7 +476,6 @@ Type:
 
 ```hcl
 list(object({
-    num_shards = optional(number)
     region_configs = list(object({
       analytics_auto_scaling = optional(object({
         compute_enabled            = optional(bool)
@@ -545,9 +544,7 @@ object({
     change_stream_options_pre_and_post_images_expire_after_seconds = optional(number)
     custom_openssl_cipher_config_tls12                             = optional(list(string))
     default_max_time_ms                                            = optional(number)
-    default_read_concern                                           = optional(string)
     default_write_concern                                          = optional(string, "majority")
-    fail_index_key_too_long                                        = optional(bool)
     javascript_enabled                                             = optional(bool, false)
     minimum_enabled_tls_protocol                                   = optional(string, "TLS1_2")
     no_table_scan                                                  = optional(bool)
@@ -653,16 +650,6 @@ When set to true, the management mode is set to Self-Managed Sharding. This mode
 This setting cannot be changed once the cluster is deployed.
 
 Type: `bool`
-
-Default: `null`
-
-### <a name="input_labels"></a> [labels](#input\_labels)
-
-Description: Map of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.
-
-Cluster labels are deprecated andwill be removed in a future release. We strongly recommend that you use [resource tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas) instead.
-
-Type: `map(any)`
 
 Default: `null`
 
