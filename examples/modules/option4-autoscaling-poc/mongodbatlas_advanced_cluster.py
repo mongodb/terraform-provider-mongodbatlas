@@ -220,7 +220,6 @@ class Resource:
         "advanced_configuration",
         "bi_connector_config",
         "connection_strings",
-        "labels",
         "pinned_fcv",
         "replication_specs",
         "tags",
@@ -253,7 +252,6 @@ class Resource:
     delete_on_create_timeout: Optional[bool] = None
     encryption_at_rest_provider: Optional[str] = None
     global_cluster_self_managed_sharding: Optional[bool] = None
-    labels: Optional[Dict[str, Any]] = None
     mongo_db_major_version: Optional[str] = None
     mongo_db_version: Optional[str] = None
     name: Optional[str] = None

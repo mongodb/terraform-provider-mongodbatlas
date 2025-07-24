@@ -10,7 +10,6 @@ locals {
     delete_on_create_timeout                         = var.delete_on_create_timeout
     encryption_at_rest_provider                      = var.encryption_at_rest_provider
     global_cluster_self_managed_sharding             = var.global_cluster_self_managed_sharding
-    labels                                           = var.labels
     mongo_db_major_version                           = var.mongo_db_major_version
     name                                             = var.name
     paused                                           = var.paused
@@ -68,7 +67,6 @@ resource "mongodbatlas_advanced_cluster" "this" {
   delete_on_create_timeout                         = data.external.mongodbatlas_advanced_cluster.result.delete_on_create_timeout == "" ? null : data.external.mongodbatlas_advanced_cluster.result.delete_on_create_timeout
   encryption_at_rest_provider                      = data.external.mongodbatlas_advanced_cluster.result.encryption_at_rest_provider == "" ? null : data.external.mongodbatlas_advanced_cluster.result.encryption_at_rest_provider
   global_cluster_self_managed_sharding             = data.external.mongodbatlas_advanced_cluster.result.global_cluster_self_managed_sharding == "" ? null : data.external.mongodbatlas_advanced_cluster.result.global_cluster_self_managed_sharding
-  labels                                           = data.external.mongodbatlas_advanced_cluster.result.labels == "" ? null : jsondecode(data.external.mongodbatlas_advanced_cluster.result.labels)
   mongo_db_major_version                           = data.external.mongodbatlas_advanced_cluster.result.mongo_db_major_version == "" ? null : data.external.mongodbatlas_advanced_cluster.result.mongo_db_major_version
   paused                                           = data.external.mongodbatlas_advanced_cluster.result.paused == "" ? null : data.external.mongodbatlas_advanced_cluster.result.paused
   pinned_fcv                                       = data.external.mongodbatlas_advanced_cluster.result.pinned_fcv == "" ? null : jsondecode(data.external.mongodbatlas_advanced_cluster.result.pinned_fcv)

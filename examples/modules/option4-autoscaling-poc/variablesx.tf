@@ -98,13 +98,6 @@ EOT
   default  = null
 }
 
-variable "labels" {
-  description = "Map of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels. Cluster labels are deprecated and will be removed in a future release. We strongly recommend that you use [resource tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas) instead."
-  type        = map(any)
-  nullable    = true
-  default     = null
-}
-
 variable "mongo_db_major_version" {
   description = <<-EOT
 MongoDB major version of the cluster.
