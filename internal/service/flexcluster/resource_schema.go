@@ -147,7 +147,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Method by which the cluster maintains the MongoDB versions.",
 			},
 			"delete_on_create_timeout": schema.BoolAttribute{
-				Optional:            true,
+				Optional: true,
+				PlanModifiers: []planmodifier.Bool{
+					customplanmodifier.NonUpdatableBoolAttributePlanModifier(),
+				},
+
 				MarkdownDescription: "Indicates whether to delete the resource if creation times out. Default is `true`. When Terraform apply fails, it returns immediately without waiting for cleanup to complete. If you suspect a transient error, wait before retrying to allow resource deletion to finish.",
 			},
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
