@@ -41,23 +41,6 @@ variable "termination_protection_enabled" {
   default     = null
 }
 
-variable "tags" { 
-  description = "Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster."
-  type        = map(string)
-  validation {
-    condition = (
-      contains(keys(var.tags), "department") &&
-      contains(keys(var.tags), "team_name") &&
-      contains(keys(var.tags), "application_name") &&
-      contains(keys(var.tags), "environment") &&
-      contains(keys(var.tags), "version") &&
-      contains(keys(var.tags), "email_contact") &&
-      contains(keys(var.tags), "criticality")
-    )
-    error_message = "You must provide the following tags with non-empty values: department, team_name, application_name, environment, version, email_contact, criticality."
-  }
-}
-
 variable "timeouts" {
   type = object({
     create = optional(string)

@@ -28,6 +28,16 @@ resource "mongodbatlas_advanced_cluster" "single_region" {
     }
   ]
 
+  tags = {
+    department       = "Engineering"
+    team_name        = "APIx Integrations"
+    application_name = "Telemetry"
+    environment      = "prod"
+    version          = "1.0"
+    email_contact    = "agustin.bettati@mongodb.com"
+    criticality      = "Tier 1 with PII"
+  }
+
   lifecycle {
     ignore_changes = [
       replication_specs[0].region_configs[0].electable_specs.instance_size

@@ -34,4 +34,14 @@ resource "mongodbatlas_advanced_cluster" "single_region_sharded_no_autoscaling" 
       ]
     }
   ]
+
+  tags = {
+    department       = "Engineering"
+    team_name        = "APIx Integrations"
+    application_name = "Telemetry"
+    environment      = "prod"
+    version          = "1.0"
+    email_contact    = "agustin.bettati@mongodb.com"
+    criticality      = "Tier 1 with PII"
+  }
 }
