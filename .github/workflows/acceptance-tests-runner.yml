@@ -302,6 +302,7 @@ jobs:
             - 'internal/service/controlplaneipaddresses/*.go'
           cloud_user:
             - 'internal/service/clouduserorgassignment/*.go'
+            - 'internal/service/clouduserteamassignment/*.go'
           cluster:
             - 'internal/service/cluster/*.go'
           cluster_outage_simulation:
@@ -592,7 +593,7 @@ jobs:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: ./internal/service/controlplaneipaddresses
         run: make testacc
-
+        
   cloud_user:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.cloud_user == 'true' || inputs.test_group == 'cloud_user' }}
@@ -613,9 +614,13 @@ jobs:
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           MONGODB_ATLAS_TEAMS_IDS: ${{ inputs.mongodb_atlas_teams_ids }}
-          ACCTEST_PACKAGES: ./internal/service/clouduserorgassignment
+          MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
+          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
+          ACCTEST_PACKAGES: |
+            ./internal/service/clouduserorgassignment
+            ./internal/service/clouduserteamassignment
         run: make testacc
-      
+
   cluster:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.cluster == 'true' || inputs.test_group == 'cluster' }}

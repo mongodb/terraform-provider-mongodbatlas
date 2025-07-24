@@ -28,7 +28,7 @@ func DSOrgUsersSchema() *schema.Schema {
 								Computed: true,
 								Elem:     &schema.Schema{Type: schema.TypeString},
 							},
-							"project_roles_assignments": {
+							"project_role_assignments": {
 								Type:     schema.TypeSet,
 								Computed: true,
 								Elem: &schema.Resource{
