@@ -1,7 +1,0 @@
-```release-note:new-resource
-resource/mongodbatlas_push_based_log_export
-```
-
-```release-note:new-datasource
-data-source/mongodbatlas_push_based_log_export
-```

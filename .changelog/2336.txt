@@ -1,3 +1,0 @@
-```release-note:breaking-change
-data-source/mongodbatlas_privatelink_endpoints_service_serverless: Removes `page_num` and `items_per_page` arguments
-```

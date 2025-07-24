@@ -1,3 +1,0 @@
-```release-note:enhancement
-data-source/mongodbatlas_project_ip_addresses: Adds support for `future_inbound` and `future_outbound` fields
-```

@@ -1,7 +1,0 @@
-```release-note:enhancement
-resource/mongodbatlas_privatelink_endpoint: Improves error message when privatelink endpoint returns error after POST
-```
-
-```release-note:enhancement
-resource/mongodbatlas_privatelink_endpoint_service: Improves error message when privatelink endpoint service returns error after POST
-```

@@ -1,7 +1,0 @@
-```release-note:enhancement
-resource/mongodbatlas_maintenance_window: Adds `protected_hours` and `time_zone_id`
-```
-
-```release-note:enhancement
-data-source/mongodbatlas_maintenance_window: Adds `protected_hours` and `time_zone_id`
-```

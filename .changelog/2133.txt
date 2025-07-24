@@ -1,6 +1,0 @@
-```release-note:bug
-resource/mongodbatlas_privatelink_endpoint_serverless: Removes setting default comment during create.
-```
-```release-note:enhancement
-resource/mongodbatlas_privatelink_endpoint_service_serverless: Adds support for updating `comment` attribute in-place.
-```
