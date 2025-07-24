@@ -1,3 +1,0 @@
-```release-note:bug
-data-source/mongodbatlas_advanced_clusters: Sets correct `zone_id` when `use_replication_spec_per_shard` is false
-```

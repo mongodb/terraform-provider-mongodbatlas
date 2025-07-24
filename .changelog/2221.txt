@@ -1,3 +1,0 @@
-```release-note:bug
-resource/mongodbatlas_ldap_configuration: Disables LDAP when the resource is destroyed, instead of deleting userToDNMapping document 
-```

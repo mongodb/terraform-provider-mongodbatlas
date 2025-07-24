@@ -1,7 +1,0 @@
-```release-note:new-guide
-[Migration Guide: Advanced Cluster New Sharding Schema](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema). This enables Independent Shard Scaling.
-```
-
-```release-note:new-guide
-[Migration Guide: Cluster to Advanced Cluster](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide)
-```

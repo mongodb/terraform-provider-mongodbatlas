@@ -1,3 +1,0 @@
-```release-note:bug
-resource/mongodbatlas_network_peering: Sets all attributes of Azure network peering as ForceNew, forcing recreation of the resource when updating 
-```

@@ -1,3 +1,0 @@
-```release-note:enhancement
-resource/mongodbatlas_backup_compliance_policy: Adds support for disabling Backup Compliance Policy on resource delete
-```
