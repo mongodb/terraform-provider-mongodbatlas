@@ -69,7 +69,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	clusterName := tfModel.Name.ValueString()
 
 	connV2 := r.Client.AtlasV2
-	flexClusterResp, err := CreateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
+	flexClusterResp, err := CreateFlexClusterNew(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf(ErrorCreateFlex, err.Error()), fmt.Sprintf("Name: %s, Project ID: %s", clusterName, projectID))
 		return
@@ -203,7 +203,8 @@ func splitFlexClusterImportID(id string) (projectID, clusterName *string, err er
 	return
 }
 
-func CreateFlexCluster(ctx context.Context, projectID, clusterName string, flexClusterReq *admin.FlexClusterDescriptionCreate20241113, client admin.FlexClustersApi) (*admin.FlexClusterDescription20241113, error) {
+// TODO: using CreateFlexClusterNew to avoid changes in adv_cluster and running their acc tests while doing this PR, rename to CreateFlexCluster and update adv_cluster call params before merging.
+func CreateFlexClusterNew(ctx context.Context, projectID, clusterName string, flexClusterReq *admin.FlexClusterDescriptionCreate20241113, client admin.FlexClustersApi) (*admin.FlexClusterDescription20241113, error) {
 	_, _, err := client.CreateFlexCluster(ctx, projectID, flexClusterReq).Execute()
 	if err != nil {
 		return nil, err
@@ -219,6 +220,11 @@ func CreateFlexCluster(ctx context.Context, projectID, clusterName string, flexC
 		return nil, err
 	}
 	return flexClusterResp, nil
+}
+
+// TODO: keeping CreateFlexCluster to avoid changes in adv_cluster and running their acc tests while doing this PR, remove before merging.
+func CreateFlexCluster(ctx context.Context, projectID, clusterName string, flexClusterReq *admin.FlexClusterDescriptionCreate20241113, client admin.FlexClustersApi) (*admin.FlexClusterDescription20241113, error) {
+	return CreateFlexClusterNew(ctx, projectID, clusterName, flexClusterReq, client)
 }
 
 func GetFlexCluster(ctx context.Context, projectID, clusterName string, client admin.FlexClustersApi) (*admin.FlexClusterDescription20241113, error) {
