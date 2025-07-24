@@ -43,7 +43,34 @@ module "option4-autoscaling-poc" {
 ```
 
 
-## [02 Single Region With Analytics](./examples/02_single_region_with_analytics)
+## [02 Single Region Sharded](./examples/02_single_region_sharded)
+
+```terraform
+module "option4-autoscaling-poc" {
+  source = "../.."
+
+  name       = "single-region-sharded"
+  project_id = var.project_id
+  regions = [
+    {
+      name          = "US_EAST_1"
+      node_count    = 3
+      shard_index   = 0
+      instance_size = "M40"
+      }, {
+      name          = "US_EAST_1"
+      node_count    = 3
+      shard_index   = 1
+      instance_size = "M30"
+    }
+  ]
+  provider_name = "AWS"
+}
+
+```
+
+
+## [03 Single Region With Analytics](./examples/03_single_region_with_analytics)
 
 ```terraform
 module "option4-autoscaling-poc" {
@@ -73,33 +100,6 @@ module "option4-autoscaling-poc" {
     compute_scale_down_enabled = true
     disk_gb_enabled            = true
   }
-}
-
-```
-
-
-## [03 Single Region Sharded](./examples/03_single_region_sharded)
-
-```terraform
-module "option4-autoscaling-poc" {
-  source = "../.."
-
-  name       = "single-region-sharded"
-  project_id = var.project_id
-  regions = [
-    {
-      name          = "US_EAST_1"
-      node_count    = 3
-      shard_index   = 0
-      instance_size = "M40"
-      }, {
-      name          = "US_EAST_1"
-      node_count    = 3
-      shard_index   = 1
-      instance_size = "M30"
-    }
-  ]
-  provider_name = "AWS"
 }
 
 ```
