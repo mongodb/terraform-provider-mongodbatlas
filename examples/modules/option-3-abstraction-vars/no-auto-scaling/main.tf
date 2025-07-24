@@ -78,9 +78,11 @@ locals {
 
 resource "mongodbatlas_advanced_cluster" "this" {
   # Validate that only one of shards, or region_configs is defined
-  precondition {
-    condition     = local.defined_count <= 1
-    error_message = "Only one of shards, or region_configs can be defined"
+  lifecycle {
+    precondition {
+      condition     = local.defined_count <= 1
+      error_message = "Only one of shards, or region_configs can be defined"
+    }
   }
 
   project_id             = var.project_id
