@@ -16,7 +16,7 @@ locals {
                 disk_gb_enabled = true
               }
             ),
-            analytics_auto_scaling = ( region.analytics_auto_scaling == null ? null : merge(
+            analytics_auto_scaling = (region.analytics_auto_scaling == null ? null : merge(
               region.analytics_auto_scaling,
               {
                 compute_enabled = true

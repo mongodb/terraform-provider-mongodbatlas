@@ -25,13 +25,13 @@ locals {
                   disk_gb_enabled = true
                 }
               ),
-              analytics_auto_scaling = ( region.analytics_auto_scaling == null ? null : merge(
-              region.analytics_auto_scaling,
-              {
-                compute_enabled = true
-                disk_gb_enabled = true
-              }
-            )),
+              analytics_auto_scaling = (region.analytics_auto_scaling == null ? null : merge(
+                region.analytics_auto_scaling,
+                {
+                  compute_enabled = true
+                  disk_gb_enabled = true
+                }
+              )),
               electable_specs = (
                 region.electable_specs == null ? null : merge(
                   region.electable_specs,
@@ -59,7 +59,7 @@ locals {
             }
           )
         ]
-      }]), 
+    }]),
     tolist([
       for shard in var.shards : {
         zone_name = shard.zone_name
@@ -102,7 +102,7 @@ locals {
           )
         }]
       }
-      ]),
+    ]),
     tolist([{
       zone_name = null
       region_configs = [for region in var.region_configs : {
@@ -143,8 +143,8 @@ locals {
           } : null
         )
       }]
-    }
-  ])
+      }
+    ])
   )
 }
 

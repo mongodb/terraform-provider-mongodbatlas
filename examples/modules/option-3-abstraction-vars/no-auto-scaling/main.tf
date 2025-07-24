@@ -38,7 +38,7 @@ locals {
           )
         }]
       }
-    ]), tolist([
+      ]), tolist([
       {
         zone_name = null
         region_configs = [for region in var.region_configs : {
@@ -81,7 +81,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
   precondition {
     condition     = local.defined_count <= 1
     error_message = "Only one of shards, or region_configs can be defined"
-  } 
+  }
 
   project_id             = var.project_id
   name                   = var.name

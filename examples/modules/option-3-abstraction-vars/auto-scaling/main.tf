@@ -53,7 +53,7 @@ locals {
           )
         }]
       }
-    ]), 
+    ]),
     tolist([
       {
         zone_name = null
