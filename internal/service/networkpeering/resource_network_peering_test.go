@@ -3,7 +3,6 @@ package networkpeering_test
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"regexp"
 	"strings"
@@ -191,8 +190,32 @@ func TestAccNetworkRSNetworkPeering_AWSDifferentRegionName(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyNetworkPeering,
 		Steps: []resource.TestStep{
 			{
-				Config: configAWS(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion),
+				Config: configAWS(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion, false),
 				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
+			},
+		},
+	})
+}
+
+func TestAccNetworkNetworkPeering_timeouts(t *testing.T) {
+	var (
+		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		vpcID           = os.Getenv("AWS_VPC_ID")
+		vpcCIDRBlock    = os.Getenv("AWS_VPC_CIDR_BLOCK")
+		awsAccountID    = os.Getenv("AWS_ACCOUNT_ID")
+		containerRegion = os.Getenv("AWS_REGION")
+		peerRegion      = conversion.MongoDBRegionToAWSRegion(containerRegion)
+		providerName    = "AWS"
+		projectName     = acc.RandomProjectName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckPeeringEnvAWS(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyNetworkPeering, // resource is deleted when creation times out
+		Steps: []resource.TestStep{
+			{
+				Config:      configAWS(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion, true),
+				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
 			},
 		},
 	})
@@ -213,12 +236,12 @@ func basicAWSTestCase(tb testing.TB) *resource.TestCase {
 	checks := commonChecksAWS(vpcID, providerName, awsAccountID, vpcCIDRBlock, peerRegion)
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(tb); acc.PreCheckPeeringEnvAWS(tb) },
+		PreCheck:                 func() { acc.PreCheckPeeringEnvAWS(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyNetworkPeering,
 		Steps: []resource.TestStep{
 			{
-				Config: configAWS(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion),
+				Config: configAWS(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion, false),
 				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 			{
@@ -272,7 +295,6 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		log.Printf("[DEBUG] projectID: %s", ids["project_id"])
 		if _, _, err := acc.ConnV2().NetworkPeeringApi.GetPeeringConnection(context.Background(), ids["project_id"], ids["peer_id"]).Execute(); err == nil {
 			return nil
 		}
@@ -280,7 +302,18 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func configAWS(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegionContainer, awsRegionPeer string) string {
+func configAWS(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegionContainer, awsRegionPeer string, forceTimeout bool) string {
+	var extraConfig string
+	if forceTimeout {
+		extraConfig = `
+			delete_on_create_timeout = true # default value
+			timeouts {
+				create = "10s"
+				update = "10s"
+				delete = "10s"
+			}
+		`
+	}
 	return fmt.Sprintf(`
 	resource "mongodbatlas_project" "my_project" {
 		name   = %[2]q
@@ -301,6 +334,7 @@ func configAWS(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlo
 		route_table_cidr_block  = %[6]q
 		vpc_id					= %[4]q
 		aws_account_id	        = %[5]q
+		%[9]s
 	}
 
 	data "mongodbatlas_network_peering" "test" {
@@ -311,7 +345,7 @@ func configAWS(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlo
 	data "mongodbatlas_network_peerings" "test" {
 		project_id = mongodbatlas_network_peering.test.project_id
 	}
-`, orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegionContainer, awsRegionPeer)
+`, orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegionContainer, awsRegionPeer, extraConfig)
 }
 
 func configAzure(projectID, providerName, directoryID, subscriptionID, resourceGroupName, vNetName string) string {
