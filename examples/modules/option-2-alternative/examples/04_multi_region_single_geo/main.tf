@@ -1,4 +1,4 @@
-module "option-2-alternative" {
+module "option_2_alternative" {
   source = "../.."
 
   name       = "multi-region-single-geo"

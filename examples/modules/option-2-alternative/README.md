@@ -24,7 +24,7 @@ However, if you have any ideas or feedback feel free to open a Github Issue!
 ## [01 Single Region](./examples/01_single_region)
 
 ```terraform
-module "option-2-alternative" {
+module "option_2_alternative" {
   source = "../.."
 
   name       = "single-region"
@@ -51,7 +51,7 @@ module "option-2-alternative" {
 ## [02 Single Region Sharded](./examples/02_single_region_sharded)
 
 ```terraform
-module "option-2-alternative" {
+module "option_2_alternative" {
   source = "../.."
 
   name       = "single-region-sharded"
@@ -78,7 +78,7 @@ module "option-2-alternative" {
 ## [03 Single Region With Analytics](./examples/03_single_region_with_analytics)
 
 ```terraform
-module "option-2-alternative" {
+module "option_2_alternative" {
   source = "../.."
 
   name       = "single-region-with-analytics"
@@ -113,7 +113,7 @@ module "option-2-alternative" {
 ## [04 Multi Region Single Geo](./examples/04_multi_region_single_geo)
 
 ```terraform
-module "option-2-alternative" {
+module "option_2_alternative" {
   source = "../.."
 
   name       = "multi-region-single-geo"
@@ -144,7 +144,7 @@ module "option-2-alternative" {
 ## [05 Multi Region Multi Geo](./examples/05_multi_region_multi_geo)
 
 ```terraform
-module "option-2-alternative" {
+module "option_2_alternative" {
   source = "../.."
 
   name       = "multi-region-multi-geo"
@@ -176,7 +176,7 @@ module "option-2-alternative" {
 ## [06 Multi Geo Zone Sharded](./examples/06_multi_geo_zone_sharded)
 
 ```terraform
-module "option-2-alternative" {
+module "option_2_alternative" {
   source = "../.."
 
   name       = "multi-geo-zone-sharded"
@@ -208,7 +208,7 @@ module "option-2-alternative" {
 ## [07 Multi Cloud](./examples/07_multi_cloud)
 
 ```terraform
-module "option-2-alternative" {
+module "option_2_alternative" {
   source = "../.."
 
   name       = "multi-cloud"
