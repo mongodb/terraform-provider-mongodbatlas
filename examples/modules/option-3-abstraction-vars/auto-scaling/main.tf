@@ -37,14 +37,17 @@ locals {
           auto_scaling = merge({
             compute_enabled = true
             disk_gb_enabled = true
-          }, var.auto_scaling) # all autoscaling configs are the same cluster wide, this how API currently works
-          analytics_auto_scaling = merge({
-            compute_enabled = true
-            disk_gb_enabled = true
-          }, var.analytics_auto_scaling) # all analytics autoscaling configs are the same cluster wide, this how API currently works
+          }, var.auto_scaling) # all autoscaling configs are the same cluster wide, this how API currently works     
+          analytics_auto_scaling = (var.analytics_auto_scaling == null ? null : merge(
+            var.analytics_auto_scaling,
+            {
+              compute_enabled = true
+              disk_gb_enabled = true
+            }
+          )),
           analytics_specs = (
             region.analytics_specs != null ? {
-              instance_size   = var.analytics_auto_scaling.compute_min_instance_size
+              instance_size   = try(var.analytics_auto_scaling.compute_min_instance_size, var.auto_scaling.compute_min_instance_size) # if analytics_auto_scaling is not defined, use auto_scaling value
               node_count      = region.analytics_specs.node_count
               ebs_volume_type = try(region.analytics_specs.ebs_volume_type, null)
               disk_size_gb    = null
@@ -81,13 +84,16 @@ locals {
             compute_enabled = true
             disk_gb_enabled = true
           }, var.auto_scaling) # all autoscaling configs are the same cluster wide, this how API currently works
-          analytics_auto_scaling = merge({
-            compute_enabled = true
-            disk_gb_enabled = true
-          }, var.analytics_auto_scaling) # all analytics autoscaling configs are the same cluster wide, this how API currently works
+          analytics_auto_scaling = (var.analytics_auto_scaling == null ? null : merge(
+            var.analytics_auto_scaling,
+            {
+              compute_enabled = true
+              disk_gb_enabled = true
+            }
+          ))
           analytics_specs = (
             region.analytics_specs != null ? {
-              instance_size   = var.analytics_auto_scaling.compute_min_instance_size
+              instance_size   = try(var.analytics_auto_scaling.compute_min_instance_size, var.auto_scaling.compute_min_instance_size) # if analytics_auto_scaling is not defined, use auto_scaling value
               node_count      = region.analytics_specs.node_count
               ebs_volume_type = try(region.analytics_specs.ebs_volume_type, null)
               disk_size_gb    = null

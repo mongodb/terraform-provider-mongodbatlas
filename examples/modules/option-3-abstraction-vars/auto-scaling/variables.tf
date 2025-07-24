@@ -55,6 +55,7 @@ variable "analytics_auto_scaling" {
     compute_max_instance_size  = string
     compute_min_instance_size  = string
   })
+  default = null
 }
 
 variable "tags_recommended" {

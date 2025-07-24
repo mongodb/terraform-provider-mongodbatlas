@@ -1,8 +1,9 @@
 module "option_2_alternative" {
   source = "../.."
 
-  name       = "single-region"
-  project_id = var.project_id
+  name                   = "single-region"
+  project_id             = var.project_id
+  mongo_db_major_version = "8.0"
   regions = [
     {
       name          = "US_EAST_1"

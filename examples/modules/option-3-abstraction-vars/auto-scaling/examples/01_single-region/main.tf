@@ -21,11 +21,6 @@ module "single_region" {
     compute_min_instance_size = "M30"
   }
 
-  analytics_auto_scaling = {
-    compute_max_instance_size = "M30"
-    compute_min_instance_size = "M10"
-  }
-
   tags_recommended = { # defined keys are enforced through validations
     department       = "Engineering"
     team_name        = "APIx Integrations"
