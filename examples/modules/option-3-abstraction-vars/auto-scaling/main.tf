@@ -2,7 +2,7 @@
 
 locals {
 
-  # Count how many of the three options are defined (with length > 0)
+  # Count how many of the two options are defined (with length > 0)
   defined_count = (
     length(var.shards) > 0 ? 1 : 0
     ) + (

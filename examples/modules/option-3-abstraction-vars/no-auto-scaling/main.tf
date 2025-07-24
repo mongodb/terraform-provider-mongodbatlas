@@ -1,6 +1,14 @@
 # Main resource logic for cluster-abstraction module
 
 locals {
+  # Count how many of the two options are defined (with length > 0)
+  defined_count = (
+    length(var.shards) > 0 ? 1 : 0
+    ) + (
+    length(var.region_configs) > 0 ? 1 : 0
+  )
+
+
   # Build the specs from either shards (geo-sharded) or replica_set_regions (replica set)
   effective_replication_specs = coalescelist(
     tolist([
