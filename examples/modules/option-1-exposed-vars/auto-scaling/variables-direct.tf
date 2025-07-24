@@ -11,9 +11,7 @@ variable "advanced_configuration" {
     change_stream_options_pre_and_post_images_expire_after_seconds = optional(number)
     custom_openssl_cipher_config_tls12                             = optional(list(string))
     default_max_time_ms                                            = optional(number)
-    default_read_concern                                           = optional(string)
     default_write_concern                                          = optional(string, "majority")
-    fail_index_key_too_long                                        = optional(bool)
     javascript_enabled                                             = optional(bool, false)
     minimum_enabled_tls_protocol                                   = optional(string, "TLS1_2")
     no_table_scan                                                  = optional(bool)
@@ -75,28 +73,6 @@ variable "delete_on_create_timeout" {
   default     = null
 }
 
-variable "disk_size_gb" {
-  description = <<-EOT
-Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.
-
- This value must be equal for all shards and node types.
-
- This value is not configurable on M0/M2/M5 clusters.
-
- MongoDB Cloud requires thisparameter if you set **replicationSpecs**.
-
- If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. 
-
- Storage charge calculations depend on whether you choose the default value or a custom value.
-
- The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.
-EOT
-
-  type     = number
-  nullable = true
-  default  = null
-}
-
 variable "encryption_at_rest_provider" {
   description = "Cloud service provider that manages your customer keys to provide an additional layer of encryption at rest for the cluster. To enable customer key management for encryption at rest, the cluster **replicationSpecs[n].regionConfigs[m].{type}Specs.instanceSize** setting must be `M10` or higher and `\"backupEnabled\" : false` or omittedentirely."
   type        = string
@@ -116,18 +92,6 @@ This setting cannot be changed once the cluster is deployed.
 EOT
 
   type     = bool
-  nullable = true
-  default  = null
-}
-
-variable "labels" {
-  description = <<-EOT
-Map of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.
-
-Cluster labels are deprecated andwill be removed in a future release. We strongly recommend that you use [resource tags](https://dochub.mongodb.org/core/add-cluster-tag-atlas) instead.
-EOT
-
-  type     = map(any)
   nullable = true
   default  = null
 }
@@ -220,7 +184,6 @@ EOT
 variable "replication_specs" {
   description = "List of settings that configure your cluster regions. This array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations."
   type = list(object({
-    num_shards = optional(number)
     region_configs = list(object({
       analytics_auto_scaling = optional(object({
         compute_max_instance_size  = optional(string)

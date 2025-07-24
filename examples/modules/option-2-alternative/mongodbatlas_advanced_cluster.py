@@ -380,7 +380,6 @@ class ResourceExt(Resource):
     }
     REQUIRES_OTHER: ClassVar[dict[str, list[str]]] = {
         "instance_size": ["regions"],
-        "num_shards": ["regions"],
         "auto_scaling": ["regions"],
         "auto_scaling_analytics": ["regions"],
     }
