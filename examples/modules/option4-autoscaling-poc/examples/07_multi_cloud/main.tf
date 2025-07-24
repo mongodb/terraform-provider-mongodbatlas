@@ -17,7 +17,6 @@ module "option4-autoscaling-poc" {
       node_count_read_only = 2
     }
   ]
-  provider_name = "AWS"
   auto_scaling = {
     compute_enabled            = true
     compute_max_instance_size  = "M60"

@@ -30,10 +30,32 @@ variable "provider_name" {
 }
 
 variable "instance_size" {
-  description = "Default instance_size in elecable/read-only specs. Do not set if using auto_scaling."
+  description = "Default instance_size in electable/read-only specs. Do not set if using auto_scaling."
   type        = string
   nullable    = true
   default     = null
+}
+
+variable "disk_size_gb" {
+  description = <<-EOT
+Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.
+
+ This value must be equal for all shards and node types.
+
+ This value is not configurable on M0/M2/M5 clusters.
+
+ MongoDB Cloud requires this parameter if you set **replicationSpecs**.
+
+ If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. 
+
+ Storage charge calculations depend on whether you choose the default value or a custom value.
+
+ The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.
+EOT
+
+  type     = number
+  nullable = true
+  default  = null
 }
 
 variable "instance_size_analytics" {

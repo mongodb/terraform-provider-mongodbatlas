@@ -19,9 +19,7 @@ class AdvancedConfiguration:
     change_stream_options_pre_and_post_images_expire_after_seconds: Optional[float] = None
     custom_openssl_cipher_config_tls12: Optional[List[str]] = None
     default_max_time_ms: Optional[float] = None
-    default_read_concern: Optional[str] = None
     default_write_concern: Optional[str] = None
-    fail_index_key_too_long: Optional[bool] = None
     javascript_enabled: Optional[bool] = None
     minimum_enabled_tls_protocol: Optional[str] = None
     no_table_scan: Optional[bool] = None
@@ -192,12 +190,10 @@ class RegionConfig:
 class ReplicationSpec:
     NESTED_ATTRIBUTES: ClassVar[Set[str]] = {"container_id", "region_configs"}
     REQUIRED_ATTRIBUTES: ClassVar[Set[str]] = {"region_configs"}
-    COMPUTED_ONLY_ATTRIBUTES: ClassVar[Set[str]] = {"container_id", "external_id", "id", "zone_id"}
+    COMPUTED_ONLY_ATTRIBUTES: ClassVar[Set[str]] = {"container_id", "external_id", "zone_id"}
     DEFAULTS_HCL_STRINGS: ClassVar[dict[str, str]] = {}
     container_id: Optional[Dict[str, Any]] = None
     external_id: Optional[str] = None
-    id: Optional[str] = None
-    num_shards: Optional[float] = None
     region_configs: Optional[List[RegionConfig]] = None
     zone_id: Optional[str] = None
     zone_name: Optional[str] = None
@@ -255,7 +251,6 @@ class Resource:
     connection_strings: Optional[ConnectionString] = None
     create_date: Optional[str] = None
     delete_on_create_timeout: Optional[bool] = None
-    disk_size_gb: Optional[float] = None
     encryption_at_rest_provider: Optional[str] = None
     global_cluster_self_managed_sharding: Optional[bool] = None
     labels: Optional[Dict[str, Any]] = None
@@ -373,6 +368,7 @@ class ResourceExt(Resource):
     regions: Optional[List[Region]] = None
     provider_name: Optional[str] = None
     instance_size: Optional[str] = None
+    disk_size_gb: Optional[float] = None
     instance_size_analytics: Optional[str] = None
     auto_scaling: Optional[Autoscaling] = None
     auto_scaling_analytics: Optional[Autoscaling] = None

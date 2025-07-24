@@ -8,7 +8,6 @@ locals {
     cluster_type                                     = var.cluster_type
     config_server_management_mode                    = var.config_server_management_mode
     delete_on_create_timeout                         = var.delete_on_create_timeout
-    disk_size_gb                                     = var.disk_size_gb
     encryption_at_rest_provider                      = var.encryption_at_rest_provider
     global_cluster_self_managed_sharding             = var.global_cluster_self_managed_sharding
     labels                                           = var.labels
@@ -31,6 +30,7 @@ locals {
   mongodbatlas_advanced_cluster_vars = {
     auto_scaling            = var.auto_scaling
     auto_scaling_analytics  = var.auto_scaling_analytics
+    disk_size_gb            = var.disk_size_gb
     instance_size           = var.instance_size
     instance_size_analytics = var.instance_size_analytics
     provider_name           = var.provider_name
@@ -66,7 +66,6 @@ resource "mongodbatlas_advanced_cluster" "this" {
   bi_connector_config                              = data.external.mongodbatlas_advanced_cluster.result.bi_connector_config == "" ? null : jsondecode(data.external.mongodbatlas_advanced_cluster.result.bi_connector_config)
   config_server_management_mode                    = data.external.mongodbatlas_advanced_cluster.result.config_server_management_mode == "" ? null : data.external.mongodbatlas_advanced_cluster.result.config_server_management_mode
   delete_on_create_timeout                         = data.external.mongodbatlas_advanced_cluster.result.delete_on_create_timeout == "" ? null : data.external.mongodbatlas_advanced_cluster.result.delete_on_create_timeout
-  disk_size_gb                                     = data.external.mongodbatlas_advanced_cluster.result.disk_size_gb == "" ? null : data.external.mongodbatlas_advanced_cluster.result.disk_size_gb
   encryption_at_rest_provider                      = data.external.mongodbatlas_advanced_cluster.result.encryption_at_rest_provider == "" ? null : data.external.mongodbatlas_advanced_cluster.result.encryption_at_rest_provider
   global_cluster_self_managed_sharding             = data.external.mongodbatlas_advanced_cluster.result.global_cluster_self_managed_sharding == "" ? null : data.external.mongodbatlas_advanced_cluster.result.global_cluster_self_managed_sharding
   labels                                           = data.external.mongodbatlas_advanced_cluster.result.labels == "" ? null : jsondecode(data.external.mongodbatlas_advanced_cluster.result.labels)

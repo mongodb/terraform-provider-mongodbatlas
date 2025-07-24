@@ -2,8 +2,13 @@
 - This module maps all the attributes of [`mongodbatlas_advanced_cluster (preview provider 2.0.0)`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster%2520%2528preview%2520provider%25202.0.0%2529%2520%2528preview%2520provider%25202.0.0%2529) to [variables.tf](variables.tf).
 - Remember to set the `export MONGODB_ATLAS_ADVANCED_CLUSTER_V2_SCHEMA=true` in your terminal before running `terraform` commands.
 - It also supports `auto_scaling`
+- All deprecated fields are removed
 - Caveat:
   - This module requires a `python3.7` or later runtime
+
+## Known Limitations (not prioritized due to limited time)
+- Only supports `disk_size_gb` at root level
+- No support for `disk_iops` or `ebs_volume_type`
 
 <!-- BEGIN_DISCLAIMER -->
 ## Disclaimer
@@ -222,7 +227,6 @@ module "option4-autoscaling-poc" {
       node_count_read_only = 2
     }
   ]
-  provider_name = "AWS"
   auto_scaling = {
     compute_enabled            = true
     compute_max_instance_size  = "M60"
@@ -309,9 +313,7 @@ object({
     change_stream_options_pre_and_post_images_expire_after_seconds = optional(number)
     custom_openssl_cipher_config_tls12                             = optional(list(string))
     default_max_time_ms                                            = optional(number)
-    default_read_concern                                           = optional(string)
     default_write_concern                                          = optional(string, "majority")
-    fail_index_key_too_long                                        = optional(bool)
     javascript_enabled                                             = optional(bool, false)
     minimum_enabled_tls_protocol                                   = optional(string, "TLS1_2")
     no_table_scan                                                  = optional(bool)
@@ -465,7 +467,7 @@ Default: `null`
 
 ### <a name="input_instance_size"></a> [instance\_size](#input\_instance\_size)
 
-Description: Default instance\_size in elecable/read-only specs. Do not set if using auto\_scaling.
+Description: Default instance\_size in electable/read-only specs. Do not set if using auto\_scaling.
 
 Type: `string`
 
@@ -596,7 +598,6 @@ Type:
 
 ```hcl
 list(object({
-    num_shards = optional(number)
     region_configs = list(object({
       analytics_auto_scaling = optional(object({
         compute_enabled            = optional(bool)
