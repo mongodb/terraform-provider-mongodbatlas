@@ -1,9 +1,17 @@
 # Main resource logic for cluster-abstraction module
 
 locals {
+  # Count how many of the two options are defined (with length > 0)
+  defined_count = (
+    length(var.shards) > 0 ? 1 : 0
+    ) + (
+    length(var.region_configs) > 0 ? 1 : 0
+  )
+
+
   # Build the specs from either shards (geo-sharded) or replica_set_regions (replica set)
-  effective_replication_specs = (
-    length(var.shards) > 0 ? [
+  effective_replication_specs = coalescelist(
+    tolist([
       for shard in var.shards : {
         zone_name = shard.zone_name
         region_configs = [for region in shard.region_configs : {
@@ -38,7 +46,7 @@ locals {
           )
         }]
       }
-      ] : [
+      ]), tolist([
       {
         zone_name = null
         region_configs = [for region in var.region_configs : {
@@ -72,11 +80,19 @@ locals {
           )
         }]
       }
-    ]
+    ])
   )
 }
 
 resource "mongodbatlas_advanced_cluster" "this" {
+  # Validate that only one of shards, or region_configs is defined
+  lifecycle {
+    precondition {
+      condition     = local.defined_count <= 1
+      error_message = "Only one of shards, or region_configs can be defined"
+    }
+  }
+
   project_id             = var.project_id
   name                   = var.name
   cluster_type           = var.cluster_type

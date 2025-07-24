@@ -13,8 +13,7 @@ module "single_region" {
             compute_min_instance_size = "M30"
           }
           electable_specs = {
-            instance_size = "M30"
-            node_count    = 3
+            node_count = 3
           }
           priority      = 7
           provider_name = "AWS"
