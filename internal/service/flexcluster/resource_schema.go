@@ -3,6 +3,7 @@ package flexcluster
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
@@ -145,24 +146,35 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 				MarkdownDescription: "Method by which the cluster maintains the MongoDB versions.",
 			},
+			"delete_on_create_timeout": schema.BoolAttribute{
+				Optional:            true,
+				MarkdownDescription: "Indicates whether to delete the resource if creation times out. Default is `true`. When Terraform apply fails, it returns immediately without waiting for cleanup to complete. If you suspect a transient error, wait before retrying to allow resource deletion to finish.",
+			},
+			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
+				Create: true,
+				Update: true,
+				Delete: true,
+			}),
 		},
 	}
 }
 
 type TFModel struct {
-	ProviderSettings             types.Object `tfsdk:"provider_settings"`
-	ConnectionStrings            types.Object `tfsdk:"connection_strings"`
-	Tags                         types.Map    `tfsdk:"tags"`
-	CreateDate                   types.String `tfsdk:"create_date"`
-	ProjectId                    types.String `tfsdk:"project_id"`
-	Id                           types.String `tfsdk:"id"`
-	MongoDbversion               types.String `tfsdk:"mongo_db_version"`
-	Name                         types.String `tfsdk:"name"`
-	ClusterType                  types.String `tfsdk:"cluster_type"`
-	StateName                    types.String `tfsdk:"state_name"`
-	VersionReleaseSystem         types.String `tfsdk:"version_release_system"`
-	BackupSettings               types.Object `tfsdk:"backup_settings"`
-	TerminationProtectionEnabled types.Bool   `tfsdk:"termination_protection_enabled"`
+	Tags                         types.Map      `tfsdk:"tags"`
+	MongoDbversion               types.String   `tfsdk:"mongo_db_version"`
+	ClusterType                  types.String   `tfsdk:"cluster_type"`
+	CreateDate                   types.String   `tfsdk:"create_date"`
+	ProjectId                    types.String   `tfsdk:"project_id"`
+	Id                           types.String   `tfsdk:"id"`
+	ProviderSettings             types.Object   `tfsdk:"provider_settings"`
+	Name                         types.String   `tfsdk:"name"`
+	ConnectionStrings            types.Object   `tfsdk:"connection_strings"`
+	StateName                    types.String   `tfsdk:"state_name"`
+	VersionReleaseSystem         types.String   `tfsdk:"version_release_system"`
+	BackupSettings               types.Object   `tfsdk:"backup_settings"`
+	Timeouts                     timeouts.Value `tfsdk:"timeouts"`
+	DeleteOnCreateTimeout        types.Bool     `tfsdk:"delete_on_create_timeout"`
+	TerminationProtectionEnabled types.Bool     `tfsdk:"termination_protection_enabled"`
 }
 
 type TFBackupSettings struct {
