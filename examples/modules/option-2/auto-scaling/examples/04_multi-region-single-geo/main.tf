@@ -32,10 +32,6 @@ module "abstraction_variables_multi_region_single_geo_no_sharding" {
     compute_max_instance_size = "M60"
     compute_min_instance_size = "M30"
   }
-  analytics_auto_scaling = {
-    compute_max_instance_size = "M30"
-    compute_min_instance_size = "M10"
-  }
 }
 
 # using direct variables (replication_specs)

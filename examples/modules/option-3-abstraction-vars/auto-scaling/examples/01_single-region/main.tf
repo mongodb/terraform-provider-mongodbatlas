@@ -20,9 +20,4 @@ module "single_region" {
     compute_max_instance_size = "M60"
     compute_min_instance_size = "M30"
   }
-
-  analytics_auto_scaling = {
-    compute_max_instance_size = "M30"
-    compute_min_instance_size = "M10"
-  }
 }
