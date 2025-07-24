@@ -29,4 +29,13 @@ module "multi_cloud" {
     compute_max_instance_size = "M60"
     compute_min_instance_size = "M30"
   }
+  tags_recommended = { # defined keys are enforced through validations
+    department       = "Engineering"
+    team_name        = "APIx Integrations"
+    application_name = "Telemetry"
+    environment      = "prod"
+    version          = "1.0"
+    email_contact    = "agustin.bettati@mongodb.com"
+    criticality      = "Tier 1 with PII"
+  }
 }

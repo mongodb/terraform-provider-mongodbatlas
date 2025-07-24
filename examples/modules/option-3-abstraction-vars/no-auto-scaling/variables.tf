@@ -48,3 +48,20 @@ variable "shards" {
 }
 
 # no inputs associated to auto-scaling are defined as module is specific to no auto-scaling
+
+variable "tags_recommended" {
+  description = "Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster."
+  type        = map(string)
+  validation {
+    condition = (
+      contains(keys(var.tags_recommended), "department") &&
+      contains(keys(var.tags_recommended), "team_name") &&
+      contains(keys(var.tags_recommended), "application_name") &&
+      contains(keys(var.tags_recommended), "environment") &&
+      contains(keys(var.tags_recommended), "version") &&
+      contains(keys(var.tags_recommended), "email_contact") &&
+      contains(keys(var.tags_recommended), "criticality")
+    )
+    error_message = "You must provide the following tags with non-empty values: department, team_name, application_name, environment, version, email_contact, criticality."
+  }
+}

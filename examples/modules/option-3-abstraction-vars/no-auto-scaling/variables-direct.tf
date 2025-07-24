@@ -34,12 +34,6 @@ variable "root_cert_type" {
   default     = null
 }
 
-variable "tags" { // TODO more opinionated abstraction will be done here
-  description = "Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster."
-  type        = map(any)
-  nullable    = true
-  default     = null
-}
 
 variable "termination_protection_enabled" {
   description = "Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, MongoDB Cloud won't delete the cluster. If set to `false`, MongoDB Cloud will delete the cluster."

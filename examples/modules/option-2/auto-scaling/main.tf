@@ -171,12 +171,10 @@ resource "mongodbatlas_advanced_cluster" "this" {
   replica_set_scaling_strategy                     = var.replica_set_scaling_strategy
   retain_backups_enabled                           = var.retain_backups_enabled
   root_cert_type                                   = var.root_cert_type
-  tags                                             = var.tags
+  tags                                             = merge(var.tags, var.tags_recommended)
   termination_protection_enabled                   = var.termination_protection_enabled
   timeouts                                         = var.timeouts
   version_release_system                           = var.version_release_system
-
-
 
   lifecycle {
 
