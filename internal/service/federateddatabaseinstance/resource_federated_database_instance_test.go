@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"maps"
 	"os"
-	"slices"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -496,8 +495,7 @@ func checkAttrs(projectID, name string, extraAttrs map[string]string, extra ...r
 
 	maps.Copy(attrsMap, extraAttrs)
 	check := acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), nil, nil, attrsMap, extra...)
-	checks := slices.Concat(extra, []resource.TestCheckFunc{check})
-	return resource.ComposeAggregateTestCheckFunc(checks...)
+	return check
 }
 
 func configFirstSteps(federatedInstanceName, projectName, orgID string) string {
