@@ -20,9 +20,9 @@ const (
 
 func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
 	var (
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName    = acc.RandomProjectName()
-		name           = acc.RandomName()
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+		name        = acc.RandomName()
 	)
 
 	valueChecks := map[string]string{
