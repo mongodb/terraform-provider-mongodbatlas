@@ -2,13 +2,20 @@ package federateddatabaseinstance_test
 
 import (
 	"fmt"
+	"maps"
 	"os"
+	"slices"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+)
+
+const (
+	resourceName   = "mongodbatlas_federated_database_instance.test"
+	dataSourceName = "data.mongodbatlas_federated_database_instance.test"
 )
 
 func TestAccFederatedDatabaseInstance_basic(t *testing.T) {
@@ -103,7 +110,6 @@ func TestAccFederatedDatabaseInstance_s3bucket(t *testing.T) {
 
 func TestAccFederatedDatabaseInstance_azureCloudProviderConfig(t *testing.T) {
 	var (
-		resourceName       = "mongodbatlas_federated_database_instance.test"
 		projectID          = acc.ProjectIDExecution(t)
 		name               = acc.RandomName()
 		atlasAzureAppID    = os.Getenv("AZURE_ATLAS_APP_ID")
@@ -111,20 +117,27 @@ func TestAccFederatedDatabaseInstance_azureCloudProviderConfig(t *testing.T) {
 		tenantID           = os.Getenv("AZURE_TENANT_ID")
 	)
 
+	extraChecks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttr(resourceName, "cloud_provider_config.0.aws.#", "0"),
+		resource.TestCheckResourceAttrSet(resourceName, "cloud_provider_config.0.azure.0.role_id"),
+	}
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckCloudProviderAccessAzure(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyFederatedDatabaseInstance,
 		Steps: []resource.TestStep{
 			{
-				Config: configAzureCloudProvider(name, projectID, atlasAzureAppID, servicePrincipalID, tenantID),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttrSet(resourceName, "cloud_provider_config.0.azure.0.role_id"),
-					resource.TestCheckResourceAttr(resourceName, "cloud_provider_config.0.azure.0.atlas_app_id", atlasAzureAppID),
-					resource.TestCheckResourceAttr(resourceName, "cloud_provider_config.0.azure.0.service_principal_id", servicePrincipalID),
-					resource.TestCheckResourceAttr(resourceName, "cloud_provider_config.0.azure.0.tenant_id", tenantID),
+				Config: configAzureCloudProvider(projectID, name, atlasAzureAppID, servicePrincipalID, tenantID),
+				Check: checkAttrs(
+					projectID,
+					name,
+					map[string]string{
+						"cloud_provider_config.0.azure.0.atlas_app_id":         atlasAzureAppID,
+						"cloud_provider_config.0.azure.0.service_principal_id": servicePrincipalID,
+						"cloud_provider_config.0.azure.0.tenant_id":            tenantID,
+					},
+					extraChecks...,
 				),
 			},
 			{
@@ -383,7 +396,6 @@ resource "mongodbatlas_federated_database_instance" "test" {
 	  }
    }
 
-
    storage_databases {
 	name = "VirtualDatabase0"
 	collections {
@@ -432,29 +444,18 @@ resource "mongodbatlas_federated_database_instance" "test" {
 	`, name, testS3Bucket)
 }
 
-func configAzureCloudProvider(name, projectID, atlasAzureAppID, servicePrincipalID, tenantID string) string {
+func configAzureCloudProvider(projectID, name, atlasAzureAppID, servicePrincipalID, tenantID string) string {
 	azureCloudProviderAccess := acc.ConfigSetupAzure(projectID, atlasAzureAppID, servicePrincipalID, tenantID)
 
 	return azureCloudProviderAccess + fmt.Sprintf(`
 
 resource "mongodbatlas_federated_database_instance" "test" {
-  name       = %[1]q
-  project_id = %[2]q
-
+  project_id = %[1]q
+  name       = %[2]q
+  
   cloud_provider_config {
     azure {
-		role_id         = mongodbatlas_cloud_provider_access_setup.test.role_id
-
-    }
-  }
-
-  storage_stores {
-    name         = "azure_store"
-    cluster_name = "azure_cluster"
-    project_id   = %[2]q
-    provider     = "atlas"
-    read_preference {
-      mode = "secondary"
+      role_id = mongodbatlas_cloud_provider_access_setup.test.role_id
     }
   }
 
@@ -465,12 +466,42 @@ resource "mongodbatlas_federated_database_instance" "test" {
       data_sources {
         collection = "listingsAndReviews"
         database   = "sample_airbnb"
-        store_name = "azure_store"
+        store_name = "ClusterTest"
       }
     }
   }
+
+  storage_stores {
+    name         = "ClusterTest"
+    cluster_name = "ClusterTest"
+    project_id   = %[1]q
+    provider     = "atlas"
+    read_preference {
+      mode = "secondary"
+    }
+  }
 }
-`, name, projectID)
+
+data "mongodbatlas_federated_database_instance" "test" {
+  project_id = mongodbatlas_federated_database_instance.test.project_id
+  name       = mongodbatlas_federated_database_instance.test.name
+}
+`, projectID, name)
+}
+
+func checkAttrs(projectID, name string, extraAttrs map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
+	attrsMap := map[string]string{
+		"project_id": projectID,
+		"name":       name,
+
+		"cloud_provider_config.#":         "1",
+		"cloud_provider_config.0.azure.#": "1",
+	}
+
+	maps.Copy(attrsMap, extraAttrs)
+	check := acc.CheckRSAndDS(resourceName, conversion.Pointer(dataSourceName), nil, nil, attrsMap, extra...)
+	checks := slices.Concat(extra, []resource.TestCheckFunc{check})
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func configFirstSteps(federatedInstanceName, projectName, orgID string) string {
