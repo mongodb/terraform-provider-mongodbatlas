@@ -7,7 +7,10 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -35,10 +38,28 @@ func TestAccApiKeyProjectAssignmentRS_basic(t *testing.T) {
 			{
 				Config: apiKeyProjectAssignmentConfig(orgID, roleName, projectName),
 				Check:  apiKeyProjectAssignmentAttributeChecks(),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(
+						resourceName,
+						tfjsonpath.New("roles"),
+						knownvalue.SetExact([]knownvalue.Check{
+							knownvalue.StringExact(roleName),
+						}),
+					),
+				},
 			},
 			{
 				Config: apiKeyProjectAssignmentConfig(orgID, roleNameUpdated, projectName),
 				Check:  apiKeyProjectAssignmentAttributeChecks(),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(
+						resourceName,
+						tfjsonpath.New("roles"),
+						knownvalue.SetExact([]knownvalue.Check{
+							knownvalue.StringExact(roleNameUpdated),
+						}),
+					),
+				},
 			},
 			{
 				Config:                               apiKeyProjectAssignmentConfig(orgID, roleNameUpdated, projectName),
@@ -66,7 +87,7 @@ func apiKeyProjectAssignmentAttributeChecks() resource.TestCheckFunc {
 	attrsMap := map[string]string{
 		"roles.#": "1",
 	}
-	attrsSet := []string{"project_id", "api_key_id", "roles.0"}
+	attrsSet := []string{"project_id", "api_key_id"}
 	checks := []resource.TestCheckFunc{
 		checkExists(resourceName),
 	}

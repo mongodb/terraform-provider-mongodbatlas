@@ -210,6 +210,10 @@ func removeProjectResources(ctx context.Context, t *testing.T, dryRun bool, clie
 	if privateEndpointServicesRemoved > 0 {
 		changes = append(changes, fmt.Sprintf("removed %d private endpoint services", privateEndpointServicesRemoved))
 	}
+	encryptionAtRestPrivateEndpointsRemoved := removeEncryptionAtRestPrivateEndpoints(ctx, t, dryRun, client, projectID)
+	if encryptionAtRestPrivateEndpointsRemoved > 0 {
+		changes = append(changes, fmt.Sprintf("removed %d encryption at rest private endpoints", encryptionAtRestPrivateEndpointsRemoved))
+	}
 	return strings.Join(changes, ", ")
 }
 
@@ -396,4 +400,25 @@ func removeFederatedDatabases(ctx context.Context, t *testing.T, dryRun bool, cl
 		}
 	}
 	return len(federatedResults)
+}
+
+func removeEncryptionAtRestPrivateEndpoints(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
+	t.Helper()
+	endpointsCount := 0
+	for _, cloudProvider := range []string{constant.AWS, constant.AZURE} {
+		privateEndpoints, _, err := client.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRestPrivateEndpointsForCloudProvider(ctx, projectID, cloudProvider).Execute()
+		require.NoError(t, err)
+		endpoints := privateEndpoints.GetResults()
+		endpointsCount += len(endpoints)
+		for _, endpoint := range endpoints {
+			endpointID := endpoint.GetId()
+			t.Logf("delete encryption at rest private endpoint %s", endpointID)
+			if !dryRun {
+				_, err = client.EncryptionAtRestUsingCustomerKeyManagementApi.RequestEncryptionAtRestPrivateEndpointDeletion(ctx, projectID, cloudProvider, endpointID).Execute()
+				require.NoError(t, err)
+				time.Sleep(30 * time.Second)
+			}
+		}
+	}
+	return endpointsCount
 }

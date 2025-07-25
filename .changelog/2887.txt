@@ -1,3 +1,0 @@
-```release-note:bug
-resource/mongodbatlas_search_index: Fixes resource create and update when `wait_for_index_build_completion` attribute is used
-```

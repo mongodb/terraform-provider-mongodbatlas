@@ -1,3 +1,0 @@
-```release-note:bug
-resource/mongodbatlas_database_user: Avoids import error for database_user when both username and auth database contain hyphens
-```

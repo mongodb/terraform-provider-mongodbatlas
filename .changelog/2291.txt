@@ -1,3 +1,0 @@
-```release-note:bug
-resource/mongodbatlas_project: Fixes inconsistent result after apply when region_usage_restrictions are not set in configuration but returned from server
-```
