@@ -9,7 +9,6 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
-// TODO: `ctx` parameter and `diags` return value can be removed if tf schema has no complex data types (e.g., schema.ListAttribute, schema.SetAttribute)
 func NewTFModel(ctx context.Context, projectID string, apiResp *admin.GroupUserResponse) (*TFModel, diag.Diagnostics) {
 	diags := diag.Diagnostics{}
 
@@ -23,7 +22,7 @@ func NewTFModel(ctx context.Context, projectID string, apiResp *admin.GroupUserR
 		Country:             types.StringPointerValue(apiResp.Country),
 		CreatedAt:           types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.CreatedAt)),
 		FirstName:           types.StringPointerValue(apiResp.FirstName),
-		ProjectId: 			 types.StringValue(projectID),
+		ProjectId:           types.StringValue(projectID),
 		UserId:              types.StringValue(apiResp.GetId()),
 		InvitationCreatedAt: types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.InvitationCreatedAt)),
 		InvitationExpiresAt: types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.InvitationExpiresAt)),
@@ -37,23 +36,20 @@ func NewTFModel(ctx context.Context, projectID string, apiResp *admin.GroupUserR
 	}, diags
 }
 
-
 func NewProjectUserReq(ctx context.Context, plan *TFModel) (*admin.GroupUserRequest, diag.Diagnostics) {
 	var roleNames []string
 	if !plan.Roles.IsNull() && !plan.Roles.IsUnknown() {
 		roleNames = conversion.TypesSetToString(ctx, plan.Roles)
 	}
 
-
 	addProjectUserReq := admin.GroupUserRequest{
-		Username:  plan.Username.ValueString(),
-		Roles:     roleNames,
+		Username: plan.Username.ValueString(),
+		Roles:    roleNames,
 	}
 	return &addProjectUserReq, nil
 }
 
-func NewAtlasUpdateReq(ctx context.Context, plan *TFModel, state *TFModel) (addRequests []*admin.AddOrRemoveGroupRole, removeRequests []*admin.AddOrRemoveGroupRole,  diags diag.Diagnostics) {
-	diags = diag.Diagnostics{}
+func NewAtlasUpdateReq(ctx context.Context, plan, state *TFModel) (addRequests, removeRequests []*admin.AddOrRemoveGroupRole, diags diag.Diagnostics) {
 	var currentRoles, desiredRoles []string
 	if !state.Roles.IsNull() && !state.Roles.IsUnknown() {
 		currentRoles = conversion.TypesSetToString(ctx, state.Roles)
@@ -82,28 +78,25 @@ func NewAtlasUpdateReq(ctx context.Context, plan *TFModel, state *TFModel) (addR
 }
 
 func diffRoles(oldRoles, newRoles []string) (toAdd, toRemove []string) {
-
 	oldRolesMap := make(map[string]bool, len(oldRoles))
 	newRolesMap := make(map[string]bool, len(newRoles))
-	
+
 	for _, role := range oldRoles {
 		oldRolesMap[role] = true
 	}
-	
+
 	for _, role := range newRoles {
 		newRolesMap[role] = true
 		if !oldRolesMap[role] {
 			toAdd = append(toAdd, role)
 		}
 	}
-	
+
 	for _, role := range oldRoles {
 		if !newRolesMap[role] {
 			toRemove = append(toRemove, role)
 		}
 	}
-	
+
 	return toAdd, toRemove
 }
-
-

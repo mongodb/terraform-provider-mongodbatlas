@@ -8,14 +8,12 @@ import (
 
 	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
-	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
-
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	
 )
 
 const resourceName = "cloud_user_project_assignment"
@@ -36,7 +34,7 @@ type rs struct {
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-    // TODO: Schema and model must be defined in resource_schema.go. Details on scaffolding this file found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
+	// TODO: Schema and model must be defined in resource_schema.go. Details on scaffolding this file found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
 	resp.Schema = resourceSchema(ctx)
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
@@ -47,7 +45,6 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	
 
 	connV2 := r.Client.AtlasV2
 	projectID := plan.ProjectId.ValueString()
@@ -94,7 +91,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	} else if !state.Username.IsNull() && state.Username.ValueString() != "" { // required for import
 		username := state.Username.ValueString()
 		params := &admin.ListProjectUsersApiParams{
-			GroupId: projectID,
+			GroupId:  projectID,
 			Username: &username,
 		}
 		usersResp, _, err := connV2.MongoDBCloudUsersApi.ListProjectUsersWithParams(ctx, params).Execute()
@@ -105,13 +102,12 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 			}
 			userResp = &usersResp.GetResults()[0]
 		}
-	}	
-
-	if err != nil {
-		resp.Diagnostics.AddError(fmt.Sprintf("error fetching user(%s) from ProjectID(%s):", userResp.Username,projectID), err.Error())
-		return
 	}
 
+	if err != nil {
+		resp.Diagnostics.AddError(fmt.Sprintf("error fetching user(%s) from ProjectID(%s):", userResp.Username, projectID), err.Error())
+		return
+	}
 
 	newCloudUserProjectAssignmentModel, diags := NewTFModel(ctx, projectID, userResp)
 	if diags.HasError() {
@@ -164,12 +160,12 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 
 	var userResp *admin.GroupUserResponse
-	var err error	
+	var err error
 	if !state.UserId.IsNull() && state.UserId.ValueString() != "" {
 		userID := state.UserId.ValueString()
 		userResp, _, err = connV2.MongoDBCloudUsersApi.GetProjectUser(ctx, projectID, userID).Execute()
 		if err != nil {
-			resp.Diagnostics.AddError(fmt.Sprintf("error fetching user(%s) from ProjectID(%s):", userResp.Username,projectID), err.Error())
+			resp.Diagnostics.AddError(fmt.Sprintf("error fetching user(%s) from ProjectID(%s):", userResp.Username, projectID), err.Error())
 			return
 		}
 	}
@@ -224,4 +220,3 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("user_id"), userID)...)
 	}
 }
-
