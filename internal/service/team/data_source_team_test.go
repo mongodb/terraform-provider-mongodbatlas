@@ -30,7 +30,7 @@ func TestAccConfigDSTeam_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "name", name),
 					resource.TestCheckResourceAttr(dataSourceName, "usernames.#", "1"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "users.0.team_ids.0"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "users.0.roles.0.project_roles_assignments.#"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "users.0.roles.0.project_role_assignments.#"),
 					resource.TestCheckResourceAttrWith(dataSourceName, "users.0.username", acc.IsUsername()),
 					resource.TestCheckResourceAttrWith(dataSourceName, "users.0.last_auth", acc.IsTimestamp()),
 					resource.TestCheckResourceAttrWith(dataSourceName, "users.0.created_at", acc.IsTimestamp()),
