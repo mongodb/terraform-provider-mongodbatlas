@@ -84,7 +84,7 @@ func TestMigProject_withFalseDefaultSettings(t *testing.T) {
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 		projectName    = acc.RandomProjectName()
-		config         = configWithFalseDefaultSettings(orgID, projectName, projectOwnerID)
+		config         = configWithDefaultAlertSettings(orgID, projectName, projectOwnerID, false)
 	)
 
 	resource.Test(t, resource.TestCase{
