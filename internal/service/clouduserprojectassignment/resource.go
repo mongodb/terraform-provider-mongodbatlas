@@ -16,7 +16,12 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-const resourceName = "cloud_user_project_assignment"
+const (
+	resourceName           = "cloud_user_project_assignment"
+	errorReadingByUserID   = "Error getting project users by user_id"
+	errorReadingByUsername = "Error getting project users by username"
+	invalidImportID        = "Invalid import ID format"
+)
 
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
@@ -34,8 +39,7 @@ type rs struct {
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	// TODO: Schema and model must be defined in resource_schema.go. Details on scaffolding this file found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
-	resp.Schema = resourceSchema(ctx)
+	resp.Schema = resourceSchema()
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
@@ -84,8 +88,12 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	if !state.UserId.IsNull() && state.UserId.ValueString() != "" {
 		userID := state.UserId.ValueString()
 		userResp, httpResp, err = connV2.MongoDBCloudUsersApi.GetProjectUser(ctx, projectID, userID).Execute()
-		if validate.StatusNotFound(httpResp) {
-			resp.State.RemoveResource(ctx)
+		if err != nil {
+			if validate.StatusNotFound(httpResp) {
+				resp.State.RemoveResource(ctx)
+				return
+			}
+			resp.Diagnostics.AddError(errorReadingByUserID, err.Error())
 			return
 		}
 	} else if !state.Username.IsNull() && state.Username.ValueString() != "" { // required for import
@@ -95,17 +103,23 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 			Username: &username,
 		}
 		usersResp, _, err := connV2.MongoDBCloudUsersApi.ListProjectUsersWithParams(ctx, params).Execute()
-		if err == nil && usersResp != nil {
-			if len(usersResp.GetResults()) == 0 {
+		if err != nil {
+			if validate.StatusNotFound(httpResp) {
 				resp.State.RemoveResource(ctx)
 				return
 			}
-			userResp = &usersResp.GetResults()[0]
+			resp.Diagnostics.AddError(errorReadingByUsername, err.Error())
+			return
 		}
+		if usersResp == nil || len(usersResp.GetResults()) == 0 {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		userResp = &usersResp.GetResults()[0]
 	}
 
-	if err != nil {
-		resp.Diagnostics.AddError(fmt.Sprintf("error fetching user(%s) from ProjectID(%s):", userResp.Username, projectID), err.Error())
+	if userResp == nil {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -205,7 +219,7 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	importID := req.ID
 	ok, parts := conversion.ImportSplit(req.ID, 2)
 	if !ok {
-		resp.Diagnostics.AddError("invalid import ID format", "expected 'project_id/user_id' or 'project_id/username', got: "+importID)
+		resp.Diagnostics.AddError(invalidImportID, "expected 'project_id/user_id' or 'project_id/username', got: "+importID)
 		return
 	}
 	orgID, userID := parts[0], parts[1]
