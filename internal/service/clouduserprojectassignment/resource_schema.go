@@ -6,7 +6,6 @@ import (
 	"context"
 	"regexp"
 
-
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -36,7 +35,6 @@ func resourceSchema(ctx context.Context) schema.Schema {
 			},
 			"first_name": schema.StringAttribute{
 				Computed:            true,
-				Description:         "First or given name that belongs to the MongoDB Cloud user.",
 				MarkdownDescription: "First or given name that belongs to the MongoDB Cloud user.",
 			},
 			"project_id": schema.StringAttribute{
@@ -115,7 +113,7 @@ func resourceSchema(ctx context.Context) schema.Schema {
 	}
 }
 
- type TFModel struct {
+type TFModel struct {
 	Country             types.String `tfsdk:"country"`
 	CreatedAt           types.String `tfsdk:"created_at"`
 	FirstName           types.String `tfsdk:"first_name"`
@@ -128,6 +126,6 @@ func resourceSchema(ctx context.Context) schema.Schema {
 	LastName            types.String `tfsdk:"last_name"`
 	MobileNumber        types.String `tfsdk:"mobile_number"`
 	OrgMembershipStatus types.String `tfsdk:"org_membership_status"`
-	Roles               types.Set   `tfsdk:"roles"`
+	Roles               types.Set    `tfsdk:"roles"`
 	Username            types.String `tfsdk:"username"`
 }

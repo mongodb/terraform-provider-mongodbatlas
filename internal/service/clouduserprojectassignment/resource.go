@@ -165,7 +165,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		userID := state.UserId.ValueString()
 		userResp, _, err = connV2.MongoDBCloudUsersApi.GetProjectUser(ctx, projectID, userID).Execute()
 		if err != nil {
-			resp.Diagnostics.AddError(fmt.Sprintf("error fetching user(%s) from ProjectID(%s):", userResp.Username, projectID), err.Error())
+			resp.Diagnostics.AddError(fmt.Sprintf("error fetching user(%s) from ProjectID(%s):", username, projectID), err.Error())
 			return
 		}
 	}
