@@ -261,7 +261,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Pending:    []string{"INITIATING", "FINALIZING", "ADDING_PEER", "WAITING_FOR_USER"},
 		Target:     []string{"FAILED", "AVAILABLE", "PENDING_ACCEPTANCE"},
 		Refresh:    resourceRefreshFunc(ctx, peerID, projectID, peerRequest.GetContainerId(), conn.NetworkPeeringApi),
-		Timeout:    d.Timeout(schema.TimeoutCreate) - time.Minute, // If using a CRUD function with a timeout, any StateChangeConf timeouts should be configured below that duration to avoid returning the SDK context: deadline exceeded error instead of the retry logic error.
+		Timeout:    d.Timeout(schema.TimeoutCreate) - time.Minute, // When using a CRUD function with a timeout, any StateChangeConf timeouts must be configured below that duration to avoid returning the SDK context: deadline exceeded error instead of the retry logic error.
 		MinTimeout: minTimeout,
 		Delay:      minTimeout,
 	}

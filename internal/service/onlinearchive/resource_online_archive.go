@@ -243,7 +243,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			Pending:    []string{"PENDING", "ARCHIVING", "PAUSING", "PAUSED", "ORPHANED", "REPEATING"},
 			Target:     []string{"IDLE", "ACTIVE"},
 			Refresh:    resourceOnlineRefreshFunc(ctx, projectID, clusterName, archiveID, connV2),
-			Timeout:    d.Timeout(schema.TimeoutCreate) - time.Minute, // If using a CRUD function with a timeout, any StateChangeConf timeouts should be configured below that duration to avoid returning the SDK context: deadline exceeded error instead of the retry logic error.
+			Timeout:    d.Timeout(schema.TimeoutCreate) - time.Minute, // When using a CRUD function with a timeout, any StateChangeConf timeouts must be configured below that duration to avoid returning the SDK context: deadline exceeded error instead of the retry logic error.
 			MinTimeout: 1 * time.Minute,
 			Delay:      3 * time.Minute,
 		}
