@@ -5,15 +5,13 @@ import (
 	"fmt"
 	"reflect"
 
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
 func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
@@ -101,30 +99,30 @@ func normalizeFromTFModel(ctx context.Context, model *TFModel, diags *diag.Diagn
 	if usingLegacySchema && shouldExpandNumShards {
 		expandNumShards(latestModel, counts)
 	}
-	// normalizeDiskSize(model, latestModel, diags)
+	normalizeDiskSize(model, latestModel, diags)
 	if diags.HasError() {
 		return nil
 	}
 	return latestModel
 }
 
-// func normalizeDiskSize(model *TFModel, latestModel *admin.ClusterDescription20240805, diags *diag.Diagnostics) {
-// 	// rootDiskSize := conversion.NilForUnknown(model.DiskSizeGB, model.DiskSizeGB.ValueFloat64Pointer())
-// 	regionRootDiskSize := findFirstRegionDiskSizeGB(latestModel.ReplicationSpecs)
-// 	if rootDiskSize != nil && regionRootDiskSize != nil && (*regionRootDiskSize-*rootDiskSize) > 0.01 {
-// 		errMsg := fmt.Sprintf("disk_size_gb @ root != disk_size_gb @ region (%.2f!=%.2f)", *rootDiskSize, *regionRootDiskSize)
-// 		diags.AddError(errMsg, errMsg)
-// 		return
-// 	}
-// 	diskSize := rootDiskSize
-// 	// Prefer regionRootDiskSize over rootDiskSize
-// 	if regionRootDiskSize != nil {
-// 		diskSize = regionRootDiskSize
-// 	}
-// 	if diskSize != nil {
-// 		setDiskSize(latestModel, diskSize)
-// 	}
-// }
+func normalizeDiskSize(model *TFModel, latestModel *admin.ClusterDescription20240805, diags *diag.Diagnostics) {
+	rootDiskSize := conversion.NilForUnknown(model.DiskSizeGB, model.DiskSizeGB.ValueFloat64Pointer())
+	regionRootDiskSize := findFirstRegionDiskSizeGB(latestModel.ReplicationSpecs)
+	if rootDiskSize != nil && regionRootDiskSize != nil && (*regionRootDiskSize-*rootDiskSize) > 0.01 {
+		errMsg := fmt.Sprintf("disk_size_gb @ root != disk_size_gb @ region (%.2f!=%.2f)", *rootDiskSize, *regionRootDiskSize)
+		diags.AddError(errMsg, errMsg)
+		return
+	}
+	diskSize := rootDiskSize
+	// Prefer regionRootDiskSize over rootDiskSize
+	if regionRootDiskSize != nil {
+		diskSize = regionRootDiskSize
+	}
+	if diskSize != nil {
+		setDiskSize(latestModel, diskSize)
+	}
+}
 
 func expandNumShards(req *admin.ClusterDescription20240805, counts []int64) {
 	specs := req.GetReplicationSpecs()

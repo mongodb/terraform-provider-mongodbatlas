@@ -163,12 +163,12 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	clusterResp := CreateCluster(ctx, diags, r.Client, latestReq, waitParams, usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags))
 	emptyAdvancedConfiguration := types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
 	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
-	// patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
+	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
 	if diags.HasError() {
 		return
 	}
 	p := &ProcessArgs{
-		// ArgsLegacy:            patchReqProcessArgsLegacy,
+		ArgsLegacy:            patchReqProcessArgsLegacy,
 		ArgsDefault:           patchReqProcessArgs,
 		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
 	}
@@ -304,12 +304,12 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
-	// patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
+	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
 	if diags.HasError() {
 		return
 	}
 	p := &ProcessArgs{
-		// ArgsLegacy:            patchReqProcessArgsLegacy,
+		ArgsLegacy:            patchReqProcessArgsLegacy,
 		ArgsDefault:           patchReqProcessArgs,
 		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
 	}
@@ -438,7 +438,7 @@ func (r *rs) updateLegacyReplicationSpecs(ctx context.Context, state, plan *TFMo
 	if diags.HasError() {
 		return
 	}
-	legacyPatch := newLegacyModel20240530ReplicationSpecsAndDiskGBOnly(specChanges, numShardsPlan, legacyIDs)
+	legacyPatch := newLegacyModel20240530ReplicationSpecsAndDiskGBOnly(specChanges, numShardsPlan, state.DiskSizeGB.ValueFloat64Pointer(), legacyIDs)
 	if diags.HasError() {
 		return
 	}
