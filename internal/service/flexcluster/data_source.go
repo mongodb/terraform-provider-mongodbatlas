@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -26,15 +25,8 @@ type ds struct {
 
 func (d *ds) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.DataSourceSchemaRequest{
-		RequiredFields:  []string{"project_id", "name"},
-		OverridenFields: dataSourceOverridenFields(),
+		RequiredFields: []string{"project_id", "name"},
 	})
-}
-
-func dataSourceOverridenFields() map[string]dsschema.Attribute {
-	return map[string]dsschema.Attribute{
-		"delete_on_create_timeout": nil,
-	}
 }
 
 func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
