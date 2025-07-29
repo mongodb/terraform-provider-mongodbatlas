@@ -15,9 +15,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
@@ -292,12 +292,12 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether to retain backup snapshots for the deleted dedicated cluster.",
 			},
-			"disk_size_gb": schema.Float64Attribute{
-				DeprecationMessage:  deprecationMsgOldSchema("disk_size_gb"),
-				Computed:            true,
-				Optional:            true,
-				MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
-			},
+			// "disk_size_gb": schema.Float64Attribute{
+			// 	DeprecationMessage:  deprecationMsgOldSchema("disk_size_gb"),
+			// 	Computed:            true,
+			// 	Optional:            true,
+			// 	MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
+			// },
 			"advanced_configuration": AdvancedConfigurationSchema(ctx),
 			"pinned_fcv": schema.SingleNestedAttribute{
 				Optional:            true,
@@ -342,9 +342,9 @@ func dataSourceSchema(ctx context.Context) dsschema.Schema {
 func pluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 	return conversion.PluralDataSourceSchemaFromResource(resourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
 		RequiredFields: []string{"project_id"},
-		OverridenRootFields: map[string]dsschema.Attribute{
-			"use_replication_spec_per_shard": useReplicationSpecPerShardSchema(),
-		},
+		// OverridenRootFields: map[string]dsschema.Attribute{
+		// 	"use_replication_spec_per_shard": useReplicationSpecPerShardSchema(),
+		// },
 		OverridenFields: dataSourceOverridenFields(),
 	})
 }
@@ -538,7 +538,7 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 }
 
 type TFModel struct {
-	DiskSizeGB                                types.Float64  `tfsdk:"disk_size_gb"`
+	// DiskSizeGB                                types.Float64  `tfsdk:"disk_size_gb"`
 	Labels                                    types.Map      `tfsdk:"labels"`
 	ReplicationSpecs                          types.List     `tfsdk:"replication_specs"`
 	Tags                                      types.Map      `tfsdk:"tags"`
@@ -743,21 +743,21 @@ var SpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 }}
 
 type TFAdvancedConfigurationModel struct {
-	OplogMinRetentionHours                                types.Float64 `tfsdk:"oplog_min_retention_hours"`
-	CustomOpensslCipherConfigTls12                        types.Set     `tfsdk:"custom_openssl_cipher_config_tls12"`
-	MinimumEnabledTlsProtocol                             types.String  `tfsdk:"minimum_enabled_tls_protocol"`
-	DefaultWriteConcern                                   types.String  `tfsdk:"default_write_concern"`
-	DefaultReadConcern                                    types.String  `tfsdk:"default_read_concern"`
-	TlsCipherConfigMode                                   types.String  `tfsdk:"tls_cipher_config_mode"`
-	SampleRefreshIntervalBiconnector                      types.Int64   `tfsdk:"sample_refresh_interval_bi_connector"`
-	SampleSizeBiconnector                                 types.Int64   `tfsdk:"sample_size_bi_connector"`
-	TransactionLifetimeLimitSeconds                       types.Int64   `tfsdk:"transaction_lifetime_limit_seconds"`
-	DefaultMaxTimeMS                                      types.Int64   `tfsdk:"default_max_time_ms"`
-	OplogSizeMb                                           types.Int64   `tfsdk:"oplog_size_mb"`
-	ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds types.Int64   `tfsdk:"change_stream_options_pre_and_post_images_expire_after_seconds"`
-	JavascriptEnabled                                     types.Bool    `tfsdk:"javascript_enabled"`
-	NoTableScan                                           types.Bool    `tfsdk:"no_table_scan"`
-	FailIndexKeyTooLong                                   types.Bool    `tfsdk:"fail_index_key_too_long"`
+	OplogMinRetentionHours         types.Float64 `tfsdk:"oplog_min_retention_hours"`
+	CustomOpensslCipherConfigTls12 types.Set     `tfsdk:"custom_openssl_cipher_config_tls12"`
+	MinimumEnabledTlsProtocol      types.String  `tfsdk:"minimum_enabled_tls_protocol"`
+	DefaultWriteConcern            types.String  `tfsdk:"default_write_concern"`
+	// DefaultReadConcern                                    types.String  `tfsdk:"default_read_concern"`
+	TlsCipherConfigMode                                   types.String `tfsdk:"tls_cipher_config_mode"`
+	SampleRefreshIntervalBiconnector                      types.Int64  `tfsdk:"sample_refresh_interval_bi_connector"`
+	SampleSizeBiconnector                                 types.Int64  `tfsdk:"sample_size_bi_connector"`
+	TransactionLifetimeLimitSeconds                       types.Int64  `tfsdk:"transaction_lifetime_limit_seconds"`
+	DefaultMaxTimeMS                                      types.Int64  `tfsdk:"default_max_time_ms"`
+	OplogSizeMb                                           types.Int64  `tfsdk:"oplog_size_mb"`
+	ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds types.Int64  `tfsdk:"change_stream_options_pre_and_post_images_expire_after_seconds"`
+	JavascriptEnabled                                     types.Bool   `tfsdk:"javascript_enabled"`
+	NoTableScan                                           types.Bool   `tfsdk:"no_table_scan"`
+	// FailIndexKeyTooLong                                   types.Bool    `tfsdk:"fail_index_key_too_long"`
 }
 
 var AdvancedConfigurationObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
