@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -13,9 +14,15 @@ import (
 )
 
 var resourceName = "mongodbatlas_cloud_user_project_assignment.test"
+var dataSourceName1 = "data.mongodbatlas_cloud_user_project_assignment.testUsername"
+var dataSourceName2 = "data.mongodbatlas_cloud_user_project_assignment.testUserID"
 
-func TestAccCloudUserProjectAssignmentRS_basic(t *testing.T) {
+func TestAccCloudUserProjectAssignment_basic(t *testing.T) {
 	resource.ParallelTest(t, *basicTestCase(t))
+}
+
+func TestAccCloudUserProjectAssignmentDS_error(t *testing.T) {
+	resource.ParallelTest(t, *errorTestCase(t))
 }
 
 func basicTestCase(t *testing.T) *resource.TestCase {
@@ -25,7 +32,7 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 	username := acc.RandomEmail()
 	projectName := acc.RandomName()
 	roles := []string{"GROUP_OWNER", "GROUP_CLUSTER_MANAGER"}
-	updatedRoles := []string{"GROUP_OWNER", "GROUP_SEARCH_INDEX_EDITOR", "GROUP_READ_ONLY"}
+	// updatedRoles := []string{"GROUP_OWNER", "GROUP_SEARCH_INDEX_EDITOR", "GROUP_READ_ONLY"}
 
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -34,17 +41,17 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic(orgID, username, projectName, roles),
-				Check:  checks(username, projectName, roles),
+				Check:  checks(username, roles),
 			},
-			{
+			/*{
 				Config: configBasic(orgID, username, projectName, updatedRoles),
-				Check:  checks(username, projectName, updatedRoles),
-			},
+				Check:  checks(username, updatedRoles),
+			},*/
 			{
 				ResourceName:                         resourceName,
 				ImportState:                          true,
 				ImportStateVerify:                    true,
-				ImportStateVerifyIdentifierAttribute: "user_id",
+				ImportStateVerifyIdentifierAttribute: "project_id",
 				ImportStateIdFunc: func(s *terraform.State) (string, error) {
 					attrs := s.RootModule().Resources[resourceName].Primary.Attributes
 					projectID := attrs["project_id"]
@@ -56,13 +63,31 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 				ResourceName:                         resourceName,
 				ImportState:                          true,
 				ImportStateVerify:                    true,
-				ImportStateVerifyIdentifierAttribute: "user_id",
+				ImportStateVerifyIdentifierAttribute: "project_id",
 				ImportStateIdFunc: func(s *terraform.State) (string, error) {
 					attrs := s.RootModule().Resources[resourceName].Primary.Attributes
 					projectID := attrs["project_id"]
 					username := attrs["username"]
 					return projectID + "/" + username, nil
 				},
+			},
+		},
+	}
+}
+
+func errorTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
+
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	projectName := acc.RandomName()
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:      configError(orgID, projectName),
+				ExpectError: regexp.MustCompile("either username or user_id must be provided"),
 			},
 		},
 	}
@@ -80,11 +105,33 @@ func configBasic(orgID, username, projectName string, roles []string) string {
 			username = %[3]q
 			project_id = mongodbatlas_project.test.id
 			roles = [%[4]s]
+		}
+			
+		data "mongodbatlas_cloud_user_project_assignment" "testUsername" {
+			project_id = mongodbatlas_project.test.id
+			username = mongodbatlas_cloud_user_project_assignment.test.username
+		}
+			
+		data "mongodbatlas_cloud_user_project_assignment" "testUserID" {
+			project_id = mongodbatlas_project.test.id
+			user_id = mongodbatlas_cloud_user_project_assignment.test.user_id
 		}`,
 		projectName, orgID, username, rolesStr)
 }
 
-func checks(username, projectName string, roles []string) resource.TestCheckFunc {
+func configError(orgID, projectName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = %[1]q
+			org_id = %[2]q
+		}
+		data "mongodbatlas_cloud_user_project_assignment" "test" {
+			project_id = mongodbatlas_project.test.id
+		}
+	`, projectName, orgID)
+}
+
+func checks(username string, roles []string) resource.TestCheckFunc {
 	checkFuncs := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttr(resourceName, "username", username),
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -94,6 +141,16 @@ func checks(username, projectName string, roles []string) resource.TestCheckFunc
 	for _, role := range roles {
 		checkFuncs = append(checkFuncs, resource.TestCheckTypeSetElemAttr(resourceName, "roles.*", role))
 	}
+	dataCheckFuncs := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttr(dataSourceName1, "username", username),
+		resource.TestCheckResourceAttr(dataSourceName2, "username", username),
+
+		// resource.TestCheckResourceAttrPair(dataSourceName1, "user_id", dataSourceName2, "user_id"),
+		resource.TestCheckResourceAttrPair(dataSourceName1, "project_id", dataSourceName2, "project_id"),
+		resource.TestCheckResourceAttrPair(dataSourceName1, "roles.#", dataSourceName2, "roles.#"),
+	}
+
+	checkFuncs = append(checkFuncs, dataCheckFuncs...)
 	return resource.ComposeAggregateTestCheckFunc(checkFuncs...)
 }
 

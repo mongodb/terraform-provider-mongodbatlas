@@ -224,7 +224,7 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	}
 	projectID, user := parts[0], parts[1]
 
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("projetc_id"), projectID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
 
 	emailRegex := regexp.MustCompile(`^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$`)
 
