@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
@@ -62,9 +61,9 @@ func TestStepImportCluster(resourceName string, ignorePrefixFields ...string) re
 	// auto_scaling & specs (electable_specs, read_only_specs, etc.) are only set in state in SDKv2 if present in the definition.
 	// However, as import doesn't have a previous state to compare with, import will always fill them.
 	// This will make these fields differ in the state, although the plan change won't be shown to the user as they're computed values.
-	if !config.PreviewProviderV2AdvancedCluster() {
-		ignorePrefixFields = append(ignorePrefixFields, "replication_specs", "id") // TenantUpgrade changes the ID and can make the test flaky
-	}
+	// if !config.PreviewProviderV2AdvancedCluster() {
+	// 	ignorePrefixFields = append(ignorePrefixFields, "replication_specs", "id") // TenantUpgrade changes the ID and can make the test flaky
+	// }
 	return resource.TestStep{
 		ResourceName:                         resourceName,
 		ImportStateIdFunc:                    ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
@@ -193,7 +192,7 @@ func ConfigBasicDedicated(projectID, name, zoneName string) string {
 		project_id   = %[1]q
 		name         = %[2]q
 		cluster_type = "REPLICASET"
-		
+
 		replication_specs {
 			region_configs {
 				priority        = 7
@@ -213,7 +212,7 @@ func ConfigBasicDedicated(projectID, name, zoneName string) string {
 		use_replication_spec_per_shard = true
 		depends_on = [mongodbatlas_advanced_cluster.test]
 	}
-			
+
 	data "mongodbatlas_advanced_clusters" "test" {
 		use_replication_spec_per_shard = true
 		project_id = mongodbatlas_advanced_cluster.test.project_id

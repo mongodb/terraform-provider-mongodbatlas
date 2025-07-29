@@ -4,15 +4,14 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestConvertToPreviewProviderV2AttrsMapAndAttrsSet(t *testing.T) {
-	if !config.PreviewProviderV2AdvancedCluster() {
-		t.Skip("Skipping test as not in PreviewProviderV2AdvancedCluster")
-	}
+	// if !config.PreviewProviderV2AdvancedCluster() {
+	// 	t.Skip("Skipping test as not in PreviewProviderV2AdvancedCluster")
+	// }
 	attrsMap := map[string]string{
 		"attr":                            "val1",
 		"electable_specs.0":               "val2",
@@ -49,9 +48,9 @@ func TestConvertToPreviewProviderV2AttrsMapAndAttrsSet(t *testing.T) {
 }
 
 func TestConvertAdvancedClusterToPreviewProviderV2(t *testing.T) {
-	if !config.PreviewProviderV2AdvancedCluster() {
-		t.Skip("Skipping test as not in PreviewProviderV2AdvancedCluster")
-	}
+	// if !config.PreviewProviderV2AdvancedCluster() {
+	// 	t.Skip("Skipping test as not in PreviewProviderV2AdvancedCluster")
+	// }
 	var (
 		input = `
 			resource "mongodbatlas_advanced_cluster" "cluster2" {
@@ -148,7 +147,7 @@ func TestConvertAdvancedClusterToPreviewProviderV2(t *testing.T) {
 					oplog_size_mb                        = 1000
 					sample_size_bi_connector			 = 110
 					sample_refresh_interval_bi_connector = 310
-			    transaction_lifetime_limit_seconds   = 300  
+			    transaction_lifetime_limit_seconds   = 300
 			    change_stream_options_pre_and_post_images_expire_after_seconds = 100
 				}
 
@@ -159,7 +158,7 @@ func TestConvertAdvancedClusterToPreviewProviderV2(t *testing.T) {
 				timeouts {
 					create = "5m"
 				}
-			}	
+			}
  		`
 		// expected has the attributes sorted alphabetically to match the output of ConvertAdvancedClusterToPreviewProviderV2
 		expected = `
@@ -174,7 +173,7 @@ func TestConvertAdvancedClusterToPreviewProviderV2(t *testing.T) {
 
 
 
-				
+
 
 
 
@@ -202,7 +201,7 @@ func TestConvertAdvancedClusterToPreviewProviderV2(t *testing.T) {
 							provider_name = "AZURE"
 							region_name   = "US_EAST_2"
 						}]
-						zone_name = "zone1" 
+						zone_name = "zone1"
 						}, {
 						region_configs = [{
 							analytics_specs = {
@@ -229,7 +228,7 @@ func TestConvertAdvancedClusterToPreviewProviderV2(t *testing.T) {
 					oplog_size_mb                        = 1000
 					sample_refresh_interval_bi_connector = 310
 					sample_size_bi_connector			 = 110
-			    transaction_lifetime_limit_seconds   = 300  
+			    transaction_lifetime_limit_seconds   = 300
 				}
 				bi_connector_config = {
  					enabled         = true
@@ -271,7 +270,7 @@ func TestAssertEqualHCL(t *testing.T) {
 				attr1 =        "val1"
 				block1    {
 					attr2="val2"
-				      }			
+				      }
 		}
  		`
 	)

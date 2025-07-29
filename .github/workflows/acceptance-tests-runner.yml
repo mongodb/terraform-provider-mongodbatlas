@@ -6,13 +6,13 @@ on:
   workflow_call:
     inputs:
       terraform_version:
-        description: 'Terraform version to use, e.g. 1.6.x'     
+        description: 'Terraform version to use, e.g. 1.6.x'
         type: string
         required: true
       provider_version:
-        description: 'Previous MongoDB Atlas Provider version to use in Migration tests, e.g. 1.14.0, empty for latest'     
+        description: 'Previous MongoDB Atlas Provider version to use in Migration tests, e.g. 1.14.0, empty for latest'
         type: string
-        required: false    
+        required: false
       test_group:
         description: 'Test group to run, e.g. advanced_cluster, empty for all'
         type: string
@@ -30,7 +30,7 @@ on:
         type: boolean
         required: false
         default: false
-        
+
       mongodb_atlas_org_id:
         type: string
         required: true
@@ -45,7 +45,7 @@ on:
         required: true
       mongodb_atlas_teams_ids:
         type: string
-        required: true  
+        required: true
       azure_atlas_app_id:
         type: string
         required: true
@@ -127,7 +127,7 @@ on:
         required: true
       mongodb_atlas_private_key_read_only:
         required: true
-      ca_cert: 
+      ca_cert:
         required: true
       aws_account_id:
         required: true
@@ -193,7 +193,7 @@ on:
         required: true
       aws_customer_master_key_id:
         required: true
-          
+
 env:
   TF_ACC: 1
   TF_LOG: ${{ vars.LOG_LEVEL }}
@@ -214,7 +214,7 @@ env:
   MONGODB_ATLAS_GOV_ORG_ID:  ${{ inputs.mongodb_atlas_gov_org_id }}
 
 
-jobs:  
+jobs:
 
   get-provider-version:
     runs-on: ubuntu-latest
@@ -288,7 +288,7 @@ jobs:
             - 'internal/serviceapi/maintenancewindowapi/*.go'
             - 'internal/serviceapi/projectapi/*.go'
             - 'internal/serviceapi/pushbasedlogexportapi/*.go'
-            - 'internal/serviceapi/resourcepolicyapi/*.go'            
+            - 'internal/serviceapi/resourcepolicyapi/*.go'
             - 'internal/serviceapi/searchdeploymentapi/*.go'
             - 'internal/serviceapi/streaminstanceapi/*.go'
           backup:
@@ -296,7 +296,7 @@ jobs:
             - 'internal/service/cloudbackupsnapshot/*.go'
             - 'internal/service/cloudbackupsnapshotexportbucket/*.go'
             - 'internal/service/cloudbackupsnapshotexportjob/*.go'
-            - 'internal/service/cloudbackupsnapshotrestorejob/*.go'  
+            - 'internal/service/cloudbackupsnapshotrestorejob/*.go'
             - 'internal/service/onlinearchive/*.go'
           control_plane_ip_addresses:
             - 'internal/service/controlplaneipaddresses/*.go'
@@ -306,7 +306,7 @@ jobs:
           cluster:
             - 'internal/service/cluster/*.go'
           cluster_outage_simulation:
-            - 'internal/service/clusteroutagesimulation/*.go'  
+            - 'internal/service/clusteroutagesimulation/*.go'
           config:
             - 'internal/config/*.go'
             - 'internal/service/alertconfiguration/*.go'
@@ -325,13 +325,13 @@ jobs:
             - 'internal/service/team/*.go'
             - 'internal/service/thirdpartyintegration/*.go'
           encryption:
-            - 'internal/service/encryptionatrest/*.go' 
+            - 'internal/service/encryptionatrest/*.go'
             - 'internal/service/encryptionatrestprivateendpoint/*.go'
           event_trigger:
-            - 'internal/service/eventtrigger/*.go'  
+            - 'internal/service/eventtrigger/*.go'
           federated:
             - 'internal/service/federateddatabaseinstance/*.go'
-            - 'internal/service/federatedquerylimit/*.go'  
+            - 'internal/service/federatedquerylimit/*.go'
             - 'internal/service/federatedsettingsidentityprovider/*.go'
             - 'internal/service/federatedsettingsorgconfig/*.go'
             - 'internal/service/federatedsettingsorgrolemapping/*.go'
@@ -340,12 +340,12 @@ jobs:
           generic:
             - 'internal/service/auditing/*.go'
             - 'internal/service/backupcompliancepolicy/*.go'
-            - 'internal/service/x509authenticationdatabaseuser/*.go'  
+            - 'internal/service/x509authenticationdatabaseuser/*.go'
           global_cluster_config:
             - 'internal/service/globalclusterconfig/*.go'
           ldap:
             - 'internal/service/ldapconfiguration/*.go'
-            - 'internal/service/ldapverify/*.go'  
+            - 'internal/service/ldapverify/*.go'
           mongodb_employee_access_grant:
             - 'internal/service/mongodbemployeeaccessgrant/*.go'
           network:
@@ -354,11 +354,11 @@ jobs:
             - 'internal/service/privateendpointregionalmode/*.go'
             - 'internal/service/privatelinkendpoint/*.go'
             - 'internal/service/privatelinkendpointservice/*.go'
-            - 'internal/service/privatelinkendpointservicedatafederationonlinearchive/*.go' 
+            - 'internal/service/privatelinkendpointservicedatafederationonlinearchive/*.go'
           project:
             - 'internal/service/accesslistapikey/*.go'
             - 'internal/service/project/*.go'
-            - 'internal/service/projectinvitation/*.go'  
+            - 'internal/service/projectinvitation/*.go'
             - 'internal/service/projectipaccesslist/*.go'
             - 'internal/service/projectipaddresses/*.go'
           push_based_log_export:
@@ -380,34 +380,32 @@ jobs:
             - 'internal/service/streamprocessor/*.go'
             - 'internal/service/streamprivatelinkendpoint/*.go'
 
-  advanced_cluster:
-    needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster' }}
-    runs-on: ubuntu-latest
-    permissions: {}
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
-      - name: Acceptance Tests
-        env:
-          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
-          ACCTEST_PACKAGES: ./internal/service/advancedcluster
-        run: make testacc
+  # advanced_cluster:
+  #   needs: [ change-detection, get-provider-version ]
+  #   if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster' }}
+  #   runs-on: ubuntu-latest
+  #   permissions: {}
+  #   steps:
+  #     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+  #       with:
+  #         ref: ${{ inputs.ref || github.ref }}
+  #     - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
+  #       with:
+  #         go-version-file: 'go.mod'
+  #     - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+  #       with:
+  #         terraform_version: ${{ inputs.terraform_version }}
+  #         terraform_wrapper: false
+  #     - name: Acceptance Tests
+  #       env:
+  #         MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+  #         ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
+  #         ACCTEST_PACKAGES: ./internal/service/advancedcluster
+  #       run: make testacc
 
   advanced_cluster_tpf:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf' }}
-    env:
-      MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: 'true'
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -420,7 +418,7 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
@@ -430,7 +428,7 @@ jobs:
             ./internal/service/advancedcluster
             ./internal/service/advancedclustertpf
         run: make testacc
- 
+
   advanced_cluster_tpf_mig_from_sdkv2:
     needs: [ change-detection, get-provider-version ]
     if: ${{ inputs.reduced_tests == false && (needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf') }}
@@ -449,10 +447,10 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          MONGODB_ATLAS_LAST_VERSION: "1.39.0" # last version that supports SDKv2 mongodbatlas_advanced_cluster
           ACCTEST_REGEX_RUN: '^TestMig'
           ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
@@ -472,7 +470,7 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false    
+          terraform_wrapper: false
       - id: sts-assume-role
         name: Generate STS Temporary credential for acceptance testing
         shell: bash
@@ -533,7 +531,7 @@ jobs:
             ./internal/serviceapi/searchdeploymentapi
             ./internal/serviceapi/streaminstanceapi
         run: make testacc
-        
+
   backup:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.backup == 'true' || inputs.test_group == 'backup' }}
@@ -549,7 +547,7 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
@@ -587,13 +585,13 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: ./internal/service/controlplaneipaddresses
         run: make testacc
-        
+
   cloud_user:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.cloud_user == 'true' || inputs.test_group == 'cloud_user' }}
@@ -609,7 +607,7 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
@@ -636,7 +634,7 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
@@ -658,13 +656,13 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: ./internal/service/clusteroutagesimulation
         run: make testacc
-      
+
   config:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.config == 'true' || inputs.test_group == 'config' }}
@@ -680,7 +678,7 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
@@ -730,7 +728,7 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
@@ -773,7 +771,7 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
@@ -795,7 +793,7 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false    
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_FEDERATION_SETTINGS_ID: ${{ inputs.mongodb_atlas_federation_settings_id }}
@@ -836,7 +834,7 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false    
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
@@ -858,7 +856,7 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
@@ -885,7 +883,7 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
@@ -907,7 +905,7 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LDAP_HOSTNAME: ${{ secrets.mongodb_atlas_ldap_hostname }}
@@ -936,13 +934,13 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: ./internal/service/mongodbemployeeaccessgrant
         run: make testacc
-        
+
   network:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.network == 'true' || inputs.test_group == 'network' }}
@@ -958,11 +956,11 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PRIVATE_ENDPOINT_ID: ${{ secrets.mongodb_atlas_private_endpoint_id }}
-          MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME: ${{ secrets.mongodb_atlas_private_endpoint_dns_name }}      
+          MONGODB_ATLAS_PRIVATE_ENDPOINT_DNS_NAME: ${{ secrets.mongodb_atlas_private_endpoint_dns_name }}
           AWS_ACCOUNT_ID: ${{ secrets.aws_account_id }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
@@ -987,8 +985,8 @@ jobs:
             ./internal/service/privatelinkendpointservice
             ./internal/service/privatelinkendpointservicedatafederationonlinearchive
         run: make testacc
-      
-  project: 
+
+  project:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.project == 'true' || inputs.test_group == 'project' }}
     runs-on: ubuntu-latest
@@ -1003,7 +1001,7 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
@@ -1041,7 +1039,7 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           AWS_REGION: ${{ vars.AWS_REGION_LOWERCASE }}
@@ -1066,7 +1064,7 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_rp_org_id }}
@@ -1076,7 +1074,7 @@ jobs:
           ACCTEST_PACKAGES: |
             ./internal/service/resourcepolicy
         run: make testacc
-  
+
   search_deployment:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.search_deployment == 'true' || inputs.test_group == 'search_deployment' }}
@@ -1092,7 +1090,7 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
@@ -1114,13 +1112,13 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false    
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: ./internal/service/searchindex
         run: make testacc
-  
+
   serverless:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.serverless == 'true' || inputs.test_group == 'serverless' }}
@@ -1136,7 +1134,7 @@ jobs:
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
           terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false    
+          terraform_wrapper: false
       - name: Acceptance Tests
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
@@ -1162,7 +1160,7 @@ jobs:
         - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
           with:
             terraform_version: ${{ inputs.terraform_version }}
-            terraform_wrapper: false  
+            terraform_wrapper: false
         - name: Acceptance Tests
           env:
             MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}

@@ -9,11 +9,10 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
+	"github.com/stretchr/testify/assert"
 	"github.com/zclconf/go-cty/cty"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
 )
 
 // IsTestSDKv2ToTPF returns if we want to run migration tests from SDKv2 to TPF.
@@ -57,9 +56,9 @@ func AddAttrChecksPrefixPreviewProviderV2(usePreviewProvider bool, name string, 
 }
 
 func ConvertToPreviewProviderV2AttrsMap(usePreviewProvider bool, attrsMap map[string]string) map[string]string {
-	if skipPreviewProviderV2Work(usePreviewProvider) {
-		return attrsMap
-	}
+	// if skipPreviewProviderV2Work(usePreviewProvider) {
+	// 	return attrsMap
+	// }
 	ret := make(map[string]string, len(attrsMap))
 	for name, value := range attrsMap {
 		ret[AttrNameToPreviewProviderV2(usePreviewProvider, name)] = value
@@ -68,9 +67,9 @@ func ConvertToPreviewProviderV2AttrsMap(usePreviewProvider bool, attrsMap map[st
 }
 
 func ConvertToPreviewProviderV2AttrsSet(usePreviewProvider bool, attrsSet []string) []string {
-	if skipPreviewProviderV2Work(usePreviewProvider) {
-		return attrsSet
-	}
+	// if skipPreviewProviderV2Work(usePreviewProvider) {
+	// 	return attrsSet
+	// }
 	ret := make([]string, 0, len(attrsSet))
 	for _, name := range attrsSet {
 		ret = append(ret, AttrNameToPreviewProviderV2(usePreviewProvider, name))
@@ -92,9 +91,9 @@ var tpfSingleNestedAttrs = []string{
 }
 
 func AttrNameToPreviewProviderV2(usePreviewProvider bool, name string) string {
-	if skipPreviewProviderV2Work(usePreviewProvider) {
-		return name
-	}
+	// if skipPreviewProviderV2Work(usePreviewProvider) {
+	// 	return name
+	// }
 	for _, singleAttrName := range tpfSingleNestedAttrs {
 		name = strings.ReplaceAll(name, singleAttrName+".0", singleAttrName)
 	}
@@ -103,9 +102,9 @@ func AttrNameToPreviewProviderV2(usePreviewProvider bool, name string) string {
 
 func ConvertAdvancedClusterToPreviewProviderV2(t *testing.T, usePreviewProvider bool, def string) string {
 	t.Helper()
-	if skipPreviewProviderV2Work(usePreviewProvider) {
-		return def
-	}
+	// if skipPreviewProviderV2Work(usePreviewProvider) {
+	// 	return def
+	// }
 	parse := hcl.GetDefParser(t, def)
 	for _, resource := range parse.Body().Blocks() {
 		isResource := resource.Type() == "resource"
@@ -127,9 +126,9 @@ func ConvertAdvancedClusterToPreviewProviderV2(t *testing.T, usePreviewProvider 
 	return result
 }
 
-func skipPreviewProviderV2Work(usePreviewProvider bool) bool {
-	return !config.PreviewProviderV2AdvancedCluster() || !usePreviewProvider
-}
+// func skipPreviewProviderV2Work(usePreviewProvider bool) bool {
+// 	return !config.PreviewProviderV2AdvancedCluster() || !usePreviewProvider
+// }
 
 func AssertEqualHCL(t *testing.T, expected, actual string, msgAndArgs ...interface{}) {
 	t.Helper()

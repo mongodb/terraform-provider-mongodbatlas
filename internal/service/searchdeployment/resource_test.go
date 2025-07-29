@@ -10,11 +10,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -72,7 +72,9 @@ func TestAccSearchDeployment_timeoutTest(t *testing.T) {
 		configWithTimeout      = func(timeoutsStr string) string {
 			normalConfig := configBasic(projectID, clusterName, "S20_HIGHCPU_NVME", 3, false)
 			configWithTimeout := acc.ConfigAddResourceStr(t, normalConfig, resourceID, timeoutsStr)
-			return acc.ConvertAdvancedClusterToPreviewProviderV2(t, config.PreviewProviderV2AdvancedCluster(), configWithTimeout)
+			// return acc.ConvertAdvancedClusterToPreviewProviderV2(t, config.PreviewProviderV2AdvancedCluster(), configWithTimeout)
+			return acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, configWithTimeout)
+
 		}
 	)
 	resource.ParallelTest(t, resource.TestCase{

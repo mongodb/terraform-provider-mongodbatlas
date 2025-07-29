@@ -21,7 +21,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
@@ -51,7 +50,7 @@ const (
 		use_replication_spec_per_shard = true
 		depends_on = [mongodbatlas_advanced_cluster.test]
 	}
-			
+
 	data "mongodbatlas_advanced_clusters" "test" {
 		use_replication_spec_per_shard = true
 		project_id = mongodbatlas_advanced_cluster.test.project_id
@@ -1296,7 +1295,7 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 	replica_set_scaling_strategy = "NODE_TYPE"
 	root_cert_type = "ISRGROOTX1"
 	version_release_system = "CONTINUOUS"
-	
+
 	advanced_configuration {
 		change_stream_options_pre_and_post_images_expire_after_seconds = 100
 		default_read_concern                                           = "available"
@@ -1355,10 +1354,10 @@ func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing
 		}
 		checksUpdated = checkAggr(true, nil, checksUpdatedMap)
 	)
-	if config.PreviewProviderV2AdvancedCluster() { // SDKv2 don't set "computed" specs in the state
-		checksMap["replication_specs.0.region_configs.0.electable_specs.0.instance_size"] = "M30"
-		checksMap["replication_specs.0.region_configs.0.analytics_specs.0.node_count"] = "0"
-	}
+	// if config.PreviewProviderV2AdvancedCluster() { // SDKv2 don't set "computed" specs in the state
+	checksMap["replication_specs.0.region_configs.0.electable_specs.0.instance_size"] = "M30"
+	checksMap["replication_specs.0.region_configs.0.analytics_specs.0.node_count"] = "0"
+	// }
 	checks := checkAggr(true, nil, checksMap)
 	checksMap["replication_specs.0.region_configs.0.analytics_specs.0.node_count"] = "1" // analytics_specs is kept even if it's removed from the config
 	checksAfter := checkAggr(true, nil, checksMap)
@@ -1383,9 +1382,9 @@ func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing
 }
 
 func TestAccAdvancedCluster_removeBlocksFromConfig(t *testing.T) {
-	if !config.PreviewProviderV2AdvancedCluster() { // SDKv2 don't set "computed" specs in the state
-		t.Skip("This test is not applicable for SDKv2")
-	}
+	// if !config.PreviewProviderV2AdvancedCluster() { // SDKv2 don't set "computed" specs in the state
+	// 	t.Skip("This test is not applicable for SDKv2")
+	// }
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 15)
 	)
@@ -1503,16 +1502,16 @@ func createCleanupTest(t *testing.T, configCall func(t *testing.T, timeoutSectio
 			},
 		)
 		deleteOnCreateTimeoutRemoved := configCall(t, "")
-		if config.PreviewProviderV2AdvancedCluster() {
-			steps = append(steps,
-				resource.TestStep{
-					Config: deleteOnCreateTimeoutRemoved,
-					Check:  resource.TestCheckNoResourceAttr(resourceName, "delete_on_create_timeout"),
-				})
-		} else {
-			// removing an optional false value has no affect in SDKv2, as false==null and no-plan-change
-			steps = append(steps, acc.TestStepCheckEmptyPlan(deleteOnCreateTimeoutRemoved))
-		}
+		// if config.PreviewProviderV2AdvancedCluster() {
+		steps = append(steps,
+			resource.TestStep{
+				Config: deleteOnCreateTimeoutRemoved,
+				Check:  resource.TestCheckNoResourceAttr(resourceName, "delete_on_create_timeout"),
+			})
+		// } else {
+		// 	// removing an optional false value has no affect in SDKv2, as false==null and no-plan-change
+		// 	steps = append(steps, acc.TestStepCheckEmptyPlan(deleteOnCreateTimeoutRemoved))
+		// }
 		steps = append(steps, acc.TestStepImportCluster(resourceName))
 	}
 	return &resource.TestCase{
@@ -1531,7 +1530,7 @@ func configBasicReplicaset(t *testing.T, projectID, clusterName, extra, timeoutS
 	}
 	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
-			%[4]s		
+			%[4]s
 			project_id = %[1]q
 			name = %[2]q
 			cluster_type = "REPLICASET"
@@ -1669,7 +1668,7 @@ func configBlocks(t *testing.T, projectID, clusterName, instanceSize string, def
 			name         = %[2]q
 			cluster_type = "GEOSHARDED"
 
-			replication_specs { 
+			replication_specs {
 				zone_name = "Zone 1"
 				region_configs {
 					provider_name = "AWS"
@@ -1680,7 +1679,7 @@ func configBlocks(t *testing.T, projectID, clusterName, instanceSize string, def
 				}
 			}
 
-			replication_specs { 
+			replication_specs {
 				zone_name = "Zone 2"
 				region_configs {
 					provider_name = "AWS"
@@ -1807,7 +1806,7 @@ func configWithKeyValueBlocks(t *testing.T, usePreviewProvider bool, orgID, proj
 			org_id = %[1]q
 			name   = %[2]q
 		}
-		
+
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = mongodbatlas_project.cluster_project.id
 			name         = %[3]q
@@ -1835,35 +1834,33 @@ func configWithKeyValueBlocks(t *testing.T, usePreviewProvider bool, orgID, proj
 }
 
 func checkKeyValueBlocks(usePreviewProvider, includeDataSources bool, blockName string, blocks ...map[string]string) resource.TestCheckFunc {
-	if config.PreviewProviderV2AdvancedCluster() {
-		return checkKeyValueBlocksPreviewProviderV2(usePreviewProvider, includeDataSources, blockName, blocks...)
-	}
-	const pluralPrefix = "results.0."
-	lenStr := strconv.Itoa(len(blocks))
-	keyHash := blockName + ".#"
-	keyStar := blockName + ".*"
-	checks := []resource.TestCheckFunc{
-		acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, resourceName, keyHash, lenStr),
-	}
-	if includeDataSources {
-		checks = append(checks,
-			acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, dataSourceName, keyHash, lenStr),
-			acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, dataSourcePluralName, pluralPrefix+keyHash, lenStr))
-	}
-	for _, block := range blocks {
-		checks = append(checks,
-			acc.TestCheckTypeSetElemNestedAttrsPreviewProviderV2(usePreviewProvider, resourceName, keyStar, block),
-		)
-		if includeDataSources {
-			checks = append(checks,
-				acc.TestCheckTypeSetElemNestedAttrsPreviewProviderV2(usePreviewProvider, dataSourceName, keyStar, block),
-				acc.TestCheckTypeSetElemNestedAttrsPreviewProviderV2(usePreviewProvider, dataSourcePluralName, pluralPrefix+keyStar, block))
-		}
-	}
-	return resource.ComposeAggregateTestCheckFunc(checks...)
-}
+	// if config.PreviewProviderV2AdvancedCluster() {
+	// 	return checkKeyValueBlocksPreviewProviderV2(usePreviewProvider, includeDataSources, blockName, blocks...)
+	// }
+	// const pluralPrefix = "results.0."
+	// lenStr := strconv.Itoa(len(blocks))
+	// keyHash := blockName + ".#"
+	// keyStar := blockName + ".*"
+	// checks := []resource.TestCheckFunc{
+	// 	acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, resourceName, keyHash, lenStr),
+	// }
+	// if includeDataSources {
+	// 	checks = append(checks,
+	// 		acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, dataSourceName, keyHash, lenStr),
+	// 		acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, dataSourcePluralName, pluralPrefix+keyHash, lenStr))
+	// }
+	// for _, block := range blocks {
+	// 	checks = append(checks,
+	// 		acc.TestCheckTypeSetElemNestedAttrsPreviewProviderV2(usePreviewProvider, resourceName, keyStar, block),
+	// 	)
+	// 	if includeDataSources {
+	// 		checks = append(checks,
+	// 			acc.TestCheckTypeSetElemNestedAttrsPreviewProviderV2(usePreviewProvider, dataSourceName, keyStar, block),
+	// 			acc.TestCheckTypeSetElemNestedAttrsPreviewProviderV2(usePreviewProvider, dataSourcePluralName, pluralPrefix+keyStar, block))
+	// 	}
+	// }
+	// return resource.ComposeAggregateTestCheckFunc(checks...)
 
-func checkKeyValueBlocksPreviewProviderV2(usePreviewProvider, includeDataSources bool, blockName string, blocks ...map[string]string) resource.TestCheckFunc {
 	const pluralPrefix = "results.0."
 	lenStr := strconv.Itoa(len(blocks))
 	keyPct := blockName + ".%"
@@ -1889,6 +1886,33 @@ func checkKeyValueBlocksPreviewProviderV2(usePreviewProvider, includeDataSources
 	}
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
+
+// func checkKeyValueBlocksPreviewProviderV2(usePreviewProvider, includeDataSources bool, blockName string, blocks ...map[string]string) resource.TestCheckFunc {
+// 	const pluralPrefix = "results.0."
+// 	lenStr := strconv.Itoa(len(blocks))
+// 	keyPct := blockName + ".%"
+// 	checks := []resource.TestCheckFunc{
+// 		acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, resourceName, keyPct, lenStr),
+// 	}
+// 	if includeDataSources {
+// 		checks = append(checks,
+// 			acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, dataSourceName, keyPct, lenStr),
+// 			acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, dataSourcePluralName, pluralPrefix+keyPct, lenStr))
+// 	}
+// 	for _, block := range blocks {
+// 		key := blockName + "." + block["key"]
+// 		value := block["value"]
+// 		checks = append(checks,
+// 			acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, resourceName, key, value),
+// 		)
+// 		if includeDataSources {
+// 			checks = append(checks,
+// 				acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, dataSourceName, key, value),
+// 				acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, dataSourcePluralName, pluralPrefix+key, value))
+// 		}
+// 	}
+// 	return resource.ComposeAggregateTestCheckFunc(checks...)
+// }
 
 type ReplicaSetAWSConfig struct {
 	ProjectID          string
@@ -2410,7 +2434,7 @@ func configReplicationSpecsAutoScaling(t *testing.T, usePreviewProvider bool, pr
 				oplog_min_retention_hours = 5.5
 			}
 			%[7]s
-		}		
+		}
 	`, projectID, clusterName, elecInstanceSize, elecDiskSizeGB, analyticsNodeCount, autoScalingBlock, lifecycleIgnoreChanges))
 }
 
@@ -3124,7 +3148,7 @@ func configPriority(t *testing.T, usePreviewProvider bool, projectID, clusterNam
 			name         = %[2]q
 			cluster_type   = %[3]q
 			backup_enabled = false
-			
+
 			replication_specs {
  					%[4]s
  					%[5]s
@@ -3138,14 +3162,14 @@ func configBiConnectorConfig(t *testing.T, usePreviewProvider bool, projectID, n
 	additionalConfig := `
 		bi_connector_config {
 			enabled = false
-		}	
+		}
 	`
 	if enabled {
 		additionalConfig = `
 			bi_connector_config {
 				enabled         = true
 				read_preference = "secondary"
-			}	
+			}
 		`
 	}
 
@@ -3206,7 +3230,7 @@ func configFCVPinning(t *testing.T, orgID, projectName, clusterName string, pinn
 			org_id = %[1]q
 			name   = %[2]q
 		}
-		
+
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = mongodbatlas_project.test.id
 			name         = %[3]q

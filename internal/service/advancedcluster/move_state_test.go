@@ -2,40 +2,34 @@ package advancedcluster_test
 
 import (
 	"fmt"
-	"regexp"
-	"testing"
-
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/tfversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccAdvancedCluster_moveNotSupportedLegacySchema(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
-	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
-			tfversion.SkipBelow(tfversion.Version1_8_0),
-		},
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				Config: configMoveFirst(projectID, clusterName),
-			},
-			{
-				Config:      configMoveSecond(projectID, clusterName),
-				ExpectError: regexp.MustCompile("Move Resource State Not Supported"),
-			},
-			{
-				Config: configMoveFirst(projectID, clusterName),
-			},
-		},
-	})
-}
+// func TestAccAdvancedCluster_moveNotSupportedLegacySchema(t *testing.T) {
+// 	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
+// 	var (
+// 		projectID   = acc.ProjectIDExecution(t)
+// 		clusterName = acc.RandomClusterName()
+// 	)
+// 	resource.ParallelTest(t, resource.TestCase{
+// 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+// 			tfversion.SkipBelow(tfversion.Version1_8_0),
+// 		},
+// 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+// 		CheckDestroy:             acc.CheckDestroyCluster,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: configMoveFirst(projectID, clusterName),
+// 			},
+// 			{
+// 				Config:      configMoveSecond(projectID, clusterName),
+// 				ExpectError: regexp.MustCompile("Move Resource State Not Supported"),
+// 			},
+// 			{
+// 				Config: configMoveFirst(projectID, clusterName),
+// 			},
+// 		},
+// 	})
+// }
 
 func configMoveFirst(projectID, clusterName string) string {
 	return fmt.Sprintf(`
@@ -63,7 +57,7 @@ func configMoveSecond(projectID, clusterName string) string {
 			from = mongodbatlas_cluster.old
 			to   = mongodbatlas_advanced_cluster.test
 		}
-			
+
 		resource "mongodbatlas_advanced_cluster" "test" {
     project_id   = %[1]q
     name         = %[2]q
