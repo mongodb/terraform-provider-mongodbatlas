@@ -342,10 +342,6 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 	results := make([]map[string]any, 0, len(clusters))
 	for i := range clusters {
 		cluster := &clusters[i]
-		processArgs20240530, _, err := connV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
-		if err != nil {
-			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", cluster.GetId(), err)
-		}
 		processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
 		if err != nil {
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", cluster.GetId(), err)
@@ -377,7 +373,6 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 			}
 		}
 		advConfigAttr := flattenProcessArgs(&advancedclustertpf.ProcessArgs{
-			ArgsLegacy:            processArgs20240530,
 			ArgsDefault:           processArgs,
 			ClusterAdvancedConfig: cluster.AdvancedConfiguration,
 		})

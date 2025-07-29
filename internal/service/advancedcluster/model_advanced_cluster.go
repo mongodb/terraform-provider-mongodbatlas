@@ -531,33 +531,30 @@ func expandBiConnectorConfig(d *schema.ResourceData) *admin.BiConnector {
 }
 
 func flattenProcessArgs(p *advancedclustertpf.ProcessArgs) []map[string]any {
-	if p.ArgsLegacy == nil {
+	if p.ArgsDefault == nil {
 		return nil
 	}
 	flattenedProcessArgs := []map[string]any{
 		{
-			"default_read_concern":                 p.ArgsLegacy.GetDefaultReadConcern(),
-			"default_write_concern":                p.ArgsLegacy.GetDefaultWriteConcern(),
-			"fail_index_key_too_long":              p.ArgsLegacy.GetFailIndexKeyTooLong(),
-			"javascript_enabled":                   p.ArgsLegacy.GetJavascriptEnabled(),
-			"no_table_scan":                        p.ArgsLegacy.GetNoTableScan(),
-			"oplog_size_mb":                        p.ArgsLegacy.GetOplogSizeMB(),
-			"oplog_min_retention_hours":            p.ArgsLegacy.GetOplogMinRetentionHours(),
-			"sample_size_bi_connector":             p.ArgsLegacy.GetSampleSizeBIConnector(),
-			"sample_refresh_interval_bi_connector": p.ArgsLegacy.GetSampleRefreshIntervalBIConnector(),
-			"transaction_lifetime_limit_seconds":   p.ArgsLegacy.GetTransactionLifetimeLimitSeconds(),
+			"default_write_concern":                p.ArgsDefault.GetDefaultWriteConcern(),
+			"javascript_enabled":                   p.ArgsDefault.GetJavascriptEnabled(),
+			"no_table_scan":                        p.ArgsDefault.GetNoTableScan(),
+			"oplog_size_mb":                        p.ArgsDefault.GetOplogSizeMB(),
+			"oplog_min_retention_hours":            p.ArgsDefault.GetOplogMinRetentionHours(),
+			"sample_size_bi_connector":             p.ArgsDefault.GetSampleSizeBIConnector(),
+			"sample_refresh_interval_bi_connector": p.ArgsDefault.GetSampleRefreshIntervalBIConnector(),
+			"transaction_lifetime_limit_seconds":   p.ArgsDefault.GetTransactionLifetimeLimitSeconds(),
 		},
 	}
-	if p.ArgsDefault != nil {
-		if v := p.ArgsDefault.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds; v == nil {
-			flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = -1 // default in schema, otherwise user gets drift detection
-		} else {
-			flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = p.ArgsDefault.GetChangeStreamOptionsPreAndPostImagesExpireAfterSeconds()
-		}
 
-		if v := p.ArgsDefault.DefaultMaxTimeMS; v != nil {
-			flattenedProcessArgs[0]["default_max_time_ms"] = p.ArgsDefault.GetDefaultMaxTimeMS()
-		}
+	if v := p.ArgsDefault.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds; v == nil {
+		flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = -1 // default in schema, otherwise user gets drift detection
+	} else {
+		flattenedProcessArgs[0]["change_stream_options_pre_and_post_images_expire_after_seconds"] = p.ArgsDefault.GetChangeStreamOptionsPreAndPostImagesExpireAfterSeconds()
+	}
+
+	if v := p.ArgsDefault.DefaultMaxTimeMS; v != nil {
+		flattenedProcessArgs[0]["default_max_time_ms"] = p.ArgsDefault.GetDefaultMaxTimeMS()
 	}
 
 	if p.ClusterAdvancedConfig != nil {

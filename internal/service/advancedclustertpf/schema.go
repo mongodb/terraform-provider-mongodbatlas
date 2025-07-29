@@ -15,9 +15,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
@@ -502,18 +502,6 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				Optional:            true,
 				MarkdownDescription: "Lifetime, in seconds, of multi-document transactions. Atlas considers the transactions that exceed this limit as expired and so aborts them through a periodic cleanup process.",
 			},
-			"default_read_concern": schema.StringAttribute{
-				DeprecationMessage:  deprecationMsgOldSchema("default_read_concern"),
-				Computed:            true,
-				Optional:            true,
-				MarkdownDescription: "Default level of acknowledgment requested from MongoDB for read operations set for this cluster.",
-			},
-			"fail_index_key_too_long": schema.BoolAttribute{
-				DeprecationMessage:  deprecationMsgOldSchema("fail_index_key_too_long"),
-				Computed:            true,
-				Optional:            true,
-				MarkdownDescription: "When true, documents can only be updated or inserted if, for all indexed fields on the target collection, the corresponding index entries do not exceed 1024 bytes. When false, mongod writes documents that exceed the limit but does not index them.",
-			},
 			"default_max_time_ms": schema.Int64Attribute{
 				Computed:            true,
 				Optional:            true,
@@ -747,7 +735,6 @@ type TFAdvancedConfigurationModel struct {
 	CustomOpensslCipherConfigTls12                        types.Set     `tfsdk:"custom_openssl_cipher_config_tls12"`
 	MinimumEnabledTlsProtocol                             types.String  `tfsdk:"minimum_enabled_tls_protocol"`
 	DefaultWriteConcern                                   types.String  `tfsdk:"default_write_concern"`
-	DefaultReadConcern                                    types.String  `tfsdk:"default_read_concern"`
 	TlsCipherConfigMode                                   types.String  `tfsdk:"tls_cipher_config_mode"`
 	SampleRefreshIntervalBiconnector                      types.Int64   `tfsdk:"sample_refresh_interval_bi_connector"`
 	SampleSizeBiconnector                                 types.Int64   `tfsdk:"sample_size_bi_connector"`
@@ -757,14 +744,11 @@ type TFAdvancedConfigurationModel struct {
 	ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds types.Int64   `tfsdk:"change_stream_options_pre_and_post_images_expire_after_seconds"`
 	JavascriptEnabled                                     types.Bool    `tfsdk:"javascript_enabled"`
 	NoTableScan                                           types.Bool    `tfsdk:"no_table_scan"`
-	FailIndexKeyTooLong                                   types.Bool    `tfsdk:"fail_index_key_too_long"`
 }
 
 var AdvancedConfigurationObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"change_stream_options_pre_and_post_images_expire_after_seconds": types.Int64Type,
-	"default_read_concern":                 types.StringType,
 	"default_write_concern":                types.StringType,
-	"fail_index_key_too_long":              types.BoolType,
 	"javascript_enabled":                   types.BoolType,
 	"minimum_enabled_tls_protocol":         types.StringType,
 	"no_table_scan":                        types.BoolType,

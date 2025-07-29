@@ -340,16 +340,11 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(ErrorClusterAdvancedSetting, "replication_specs", clusterName, err))
 	}
 
-	processArgs20240530, _, err := connV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
-	if err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorAdvancedConfRead, V20240530, clusterName, err))
-	}
 	processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorAdvancedConfRead, "", clusterName, err))
 	}
 	advConfigAttr := flattenProcessArgs(&advancedclustertpf.ProcessArgs{
-		ArgsLegacy:            processArgs20240530,
 		ArgsDefault:           processArgs,
 		ClusterAdvancedConfig: clusterDesc.AdvancedConfiguration,
 	})
