@@ -222,15 +222,15 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 		resp.Diagnostics.AddError(invalidImportID, "expected 'project_id/user_id' or 'project_id/username', got: "+importID)
 		return
 	}
-	orgID, userID := parts[0], parts[1]
+	projectID, user := parts[0], parts[1]
 
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("org_id"), orgID)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("projetc_id"), projectID)...)
 
 	emailRegex := regexp.MustCompile(`^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$`)
 
-	if emailRegex.MatchString(userID) {
-		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("username"), userID)...)
+	if emailRegex.MatchString(user) {
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("username"), user)...)
 	} else {
-		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("user_id"), userID)...)
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("user_id"), user)...)
 	}
 }
