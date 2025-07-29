@@ -207,20 +207,55 @@ func ConfigBasicDedicated(projectID, name, zoneName string) string {
 			%[3]s
 		}
 	}
-	data "mongodbatlas_advanced_cluster" "test" {
-		project_id = mongodbatlas_advanced_cluster.test.project_id
-		name 	     = mongodbatlas_advanced_cluster.test.name
-		use_replication_spec_per_shard = true
-		depends_on = [mongodbatlas_advanced_cluster.test]
-	}
-			
-	data "mongodbatlas_advanced_clusters" "test" {
-		use_replication_spec_per_shard = true
-		project_id = mongodbatlas_advanced_cluster.test.project_id
-		depends_on = [mongodbatlas_advanced_cluster.test]
-	}
-	`, projectID, name, zoneNameLine)
+	%[4]s
+	`, projectID, name, zoneNameLine, advancedClusterDataSources)
 }
+
+func ConfigDedicatedNVMeBackupEnabled(projectID, name, zoneName string) string {
+	zoneNameLine := ""
+	if zoneName != "" {
+		zoneNameLine = fmt.Sprintf("zone_name = %q", zoneName)
+	}
+	return fmt.Sprintf(`
+	resource "mongodbatlas_advanced_cluster" "test" {
+		project_id   = %[1]q
+		name         = %[2]q
+		cluster_type = "REPLICASET"
+
+		backup_enabled = true
+
+		replication_specs {
+			region_configs {
+				priority        = 7
+				provider_name = "AWS"
+				region_name     = "US_EAST_1"
+				electable_specs {
+					instance_size   = "M40_NVME"
+        			ebs_volume_type = "PROVISIONED"
+        			node_count      = 3
+				}
+			}
+			%[3]s
+		}
+	}
+	%[4]s
+	`, projectID, name, zoneNameLine, advancedClusterDataSources)
+}
+
+const advancedClusterDataSources = `
+data "mongodbatlas_advanced_cluster" "test" {
+	project_id = mongodbatlas_advanced_cluster.test.project_id
+	name 	     = mongodbatlas_advanced_cluster.test.name
+	use_replication_spec_per_shard = true
+	depends_on = [mongodbatlas_advanced_cluster.test]
+}
+		
+data "mongodbatlas_advanced_clusters" "test" {
+	use_replication_spec_per_shard = true
+	project_id = mongodbatlas_advanced_cluster.test.project_id
+	depends_on = [mongodbatlas_advanced_cluster.test]
+}
+`
 
 func JoinQuotedStrings(list []string) string {
 	quoted := make([]string, len(list))

@@ -1511,13 +1511,18 @@ func getUpgradeRequest(d *schema.ResourceData) *admin.LegacyAtlasTenantClusterUp
 		return nil
 	}
 
-	return &admin.LegacyAtlasTenantClusterUpgradeRequest{
+	req := admin.LegacyAtlasTenantClusterUpgradeRequest{
 		ProviderSettings: &admin.ClusterProviderSettings{
 			ProviderName:     updatedRegion.GetProviderName(),
 			InstanceSizeName: updatedRegion.ElectableSpecs.InstanceSize,
 			RegionName:       updatedRegion.RegionName,
 		},
 	}
+	if d.Get("backup_enabled").(bool) {
+		// ProviderBackupEnabled must be used instead of BackupEnabled for tenant upgrade request, details in CLOUDP-327109
+		req.ProviderBackupEnabled = conversion.Pointer(true)
+	}
+	return &req
 }
 
 func waitForUpdateToFinish(ctx context.Context, connV2 *admin.APIClient, projectID, name string, timeout time.Duration) error {
