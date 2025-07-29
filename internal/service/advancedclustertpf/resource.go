@@ -163,16 +163,14 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	clusterResp := CreateCluster(ctx, diags, r.Client, latestReq, waitParams, usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags))
 	emptyAdvancedConfiguration := types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
 	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
-	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
 	if diags.HasError() {
 		return
 	}
 	p := &ProcessArgs{
-		ArgsLegacy:            patchReqProcessArgsLegacy,
 		ArgsDefault:           patchReqProcessArgs,
 		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
 	}
-	legacyAdvConfig, advConfig, _ := UpdateAdvancedConfiguration(ctx, diags, r.Client, p, waitParams)
+	advConfig, _ := UpdateAdvancedConfiguration(ctx, diags, r.Client, p, waitParams)
 	if diags.HasError() {
 		return
 	}
@@ -187,10 +185,9 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	legacyAdvConfig, advConfig = ReadIfUnsetAdvancedConfiguration(ctx, diags, r.Client, waitParams.ProjectID, waitParams.ClusterName, legacyAdvConfig, advConfig)
+	advConfig = ReadIfUnsetAdvancedConfiguration(ctx, diags, r.Client, waitParams.ProjectID, waitParams.ClusterName, advConfig)
 
 	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
-		ArgsLegacy:            legacyAdvConfig,
 		ArgsDefault:           advConfig,
 		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
 	})
@@ -230,7 +227,6 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
-		ArgsLegacy:            nil,
 		ArgsDefault:           nil,
 		ClusterAdvancedConfig: cluster.AdvancedConfiguration,
 	})
@@ -304,22 +300,19 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
-	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
 	if diags.HasError() {
 		return
 	}
 	p := &ProcessArgs{
-		ArgsLegacy:            patchReqProcessArgsLegacy,
 		ArgsDefault:           patchReqProcessArgs,
 		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
 	}
-	legacyAdvConfig, advConfig, advConfigChanged := UpdateAdvancedConfiguration(ctx, diags, r.Client, p, waitParams)
+	advConfig, advConfigChanged := UpdateAdvancedConfiguration(ctx, diags, r.Client, p, waitParams)
 	if diags.HasError() {
 		return
 	}
 	if advConfigChanged {
 		updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
-			ArgsLegacy:            legacyAdvConfig,
 			ArgsDefault:           advConfig,
 			ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
 		})
@@ -481,12 +474,11 @@ func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, cli
 	p *ProcessArgs) {
 	projectID := model.ProjectID.ValueString()
 	clusterName := model.Name.ValueString()
-	legacyAdvConfig, advConfig := ReadIfUnsetAdvancedConfiguration(ctx, diags, client, projectID, clusterName, p.ArgsLegacy, p.ArgsDefault)
+	advConfig := ReadIfUnsetAdvancedConfiguration(ctx, diags, client, projectID, clusterName, p.ArgsDefault)
 	if diags.HasError() {
 		return
 	}
 	p.ArgsDefault = advConfig
-	p.ArgsLegacy = legacyAdvConfig
 
 	AddAdvancedConfig(ctx, model, p, diags)
 }

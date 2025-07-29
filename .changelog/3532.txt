@@ -1,11 +1,11 @@
 ```release-note:breaking-change
-resource/mongodbatlas_advanced_cluster: Removes deprecated `disk_size_gb`, `id`, `num_shards`, `advanced_configuration.default_read_concern`, `advanced_configuration.fail_index_key_too_long` attributes
+resource/mongodbatlas_advanced_cluster: Removes deprecated `disk_size_gb`, `replication_specs.#.id`, `num_shards`, `advanced_configuration.default_read_concern`, `advanced_configuration.fail_index_key_too_long` attributes
 ```
 
 ```release-note:breaking-change
-data-source/mongodbatlas_advanced_cluster: Removes deprecated `disk_size_gb`, `id`, `num_shards`, `use_replication_spec_per_shard`, `advanced_configuration.default_read_concern`, `advanced_configuration.fail_index_key_too_long` attributes
+data-source/mongodbatlas_advanced_cluster: Removes deprecated `disk_size_gb`, `replication_specs.#.id`, `num_shards`, `use_replication_spec_per_shard`, `advanced_configuration.default_read_concern`, `advanced_configuration.fail_index_key_too_long` attributes
 ```
 
 ```release-note:breaking-change
-data-source/mongodbatlas_advanced_clusters: Removes deprecated `disk_size_gb`, `id`, `num_shards`, `use_replication_spec_per_shard`, `advanced_configuration.default_read_concern`, `advanced_configuration.fail_index_key_too_long` attributes
+data-source/mongodbatlas_advanced_clusters: Removes deprecated `disk_size_gb`, `replication_specs.#.id`, `num_shards`, `use_replication_spec_per_shard`, `advanced_configuration.default_read_concern`, `advanced_configuration.fail_index_key_too_long` attributes
 ```
