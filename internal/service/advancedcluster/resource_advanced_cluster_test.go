@@ -138,7 +138,8 @@ func testAccAdvancedClusterFlexUpgrade(t *testing.T, instanceSize string, includ
 	}
 	if includeDedicated {
 		steps = append(steps, resource.TestStep{
-			Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, acc.ConfigBasicDedicated(projectID, clusterName, defaultZoneName)),
+			// Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, acc.ConfigBasicDedicated(projectID, clusterName, defaultZoneName)),
+			Config: acc.ConfigBasicDedicated(projectID, clusterName, defaultZoneName),
 			Check:  checksBasicDedicated(projectID, clusterName),
 		})
 	}
