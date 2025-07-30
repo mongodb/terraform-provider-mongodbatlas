@@ -1,11 +1,12 @@
 package teamprojectassignment
 
 import (
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"regexp"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
@@ -40,7 +41,7 @@ func resourceSchema() schema.Schema {
 }
 
 type TFModel struct {
-	ProjectId  types.String `tfsdk:"project_id"`
-	RoleNames  types.Set   `tfsdk:"role_names"`
-	TeamId     types.String `tfsdk:"team_id"`
+	ProjectId types.String `tfsdk:"project_id"`
+	RoleNames types.Set    `tfsdk:"role_names"`
+	TeamId    types.String `tfsdk:"team_id"`
 }
