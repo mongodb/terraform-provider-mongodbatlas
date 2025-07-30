@@ -134,7 +134,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Pending:    []string{"INITIATING", "DELETING"},
 		Target:     []string{"WAITING_FOR_USER", "FAILED", "DELETED", "AVAILABLE"},
 		Refresh:    refreshFunc(ctx, connV2, projectID, providerName, privateEndpoint.GetId()),
-		Timeout:    d.Timeout(schema.TimeoutCreate),
+		Timeout:    d.Timeout(schema.TimeoutCreate) - time.Minute, // If using a CRUD function with a timeout, any StateChangeConf timeouts should be configured below that duration to avoid returning the SDK context: deadline exceeded error instead of the retry logic error.
 		MinTimeout: 5 * time.Second,
 		Delay:      3 * time.Second,
 	}
