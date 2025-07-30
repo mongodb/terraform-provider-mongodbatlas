@@ -1329,7 +1329,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	timeout := d.Timeout(schema.TimeoutDelete)
 
 	if advancedclustertpf.IsFlex(replicationSpecs) {
-		err := flexcluster.DeleteFlexCluster(ctx, projectID, clusterName, connV2.FlexClustersApi, &timeout)
+		err := flexcluster.DeleteFlexCluster(ctx, projectID, clusterName, connV2.FlexClustersApi, timeout)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(flexcluster.ErrorDeleteFlex, clusterName, err))
 		}
@@ -1542,7 +1542,7 @@ func resourceUpdateFlexCluster(ctx context.Context, flexUpdateRequest *admin.Fle
 	clusterName := ids["cluster_name"]
 	timeout := d.Timeout(schema.TimeoutUpdate)
 
-	_, err := flexcluster.UpdateFlexCluster(ctx, projectID, clusterName, flexUpdateRequest, connV2.FlexClustersApi, &timeout)
+	_, err := flexcluster.UpdateFlexCluster(ctx, projectID, clusterName, flexUpdateRequest, connV2.FlexClustersApi, timeout)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(flexcluster.ErrorUpdateFlex, err))
 	}

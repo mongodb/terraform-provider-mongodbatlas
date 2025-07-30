@@ -269,7 +269,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			}
 			return
 		case diff.isUpdateOfFlex:
-			if flexOut := handleFlexUpdate(ctx, diags, r.Client, &plan); flexOut != nil {
+			if flexOut := handleFlexUpdate(ctx, diags, r.Client, waitParams, &plan); flexOut != nil {
 				diags.Append(resp.State.Set(ctx, flexOut)...)
 			}
 			return
@@ -589,7 +589,7 @@ func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *con
 	return NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(configReq.ReplicationSpecs), plan)
 }
 
-func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, plan *TFModel) *TFModel {
+func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, plan *TFModel) *TFModel {
 	configReq := normalizeFromTFModel(ctx, plan, diags, false)
 	if diags.HasError() {
 		return nil
@@ -597,7 +597,7 @@ func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *conf
 	clusterName := plan.Name.ValueString()
 	flexCluster, err := flexcluster.UpdateFlexCluster(ctx, plan.ProjectID.ValueString(), clusterName,
 		GetFlexClusterUpdateRequest(configReq.Tags, configReq.TerminationProtectionEnabled),
-		client.AtlasV2.FlexClustersApi, nil)
+		client.AtlasV2.FlexClustersApi, waitParams.Timeout)
 	if err != nil {
 		diags.AddError(fmt.Sprintf(flexcluster.ErrorUpdateFlex, clusterName), err.Error())
 		return nil
