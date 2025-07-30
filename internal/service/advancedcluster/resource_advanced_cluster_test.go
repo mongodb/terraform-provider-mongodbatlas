@@ -20,6 +20,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
@@ -1457,7 +1458,7 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateFlex(t *testing.T) {
 			err := flexcluster.WaitStateTransitionDelete(t.Context(), &admin.GetFlexClusterApiParams{
 				GroupId: projectID,
 				Name:    clusterName,
-			}, acc.ConnV2().FlexClustersApi, nil)
+			}, acc.ConnV2().FlexClustersApi, constant.DefaultTimeout)
 			require.NoError(t, err)
 			time.Sleep(1 * time.Minute) // decrease the chance of `CONTAINER_WAITING_FOR_FAST_RECORD_CLEAN_UP`: "A transient error occurred. Please try again in a minute or use a different name"
 		}

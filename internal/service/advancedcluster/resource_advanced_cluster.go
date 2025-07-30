@@ -1434,7 +1434,7 @@ func waitStateTransitionFlexUpgrade(ctx context.Context, client admin.FlexCluste
 		GroupId: projectID,
 		Name:    name,
 	}
-	flexClusterResp, err := flexcluster.WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState}, true, &timeout)
+	flexClusterResp, err := flexcluster.WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState}, true, timeout)
 	if err != nil {
 		return nil, err
 	}

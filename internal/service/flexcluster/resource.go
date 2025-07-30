@@ -263,7 +263,7 @@ func CreateFlexCluster(ctx context.Context, projectID, clusterName string, flexC
 		Name:    clusterName,
 	}
 
-	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyCreatingState, retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyRepairingState}, []string{retrystrategy.RetryStrategyIdleState}, false, timeout)
+	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyCreatingState, retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyRepairingState}, []string{retrystrategy.RetryStrategyIdleState}, false, *timeout)
 	if err != nil {
 		return nil, err
 	}
@@ -289,7 +289,7 @@ func UpdateFlexCluster(ctx context.Context, projectID, clusterName string, flexC
 		Name:    clusterName,
 	}
 
-	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyRepairingState}, []string{retrystrategy.RetryStrategyIdleState}, false, timeout)
+	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyRepairingState}, []string{retrystrategy.RetryStrategyIdleState}, false, *timeout)
 	if err != nil {
 		return nil, err
 	}
@@ -306,7 +306,7 @@ func DeleteFlexCluster(ctx context.Context, projectID, clusterName string, clien
 		Name:    clusterName,
 	}
 
-	return WaitStateTransitionDelete(ctx, flexClusterParams, client, timeout)
+	return WaitStateTransitionDelete(ctx, flexClusterParams, client, *timeout)
 }
 
 func ListFlexClusters(ctx context.Context, projectID string, client admin.FlexClustersApi) (*[]admin.FlexClusterDescription20241113, error) {
