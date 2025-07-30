@@ -5,10 +5,10 @@ on:
   push:
     branches:
       - master
-    paths-ignore: # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-excluding-paths
-      - '*.md'
-      - 'examples/**'
-      - 'LICENSE'
+    # paths-ignore: # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-excluding-paths
+    #   - '*.md'
+    #   - 'examples/**'
+    #   - 'LICENSE'
   pull_request:
   workflow_dispatch:
 
