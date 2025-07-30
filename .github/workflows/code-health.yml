@@ -92,5 +92,5 @@ jobs:
     needs: [build, generate-doc-check]
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
-    with:
-        reduced_tests: true
+    # with:
+        # reduced_tests: true
