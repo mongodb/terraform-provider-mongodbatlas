@@ -194,8 +194,6 @@ func configBasic(projectID, clusterName, instanceSize string, searchNodeCount in
 	`, clusterConfig, projectID, instanceSize, searchNodeCount, skipWaitOnUpdateStr)
 }
 
-
-
 func configSearchDeployment(projectID, clusterNameRef, instanceSize string, searchNodeCount int) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_search_deployment" "test" {
