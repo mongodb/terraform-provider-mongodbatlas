@@ -32,7 +32,7 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 	username := acc.RandomEmail()
 	projectName := acc.RandomName()
 	roles := []string{"GROUP_OWNER", "GROUP_CLUSTER_MANAGER"}
-	// updatedRoles := []string{"GROUP_OWNER", "GROUP_SEARCH_INDEX_EDITOR", "GROUP_READ_ONLY"}
+	updatedRoles := []string{"GROUP_OWNER", "GROUP_SEARCH_INDEX_EDITOR", "GROUP_READ_ONLY"}
 
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -43,15 +43,15 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 				Config: configBasic(orgID, username, projectName, roles),
 				Check:  checks(username, roles),
 			},
-			/*{
+			{
 				Config: configBasic(orgID, username, projectName, updatedRoles),
 				Check:  checks(username, updatedRoles),
-			},*/
+			},
 			{
 				ResourceName:                         resourceName,
 				ImportState:                          true,
 				ImportStateVerify:                    true,
-				ImportStateVerifyIdentifierAttribute: "project_id",
+				ImportStateVerifyIdentifierAttribute: "user_id",
 				ImportStateIdFunc: func(s *terraform.State) (string, error) {
 					attrs := s.RootModule().Resources[resourceName].Primary.Attributes
 					projectID := attrs["project_id"]
@@ -63,7 +63,7 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 				ResourceName:                         resourceName,
 				ImportState:                          true,
 				ImportStateVerify:                    true,
-				ImportStateVerifyIdentifierAttribute: "project_id",
+				ImportStateVerifyIdentifierAttribute: "user_id",
 				ImportStateIdFunc: func(s *terraform.State) (string, error) {
 					attrs := s.RootModule().Resources[resourceName].Primary.Attributes
 					projectID := attrs["project_id"]
@@ -145,7 +145,7 @@ func checks(username string, roles []string) resource.TestCheckFunc {
 		resource.TestCheckResourceAttr(dataSourceName1, "username", username),
 		resource.TestCheckResourceAttr(dataSourceName2, "username", username),
 
-		// resource.TestCheckResourceAttrPair(dataSourceName1, "user_id", dataSourceName2, "user_id"),
+		resource.TestCheckResourceAttrPair(dataSourceName1, "user_id", dataSourceName2, "user_id"),
 		resource.TestCheckResourceAttrPair(dataSourceName1, "project_id", dataSourceName2, "project_id"),
 		resource.TestCheckResourceAttrPair(dataSourceName1, "roles.#", dataSourceName2, "roles.#"),
 	}
