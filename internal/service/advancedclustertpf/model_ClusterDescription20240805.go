@@ -6,10 +6,12 @@ import (
 	"slices"
 	"strings"
 
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
 const (
@@ -18,6 +20,7 @@ const (
 	errorReplicationSpecIDNotSet = "replicationSpecID not set for zoneName %s"
 )
 
+// tmp comment revert
 type ExtraAPIInfo struct {
 	ZoneNameNumShards          map[string]int64
 	ZoneNameReplicationSpecIDs map[string]string

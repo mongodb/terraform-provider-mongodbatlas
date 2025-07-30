@@ -6,12 +6,14 @@ import (
 	"strings"
 	"time"
 
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
 var (
@@ -193,18 +195,20 @@ func ConfigBasicDedicated(projectID, name, zoneName string) string {
 		name         = %[2]q
 		cluster_type = "REPLICASET"
 
-		replication_specs {
-			region_configs {
+		replication_specs = [
+			{
+				region_configs = [{
 				priority        = 7
 				provider_name = "AWS"
 				region_name     = "US_EAST_1"
-				electable_specs {
-					node_count = 3
-					instance_size = "M10"
-				}
+				electable_specs = {
+						node_count = 3
+						instance_size = "M10"
+					}
+				}]
 			}
 			%[3]s
-		}
+		]
 	}
 	data "mongodbatlas_advanced_cluster" "test" {
 		project_id = mongodbatlas_advanced_cluster.test.project_id

@@ -1,13 +1,15 @@
 package acc
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
 
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/zclconf/go-cty/cty"
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
 func ClusterDatasourceHcl(req *ClusterRequest) (configStr, clusterName, resourceName string, err error) {
@@ -73,39 +75,57 @@ func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceNa
 	} else {
 		clusterRootAttributes["project_id"] = projectID
 	}
-	if req.DiskSizeGb != 0 {
-		clusterRootAttributes["disk_size_gb"] = req.DiskSizeGb
-	}
+	// if req.DiskSizeGb != 0 {
+	// 	clusterRootAttributes["disk_size_gb"] = req.DiskSizeGb
+	// }
 	if req.RetainBackupsEnabled {
 		clusterRootAttributes["retain_backups_enabled"] = req.RetainBackupsEnabled
 	}
 	addPrimitiveAttributes(cluster, clusterRootAttributes)
 	cluster.AppendNewline()
 	if len(req.AdvancedConfiguration) > 0 {
-		for _, key := range sortStringMapKeysAny(req.AdvancedConfiguration) {
-			if !knownAdvancedConfig[key] {
-				return "", "", "", fmt.Errorf("unknown key in advanced configuration: %s", key)
-			}
+
+		if err := writeAdvancedConfiguration(cluster, req.AdvancedConfiguration); err != nil {
+			return "", "", "", err
 		}
-		advancedClusterBlock := cluster.AppendNewBlock("advanced_configuration", nil).Body()
-		addPrimitiveAttributes(advancedClusterBlock, req.AdvancedConfiguration)
-		cluster.AppendNewline()
+		// for _, key := range sortStringMapKeysAny(req.AdvancedConfiguration) {
+		// 	if !knownAdvancedConfig[key] {
+		// 		return "", "", "", fmt.Errorf("unknown key in advanced configuration: %s", key)
+		// 	}
+		// }
+		// // advancedClusterBlock := cluster.SetAttributeValue("advanced_configuration", cty.NullVal(cty.EmptyObject))
+		// advancedClusterBlock := cluster.AppendNewBlock("advanced_configuration", nil).Body()
+		// addPrimitiveAttributes(advancedClusterBlock, req.AdvancedConfiguration)
+		// cluster.AppendNewline()
 	}
-	for i, spec := range specs {
-		err = writeReplicationSpec(cluster, spec)
-		if err != nil {
-			return "", "", "", fmt.Errorf("error writing hcl for replication spec %d: %w", i, err)
-		}
+	err = writeReplicationSpec(cluster, specs)
+	if err != nil {
+		return "", "", "", fmt.Errorf("error writing hcl for replication specs: %w", err)
 	}
+	// for i, spec := range specs {
+	// 	err = writeReplicationSpec(cluster, spec)
+	// 	if err != nil {
+	// 		return "", "", "", fmt.Errorf("error writing hcl for replication spec %d: %w", i, err)
+	// 	}
+	// }
+	// if len(req.Tags) > 0 {
+	// 	for _, key := range SortStringMapKeys(req.Tags) {
+	// 		value := req.Tags[key]
+	// 		tagBlock := cluster.AppendNewBlock("tags", nil).Body()
+	// 		tagBlock.SetAttributeValue("key", cty.StringVal(key))
+	// 		tagBlock.SetAttributeValue("value", cty.StringVal(value))
+	// 	}
+	// }
+
 	if len(req.Tags) > 0 {
+		tagMap := make(map[string]cty.Value, len(req.Tags))
 		for _, key := range SortStringMapKeys(req.Tags) {
-			value := req.Tags[key]
-			tagBlock := cluster.AppendNewBlock("tags", nil).Body()
-			tagBlock.SetAttributeValue("key", cty.StringVal(key))
-			tagBlock.SetAttributeValue("value", cty.StringVal(value))
+			tagMap[key] = cty.StringVal(req.Tags[key])
 		}
+		cluster.SetAttributeValue("tags", cty.ObjectVal(tagMap))
 	}
 	cluster.AppendNewline()
+
 	if req.ResourceDependencyName != "" {
 		if !strings.Contains(req.ResourceDependencyName, ".") {
 			return "", "", "", fmt.Errorf("req.ResourceDependencyName must have a '.'")
@@ -119,42 +139,203 @@ func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceNa
 	return "\n" + string(f.Bytes()), clusterName, clusterResourceName, err
 }
 
-func writeReplicationSpec(cluster *hclwrite.Body, spec admin.ReplicationSpec20240805) error {
-	replicationBlock := cluster.AppendNewBlock("replication_specs", nil).Body()
-	err := addPrimitiveAttributesViaJSON(replicationBlock, spec)
-	if err != nil {
-		return err
-	}
-	for _, rc := range spec.GetRegionConfigs() {
-		if rc.Priority == nil {
-			rc.SetPriority(7)
+// func writeReplicationSpec(cluster *hclwrite.Body, spec admin.ReplicationSpec20240805) error {
+// 	replicationBlock := cluster.AppendNewBlock("replication_specs", nil).Body()
+// 	err := addPrimitiveAttributesViaJSON(replicationBlock, spec)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	for _, rc := range spec.GetRegionConfigs() {
+// 		if rc.Priority == nil {
+// 			rc.SetPriority(7)
+// 		}
+// 		replicationBlock.AppendNewline()
+// 		rcBlock := replicationBlock.AppendNewBlock("region_configs", nil).Body()
+// 		err = addPrimitiveAttributesViaJSON(rcBlock, rc)
+// 		if err != nil {
+// 			return err
+// 		}
+// 		autoScalingBlock := rcBlock.AppendNewBlock("auto_scaling", nil).Body()
+// 		if rc.AutoScaling == nil {
+// 			autoScalingBlock.SetAttributeValue("disk_gb_enabled", cty.BoolVal(false))
+// 		} else {
+// 			autoScaling := rc.GetAutoScaling()
+// 			asDisk := autoScaling.GetDiskGB()
+// 			autoScalingBlock.SetAttributeValue("disk_gb_enabled", cty.BoolVal(asDisk.GetEnabled()))
+// 			if autoScaling.Compute != nil {
+// 				return fmt.Errorf("auto_scaling.compute is not supportd yet %v", autoScaling)
+// 			}
+// 		}
+// 		nodeSpec := rc.GetElectableSpecs()
+// 		nodeSpecBlock := rcBlock.AppendNewBlock("electable_specs", nil).Body()
+// 		err = addPrimitiveAttributesViaJSON(nodeSpecBlock, nodeSpec)
+
+// 		readOnlySpecs := rc.GetReadOnlySpecs()
+// 		if readOnlySpecs.GetNodeCount() != 0 {
+// 			readOnlyBlock := rcBlock.AppendNewBlock("read_only_specs", nil).Body()
+// 			err = addPrimitiveAttributesViaJSON(readOnlyBlock, readOnlySpecs)
+// 		}
+// 	}
+// 	return err
+// }
+
+func recursiveJSONToCty(raw any) (cty.Value, error) {
+	switch v := raw.(type) {
+	case map[string]any:
+		obj := make(map[string]cty.Value, len(v))
+		for key, val := range v {
+			snake := ToSnakeCase(key)
+			conv, err := recursiveJSONToCty(val)
+			if err != nil {
+				return cty.NilVal, err
+			}
+			obj[snake] = conv
 		}
-		replicationBlock.AppendNewline()
-		rcBlock := replicationBlock.AppendNewBlock("region_configs", nil).Body()
-		err = addPrimitiveAttributesViaJSON(rcBlock, rc)
+		return cty.ObjectVal(obj), nil
+
+	case []any:
+		list := make([]cty.Value, 0, len(v))
+		for _, elem := range v {
+			conv, err := recursiveJSONToCty(elem)
+			if err != nil {
+				return cty.NilVal, err
+			}
+			list = append(list, conv)
+		}
+		return cty.ListVal(list), nil
+
+	case bool:
+		return cty.BoolVal(v), nil
+	case string:
+		return cty.StringVal(v), nil
+	case float64:
+		if float64(int64(v)) == v {
+			return cty.NumberIntVal(int64(v)), nil
+		}
+		return cty.NumberFloatVal(v), nil
+
+	case nil:
+		return cty.NullVal(cty.DynamicPseudoType), nil
+
+	default:
+		return cty.NilVal, fmt.Errorf("unsupported JSON value type %T", v)
+	}
+}
+
+func structToCtyObject(obj any) (map[string]cty.Value, error) {
+	data, err := json.Marshal(obj)
+	if err != nil {
+		return nil, err
+	}
+
+	var raw any
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, err
+	}
+
+	top, ok := raw.(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("expected JSON object, got %T", raw)
+	}
+
+	result := make(map[string]cty.Value, len(top))
+	for key, val := range top {
+		snake := ToSnakeCase(key)
+		conv, err := recursiveJSONToCty(val)
+		if err != nil {
+			return nil, err
+		}
+		if conv.IsNull() {
+			continue
+		}
+		result[snake] = conv
+	}
+	return result, nil
+}
+
+func writeReplicationSpec(cluster *hclwrite.Body, specs []admin.ReplicationSpec20240805) error {
+	var allSpecs []cty.Value
+
+	for _, spec := range specs {
+		specMap, err := structToCtyObject(spec)
 		if err != nil {
 			return err
 		}
-		autoScalingBlock := rcBlock.AppendNewBlock("auto_scaling", nil).Body()
-		if rc.AutoScaling == nil {
-			autoScalingBlock.SetAttributeValue("disk_gb_enabled", cty.BoolVal(false))
-		} else {
-			autoScaling := rc.GetAutoScaling()
-			asDisk := autoScaling.GetDiskGB()
-			autoScalingBlock.SetAttributeValue("disk_gb_enabled", cty.BoolVal(asDisk.GetEnabled()))
-			if autoScaling.Compute != nil {
-				return fmt.Errorf("auto_scaling.compute is not supportd yet %v", autoScaling)
-			}
-		}
-		nodeSpec := rc.GetElectableSpecs()
-		nodeSpecBlock := rcBlock.AppendNewBlock("electable_specs", nil).Body()
-		err = addPrimitiveAttributesViaJSON(nodeSpecBlock, nodeSpec)
+		delete(specMap, "region_configs")
 
-		readOnlySpecs := rc.GetReadOnlySpecs()
-		if readOnlySpecs.GetNodeCount() != 0 {
-			readOnlyBlock := rcBlock.AppendNewBlock("read_only_specs", nil).Body()
-			err = addPrimitiveAttributesViaJSON(readOnlyBlock, readOnlySpecs)
+		var rcList []cty.Value
+		for _, rc := range spec.GetRegionConfigs() {
+			if rc.Priority == nil {
+				rc.SetPriority(7)
+			}
+
+			rcMap, err := structToCtyObject(rc)
+			if err != nil {
+				return err
+			}
+
+			delete(rcMap, "auto_scaling")
+
+			if rc.AutoScaling == nil {
+
+				rcMap["disk_gb_enabled"] = cty.BoolVal(false)
+			} else {
+				autoScaling := rc.GetAutoScaling()
+				asDisk := autoScaling.GetDiskGB()
+
+				rcMap["disk_gb_enabled"] = cty.BoolVal(asDisk.GetEnabled())
+			}
+
+			{
+				esMap, err := structToCtyObject(rc.GetElectableSpecs())
+				if err != nil {
+					return err
+				}
+				rcMap["electable_specs"] = cty.ObjectVal(esMap)
+			}
+
+			if ros := rc.GetReadOnlySpecs(); ros.GetNodeCount() != 0 {
+				roMap, err := structToCtyObject(ros)
+				if err != nil {
+					return err
+				}
+				rcMap["read_only_specs"] = cty.ObjectVal(roMap)
+			}
+
+			rcList = append(rcList, cty.ObjectVal(rcMap))
+		}
+
+		specMap["region_configs"] = cty.ListVal(rcList)
+
+		allSpecs = append(allSpecs, cty.ObjectVal(specMap))
+	}
+
+	cluster.SetAttributeValue("replication_specs", cty.ListVal(allSpecs))
+
+	return nil
+}
+
+func writeAdvancedConfiguration(
+	cluster *hclwrite.Body,
+	advConfig map[string]any,
+) error {
+	if len(advConfig) == 0 {
+		return nil
+	}
+
+	for _, key := range sortStringMapKeysAny(advConfig) {
+		if !knownAdvancedConfig[key] {
+			return fmt.Errorf("unknown key in advanced configuration: %s", key)
 		}
 	}
-	return err
+
+	confMap, err := structToCtyObject(advConfig)
+	if err != nil {
+		return fmt.Errorf("failed to convert advanced configuration: %w", err)
+	}
+
+	cluster.SetAttributeValue("advanced_configuration", cty.ObjectVal(confMap))
+	cluster.AppendNewline()
+
+	return nil
 }

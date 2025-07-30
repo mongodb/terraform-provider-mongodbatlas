@@ -1,8 +1,6 @@
 package acc
 
 import (
-	"os"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -16,10 +14,10 @@ import (
 )
 
 // IsTestSDKv2ToTPF returns if we want to run migration tests from SDKv2 to TPF.
-func IsTestSDKv2ToTPF() bool {
-	env, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_TEST_SDKV2_TO_TPF"))
-	return env
-}
+// func IsTestSDKv2ToTPF() bool {
+// 	env, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_TEST_SDKV2_TO_TPF"))
+// 	return env
+// }
 
 func CheckRSAndDSPreviewProviderV2(usePreviewProvider bool, resourceName string, dataSourceName, pluralDataSourceName *string, attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 	modifiedSet := ConvertToPreviewProviderV2AttrsSet(usePreviewProvider, attrsSet)
