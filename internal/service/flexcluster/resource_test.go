@@ -1,11 +1,13 @@
 package flexcluster_test
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -36,11 +38,15 @@ func TestAccFlexClusterRS_timeouts(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyFlexCluster, // resource is deleted when creation times out
+		CheckDestroy:             acc.CheckDestroyFlexCluster, // verify cleanup was effective
 		Steps: []resource.TestStep{
 			{
 				Config:      configWithTimeouts(projectID, clusterName, provider, region, true),
 				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					// Explicitly verify the cluster was deleted due to timeout logic, not just test cleanup
+					checkClusterNotExists(projectID, clusterName),
+				),
 			},
 		},
 	})
@@ -186,4 +192,20 @@ func checksFlexCluster(projectID, clusterName string, terminationProtectionEnabl
 	}
 	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
 	return acc.CheckRSAndDS(resourceName, &dataSourceName, &dataSourcePluralName, attrSet, attrMap, checks...)
+}
+
+// checkClusterNotExists verifies that the flex cluster does not exist,
+// confirming that delete_on_create_timeout logic successfully cleaned up the resource
+func checkClusterNotExists(projectID, clusterName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		_, resp, err := acc.ConnV2().FlexClustersApi.GetFlexCluster(context.Background(), projectID, clusterName).Execute()
+		if err != nil {
+			// 404 is expected - cluster should not exist
+			if resp != nil && resp.StatusCode == 404 {
+				return nil
+			}
+			return fmt.Errorf("unexpected error checking cluster existence: %v", err)
+		}
+		return fmt.Errorf("cluster %s still exists in project %s, delete_on_create_timeout logic may not have worked", clusterName, projectID)
+	}
 }
