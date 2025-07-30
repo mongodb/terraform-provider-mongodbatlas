@@ -173,7 +173,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Pending:    []string{"NONE", "INITIATING", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "VERIFIED"},
 		Target:     []string{"AVAILABLE", "REJECTED", "DELETED", "FAILED"},
 		Refresh:    resourceRefreshFunc(ctx, connV2, projectID, providerName, privateLinkID, endpointServiceID),
-		Timeout:    d.Timeout(schema.TimeoutCreate),
+		Timeout:    d.Timeout(schema.TimeoutCreate) - time.Minute, // When using a CRUD function with a timeout, any StateChangeConf timeouts must be configured below that duration to avoid returning the SDK context: deadline exceeded error instead of the retry logic error.
 		MinTimeout: 5 * time.Second,
 		Delay:      1 * time.Minute,
 	}
@@ -187,7 +187,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Pending:    []string{"REPEATING", "PENDING"},
 		Target:     []string{"IDLE", "DELETED"},
 		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
-		Timeout:    d.Timeout(schema.TimeoutCreate),
+		Timeout:    d.Timeout(schema.TimeoutCreate) - time.Minute, // When using a CRUD function with a timeout, any StateChangeConf timeouts must be configured below that duration to avoid returning the SDK context: deadline exceeded error instead of the retry logic error.
 		MinTimeout: 5 * time.Second,
 		Delay:      1 * time.Minute,
 	}
