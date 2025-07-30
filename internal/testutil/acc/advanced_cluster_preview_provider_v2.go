@@ -54,9 +54,9 @@ func AddAttrChecksPrefixPreviewProviderV2(usePreviewProvider bool, name string, 
 }
 
 func ConvertToPreviewProviderV2AttrsMap(usePreviewProvider bool, attrsMap map[string]string) map[string]string {
-	// if skipPreviewProviderV2Work(usePreviewProvider) {
-	// 	return attrsMap
-	// }
+	if skipPreviewProviderV2Work(usePreviewProvider) {
+		return attrsMap
+	}
 	ret := make(map[string]string, len(attrsMap))
 	for name, value := range attrsMap {
 		ret[AttrNameToPreviewProviderV2(usePreviewProvider, name)] = value
@@ -65,9 +65,9 @@ func ConvertToPreviewProviderV2AttrsMap(usePreviewProvider bool, attrsMap map[st
 }
 
 func ConvertToPreviewProviderV2AttrsSet(usePreviewProvider bool, attrsSet []string) []string {
-	// if skipPreviewProviderV2Work(usePreviewProvider) {
-	// 	return attrsSet
-	// }
+	if skipPreviewProviderV2Work(usePreviewProvider) {
+		return attrsSet
+	}
 	ret := make([]string, 0, len(attrsSet))
 	for _, name := range attrsSet {
 		ret = append(ret, AttrNameToPreviewProviderV2(usePreviewProvider, name))
@@ -89,9 +89,9 @@ var tpfSingleNestedAttrs = []string{
 }
 
 func AttrNameToPreviewProviderV2(usePreviewProvider bool, name string) string {
-	// if skipPreviewProviderV2Work(usePreviewProvider) {
-	// 	return name
-	// }
+	if skipPreviewProviderV2Work(usePreviewProvider) {
+		return name
+	}
 	for _, singleAttrName := range tpfSingleNestedAttrs {
 		name = strings.ReplaceAll(name, singleAttrName+".0", singleAttrName)
 	}
