@@ -2,6 +2,8 @@ package advancedcluster_test
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -280,11 +282,16 @@ func configPartialAdvancedConfig(projectID, clusterName, extraArgs, autoScaling 
 // migTest is a helper function to run migration tests in normal case (SDKv2 -> SDKv2, TPF -> TPF), or in mixed case (SDKv2 -> TPF).
 func migTest(t *testing.T, testCaseFunc func(t *testing.T, usePreviewProvider bool) resource.TestCase) {
 	t.Helper()
-	// usePreviewProvider := config.PreviewProviderV2AdvancedCluster()
-	// if acc.IsTestSDKv2ToTPF() {
-	// 	usePreviewProvider = false
-	// 	t.Log("Running test SDKv2 to TPF")
-	// }
-	testCase := testCaseFunc(t, true)
+	usePreviewProvider := true
+	if IsTestSDKv2ToTPF() {
+		usePreviewProvider = false
+		t.Log("Running test SDKv2 to TPF")
+	}
+	testCase := testCaseFunc(t, usePreviewProvider)
 	mig.CreateAndRunTest(t, &testCase)
+}
+
+func IsTestSDKv2ToTPF() bool {
+	env, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_TEST_SDKV2_TO_TPF"))
+	return env
 }
