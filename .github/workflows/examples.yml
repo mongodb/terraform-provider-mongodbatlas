@@ -12,6 +12,8 @@ env:
   AWS_DEFAULT_REGION: us-west-2
 
 jobs:
+# tmp
+  # TODO: uncomment once advanced_cluster examples are updated
   # tf-validate:
   #   runs-on: ubuntu-latest
   #   permissions: {}
