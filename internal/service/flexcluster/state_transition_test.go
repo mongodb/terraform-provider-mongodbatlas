@@ -147,7 +147,7 @@ func TestFlexClusterStateTransitionForDelete(t *testing.T) {
 				modelResp, httpResp, err := resp.get()
 				m.EXPECT().GetFlexClusterExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			err := flexcluster.WaitStateTransitionDelete(t.Context(), requestParams, m)
+			err := flexcluster.WaitStateTransitionDelete(t.Context(), requestParams, m, nil)
 			assert.Equal(t, tc.expectedError, err != nil)
 		})
 	}

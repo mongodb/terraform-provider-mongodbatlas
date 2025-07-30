@@ -462,7 +462,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if isFlex {
 		flexClusterReq := advancedclustertpf.NewFlexCreateReq(clusterName, d.Get("termination_protection_enabled").(bool), conversion.ExpandTagsFromSetSchema(d), replicationSpecs)
-		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
+		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi, &timeout)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(flexcluster.ErrorCreateFlex, err))
 		}
@@ -1328,7 +1328,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	replicationSpecs := expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), nil)
 
 	if advancedclustertpf.IsFlex(replicationSpecs) {
-		err := flexcluster.DeleteFlexCluster(ctx, projectID, clusterName, connV2.FlexClustersApi)
+		err := flexcluster.DeleteFlexCluster(ctx, projectID, clusterName, connV2.FlexClustersApi, nil)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(flexcluster.ErrorDeleteFlex, clusterName, err))
 		}
@@ -1540,7 +1540,7 @@ func resourceUpdateFlexCluster(ctx context.Context, flexUpdateRequest *admin.Fle
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	_, err := flexcluster.UpdateFlexCluster(ctx, projectID, clusterName, flexUpdateRequest, connV2.FlexClustersApi)
+	_, err := flexcluster.UpdateFlexCluster(ctx, projectID, clusterName, flexUpdateRequest, connV2.FlexClustersApi, nil)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(flexcluster.ErrorUpdateFlex, err))
 	}

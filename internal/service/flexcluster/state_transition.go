@@ -40,12 +40,16 @@ func WaitStateTransition(ctx context.Context, requestParams *admin.GetFlexCluste
 	return nil, errors.New("did not obtain valid result when waiting for flex cluster state transition")
 }
 
-func WaitStateTransitionDelete(ctx context.Context, requestParams *admin.GetFlexClusterApiParams, client admin.FlexClustersApi) error {
+func WaitStateTransitionDelete(ctx context.Context, requestParams *admin.GetFlexClusterApiParams, client admin.FlexClustersApi, timeout *time.Duration) error {
+	deleteTimeout := constant.DefaultTimeout
+	if timeout != nil {
+		deleteTimeout = *timeout
+	}
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{retrystrategy.RetryStrategyDeletingState},
 		Target:     []string{retrystrategy.RetryStrategyDeletedState},
 		Refresh:    refreshFunc(ctx, requestParams, client, false),
-		Timeout:    3 * time.Hour,
+		Timeout:    deleteTimeout,
 		MinTimeout: 3 * time.Second,
 		Delay:      0,
 	}

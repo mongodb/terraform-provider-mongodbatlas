@@ -26,6 +26,26 @@ func TestAccFlexClusterRS_failedUpdate(t *testing.T) {
 	resource.Test(t, *tc)
 }
 
+func TestAccFlexClusterRS_timeouts(t *testing.T) {
+	var (
+		projectID   = acc.ProjectIDExecution(t)
+		clusterName = acc.RandomName()
+		provider    = "AWS"
+		region      = "US_EAST_1"
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyFlexCluster, // resource is deleted when creation times out
+		Steps: []resource.TestStep{
+			{
+				Config:      configWithTimeouts(projectID, clusterName, provider, region, true),
+				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
+			},
+		},
+	})
+}
+
 func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
@@ -120,6 +140,25 @@ func configBasic(projectID, clusterName, provider, region string, terminationPro
 		}
 		%[7]s
 		`, projectID, clusterName, provider, region, terminationProtectionEnabled, tagsConfig, acc.FlexDataSource)
+}
+
+func configWithTimeouts(projectID, clusterName, provider, region string, deleteOnCreateTimeout bool) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_flex_cluster" "test" {
+			project_id = %[1]q
+			name       = %[2]q
+			provider_settings = {
+				backing_provider_name = %[3]q
+				region_name           = %[4]q
+			}
+			delete_on_create_timeout = %[5]t
+			timeouts = {
+				create = "1s"
+				update = "1s"
+				delete = "5m"
+			}
+		}
+		`, projectID, clusterName, provider, region, deleteOnCreateTimeout)
 }
 
 func checksFlexCluster(projectID, clusterName string, terminationProtectionEnabled, tagsCheck bool) resource.TestCheckFunc {

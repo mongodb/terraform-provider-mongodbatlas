@@ -6,13 +6,18 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"time"
 
 	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
@@ -30,6 +35,12 @@ const (
 	ErrorUpgradeFlex            = "error upgrading to a flex cluster: %s"
 	ErrorDeleteFlex             = "error deleting a flex cluster (%s): %s"
 	ErrorNonUpdatableAttributes = "flex cluster update is not supported except for tags and termination_protection_enabled fields"
+
+	// Operation constants for timeout resolution
+	operationCreate = "create"
+	operationRead   = "read"
+	operationUpdate = "update"
+	operationDelete = "delete"
 )
 
 var _ resource.ResourceWithConfigure = &rs{}
@@ -68,8 +79,25 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	projectID := tfModel.ProjectId.ValueString()
 	clusterName := tfModel.Name.ValueString()
 
+	// Resolve timeout for create operation
+	createTimeout := resolveTimeout(ctx, &tfModel.Timeouts, operationCreate, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	connV2 := r.Client.AtlasV2
-	flexClusterResp, err := CreateFlexClusterNew(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
+	flexClusterResp, err := CreateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi, &createTimeout)
+
+	// Handle timeout with cleanup logic
+	deleteOnCreateTimeout := resolveDeleteOnCreateTimeout(tfModel.DeleteOnCreateTimeout)
+	err = cleanup.HandleCreateTimeout(deleteOnCreateTimeout, err, func(ctxCleanup context.Context) error {
+		cleanResp, cleanErr := r.Client.AtlasV2.FlexClustersApi.DeleteFlexCluster(ctxCleanup, projectID, clusterName).Execute()
+		if validate.StatusNotFound(cleanResp) {
+			return nil
+		}
+		return cleanErr
+	})
+
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf(ErrorCreateFlex, err.Error()), fmt.Sprintf("Name: %s, Project ID: %s", clusterName, projectID))
 		return
@@ -81,6 +109,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 	newFlexClusterModel.Timeouts = tfModel.Timeouts
+	newFlexClusterModel.DeleteOnCreateTimeout = tfModel.DeleteOnCreateTimeout
 
 	if conversion.UseNilForEmpty(tfModel.Tags, newFlexClusterModel.Tags) {
 		newFlexClusterModel.Tags = types.MapNull(types.StringType)
@@ -115,6 +144,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 	newFlexClusterModel.Timeouts = flexClusterState.Timeouts
+	newFlexClusterModel.DeleteOnCreateTimeout = flexClusterState.DeleteOnCreateTimeout
 
 	if conversion.UseNilForEmpty(flexClusterState.Tags, newFlexClusterModel.Tags) {
 		newFlexClusterModel.Tags = types.MapNull(types.StringType)
@@ -139,9 +169,15 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	projectID := plan.ProjectId.ValueString()
 	clusterName := plan.Name.ValueString()
 
+	// Resolve timeout for update operation
+	updateTimeout := resolveTimeout(ctx, &plan.Timeouts, operationUpdate, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	connV2 := r.Client.AtlasV2
 
-	flexClusterResp, err := UpdateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
+	flexClusterResp, err := UpdateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi, &updateTimeout)
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf(ErrorUpdateFlex, clusterName), err.Error())
 		return
@@ -153,6 +189,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 	newFlexClusterModel.Timeouts = plan.Timeouts
+	newFlexClusterModel.DeleteOnCreateTimeout = plan.DeleteOnCreateTimeout
 
 	if conversion.UseNilForEmpty(plan.Tags, newFlexClusterModel.Tags) {
 		newFlexClusterModel.Tags = types.MapNull(types.StringType)
@@ -172,7 +209,14 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 
 	projectID := flexClusterState.ProjectId.ValueString()
 	clusterName := flexClusterState.Name.ValueString()
-	err := DeleteFlexCluster(ctx, projectID, clusterName, connV2.FlexClustersApi)
+
+	// Resolve timeout for delete operation
+	deleteTimeout := resolveTimeout(ctx, &flexClusterState.Timeouts, operationDelete, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	err := DeleteFlexCluster(ctx, projectID, clusterName, connV2.FlexClustersApi, &deleteTimeout)
 
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf(ErrorDeleteFlex, projectID, clusterName), err.Error())
@@ -206,8 +250,43 @@ func splitFlexClusterImportID(id string) (projectID, clusterName *string, err er
 	return
 }
 
-// TODO: using CreateFlexClusterNew to avoid changes in adv_cluster and running their acc tests while doing this PR, rename to CreateFlexCluster and update adv_cluster call params before merging.
-func CreateFlexClusterNew(ctx context.Context, projectID, clusterName string, flexClusterReq *admin.FlexClusterDescriptionCreate20241113, client admin.FlexClustersApi) (*admin.FlexClusterDescription20241113, error) {
+// resolveTimeout extracts the appropriate timeout duration from the model for the given operation
+func resolveTimeout(ctx context.Context, t *timeouts.Value, operationName string, diags *diag.Diagnostics) time.Duration {
+	var (
+		timeoutDuration time.Duration
+		localDiags      diag.Diagnostics
+	)
+	switch operationName {
+	case operationCreate:
+		timeoutDuration, localDiags = t.Create(ctx, constant.DefaultTimeout)
+		diags.Append(localDiags...)
+	case operationRead:
+		timeoutDuration, localDiags = t.Read(ctx, constant.DefaultTimeout)
+		diags.Append(localDiags...)
+	case operationUpdate:
+		timeoutDuration, localDiags = t.Update(ctx, constant.DefaultTimeout)
+		diags.Append(localDiags...)
+	case operationDelete:
+		timeoutDuration, localDiags = t.Delete(ctx, constant.DefaultTimeout)
+		diags.Append(localDiags...)
+	default:
+		timeoutDuration = constant.DefaultTimeout
+	}
+	return timeoutDuration
+}
+
+// resolveDeleteOnCreateTimeout returns true if delete_on_create_timeout should be enabled.
+// Default behavior is true when not explicitly set to false.
+func resolveDeleteOnCreateTimeout(deleteOnCreateTimeout types.Bool) bool {
+	// If null or unknown, default to true
+	if deleteOnCreateTimeout.IsNull() || deleteOnCreateTimeout.IsUnknown() {
+		return true
+	}
+	// Otherwise use the explicit value
+	return deleteOnCreateTimeout.ValueBool()
+}
+
+func CreateFlexCluster(ctx context.Context, projectID, clusterName string, flexClusterReq *admin.FlexClusterDescriptionCreate20241113, client admin.FlexClustersApi, timeout *time.Duration) (*admin.FlexClusterDescription20241113, error) {
 	_, _, err := client.CreateFlexCluster(ctx, projectID, flexClusterReq).Execute()
 	if err != nil {
 		return nil, err
@@ -218,16 +297,11 @@ func CreateFlexClusterNew(ctx context.Context, projectID, clusterName string, fl
 		Name:    clusterName,
 	}
 
-	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyCreatingState, retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyRepairingState}, []string{retrystrategy.RetryStrategyIdleState}, false, nil)
+	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyCreatingState, retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyRepairingState}, []string{retrystrategy.RetryStrategyIdleState}, false, timeout)
 	if err != nil {
 		return nil, err
 	}
 	return flexClusterResp, nil
-}
-
-// TODO: keeping CreateFlexCluster to avoid changes in adv_cluster and running their acc tests while doing this PR, remove before merging.
-func CreateFlexCluster(ctx context.Context, projectID, clusterName string, flexClusterReq *admin.FlexClusterDescriptionCreate20241113, client admin.FlexClustersApi) (*admin.FlexClusterDescription20241113, error) {
-	return CreateFlexClusterNew(ctx, projectID, clusterName, flexClusterReq, client)
 }
 
 func GetFlexCluster(ctx context.Context, projectID, clusterName string, client admin.FlexClustersApi) (*admin.FlexClusterDescription20241113, error) {
@@ -238,7 +312,7 @@ func GetFlexCluster(ctx context.Context, projectID, clusterName string, client a
 	return flexCluster, nil
 }
 
-func UpdateFlexCluster(ctx context.Context, projectID, clusterName string, flexClusterReq *admin.FlexClusterDescriptionUpdate20241113, client admin.FlexClustersApi) (*admin.FlexClusterDescription20241113, error) {
+func UpdateFlexCluster(ctx context.Context, projectID, clusterName string, flexClusterReq *admin.FlexClusterDescriptionUpdate20241113, client admin.FlexClustersApi, timeout *time.Duration) (*admin.FlexClusterDescription20241113, error) {
 	_, _, err := client.UpdateFlexCluster(ctx, projectID, clusterName, flexClusterReq).Execute()
 	if err != nil {
 		return nil, err
@@ -249,14 +323,14 @@ func UpdateFlexCluster(ctx context.Context, projectID, clusterName string, flexC
 		Name:    clusterName,
 	}
 
-	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyRepairingState}, []string{retrystrategy.RetryStrategyIdleState}, false, nil)
+	flexClusterResp, err := WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyUpdatingState, retrystrategy.RetryStrategyRepairingState}, []string{retrystrategy.RetryStrategyIdleState}, false, timeout)
 	if err != nil {
 		return nil, err
 	}
 	return flexClusterResp, nil
 }
 
-func DeleteFlexCluster(ctx context.Context, projectID, clusterName string, client admin.FlexClustersApi) error {
+func DeleteFlexCluster(ctx context.Context, projectID, clusterName string, client admin.FlexClustersApi, timeout *time.Duration) error {
 	if _, err := client.DeleteFlexCluster(ctx, projectID, clusterName).Execute(); err != nil {
 		return err
 	}
@@ -266,7 +340,7 @@ func DeleteFlexCluster(ctx context.Context, projectID, clusterName string, clien
 		Name:    clusterName,
 	}
 
-	return WaitStateTransitionDelete(ctx, flexClusterParams, client)
+	return WaitStateTransitionDelete(ctx, flexClusterParams, client, timeout)
 }
 
 func ListFlexClusters(ctx context.Context, projectID string, client admin.FlexClustersApi) (*[]admin.FlexClusterDescription20241113, error) {

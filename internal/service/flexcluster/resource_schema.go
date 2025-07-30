@@ -181,6 +181,23 @@ type TFModel struct {
 	TerminationProtectionEnabled types.Bool     `tfsdk:"termination_protection_enabled"`
 }
 
+// TFModelDS differs from TFModel: removes timeouts and delete_on_create_timeout.
+type TFModelDS struct {
+	Tags                         types.Map    `tfsdk:"tags"`
+	MongoDbversion               types.String `tfsdk:"mongo_db_version"`
+	ClusterType                  types.String `tfsdk:"cluster_type"`
+	CreateDate                   types.String `tfsdk:"create_date"`
+	ProjectId                    types.String `tfsdk:"project_id"`
+	Id                           types.String `tfsdk:"id"`
+	ProviderSettings             types.Object `tfsdk:"provider_settings"`
+	Name                         types.String `tfsdk:"name"`
+	ConnectionStrings            types.Object `tfsdk:"connection_strings"`
+	StateName                    types.String `tfsdk:"state_name"`
+	VersionReleaseSystem         types.String `tfsdk:"version_release_system"`
+	BackupSettings               types.Object `tfsdk:"backup_settings"`
+	TerminationProtectionEnabled types.Bool   `tfsdk:"termination_protection_enabled"`
+}
+
 type TFBackupSettings struct {
 	Enabled types.Bool `tfsdk:"enabled"`
 }
@@ -215,5 +232,5 @@ var ProviderSettingsType = types.ObjectType{AttrTypes: map[string]attr.Type{
 
 type TFModelDSP struct {
 	ProjectId types.String `tfsdk:"project_id"`
-	Results   []TFModel    `tfsdk:"results"`
+	Results   []TFModelDS  `tfsdk:"results"`
 }
