@@ -3,11 +3,9 @@ package advancedclustertpf
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -494,7 +492,7 @@ func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, cli
 func resolveClusterWaitParams(ctx context.Context, model *TFModel, diags *diag.Diagnostics, operation string) *ClusterWaitParams {
 	projectID := model.ProjectID.ValueString()
 	clusterName := model.Name.ValueString()
-	operationTimeout := resolveTimeout(ctx, &model.Timeouts, operation, diags)
+	operationTimeout := cleanup.ResolveTimeout(ctx, &model.Timeouts, operation, diags)
 	if diags.HasError() {
 		return nil
 	}
@@ -504,27 +502,6 @@ func resolveClusterWaitParams(ctx context.Context, model *TFModel, diags *diag.D
 		Timeout:     operationTimeout,
 		IsDelete:    operation == operationDelete,
 	}
-}
-
-func resolveTimeout(ctx context.Context, t *timeouts.Value, operationName string, diags *diag.Diagnostics) time.Duration {
-	var (
-		timeoutDuration time.Duration
-		localDiags      diag.Diagnostics
-	)
-	switch operationName {
-	case operationCreate:
-		timeoutDuration, localDiags = t.Create(ctx, constant.DefaultTimeout)
-		diags.Append(localDiags...)
-	case operationUpdate:
-		timeoutDuration, localDiags = t.Update(ctx, constant.DefaultTimeout)
-		diags.Append(localDiags...)
-	case operationDelete:
-		timeoutDuration, localDiags = t.Delete(ctx, constant.DefaultTimeout)
-		diags.Append(localDiags...)
-	default:
-		timeoutDuration = constant.DefaultTimeout
-	}
-	return timeoutDuration
 }
 
 type clusterDiff struct {

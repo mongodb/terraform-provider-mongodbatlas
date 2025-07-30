@@ -6,8 +6,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 )
 
 const (
@@ -68,4 +70,32 @@ func ReplaceContextDeadlineExceededDiags(diags *diag.Diagnostics, duration time.
 			)
 		}
 	}
+}
+
+const (
+	OperationCreate = "create"
+	OperationUpdate = "update"
+	OperationDelete = "delete"
+)
+
+// ResolveTimeout extracts the appropriate timeout duration from the model for the given operation
+func ResolveTimeout(ctx context.Context, t *timeouts.Value, operationName string, diags *diag.Diagnostics) time.Duration {
+	var (
+		timeoutDuration time.Duration
+		localDiags      diag.Diagnostics
+	)
+	switch operationName {
+	case OperationCreate:
+		timeoutDuration, localDiags = t.Create(ctx, constant.DefaultTimeout)
+		diags.Append(localDiags...)
+	case OperationUpdate:
+		timeoutDuration, localDiags = t.Update(ctx, constant.DefaultTimeout)
+		diags.Append(localDiags...)
+	case OperationDelete:
+		timeoutDuration, localDiags = t.Delete(ctx, constant.DefaultTimeout)
+		diags.Append(localDiags...)
+	default:
+		timeoutDuration = constant.DefaultTimeout
+	}
+	return timeoutDuration
 }

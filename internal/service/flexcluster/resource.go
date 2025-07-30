@@ -10,14 +10,11 @@ import (
 
 	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
@@ -35,12 +32,6 @@ const (
 	ErrorUpgradeFlex            = "error upgrading to a flex cluster: %s"
 	ErrorDeleteFlex             = "error deleting a flex cluster (%s): %s"
 	ErrorNonUpdatableAttributes = "flex cluster update is not supported except for tags and termination_protection_enabled fields"
-
-	// Operation constants for timeout resolution
-	operationCreate = "create"
-	operationRead   = "read"
-	operationUpdate = "update"
-	operationDelete = "delete"
 )
 
 var _ resource.ResourceWithConfigure = &rs{}
@@ -80,7 +71,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	clusterName := tfModel.Name.ValueString()
 
 	// Resolve timeout for create operation
-	createTimeout := resolveTimeout(ctx, &tfModel.Timeouts, operationCreate, &resp.Diagnostics)
+	createTimeout := cleanup.ResolveTimeout(ctx, &tfModel.Timeouts, cleanup.OperationCreate, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -170,7 +161,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	clusterName := plan.Name.ValueString()
 
 	// Resolve timeout for update operation
-	updateTimeout := resolveTimeout(ctx, &plan.Timeouts, operationUpdate, &resp.Diagnostics)
+	updateTimeout := cleanup.ResolveTimeout(ctx, &plan.Timeouts, cleanup.OperationUpdate, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -211,7 +202,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	clusterName := flexClusterState.Name.ValueString()
 
 	// Resolve timeout for delete operation
-	deleteTimeout := resolveTimeout(ctx, &flexClusterState.Timeouts, operationDelete, &resp.Diagnostics)
+	deleteTimeout := cleanup.ResolveTimeout(ctx, &flexClusterState.Timeouts, cleanup.OperationDelete, &resp.Diagnostics)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -248,31 +239,6 @@ func splitFlexClusterImportID(id string) (projectID, clusterName *string, err er
 	clusterName = &parts[2]
 
 	return
-}
-
-// resolveTimeout extracts the appropriate timeout duration from the model for the given operation
-func resolveTimeout(ctx context.Context, t *timeouts.Value, operationName string, diags *diag.Diagnostics) time.Duration {
-	var (
-		timeoutDuration time.Duration
-		localDiags      diag.Diagnostics
-	)
-	switch operationName {
-	case operationCreate:
-		timeoutDuration, localDiags = t.Create(ctx, constant.DefaultTimeout)
-		diags.Append(localDiags...)
-	case operationRead:
-		timeoutDuration, localDiags = t.Read(ctx, constant.DefaultTimeout)
-		diags.Append(localDiags...)
-	case operationUpdate:
-		timeoutDuration, localDiags = t.Update(ctx, constant.DefaultTimeout)
-		diags.Append(localDiags...)
-	case operationDelete:
-		timeoutDuration, localDiags = t.Delete(ctx, constant.DefaultTimeout)
-		diags.Append(localDiags...)
-	default:
-		timeoutDuration = constant.DefaultTimeout
-	}
-	return timeoutDuration
 }
 
 // resolveDeleteOnCreateTimeout returns true if delete_on_create_timeout should be enabled.
