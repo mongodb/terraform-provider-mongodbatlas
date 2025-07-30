@@ -20,7 +20,6 @@ const (
 	errorReplicationSpecIDNotSet = "replicationSpecID not set for zoneName %s"
 )
 
-// tmp comment revert
 type ExtraAPIInfo struct {
 	ZoneNameNumShards          map[string]int64
 	ZoneNameReplicationSpecIDs map[string]string
