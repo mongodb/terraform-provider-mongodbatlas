@@ -75,47 +75,22 @@ func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceNa
 	} else {
 		clusterRootAttributes["project_id"] = projectID
 	}
-	// if req.DiskSizeGb != 0 {
-	// 	clusterRootAttributes["disk_size_gb"] = req.DiskSizeGb
-	// }
+
 	if req.RetainBackupsEnabled {
 		clusterRootAttributes["retain_backups_enabled"] = req.RetainBackupsEnabled
 	}
 	addPrimitiveAttributes(cluster, clusterRootAttributes)
 	cluster.AppendNewline()
 	if len(req.AdvancedConfiguration) > 0 {
-
 		if err := writeAdvancedConfiguration(cluster, req.AdvancedConfiguration); err != nil {
 			return "", "", "", err
 		}
-		// for _, key := range sortStringMapKeysAny(req.AdvancedConfiguration) {
-		// 	if !knownAdvancedConfig[key] {
-		// 		return "", "", "", fmt.Errorf("unknown key in advanced configuration: %s", key)
-		// 	}
-		// }
-		// // advancedClusterBlock := cluster.SetAttributeValue("advanced_configuration", cty.NullVal(cty.EmptyObject))
-		// advancedClusterBlock := cluster.AppendNewBlock("advanced_configuration", nil).Body()
-		// addPrimitiveAttributes(advancedClusterBlock, req.AdvancedConfiguration)
-		// cluster.AppendNewline()
+
 	}
 	err = writeReplicationSpec(cluster, specs)
 	if err != nil {
 		return "", "", "", fmt.Errorf("error writing hcl for replication specs: %w", err)
 	}
-	// for i, spec := range specs {
-	// 	err = writeReplicationSpec(cluster, spec)
-	// 	if err != nil {
-	// 		return "", "", "", fmt.Errorf("error writing hcl for replication spec %d: %w", i, err)
-	// 	}
-	// }
-	// if len(req.Tags) > 0 {
-	// 	for _, key := range SortStringMapKeys(req.Tags) {
-	// 		value := req.Tags[key]
-	// 		tagBlock := cluster.AppendNewBlock("tags", nil).Body()
-	// 		tagBlock.SetAttributeValue("key", cty.StringVal(key))
-	// 		tagBlock.SetAttributeValue("value", cty.StringVal(value))
-	// 	}
-	// }
 
 	if len(req.Tags) > 0 {
 		tagMap := make(map[string]cty.Value, len(req.Tags))
@@ -261,7 +236,7 @@ func writeReplicationSpec(cluster *hclwrite.Body, specs []admin.ReplicationSpec2
 		if err != nil {
 			return err
 		}
-		delete(specMap, "region_configs")
+		delete(specMap, "region_configs") // Handle region_configs separately below
 
 		var rcList []cty.Value
 		for _, rc := range spec.GetRegionConfigs() {
@@ -277,29 +252,36 @@ func writeReplicationSpec(cluster *hclwrite.Body, specs []admin.ReplicationSpec2
 			delete(rcMap, "auto_scaling")
 
 			if rc.AutoScaling == nil {
-
-				rcMap["disk_gb_enabled"] = cty.BoolVal(false)
+				rcMap["auto_scaling"] = cty.ObjectVal(map[string]cty.Value{
+					"disk_gb_enabled": cty.BoolVal(false),
+				})
 			} else {
 				autoScaling := rc.GetAutoScaling()
 				asDisk := autoScaling.GetDiskGB()
-
-				rcMap["disk_gb_enabled"] = cty.BoolVal(asDisk.GetEnabled())
-			}
-
-			{
-				esMap, err := structToCtyObject(rc.GetElectableSpecs())
-				if err != nil {
-					return err
+				if autoScaling.Compute != nil {
+					return fmt.Errorf("auto_scaling.compute is not supportd yet %v", autoScaling)
 				}
-				rcMap["electable_specs"] = cty.ObjectVal(esMap)
+				rcMap["auto_scaling"] = cty.ObjectVal(map[string]cty.Value{
+					"disk_gb_enabled": cty.BoolVal(asDisk.GetEnabled()),
+				})
 			}
 
-			if ros := rc.GetReadOnlySpecs(); ros.GetNodeCount() != 0 {
-				roMap, err := structToCtyObject(ros)
+			nodeSpec := rc.GetElectableSpecs()
+			esMap, err := structToCtyObject(nodeSpec)
+			if err != nil {
+				return err
+			}
+			rcMap["electable_specs"] = cty.ObjectVal(esMap)
+
+			readOnlySpecs := rc.GetReadOnlySpecs()
+			if readOnlySpecs.GetNodeCount() != 0 {
+				roMap, err := structToCtyObject(readOnlySpecs)
 				if err != nil {
 					return err
 				}
 				rcMap["read_only_specs"] = cty.ObjectVal(roMap)
+			} else {
+				delete(rcMap, "read_only_specs")
 			}
 
 			rcList = append(rcList, cty.ObjectVal(rcMap))

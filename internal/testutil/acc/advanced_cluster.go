@@ -225,6 +225,8 @@ func ConfigBasicDedicated(projectID, name, zoneName string) string {
 	`, projectID, name, zoneNameLine)
 }
 
+
+
 func JoinQuotedStrings(list []string) string {
 	quoted := make([]string, len(list))
 	for i, item := range list {

@@ -11,9 +11,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-// last version that did not support new sharding schema or attributes
-const versionBeforeISSRelease = "1.17.6"
-
 func TestMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 	migTest(t, replicaSetAWSProviderTestCase)
 }
@@ -31,7 +28,11 @@ func TestMigAdvancedCluster_symmetricGeoShardedOldSchema(t *testing.T) {
 }
 
 func TestMigAdvancedCluster_asymmetricShardedNewSchema(t *testing.T) {
-	mig.SkipIfVersionBelow(t, "1.23.0") // version where sharded cluster tier auto-scaling was introduced
+	// Note: This test requires 1.23.0+ for sharded cluster tier auto-scaling
+	// But migTest handles version requirements for migration (2.0.0+ for TPF->TPF)
+	if !IsTestSDKv2ToTPF() {
+		mig.SkipIfVersionBelow(t, "1.23.0")
+	}
 	migTest(t, asymmetricShardedNewSchemaTestCase)
 }
 
@@ -279,16 +280,47 @@ func configPartialAdvancedConfig(projectID, clusterName, extraArgs, autoScaling 
 	`, projectID, clusterName, extraArgs, autoScaling)
 }
 
-// migTest is a helper function to run migration tests in normal case (SDKv2 -> SDKv2, TPF -> TPF), or in mixed case (SDKv2 -> TPF).
+// migTest is a helper function to run migration tests:
+// - TPF -> TPF: for versions 2.0.0+ (tests same config with older TPF provider vs newer TPF provider)
+// - SDKv2 -> TPF: when MONGODB_ATLAS_TEST_SDKV2_TO_TPF=true (tests SDKv2 config vs TPF config)
 func migTest(t *testing.T, testCaseFunc func(t *testing.T, usePreviewProvider bool) resource.TestCase) {
 	t.Helper()
-	usePreviewProvider := true
+
 	if IsTestSDKv2ToTPF() {
-		usePreviewProvider = false
-		t.Log("Running test SDKv2 to TPF")
+		// SDKv2 to TPF migration: first step uses SDKv2, second step uses TPF
+		t.Log("Running migration test: SDKv2 to TPF")
+		testCase := testCaseFunc(t, false) // Get SDKv2 configuration
+
+		migrationTestCase := resource.TestCase{
+			PreCheck:     testCase.PreCheck,
+			CheckDestroy: testCase.CheckDestroy,
+			ErrorCheck:   testCase.ErrorCheck,
+			Steps: []resource.TestStep{
+				{
+					ExternalProviders: mig.ExternalProviders(),
+					Config:            testCase.Steps[0].Config, // SDKv2 config
+					Check:             testCase.Steps[0].Check,
+				},
+				{
+					ProtoV6ProviderFactories: testCase.ProtoV6ProviderFactories,
+					Config:                   getTPFConfig(t, testCaseFunc),
+					Check:                    testCase.Steps[0].Check,
+				},
+			},
+		}
+		mig.CreateAndRunTestNonParallel(t, &migrationTestCase)
+	} else {
+		mig.SkipIfVersionBelow(t, "2.0.0")
+		t.Log("Running migration test: TPF to TPF")
+		testCase := testCaseFunc(t, true)
+		mig.CreateAndRunTest(t, &testCase)
 	}
-	testCase := testCaseFunc(t, usePreviewProvider)
-	mig.CreateAndRunTest(t, &testCase)
+}
+
+func getTPFConfig(t *testing.T, testCaseFunc func(t *testing.T, usePreviewProvider bool) resource.TestCase) string {
+	t.Helper()
+	tpfTestCase := testCaseFunc(t, true)
+	return tpfTestCase.Steps[0].Config
 }
 
 func IsTestSDKv2ToTPF() bool {
