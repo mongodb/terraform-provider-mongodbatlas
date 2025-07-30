@@ -432,9 +432,9 @@ jobs:
   advanced_cluster_tpf_mig_from_sdkv2:
     needs: [ change-detection, get-provider-version ]
     if: ${{ inputs.reduced_tests == false && (needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf') }}
-    # env:
+    env:
       # MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: 'true'
-      # MONGODB_ATLAS_TEST_SDKV2_TO_TPF: 'true'
+      MONGODB_ATLAS_TEST_SDKV2_TO_TPF: 'true'
     runs-on: ubuntu-latest
     permissions: {}
     steps:
