@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -19,9 +20,9 @@ import (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceCreate,
-		ReadContext:   resourceRead,
-		DeleteContext: resourceDelete,
+		CreateWithoutTimeout: resourceCreate,
+		ReadWithoutTimeout:   resourceRead,
+		DeleteWithoutTimeout: resourceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceImport,
 		},
@@ -121,9 +122,18 @@ func Resource() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"delete_on_create_timeout": { // Don't use Default: true to avoid unplanned changes when upgrading from previous versions.
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Flag that indicates whether to delete the resource if creation times out. Default is true.",
+			},
 		},
 	}
 }
+
+const (
+	minTimeout = 1 * time.Minute
+)
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
@@ -155,12 +165,20 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Target:     []string{"completed", "failed"},
 		Refresh:    resourceRefreshFunc(ctx, requestParams, connV2),
 		Timeout:    d.Timeout(schema.TimeoutCreate) - time.Minute,
-		MinTimeout: 60 * time.Second,
-		Delay:      1 * time.Minute,
+		MinTimeout: minTimeout,
+		Delay:      minTimeout,
 	}
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		return diag.FromErr(err)
+	_, errWait := stateConf.WaitForStateContext(ctx)
+	deleteOnCreateTimeout := true // default value when not set
+	if v, ok := d.GetOkExists("delete_on_create_timeout"); ok {
+		deleteOnCreateTimeout = v.(bool)
+	}
+	errWait = cleanup.HandleCreateTimeout(deleteOnCreateTimeout, errWait, func(ctxCleanup context.Context) error {
+		_, errCleanup := connV2.CloudBackupsApi.DeleteReplicaSetBackup(ctxCleanup, groupID, clusterName, snapshot.GetId()).Execute()
+		return errCleanup
+	})
+	if errWait != nil {
+		return diag.Errorf("error creating a snapshot: %s", errWait)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
