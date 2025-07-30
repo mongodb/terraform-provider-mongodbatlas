@@ -4,19 +4,17 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
-
-	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 const (
-	resourceName = "team_project_assignment"
+	resourceName          = "team_project_assignment"
 	errorFetchingResource = "Error fetching resource"
-	invalidImportID = "Invalid import ID format"
+	invalidImportID       = "Invalid import ID format"
 )
 
 var _ resource.ResourceWithConfigure = &rs{}
@@ -48,28 +46,24 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 
 	connV2 := r.Client.AtlasV2
 	projectID := plan.ProjectId.ValueString()
+	teamID := plan.TeamId.ValueString()
 	teamProjectReq, diags := NewAtlasReq(ctx, &plan)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
 
-	apiRespList, _, err := connV2.TeamsApi.AddAllTeamsToProject(ctx, projectID, teamProjectReq).Execute()
+	_, _, err := connV2.TeamsApi.AddAllTeamsToProject(ctx, projectID, teamProjectReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf("error assigning Team to ProjectID (%s):", projectID), err.Error())
 		return
 	}
 
-	var apiResp *admin.TeamRole
-	if apiRespList != nil && len(apiRespList.GetResults()) > 0 {
-		apiResp = &(apiRespList.GetResults()[0])
-	}
-
-	if apiResp == nil {
-		resp.Diagnostics.AddError(fmt.Sprintf("error assigning Team to ProjectID (%s):", projectID), "API response is nil")
+	apiResp, _, err := connV2.TeamsApi.GetProjectTeam(ctx, projectID, teamID).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError(fmt.Sprintf("error assigning Team to ProjectID (%s):", projectID), err.Error())
 		return
 	}
-
 	newTeamProjectAssignmentModel, diags := NewTFModel(ctx, apiResp, projectID)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
@@ -124,18 +118,14 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 
-	apiRespList, _, err := connV2.TeamsApi.UpdateTeamRoles(ctx, projectID, teamID, updateReq).Execute()
+	_, _, err := connV2.TeamsApi.UpdateTeamRoles(ctx, projectID, teamID, updateReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf("error updating TeamID(%s) in ProjectID(%s):", teamID, projectID), "API response is nil")
 		return
 	}
 
-	var apiResp *admin.TeamRole
-	if apiRespList != nil && len(apiRespList.GetResults()) > 0 {
-		apiResp = &(apiRespList.GetResults()[0])
-	}
-
-	if apiResp == nil {
+	apiResp, _, err := connV2.TeamsApi.GetProjectTeam(ctx, projectID, teamID).Execute()
+	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf("error updating TeamID(%s) in ProjectID(%s):", teamID, projectID), "API response is nil")
 		return
 	}
@@ -168,7 +158,6 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		resp.Diagnostics.AddError(fmt.Sprintf("error deleting TeamID(%s) from ProjectID(%s):", teamID, projectID), err.Error())
 		return
 	}
-
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -183,4 +172,3 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("team_id"), teamID)...)
 }
-
