@@ -100,9 +100,9 @@ func AttrNameToPreviewProviderV2(usePreviewProvider bool, name string) string {
 
 func ConvertAdvancedClusterToPreviewProviderV2(t *testing.T, usePreviewProvider bool, def string) string {
 	t.Helper()
-	// if skipPreviewProviderV2Work(usePreviewProvider) {
-	// 	return def
-	// }
+	if skipPreviewProviderV2Work(usePreviewProvider) {
+		return def
+	}
 	parse := hcl.GetDefParser(t, def)
 	for _, resource := range parse.Body().Blocks() {
 		isResource := resource.Type() == "resource"
@@ -124,9 +124,9 @@ func ConvertAdvancedClusterToPreviewProviderV2(t *testing.T, usePreviewProvider 
 	return result
 }
 
-// func skipPreviewProviderV2Work(usePreviewProvider bool) bool {
-// 	return !config.PreviewProviderV2AdvancedCluster() || !usePreviewProvider
-// }
+func skipPreviewProviderV2Work(usePreviewProvider bool) bool {
+	return !usePreviewProvider
+}
 
 func AssertEqualHCL(t *testing.T, expected, actual string, msgAndArgs ...interface{}) {
 	t.Helper()

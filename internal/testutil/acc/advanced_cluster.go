@@ -206,9 +206,9 @@ func ConfigBasicDedicated(projectID, name, zoneName string) string {
 						instance_size = "M10"
 					}
 				}]
-			}
-			%[3]s
-		]
+					%[3]s
+			}]
+
 	}
 	data "mongodbatlas_advanced_cluster" "test" {
 		project_id = mongodbatlas_advanced_cluster.test.project_id
