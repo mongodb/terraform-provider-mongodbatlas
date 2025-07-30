@@ -1,0 +1,17 @@
+provider:
+  name: mongodbatlas
+
+resources:
+  team_project_assignment:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/teams/{teamId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/teams
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/teams/{teamId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/teams/{teamId}
+      method: DELETE
