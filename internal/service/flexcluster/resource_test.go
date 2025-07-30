@@ -154,8 +154,6 @@ func configWithTimeouts(projectID, clusterName, provider, region string, deleteO
 			delete_on_create_timeout = %[5]t
 			timeouts = {
 				create = "1s"
-				update = "1s"
-				delete = "5m"
 			}
 		}
 		`, projectID, clusterName, provider, region, deleteOnCreateTimeout)
