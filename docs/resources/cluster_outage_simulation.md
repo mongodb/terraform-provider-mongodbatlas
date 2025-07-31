@@ -43,6 +43,7 @@ resource "mongodbatlas_cluster_outage_simulation" "outage_simulation" {
     * `GCP`
     * `AZURE`
   * `region_name` - (Required) The Atlas name of the region to undergo an outage simulation.
+* `delete_on_create_timeout` - (Optional) Flag that indicates whether to delete the resource if creation times out. Default is `true`. When Terraform apply fails, it returns immediately without waiting for cleanup to complete. If you suspect a transient error, wait before retrying to allow resource deletion to finish.
 
 ## Attributes Reference
 
