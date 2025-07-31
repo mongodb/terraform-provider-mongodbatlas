@@ -110,10 +110,10 @@ func TestAccBackupRSCloudBackupSnapshot_timeouts(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, &clusterInfo, "", ""),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy, // resource is deleted when creation times out
+		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      configTimeout(&clusterInfo, description, retentionInDays),
+				Config:      configCreateTimeoutAndDeleteOnCreateTimeout(&clusterInfo, description, retentionInDays),
 				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
 			},
 		},
@@ -242,36 +242,18 @@ func configSharded(projectID, clusterName, description, retentionInDays string) 
 	`, projectID, clusterName, description, retentionInDays)
 }
 
-func configTimeout(info *acc.ClusterInfo, description, retentionInDays string) string {
+func configCreateTimeoutAndDeleteOnCreateTimeout(info *acc.ClusterInfo, description, retentionInDays string) string {
 	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_backup_snapshot" "test" {
 			cluster_name     = %[1]s
 			project_id       = %[2]q
 			description       = %[3]q
 			retention_in_days = %[4]q
-			delete_on_create_timeout = true # default value
+			delete_on_create_timeout = true 
 			
 			timeouts {
 				create = "10s"
 			}
-		}
-
-		data "mongodbatlas_cloud_backup_snapshot" "test" {
-			snapshot_id  = mongodbatlas_cloud_backup_snapshot.test.snapshot_id
-			cluster_name     = %[1]s
-			project_id       = %[2]q
-		}
-
-		data "mongodbatlas_cloud_backup_snapshots" "test" {
-			cluster_name     = %[1]s
-			project_id       = %[2]q
-		}
-
-		data "mongodbatlas_cloud_backup_snapshots" "pagination" {
-			cluster_name     = %[1]s
-			project_id       = %[2]q
-			page_num = 1
-			items_per_page = 5
 		}
 	`, info.TerraformNameRef, info.ProjectID, description, retentionInDays)
 }
