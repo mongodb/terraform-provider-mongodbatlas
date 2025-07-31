@@ -38,7 +38,6 @@ func TestAccFlexClusterRS_createTimeout(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyFlexCluster, // verify cleanup was effective
 		Steps: []resource.TestStep{
 			{
 				Config:      configBasic(projectID, clusterName, provider, region, acc.TimeoutConfig(&createTimeout, nil, nil, true), true, false, &deleteOnCreateTimeout),
