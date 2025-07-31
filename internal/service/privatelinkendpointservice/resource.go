@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -24,13 +26,15 @@ const (
 	ErrorServiceEndpointRead = "error reading MongoDB Private Service Endpoint Connection(%s): %s"
 	errorEndpointDelete      = "error deleting MongoDB Private Service Endpoint Connection(%s): %s"
 	ErrorEndpointSetting     = "error setting `%s` for MongoDB Private Service Endpoint Connection(%s): %s"
+	oneMinute                = 1 * time.Minute
+	delayAndMinTimeout       = 10 * time.Second
 )
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext:      resourceCreate,
-		ReadWithoutTimeout: resourceRead,
-		DeleteContext:      resourceDelete,
+		CreateWithoutTimeout: resourceCreate,
+		ReadWithoutTimeout:   resourceRead,
+		DeleteWithoutTimeout: resourceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceImportState,
 		},
@@ -99,6 +103,12 @@ func Resource() *schema.Resource {
 				Optional:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"private_endpoint_ip_address"},
+			},
+			"delete_on_create_timeout": { // Don't use Default: true to avoid unplanned changes when upgrading from previous versions.
+				Type:        schema.TypeBool,
+				Optional:    true,
+				ForceNew:    true,
+				Description: "Flag that indicates whether to delete the resource if creation times out. Default is true.",
 			},
 			"endpoints": {
 				Type:          schema.TypeList,
@@ -173,23 +183,31 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Pending:    []string{"NONE", "INITIATING", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "VERIFIED"},
 		Target:     []string{"AVAILABLE", "REJECTED", "DELETED", "FAILED"},
 		Refresh:    resourceRefreshFunc(ctx, connV2, projectID, providerName, privateLinkID, endpointServiceID),
-		Timeout:    d.Timeout(schema.TimeoutCreate) - time.Minute, // When using a CRUD function with a timeout, any StateChangeConf timeouts must be configured below that duration to avoid returning the SDK context: deadline exceeded error instead of the retry logic error.
-		MinTimeout: 5 * time.Second,
-		Delay:      1 * time.Minute,
+		Timeout:    d.Timeout(schema.TimeoutCreate) - oneMinute, // When using a CRUD function with a timeout, any StateChangeConf timeouts must be configured below that duration to avoid returning the SDK context: deadline exceeded error instead of the retry logic error.
+		MinTimeout: delayAndMinTimeout,
+		Delay:      delayAndMinTimeout,
 	}
 	// Wait, catching any errors
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorServiceEndpointAdd, endpointServiceID, privateLinkID, err))
+	_, errWait := stateConf.WaitForStateContext(ctx)
+	deleteOnCreateTimeout := true // default value when not set
+	if v, ok := d.GetOkExists("delete_on_create_timeout"); ok {
+		deleteOnCreateTimeout = v.(bool)
+	}
+	errWait = cleanup.HandleCreateTimeout(deleteOnCreateTimeout, errWait, func(ctxCleanup context.Context) error {
+		_, errCleanup := connV2.PrivateEndpointServicesApi.DeletePrivateEndpoint(ctxCleanup, projectID, providerName, endpointServiceID, privateLinkID).Execute()
+		return errCleanup
+	})
+	if errWait != nil {
+		return diag.FromErr(fmt.Errorf(errorServiceEndpointAdd, endpointServiceID, privateLinkID, errWait))
 	}
 
 	clusterConf := &retry.StateChangeConf{
 		Pending:    []string{"REPEATING", "PENDING"},
 		Target:     []string{"IDLE", "DELETED"},
 		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
-		Timeout:    d.Timeout(schema.TimeoutCreate) - time.Minute, // When using a CRUD function with a timeout, any StateChangeConf timeouts must be configured below that duration to avoid returning the SDK context: deadline exceeded error instead of the retry logic error.
-		MinTimeout: 5 * time.Second,
-		Delay:      1 * time.Minute,
+		Timeout:    d.Timeout(schema.TimeoutCreate) - oneMinute, // When using a CRUD function with a timeout, any StateChangeConf timeouts must be configured below that duration to avoid returning the SDK context: deadline exceeded error instead of the retry logic error.
+		MinTimeout: delayAndMinTimeout,
+		Delay:      delayAndMinTimeout,
 	}
 
 	if _, err = clusterConf.WaitForStateContext(ctx); err != nil {
@@ -299,8 +317,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			Target:     []string{"REJECTED", "DELETED", "FAILED"},
 			Refresh:    resourceRefreshFunc(ctx, connV2, projectID, providerName, privateLinkID, endpointServiceID),
 			Timeout:    d.Timeout(schema.TimeoutDelete),
-			MinTimeout: 5 * time.Second,
-			Delay:      3 * time.Second,
+			MinTimeout: delayAndMinTimeout,
+			Delay:      delayAndMinTimeout,
 		}
 
 		// Wait, catching any errors
@@ -314,8 +332,8 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			Target:     []string{"IDLE", "DELETED"},
 			Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
 			Timeout:    d.Timeout(schema.TimeoutDelete),
-			MinTimeout: 5 * time.Second,
-			Delay:      1 * time.Minute,
+			MinTimeout: delayAndMinTimeout,
+			Delay:      delayAndMinTimeout,
 		}
 
 		if _, err = clusterConf.WaitForStateContext(ctx); err != nil {
