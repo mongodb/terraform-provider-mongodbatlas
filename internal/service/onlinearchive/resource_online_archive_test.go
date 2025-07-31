@@ -512,3 +512,52 @@ func testAccBackupRSOnlineArchiveConfigWithMonthlySchedule(clusterTerraformStr, 
 	}
 	`, clusterTerraformStr, startHour, clusterResourceName)
 }
+
+func TestAccOnlineArchive_deleteOnCreateTimeout(t *testing.T) {
+	var (
+		clusterInfo = acc.GetClusterInfo(t, clusterRequest())
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, &clusterInfo, "", ""),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: clusterInfo.TerraformStr,
+				Check:  acc.PopulateWithSampleDataTestCheck(clusterInfo.ProjectID, clusterInfo.Name),
+			},
+			{
+				Config:      configDeleteOnCreateTimeout(clusterInfo.TerraformStr, clusterInfo.ResourceName, "1s", true),
+				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
+			},
+		},
+	})
+}
+
+func configDeleteOnCreateTimeout(clusterTerraformStr, clusterResourceName, timeout string, deleteOnTimeout bool) string {
+	return fmt.Sprintf(`
+%s
+
+resource "mongodbatlas_online_archive" "test" {
+	project_id       = %[2]s.project_id
+	cluster_name     = %[2]s.name
+	coll_name        = "users"
+	db_name          = "sample_mflix"
+	sync_creation    = true
+	delete_on_create_timeout = %[4]t
+	
+	timeouts {
+		create = %[3]q
+	}
+
+	criteria {
+		type          = "DATE"
+		date_field    = "test"
+		expire_after_days = 1
+	}
+
+	depends_on = [%[2]s]
+}
+	`, clusterTerraformStr, clusterResourceName, timeout, deleteOnTimeout)
+}

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -22,6 +23,7 @@ const (
 	errorOnlineArchivesCreate = "error creating MongoDB Atlas Online Archive:: %s"
 	errorOnlineArchivesDelete = "error deleting MongoDB Atlas Online Archive: %s archive_id (%s)"
 	scheduleTypeDefault       = "DEFAULT"
+	oneMinute                 = 1 * time.Minute
 )
 
 func Resource() *schema.Resource {
@@ -210,6 +212,11 @@ func resourceSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
+		"delete_on_create_timeout": { // Don't use Default: true to avoid unplanned changes when upgrading from previous versions.
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Flag that indicates whether to delete the resource if creation times out. Default is true.",
+		},
 		"sync_creation": {
 			Type:     schema.TypeBool,
 			Optional: true,
@@ -243,15 +250,23 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			Pending:    []string{"PENDING", "ARCHIVING", "PAUSING", "PAUSED", "ORPHANED", "REPEATING"},
 			Target:     []string{"IDLE", "ACTIVE"},
 			Refresh:    resourceOnlineRefreshFunc(ctx, projectID, clusterName, archiveID, connV2),
-			Timeout:    d.Timeout(schema.TimeoutCreate) - time.Minute, // When using a CRUD function with a timeout, any StateChangeConf timeouts must be configured below that duration to avoid returning the SDK context: deadline exceeded error instead of the retry logic error.
-			MinTimeout: 1 * time.Minute,
-			Delay:      3 * time.Minute,
+			Timeout:    d.Timeout(schema.TimeoutCreate) - oneMinute, // When using a CRUD function with a timeout, any StateChangeConf timeouts must be configured below that duration to avoid returning the SDK context: deadline exceeded error instead of the retry logic error.
+			MinTimeout: oneMinute,
+			Delay:      oneMinute,
 		}
 
 		// Wait, catching any errors
-		_, err := stateConf.WaitForStateContext(ctx)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf("error updating the online archive status %s for cluster %s", clusterName, archiveID))
+		_, errWait := stateConf.WaitForStateContext(ctx)
+		deleteOnCreateTimeout := true // default value when not set
+		if v, ok := d.GetOkExists("delete_on_create_timeout"); ok {
+			deleteOnCreateTimeout = v.(bool)
+		}
+		errWait = cleanup.HandleCreateTimeout(deleteOnCreateTimeout, errWait, func(ctxCleanup context.Context) error {
+			_, errCleanup := connV2.OnlineArchiveApi.DeleteOnlineArchive(ctxCleanup, projectID, archiveID, clusterName).Execute()
+			return errCleanup
+		})
+		if errWait != nil {
+			return diag.FromErr(fmt.Errorf("error updating the online archive status %s for cluster %s: %s", clusterName, archiveID, errWait))
 		}
 	}
 
