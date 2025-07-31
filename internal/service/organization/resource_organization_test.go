@@ -262,7 +262,7 @@ func TestAccConfigRSOrganization_import(t *testing.T) {
 			{
 				// Use removed block so the organization is not deleted.
 				// Even if something goes wrong, the organization wouldn't be deleted if it has some projects, it would return ORG_NOT_EMPTY error.
-				Config: configImportRemove(),
+				Config: acc.ConfigRemove(resourceName),
 			},
 		},
 	})
@@ -306,17 +306,6 @@ func configImportSet(orgID, orgName string) string {
   		}
 		}
 	`, orgID, orgName)
-}
-
-func configImportRemove() string {
-	return `
-		removed {
-			from = mongodbatlas_organization.test
-			lifecycle {
-				destroy = false
-			}
-		}
-	`
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {

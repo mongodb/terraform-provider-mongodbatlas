@@ -18,14 +18,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 )
@@ -134,7 +131,7 @@ func testAccAdvancedClusterFlexUpgrade(t *testing.T, instanceSize string, includ
 			Check:  checkTenant(true, projectID, clusterName),
 		},
 		{
-			Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", defaultZoneName, false),
+			Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", defaultZoneName, "", false, nil),
 			Check:  checkFlexClusterConfig(projectID, clusterName, "AWS", "US_EAST_1", false),
 		},
 	}
@@ -1431,39 +1428,6 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateReplicaset(t *testing
 		}
 	)
 	resource.ParallelTest(t, *createCleanupTest(t, configCall, waitOnClusterDeleteDone, true))
-}
-
-func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateFlex(t *testing.T) {
-	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1)
-		configCall             = func(t *testing.T, timeoutSection string) string {
-			t.Helper()
-			return acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, fmt.Sprintf(`
-			resource "mongodbatlas_advanced_cluster" "test" {
-				project_id   = %[1]q
-				name         = %[2]q
-				cluster_type = "REPLICASET"
-				replication_specs {
-					region_configs {
-						provider_name = "FLEX"
-						backing_provider_name = "AWS"
-						region_name = "US_EAST_1"
-						priority      = 7
-					}
-				}
-				%[3]s
-			}`, projectID, clusterName, timeoutSection))
-		}
-		waitOnClusterDeleteDone = func() {
-			err := flexcluster.WaitStateTransitionDelete(t.Context(), &admin.GetFlexClusterApiParams{
-				GroupId: projectID,
-				Name:    clusterName,
-			}, acc.ConnV2().FlexClustersApi, constant.DefaultTimeout)
-			require.NoError(t, err)
-			time.Sleep(1 * time.Minute) // decrease the chance of `CONTAINER_WAITING_FOR_FAST_RECORD_CLEAN_UP`: "A transient error occurred. Please try again in a minute or use a different name"
-		}
-	)
-	resource.ParallelTest(t, *createCleanupTest(t, configCall, waitOnClusterDeleteDone, false))
 }
 
 func createCleanupTest(t *testing.T, configCall func(t *testing.T, timeoutSection string) string, waitOnClusterDeleteDone func(), isUpdateSupported bool) *resource.TestCase {
@@ -3234,7 +3198,7 @@ func configFCVPinning(t *testing.T, orgID, projectName, clusterName string, pinn
 	`, orgID, projectName, clusterName, mongoDBMajorVersion, pinnedFCVAttr)) + dataSourcesTFNewSchema
 }
 
-func configFlexCluster(t *testing.T, projectID, clusterName, providerName, region, zoneName string, withTags bool) string {
+func configFlexCluster(t *testing.T, projectID, clusterName, providerName, region, zoneName, timeoutConfig string, withTags bool, deleteOnCreateTimeout *bool) string {
 	t.Helper()
 	zoneNameLine := ""
 	if zoneName != "" {
@@ -3247,6 +3211,12 @@ func configFlexCluster(t *testing.T, projectID, clusterName, providerName, regio
 				key = "testKey"
 				value = "testValue"
 			}`
+	}
+	deleteOnCreateTimeoutConfig := ""
+	if deleteOnCreateTimeout != nil {
+		deleteOnCreateTimeoutConfig = fmt.Sprintf(`
+			delete_on_create_timeout = %[1]t
+		`, *deleteOnCreateTimeout)
 	}
 	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
@@ -3263,16 +3233,19 @@ func configFlexCluster(t *testing.T, projectID, clusterName, providerName, regio
 				%[5]s
 			}
 			%[6]s
+			%[7]s
 			termination_protection_enabled = false
+			%[8]s
 		}
-	`, projectID, clusterName, providerName, region, zoneNameLine, tags)+dataSourcesTFOldSchema+
+	`, projectID, clusterName, providerName, region, zoneNameLine, tags, timeoutConfig, deleteOnCreateTimeoutConfig)+dataSourcesTFOldSchema+
 		strings.ReplaceAll(acc.FlexDataSource, "mongodbatlas_flex_cluster.", "mongodbatlas_advanced_cluster."))
 }
 
 func TestAccClusterFlexCluster_basic(t *testing.T) {
 	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomClusterName()
+		projectID          = acc.ProjectIDExecution(t)
+		clusterName        = acc.RandomClusterName()
+		emptyTimeoutConfig = ""
 	)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -3280,17 +3253,68 @@ func TestAccClusterFlexCluster_basic(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyFlexCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", false),
+				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", emptyTimeoutConfig, false, nil),
 				Check:  checkFlexClusterConfig(projectID, clusterName, "AWS", "US_EAST_1", false),
 			},
 			{
-				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", true),
+				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", emptyTimeoutConfig, true, nil),
 				Check:  checkFlexClusterConfig(projectID, clusterName, "AWS", "US_EAST_1", true),
 			},
 			acc.TestStepImportCluster(resourceName),
 			{
-				Config:      configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_2", "", true),
+				Config:      configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_2", "", emptyTimeoutConfig, true, nil),
 				ExpectError: regexp.MustCompile("flex cluster update is not supported except for tags and termination_protection_enabled fields"),
+			},
+		},
+	})
+}
+
+func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateFlex(t *testing.T) {
+	var (
+		projectID             = acc.ProjectIDExecution(t)
+		clusterName           = acc.RandomName()
+		createTimeout         = "1s"
+		deleteOnCreateTimeout = true
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyFlexCluster,
+		Steps: []resource.TestStep{
+			{
+				Config:      configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", acc.TimeoutConfig(&createTimeout, nil, nil, false), false, &deleteOnCreateTimeout),
+				ExpectError: regexp.MustCompile("context deadline exceeded"), // with the current implementation, this is the error that is returned
+			},
+		},
+	})
+}
+
+func TestAccAdvancedCluster_updateDeleteTimeoutFlex(t *testing.T) {
+	var (
+		projectID     = acc.ProjectIDExecution(t)
+		clusterName   = acc.RandomName()
+		updateTimeout = "1s"
+		deleteTimeout = "1s"
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyFlexCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", acc.TimeoutConfig(nil, &updateTimeout, &deleteTimeout, false), false, nil),
+			},
+			{
+				Config:      configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", acc.TimeoutConfig(nil, &updateTimeout, &deleteTimeout, false), true, nil),
+				ExpectError: regexp.MustCompile("timeout while waiting for state to become 'IDLE'"),
+			},
+			{
+				Config:      acc.ConfigEmpty(), // triggers delete and because delete timeout is 1s, it times out
+				ExpectError: regexp.MustCompile("timeout while waiting for state to become 'DELETED'"),
+			},
+			{
+				// deletion of the flex cluster has been triggered, but has timed out in previous step, so this is needed in order to avoid "Error running post-test destroy, there may be dangling resource [...] Cluster already requested to be deleted"
+				Config: acc.ConfigRemove(resourceName),
 			},
 		},
 	})
