@@ -116,8 +116,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		deleteOnCreateTimeout = v.(bool)
 	}
 	errWait = cleanup.HandleCreateTimeout(deleteOnCreateTimeout, errWait, func(ctxCleanup context.Context) error {
-		_, _, errCleanup := connV2.ClusterOutageSimulationApi.EndOutageSimulation(ctxCleanup, projectID, clusterName).Execute()
-		return errCleanup
+		return endOutageSimulationAndWait(ctxCleanup, connV2, projectID, clusterName, 5*time.Minute) // Use shorter timeout for cleanup
 	})
 	if errWait != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterOutageSimulationCreate, projectID, clusterName, errWait))
@@ -174,16 +173,11 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	return nil
 }
 
-func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
-
-	ids := conversion.DecodeStateID(d.Id())
-	projectID := ids["project_id"]
-	clusterName := ids["cluster_name"]
-
+// endOutageSimulationAndWait ends the outage simulation and waits for it to complete
+func endOutageSimulationAndWait(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, timeout time.Duration) error {
 	_, _, err := connV2.ClusterOutageSimulationApi.EndOutageSimulation(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorClusterOutageSimulationDelete, projectID, clusterName, err))
+		return fmt.Errorf(errorClusterOutageSimulationDelete, projectID, clusterName, err)
 	}
 
 	log.Println("[INFO] Waiting for MongoDB Cluster Outage Simulation to end")
@@ -192,14 +186,29 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Pending:    []string{"RECOVERY_REQUESTED", "RECOVERING", "COMPLETE"},
 		Target:     []string{"DELETED"},
 		Refresh:    resourceRefreshFunc(ctx, clusterName, projectID, connV2),
-		Timeout:    d.Timeout(schema.TimeoutDelete),
+		Timeout:    timeout,
 		MinTimeout: oneMinute,
 		Delay:      oneMinute,
 	}
 
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorClusterOutageSimulationDelete, projectID, clusterName, err))
+		return fmt.Errorf(errorClusterOutageSimulationDelete, projectID, clusterName, err)
+	}
+
+	return nil
+}
+
+func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
+
+	ids := conversion.DecodeStateID(d.Id())
+	projectID := ids["project_id"]
+	clusterName := ids["cluster_name"]
+
+	err := endOutageSimulationAndWait(ctx, connV2, projectID, clusterName, d.Timeout(schema.TimeoutDelete))
+	if err != nil {
+		return diag.FromErr(err)
 	}
 
 	return nil
