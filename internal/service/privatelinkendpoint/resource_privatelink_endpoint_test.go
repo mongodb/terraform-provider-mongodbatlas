@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -115,6 +116,46 @@ func TestAccNetworkRSPrivateLinkEndpointGCP_basic(t *testing.T) {
 			},
 		},
 	})
+}
+
+func TestAccPrivateLinkEndpoint_deleteOnCreateTimeout(t *testing.T) {
+	var (
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName  = acc.RandomProjectName()
+		region       = "us-east-1"
+		providerName = "AWS"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      configDeleteOnCreateTimeout(orgID, projectName, providerName, region, "1s", true),
+				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
+			},
+		},
+	})
+}
+
+func configDeleteOnCreateTimeout(orgID, projectName, providerName, region, timeout string, deleteOnTimeout bool) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = %[2]q
+			org_id = %[1]q
+		}
+		resource "mongodbatlas_privatelink_endpoint" "test" {
+			project_id    = mongodbatlas_project.test.id
+			provider_name = %[3]q
+			region        = %[4]q
+			delete_on_create_timeout = %[6]t
+			
+			timeouts {
+				create = %[5]q
+			}
+		}
+	`, orgID, projectName, providerName, region, timeout, deleteOnTimeout)
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
