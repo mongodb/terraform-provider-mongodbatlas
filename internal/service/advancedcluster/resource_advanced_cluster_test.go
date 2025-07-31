@@ -124,7 +124,8 @@ func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
 
 func testAccAdvancedClusterFlexUpgrade(t *testing.T, instanceSize string, includeDedicated bool) resource.TestCase {
 	t.Helper()
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 1)
+	projectID := acc.ProjectIDExecution(t)
+	clusterName := acc.RandomClusterName()
 	defaultZoneName := "Zone 1" // Uses backend default as in existing tests
 
 	steps := []resource.TestStep{
