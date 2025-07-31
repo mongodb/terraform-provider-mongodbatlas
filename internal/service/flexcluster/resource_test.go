@@ -26,7 +26,7 @@ func TestAccFlexClusterRS_failedUpdate(t *testing.T) {
 	resource.Test(t, *tc)
 }
 
-func TestAccFlexClusterRS_createTimeout(t *testing.T) {
+func TestAccFlexClusterRS_createTimeoutWithDeleteOnCreateFlex(t *testing.T) {
 	var (
 		projectID             = acc.ProjectIDExecution(t)
 		clusterName           = acc.RandomName()

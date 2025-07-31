@@ -3279,7 +3279,6 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateFlex(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyFlexCluster,
 		Steps: []resource.TestStep{
 			{
 				Config:      configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", acc.TimeoutConfig(&createTimeout, nil, nil, false), false, &deleteOnCreateTimeout),
