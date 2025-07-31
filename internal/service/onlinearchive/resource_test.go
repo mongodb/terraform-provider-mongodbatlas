@@ -552,9 +552,10 @@ func configDeleteOnCreateTimeout(clusterTerraformStr, clusterResourceName, timeo
 		}
 
 		criteria {
-			type          = "DATE"
-			date_field    = "test"
-			expire_after_days = 1
+			type = "DATE"
+			date_field = "last_review"
+			date_format = "ISODATE"
+			expire_after_days = 2
 		}
 
 		depends_on = [%[2]s]
