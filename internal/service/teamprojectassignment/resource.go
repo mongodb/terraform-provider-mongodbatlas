@@ -13,8 +13,11 @@ import (
 
 const (
 	resourceName          = "team_project_assignment"
-	errorFetchingResource = "Error fetching resource"
-	invalidImportID       = "Invalid import ID format"
+	errorFetchingResource = "error fetching resource"
+	invalidImportID       = "invalid import ID format"
+	errorAssigment        = "error assigning Team to ProjectID (%s):"
+	errorUpdate           = "error updating TeamID(%s) in ProjectID(%s):"
+	errorDelete           = "error deleting TeamID(%s) from ProjectID(%s):"
 )
 
 var _ resource.ResourceWithConfigure = &rs{}
@@ -55,13 +58,13 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 
 	_, _, err := connV2.TeamsApi.AddAllTeamsToProject(ctx, projectID, teamProjectReq).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(fmt.Sprintf("error assigning Team to ProjectID (%s):", projectID), err.Error())
+		resp.Diagnostics.AddError(fmt.Sprintf(errorAssigment, projectID), err.Error())
 		return
 	}
 
 	apiResp, _, err := connV2.TeamsApi.GetProjectTeam(ctx, projectID, teamID).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(fmt.Sprintf("error assigning Team to ProjectID (%s):", projectID), err.Error())
+		resp.Diagnostics.AddError(fmt.Sprintf(errorAssigment, projectID), err.Error())
 		return
 	}
 	newTeamProjectAssignmentModel, diags := NewTFModel(ctx, apiResp, projectID)
@@ -120,13 +123,13 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 
 	_, _, err := connV2.TeamsApi.UpdateTeamRoles(ctx, projectID, teamID, updateReq).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(fmt.Sprintf("error updating TeamID(%s) in ProjectID(%s):", teamID, projectID), "API response is nil")
+		resp.Diagnostics.AddError(fmt.Sprintf(errorUpdate, teamID, projectID), "API response is nil")
 		return
 	}
 
 	apiResp, _, err := connV2.TeamsApi.GetProjectTeam(ctx, projectID, teamID).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(fmt.Sprintf("error updating TeamID(%s) in ProjectID(%s):", teamID, projectID), "API response is nil")
+		resp.Diagnostics.AddError(fmt.Sprintf(errorUpdate, teamID, projectID), "API response is nil")
 		return
 	}
 
@@ -155,7 +158,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError(fmt.Sprintf("error deleting TeamID(%s) from ProjectID(%s):", teamID, projectID), err.Error())
+		resp.Diagnostics.AddError(fmt.Sprintf(errorDelete, teamID, projectID), err.Error())
 		return
 	}
 }
