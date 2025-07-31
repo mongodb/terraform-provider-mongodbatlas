@@ -5,10 +5,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
 func resourceSchema() schema.Schema {
@@ -38,6 +40,19 @@ func resourceSchema() schema.Schema {
 			},
 		},
 	}
+}
+
+func dataSourceSchema() dsschema.Schema {
+	return conversion.DataSourceSchemaFromResource(resourceSchema(), &conversion.DataSourceSchemaRequest{
+		RequiredFields: []string{"project_id", "team_id"},
+		OverridenFields: map[string]dsschema.Attribute{
+			"role_names": dsschema.SetAttribute{
+				Computed:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "One or more project-level roles to assign to the team.",
+			},
+		},
+	})
 }
 
 type TFModel struct {

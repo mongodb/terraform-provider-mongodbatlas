@@ -464,6 +464,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		resourcepolicy.PluralDataSource,
 		clouduserorgassignment.DataSource,
 		clouduserteamassignment.DataSource,
+		teamprojectassignment.DataSource,
 		apikeyprojectassignment.DataSource,
 		apikeyprojectassignment.PluralDataSource,
 	}
