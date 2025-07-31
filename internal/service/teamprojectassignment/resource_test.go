@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -13,9 +14,14 @@ import (
 )
 
 var resourceName = "mongodbatlas_team_project_assignment.test"
+var dataSourceName = "data.mongodbatlas_team_project_assignment.test"
 
-func TestAccTeamProjectAssignmentRS_basic(t *testing.T) {
+func TestAccTeamProjectAssignment_basic(t *testing.T) {
 	resource.ParallelTest(t, *basicTestCase(t))
+}
+
+func TestAccTeamProjectAssignmentDS_error(t *testing.T) {
+	resource.ParallelTest(t, *errorTestCase(t))
 }
 
 func basicTestCase(t *testing.T) *resource.TestCase {
@@ -56,6 +62,21 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 	}
 }
 
+func errorTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+
+	return &resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:      configError1(projectID),
+				ExpectError: regexp.MustCompile("The argument \"team_id\" is required"),
+			},
+		},
+	}
+}
+
 func configBasic(orgID, teamName, projectID string, roles []string) string {
 	rolesStr := `"` + strings.Join(roles, `", "`) + `"`
 	return fmt.Sprintf(`
@@ -69,8 +90,21 @@ func configBasic(orgID, teamName, projectID string, roles []string) string {
 			team_id    = mongodbatlas_team.test.team_id
 			role_names      = [%[4]s]
 		}
+
+		data "mongodbatlas_team_project_assignment" "test" {
+			project_id = %[3]q
+			team_id    = mongodbatlas_team_project_assignment.test.team_id
+		}
 	
 	`, orgID, teamName, projectID, rolesStr)
+}
+
+func configError1(projectID string) string {
+	return fmt.Sprintf(`
+		data "mongodbatlas_team_project_assignment" "test" {
+			project_id = %[1]q
+		}
+	`, projectID)
 }
 
 func checks(projectID string, roles []string) resource.TestCheckFunc {
@@ -84,6 +118,13 @@ func checks(projectID string, roles []string) resource.TestCheckFunc {
 		checkFuncs = append(checkFuncs, resource.TestCheckTypeSetElemAttr(resourceName, "role_names.*", role))
 	}
 
+	dataCheckFuncs := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
+		resource.TestCheckResourceAttrSet(dataSourceName, "team_id"),
+		resource.TestCheckResourceAttr(dataSourceName, "role_names.#", fmt.Sprint(len(roles))),
+		resource.TestCheckResourceAttrPair(dataSourceName, "team_id", resourceName, "team_id"),
+	}
+	checkFuncs = append(checkFuncs, dataCheckFuncs...)
 	return resource.ComposeAggregateTestCheckFunc(checkFuncs...)
 }
 
