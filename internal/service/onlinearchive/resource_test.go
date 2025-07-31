@@ -537,27 +537,27 @@ func TestAccOnlineArchive_deleteOnCreateTimeout(t *testing.T) {
 
 func configDeleteOnCreateTimeout(clusterTerraformStr, clusterResourceName, timeout string, deleteOnTimeout bool) string {
 	return fmt.Sprintf(`
-%s
+	%s
 
-resource "mongodbatlas_online_archive" "test" {
-	project_id       = %[2]s.project_id
-	cluster_name     = %[2]s.name
-	coll_name        = "users"
-	db_name          = "sample_mflix"
-	sync_creation    = true
-	delete_on_create_timeout = %[4]t
-	
-	timeouts {
-		create = %[3]q
+	resource "mongodbatlas_online_archive" "test" {
+		project_id       = %[2]s.project_id
+		cluster_name     = %[2]s.name
+		coll_name        = "users"
+		db_name          = "sample_mflix"
+		sync_creation    = true
+		delete_on_create_timeout = %[4]t
+		
+		timeouts {
+			create = %[3]q
+		}
+
+		criteria {
+			type          = "DATE"
+			date_field    = "test"
+			expire_after_days = 1
+		}
+
+		depends_on = [%[2]s]
 	}
-
-	criteria {
-		type          = "DATE"
-		date_field    = "test"
-		expire_after_days = 1
-	}
-
-	depends_on = [%[2]s]
-}
 	`, clusterTerraformStr, clusterResourceName, timeout, deleteOnTimeout)
 }
