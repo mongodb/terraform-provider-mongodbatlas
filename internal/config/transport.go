@@ -98,11 +98,12 @@ func AddUserAgentExtra(ctx context.Context, extra UserAgentExtra) context.Contex
 	return context.WithValue(ctx, UserAgentExtraKey, newExtra)
 }
 
-type TFSrcUserAgentAdder struct {
+// UserAgentTransport wraps an http.RoundTripper to add User-Agent header with additional metadata.
+type UserAgentTransport struct {
 	Transport http.RoundTripper
 }
 
-func (t *TFSrcUserAgentAdder) RoundTrip(req *http.Request) (*http.Response, error) {
+func (t *UserAgentTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	extra := ReadUserAgentExtra(req.Context())
 	if extra != nil {
 		userAgent := req.Header.Get(UserAgentHeader)

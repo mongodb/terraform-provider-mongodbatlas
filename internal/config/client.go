@@ -97,15 +97,19 @@ type UAMetadata struct {
 }
 
 func (c *Config) NewClient(ctx context.Context) (any, error) {
-	// Network Logging transport is before Digest transport so it can log the first Digest requests with 401 Unauthorized.
-	// Terraform logging transport is after Digest transport so the Unauthorized request bodies are not logged.
+	// Transport chain (outermost to innermost):
+	// userAgentTransport -> tfLoggingTransport -> digestTransport -> networkLoggingTransport -> baseTransport
+	//
+	// This ordering ensures:
+	// 1. networkLoggingTransport logs ALL requests including digest auth 401 challenges
+	// 2. tfLoggingTransport only logs final authenticated requests (not sensitive auth details)
+	// 3. userAgentTransport modifies User-Agent before tfLoggingTransport logs it
 	networkLoggingTransport := NewTransportWithNetworkLogging(baseTransport, logging.IsDebugOrHigher())
 	digestTransport := digest.NewTransportWithHTTPRoundTripper(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey), networkLoggingTransport)
 	// Don't change logging.NewTransport to NewSubsystemLoggingHTTPTransport until all resources are in TPF.
 	tfLoggingTransport := logging.NewTransport("Atlas", digestTransport)
-	// Add tf-src header to User-Agent, see wrapper_provider_server.go
-	// Must be before tfLoggingTransport otherwise the "final" userAgent will not be logged
-	userAgentTransport := TFSrcUserAgentAdder{
+	// Add UserAgentExtra fields to the User-Agent header, see wrapper_provider_server.go
+	userAgentTransport := UserAgentTransport{
 		Transport: tfLoggingTransport,
 	}
 	client := &http.Client{Transport: &userAgentTransport}
