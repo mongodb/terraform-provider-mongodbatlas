@@ -123,13 +123,13 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 
 	_, _, err := connV2.TeamsApi.UpdateTeamRoles(ctx, projectID, teamID, updateReq).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(fmt.Sprintf(errorUpdate, teamID, projectID), "API response is nil")
+		resp.Diagnostics.AddError(fmt.Sprintf(errorUpdate, teamID, projectID), err.Error())
 		return
 	}
 
 	apiResp, _, err := connV2.TeamsApi.GetProjectTeam(ctx, projectID, teamID).Execute()
 	if err != nil {
-		resp.Diagnostics.AddError(fmt.Sprintf(errorUpdate, teamID, projectID), "API response is nil")
+		resp.Diagnostics.AddError(fmt.Sprintf(errorUpdate, teamID, projectID), err.Error())
 		return
 	}
 
