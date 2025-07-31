@@ -103,7 +103,6 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 				Check:  checksFlexCluster(projectID, clusterName, false, true),
 			},
 			{
-				Config:            configBasic(projectID, clusterName, provider, region, emptyTimeoutConfig, true, true, nil),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: acc.ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
 				ImportState:       true,
