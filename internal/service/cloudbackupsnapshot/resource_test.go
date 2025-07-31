@@ -100,7 +100,7 @@ func TestAccBackupRSCloudBackupSnapshot_sharded(t *testing.T) {
 	})
 }
 
-func TestAccBackupRSCloudBackupSnapshot_timeouts(t *testing.T) {
+func TestAccBackupRSCloudBackupSnapshot_deleteOnCreateTimeout(t *testing.T) {
 	var (
 		clusterInfo     = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
 		description     = "Timeout test snapshot"
