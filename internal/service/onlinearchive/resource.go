@@ -329,13 +329,13 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).Atlas
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	ids := conversion.DecodeStateID(d.Id())
-	atlasID := ids["archive_id"]
+	archiveID := ids["archive_id"]
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	_, err := conn.OnlineArchives.Delete(ctx, projectID, clusterName, atlasID)
+	_, err := connV2.OnlineArchiveApi.DeleteOnlineArchive(ctx, projectID, archiveID, clusterName).Execute()
 
 	if err != nil {
 		alreadyDeleted := strings.Contains(err.Error(), "404") && !d.IsNewResource()
@@ -343,7 +343,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return nil
 		}
 
-		return diag.FromErr(fmt.Errorf(errorOnlineArchivesDelete, err, atlasID))
+		return diag.FromErr(fmt.Errorf(errorOnlineArchivesDelete, err, archiveID))
 	}
 	return nil
 }
