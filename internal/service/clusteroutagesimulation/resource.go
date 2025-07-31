@@ -116,7 +116,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		deleteOnCreateTimeout = v.(bool)
 	}
 	errWait = cleanup.HandleCreateTimeout(deleteOnCreateTimeout, errWait, func(ctxCleanup context.Context) error {
-		return endOutageSimulationAndWait(ctxCleanup, connV2, projectID, clusterName, 5*time.Minute) // Use shorter timeout for cleanup
+		return endOutageSimulationAndWait(ctxCleanup, connV2, projectID, clusterName, d.Timeout(schema.TimeoutDelete))
 	})
 	if errWait != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterOutageSimulationCreate, projectID, clusterName, errWait))
