@@ -28,11 +28,11 @@ const (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		Schema:        resourceSchema(),
-		CreateContext: resourceCreate,
-		ReadContext:   resourceRead,
-		DeleteContext: resourceDelete,
-		UpdateContext: resourceUpdate,
+		Schema:               resourceSchema(),
+		CreateWithoutTimeout: resourceCreate,
+		ReadWithoutTimeout:   resourceRead,
+		UpdateWithoutTimeout: resourceUpdate,
+		DeleteWithoutTimeout: resourceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceImport,
 		},
