@@ -12,7 +12,7 @@ on:
 concurrency:
   group: '${{ github.workflow }}'
   cancel-in-progress: false
-   
+
 jobs:
   update-branches:
     strategy:
@@ -39,21 +39,21 @@ jobs:
       run: |
         git config --local user.email svc-api-experience-integrations-escalation@mongodb.com
         git config --local user.name svc-apix-bot
-    
+
     - name: Merge branch with master
       id: merge-check
       run: |
         echo "Updating branch: ${{ matrix.branch }}"
-        
+
         if ! git ls-remote --heads origin ${{ matrix.branch }} | grep -q ${{ matrix.branch }}; then
           echo "ERROR: Branch ${{ matrix.branch }} does not exist."
           exit 1
         fi
-        
+
         git fetch origin master
-        git fetch origin ${{ matrix.branch }}        
+        git fetch origin ${{ matrix.branch }}
         git checkout -B ${{ matrix.branch }} origin/${{ matrix.branch }}
-        
+
         # Check if there are commits in master not in dev branch
         commits_to_merge=$(git rev-list --count origin/${{ matrix.branch }}..origin/master)
         if [ "$commits_to_merge" -eq 0 ]; then
@@ -86,8 +86,8 @@ jobs:
     - name: Project check
       if: steps.merge-check.outputs.has-changes == 'true'
       id: project-check
-      env:
-        MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: "true"
+      # env:
+      #   MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: "true"
       run: |
         if make tools build lint test; then
           echo "slack-text=✅ Dev branch \`${{ matrix.branch }}\` merged and pushed with latest changes from master. ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Action>" >> "${GITHUB_OUTPUT}"

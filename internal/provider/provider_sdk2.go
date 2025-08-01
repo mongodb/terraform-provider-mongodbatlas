@@ -13,7 +13,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/accesslistapikey"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/apikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/auditing"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/backupcompliancepolicy"
@@ -213,10 +212,10 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_shared_tier_snapshot":                                         sharedtier.DataSourceSnapshot(),
 		"mongodbatlas_shared_tier_snapshots":                                        sharedtier.PluralDataSourceSnapshot(),
 	}
-	if !config.PreviewProviderV2AdvancedCluster() {
-		dataSourcesMap["mongodbatlas_advanced_cluster"] = advancedcluster.DataSource()
-		dataSourcesMap["mongodbatlas_advanced_clusters"] = advancedcluster.PluralDataSource()
-	}
+	// if !config.PreviewProviderV2AdvancedCluster() {
+	// 	dataSourcesMap["mongodbatlas_advanced_cluster"] = advancedcluster.DataSource()
+	// 	dataSourcesMap["mongodbatlas_advanced_clusters"] = advancedcluster.PluralDataSource()
+	// }
 	return dataSourcesMap
 }
 
@@ -268,9 +267,9 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_serverless_instance":                                         serverlessinstance.Resource(),
 		"mongodbatlas_cluster_outage_simulation":                                   clusteroutagesimulation.Resource(),
 	}
-	if !config.PreviewProviderV2AdvancedCluster() {
-		resourcesMap["mongodbatlas_advanced_cluster"] = advancedcluster.Resource()
-	}
+	// if !config.PreviewProviderV2AdvancedCluster() {
+	// 	resourcesMap["mongodbatlas_advanced_cluster"] = advancedcluster.Resource()
+	// }
 	return resourcesMap
 }
 

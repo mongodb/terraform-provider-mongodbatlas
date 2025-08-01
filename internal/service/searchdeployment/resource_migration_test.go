@@ -4,11 +4,13 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
 func TestMigSearchDeployment_basic(t *testing.T) {
+	mig.SkipIfVersionBelow(t, "2.0.0") // Skip migration tests for versions below 2.0.0
 	var (
 		resourceName           = "mongodbatlas_search_deployment.test"
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)

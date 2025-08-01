@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func PreCheckBasic(tb testing.TB) {
@@ -19,12 +18,12 @@ func PreCheckBasic(tb testing.TB) {
 	}
 }
 
-func SkipIfAdvancedClusterV2Schema(tb testing.TB) {
-	tb.Helper()
-	if config.PreviewProviderV2AdvancedCluster() {
-		tb.Skip("Skipping test in PreviewProviderV2AdvancedCluster as implementation is pending or test is not applicable")
-	}
-}
+// func SkipIfAdvancedClusterV2Schema(tb testing.TB) {
+// 	tb.Helper()
+// 	if config.PreviewProviderV2AdvancedCluster() {
+// 		tb.Skip("Skipping test in PreviewProviderV2AdvancedCluster as implementation is pending or test is not applicable")
+// 	}
+// }
 
 // PreCheckBasicSleep is a helper function to call SerialSleep, see its help for more info.
 // Some examples of use are when the test is calling ProjectIDExecution or GetClusterInfo to create clusters.

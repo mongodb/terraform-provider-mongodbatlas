@@ -1,26 +1,23 @@
 package acc
 
 import (
-	"os"
-	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
+	"github.com/stretchr/testify/assert"
 	"github.com/zclconf/go-cty/cty"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
 )
 
 // IsTestSDKv2ToTPF returns if we want to run migration tests from SDKv2 to TPF.
-func IsTestSDKv2ToTPF() bool {
-	env, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_TEST_SDKV2_TO_TPF"))
-	return env
-}
+// func IsTestSDKv2ToTPF() bool {
+// 	env, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_TEST_SDKV2_TO_TPF"))
+// 	return env
+// }
 
 func CheckRSAndDSPreviewProviderV2(usePreviewProvider bool, resourceName string, dataSourceName, pluralDataSourceName *string, attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 	modifiedSet := ConvertToPreviewProviderV2AttrsSet(usePreviewProvider, attrsSet)
@@ -128,7 +125,7 @@ func ConvertAdvancedClusterToPreviewProviderV2(t *testing.T, usePreviewProvider 
 }
 
 func skipPreviewProviderV2Work(usePreviewProvider bool) bool {
-	return !config.PreviewProviderV2AdvancedCluster() || !usePreviewProvider
+	return !usePreviewProvider
 }
 
 func AssertEqualHCL(t *testing.T, expected, actual string, msgAndArgs ...interface{}) {
