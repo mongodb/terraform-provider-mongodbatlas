@@ -1,0 +1,3 @@
+```release-note:new-resource
+resource/mongodbatlas_team_project_assignment 
+```
