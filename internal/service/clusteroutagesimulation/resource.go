@@ -121,7 +121,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			connV2,
 			projectID,
 			clusterName,
-			5*time.Minute, // wait timeout for reaching SIMULATING before trying to delete
+			20*time.Minute, // wait timeout for reaching SIMULATING before trying to delete
 			d.Timeout(schema.TimeoutDelete),
 		)
 	})
