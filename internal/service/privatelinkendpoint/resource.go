@@ -272,10 +272,10 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Target:     []string{"DELETED", "FAILED"},
 		Refresh:    refreshFunc(ctx, connV2, projectID, providerName, privateLinkID),
 		Timeout:    d.Timeout(schema.TimeoutDelete),
-		MinTimeout: 5 * time.Second,
-		Delay:      3 * time.Second,
+		MinTimeout: delayAndMinTimeout,
+		Delay:      delayAndMinTimeout,
 	}
-	// Wait, catching any errors
+
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsDelete, privateLinkID, err))
