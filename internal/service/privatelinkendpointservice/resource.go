@@ -194,8 +194,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		deleteOnCreateTimeout = v.(bool)
 	}
 	errWait = cleanup.HandleCreateTimeout(deleteOnCreateTimeout, errWait, func(ctxCleanup context.Context) error {
-		_, errCleanup := connV2.PrivateEndpointServicesApi.DeletePrivateEndpoint(ctxCleanup, projectID, providerName, endpointServiceID, privateLinkID).Execute()
-		return errCleanup
+		return deletePrivateEndpointAndWait(ctxCleanup, connV2, projectID, providerName, privateLinkID, endpointServiceID, d.Timeout(schema.TimeoutDelete))
 	})
 	if errWait != nil {
 		return diag.FromErr(fmt.Errorf(errorServiceEndpointAdd, endpointServiceID, privateLinkID, errWait))
@@ -297,6 +296,47 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	return nil
 }
 
+// deletePrivateEndpointAndWait deletes the private endpoint and waits for it to complete
+func deletePrivateEndpointAndWait(ctx context.Context, connV2 *admin.APIClient, projectID, providerName, privateLinkID, endpointServiceID string, timeout time.Duration) error {
+	if endpointServiceID != "" {
+		_, err := connV2.PrivateEndpointServicesApi.DeletePrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
+		if err != nil {
+			return fmt.Errorf(errorEndpointDelete, endpointServiceID, err)
+		}
+
+		stateConf := &retry.StateChangeConf{
+			Pending:    []string{"NONE", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "INITIATING"},
+			Target:     []string{"REJECTED", "DELETED", "FAILED"},
+			Refresh:    resourceRefreshFunc(ctx, connV2, projectID, providerName, privateLinkID, endpointServiceID),
+			Timeout:    timeout,
+			MinTimeout: delayAndMinTimeout,
+			Delay:      delayAndMinTimeout,
+		}
+
+		// Wait, catching any errors
+		_, err = stateConf.WaitForStateContext(ctx)
+		if err != nil {
+			return fmt.Errorf(errorEndpointDelete, endpointServiceID, err)
+		}
+
+		clusterConf := &retry.StateChangeConf{
+			Pending:    []string{"REPEATING", "PENDING"},
+			Target:     []string{"IDLE", "DELETED"},
+			Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
+			Timeout:    timeout,
+			MinTimeout: delayAndMinTimeout,
+			Delay:      delayAndMinTimeout,
+		}
+
+		if _, err = clusterConf.WaitForStateContext(ctx); err != nil {
+			// error awaiting advanced clusters IDLE should not result in failure to apply changes to this resource
+			log.Printf(advancedcluster.ErrorAdvancedClusterListStatus, err)
+		}
+	}
+
+	return nil
+}
+
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
@@ -306,40 +346,9 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	endpointServiceID := ids["endpoint_service_id"]
 	providerName := ids["provider_name"]
 
-	if endpointServiceID != "" {
-		_, err := connV2.PrivateEndpointServicesApi.DeletePrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorEndpointDelete, endpointServiceID, err))
-		}
-
-		stateConf := &retry.StateChangeConf{
-			Pending:    []string{"NONE", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "INITIATING"},
-			Target:     []string{"REJECTED", "DELETED", "FAILED"},
-			Refresh:    resourceRefreshFunc(ctx, connV2, projectID, providerName, privateLinkID, endpointServiceID),
-			Timeout:    d.Timeout(schema.TimeoutDelete),
-			MinTimeout: delayAndMinTimeout,
-			Delay:      delayAndMinTimeout,
-		}
-
-		// Wait, catching any errors
-		_, err = stateConf.WaitForStateContext(ctx)
-		if err != nil {
-			return diag.FromErr(fmt.Errorf(errorEndpointDelete, endpointServiceID, err))
-		}
-
-		clusterConf := &retry.StateChangeConf{
-			Pending:    []string{"REPEATING", "PENDING"},
-			Target:     []string{"IDLE", "DELETED"},
-			Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
-			Timeout:    d.Timeout(schema.TimeoutDelete),
-			MinTimeout: delayAndMinTimeout,
-			Delay:      delayAndMinTimeout,
-		}
-
-		if _, err = clusterConf.WaitForStateContext(ctx); err != nil {
-			// error awaiting advanced clusters IDLE should not result in failure to apply changes to this resource
-			log.Printf(advancedcluster.ErrorAdvancedClusterListStatus, err)
-		}
+	err := deletePrivateEndpointAndWait(ctx, connV2, projectID, providerName, privateLinkID, endpointServiceID, d.Timeout(schema.TimeoutDelete))
+	if err != nil {
+		return diag.FromErr(err)
 	}
 
 	return nil
