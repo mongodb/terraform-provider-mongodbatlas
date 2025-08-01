@@ -127,7 +127,7 @@ func testAccAdvancedClusterFlexUpgrade(t *testing.T, instanceSize string, includ
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 1)
 	defaultZoneName := "Zone 1" // Uses backend default as in existing tests
 
-	// avoid checking plural data source to reduce risk of being impacted from failure in other test using same project, test is focused on upgrade
+	// avoid checking plural data source to reduce risk of being impacted from failure in other test using same project, allows running in parallel
 	steps := []resource.TestStep{
 		{
 			Config: configTenant(t, true, projectID, clusterName, defaultZoneName, instanceSize),
@@ -154,11 +154,11 @@ func testAccAdvancedClusterFlexUpgrade(t *testing.T, instanceSize string, includ
 }
 
 func TestAccAdvancedCluster_basicTenant_flexUpgrade_dedicatedUpgrade(t *testing.T) {
-	resource.Test(t, testAccAdvancedClusterFlexUpgrade(t, freeInstanceSize, true))
+	resource.ParallelTest(t, testAccAdvancedClusterFlexUpgrade(t, freeInstanceSize, true))
 }
 
 func TestAccAdvancedCluster_sharedTier_flexUpgrade(t *testing.T) {
-	resource.Test(t, testAccAdvancedClusterFlexUpgrade(t, sharedInstanceSize, false))
+	resource.ParallelTest(t, testAccAdvancedClusterFlexUpgrade(t, sharedInstanceSize, false))
 }
 func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 	var (
