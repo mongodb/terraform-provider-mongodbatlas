@@ -155,7 +155,8 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		deleteOnCreateTimeout = v.(bool)
 	}
 	errWait = cleanup.HandleCreateTimeout(deleteOnCreateTimeout, errWait, func(ctxCleanup context.Context) error {
-		return deletePrivateEndpointAndWait(ctxCleanup, connV2, projectID, providerName, privateEndpoint.GetId(), d.Timeout(schema.TimeoutDelete))
+		_, errCleanup := connV2.PrivateEndpointServicesApi.DeletePrivateEndpointService(ctxCleanup, projectID, providerName, privateEndpoint.GetId()).Execute()
+		return errCleanup
 	})
 	if errWait != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsCreate, errWait))
@@ -247,35 +248,6 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	return nil
 }
 
-// deletePrivateEndpointAndWait deletes the private endpoint and waits for it to complete
-func deletePrivateEndpointAndWait(ctx context.Context, connV2 *admin.APIClient, projectID, providerName, privateLinkID string, timeout time.Duration) error {
-	resp, err := connV2.PrivateEndpointServicesApi.DeletePrivateEndpointService(ctx, projectID, providerName, privateLinkID).Execute()
-	if err != nil {
-		if validate.StatusNotFound(resp) {
-			return nil
-		}
-		return fmt.Errorf(errorPrivateLinkEndpointsDelete, privateLinkID, err)
-	}
-
-	log.Println("[INFO] Waiting for MongoDB Private Endpoints Connection to be destroyed")
-
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"DELETING"},
-		Target:     []string{"DELETED", "FAILED"},
-		Refresh:    refreshFunc(ctx, connV2, projectID, providerName, privateLinkID),
-		Timeout:    timeout,
-		MinTimeout: delayAndMinTimeout,
-		Delay:      delayAndMinTimeout,
-	}
-
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		return fmt.Errorf(errorPrivateLinkEndpointsDelete, privateLinkID, err)
-	}
-
-	return nil
-}
-
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
@@ -284,9 +256,29 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := ids["project_id"]
 	providerName := ids["provider_name"]
 
-	err := deletePrivateEndpointAndWait(ctx, connV2, projectID, providerName, privateLinkID, d.Timeout(schema.TimeoutDelete))
+	resp, err := connV2.PrivateEndpointServicesApi.DeletePrivateEndpointService(ctx, projectID, providerName, privateLinkID).Execute()
 	if err != nil {
-		return diag.FromErr(err)
+		if validate.StatusNotFound(resp) {
+			return nil
+		}
+
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsDelete, privateLinkID, err))
+	}
+
+	log.Println("[INFO] Waiting for MongoDB Private Endpoints Connection to be destroyed")
+
+	stateConf := &retry.StateChangeConf{
+		Pending:    []string{"DELETING"},
+		Target:     []string{"DELETED", "FAILED"},
+		Refresh:    refreshFunc(ctx, connV2, projectID, providerName, privateLinkID),
+		Timeout:    d.Timeout(schema.TimeoutDelete),
+		MinTimeout: 5 * time.Second,
+		Delay:      3 * time.Second,
+	}
+	// Wait, catching any errors
+	_, err = stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsDelete, privateLinkID, err))
 	}
 
 	return nil
