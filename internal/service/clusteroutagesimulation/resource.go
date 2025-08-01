@@ -116,7 +116,14 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		deleteOnCreateTimeout = v.(bool)
 	}
 	errWait = cleanup.HandleCreateTimeout(deleteOnCreateTimeout, errWait, func(ctxCleanup context.Context) error {
-		return endOutageSimulationAndWait(ctxCleanup, connV2, projectID, clusterName, d.Timeout(schema.TimeoutDelete))
+		return deleteOutageSimulationWithCleanup(
+			ctxCleanup,
+			connV2,
+			projectID,
+			clusterName,
+			5*time.Minute, // wait timeout for reaching SIMULATING before trying to delete
+			d.Timeout(schema.TimeoutDelete),
+		)
 	})
 	if errWait != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterOutageSimulationCreate, projectID, clusterName, errWait))
@@ -171,6 +178,48 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	}))
 
 	return nil
+}
+
+// waitForDeletableState waits for the outage simulation to reach a deletable state
+func waitForDeletableState(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, timeout time.Duration) (*admin.ClusterOutageSimulation, error) {
+	stateConf := &retry.StateChangeConf{
+		Pending:    []string{"START_REQUESTED", "STARTING"},
+		Target:     []string{"SIMULATING", "FAILED", "DELETED"},
+		Refresh:    resourceRefreshFunc(ctx, clusterName, projectID, connV2),
+		Timeout:    timeout,
+		MinTimeout: oneMinute,
+		Delay:      oneMinute,
+	}
+
+	result, err := stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if result == nil {
+		return nil, fmt.Errorf("no result returned from state change")
+	}
+
+	simulation := result.(*admin.ClusterOutageSimulation)
+	return simulation, nil
+}
+
+// deleteOutageSimulationWithCleanup waits for SIMULATING state and then deletes the simulation
+func deleteOutageSimulationWithCleanup(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, waitTimeout, deleteTimeout time.Duration) error {
+	simulation, err := waitForDeletableState(ctx, connV2, projectID, clusterName, waitTimeout)
+	if err != nil {
+		return nil // Don't fail cleanup if we can't reach a deletable state
+	}
+
+	finalState := simulation.GetState()
+	switch finalState {
+	case "SIMULATING": // If this isn't the state when triggering the delete, the API returns a 400 error: "INVALID_CLUSTER_OUTAGE_SIMULATION_STATE") Detail: Invalid cluster outage simulation state: START_REQUESTED, expected state: SIMULATING
+		return endOutageSimulationAndWait(ctx, connV2, projectID, clusterName, deleteTimeout)
+	case "FAILED", "DELETED":
+		return nil
+	default:
+		return nil
+	}
 }
 
 // endOutageSimulationAndWait ends the outage simulation and waits for it to complete
