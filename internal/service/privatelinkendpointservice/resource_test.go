@@ -42,6 +42,29 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Failed(t *testing.T) {
 	})
 }
 
+func TestAccNetworkRSPrivateLinkEndpointService_deleteOnCreateTimeout(t *testing.T) {
+	var (
+		resourceSuffix = "test"
+		providerName   = "AWS"
+		projectID      = acc.ProjectIDExecution(t)
+		region         = os.Getenv("AWS_REGION")
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configDeleteOnCreateTimeout(
+					projectID, providerName, region, resourceSuffix, "1s", true,
+				),
+				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
+			},
+		},
+	})
+}
+
 func basicAWSTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 	acc.SkipTestForCI(tb) // needs AWS configuration
@@ -188,4 +211,26 @@ func configFailAWS(projectID, providerName, region, resourceSuffix string) strin
 			provider_name         = %[2]q
 		}
 	`, projectID, providerName, region, resourceSuffix)
+}
+
+func configDeleteOnCreateTimeout(projectID, providerName, region, resourceSuffix, timeout string, deleteOnTimeout bool) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_privatelink_endpoint" "test" {
+			project_id    = %[1]q
+			provider_name = %[2]q
+			region        = %[3]q
+		}
+
+		resource "mongodbatlas_privatelink_endpoint_service" %[4]q {
+			project_id            = mongodbatlas_privatelink_endpoint.test.project_id
+			endpoint_service_id   = "vpce-11111111111111111"
+			private_link_id       = mongodbatlas_privatelink_endpoint.test.id
+			provider_name         = %[2]q
+			delete_on_create_timeout = %[6]t
+			
+			timeouts {
+				create = %[5]q
+			}
+		}
+	`, projectID, providerName, region, resourceSuffix, timeout, deleteOnTimeout)
 }
