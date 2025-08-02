@@ -53,7 +53,6 @@ testmact: ## Run MacT tests (mocked acc tests)
 	@$(eval export MONGODB_ATLAS_ORG_ID?=111111111111111111111111)
 	@$(eval export MONGODB_ATLAS_PROJECT_ID?=111111111111111111111111)
 	@$(eval export MONGODB_ATLAS_CLUSTER_NAME?=mocked-cluster)
-	@$(eval export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER?=true)
 	@if [ "$(ACCTEST_PACKAGES)" = "./..." ]; then \
 		echo "Error: ACCTEST_PACKAGES must be explicitly set for testmact target, './...' is not allowed"; \
 		exit 1; \
