@@ -39,10 +39,13 @@ func GetUpgradeToDedicatedClusterRequest(d *schema.ResourceData) *admin.AtlasTen
 	if v, ok := d.GetOk("disk_size_gb"); ok {
 		rootDiskSizeGB = conversion.Pointer(v.(float64))
 	}
-	return &admin.AtlasTenantClusterUpgradeRequest20240805{
+	req := admin.AtlasTenantClusterUpgradeRequest20240805{
 		Name:             clusterName,
 		ClusterType:      conversion.Pointer(d.Get("cluster_type").(string)),
-		BackupEnabled:    conversion.Pointer(d.Get("backup_enabled").(bool)),
 		ReplicationSpecs: expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), rootDiskSizeGB),
 	}
+	if d.Get("backup_enabled").(bool) {
+		req.BackupEnabled = conversion.Pointer(true)
+	}
+	return &req
 }
