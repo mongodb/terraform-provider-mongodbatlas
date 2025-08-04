@@ -63,7 +63,7 @@ const (
 var (
 	configServerManagementModeFixedToDedicated = "FIXED_TO_DEDICATED"
 	configServerManagementModeAtlasManaged     = "ATLAS_MANAGED"
-	errGeneric       						   = errors.New("generic")
+	errGeneric                                 = errors.New("generic")
 )
 
 func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
