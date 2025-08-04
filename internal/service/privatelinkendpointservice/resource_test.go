@@ -46,8 +46,9 @@ func TestAccNetworkRSPrivateLinkEndpointService_deleteOnCreateTimeout(t *testing
 	var (
 		resourceSuffix = "test"
 		providerName   = "AWS"
-		projectID      = acc.ProjectIDExecution(t)
 		region         = os.Getenv("AWS_REGION")
+		// Create private link endpoint outside of test configuration to avoid cleanup issues
+		projectID, privateLinkEndpointID = acc.PrivateLinkEndpointIDExecution(t, providerName, region)
 	)
 
 	resource.Test(t, resource.TestCase{
@@ -56,8 +57,8 @@ func TestAccNetworkRSPrivateLinkEndpointService_deleteOnCreateTimeout(t *testing
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configDeleteOnCreateTimeout(
-					projectID, providerName, region, resourceSuffix, "1s", true,
+				Config: configDeleteOnCreateTimeoutWithExistingEndpoint(
+					projectID, providerName, privateLinkEndpointID, resourceSuffix, "1s", true,
 				),
 				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
 			},
@@ -213,18 +214,12 @@ func configFailAWS(projectID, providerName, region, resourceSuffix string) strin
 	`, projectID, providerName, region, resourceSuffix)
 }
 
-func configDeleteOnCreateTimeout(projectID, providerName, region, resourceSuffix, timeout string, deleteOnTimeout bool) string {
+func configDeleteOnCreateTimeoutWithExistingEndpoint(projectID, providerName, privateLinkEndpointID, resourceSuffix, timeout string, deleteOnTimeout bool) string {
 	return fmt.Sprintf(`
-		resource "mongodbatlas_privatelink_endpoint" "test" {
-			project_id    = %[1]q
-			provider_name = %[2]q
-			region        = %[3]q
-		}
-
 		resource "mongodbatlas_privatelink_endpoint_service" %[4]q {
-			project_id            = mongodbatlas_privatelink_endpoint.test.project_id
+			project_id            = %[1]q
+			private_link_id       = %[3]q
 			endpoint_service_id   = "vpce-11111111111111111"
-			private_link_id       = mongodbatlas_privatelink_endpoint.test.id
 			provider_name         = %[2]q
 			delete_on_create_timeout = %[6]t
 			
@@ -232,5 +227,5 @@ func configDeleteOnCreateTimeout(projectID, providerName, region, resourceSuffix
 				create = %[5]q
 			}
 		}
-	`, projectID, providerName, region, resourceSuffix, timeout, deleteOnTimeout)
+	`, projectID, providerName, privateLinkEndpointID, resourceSuffix, timeout, deleteOnTimeout)
 }

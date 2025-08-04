@@ -130,16 +130,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsCreate, err))
 	}
 
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"INITIATING", "DELETING"},
-		Target:     []string{"WAITING_FOR_USER", "FAILED", "DELETED", "AVAILABLE"},
-		Refresh:    refreshFunc(ctx, connV2, projectID, providerName, privateEndpoint.GetId()),
-		Timeout:    d.Timeout(schema.TimeoutCreate) - time.Minute, // If using a CRUD function with a timeout, any StateChangeConf timeouts should be configured below that duration to avoid returning the SDK context: deadline exceeded error instead of the retry logic error.
-		MinTimeout: 5 * time.Second,
-		Delay:      3 * time.Second,
-	}
-
-	// Wait, catching any errors
+	stateConf := CreateStateChangeConfig(ctx, connV2, projectID, providerName, privateEndpoint.GetId(), d.Timeout(schema.TimeoutCreate)-time.Minute)
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsCreate, err))
@@ -250,15 +241,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	log.Println("[INFO] Waiting for MongoDB Private Endpoints Connection to be destroyed")
 
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"DELETING"},
-		Target:     []string{"DELETED", "FAILED"},
-		Refresh:    refreshFunc(ctx, connV2, projectID, providerName, privateLinkID),
-		Timeout:    d.Timeout(schema.TimeoutDelete),
-		MinTimeout: 5 * time.Second,
-		Delay:      3 * time.Second,
-	}
-	// Wait, catching any errors
+	stateConf := DeleteStateChangeConfig(ctx, connV2, projectID, providerName, privateLinkID, d.Timeout(schema.TimeoutDelete))
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsDelete, privateLinkID, err))
@@ -327,5 +310,27 @@ func refreshFunc(ctx context.Context, client *admin.APIClient, projectID, provid
 		}
 
 		return p, status, nil
+	}
+}
+
+func CreateStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, projectID, providerName, privateLinkID string, timeout time.Duration) retry.StateChangeConf {
+	return retry.StateChangeConf{
+		Pending:    []string{"INITIATING", "DELETING"},
+		Target:     []string{"WAITING_FOR_USER", "FAILED", "DELETED", "AVAILABLE"},
+		Refresh:    refreshFunc(ctx, connV2, projectID, providerName, privateLinkID),
+		Timeout:    timeout,
+		MinTimeout: 5 * time.Second,
+		Delay:      3 * time.Second,
+	}
+}
+
+func DeleteStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, projectID, providerName, privateLinkID string, timeout time.Duration) retry.StateChangeConf {
+	return retry.StateChangeConf{
+		Pending:    []string{"DELETING"},
+		Target:     []string{"DELETED", "FAILED"},
+		Refresh:    refreshFunc(ctx, connV2, projectID, providerName, privateLinkID),
+		Timeout:    timeout,
+		MinTimeout: 5 * time.Second,
+		Delay:      3 * time.Second,
 	}
 }
