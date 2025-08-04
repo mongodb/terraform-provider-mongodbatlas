@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
@@ -97,7 +96,7 @@ func TestMigAdvancedCluster_geoShardedOldSchemaUpdate(t *testing.T) {
 }
 
 func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
+	// acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
 
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 
@@ -115,12 +114,17 @@ func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
 				Config:                   configShardedTransitionOldToNewSchema(t, false, projectID, clusterName, true, false),
 				Check:                    checkShardedTransitionOldToNewSchema(false, true),
 			},
+			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, false),
+				Check:                    checkShardedTransitionOldToNewSchema(true, true),
+			},
 		},
 	})
 }
 
 func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) {
-	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
+	// acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -136,6 +140,11 @@ func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) 
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configGeoShardedTransitionOldToNewSchema(t, false, projectID, clusterName, true),
 				Check:                    checkGeoShardedTransitionOldToNewSchema(false, true),
+			},
+			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   configGeoShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true),
+				Check:                    checkGeoShardedTransitionOldToNewSchema(true, true),
 			},
 		},
 	})
@@ -279,14 +288,63 @@ func configPartialAdvancedConfig(projectID, clusterName, extraArgs, autoScaling 
 	`, projectID, clusterName, extraArgs, autoScaling)
 }
 
-// migTest is a helper function to run migration tests in normal case (SDKv2 -> SDKv2, TPF -> TPF), or in mixed case (SDKv2 -> TPF).
+// // migTest is a helper function to run migration tests in normal case (SDKv2 -> SDKv2, TPF -> TPF), or in mixed case (SDKv2 -> TPF).
+// func migTest(t *testing.T, testCaseFunc func(t *testing.T, usePreviewProvider bool) resource.TestCase) {
+// 	t.Helper()
+// 	usePreviewProvider := config.PreviewProviderV2AdvancedCluster()
+// 	if acc.IsTestSDKv2ToTPF() {
+// 		usePreviewProvider = false
+// 		t.Log("Running test SDKv2 to TPF")
+// 	}
+// 	testCase := testCaseFunc(t, usePreviewProvider)
+// 	mig.CreateAndRunTest(t, &testCase)
+// }
+
+
+// migTest is a helper function to run migration tests:
+// - TPF -> TPF: for versions 2.0.0+ (tests same config with older TPF provider vs newer TPF provider)
+// - SDKv2 -> TPF: when MONGODB_ATLAS_TEST_SDKV2_TO_TPF=true (tests SDKv2 config vs TPF config with MONGODB_ATLAS_LAST_VERSION=1.39.0)
 func migTest(t *testing.T, testCaseFunc func(t *testing.T, usePreviewProvider bool) resource.TestCase) {
 	t.Helper()
-	usePreviewProvider := config.PreviewProviderV2AdvancedCluster()
+
 	if acc.IsTestSDKv2ToTPF() {
-		usePreviewProvider = false
-		t.Log("Running test SDKv2 to TPF")
+		// SDKv2 to TPF migration: first step uses SDKv2, second step uses TPF
+		t.Log("Running migration test: SDKv2 to TPF")
+		testCase := testCaseFunc(t, false) // Get SDKv2 configuration
+
+		migrationTestCase := resource.TestCase{
+			PreCheck:     testCase.PreCheck,
+			CheckDestroy: testCase.CheckDestroy,
+			ErrorCheck:   testCase.ErrorCheck,
+			Steps: []resource.TestStep{
+				{
+					ExternalProviders: mig.ExternalProviders(),
+					Config:            testCase.Steps[0].Config, // SDKv2 config
+					Check:             testCase.Steps[0].Check,
+				},
+				{
+					ProtoV6ProviderFactories: testCase.ProtoV6ProviderFactories,
+					Config:                   getTPFConfig(t, testCaseFunc),
+					Check:                    testCase.Steps[0].Check,
+				},
+			},
+		}
+		mig.CreateAndRunTestNonParallel(t, &migrationTestCase)
+	} else {
+		mig.SkipIfVersionBelow(t, "2.0.0")
+		t.Log("Running migration test: TPF to TPF")
+		testCase := testCaseFunc(t, true)
+		mig.CreateAndRunTest(t, &testCase)
 	}
-	testCase := testCaseFunc(t, usePreviewProvider)
-	mig.CreateAndRunTest(t, &testCase)
 }
+
+func getTPFConfig(t *testing.T, testCaseFunc func(t *testing.T, usePreviewProvider bool) resource.TestCase) string {
+	t.Helper()
+	tpfTestCase := testCaseFunc(t, true)
+	return tpfTestCase.Steps[0].Config
+}
+
+// func IsTestSDKv2ToTPF() bool {
+// 	env, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_TEST_SDKV2_TO_TPF"))
+// 	return env
+// }

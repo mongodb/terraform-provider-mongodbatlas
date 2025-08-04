@@ -1,9 +1,7 @@
 package advancedclustertpf_test
 
 import (
-	"errors"
 	"fmt"
-	"net/http"
 	"os"
 	"regexp"
 	"strconv"
@@ -12,17 +10,13 @@ import (
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	mockadmin20240530 "go.mongodb.org/atlas-sdk/v20240530005/mockadmin"
 	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
@@ -63,63 +57,7 @@ const (
 var (
 	configServerManagementModeFixedToDedicated = "FIXED_TO_DEDICATED"
 	configServerManagementModeAtlasManaged     = "ATLAS_MANAGED"
-	errGeneric                                 = errors.New("generic")
 )
-
-func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
-	var (
-		projectID   = "11111"
-		clusterName = "testCluster"
-		ID          = "111111"
-		numShard    = 2
-		zoneName    = "ZoneName managed by Terraform"
-	)
-
-	testCases := map[string]struct {
-		mockCluster    *admin20240530.AdvancedClusterDescription
-		mockResponse   *http.Response
-		mockError      error
-		expectedResult map[string]advancedcluster.OldShardConfigMeta
-		expectedError  error
-	}{
-		"Error in the API call": {
-			mockCluster:    &admin20240530.AdvancedClusterDescription{},
-			mockResponse:   &http.Response{StatusCode: 400},
-			mockError:      errGeneric,
-			expectedError:  errGeneric,
-			expectedResult: nil,
-		},
-		"Successful": {
-			mockCluster: &admin20240530.AdvancedClusterDescription{
-				ReplicationSpecs: &[]admin20240530.ReplicationSpec{
-					{
-						NumShards: &numShard,
-						Id:        &ID,
-						ZoneName:  &zoneName,
-					},
-				},
-			},
-			mockResponse:  &http.Response{},
-			mockError:     nil,
-			expectedError: nil,
-			expectedResult: map[string]advancedcluster.OldShardConfigMeta{
-				zoneName: {ID: ID, NumShard: numShard},
-			},
-		},
-	}
-	for name, tc := range testCases {
-		t.Run(name, func(t *testing.T) {
-			testObject := mockadmin20240530.NewClustersApi(t)
-
-			testObject.EXPECT().GetCluster(mock.Anything, mock.Anything, mock.Anything).Return(admin20240530.GetClusterApiRequest{ApiService: testObject}).Once()
-			testObject.EXPECT().GetClusterExecute(mock.Anything).Return(tc.mockCluster, tc.mockResponse, tc.mockError).Once()
-
-			result, err := advancedcluster.GetReplicationSpecAttributesFromOldAPI(t.Context(), projectID, clusterName, testObject)
-			assert.Equal(t, tc.expectedError, err)
-			assert.Equal(t, tc.expectedResult, result)
-		})
-	}
-}
 
 func testAccAdvancedClusterFlexUpgrade(t *testing.T, instanceSize string, includeDedicated bool) resource.TestCase {
 	t.Helper()
@@ -397,7 +335,7 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 		Steps: []resource.TestStep{
 			{
 				Config:      configAdvanced(t, true, projectID, clusterName, "6.0", processArgs20240530, processArgs),
-				ExpectError: regexp.MustCompile(advancedcluster.ErrorDefaultMaxTimeMinVersion),
+				ExpectError: regexp.MustCompile(advancedclustertpf.ErrorDefaultMaxTimeMinVersion),
 			},
 			{
 				Config: configAdvanced(t, true, projectID, clusterName, "6.0", processArgs20240530, processArgsCipherConfig),
@@ -647,7 +585,7 @@ func TestAccClusterAdvancedClusterConfig_singleShardedTransitionToOldSchemaExpec
 			acc.TestStepImportCluster(resourceName),
 			{
 				Config:      configGeoShardedOldSchema(t, true, projectID, clusterName, 1, 2, false),
-				ExpectError: regexp.MustCompile(advancedcluster.ErrorOperationNotPermitted),
+				ExpectError: regexp.MustCompile(advancedclustertpf.ErrorOperationNotPermitted),
 			},
 		},
 	})

@@ -59,6 +59,9 @@ const (
 	operationFCVPinning                          = "FCV pinning"
 	operationFCVUnpinning                        = "FCV unpinning"
 	operationFlexUpgrade                         = "flex upgrade"
+	ErrorDefaultMaxTimeMinVersion  = "`advanced_configuration.default_max_time_ms` can only be configured if the mongo_db_major_version is 8.0 or higher"
+	ErrorOperationNotPermitted     = "error operation not permitted"
+
 )
 
 func addErrorDiag(diags *diag.Diagnostics, errorLocator, details string) {
