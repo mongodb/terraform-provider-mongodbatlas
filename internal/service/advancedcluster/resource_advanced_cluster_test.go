@@ -174,8 +174,8 @@ func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 				Check:  checkTenant(true, projectID, clusterName),
 			},
 			{
-				Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, acc.ConfigBasicDedicated(projectID, clusterName, defaultZoneName)),
-				Check:  checksBasicDedicated(projectID, clusterName),
+				Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, acc.ConfigDedicatedNVMeBackupEnabled(projectID, clusterName, defaultZoneName)),
+				Check:  checksDedicatedNVMeBackupEnabled(projectID, clusterName),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -1786,6 +1786,18 @@ func checksBasicDedicated(projectID, name string) resource.TestCheckFunc {
 		"replication_specs.0.region_configs.0.electable_specs.0.node_count":    "3",
 		"replication_specs.0.region_configs.0.electable_specs.0.instance_size": "M10",
 		"replication_specs.0.region_configs.0.provider_name":                   "AWS",
+	}
+	return checkAggr(true, nil, checkMap, originalChecks)
+}
+
+func checksDedicatedNVMeBackupEnabled(projectID, name string) resource.TestCheckFunc {
+	originalChecks := checkTenant(true, projectID, name)
+	checkMap := map[string]string{
+		"backup_enabled": "true",
+		"replication_specs.0.region_configs.0.electable_specs.0.node_count":      "3",
+		"replication_specs.0.region_configs.0.electable_specs.0.instance_size":   "M40_NVME",
+		"replication_specs.0.region_configs.0.electable_specs.0.ebs_volume_type": "PROVISIONED",
+		"replication_specs.0.region_configs.0.provider_name":                     "AWS",
 	}
 	return checkAggr(true, nil, checkMap, originalChecks)
 }
