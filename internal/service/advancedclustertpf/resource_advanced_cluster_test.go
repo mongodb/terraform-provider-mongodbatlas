@@ -47,12 +47,12 @@ const (
 	data "mongodbatlas_advanced_cluster" "test" {
 		project_id = mongodbatlas_advanced_cluster.test.project_id
 		name 	     = mongodbatlas_advanced_cluster.test.name
-	#	use_replication_spec_per_shard = true
+		use_replication_spec_per_shard = true
 		depends_on = [mongodbatlas_advanced_cluster.test]
 	}
 			
 	data "mongodbatlas_advanced_clusters" "test" {
-	#	use_replication_spec_per_shard = true
+		use_replication_spec_per_shard = true
 		project_id = mongodbatlas_advanced_cluster.test.project_id
 		depends_on = [mongodbatlas_advanced_cluster.test]
 	}`
@@ -63,7 +63,7 @@ const (
 var (
 	configServerManagementModeFixedToDedicated = "FIXED_TO_DEDICATED"
 	configServerManagementModeAtlasManaged     = "ATLAS_MANAGED"
-	errGeneric                                 = errors.New("generic")
+	errGeneric       						   = errors.New("generic")
 )
 
 func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
