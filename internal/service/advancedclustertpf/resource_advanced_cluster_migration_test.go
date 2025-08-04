@@ -300,7 +300,6 @@ func configPartialAdvancedConfig(projectID, clusterName, extraArgs, autoScaling 
 // 	mig.CreateAndRunTest(t, &testCase)
 // }
 
-
 // migTest is a helper function to run migration tests:
 // - TPF -> TPF: for versions 2.0.0+ (tests same config with older TPF provider vs newer TPF provider)
 // - SDKv2 -> TPF: when MONGODB_ATLAS_TEST_SDKV2_TO_TPF=true (tests SDKv2 config vs TPF config with MONGODB_ATLAS_LAST_VERSION=1.39.0)
