@@ -151,7 +151,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers: []planmodifier.Bool{
 					customplanmodifier.CreateOnlyBoolPlanModifier(),
 				},
-				MarkdownDescription: "Indicates whether to delete the created resource if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it returns immediately without waiting for cleanup to complete. If you suspect a transient error, wait before retrying to allow resource deletion to finish. Default is `true`.",
+				MarkdownDescription: "Indicates whether to delete the created resource if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the cleanup and returns immediately without waiting for its completion. If you suspect a transient error, wait before retrying to allow resource deletion to finish. Default is `true`.",
 			},
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create: true,

@@ -108,7 +108,7 @@ func Resource() *schema.Resource {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				ForceNew:    true,
-				Description: "Indicates whether to delete the created resource if a timeout is reached when waiting for completion. Default is `true`.",
+				Description: "Indicates whether to delete the created resource if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the cleanup and returns immediately without waiting for its completion. If you suspect a transient error, wait before retrying to allow resource deletion to finish. Default is `true`.",
 			},
 			"endpoints": {
 				Type:          schema.TypeList,
