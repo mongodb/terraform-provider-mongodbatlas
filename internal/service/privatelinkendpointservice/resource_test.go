@@ -42,6 +42,30 @@ func TestAccNetworkRSPrivateLinkEndpointServiceAWS_Failed(t *testing.T) {
 	})
 }
 
+func TestAccNetworkRSPrivateLinkEndpointService_deleteOnCreateTimeout(t *testing.T) {
+	var (
+		resourceSuffix = "test"
+		providerName   = "AWS"
+		region         = os.Getenv("AWS_REGION")
+		// Create private link endpoint outside of test configuration to avoid cleanup issues
+		projectID, privateLinkEndpointID = acc.PrivateLinkEndpointIDExecution(t, providerName, region)
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configDeleteOnCreateTimeoutWithExistingEndpoint(
+					projectID, providerName, privateLinkEndpointID, resourceSuffix, "1s", true,
+				),
+				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
+			},
+		},
+	})
+}
+
 func basicAWSTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 	acc.SkipTestForCI(tb) // needs AWS configuration
@@ -188,4 +212,20 @@ func configFailAWS(projectID, providerName, region, resourceSuffix string) strin
 			provider_name         = %[2]q
 		}
 	`, projectID, providerName, region, resourceSuffix)
+}
+
+func configDeleteOnCreateTimeoutWithExistingEndpoint(projectID, providerName, privateLinkEndpointID, resourceSuffix, timeout string, deleteOnTimeout bool) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_privatelink_endpoint_service" %[4]q {
+			project_id            = %[1]q
+			private_link_id       = %[3]q
+			endpoint_service_id   = "vpce-11111111111111111"
+			provider_name         = %[2]q
+			delete_on_create_timeout = %[6]t
+			
+			timeouts {
+				create = %[5]q
+			}
+		}
+	`, projectID, providerName, privateLinkEndpointID, resourceSuffix, timeout, deleteOnTimeout)
 }
