@@ -3,6 +3,7 @@ package cloudbackupsnapshot_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -94,6 +95,26 @@ func TestAccBackupRSCloudBackupSnapshot_sharded(t *testing.T) {
 					resource.TestCheckResourceAttrWith(dataSourceName, "members.#", acc.IntGreatThan(0)),
 					resource.TestCheckResourceAttrWith(dataSourceName, "snapshot_ids.#", acc.IntGreatThan(0)),
 					resource.TestCheckResourceAttr(dataSourceName, "description", description)),
+			},
+		},
+	})
+}
+
+func TestAccBackupRSCloudBackupSnapshot_deleteOnCreateTimeout(t *testing.T) {
+	var (
+		clusterInfo     = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
+		description     = "Timeout test snapshot"
+		retentionInDays = "1"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, &clusterInfo, "", ""),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      configCreateTimeoutAndDeleteOnCreateTimeout(&clusterInfo, description, retentionInDays),
+				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
 			},
 		},
 	})
@@ -219,4 +240,20 @@ func configSharded(projectID, clusterName, description, retentionInDays string) 
 		}
 
 	`, projectID, clusterName, description, retentionInDays)
+}
+
+func configCreateTimeoutAndDeleteOnCreateTimeout(info *acc.ClusterInfo, description, retentionInDays string) string {
+	return info.TerraformStr + fmt.Sprintf(`
+		resource "mongodbatlas_cloud_backup_snapshot" "test" {
+			cluster_name     = %[1]s
+			project_id       = %[2]q
+			description       = %[3]q
+			retention_in_days = %[4]q
+			delete_on_create_timeout = true 
+			
+			timeouts {
+				create = "10s"
+			}
+		}
+	`, info.TerraformNameRef, info.ProjectID, description, retentionInDays)
 }

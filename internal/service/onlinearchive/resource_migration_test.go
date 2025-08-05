@@ -22,7 +22,7 @@ func TestMigBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing.T) {
 	if mig.IsProviderVersionAtLeast("1.12.2") {
 		deleteExpirationDays = 7
 	}
-	config := configWithDailySchedule(clusterTerraformStr, clusterResourceName, 1, deleteExpirationDays)
+	config := configWithDailySchedule(clusterTerraformStr, clusterResourceName, 1, deleteExpirationDays, false)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     mig.PreCheckBasicSleep(t),
