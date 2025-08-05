@@ -1,3 +1,4 @@
 ```release-note:enhancement
 resource/mongodbatlas_streamprivatelinkendpoint: Support S3 PrivateLink Endpoints for Atlas Stream Processing
+datasource/mongodbatlas_streamprivatelinkendpoint: Support S3 PrivateLink Endpoints for Atlas Stream Processing
 ```
