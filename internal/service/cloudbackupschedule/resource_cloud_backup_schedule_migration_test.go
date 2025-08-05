@@ -3,13 +3,17 @@ package cloudbackupschedule_test
 import (
 	"testing"
 
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 )
+
+const lastVersionRepSpecID = "1.39.0"
 
 func TestMigBackupRSCloudBackupSchedule_basic(t *testing.T) {
 	var (
@@ -47,7 +51,7 @@ func TestMigBackupRSCloudBackupSchedule_basic(t *testing.T) {
 }
 
 func TestMigBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
-	mig.SkipIfVersionBelow(t, "1.16.0") // yearly policy item introduced in this version
+	// mig.SkipIfVersionBelow(t, "1.16.0") // yearly policy item introduced in this version
 	var (
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{
 			CloudBackup: true,
@@ -114,7 +118,7 @@ func TestMigBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				ExternalProviders: mig.ExternalProviders(),
+				ExternalProviders: acc.ExternalProviders(lastVersionRepSpecID),
 				Config:            copySettingsConfigWithRepSpecID,
 				Check:             resource.ComposeAggregateTestCheckFunc(checksCreateWithReplicationSpecID...),
 			},
