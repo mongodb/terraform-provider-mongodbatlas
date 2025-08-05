@@ -46,6 +46,10 @@ resource "mongodbatlas_cloud_backup_snapshot" "test" {
   cluster_name      = mongodbatlas_advanced_cluster.my_cluster.name
   description       = "myDescription"
   retention_in_days = 1
+  delete_on_create_timeout = true
+  timeouts {
+    create = "10m"
+  }
 }
 
 resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {

@@ -31,6 +31,11 @@ resource "mongodbatlas_privatelink_endpoint" "test" {
   project_id    = var.project_id
   provider_name = "AZURE"
   region        = "eastus2"
+  delete_on_create_timeout = true
+  timeouts {
+    create = "10m"
+    delete = "10m"
+  }
 }
 
 resource "azurerm_private_endpoint" "test" {
@@ -53,6 +58,11 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
   endpoint_service_id         = azurerm_private_endpoint.test.id
   private_endpoint_ip_address = azurerm_private_endpoint.test.private_service_connection[0].private_ip_address
   provider_name               = "AZURE"
+  delete_on_create_timeout = true
+  timeouts {
+    create = "10m"
+    delete = "10m"
+  }
 }
 
 data "mongodbatlas_advanced_cluster" "cluster" {

@@ -29,6 +29,13 @@ resource "mongodbatlas_online_archive" "users_archive" {
     field_name = var.partition_field_two
     order      = 2
   }
+
+  delete_on_create_timeout = true
+  timeouts {
+    create = "10m"
+    update = "10m"
+    delete = "10m"
+  }
 }
 
 data "mongodbatlas_online_archive" "read_archive" {
