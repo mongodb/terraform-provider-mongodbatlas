@@ -8,5 +8,5 @@ You must set the following variables:
 - `public_key`: Public API key to authenticate to Atlas
 - `private_key`: Private API key to authenticate to Atlas
 - `region`: Region where the S3 bucket is located
-- `service_endpoint_id`: Private API key to authenticate to Atlas
+- `service_endpoint_id`: Service endpoint ID (should follow the format `com.amazonaws.<region>.s3`)
 - `s3_bucket_name`: Name of the S3 bucket for stream data
