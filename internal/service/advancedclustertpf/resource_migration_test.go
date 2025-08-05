@@ -12,6 +12,9 @@ import (
 // last version that did not support new sharding schema or attributes
 const versionBeforeISSRelease = "1.17.6"
 
+// last version that supported mongodbatlas_advanced_cluster SDKv2 resource
+const versionBeforeTPFGARelease = "1.39.0"
+
 func TestMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 	migTest(t, replicaSetAWSProviderTestCase)
 }
@@ -46,7 +49,7 @@ func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
 				Check:             checkShardedTransitionOldToNewSchema(false, false),
 			},
 			{
-				ExternalProviders: mig.ExternalProviders(),
+				ExternalProviders: acc.ExternalProviders(versionBeforeTPFGARelease),
 				Config:            configShardedTransitionOldToNewSchema(t, false, projectID, clusterName, true, false),
 				Check:             checkShardedTransitionOldToNewSchema(false, true),
 			},
@@ -72,7 +75,7 @@ func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) 
 				Check:             checkGeoShardedTransitionOldToNewSchema(false, false),
 			},
 			{
-				ExternalProviders: mig.ExternalProviders(),
+				ExternalProviders: acc.ExternalProviders(versionBeforeTPFGARelease),
 				Config:            configGeoShardedTransitionOldToNewSchema(t, false, projectID, clusterName, true),
 				Check:             checkGeoShardedTransitionOldToNewSchema(false, true),
 			},
