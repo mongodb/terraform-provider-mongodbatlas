@@ -85,31 +85,32 @@ func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) 
 	})
 }
 
-// migTest is a helper function to run migration tests:
+// migTest is a helper function to run migration tests using existing test case functions:
 // - TPF -> TPF: for versions 2.0.0+ (tests same config with older TPF provider vs newer TPF provider)
 // - SDKv2 -> TPF: when MONGODB_ATLAS_TEST_SDKV2_TO_TPF=true (tests SDKv2 config vs TPF config with MONGODB_ATLAS_LAST_VERSION=1.39.0)
-func migTest(t *testing.T, testCaseFunc func(t *testing.T, usePreviewProvider bool) resource.TestCase) {
+func migTest(t *testing.T, testCaseFunc func(t *testing.T, useSDKv2 ...bool) resource.TestCase) {
 	t.Helper()
 
 	if acc.IsTestSDKv2ToTPF() {
-		// SDKv2 to TPF migration: first step uses SDKv2, second step uses TPF
 		t.Log("Running migration test: SDKv2 to TPF")
-		testCase := testCaseFunc(t, false) // Get SDKv2 configuration
+
+		sdkv2TestCase := testCaseFunc(t, true)
+		tpfTestCase := testCaseFunc(t)
 
 		migrationTestCase := resource.TestCase{
-			PreCheck:     testCase.PreCheck,
-			CheckDestroy: testCase.CheckDestroy,
-			ErrorCheck:   testCase.ErrorCheck,
+			PreCheck:     tpfTestCase.PreCheck,
+			CheckDestroy: tpfTestCase.CheckDestroy,
+			ErrorCheck:   tpfTestCase.ErrorCheck,
 			Steps: []resource.TestStep{
 				{
 					ExternalProviders: mig.ExternalProviders(),
-					Config:            testCase.Steps[0].Config, // SDKv2 config
-					Check:             testCase.Steps[0].Check,
+					Config:            sdkv2TestCase.Steps[0].Config,
+					Check:             tpfTestCase.Steps[0].Check,
 				},
 				{
-					ProtoV6ProviderFactories: testCase.ProtoV6ProviderFactories,
-					Config:                   getTPFConfig(t, testCaseFunc),
-					Check:                    testCase.Steps[0].Check,
+					ProtoV6ProviderFactories: tpfTestCase.ProtoV6ProviderFactories,
+					Config:                   tpfTestCase.Steps[0].Config,
+					Check:                    tpfTestCase.Steps[0].Check,
 				},
 			},
 		}
@@ -117,18 +118,7 @@ func migTest(t *testing.T, testCaseFunc func(t *testing.T, usePreviewProvider bo
 	} else {
 		mig.SkipIfVersionBelow(t, "2.0.0")
 		t.Log("Running migration test: TPF to TPF")
-		testCase := testCaseFunc(t, true)
+		testCase := testCaseFunc(t)
 		mig.CreateAndRunTest(t, &testCase)
 	}
 }
-
-func getTPFConfig(t *testing.T, testCaseFunc func(t *testing.T, usePreviewProvider bool) resource.TestCase) string {
-	t.Helper()
-	tpfTestCase := testCaseFunc(t, true)
-	return tpfTestCase.Steps[0].Config
-}
-
-// func IsTestSDKv2ToTPF() bool {
-// 	env, _ := strconv.ParseBool(os.Getenv("MONGODB_ATLAS_TEST_SDKV2_TO_TPF"))
-// 	return env
-// }

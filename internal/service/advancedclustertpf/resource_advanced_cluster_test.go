@@ -120,11 +120,20 @@ func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
-	resource.ParallelTest(t, replicaSetAWSProviderTestCase(t, true))
+	resource.ParallelTest(t, replicaSetAWSProviderTestCase(t))
 }
 
-func replicaSetAWSProviderTestCase(t *testing.T, usePreviewProvider bool) resource.TestCase {
+func shouldUseSDKv2Config(useSDKv2 ...bool) bool {
+	return len(useSDKv2) > 0 && useSDKv2[0]
+}
+
+// replicaSetAWSProviderTestCase returns test case with configurable format
+func replicaSetAWSProviderTestCase(t *testing.T, useSDKv2 ...bool) resource.TestCase {
 	t.Helper()
+
+	isSDKv2 := shouldUseSDKv2Config(useSDKv2...)
+	usePreviewProvider := !isSDKv2 // TPF when not SDKv2
+
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)
 	)
@@ -135,45 +144,45 @@ func replicaSetAWSProviderTestCase(t *testing.T, usePreviewProvider bool) resour
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAWSProvider(t, usePreviewProvider, ReplicaSetAWSConfig{
+				Config: configAWSProvider(t, ReplicaSetAWSConfig{
 					ProjectID:          projectID,
 					ClusterName:        clusterName,
 					ClusterType:        "REPLICASET",
 					DiskSizeGB:         60,
 					NodeCountElectable: 3,
 					WithAnalyticsSpecs: true,
-				}),
+				}, isSDKv2),
 				Check: checkReplicaSetAWSProvider(usePreviewProvider, projectID, clusterName, 60, 3, true, true),
 			},
 			// empty plan when analytics block is removed
-			acc.TestStepCheckEmptyPlan(configAWSProvider(t, usePreviewProvider, ReplicaSetAWSConfig{
+			acc.TestStepCheckEmptyPlan(configAWSProvider(t, ReplicaSetAWSConfig{
 				ProjectID:          projectID,
 				ClusterName:        clusterName,
 				ClusterType:        "REPLICASET",
 				DiskSizeGB:         60,
 				NodeCountElectable: 3,
 				WithAnalyticsSpecs: false,
-			})),
+			}, isSDKv2)),
 			{
-				Config: configAWSProvider(t, usePreviewProvider, ReplicaSetAWSConfig{
+				Config: configAWSProvider(t, ReplicaSetAWSConfig{
 					ProjectID:          projectID,
 					ClusterName:        clusterName,
 					ClusterType:        "REPLICASET",
 					DiskSizeGB:         50,
 					NodeCountElectable: 5,
 					WithAnalyticsSpecs: false, // other update made after removed analytics block, computed value is expected to be the same
-				}),
+				}, isSDKv2),
 				Check: checkReplicaSetAWSProvider(usePreviewProvider, projectID, clusterName, 50, 5, true, true),
 			},
 			{ // testing transition from replica set to sharded cluster
-				Config: configAWSProvider(t, usePreviewProvider, ReplicaSetAWSConfig{
+				Config: configAWSProvider(t, ReplicaSetAWSConfig{
 					ProjectID:          projectID,
 					ClusterName:        clusterName,
 					ClusterType:        "SHARDED",
 					DiskSizeGB:         50,
 					NodeCountElectable: 5,
 					WithAnalyticsSpecs: false,
-				}),
+				}, isSDKv2),
 				Check: checkReplicaSetAWSProvider(usePreviewProvider, projectID, clusterName, 50, 5, true, true),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs", "retain_backups_enabled"),
@@ -182,11 +191,15 @@ func replicaSetAWSProviderTestCase(t *testing.T, usePreviewProvider bool) resour
 }
 
 func TestAccClusterAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
-	resource.ParallelTest(t, replicaSetMultiCloudTestCase(t, true))
+	resource.ParallelTest(t, replicaSetMultiCloudTestCase(t))
 }
 
-func replicaSetMultiCloudTestCase(t *testing.T, usePreviewProvider bool) resource.TestCase {
+func replicaSetMultiCloudTestCase(t *testing.T, useSDKv2 ...bool) resource.TestCase {
 	t.Helper()
+
+	isSDKv2 := shouldUseSDKv2Config(useSDKv2...)
+	usePreviewProvider := !isSDKv2 // TPF when not SDKv2
+
 	var (
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName        = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
@@ -200,11 +213,11 @@ func replicaSetMultiCloudTestCase(t *testing.T, usePreviewProvider bool) resourc
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicaSetMultiCloud(t, usePreviewProvider, orgID, projectName, clusterName),
+				Config: configReplicaSetMultiCloud(t, orgID, projectName, clusterName, isSDKv2),
 				Check:  checkReplicaSetMultiCloud(usePreviewProvider, clusterName, 3),
 			},
 			{
-				Config: configReplicaSetMultiCloud(t, usePreviewProvider, orgID, projectName, clusterNameUpdated),
+				Config: configReplicaSetMultiCloud(t, orgID, projectName, clusterNameUpdated, isSDKv2),
 				Check:  checkReplicaSetMultiCloud(usePreviewProvider, clusterNameUpdated, 3),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -213,11 +226,15 @@ func replicaSetMultiCloudTestCase(t *testing.T, usePreviewProvider bool) resourc
 }
 
 func TestAccClusterAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
-	resource.ParallelTest(t, singleShardedMultiCloudTestCase(t, true))
+	resource.ParallelTest(t, singleShardedMultiCloudTestCase(t))
 }
 
-func singleShardedMultiCloudTestCase(t *testing.T, usePreviewProvider bool) resource.TestCase {
+func singleShardedMultiCloudTestCase(t *testing.T, useSDKv2 ...bool) resource.TestCase {
 	t.Helper()
+
+	isSDKv2 := shouldUseSDKv2Config(useSDKv2...)
+	usePreviewProvider := !isSDKv2 // TPF when not SDKv2
+
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 7)
 		clusterNameUpdated     = acc.RandomClusterName()
@@ -229,11 +246,11 @@ func singleShardedMultiCloudTestCase(t *testing.T, usePreviewProvider bool) reso
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedOldSchemaMultiCloud(t, usePreviewProvider, projectID, clusterName, 1, "M10", nil),
+				Config: configShardedOldSchemaMultiCloud(t, projectID, clusterName, 1, "M10", nil, isSDKv2),
 				Check:  checkShardedOldSchemaMultiCloud(usePreviewProvider, clusterName, 1, "M10", true, nil),
 			},
 			{
-				Config: configShardedOldSchemaMultiCloud(t, usePreviewProvider, projectID, clusterNameUpdated, 1, "M10", nil),
+				Config: configShardedOldSchemaMultiCloud(t, projectID, clusterNameUpdated, 1, "M10", nil, isSDKv2),
 				Check:  checkShardedOldSchemaMultiCloud(usePreviewProvider, clusterNameUpdated, 1, "M10", true, nil),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -579,12 +596,12 @@ func TestAccClusterAdvancedClusterConfig_singleShardedTransitionToOldSchemaExpec
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configGeoShardedOldSchema(t, true, projectID, clusterName, 1, 1, false),
+				Config: configGeoShardedOldSchema(t, projectID, clusterName, 1, 1, false),
 				Check:  checkGeoShardedOldSchema(true, clusterName, 1, 1, true, true),
 			},
 			acc.TestStepImportCluster(resourceName),
 			{
-				Config:      configGeoShardedOldSchema(t, true, projectID, clusterName, 1, 2, false),
+				Config:      configGeoShardedOldSchema(t, projectID, clusterName, 1, 2, false),
 				ExpectError: regexp.MustCompile(advancedclustertpf.ErrorOperationNotPermitted),
 			},
 		},
@@ -684,13 +701,13 @@ func TestAccClusterAdvancedClusterConfig_selfManagedSharding(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configGeoShardedOldSchema(t, true, projectID, clusterName, 1, 1, true),
+				Config: configGeoShardedOldSchema(t, projectID, clusterName, 1, 1, true),
 				Check: resource.ComposeAggregateTestCheckFunc(checks...,
 				),
 			},
 			acc.TestStepImportCluster(resourceName),
 			{
-				Config:      configGeoShardedOldSchema(t, true, projectID, clusterName, 1, 1, false),
+				Config:      configGeoShardedOldSchema(t, projectID, clusterName, 1, 1, false),
 				ExpectError: regexp.MustCompile("CANNOT_MODIFY_GLOBAL_CLUSTER_MANAGEMENT_SETTING"),
 			},
 		},
@@ -726,11 +743,11 @@ func TestAccMockableAdvancedCluster_symmetricShardedOldSchema(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedOldSchemaMultiCloud(t, true, projectID, clusterName, 2, "M10", &configServerManagementModeFixedToDedicated),
+				Config: configShardedOldSchemaMultiCloud(t, projectID, clusterName, 2, "M10", &configServerManagementModeFixedToDedicated),
 				Check:  checkShardedOldSchemaMultiCloud(true, clusterName, 2, "M10", false, &configServerManagementModeFixedToDedicated),
 			},
 			{
-				Config: configShardedOldSchemaMultiCloud(t, true, projectID, clusterName, 2, "M20", &configServerManagementModeAtlasManaged),
+				Config: configShardedOldSchemaMultiCloud(t, projectID, clusterName, 2, "M20", &configServerManagementModeAtlasManaged),
 				Check:  checkShardedOldSchemaMultiCloud(true, clusterName, 2, "M20", false, &configServerManagementModeAtlasManaged),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs"), // Import with old schema will NOT use `num_shards`
@@ -739,11 +756,15 @@ func TestAccMockableAdvancedCluster_symmetricShardedOldSchema(t *testing.T) {
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricGeoShardedOldSchema(t *testing.T) {
-	resource.ParallelTest(t, symmetricGeoShardedOldSchemaTestCase(t, true))
+	resource.ParallelTest(t, symmetricGeoShardedOldSchemaTestCase(t))
 }
 
-func symmetricGeoShardedOldSchemaTestCase(t *testing.T, usePreviewProvider bool) resource.TestCase {
+func symmetricGeoShardedOldSchemaTestCase(t *testing.T, useSDKv2 ...bool) resource.TestCase {
 	t.Helper()
+
+	isSDKv2 := shouldUseSDKv2Config(useSDKv2...)
+	usePreviewProvider := !isSDKv2 // TPF when not SDKv2
+
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 18)
 
 	return resource.TestCase{
@@ -752,13 +773,13 @@ func symmetricGeoShardedOldSchemaTestCase(t *testing.T, usePreviewProvider bool)
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configGeoShardedOldSchema(t, usePreviewProvider, projectID, clusterName, 2, 2, false),
+				Config: configGeoShardedOldSchema(t, projectID, clusterName, 2, 2, false, isSDKv2),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkGeoShardedOldSchema(usePreviewProvider, clusterName, 2, 2, true, false),
 					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
 			},
 			{
-				Config: configGeoShardedOldSchema(t, usePreviewProvider, projectID, clusterName, 3, 3, false),
+				Config: configGeoShardedOldSchema(t, projectID, clusterName, 3, 3, false, isSDKv2),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkGeoShardedOldSchema(usePreviewProvider, clusterName, 3, 3, true, false),
 					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
@@ -802,15 +823,15 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAd
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(t, true, orgID, projectName, clusterName, 50, "M10", "M10", nil, nil, false, false),
+				Config: configShardedNewSchema(t, orgID, projectName, clusterName, 50, "M10", "M10", nil, nil, false, false),
 				Check:  checkShardedNewSchema(true, 50, "M10", "M10", nil, nil, false, false),
 			},
 			{
-				Config: configShardedNewSchema(t, true, orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, true, false), // add middle replication spec and transition to asymmetric
+				Config: configShardedNewSchema(t, orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, true, false), // add middle replication spec and transition to asymmetric
 				Check:  checkShardedNewSchema(true, 55, "M10", "M20", nil, nil, true, true),
 			},
 			{
-				Config: configShardedNewSchema(t, true, orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, false, false), // removes middle replication spec
+				Config: configShardedNewSchema(t, orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, false, false), // removes middle replication spec
 				Check:  checkShardedNewSchema(true, 55, "M10", "M20", nil, nil, true, false),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -819,11 +840,15 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAd
 }
 
 func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T) {
-	resource.ParallelTest(t, asymmetricShardedNewSchemaTestCase(t, true))
+	resource.ParallelTest(t, asymmetricShardedNewSchemaTestCase(t))
 }
 
-func asymmetricShardedNewSchemaTestCase(t *testing.T, usePreviewProvider bool) resource.TestCase {
+func asymmetricShardedNewSchemaTestCase(t *testing.T, useSDKv2 ...bool) resource.TestCase {
 	t.Helper()
+
+	isSDKv2 := shouldUseSDKv2Config(useSDKv2...)
+	usePreviewProvider := !isSDKv2 // TPF when not SDKv2
+
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -836,7 +861,7 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T, usePreviewProvider bool) r
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(t, usePreviewProvider, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false, false),
+				Config: configShardedNewSchema(t, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false, false, isSDKv2),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkShardedNewSchema(usePreviewProvider, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
 					resource.TestCheckResourceAttr("data.mongodbatlas_advanced_clusters.test-replication-specs-per-shard-false", "results.#", "0"),
@@ -860,7 +885,7 @@ func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchemaInconsistentD
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:      configShardedNewSchema(t, true, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false, true),
+				Config:      configShardedNewSchema(t, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false, true),
 				ExpectError: regexp.MustCompile("DISK_SIZE_GB_INCONSISTENT"), // API Error when disk size is not consistent across all shards
 			},
 		},
@@ -1803,8 +1828,13 @@ type ReplicaSetAWSConfig struct {
 	WithAnalyticsSpecs bool
 }
 
-func configAWSProvider(t *testing.T, usePreviewProvider bool, configInfo ReplicaSetAWSConfig) string {
+func configAWSProvider(t *testing.T, configInfo ReplicaSetAWSConfig, useSDKv2 ...bool) string {
 	t.Helper()
+
+	// Determine format: default TPF, SDKv2 if explicitly requested
+	isSDKv2 := shouldUseSDKv2Config(useSDKv2...)
+	usePreviewProvider := !isSDKv2 // TPF when not SDKv2
+
 	analyticsSpecs := ""
 	if configInfo.WithAnalyticsSpecs {
 		analyticsSpecs = `
@@ -1899,8 +1929,13 @@ func configIncorrectTypeGobalClusterSelfManagedSharding(t *testing.T, usePreview
 	`, projectID, name))
 }
 
-func configReplicaSetMultiCloud(t *testing.T, usePreviewProvider bool, orgID, projectName, name string) string {
+func configReplicaSetMultiCloud(t *testing.T, orgID, projectName, name string, useSDKv2 ...bool) string {
 	t.Helper()
+
+	// Determine format: default TPF, SDKv2 if explicitly requested
+	isSDKv2 := shouldUseSDKv2Config(useSDKv2...)
+	usePreviewProvider := !isSDKv2 // TPF when not SDKv2
+
 	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, usePreviewProvider, fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
@@ -1971,8 +2006,13 @@ func checkReplicaSetMultiCloud(usePreviewProvider bool, name string, regionConfi
 	)
 }
 
-func configShardedOldSchemaMultiCloud(t *testing.T, usePreviewProvider bool, projectID, name string, numShards int, analyticsSize string, configServerManagementMode *string) string {
+func configShardedOldSchemaMultiCloud(t *testing.T, projectID, name string, numShards int, analyticsSize string, configServerManagementMode *string, useSDKv2 ...bool) string {
 	t.Helper()
+
+	// Determine format: default TPF, SDKv2 if explicitly requested
+	isSDKv2 := shouldUseSDKv2Config(useSDKv2...)
+	usePreviewProvider := !isSDKv2 // TPF when not SDKv2
+
 	var rootConfig string
 	if configServerManagementMode != nil {
 		// valid values: FIXED_TO_DEDICATED or ATLAS_MANAGED (default)
@@ -2357,8 +2397,13 @@ func configReplicationSpecsAnalyticsAutoScaling(t *testing.T, usePreviewProvider
 	`, projectID, clusterName, analyticsNodeCount, analyticsAutoScalingBlock))
 }
 
-func configGeoShardedOldSchema(t *testing.T, usePreviewProvider bool, projectID, name string, numShardsFirstZone, numShardsSecondZone int, selfManagedSharding bool) string {
+func configGeoShardedOldSchema(t *testing.T, projectID, name string, numShardsFirstZone, numShardsSecondZone int, selfManagedSharding bool, useSDKv2 ...bool) string {
 	t.Helper()
+
+	// Determine format: default TPF, SDKv2 if explicitly requested
+	isSDKv2 := shouldUseSDKv2Config(useSDKv2...)
+	usePreviewProvider := !isSDKv2 // TPF when not SDKv2
+
 	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, usePreviewProvider, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id = %[1]q
@@ -2483,8 +2528,13 @@ func checkShardedOldSchemaDiskSizeGBElectableLevel(usePreviewProvider bool, disk
 		})
 }
 
-func configShardedNewSchema(t *testing.T, usePreviewProvider bool, orgID, projectName, name string, diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIOPS, lastDiskIOPS *int, includeMiddleSpec, increaseDiskSizeShard2 bool) string {
+func configShardedNewSchema(t *testing.T, orgID, projectName, name string, diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIOPS, lastDiskIOPS *int, includeMiddleSpec, increaseDiskSizeShard2 bool, useSDKv2 ...bool) string {
 	t.Helper()
+
+	// Determine format: default TPF, SDKv2 if explicitly requested
+	isSDKv2 := shouldUseSDKv2Config(useSDKv2...)
+	usePreviewProvider := !isSDKv2 // TPF when not SDKv2
+
 	var thirdReplicationSpec string
 	var diskSizeGBShard2 = diskSizeGB
 	if increaseDiskSizeShard2 {
