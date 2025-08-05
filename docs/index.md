@@ -182,18 +182,18 @@ In order to promote stability, predictability, and transparency, the MongoDB Atl
 
 Our definition of breaking changes aligns with the impact updates have on the customer:
 
-Breaking changes are defined as any change that requires user intervention to address.  
+Breaking changes are defined as any change that requires user intervention to address.
 This may include:
 
 - Modifying existing schema (e.g., removing or renaming fields, renaming resources)
 - Changes to business logic (e.g., implicit default values or server-side behavior)
 - Provider-level changes (e.g., changing retry behavior)
 
-Final confirmation of a breaking change—possibly leading to an exemption—is subject to:
+Final confirmation of a breaking change — possibly leading to an exemption — is subject to:
 
 - MongoDB’s understanding of the adoption level of the feature
 - Timing of the next planned major release
-- Its relation to a bug fix
+- The change's relation to a bug fix
 
 ---
 
