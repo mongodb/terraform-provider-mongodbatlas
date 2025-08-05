@@ -33,8 +33,6 @@ resource "mongodbatlas_online_archive" "users_archive" {
   delete_on_create_timeout = true
   timeouts {
     create = "10m"
-    update = "10m"
-    delete = "10m"
   }
 }
 
