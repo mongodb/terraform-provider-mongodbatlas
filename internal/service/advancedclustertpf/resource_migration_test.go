@@ -46,9 +46,9 @@ func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
 				Check:             checkShardedTransitionOldToNewSchema(false, false),
 			},
 			{
-				ExternalProviders: acc.ExternalProviders(),
-				Config:                   configShardedTransitionOldToNewSchema(t, false, projectID, clusterName, true, false),
-				Check:                    checkShardedTransitionOldToNewSchema(false, true),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            configShardedTransitionOldToNewSchema(t, false, projectID, clusterName, true, false),
+				Check:             checkShardedTransitionOldToNewSchema(false, true),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -72,9 +72,9 @@ func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) 
 				Check:             checkGeoShardedTransitionOldToNewSchema(false, false),
 			},
 			{
-				ExternalProviders: acc.ExternalProviders(),
-				Config:                   configGeoShardedTransitionOldToNewSchema(t, false, projectID, clusterName, true),
-				Check:                    checkGeoShardedTransitionOldToNewSchema(false, true),
+				ExternalProviders: mig.ExternalProviders(),
+				Config:            configGeoShardedTransitionOldToNewSchema(t, false, projectID, clusterName, true),
+				Check:             checkGeoShardedTransitionOldToNewSchema(false, true),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -94,9 +94,9 @@ func migTest(t *testing.T, testCaseFunc func(t *testing.T, useSDKv2 ...bool) res
 	if acc.IsTestSDKv2ToTPF() {
 		t.Log("Running migration test: SDKv2 to TPF")
 		sdkv2TestCase := testCaseFunc(t, true)
-		
-		// Step 1: SDKv2 config with external provider (v1.39.0)  
-		// Step 2: Converted TPF config with current provider 
+
+		// Step 1: SDKv2 config with external provider (v1.39.0)
+		// Step 2: Converted TPF config with current provider
 		mig.CreateAndRunTest(t, &sdkv2TestCase)
 	} else {
 		mig.SkipIfVersionBelow(t, "2.0.0")
