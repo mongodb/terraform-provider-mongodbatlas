@@ -271,7 +271,11 @@ output "privatelink_endpoint_id" {
 Read-Only:
 
 - `arn` (String) Amazon Resource Name (ARN). Required for AWS Provider and MSK vendor.
-- `dns_domain` (String) The domain hostname. Required for the following provider and vendor combinations:<br>- AWS provider with CONFLUENT vendor.<br>- AZURE provider with EVENTHUB or CONFLUENT vendor.
+- `dns_domain` (String) The domain hostname. Required for the following provider and vendor combinations:
+				
+	* AWS provider with CONFLUENT vendor.
+
+	* AZURE provider with EVENTHUB or CONFLUENT vendor.
 - `dns_sub_domain` (List of String) Sub-Domain name of Confluent cluster. These are typically your availability zones. Required for AWS Provider and CONFLUENT vendor. If your AWS CONFLUENT cluster doesn't use subdomains, you must set this to the empty array [].
 - `error_message` (String) Error message if the connection is in a failed state.
 - `id` (String) The ID of the Private Link connection.
@@ -283,6 +287,10 @@ Read-Only:
 - `region` (String) The region of the Provider’s cluster. See [AZURE](https://www.mongodb.com/docs/atlas/reference/microsoft-azure/#stream-processing-instances) and [AWS](https://www.mongodb.com/docs/atlas/reference/amazon-aws/#stream-processing-instances) supported regions. When the vendor is `CONFLUENT`, this is the domain name of Confluent cluster. When the vendor is `MSK`, this is computed by the API from the provided `arn`.
 - `service_endpoint_id` (String) For AZURE EVENTHUB, this is the [namespace endpoint ID](https://learn.microsoft.com/en-us/rest/api/eventhub/namespaces/get). For AWS CONFLUENT cluster, this is the [VPC Endpoint service name](https://docs.confluent.io/cloud/current/networking/private-links/aws-privatelink.html).
 - `state` (String) Status of the connection.
-- `vendor` (String) Vendor that manages the endpoint. The following are the vendor values per provider:<br>- MSK, CONFLUENT, and S3 for the AWS provider.<br>- EVENTHUB and CONFLUENT for the AZURE provider.
+- `vendor` (String) Vendor that manages the endpoint. The following are the vendor values per provider:
+
+	* **AWS**: MSK, CONFLUENT, and S3
+
+	* **Azure**: EVENTHUB and CONFLUENT
 
 For more information see: [MongoDB Atlas API - Streams Privatelink](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprivatelinkconnection) Documentation.

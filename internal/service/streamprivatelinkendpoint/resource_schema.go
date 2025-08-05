@@ -15,8 +15,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "The ID of the Private Link connection.",
 			},
 			"dns_domain": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "The domain hostname. Required for the following provider and vendor combinations:<br>- AWS provider with CONFLUENT vendor.<br>- AZURE provider with EVENTHUB or CONFLUENT vendor.",
+				Optional: true,
+				MarkdownDescription: `The domain hostname. Required for the following provider and vendor combinations:
+				
+	* AWS provider with CONFLUENT vendor.
+
+	* AZURE provider with EVENTHUB or CONFLUENT vendor.`,
 			},
 			"dns_sub_domain": schema.ListAttribute{
 				Optional:            true,
@@ -61,8 +65,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Status of the connection.",
 			},
 			"vendor": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Vendor that manages the endpoint. The following are the vendor values per provider:<br>- MSK, CONFLUENT, and S3 for the AWS provider.<br>- EVENTHUB and CONFLUENT for the AZURE provider.",
+				Required: true,
+				MarkdownDescription: `Vendor that manages the endpoint. The following are the vendor values per provider:
+
+	* **AWS**: MSK, CONFLUENT, and S3
+
+	* **Azure**: EVENTHUB and CONFLUENT`,
 			},
 			"arn": schema.StringAttribute{
 				Optional:            true,
