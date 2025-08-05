@@ -68,7 +68,7 @@ output "mongodbatlas_search_deployment_encryption_at_rest_provider" {
 
 ### Optional
 
-- `delete_on_create_timeout` (Boolean) Flag that indicates whether to delete the search deployment if the creation times out, default is false.
+- `delete_on_create_timeout` (Boolean) Indicates whether to delete the created resource if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the cleanup and returns immediately without waiting for its completion. If you suspect a transient error, wait before retrying to allow resource deletion to finish. Default is `true`.
 - `skip_wait_on_update` (Boolean) If true, the resource update is executed without waiting until the [state](#state_name-1) is `IDLE`, making the operation faster. This might cause update errors to go unnoticed and lead to non-empty plans at the next terraform execution.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
