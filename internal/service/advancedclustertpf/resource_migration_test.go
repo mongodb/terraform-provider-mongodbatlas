@@ -46,7 +46,8 @@ func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
 				Check:             checkShardedTransitionOldToNewSchema(false, false),
 			},
 			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				// ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
 				Config:                   configShardedTransitionOldToNewSchema(t, false, projectID, clusterName, true, false),
 				Check:                    checkShardedTransitionOldToNewSchema(false, true),
 			},
@@ -72,7 +73,8 @@ func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) 
 				Check:             checkGeoShardedTransitionOldToNewSchema(false, false),
 			},
 			{
-				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				// ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				ExternalProviders: acc.ExternalProviders(versionBeforeISSRelease),
 				Config:                   configGeoShardedTransitionOldToNewSchema(t, false, projectID, clusterName, true),
 				Check:                    checkGeoShardedTransitionOldToNewSchema(false, true),
 			},
