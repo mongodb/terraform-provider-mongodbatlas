@@ -45,7 +45,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"provider_name": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Provider where the Kafka cluster is deployed. Valid values are AWS and AZURE.",
+				MarkdownDescription: "Provider where the endpoint is deployed. Valid values are AWS and AZURE.",
 			},
 			"region": schema.StringAttribute{
 				Optional:            true,
@@ -62,7 +62,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"vendor": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Vendor that manages the Kafka cluster. The following are the vendor values per provider:<br>- MSK and CONFLUENT for the AWS provider.<br>- EVENTHUB and CONFLUENT for the AZURE provider.",
+				MarkdownDescription: "Vendor that manages the endpoint. The following are the vendor values per provider:<br>- MSK, CONFLUENT, and S3 for the AWS provider.<br>- EVENTHUB and CONFLUENT for the AZURE provider.",
 			},
 			"arn": schema.StringAttribute{
 				Optional:            true,

@@ -10,6 +10,9 @@
 ### AWS MSK Privatelink
 {{ tffile (printf "examples/mongodbatlas_stream_privatelink_endpoint/aws_msk_cluster/main.tf" )}}
 
+### AWS S3 Privatelink
+{{ tffile (printf "examples/mongodbatlas_stream_privatelink_endpoint/s3/main.tf" )}}
+
 {{ .SchemaMarkdown | trimspace }}
 
 For more information see: [MongoDB Atlas API - Streams Privatelink](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprivatelinkconnection) Documentation.

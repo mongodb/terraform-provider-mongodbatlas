@@ -224,10 +224,10 @@ output "privatelink_endpoint_id" {
 - `interface_endpoint_id` (String) Interface endpoint ID that is created from the specified service endpoint ID.
 - `interface_endpoint_name` (String) Name of interface endpoint that is created from the specified service endpoint ID.
 - `provider_account_id` (String) Account ID from the cloud provider.
-- `provider_name` (String) Provider where the Kafka cluster is deployed. Valid values are AWS and AZURE.
+- `provider_name` (String) Provider where the endpoint is deployed. Valid values are AWS and AZURE.
 - `region` (String) The region of the Provider’s cluster. See [AZURE](https://www.mongodb.com/docs/atlas/reference/microsoft-azure/#stream-processing-instances) and [AWS](https://www.mongodb.com/docs/atlas/reference/amazon-aws/#stream-processing-instances) supported regions. When the vendor is `CONFLUENT`, this is the domain name of Confluent cluster. When the vendor is `MSK`, this is computed by the API from the provided `arn`.
 - `service_endpoint_id` (String) For AZURE EVENTHUB, this is the [namespace endpoint ID](https://learn.microsoft.com/en-us/rest/api/eventhub/namespaces/get). For AWS CONFLUENT cluster, this is the [VPC Endpoint service name](https://docs.confluent.io/cloud/current/networking/private-links/aws-privatelink.html).
 - `state` (String) Status of the connection.
-- `vendor` (String) Vendor that manages the Kafka cluster. The following are the vendor values per provider:<br>- MSK and CONFLUENT for the AWS provider.<br>- EVENTHUB and CONFLUENT for the AZURE provider.
+- `vendor` (String) Vendor that manages the endpoint. The following are the vendor values per provider:<br>- MSK, CONFLUENT, and S3 for the AWS provider.<br>- EVENTHUB and CONFLUENT for the AZURE provider.
 
 For more information see: [MongoDB Atlas API - Streams Privatelink](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprivatelinkconnection) Documentation.
