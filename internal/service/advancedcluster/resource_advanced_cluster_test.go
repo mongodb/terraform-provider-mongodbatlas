@@ -2621,7 +2621,7 @@ func configGeoShardedOldSchema(t *testing.T, projectID, name string, numShardsFi
 			}
 		}
 
-	`, projectID, name, numShardsFirstZone, numShardsSecondZone, selfManagedSharding) + dataSourcesTFOldSchema
+	`, projectID, name, numShardsFirstZone, numShardsSecondZone, selfManagedSharding)
 
 	} else {
 		advClusterConfig = fmt.Sprintf(`
