@@ -204,4 +204,3 @@ func NextProjectIDClusterName(totalNodeCount int, projectCreator func(string) st
 	}
 	return project.id, RandomClusterName()
 }
-
