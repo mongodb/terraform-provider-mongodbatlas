@@ -93,28 +93,11 @@ func migTest(t *testing.T, testCaseFunc func(t *testing.T, useSDKv2 ...bool) res
 
 	if acc.IsTestSDKv2ToTPF() {
 		t.Log("Running migration test: SDKv2 to TPF")
-
 		sdkv2TestCase := testCaseFunc(t, true)
-		tpfTestCase := testCaseFunc(t)
-
-		migrationTestCase := resource.TestCase{
-			PreCheck:     tpfTestCase.PreCheck,
-			CheckDestroy: tpfTestCase.CheckDestroy,
-			ErrorCheck:   tpfTestCase.ErrorCheck,
-			Steps: []resource.TestStep{
-				{
-					ExternalProviders: mig.ExternalProviders(),
-					Config:            sdkv2TestCase.Steps[0].Config,
-					Check:             tpfTestCase.Steps[0].Check,
-				},
-				{
-					ProtoV6ProviderFactories: tpfTestCase.ProtoV6ProviderFactories,
-					Config:                   tpfTestCase.Steps[0].Config,
-					Check:                    tpfTestCase.Steps[0].Check,
-				},
-			},
-		}
-		mig.CreateAndRunTestNonParallel(t, &migrationTestCase)
+		
+		// Step 1: SDKv2 config with external provider (v1.39.0)  
+		// Step 2: Converted TPF config with current provider 
+		mig.CreateAndRunTest(t, &sdkv2TestCase)
 	} else {
 		mig.SkipIfVersionBelow(t, "2.0.0")
 		t.Log("Running migration test: TPF to TPF")
