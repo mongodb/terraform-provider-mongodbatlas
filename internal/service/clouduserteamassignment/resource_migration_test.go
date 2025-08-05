@@ -16,7 +16,6 @@ func TestMigCloudUserTeamAssignmentRS_basic(t *testing.T) {
 }
 
 func TestMigCloudUserTeamAssignmentRS_migrationJourney(t *testing.T) {
-	mig.SkipIfVersionBelow(t, "2.0.0") // when resource 1st released
 	var (
 		orgID     = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		teamName  = fmt.Sprintf("team-test-%s", acc.RandomName())
@@ -28,8 +27,20 @@ func TestMigCloudUserTeamAssignmentRS_migrationJourney(t *testing.T) {
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{
+				// NOTE: 'usernames' attribute (available v1.39.0, deprecated in v2.0.0) is used in this test in team resource.
+				// May be removed in future versions.
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            configTeamWithUsernamesFirst(orgID, teamName, usernames),
+			},
+			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   configWithTeamAssignmentsSecond(orgID, teamName, usernames),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("mongodbatlas_team.test", "name", teamName),
+
+					resource.TestCheckResourceAttrSet("mongodbatlas_cloud_user_team_assignment.test", "user_id"),
+					resource.TestCheckResourceAttr("mongodbatlas_cloud_user_team_assignment.test", "username", usernames[0]),
+				),
 			},
 			mig.TestStepCheckEmptyPlan(configWithTeamAssignmentsSecond(orgID, teamName, usernames)),
 		},
