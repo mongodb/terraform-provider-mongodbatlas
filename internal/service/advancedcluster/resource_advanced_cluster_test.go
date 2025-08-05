@@ -2031,7 +2031,7 @@ func configReplicaSetMultiCloud(t *testing.T, orgID, projectName, name string, u
 		advClusterConfig = fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = mongodbatlas_project.cluster_project.id
-			name         = %[3]q
+			name         = %[1]q
 			cluster_type = "REPLICASET"
 			retain_backups_enabled = false
 
@@ -2077,7 +2077,7 @@ func configReplicaSetMultiCloud(t *testing.T, orgID, projectName, name string, u
 		advClusterConfig = fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
   project_id             = mongodbatlas_project.cluster_project.id
-  name                   = %[3]q
+  name                   = %[1]q
   cluster_type           = "REPLICASET"
   retain_backups_enabled = false
 
