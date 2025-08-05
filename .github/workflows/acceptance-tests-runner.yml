@@ -323,6 +323,7 @@ jobs:
             - 'internal/service/projectapikey/*.go'
             - 'internal/service/rolesorgid/*.go'
             - 'internal/service/team/*.go'
+            - 'internal/service/teamprojectassignment/*.go'
             - 'internal/service/thirdpartyintegration/*.go'
           encryption:
             - 'internal/service/encryptionatrest/*.go' 
@@ -694,6 +695,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_federation }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
           ACCTEST_PACKAGES: |
             ./internal/config
             ./internal/service/alertconfiguration
@@ -710,6 +712,7 @@ jobs:
             ./internal/service/apikey
             ./internal/service/rolesorgid
             ./internal/service/team
+            ./internal/service/teamprojectassignment
             ./internal/service/thirdpartyintegration
         run: make testacc
 
