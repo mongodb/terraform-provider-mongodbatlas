@@ -22,13 +22,13 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	projectID := acc.ProjectIDExecution(t)
 	teamName := acc.RandomName()
 	roles := []string{"GROUP_OWNER", "GROUP_DATA_ACCESS_ADMIN"}
 	updatedRoles := []string{"GROUP_OWNER", "GROUP_DATA_ACCESS_ADMIN", "GROUP_DATA_ACCESS_READ_ONLY"}
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -45,12 +45,7 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 				ImportState:                          true,
 				ImportStateVerify:                    true,
 				ImportStateVerifyIdentifierAttribute: "team_id",
-				ImportStateIdFunc: func(s *terraform.State) (string, error) {
-					attrs := s.RootModule().Resources[resourceName].Primary.Attributes
-					teamID := attrs["team_id"]
-					projectID := attrs["project_id"]
-					return projectID + "/" + teamID, nil
-				},
+				ImportStateIdFunc:                    importStateIDFunc(resourceName),
 			},
 		},
 	}
@@ -85,6 +80,15 @@ func checks(projectID string, roles []string) resource.TestCheckFunc {
 	}
 
 	return resource.ComposeAggregateTestCheckFunc(checkFuncs...)
+}
+
+func importStateIDFunc(resourceName string) func(s *terraform.State) (string, error) {
+	return func(s *terraform.State) (string, error) {
+		attrs := s.RootModule().Resources[resourceName].Primary.Attributes
+		teamID := attrs["team_id"]
+		projectID := attrs["project_id"]
+		return projectID + "/" + teamID, nil
+	}
 }
 
 func checkDestroy(s *terraform.State) error {

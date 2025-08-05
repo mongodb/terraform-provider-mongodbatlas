@@ -16,6 +16,7 @@ func TestMigCloudUserTeamAssignmentRS_basic(t *testing.T) {
 }
 
 func TestMigTeamProjectAssignment_fromProjectTeamsToResource(t *testing.T) {
+	mig.SkipIfVersionBelow(t, "2.0.0") // when resource 1st released
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
