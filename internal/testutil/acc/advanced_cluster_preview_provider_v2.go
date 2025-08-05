@@ -9,11 +9,11 @@ import (
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/zclconf/go-cty/cty"
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/hcl"
-	"github.com/zclconf/go-cty/cty"
-
-	"github.com/stretchr/testify/assert"
 )
 
 // IsTestSDKv2ToTPF returns if we want to run migration tests from SDKv2 to TPF.
@@ -28,15 +28,15 @@ func CheckRSAndDSPreviewProviderV2(usePreviewProvider bool, resourceName string,
 	return CheckRSAndDS(resourceName, dataSourceName, pluralDataSourceName, modifiedSet, modifiedMap, extra...)
 }
 
-func TestCheckResourceAttrPreviewProviderV2(usePreviewProvider bool, name, key, value string) resource.TestCheckFunc {
+func TestCheckResourceAttrTPF(usePreviewProvider bool, name, key, value string) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttr(name, AttrNameToPreviewProviderV2(usePreviewProvider, key), value)
 }
 
-func TestCheckResourceAttrSetPreviewProviderV2(usePreviewProvider bool, name, key string) resource.TestCheckFunc {
+func TestCheckResourceAttrSetTPF(usePreviewProvider bool, name, key string) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttrSet(name, AttrNameToPreviewProviderV2(usePreviewProvider, key))
 }
 
-func TestCheckResourceAttrWithPreviewProviderV2(usePreviewProvider bool, name, key string, checkValueFunc resource.CheckResourceAttrWithFunc) resource.TestCheckFunc {
+func TestCheckResourceAttrWithTPF(usePreviewProvider bool, name, key string, checkValueFunc resource.CheckResourceAttrWithFunc) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttrWith(name, AttrNameToPreviewProviderV2(usePreviewProvider, key), checkValueFunc)
 }
 
