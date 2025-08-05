@@ -247,7 +247,7 @@ func replicaSetAWSProviderTestCase(t *testing.T, useSDKv2 ...bool) resource.Test
 }
 
 func TestAccClusterAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
-	resource.ParallelTest(t, replicaSetMultiCloudTestCase(t, true))
+	resource.ParallelTest(t, replicaSetMultiCloudTestCase(t))
 }
 
 func replicaSetMultiCloudTestCase(t *testing.T, useSDKv2 ...bool) resource.TestCase {
@@ -281,7 +281,7 @@ func replicaSetMultiCloudTestCase(t *testing.T, useSDKv2 ...bool) resource.TestC
 }
 
 func TestAccClusterAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
-	resource.ParallelTest(t, singleShardedMultiCloudTestCase(t, true))
+	resource.ParallelTest(t, singleShardedMultiCloudTestCase(t))
 }
 
 func singleShardedMultiCloudTestCase(t *testing.T, useSDKv2 ...bool) resource.TestCase {
@@ -810,7 +810,7 @@ func TestAccMockableAdvancedCluster_symmetricShardedOldSchema(t *testing.T) {
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricGeoShardedOldSchema(t *testing.T) {
-	resource.ParallelTest(t, symmetricGeoShardedOldSchemaTestCase(t, true))
+	resource.ParallelTest(t, symmetricGeoShardedOldSchemaTestCase(t))
 }
 
 func symmetricGeoShardedOldSchemaTestCase(t *testing.T, useSDKv2 ...bool) resource.TestCase {
@@ -895,7 +895,7 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAd
 }
 
 func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T) {
-	resource.ParallelTest(t, asymmetricShardedNewSchemaTestCase(t, true))
+	resource.ParallelTest(t, asymmetricShardedNewSchemaTestCase(t))
 }
 
 func asymmetricShardedNewSchemaTestCase(t *testing.T, useSDKv2 ...bool) resource.TestCase {
@@ -939,7 +939,7 @@ func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchemaInconsistentD
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:      configShardedNewSchema(t, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false, true, false),
+				Config:      configShardedNewSchema(t, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false, true),
 				ExpectError: regexp.MustCompile("DISK_SIZE_GB_INCONSISTENT"), // API Error when disk size is not consistent across all shards
 			},
 		},
@@ -2771,8 +2771,25 @@ func configShardedNewSchema(t *testing.T, orgID, projectName, name string, diskS
 		`, *lastDiskIOPS)
 	}
 
-	if isOptionalTrue(useSDKv2...) {
+	dataSourcesConfig := fmt.Sprintf(`
+	data "mongodbatlas_advanced_cluster" "test" {
+		project_id = mongodbatlas_advanced_cluster.test.project_id
+		name 	     = mongodbatlas_advanced_cluster.test.name
+		use_replication_spec_per_shard = true
+	}
 
+	data "mongodbatlas_advanced_clusters" "test-replication-specs-per-shard-false" {
+		project_id = mongodbatlas_advanced_cluster.test.project_id
+		use_replication_spec_per_shard = false
+	}
+
+	data "mongodbatlas_advanced_clusters" "test" {
+		project_id = mongodbatlas_advanced_cluster.test.project_id
+		use_replication_spec_per_shard = true
+	}
+	`)
+
+	if isOptionalTrue(useSDKv2...) {
 		if includeMiddleSpec {
 			thirdReplicationSpec = fmt.Sprintf(`
 			replication_specs {
@@ -2847,35 +2864,21 @@ func configShardedNewSchema(t *testing.T, orgID, projectName, name string, diskS
 			}
 		}
 	}
-
-	data "mongodbatlas_advanced_cluster" "test" {
-		project_id = mongodbatlas_advanced_cluster.test.project_id
-		name 	     = mongodbatlas_advanced_cluster.test.name
-		use_replication_spec_per_shard = true
-	}
-
-	data "mongodbatlas_advanced_clusters" "test-replication-specs-per-shard-false" {
-		project_id = mongodbatlas_advanced_cluster.test.project_id
-		use_replication_spec_per_shard = false
-	}
-
-	data "mongodbatlas_advanced_clusters" "test" {
-		project_id = mongodbatlas_advanced_cluster.test.project_id
-		use_replication_spec_per_shard = true
-	}
-`, orgID, projectName, name, firstInstanceSize, lastInstanceSize, firstDiskIOPSAttrs, lastDiskIOPSAttrs, thirdReplicationSpec, diskSizeGB, diskSizeGBShard2)
+		
+	%[11]s
+`, orgID, projectName, name, firstInstanceSize, lastInstanceSize, firstDiskIOPSAttrs, lastDiskIOPSAttrs, thirdReplicationSpec, diskSizeGB, diskSizeGBShard2, dataSourcesConfig)
 	}
 
 	if includeMiddleSpec {
 		thirdReplicationSpec = fmt.Sprintf(`
-		replication_specs {
-			region_configs {
-				electable_specs {
+		{
+			region_configs = [{
+				electable_specs = {
 					instance_size = %[1]q
 					node_count    = 3
 					disk_size_gb  = %[2]d
 				}
-				analytics_specs {
+				analytics_specs = {
 					instance_size = %[1]q
 					node_count    = 1
 					disk_size_gb  = %[2]d
@@ -2883,8 +2886,8 @@ func configShardedNewSchema(t *testing.T, orgID, projectName, name string, diskS
 				provider_name = "AWS"
 				priority      = 7
 				region_name   = "EU_WEST_1"
-			}
-		}
+			}]
+		},
 	`, firstInstanceSize, diskSizeGB)
 	}
 	return fmt.Sprintf(`
@@ -2894,68 +2897,52 @@ func configShardedNewSchema(t *testing.T, orgID, projectName, name string, diskS
 		}
 
 		resource "mongodbatlas_advanced_cluster" "test" {
-			project_id = mongodbatlas_project.cluster_project.id
+			project_id     = mongodbatlas_project.cluster_project.id
 			name = %[3]q
 			backup_enabled = false
 			cluster_type   = "SHARDED"
 
-			replication_specs {
-				region_configs {
-					electable_specs {
-						instance_size = %[4]q
-						node_count    = 3
-						disk_size_gb  = %[9]d
-						%[6]s
-					}
-					analytics_specs {
-						instance_size = %[4]q
-						node_count    = 1
-						disk_size_gb  = %[9]d
-					}
-					provider_name = "AWS"
-					priority      = 7
-					region_name   = "EU_WEST_1"
+			replication_specs = [{
+				region_configs = [{
+					electable_specs = {
+					instance_size = %[4]q
+					node_count    = 3
+					disk_size_gb  = %[9]d
+					%[6]s
 				}
-			}
-
-			%[8]s
-
-			replication_specs {
-				region_configs {
-					electable_specs {
-						instance_size = %[5]q
-						node_count    = 3
-						disk_size_gb  = %[10]d
-						%[7]s
-					}
-					analytics_specs {
-						instance_size = %[5]q
-						node_count    = 1
-						disk_size_gb  = %[10]d
-					}
-					provider_name = "AWS"
-					priority      = 7
-					region_name   = "EU_WEST_1"
+				analytics_specs = {
+					instance_size = %[4]q
+					node_count    = 1
+					disk_size_gb  = %[9]d
 				}
-			}
-		}
+				priority      = 7
+				provider_name = "AWS"
+				region_name   = "EU_WEST_1"
+				}]
+				}, 
+				%[8]s
+				{
+				region_configs = [{
+				electable_specs = {
+					instance_size = %[5]q
+					node_count    = 3
+					disk_size_gb  = %[10]d
+					%[7]s
+				}
+				analytics_specs = {
+					instance_size = %[5]q
+					node_count    = 1
+					disk_size_gb  = %[10]d
+				}
+				priority      = 7
+				provider_name = "AWS"
+				region_name   = "EU_WEST_1"
+				}]
+			}]
+}
 
-		data "mongodbatlas_advanced_cluster" "test" {
-			project_id = mongodbatlas_advanced_cluster.test.project_id
-			name 	     = mongodbatlas_advanced_cluster.test.name
-			use_replication_spec_per_shard = true
-		}
-
-		data "mongodbatlas_advanced_clusters" "test-replication-specs-per-shard-false" {
-			project_id = mongodbatlas_advanced_cluster.test.project_id
-			use_replication_spec_per_shard = false
-		}
-
-		data "mongodbatlas_advanced_clusters" "test" {
-			project_id = mongodbatlas_advanced_cluster.test.project_id
-			use_replication_spec_per_shard = true
-		}
-	`, orgID, projectName, name, firstInstanceSize, lastInstanceSize, firstDiskIOPSAttrs, lastDiskIOPSAttrs, thirdReplicationSpec, diskSizeGB, diskSizeGBShard2)
+	%[11]s
+	`, orgID, projectName, name, firstInstanceSize, lastInstanceSize, firstDiskIOPSAttrs, lastDiskIOPSAttrs, thirdReplicationSpec, diskSizeGB, diskSizeGBShard2, dataSourcesConfig)
 }
 
 func checkShardedNewSchema(usePreviewProvider bool, diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIops, lastDiskIops *int, isAsymmetricCluster, includeMiddleSpec bool) resource.TestCheckFunc {
