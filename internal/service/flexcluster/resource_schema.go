@@ -151,8 +151,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				PlanModifiers: []planmodifier.Bool{
 					customplanmodifier.CreateOnlyBoolPlanModifier(),
 				},
-
-				MarkdownDescription: "Indicates whether to delete the resource if creation times out. Default is `true`. When Terraform apply fails, it returns immediately without waiting for cleanup to complete. If you suspect a transient error, wait before retrying to allow resource deletion to finish.",
+				MarkdownDescription: "Indicates whether to delete the created resource if a timeout is reached when waiting for completion. Default is `true`. If you suspect a transient error, wait before retrying to allow resource deletion to finish.",
 			},
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create: true,

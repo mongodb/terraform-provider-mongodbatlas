@@ -108,7 +108,7 @@ func Resource() *schema.Resource {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				ForceNew:    true,
-				Description: "Flag that indicates whether to delete the resource if creation times out. Default is true.",
+				Description: "Indicates whether to delete the created resource if a timeout is reached when waiting for completion. Default is `true`.",
 			},
 			"endpoints": {
 				Type:          schema.TypeList,

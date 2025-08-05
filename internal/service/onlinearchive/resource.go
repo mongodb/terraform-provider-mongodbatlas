@@ -215,7 +215,7 @@ func resourceSchema() map[string]*schema.Schema {
 		"delete_on_create_timeout": { // Don't use Default: true to avoid unplanned changes when upgrading from previous versions.
 			Type:        schema.TypeBool,
 			Optional:    true,
-			Description: "Flag that indicates whether to delete the resource if creation times out. Default is true.",
+			Description: "Indicates whether to delete the created resource if a timeout is reached when waiting for completion. Default is `true`.",
 		},
 		"sync_creation": {
 			Type:     schema.TypeBool,
