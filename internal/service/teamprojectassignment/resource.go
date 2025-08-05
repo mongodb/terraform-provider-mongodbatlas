@@ -56,6 +56,10 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
+	/*
+	 NOTE: API returns all teams in the project instead of just the assigned team,
+	 requiring a separate GET call. Issue has been reported for future fix.
+	*/
 	_, _, err := connV2.TeamsApi.AddAllTeamsToProject(ctx, projectID, teamProjectReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf(errorAssigment, projectID), err.Error())
@@ -120,7 +124,10 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-
+	/*
+	 NOTE: API returns all teams in the project instead of just the updated team,
+	 requiring a separate GET call. Issue has been reported for future fix.
+	*/
 	_, _, err := connV2.TeamsApi.UpdateTeamRoles(ctx, projectID, teamID, updateReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf(errorUpdate, teamID, projectID), err.Error())
