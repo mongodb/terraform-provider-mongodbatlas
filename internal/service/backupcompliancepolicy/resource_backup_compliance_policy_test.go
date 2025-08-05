@@ -69,7 +69,7 @@ func TestAccBackupCompliancePolicy_overwriteBackupPolicies(t *testing.T) {
 				acc.ClusterAdvConfigOplogMinRetentionHours: 8,
 			},
 			ProjectID:            projectIDTerraform,
-			MongoDBMajorVersion:  "6.0",
+			MongoDBMajorVersion:  "8.0",
 			CloudBackup:          true,
 			DiskSizeGb:           12,
 			RetainBackupsEnabled: true,
