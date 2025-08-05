@@ -2153,7 +2153,6 @@ func configShardedOldSchemaMultiCloud(t *testing.T, projectID, name string, numS
 	advClusterConfig := ""
 
 	if isOptionalTrue(useSDKv2...) {
-
 		advClusterConfig = fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
@@ -2200,7 +2199,7 @@ func configShardedOldSchemaMultiCloud(t *testing.T, projectID, name string, numS
 		
 		
 		  replication_specs = [{
-			num_shards = 333333
+			num_shards = %[3]d
 			region_configs = [{
 			  analytics_specs = {
 				instance_size = %[4]q
