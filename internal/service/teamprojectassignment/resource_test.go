@@ -59,7 +59,7 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 
 func errorTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+	projectID := acc.ProjectIDExecution(t)
 
 	return &resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
