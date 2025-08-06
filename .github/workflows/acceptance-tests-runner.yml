@@ -403,6 +403,7 @@ jobs:
           HTTP_MOCKER_CAPTURE: 'true'
           ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
           ACCTEST_PACKAGES: |
+            ./internal/service/advancedcluster
             ./internal/service/advancedclustertpf
         run: make testacc
  
@@ -428,7 +429,8 @@ jobs:
         env:
           MONGODB_ATLAS_LAST_VERSION:  "1.39.0" # last version that supports SDKv2 mongodbatlas_advanced_cluster
           ACCTEST_REGEX_RUN: '^TestMig'
-          ACCTEST_PACKAGES: ./internal/service/advancedclustertpf
+          ACCTEST_PACKAGES: |
+            ./internal/service/advancedcluster
         run: make testacc
 
   assume_role:
