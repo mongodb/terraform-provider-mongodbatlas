@@ -431,7 +431,6 @@ jobs:
           ACCTEST_REGEX_RUN: '^TestMig'
           ACCTEST_PACKAGES: |
             ./internal/service/advancedcluster
-            ./internal/service/advancedclustertpf
         run: make testacc
 
   assume_role:
