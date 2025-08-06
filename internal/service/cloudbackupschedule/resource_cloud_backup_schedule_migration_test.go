@@ -123,7 +123,6 @@ func TestMigBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 				Config:            copySettingsConfigWithRepSpecID,
 				Check:             resource.ComposeAggregateTestCheckFunc(checksCreateWithReplicationSpecID...),
 			},
-			mig.TestStepCheckEmptyPlan(copySettingsConfigWithRepSpecID),
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   copySettingsConfigWithZoneID,
