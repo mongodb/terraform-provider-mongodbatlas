@@ -31,10 +31,10 @@ func WaitStateTransitionWithMinTimeoutAndTimeout(ctx context.Context, minTimeout
 }
 
 func WaitDeleteStateTransition(ctx context.Context, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementApi, timeout time.Duration) (*admin.EARPrivateEndpoint, error) {
-	return WaitDeleteStateTransitionWithMinTimeout(ctx, defaultMinTimeout, timeout, projectID, cloudProvider, endpointID, client)
+	return WaitDeleteStateTransitionWithMinTimeoutAndTimeout(ctx, defaultMinTimeout, timeout, projectID, cloudProvider, endpointID, client)
 }
 
-func WaitDeleteStateTransitionWithMinTimeout(ctx context.Context, minTimeout, timeout time.Duration, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementApi) (*admin.EARPrivateEndpoint, error) {
+func WaitDeleteStateTransitionWithMinTimeoutAndTimeout(ctx context.Context, minTimeout, timeout time.Duration, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementApi) (*admin.EARPrivateEndpoint, error) {
 	return waitStateTransitionForStates(
 		ctx,
 		[]string{retrystrategy.RetryStrategyDeletingState},

@@ -111,7 +111,7 @@ func TestDeleteStateTransition(t *testing.T) {
 				modelResp, httpResp, err := resp.get()
 				m.EXPECT().GetEncryptionAtRestPrivateEndpointExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			resp, err := encryptionatrestprivateendpoint.WaitStateTransitionWithMinTimeoutAndTimeout(t.Context(), 1*time.Second, 20*time.Minute, "project-id", "cloud-provider", "endpoint-id", m)
+			resp, err := encryptionatrestprivateendpoint.WaitDeleteStateTransitionWithMinTimeoutAndTimeout(t.Context(), 1*time.Second, 20*time.Minute, "project-id", "cloud-provider", "endpoint-id", m)
 			assert.Equal(t, tc.expectedError, err != nil)
 			if resp != nil {
 				assert.Equal(t, tc.expectedState, resp.Status)
