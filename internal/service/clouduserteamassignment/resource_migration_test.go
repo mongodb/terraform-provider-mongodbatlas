@@ -49,10 +49,9 @@ func TestMigCloudUserTeamAssignmentRS_migrationJourney(t *testing.T) {
 
 // Step 1: Original configuration with usernames attribute
 func configTeamWithUsernamesFirst(orgID, teamName string, usernames []string) string {
-	usernamesList := `["` + usernames[0] + `"]`
 	return fmt.Sprintf(`
 	locals {
-		usernames = %[1]s
+		usernames = [%[1]q]
 	}
 
 	resource "mongodbatlas_team" "test" {
@@ -60,7 +59,7 @@ func configTeamWithUsernamesFirst(orgID, teamName string, usernames []string) st
 	name      = %[3]q
 	usernames = local.usernames
 	}
-	`, usernamesList, orgID, teamName)
+	`, usernames[0], orgID, teamName)
 }
 
 // Step 2: Configuration with team assignments using import blocks
