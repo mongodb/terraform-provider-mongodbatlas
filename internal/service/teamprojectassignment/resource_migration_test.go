@@ -10,12 +10,18 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
+const (
+	resourceProjectName     = "mongodbatlas_project.migration_path_project1"
+	resourceAssignmentName1 = "mongodbatlas_team_project_assignment.team1"
+	resourceAssignmentName2 = "mongodbatlas_team_project_assignment.team2"
+)
+
 func TestMigCloudUserTeamAssignmentRS_basic(t *testing.T) {
 	mig.SkipIfVersionBelow(t, "2.0.0") // when resource 1st released
 	mig.CreateAndRunTest(t, basicTestCase(t))
 }
 
-func TestMigTeamProjectAssignment_fromProjectTeamsToResource(t *testing.T) {
+func TestMigTeamProjectAssignment_migrationJourney(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
@@ -32,11 +38,16 @@ func TestMigTeamProjectAssignment_fromProjectTeamsToResource(t *testing.T) {
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            originalConfigFirst(projectName, orgID, teamName1, teamName2),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("mongodbatlas_project.migration_path_project1", "name", projectName),
-					resource.TestCheckResourceAttr("mongodbatlas_project.migration_path_project1", "teams.#", "2"),
+					resource.TestCheckResourceAttr(resourceProjectName, "name", projectName),
+					resource.TestCheckResourceAttr(resourceProjectName, "teams.#", "2"),
 				),
 			},
-			// Step 2: Ignore `teams` attribute & import new resource
+			{
+				// Step 2: Ignore `teams` attribute & import new resource
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   ignoreTeamsImportConfigSecond(projectName, orgID, teamName1, teamName2), // expected to see 2 import in the plan
+				Check:                    secondChecks(),
+			},
 			mig.TestStepCheckEmptyPlan(ignoreTeamsImportConfigSecond(projectName, orgID, teamName1, teamName2)),
 		},
 	})
@@ -128,4 +139,15 @@ func ignoreTeamsImportConfigSecond(projectName, orgID, teamName1, teamName2 stri
 			id = "${mongodbatlas_project.migration_path_project1.id}/${mongodbatlas_team.team2.team_id}"  
 		}
 		`, teamName1, teamName2, orgID, projectName)
+}
+
+func secondChecks() resource.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(
+		resource.TestCheckResourceAttrSet(resourceAssignmentName1, "project_id"),
+		resource.TestCheckResourceAttrSet(resourceAssignmentName2, "project_id"),
+		resource.TestCheckResourceAttrSet(resourceAssignmentName1, "team_id"),
+		resource.TestCheckResourceAttrSet(resourceAssignmentName2, "team_id"),
+		resource.TestCheckResourceAttr(resourceAssignmentName1, "role_names.#", "1"),
+		resource.TestCheckResourceAttr(resourceAssignmentName2, "role_names.#", "2"),
+	)
 }

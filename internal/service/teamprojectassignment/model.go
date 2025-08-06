@@ -25,27 +25,23 @@ func NewTFModel(ctx context.Context, apiResp *admin.TeamRole, projectID string) 
 	}, diags
 }
 
-func NewAtlasReq(ctx context.Context, plan *TFModel) (*[]admin.TeamRole, diag.Diagnostics) {
-	roleNames := []string{}
-	if !plan.RoleNames.IsNull() && !plan.RoleNames.IsUnknown() {
-		roleNames = conversion.TypesSetToString(ctx, plan.RoleNames)
-	}
-
-	teamRole := admin.TeamRole{
-		TeamId:    plan.TeamId.ValueStringPointer(),
-		RoleNames: &roleNames,
-	}
-	return &[]admin.TeamRole{teamRole}, nil
-}
-
-func NewAtlasUpdateReq(ctx context.Context, plan *TFModel) (*admin.TeamRole, diag.Diagnostics) {
+func buildTeamRole(ctx context.Context, plan *TFModel) *admin.TeamRole {
 	roleNames := []string{}
 	if !plan.RoleNames.IsNull() && !plan.RoleNames.IsUnknown() {
 		roleNames = conversion.TypesSetToString(ctx, plan.RoleNames)
 	}
 
 	return &admin.TeamRole{
-		RoleNames: &roleNames,
 		TeamId:    plan.TeamId.ValueStringPointer(),
-	}, nil
+		RoleNames: &roleNames,
+	}
+}
+
+func NewAtlasReq(ctx context.Context, plan *TFModel) (*[]admin.TeamRole, diag.Diagnostics) {
+	teamRole := buildTeamRole(ctx, plan)
+	return &[]admin.TeamRole{*teamRole}, nil
+}
+
+func NewAtlasUpdateReq(ctx context.Context, plan *TFModel) (*admin.TeamRole, diag.Diagnostics) {
+	return buildTeamRole(ctx, plan), nil
 }

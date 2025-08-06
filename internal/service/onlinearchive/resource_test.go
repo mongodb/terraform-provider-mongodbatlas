@@ -42,7 +42,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				Check:  acc.PopulateWithSampleDataTestCheck(projectID, clusterName),
 			},
 			{
-				Config: configWithDailySchedule(clusterTerraformStr, clusterResourceName, 1, 7),
+				Config: configWithDailySchedule(clusterTerraformStr, clusterResourceName, 1, 7, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -58,7 +58,7 @@ func TestAccBackupRSOnlineArchive(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithDailySchedule(clusterTerraformStr, clusterResourceName, 2, 8),
+				Config: configWithDailySchedule(clusterTerraformStr, clusterResourceName, 2, 8, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -146,7 +146,7 @@ func TestAccBackupRSOnlineArchiveBasic(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithDailySchedule(clusterTerraformStr, clusterResourceName, 1, 1),
+				Config: configWithDailySchedule(clusterTerraformStr, clusterResourceName, 1, 1, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "state"),
 					resource.TestCheckResourceAttrSet(onlineArchiveResourceName, "archive_id"),
@@ -229,7 +229,7 @@ func TestAccBackupRSOnlineArchiveInvalidProcessRegion(t *testing.T) {
 	})
 }
 
-func configWithDailySchedule(clusterTerraformStr, clusterResourceName string, startHour, deleteExpirationDays int) string {
+func configWithDailySchedule(clusterTerraformStr, clusterResourceName string, startHour, deleteExpirationDays int, deleteOnTimeout bool) string {
 	var dataExpirationRuleBlock string
 	if deleteExpirationDays > 0 {
 		dataExpirationRuleBlock = fmt.Sprintf(`
@@ -237,6 +237,15 @@ func configWithDailySchedule(clusterTerraformStr, clusterResourceName string, st
 			expire_after_days = %d
 		}
 		`, deleteExpirationDays)
+	}
+	deleteOnCreateTimeoutStr := ""
+	if deleteOnTimeout {
+		deleteOnCreateTimeoutStr = `
+		delete_on_create_timeout = true
+		timeouts {
+			create = "1s"
+		}
+		`
 	}
 
 	return fmt.Sprintf(`
@@ -281,6 +290,8 @@ func configWithDailySchedule(clusterTerraformStr, clusterResourceName string, st
 		}
 
 		sync_creation = true
+
+		%[5]s
 	}
 	
 	data "mongodbatlas_online_archive" "read_archive" {
@@ -293,7 +304,7 @@ func configWithDailySchedule(clusterTerraformStr, clusterResourceName string, st
 		project_id =  mongodbatlas_online_archive.users_archive.project_id
 		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
 	}
-	`, clusterTerraformStr, startHour, dataExpirationRuleBlock, clusterResourceName)
+	`, clusterTerraformStr, startHour, dataExpirationRuleBlock, clusterResourceName, deleteOnCreateTimeoutStr)
 }
 
 func configWithoutSchedule(clusterTerraformStr, clusterResourceName string) string {
@@ -511,4 +522,26 @@ func testAccBackupRSOnlineArchiveConfigWithMonthlySchedule(clusterTerraformStr, 
 		cluster_name = mongodbatlas_online_archive.users_archive.cluster_name
 	}
 	`, clusterTerraformStr, startHour, clusterResourceName)
+}
+
+func TestAccOnlineArchive_deleteOnCreateTimeout(t *testing.T) {
+	var (
+		clusterInfo = acc.GetClusterInfo(t, clusterRequest())
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 acc.PreCheckBasicSleep(t, &clusterInfo, "", ""),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroyCluster,
+		Steps: []resource.TestStep{
+			{
+				Config: clusterInfo.TerraformStr,
+				Check:  acc.PopulateWithSampleDataTestCheck(clusterInfo.ProjectID, clusterInfo.Name),
+			},
+			{
+				Config:      configWithDailySchedule(clusterInfo.TerraformStr, clusterInfo.ResourceName, 1, 7, true),
+				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
+			},
+		},
+	})
 }

@@ -3,11 +3,9 @@ package advancedclustertpf
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -148,7 +146,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	}
 	if isFlex {
 		flexClusterReq := NewFlexCreateReq(latestReq.GetName(), latestReq.GetTerminationProtectionEnabled(), latestReq.Tags, latestReq.ReplicationSpecs)
-		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, plan.ProjectID.ValueString(), latestReq.GetName(), flexClusterReq, r.Client.AtlasV2.FlexClustersApi)
+		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, plan.ProjectID.ValueString(), latestReq.GetName(), flexClusterReq, r.Client.AtlasV2.FlexClustersApi, &waitParams.Timeout)
 		if err != nil {
 			diags.AddError(fmt.Sprintf(flexcluster.ErrorCreateFlex, clusterDetailStr), err.Error())
 			return
@@ -271,7 +269,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			}
 			return
 		case diff.isUpdateOfFlex:
-			if flexOut := handleFlexUpdate(ctx, diags, r.Client, &plan); flexOut != nil {
+			if flexOut := handleFlexUpdate(ctx, diags, r.Client, waitParams, &plan); flexOut != nil {
 				diags.Append(resp.State.Set(ctx, flexOut)...)
 			}
 			return
@@ -494,7 +492,7 @@ func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, cli
 func resolveClusterWaitParams(ctx context.Context, model *TFModel, diags *diag.Diagnostics, operation string) *ClusterWaitParams {
 	projectID := model.ProjectID.ValueString()
 	clusterName := model.Name.ValueString()
-	operationTimeout := resolveTimeout(ctx, &model.Timeouts, operation, diags)
+	operationTimeout := cleanup.ResolveTimeout(ctx, &model.Timeouts, operation, diags)
 	if diags.HasError() {
 		return nil
 	}
@@ -504,27 +502,6 @@ func resolveClusterWaitParams(ctx context.Context, model *TFModel, diags *diag.D
 		Timeout:     operationTimeout,
 		IsDelete:    operation == operationDelete,
 	}
-}
-
-func resolveTimeout(ctx context.Context, t *timeouts.Value, operationName string, diags *diag.Diagnostics) time.Duration {
-	var (
-		timeoutDuration time.Duration
-		localDiags      diag.Diagnostics
-	)
-	switch operationName {
-	case operationCreate:
-		timeoutDuration, localDiags = t.Create(ctx, constant.DefaultTimeout)
-		diags.Append(localDiags...)
-	case operationUpdate:
-		timeoutDuration, localDiags = t.Update(ctx, constant.DefaultTimeout)
-		diags.Append(localDiags...)
-	case operationDelete:
-		timeoutDuration, localDiags = t.Delete(ctx, constant.DefaultTimeout)
-		diags.Append(localDiags...)
-	default:
-		timeoutDuration = constant.DefaultTimeout
-	}
-	return timeoutDuration
 }
 
 type clusterDiff struct {
@@ -612,7 +589,7 @@ func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *con
 	return NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(configReq.ReplicationSpecs), plan)
 }
 
-func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, plan *TFModel) *TFModel {
+func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, plan *TFModel) *TFModel {
 	configReq := normalizeFromTFModel(ctx, plan, diags, false)
 	if diags.HasError() {
 		return nil
@@ -620,7 +597,7 @@ func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *conf
 	clusterName := plan.Name.ValueString()
 	flexCluster, err := flexcluster.UpdateFlexCluster(ctx, plan.ProjectID.ValueString(), clusterName,
 		GetFlexClusterUpdateRequest(configReq.Tags, configReq.TerminationProtectionEnabled),
-		client.AtlasV2.FlexClustersApi)
+		client.AtlasV2.FlexClustersApi, waitParams.Timeout)
 	if err != nil {
 		diags.AddError(fmt.Sprintf(flexcluster.ErrorUpdateFlex, clusterName), err.Error())
 		return nil

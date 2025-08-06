@@ -323,6 +323,7 @@ jobs:
             - 'internal/service/projectapikey/*.go'
             - 'internal/service/rolesorgid/*.go'
             - 'internal/service/team/*.go'
+            - 'internal/service/teamprojectassignment/*.go'
             - 'internal/service/thirdpartyintegration/*.go'
           encryption:
             - 'internal/service/encryptionatrest/*.go' 
@@ -710,6 +711,7 @@ jobs:
             ./internal/service/apikey
             ./internal/service/rolesorgid
             ./internal/service/team
+            ./internal/service/teamprojectassignment
             ./internal/service/thirdpartyintegration
         run: make testacc
 
