@@ -153,7 +153,7 @@ resource "mongodbatlas_privatelink_endpoint_service" "test" {
 * `gcp_project_id` - (Optional) Unique identifier of the GCP project in which you created your endpoints. Only for `GCP`.
 * `endpoints` - (Optional) Collection of individual private endpoints that comprise your endpoint group. Only for `GCP`. See below.
 * `timeouts`- (Optional) The duration of time to wait for Private Endpoint Service to be created or deleted. The timeout value is defined by a signed sequence of decimal numbers with a time unit suffix such as: `1h45m`, `300s`, `10m`, etc. The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. The default timeout for Private Endpoint create & delete is `2h`. Learn more about timeouts [here](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
-* `delete_on_create_timeout`- (Optional) Indicates whether to delete the created resource if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the cleanup and returns immediately without waiting for its completion. If you suspect a transient error, wait before retrying to allow resource deletion to finish. Default is `true`.
+* `delete_on_create_timeout`- (Optional) Indicates whether to delete the created resource if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the cleanup and returns immediately without waiting for its completion. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
 
 ### `endpoints`
 * `ip_address` - (Optional) Private IP address of the endpoint you created in GCP.

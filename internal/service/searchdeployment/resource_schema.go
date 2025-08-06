@@ -69,7 +69,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Optional:            true,
-				MarkdownDescription: "Indicates whether to delete the created resource if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the cleanup and returns immediately without waiting for its completion. If you suspect a transient error, wait before retrying to allow resource deletion to finish. Default is `true`.",
+				MarkdownDescription: "Indicates whether to delete the created resource if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the cleanup and returns immediately without waiting for its completion. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.",
 			},
 			"encryption_at_rest_provider": schema.StringAttribute{
 				Computed:            true,
