@@ -511,8 +511,6 @@ jobs:
   backup:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.backup == 'true' || inputs.test_group == 'backup' }}
-    env:
-      MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: 'true'
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -822,8 +820,6 @@ jobs:
   generic:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.generic == 'true' || inputs.test_group == 'generic' }}
-    env:
-      MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: 'true'
     runs-on: ubuntu-latest
     permissions: {}
     steps:
