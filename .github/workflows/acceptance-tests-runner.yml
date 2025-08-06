@@ -539,6 +539,7 @@ jobs:
           AZURE_ATLAS_APP_ID: ${{ inputs.azure_atlas_app_id }}
           AZURE_SERVICE_PRINCIPAL_ID: ${{ inputs.azure_service_principal_id }}
           AZURE_TENANT_ID: ${{ inputs.azure_tenant_id }}
+          MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: 'true' # required for migration tests that use provider version < 2.0.0
           ACCTEST_PACKAGES: |
             ./internal/service/cloudbackupschedule
             ./internal/service/cloudbackupsnapshot
