@@ -4,13 +4,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
 func TestMigBackupRSCloudBackupSnapshot_basic(t *testing.T) {
-	mig.SkipIfVersionBelow(t, "1.29.0") // version when advanced cluster TPF was introduced
 	var (
 		clusterInfo     = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
 		description     = "My description in my cluster"
@@ -19,7 +17,7 @@ func TestMigBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckBasicSleep(t); mig.PreCheckOldPreviewEnv(t) },
+		PreCheck:     mig.PreCheckBasicSleep(t),
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -44,7 +42,6 @@ func TestMigBackupRSCloudBackupSnapshot_basic(t *testing.T) {
 }
 
 func TestMigBackupRSCloudBackupSnapshot_sharded(t *testing.T) {
-	mig.SkipIfVersionBelow(t, "1.29.0") // version when advanced cluster TPF was introduced
 	var (
 		projectID       = acc.ProjectIDExecution(t)
 		clusterName     = acc.RandomClusterName()
@@ -54,7 +51,7 @@ func TestMigBackupRSCloudBackupSnapshot_sharded(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckBasicSleep(t); mig.PreCheckOldPreviewEnv(t) },
+		PreCheck:     mig.PreCheckBasicSleep(t),
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{

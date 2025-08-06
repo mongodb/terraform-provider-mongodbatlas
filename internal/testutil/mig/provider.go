@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -22,12 +21,6 @@ func IsProviderVersionAtLeast(minVersion string) bool {
 	vProvider, errProvider := version.NewVersion(versionConstraint())
 	vMin, errMin := version.NewVersion(minVersion)
 	return errProvider == nil && errMin == nil && vProvider.GreaterThanOrEqual(vMin)
-}
-
-func IsProviderVersionLowerThan(v string) bool {
-	vProvider, errProvider := version.NewVersion(versionConstraint())
-	vArg, err := version.NewVersion(v)
-	return errProvider == nil && err == nil && vProvider.LessThanOrEqual(vArg)
 }
 
 func ExternalProviders() map[string]resource.ExternalProvider {

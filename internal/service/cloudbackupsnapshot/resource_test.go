@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -207,22 +206,24 @@ func configSharded(projectID, clusterName, description, retentionInDays string) 
 			cluster_type   = "SHARDED"
 			backup_enabled = true
 		
-			replication_specs = [{
+			replication_specs {
 				num_shards = 3
-				region_configs = [{
-					electable_specs = {
+		
+				region_configs {
+					electable_specs {
 						instance_size = "M10"
 						node_count    = 3
 					}
-					analytics_specs = {
+					analytics_specs {
 						instance_size = "M10"
 						node_count    = 1
 					}
 					provider_name = "AWS"
 					priority      = 7
 					region_name   = "US_EAST_1"
-				}]
-			}]
+				}
+		
+			}
 		}
 
 		resource "mongodbatlas_cloud_backup_snapshot" "test" {
