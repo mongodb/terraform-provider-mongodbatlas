@@ -353,7 +353,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	var backupSchedule *admin.DiskBackupSnapshotSchedule20240805
 	var resp *http.Response
 	var err error
-	
+
 	backupSchedule, resp, err = connV2.CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
@@ -420,7 +420,7 @@ func setSchemaFields(d *schema.ResourceData, backupSchedule *admin.DiskBackupSna
 	if err := d.Set("policy_item_yearly", FlattenPolicyItem(backupSchedule.GetPolicies()[0].GetPolicyItems(), Yearly)); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "policy_item_yearly", clusterName, err)
 	}
-	
+
 	if err := d.Set("copy_settings", FlattenCopySettings(backupSchedule.GetCopySettings())); err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleSetting, "copy_settings", clusterName, err)
 	}
