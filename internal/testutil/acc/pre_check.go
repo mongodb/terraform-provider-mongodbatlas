@@ -74,6 +74,13 @@ func PreCheckCert(tb testing.TB) {
 	}
 }
 
+func PreCheckLast1XVersion(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION") == "" {
+		tb.Fatal("`MONGODB_ATLAS_LAST_1X_VERSION` must be set for this migration testing")
+	}
+}
+
 func PreCheckCloudProviderAccessAzure(tb testing.TB) {
 	tb.Helper()
 	PreCheckBasic(tb)

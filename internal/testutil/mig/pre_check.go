@@ -22,6 +22,13 @@ func PreCheckBasicSleep(tb testing.TB) func() {
 	}
 }
 
+func PreCheckLast1XVersion(tb testing.TB) func() {
+	tb.Helper()
+	return func() {
+		acc.PreCheckLast1XVersion(tb)
+	}
+}
+
 func PreCheck(tb testing.TB) {
 	tb.Helper()
 	checkLastVersion(tb)

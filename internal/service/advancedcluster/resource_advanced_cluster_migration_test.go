@@ -1,6 +1,7 @@
 package advancedcluster_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -11,9 +12,6 @@ import (
 
 // last version that did not support new sharding schema or attributes
 const versionBeforeISSRelease = "1.17.6"
-
-// last version that supported mongodbatlas_advanced_cluster SDKv2 resource
-const versionBeforeTPFGARelease = "1.39.0"
 
 func TestMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 	migTest(t, replicaSetAWSProviderTestCase)
@@ -38,9 +36,10 @@ func TestMigAdvancedCluster_asymmetricShardedNewSchema(t *testing.T) {
 
 func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
+	versionBeforeTPFGARelease := os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckBasic(t) },
+		PreCheck:     func() { mig.PreCheckBasic(t); mig.PreCheckLast1XVersion(t) },
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
@@ -64,9 +63,10 @@ func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
 
 func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
+	versionBeforeTPFGARelease := os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckBasic(t) },
+		PreCheck:     func() { mig.PreCheckLast1XVersion(t) },
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
@@ -90,7 +90,7 @@ func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) 
 
 // migTest is a helper function to run migration tests using existing test case functions:
 // TPF -> TPF: for versions 2.0.0+ (tests same config with older TPF provider vs newer TPF provider)
-// SDKv2 -> TPF: when MONGODB_ATLAS_TEST_SDKV2_TO_TPF=true (tests SDKv2 config vs TPF config with MONGODB_ATLAS_LAST_VERSION=1.39.0)
+// SDKv2 -> TPF: when MONGODB_ATLAS_TEST_SDKV2_TO_TPF=true (tests SDKv2 config vs TPF config with MONGODB_ATLAS_LAST_VERSION = MONGODB_ATLAS_LAST_1X_VERSION)
 func migTest(t *testing.T, testCaseFunc func(t *testing.T, useSDKv2 ...bool) resource.TestCase) {
 	t.Helper()
 
@@ -98,8 +98,8 @@ func migTest(t *testing.T, testCaseFunc func(t *testing.T, useSDKv2 ...bool) res
 		t.Log("Running migration test: SDKv2 to TPF")
 		sdkv2TestCase := testCaseFunc(t, true)
 
-		// Step 1: SDKv2 config with external provider (v1.39.0)
-		// Step 2: Converted TPF config with current provider
+		// Step 1: SDKv2 config with external provider (latest v1.x.x version)
+		// Step 2: Converted TPF config with current provider (latest v2.x.x version)
 		mig.CreateAndRunTest(t, &sdkv2TestCase)
 	} else {
 		mig.SkipIfVersionBelow(t, "2.0.0")
