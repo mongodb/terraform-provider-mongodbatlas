@@ -1,6 +1,7 @@
 package mig
 
 import (
+	"os"
 	"testing"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -22,10 +23,10 @@ func PreCheckBasicSleep(tb testing.TB) func() {
 	}
 }
 
-func PreCheckLast1XVersion(tb testing.TB) func() {
+func PreCheckLast1XVersion(tb testing.TB) {
 	tb.Helper()
-	return func() {
-		acc.PreCheckLast1XVersion(tb)
+	if os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION") == "" {
+		tb.Fatal("`MONGODB_ATLAS_LAST_1X_VERSION` must be set for this migration testing")
 	}
 }
 
