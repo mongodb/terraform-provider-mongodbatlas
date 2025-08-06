@@ -10,6 +10,11 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
+const (
+	resourceTeamName = "mongodbatlas_team.test"
+	resourceTestName = "mongodbatlas_cloud_user_team_assignment.test"
+)
+
 func TestMigCloudUserTeamAssignmentRS_basic(t *testing.T) {
 	mig.SkipIfVersionBelow(t, "2.0.0") // when resource 1st released
 	mig.CreateAndRunTest(t, basicTestCase(t))
@@ -17,38 +22,38 @@ func TestMigCloudUserTeamAssignmentRS_basic(t *testing.T) {
 
 func TestMigCloudUserTeamAssignmentRS_migrationJourney(t *testing.T) {
 	var (
-		orgID     = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		teamName  = fmt.Sprintf("team-test-%s", acc.RandomName())
-		usernames = []string{os.Getenv("MONGODB_ATLAS_USERNAME")}
+		orgID    = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		teamName = fmt.Sprintf("team-test-%s", acc.RandomName())
+		username = os.Getenv("MONGODB_ATLAS_USERNAME")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasic(t) },
+		PreCheck:     func() { acc.PreCheckBasic(t); acc.PreCheckAtlasUsername(t) },
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{
 				// NOTE: 'usernames' attribute (available v1.39.0, deprecated in v2.0.0) is used in this test in team resource.
 				// May be removed in future versions.
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            configTeamWithUsernamesFirst(orgID, teamName, usernames),
+				Config:            configTeamWithUsernamesFirst(orgID, teamName, username),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configWithTeamAssignmentsSecond(orgID, teamName, usernames),
+				Config:                   configWithTeamAssignmentsSecond(orgID, teamName, username), // expected to see 1 import in the plan
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("mongodbatlas_team.test", "name", teamName),
+					resource.TestCheckResourceAttr(resourceTeamName, "name", teamName),
 
-					resource.TestCheckResourceAttrSet("mongodbatlas_cloud_user_team_assignment.test", "user_id"),
-					resource.TestCheckResourceAttr("mongodbatlas_cloud_user_team_assignment.test", "username", usernames[0]),
+					resource.TestCheckResourceAttrSet(resourceTestName, "user_id"),
+					resource.TestCheckResourceAttr(resourceTestName, "username", username),
 				),
 			},
-			mig.TestStepCheckEmptyPlan(configWithTeamAssignmentsSecond(orgID, teamName, usernames)),
+			mig.TestStepCheckEmptyPlan(configWithTeamAssignmentsSecond(orgID, teamName, username)),
 		},
 	})
 }
 
 // Step 1: Original configuration with usernames attribute
-func configTeamWithUsernamesFirst(orgID, teamName string, usernames []string) string {
+func configTeamWithUsernamesFirst(orgID, teamName, username string) string {
 	return fmt.Sprintf(`
 	locals {
 		usernames = [%[1]q]
@@ -59,11 +64,11 @@ func configTeamWithUsernamesFirst(orgID, teamName string, usernames []string) st
 		name      = %[3]q
 		usernames = local.usernames
 	}
-	`, usernames[0], orgID, teamName)
+	`, username, orgID, teamName)
 }
 
 // Step 2: Configuration with team assignments using import blocks
-func configWithTeamAssignmentsSecond(orgID, teamName string, usernames []string) string {
+func configWithTeamAssignmentsSecond(orgID, teamName, username string) string {
 	return fmt.Sprintf(`
 	locals {
 		usernames = [%[1]q]
@@ -75,7 +80,7 @@ func configWithTeamAssignmentsSecond(orgID, teamName string, usernames []string)
 	}
 
 	data "mongodbatlas_team" "test" {
-		org_id = %[5]q  
+		org_id = %[5]q
 		team_id = mongodbatlas_team.test.team_id
 	}
  
@@ -90,5 +95,5 @@ func configWithTeamAssignmentsSecond(orgID, teamName string, usernames []string)
 		id = "%[3]s/${mongodbatlas_team.test.team_id}/${data.mongodbatlas_team.test.users[0].id}"
 	}
 
-	`, usernames, orgID, orgID, teamName, orgID)
+	`, username, orgID, orgID, teamName, orgID)
 }
