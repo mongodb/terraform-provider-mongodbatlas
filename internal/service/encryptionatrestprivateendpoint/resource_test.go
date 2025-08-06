@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 	"time"
 
@@ -30,6 +31,33 @@ const (
 
 func TestAccEncryptionAtRestPrivateEndpoint_Azure_basic(t *testing.T) {
 	resource.Test(t, *basicTestCaseAzure(t))
+}
+
+func TestAccEncryptionAtRestPrivateEndpoint_createTimeoutWithDeleteOnCreate(t *testing.T) {
+	var (
+		projectID             = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID")
+		createTimeout         = "1s"
+		deleteOnCreateTimeout = true
+		awsKms                = &admin.AWSKMSConfiguration{
+			Enabled:                  conversion.Pointer(true),
+			RequirePrivateNetworking: conversion.Pointer(true),
+			AccessKeyID:              conversion.StringPtr(os.Getenv("AWS_ACCESS_KEY_ID")),
+			SecretAccessKey:          conversion.StringPtr(os.Getenv("AWS_SECRET_ACCESS_KEY")),
+			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
+			Region:                   conversion.StringPtr(os.Getenv("AWS_REGION")),
+		}
+		region = conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckEncryptionAtRestEnvAWS(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:      configAWSBasicWithTimeout(projectID, awsKms, region, acc.TimeoutConfig(&createTimeout, nil, nil, true), &deleteOnCreateTimeout),
+				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
+			},
+		},
+	})
 }
 
 func basicTestCaseAzure(tb testing.TB) *resource.TestCase {
@@ -316,7 +344,19 @@ func checkBasic(projectID, cloudProvider, region string, expectApproved bool) re
 }
 
 func configAWSBasic(projectID string, awsKms *admin.AWSKMSConfiguration, region string) string {
+	return configAWSBasicWithTimeout(projectID, awsKms, region, "", nil)
+}
+
+func configAWSBasicWithTimeout(projectID string, awsKms *admin.AWSKMSConfiguration, region, timeoutConfig string, deleteOnCreateTimeout *bool) string {
 	encryptionAtRestConfig := acc.ConfigAwsKms(projectID, awsKms, false, true, false)
+
+	deleteOnCreateTimeoutConfig := ""
+	if deleteOnCreateTimeout != nil {
+		deleteOnCreateTimeoutConfig = fmt.Sprintf(`
+			delete_on_create_timeout = %[1]t
+		`, *deleteOnCreateTimeout)
+	}
+
 	config := fmt.Sprintf(`
 		%[1]s
 
@@ -324,11 +364,13 @@ func configAWSBasic(projectID string, awsKms *admin.AWSKMSConfiguration, region 
 		    project_id = mongodbatlas_encryption_at_rest.test.project_id
 		    cloud_provider = "AWS"
 		    region_name = %[2]q
+		    %[3]s
+		    %[4]s
 		}
 
-		%[3]s
+		%[5]s
 
-	`, encryptionAtRestConfig, region, configDS())
+	`, encryptionAtRestConfig, region, deleteOnCreateTimeoutConfig, timeoutConfig, configDS())
 
 	return config
 }
