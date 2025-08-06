@@ -170,9 +170,6 @@ func GetCompleteS3Config(projectID, region string) string {
 	data "mongodbatlas_stream_privatelink_endpoint" "test" {
 		project_id = %[1]q
 		id         = mongodbatlas_stream_privatelink_endpoint.test.id
-		depends_on = [
-			mongodbatlas_stream_privatelink_endpoint.test
-		]
 	}
 
 	data "mongodbatlas_stream_privatelink_endpoints" "test" {

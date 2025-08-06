@@ -25,7 +25,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "stream_bucket_enc
 }
 
 # PrivateLink for S3
-resource "mongodbatlas_stream_privatelink_endpoint" "test" {
+resource "mongodbatlas_stream_privatelink_endpoint" "this" {
   project_id          = var.project_id
   provider_name       = "AWS"
   vendor              = "S3"
@@ -35,7 +35,7 @@ resource "mongodbatlas_stream_privatelink_endpoint" "test" {
 
 data "mongodbatlas_stream_privatelink_endpoint" "singular_datasource" {
   project_id = var.project_id
-  id         = mongodbatlas_stream_privatelink_endpoint.test.id
+  id         = mongodbatlas_stream_privatelink_endpoint.this.id
 }
 
 output "privatelink_endpoint_id" {

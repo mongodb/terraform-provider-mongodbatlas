@@ -97,7 +97,8 @@ func TestAccStreamPrivatelinkEndpointMsk_fields(t *testing.T) {
 }
 
 func TestAccStreamPrivatelinkEndpointS3_basic(t *testing.T) {
-	acc.SkipTestForCI(t) // needs an AWS S3 bucket
+	acc.SkipTestForCI(t) // skip for CI because provisioning the streams private networking infrastructure is slow and expensive
+
 	tc := basicS3TestCase(t)
 	// Tests include testing of plural data source and so cannot be run in parallel
 	resource.Test(t, *tc)
