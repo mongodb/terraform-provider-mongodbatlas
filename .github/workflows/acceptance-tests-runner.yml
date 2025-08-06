@@ -118,6 +118,9 @@ on:
       mongodb_atlas_asp_project_aws_role_arn:
         type: string
         required: true
+      mongodb_atlas_last_1x_version:
+        type: string
+        required: true
     secrets: # all secrets are passed explicitly in this workflow
       mongodb_atlas_public_key:
         required: true
@@ -427,7 +430,7 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_LAST_VERSION:  "1.39.0" # last version that supports SDKv2 mongodbatlas_advanced_cluster
+          MONGODB_ATLAS_LAST_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
           ACCTEST_REGEX_RUN: '^TestMig'
           ACCTEST_PACKAGES: |
             ./internal/service/advancedcluster
