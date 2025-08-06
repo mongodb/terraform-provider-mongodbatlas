@@ -154,7 +154,7 @@ func writeReplicationSpec(cluster *hclwrite.Body, specs []admin.ReplicationSpec2
 				autoScaling := rc.GetAutoScaling()
 				asDisk := autoScaling.GetDiskGB()
 				if autoScaling.Compute != nil {
-					return fmt.Errorf("auto_scaling.compute is not supportd yet %v", autoScaling)
+					return fmt.Errorf("auto_scaling.compute is not supported yet %v", autoScaling)
 				}
 				rcMap["auto_scaling"] = cty.ObjectVal(map[string]cty.Value{
 					"disk_gb_enabled": cty.BoolVal(asDisk.GetEnabled()),
