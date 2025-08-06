@@ -242,12 +242,11 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 	}
 
 	cfg := config.Config{
-		PublicKey:                       data.PublicKey.ValueString(),
-		PrivateKey:                      data.PrivateKey.ValueString(),
-		BaseURL:                         data.BaseURL.ValueString(),
-		RealmBaseURL:                    data.RealmBaseURL.ValueString(),
-		TerraformVersion:                req.TerraformVersion,
-		PreviewV2AdvancedClusterEnabled: config.PreviewProviderV2AdvancedCluster(),
+		PublicKey:        data.PublicKey.ValueString(),
+		PrivateKey:       data.PrivateKey.ValueString(),
+		BaseURL:          data.BaseURL.ValueString(),
+		RealmBaseURL:     data.RealmBaseURL.ValueString(),
+		TerraformVersion: req.TerraformVersion,
 	}
 
 	var assumeRoles []tfAssumeRoleModel
@@ -465,9 +464,8 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		clouduserteamassignment.DataSource,
 		apikeyprojectassignment.DataSource,
 		apikeyprojectassignment.PluralDataSource,
-	}
-	if config.PreviewProviderV2AdvancedCluster() {
-		dataSources = append(dataSources, advancedclustertpf.DataSource, advancedclustertpf.PluralDataSource)
+		advancedclustertpf.DataSource,
+		advancedclustertpf.PluralDataSource,
 	}
 	return dataSources
 }
@@ -492,9 +490,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		clouduserorgassignment.Resource,
 		apikeyprojectassignment.Resource,
 		clouduserteamassignment.Resource,
-	}
-	if config.PreviewProviderV2AdvancedCluster() {
-		resources = append(resources, advancedclustertpf.Resource)
+		advancedclustertpf.Resource,
 	}
 	return resources
 }

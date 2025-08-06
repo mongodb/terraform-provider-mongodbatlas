@@ -27,10 +27,9 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
         instance_size = "M10"
         node_count    = 3
       }
-      priority        = 7
-      provider_name   = "AWS"
-      read_only_specs = {}
-      region_name     = "US_WEST_2"
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "US_WEST_2"
     }]
     zone_name = "Zone 1"
   }]
@@ -61,10 +60,9 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
         instance_size   = "M30"
         node_count      = 30
       }
-      priority        = 7
-      provider_name   = "AZURE"
-      read_only_specs = {}
-      region_name     = "MY_REGION_1"
+      priority      = 7
+      provider_name = "AZURE"
+      region_name   = "MY_REGION_1"
     }]
     zone_name = "Zone X"
   }]
@@ -89,10 +87,9 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
         instance_size = "M10"
         node_count    = 3
       }
-      priority        = 7
-      provider_name   = "AWS"
-      read_only_specs = {}
-      region_name     = "US_WEST_2"
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "US_WEST_2"
     }]
     zone_name = "Zone 1"
   }]
@@ -117,10 +114,9 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
         instance_size = "M10"
         node_count    = 3
       }
-      priority        = 7
-      provider_name   = "AWS"
-      read_only_specs = {}
-      region_name     = "US_WEST_2"
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "US_WEST_2"
     }]
     zone_name = "Zone 1"
   }]
@@ -145,10 +141,9 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
         instance_size = "M10"
         node_count    = 3
       }
-      priority        = 7
-      provider_name   = "AWS"
-      read_only_specs = {}
-      region_name     = "US_WEST_1"
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "US_WEST_1"
     }]
     zone_name = "Zone 1"
     }, {
@@ -160,10 +155,9 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
         instance_size = "M10"
         node_count    = 3
       }
-      priority        = 7
-      provider_name   = "AWS"
-      read_only_specs = {}
-      region_name     = "EU_WEST_2"
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "EU_WEST_2"
     }]
     zone_name = "Zone 2"
   }]
@@ -187,10 +181,9 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
         instance_size = "M10"
         node_count    = 3
       }
-      priority        = 7
-      provider_name   = "AWS"
-      read_only_specs = {}
-      region_name     = "US_WEST_1"
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "US_WEST_1"
       }, {
       auto_scaling = {
         disk_gb_enabled = false
@@ -199,10 +192,9 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
         instance_size = "M10"
         node_count    = 3
       }
-      priority        = 7
-      provider_name   = "AWS"
-      read_only_specs = {}
-      region_name     = "EU_WEST_1"
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "EU_WEST_1"
     }]
     zone_name = "Zone 1"
   }]
@@ -227,10 +219,9 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
         instance_size = "M10"
         node_count    = 3
       }
-      priority        = 7
-      provider_name   = "AWS"
-      read_only_specs = {}
-      region_name     = "US_WEST_2"
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "US_WEST_2"
     }]
     zone_name = "Zone 1"
   }]
