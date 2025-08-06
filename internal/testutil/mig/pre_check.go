@@ -34,7 +34,6 @@ func PreCheckOldPreviewEnv(tb testing.TB) func() {
 	return func() {
 		if IsProviderVersionLowerThan("2.0.0") && os.Getenv("MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER") == "" {
 			tb.Fatal("`MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER` must be set for migration testing for lower provider versions")
-
 		}
 	}
 }
