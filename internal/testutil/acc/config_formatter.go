@@ -68,15 +68,6 @@ func FormatToHCLLifecycleIgnore(keys ...string) string {
 	return strings.Join(lines, "\n")
 }
 
-func sortStringMapKeysAny(m map[string]any) []string {
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	return keys
-}
-
 var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
 var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
 
@@ -93,29 +84,11 @@ var (
 	}
 )
 
-func addPrimitiveAttributes(b *hclwrite.Body, values map[string]any) {
-	for _, keyCamel := range sortStringMapKeysAny(values) {
-		key := ToSnakeCase(keyCamel)
-		value := values[keyCamel]
-		switch value := value.(type) {
-		case bool:
-			b.SetAttributeValue(key, cty.BoolVal(value))
-		case string:
-			if value != "" {
-				b.SetAttributeValue(key, cty.StringVal(value))
-			}
-		case int:
-			b.SetAttributeValue(key, cty.NumberIntVal(int64(value)))
-		// int gets parsed as float64 for json
-		case float64:
-			b.SetAttributeValue(key, cty.NumberIntVal(int64(value)))
-		default:
-			continue
-		}
-	}
-}
-
-// Sometimes it is easier to set a value using hcl/tf syntax instead of creating complex values like list hcl.Traversal.
+// setAttributeHcl inserts a raw HCL assignment into the body by parsing a snippet like:
+//
+//	project_id = mongodbatlas_project.test.id or depends_on = [mongodbatlas_project.test.id] etc
+//
+// and copying its tokens directly. Used for expressions or references that can’t emit simple Go literals.
 func setAttributeHcl(body *hclwrite.Body, tfExpression string) error {
 	src := []byte(tfExpression)
 
@@ -156,4 +129,59 @@ func setAttributeHcl(body *hclwrite.Body, tfExpression string) error {
 	}
 	body.SetAttributeRaw(attributeName, valueTokens)
 	return nil
+}
+
+// setAttributes iterates over attrs, snake-cases each key, converts the value
+// with toCtyValue, and calls body.SetAttributeValue.
+func setAttributes(body *hclwrite.Body, attrs map[string]any) {
+	keys := make([]string, 0, len(attrs))
+	for k := range attrs {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, camel := range keys {
+		key := ToSnakeCase(camel)
+		if cv, ok := toCtyValue(attrs[camel]); ok {
+			body.SetAttributeValue(key, cv)
+		}
+	}
+}
+
+// toCtyValue handles:
+//   - bool, string, int, float64
+//   - map[string]any (recursively)
+func toCtyValue(v any) (cty.Value, bool) {
+	switch v := v.(type) {
+	case bool:
+		return cty.BoolVal(v), true
+	case string:
+		if v == "" {
+			return cty.NullVal(cty.String), false
+		}
+		return cty.StringVal(v), true
+	case int:
+		return cty.NumberIntVal(int64(v)), true
+	case float64:
+		return cty.NumberIntVal(int64(v)), true
+	case map[string]any:
+		if len(v) == 0 {
+			return cty.NullVal(cty.EmptyObject), false
+		}
+		obj := make(map[string]cty.Value, len(v))
+		// sort keys for deterministic output
+		keys := make([]string, 0, len(v))
+		for k := range v {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, k := range keys {
+			if cv, ok := toCtyValue(v[k]); ok {
+				obj[ToSnakeCase(k)] = cv
+			}
+		}
+		return cty.ObjectVal(obj), true
+	default:
+		return cty.NilVal, false
+	}
 }
