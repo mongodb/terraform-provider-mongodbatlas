@@ -85,7 +85,6 @@ func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceNa
 		if err := writeAdvancedConfiguration(cluster, req.AdvancedConfiguration); err != nil {
 			return "", "", "", err
 		}
-
 	}
 	err = writeReplicationSpec(cluster, specs)
 	if err != nil {

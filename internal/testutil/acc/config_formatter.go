@@ -1,7 +1,6 @@
 package acc
 
 import (
-	"encoding/json"
 	"fmt"
 	"regexp"
 	"sort"
@@ -93,21 +92,6 @@ var (
 		ClusterAdvConfigOplogMinRetentionHours: true,
 	}
 )
-
-// addPrimitiveAttributesViaJSON  adds "primitive" bool/string/int/float attributes of a struct.
-func addPrimitiveAttributesViaJSON(b *hclwrite.Body, obj any) error {
-	var objMap map[string]any
-	inrec, err := json.Marshal(obj)
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal(inrec, &objMap)
-	if err != nil {
-		return err
-	}
-	addPrimitiveAttributes(b, objMap)
-	return nil
-}
 
 func addPrimitiveAttributes(b *hclwrite.Body, values map[string]any) {
 	for _, keyCamel := range sortStringMapKeysAny(values) {
