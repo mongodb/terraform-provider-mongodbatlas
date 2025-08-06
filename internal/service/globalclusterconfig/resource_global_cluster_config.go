@@ -14,21 +14,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 const (
-	errorGlobalClusterCreate           = "error creating MongoDB Global Cluster Configuration: %s"
-	errorGlobalClusterRead             = "error reading MongoDB Global Cluster Configuration (%s): %s"
-	errorGlobalClusterDelete           = "error deleting MongoDB Global Cluster Configuration (%s): %s"
-	errorGlobalClusterUpdate           = "error updating MongoDB Global Cluster Configuration (%s): %s"
-	deprecationOldShardingSchemaAction = "To learn more, see our examples, documentation, and 1.18.0 migration guide at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide"
+	errorGlobalClusterCreate = "error creating MongoDB Global Cluster Configuration: %s"
+	errorGlobalClusterRead   = "error reading MongoDB Global Cluster Configuration (%s): %s"
+	errorGlobalClusterDelete = "error deleting MongoDB Global Cluster Configuration (%s): %s"
+	errorGlobalClusterUpdate = "error updating MongoDB Global Cluster Configuration (%s): %s"
 )
-
-var deprecationMsgOldSchema = fmt.Sprintf("%s %s", fmt.Sprintf(constant.DeprecationParamWithReplacement, "`custom_zone_mapping_zone_id`"), deprecationOldShardingSchemaAction)
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
@@ -203,12 +199,10 @@ func readGlobalClusterConfig(ctx context.Context, meta any, projectID, clusterNa
 		return false, fmt.Errorf(errorGlobalClusterRead, clusterName, err)
 	}
 
-	if err != nil {
-		if validate.StatusNotFound(httpResp) {
-			return true, nil
-		}
-		return false, fmt.Errorf(errorGlobalClusterRead, clusterName, err)
+	if validate.StatusNotFound(httpResp) {
+		return true, nil
 	}
+	return false, fmt.Errorf(errorGlobalClusterRead, clusterName, err)
 	return false, nil
 }
 
