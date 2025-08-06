@@ -16,6 +16,7 @@ import (
 const lastVersionRepSpecID = "1.39.0"
 
 func TestMigBackupRSCloudBackupSchedule_basic(t *testing.T) {
+	mig.SkipIfVersionBelow(t, "1.29.0") // version when advanced cluster TPF was introduced
 	var (
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true})
 		useYearly   = mig.IsProviderVersionAtLeast("1.16.0") // attribute introduced in this version
@@ -27,7 +28,7 @@ func TestMigBackupRSCloudBackupSchedule_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     mig.PreCheckBasicSleep(t),
+		PreCheck:     func() { mig.PreCheckBasicSleep(t); mig.PreCheckOldPreviewEnv(t) },
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -51,7 +52,7 @@ func TestMigBackupRSCloudBackupSchedule_basic(t *testing.T) {
 }
 
 func TestMigBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
-	// mig.SkipIfVersionBelow(t, "1.16.0") // yearly policy item introduced in this version
+	mig.SkipIfVersionBelow(t, "1.29.0") // version when advanced cluster TPF was introduced
 	var (
 		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{
 			CloudBackup: true,
@@ -114,7 +115,7 @@ func TestMigBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 	checksUpdateWithZoneID := acc.AddAttrSetChecks(resourceName, checksCreate, "copy_settings.0.zone_id")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     mig.PreCheckBasicSleep(t),
+		PreCheck:     func() { mig.PreCheckBasicSleep(t); mig.PreCheckOldPreviewEnv(t) },
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{
