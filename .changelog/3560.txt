@@ -1,0 +1,7 @@
+```release-note:breaking-change
+resource/mongodbatlas_cloud_backup_schedule: Removes deprecated `copy_settings.#.replication_spec_id` attribute in favor of `zone_id`
+```
+
+```release-note:breaking-change
+data-source/mongodbatlas_cloud_backup_schedule: Removes deprecated `copy_settings.#.replication_spec_id` and `use_zone_id_for_copy_settings` attribute in favor of `zone_id`
+```
