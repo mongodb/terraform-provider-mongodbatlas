@@ -6,7 +6,8 @@ import (
 	"net/http"
 	"regexp"
 
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	// "go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -34,7 +35,6 @@ type rs struct {
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	// TODO: Schema and model must be defined in resource_schema.go. Details on scaffolding this file found in contributing/development-best-practices.md under "Scaffolding Schema and Model Definitions"
 	resp.Schema = resourceSchema(ctx)
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
@@ -46,7 +46,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 	projectID := plan.ProjectId.ValueString()
 	projectUserRequest, diags := NewProjectUserReq(ctx, &plan)
 	if diags.HasError() {
@@ -75,7 +75,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 	projectID := state.ProjectId.ValueString()
 	var userResp *admin.GroupUserResponse
 	var httpResp *http.Response
@@ -126,7 +126,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 	projectID := plan.ProjectId.ValueString()
 	userID := plan.UserId.ValueString()
 	username := plan.Username.ValueString()
@@ -185,7 +185,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		return
 	}
 
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 	projectID := state.ProjectId.ValueString()
 	userID := state.UserId.ValueString()
 	username := state.Username.ValueString()

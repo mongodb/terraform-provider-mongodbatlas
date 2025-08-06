@@ -6,7 +6,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+
+	// "go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
 )
 
 func NewTFModel(ctx context.Context, projectID string, apiResp *admin.GroupUserResponse) (*TFModel, diag.Diagnostics) {
@@ -79,23 +81,21 @@ func NewAtlasUpdateReq(ctx context.Context, plan, state *TFModel) (addRequests, 
 
 func diffRoles(oldRoles, newRoles []string) (toAdd, toRemove []string) {
 	oldRolesMap := make(map[string]bool, len(oldRoles))
-	newRolesMap := make(map[string]bool, len(newRoles))
 
 	for _, role := range oldRoles {
 		oldRolesMap[role] = true
 	}
 
 	for _, role := range newRoles {
-		newRolesMap[role] = true
-		if !oldRolesMap[role] {
+		if oldRolesMap[role] {
+			delete(oldRolesMap, role)
+		} else {
 			toAdd = append(toAdd, role)
 		}
 	}
 
-	for _, role := range oldRoles {
-		if !newRolesMap[role] {
-			toRemove = append(toRemove, role)
-		}
+	for role := range oldRolesMap {
+		toRemove = append(toRemove, role)
 	}
 
 	return toAdd, toRemove
