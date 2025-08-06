@@ -1,0 +1,3 @@
+```release-note:new-datasource
+data-source/mongodbatlas_team_project_assignment 
+```
