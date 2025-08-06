@@ -70,12 +70,22 @@ func (r *encryptionAtRestPrivateEndpointRS) Create(ctx context.Context, req reso
 	}
 
 	finalResp, err := waitStateTransition(ctx, projectID, cloudProvider, createResp.GetId(), connV2.EncryptionAtRestUsingCustomerKeyManagementApi, createTimeout)
+	err = cleanup.HandleCreateTimeout(cleanup.ResolveDeleteOnCreateTimeout(earPrivateEndpointPlan.DeleteOnCreateTimeout), err, func(ctxCleanup context.Context) error {
+		cleanResp, cleanErr := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.RequestEncryptionAtRestPrivateEndpointDeletion(ctxCleanup, projectID, cloudProvider, createResp.GetId()).Execute()
+		if validate.StatusNotFound(cleanResp) {
+			return nil
+		}
+		return cleanErr
+	})
+
 	if err != nil {
 		resp.Diagnostics.AddError("error when waiting for status transition in creation", err.Error())
 		return
 	}
 
 	privateEndpointModel := NewTFEarPrivateEndpoint(*finalResp, projectID)
+	privateEndpointModel.Timeouts = earPrivateEndpointPlan.Timeouts
+	privateEndpointModel.DeleteOnCreateTimeout = earPrivateEndpointPlan.DeleteOnCreateTimeout
 	resp.Diagnostics.Append(resp.State.Set(ctx, privateEndpointModel)...)
 
 	diags := CheckErrorMessageAndStatus(finalResp)
@@ -104,7 +114,10 @@ func (r *encryptionAtRestPrivateEndpointRS) Read(ctx context.Context, req resour
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFEarPrivateEndpoint(*endpointModel, projectID))...)
+	privateEndpointModel := NewTFEarPrivateEndpoint(*endpointModel, projectID)
+	privateEndpointModel.Timeouts = earPrivateEndpointState.Timeouts
+	privateEndpointModel.DeleteOnCreateTimeout = earPrivateEndpointState.DeleteOnCreateTimeout
+	resp.Diagnostics.Append(resp.State.Set(ctx, privateEndpointModel)...)
 
 	diags := CheckErrorMessageAndStatus(endpointModel)
 	resp.Diagnostics.Append(diags...)
