@@ -3,6 +3,7 @@ package encryptionatrestprivateendpoint
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -38,16 +39,21 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "State of the Encryption At Rest private endpoint.",
 			},
+			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
+				Create: true,
+				Delete: true,
+			}),
 		},
 	}
 }
 
 type TFEarPrivateEndpointModel struct {
-	CloudProvider                 types.String `tfsdk:"cloud_provider"`
-	ErrorMessage                  types.String `tfsdk:"error_message"`
-	ProjectID                     types.String `tfsdk:"project_id"`
-	ID                            types.String `tfsdk:"id"`
-	PrivateEndpointConnectionName types.String `tfsdk:"private_endpoint_connection_name"`
-	RegionName                    types.String `tfsdk:"region_name"`
-	Status                        types.String `tfsdk:"status"`
+	CloudProvider                 types.String   `tfsdk:"cloud_provider"`
+	ErrorMessage                  types.String   `tfsdk:"error_message"`
+	ProjectID                     types.String   `tfsdk:"project_id"`
+	ID                            types.String   `tfsdk:"id"`
+	PrivateEndpointConnectionName types.String   `tfsdk:"private_endpoint_connection_name"`
+	RegionName                    types.String   `tfsdk:"region_name"`
+	Status                        types.String   `tfsdk:"status"`
+	Timeouts                      timeouts.Value `tfsdk:"timeouts"`
 }

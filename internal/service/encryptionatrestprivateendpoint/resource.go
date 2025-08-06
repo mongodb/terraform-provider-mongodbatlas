@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
@@ -63,7 +64,12 @@ func (r *encryptionAtRestPrivateEndpointRS) Create(ctx context.Context, req reso
 		return
 	}
 
-	finalResp, err := waitStateTransition(ctx, projectID, cloudProvider, createResp.GetId(), connV2.EncryptionAtRestUsingCustomerKeyManagementApi)
+	createTimeout := cleanup.ResolveTimeout(ctx, &earPrivateEndpointPlan.Timeouts, cleanup.OperationCreate, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	finalResp, err := waitStateTransition(ctx, projectID, cloudProvider, createResp.GetId(), connV2.EncryptionAtRestUsingCustomerKeyManagementApi, createTimeout)
 	if err != nil {
 		resp.Diagnostics.AddError("error when waiting for status transition in creation", err.Error())
 		return
@@ -124,7 +130,12 @@ func (r *encryptionAtRestPrivateEndpointRS) Delete(ctx context.Context, req reso
 		return
 	}
 
-	model, err := WaitDeleteStateTransition(ctx, projectID, cloudProvider, endpointID, connV2.EncryptionAtRestUsingCustomerKeyManagementApi)
+	deleteTimeout := cleanup.ResolveTimeout(ctx, &earPrivateEndpointState.Timeouts, cleanup.OperationDelete, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	model, err := WaitDeleteStateTransition(ctx, projectID, cloudProvider, endpointID, connV2.EncryptionAtRestUsingCustomerKeyManagementApi, deleteTimeout)
 	if err != nil {
 		resp.Diagnostics.AddError("error when waiting for status transition in delete", err.Error())
 		return
