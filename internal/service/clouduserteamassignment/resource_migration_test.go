@@ -66,7 +66,7 @@ func configTeamWithUsernamesFirst(orgID, teamName string, usernames []string) st
 func configWithTeamAssignmentsSecond(orgID, teamName string, usernames []string) string {
 	return fmt.Sprintf(`
 	locals {
-		usernames = %[1]q
+		usernames = [%[1]q]
 	}
 
 	resource "mongodbatlas_team" "test" {
