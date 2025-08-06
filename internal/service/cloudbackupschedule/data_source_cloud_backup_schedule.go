@@ -48,11 +48,6 @@ func DataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						// "replication_spec_id": {
-						// 	Type:       schema.TypeString,
-						// 	Computed:   true,
-						// 	Deprecated: DeprecationMsgOldSchema,
-						// },
 						"zone_id": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -253,42 +248,22 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
-	// useZoneIDForCopySettings := false
 
 	var backupSchedule *admin.DiskBackupSnapshotSchedule20240805
-	// var backupScheduleOldSDK *admin20240530.DiskBackupSnapshotSchedule
 	var copySettings []map[string]any
 	var err error
 
-	// if v, ok := d.GetOk("use_zone_id_for_copy_settings"); ok {
-	// 	useZoneIDForCopySettings = v.(bool)
-	// }
-
-	// if !useZoneIDForCopySettings {
-	// 	backupScheduleOldSDK, _, err = connV220240530.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
-	// 	if err != nil {
-	// 		if apiError, ok := admin20240530.AsError(err); ok && apiError.GetErrorCode() == AsymmetricShardsUnsupportedAPIError {
-	// 			return diag.Errorf("%s : %s : %s", errorSnapshotBackupScheduleRead, ErrorOperationNotPermitted, AsymmetricShardsUnsupportedActionDS)
-	// 		}
-	// 		return diag.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
-	// 	}
-
-	// 	copySettings = flattenCopySettingsOldSDK(backupScheduleOldSDK.GetCopySettings())
-	// 	backupSchedule = convertBackupScheduleToLatestExcludeCopySettings(backupScheduleOldSDK)
-	// } else {
 	backupSchedule, _, err = connV2.CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
 	if err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
 	}
 	copySettings = FlattenCopySettings(backupSchedule.GetCopySettings())
-	// }
 
-	diags := setSchemaFieldsExceptCopySettings(d, backupSchedule)
+	diags := setSchemaFields(d, backupSchedule)
 	if diags.HasError() {
 		return diags
 	}
