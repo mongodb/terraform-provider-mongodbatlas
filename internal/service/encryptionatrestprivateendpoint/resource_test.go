@@ -38,13 +38,12 @@ func TestAccEncryptionAtRestPrivateEndpoint_createTimeoutWithDeleteOnCreate(t *t
 		projectID             = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID")
 		createTimeout         = "1s"
 		deleteOnCreateTimeout = true
-		awsKms                = &admin.AWSKMSConfiguration{
+		awsKms                = admin.AWSKMSConfiguration{
 			Enabled:                  conversion.Pointer(true),
-			RequirePrivateNetworking: conversion.Pointer(true),
-			AccessKeyID:              conversion.StringPtr(os.Getenv("AWS_ACCESS_KEY_ID")),
-			SecretAccessKey:          conversion.StringPtr(os.Getenv("AWS_SECRET_ACCESS_KEY")),
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			Region:                   conversion.StringPtr(os.Getenv("AWS_REGION")),
+			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
+			RoleId:                   conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
+			RequirePrivateNetworking: conversion.Pointer(false),
 		}
 		region = conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))
 	)
@@ -53,7 +52,7 @@ func TestAccEncryptionAtRestPrivateEndpoint_createTimeoutWithDeleteOnCreate(t *t
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      configAWSBasicWithTimeout(projectID, awsKms, region, acc.TimeoutConfig(&createTimeout, nil, nil, true), &deleteOnCreateTimeout),
+				Config:      configAWSBasicWithTimeout(projectID, &awsKms, region, acc.TimeoutConfig(&createTimeout, nil, nil, true), &deleteOnCreateTimeout),
 				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
 			},
 		},
