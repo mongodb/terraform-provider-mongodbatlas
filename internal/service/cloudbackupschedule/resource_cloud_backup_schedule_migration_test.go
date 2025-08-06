@@ -1,6 +1,7 @@
 package cloudbackupschedule_test
 
 import (
+	"os"
 	"testing"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
@@ -12,8 +13,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
-
-const lastVersionRepSpecID = "1.39.0"
 
 func TestMigBackupRSCloudBackupSchedule_basic(t *testing.T) {
 	mig.SkipIfVersionBelow(t, "1.29.0") // version when advanced cluster TPF was introduced
@@ -54,7 +53,8 @@ func TestMigBackupRSCloudBackupSchedule_basic(t *testing.T) {
 func TestMigBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 	mig.SkipIfVersionBelow(t, "1.29.0") // version when advanced cluster TPF was introduced
 	var (
-		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{
+		lastVersionRepSpecID = os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
+		clusterInfo          = acc.GetClusterInfo(t, &acc.ClusterRequest{
 			CloudBackup: true,
 			ReplicationSpecs: []acc.ReplicationSpecRequest{
 				{Region: "US_EAST_2"},

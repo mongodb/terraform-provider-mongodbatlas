@@ -2,6 +2,7 @@ package mig
 
 import (
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -32,8 +33,14 @@ func PreCheck(tb testing.TB) {
 func PreCheckOldPreviewEnv(tb testing.TB) func() {
 	tb.Helper()
 	return func() {
-		if IsProviderVersionLowerThan("2.0.0") && os.Getenv("MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER") == "" {
-			tb.Fatal("`MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER` must be set for migration testing for lower provider versions")
+		if IsProviderVersionLowerThan("2.0.0") {
+			envValue := os.Getenv("MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER")
+			if envValue == "" {
+				tb.Fatal("`MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER` must be set for migration testing for lower provider versions")
+			}
+			if _, err := strconv.ParseBool(envValue); err != nil {
+				tb.Fatalf("`MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER` must be a valid boolean value, got: %s", envValue)
+			}
 		}
 	}
 }
