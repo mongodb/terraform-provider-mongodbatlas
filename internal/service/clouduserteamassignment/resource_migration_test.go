@@ -55,9 +55,9 @@ func configTeamWithUsernamesFirst(orgID, teamName string, usernames []string) st
 	}
 
 	resource "mongodbatlas_team" "test" {
-	org_id    = %[2]q
-	name      = %[3]q
-	usernames = local.usernames
+		org_id    = %[2]q
+		name      = %[3]q
+		usernames = local.usernames
 	}
 	`, usernames[0], orgID, teamName)
 }
