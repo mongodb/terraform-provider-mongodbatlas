@@ -2073,7 +2073,6 @@ func configReplicaSetMultiCloud(t *testing.T, orgID, projectName, name string, u
 		}
 	`, name)
 	} else {
-
 		advClusterConfig = fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
   project_id             = mongodbatlas_project.cluster_project.id
@@ -2187,7 +2186,6 @@ func configShardedOldSchemaMultiCloud(t *testing.T, projectID, name string, numS
 			}
 		}
 	`, projectID, name, numShards, analyticsSize, rootConfig)
-
 	} else {
 		advClusterConfig = fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
@@ -2622,7 +2620,6 @@ func configGeoShardedOldSchema(t *testing.T, projectID, name string, numShardsFi
 		}
 
 	`, projectID, name, numShardsFirstZone, numShardsSecondZone, selfManagedSharding)
-
 	} else {
 		advClusterConfig = fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
@@ -2771,7 +2768,7 @@ func configShardedNewSchema(t *testing.T, orgID, projectName, name string, diskS
 		`, *lastDiskIOPS)
 	}
 
-	dataSourcesConfig := fmt.Sprintf(`
+	dataSourcesConfig := `
 	data "mongodbatlas_advanced_cluster" "test" {
 		project_id = mongodbatlas_advanced_cluster.test.project_id
 		name 	     = mongodbatlas_advanced_cluster.test.name
@@ -2787,7 +2784,7 @@ func configShardedNewSchema(t *testing.T, orgID, projectName, name string, diskS
 		project_id = mongodbatlas_advanced_cluster.test.project_id
 		use_replication_spec_per_shard = true
 	}
-	`)
+	`
 
 	if isOptionalTrue(useSDKv2...) {
 		if includeMiddleSpec {
