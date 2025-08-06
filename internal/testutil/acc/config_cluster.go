@@ -1,7 +1,6 @@
 package acc
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -36,10 +35,12 @@ func ClusterDatasourceHcl(req *ClusterRequest) (configStr, clusterName, resource
 	} else {
 		clusterRootAttributes["project_id"] = projectID
 	}
-	addPrimitiveAttributes(cluster, clusterRootAttributes)
+	setAttributes(cluster, clusterRootAttributes)
 	return "\n" + string(f.Bytes()), clusterName, clusterResourceName, err
 }
 
+// ClusterResourceHcl generates Terraform HCL configuration for MongoDB Atlas advanced clusters.
+// It converts a ClusterRequest into valid Terraform HCL string
 func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceName string, err error) {
 	if req == nil || req.ProjectID == "" {
 		return "", "", "", errors.New("must specify a ClusterRequest with at least ProjectID set")
@@ -79,13 +80,19 @@ func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceNa
 	if req.RetainBackupsEnabled {
 		clusterRootAttributes["retain_backups_enabled"] = req.RetainBackupsEnabled
 	}
-	addPrimitiveAttributes(cluster, clusterRootAttributes)
-	cluster.AppendNewline()
-	if len(req.AdvancedConfiguration) > 0 {
-		if err := writeAdvancedConfiguration(cluster, req.AdvancedConfiguration); err != nil {
-			return "", "", "", err
-		}
+	setAttributes(cluster, clusterRootAttributes)
+
+	if err := validateAdvancedConfig(req.AdvancedConfiguration); err != nil {
+		return "", "", "", err
 	}
+	if len(req.AdvancedConfiguration) > 0 {
+		cluster.AppendNewline()
+		setAttributes(cluster, map[string]any{
+			"advanced_configuration": req.AdvancedConfiguration,
+		})
+	}
+
+	cluster.AppendNewline()
 	err = writeReplicationSpec(cluster, specs)
 	if err != nil {
 		return "", "", "", fmt.Errorf("error writing hcl for replication specs: %w", err)
@@ -113,89 +120,15 @@ func ClusterResourceHcl(req *ClusterRequest) (configStr, clusterName, resourceNa
 	return "\n" + string(f.Bytes()), clusterName, clusterResourceName, err
 }
 
-func recursiveJSONToCty(raw any) (cty.Value, error) {
-	switch v := raw.(type) {
-	case map[string]any:
-		obj := make(map[string]cty.Value, len(v))
-		for key, val := range v {
-			snake := ToSnakeCase(key)
-			conv, err := recursiveJSONToCty(val)
-			if err != nil {
-				return cty.NilVal, err
-			}
-			obj[snake] = conv
-		}
-		return cty.ObjectVal(obj), nil
-
-	case []any:
-		list := make([]cty.Value, 0, len(v))
-		for _, elem := range v {
-			conv, err := recursiveJSONToCty(elem)
-			if err != nil {
-				return cty.NilVal, err
-			}
-			list = append(list, conv)
-		}
-		return cty.ListVal(list), nil
-
-	case bool:
-		return cty.BoolVal(v), nil
-	case string:
-		return cty.StringVal(v), nil
-	case float64:
-		if float64(int64(v)) == v {
-			return cty.NumberIntVal(int64(v)), nil
-		}
-		return cty.NumberFloatVal(v), nil
-
-	case nil:
-		return cty.NullVal(cty.DynamicPseudoType), nil
-
-	default:
-		return cty.NilVal, fmt.Errorf("unsupported JSON value type %T", v)
-	}
-}
-
-func structToCtyObject(obj any) (map[string]cty.Value, error) {
-	data, err := json.Marshal(obj)
-	if err != nil {
-		return nil, err
-	}
-
-	var raw any
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return nil, err
-	}
-
-	top, ok := raw.(map[string]any)
-	if !ok {
-		return nil, fmt.Errorf("expected JSON object, got %T", raw)
-	}
-
-	result := make(map[string]cty.Value, len(top))
-	for key, val := range top {
-		snake := ToSnakeCase(key)
-		conv, err := recursiveJSONToCty(val)
-		if err != nil {
-			return nil, err
-		}
-		if conv.IsNull() {
-			continue
-		}
-		result[snake] = conv
-	}
-	return result, nil
-}
-
 func writeReplicationSpec(cluster *hclwrite.Body, specs []admin.ReplicationSpec20240805) error {
 	var allSpecs []cty.Value
 
 	for _, spec := range specs {
-		specMap, err := structToCtyObject(spec)
-		if err != nil {
-			return err
+		specMap := make(map[string]cty.Value)
+
+		if spec.ZoneName != nil {
+			specMap["zone_name"] = cty.StringVal(*spec.ZoneName)
 		}
-		delete(specMap, "region_configs") // Handle region_configs separately below
 
 		var rcList []cty.Value
 		for _, rc := range spec.GetRegionConfigs() {
@@ -203,12 +136,15 @@ func writeReplicationSpec(cluster *hclwrite.Body, specs []admin.ReplicationSpec2
 				rc.SetPriority(7)
 			}
 
-			rcMap, err := structToCtyObject(rc)
-			if err != nil {
-				return err
+			rcMap := map[string]cty.Value{
+				"priority":      cty.NumberIntVal(int64(*rc.Priority)),
+				"provider_name": cty.StringVal(*rc.ProviderName),
+				"region_name":   cty.StringVal(*rc.RegionName),
 			}
 
-			delete(rcMap, "auto_scaling")
+			if rc.BackingProviderName != nil {
+				rcMap["backing_provider_name"] = cty.StringVal(*rc.BackingProviderName)
+			}
 
 			if rc.AutoScaling == nil {
 				rcMap["auto_scaling"] = cty.ObjectVal(map[string]cty.Value{
@@ -218,7 +154,7 @@ func writeReplicationSpec(cluster *hclwrite.Body, specs []admin.ReplicationSpec2
 				autoScaling := rc.GetAutoScaling()
 				asDisk := autoScaling.GetDiskGB()
 				if autoScaling.Compute != nil {
-					return fmt.Errorf("auto_scaling.compute is not supportd yet %v", autoScaling)
+					return fmt.Errorf("auto_scaling.compute is not supported yet %v", autoScaling)
 				}
 				rcMap["auto_scaling"] = cty.ObjectVal(map[string]cty.Value{
 					"disk_gb_enabled": cty.BoolVal(asDisk.GetEnabled()),
@@ -226,57 +162,56 @@ func writeReplicationSpec(cluster *hclwrite.Body, specs []admin.ReplicationSpec2
 			}
 
 			nodeSpec := rc.GetElectableSpecs()
-			esMap, err := structToCtyObject(nodeSpec)
-			if err != nil {
-				return err
+			esMap := map[string]cty.Value{}
+			if nodeSpec.InstanceSize != nil {
+				esMap["instance_size"] = cty.StringVal(*nodeSpec.InstanceSize)
 			}
-			rcMap["electable_specs"] = cty.ObjectVal(esMap)
+			if nodeSpec.NodeCount != nil {
+				esMap["node_count"] = cty.NumberIntVal(int64(*nodeSpec.NodeCount))
+			}
+			if nodeSpec.EbsVolumeType != nil && *nodeSpec.EbsVolumeType != "" {
+				esMap["ebs_volume_type"] = cty.StringVal(*nodeSpec.EbsVolumeType)
+			}
+			if nodeSpec.DiskIOPS != nil {
+				esMap["disk_iops"] = cty.NumberIntVal(int64(*nodeSpec.DiskIOPS))
+			}
+			if len(esMap) > 0 {
+				rcMap["electable_specs"] = cty.ObjectVal(esMap)
+			}
 
 			readOnlySpecs := rc.GetReadOnlySpecs()
 			if readOnlySpecs.GetNodeCount() != 0 {
-				roMap, err := structToCtyObject(readOnlySpecs)
-				if err != nil {
-					return err
+				roMap := map[string]cty.Value{}
+				if readOnlySpecs.InstanceSize != nil {
+					roMap["instance_size"] = cty.StringVal(*readOnlySpecs.InstanceSize)
 				}
-				rcMap["read_only_specs"] = cty.ObjectVal(roMap)
-			} else {
-				delete(rcMap, "read_only_specs")
+				if readOnlySpecs.NodeCount != nil {
+					roMap["node_count"] = cty.NumberIntVal(int64(*readOnlySpecs.NodeCount))
+				}
+				if readOnlySpecs.DiskIOPS != nil {
+					roMap["disk_iops"] = cty.NumberIntVal(int64(*readOnlySpecs.DiskIOPS))
+				}
+				if len(roMap) > 0 {
+					rcMap["read_only_specs"] = cty.ObjectVal(roMap)
+				}
 			}
 
 			rcList = append(rcList, cty.ObjectVal(rcMap))
 		}
 
 		specMap["region_configs"] = cty.ListVal(rcList)
-
 		allSpecs = append(allSpecs, cty.ObjectVal(specMap))
 	}
 
 	cluster.SetAttributeValue("replication_specs", cty.ListVal(allSpecs))
-
 	return nil
 }
 
-func writeAdvancedConfiguration(
-	cluster *hclwrite.Body,
-	advConfig map[string]any,
-) error {
-	if len(advConfig) == 0 {
-		return nil
-	}
-
-	for _, key := range sortStringMapKeysAny(advConfig) {
-		if !knownAdvancedConfig[key] {
-			return fmt.Errorf("unknown key in advanced configuration: %s", key)
+func validateAdvancedConfig(cfg map[string]any) error {
+	for k := range cfg {
+		if !knownAdvancedConfig[k] {
+			return fmt.Errorf("unknown advanced configuration key: %s", k)
 		}
 	}
-
-	confMap, err := structToCtyObject(advConfig)
-	if err != nil {
-		return fmt.Errorf("failed to convert advanced configuration: %w", err)
-	}
-
-	cluster.SetAttributeValue("advanced_configuration", cty.ObjectVal(confMap))
-	cluster.AppendNewline()
-
 	return nil
 }

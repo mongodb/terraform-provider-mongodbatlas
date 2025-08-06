@@ -1,11 +1,11 @@
 ```release-note:breaking-change
-resource/mongodbatlas_advanced_cluster: Disables legacy SDKv2 implementation of this resource and removes MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER feature flag
+resource/mongodbatlas_advanced_cluster: Disables legacy SDKv2 implementation of this resource and removes the MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER feature flag
 ```
 
 ```release-note:breaking-change
-data-source/mongodbatlas_advanced_cluster: Disables legacy SDKv2 implementation of this datasource and removes MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER feature flag
+data-source/mongodbatlas_advanced_cluster: Disables legacy SDKv2 implementation of this datasource and removes the MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER feature flag
 ```
 
 ```release-note:breaking-change
-data-source/mongodbatlas_advanced_clusters: Disables legacy SDKv2 implementation of this datasource and removes MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER feature flag
+data-source/mongodbatlas_advanced_clusters: Disables legacy SDKv2 implementation of this datasource and removes the MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER feature flag
 ```
