@@ -50,6 +50,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprivatelinkendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teamprojectassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
@@ -462,6 +463,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		resourcepolicy.PluralDataSource,
 		clouduserorgassignment.DataSource,
 		clouduserteamassignment.DataSource,
+		teamprojectassignment.DataSource,
 		apikeyprojectassignment.DataSource,
 		apikeyprojectassignment.PluralDataSource,
 		advancedclustertpf.DataSource,
@@ -489,6 +491,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		resourcepolicy.Resource,
 		clouduserorgassignment.Resource,
 		apikeyprojectassignment.Resource,
+		teamprojectassignment.Resource,
 		clouduserteamassignment.Resource,
 		advancedclustertpf.Resource,
 	}
