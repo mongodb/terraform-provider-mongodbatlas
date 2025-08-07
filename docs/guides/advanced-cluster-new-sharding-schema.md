@@ -435,8 +435,7 @@ Name | Changes | Transition Guide
 `mongodbatlas_advanced_cluster` | Data source must use the `use_replication_spec_per_shard` attribute. | -
 `mongodbatlas_advanced_cluster` | Use `replication_specs.#.zone_id` instead of `replication_specs.#.id`. | -
 `mongodbatlas_cluster` | Resource and data source will not work. API error code `ASYMMETRIC_SHARD_UNSUPPORTED`. | [cluster-to-advanced-cluster-migration-guide](cluster-to-advanced-cluster-migration-guide.md)
-`mongodbatlas_cloud_backup_schedule` | Use `copy_settings.#.zone_id` instead of `copy_settings.#.replication_spec_id` | [1.18.0 Migration Guide](1.18.0-upgrade-guide.md#transition-cloud-backup-schedules-for-clusters-to-use-zones)
-`mongodbatlas_global_cluster_config` | `custom_zone_mapping` is no longer populated, `custom_zone_mapping_zone_id` must be used instead. *Update: `custom_zone_mapping` was removed in v2.0.0* | -
+`mongodbatlas_cloud_backup_schedule` | Use `copy_settings.#.zone_id` instead of `copy_settings.#.replication_spec_id` | [1.18.0 Migration Guide](1.18.0-upgrade-guide.md#transition-cloud-backup-schedules-for-clusters-to-use-zones)| -
 
 ### Data Source Transition for Asymmetric Clusters
 
