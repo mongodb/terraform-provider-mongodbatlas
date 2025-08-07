@@ -1778,12 +1778,17 @@ func checksBasicDedicated(projectID, name string, checkPlural bool) resource.Tes
 func configWithKeyValueBlocks(t *testing.T, orgID, projectName, clusterName, blockName string, blocks ...map[string]string) string {
 	t.Helper()
 	var extraConfig string
-	for _, block := range blocks {
-		extraConfig += fmt.Sprintf(`
-			%[1]s {
-				%[2]q = %[3]q
+	if len(blocks) > 0 {
+		var keyValuePairs string
+		for _, block := range blocks {
+			keyValuePairs += fmt.Sprintf(`
+				%[1]q = %[2]q`, block["key"], block["value"])
+		}
+		extraConfig = fmt.Sprintf(`
+			%[1]s = {
+				%[2]s
 			}
-		`, blockName, block["key"], block["value"])
+		`, blockName, keyValuePairs)
 	}
 
 	return fmt.Sprintf(`
@@ -3403,10 +3408,10 @@ func configPriority(t *testing.T, projectID, clusterName string, oldSchema, swap
 			
 			replication_specs = [{
 				%[4]s
-				region_configs = [{
+				region_configs = [
  					
  					%[5]s
-				}]
+				]
 			}]
 		}
 	`, projectID, clusterName, strType, strNumShards, strConfigs)
@@ -3461,10 +3466,10 @@ func checkTenantBiConnectorConfig(projectID, name string, enabled bool) resource
 		"name":       name,
 	}
 	if enabled {
-		attrsMap["bi_connector_config.0.enabled"] = "true"
-		attrsMap["bi_connector_config.0.read_preference"] = "secondary"
+		attrsMap["bi_connector_config.enabled"] = "true"
+		attrsMap["bi_connector_config.read_preference"] = "secondary"
 	} else {
-		attrsMap["bi_connector_config.0.enabled"] = "false"
+		attrsMap["bi_connector_config.enabled"] = "false"
 	}
 	return checkAggr(nil, attrsMap)
 }
@@ -3521,7 +3526,7 @@ func configFlexCluster(t *testing.T, projectID, clusterName, providerName, regio
 	tags := ""
 	if withTags {
 		tags = `
-			tags {
+			tags = {
 				"testKey" = "testValue"
 			}`
 	}
@@ -3594,7 +3599,7 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateFlex(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", acc.TimeoutConfig(&createTimeout, nil, nil, false), false, &deleteOnCreateTimeout),
+				Config:      configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", acc.TimeoutConfig(&createTimeout, nil, nil), false, &deleteOnCreateTimeout),
 				ExpectError: regexp.MustCompile("context deadline exceeded"), // with the current implementation, this is the error that is returned
 			},
 		},
@@ -3614,10 +3619,10 @@ func TestAccAdvancedCluster_updateDeleteTimeoutFlex(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyFlexCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", acc.TimeoutConfig(nil, &updateTimeout, &deleteTimeout, false), false, nil),
+				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", acc.TimeoutConfig(nil, &updateTimeout, &deleteTimeout), false, nil),
 			},
 			{
-				Config:      configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", acc.TimeoutConfig(nil, &updateTimeout, &deleteTimeout, false), true, nil),
+				Config:      configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", acc.TimeoutConfig(nil, &updateTimeout, &deleteTimeout), true, nil),
 				ExpectError: regexp.MustCompile("timeout while waiting for state to become 'IDLE'"),
 			},
 			{
