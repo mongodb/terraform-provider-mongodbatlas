@@ -13,8 +13,9 @@ import (
 )
 
 var resourceName = "mongodbatlas_team_project_assignment.test"
+var dataSourceName = "data.mongodbatlas_team_project_assignment.test"
 
-func TestAccTeamProjectAssignmentRS_basic(t *testing.T) {
+func TestAccTeamProjectAssignment_basic(t *testing.T) {
 	resource.ParallelTest(t, *basicTestCase(t))
 }
 
@@ -64,22 +65,29 @@ func configBasic(orgID, teamName, projectID string, roles []string) string {
 			team_id    = mongodbatlas_team.test.team_id
 			role_names      = [%[4]s]
 		}
+
+		data "mongodbatlas_team_project_assignment" "test" {
+			project_id = %[3]q
+			team_id    = mongodbatlas_team_project_assignment.test.team_id
+		}
 	
 	`, orgID, teamName, projectID, rolesStr)
 }
 
 func checks(projectID string, roles []string) resource.TestCheckFunc {
-	checkFuncs := []resource.TestCheckFunc{
-		resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-		resource.TestCheckResourceAttrSet(resourceName, "team_id"),
-		resource.TestCheckResourceAttr(resourceName, "role_names.#", fmt.Sprint(len(roles))),
+	attrsSet := []string{"team_id"}
+	attrsMap := map[string]string{
+		"project_id":   projectID,
+		"role_names.#": fmt.Sprint(len(roles)),
 	}
-
+	extraChecks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttrPair(dataSourceName, "team_id", resourceName, "team_id"),
+	}
 	for _, role := range roles {
-		checkFuncs = append(checkFuncs, resource.TestCheckTypeSetElemAttr(resourceName, "role_names.*", role))
+		extraChecks = append(extraChecks, resource.TestCheckTypeSetElemAttr(resourceName, "role_names.*", role))
 	}
 
-	return resource.ComposeAggregateTestCheckFunc(checkFuncs...)
+	return acc.CheckRSAndDS(resourceName, &dataSourceName, nil, attrsSet, attrsMap, extraChecks...)
 }
 
 func importStateIDFunc(resourceName string) func(s *terraform.State) (string, error) {

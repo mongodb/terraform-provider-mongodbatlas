@@ -50,6 +50,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	connV2 := r.Client.AtlasV2
 	projectID := plan.ProjectId.ValueString()
 	teamID := plan.TeamId.ValueString()
+
 	teamProjectReq, diags := NewAtlasReq(ctx, &plan)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
@@ -71,6 +72,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		resp.Diagnostics.AddError(fmt.Sprintf(errorAssigment, projectID), err.Error())
 		return
 	}
+
 	newTeamProjectAssignmentModel, diags := NewTFModel(ctx, apiResp, projectID)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
