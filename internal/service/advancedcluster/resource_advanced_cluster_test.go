@@ -1272,14 +1272,14 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 		labelsCheck    = checkKeyValueBlocks(false, "labels", tagsLabelsMap)
 		checks         = checkAggr(checksSet, checksMap, timeoutCheck)
 		afterUpdateMap = map[string]string{
-			"state_name":                    "IDLE",
-			"backup_enabled":                "true",
-			"bi_connector_config.enabled": "true",
-			"pit_enabled":                   "true",
-			"redact_client_log_data":        "true",
-			"replica_set_scaling_strategy":  "NODE_TYPE",
-			"root_cert_type":                "ISRGROOTX1",
-			"version_release_system":        "CONTINUOUS",
+			"state_name":                   "IDLE",
+			"backup_enabled":               "true",
+			"bi_connector_config.enabled":  "true",
+			"pit_enabled":                  "true",
+			"redact_client_log_data":       "true",
+			"replica_set_scaling_strategy": "NODE_TYPE",
+			"root_cert_type":               "ISRGROOTX1",
+			"version_release_system":       "CONTINUOUS",
 			"advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds": "100",
 			"advanced_configuration.default_read_concern":                                           "available",
 			"advanced_configuration.default_write_concern":                                          "majority",
@@ -1726,7 +1726,7 @@ func configTenant(t *testing.T, projectID, name, zoneName, instanceSize string) 
 	if zoneName != "" {
 		zoneNameLine = fmt.Sprintf("zone_name = %q", zoneName)
 	}
-	
+
 	return fmt.Sprintf(`
 	resource "mongodbatlas_advanced_cluster" "test" {
 		project_id   = %[1]q
@@ -1770,7 +1770,7 @@ func checksBasicDedicated(projectID, name string, checkPlural bool) resource.Tes
 	checkMap := map[string]string{
 		"replication_specs.0.region_configs.0.electable_specs.node_count":    "3",
 		"replication_specs.0.region_configs.0.electable_specs.instance_size": "M10",
-		"replication_specs.0.region_configs.0.provider_name":                   "AWS",
+		"replication_specs.0.region_configs.0.provider_name":                 "AWS",
 	}
 	return checkAggr(nil, checkMap, originalChecks)
 }
@@ -1874,13 +1874,12 @@ func configWithKeyValueBlocks(t *testing.T, orgID, projectName, clusterName, blo
 // 	return resource.ComposeAggregateTestCheckFunc(checks...)
 // }
 
-
 func checkKeyValueBlocks(includeDataSources bool, blockName string, blocks ...map[string]string) resource.TestCheckFunc {
 	const pluralPrefix = "results.0."
 	lenStr := strconv.Itoa(len(blocks))
 	keyPct := blockName + ".%"
 	checks := []resource.TestCheckFunc{
-		resource.TestCheckResourceAttr( resourceName, keyPct, lenStr),
+		resource.TestCheckResourceAttr(resourceName, keyPct, lenStr),
 	}
 	if includeDataSources {
 		checks = append(checks,
@@ -3551,7 +3550,7 @@ func configFlexCluster(t *testing.T, projectID, clusterName, providerName, regio
 			termination_protection_enabled = false
 			%[8]s
 		}
-	`, projectID, clusterName, providerName, region, zoneNameLine, tags, timeoutConfig, deleteOnCreateTimeoutConfig)+dataSourcesTFOldSchema+
+	`, projectID, clusterName, providerName, region, zoneNameLine, tags, timeoutConfig, deleteOnCreateTimeoutConfig) + dataSourcesTFOldSchema +
 		strings.ReplaceAll(acc.FlexDataSource, "mongodbatlas_flex_cluster.", "mongodbatlas_advanced_cluster.")
 }
 
