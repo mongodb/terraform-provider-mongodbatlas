@@ -8,7 +8,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpoint"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 )
 
 func createPrivateLinkEndpoint(tb testing.TB, projectID, providerName, region string) string {
