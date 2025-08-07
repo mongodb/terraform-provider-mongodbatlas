@@ -51,6 +51,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprivatelinkendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teamprojectassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
@@ -465,6 +466,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		clouduserorgassignment.DataSource,
 		clouduserprojectassignment.DataSource,
 		clouduserteamassignment.DataSource,
+		teamprojectassignment.DataSource,
 		apikeyprojectassignment.DataSource,
 		apikeyprojectassignment.PluralDataSource,
 	}
@@ -494,6 +496,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		clouduserorgassignment.Resource,
 		apikeyprojectassignment.Resource,
 		clouduserprojectassignment.Resource,
+		teamprojectassignment.Resource,
 		clouduserteamassignment.Resource,
 	}
 	if config.PreviewProviderV2AdvancedCluster() {
