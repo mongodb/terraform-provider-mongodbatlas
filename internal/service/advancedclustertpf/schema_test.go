@@ -23,7 +23,7 @@ func TestAccAdvancedCluster_ValidationErrors(t *testing.T) {
 				ExpectError: regexp.MustCompile("Missing Configuration for Required Attribute"),
 			},
 			{
-				Config:      acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, invalidRegionConfigsPriorities),
+				Config:      acc.ConvertAdvancedClusterToTPF(t, true, invalidRegionConfigsPriorities),
 				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
 			},
 			{

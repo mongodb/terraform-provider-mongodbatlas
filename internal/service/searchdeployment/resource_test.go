@@ -72,7 +72,7 @@ func TestAccSearchDeployment_timeoutTest(t *testing.T) {
 		configWithTimeout      = func(timeoutsStr string) string {
 			normalConfig := configBasic(projectID, clusterName, "S20_HIGHCPU_NVME", 3, false)
 			configWithTimeout := acc.ConfigAddResourceStr(t, normalConfig, resourceID, timeoutsStr)
-			return acc.ConvertAdvancedClusterToPreviewProviderV2(t, config.PreviewProviderV2AdvancedCluster(), configWithTimeout)
+			return acc.ConvertAdvancedClusterToTPF(t, config.PreviewProviderV2AdvancedCluster(), configWithTimeout)
 		}
 	)
 	resource.ParallelTest(t, resource.TestCase{

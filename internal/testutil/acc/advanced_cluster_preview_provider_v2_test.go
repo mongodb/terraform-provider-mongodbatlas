@@ -252,7 +252,7 @@ func TestConvertAdvancedClusterToPreviewProviderV2(t *testing.T) {
 			}
  		`
 	)
-	actual := acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, input)
+	actual := acc.ConvertAdvancedClusterToTPF(t, true, input)
 	acc.AssertEqualHCL(t, expected, actual)
 }
 
