@@ -12,10 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 )
 
 const (
@@ -23,13 +24,14 @@ const (
 	errorPrivateLinkEndpointsRead    = "error reading MongoDB Private Endpoints Connection(%s): %s"
 	errorPrivateLinkEndpointsDelete  = "error deleting MongoDB Private Endpoints Connection(%s): %s"
 	ErrorPrivateLinkEndpointsSetting = "error setting `%s` for MongoDB Private Endpoints Connection(%s): %s"
+	delayAndMinTimeout               = 5 * time.Second
 )
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceCreate,
-		ReadContext:   resourceRead,
-		DeleteContext: resourceDelete,
+		CreateWithoutTimeout: resourceCreate,
+		ReadWithoutTimeout:   resourceRead,
+		DeleteWithoutTimeout: resourceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceImport,
 		},
@@ -106,6 +108,12 @@ func Resource() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"delete_on_create_timeout": { // Don't use Default: true to avoid unplanned changes when upgrading from previous versions.
+				Type:        schema.TypeBool,
+				Optional:    true,
+				ForceNew:    true,
+				Description: "Flag that indicates whether to delete the resource if creation times out. Default is true.",
+			},
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(1 * time.Hour),
@@ -130,19 +138,18 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsCreate, err))
 	}
 
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"INITIATING", "DELETING"},
-		Target:     []string{"WAITING_FOR_USER", "FAILED", "DELETED", "AVAILABLE"},
-		Refresh:    refreshFunc(ctx, connV2, projectID, providerName, privateEndpoint.GetId()),
-		Timeout:    d.Timeout(schema.TimeoutCreate) - time.Minute, // If using a CRUD function with a timeout, any StateChangeConf timeouts should be configured below that duration to avoid returning the SDK context: deadline exceeded error instead of the retry logic error.
-		MinTimeout: 5 * time.Second,
-		Delay:      3 * time.Second,
+	stateConf := CreateStateChangeConfig(ctx, connV2, projectID, providerName, privateEndpoint.GetId(), d.Timeout(schema.TimeoutCreate))
+	_, errWait := stateConf.WaitForStateContext(ctx)
+	deleteOnCreateTimeout := true // default value when not set
+	if v, ok := d.GetOkExists("delete_on_create_timeout"); ok {
+		deleteOnCreateTimeout = v.(bool)
 	}
-
-	// Wait, catching any errors
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsCreate, err))
+	errWait = cleanup.HandleCreateTimeout(deleteOnCreateTimeout, errWait, func(ctxCleanup context.Context) error {
+		_, errCleanup := connV2.PrivateEndpointServicesApi.DeletePrivateEndpointService(ctxCleanup, projectID, providerName, privateEndpoint.GetId()).Execute()
+		return errCleanup
+	})
+	if errWait != nil {
+		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsCreate, errWait))
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
@@ -250,15 +257,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	log.Println("[INFO] Waiting for MongoDB Private Endpoints Connection to be destroyed")
 
-	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"DELETING"},
-		Target:     []string{"DELETED", "FAILED"},
-		Refresh:    refreshFunc(ctx, connV2, projectID, providerName, privateLinkID),
-		Timeout:    d.Timeout(schema.TimeoutDelete),
-		MinTimeout: 5 * time.Second,
-		Delay:      3 * time.Second,
-	}
-	// Wait, catching any errors
+	stateConf := DeleteStateChangeConfig(ctx, connV2, projectID, providerName, privateLinkID, d.Timeout(schema.TimeoutDelete))
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateLinkEndpointsDelete, privateLinkID, err))
@@ -327,5 +326,27 @@ func refreshFunc(ctx context.Context, client *admin.APIClient, projectID, provid
 		}
 
 		return p, status, nil
+	}
+}
+
+func CreateStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, projectID, providerName, privateLinkID string, timeout time.Duration) retry.StateChangeConf {
+	return retry.StateChangeConf{
+		Pending:    []string{"INITIATING", "DELETING"},
+		Target:     []string{"WAITING_FOR_USER", "FAILED", "DELETED", "AVAILABLE"},
+		Refresh:    refreshFunc(ctx, connV2, projectID, providerName, privateLinkID),
+		Timeout:    timeout,
+		MinTimeout: delayAndMinTimeout,
+		Delay:      delayAndMinTimeout,
+	}
+}
+
+func DeleteStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, projectID, providerName, privateLinkID string, timeout time.Duration) retry.StateChangeConf {
+	return retry.StateChangeConf{
+		Pending:    []string{"DELETING"},
+		Target:     []string{"DELETED", "FAILED"},
+		Refresh:    refreshFunc(ctx, connV2, projectID, providerName, privateLinkID),
+		Timeout:    timeout,
+		MinTimeout: delayAndMinTimeout,
+		Delay:      delayAndMinTimeout,
 	}
 }

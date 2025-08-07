@@ -5,12 +5,13 @@ import (
 	"net/http"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312005/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312006/mockadmin"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 )
@@ -102,7 +103,7 @@ func TestFlexClusterStateTransition(t *testing.T) {
 				modelResp, httpResp, err := resp.get()
 				m.EXPECT().GetFlexClusterExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			resp, err := flexcluster.WaitStateTransition(t.Context(), requestParams, m, tc.pendingStates, tc.desiredStates, tc.isUpgradeFromM0, nil)
+			resp, err := flexcluster.WaitStateTransition(t.Context(), requestParams, m, tc.pendingStates, tc.desiredStates, tc.isUpgradeFromM0, constant.DefaultTimeout)
 			assert.Equal(t, tc.expectedError, err != nil)
 			if resp != nil {
 				assert.Equal(t, *tc.expectedState, *resp.StateName)
@@ -147,7 +148,7 @@ func TestFlexClusterStateTransitionForDelete(t *testing.T) {
 				modelResp, httpResp, err := resp.get()
 				m.EXPECT().GetFlexClusterExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			err := flexcluster.WaitStateTransitionDelete(t.Context(), requestParams, m)
+			err := flexcluster.WaitStateTransitionDelete(t.Context(), requestParams, m, constant.DefaultTimeout)
 			assert.Equal(t, tc.expectedError, err != nil)
 		})
 	}

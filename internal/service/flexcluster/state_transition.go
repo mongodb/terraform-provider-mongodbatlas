@@ -5,25 +5,20 @@ import (
 	"errors"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 )
 
-func WaitStateTransition(ctx context.Context, requestParams *admin.GetFlexClusterApiParams, client admin.FlexClustersApi, pendingStates, desiredStates []string, isUpgradeFromM0 bool, timeout *time.Duration) (*admin.FlexClusterDescription20241113, error) {
-	if timeout == nil {
-		timeout = conversion.Pointer(constant.DefaultTimeout)
-	}
+func WaitStateTransition(ctx context.Context, requestParams *admin.GetFlexClusterApiParams, client admin.FlexClustersApi, pendingStates, desiredStates []string, isUpgradeFromM0 bool, timeout time.Duration) (*admin.FlexClusterDescription20241113, error) {
 	stateConf := &retry.StateChangeConf{
 		Pending:    pendingStates,
 		Target:     desiredStates,
 		Refresh:    refreshFunc(ctx, requestParams, client, isUpgradeFromM0),
-		Timeout:    *timeout,
+		Timeout:    timeout,
 		MinTimeout: 3 * time.Second,
 		Delay:      0,
 	}
@@ -40,12 +35,12 @@ func WaitStateTransition(ctx context.Context, requestParams *admin.GetFlexCluste
 	return nil, errors.New("did not obtain valid result when waiting for flex cluster state transition")
 }
 
-func WaitStateTransitionDelete(ctx context.Context, requestParams *admin.GetFlexClusterApiParams, client admin.FlexClustersApi) error {
+func WaitStateTransitionDelete(ctx context.Context, requestParams *admin.GetFlexClusterApiParams, client admin.FlexClustersApi, timeout time.Duration) error {
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{retrystrategy.RetryStrategyDeletingState},
 		Target:     []string{retrystrategy.RetryStrategyDeletedState},
 		Refresh:    refreshFunc(ctx, requestParams, client, false),
-		Timeout:    3 * time.Hour,
+		Timeout:    timeout,
 		MinTimeout: 3 * time.Second,
 		Delay:      0,
 	}

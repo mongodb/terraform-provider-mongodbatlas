@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 )
 
 var (
@@ -174,7 +174,7 @@ func TestNewTFModelDSP(t *testing.T) {
 		"Complete TF state": {
 			expectedTFModelDSP: &flexcluster.TFModelDSP{
 				ProjectId: types.StringValue(projectID),
-				Results: []flexcluster.TFModel{
+				Results: []flexcluster.TFModelDS{
 					{
 						ProjectId: types.StringValue(projectID),
 						Id:        types.StringValue(id),
@@ -277,7 +277,7 @@ func TestNewTFModelDSP(t *testing.T) {
 		"No Flex Clusters": {
 			expectedTFModelDSP: &flexcluster.TFModelDSP{
 				ProjectId: types.StringValue(projectID),
-				Results:   []flexcluster.TFModel{},
+				Results:   []flexcluster.TFModelDS{},
 			},
 			input: []admin.FlexClusterDescription20241113{},
 		},
