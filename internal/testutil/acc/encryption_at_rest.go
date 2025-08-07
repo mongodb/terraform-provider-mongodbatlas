@@ -164,7 +164,7 @@ func EncryptionAtRestExecution(tb testing.TB) string {
 	SkipInUnitTest(tb)
 	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
 
-	projectID := ProjectIDExecution(tb)
+	projectID := createProject(tb, "encryption-at-rest-delete-on-create-timeout-test")
 
 	sharedInfo.mu.Lock()
 	defer sharedInfo.mu.Unlock()
