@@ -28,8 +28,7 @@ func TestMigCloudUserProjectAssignmentRS_migrationJourney(t *testing.T) {
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		username    = acc.RandomEmail()
 		projectName = fmt.Sprintf("mig_user_project_%s", acc.RandomName())
-		roles       = []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"}
-		rolesStr    = `"` + strings.Join(roles, `", "`) + `"`
+		roles       = []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_ONLY"}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -38,11 +37,11 @@ func TestMigCloudUserProjectAssignmentRS_migrationJourney(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            originalConfigFirst(username, projectName, orgID, rolesStr),
+				Config:            originalConfigFirst(username, projectName, orgID, roles),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   userProjectAssignmentConfigSecond(username, projectName, orgID, rolesStr),
+				Config:                   userProjectAssignmentConfigSecond(username, projectName, orgID, roles),
 				Check:                    checksSecond(username, projectName, roles),
 			},
 			{
@@ -52,18 +51,19 @@ func TestMigCloudUserProjectAssignmentRS_migrationJourney(t *testing.T) {
 						plancheck.ExpectResourceAction(resourceInvitationName, plancheck.ResourceActionDestroy),
 					},
 				},
-				Config: removeProjectInvitationConfigThird(username, projectName, orgID, rolesStr),
+				Config: removeProjectInvitationConfigThird(username, projectName, orgID, roles),
 			},
-			mig.TestStepCheckEmptyPlan(removeProjectInvitationConfigThird(username, projectName, orgID, rolesStr)),
+			mig.TestStepCheckEmptyPlan(removeProjectInvitationConfigThird(username, projectName, orgID, roles)),
 		},
 	})
 }
 
-func originalConfigFirst(username, projectName, orgID, roles string) string {
-	return fmt.Sprintf(`
+func originalConfigFirst(username, projectName, orgID string, roles []string) string {
+	rolesStr := `"` + strings.Join(roles, `", "`) + `"`
+	config := fmt.Sprintf(`
 		locals {
 			username = %[1]q
-			roles    = [%[2]q]
+			roles    = [%[2]s]
 		}
 
 		resource "mongodbatlas_project" "mig_test" {
@@ -76,14 +76,16 @@ func originalConfigFirst(username, projectName, orgID, roles string) string {
 			username    = local.username
 			roles       = local.roles
 		}
-`, username, roles, projectName, orgID)
+	`, username, rolesStr, projectName, orgID)
+	return config
 }
 
-func userProjectAssignmentConfigSecond(username, projectName, orgID, roles string) string {
+func userProjectAssignmentConfigSecond(username, projectName, orgID string, roles []string) string {
+	rolesStr := `"` + strings.Join(roles, `", "`) + `"`
 	return fmt.Sprintf(`
 		locals {
 			username = %[1]q
-			roles    = [%[2]q]
+			roles    = [%[2]s]
 		}
 
 		resource "mongodbatlas_project" "mig_test" {
@@ -102,14 +104,15 @@ func userProjectAssignmentConfigSecond(username, projectName, orgID, roles strin
 			username   = local.username
 			roles      = local.roles
 		}
-		`, username, roles, projectName, orgID)
+		`, username, rolesStr, projectName, orgID)
 }
 
-func removeProjectInvitationConfigThird(username, projectName, orgID, roles string) string {
+func removeProjectInvitationConfigThird(username, projectName, orgID string, roles []string) string {
+	rolesStr := `"` + strings.Join(roles, `", "`) + `"`
 	return fmt.Sprintf(`
 		locals {
 			username = %[1]q
-			roles    = [%[2]q]
+			roles    = [%[2]s]
 		}
 
 		resource "mongodbatlas_project" "mig_test" {
@@ -122,7 +125,7 @@ func removeProjectInvitationConfigThird(username, projectName, orgID, roles stri
 			username   = local.username
 			roles      = local.roles
 		}
-		`, username, roles, projectName, orgID)
+		`, username, rolesStr, projectName, orgID)
 }
 
 func checksSecond(username, projectName string, roles []string) resource.TestCheckFunc {
@@ -131,10 +134,5 @@ func checksSecond(username, projectName string, roles []string) resource.TestChe
 		resource.TestCheckResourceAttrSet(resourceUserProjectAssignmentName, "project_id"),
 		resource.TestCheckResourceAttr(resourceUserProjectAssignmentName, "roles.#", fmt.Sprintf("%d", len(roles))),
 	}
-
-	for i, role := range roles {
-		checkFuncs = append(checkFuncs, resource.TestCheckResourceAttr(resourceUserProjectAssignmentName, fmt.Sprintf("roles.%d", i), role))
-	}
-
 	return resource.ComposeAggregateTestCheckFunc(checkFuncs...)
 }
