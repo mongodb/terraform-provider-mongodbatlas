@@ -7,7 +7,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250312004/admin"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 )
 
 // ClusterRequest contains configuration for a cluster where all fields are optional and AddDefaults is used for required fields.
@@ -97,6 +97,14 @@ func ExistingClusterUsed() bool {
 
 func existingProjectIDClusterName() (projectID, clusterName string) {
 	return os.Getenv("MONGODB_ATLAS_PROJECT_ID"), os.Getenv("MONGODB_ATLAS_CLUSTER_NAME")
+}
+
+func existingStreamInstanceUsed() bool {
+	return existingStreamInstanceName() != "" && projectIDLocal() != ""
+}
+
+func existingStreamInstanceName() string {
+	return os.Getenv("MONGODB_ATLAS_STREAM_INSTANCE_NAME")
 }
 
 // ReplicationSpecRequest can be used to customize the ReplicationSpecs of a Cluster.

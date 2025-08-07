@@ -8,9 +8,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -43,9 +46,9 @@ func TestAccStreamProcessor_basic(t *testing.T) {
 func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
-		projectID     = acc.ProjectIDExecution(t)
-		processorName = "new-processor"
-		instanceName  = acc.RandomName()
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		randomSuffix            = acctest.RandString(5)
+		processorName           = "new-processor" + randomSuffix
 	)
 
 	return &resource.TestCase{
@@ -54,12 +57,14 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config: config(t, projectID, instanceName, processorName, "", sampleSrcConfig, testLogDestConfig),
-				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
+				Config:            config(t, projectID, instanceName, processorName, "", randomSuffix, sampleSrcConfig, testLogDestConfig),
+				Check:             composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
+				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.CreatedState, instanceName, false, false),
 			},
 			{
-				Config: config(t, projectID, instanceName, processorName, streamprocessor.StartedState, sampleSrcConfig, testLogDestConfig),
-				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StartedState, true, false),
+				Config:            config(t, projectID, instanceName, processorName, streamprocessor.StartedState, randomSuffix, sampleSrcConfig, testLogDestConfig),
+				Check:             composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StartedState, true, false),
+				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.StartedState, instanceName, true, false),
 			},
 			{
 				ResourceName:            resourceName,
@@ -73,9 +78,9 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 
 func TestAccStreamProcessor_JSONWhiteSpaceFormat(t *testing.T) {
 	var (
-		projectID                  = acc.ProjectIDExecution(t)
+		projectID, instanceName    = acc.ProjectIDExecutionWithStreamInstance(t)
+		randomSuffix               = acctest.RandString(5)
 		processorName              = "new-processor-json-unchanged"
-		instanceName               = acc.RandomName()
 		sampleSrcConfigExtraSpaces = connectionConfig{connectionType: connTypeSample, pipelineStepIsSource: true, extraWhitespace: true}
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -84,19 +89,21 @@ func TestAccStreamProcessor_JSONWhiteSpaceFormat(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config: config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, sampleSrcConfigExtraSpaces, testLogDestConfig),
-				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
+				Config:            config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, randomSuffix, sampleSrcConfigExtraSpaces, testLogDestConfig),
+				Check:             composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
+				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.CreatedState, instanceName, false, false),
 			},
 		}})
 }
 
 func TestAccStreamProcessor_withOptions(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ClusterNameExecution(t, false)
-		processorName          = "new-processor"
-		instanceName           = acc.RandomName()
-		src                    = connectionConfig{connectionType: connTypeCluster, clusterName: clusterName, pipelineStepIsSource: true, useAsDLQ: true}
-		dest                   = connectionConfig{connectionType: connTypeKafka, pipelineStepIsSource: false}
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		_, clusterName          = acc.ClusterNameExecution(t, false)
+		src                     = connectionConfig{connectionType: connTypeCluster, clusterName: clusterName, pipelineStepIsSource: true, useAsDLQ: true}
+		dest                    = connectionConfig{connectionType: connTypeKafka, pipelineStepIsSource: false}
+		randomSuffix            = acctest.RandString(5)
+		processorName           = "new-processor" + randomSuffix
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -105,8 +112,9 @@ func TestAccStreamProcessor_withOptions(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config: config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, src, dest),
-				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, true),
+				Config:            config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, randomSuffix, src, dest),
+				Check:             composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, true),
+				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.CreatedState, instanceName, false, true),
 			},
 			{
 				ResourceName:            resourceName,
@@ -255,10 +263,11 @@ func TestAccStreamProcessor_InvalidStateTransitionUpdates(t *testing.T) {
 
 func TestAccStreamProcessor_clusterType(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ClusterNameExecution(t, false)
-		processorName          = "new-processor"
-		instanceName           = acc.RandomName()
-		srcConfig              = connectionConfig{connectionType: connTypeCluster, clusterName: clusterName, pipelineStepIsSource: true}
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		_, clusterName          = acc.ClusterNameExecution(t, false)
+		randomSuffix            = acctest.RandString(5)
+		processorName           = "new-processor" + randomSuffix
+		srcConfig               = connectionConfig{connectionType: connTypeCluster, clusterName: clusterName, pipelineStepIsSource: true}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -267,18 +276,19 @@ func TestAccStreamProcessor_clusterType(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config: config(t, projectID, instanceName, processorName, streamprocessor.StartedState, srcConfig, testLogDestConfig),
-				Check:  composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StartedState, true, false),
+				Config:            config(t, projectID, instanceName, processorName, streamprocessor.StartedState, randomSuffix, srcConfig, testLogDestConfig),
+				Check:             composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StartedState, true, false),
+				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.StartedState, instanceName, true, false),
 			},
 		}})
 }
 
 func TestAccStreamProcessor_createErrors(t *testing.T) {
 	var (
-		projectID         = acc.ProjectIDExecution(t)
-		processorName     = "new-processor"
-		instanceName      = acc.RandomName()
-		invalidJSONConfig = connectionConfig{connectionType: connTypeSample, pipelineStepIsSource: true, invalidJSON: true}
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		processorName           = "new-processor"
+		invalidJSONConfig       = connectionConfig{connectionType: connTypeSample, pipelineStepIsSource: true, invalidJSON: true}
+		randomSuffix            = acctest.RandString(5)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -287,11 +297,11 @@ func TestAccStreamProcessor_createErrors(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StoppedState, invalidJSONConfig, testLogDestConfig),
+				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StoppedState, randomSuffix, invalidJSONConfig, testLogDestConfig),
 				ExpectError: regexp.MustCompile("Invalid JSON String Value"),
 			},
 			{
-				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StoppedState, sampleSrcConfig, testLogDestConfig),
+				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StoppedState, randomSuffix, sampleSrcConfig, testLogDestConfig),
 				ExpectError: regexp.MustCompile("When creating a stream processor, the only valid states are CREATED and STARTED"),
 			},
 		}})
@@ -349,9 +359,8 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 func testAccStreamProcessorStateTransitionForUpdates(t *testing.T, setupState, initialState, targetState, errorPattern string) {
 	t.Helper()
 	var (
-		projectID     = acc.ProjectIDExecution(t)
-		processorName = fmt.Sprintf("processor-%s-to-%s", strings.ToLower(initialState), strings.ToLower(targetState))
-		instanceName  = fmt.Sprintf("%s-%s-%s-%s", acc.RandomName(), setupState, initialState, targetState)
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		processorName           = fmt.Sprintf("processor-%s-to-%s", strings.ToLower(initialState), strings.ToLower(targetState))
 	)
 
 	initialPipeline := `[
@@ -449,30 +458,13 @@ func testAccStreamProcessorStateTransitionForUpdates(t *testing.T, setupState, i
 // configToUpdateStreamProcessor generates Terraform configuration for Stream Processor state transition tests.
 // It creates a minimal test environment with a stream instance, sample source connection and pipelines that can be updated
 func configToUpdateStreamProcessor(projectID, instanceName, processorName, state, pipeline string) string {
-	return fmt.Sprintf(`resource "mongodbatlas_stream_instance" "instance" {
-			project_id    = %[1]q
-			instance_name = %[2]q
-			data_process_region = {
-				region         = "VIRGINIA_USA"
-				cloud_provider = "AWS"
-			}
-		}
-
-		resource "mongodbatlas_stream_connection" "sample" {
-			project_id      = %[1]q
-			instance_name   = mongodbatlas_stream_instance.instance.instance_name
-			connection_name = "sample_stream_solar"
-			type            = "Sample"
-			depends_on = [mongodbatlas_stream_instance.instance] 
-        }
-
+	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_processor" "processor" {
 			project_id     = %[1]q
-			instance_name  = mongodbatlas_stream_instance.instance.instance_name
+			instance_name  = %[2]q
 			processor_name = %[3]q
 			pipeline       = %[4]q
 			%[5]s
-			depends_on = [mongodbatlas_stream_connection.sample]		
 		}
 		`, projectID, instanceName, processorName, pipeline, state)
 }
@@ -491,6 +483,28 @@ func checkAttributesFromBasicUpdateFlow(projectID, instanceName, processorName, 
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
+// pluralConfigStateChecks allows checking one of the results returned by the plural data source
+func pluralConfigStateChecks(processorName, state, instanceName string, includeStats, includeOptions bool) []statecheck.StateCheck {
+	return []statecheck.StateCheck{
+		acc.PluralResultCheck(pluralDataSourceName, "processor_name", knownvalue.StringExact(processorName), pluralValueChecks(processorName, state, instanceName, includeStats, includeOptions)),
+	}
+}
+
+func pluralValueChecks(processorName, state, instanceName string, includeStats, includeOptions bool) map[string]knownvalue.Check {
+	checks := map[string]knownvalue.Check{
+		"processor_name": knownvalue.StringExact(processorName),
+		"state":          knownvalue.StringExact(state),
+		"instance_name":  knownvalue.StringExact(instanceName),
+	}
+	if includeStats {
+		checks["stats"] = knownvalue.NotNull()
+	}
+	if includeOptions {
+		checks["options"] = knownvalue.NotNull()
+	}
+	return checks
+}
+
 func composeStreamProcessorChecks(projectID, instanceName, processorName, state string, includeStats, includeOptions bool) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{checkExists(resourceName)}
 	attributes := map[string]string{
@@ -501,41 +515,31 @@ func composeStreamProcessorChecks(projectID, instanceName, processorName, state 
 	}
 	checks = acc.AddAttrChecks(resourceName, checks, attributes)
 	checks = acc.AddAttrChecks(dataSourceName, checks, attributes)
-	checks = acc.AddAttrChecks(pluralDataSourceName, checks, map[string]string{
-		"project_id":               projectID,
-		"instance_name":            instanceName,
-		"results.#":                "1",
-		"results.0.processor_name": processorName,
-		"results.0.state":          state,
-		"results.0.instance_name":  instanceName,
-	})
 	if includeStats {
 		checks = acc.AddAttrSetChecks(resourceName, checks, "stats", "pipeline")
 		checks = acc.AddAttrSetChecks(dataSourceName, checks, "stats", "pipeline")
-		checks = acc.AddAttrSetChecks(pluralDataSourceName, checks, "results.0.stats", "results.0.pipeline")
 	}
 	if includeOptions {
 		checks = acc.AddAttrSetChecks(resourceName, checks, "options.dlq.db", "options.dlq.coll", "options.dlq.connection_name")
 		checks = acc.AddAttrSetChecks(dataSourceName, checks, "options.dlq.db", "options.dlq.coll", "options.dlq.connection_name")
-		checks = acc.AddAttrSetChecks(pluralDataSourceName, checks, "results.0.options.dlq.db", "results.0.options.dlq.coll", "results.0.options.dlq.connection_name")
 	}
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-func config(t *testing.T, projectID, instanceName, processorName, state string, src, dest connectionConfig) string {
+func config(t *testing.T, projectID, instanceName, processorName, state, nameSuffix string, src, dest connectionConfig) string {
 	t.Helper()
 	stateConfig := ""
 	if state != "" {
 		stateConfig = fmt.Sprintf(`state = %[1]q`, state)
 	}
 
-	connectionConfigSrc, connectionIDSrc, pipelineStepSrc := configConnection(t, projectID, src)
-	connectionConfigDest, connectionIDDest, pipelineStepDest := configConnection(t, projectID, dest)
+	connectionConfigSrc, connectionIDSrc, pipelineStepSrc := configConnection(t, projectID, instanceName, src, nameSuffix)
+	connectionConfigDest, connectionIDDest, pipelineStepDest := configConnection(t, projectID, instanceName, dest, nameSuffix)
 	dependsOn := []string{}
-	if connectionIDSrc != "" {
+	if connectionIDSrc != "" && !strings.HasPrefix(connectionIDSrc, "data.") {
 		dependsOn = append(dependsOn, connectionIDSrc)
 	}
-	if connectionIDDest != "" {
+	if connectionIDDest != "" && !strings.HasPrefix(connectionIDDest, "data.") {
 		dependsOn = append(dependsOn, connectionIDDest)
 	}
 	dependsOnStr := strings.Join(dependsOn, ", ")
@@ -566,36 +570,23 @@ func config(t *testing.T, projectID, instanceName, processorName, state string, 
 		instance_name = %[2]q
 		depends_on = [%3s]
 	}`, projectID, instanceName, resourceName)
+	otherConfig := connectionConfigSrc + connectionConfigDest + dataSource + dataSourcePlural
 
 	return fmt.Sprintf(`
-		resource "mongodbatlas_stream_instance" "instance" {
-			project_id    = %[1]q
-			instance_name = %[2]q
-			data_process_region = {
-				region         = "VIRGINIA_USA"
-				cloud_provider = "AWS"
-			}
+	resource "mongodbatlas_stream_processor" "processor" {
+		project_id     = %[1]q
+		instance_name  = %[2]q
+		processor_name = %[3]q
+		pipeline       = %[4]q
+		%[5]s
+		%[6]s
+		depends_on = [%[7]s]
 		}
-
-		%[3]s
-		%[4]s
-
-		resource "mongodbatlas_stream_processor" "processor" {
-			project_id     = %[1]q
-			instance_name  = mongodbatlas_stream_instance.instance.instance_name
-			processor_name = %[5]q
-			pipeline       = %[6]q
-			%[7]s
-			%[8]s
-			depends_on = [%[9]s]
-		}
-		%[10]s
-		%[11]s
 		
-	`, projectID, instanceName, connectionConfigSrc, connectionConfigDest, processorName, pipeline, stateConfig, optionsStr, dependsOnStr, dataSource, dataSourcePlural)
+	`, projectID, instanceName, processorName, pipeline, stateConfig, optionsStr, dependsOnStr) + otherConfig
 }
 
-func configConnection(t *testing.T, projectID string, config connectionConfig) (connectionConfig, resourceID, pipelineStep string) {
+func configConnection(t *testing.T, projectID, instanceName string, config connectionConfig, nameSuffix string) (connectionConfig, resourceID, pipelineStep string) {
 	t.Helper()
 	assert.False(t, config.extraWhitespace && config.connectionType != connTypeSample, "extraWhitespace is only supported for Sample connection")
 	assert.False(t, config.invalidJSON && config.connectionType != connTypeSample, "invalidJson is only supported for Sample connection")
@@ -607,44 +598,43 @@ func configConnection(t *testing.T, projectID string, config connectionConfig) (
 		clusterName := config.clusterName
 		assert.NotEmpty(t, clusterName)
 		if pipelineStepIsSource {
-			connectionName = "ClusterConnectionSrc"
+			connectionName = "ClusterConnectionSrc" + nameSuffix
 			resourceName = "cluster_src"
 		} else {
-			connectionName = "ClusterConnectionDest"
+			connectionName = "ClusterConnectionDest" + nameSuffix
 			resourceName = "cluster_dest"
 		}
 		connectionConfig = fmt.Sprintf(`
             resource "mongodbatlas_stream_connection" %[4]q {
                 project_id      = %[1]q
                 cluster_name    = %[2]q
-                instance_name   = mongodbatlas_stream_instance.instance.instance_name
+                instance_name   = %[5]q
                 connection_name = %[3]q
                 type            = "Cluster"
                 db_role_to_execute = {
                     role = "atlasAdmin"
                     type = "BUILT_IN"
                 }
-                depends_on = [mongodbatlas_stream_instance.instance] 
             }
-        `, projectID, clusterName, connectionName, resourceName)
+        `, projectID, clusterName, connectionName, resourceName, instanceName)
 		resourceID = fmt.Sprintf("mongodbatlas_stream_connection.%s", resourceName)
 		pipelineStep = fmt.Sprintf("{\"connectionName\":%q}", connectionName)
 		return connectionConfig, resourceID, pipelineStep
 	case "Kafka":
 		var connectionName, resourceName, pipelineStep string
 		if pipelineStepIsSource {
-			connectionName = "KafkaConnectionSrc"
+			connectionName = "KafkaConnectionSrc" + nameSuffix
 			resourceName = "kafka_src"
 			pipelineStep = fmt.Sprintf("{\"connectionName\":%q}", connectionName)
 		} else {
-			connectionName = "KafkaConnectionDest"
+			connectionName = "KafkaConnectionDest" + nameSuffix
 			resourceName = "kafka_dest"
 			pipelineStep = fmt.Sprintf("{\"connectionName\":%q,\"topic\":\"random_topic\"}", connectionName)
 		}
 		connectionConfig = fmt.Sprintf(`
             resource "mongodbatlas_stream_connection" %[3]q{
                 project_id      = %[1]q
-                instance_name   = mongodbatlas_stream_instance.instance.instance_name
+                instance_name   = %[4]q
                 connection_name = %[2]q
                 type            = "Kafka"
                 authentication = {
@@ -659,9 +649,8 @@ func configConnection(t *testing.T, projectID string, config connectionConfig) (
                 security = {
                     protocol = "SASL_PLAINTEXT"
                 }
-                depends_on = [mongodbatlas_stream_instance.instance] 
             }
-        `, projectID, connectionName, resourceName)
+        `, projectID, connectionName, resourceName, instanceName)
 		resourceID = fmt.Sprintf("mongodbatlas_stream_connection.%s", resourceName)
 		return connectionConfig, resourceID, pipelineStep
 	case "Sample":
@@ -669,15 +658,13 @@ func configConnection(t *testing.T, projectID string, config connectionConfig) (
 			t.Fatal("Sample connection must be used as a source")
 		}
 		connectionConfig = fmt.Sprintf(`
-            resource "mongodbatlas_stream_connection" "sample" {
+            data "mongodbatlas_stream_connection" "sample" {
                 project_id      = %[1]q
-                instance_name   = mongodbatlas_stream_instance.instance.instance_name
+                instance_name   = %[2]q
                 connection_name = "sample_stream_solar"
-                type            = "Sample"
-                depends_on = [mongodbatlas_stream_instance.instance] 
             }
-        `, projectID)
-		resourceID = "mongodbatlas_stream_connection.sample"
+        `, projectID, instanceName)
+		resourceID = "data.mongodbatlas_stream_connection.sample"
 		if config.extraWhitespace {
 			pipelineStep = "{\"connectionName\": \"sample_stream_solar\"}"
 		} else {

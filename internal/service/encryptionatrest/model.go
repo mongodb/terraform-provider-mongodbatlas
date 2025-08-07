@@ -3,7 +3,7 @@ package encryptionatrest
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250312004/admin"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 

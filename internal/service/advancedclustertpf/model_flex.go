@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312004/admin"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -152,7 +152,7 @@ func FlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.Mo
 		Name:    waitParams.ClusterName,
 	}
 
-	flexClusterResp, err := flexcluster.WaitStateTransition(ctx, flexClusterParams, client.AtlasV2.FlexClustersApi, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState}, true, &waitParams.Timeout)
+	flexClusterResp, err := flexcluster.WaitStateTransition(ctx, flexClusterParams, client.AtlasV2.FlexClustersApi, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState}, true, waitParams.Timeout)
 	if err != nil {
 		diags.AddError(fmt.Sprintf(flexcluster.ErrorUpgradeFlex, req.Name), err.Error())
 		return nil

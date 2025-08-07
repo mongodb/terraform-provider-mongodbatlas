@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312004/admin"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -53,45 +53,8 @@ func Resource() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			"cloud_provider_config": {
-				Type:     schema.TypeList,
-				MaxItems: 1,
-				Computed: true,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"aws": {
-							Type:     schema.TypeList,
-							MaxItems: 1,
-							Required: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"role_id": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"test_s3_bucket": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"iam_assumed_role_arn": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"iam_user_arn": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"external_id": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
+			// Optional-only behavior from the API, but keeping O+C to avoid behavior changes.
+			"cloud_provider_config": cloudProviderConfig(false),
 			"data_process_region": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
@@ -708,7 +671,8 @@ func newUrls(urlsFromConfig []any) *[]string {
 func newCloudProviderConfig(d *schema.ResourceData) *admin.DataLakeCloudProviderConfig {
 	if cloudProvider, ok := d.Get("cloud_provider_config").([]any); ok && len(cloudProvider) == 1 {
 		return &admin.DataLakeCloudProviderConfig{
-			Aws: newAWSConfig(cloudProvider),
+			Aws:   newAWSConfig(cloudProvider),
+			Azure: newAzureConfig(cloudProvider),
 		}
 	}
 
@@ -721,6 +685,14 @@ func newAWSConfig(cloudProvider []any) *admin.DataLakeAWSCloudProviderConfig {
 		return admin.NewDataLakeAWSCloudProviderConfig(awsSchema["role_id"].(string), awsSchema["test_s3_bucket"].(string))
 	}
 
+	return nil
+}
+
+func newAzureConfig(cloudProvider []any) *admin.DataFederationAzureCloudProviderConfig {
+	if azure, ok := cloudProvider[0].(map[string]any)["azure"].([]any); ok && len(azure) == 1 {
+		azureSchema := azure[0].(map[string]any)
+		return admin.NewDataFederationAzureCloudProviderConfig(azureSchema["role_id"].(string))
+	}
 	return nil
 }
 
@@ -740,8 +712,18 @@ func flattenCloudProviderConfig(d *schema.ResourceData, cloudProviderConfig *adm
 		return nil
 	}
 
-	aws := cloudProviderConfig.GetAws()
+	return []map[string]any{
+		{
+			"aws":   flattenAWSCloudProviderConfig(d, cloudProviderConfig.Aws),
+			"azure": flattenAzureCloudProviderConfig(cloudProviderConfig.Azure),
+		},
+	}
+}
 
+func flattenAWSCloudProviderConfig(d *schema.ResourceData, aws *admin.DataLakeAWSCloudProviderConfig) []map[string]any {
+	if aws == nil {
+		return nil
+	}
 	awsOut := []map[string]any{
 		{
 			"role_id":              aws.GetRoleId(),
@@ -751,27 +733,31 @@ func flattenCloudProviderConfig(d *schema.ResourceData, cloudProviderConfig *adm
 		},
 	}
 
-	currentCloudProviderConfig, ok := d.Get("cloud_provider_config").([]any)
-	if !ok || len(currentCloudProviderConfig) == 0 {
-		return []map[string]any{
-			{
-				"aws": &awsOut,
-			},
-		}
-	}
-	// test_s3_bucket is not part of the API response
-	if currentAWS, ok := currentCloudProviderConfig[0].(map[string]any)["aws"].([]any); ok {
-		if testS3Bucket, ok := currentAWS[0].(map[string]any)["test_s3_bucket"].(string); ok {
-			awsOut[0]["test_s3_bucket"] = testS3Bucket
-			return []map[string]any{
-				{
-					"aws": &awsOut,
-				},
+	// Optionally add test_s3_bucket if present in the config
+	if currentCloudProviderConfig, ok := d.Get("cloud_provider_config").([]any); ok && len(currentCloudProviderConfig) > 0 {
+		if currentAWS, ok := currentCloudProviderConfig[0].(map[string]any)["aws"].([]any); ok && len(currentAWS) > 0 {
+			if testS3Bucket, ok := currentAWS[0].(map[string]any)["test_s3_bucket"].(string); ok && testS3Bucket != "" {
+				awsOut[0]["test_s3_bucket"] = testS3Bucket
 			}
 		}
 	}
 
 	return awsOut
+}
+
+func flattenAzureCloudProviderConfig(azure *admin.DataFederationAzureCloudProviderConfig) []map[string]any {
+	if azure == nil {
+		return nil
+	}
+
+	return []map[string]any{
+		{
+			"role_id":              azure.GetRoleId(),
+			"atlas_app_id":         azure.GetAtlasAppId(),
+			"service_principal_id": azure.GetServicePrincipalId(),
+			"tenant_id":            azure.GetTenantId(),
+		},
+	}
 }
 
 func flattenDataProcessRegion(processRegion *admin.DataLakeDataProcessRegion) []map[string]any {

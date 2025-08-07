@@ -13,7 +13,7 @@ import (
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312004/admin"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -462,7 +462,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if isFlex {
 		flexClusterReq := advancedclustertpf.NewFlexCreateReq(clusterName, d.Get("termination_protection_enabled").(bool), conversion.ExpandTagsFromSetSchema(d), replicationSpecs)
-		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi)
+		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi, &timeout)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(flexcluster.ErrorCreateFlex, err))
 		}
@@ -1326,9 +1326,10 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	replicationSpecs := expandAdvancedReplicationSpecs(d.Get("replication_specs").([]any), nil)
+	timeout := d.Timeout(schema.TimeoutDelete)
 
 	if advancedclustertpf.IsFlex(replicationSpecs) {
-		err := flexcluster.DeleteFlexCluster(ctx, projectID, clusterName, connV2.FlexClustersApi)
+		err := flexcluster.DeleteFlexCluster(ctx, projectID, clusterName, connV2.FlexClustersApi, timeout)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(flexcluster.ErrorDeleteFlex, clusterName, err))
 		}
@@ -1433,7 +1434,7 @@ func waitStateTransitionFlexUpgrade(ctx context.Context, client admin.FlexCluste
 		GroupId: projectID,
 		Name:    name,
 	}
-	flexClusterResp, err := flexcluster.WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState}, true, &timeout)
+	flexClusterResp, err := flexcluster.WaitStateTransition(ctx, flexClusterParams, client, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState}, true, timeout)
 	if err != nil {
 		return nil, err
 	}
@@ -1539,8 +1540,9 @@ func resourceUpdateFlexCluster(ctx context.Context, flexUpdateRequest *admin.Fle
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
+	timeout := d.Timeout(schema.TimeoutUpdate)
 
-	_, err := flexcluster.UpdateFlexCluster(ctx, projectID, clusterName, flexUpdateRequest, connV2.FlexClustersApi)
+	_, err := flexcluster.UpdateFlexCluster(ctx, projectID, clusterName, flexUpdateRequest, connV2.FlexClustersApi, timeout)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(flexcluster.ErrorUpdateFlex, err))
 	}

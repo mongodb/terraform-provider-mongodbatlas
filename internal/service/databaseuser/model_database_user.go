@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250312004/admin"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 )
 
 func NewMongoDBDatabaseUser(ctx context.Context, statePasswordValue, stateDescriptionValue types.String, plan *TfDatabaseUserModel) (*admin.CloudDatabaseUser, diag.Diagnostics) {

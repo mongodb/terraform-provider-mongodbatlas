@@ -27,7 +27,10 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/apikeyprojectassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clouduserorgassignment"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clouduserteamassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/controlplaneipaddresses"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
@@ -351,6 +354,7 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 
 	if data.PublicKey.ValueString() == "" {
 		data.PublicKey = types.StringValue(MultiEnvDefaultFunc([]string{
+			"MONGODB_ATLAS_PUBLIC_API_KEY",
 			"MONGODB_ATLAS_PUBLIC_KEY",
 			"MCLI_PUBLIC_API_KEY",
 		}, "").(string))
@@ -361,6 +365,7 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 
 	if data.PrivateKey.ValueString() == "" {
 		data.PrivateKey = types.StringValue(MultiEnvDefaultFunc([]string{
+			"MONGODB_ATLAS_PRIVATE_API_KEY",
 			"MONGODB_ATLAS_PRIVATE_KEY",
 			"MCLI_PRIVATE_API_KEY",
 		}, "").(string))
@@ -456,6 +461,10 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		flexrestorejob.PluralDataSource,
 		resourcepolicy.DataSource,
 		resourcepolicy.PluralDataSource,
+		clouduserorgassignment.DataSource,
+		clouduserteamassignment.DataSource,
+		apikeyprojectassignment.DataSource,
+		apikeyprojectassignment.PluralDataSource,
 	}
 	if config.PreviewProviderV2AdvancedCluster() {
 		dataSources = append(dataSources, advancedclustertpf.DataSource, advancedclustertpf.PluralDataSource)
@@ -480,6 +489,9 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		streamprivatelinkendpoint.Resource,
 		flexcluster.Resource,
 		resourcepolicy.Resource,
+		clouduserorgassignment.Resource,
+		apikeyprojectassignment.Resource,
+		clouduserteamassignment.Resource,
 	}
 	if config.PreviewProviderV2AdvancedCluster() {
 		resources = append(resources, advancedclustertpf.Resource)

@@ -9,7 +9,7 @@ on:
     inputs:
       terraform_matrix:
         description: 'Terraform version matrix (JSON array)'
-        default: '["1.12.x","1.11.x","1.10.x","1.9.x","1.8.x","1.7.x","1.6.x","1.5.x"]'
+        default: '["1.12.x","1.11.x","1.10.x","1.9.x","1.8.x","1.7.x","1.6.x"]'
       provider_matrix:
         description: 'Previous MongoDB Atlas Provider version matrix for migration tests (JSON array)'
         default: '[""]' # "" for latest version
@@ -94,7 +94,7 @@ jobs:
     steps:
       - name: Send Slack message
         id: slack
-        uses: slackapi/slack-github-action@b0fa283ad8fea605de13dc3f449259339835fc52
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
@@ -106,7 +106,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Test Suite failed* ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Failed Action>"
+                    "text": "❌ *Test Suite failed* ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Failed Action>"
                   }
                 }
               ]

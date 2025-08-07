@@ -3,6 +3,9 @@ bin
 .DS_Store
 .idea
 .vscode
+.windsurf
+CLAUDE.md
+.claude
 *.env
 *.bak
 *.log

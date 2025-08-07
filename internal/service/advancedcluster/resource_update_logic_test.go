@@ -5,7 +5,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20250312004/admin"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 )
 
 func TestSyncAutoScalingConfigs(t *testing.T) {

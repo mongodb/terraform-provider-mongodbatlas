@@ -14,7 +14,7 @@ import (
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312004/admin"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
@@ -289,7 +289,11 @@ func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParam
 	}
 
 	apiResp, err := untypedClient.CallAPI(apiReq)
+	if err != nil || apiResp == nil {
+		return apiResp, err
+	}
 
+	// Returns a GenericOpenAPIError error if HTTP status code is not successful.
 	if apiResp.StatusCode >= 300 {
 		newErr := untypedClient.MakeApiError(apiResp, params.Method, localVarPath)
 		return apiResp, newErr

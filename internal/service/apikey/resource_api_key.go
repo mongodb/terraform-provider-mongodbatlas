@@ -7,7 +7,7 @@ import (
 	"log"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312004/admin"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -171,6 +171,10 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	r, _, err := connV2.ProgrammaticAPIKeysApi.GetApiKey(ctx, orgID, apiKeyID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import api key %s in project %s, error: %s", orgID, apiKeyID, err)
+	}
+
+	if err := d.Set("org_id", orgID); err != nil {
+		return nil, fmt.Errorf("error setting `org_id`: %s", err)
 	}
 
 	if err := d.Set("description", r.Desc); err != nil {

@@ -1,3 +1,0 @@
-```release-note:bug
-resource/mongodbatlas_cloud_backup_schedule: Updates `copy_settings` on changes (even when empty)
-```

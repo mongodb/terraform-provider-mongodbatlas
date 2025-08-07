@@ -22,7 +22,7 @@ func DataSourceSetup() *schema.Resource {
 			"provider_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{"AWS"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"AWS", "AZURE"}, false),
 			},
 			"role_id": {
 				Type:     schema.TypeString,

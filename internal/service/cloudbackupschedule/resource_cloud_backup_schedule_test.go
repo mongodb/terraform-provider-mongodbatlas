@@ -165,7 +165,7 @@ func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 
 		Steps: []resource.TestStep{
 			{
-				Config: configExportPolicies(&clusterInfo, policyName, roleName, bucketName),
+				Config: configExportPolicies(&clusterInfo, policyName, roleName, bucketName, true, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
@@ -177,6 +177,15 @@ func TestAccBackupRSCloudBackupSchedule_export(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.frequency_interval", "1"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_unit", "days"),
 					resource.TestCheckResourceAttr(resourceName, "policy_item_daily.0.retention_value", "4"),
+				),
+			},
+			{
+				Config: configExportPolicies(&clusterInfo, policyName, roleName, bucketName, false, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
+					resource.TestCheckResourceAttr(resourceName, "auto_export_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "export.#", "0"),
 				),
 			},
 		},
@@ -934,12 +943,23 @@ func configAdvancedPolicies(info *acc.ClusterInfo, p *admin20240530.DiskBackupSn
 	`, info.TerraformNameRef, info.ProjectID, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
-func configExportPolicies(info *acc.ClusterInfo, policyName, roleName, bucketName string) string {
+func configExportPolicies(info *acc.ClusterInfo, policyName, roleName, bucketName string, includeAutoExport, includeExport bool) string {
+	autoExport := ""
+	export := ""
+	if includeAutoExport {
+		autoExport = "auto_export_enabled = true"
+	}
+	if includeExport {
+		export = `export {
+			export_bucket_id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
+			frequency_type   = "monthly"
+		}`
+	}
 	return info.TerraformStr + fmt.Sprintf(`
     resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
         cluster_name             = %[1]s
         project_id               = %[2]q
-        auto_export_enabled      = true
+        %[6]s
         reference_hour_of_day    = 20
         reference_minute_of_hour = "05"
         restore_window_days      = 4
@@ -966,10 +986,7 @@ func configExportPolicies(info *acc.ClusterInfo, policyName, roleName, bucketNam
             retention_value    = 4
         }  		
 
-        export {
-            export_bucket_id = mongodbatlas_cloud_backup_snapshot_export_bucket.test.export_bucket_id
-            frequency_type   = "monthly"
-        }
+        %[7]s
     }
 
     resource "aws_s3_bucket" "backup" {
@@ -1040,7 +1057,7 @@ func configExportPolicies(info *acc.ClusterInfo, policyName, roleName, bucketNam
         }
     EOF
     }
-    `, info.TerraformNameRef, info.ProjectID, policyName, roleName, bucketName)
+    `, info.TerraformNameRef, info.ProjectID, policyName, roleName, bucketName, autoExport, export)
 }
 
 func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {

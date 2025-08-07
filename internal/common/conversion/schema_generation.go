@@ -7,6 +7,7 @@ import (
 
 	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 )
 
 type DataSourceSchemaRequest struct {
@@ -54,7 +55,7 @@ func PluralDataSourceSchemaFromResource(rs schema.Schema, req *PluralDataSourceS
 		MarkdownDescription: resultsDoc,
 	}
 	if req.HasLegacyFields {
-		rootAttrs["id"] = dsschema.StringAttribute{Computed: true}
+		rootAttrs["id"] = dsschema.StringAttribute{Computed: true, DeprecationMessage: constant.DeprecationParam}
 		rootAttrs["total_count"] = dsschema.Int64Attribute{Computed: true}
 		rootAttrs["page_num"] = dsschema.Int64Attribute{Optional: true}
 		rootAttrs["items_per_page"] = dsschema.Int64Attribute{Optional: true}
@@ -90,10 +91,10 @@ var convertNestedMappings = map[string]reflect.Type{
 }
 
 func convertAttrs(rsAttrs map[string]schema.Attribute, requiredFields []string) map[string]dsschema.Attribute {
-	const ignoreField = "timeouts"
+	ignoreFields := []string{"timeouts", "delete_on_create_timeout"}
 	dsAttrs := make(map[string]dsschema.Attribute, len(rsAttrs))
 	for name, attr := range rsAttrs {
-		if name == ignoreField {
+		if slices.Contains(ignoreFields, name) {
 			continue
 		}
 		dsAttrs[name] = convertElement(name, attr, requiredFields).(dsschema.Attribute)

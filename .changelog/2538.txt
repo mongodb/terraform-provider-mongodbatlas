@@ -1,7 +1,0 @@
-```release-note:new-datasource
-data-source/mongodbatlas_encryption_at_rest
-```
-
-```release-note:enhancement
-resource/mongodbatlas_encryption_at_rest: Adds `aws_kms_config.0.valid`, `azure_key_vault_config.0.valid` and `google_cloud_kms_config.0.valid` attribute
-```

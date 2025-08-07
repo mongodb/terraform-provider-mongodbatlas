@@ -58,4 +58,4 @@ output "test" {
 - `prefix_path` (String) S3 directory in which vector writes in order to store the logs. An empty string denotes the root directory.
 - `state` (String) Describes whether or not the feature is enabled and what status it is in.
 
-For more information see: [MongoDB Atlas API - Push-Based Log Export](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Push-Based-Log-Export) Documentation.
+For more information see: [MongoDB Atlas API - Push-Based Log Export](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-push-based-log-export) Documentation.

@@ -10,7 +10,7 @@
 
 ```terraform
 data "mongodbatlas_federated_database_instance" "test" {
-  project_id         = "PROJECT ID"
+  project_id         = "<PROJECT_ID>"
   name               = "TENANT NAME OF THE FEDERATED DATABASE INSTANCE"
 }
 ```
@@ -19,13 +19,27 @@ data "mongodbatlas_federated_database_instance" "test" {
 
 ```terraform
 data "mongodbatlas_federated_database_instance" "test" {
-  project_id         = "PROJECT ID"
-  name               = "TENANT NAME OF THE FEDERATED DATABASE INSTANCE"
+  project_id         = "<PROJECT_ID>"
+  name               = "<TENANT_NAME_OF_THE_FEDERATED_DATABASE_INSTANCE>"
   cloud_provider_config {
 		aws {
 			test_s3_bucket = "Amazon S3 Bucket Name"
 		}
 	}
+}
+```
+
+## Example of Azure Blob Storage as storage database
+
+```terraform
+data "mongodbatlas_federated_database_instance" "test" {
+  project_id = "<PROJECT_ID>"
+  name       = "<TENANT_NAME_OF_THE_FEDERATED_DATABASE_INSTANCE>"
+  cloud_provider_config {
+    azure {
+      role_id = "<AZURE_ROLE_ID>"
+    }
+  }
 }
 ```
 
@@ -97,9 +111,15 @@ In addition to all arguments above, the following attributes are exported:
 * `iam_user_arn` - Amazon Resource Name (ARN) of the user that the Federated Database Instance assumes when accessing S3 Bucket data stores.
 * `external_id` - Unique identifier associated with the IAM Role that the Federated Database Instance assumes when accessing the data stores.
 * `role_id` - Unique identifier of the role that the data lake can use to access the data stores.
+
+#### `azure` - Microsoft Azure provider of the cloud service where the Federated Database Instance can access Blob Storage.
+* `atlas_azure_app_id` - Unique identifier of the Azure Active Directory application associated with the service principal.
+* `service_principal_id` - Unique identifier of the Azure service principal that the Federated Database instance uses to access Azure Blob Storage.
+* `tenant_id` - Unique identifier of the Azure Active Directory tenant where the service principal resides.
+* `role_id` - Unique identifier of the role that the Federated Database Instance can use to access the data stores.
+
 ### `data_process_region` - The cloud provider region to which the Federated Instance routes client connections for data processing.
-* `cloud_provider` -  Name of the cloud service provider. Atlas Federated Database only supports AWS.
-* `region` - Name of the region to which the Federanted Instnace routes client connections for data processing. 
+* `cloud_provider` -  Name of the cloud service provider. Supported providers: `AWS`, `AZURE`.
+* `region` - Name of the region to which the Federated Instance routes client connections for data processing.
 
-
-See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation) Documentation for more information.
+To learn more, see the [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation) documentation.

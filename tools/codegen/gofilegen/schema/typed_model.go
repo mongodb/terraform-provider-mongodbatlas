@@ -99,6 +99,8 @@ func typedModelProperty(attr *codespec.Attribute) string {
 
 func attrModelType(attr *codespec.Attribute) string {
 	switch {
+	case attr.CustomType != nil:
+		return attr.CustomType.Model
 	case attr.Float64 != nil:
 		return "types.Float64"
 	case attr.Bool != nil:

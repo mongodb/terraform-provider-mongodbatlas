@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312004/admin"
-	"go.mongodb.org/atlas-sdk/v20250312004/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312006/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -113,6 +113,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			teamsMock := mockadmin.NewTeamsApi(t)
 			projectsMock := mockadmin.NewProjectsApi(t)
 			perfMock := mockadmin.NewPerformanceAdvisorApi(t)
+			cloudUsersMock := mockadmin.NewMongoDBCloudUsersApi(t)
 
 			teamsMock.EXPECT().ListProjectTeams(mock.Anything, mock.Anything).Return(admin.ListProjectTeamsApiRequest{ApiService: teamsMock})
 			teamsMock.EXPECT().ListProjectTeamsExecute(mock.Anything).Return(tc.teamRoleReponse.TeamRole, tc.teamRoleReponse.HTTPResponse, tc.teamRoleReponse.Err)
@@ -129,7 +130,16 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			perfMock.EXPECT().GetManagedSlowMs(mock.Anything, mock.Anything).Return(admin.GetManagedSlowMsApiRequest{ApiService: perfMock}).Maybe()
 			perfMock.EXPECT().GetManagedSlowMsExecute(mock.Anything).Return(true, nil, nil).Maybe()
 
-			_, err := project.GetProjectPropsFromAPI(t.Context(), projectsMock, teamsMock, perfMock, dummyProjectID, nil)
+			projectPropsParams := &project.PropsParams{
+				ProjectID:             dummyProjectID,
+				IsDataSource:          false,
+				ProjectsAPI:           projectsMock,
+				TeamsAPI:              teamsMock,
+				PerformanceAdvisorAPI: perfMock,
+				MongoDBCloudUsersAPI:  cloudUsersMock,
+			}
+
+			_, err := project.GetProjectPropsFromAPI(t.Context(), projectPropsParams, nil)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -528,14 +538,22 @@ func TestAccProject_basic(t *testing.T) {
 		"is_realtime_performance_panel_enabled",
 		"is_schema_advisor_enabled",
 	}
+
+	dataSourceChecks := map[string]string{
+		"users.#": "1",
+	}
+
 	checks := acc.AddAttrChecks(resourceName, nil, commonChecks)
 	checks = acc.AddAttrChecks(dataSourceNameByID, checks, commonChecks)
 	checks = acc.AddAttrChecks(dataSourceNameByName, checks, commonChecks)
+	checks = acc.AddAttrChecks(dataSourceNameByID, checks, dataSourceChecks)
+	checks = acc.AddAttrChecks(dataSourceNameByName, checks, dataSourceChecks)
 	checks = acc.AddAttrSetChecks(resourceName, checks, commonSetChecks...)
 	checks = acc.AddAttrSetChecks(dataSourceNameByID, checks, commonSetChecks...)
 	checks = acc.AddAttrSetChecks(dataSourceNameByName, checks, commonSetChecks...)
 	checks = append(checks, checkExists(resourceName), checkExists(dataSourceNameByID), checkExists(dataSourceNameByName))
 	checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, "total_count", "results.#", "results.0.is_slow_operation_thresholding_enabled")
+	checks = append(checks, resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.0.users.#", acc.IntGreatThan(0)))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIDsWithMinCount(t, 3) },
@@ -1186,8 +1204,7 @@ func configBasic(orgID, projectName, projectOwnerID string, includeDataSource bo
 			data "mongodbatlas_project" "test2" {
 				name = mongodbatlas_project.test.name
 			}
-
-			data "mongodbatlas_projects" "test" {
+			 data "mongodbatlas_projects" "test" {
 			}
 		`
 	}

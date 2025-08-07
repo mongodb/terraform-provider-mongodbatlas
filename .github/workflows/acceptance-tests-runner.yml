@@ -244,6 +244,7 @@ jobs:
       autogen: ${{ steps.filter.outputs.autogen == 'true' || env.mustTrigger == 'true' }}
       backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
       control_plane_ip_addresses: ${{ steps.filter.outputs.control_plane_ip_addresses == 'true' || env.mustTrigger == 'true' }}
+      cloud_user: ${{ steps.filter.outputs.cloud_user == 'true' || env.mustTrigger == 'true' }}
       cluster: ${{ steps.filter.outputs.cluster == 'true' || env.mustTrigger == 'true' }}
       cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation == 'true' || env.mustTrigger == 'true' }}
       config: ${{ steps.filter.outputs.config == 'true' || env.mustTrigger == 'true' }}
@@ -280,9 +281,11 @@ jobs:
             - 'internal/provider/*.go'
           autogen:
             - 'internal/common/autogen/*.go'
+            - 'internal/serviceapi/auditingapi/*.go'
             - 'internal/serviceapi/clusterapi/*.go'
             - 'internal/serviceapi/customdbroleapi/*.go'
             - 'internal/serviceapi/databaseuserapi/*.go'
+            - 'internal/serviceapi/maintenancewindowapi/*.go'
             - 'internal/serviceapi/projectapi/*.go'
             - 'internal/serviceapi/pushbasedlogexportapi/*.go'
             - 'internal/serviceapi/resourcepolicyapi/*.go'            
@@ -297,6 +300,9 @@ jobs:
             - 'internal/service/onlinearchive/*.go'
           control_plane_ip_addresses:
             - 'internal/service/controlplaneipaddresses/*.go'
+          cloud_user:
+            - 'internal/service/clouduserorgassignment/*.go'
+            - 'internal/service/clouduserteamassignment/*.go'
           cluster:
             - 'internal/service/cluster/*.go'
           cluster_outage_simulation:
@@ -305,6 +311,7 @@ jobs:
             - 'internal/config/*.go'
             - 'internal/service/alertconfiguration/*.go'
             - 'internal/service/apikey/*.go'
+            - 'internal/service/apikeyprojectassignment/*.go'
             - 'internal/service/atlasuser/*.go'
             - 'internal/service/cloudprovideraccess/*.go'
             - 'internal/service/customdbrole/*.go'
@@ -515,9 +522,11 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
+            ./internal/serviceapi/auditingapi
             ./internal/serviceapi/clusterapi
             ./internal/serviceapi/customdbroleapi
             ./internal/serviceapi/databaseuserapi
+            ./internal/serviceapi/maintenancewindowapi
             ./internal/serviceapi/projectapi
             ./internal/serviceapi/pushbasedlogexportapi
             ./internal/serviceapi/resourcepolicyapi
@@ -584,7 +593,34 @@ jobs:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: ./internal/service/controlplaneipaddresses
         run: make testacc
-      
+        
+  cloud_user:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ needs.change-detection.outputs.cloud_user == 'true' || inputs.test_group == 'cloud_user' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false  
+      - name: Acceptance Tests
+        env:
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          MONGODB_ATLAS_TEAMS_IDS: ${{ inputs.mongodb_atlas_teams_ids }}
+          MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
+          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
+          ACCTEST_PACKAGES: |
+            ./internal/service/clouduserorgassignment
+            ./internal/service/clouduserteamassignment
+        run: make testacc
+
   cluster:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.cluster == 'true' || inputs.test_group == 'cluster' }}
@@ -670,6 +706,7 @@ jobs:
             ./internal/service/organization
             ./internal/service/orginvitation
             ./internal/service/projectapikey
+            ./internal/service/apikeyprojectassignment
             ./internal/service/apikey
             ./internal/service/rolesorgid
             ./internal/service/team
@@ -768,6 +805,9 @@ jobs:
           MONGODB_ATLAS_FEDERATED_ISSUER_URI: ${{ inputs.mongodb_atlas_federated_issuer_uri }}
           MONGODB_ATLAS_FEDERATED_ORG_ID: ${{ inputs.mongodb_atlas_federated_org_id }}
           MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN: ${{ inputs.mongodb_atlas_federated_settings_associated_domain }}
+          AZURE_ATLAS_APP_ID: ${{ inputs.azure_atlas_app_id }}
+          AZURE_SERVICE_PRINCIPAL_ID: ${{ inputs.azure_service_principal_id }}
+          AZURE_TENANT_ID: ${{ inputs.azure_tenant_id }}
           AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_federation }}
           AWS_REGION: ${{ inputs.aws_region_federation }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
@@ -124,6 +125,58 @@ func TestMigBackupRSCloudBackupSchedule_copySettings(t *testing.T) {
 				Check:                    resource.ComposeAggregateTestCheckFunc(checksUpdateWithZoneID...),
 			},
 			mig.TestStepCheckEmptyPlan(copySettingsConfigWithZoneID),
+		},
+	})
+}
+
+func TestMigBackupRSCloudBackupSchedule_export(t *testing.T) {
+	mig.SkipIfVersionBelow(t, "2.0.0") // in 2.0.0 we made auto_export_enabled and export fields optional only
+	var (
+		clusterInfo = acc.GetClusterInfo(t, &acc.ClusterRequest{CloudBackup: true, ResourceDependencyName: "mongodbatlas_cloud_backup_snapshot_export_bucket.test"})
+		policyName  = acc.RandomName()
+		roleName    = acc.RandomIAMRole()
+		bucketName  = acc.RandomS3BucketName()
+
+		configWithExport    = configExportPolicies(&clusterInfo, policyName, roleName, bucketName, true, true)
+		configWithoutExport = configExportPolicies(&clusterInfo, policyName, roleName, bucketName, false, false)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     mig.PreCheckBasicSleep(t),
+		CheckDestroy: checkDestroy,
+		Steps: []resource.TestStep{
+			// Step 1: Apply config with export and auto_export_enabled (old provider)
+			{
+				ExternalProviders: mig.ExternalProvidersWithAWS(),
+				Config:            configWithExport,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
+					resource.TestCheckResourceAttr(resourceName, "auto_export_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "export.#", "1"),
+				),
+			},
+			// Step 2: Remove export and auto_export_enabled, expect empty plan (old provider)
+			{
+				ExternalProviders: mig.ExternalProvidersWithAWS(),
+				Config:            configWithExport,
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectEmptyPlan(),
+					},
+				},
+			},
+			// Step 3: Apply config without export and auto_export_enabled (new provider)
+			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+				Config:                   configWithoutExport,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterInfo.Name),
+					resource.TestCheckResourceAttr(resourceName, "auto_export_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "export.#", "0"),
+				),
+			},
 		},
 	})
 }

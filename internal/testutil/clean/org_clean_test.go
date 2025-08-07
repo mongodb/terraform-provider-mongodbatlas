@@ -11,13 +11,14 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312004/admin"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/clean"
 )
 
 const (
@@ -209,6 +210,10 @@ func removeProjectResources(ctx context.Context, t *testing.T, dryRun bool, clie
 	if privateEndpointServicesRemoved > 0 {
 		changes = append(changes, fmt.Sprintf("removed %d private endpoint services", privateEndpointServicesRemoved))
 	}
+	encryptionAtRestPrivateEndpointsRemoved := removeEncryptionAtRestPrivateEndpoints(ctx, t, dryRun, client, projectID)
+	if encryptionAtRestPrivateEndpointsRemoved > 0 {
+		changes = append(changes, fmt.Sprintf("removed %d encryption at rest private endpoints", encryptionAtRestPrivateEndpointsRemoved))
+	}
 	return strings.Join(changes, ", ")
 }
 
@@ -331,35 +336,9 @@ func removeDataLakePipelines(ctx context.Context, t *testing.T, dryRun bool, cli
 
 func removeStreamInstances(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
 	t.Helper()
-	streamInstances, _, err := client.StreamsApi.ListStreamInstances(ctx, projectID).Execute()
+	count, err := clean.RemoveStreamInstances(ctx, dryRun, client, projectID)
 	require.NoError(t, err)
-
-	for _, instance := range *streamInstances.Results {
-		instanceName := *instance.Name
-		id := instance.GetId()
-		t.Logf("delete stream instance %s", id)
-
-		if !dryRun {
-			_, err = client.StreamsApi.DeleteStreamInstance(ctx, projectID, instanceName).Execute()
-			if err != nil && admin.IsErrorCode(err, "STREAM_TENANT_HAS_STREAM_PROCESSORS") {
-				t.Logf("stream instance %s has stream processors, attempting to delete", id)
-				streamProcessors, _, spErr := client.StreamsApi.ListStreamProcessors(ctx, projectID, instanceName).Execute()
-				require.NoError(t, spErr)
-
-				for _, processor := range *streamProcessors.Results {
-					t.Logf("delete stream processor %s", processor.Id)
-					_, err = client.StreamsApi.DeleteStreamProcessor(ctx, projectID, instanceName, processor.Name).Execute()
-					require.NoError(t, err)
-				}
-				t.Logf("retry delete stream instance %s after removing stream processors", id)
-				_, err = client.StreamsApi.DeleteStreamInstance(ctx, projectID, instanceName).Execute()
-				require.NoError(t, err)
-			} else {
-				require.NoError(t, err)
-			}
-		}
-	}
-	return len(*streamInstances.Results)
+	return count
 }
 
 func removePrivateEndpointServices(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
@@ -421,4 +400,25 @@ func removeFederatedDatabases(ctx context.Context, t *testing.T, dryRun bool, cl
 		}
 	}
 	return len(federatedResults)
+}
+
+func removeEncryptionAtRestPrivateEndpoints(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
+	t.Helper()
+	endpointsCount := 0
+	for _, cloudProvider := range []string{constant.AWS, constant.AZURE} {
+		privateEndpoints, _, err := client.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRestPrivateEndpointsForCloudProvider(ctx, projectID, cloudProvider).Execute()
+		require.NoError(t, err)
+		endpoints := privateEndpoints.GetResults()
+		endpointsCount += len(endpoints)
+		for _, endpoint := range endpoints {
+			endpointID := endpoint.GetId()
+			t.Logf("delete encryption at rest private endpoint %s", endpointID)
+			if !dryRun {
+				_, err = client.EncryptionAtRestUsingCustomerKeyManagementApi.RequestEncryptionAtRestPrivateEndpointDeletion(ctx, projectID, cloudProvider, endpointID).Execute()
+				require.NoError(t, err)
+				time.Sleep(30 * time.Second)
+			}
+		}
+	}
+	return endpointsCount
 }

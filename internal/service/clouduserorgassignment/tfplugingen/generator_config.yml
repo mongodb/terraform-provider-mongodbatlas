@@ -1,0 +1,23 @@
+provider:
+  name: mongodbatlas
+
+resources:
+  cloud_user_org_assignment:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/users/{userId}
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/users
+      method: POST
+    update:
+      path: /api/atlas/v2/orgs/{orgId}/users/{userId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/users/{userId}
+      method: DELETE
+
+data_sources:
+  cloud_user_org_assignment:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/users/{userId}
+      method: GET

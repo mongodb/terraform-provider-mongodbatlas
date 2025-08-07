@@ -1,6 +1,6 @@
 module github.com/mongodb/terraform-provider-mongodbatlas
 
-go 1.24.4
+go 1.24.5
 
 require (
 	github.com/andygrunwald/go-jira/v2 v2.0.0-20240116150243-50d59fe116d6
@@ -10,7 +10,7 @@ require (
 	github.com/hashicorp/go-cty v1.5.0
 	github.com/hashicorp/go-version v1.7.0
 	github.com/hashicorp/hc-install v0.9.2
-	github.com/hashicorp/hcl/v2 v2.23.0
+	github.com/hashicorp/hcl/v2 v2.24.0
 	github.com/hashicorp/terraform-exec v0.23.0
 	github.com/hashicorp/terraform-plugin-framework v1.15.0
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.5.0
@@ -24,9 +24,9 @@ require (
 	github.com/huandu/xstrings v1.5.0
 	github.com/jarcoal/httpmock v1.4.0
 	github.com/mongodb-forks/digest v1.1.0
-	github.com/mongodb/atlas-sdk-go v1.0.1-0.20250623084102-bbd2add2ae80
-	github.com/pb33f/libopenapi v0.22.3
-	github.com/sebdah/goldie/v2 v2.5.5
+	github.com/mongodb/atlas-sdk-go v1.0.1-0.20250806084240-f8831d13e1be
+	github.com/pb33f/libopenapi v0.24.0
+	github.com/sebdah/goldie/v2 v2.7.1
 	github.com/spf13/cast v1.9.2
 	github.com/stretchr/testify v1.10.0
 	github.com/wI2L/jsondiff v0.7.0
@@ -41,7 +41,8 @@ require (
 
 require (
 	github.com/hashicorp/terraform-json v0.25.0
-	go.mongodb.org/atlas-sdk/v20250312004 v20250312004.0.0
+	github.com/hashicorp/terraform-plugin-framework-jsontypes v0.2.0
+	go.mongodb.org/atlas-sdk/v20250312006 v20250312006.0.0
 )
 
 require (

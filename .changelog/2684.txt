@@ -1,3 +1,0 @@
-```release-note:bug
-resource/mongodbatlas_organization: Avoids inconsistent result returned by provider when `USER_NOT_FOUND`
-```

@@ -55,8 +55,10 @@ func Resource() *schema.Resource {
 				Required: true,
 			},
 			"usernames": {
-				Type:     schema.TypeSet,
-				Required: true,
+				Type:       schema.TypeSet,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "parameter", "mongodbatlas_cloud_user_team_assignment", "<link-to-migration-guide>"),
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -76,11 +78,15 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	orgID := d.Get("org_id").(string)
 
 	usernames := conversion.ExpandStringListFromSetSchema(d.Get("usernames").(*schema.Set))
-	teamsResp, _, err := connV2.TeamsApi.CreateTeam(ctx, orgID,
-		&admin20241113.Team{
-			Name:      d.Get("name").(string),
-			Usernames: usernames,
-		}).Execute()
+	createTeamReq := &admin20241113.Team{
+		Name: d.Get("name").(string),
+	}
+
+	if len(usernames) > 0 {
+		createTeamReq.Usernames = usernames
+	}
+
+	teamsResp, _, err := connV2.TeamsApi.CreateTeam(ctx, orgID, createTeamReq).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorTeamCreate, err))
 	}

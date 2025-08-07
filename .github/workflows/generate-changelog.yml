@@ -31,7 +31,7 @@ jobs:
     steps:
       - name: Send Slack message
         id: slack
-        uses: slackapi/slack-github-action@b0fa283ad8fea605de13dc3f449259339835fc52
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
@@ -43,7 +43,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Automatic Changelog update failed* ${{ secrets.SLACK_ONCALL_TAG }} . <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|Failed action >"
+                    "text": "❌ *Automatic Changelog update failed* ${{ secrets.SLACK_ONCALL_TAG }} . <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|Failed action >"
                   }
                 }
               ]

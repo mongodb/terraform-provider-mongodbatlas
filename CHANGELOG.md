@@ -1,5 +1,50 @@
 ## (Unreleased)
 
+## 1.39.0 (July 24, 2025)
+
+NOTES:
+
+* New environment variables: We added support for the `MONGODB_ATLAS_PUBLIC_API_KEY` and `MONGODB_ATLAS_PRIVATE_API_KEY` environment variables which are widely used across the MongoDB ecosystem. ([#3505](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3505))
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_federated_database_instance: Adds `azure` attribute to support reading federated databases with Azure cloud provider configuration ([#3484](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3484))
+* data-source/mongodbatlas_federated_database_instances: Adds `azure` attribute to support reading federated databases with Azure cloud provider configuration ([#3484](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3484))
+* resource/mongodbatlas_federated_database_instance: Adds `azure` attribute to allow the creation of federated databases with Azure cloud provider configuration ([#3484](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3484))
+
+BUG FIXES:
+
+* resource/mongodbatlas_organization: Sets org_id on import ([#3513](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3513))
+
+## 1.38.0 (July 10, 2025)
+
+NOTES:
+
+* data-source/mongodbatlas_stream_connections: Deprecates the `id` attribute as it is a random assigned value which should not be used ([#3476](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3476))
+* data-source/mongodbatlas_stream_instances: Deprecates the `id` attribute as it is a random assigned value which should not be used ([#3476](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3476))
+
+FEATURES:
+
+* **New Data Source:** `data-source/mongodbatlas_api_key_project_assignment` ([#3461](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3461))
+* **New Data Source:** `data-source/mongodbatlas_api_key_project_assignments` ([#3461](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3461))
+* **New Resource:** `resource/mongodbatlas_api_key_project_assignment` ([#3461](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3461))
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_third_party_integration Adds `send_user_provided_resource_tags` attribute to support sending $querystats to DataDog ([#3454](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3454))
+* data-source/mongodbatlas_third_party_integrations Adds `send_user_provided_resource_tags` attribute to support sending $querystats to DataDog ([#3454](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3454))
+* resource/mongodbatlas_organization: Adds import support ([#3475](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3475))
+* resource/mongodbatlas_third_party_integration Adds `send_user_provided_resource_tags` attribute to support sending $querystats to DataDog ([#3454](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3454))
+
+BUG FIXES:
+
+* data-source/mongodbatlas_cloud_backup_snapshot_export_buckets: Fix pagination when `items_per_page` or `page_num` are not set ([#3459](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3459))
+* data-source/mongodbatlas_cloud_backup_snapshot_export_jobs: Fix pagination when `items_per_page` or `page_num` are not set ([#3459](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3459))
+* data-source/mongodbatlas_cloud_backup_snapshot_restore_jobs: Fix pagination when `items_per_page` or `page_num` are not set ([#3459](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3459))
+* data-source/mongodbatlas_cloud_backup_snapshots: Fix pagination when `items_per_page` or `page_num` are not set ([#3459](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3459))
+* data-source/mongodbatlas_federated_settings_org_configs: Fix pagination when `items_per_page` or `page_num` are not set ([#3459](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3459))
+* data-source/mongodbatlas_organizations: Fix pagination when `items_per_page` or `page_num` are not set ([#3459](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3459))
+
 ## 1.37.0 (June 26, 2025)
 
 ENHANCEMENTS:
