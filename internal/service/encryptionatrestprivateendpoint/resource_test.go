@@ -41,7 +41,7 @@ func TestAccEncryptionAtRestPrivateEndpoint_createTimeoutWithDeleteOnCreate(t *t
 		// Create encryption at rest configuration outside of test configuration to avoid cleanup issues
 		projectID = acc.EncryptionAtRestExecution(t)
 	)
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckEncryptionAtRestEnvAWS(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
