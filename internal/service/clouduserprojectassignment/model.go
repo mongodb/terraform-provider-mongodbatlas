@@ -24,7 +24,7 @@ func NewTFModel(ctx context.Context, projectID string, apiResp *admin.GroupUserR
 		CreatedAt:           types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.CreatedAt)),
 		FirstName:           types.StringPointerValue(apiResp.FirstName),
 		ProjectId:           types.StringValue(projectID),
-		UserId:              types.StringValue(apiResp.GetId()),
+		UserId:              types.StringValue(apiResp.Id),
 		InvitationCreatedAt: types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.InvitationCreatedAt)),
 		InvitationExpiresAt: types.StringPointerValue(conversion.TimePtrToStringPtr(apiResp.InvitationExpiresAt)),
 		InviterUsername:     types.StringPointerValue(apiResp.InviterUsername),
