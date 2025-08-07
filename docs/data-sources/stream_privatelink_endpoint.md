@@ -244,13 +244,8 @@ resource "mongodbatlas_stream_privatelink_endpoint" "this" {
   service_endpoint_id = var.service_endpoint_id
 }
 
-data "mongodbatlas_stream_privatelink_endpoint" "singular_datasource" {
-  project_id = var.project_id
-  id         = mongodbatlas_stream_privatelink_endpoint.this.id
-}
-
 output "privatelink_endpoint_id" {
-  value = data.mongodbatlas_stream_privatelink_endpoint.singular_datasource.id
+  value = mongodbatlas_stream_privatelink_endpoint.this.id
 }
 ```
 
