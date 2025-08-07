@@ -46,7 +46,7 @@ output "mongodbatlas_flex_clusters_names" {
 
 ### Optional
 
-- `delete_on_create_timeout` (Boolean) Indicates whether to delete the resource if creation times out. Default is `true`. When Terraform apply fails, it returns immediately without waiting for cleanup to complete. If you suspect a transient error, wait before retrying to allow resource deletion to finish.
+- `delete_on_create_timeout` (Boolean) Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
 - `tags` (Map of String) Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the instance.
 - `termination_protection_enabled` (Boolean) Flag that indicates whether termination protection is enabled on the cluster. If set to `true`, MongoDB Cloud won't delete the cluster. If set to `false`, MongoDB Cloud will delete the cluster.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
