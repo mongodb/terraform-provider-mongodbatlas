@@ -18,7 +18,7 @@ func resourceSchema() schema.Schema {
 			"role_names": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Required:            true,
-				MarkdownDescription: "One or more project-level roles to assign to the team.",
+				MarkdownDescription: "One or more project-level roles assigned to the team.",
 			},
 			"team_id": schema.StringAttribute{
 				Required:            true,
@@ -31,13 +31,6 @@ func resourceSchema() schema.Schema {
 func dataSourceSchema() dsschema.Schema {
 	return conversion.DataSourceSchemaFromResource(resourceSchema(), &conversion.DataSourceSchemaRequest{
 		RequiredFields: []string{"project_id", "team_id"},
-		OverridenFields: map[string]dsschema.Attribute{
-			"role_names": dsschema.SetAttribute{
-				Computed:            true,
-				ElementType:         types.StringType,
-				MarkdownDescription: "One or more project-level roles to assign to the team.",
-			},
-		},
 	})
 }
 
