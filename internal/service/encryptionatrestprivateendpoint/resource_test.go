@@ -45,6 +45,13 @@ func TestAccEncryptionAtRestPrivateEndpoint_createTimeoutWithDeleteOnCreate(t *t
 			RoleId:                   conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
 			RequirePrivateNetworking: conversion.Pointer(false),
 		}
+		awsKmsPrivateNetworking = admin.AWSKMSConfiguration{
+			Enabled:                  conversion.Pointer(true),
+			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
+			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
+			RoleId:                   conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
+			RequirePrivateNetworking: conversion.Pointer(true),
+		}
 		region = conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -52,7 +59,14 @@ func TestAccEncryptionAtRestPrivateEndpoint_createTimeoutWithDeleteOnCreate(t *t
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      configAWSBasicWithTimeout(projectID, &awsKms, region, acc.TimeoutConfig(&createTimeout, nil, nil, true), &deleteOnCreateTimeout),
+				Config: acc.ConfigAwsKms(projectID, &awsKms, false, true, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(earResourceName, "aws_kms_config.0.enabled", "true"),
+					resource.TestCheckResourceAttr(earResourceName, "aws_kms_config.0.require_private_networking", "false"),
+				),
+			},
+			{
+				Config:      configAWSBasicWithTimeout(projectID, &awsKmsPrivateNetworking, region, acc.TimeoutConfig(&createTimeout, nil, nil, true), &deleteOnCreateTimeout),
 				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
 			},
 		},
