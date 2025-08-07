@@ -43,8 +43,9 @@ func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPri
 }
 
 func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkConnection, diag.Diagnostics) {
+	diags := diag.Diagnostics{}
+
 	if plan.Vendor.ValueString() == VendorConfluent {
-		diags := diag.Diagnostics{}
 		if plan.ServiceEndpointId.IsNull() {
 			diags.AddError(fmt.Sprintf("service_endpoint_id is required for vendor %s", VendorConfluent), "")
 		}
@@ -54,35 +55,28 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 		if plan.Region.IsNull() {
 			diags.AddError(fmt.Sprintf("region is required for vendor %s", VendorConfluent), "")
 		}
-		if diags.HasError() {
-			return nil, diags
-		}
 	}
 
 	if plan.Vendor.ValueString() == VendorMSK {
-		diags := diag.Diagnostics{}
 		if plan.Arn.IsNull() {
 			diags.AddError(fmt.Sprintf("arn is required for vendor %s", VendorMSK), "")
 		}
 		if plan.Region.ValueString() != "" {
 			diags.AddError(fmt.Sprintf("region cannot be set for vendor %s", VendorMSK), "")
 		}
-		if diags.HasError() {
-			return nil, diags
-		}
 	}
 
 	if plan.Vendor.ValueString() == VendorS3 {
-		diags := diag.Diagnostics{}
 		if plan.Region.IsNull() {
 			diags.AddError(fmt.Sprintf("region is required for vendor %s", VendorS3), "")
 		}
 		if plan.ServiceEndpointId.IsNull() {
 			diags.AddError(fmt.Sprintf("service_endpoint_id is required for vendor %s", VendorS3), "It should follow the format 'com.amazonaws.<region>.s3', for example 'com.amazonaws.us-east-1.s3'")
 		}
-		if diags.HasError() {
-			return nil, diags
-		}
+	}
+
+	if diags.HasError() {
+		return nil, diags
 	}
 
 	result := &admin.StreamsPrivateLinkConnection{
