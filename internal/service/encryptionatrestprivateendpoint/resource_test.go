@@ -35,38 +35,18 @@ func TestAccEncryptionAtRestPrivateEndpoint_Azure_basic(t *testing.T) {
 
 func TestAccEncryptionAtRestPrivateEndpoint_createTimeoutWithDeleteOnCreate(t *testing.T) {
 	var (
-		projectID             = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID")
 		createTimeout         = "1s"
 		deleteOnCreateTimeout = true
-		awsKms                = admin.AWSKMSConfiguration{
-			Enabled:                  conversion.Pointer(true),
-			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RoleId:                   conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
-			RequirePrivateNetworking: conversion.Pointer(false),
-		}
-		awsKmsPrivateNetworking = admin.AWSKMSConfiguration{
-			Enabled:                  conversion.Pointer(true),
-			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RoleId:                   conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
-			RequirePrivateNetworking: conversion.Pointer(true),
-		}
-		region = conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))
+		region                = conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))
+		// Create encryption at rest configuration outside of test configuration to avoid cleanup issues
+		projectID = acc.EncryptionAtRestExecution(t)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckEncryptionAtRestEnvAWS(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigAwsKms(projectID, &awsKms, false, true, false),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(earResourceName, "aws_kms_config.0.enabled", "true"),
-					resource.TestCheckResourceAttr(earResourceName, "aws_kms_config.0.require_private_networking", "false"),
-				),
-			},
-			{
-				Config:      configAWSBasicWithTimeout(projectID, &awsKmsPrivateNetworking, region, acc.TimeoutConfig(&createTimeout, nil, nil, true), &deleteOnCreateTimeout),
+				Config:      configEARPrivateEndpointWithTimeout(projectID, region, acc.TimeoutConfig(&createTimeout, nil, nil, true), &deleteOnCreateTimeout),
 				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
 			},
 		},
@@ -384,6 +364,30 @@ func configAWSBasicWithTimeout(projectID string, awsKms *admin.AWSKMSConfigurati
 		%[5]s
 
 	`, encryptionAtRestConfig, region, deleteOnCreateTimeoutConfig, timeoutConfig, configDS())
+
+	return config
+}
+
+func configEARPrivateEndpointWithTimeout(projectID, region, timeoutConfig string, deleteOnCreateTimeout *bool) string {
+	deleteOnCreateTimeoutConfig := ""
+	if deleteOnCreateTimeout != nil {
+		deleteOnCreateTimeoutConfig = fmt.Sprintf(`
+			delete_on_create_timeout = %[1]t
+		`, *deleteOnCreateTimeout)
+	}
+
+	config := fmt.Sprintf(`
+		resource "mongodbatlas_encryption_at_rest_private_endpoint" "test" {
+		    project_id = %[1]q
+		    cloud_provider = "AWS"
+		    region_name = %[2]q
+		    %[3]s
+		    %[4]s
+		}
+
+		%[5]s
+
+	`, projectID, region, deleteOnCreateTimeoutConfig, timeoutConfig, configDS())
 
 	return config
 }

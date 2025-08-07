@@ -3,12 +3,16 @@ package acc
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
+	"testing"
 
 	"go.mongodb.org/atlas-sdk/v20250312005/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/stretchr/testify/require"
 )
 
 func ConfigEARAzureKeyVault(projectID string, azure *admin.AzureKeyVault, useRequirePrivateNetworking, useDatasource bool) string {
@@ -151,5 +155,67 @@ func EARImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 		}
 
 		return rs.Primary.ID, nil
+	}
+}
+
+// EncryptionAtRestExecution creates an encryption at rest configuration for test execution.
+func EncryptionAtRestExecution(tb testing.TB) string {
+	tb.Helper()
+	SkipInUnitTest(tb)
+	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
+
+	projectID := ProjectIDExecution(tb)
+
+	sharedInfo.mu.Lock()
+	defer sharedInfo.mu.Unlock()
+
+	// lazy creation so it's only done if really needed
+	if !sharedInfo.encryptionAtRestEnabled {
+		tb.Logf("Creating execution encryption at rest configuration for project: %s\n", projectID)
+
+		// Create encryption at rest configuration using environment variables
+		awsKms := &admin.AWSKMSConfiguration{
+			Enabled:                  conversion.Pointer(true),
+			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
+			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
+			RoleId:                   conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
+			RequirePrivateNetworking: conversion.Pointer(true),
+		}
+
+		createEncryptionAtRest(tb, projectID, awsKms)
+		sharedInfo.encryptionAtRestEnabled = true
+	}
+
+	return projectID
+}
+
+func createEncryptionAtRest(tb testing.TB, projectID string, aws *admin.AWSKMSConfiguration) {
+	tb.Helper()
+
+	encryptionAtRestReq := &admin.EncryptionAtRest{
+		AwsKms: aws,
+	}
+
+	_, _, err := ConnV2().EncryptionAtRestUsingCustomerKeyManagementApi.UpdateEncryptionAtRest(tb.Context(), projectID, encryptionAtRestReq).Execute()
+	require.NoError(tb, err, "Failed to create encryption at rest configuration for project: %s", projectID)
+}
+
+func deleteEncryptionAtRest(projectID string) {
+	// Disable encryption at rest by setting all providers to disabled
+	encryptionAtRestReq := &admin.EncryptionAtRest{
+		AwsKms: &admin.AWSKMSConfiguration{
+			Enabled: conversion.Pointer(false),
+		},
+		AzureKeyVault: &admin.AzureKeyVault{
+			Enabled: conversion.Pointer(false),
+		},
+		GoogleCloudKms: &admin.GoogleCloudKMS{
+			Enabled: conversion.Pointer(false),
+		},
+	}
+
+	_, _, err := ConnV2().EncryptionAtRestUsingCustomerKeyManagementApi.UpdateEncryptionAtRest(context.Background(), projectID, encryptionAtRestReq).Execute()
+	if err != nil {
+		fmt.Printf("Failed to delete encryption at rest for project %s: %s\n", projectID, err)
 	}
 }
