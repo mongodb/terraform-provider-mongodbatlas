@@ -8,8 +8,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clouduserprojectassignment"
 	"github.com/stretchr/testify/assert"
 
-	// "go.mongodb.org/atlas-sdk/v20250312005/admin"
-	"github.com/mongodb/atlas-sdk-go/admin"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 )
 
 const (

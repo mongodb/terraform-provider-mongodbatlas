@@ -6,8 +6,7 @@ import (
 	"net/http"
 	"regexp"
 
-	// "go.mongodb.org/atlas-sdk/v20250312005/admin"
-	"github.com/mongodb/atlas-sdk-go/admin"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -46,7 +45,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
-	connV2 := r.Client.AtlasPreview
+	connV2 := r.Client.AtlasV2
 	projectID := plan.ProjectId.ValueString()
 	projectUserRequest, diags := NewProjectUserReq(ctx, &plan)
 	if diags.HasError() {
@@ -75,7 +74,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 
-	connV2 := r.Client.AtlasPreview
+	connV2 := r.Client.AtlasV2
 	projectID := state.ProjectId.ValueString()
 	var userResp *admin.GroupUserResponse
 	var httpResp *http.Response
@@ -126,7 +125,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 
-	connV2 := r.Client.AtlasPreview
+	connV2 := r.Client.AtlasV2
 	projectID := plan.ProjectId.ValueString()
 	userID := plan.UserId.ValueString()
 	username := plan.Username.ValueString()
@@ -185,7 +184,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		return
 	}
 
-	connV2 := r.Client.AtlasPreview
+	connV2 := r.Client.AtlasV2
 	projectID := state.ProjectId.ValueString()
 	userID := state.UserId.ValueString()
 	username := state.Username.ValueString()
