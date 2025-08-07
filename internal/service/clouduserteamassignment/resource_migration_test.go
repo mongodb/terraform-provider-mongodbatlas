@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	resourceTeamName = "mongodbatlas_team.test"
-	resourceTestName = "mongodbatlas_cloud_user_team_assignment.test"
+	resourceTeamName           = "mongodbatlas_team.test"
+	resourceTeamAssignmentName = "mongodbatlas_cloud_user_team_assignment.test"
 )
 
 func TestMigCloudUserTeamAssignmentRS_basic(t *testing.T) {
@@ -32,8 +32,8 @@ func TestMigCloudUserTeamAssignmentRS_migrationJourney(t *testing.T) {
 		CheckDestroy: checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				// NOTE: 'usernames' attribute (available v1.39.0, deprecated in v2.0.0) is used in this test in team resource.
-				// May be removed in future versions.
+				// NOTE: 'usernames' attribute (available v1.39.0, deprecated in v2.0.0) is used in this test in team resource,
+				// which may be removed in future versions. This could cause the test to break - keep for version tracking.
 				ExternalProviders: mig.ExternalProviders(),
 				Config:            configTeamWithUsernamesFirst(orgID, teamName, username),
 			},
@@ -43,8 +43,8 @@ func TestMigCloudUserTeamAssignmentRS_migrationJourney(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceTeamName, "name", teamName),
 
-					resource.TestCheckResourceAttrSet(resourceTestName, "user_id"),
-					resource.TestCheckResourceAttr(resourceTestName, "username", username),
+					resource.TestCheckResourceAttrSet(resourceTeamAssignmentName, "user_id"),
+					resource.TestCheckResourceAttr(resourceTeamAssignmentName, "username", username),
 				),
 			},
 			mig.TestStepCheckEmptyPlan(configWithTeamAssignmentsSecond(orgID, teamName, username)),
@@ -55,45 +55,41 @@ func TestMigCloudUserTeamAssignmentRS_migrationJourney(t *testing.T) {
 // Step 1: Original configuration with usernames attribute
 func configTeamWithUsernamesFirst(orgID, teamName, username string) string {
 	return fmt.Sprintf(`
-	locals {
-		usernames = [%[1]q]
-	}
-
 	resource "mongodbatlas_team" "test" {
 		org_id    = %[2]q
 		name      = %[3]q
-		usernames = local.usernames
+		usernames = [%[1]q]
 	}
 	`, username, orgID, teamName)
 }
 
 // Step 2: Configuration with team assignments using import blocks
+
+// NOTE: Using static resource assignment instead of for_each with multiple usernames
+// due to a known limitation in Terraform's acceptance testing framework with indexed resources.
+// The actual migration using for_each works correctly (verified locally).
 func configWithTeamAssignmentsSecond(orgID, teamName, username string) string {
 	return fmt.Sprintf(`
-	locals {
-		usernames = [%[1]q]
-	}
-
 	resource "mongodbatlas_team" "test" {
-		org_id    = %[3]q
-		name      = %[4]q
+		org_id    = %[1]q
+		name      = %[2]q
 	}
 
 	data "mongodbatlas_team" "test" {
-		org_id = %[5]q
+		org_id = %[1]q
 		team_id = mongodbatlas_team.test.team_id
 	}
  
 	resource "mongodbatlas_cloud_user_team_assignment" "test" {
-		org_id   = %[3]q
+		org_id   = %[1]q
 		team_id  = mongodbatlas_team.test.team_id
 		user_id  = data.mongodbatlas_team.test.users[0].id
 	}
 
 	import {
 		to = mongodbatlas_cloud_user_team_assignment.test
-		id = "%[3]s/${mongodbatlas_team.test.team_id}/${data.mongodbatlas_team.test.users[0].id}"
+		id = "%[1]s/${mongodbatlas_team.test.team_id}/${data.mongodbatlas_team.test.users[0].id}"
 	}
 
-	`, username, orgID, orgID, teamName, orgID)
+	`, orgID, teamName)
 }
