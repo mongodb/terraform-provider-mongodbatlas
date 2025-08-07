@@ -197,7 +197,7 @@ func ConfigBasicDedicated(projectID, name, zoneName string) string {
 				electable_specs = {
 					node_count = 3
 					instance_size = "M10"
-				}]
+				}
 			}]
 			%[3]s
 		}]
