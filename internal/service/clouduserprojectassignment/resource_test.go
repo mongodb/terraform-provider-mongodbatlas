@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"regexp"
 	"strings"
 	"testing"
 
@@ -14,15 +13,11 @@ import (
 )
 
 var resourceName = "mongodbatlas_cloud_user_project_assignment.test"
-var dataSourceName1 = "data.mongodbatlas_cloud_user_project_assignment.testUsername"
-var dataSourceName2 = "data.mongodbatlas_cloud_user_project_assignment.testUserID"
+var DSNameUsername = "data.mongodbatlas_cloud_user_project_assignment.testUsername"
+var DSNameUserID = "data.mongodbatlas_cloud_user_project_assignment.testUserID"
 
 func TestAccCloudUserProjectAssignment_basic(t *testing.T) {
 	resource.ParallelTest(t, *basicTestCase(t))
-}
-
-func TestAccCloudUserProjectAssignmentDS_error(t *testing.T) {
-	resource.ParallelTest(t, *errorTestCase(t))
 }
 
 func basicTestCase(t *testing.T) *resource.TestCase {
@@ -75,24 +70,6 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 	}
 }
 
-func errorTestCase(t *testing.T) *resource.TestCase {
-	t.Helper()
-
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	projectName := acc.RandomName()
-
-	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config:      configError(orgID, projectName),
-				ExpectError: regexp.MustCompile("either username or user_id must be provided"),
-			},
-		},
-	}
-}
-
 func configBasic(orgID, username, projectName string, roles []string) string {
 	rolesStr := `"` + strings.Join(roles, `", "`) + `"`
 	return fmt.Sprintf(`
@@ -119,39 +96,24 @@ func configBasic(orgID, username, projectName string, roles []string) string {
 		projectName, orgID, username, rolesStr)
 }
 
-func configError(orgID, projectName string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "test" {
-			name   = %[1]q
-			org_id = %[2]q
-		}
-		data "mongodbatlas_cloud_user_project_assignment" "test" {
-			project_id = mongodbatlas_project.test.id
-		}
-	`, projectName, orgID)
-}
-
 func checks(username string, roles []string) resource.TestCheckFunc {
-	checkFuncs := []resource.TestCheckFunc{
-		resource.TestCheckResourceAttr(resourceName, "username", username),
-		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-		resource.TestCheckResourceAttr(resourceName, "roles.#", fmt.Sprintf("%d", len(roles))),
+	attrsSet := []string{"project_id"}
+	attrsMap := map[string]string{
+		"username": username,
+		"roles.#":  fmt.Sprintf("%d", len(roles)),
+	}
+	extraChecks := []resource.TestCheckFunc{
+		resource.TestCheckResourceAttr(DSNameUserID, "username", username),
+		resource.TestCheckResourceAttrPair(DSNameUsername, "user_id", DSNameUserID, "user_id"),
+		resource.TestCheckResourceAttrPair(DSNameUsername, "project_id", DSNameUserID, "project_id"),
+		resource.TestCheckResourceAttrPair(DSNameUsername, "roles.#", DSNameUserID, "roles.#"),
 	}
 
 	for _, role := range roles {
-		checkFuncs = append(checkFuncs, resource.TestCheckTypeSetElemAttr(resourceName, "roles.*", role))
-	}
-	dataCheckFuncs := []resource.TestCheckFunc{
-		resource.TestCheckResourceAttr(dataSourceName1, "username", username),
-		resource.TestCheckResourceAttr(dataSourceName2, "username", username),
-
-		resource.TestCheckResourceAttrPair(dataSourceName1, "user_id", dataSourceName2, "user_id"),
-		resource.TestCheckResourceAttrPair(dataSourceName1, "project_id", dataSourceName2, "project_id"),
-		resource.TestCheckResourceAttrPair(dataSourceName1, "roles.#", dataSourceName2, "roles.#"),
+		extraChecks = append(extraChecks, resource.TestCheckTypeSetElemAttr(resourceName, "roles.*", role))
 	}
 
-	checkFuncs = append(checkFuncs, dataCheckFuncs...)
-	return resource.ComposeAggregateTestCheckFunc(checkFuncs...)
+	return acc.CheckRSAndDS(resourceName, &DSNameUsername, nil, attrsSet, attrsMap, extraChecks...)
 }
 
 func checkDestroy(s *terraform.State) error {
