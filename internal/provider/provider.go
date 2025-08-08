@@ -30,6 +30,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/apikeyprojectassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clouduserorgassignment"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clouduserprojectassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clouduserteamassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/controlplaneipaddresses"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
@@ -493,6 +494,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		resourcepolicy.Resource,
 		clouduserorgassignment.Resource,
 		apikeyprojectassignment.Resource,
+		clouduserprojectassignment.Resource,
 		teamprojectassignment.Resource,
 		clouduserteamassignment.Resource,
 	}
