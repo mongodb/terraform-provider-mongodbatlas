@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -77,20 +78,28 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create: true,
 			}),
+			"delete_on_create_timeout": schema.BoolAttribute{
+				Optional: true,
+				PlanModifiers: []planmodifier.Bool{
+					customplanmodifier.CreateOnlyBoolPlanModifier(),
+				},
+				MarkdownDescription: "Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.",
+			},
 		},
 	}
 }
 
 type TFStreamProcessorRSModel struct {
-	InstanceName  types.String         `tfsdk:"instance_name"`
-	Options       types.Object         `tfsdk:"options"`
-	Pipeline      jsontypes.Normalized `tfsdk:"pipeline"`
-	ProcessorID   types.String         `tfsdk:"id"`
-	ProcessorName types.String         `tfsdk:"processor_name"`
-	ProjectID     types.String         `tfsdk:"project_id"`
-	State         types.String         `tfsdk:"state"`
-	Stats         types.String         `tfsdk:"stats"`
-	Timeouts      timeouts.Value       `tfsdk:"timeouts"`
+	InstanceName          types.String         `tfsdk:"instance_name"`
+	Options               types.Object         `tfsdk:"options"`
+	Pipeline              jsontypes.Normalized `tfsdk:"pipeline"`
+	ProcessorID           types.String         `tfsdk:"id"`
+	ProcessorName         types.String         `tfsdk:"processor_name"`
+	ProjectID             types.String         `tfsdk:"project_id"`
+	State                 types.String         `tfsdk:"state"`
+	Stats                 types.String         `tfsdk:"stats"`
+	Timeouts              timeouts.Value       `tfsdk:"timeouts"`
+	DeleteOnCreateTimeout types.Bool           `tfsdk:"delete_on_create_timeout"`
 }
 
 type TFOptionsModel struct {

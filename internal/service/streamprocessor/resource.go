@@ -93,6 +93,13 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	streamProcessorResp, err := WaitStateTransitionWithTimeout(ctx, streamProcessorParams, connV2.StreamsApi, []string{InitiatingState, CreatingState}, []string{CreatedState}, createTimeout)
+	err = cleanup.HandleCreateTimeout(cleanup.ResolveDeleteOnCreateTimeout(plan.DeleteOnCreateTimeout), err, func(ctxCleanup context.Context) error {
+		_, err := connV2.StreamsApi.DeleteStreamProcessor(ctxCleanup, projectID, instanceName, processorName).Execute()
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating stream processor", err.Error())
 		return
@@ -117,7 +124,7 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 		}
 	}
 
-	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessorResp)
+	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessorResp, &plan.Timeouts, &plan.DeleteOnCreateTimeout)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -146,7 +153,7 @@ func (r *streamProcessorRS) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessor)
+	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessor, &state.Timeouts, &state.DeleteOnCreateTimeout)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -244,7 +251,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		}
 	}
 
-	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessorResp)
+	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessorResp, &plan.Timeouts, &plan.DeleteOnCreateTimeout)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
