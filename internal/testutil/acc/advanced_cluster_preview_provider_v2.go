@@ -32,10 +32,6 @@ func TestCheckResourceAttrMig(usePreviewProvider bool, name, key, value string) 
 	return resource.TestCheckResourceAttr(name, AttrNameToPreviewProviderV2(usePreviewProvider, key), value)
 }
 
-func TestCheckResourceAttrTPF(name, key, value string) resource.TestCheckFunc {
-	return resource.TestCheckResourceAttr(name, key, value)
-}
-
 func TestCheckResourceAttrSetMig(usePreviewProvider bool, name, key string) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttrSet(name, AttrNameToPreviewProviderV2(usePreviewProvider, key))
 }

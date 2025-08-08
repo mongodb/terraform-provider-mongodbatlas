@@ -1822,62 +1822,6 @@ func configWithKeyValueBlocks(t *testing.T, orgID, projectName, clusterName, blo
 	`, orgID, projectName, clusterName, extraConfig) + dataSourcesTFNewSchema
 }
 
-// func checkKeyValueBlocks(includeDataSources bool, blockName string, blocks ...map[string]string) resource.TestCheckFunc {
-// 	if config.PreviewProviderV2AdvancedCluster() {
-// 		return checkKeyValueBlocksPreviewProviderV2(usePreviewProvider, includeDataSources, blockName, blocks...)
-// 	}
-// 	// const pluralPrefix = "results.0."
-// 	// lenStr := strconv.Itoa(len(blocks))
-// 	// keyHash := blockName + ".#"
-// 	// keyStar := blockName + ".*"
-// 	// checks := []resource.TestCheckFunc{
-// 	// 	acc.TestCheckResourceAttrTPF(usePreviewProvider, resourceName, keyHash, lenStr),
-// 	// }
-// 	// if includeDataSources {
-// 	// 	checks = append(checks,
-// 	// 		acc.TestCheckResourceAttrTPF(usePreviewProvider, dataSourceName, keyHash, lenStr),
-// 	// 		acc.TestCheckResourceAttrTPF(usePreviewProvider, dataSourcePluralName, pluralPrefix+keyHash, lenStr))
-// 	// }
-// 	// for _, block := range blocks {
-// 	// 	checks = append(checks,
-// 	// 		acc.TestCheckTypeSetElemNestedAttrsPreviewProviderV2(usePreviewProvider, resourceName, keyStar, block),
-// 	// 	)
-// 	// 	if includeDataSources {
-// 	// 		checks = append(checks,
-// 	// 			acc.TestCheckTypeSetElemNestedAttrsPreviewProviderV2(usePreviewProvider, dataSourceName, keyStar, block),
-// 	// 			acc.TestCheckTypeSetElemNestedAttrsPreviewProviderV2(usePreviewProvider, dataSourcePluralName, pluralPrefix+keyStar, block))
-// 	// 	}
-// 	// }
-// 	// return resource.ComposeAggregateTestCheckFunc(checks...)
-// }
-
-// func checkKeyValueBlocksPreviewProviderV2(usePreviewProvider, includeDataSources bool, blockName string, blocks ...map[string]string) resource.TestCheckFunc {
-// 	const pluralPrefix = "results.0."
-// 	lenStr := strconv.Itoa(len(blocks))
-// 	keyPct := blockName + ".%"
-// 	checks := []resource.TestCheckFunc{
-// 		acc.TestCheckResourceAttrTPF(usePreviewProvider, resourceName, keyPct, lenStr),
-// 	}
-// 	if includeDataSources {
-// 		checks = append(checks,
-// 			acc.TestCheckResourceAttrTPF(usePreviewProvider, dataSourceName, keyPct, lenStr),
-// 			acc.TestCheckResourceAttrTPF(usePreviewProvider, dataSourcePluralName, pluralPrefix+keyPct, lenStr))
-// 	}
-// 	for _, block := range blocks {
-// 		key := blockName + "." + block["key"]
-// 		value := block["value"]
-// 		checks = append(checks,
-// 			acc.TestCheckResourceAttrTPF(usePreviewProvider, resourceName, key, value),
-// 		)
-// 		if includeDataSources {
-// 			checks = append(checks,
-// 				acc.TestCheckResourceAttrTPF(usePreviewProvider, dataSourceName, key, value),
-// 				acc.TestCheckResourceAttrTPF(usePreviewProvider, dataSourcePluralName, pluralPrefix+key, value))
-// 		}
-// 	}
-// 	return resource.ComposeAggregateTestCheckFunc(checks...)
-// }
-
 func checkKeyValueBlocks(includeDataSources bool, blockName string, blocks ...map[string]string) resource.TestCheckFunc {
 	const pluralPrefix = "results.0."
 	lenStr := strconv.Itoa(len(blocks))
