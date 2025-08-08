@@ -1603,14 +1603,14 @@ func configBlocks(t *testing.T, projectID, clusterName, instanceSize string, def
 	t.Helper()
 	var extraConfig0, extraConfig1, electableSpecs0 string
 	autoScalingBlocks := `
-		auto_scaling {
+		auto_scaling = {
 			disk_gb_enabled            = true
 			compute_enabled            = true
 			compute_min_instance_size  = "M10"
 			compute_max_instance_size  = "M30"
 			compute_scale_down_enabled = true
 		}
-		analytics_auto_scaling {
+		analytics_auto_scaling = {
 			disk_gb_enabled            = true
 			compute_enabled            = true
 			compute_min_instance_size  = "M10"
@@ -1620,7 +1620,7 @@ func configBlocks(t *testing.T, projectID, clusterName, instanceSize string, def
 	`
 	if defineBlocks {
 		electableSpecs0 = `
-			electable_specs {
+			electable_specs = {
 				instance_size   = "M10"
 				node_count      = 5
 			}
@@ -1634,23 +1634,23 @@ func configBlocks(t *testing.T, projectID, clusterName, instanceSize string, def
 		` + autoScalingBlocks
 		// read only + analytics + autoscaling blocks
 		extraConfig1 = `
-			read_only_specs {
+			read_only_specs = {
 				instance_size = "M10"
 				node_count    = 1
 			}
-			analytics_specs {
+			analytics_specs = {
 				instance_size = "M10"
 				node_count    = 4
 			}
 		` + autoScalingBlocks
 	}
-	return acc.ConvertAdvancedClusterToTPF(t, true, fmt.Sprintf(`
+	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
 			name         = %[2]q
 			cluster_type = "GEOSHARDED"
 
-			replication_specs { 
+			replication_specs = [{ 
 				zone_name = "Zone 1"
 				region_configs {
 					provider_name = "AWS"
@@ -1659,11 +1659,10 @@ func configBlocks(t *testing.T, projectID, clusterName, instanceSize string, def
 					%[6]s
 					%[4]s
 				}
-			}
-
-			replication_specs { 
+			},
+			{ 
 				zone_name = "Zone 2"
-				region_configs {
+				region_configs = [{
 					provider_name = "AWS"
 					priority      = 7
 					region_name   = "US_WEST_2"
@@ -1672,16 +1671,16 @@ func configBlocks(t *testing.T, projectID, clusterName, instanceSize string, def
 						node_count      = 3
 					}
 					%[5]s
-				}
-				region_configs { // region with no electable specs
+				},
+				 { // region with no electable specs
 					provider_name = "AWS"
 					priority      = 0
 					region_name   = "US_EAST_1"
 					%[4]s
-				}
-			}
+				}]
+			}]
 		}
-	`, projectID, clusterName, instanceSize, extraConfig0, extraConfig1, electableSpecs0))
+	`, projectID, clusterName, instanceSize, extraConfig0, extraConfig1, electableSpecs0)
 }
 
 func checkBlocks(instanceSize string) resource.TestCheckFunc {
@@ -1743,7 +1742,7 @@ func configTenant(t *testing.T, projectID, name, zoneName, instanceSize string) 
 			provider_name = "TENANT"
 			region_name   = "US_EAST_1"
 			}]
-		 zone_name = %[3]q
+		 zone_name = %[3]s
 		}]
 	}
 `, projectID, name, zoneNameLine, instanceSize) + dataSourcesTFNewSchema

@@ -4,9 +4,10 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestConvertToPreviewProviderV2AttrsMapAndAttrsSet(t *testing.T) {
@@ -48,7 +49,7 @@ func TestConvertToPreviewProviderV2AttrsMapAndAttrsSet(t *testing.T) {
 	assert.Equal(t, expectedSet, actualSet)
 }
 
-func TestConvertAdvancedClusterToPreviewProviderV2(t *testing.T) {
+func TestConvertAdvancedClusterToTPF(t *testing.T) {
 	if !config.PreviewProviderV2AdvancedCluster() {
 		t.Skip("Skipping test as not in PreviewProviderV2AdvancedCluster")
 	}
