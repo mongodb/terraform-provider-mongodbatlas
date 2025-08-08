@@ -1742,7 +1742,7 @@ func configTenant(t *testing.T, projectID, name, zoneName, instanceSize string) 
 			provider_name = "TENANT"
 			region_name   = "US_EAST_1"
 			}]
-		 zone_name = %[3]s
+		 %[3]s
 		}]
 	}
 `, projectID, name, zoneNameLine, instanceSize) + dataSourcesTFNewSchema
@@ -3641,10 +3641,6 @@ func checkFlexClusterConfig(projectID, clusterName, providerName, region string,
 		checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
 	}
 	return acc.CheckRSAndDS(resourceName, ds, dsp, attrSetAdvCluster, attrMapAdvCluster, checks...)
-}
-
-func isOptionalTrue(arg ...bool) bool {
-	return len(arg) > 0 && arg[0]
 }
 
 func isOptionalTrue(arg ...bool) bool {
