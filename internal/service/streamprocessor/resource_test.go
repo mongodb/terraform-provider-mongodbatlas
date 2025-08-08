@@ -57,12 +57,12 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config:            config(t, projectID, instanceName, processorName, "", randomSuffix, sampleSrcConfig, testLogDestConfig),
+				Config:            config(t, projectID, instanceName, processorName, "", randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil),
 				Check:             composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
 				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.CreatedState, instanceName, false, false),
 			},
 			{
-				Config:            config(t, projectID, instanceName, processorName, streamprocessor.StartedState, randomSuffix, sampleSrcConfig, testLogDestConfig),
+				Config:            config(t, projectID, instanceName, processorName, streamprocessor.StartedState, randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil),
 				Check:             composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StartedState, true, false),
 				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.StartedState, instanceName, true, false),
 			},
@@ -89,7 +89,7 @@ func TestAccStreamProcessor_JSONWhiteSpaceFormat(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config:            config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, randomSuffix, sampleSrcConfigExtraSpaces, testLogDestConfig),
+				Config:            config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, randomSuffix, sampleSrcConfigExtraSpaces, testLogDestConfig, "", nil),
 				Check:             composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
 				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.CreatedState, instanceName, false, false),
 			},
@@ -112,7 +112,7 @@ func TestAccStreamProcessor_withOptions(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config:            config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, randomSuffix, src, dest),
+				Config:            config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, randomSuffix, src, dest, "", nil),
 				Check:             composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, true),
 				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.CreatedState, instanceName, false, true),
 			},
@@ -276,7 +276,7 @@ func TestAccStreamProcessor_clusterType(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config:            config(t, projectID, instanceName, processorName, streamprocessor.StartedState, randomSuffix, srcConfig, testLogDestConfig),
+				Config:            config(t, projectID, instanceName, processorName, streamprocessor.StartedState, randomSuffix, srcConfig, testLogDestConfig, "", nil),
 				Check:             composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StartedState, true, false),
 				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.StartedState, instanceName, true, false),
 			},
@@ -289,6 +289,8 @@ func TestAccStreamProcessor_createErrors(t *testing.T) {
 		processorName           = "new-processor"
 		invalidJSONConfig       = connectionConfig{connectionType: connTypeSample, pipelineStepIsSource: true, invalidJSON: true}
 		randomSuffix            = acctest.RandString(5)
+		createTimeout           = "1s"
+		deleteOnCreateTimeout   = true
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -297,12 +299,16 @@ func TestAccStreamProcessor_createErrors(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StoppedState, randomSuffix, invalidJSONConfig, testLogDestConfig),
+				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StoppedState, randomSuffix, invalidJSONConfig, testLogDestConfig, "", nil),
 				ExpectError: regexp.MustCompile("Invalid JSON String Value"),
 			},
 			{
-				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StoppedState, randomSuffix, sampleSrcConfig, testLogDestConfig),
+				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StoppedState, randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil),
 				ExpectError: regexp.MustCompile("When creating a stream processor, the only valid states are CREATED and STARTED"),
+			},
+			{
+				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StartedState, randomSuffix, sampleSrcConfig, testLogDestConfig, acc.TimeoutConfig(&createTimeout, nil, nil, true), &deleteOnCreateTimeout),
+				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
 			},
 		}})
 }
@@ -526,11 +532,15 @@ func composeStreamProcessorChecks(projectID, instanceName, processorName, state 
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-func config(t *testing.T, projectID, instanceName, processorName, state, nameSuffix string, src, dest connectionConfig) string {
+func config(t *testing.T, projectID, instanceName, processorName, state, nameSuffix string, src, dest connectionConfig, timeoutConfig string, deleteOnCreateTimeout *bool) string {
 	t.Helper()
 	stateConfig := ""
 	if state != "" {
 		stateConfig = fmt.Sprintf(`state = %[1]q`, state)
+	}
+	deleteOnCreateTimeoutConfig := ""
+	if deleteOnCreateTimeout != nil {
+		deleteOnCreateTimeoutConfig = fmt.Sprintf(`delete_on_create_timeout = %[1]t`, *deleteOnCreateTimeout)
 	}
 
 	connectionConfigSrc, connectionIDSrc, pipelineStepSrc := configConnection(t, projectID, instanceName, src, nameSuffix)
@@ -581,9 +591,11 @@ func config(t *testing.T, projectID, instanceName, processorName, state, nameSuf
 		%[5]s
 		%[6]s
 		depends_on = [%[7]s]
+		%[8]s
+		%[9]s
 		}
 		
-	`, projectID, instanceName, processorName, pipeline, stateConfig, optionsStr, dependsOnStr) + otherConfig
+	`, projectID, instanceName, processorName, pipeline, stateConfig, optionsStr, dependsOnStr, timeoutConfig, deleteOnCreateTimeoutConfig) + otherConfig
 }
 
 func configConnection(t *testing.T, projectID, instanceName string, config connectionConfig, nameSuffix string) (connectionConfig, resourceID, pipelineStep string) {
