@@ -105,11 +105,12 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 			return
 		}
 		if userListResp != nil {
-			if len(userListResp.GetResults()) == 0 {
+			results := userListResp.GetResults()
+			if len(results) == 0 {
 				resp.State.RemoveResource(ctx)
 				return
 			}
-			userResp = &(userListResp.GetResults())[0]
+			userResp = &results[0]
 		}
 	} else if !state.Username.IsNull() && state.Username.ValueString() != "" { // required for import
 		username := state.Username.ValueStringPointer()
@@ -129,11 +130,12 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 			return
 		}
 		if userListResp != nil {
-			if len(userListResp.GetResults()) == 0 {
+			results := userListResp.GetResults()
+			if len(results) == 0 {
 				resp.State.RemoveResource(ctx)
 				return
 			}
-			userResp = &(userListResp.GetResults())[0]
+			userResp = &results[0]
 		}
 	}
 
