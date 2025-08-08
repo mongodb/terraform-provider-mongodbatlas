@@ -119,7 +119,6 @@ func checkDestroy(s *terraform.State) error {
 		orgID := rs.Primary.Attributes["org_id"]
 		teamID := rs.Primary.Attributes["team_id"]
 		userID := rs.Primary.Attributes["user_id"]
-		username := rs.Primary.Attributes["username"]
 		conn := acc.ConnV2()
 		ctx := context.Background()
 
@@ -132,17 +131,6 @@ func checkDestroy(s *terraform.State) error {
 			userListUserID, _, err := conn.MongoDBCloudUsersApi.ListTeamUsersWithParams(ctx, userIDParams).Execute()
 			if userListUserID.HasResults() {
 				return fmt.Errorf("cloud user team assignment for user (%s) in team (%s) still exists %s", userID, teamID, err)
-			}
-		} else if username != "" {
-			usernameParams := &admin.ListTeamUsersApiParams{
-				Username: &username,
-				OrgId:    orgID,
-				TeamId:   teamID,
-			}
-
-			userListUsername, _, err := conn.MongoDBCloudUsersApi.ListTeamUsersWithParams(ctx, usernameParams).Execute()
-			if userListUsername.HasResults() {
-				return fmt.Errorf("cloud user team assignment for user (%s) in team (%s) still exists %s", username, teamID, err)
 			}
 		}
 	}
