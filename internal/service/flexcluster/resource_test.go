@@ -48,6 +48,7 @@ func TestAccFlexClusterRS_createTimeoutWithDeleteOnCreateFlex(t *testing.T) {
 }
 
 func TestAccFlexClusterRS_updateDeleteTimeout(t *testing.T) {
+	acc.SkipTestForCI(t) // Update is consistently too fast and it does not time out, making the test flaky
 	var (
 		projectID     = acc.ProjectIDExecution(t)
 		clusterName   = acc.RandomName()

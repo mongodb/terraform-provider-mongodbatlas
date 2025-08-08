@@ -80,7 +80,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	flexClusterResp, err := CreateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi, &createTimeout)
 
 	// Handle timeout with cleanup logic
-	deleteOnCreateTimeout := resolveDeleteOnCreateTimeout(tfModel.DeleteOnCreateTimeout)
+	deleteOnCreateTimeout := cleanup.ResolveDeleteOnCreateTimeout(tfModel.DeleteOnCreateTimeout)
 	err = cleanup.HandleCreateTimeout(deleteOnCreateTimeout, err, func(ctxCleanup context.Context) error {
 		cleanResp, cleanErr := r.Client.AtlasV2.FlexClustersApi.DeleteFlexCluster(ctxCleanup, projectID, clusterName).Execute()
 		if validate.StatusNotFound(cleanResp) {
@@ -239,17 +239,6 @@ func splitFlexClusterImportID(id string) (projectID, clusterName *string, err er
 	clusterName = &parts[2]
 
 	return
-}
-
-// resolveDeleteOnCreateTimeout returns true if delete_on_create_timeout should be enabled.
-// Default behavior is true when not explicitly set to false.
-func resolveDeleteOnCreateTimeout(deleteOnCreateTimeout types.Bool) bool {
-	// If null or unknown, default to true
-	if deleteOnCreateTimeout.IsNull() || deleteOnCreateTimeout.IsUnknown() {
-		return true
-	}
-	// Otherwise use the explicit value
-	return deleteOnCreateTimeout.ValueBool()
 }
 
 func CreateFlexCluster(ctx context.Context, projectID, clusterName string, flexClusterReq *admin.FlexClusterDescriptionCreate20241113, client admin.FlexClustersApi, timeout *time.Duration) (*admin.FlexClusterDescription20241113, error) {
