@@ -182,13 +182,16 @@ func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 }
 
 func TestAccClusterAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
-	resource.ParallelTest(t, replicaSetAWSProviderTestCase(t, true))
+	resource.ParallelTest(t, replicaSetAWSProviderTestCase(t))
 }
 
-func replicaSetAWSProviderTestCase(t *testing.T, usePreviewProvider bool) resource.TestCase {
+func replicaSetAWSProviderTestCase(t *testing.T, useSDKv2 ...bool) resource.TestCase {
 	t.Helper()
+
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)
+		isSDKv2                = isOptionalTrue(useSDKv2...)
+		isTPF                  = !isSDKv2
 	)
 
 	return resource.TestCase{
@@ -197,46 +200,46 @@ func replicaSetAWSProviderTestCase(t *testing.T, usePreviewProvider bool) resour
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAWSProvider(t, usePreviewProvider, ReplicaSetAWSConfig{
+				Config: configAWSProvider(t, ReplicaSetAWSConfig{
 					ProjectID:          projectID,
 					ClusterName:        clusterName,
 					ClusterType:        "REPLICASET",
 					DiskSizeGB:         60,
 					NodeCountElectable: 3,
 					WithAnalyticsSpecs: true,
-				}),
-				Check: checkReplicaSetAWSProvider(usePreviewProvider, projectID, clusterName, 60, 3, true, true),
+				}, isSDKv2),
+				Check: checkReplicaSetAWSProvider(isTPF, projectID, clusterName, 60, 3, true, true),
 			},
 			// empty plan when analytics block is removed
-			acc.TestStepCheckEmptyPlan(configAWSProvider(t, usePreviewProvider, ReplicaSetAWSConfig{
+			acc.TestStepCheckEmptyPlan(configAWSProvider(t, ReplicaSetAWSConfig{
 				ProjectID:          projectID,
 				ClusterName:        clusterName,
 				ClusterType:        "REPLICASET",
 				DiskSizeGB:         60,
 				NodeCountElectable: 3,
 				WithAnalyticsSpecs: false,
-			})),
+			}, isSDKv2)),
 			{
-				Config: configAWSProvider(t, usePreviewProvider, ReplicaSetAWSConfig{
+				Config: configAWSProvider(t, ReplicaSetAWSConfig{
 					ProjectID:          projectID,
 					ClusterName:        clusterName,
 					ClusterType:        "REPLICASET",
 					DiskSizeGB:         50,
 					NodeCountElectable: 5,
 					WithAnalyticsSpecs: false, // other update made after removed analytics block, computed value is expected to be the same
-				}),
-				Check: checkReplicaSetAWSProvider(usePreviewProvider, projectID, clusterName, 50, 5, true, true),
+				}, isSDKv2),
+				Check: checkReplicaSetAWSProvider(isTPF, projectID, clusterName, 50, 5, true, true),
 			},
 			{ // testing transition from replica set to sharded cluster
-				Config: configAWSProvider(t, usePreviewProvider, ReplicaSetAWSConfig{
+				Config: configAWSProvider(t, ReplicaSetAWSConfig{
 					ProjectID:          projectID,
 					ClusterName:        clusterName,
 					ClusterType:        "SHARDED",
 					DiskSizeGB:         50,
 					NodeCountElectable: 5,
 					WithAnalyticsSpecs: false,
-				}),
-				Check: checkReplicaSetAWSProvider(usePreviewProvider, projectID, clusterName, 50, 5, true, true),
+				}, isSDKv2),
+				Check: checkReplicaSetAWSProvider(isTPF, projectID, clusterName, 50, 5, true, true),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs", "retain_backups_enabled"),
 		},
@@ -244,16 +247,19 @@ func replicaSetAWSProviderTestCase(t *testing.T, usePreviewProvider bool) resour
 }
 
 func TestAccClusterAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
-	resource.ParallelTest(t, replicaSetMultiCloudTestCase(t, true))
+	resource.ParallelTest(t, replicaSetMultiCloudTestCase(t))
 }
 
-func replicaSetMultiCloudTestCase(t *testing.T, usePreviewProvider bool) resource.TestCase {
+func replicaSetMultiCloudTestCase(t *testing.T, useSDKv2 ...bool) resource.TestCase {
 	t.Helper()
+
 	var (
 		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName        = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
+		isSDKv2            = isOptionalTrue(useSDKv2...)
+		isTPF              = !isSDKv2
 	)
 
 	return resource.TestCase{
@@ -262,12 +268,12 @@ func replicaSetMultiCloudTestCase(t *testing.T, usePreviewProvider bool) resourc
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicaSetMultiCloud(t, usePreviewProvider, orgID, projectName, clusterName),
-				Check:  checkReplicaSetMultiCloud(usePreviewProvider, clusterName, 3),
+				Config: configReplicaSetMultiCloud(t, orgID, projectName, clusterName, isSDKv2),
+				Check:  checkReplicaSetMultiCloud(isTPF, clusterName, 3),
 			},
 			{
-				Config: configReplicaSetMultiCloud(t, usePreviewProvider, orgID, projectName, clusterNameUpdated),
-				Check:  checkReplicaSetMultiCloud(usePreviewProvider, clusterNameUpdated, 3),
+				Config: configReplicaSetMultiCloud(t, orgID, projectName, clusterNameUpdated, isSDKv2),
+				Check:  checkReplicaSetMultiCloud(isTPF, clusterNameUpdated, 3),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -275,14 +281,17 @@ func replicaSetMultiCloudTestCase(t *testing.T, usePreviewProvider bool) resourc
 }
 
 func TestAccClusterAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
-	resource.ParallelTest(t, singleShardedMultiCloudTestCase(t, true))
+	resource.ParallelTest(t, singleShardedMultiCloudTestCase(t))
 }
 
-func singleShardedMultiCloudTestCase(t *testing.T, usePreviewProvider bool) resource.TestCase {
+func singleShardedMultiCloudTestCase(t *testing.T, useSDKv2 ...bool) resource.TestCase {
 	t.Helper()
+
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 7)
 		clusterNameUpdated     = acc.RandomClusterName()
+		isSDKv2                = isOptionalTrue(useSDKv2...)
+		isTPF                  = !isSDKv2
 	)
 
 	return resource.TestCase{
@@ -291,12 +300,12 @@ func singleShardedMultiCloudTestCase(t *testing.T, usePreviewProvider bool) reso
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedOldSchemaMultiCloud(t, usePreviewProvider, projectID, clusterName, 1, "M10", nil),
-				Check:  checkShardedOldSchemaMultiCloud(usePreviewProvider, clusterName, 1, "M10", true, nil),
+				Config: configShardedOldSchemaMultiCloud(t, projectID, clusterName, 1, "M10", nil, isSDKv2),
+				Check:  checkShardedOldSchemaMultiCloud(isTPF, clusterName, 1, "M10", true, nil),
 			},
 			{
-				Config: configShardedOldSchemaMultiCloud(t, usePreviewProvider, projectID, clusterNameUpdated, 1, "M10", nil),
-				Check:  checkShardedOldSchemaMultiCloud(usePreviewProvider, clusterNameUpdated, 1, "M10", true, nil),
+				Config: configShardedOldSchemaMultiCloud(t, projectID, clusterNameUpdated, 1, "M10", nil, isSDKv2),
+				Check:  checkShardedOldSchemaMultiCloud(isTPF, clusterNameUpdated, 1, "M10", true, nil),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -543,21 +552,21 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 				Config: configReplicationSpecsAutoScaling(t, true, projectID, clusterName, autoScaling, "M10", 10, 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
-					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "name", clusterName),
-					acc.TestCheckResourceAttrSetPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.#"),
-					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.0.auto_scaling.0.compute_enabled", "false"),
-					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "advanced_configuration.0.oplog_min_retention_hours", "5.5"),
+					acc.TestCheckResourceAttrTPF(true, resourceName, "name", clusterName),
+					acc.TestCheckResourceAttrSetTPF(true, resourceName, "replication_specs.0.region_configs.#"),
+					acc.TestCheckResourceAttrTPF(true, resourceName, "replication_specs.0.region_configs.0.auto_scaling.0.compute_enabled", "false"),
+					acc.TestCheckResourceAttrTPF(true, resourceName, "advanced_configuration.0.oplog_min_retention_hours", "5.5"),
 				),
 			},
 			{
 				Config: configReplicationSpecsAutoScaling(t, true, projectID, clusterName, autoScalingUpdated, "M20", 20, 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
-					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "name", clusterName),
-					acc.TestCheckResourceAttrSetPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.#"),
-					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.0.auto_scaling.0.compute_enabled", "true"),
-					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.instance_size", "M10"), // modified instance size in config is ignored
-					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb", "10"),   // modified disk size gb in config is ignored
+					acc.TestCheckResourceAttrTPF(true, resourceName, "name", clusterName),
+					acc.TestCheckResourceAttrSetTPF(true, resourceName, "replication_specs.0.region_configs.#"),
+					acc.TestCheckResourceAttrTPF(true, resourceName, "replication_specs.0.region_configs.0.auto_scaling.0.compute_enabled", "true"),
+					acc.TestCheckResourceAttrTPF(true, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.instance_size", "M10"), // modified instance size in config is ignored
+					acc.TestCheckResourceAttrTPF(true, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb", "10"),   // modified disk size gb in config is ignored
 				),
 			},
 			// empty plan when auto_scaling block is removed (also aligns instance_size/disk_size_gb to values in state)
@@ -566,12 +575,12 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 				Config: configReplicationSpecsAutoScaling(t, true, projectID, clusterName, nil, "M10", 10, 2), // other change after autoscaling block removed, preserves previous state
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
-					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "name", clusterName),
-					acc.TestCheckResourceAttrSetPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.#"),
-					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.0.auto_scaling.0.compute_enabled", "true"), // autoscaling value is preserved
-					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.node_count", "2"),
-					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.instance_size", "M10"),
-					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb", "10"),
+					acc.TestCheckResourceAttrTPF(true, resourceName, "name", clusterName),
+					acc.TestCheckResourceAttrSetTPF(true, resourceName, "replication_specs.0.region_configs.#"),
+					acc.TestCheckResourceAttrTPF(true, resourceName, "replication_specs.0.region_configs.0.auto_scaling.0.compute_enabled", "true"), // autoscaling value is preserved
+					acc.TestCheckResourceAttrTPF(true, resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.node_count", "2"),
+					acc.TestCheckResourceAttrTPF(true, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.instance_size", "M10"),
+					acc.TestCheckResourceAttrTPF(true, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb", "10"),
 				),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -602,18 +611,18 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 				Config: configReplicationSpecsAnalyticsAutoScaling(t, true, projectID, clusterName, autoScaling, 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
-					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "name", clusterName),
-					acc.TestCheckResourceAttrSetPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.#"),
-					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.compute_enabled", "false"),
+					acc.TestCheckResourceAttrTPF(true, resourceName, "name", clusterName),
+					acc.TestCheckResourceAttrSetTPF(true, resourceName, "replication_specs.0.region_configs.#"),
+					acc.TestCheckResourceAttrTPF(true, resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.compute_enabled", "false"),
 				),
 			},
 			{
 				Config: configReplicationSpecsAnalyticsAutoScaling(t, true, projectID, clusterNameUpdated, autoScalingUpdated, 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
-					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "name", clusterNameUpdated),
-					acc.TestCheckResourceAttrSetPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.#"),
-					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.compute_enabled", "true"),
+					acc.TestCheckResourceAttrTPF(true, resourceName, "name", clusterNameUpdated),
+					acc.TestCheckResourceAttrSetTPF(true, resourceName, "replication_specs.0.region_configs.#"),
+					acc.TestCheckResourceAttrTPF(true, resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.compute_enabled", "true"),
 				),
 			},
 			// empty plan when analytics_auto_scaling block is removed
@@ -622,9 +631,9 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 				Config: configReplicationSpecsAnalyticsAutoScaling(t, true, projectID, clusterNameUpdated, nil, 2), // other changes after analytics_auto_scaling block removed, preserves previous state
 				Check: resource.ComposeAggregateTestCheckFunc(
 					acc.CheckExistsCluster(resourceName),
-					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "name", clusterNameUpdated),
-					acc.TestCheckResourceAttrSetPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.#"),
-					acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.compute_enabled", "true"),
+					acc.TestCheckResourceAttrTPF(true, resourceName, "name", clusterNameUpdated),
+					acc.TestCheckResourceAttrSetTPF(true, resourceName, "replication_specs.0.region_configs.#"),
+					acc.TestCheckResourceAttrTPF(true, resourceName, "replication_specs.0.region_configs.0.analytics_auto_scaling.0.compute_enabled", "true"),
 				),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -641,12 +650,12 @@ func TestAccClusterAdvancedClusterConfig_singleShardedTransitionToOldSchemaExpec
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configGeoShardedOldSchema(t, true, projectID, clusterName, 1, 1, false),
+				Config: configGeoShardedOldSchema(t, projectID, clusterName, 1, 1, false),
 				Check:  checkGeoShardedOldSchema(true, clusterName, 1, 1, true, true),
 			},
 			acc.TestStepImportCluster(resourceName),
 			{
-				Config:      configGeoShardedOldSchema(t, true, projectID, clusterName, 1, 2, false),
+				Config:      configGeoShardedOldSchema(t, projectID, clusterName, 1, 2, false),
 				ExpectError: regexp.MustCompile(advancedcluster.ErrorOperationNotPermitted),
 			},
 		},
@@ -735,8 +744,8 @@ func TestAccClusterAdvancedClusterConfig_selfManagedSharding(t *testing.T) {
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)
 		checks                 = []resource.TestCheckFunc{
 			acc.CheckExistsCluster(resourceName),
-			acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "global_cluster_self_managed_sharding", "true"),
-			acc.TestCheckResourceAttrPreviewProviderV2(true, dataSourceName, "global_cluster_self_managed_sharding", "true"),
+			acc.TestCheckResourceAttrTPF(true, resourceName, "global_cluster_self_managed_sharding", "true"),
+			acc.TestCheckResourceAttrTPF(true, dataSourceName, "global_cluster_self_managed_sharding", "true"),
 		}
 	)
 
@@ -746,13 +755,13 @@ func TestAccClusterAdvancedClusterConfig_selfManagedSharding(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configGeoShardedOldSchema(t, true, projectID, clusterName, 1, 1, true),
+				Config: configGeoShardedOldSchema(t, projectID, clusterName, 1, 1, true),
 				Check: resource.ComposeAggregateTestCheckFunc(checks...,
 				),
 			},
 			acc.TestStepImportCluster(resourceName),
 			{
-				Config:      configGeoShardedOldSchema(t, true, projectID, clusterName, 1, 1, false),
+				Config:      configGeoShardedOldSchema(t, projectID, clusterName, 1, 1, false),
 				ExpectError: regexp.MustCompile("CANNOT_MODIFY_GLOBAL_CLUSTER_MANAGEMENT_SETTING"),
 			},
 		},
@@ -788,11 +797,11 @@ func TestAccMockableAdvancedCluster_symmetricShardedOldSchema(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedOldSchemaMultiCloud(t, true, projectID, clusterName, 2, "M10", &configServerManagementModeFixedToDedicated),
+				Config: configShardedOldSchemaMultiCloud(t, projectID, clusterName, 2, "M10", &configServerManagementModeFixedToDedicated),
 				Check:  checkShardedOldSchemaMultiCloud(true, clusterName, 2, "M10", false, &configServerManagementModeFixedToDedicated),
 			},
 			{
-				Config: configShardedOldSchemaMultiCloud(t, true, projectID, clusterName, 2, "M20", &configServerManagementModeAtlasManaged),
+				Config: configShardedOldSchemaMultiCloud(t, projectID, clusterName, 2, "M20", &configServerManagementModeAtlasManaged),
 				Check:  checkShardedOldSchemaMultiCloud(true, clusterName, 2, "M20", false, &configServerManagementModeAtlasManaged),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs"), // Import with old schema will NOT use `num_shards`
@@ -801,12 +810,17 @@ func TestAccMockableAdvancedCluster_symmetricShardedOldSchema(t *testing.T) {
 }
 
 func TestAccClusterAdvancedClusterConfig_symmetricGeoShardedOldSchema(t *testing.T) {
-	resource.ParallelTest(t, symmetricGeoShardedOldSchemaTestCase(t, true))
+	resource.ParallelTest(t, symmetricGeoShardedOldSchemaTestCase(t))
 }
 
-func symmetricGeoShardedOldSchemaTestCase(t *testing.T, usePreviewProvider bool) resource.TestCase {
+func symmetricGeoShardedOldSchemaTestCase(t *testing.T, useSDKv2 ...bool) resource.TestCase {
 	t.Helper()
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 18)
+
+	var (
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 18)
+		isSDKv2                = isOptionalTrue(useSDKv2...)
+		isTPF                  = !isSDKv2
+	)
 
 	return resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -814,15 +828,15 @@ func symmetricGeoShardedOldSchemaTestCase(t *testing.T, usePreviewProvider bool)
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configGeoShardedOldSchema(t, usePreviewProvider, projectID, clusterName, 2, 2, false),
+				Config: configGeoShardedOldSchema(t, projectID, clusterName, 2, 2, false, isSDKv2),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkGeoShardedOldSchema(usePreviewProvider, clusterName, 2, 2, true, false),
+					checkGeoShardedOldSchema(isTPF, clusterName, 2, 2, true, false),
 					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
 			},
 			{
-				Config: configGeoShardedOldSchema(t, usePreviewProvider, projectID, clusterName, 3, 3, false),
+				Config: configGeoShardedOldSchema(t, projectID, clusterName, 3, 3, false, isSDKv2),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkGeoShardedOldSchema(usePreviewProvider, clusterName, 3, 3, true, false),
+					checkGeoShardedOldSchema(isTPF, clusterName, 3, 3, true, false),
 					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs"), // Import with old schema will NOT use `num_shards`
@@ -864,15 +878,15 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAd
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(t, true, orgID, projectName, clusterName, 50, "M10", "M10", nil, nil, false, false),
+				Config: configShardedNewSchema(t, orgID, projectName, clusterName, 50, "M10", "M10", nil, nil, false, false, false),
 				Check:  checkShardedNewSchema(true, 50, "M10", "M10", nil, nil, false, false),
 			},
 			{
-				Config: configShardedNewSchema(t, true, orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, true, false), // add middle replication spec and transition to asymmetric
+				Config: configShardedNewSchema(t, orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, true, false, false), // add middle replication spec and transition to asymmetric
 				Check:  checkShardedNewSchema(true, 55, "M10", "M20", nil, nil, true, true),
 			},
 			{
-				Config: configShardedNewSchema(t, true, orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, false, false), // removes middle replication spec
+				Config: configShardedNewSchema(t, orgID, projectName, clusterName, 55, "M10", "M20", nil, nil, false, false, false), // removes middle replication spec
 				Check:  checkShardedNewSchema(true, 55, "M10", "M20", nil, nil, true, false),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -881,15 +895,18 @@ func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAd
 }
 
 func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchema(t *testing.T) {
-	resource.ParallelTest(t, asymmetricShardedNewSchemaTestCase(t, true))
+	resource.ParallelTest(t, asymmetricShardedNewSchemaTestCase(t))
 }
 
-func asymmetricShardedNewSchemaTestCase(t *testing.T, usePreviewProvider bool) resource.TestCase {
+func asymmetricShardedNewSchemaTestCase(t *testing.T, useSDKv2 ...bool) resource.TestCase {
 	t.Helper()
+
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName = acc.RandomProjectName()
 		clusterName = acc.RandomClusterName()
+		isSDKv2     = isOptionalTrue(useSDKv2...)
+		isTPF       = !isSDKv2
 	)
 
 	return resource.TestCase{
@@ -898,9 +915,9 @@ func asymmetricShardedNewSchemaTestCase(t *testing.T, usePreviewProvider bool) r
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedNewSchema(t, usePreviewProvider, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false, false),
+				Config: configShardedNewSchema(t, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false, false, isSDKv2),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkShardedNewSchema(usePreviewProvider, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
+					checkShardedNewSchema(isTPF, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), true, false),
 					resource.TestCheckResourceAttr("data.mongodbatlas_advanced_clusters.test-replication-specs-per-shard-false", "results.#", "0"),
 					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "SHARD")),
 			},
@@ -922,7 +939,7 @@ func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchemaInconsistentD
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:      configShardedNewSchema(t, true, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false, true),
+				Config:      configShardedNewSchema(t, orgID, projectName, clusterName, 50, "M30", "M40", admin.PtrInt(2000), admin.PtrInt(2500), false, true),
 				ExpectError: regexp.MustCompile("DISK_SIZE_GB_INCONSISTENT"), // API Error when disk size is not consistent across all shards
 			},
 		},
@@ -1073,7 +1090,7 @@ func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
 			},
 			{
 				Config: configPriority(t, true, projectID, clusterName, true, false),
-				Check:  acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.#", "2"),
+				Check:  acc.TestCheckResourceAttrTPF(true, resourceName, "replication_specs.0.region_configs.#", "2"),
 			},
 			{
 				Config:      configPriority(t, true, projectID, clusterName, true, true),
@@ -1082,7 +1099,7 @@ func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
 			// Extra step added to allow deletion, otherwise we get `Error running post-test destroy` since validation of TF fails
 			{
 				Config: configPriority(t, true, projectID, clusterName, true, false),
-				Check:  acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.#", "2"),
+				Check:  acc.TestCheckResourceAttrTPF(true, resourceName, "replication_specs.0.region_configs.#", "2"),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs"), // Import with old schema will NOT use `num_shards`
 		},
@@ -1103,7 +1120,7 @@ func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
 			},
 			{
 				Config: configPriority(t, true, projectID, clusterName, false, false),
-				Check:  acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.#", "2"),
+				Check:  acc.TestCheckResourceAttrTPF(true, resourceName, "replication_specs.0.region_configs.#", "2"),
 			},
 			{
 				Config:      configPriority(t, true, projectID, clusterName, false, true),
@@ -1112,7 +1129,7 @@ func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
 			// Extra step added to allow deletion, otherwise we get `Error running post-test destroy` since validation of TF fails
 			{
 				Config: configPriority(t, true, projectID, clusterName, false, false),
-				Check:  acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "replication_specs.0.region_configs.#", "2"),
+				Check:  acc.TestCheckResourceAttrTPF(true, resourceName, "replication_specs.0.region_configs.#", "2"),
 			},
 		},
 	})
@@ -1812,12 +1829,12 @@ func checkKeyValueBlocks(usePreviewProvider, includeDataSources bool, blockName 
 	keyHash := blockName + ".#"
 	keyStar := blockName + ".*"
 	checks := []resource.TestCheckFunc{
-		acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, resourceName, keyHash, lenStr),
+		acc.TestCheckResourceAttrTPF(usePreviewProvider, resourceName, keyHash, lenStr),
 	}
 	if includeDataSources {
 		checks = append(checks,
-			acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, dataSourceName, keyHash, lenStr),
-			acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, dataSourcePluralName, pluralPrefix+keyHash, lenStr))
+			acc.TestCheckResourceAttrTPF(usePreviewProvider, dataSourceName, keyHash, lenStr),
+			acc.TestCheckResourceAttrTPF(usePreviewProvider, dataSourcePluralName, pluralPrefix+keyHash, lenStr))
 	}
 	for _, block := range blocks {
 		checks = append(checks,
@@ -1837,23 +1854,23 @@ func checkKeyValueBlocksPreviewProviderV2(usePreviewProvider, includeDataSources
 	lenStr := strconv.Itoa(len(blocks))
 	keyPct := blockName + ".%"
 	checks := []resource.TestCheckFunc{
-		acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, resourceName, keyPct, lenStr),
+		acc.TestCheckResourceAttrTPF(usePreviewProvider, resourceName, keyPct, lenStr),
 	}
 	if includeDataSources {
 		checks = append(checks,
-			acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, dataSourceName, keyPct, lenStr),
-			acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, dataSourcePluralName, pluralPrefix+keyPct, lenStr))
+			acc.TestCheckResourceAttrTPF(usePreviewProvider, dataSourceName, keyPct, lenStr),
+			acc.TestCheckResourceAttrTPF(usePreviewProvider, dataSourcePluralName, pluralPrefix+keyPct, lenStr))
 	}
 	for _, block := range blocks {
 		key := blockName + "." + block["key"]
 		value := block["value"]
 		checks = append(checks,
-			acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, resourceName, key, value),
+			acc.TestCheckResourceAttrTPF(usePreviewProvider, resourceName, key, value),
 		)
 		if includeDataSources {
 			checks = append(checks,
-				acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, dataSourceName, key, value),
-				acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, dataSourcePluralName, pluralPrefix+key, value))
+				acc.TestCheckResourceAttrTPF(usePreviewProvider, dataSourceName, key, value),
+				acc.TestCheckResourceAttrTPF(usePreviewProvider, dataSourcePluralName, pluralPrefix+key, value))
 		}
 	}
 	return resource.ComposeAggregateTestCheckFunc(checks...)
@@ -1868,17 +1885,20 @@ type ReplicaSetAWSConfig struct {
 	WithAnalyticsSpecs bool
 }
 
-func configAWSProvider(t *testing.T, usePreviewProvider bool, configInfo ReplicaSetAWSConfig) string {
+func configAWSProvider(t *testing.T, configInfo ReplicaSetAWSConfig, useSDKv2 ...bool) string {
 	t.Helper()
 	analyticsSpecs := ""
-	if configInfo.WithAnalyticsSpecs {
-		analyticsSpecs = `
-		analytics_specs {
-			instance_size = "M10"
-			node_count    = 1
-		}`
-	}
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, usePreviewProvider, fmt.Sprintf(`
+
+	if isOptionalTrue(useSDKv2...) {
+		if configInfo.WithAnalyticsSpecs {
+			analyticsSpecs = `
+			analytics_specs {
+				instance_size = "M10"
+				node_count    = 1
+			}`
+		}
+
+		return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
 			name         = %[2]q
@@ -1899,20 +1919,51 @@ func configAWSProvider(t *testing.T, usePreviewProvider bool, configInfo Replica
 				}
 			}
 		}
-	`, configInfo.ProjectID, configInfo.ClusterName, configInfo.ClusterType, configInfo.DiskSizeGB, configInfo.NodeCountElectable, analyticsSpecs)) + dataSourcesTFOldSchema
+	`, configInfo.ProjectID, configInfo.ClusterName, configInfo.ClusterType, configInfo.DiskSizeGB, configInfo.NodeCountElectable, analyticsSpecs) + dataSourcesTFOldSchema
+	}
+
+	if configInfo.WithAnalyticsSpecs {
+		analyticsSpecs = `
+		analytics_specs = {
+			instance_size = "M10"
+			node_count    = 1
+		}`
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id   = %[1]q
+			name         = %[2]q
+			cluster_type = %[3]q
+			retain_backups_enabled = "true"
+			disk_size_gb = %[4]d
+
+		  replication_specs = [{
+    		region_configs = [{
+      			electable_specs = {
+       				instance_size = "M10"
+					node_count    = %[5]d
+				}
+				%[6]s
+				priority      = 7
+				provider_name = "AWS"
+				region_name   = "US_WEST_2"
+				}]
+			}]
+	}
+	`, configInfo.ProjectID, configInfo.ClusterName, configInfo.ClusterType, configInfo.DiskSizeGB, configInfo.NodeCountElectable, analyticsSpecs) + dataSourcesTFOldSchema
 }
 
-func checkReplicaSetAWSProvider(usePreviewProvider bool, projectID, name string, diskSizeGB, nodeCountElectable int, checkDiskSizeGBInnerLevel, checkExternalID bool) resource.TestCheckFunc {
+func checkReplicaSetAWSProvider(isTPF bool, projectID, name string, diskSizeGB, nodeCountElectable int, checkDiskSizeGBInnerLevel, checkExternalID bool) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{
-		acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, resourceName, "retain_backups_enabled", "true"),
+		acc.TestCheckResourceAttrTPF(isTPF, resourceName, "retain_backups_enabled", "true"),
 	}
 	additionalChecks = append(additionalChecks,
-		acc.TestCheckResourceAttrWithPreviewProviderV2(usePreviewProvider, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		acc.TestCheckResourceAttrWithPreviewProviderV2(usePreviewProvider, dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)))
+		acc.TestCheckResourceAttrWithTPF(isTPF, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithTPF(isTPF, dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)))
 
 	if checkDiskSizeGBInnerLevel {
 		additionalChecks = append(additionalChecks,
-			checkAggr(usePreviewProvider, []string{}, map[string]string{
+			checkAggr(isTPF, []string{}, map[string]string{
 				"replication_specs.0.region_configs.0.electable_specs.0.disk_size_gb": fmt.Sprintf("%d", diskSizeGB),
 				"replication_specs.0.region_configs.0.analytics_specs.0.disk_size_gb": fmt.Sprintf("%d", diskSizeGB),
 			}),
@@ -1920,10 +1971,10 @@ func checkReplicaSetAWSProvider(usePreviewProvider bool, projectID, name string,
 	}
 
 	if checkExternalID {
-		additionalChecks = append(additionalChecks, acc.TestCheckResourceAttrSetPreviewProviderV2(usePreviewProvider, resourceName, "replication_specs.0.external_id"))
+		additionalChecks = append(additionalChecks, acc.TestCheckResourceAttrSetTPF(isTPF, resourceName, "replication_specs.0.external_id"))
 	}
 
-	return checkAggr(usePreviewProvider,
+	return checkAggr(isTPF,
 		[]string{"replication_specs.#", "replication_specs.0.id", "replication_specs.0.region_configs.#"},
 		map[string]string{
 			"project_id":   projectID,
@@ -1964,17 +2015,23 @@ func configIncorrectTypeGobalClusterSelfManagedSharding(t *testing.T, usePreview
 	`, projectID, name))
 }
 
-func configReplicaSetMultiCloud(t *testing.T, usePreviewProvider bool, orgID, projectName, name string) string {
+func configReplicaSetMultiCloud(t *testing.T, orgID, projectName, name string, useSDKv2 ...bool) string {
 	t.Helper()
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, usePreviewProvider, fmt.Sprintf(`
+
+	projectConfig := fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
 			name   = %[2]q
 		}
+	`, orgID, projectName)
 
+	advClusterConfig := ""
+
+	if isOptionalTrue(useSDKv2...) {
+		advClusterConfig = fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = mongodbatlas_project.cluster_project.id
-			name         = %[3]q
+			name         = %[1]q
 			cluster_type = "REPLICASET"
 			retain_backups_enabled = false
 
@@ -2014,21 +2071,65 @@ func configReplicaSetMultiCloud(t *testing.T, usePreviewProvider bool, orgID, pr
 				}
 			}
 		}
-	`, orgID, projectName, name)) + dataSourcesTFNewSchema
+	`, name)
+	} else {
+		advClusterConfig = fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+  project_id             = mongodbatlas_project.cluster_project.id
+  name                   = %[1]q
+  cluster_type           = "REPLICASET"
+  retain_backups_enabled = false
+
+  replication_specs = [{
+    region_configs = [{
+      analytics_specs = {
+        instance_size = "M10"
+        node_count    = 1
+      }
+      electable_specs = {
+        instance_size = "M10"
+        node_count    = 3
+      }
+      priority      = 7
+      provider_name = "AWS"
+      region_name   = "EU_WEST_1"
+      }, {
+      priority      = 0
+      provider_name = "GCP"
+      read_only_specs = {
+        instance_size = "M10"
+        node_count    = 2
+      }
+      region_name = "US_EAST_4"
+      }, {
+      priority      = 0
+      provider_name = "GCP"
+      read_only_specs = {
+        instance_size = "M10"
+        node_count    = 2
+      }
+      region_name = "NORTH_AMERICA_NORTHEAST_1"
+    }]
+  }]
+}
+	`, name)
+	}
+
+	return projectConfig + advClusterConfig + dataSourcesTFNewSchema
 }
 
-func checkReplicaSetMultiCloud(usePreviewProvider bool, name string, regionConfigs int) resource.TestCheckFunc {
+func checkReplicaSetMultiCloud(isTPF bool, name string, regionConfigs int) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{
-		acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, resourceName, "retain_backups_enabled", "false"),
-		acc.TestCheckResourceAttrWithPreviewProviderV2(usePreviewProvider, resourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
-		acc.TestCheckResourceAttrSetPreviewProviderV2(usePreviewProvider, resourceName, "replication_specs.0.external_id"),
-		acc.TestCheckResourceAttrWithPreviewProviderV2(usePreviewProvider, dataSourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
-		acc.TestCheckResourceAttrWithPreviewProviderV2(usePreviewProvider, dataSourcePluralName, "results.0.replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
-		acc.TestCheckResourceAttrSetPreviewProviderV2(usePreviewProvider, dataSourcePluralName, "results.#"),
-		acc.TestCheckResourceAttrSetPreviewProviderV2(usePreviewProvider, dataSourcePluralName, "results.0.replication_specs.#"),
-		acc.TestCheckResourceAttrSetPreviewProviderV2(usePreviewProvider, dataSourcePluralName, "results.0.name"),
+		acc.TestCheckResourceAttrTPF(isTPF, resourceName, "retain_backups_enabled", "false"),
+		acc.TestCheckResourceAttrWithTPF(isTPF, resourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
+		acc.TestCheckResourceAttrSetTPF(isTPF, resourceName, "replication_specs.0.external_id"),
+		acc.TestCheckResourceAttrWithTPF(isTPF, dataSourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
+		acc.TestCheckResourceAttrWithTPF(isTPF, dataSourcePluralName, "results.0.replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
+		acc.TestCheckResourceAttrSetTPF(isTPF, dataSourcePluralName, "results.#"),
+		acc.TestCheckResourceAttrSetTPF(isTPF, dataSourcePluralName, "results.0.replication_specs.#"),
+		acc.TestCheckResourceAttrSetTPF(isTPF, dataSourcePluralName, "results.0.name"),
 	}
-	return checkAggr(usePreviewProvider,
+	return checkAggr(isTPF,
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.id"},
 		map[string]string{
 			"name": name},
@@ -2036,7 +2137,7 @@ func checkReplicaSetMultiCloud(usePreviewProvider bool, name string, regionConfi
 	)
 }
 
-func configShardedOldSchemaMultiCloud(t *testing.T, usePreviewProvider bool, projectID, name string, numShards int, analyticsSize string, configServerManagementMode *string) string {
+func configShardedOldSchemaMultiCloud(t *testing.T, projectID, name string, numShards int, analyticsSize string, configServerManagementMode *string, useSDKv2 ...bool) string {
 	t.Helper()
 	var rootConfig string
 	if configServerManagementMode != nil {
@@ -2048,7 +2149,10 @@ func configShardedOldSchemaMultiCloud(t *testing.T, usePreviewProvider bool, pro
 		  config_server_management_mode = %[1]q
 		`, *configServerManagementMode)
 	}
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, usePreviewProvider, fmt.Sprintf(`
+	advClusterConfig := ""
+
+	if isOptionalTrue(useSDKv2...) {
+		advClusterConfig = fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
 			name         = %[2]q
@@ -2081,29 +2185,68 @@ func configShardedOldSchemaMultiCloud(t *testing.T, usePreviewProvider bool, pro
 				}
 			}
 		}
-	`, projectID, name, numShards, analyticsSize, rootConfig)) + dataSourcesTFOldSchema
+	`, projectID, name, numShards, analyticsSize, rootConfig)
+	} else {
+		advClusterConfig = fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+				project_id   = %[1]q
+				name         = %[2]q
+				  cluster_type = "SHARDED"
+		
+				%[5]s
+		
+		
+		  replication_specs = [{
+			num_shards = %[3]d
+			region_configs = [{
+			  analytics_specs = {
+				instance_size = %[4]q
+				node_count    = 1
+			  }
+			  electable_specs = {
+				instance_size = "M10"
+				node_count    = 3
+			  }
+			  priority      = 7
+			  provider_name = "AWS"
+			  region_name   = "EU_WEST_1"
+			  }, {
+			  electable_specs = {
+				instance_size = "M10"
+				node_count    = 2
+			  }
+			  priority      = 6
+			  provider_name = "AZURE"
+			  region_name   = "US_EAST_2"
+			}]
+		  }]
+		}
+			`, projectID, name, numShards, analyticsSize, rootConfig)
+	}
+
+	return advClusterConfig + dataSourcesTFOldSchema
 }
 
 func checkShardedOldSchemaMultiCloud(usePreviewProvider bool, name string, numShards int, analyticsSize string, verifyExternalID bool, configServerManagementMode *string) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{
-		acc.TestCheckResourceAttrWithPreviewProviderV2(usePreviewProvider, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		acc.TestCheckResourceAttrWithPreviewProviderV2(usePreviewProvider, resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
-		acc.TestCheckResourceAttrWithPreviewProviderV2(usePreviewProvider, resourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		acc.TestCheckResourceAttrWithPreviewProviderV2(usePreviewProvider, dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		acc.TestCheckResourceAttrWithPreviewProviderV2(usePreviewProvider, dataSourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
-		acc.TestCheckResourceAttrWithPreviewProviderV2(usePreviewProvider, dataSourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithTPF(usePreviewProvider, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithTPF(usePreviewProvider, resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithTPF(usePreviewProvider, resourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithTPF(usePreviewProvider, dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithTPF(usePreviewProvider, dataSourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithTPF(usePreviewProvider, dataSourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
 	}
 	if verifyExternalID {
 		additionalChecks = append(
 			additionalChecks,
-			acc.TestCheckResourceAttrSetPreviewProviderV2(usePreviewProvider, resourceName, "replication_specs.0.external_id"))
+			acc.TestCheckResourceAttrSetTPF(usePreviewProvider, resourceName, "replication_specs.0.external_id"))
 	}
 	if configServerManagementMode != nil {
 		additionalChecks = append(additionalChecks,
-			acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, resourceName, "config_server_management_mode", *configServerManagementMode),
-			acc.TestCheckResourceAttrSetPreviewProviderV2(usePreviewProvider, resourceName, "config_server_type"),
-			acc.TestCheckResourceAttrPreviewProviderV2(usePreviewProvider, dataSourceName, "config_server_management_mode", *configServerManagementMode),
-			acc.TestCheckResourceAttrSetPreviewProviderV2(usePreviewProvider, dataSourceName, "config_server_type"),
+			acc.TestCheckResourceAttrTPF(usePreviewProvider, resourceName, "config_server_management_mode", *configServerManagementMode),
+			acc.TestCheckResourceAttrSetTPF(usePreviewProvider, resourceName, "config_server_type"),
+			acc.TestCheckResourceAttrTPF(usePreviewProvider, dataSourceName, "config_server_management_mode", *configServerManagementMode),
+			acc.TestCheckResourceAttrSetTPF(usePreviewProvider, dataSourceName, "config_server_type"),
 		)
 	}
 
@@ -2255,9 +2398,9 @@ func checkAdvanced(usePreviewProvider bool, name, tls string, processArgs *admin
 	}
 
 	pluralChecks := []resource.TestCheckFunc{
-		acc.TestCheckResourceAttrSetPreviewProviderV2(usePreviewProvider, dataSourcePluralName, "results.#"),
-		acc.TestCheckResourceAttrSetPreviewProviderV2(usePreviewProvider, dataSourcePluralName, "results.0.replication_specs.#"),
-		acc.TestCheckResourceAttrSetPreviewProviderV2(usePreviewProvider, dataSourcePluralName, "results.0.name"),
+		acc.TestCheckResourceAttrSetTPF(usePreviewProvider, dataSourcePluralName, "results.#"),
+		acc.TestCheckResourceAttrSetTPF(usePreviewProvider, dataSourcePluralName, "results.0.replication_specs.#"),
+		acc.TestCheckResourceAttrSetTPF(usePreviewProvider, dataSourcePluralName, "results.0.name"),
 	}
 
 	return checkAggr(usePreviewProvider,
@@ -2308,9 +2451,9 @@ func configAdvancedDefaultWrite(t *testing.T, usePreviewProvider bool, projectID
 
 func checkAdvancedDefaultWrite(usePreviewProvider bool, name, writeConcern, tls string) resource.TestCheckFunc {
 	pluralChecks := []resource.TestCheckFunc{
-		acc.TestCheckResourceAttrSetPreviewProviderV2(usePreviewProvider, dataSourcePluralName, "results.#"),
-		acc.TestCheckResourceAttrSetPreviewProviderV2(usePreviewProvider, dataSourcePluralName, "results.0.replication_specs.#"),
-		acc.TestCheckResourceAttrSetPreviewProviderV2(usePreviewProvider, dataSourcePluralName, "results.0.name"),
+		acc.TestCheckResourceAttrSetTPF(usePreviewProvider, dataSourcePluralName, "results.#"),
+		acc.TestCheckResourceAttrSetTPF(usePreviewProvider, dataSourcePluralName, "results.0.replication_specs.#"),
+		acc.TestCheckResourceAttrSetTPF(usePreviewProvider, dataSourcePluralName, "results.0.name"),
 	}
 	return checkAggr(usePreviewProvider,
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
@@ -2422,9 +2565,12 @@ func configReplicationSpecsAnalyticsAutoScaling(t *testing.T, usePreviewProvider
 	`, projectID, clusterName, analyticsNodeCount, analyticsAutoScalingBlock))
 }
 
-func configGeoShardedOldSchema(t *testing.T, usePreviewProvider bool, projectID, name string, numShardsFirstZone, numShardsSecondZone int, selfManagedSharding bool) string {
+func configGeoShardedOldSchema(t *testing.T, projectID, name string, numShardsFirstZone, numShardsSecondZone int, selfManagedSharding bool, useSDKv2 ...bool) string {
 	t.Helper()
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, usePreviewProvider, fmt.Sprintf(`
+	advClusterConfig := ""
+
+	if isOptionalTrue(useSDKv2...) {
+		advClusterConfig = fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id = %[1]q
 			name = %[2]q
@@ -2473,14 +2619,65 @@ func configGeoShardedOldSchema(t *testing.T, usePreviewProvider bool, projectID,
 			}
 		}
 
-	`, projectID, name, numShardsFirstZone, numShardsSecondZone, selfManagedSharding)) + dataSourcesTFOldSchema
+	`, projectID, name, numShardsFirstZone, numShardsSecondZone, selfManagedSharding)
+	} else {
+		advClusterConfig = fmt.Sprintf(`
+		resource "mongodbatlas_advanced_cluster" "test" {
+			project_id = %[1]q
+			name = %[2]q
+			backup_enabled = false
+			mongo_db_major_version = "7.0"
+			cluster_type   = "GEOSHARDED"
+			global_cluster_self_managed_sharding = %[5]t
+			disk_size_gb  = 60
+
+
+			replication_specs = [{
+				num_shards = %[3]d
+					region_configs = [{
+						analytics_specs = {
+							instance_size = "M10"
+							node_count    = 0
+						}
+						electable_specs = {
+							instance_size = "M10"
+							node_count    = 3
+						}
+					priority      = 7
+					provider_name = "AWS"
+					region_name   = "US_EAST_1"
+					}]
+				zone_name = "zone n1"
+				}, {
+				num_shards = %[4]d
+					region_configs = [{
+						analytics_specs = {
+							instance_size = "M10"
+							node_count    = 0
+						}
+						electable_specs = {
+							instance_size = "M10"
+							node_count    = 3
+						}
+					priority      = 7
+					provider_name = "AWS"
+					region_name   = "EU_WEST_1"
+					}]
+				zone_name = "zone n2"
+			}]
+
+}
+	`, projectID, name, numShardsFirstZone, numShardsSecondZone, selfManagedSharding)
+	}
+
+	return advClusterConfig + dataSourcesTFOldSchema
 }
 
 func checkGeoShardedOldSchema(usePreviewProvider bool, name string, numShardsFirstZone, numShardsSecondZone int, isLatestProviderVersion, verifyExternalID bool) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{}
 
 	if verifyExternalID {
-		additionalChecks = append(additionalChecks, acc.TestCheckResourceAttrSetPreviewProviderV2(usePreviewProvider, resourceName, "replication_specs.0.external_id"))
+		additionalChecks = append(additionalChecks, acc.TestCheckResourceAttrSetTPF(usePreviewProvider, resourceName, "replication_specs.0.external_id"))
 	}
 
 	if isLatestProviderVersion { // checks that will not apply if doing migration test with older version
@@ -2548,15 +2745,50 @@ func checkShardedOldSchemaDiskSizeGBElectableLevel(usePreviewProvider bool, disk
 		})
 }
 
-func configShardedNewSchema(t *testing.T, usePreviewProvider bool, orgID, projectName, name string, diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIOPS, lastDiskIOPS *int, includeMiddleSpec, increaseDiskSizeShard2 bool) string {
+func configShardedNewSchema(t *testing.T, orgID, projectName, name string, diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIOPS, lastDiskIOPS *int, includeMiddleSpec, increaseDiskSizeShard2 bool, useSDKv2 ...bool) string {
 	t.Helper()
 	var thirdReplicationSpec string
 	var diskSizeGBShard2 = diskSizeGB
 	if increaseDiskSizeShard2 {
 		diskSizeGBShard2 = diskSizeGB + 10
 	}
-	if includeMiddleSpec {
-		thirdReplicationSpec = fmt.Sprintf(`
+
+	var firstDiskIOPSAttrs string
+	if firstDiskIOPS != nil {
+		firstDiskIOPSAttrs = fmt.Sprintf(`
+			disk_iops = %d
+			ebs_volume_type = "PROVISIONED"
+		`, *firstDiskIOPS)
+	}
+	var lastDiskIOPSAttrs string
+	if lastDiskIOPS != nil {
+		lastDiskIOPSAttrs = fmt.Sprintf(`
+			disk_iops = %d
+			ebs_volume_type = "PROVISIONED"
+		`, *lastDiskIOPS)
+	}
+
+	dataSourcesConfig := `
+	data "mongodbatlas_advanced_cluster" "test" {
+		project_id = mongodbatlas_advanced_cluster.test.project_id
+		name 	     = mongodbatlas_advanced_cluster.test.name
+		use_replication_spec_per_shard = true
+	}
+
+	data "mongodbatlas_advanced_clusters" "test-replication-specs-per-shard-false" {
+		project_id = mongodbatlas_advanced_cluster.test.project_id
+		use_replication_spec_per_shard = false
+	}
+
+	data "mongodbatlas_advanced_clusters" "test" {
+		project_id = mongodbatlas_advanced_cluster.test.project_id
+		use_replication_spec_per_shard = true
+	}
+	`
+
+	if isOptionalTrue(useSDKv2...) {
+		if includeMiddleSpec {
+			thirdReplicationSpec = fmt.Sprintf(`
 			replication_specs {
 				region_configs {
 					electable_specs {
@@ -2575,90 +2807,139 @@ func configShardedNewSchema(t *testing.T, usePreviewProvider bool, orgID, projec
 				}
 			}
 		`, firstInstanceSize, diskSizeGB)
+		}
+
+		return fmt.Sprintf(`
+	resource "mongodbatlas_project" "cluster_project" {
+		org_id = %[1]q
+		name   = %[2]q
 	}
-	var firstDiskIOPSAttrs string
-	if firstDiskIOPS != nil {
-		firstDiskIOPSAttrs = fmt.Sprintf(`
-			disk_iops = %d
-			ebs_volume_type = "PROVISIONED"
-		`, *firstDiskIOPS)
+
+	resource "mongodbatlas_advanced_cluster" "test" {
+		project_id = mongodbatlas_project.cluster_project.id
+		name = %[3]q
+		backup_enabled = false
+		cluster_type   = "SHARDED"
+
+		replication_specs {
+			region_configs {
+				electable_specs {
+					instance_size = %[4]q
+					node_count    = 3
+					disk_size_gb  = %[9]d
+					%[6]s
+				}
+				analytics_specs {
+					instance_size = %[4]q
+					node_count    = 1
+					disk_size_gb  = %[9]d
+				}
+				provider_name = "AWS"
+				priority      = 7
+				region_name   = "EU_WEST_1"
+			}
+		}
+
+		%[8]s
+
+		replication_specs {
+			region_configs {
+				electable_specs {
+					instance_size = %[5]q
+					node_count    = 3
+					disk_size_gb  = %[10]d
+					%[7]s
+				}
+				analytics_specs {
+					instance_size = %[5]q
+					node_count    = 1
+					disk_size_gb  = %[10]d
+				}
+				provider_name = "AWS"
+				priority      = 7
+				region_name   = "EU_WEST_1"
+			}
+		}
 	}
-	var lastDiskIOPSAttrs string
-	if lastDiskIOPS != nil {
-		lastDiskIOPSAttrs = fmt.Sprintf(`
-			disk_iops = %d
-			ebs_volume_type = "PROVISIONED"
-		`, *lastDiskIOPS)
+		
+	%[11]s
+`, orgID, projectName, name, firstInstanceSize, lastInstanceSize, firstDiskIOPSAttrs, lastDiskIOPSAttrs, thirdReplicationSpec, diskSizeGB, diskSizeGBShard2, dataSourcesConfig)
 	}
-	return acc.ConvertAdvancedClusterToPreviewProviderV2(t, usePreviewProvider, fmt.Sprintf(`
+
+	if includeMiddleSpec {
+		thirdReplicationSpec = fmt.Sprintf(`
+		{
+			region_configs = [{
+				electable_specs = {
+					instance_size = %[1]q
+					node_count    = 3
+					disk_size_gb  = %[2]d
+				}
+				analytics_specs = {
+					instance_size = %[1]q
+					node_count    = 1
+					disk_size_gb  = %[2]d
+				}
+				provider_name = "AWS"
+				priority      = 7
+				region_name   = "EU_WEST_1"
+			}]
+		},
+	`, firstInstanceSize, diskSizeGB)
+	}
+	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "cluster_project" {
 			org_id = %[1]q
 			name   = %[2]q
 		}
 
 		resource "mongodbatlas_advanced_cluster" "test" {
-			project_id = mongodbatlas_project.cluster_project.id
+			project_id     = mongodbatlas_project.cluster_project.id
 			name = %[3]q
 			backup_enabled = false
 			cluster_type   = "SHARDED"
 
-			replication_specs {
-				region_configs {
-					electable_specs {
-						instance_size = %[4]q
-						node_count    = 3
-						disk_size_gb  = %[9]d
-						%[6]s
-					}
-					analytics_specs {
-						instance_size = %[4]q
-						node_count    = 1
-						disk_size_gb  = %[9]d
-					}
-					provider_name = "AWS"
-					priority      = 7
-					region_name   = "EU_WEST_1"
+			replication_specs = [{
+				region_configs = [{
+					electable_specs = {
+					instance_size = %[4]q
+					node_count    = 3
+					disk_size_gb  = %[9]d
+					%[6]s
 				}
-			}
-
-			%[8]s
-
-			replication_specs {
-				region_configs {
-					electable_specs {
-						instance_size = %[5]q
-						node_count    = 3
-						disk_size_gb  = %[10]d
-						%[7]s
-					}
-					analytics_specs {
-						instance_size = %[5]q
-						node_count    = 1
-						disk_size_gb  = %[10]d
-					}
-					provider_name = "AWS"
-					priority      = 7
-					region_name   = "EU_WEST_1"
+				analytics_specs = {
+					instance_size = %[4]q
+					node_count    = 1
+					disk_size_gb  = %[9]d
 				}
-			}
-		}
+				priority      = 7
+				provider_name = "AWS"
+				region_name   = "EU_WEST_1"
+				}]
+				}, 
+				%[8]s
+				{
+				region_configs = [{
+				electable_specs = {
+					instance_size = %[5]q
+					node_count    = 3
+					disk_size_gb  = %[10]d
+					%[7]s
+				}
+				analytics_specs = {
+					instance_size = %[5]q
+					node_count    = 1
+					disk_size_gb  = %[10]d
+				}
+				priority      = 7
+				provider_name = "AWS"
+				region_name   = "EU_WEST_1"
+				}]
+			}]
+}
 
-		data "mongodbatlas_advanced_cluster" "test" {
-			project_id = mongodbatlas_advanced_cluster.test.project_id
-			name 	     = mongodbatlas_advanced_cluster.test.name
-			use_replication_spec_per_shard = true
-		}
-
-		data "mongodbatlas_advanced_clusters" "test-replication-specs-per-shard-false" {
-			project_id = mongodbatlas_advanced_cluster.test.project_id
-			use_replication_spec_per_shard = false
-		}
-
-		data "mongodbatlas_advanced_clusters" "test" {
-			project_id = mongodbatlas_advanced_cluster.test.project_id
-			use_replication_spec_per_shard = true
-		}
-	`, orgID, projectName, name, firstInstanceSize, lastInstanceSize, firstDiskIOPSAttrs, lastDiskIOPSAttrs, thirdReplicationSpec, diskSizeGB, diskSizeGBShard2))
+	%[11]s
+	`, orgID, projectName, name, firstInstanceSize, lastInstanceSize, firstDiskIOPSAttrs, lastDiskIOPSAttrs, thirdReplicationSpec, diskSizeGB, diskSizeGBShard2, dataSourcesConfig)
 }
 
 func checkShardedNewSchema(usePreviewProvider bool, diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIops, lastDiskIops *int, isAsymmetricCluster, includeMiddleSpec bool) resource.TestCheckFunc {
@@ -3384,4 +3665,8 @@ func checkFlexClusterConfig(projectID, clusterName, providerName, region string,
 		checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
 	}
 	return acc.CheckRSAndDSPreviewProviderV2(true, resourceName, ds, dsp, attrSetAdvCluster, attrMapAdvCluster, checks...)
+}
+
+func isOptionalTrue(arg ...bool) bool {
+	return len(arg) > 0 && arg[0]
 }
