@@ -51,7 +51,12 @@ func (d *cloudUserTeamAssignmentDS) Read(ctx context.Context, req datasource.Rea
 	var err error
 
 	if userID != "" {
-		userListResp, _, err = connV2.MongoDBCloudUsersApi.ListTeamUsers(ctx, orgID, teamID).Execute()
+		params := &admin.ListTeamUsersApiParams{
+			UserId: &userID,
+			OrgId:  orgID,
+			TeamId: teamID,
+		}
+		userListResp, _, err = connV2.MongoDBCloudUsersApi.ListTeamUsersWithParams(ctx, params).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError(fmt.Sprintf("error retrieving resource by user_id: %s", userID), err.Error())
 			return
@@ -61,13 +66,7 @@ func (d *cloudUserTeamAssignmentDS) Read(ctx context.Context, req datasource.Rea
 			resp.Diagnostics.AddError("resource not found", "no user found with the specified user_id")
 			return
 		}
-		results := userListResp.GetResults()
-		for i := range results {
-			if results[i].GetId() == userID {
-				userResp = &results[i]
-				break
-			}
-		}
+		userResp = &(userListResp.GetResults())[0]
 	} else if username != "" {
 		params := &admin.ListTeamUsersApiParams{
 			OrgId:    orgID,

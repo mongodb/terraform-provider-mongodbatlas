@@ -89,9 +89,13 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 
 	var userResp *admin.OrgUserResponse
 	if !state.UserId.IsNull() && state.UserId.ValueString() != "" {
-		userID := state.UserId.ValueString()
-		userListResp, httpResp, err = connV2.MongoDBCloudUsersApi.ListTeamUsers(ctx, orgID, teamID).Execute()
-
+		userID := state.UserId.ValueStringPointer()
+		params := &admin.ListTeamUsersApiParams{
+			UserId: userID,
+			OrgId:  orgID,
+			TeamId: teamID,
+		}
+		userListResp, httpResp, err = connV2.MongoDBCloudUsersApi.ListTeamUsersWithParams(ctx, params).Execute()
 		if err != nil {
 			if validate.StatusNotFound(httpResp) {
 				resp.State.RemoveResource(ctx)
@@ -105,18 +109,12 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 				resp.State.RemoveResource(ctx)
 				return
 			}
-			results := userListResp.GetResults()
-			for i := range results {
-				if results[i].GetId() == userID {
-					userResp = &results[i]
-					break
-				}
-			}
+			userResp = &(userListResp.GetResults())[0]
 		}
 	} else if !state.Username.IsNull() && state.Username.ValueString() != "" { // required for import
-		username := state.Username.ValueString()
+		username := state.Username.ValueStringPointer()
 		params := &admin.ListTeamUsersApiParams{
-			Username: &username,
+			Username: username,
 			OrgId:    orgID,
 			TeamId:   teamID,
 		}
