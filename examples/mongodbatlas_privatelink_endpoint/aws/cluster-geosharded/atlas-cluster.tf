@@ -16,15 +16,15 @@ resource "mongodbatlas_advanced_cluster" "geosharded" {
         provider_name = "AWS"
         priority      = 7
         region_name   = var.atlas_region_east
-      },
-      {
-        electable_specs = {
-          instance_size = "M30"
-          node_count    = 2
-        }
-        provider_name = "AWS"
-        priority      = 6
-        region_name   = var.atlas_region_west
+        },
+        {
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 2
+          }
+          provider_name = "AWS"
+          priority      = 6
+          region_name   = var.atlas_region_west
       }]
     },
     { # Shard 2
@@ -38,15 +38,15 @@ resource "mongodbatlas_advanced_cluster" "geosharded" {
         provider_name = "AWS"
         priority      = 7
         region_name   = var.atlas_region_east
-      },
-      {
-        electable_specs = {
-          instance_size = "M30"
-          node_count    = 2
-        }
-        provider_name = "AWS"
-        priority      = 6
-        region_name   = var.atlas_region_west
+        },
+        {
+          electable_specs = {
+            instance_size = "M30"
+            node_count    = 2
+          }
+          provider_name = "AWS"
+          priority      = 6
+          region_name   = var.atlas_region_west
       }]
     }
   ]

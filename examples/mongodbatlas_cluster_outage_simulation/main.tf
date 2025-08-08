@@ -16,24 +16,24 @@ resource "mongodbatlas_advanced_cluster" "atlas_cluster" {
       provider_name = var.provider_name
       priority      = 7
       region_name   = "US_EAST_1"
-    },
-    {
-      electable_specs = {
-        instance_size = var.provider_instance_size_name
-        node_count    = 2
-      }
-      provider_name = var.provider_name
-      priority      = 6
-      region_name   = "US_EAST_2"
-    },
-    {
-      electable_specs = {
-        instance_size = var.provider_instance_size_name
-        node_count    = 2
-      }
-      provider_name = var.provider_name
-      priority      = 5
-      region_name   = "US_WEST_1"
+      },
+      {
+        electable_specs = {
+          instance_size = var.provider_instance_size_name
+          node_count    = 2
+        }
+        provider_name = var.provider_name
+        priority      = 6
+        region_name   = "US_EAST_2"
+      },
+      {
+        electable_specs = {
+          instance_size = var.provider_instance_size_name
+          node_count    = 2
+        }
+        provider_name = var.provider_name
+        priority      = 5
+        region_name   = "US_WEST_1"
     }]
   }]
 }
