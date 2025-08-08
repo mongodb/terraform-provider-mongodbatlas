@@ -17,7 +17,7 @@ var dataSourceName1 = "data.mongodbatlas_cloud_user_team_assignment.test1"
 var dataSourceName2 = "data.mongodbatlas_cloud_user_team_assignment.test2"
 
 func TestAccCloudUserTeamAssignment_basic(t *testing.T) {
-	resource.ParallelTest(t, *basicTestCase(t))
+	resource.Test(t, *basicTestCase(t))
 }
 
 func basicTestCase(t *testing.T) *resource.TestCase {
