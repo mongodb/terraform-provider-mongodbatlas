@@ -164,7 +164,7 @@ func EncryptionAtRestExecution(tb testing.TB) string {
 	SkipInUnitTest(tb)
 	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
 
-	projectID := ProjectIDExecution(tb)
+	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_ID")
 
 	sharedInfo.mu.Lock()
 	defer sharedInfo.mu.Unlock()
