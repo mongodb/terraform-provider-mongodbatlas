@@ -72,6 +72,7 @@ type Config struct {
 	RealmBaseURL                    string
 	TerraformVersion                string
 	PreviewV2AdvancedClusterEnabled bool
+	AnalyticsEnabled                bool
 }
 
 type AssumeRole struct {
@@ -109,10 +110,8 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 	// Don't change logging.NewTransport to NewSubsystemLoggingHTTPTransport until all resources are in TPF.
 	tfLoggingTransport := logging.NewTransport("Atlas", digestTransport)
 	// Add UserAgentExtra fields to the User-Agent header, see wrapper_provider_server.go
-	userAgentTransport := UserAgentTransport{
-		Transport: tfLoggingTransport,
-	}
-	client := &http.Client{Transport: &userAgentTransport}
+	userAgentTransport := NewUserAgentTransport(tfLoggingTransport, c.AnalyticsEnabled)
+	client := &http.Client{Transport: userAgentTransport.Transport}
 
 	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
 	if c.BaseURL != "" {

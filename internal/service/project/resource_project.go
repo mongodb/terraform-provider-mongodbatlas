@@ -59,10 +59,13 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	var limits []TFLimitModel
 
 	connV2 := r.Client.AtlasV2
+	diags := &resp.Diagnostics
+	meta := r.ReadProviderMetaCreate(ctx, &req, diags)
+	scriptLocation := meta.ScriptLocation
+	fmt.Println("found script location: " + scriptLocation.ValueString())
 
-	diags := req.Plan.Get(ctx, &projectPlan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	diags.Append(req.Plan.Get(ctx, &projectPlan)...)
+	if diags.HasError() {
 		return
 	}
 	projectGroup := &admin.Group{
@@ -174,17 +177,16 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	filteredLimits := FilterUserDefinedLimits(projectProps.Limits, limits)
 	projectProps.Limits = filteredLimits
 
-	projectPlanNew, diags := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	projectPlanNew, localDiags := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
+	diags.Append(localDiags...)
+	if diags.HasError() {
 		return
 	}
 	updatePlanFromConfig(projectPlanNew, &projectPlan)
 
 	// set state to fully populated data
-	diags = resp.State.Set(ctx, projectPlanNew)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	diags.Append(resp.State.Set(ctx, projectPlanNew)...)
+	if diags.HasError() {
 		return
 	}
 }

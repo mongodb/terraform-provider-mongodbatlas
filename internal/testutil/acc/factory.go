@@ -43,9 +43,10 @@ func ConnV220241113() *admin20241113.APIClient {
 
 func ConnV2UsingGov() *admin.APIClient {
 	cfg := config.Config{
-		PublicKey:  os.Getenv("MONGODB_ATLAS_GOV_PUBLIC_KEY"),
-		PrivateKey: os.Getenv("MONGODB_ATLAS_GOV_PRIVATE_KEY"),
-		BaseURL:    os.Getenv("MONGODB_ATLAS_GOV_BASE_URL"),
+		PublicKey:        os.Getenv("MONGODB_ATLAS_GOV_PUBLIC_KEY"),
+		PrivateKey:       os.Getenv("MONGODB_ATLAS_GOV_PRIVATE_KEY"),
+		BaseURL:          os.Getenv("MONGODB_ATLAS_GOV_BASE_URL"),
+		AnalyticsEnabled: true,
 	}
 	client, _ := cfg.NewClient(context.Background())
 	return client.(*config.MongoDBClient).AtlasV2
@@ -58,10 +59,11 @@ func init() {
 		},
 	}
 	cfg := config.Config{
-		PublicKey:    os.Getenv("MONGODB_ATLAS_PUBLIC_KEY"),
-		PrivateKey:   os.Getenv("MONGODB_ATLAS_PRIVATE_KEY"),
-		BaseURL:      os.Getenv("MONGODB_ATLAS_BASE_URL"),
-		RealmBaseURL: os.Getenv("MONGODB_REALM_BASE_URL"),
+		PublicKey:        os.Getenv("MONGODB_ATLAS_PUBLIC_KEY"),
+		PrivateKey:       os.Getenv("MONGODB_ATLAS_PRIVATE_KEY"),
+		BaseURL:          os.Getenv("MONGODB_ATLAS_BASE_URL"),
+		RealmBaseURL:     os.Getenv("MONGODB_REALM_BASE_URL"),
+		AnalyticsEnabled: true,
 	}
 	client, _ := cfg.NewClient(context.Background())
 	MongoDBClient = client.(*config.MongoDBClient)
