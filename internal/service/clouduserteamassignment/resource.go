@@ -3,7 +3,6 @@ package clouduserteamassignment
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -17,8 +16,7 @@ import (
 const (
 	resourceName             = "cloud_user_team_assignment"
 	warnUnsupportedOperation = "Operation not supported"
-	errorReadingByUserID     = "Error getting team users by user_id"
-	errorReadingByUsername   = "Error getting team users by username"
+	errorReadingUsers        = "Error retrieving team users"
 	invalidImportID          = "Invalid import ID format"
 )
 
@@ -73,73 +71,61 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	resp.Diagnostics.Append(resp.State.Set(ctx, newUserTeamAssignmentModel)...)
 }
 
+func fetchTeamUser(ctx context.Context, connV2 *admin.APIClient, orgID, teamID string, userID, username *string) (*admin.OrgUserResponse, bool, error) {
+	var params admin.ListTeamUsersApiParams
+	if userID != nil && *userID != "" {
+		params = admin.ListTeamUsersApiParams{
+			UserId: userID,
+			OrgId:  orgID,
+			TeamId: teamID,
+		}
+	} else if username != nil && *username != "" {
+		params = admin.ListTeamUsersApiParams{
+			Username: username,
+			OrgId:    orgID,
+			TeamId:   teamID,
+		}
+	}
+
+	userListResp, httpResp, err := connV2.MongoDBCloudUsersApi.ListTeamUsersWithParams(ctx, &params).Execute()
+	if err != nil {
+		if validate.StatusNotFound(httpResp) {
+			return nil, false, nil
+		}
+		return nil, false, err
+	}
+
+	if userListResp == nil || len(userListResp.GetResults()) == 0 {
+		return nil, false, nil
+	}
+	userResp := userListResp.GetResults()[0]
+	return &userResp, true, nil
+}
+
 func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state TFUserTeamAssignmentModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
 	connV2 := r.Client.AtlasV2
 	orgID := state.OrgId.ValueString()
 	teamID := state.TeamId.ValueString()
 
-	var userListResp *admin.PaginatedOrgUser
-	var httpResp *http.Response
-	var err error
-
-	var userResp *admin.OrgUserResponse
+	var userID, username *string
 	if !state.UserId.IsNull() && state.UserId.ValueString() != "" {
-		userID := state.UserId.ValueStringPointer()
-		params := &admin.ListTeamUsersApiParams{
-			UserId: userID,
-			OrgId:  orgID,
-			TeamId: teamID,
-		}
-		userListResp, httpResp, err = connV2.MongoDBCloudUsersApi.ListTeamUsersWithParams(ctx, params).Execute()
-		if err != nil {
-			if validate.StatusNotFound(httpResp) {
-				resp.State.RemoveResource(ctx)
-				return
-			}
-			resp.Diagnostics.AddError(errorReadingByUserID, err.Error())
-			return
-		}
-		if userListResp != nil {
-			results := userListResp.GetResults()
-			if len(results) == 0 {
-				resp.State.RemoveResource(ctx)
-				return
-			}
-			userResp = &results[0]
-		}
-	} else if !state.Username.IsNull() && state.Username.ValueString() != "" { // required for import
-		username := state.Username.ValueStringPointer()
-		params := &admin.ListTeamUsersApiParams{
-			Username: username,
-			OrgId:    orgID,
-			TeamId:   teamID,
-		}
-		userListResp, httpResp, err = connV2.MongoDBCloudUsersApi.ListTeamUsersWithParams(ctx, params).Execute()
-
-		if err != nil {
-			if validate.StatusNotFound(httpResp) {
-				resp.State.RemoveResource(ctx)
-				return
-			}
-			resp.Diagnostics.AddError(errorReadingByUsername, err.Error())
-			return
-		}
-		if userListResp != nil {
-			results := userListResp.GetResults()
-			if len(results) == 0 {
-				resp.State.RemoveResource(ctx)
-				return
-			}
-			userResp = &results[0]
-		}
+		userID = state.UserId.ValueStringPointer()
+	} else if !state.Username.IsNull() && state.Username.ValueString() != "" {
+		username = state.Username.ValueStringPointer()
 	}
 
-	if userResp == nil {
+	userResp, found, err := fetchTeamUser(ctx, connV2, orgID, teamID, userID, username)
+	if err != nil {
+		resp.Diagnostics.AddError(errorReadingUsers, err.Error())
+		return
+	}
+	if !found {
 		resp.State.RemoveResource(ctx)
 		return
 	}
