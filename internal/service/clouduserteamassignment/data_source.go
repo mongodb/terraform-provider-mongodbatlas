@@ -44,12 +44,12 @@ func (d *cloudUserTeamAssignmentDS) Read(ctx context.Context, req datasource.Rea
 		return
 	}
 
-	userResp, found, err := fetchTeamUser(ctx, connV2, orgID, teamID, &userID, &username)
+	userResp, err := fetchTeamUser(ctx, connV2, orgID, teamID, &userID, &username)
 	if err != nil {
 		resp.Diagnostics.AddError("error retrieving user", err.Error())
 		return
 	}
-	if !found {
+	if userResp == nil {
 		resp.Diagnostics.AddError("resource not found", "no user found with the specified identifier")
 		return
 	}

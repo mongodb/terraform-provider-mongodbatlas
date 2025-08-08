@@ -71,7 +71,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	resp.Diagnostics.Append(resp.State.Set(ctx, newUserTeamAssignmentModel)...)
 }
 
-func fetchTeamUser(ctx context.Context, connV2 *admin.APIClient, orgID, teamID string, userID, username *string) (*admin.OrgUserResponse, bool, error) {
+func fetchTeamUser(ctx context.Context, connV2 *admin.APIClient, orgID, teamID string, userID, username *string) (*admin.OrgUserResponse, error) {
 	var params admin.ListTeamUsersApiParams
 	if userID != nil && *userID != "" {
 		params = admin.ListTeamUsersApiParams{
@@ -90,16 +90,16 @@ func fetchTeamUser(ctx context.Context, connV2 *admin.APIClient, orgID, teamID s
 	userListResp, httpResp, err := connV2.MongoDBCloudUsersApi.ListTeamUsersWithParams(ctx, &params).Execute()
 	if err != nil {
 		if validate.StatusNotFound(httpResp) {
-			return nil, false, nil
+			return nil, nil
 		}
-		return nil, false, err
+		return nil, err
 	}
 
 	if userListResp == nil || len(userListResp.GetResults()) == 0 {
-		return nil, false, nil
+		return nil, nil
 	}
 	userResp := userListResp.GetResults()[0]
-	return &userResp, true, nil
+	return &userResp, nil
 }
 
 func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -120,12 +120,12 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		username = state.Username.ValueStringPointer()
 	}
 
-	userResp, found, err := fetchTeamUser(ctx, connV2, orgID, teamID, userID, username)
+	userResp, err := fetchTeamUser(ctx, connV2, orgID, teamID, userID, username)
 	if err != nil {
 		resp.Diagnostics.AddError(errorReadingUsers, err.Error())
 		return
 	}
-	if !found {
+	if userResp == nil {
 		resp.State.RemoveResource(ctx)
 		return
 	}
