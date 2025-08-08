@@ -34,6 +34,14 @@ func TestAccEncryptionAtRestPrivateEndpoint_Azure_basic(t *testing.T) {
 }
 
 func TestAccEncryptionAtRestPrivateEndpoint_createTimeoutWithDeleteOnCreate(t *testing.T) {
+	// This test is skipped because it creates a race condition with other tests:
+	// 1. This test creates an encryption at rest private endpoint with a 1s timeout, causing it to fail and trigger cleanup
+	// 2. The private endpoint deletion doesn't complete immediately
+	// 3. Other tests share the same project and attempt to disable encryption at rest during cleanup
+	// 4. MongoDB Atlas returns "CANNOT_DISABLE_ENCRYPTION_AT_REST_REQUIRE_PRIVATE_NETWORKING_WHILE_PRIVATE_ENDPOINTS_EXIST"
+	//    because the private endpoint from this test is still being deleted
+	// This race condition occurs even when tests don't run in parallel due to the async nature of private endpoint deletion.
+	acc.SkipTestForCI(t)
 	var (
 		createTimeout         = "1s"
 		deleteOnCreateTimeout = true
