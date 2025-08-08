@@ -40,13 +40,19 @@ resource "mongodbatlas_database_user" "db-user" {
 }
 
 resource "mongodbatlas_network_peering" "aws-atlas" {
-  accepter_region_name   = var.aws_region
-  project_id             = mongodbatlas_project.aws_atlas.id
-  container_id           = one(values(mongodbatlas_advanced_cluster.cluster-atlas.replication_specs[0].container_id))
-  provider_name          = "AWS"
-  route_table_cidr_block = aws_vpc.primary.cidr_block
-  vpc_id                 = aws_vpc.primary.id
-  aws_account_id         = var.aws_account_id
+  accepter_region_name     = var.aws_region
+  project_id               = mongodbatlas_project.aws_atlas.id
+  container_id             = one(values(mongodbatlas_advanced_cluster.cluster-atlas.replication_specs[0].container_id))
+  provider_name            = "AWS"
+  route_table_cidr_block   = aws_vpc.primary.cidr_block
+  vpc_id                   = aws_vpc.primary.id
+  aws_account_id           = var.aws_account_id
+  delete_on_create_timeout = true
+  timeouts {
+    create = "10m"
+    update = "10m"
+    delete = "10m"
+  }
 }
 
 resource "mongodbatlas_project_ip_access_list" "test" {
