@@ -53,21 +53,12 @@ func cleanupSharedResources() {
 		deletePrivateLinkEndpoint(projectID, sharedInfo.privateLinkProviderName, sharedInfo.privateLinkEndpointID)
 	}
 	if sharedInfo.encryptionAtRestEnabled {
-		projectID := sharedInfo.encryptionAtRestProjectID
+		projectID := sharedInfo.projectID
 		if projectID == "" {
-			projectID = sharedInfo.projectID
-			if projectID == "" {
-				projectID = projectIDLocal()
-			}
+			projectID = projectIDLocal()
 		}
 		fmt.Printf("Deleting execution encryption at rest: project id: %s\n", projectID)
 		deleteEncryptionAtRest(projectID)
-
-		// If we created a dedicated project, delete it
-		if sharedInfo.encryptionAtRestProjectID != "" && sharedInfo.encryptionAtRestProjectID != sharedInfo.projectID {
-			fmt.Printf("Deleting execution encryption at rest project: %s, id: %s\n", sharedInfo.encryptionAtRestProjectName, sharedInfo.encryptionAtRestProjectID)
-			deleteProject(sharedInfo.encryptionAtRestProjectID)
-		}
 	}
 	if sharedInfo.projectID != "" {
 		fmt.Printf("Deleting execution project: %s, id: %s\n", sharedInfo.projectName, sharedInfo.projectID)
@@ -225,19 +216,17 @@ type projectInfo struct {
 }
 
 var sharedInfo = struct {
-	encryptionAtRestProjectName string
-	projectName                 string
-	clusterName                 string
-	streamInstanceName          string
-	privateLinkEndpointID       string
-	privateLinkProviderName     string
-	projectID                   string
-	encryptionAtRestProjectID   string
-	projects                    []projectInfo
-	mu                          sync.Mutex
-	muSleep                     sync.Mutex
-	encryptionAtRestEnabled     bool
-	init                        bool
+	projectName             string
+	clusterName             string
+	streamInstanceName      string
+	privateLinkEndpointID   string
+	privateLinkProviderName string
+	projectID               string
+	projects                []projectInfo
+	mu                      sync.Mutex
+	muSleep                 sync.Mutex
+	encryptionAtRestEnabled bool
+	init                    bool
 }{
 	projects: []projectInfo{},
 }
