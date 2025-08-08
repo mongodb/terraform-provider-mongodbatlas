@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
-func NewTFPushBasedLogExport(ctx context.Context, projectID string, apiResp *admin.PushBasedLogExportProject, timeout *timeouts.Value) (*TFPushBasedLogExportRSModel, diag.Diagnostics) {
+func NewTFPushBasedLogExport(ctx context.Context, projectID string, apiResp *admin.PushBasedLogExportProject, timeout *timeouts.Value, deleteOnCreateTimeout *types.Bool) (*TFPushBasedLogExportRSModel, diag.Diagnostics) {
 	tfModel := &TFPushBasedLogExportRSModel{
 		ProjectID:  types.StringPointerValue(&projectID),
 		BucketName: types.StringPointerValue(apiResp.BucketName),
@@ -24,6 +24,9 @@ func NewTFPushBasedLogExport(ctx context.Context, projectID string, apiResp *adm
 
 	if timeout != nil {
 		tfModel.Timeouts = *timeout
+	}
+	if deleteOnCreateTimeout != nil {
+		tfModel.DeleteOnCreateTimeout = *deleteOnCreateTimeout
 	}
 	return tfModel, nil
 }
