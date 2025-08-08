@@ -3646,3 +3646,7 @@ func checkFlexClusterConfig(projectID, clusterName, providerName, region string,
 func isOptionalTrue(arg ...bool) bool {
 	return len(arg) > 0 && arg[0]
 }
+
+func isOptionalTrue(arg ...bool) bool {
+	return len(arg) > 0 && arg[0]
+}

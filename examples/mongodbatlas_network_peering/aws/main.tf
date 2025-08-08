@@ -14,17 +14,17 @@ resource "mongodbatlas_advanced_cluster" "cluster-atlas" {
   cluster_type   = "REPLICASET"
   backup_enabled = true
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AWS"
       region_name   = var.atlas_region
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 resource "mongodbatlas_database_user" "db-user" {
