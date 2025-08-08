@@ -289,8 +289,6 @@ func TestAccStreamProcessor_createErrors(t *testing.T) {
 		processorName           = "new-processor"
 		invalidJSONConfig       = connectionConfig{connectionType: connTypeSample, pipelineStepIsSource: true, invalidJSON: true}
 		randomSuffix            = acctest.RandString(5)
-		createTimeout           = "1s"
-		deleteOnCreateTimeout   = true
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -306,6 +304,24 @@ func TestAccStreamProcessor_createErrors(t *testing.T) {
 				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StoppedState, randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil),
 				ExpectError: regexp.MustCompile("When creating a stream processor, the only valid states are CREATED and STARTED"),
 			},
+		}})
+}
+
+func TestAccStreamProcessor_createTimeoutWithDeleteOnCreate(t *testing.T) {
+	acc.SkipTestForCI(t) // Creation of stream processor for testing is too fast to force the creation timeout
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		processorName           = "new-processor"
+		randomSuffix            = acctest.RandString(5)
+		createTimeout           = "1s"
+		deleteOnCreateTimeout   = true
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroyStreamProcessor,
+		Steps: []resource.TestStep{
 			{
 				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StartedState, randomSuffix, sampleSrcConfig, testLogDestConfig, acc.TimeoutConfig(&createTimeout, nil, nil, true), &deleteOnCreateTimeout),
 				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
