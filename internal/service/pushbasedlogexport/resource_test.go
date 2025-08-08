@@ -44,7 +44,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true),
+				Config: configBasic(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true, "", nil),
 				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(s3BucketName1, nonEmptyPrefixPath)...),
 			},
 			{
@@ -86,7 +86,7 @@ func noPrefixPathTestCase(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, defaultPrefixPath, false),
+				Config: configBasic(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, defaultPrefixPath, false, "", nil),
 				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(s3BucketName1, defaultPrefixPath)...),
 			},
 		},
@@ -116,6 +116,39 @@ func createFailure(tb testing.TB) *resource.TestCase {
 	}
 }
 
+func TestAccPushBasedLogExport_createTimeoutWithDeleteOnCreateTimeout(t *testing.T) {
+	resource.Test(t, *createTimeoutWithDeleteOnCreateTimeout(t))
+}
+
+func createTimeoutWithDeleteOnCreateTimeout(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+
+	var (
+		projectID             = acc.ProjectIDExecution(tb)
+		s3BucketNamePrefix    = acc.RandomS3BucketName()
+		s3BucketName1         = fmt.Sprintf("%s-1", s3BucketNamePrefix)
+		s3BucketName2         = fmt.Sprintf("%s-2", s3BucketNamePrefix)
+		s3BucketPolicyName    = fmt.Sprintf("%s-s3-policy", s3BucketNamePrefix)
+		awsIAMRoleName        = acc.RandomIAMRole()
+		awsIAMRolePolicyName  = fmt.Sprintf("%s-policy", awsIAMRoleName)
+		createTimeout         = "1s"
+		deleteOnCreateTimeout = true
+	)
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      configBasic(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true, acc.TimeoutConfig(&createTimeout, nil, nil, true), &deleteOnCreateTimeout),
+				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
+			},
+		},
+	}
+}
+
 func pushBasedLogExportInvalidConfig(projectID string) string {
 	return fmt.Sprintf(`resource "mongodbatlas_push_based_log_export" "test" {
 		project_id  = %[1]q
@@ -140,7 +173,7 @@ func addAttrChecks(checks []resource.TestCheckFunc, mapChecks map[string]string)
 	return acc.AddAttrChecks(datasourceName, checks, mapChecks)
 }
 
-func configBasic(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath string, usePrefixPath bool) string {
+func configBasic(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath string, usePrefixPath bool, timeoutConfig string, deleteOnCreateTimeout *bool) string {
 	test := fmt.Sprintf(`
 	 	locals {
 				project_id = %[1]q
@@ -155,7 +188,7 @@ func configBasic(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, aw
 
 			   %[8]s		
 	`, projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName,
-		awsIAMroleAuthAndS3Config(s3BucketName1, s3BucketName2), pushBasedLogExportConfig(false, usePrefixPath, prefixPath))
+		awsIAMroleAuthAndS3Config(s3BucketName1, s3BucketName2), pushBasedLogExportConfig(false, usePrefixPath, prefixPath, timeoutConfig, deleteOnCreateTimeout))
 	return test
 }
 
@@ -174,13 +207,17 @@ func configBasicUpdated(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyN
 
 			   %[8]s
 	`, projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName,
-		awsIAMroleAuthAndS3Config(s3BucketName1, s3BucketName2), pushBasedLogExportConfig(true, usePrefixPath, prefixPath)) // updating the S3 bucket to use for push-based log config
+		awsIAMroleAuthAndS3Config(s3BucketName1, s3BucketName2), pushBasedLogExportConfig(true, usePrefixPath, prefixPath, "", nil)) // updating the S3 bucket to use for push-based log config
 	return test
 }
 
 // pushBasedLogExportConfig returns config for mongodbatlas_push_based_log_export resource and data source.
 // This method uses the project and S3 bucket created in awsIAMroleAuthAndS3Config()
-func pushBasedLogExportConfig(useBucket2, usePrefixPath bool, prefixPath string) string {
+func pushBasedLogExportConfig(useBucket2, usePrefixPath bool, prefixPath, timeoutConfig string, deleteOnCreateTimeout *bool) string {
+	deleteOnCreateTimeoutAttr := ""
+	if deleteOnCreateTimeout != nil {
+		deleteOnCreateTimeoutAttr = fmt.Sprintf("delete_on_create_timeout = %[1]t", *deleteOnCreateTimeout)
+	}
 	bucketNameAttr := "bucket_name = aws_s3_bucket.log_bucket_1.bucket"
 	if useBucket2 {
 		bucketNameAttr = "bucket_name = aws_s3_bucket.log_bucket_2.bucket"
@@ -191,10 +228,12 @@ func pushBasedLogExportConfig(useBucket2, usePrefixPath bool, prefixPath string)
 			%[1]s
 			iam_role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
 			prefix_path = %[2]q
+			%[4]s
+			%[5]s
 		}
 		
 		%[3]s
-		`, bucketNameAttr, prefixPath, pushBasedLogExportDataSourceConfig())
+		`, bucketNameAttr, prefixPath, pushBasedLogExportDataSourceConfig(), deleteOnCreateTimeoutAttr, timeoutConfig)
 	}
 
 	return fmt.Sprintf(`resource "mongodbatlas_push_based_log_export" "test" {
