@@ -5,7 +5,9 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 const (
@@ -18,9 +20,20 @@ const (
 // - Configure
 // Client is left empty and populated by the framework when envoking Configure method.
 // ResourceName must be defined when creating an instance of a resource.
+
+type ProviderMeta struct {
+	ScriptLocation types.String `tfsdk:"script_location"`
+}
+
 type RSCommon struct {
 	Client       *MongoDBClient
 	ResourceName string
+}
+
+func (r *RSCommon) ReadProviderMetaCreate(ctx context.Context, req *resource.CreateRequest, diags *diag.Diagnostics) ProviderMeta {
+	var meta ProviderMeta
+	diags.Append(req.ProviderMeta.Get(ctx, &meta)...)
+	return meta
 }
 
 func (r *RSCommon) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {

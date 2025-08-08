@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -74,6 +75,7 @@ type tfMongodbAtlasProviderModel struct {
 	AwsSecretAccessKeyID types.String `tfsdk:"aws_secret_access_key"`
 	AwsSessionToken      types.String `tfsdk:"aws_session_token"`
 	IsMongodbGovCloud    types.Bool   `tfsdk:"is_mongodbgov_cloud"`
+	EnableAnalytics      types.Bool   `tfsdk:"enable_analytics"`
 }
 
 type tfAssumeRoleModel struct {
@@ -103,6 +105,17 @@ var AssumeRoleType = types.ObjectType{AttrTypes: map[string]attr.Type{
 func (p *MongodbtlasProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "mongodbatlas"
 	resp.Version = version.ProviderVersion
+}
+
+func (p *MongodbtlasProvider) MetaSchema(ctx context.Context, req provider.MetaSchemaRequest, resp *provider.MetaSchemaResponse) {
+	resp.Schema = metaschema.Schema{
+		Attributes: map[string]metaschema.Attribute{
+			"script_location": metaschema.StringAttribute{
+				Description: "Example metadata field for analytics/usage.",
+				Optional:    true,
+			},
+		},
+	}
 }
 
 func (p *MongodbtlasProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
@@ -155,6 +168,10 @@ func (p *MongodbtlasProvider) Schema(ctx context.Context, req provider.SchemaReq
 			"aws_session_token": schema.StringAttribute{
 				Optional:    true,
 				Description: "AWS Security Token Service provided session token.",
+			},
+			"enable_analytics": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Allow extra user agent headers such as script_location specified in provider_meta blocks.",
 			},
 		},
 	}
@@ -245,6 +262,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		RealmBaseURL:                    data.RealmBaseURL.ValueString(),
 		TerraformVersion:                req.TerraformVersion,
 		PreviewV2AdvancedClusterEnabled: config.PreviewProviderV2AdvancedCluster(),
+		AnalyticsEnabled:                data.EnableAnalytics.ValueBool(),
 	}
 
 	var assumeRoles []tfAssumeRoleModel
