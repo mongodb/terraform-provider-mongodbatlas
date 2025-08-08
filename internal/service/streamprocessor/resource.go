@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -86,7 +87,12 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 		ProcessorName: processorName,
 	}
 
-	streamProcessorResp, err := WaitStateTransition(ctx, streamProcessorParams, connV2.StreamsApi, []string{InitiatingState, CreatingState}, []string{CreatedState})
+	createTimeout := cleanup.ResolveTimeout(ctx, &plan.Timeouts, cleanup.OperationCreate, &resp.Diagnostics)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	streamProcessorResp, err := WaitStateTransitionWithTimeout(ctx, streamProcessorParams, connV2.StreamsApi, []string{InitiatingState, CreatingState}, []string{CreatedState}, createTimeout)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating stream processor", err.Error())
 		return

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -73,6 +74,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "The stats associated with the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/manage-stream-processor/#view-statistics-of-a-stream-processor) for more information.",
 			},
+			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
+				Create: true,
+			}),
 		},
 	}
 }
@@ -86,6 +90,7 @@ type TFStreamProcessorRSModel struct {
 	ProjectID     types.String         `tfsdk:"project_id"`
 	State         types.String         `tfsdk:"state"`
 	Stats         types.String         `tfsdk:"stats"`
+	Timeouts      timeouts.Value       `tfsdk:"timeouts"`
 }
 
 type TFOptionsModel struct {
