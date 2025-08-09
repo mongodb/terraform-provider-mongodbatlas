@@ -11,17 +11,17 @@ resource "mongodbatlas_advanced_cluster" "azure-cluster" {
   cluster_type   = "REPLICASET"
   backup_enabled = true
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AZURE"
       region_name   = var.provider_region_name
-      electable_specs {
+      electable_specs = {
         instance_size = var.provider_instance_size_name
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 # Create the peering connection request

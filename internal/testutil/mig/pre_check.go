@@ -2,6 +2,7 @@ package mig
 
 import (
 	"os"
+  
 	"strconv"
 	"testing"
 
@@ -21,6 +22,13 @@ func PreCheckBasicSleep(tb testing.TB) func() {
 	return func() {
 		PreCheckBasic(tb)
 		acc.SerialSleep(tb)
+	}
+}
+
+func PreCheckLast1XVersion(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION") == "" {
+		tb.Fatal("`MONGODB_ATLAS_LAST_1X_VERSION` must be set for this migration testing")
 	}
 }
 
