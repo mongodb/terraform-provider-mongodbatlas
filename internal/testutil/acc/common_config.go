@@ -2,7 +2,7 @@ package acc
 
 import "fmt"
 
-func TimeoutConfig(createTimeout, updateTimeout, deleteTimeout *string, isTPF bool) string {
+func TimeoutConfig(createTimeout, updateTimeout, deleteTimeout *string) string {
 	createTimeoutConfig := ""
 	updateTimeoutConfig := ""
 	deleteTimeoutConfig := ""
@@ -22,10 +22,8 @@ func TimeoutConfig(createTimeout, updateTimeout, deleteTimeout *string, isTPF bo
 			delete = %q
 		`, *deleteTimeout)
 	}
-	timeoutConfig := "timeouts"
-	if isTPF {
-		timeoutConfig = "timeouts ="
-	}
+	timeoutConfig := "timeouts ="
+
 	return fmt.Sprintf(`
 		%[1]s {
 			%[2]s

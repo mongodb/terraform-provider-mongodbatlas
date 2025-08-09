@@ -28,15 +28,15 @@ func CheckRSAndDSPreviewProviderV2(usePreviewProvider bool, resourceName string,
 	return CheckRSAndDS(resourceName, dataSourceName, pluralDataSourceName, modifiedSet, modifiedMap, extra...)
 }
 
-func TestCheckResourceAttrTPF(usePreviewProvider bool, name, key, value string) resource.TestCheckFunc {
+func TestCheckResourceAttrMig(usePreviewProvider bool, name, key, value string) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttr(name, AttrNameToPreviewProviderV2(usePreviewProvider, key), value)
 }
 
-func TestCheckResourceAttrSetTPF(usePreviewProvider bool, name, key string) resource.TestCheckFunc {
+func TestCheckResourceAttrSetMig(usePreviewProvider bool, name, key string) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttrSet(name, AttrNameToPreviewProviderV2(usePreviewProvider, key))
 }
 
-func TestCheckResourceAttrWithTPF(usePreviewProvider bool, name, key string, checkValueFunc resource.CheckResourceAttrWithFunc) resource.TestCheckFunc {
+func TestCheckResourceAttrWithMig(usePreviewProvider bool, name, key string, checkValueFunc resource.CheckResourceAttrWithFunc) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttrWith(name, AttrNameToPreviewProviderV2(usePreviewProvider, key), checkValueFunc)
 }
 
@@ -44,7 +44,7 @@ func TestCheckTypeSetElemNestedAttrsPreviewProviderV2(usePreviewProvider bool, n
 	return resource.TestCheckTypeSetElemNestedAttrs(name, AttrNameToPreviewProviderV2(usePreviewProvider, key), values)
 }
 
-func AddAttrChecksPreviewProviderV2(usePreviewProvider bool, name string, checks []resource.TestCheckFunc, mapChecks map[string]string) []resource.TestCheckFunc {
+func AddAttrChecksMig(usePreviewProvider bool, name string, checks []resource.TestCheckFunc, mapChecks map[string]string) []resource.TestCheckFunc {
 	return AddAttrChecks(name, checks, ConvertToPreviewProviderV2AttrsMap(usePreviewProvider, mapChecks))
 }
 
@@ -101,7 +101,7 @@ func AttrNameToPreviewProviderV2(usePreviewProvider bool, name string) string {
 	return name
 }
 
-func ConvertAdvancedClusterToPreviewProviderV2(t *testing.T, usePreviewProvider bool, def string) string {
+func ConvertAdvancedClusterToTPF(t *testing.T, usePreviewProvider bool, def string) string {
 	t.Helper()
 	if skipPreviewProviderV2Work(usePreviewProvider) {
 		return def

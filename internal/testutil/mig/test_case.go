@@ -42,7 +42,7 @@ func CreateTest(t *testing.T, test *resource.TestCase) resource.TestCase {
 	firstStep := test.Steps[0]
 	steps := []resource.TestStep{
 		useExternalProvider(&firstStep, ExternalProviders()),
-		TestStepCheckEmptyPlan(acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, firstStep.Config)),
+		TestStepCheckEmptyPlan(acc.ConvertAdvancedClusterToTPF(t, true, firstStep.Config)),
 	}
 	newTest := reuseCase(test, steps)
 	return newTest
@@ -57,7 +57,7 @@ func CreateTestUseExternalProvider(t *testing.T, test *resource.TestCase, extern
 	validateReusableCase(t, test)
 	firstStep := test.Steps[0]
 	require.NotContains(t, additionalProviders, "mongodbatlas", "Will use the local provider, cannot specify mongodbatlas provider")
-	emptyPlanStep := TestStepCheckEmptyPlan(acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, firstStep.Config))
+	emptyPlanStep := TestStepCheckEmptyPlan(acc.ConvertAdvancedClusterToTPF(t, true, firstStep.Config))
 	steps := []resource.TestStep{
 		useExternalProvider(&firstStep, externalProviders),
 		useExternalProvider(&emptyPlanStep, additionalProviders),
