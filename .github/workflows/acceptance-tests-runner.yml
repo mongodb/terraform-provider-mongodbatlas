@@ -536,6 +536,7 @@ jobs:
         env:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          MONGODB_ATLAS_LAST_1X_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
           AWS_REGION: ${{ vars.AWS_REGION_LOWERCASE }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
@@ -545,6 +546,7 @@ jobs:
           AZURE_ATLAS_APP_ID: ${{ inputs.azure_atlas_app_id }}
           AZURE_SERVICE_PRINCIPAL_ID: ${{ inputs.azure_service_principal_id }}
           AZURE_TENANT_ID: ${{ inputs.azure_tenant_id }}
+          MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: 'true' # required for migration tests that use provider version < 2.0.0
           ACCTEST_PACKAGES: |
             ./internal/service/cloudbackupschedule
             ./internal/service/cloudbackupsnapshot

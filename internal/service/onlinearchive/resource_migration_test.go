@@ -10,6 +10,7 @@ import (
 )
 
 func TestMigBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing.T) {
+	mig.SkipIfVersionBelow(t, "1.29.0") // version when advanced cluster TPF was introduced
 	var (
 		onlineArchiveResourceName = "mongodbatlas_online_archive.users_archive"
 		clusterInfo               = acc.GetClusterInfo(t, clusterRequest())
@@ -17,15 +18,13 @@ func TestMigBackupRSOnlineArchiveWithNoChangeBetweenVersions(t *testing.T) {
 		projectID                 = clusterInfo.ProjectID
 		clusterTerraformStr       = clusterInfo.TerraformStr
 		clusterResourceName       = clusterInfo.ResourceName
-		deleteExpirationDays      = 0
+		deleteExpirationDays      = 7
 	)
-	if mig.IsProviderVersionAtLeast("1.12.2") {
-		deleteExpirationDays = 7
-	}
+
 	config := configWithDailySchedule(clusterTerraformStr, clusterResourceName, 1, deleteExpirationDays, false)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     mig.PreCheckBasicSleep(t),
+		PreCheck:     func() { mig.PreCheckBasicSleep(t); mig.PreCheckOldPreviewEnv(t) },
 		CheckDestroy: acc.CheckDestroyFederatedDatabaseInstance,
 		Steps: []resource.TestStep{
 			{

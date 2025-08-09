@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -68,7 +69,7 @@ func TestAccBackupCompliancePolicy_overwriteBackupPolicies(t *testing.T) {
 				acc.ClusterAdvConfigOplogMinRetentionHours: 8,
 			},
 			ProjectID:            projectIDTerraform,
-			MongoDBMajorVersion:  "6.0",
+			MongoDBMajorVersion:  "8.0",
 			CloudBackup:          true,
 			DiskSizeGb:           12,
 			RetainBackupsEnabled: true,
@@ -387,7 +388,7 @@ func configOverwriteIncompatibleBackupPoliciesError(projectName, orgID, projectO
 		  cloud_provider      = "AWS"
 		  frequencies         = ["DAILY"]
 		  region_name         = "US_WEST_1"
-		  replication_spec_id = one(%[2]s.replication_specs).id
+		  zone_id = %[2]s.replication_specs.*.zone_id[0]
 		  should_copy_oplogs  = false
 		}
 	  }
@@ -431,7 +432,7 @@ func configClusterWithBackupSchedule(projectName, orgID, projectOwnerID string, 
 		  cloud_provider      = "AWS"
 		  frequencies         = ["DAILY"]
 		  region_name         = "US_WEST_1"
-		  replication_spec_id = one(%[2]s.replication_specs).id
+		  zone_id = %[2]s.replication_specs.*.zone_id[0]
 		  should_copy_oplogs  = false
 		}
 	  }

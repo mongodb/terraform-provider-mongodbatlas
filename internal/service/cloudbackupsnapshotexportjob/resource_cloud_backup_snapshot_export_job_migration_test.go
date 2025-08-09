@@ -7,6 +7,6 @@ import (
 )
 
 func TestMigBackupSnapshotExportJob_basic(t *testing.T) {
-	mig.SkipIfVersionBelow(t, "1.16.1")
+	mig.SkipIfVersionBelow(t, "1.29.0") // version when advanced cluster TPF was introduced
 	mig.CreateTestAndRunUseExternalProviderNonParallel(t, basicTestCase(t), mig.ExternalProvidersWithAWS(), nil)
 }

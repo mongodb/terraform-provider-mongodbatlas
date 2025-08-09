@@ -7,6 +7,6 @@ import (
 )
 
 func TestMigGlobalClusterConfig_basic(t *testing.T) {
-	checkZoneID := mig.IsProviderVersionAtLeast("1.21.0")
-	mig.CreateAndRunTest(t, basicTestCase(t, checkZoneID, false))
+	mig.SkipIfVersionBelow(t, "2.0.0")
+	mig.CreateAndRunTest(t, basicTestCase(t, false))
 }

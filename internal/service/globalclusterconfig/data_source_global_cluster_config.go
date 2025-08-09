@@ -50,11 +50,6 @@ func DataSource() *schema.Resource {
 					},
 				},
 			},
-			"custom_zone_mapping": {
-				Deprecated: deprecationMsgOldSchema,
-				Type:       schema.TypeMap,
-				Computed:   true,
-			},
 			"custom_zone_mapping_zone_id": {
 				Type:     schema.TypeMap,
 				Computed: true,
