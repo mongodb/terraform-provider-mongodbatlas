@@ -23,7 +23,7 @@ func TestAccAdvancedCluster_ValidationErrors(t *testing.T) {
 				ExpectError: regexp.MustCompile("Missing Configuration for Required Attribute"),
 			},
 			{
-				Config:      acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, invalidRegionConfigsPriorities),
+				Config:      invalidRegionConfigsPriorities,
 				ExpectError: regexp.MustCompile("priority values in region_configs must be in descending order"),
 			},
 			{
@@ -136,26 +136,26 @@ resource "mongodbatlas_advanced_cluster" "test" {
 	cluster_type   = "REPLICASET"
 	backup_enabled = false
 
-	replication_specs {
-		region_configs {
+	replication_specs = [{
+		region_configs = [{
 			provider_name = "AWS"
 			priority      = 6
 			region_name   = "US_WEST_2"
-			electable_specs {
+			electable_specs = {
 				node_count    = 1
 				instance_size = "M10"
 			}
-		}
-		region_configs {
+		},
+		{
 			provider_name = "AWS"
 			priority      = 7
 			region_name   = "US_EAST_1"
-			electable_specs {
+			electable_specs = {
 				node_count    = 2
 				instance_size = "M10"
 			}
-		}
-	}
+		}]
+	}]
 }
 `
 var nullRegionConfigs = `

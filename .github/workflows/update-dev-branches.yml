@@ -86,8 +86,6 @@ jobs:
     - name: Project check
       if: steps.merge-check.outputs.has-changes == 'true'
       id: project-check
-      env:
-        MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: "true"
       run: |
         if make tools build lint test; then
           echo "slack-text=✅ Dev branch \`${{ matrix.branch }}\` merged and pushed with latest changes from master. ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Action>" >> "${GITHUB_OUTPUT}"

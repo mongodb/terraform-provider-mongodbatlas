@@ -6,13 +6,14 @@ import (
 	"strings"
 	"time"
 
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 )
 
 var (
@@ -59,12 +60,6 @@ func TestStepImportCluster(resourceName string, ignorePrefixFields ...string) re
 		"delete_on_create_timeout", // This field is TF specific and not returned by Atlas, so Import can't fill it in.
 	)
 
-	// auto_scaling & specs (electable_specs, read_only_specs, etc.) are only set in state in SDKv2 if present in the definition.
-	// However, as import doesn't have a previous state to compare with, import will always fill them.
-	// This will make these fields differ in the state, although the plan change won't be shown to the user as they're computed values.
-	if !config.PreviewProviderV2AdvancedCluster() {
-		ignorePrefixFields = append(ignorePrefixFields, "replication_specs", "id") // TenantUpgrade changes the ID and can make the test flaky
-	}
 	return resource.TestStep{
 		ResourceName:                         resourceName,
 		ImportStateIdFunc:                    ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
@@ -111,7 +106,7 @@ func CheckExistsCluster(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func CheckFCVPinningConfig(usePreviewProvider bool, resourceName, dataSourceName, pluralDataSourceName string, mongoDBMajorVersion int, pinningExpirationDate *string, fcvVersion *int) resource.TestCheckFunc {
+func CheckFCVPinningConfig(resourceName, dataSourceName, pluralDataSourceName string, mongoDBMajorVersion int, pinningExpirationDate *string, fcvVersion *int) resource.TestCheckFunc {
 	mapChecks := map[string]string{
 		"mongo_db_major_version": fmt.Sprintf("%d.0", mongoDBMajorVersion),
 	}
@@ -128,7 +123,7 @@ func CheckFCVPinningConfig(usePreviewProvider bool, resourceName, dataSourceName
 
 	additionalCheck := resource.TestCheckResourceAttrWith(resourceName, "mongo_db_version", MatchesExpression(fmt.Sprintf("%d..*", mongoDBMajorVersion)))
 
-	return CheckRSAndDSPreviewProviderV2(usePreviewProvider, resourceName, admin.PtrString(dataSourceName), admin.PtrString(pluralDataSourceName), []string{}, mapChecks, additionalCheck)
+	return CheckRSAndDS(resourceName, admin.PtrString(dataSourceName), admin.PtrString(pluralDataSourceName), []string{}, mapChecks, additionalCheck)
 }
 
 func CheckIndependentShardScalingMode(resourceName, clusterName, expectedMode string) resource.TestCheckFunc {
@@ -194,18 +189,18 @@ func ConfigBasicDedicated(projectID, name, zoneName string) string {
 		name         = %[2]q
 		cluster_type = "REPLICASET"
 		
-		replication_specs {
-			region_configs {
+		replication_specs = [{
+			region_configs = [{
 				priority        = 7
 				provider_name = "AWS"
 				region_name     = "US_EAST_1"
-				electable_specs {
+				electable_specs = {
 					node_count = 3
 					instance_size = "M10"
 				}
-			}
+			}]
 			%[3]s
-		}
+		}]
 	}
 	data "mongodbatlas_advanced_cluster" "test" {
 		project_id = mongodbatlas_advanced_cluster.test.project_id

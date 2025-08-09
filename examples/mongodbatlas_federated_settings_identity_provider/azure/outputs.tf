@@ -9,7 +9,7 @@ output "ssh_connection_string" {
 }
 
 output "user_test_conn_string" {
-  value       = "mongodb+srv://${local.test_user_username}:${local.test_user_password}@${replace(mongodbatlas_advanced_cluster.this.connection_strings[0].standard_srv, "mongodb+srv://", "")}/?retryWrites=true"
+  value       = "mongodb+srv://${local.test_user_username}:${local.test_user_password}@${replace(mongodbatlas_advanced_cluster.this.connection_strings.standard_srv, "mongodb+srv://", "")}/?retryWrites=true"
   sensitive   = true
   description = "Useful for connecting to the database from Compass or other tool to validate data"
 }

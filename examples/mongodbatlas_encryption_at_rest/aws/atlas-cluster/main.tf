@@ -32,17 +32,17 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   backup_enabled              = true
   encryption_at_rest_provider = "AWS"
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AWS"
       region_name   = "US_EAST_1"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 data "mongodbatlas_encryption_at_rest" "test" {
