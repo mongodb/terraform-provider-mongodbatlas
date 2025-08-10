@@ -9,10 +9,12 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func CreateAndRunTest(t *testing.T, test *resource.TestCase) {
+// shouldUseClusterTpfForEmptyPlanStep is only used for advanced cluster migration tests (SDKv2 -> TPF).
+// This can be removed once these tests are no longer used.
+func CreateAndRunTest(t *testing.T, test *resource.TestCase, shouldUseClusterTpfForEmptyPlanStep ...bool) {
 	t.Helper()
 	acc.SkipInUnitTest(t) // Migration tests create external resources and use MONGODB_ATLAS_LAST_VERSION env-var.
-	resource.ParallelTest(t, CreateTest(t, test))
+	resource.ParallelTest(t, CreateTest(t, test, shouldUseClusterTpfForEmptyPlanStep...))
 }
 
 // avoids running migration test in parallel
@@ -36,13 +38,21 @@ func CreateTestAndRunUseExternalProviderNonParallel(t *testing.T, test *resource
 
 // CreateTest returns a new TestCase that reuses step 1 and adds a TestStepCheckEmptyPlan.
 // Requires: `MONGODB_ATLAS_LAST_VERSION` to be present.
-func CreateTest(t *testing.T, test *resource.TestCase) resource.TestCase {
+// shouldUseClusterTpfForEmptyPlanStep is only used for advanced cluster migration tests (SDKv2 -> TPF).
+// This can be removed once these tests are no longer used.
+func CreateTest(t *testing.T, test *resource.TestCase, shouldUseClusterTpfForEmptyPlanStep ...bool) resource.TestCase {
 	t.Helper()
 	validateReusableCase(t, test)
 	firstStep := test.Steps[0]
+
+	emptyPlanStep := TestStepCheckEmptyPlan(firstStep.Config)
+	if len(shouldUseClusterTpfForEmptyPlanStep) > 0 && shouldUseClusterTpfForEmptyPlanStep[0] {
+		emptyPlanStep = TestStepCheckEmptyPlan(acc.ConvertAdvancedClusterToTPF(t, true, firstStep.Config))
+	}
+
 	steps := []resource.TestStep{
 		useExternalProvider(&firstStep, ExternalProviders()),
-		TestStepCheckEmptyPlan(firstStep.Config),
+		useExternalProvider(&emptyPlanStep, ExternalProviders()),
 	}
 	newTest := reuseCase(test, steps)
 	return newTest
