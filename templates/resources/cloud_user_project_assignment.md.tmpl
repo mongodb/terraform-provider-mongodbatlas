@@ -1,0 +1,25 @@
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` provides a Cloud User Project Assignment resource. The resource lets you import, assign, remove, or update a user to a project.
+
+**NOTE**: Users with pending invitations created using the deprecated `mongodbatlas_project_invitation` resource or via the deprecated [Invite One MongoDB Cloud User to One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser#tag/Projects/operation/createProjectInvitation)
+endpoint cannot be managed with this resource. See [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser) for details.
+To manage such users with this resource, refer to our [migration guide]<link-to-migration-guide>.
+
+## Example Usages
+
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Cloud User Project Assignment resource can be imported using the Project ID & Username OR Project ID & User ID, in the format `PROJECT_ID/USERNAME` OR `PROJECT_ID/USER_ID`.
+
+```
+$ terraform import mongodbatlas_cloud_user_project_assignment.test 9f3a7c2e54b8d1a0e6f4b3c2/test-user@example.com
+OR
+$ terraform import mongodbatlas_cloud_user_project_assignment.test 9f3a7c2e54b8d1a0e6f4b3c2/5f18367ccb7a503a2b481b7a
+```
+
+For more information see: [MongoDB Atlas API - Cloud Users](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-addprojectuser) Documentation.
