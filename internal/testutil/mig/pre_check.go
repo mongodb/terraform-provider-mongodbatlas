@@ -2,7 +2,7 @@ package mig
 
 import (
 	"os"
-  
+
 	"strconv"
 	"testing"
 
