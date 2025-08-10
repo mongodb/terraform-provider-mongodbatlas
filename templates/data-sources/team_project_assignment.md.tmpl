@@ -1,0 +1,11 @@
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` provides a Team Project Assignment data source. The data source lets you retrieve a team assigned to a project.
+
+## Example Usages
+
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information see: [MongoDB Atlas API - Teams](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getprojectteam) Documentation.
