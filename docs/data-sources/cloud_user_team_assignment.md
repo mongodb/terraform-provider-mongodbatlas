@@ -2,12 +2,13 @@
 
 `mongodbatlas_cloud_user_team_assignment` provides a Cloud User Team Assignment data source. The data source lets you retrieve a user assigned to a team.
 
-**NOTE**: Users with pending invitations created using the deprecated`mongodbatlas_project_invitation` resource or via the deprecated [Invite One MongoDB Cloud User to One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser#tag/Projects/operation/createProjectInvitation) 
-endpoint are not returned with this resource. See  [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser) for details. 
+-> **NOTE** Users with pending invitations created using the deprecated`mongodbatlas_project_invitation` resource or via the deprecated [Invite One MongoDB Cloud User to One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser#tag/Projects/operation/createProjectInvitation) 
+endpoint are not returned with this resource. See  [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-listteamusers) for details. 
 To manage such users with this resource, refer to our [migration guide]<link-to-migration-guide>.
 
 ## Example Usages
 
+### Using User ID
 ```terraform
 resource "mongodbatlas_cloud_user_team_assignment" "example" {
   org_id   = var.org_id
@@ -17,6 +18,15 @@ resource "mongodbatlas_cloud_user_team_assignment" "example" {
 
 data "mongodbatlas_cloud_user_team_assignment" "example_user_id" {
   org_id  = var.org_id
+  user_id = var.user_id
+}
+```
+
+### Using Username
+```terraform
+resource "mongodbatlas_cloud_user_team_assignment" "example" {
+  org_id   = var.org_id
+  team_id  = var.team_id
   user_id = var.user_id
 }
 
