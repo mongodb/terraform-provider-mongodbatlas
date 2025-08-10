@@ -20,7 +20,6 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -1354,6 +1353,8 @@ func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing
 			"state_name": "IDLE",
 			"project_id": projectID,
 			"name":       clusterName,
+			"replication_specs.0.region_configs.0.electable_specs.instance_size": "M30",
+			"replication_specs.0.region_configs.0.analytics_specs.node_count":    "0",
 		}
 		checksUpdatedMap = map[string]string{
 			"replication_specs.0.region_configs.0.auto_scaling.disk_gb_enabled":    "true",
@@ -1369,10 +1370,7 @@ func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing
 		}
 		checksUpdated = checkAggr(nil, checksUpdatedMap)
 	)
-	if config.PreviewProviderV2AdvancedCluster() { // SDKv2 don't set "computed" specs in the state
-		checksMap["replication_specs.0.region_configs.0.electable_specs.instance_size"] = "M30"
-		checksMap["replication_specs.0.region_configs.0.analytics_specs.node_count"] = "0"
-	}
+
 	checks := checkAggr(nil, checksMap)
 	checksMap["replication_specs.0.region_configs.0.analytics_specs.node_count"] = "1" // analytics_specs is kept even if it's removed from the config
 	checksAfter := checkAggr(nil, checksMap)
@@ -1397,9 +1395,6 @@ func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing
 }
 
 func TestAccAdvancedCluster_removeBlocksFromConfig(t *testing.T) {
-	if !config.PreviewProviderV2AdvancedCluster() { // SDKv2 don't set "computed" specs in the state
-		t.Skip("This test is not applicable for SDKv2")
-	}
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 15)
 	)
@@ -1450,7 +1445,7 @@ func createCleanupTest(t *testing.T, configCall func(t *testing.T, timeoutSectio
 	t.Helper()
 	var (
 		timeoutsStrShort = `
-			timeouts {
+			timeouts = {
 				create = "2s"
 			}
 			delete_on_create_timeout = true
@@ -1484,17 +1479,12 @@ func createCleanupTest(t *testing.T, configCall func(t *testing.T, timeoutSectio
 			},
 		)
 		deleteOnCreateTimeoutRemoved := configCall(t, "")
-		if config.PreviewProviderV2AdvancedCluster() {
-			steps = append(steps,
-				resource.TestStep{
-					Config: deleteOnCreateTimeoutRemoved,
-					Check:  resource.TestCheckNoResourceAttr(resourceName, "delete_on_create_timeout"),
-				})
-		} else {
-			// removing an optional false value has no affect in SDKv2, as false==null and no-plan-change
-			steps = append(steps, acc.TestStepCheckEmptyPlan(deleteOnCreateTimeoutRemoved))
-		}
-		steps = append(steps, acc.TestStepImportCluster(resourceName))
+		steps = append(steps,
+			resource.TestStep{
+				Config: deleteOnCreateTimeoutRemoved,
+				Check:  resource.TestCheckNoResourceAttr(resourceName, "delete_on_create_timeout"),
+			},
+			acc.TestStepImportCluster(resourceName))
 	}
 	return &resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -1627,7 +1617,7 @@ func configBlocks(t *testing.T, projectID, clusterName, instanceSize string, def
 		`
 		// read only + autoscaling blocks
 		extraConfig0 = `
-			read_only_specs {
+			read_only_specs = {
 				instance_size = "M10"
 				node_count    = 2
 			}
@@ -1652,13 +1642,13 @@ func configBlocks(t *testing.T, projectID, clusterName, instanceSize string, def
 
 			replication_specs = [{ 
 				zone_name = "Zone 1"
-				region_configs {
+				region_configs = [{
 					provider_name = "AWS"
 					priority      = 7
 					region_name   = "US_EAST_1"
 					%[6]s
 					%[4]s
-				}
+				}]
 			},
 			{ 
 				zone_name = "Zone 2"
@@ -1710,7 +1700,7 @@ func checkBlocks(instanceSize string) resource.TestCheckFunc {
 			checksMap[fmt.Sprintf("replication_specs.%d.region_configs.0.%s.compute_max_instance_size", repSpecsIdx, block)] = "M30"
 		}
 	}
-	return resource.ComposeAggregateTestCheckFunc(acc.AddAttrChecksMig(true, resourceName, nil, checksMap)...)
+	return resource.ComposeAggregateTestCheckFunc(acc.AddAttrChecksMigTPF(true, resourceName, nil, checksMap)...)
 }
 
 func checkAggr(attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
@@ -1928,11 +1918,11 @@ func configAWSProvider(t *testing.T, configInfo ReplicaSetAWSConfig, useSDKv2 ..
 
 func checkReplicaSetAWSProvider(isTPF bool, projectID, name string, diskSizeGB, nodeCountElectable int, checkDiskSizeGBInnerLevel, checkExternalID bool) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{
-		acc.TestCheckResourceAttrMig(isTPF, resourceName, "retain_backups_enabled", "true"),
+		acc.TestCheckResourceAttrMigTPF(isTPF, resourceName, "retain_backups_enabled", "true"),
 	}
 	additionalChecks = append(additionalChecks,
-		acc.TestCheckResourceAttrWithMig(isTPF, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		acc.TestCheckResourceAttrWithMig(isTPF, dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)))
+		acc.TestCheckResourceAttrWithMigTPF(isTPF, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithMigTPF(isTPF, dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)))
 
 	if checkDiskSizeGBInnerLevel {
 		additionalChecks = append(additionalChecks,
@@ -1944,7 +1934,7 @@ func checkReplicaSetAWSProvider(isTPF bool, projectID, name string, diskSizeGB, 
 	}
 
 	if checkExternalID {
-		additionalChecks = append(additionalChecks, acc.TestCheckResourceAttrSetMig(isTPF, resourceName, "replication_specs.0.external_id"))
+		additionalChecks = append(additionalChecks, acc.TestCheckResourceAttrSetMigTPF(isTPF, resourceName, "replication_specs.0.external_id"))
 	}
 
 	return checkAggrMig(isTPF,
@@ -2093,14 +2083,14 @@ func configReplicaSetMultiCloud(t *testing.T, orgID, projectName, name string, u
 
 func checkReplicaSetMultiCloud(isTPF bool, name string, regionConfigs int) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{
-		acc.TestCheckResourceAttrMig(isTPF, resourceName, "retain_backups_enabled", "false"),
-		acc.TestCheckResourceAttrWithMig(isTPF, resourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
-		acc.TestCheckResourceAttrSetMig(isTPF, resourceName, "replication_specs.0.external_id"),
-		acc.TestCheckResourceAttrWithMig(isTPF, dataSourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
-		acc.TestCheckResourceAttrWithMig(isTPF, dataSourcePluralName, "results.0.replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
-		acc.TestCheckResourceAttrSetMig(isTPF, dataSourcePluralName, "results.#"),
-		acc.TestCheckResourceAttrSetMig(isTPF, dataSourcePluralName, "results.0.replication_specs.#"),
-		acc.TestCheckResourceAttrSetMig(isTPF, dataSourcePluralName, "results.0.name"),
+		acc.TestCheckResourceAttrMigTPF(isTPF, resourceName, "retain_backups_enabled", "false"),
+		acc.TestCheckResourceAttrWithMigTPF(isTPF, resourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
+		acc.TestCheckResourceAttrSetMigTPF(isTPF, resourceName, "replication_specs.0.external_id"),
+		acc.TestCheckResourceAttrWithMigTPF(isTPF, dataSourceName, "replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
+		acc.TestCheckResourceAttrWithMigTPF(isTPF, dataSourcePluralName, "results.0.replication_specs.0.region_configs.#", acc.JSONEquals(strconv.Itoa(regionConfigs))),
+		acc.TestCheckResourceAttrSetMigTPF(isTPF, dataSourcePluralName, "results.#"),
+		acc.TestCheckResourceAttrSetMigTPF(isTPF, dataSourcePluralName, "results.0.replication_specs.#"),
+		acc.TestCheckResourceAttrSetMigTPF(isTPF, dataSourcePluralName, "results.0.name"),
 	}
 	return checkAggrMig(isTPF,
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.id"},
@@ -2202,24 +2192,24 @@ func configShardedOldSchemaMultiCloud(t *testing.T, projectID, name string, numS
 
 func checkShardedOldSchemaMultiCloud(isTPF bool, name string, numShards int, analyticsSize string, verifyExternalID bool, configServerManagementMode *string) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{
-		acc.TestCheckResourceAttrWithMig(isTPF, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		acc.TestCheckResourceAttrWithMig(isTPF, resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
-		acc.TestCheckResourceAttrWithMig(isTPF, resourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		acc.TestCheckResourceAttrWithMig(isTPF, dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
-		acc.TestCheckResourceAttrWithMig(isTPF, dataSourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
-		acc.TestCheckResourceAttrWithMig(isTPF, dataSourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithMigTPF(isTPF, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithMigTPF(isTPF, resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithMigTPF(isTPF, resourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithMigTPF(isTPF, dataSourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithMigTPF(isTPF, dataSourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
+		acc.TestCheckResourceAttrWithMigTPF(isTPF, dataSourceName, "replication_specs.0.region_configs.1.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
 	}
 	if verifyExternalID {
 		additionalChecks = append(
 			additionalChecks,
-			acc.TestCheckResourceAttrSetMig(isTPF, resourceName, "replication_specs.0.external_id"))
+			acc.TestCheckResourceAttrSetMigTPF(isTPF, resourceName, "replication_specs.0.external_id"))
 	}
 	if configServerManagementMode != nil {
 		additionalChecks = append(additionalChecks,
-			acc.TestCheckResourceAttrMig(isTPF, resourceName, "config_server_management_mode", *configServerManagementMode),
-			acc.TestCheckResourceAttrSetMig(isTPF, resourceName, "config_server_type"),
-			acc.TestCheckResourceAttrMig(isTPF, dataSourceName, "config_server_management_mode", *configServerManagementMode),
-			acc.TestCheckResourceAttrSetMig(isTPF, dataSourceName, "config_server_type"),
+			acc.TestCheckResourceAttrMigTPF(isTPF, resourceName, "config_server_management_mode", *configServerManagementMode),
+			acc.TestCheckResourceAttrSetMigTPF(isTPF, resourceName, "config_server_type"),
+			acc.TestCheckResourceAttrMigTPF(isTPF, dataSourceName, "config_server_management_mode", *configServerManagementMode),
+			acc.TestCheckResourceAttrSetMigTPF(isTPF, dataSourceName, "config_server_type"),
 		)
 	}
 
@@ -2648,14 +2638,14 @@ func configGeoShardedOldSchema(t *testing.T, projectID, name string, numShardsFi
 func checkAggrMig(isTPF bool, attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 	extraChecks := extra
 	extraChecks = append(extraChecks, acc.CheckExistsCluster(resourceName))
-	return acc.CheckRSAndDSPreviewProviderV2(isTPF, resourceName, admin.PtrString(dataSourceName), nil, attrsSet, attrsMap, extraChecks...)
+	return acc.CheckRSAndDSMigTPF(isTPF, resourceName, admin.PtrString(dataSourceName), nil, attrsSet, attrsMap, extraChecks...)
 }
 
 func checkGeoShardedOldSchema(isTPF bool, name string, numShardsFirstZone, numShardsSecondZone int, isLatestProviderVersion, verifyExternalID bool) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{}
 
 	if verifyExternalID {
-		additionalChecks = append(additionalChecks, acc.TestCheckResourceAttrSetMig(isTPF, resourceName, "replication_specs.0.external_id"))
+		additionalChecks = append(additionalChecks, acc.TestCheckResourceAttrSetMigTPF(isTPF, resourceName, "replication_specs.0.external_id"))
 	}
 
 	if isLatestProviderVersion { // checks that will not apply if doing migration test with older version
@@ -2949,22 +2939,22 @@ func checkShardedNewSchema(isTPF bool, diskSizeGB int, firstInstanceSize, lastIn
 	}
 
 	// plural data source checks
-	pluralChecks := acc.AddAttrSetChecksPreviewProviderV2(isTPF, dataSourcePluralName, nil,
+	pluralChecks := acc.AddAttrSetChecksMigTPF(isTPF, dataSourcePluralName, nil,
 		[]string{"results.#", "results.0.replication_specs.#", "results.0.replication_specs.0.region_configs.#", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
 
-	pluralChecks = acc.AddAttrChecksPrefixPreviewProviderV2(isTPF, dataSourcePluralName, pluralChecks, clusterChecks, "results.0")
+	pluralChecks = acc.AddAttrChecksPrefixMigTPF(isTPF, dataSourcePluralName, pluralChecks, clusterChecks, "results.0")
 	if isAsymmetricCluster {
 		pluralChecks = append(pluralChecks, checkAggrMig(isTPF, []string{}, map[string]string{
 			"replication_specs.0.id": "",
 			"replication_specs.1.id": "",
 		}))
-		pluralChecks = acc.AddAttrChecksMig(isTPF, dataSourcePluralName, pluralChecks, map[string]string{
+		pluralChecks = acc.AddAttrChecksMigTPF(isTPF, dataSourcePluralName, pluralChecks, map[string]string{
 			"results.0.replication_specs.0.id": "",
 			"results.0.replication_specs.1.id": "",
 		})
 	} else {
 		pluralChecks = append(pluralChecks, checkAggrMig(isTPF, []string{"replication_specs.0.id", "replication_specs.1.id"}, map[string]string{}))
-		pluralChecks = acc.AddAttrSetChecksPreviewProviderV2(isTPF, dataSourcePluralName, pluralChecks, "results.0.replication_specs.0.id", "results.0.replication_specs.1.id")
+		pluralChecks = acc.AddAttrSetChecksMigTPF(isTPF, dataSourcePluralName, pluralChecks, "results.0.replication_specs.0.id", "results.0.replication_specs.1.id")
 	}
 	return checkAggrMig(isTPF,
 		[]string{"replication_specs.0.external_id", "replication_specs.0.zone_id", "replication_specs.1.external_id", "replication_specs.1.zone_id"},

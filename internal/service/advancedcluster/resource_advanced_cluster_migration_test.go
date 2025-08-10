@@ -100,7 +100,7 @@ func migTest(t *testing.T, testCaseFunc func(t *testing.T, useSDKv2 ...bool) res
 
 		// Step 1: SDKv2 config with external provider (latest v1.x.x version)
 		// Step 2: Converted TPF config with current provider (latest v2.x.x version)
-		mig.CreateAndRunTest(t, &sdkv2TestCase)
+		mig.CreateAndRunTest(t, &sdkv2TestCase, true)
 	} else {
 		mig.SkipIfVersionBelow(t, "2.0.0")
 		t.Log("Running migration test: TPF to TPF")
