@@ -23,11 +23,12 @@ var (
 )
 
 type sdkToTFModelTestCase struct {
-	apiResp         *admin.PushBasedLogExportProject
-	timeout         *timeouts.Value
-	expectedTFModel *pushbasedlogexport.TFPushBasedLogExportRSModel
-	name            string
-	projectID       string
+	apiResp               *admin.PushBasedLogExportProject
+	timeout               *timeouts.Value
+	deleteOnCreateTimeout *types.Bool
+	expectedTFModel       *pushbasedlogexport.TFPushBasedLogExportRSModel
+	name                  string
+	projectID             string
 }
 
 func TestNewTFPushBasedLogExport(t *testing.T) {
@@ -76,7 +77,7 @@ func TestNewTFPushBasedLogExport(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, _ := pushbasedlogexport.NewTFPushBasedLogExport(t.Context(), tc.projectID, tc.apiResp, tc.timeout)
+			resultModel, _ := pushbasedlogexport.NewTFPushBasedLogExport(t.Context(), tc.projectID, tc.apiResp, tc.timeout, tc.deleteOnCreateTimeout)
 			if !assert.Equal(t, tc.expectedTFModel, resultModel) {
 				t.Errorf("result model does not match expected output: expected %+v, got %+v", tc.expectedTFModel, resultModel)
 			}
