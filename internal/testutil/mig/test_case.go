@@ -52,7 +52,7 @@ func CreateTest(t *testing.T, test *resource.TestCase, shouldUseClusterTpfForEmp
 
 	steps := []resource.TestStep{
 		useExternalProvider(&firstStep, ExternalProviders()),
-		emptyPlanStep,
+		useExternalProvider(&emptyPlanStep, ExternalProviders()),
 	}
 	newTest := reuseCase(test, steps)
 	return newTest
