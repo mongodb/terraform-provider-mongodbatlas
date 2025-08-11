@@ -16,7 +16,10 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
-const resourceName = "cloud_user_project_assignment"
+const (
+	resourceName     = "cloud_user_project_assignment"
+	errorReadingUser = "Error retrieving project users"
+)
 
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
@@ -67,6 +70,40 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	resp.Diagnostics.Append(resp.State.Set(ctx, newCloudUserProjectAssignmentModel)...)
 }
 
+func fetchTeamUser(ctx context.Context, connV2 *admin.APIClient, projectID, userID, username string) (*admin.GroupUserResponse, error) {
+	var userResp *admin.GroupUserResponse
+	var httpResp *http.Response
+	var err error
+	if userID != "" {
+		userResp, httpResp, err = connV2.MongoDBCloudUsersApi.GetProjectUser(ctx, projectID, userID).Execute()
+		if err != nil {
+			if validate.StatusNotFound(httpResp) {
+				return nil, nil
+			}
+			return nil, err
+		}
+	} else if username != "" {
+		var userListResp *admin.PaginatedGroupUser
+		params := &admin.ListProjectUsersApiParams{
+			GroupId:  projectID,
+			Username: &username,
+		}
+		userListResp, httpResp, err = connV2.MongoDBCloudUsersApi.ListProjectUsersWithParams(ctx, params).Execute()
+		if err != nil {
+			if validate.StatusNotFound(httpResp) {
+				return nil, nil
+			}
+			return nil, err
+		}
+		if userListResp == nil || len(userListResp.GetResults()) == 0 {
+			return nil, nil
+		}
+		userResp = &userListResp.GetResults()[0]
+	}
+
+	return userResp, nil
+}
+
 func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state TFModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -77,34 +114,18 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	connV2 := r.Client.AtlasV2
 	projectID := state.ProjectId.ValueString()
 	var userResp *admin.GroupUserResponse
-	var httpResp *http.Response
 	var err error
 
-	if !state.UserId.IsNull() && state.UserId.ValueString() != "" {
-		userID := state.UserId.ValueString()
-		userResp, httpResp, err = connV2.MongoDBCloudUsersApi.GetProjectUser(ctx, projectID, userID).Execute()
-		if validate.StatusNotFound(httpResp) {
-			resp.State.RemoveResource(ctx)
-			return
-		}
-	} else if !state.Username.IsNull() && state.Username.ValueString() != "" { // required for import
-		username := state.Username.ValueString()
-		params := &admin.ListProjectUsersApiParams{
-			GroupId:  projectID,
-			Username: &username,
-		}
-		usersResp, _, err := connV2.MongoDBCloudUsersApi.ListProjectUsersWithParams(ctx, params).Execute()
-		if err == nil && usersResp != nil {
-			if len(usersResp.GetResults()) == 0 {
-				resp.State.RemoveResource(ctx)
-				return
-			}
-			userResp = &usersResp.GetResults()[0]
-		}
-	}
+	userID := state.UserId.ValueString()
+	username := state.Username.ValueString()
 
+	userResp, err = fetchTeamUser(ctx, connV2, projectID, userID, username)
 	if err != nil {
-		resp.Diagnostics.AddError(fmt.Sprintf("error fetching user(%s) from ProjectID(%s):", userResp.Username, projectID), err.Error())
+		resp.Diagnostics.AddError(errorReadingUser, err.Error())
+		return
+	}
+	if userResp == nil {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
