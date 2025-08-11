@@ -1,5 +1,10 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_stream_privatelink_endpoint: Support S3 PrivateLink Endpoints for Atlas Stream Processing ([#3554](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3554))
+* resource/mongodbatlas_stream_privatelink_endpoint: Support S3 PrivateLink Endpoints for Atlas Stream Processing ([#3554](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3554))
+
 ## 1.39.0 (July 24, 2025)
 
 NOTES:

@@ -404,11 +404,11 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:      configAdvanced(t, projectID, clusterName, "6.0", processArgs20240530, processArgs),
+				Config:      configAdvanced(t, projectID, clusterName, "7.0", processArgs20240530, processArgs),
 				ExpectError: regexp.MustCompile(advancedcluster.ErrorDefaultMaxTimeMinVersion),
 			},
 			{
-				Config: configAdvanced(t, projectID, clusterName, "6.0", processArgs20240530, processArgsCipherConfig),
+				Config: configAdvanced(t, projectID, clusterName, "7.0", processArgs20240530, processArgsCipherConfig),
 				Check:  checkAdvanced(clusterName, "TLS1_2", processArgsCipherConfig),
 			},
 			acc.TestStepImportCluster(resourceName),
