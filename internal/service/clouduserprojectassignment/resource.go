@@ -73,7 +73,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	resp.Diagnostics.Append(resp.State.Set(ctx, newCloudUserProjectAssignmentModel)...)
 }
 
-func fetchTeamUser(ctx context.Context, connV2 *admin.APIClient, projectID, userID, username string) (*admin.GroupUserResponse, error) {
+func fetchProjectUser(ctx context.Context, connV2 *admin.APIClient, projectID, userID, username string) (*admin.GroupUserResponse, error) {
 	var userResp *admin.GroupUserResponse
 	var httpResp *http.Response
 	var err error
@@ -122,7 +122,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	userID := state.UserId.ValueString()
 	username := state.Username.ValueString()
 
-	userResp, err = fetchTeamUser(ctx, connV2, projectID, userID, username)
+	userResp, err = fetchProjectUser(ctx, connV2, projectID, userID, username)
 	if err != nil {
 		resp.Diagnostics.AddError(errorReadingUser, err.Error())
 		return
