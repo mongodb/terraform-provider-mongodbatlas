@@ -42,7 +42,7 @@ func TestMigCloudUserProjectAssignmentRS_migrationJourney(t *testing.T) {
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   userProjectAssignmentConfigSecond(username, projectName, orgID, roles),
-				Check:                    checksSecond(username, projectName, roles),
+				Check:                    checksSecond(username, roles),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -128,7 +128,7 @@ func removeProjectInvitationConfigThird(username, projectName, orgID string, rol
 		`, username, rolesStr, projectName, orgID)
 }
 
-func checksSecond(username, projectName string, roles []string) resource.TestCheckFunc {
+func checksSecond(username string, roles []string) resource.TestCheckFunc {
 	checkFuncs := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttr(resourceUserProjectAssignmentName, "username", username),
 		resource.TestCheckResourceAttrSet(resourceUserProjectAssignmentName, "project_id"),
