@@ -104,25 +104,11 @@ func checkDestroy(s *terraform.State) error {
 		}
 
 		userID := r.Primary.Attributes["user_id"]
-		username := r.Primary.Attributes["username"]
 		projectID := r.Primary.Attributes["project_id"]
-		conn := acc.ConnV2()
 
-		userListResp, _, err := conn.MongoDBCloudUsersApi.ListProjectUsers(context.Background(), projectID).Execute()
-		if err != nil {
-			continue
-		}
-
-		if userListResp != nil {
-			results := userListResp.GetResults()
-			for i := range results {
-				if userID != "" && results[i].GetId() == userID {
-					return fmt.Errorf("cloud user project assignment for user (%s) in project (%s) still exists", r.Primary.Attributes["username"], projectID)
-				}
-				if username != "" && results[i].GetUsername() == username {
-					return fmt.Errorf("cloud user project assignment for user (%s) in project (%s) still exists", r.Primary.Attributes["username"], projectID)
-				}
-			}
+		_, _, err := acc.ConnV2().MongoDBCloudUsersApi.GetProjectUser(context.Background(), projectID, userID).Execute()
+		if err == nil {
+			return fmt.Errorf("cloud user project assignment for user (%s) in project (%s) still exists", userID, projectID)
 		}
 	}
 	return nil
