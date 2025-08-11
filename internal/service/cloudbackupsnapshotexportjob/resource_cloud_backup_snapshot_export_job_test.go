@@ -7,7 +7,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
 var (
@@ -54,7 +56,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 	checks = acc.AddAttrChecks(dataSourcePluralName, checks, attrsPluralDS)
 
 	return &resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(tb, &clusterInfo, "", ""),
+		PreCheck:                 func() { acc.PreCheckBasicSleep(tb, &clusterInfo, "", ""); mig.PreCheckOldPreviewEnv(tb) },
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
