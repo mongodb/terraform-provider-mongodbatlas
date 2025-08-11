@@ -112,13 +112,13 @@ func CheckFCVPinningConfig(resourceName, dataSourceName, pluralDataSourceName st
 	}
 
 	if pinningExpirationDate != nil {
-		mapChecks["pinned_fcv.0.expiration_date"] = *pinningExpirationDate
+		mapChecks["pinned_fcv.expiration_date"] = *pinningExpirationDate
 	} else {
-		mapChecks["pinned_fcv.#"] = "0"
+		mapChecks["pinned_fcv.%"] = "0"
 	}
 
 	if fcvVersion != nil {
-		mapChecks["pinned_fcv.0.version"] = fmt.Sprintf("%d.0", *fcvVersion)
+		mapChecks["pinned_fcv.version"] = fmt.Sprintf("%d.0", *fcvVersion)
 	}
 
 	additionalCheck := resource.TestCheckResourceAttrWith(resourceName, "mongo_db_version", MatchesExpression(fmt.Sprintf("%d..*", mongoDBMajorVersion)))

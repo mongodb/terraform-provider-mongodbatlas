@@ -1656,7 +1656,7 @@ func configBlocks(t *testing.T, projectID, clusterName, instanceSize string, def
 					provider_name = "AWS"
 					priority      = 7
 					region_name   = "US_WEST_2"
-					electable_specs {
+					electable_specs = {
 						instance_size   = %[3]q
 						node_count      = 3
 					}
