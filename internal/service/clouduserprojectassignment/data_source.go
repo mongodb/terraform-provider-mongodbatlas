@@ -42,7 +42,7 @@ func (d *cloudUserProjectAssignmentDS) Read(ctx context.Context, req datasource.
 		resp.Diagnostics.AddError("invalid configuration", "either username or user_id must be provided")
 		return
 	}
-	userResp, err := fetchTeamUser(ctx, connV2, projectID, userID, username)
+	userResp, err := fetchProjectUser(ctx, connV2, projectID, userID, username)
 	if err != nil {
 		resp.Diagnostics.AddError(errorReadingUser, err.Error())
 		return
