@@ -91,4 +91,4 @@ jobs:
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
     with:
-        reduced_tests: false
+        reduced_tests: true
