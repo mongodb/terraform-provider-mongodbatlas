@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -40,7 +41,7 @@ func TestAccFlexClusterRS_createTimeoutWithDeleteOnCreateFlex(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      configBasic(projectID, clusterName, provider, region, acc.TimeoutConfig(&createTimeout, nil, nil, true), true, false, &deleteOnCreateTimeout),
+				Config:      configBasic(projectID, clusterName, provider, region, acc.TimeoutConfig(&createTimeout, nil, nil), true, false, &deleteOnCreateTimeout),
 				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
 			},
 		},
@@ -62,10 +63,10 @@ func TestAccFlexClusterRS_updateDeleteTimeout(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, clusterName, provider, region, acc.TimeoutConfig(nil, &updateTimeout, &deleteTimeout, true), false, false, nil),
+				Config: configBasic(projectID, clusterName, provider, region, acc.TimeoutConfig(nil, &updateTimeout, &deleteTimeout), false, false, nil),
 			},
 			{
-				Config:      configBasic(projectID, clusterName, provider, region, acc.TimeoutConfig(nil, &updateTimeout, &deleteTimeout, true), false, true, nil),
+				Config:      configBasic(projectID, clusterName, provider, region, acc.TimeoutConfig(nil, &updateTimeout, &deleteTimeout), false, true, nil),
 				ExpectError: regexp.MustCompile("timeout while waiting for state to become 'IDLE'"),
 			},
 			{
