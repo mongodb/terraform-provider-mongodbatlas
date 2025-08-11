@@ -1432,7 +1432,6 @@ func TestAccCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *testing.T) {
 	})
 }
 
-
 func checkFCVPinningConfig(resourceName, dataSourceName, pluralDataSourceName string, mongoDBMajorVersion int, pinningExpirationDate *string, fcvVersion *int) resource.TestCheckFunc {
 	mapChecks := map[string]string{
 		"mongo_db_major_version": fmt.Sprintf("%d.0", mongoDBMajorVersion),
