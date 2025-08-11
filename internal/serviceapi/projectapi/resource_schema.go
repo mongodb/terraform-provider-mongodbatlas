@@ -56,7 +56,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"with_default_alerts_settings": schema.BoolAttribute{
 				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Flag that indicates whether to create the project with default alert settings.",
+				MarkdownDescription: "Flag that indicates whether to create the project with default alert settings. This setting cannot be updated after project creation.",
 			},
 		},
 	}
