@@ -7,6 +7,7 @@ import (
 )
 
 func TestMigOutageSimulationCluster_SingleRegion_basic(t *testing.T) {
+	mig.SkipIfVersionBelow(t, "2.0.0") // version where advanced_cluster TPF was GA
 	mig.CreateAndRunTest(t, singleRegionTestCase(t))
 }
 
