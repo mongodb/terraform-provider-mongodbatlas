@@ -2,8 +2,8 @@ package mig
 
 import (
 	"os"
-
 	"strconv"
+
 	"testing"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
