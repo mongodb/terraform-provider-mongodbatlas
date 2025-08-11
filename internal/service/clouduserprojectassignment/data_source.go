@@ -5,7 +5,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 )
 
 var _ datasource.DataSource = &cloudUserProjectAssignmentDS{}
@@ -43,31 +42,10 @@ func (d *cloudUserProjectAssignmentDS) Read(ctx context.Context, req datasource.
 		resp.Diagnostics.AddError("invalid configuration", "either username or user_id must be provided")
 		return
 	}
-
-	var userResp *admin.GroupUserResponse
-	var err error
-
-	if userID != "" {
-		userResp, _, err = connV2.MongoDBCloudUsersApi.GetProjectUser(ctx, projectID, userID).Execute()
-		if err != nil {
-			resp.Diagnostics.AddError(errorReadingByUserID, err.Error())
-			return
-		}
-	} else if username != "" {
-		params := &admin.ListProjectUsersApiParams{
-			GroupId:  projectID,
-			Username: &username,
-		}
-		usersResp, _, err := connV2.MongoDBCloudUsersApi.ListProjectUsersWithParams(ctx, params).Execute()
-		if err != nil {
-			resp.Diagnostics.AddError(errorReadingByUsername, err.Error())
-			return
-		}
-		if usersResp == nil || len(usersResp.GetResults()) == 0 {
-			resp.Diagnostics.AddError("resource not found", "no user found with username "+username)
-			return
-		}
-		userResp = &usersResp.GetResults()[0]
+	userResp, err := fetchTeamUser(ctx, connV2, projectID, userID, username)
+	if err != nil {
+		resp.Diagnostics.AddError(errorReadingUser, err.Error())
+		return
 	}
 	if userResp == nil {
 		resp.State.RemoveResource(ctx)
