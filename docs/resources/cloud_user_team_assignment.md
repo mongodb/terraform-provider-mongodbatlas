@@ -10,9 +10,9 @@ To manage such users with this resource, refer to our [migration guide]<link-to-
 
 ```terraform
 resource "mongodbatlas_cloud_user_team_assignment" "example" {
-  org_id   = var.org_id
-  team_id  = var.team_id
-  user_id  = var.user_id
+  org_id  = var.org_id
+  team_id = var.team_id
+  user_id = var.user_id
 }
 
 data "mongodbatlas_cloud_user_team_assignment" "example_user_id" {
