@@ -24,10 +24,5 @@ You must set the following variables:
 - `team_id`: The ID of the team to assign the user to.  
 - `user_id`: The ID of the user to assign to the team.  
 
-## Considerations
-
-- You can add an active user or a user that has not yet accepted the invitation to join the organization.
-- To use this resource, the requesting Service Account or API Key must have the Organization Owner role.
-
 
 To learn more, see the [MongoDB Atlas API - Cloud Users](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-addusertoteam) Documentation.
