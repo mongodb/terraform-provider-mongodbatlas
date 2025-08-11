@@ -162,7 +162,13 @@ func writeReplicationSpec(cluster *hclwrite.Body, specs []admin.ReplicationSpec2
 			}
 
 			nodeSpec := rc.GetElectableSpecs()
-			esMap := map[string]cty.Value{}
+			// Always include all fields to ensure consistent schema, use null for missing values
+			esMap := map[string]cty.Value{
+				"instance_size":   cty.NullVal(cty.String),
+				"node_count":      cty.NullVal(cty.Number),
+				"disk_iops":       cty.NullVal(cty.Number),
+				"ebs_volume_type": cty.NullVal(cty.String),
+			}
 			if nodeSpec.InstanceSize != nil {
 				esMap["instance_size"] = cty.StringVal(*nodeSpec.InstanceSize)
 			}
@@ -175,13 +181,16 @@ func writeReplicationSpec(cluster *hclwrite.Body, specs []admin.ReplicationSpec2
 			if nodeSpec.DiskIOPS != nil {
 				esMap["disk_iops"] = cty.NumberIntVal(int64(*nodeSpec.DiskIOPS))
 			}
-			if len(esMap) > 0 {
-				rcMap["electable_specs"] = cty.ObjectVal(esMap)
-			}
+			rcMap["electable_specs"] = cty.ObjectVal(esMap)
 
 			readOnlySpecs := rc.GetReadOnlySpecs()
 			if readOnlySpecs.GetNodeCount() != 0 {
-				roMap := map[string]cty.Value{}
+				// Always include all fields to ensure consistent schema, use null for missing values
+				roMap := map[string]cty.Value{
+					"instance_size": cty.NullVal(cty.String),
+					"node_count":    cty.NullVal(cty.Number),
+					"disk_iops":     cty.NullVal(cty.Number),
+				}
 				if readOnlySpecs.InstanceSize != nil {
 					roMap["instance_size"] = cty.StringVal(*readOnlySpecs.InstanceSize)
 				}
@@ -191,9 +200,13 @@ func writeReplicationSpec(cluster *hclwrite.Body, specs []admin.ReplicationSpec2
 				if readOnlySpecs.DiskIOPS != nil {
 					roMap["disk_iops"] = cty.NumberIntVal(int64(*readOnlySpecs.DiskIOPS))
 				}
-				if len(roMap) > 0 {
-					rcMap["read_only_specs"] = cty.ObjectVal(roMap)
-				}
+				rcMap["read_only_specs"] = cty.ObjectVal(roMap)
+			} else {
+				rcMap["read_only_specs"] = cty.NullVal(cty.Object(map[string]cty.Type{
+					"instance_size": cty.String,
+					"node_count":    cty.Number,
+					"disk_iops":     cty.Number,
+				}))
 			}
 
 			rcList = append(rcList, cty.ObjectVal(rcMap))
