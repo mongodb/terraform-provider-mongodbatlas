@@ -34,41 +34,13 @@ provider_installation {
 }
 EOF
 
-# Function to check if directory is a V2 schema directory
-is_v2_dir() {
-  local parent_dir
-  local grand_parent_dir
-  parent_dir=$(basename "$1")
-  grand_parent_dir=$(basename "$(dirname "$1")")
-  local v2_parent_dirs=("cluster_with_schedule")
-  local v2_grand_parent_dirs=("module_maintainer" "module_user" "migrate_cluster_to_advanced_cluster" "mongodbatlas_backup_compliance_policy") # module_maintainer and module_user uses {PARENT_DIR}/vX/main.tf
-  
-  for dir in "${v2_parent_dirs[@]}"; do
-    if [[ $parent_dir =~ $dir ]]; then
-      return 0  # True
-    fi
-  done
-  for dir in "${v2_grand_parent_dirs[@]}"; do
-    if [[ $grand_parent_dir =~ $dir ]]; then
-      return 0  # True
-    fi
-  done
-  return 1  # False
-}
-
 for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u); do
   [ ! -d "$DIR" ] && continue
   pushd "$DIR"
   echo; echo -e "\e[1;35m===> Example: $DIR <===\e[0m"; echo
   terraform init > /dev/null # suppress output as it's very verbose
   terraform fmt -check -recursive
+  terraform validate
 
-  if is_v2_dir "$DIR"; then
-    echo "v2 schema detected for $DIR"
-    MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true terraform validate
-  else
-    echo "v1 schema detected for $DIR"
-    terraform validate
-  fi
   popd
 done

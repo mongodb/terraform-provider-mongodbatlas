@@ -2,11 +2,9 @@ package clouduserteamassignment
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 )
 
 var _ datasource.DataSource = &cloudUserTeamAssignmentDS{}
@@ -46,50 +44,13 @@ func (d *cloudUserTeamAssignmentDS) Read(ctx context.Context, req datasource.Rea
 		return
 	}
 
-	var userListResp *admin.PaginatedOrgUser
-	var userResp *admin.OrgUserResponse
-	var err error
-
-	if userID != "" {
-		userListResp, _, err = connV2.MongoDBCloudUsersApi.ListTeamUsers(ctx, orgID, teamID).Execute()
-		if err != nil {
-			resp.Diagnostics.AddError(fmt.Sprintf("error retrieving resource by user_id: %s", userID), err.Error())
-			return
-		}
-
-		if userListResp == nil || len(userListResp.GetResults()) == 0 {
-			resp.Diagnostics.AddError("resource not found", "no user found with the specified user_id")
-			return
-		}
-		results := userListResp.GetResults()
-		for i := range results {
-			if results[i].GetId() == userID {
-				userResp = &results[i]
-				break
-			}
-		}
-	} else if username != "" {
-		params := &admin.ListTeamUsersApiParams{
-			OrgId:    orgID,
-			TeamId:   teamID,
-			Username: &username,
-		}
-		userListResp, _, err = connV2.MongoDBCloudUsersApi.ListTeamUsersWithParams(ctx, params).Execute()
-		if err != nil {
-			resp.Diagnostics.AddError(fmt.Sprintf("error retrieving resource by username: %s", username), err.Error())
-			return
-		}
-
-		if userListResp == nil || len(userListResp.GetResults()) == 0 {
-			resp.Diagnostics.AddError("resource not found", "no user found with the specified username")
-			return
-		}
-
-		userResp = &(userListResp.GetResults())[0]
+	userResp, err := fetchTeamUser(ctx, connV2, orgID, teamID, &userID, &username)
+	if err != nil {
+		resp.Diagnostics.AddError("error retrieving user", err.Error())
+		return
 	}
-
 	if userResp == nil {
-		resp.State.RemoveResource(ctx)
+		resp.Diagnostics.AddError("resource not found", "no user found with the specified identifier")
 		return
 	}
 
