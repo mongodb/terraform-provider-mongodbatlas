@@ -54,7 +54,7 @@ func TestAccEncryptionAtRestPrivateEndpoint_createTimeoutWithDeleteOnCreate(t *t
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      configEARPrivateEndpointWithTimeout(projectID, region, acc.TimeoutConfig(&createTimeout, nil, nil, true), &deleteOnCreateTimeout),
+				Config:      configEARPrivateEndpointWithTimeout(projectID, region, acc.TimeoutConfig(&createTimeout, nil, nil), &deleteOnCreateTimeout),
 				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
 			},
 		},
