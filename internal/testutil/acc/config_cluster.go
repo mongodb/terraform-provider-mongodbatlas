@@ -141,7 +141,6 @@ func writeReplicationSpec(cluster *hclwrite.Body, specs []admin.ReplicationSpec2
 				"provider_name": cty.StringVal(*rc.ProviderName),
 				"region_name":   cty.StringVal(*rc.RegionName),
 			}
-
 			if rc.BackingProviderName != nil {
 				rcMap["backing_provider_name"] = cty.StringVal(*rc.BackingProviderName)
 			}
@@ -151,72 +150,57 @@ func writeReplicationSpec(cluster *hclwrite.Body, specs []admin.ReplicationSpec2
 					"disk_gb_enabled": cty.BoolVal(false),
 				})
 			} else {
-				autoScaling := rc.GetAutoScaling()
-				asDisk := autoScaling.GetDiskGB()
-				if autoScaling.Compute != nil {
-					return fmt.Errorf("auto_scaling.compute is not supported yet %v", autoScaling)
+				as := rc.GetAutoScaling()
+				asDisk := as.GetDiskGB()
+				if as.Compute != nil {
+					return fmt.Errorf("auto_scaling.compute is not supported yet %v", as)
 				}
 				rcMap["auto_scaling"] = cty.ObjectVal(map[string]cty.Value{
 					"disk_gb_enabled": cty.BoolVal(asDisk.GetEnabled()),
 				})
 			}
 
-			nodeSpec := rc.GetElectableSpecs()
-			// Always include all fields to ensure consistent schema, use null for missing values
-			esMap := map[string]cty.Value{
-				"instance_size":   cty.NullVal(cty.String),
-				"node_count":      cty.NullVal(cty.Number),
-				"disk_iops":       cty.NullVal(cty.Number),
-				"ebs_volume_type": cty.NullVal(cty.String),
+			es := rc.GetElectableSpecs()
+			esMap := map[string]cty.Value{}
+			if es.InstanceSize != nil {
+				esMap["instance_size"] = cty.StringVal(*es.InstanceSize)
 			}
-			if nodeSpec.InstanceSize != nil {
-				esMap["instance_size"] = cty.StringVal(*nodeSpec.InstanceSize)
+			if es.NodeCount != nil {
+				esMap["node_count"] = cty.NumberIntVal(int64(*es.NodeCount))
 			}
-			if nodeSpec.NodeCount != nil {
-				esMap["node_count"] = cty.NumberIntVal(int64(*nodeSpec.NodeCount))
+			if es.EbsVolumeType != nil && *es.EbsVolumeType != "" {
+				esMap["ebs_volume_type"] = cty.StringVal(*es.EbsVolumeType)
 			}
-			if nodeSpec.EbsVolumeType != nil && *nodeSpec.EbsVolumeType != "" {
-				esMap["ebs_volume_type"] = cty.StringVal(*nodeSpec.EbsVolumeType)
+			if es.DiskIOPS != nil {
+				esMap["disk_iops"] = cty.NumberIntVal(int64(*es.DiskIOPS))
 			}
-			if nodeSpec.DiskIOPS != nil {
-				esMap["disk_iops"] = cty.NumberIntVal(int64(*nodeSpec.DiskIOPS))
+			if len(esMap) > 0 {
+				rcMap["electable_specs"] = cty.ObjectVal(esMap)
 			}
-			rcMap["electable_specs"] = cty.ObjectVal(esMap)
 
-			readOnlySpecs := rc.GetReadOnlySpecs()
-			if readOnlySpecs.GetNodeCount() != 0 {
-				// Always include all fields to ensure consistent schema, use null for missing values
-				roMap := map[string]cty.Value{
-					"instance_size": cty.NullVal(cty.String),
-					"node_count":    cty.NullVal(cty.Number),
-					"disk_iops":     cty.NullVal(cty.Number),
-				}
-				if readOnlySpecs.InstanceSize != nil {
-					roMap["instance_size"] = cty.StringVal(*readOnlySpecs.InstanceSize)
-				}
-				if readOnlySpecs.NodeCount != nil {
-					roMap["node_count"] = cty.NumberIntVal(int64(*readOnlySpecs.NodeCount))
-				}
-				if readOnlySpecs.DiskIOPS != nil {
-					roMap["disk_iops"] = cty.NumberIntVal(int64(*readOnlySpecs.DiskIOPS))
-				}
+			ros := rc.GetReadOnlySpecs()
+			roMap := map[string]cty.Value{}
+			if ros.InstanceSize != nil {
+				roMap["instance_size"] = cty.StringVal(*ros.InstanceSize)
+			}
+			if ros.NodeCount != nil && *ros.NodeCount != 0 {
+				roMap["node_count"] = cty.NumberIntVal(int64(*ros.NodeCount))
+			}
+			if ros.DiskIOPS != nil {
+				roMap["disk_iops"] = cty.NumberIntVal(int64(*ros.DiskIOPS))
+			}
+			if len(roMap) > 0 {
 				rcMap["read_only_specs"] = cty.ObjectVal(roMap)
-			} else {
-				rcMap["read_only_specs"] = cty.NullVal(cty.Object(map[string]cty.Type{
-					"instance_size": cty.String,
-					"node_count":    cty.Number,
-					"disk_iops":     cty.Number,
-				}))
 			}
 
 			rcList = append(rcList, cty.ObjectVal(rcMap))
 		}
 
-		specMap["region_configs"] = cty.ListVal(rcList)
+		specMap["region_configs"] = cty.TupleVal(rcList)
 		allSpecs = append(allSpecs, cty.ObjectVal(specMap))
 	}
 
-	cluster.SetAttributeValue("replication_specs", cty.ListVal(allSpecs))
+	cluster.SetAttributeValue("replication_specs", cty.TupleVal(allSpecs))
 	return nil
 }
 
