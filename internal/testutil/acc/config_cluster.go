@@ -195,7 +195,7 @@ func writeReplicationSpec(cluster *hclwrite.Body, specs []admin.ReplicationSpec2
 
 			rcList = append(rcList, cty.ObjectVal(rcMap))
 		}
-
+		// Use TupleVal instead of ListVal so region/spec objects can have different fields without type conflicts.
 		specMap["region_configs"] = cty.TupleVal(rcList)
 		allSpecs = append(allSpecs, cty.ObjectVal(specMap))
 	}
