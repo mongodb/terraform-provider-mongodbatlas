@@ -1,5 +1,5 @@
 ```release-note:enhancement
-resource/mongodbatlas_encryption_at_rest_private_endpoint: Adds `timeouts` attribute for create, update and delete operations
+resource/mongodbatlas_encryption_at_rest_private_endpoint: Adds `timeouts` attribute for create and delete operations
 ```
 
 ```release-note:enhancement
