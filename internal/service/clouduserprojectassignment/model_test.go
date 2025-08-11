@@ -143,3 +143,79 @@ func TestNewProjectUserRequest(t *testing.T) {
 		})
 	}
 }
+
+func TestNewAtlasUpdateReq(t *testing.T) {
+	ctx := t.Context()
+
+	type args struct {
+		stateRoles []string
+		planRoles  []string
+	}
+	tests := []struct {
+		name            string
+		args            args
+		wantAddRoles    []string
+		wantRemoveRoles []string
+	}{
+		{
+			name: "add and remove roles",
+			args: args{
+				stateRoles: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_ONLY"},
+				planRoles:  []string{"GROUP_OWNER", "GROUP_DATA_ACCESS_READ_ONLY"},
+			},
+			wantAddRoles:    []string{"GROUP_OWNER"},
+			wantRemoveRoles: []string{"GROUP_READ_ONLY"},
+		},
+		{
+			name: "no changes",
+			args: args{
+				stateRoles: []string{"GROUP_OWNER"},
+				planRoles:  []string{"GROUP_OWNER"},
+			},
+			wantAddRoles:    []string{},
+			wantRemoveRoles: []string{},
+		},
+		{
+			name: "all roles removed",
+			args: args{
+				stateRoles: []string{"GROUP_OWNER"},
+				planRoles:  []string{},
+			},
+			wantAddRoles:    []string{},
+			wantRemoveRoles: []string{"GROUP_OWNER"},
+		},
+		{
+			name: "all roles added",
+			args: args{
+				stateRoles: []string{},
+				planRoles:  []string{"GROUP_OWNER"},
+			},
+			wantAddRoles:    []string{"GROUP_OWNER"},
+			wantRemoveRoles: []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stateRoles, _ := types.SetValueFrom(ctx, types.StringType, tt.args.stateRoles)
+			planRoles, _ := types.SetValueFrom(ctx, types.StringType, tt.args.planRoles)
+
+			state := &clouduserprojectassignment.TFModel{Roles: stateRoles}
+			plan := &clouduserprojectassignment.TFModel{Roles: planRoles}
+
+			addReqs, removeReqs, diags := clouduserprojectassignment.NewAtlasUpdateReq(ctx, plan, state)
+			assert.False(t, diags.HasError(), "expected no diagnostics")
+
+			var gotAddRoles, gotRemoveRoles []string
+			for _, r := range addReqs {
+				gotAddRoles = append(gotAddRoles, r.GroupRole)
+			}
+			for _, r := range removeReqs {
+				gotRemoveRoles = append(gotRemoveRoles, r.GroupRole)
+			}
+
+			assert.ElementsMatch(t, tt.wantAddRoles, gotAddRoles, "add roles mismatch")
+			assert.ElementsMatch(t, tt.wantRemoveRoles, gotRemoveRoles, "remove roles mismatch")
+		})
+	}
+}
