@@ -230,7 +230,7 @@ func TestSDKToTFModel(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			sdkModel := tc.sdkModel
-			resultModel, diags := streamprocessor.NewStreamProcessorWithStats(t.Context(), projectID, instanceName, sdkModel)
+			resultModel, diags := streamprocessor.NewStreamProcessorWithStats(t.Context(), projectID, instanceName, sdkModel, nil, nil)
 			if diags.HasError() {
 				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}

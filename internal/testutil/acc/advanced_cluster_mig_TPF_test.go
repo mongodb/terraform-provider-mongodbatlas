@@ -4,15 +4,12 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestConvertToPreviewProviderV2AttrsMapAndAttrsSet(t *testing.T) {
-	if !config.PreviewProviderV2AdvancedCluster() {
-		t.Skip("Skipping test as not in PreviewProviderV2AdvancedCluster")
-	}
+func TestConvertToMigTPFAttrsMapAndAttrsSet(t *testing.T) {
 	attrsMap := map[string]string{
 		"attr":                            "val1",
 		"electable_specs.0":               "val2",
@@ -31,7 +28,7 @@ func TestConvertToPreviewProviderV2AttrsMapAndAttrsSet(t *testing.T) {
 		"connection_strings.standard":                              "val6",
 		"connection_strings.standard_srv":                          "val6",
 	}
-	actualMap := acc.ConvertToPreviewProviderV2AttrsMap(true, attrsMap)
+	actualMap := acc.ConvertToMigTPFAttrsMap(true, attrsMap)
 	assert.Equal(t, expectedMap, actualMap)
 
 	attrsSet := make([]string, 0, len(attrsMap))
@@ -42,16 +39,13 @@ func TestConvertToPreviewProviderV2AttrsMapAndAttrsSet(t *testing.T) {
 	for name := range expectedMap {
 		expectedSet = append(expectedSet, name)
 	}
-	actualSet := acc.ConvertToPreviewProviderV2AttrsSet(true, attrsSet)
+	actualSet := acc.ConvertToMigTPFAttrsSet(true, attrsSet)
 	sort.Strings(expectedSet)
 	sort.Strings(actualSet)
 	assert.Equal(t, expectedSet, actualSet)
 }
 
-func TestConvertAdvancedClusterToPreviewProviderV2(t *testing.T) {
-	if !config.PreviewProviderV2AdvancedCluster() {
-		t.Skip("Skipping test as not in PreviewProviderV2AdvancedCluster")
-	}
+func TestConvertAdvancedClusterToTPF(t *testing.T) {
 	var (
 		input = `
 			resource "mongodbatlas_advanced_cluster" "cluster2" {
@@ -161,7 +155,7 @@ func TestConvertAdvancedClusterToPreviewProviderV2(t *testing.T) {
 				}
 			}	
  		`
-		// expected has the attributes sorted alphabetically to match the output of ConvertAdvancedClusterToPreviewProviderV2
+		// expected has the attributes sorted alphabetically to match the output of ConvertAdvancedClusterToTPF
 		expected = `
 			resource "mongodbatlas_advanced_cluster" "cluster2" {
 				project_id   = "MY-PROJECT-ID"
@@ -252,7 +246,7 @@ func TestConvertAdvancedClusterToPreviewProviderV2(t *testing.T) {
 			}
  		`
 	)
-	actual := acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, input)
+	actual := acc.ConvertAdvancedClusterToTPF(t, true, input)
 	acc.AssertEqualHCL(t, expected, actual)
 }
 

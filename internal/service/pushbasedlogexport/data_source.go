@@ -45,7 +45,7 @@ func (d *pushBasedLogExportDS) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
-	newTFModel, diags := NewTFPushBasedLogExport(ctx, projectID, logConfig, nil)
+	newTFModel, diags := NewTFPushBasedLogExport(ctx, projectID, logConfig, nil, nil)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
