@@ -63,7 +63,7 @@ var (
 	configServerManagementModeFixedToDedicated = "FIXED_TO_DEDICATED"
 	configServerManagementModeAtlasManaged     = "ATLAS_MANAGED"
 	mockConfig                                 = unit.MockConfigAdvancedClusterTPF
-	errGeneric       = errors.New("generic")
+	errGeneric                                 = errors.New("generic")
 )
 
 func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
