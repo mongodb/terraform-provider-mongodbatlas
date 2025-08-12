@@ -50,11 +50,8 @@ func NewProjectUserReq(ctx context.Context, plan *TFModel) (*admin.GroupUserRequ
 	return &addProjectUserReq, nil
 }
 
-func NewAtlasUpdateReq(ctx context.Context, plan, state *TFModel) (addRequests, removeRequests []*admin.AddOrRemoveGroupRole, diags diag.Diagnostics) {
-	var currentRoles, desiredRoles []string
-	if !state.Roles.IsNull() && !state.Roles.IsUnknown() {
-		currentRoles = conversion.TypesSetToString(ctx, state.Roles)
-	}
+func NewAtlasUpdateReq(ctx context.Context, plan *TFModel, currentRoles []string) (addRequests, removeRequests []*admin.AddOrRemoveGroupRole, diags diag.Diagnostics) {
+	var desiredRoles []string
 	if !plan.Roles.IsNull() && !plan.Roles.IsUnknown() {
 		desiredRoles = conversion.TypesSetToString(ctx, plan.Roles)
 	}

@@ -140,6 +140,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan TFModel
 	var state TFModel
+	var err error
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -151,7 +152,13 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	userID := plan.UserId.ValueString()
 	username := plan.Username.ValueString()
 
-	addRequests, removeRequests, diags := NewAtlasUpdateReq(ctx, &plan, &state)
+	userInfo, _, err := connV2.MongoDBCloudUsersApi.GetProjectUser(ctx, projectID, userID).Execute() // Fetch current user roles from API (more reliable than state)
+	if err != nil {
+		resp.Diagnostics.AddError(fmt.Sprintf("error fetching user(%s) from ProjectID(%s):", username, projectID), err.Error())
+		return
+	}
+
+	addRequests, removeRequests, diags := NewAtlasUpdateReq(ctx, &plan, userInfo.GetRoles())
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -180,7 +187,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 
 	var userResp *admin.GroupUserResponse
-	var err error
+
 	if !state.UserId.IsNull() && state.UserId.ValueString() != "" {
 		userID := state.UserId.ValueString()
 		userResp, _, err = connV2.MongoDBCloudUsersApi.GetProjectUser(ctx, projectID, userID).Execute()

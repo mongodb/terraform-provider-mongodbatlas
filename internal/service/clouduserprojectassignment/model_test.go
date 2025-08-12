@@ -260,10 +260,9 @@ func TestNewAtlasUpdateReq(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			stateRoles, _ := types.SetValueFrom(ctx, types.StringType, tt.args.stateRoles)
 			planRoles, _ := types.SetValueFrom(ctx, types.StringType, tt.args.planRoles)
 
-			state := &clouduserprojectassignment.TFModel{Roles: stateRoles}
+			state := tt.args.stateRoles
 			plan := &clouduserprojectassignment.TFModel{Roles: planRoles}
 
 			addReqs, removeReqs, diags := clouduserprojectassignment.NewAtlasUpdateReq(ctx, plan, state)
