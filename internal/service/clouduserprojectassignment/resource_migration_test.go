@@ -37,7 +37,7 @@ func TestMigCloudUserProjectAssignmentRS_migrationJourney(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: mig.ExternalProviders(),
-				Config:            originalConfigFirst(username, projectName, orgID, roles),
+				Config:            legacyProjectInvitationConfig(username, projectName, orgID, roles),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -58,7 +58,7 @@ func TestMigCloudUserProjectAssignmentRS_migrationJourney(t *testing.T) {
 	})
 }
 
-func originalConfigFirst(username, projectName, orgID string, roles []string) string {
+func legacyProjectInvitationConfig(username, projectName, orgID string, roles []string) string {
 	rolesStr := `"` + strings.Join(roles, `", "`) + `"`
 	config := fmt.Sprintf(`
 		locals {
