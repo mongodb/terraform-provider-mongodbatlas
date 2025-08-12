@@ -14,7 +14,7 @@ on:
         type: string
         required: false    
       test_group:
-        description: 'Test group to run, e.g. advanced_cluster, empty for all'
+        description: 'Test group to run, e.g. advanced_cluster_tpf, empty for all'
         type: string
         required: false
       test_name:
@@ -26,7 +26,7 @@ on:
         type: string
         required: false
       reduced_tests:
-        description: 'If run only minimum tests for advanced_cluster, e.g. in PRs'
+        description: 'If run only minimum tests for advanced_cluster_tpf, e.g. in PRs'
         type: boolean
         required: false
         default: false
@@ -241,7 +241,6 @@ jobs:
     env:
       mustTrigger: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_group == '' )  }}
     outputs: # ensure resources are sorted alphabetically
-      advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
       advanced_cluster_tpf: ${{ steps.filter.outputs.advanced_cluster_tpf == 'true' || env.mustTrigger == 'true' }}
       assume_role: ${{ steps.filter.outputs.assume_role == 'true' || env.mustTrigger == 'true' }}
       autogen: ${{ steps.filter.outputs.autogen == 'true' || env.mustTrigger == 'true' }}
@@ -274,9 +273,6 @@ jobs:
       if: ${{ inputs.test_group == ''  && env.mustTrigger == 'false' }}
       with:
         filters: |
-          advanced_cluster:
-            - 'internal/service/advancedcluster/!(*_test).go' # matches any adv_cluster file change except test files
-            - 'internal/service/advancedclustertpf/common*.go'
           advanced_cluster_tpf:
             - 'internal/service/advancedclustertpf/*.go'
             - 'internal/service/advancedcluster/*_test.go'
@@ -408,7 +404,6 @@ jobs:
           HTTP_MOCKER_CAPTURE: 'true'
           ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
           ACCTEST_PACKAGES: |
-            ./internal/service/advancedcluster
             ./internal/service/advancedclustertpf
         run: make testacc
  
@@ -436,7 +431,7 @@ jobs:
           MONGODB_ATLAS_LAST_1X_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
           ACCTEST_REGEX_RUN: '^TestMig'
           ACCTEST_PACKAGES: |
-            ./internal/service/advancedcluster
+            ./internal/service/advancedclustertpf
         run: make testacc
 
   assume_role:
