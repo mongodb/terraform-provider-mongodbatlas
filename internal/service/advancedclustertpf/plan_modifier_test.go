@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 )
 
@@ -14,7 +15,6 @@ var (
 	repSpec1      = tfjsonpath.New("replication_specs").AtSliceIndex(1)
 	regionConfig0 = repSpec0.AtMapKey("region_configs").AtSliceIndex(0)
 	regionConfig1 = repSpec1.AtMapKey("region_configs").AtSliceIndex(0)
-	mockConfig    = unit.MockConfigAdvancedClusterTPF
 )
 
 func autoScalingKnownValue(computeEnabled, diskEnabled, scaleDown bool, minInstanceSize, maxInstanceSize string) knownvalue.Check {
