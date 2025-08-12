@@ -12,7 +12,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-var resourceName = "mongodbatlas_cloud_user_project_assignment.test"
+var resourceNamePending = "mongodbatlas_cloud_user_project_assignment.test_pending"
+var resourceNameActive = "mongodbatlas_cloud_user_project_assignment.test_active"
 
 func TestAccCloudUserProjectAssignmentRS_basic(t *testing.T) {
 	resource.ParallelTest(t, *basicTestCase(t))
@@ -22,43 +23,68 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	username := acc.RandomEmail()
+	activeUsername := os.Getenv("MONGODB_ATLAS_USERNAME_2")
+	pendingUsername := acc.RandomEmail()
 	projectName := acc.RandomName()
 	roles := []string{"GROUP_OWNER", "GROUP_CLUSTER_MANAGER"}
 	updatedRoles := []string{"GROUP_OWNER", "GROUP_SEARCH_INDEX_EDITOR", "GROUP_READ_ONLY"}
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckAtlasUsernames(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(orgID, username, projectName, roles),
-				Check:  checks(username, projectName, roles),
+				Config: configBasic(orgID, pendingUsername, activeUsername, projectName, roles),
+				Check:  checks(pendingUsername, activeUsername, projectName, roles),
 			},
 			{
-				Config: configBasic(orgID, username, projectName, updatedRoles),
-				Check:  checks(username, projectName, updatedRoles),
+				Config: configBasic(orgID, pendingUsername, activeUsername, projectName, updatedRoles),
+				Check:  checks(pendingUsername, activeUsername, projectName, updatedRoles),
 			},
 			{
-				ResourceName:                         resourceName,
+				ResourceName:                         resourceNamePending,
 				ImportState:                          true,
 				ImportStateVerify:                    true,
 				ImportStateVerifyIdentifierAttribute: "user_id",
 				ImportStateIdFunc: func(s *terraform.State) (string, error) {
-					attrs := s.RootModule().Resources[resourceName].Primary.Attributes
+					attrs := s.RootModule().Resources[resourceNamePending].Primary.Attributes
 					projectID := attrs["project_id"]
 					userID := attrs["user_id"]
 					return projectID + "/" + userID, nil
 				},
 			},
 			{
-				ResourceName:                         resourceName,
+				ResourceName:                         resourceNamePending,
 				ImportState:                          true,
 				ImportStateVerify:                    true,
 				ImportStateVerifyIdentifierAttribute: "user_id",
 				ImportStateIdFunc: func(s *terraform.State) (string, error) {
-					attrs := s.RootModule().Resources[resourceName].Primary.Attributes
+					attrs := s.RootModule().Resources[resourceNamePending].Primary.Attributes
+					projectID := attrs["project_id"]
+					username := attrs["username"]
+					return projectID + "/" + username, nil
+				},
+			},
+			{
+				ResourceName:                         resourceNameActive,
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "user_id",
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					attrs := s.RootModule().Resources[resourceNameActive].Primary.Attributes
+					projectID := attrs["project_id"]
+					userID := attrs["user_id"]
+					return projectID + "/" + userID, nil
+				},
+			},
+			{
+				ResourceName:                         resourceNameActive,
+				ImportState:                          true,
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "user_id",
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					attrs := s.RootModule().Resources[resourceNameActive].Primary.Attributes
 					projectID := attrs["project_id"]
 					username := attrs["username"]
 					return projectID + "/" + username, nil
@@ -68,7 +94,7 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 	}
 }
 
-func configBasic(orgID, username, projectName string, roles []string) string {
+func configBasic(orgID, pendingUsername, activeUsername, projectName string, roles []string) string {
 	rolesStr := `"` + strings.Join(roles, `", "`) + `"`
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
@@ -76,23 +102,35 @@ func configBasic(orgID, username, projectName string, roles []string) string {
 			org_id = %[2]q
 		}
 
-		resource "mongodbatlas_cloud_user_project_assignment" "test" {
+		resource "mongodbatlas_cloud_user_project_assignment" "test_pending" {
 			username = %[3]q
 			project_id = mongodbatlas_project.test.id
-			roles = [%[4]s]
+			roles = [%[5]s]
+		}
+
+		resource "mongodbatlas_cloud_user_project_assignment" "test_active" {
+			username = %[4]q
+			project_id = mongodbatlas_project.test.id
+			roles = [%[5]s]
 		}`,
-		projectName, orgID, username, rolesStr)
+		projectName, orgID, pendingUsername, activeUsername, rolesStr)
 }
 
-func checks(username, projectName string, roles []string) resource.TestCheckFunc {
+func checks(pendingUsername, activeUsername, projectName string, roles []string) resource.TestCheckFunc {
 	checkFuncs := []resource.TestCheckFunc{
-		resource.TestCheckResourceAttr(resourceName, "username", username),
-		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-		resource.TestCheckResourceAttr(resourceName, "roles.#", fmt.Sprintf("%d", len(roles))),
+		resource.TestCheckResourceAttr(resourceNamePending, "username", pendingUsername),
+		resource.TestCheckResourceAttrSet(resourceNamePending, "project_id"),
+		resource.TestCheckResourceAttr(resourceNamePending, "roles.#", fmt.Sprintf("%d", len(roles))),
+		resource.TestCheckResourceAttr(resourceNameActive, "username", activeUsername),
+		resource.TestCheckResourceAttrSet(resourceNameActive, "project_id"),
+		resource.TestCheckResourceAttr(resourceNameActive, "roles.#", fmt.Sprintf("%d", len(roles))),
 	}
 
 	for _, role := range roles {
-		checkFuncs = append(checkFuncs, resource.TestCheckTypeSetElemAttr(resourceName, "roles.*", role))
+		checkFuncs = append(checkFuncs,
+			resource.TestCheckTypeSetElemAttr(resourceNamePending, "roles.*", role),
+			resource.TestCheckTypeSetElemAttr(resourceNameActive, "roles.*", role),
+		)
 	}
 	return resource.ComposeAggregateTestCheckFunc(checkFuncs...)
 }
