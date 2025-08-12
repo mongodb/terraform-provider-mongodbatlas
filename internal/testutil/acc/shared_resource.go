@@ -49,6 +49,14 @@ func cleanupSharedResources() {
 		fmt.Printf("Deleting execution private link endpoint: %s, project id: %s, provider: %s\n", sharedInfo.privateLinkEndpointID, projectID, sharedInfo.privateLinkProviderName)
 		deletePrivateLinkEndpoint(projectID, sharedInfo.privateLinkProviderName, sharedInfo.privateLinkEndpointID)
 	}
+	if sharedInfo.encryptionAtRestEnabled {
+		projectID := sharedInfo.projectID
+		if projectID == "" {
+			projectID = projectIDLocal()
+		}
+		fmt.Printf("Deleting execution encryption at rest: project id: %s\n", projectID)
+		deleteEncryptionAtRest(projectID)
+	}
 	if sharedInfo.projectID != "" {
 		fmt.Printf("Deleting execution project: %s, id: %s\n", sharedInfo.projectName, sharedInfo.projectID)
 		deleteProject(sharedInfo.projectID)
@@ -205,15 +213,16 @@ type projectInfo struct {
 }
 
 var sharedInfo = struct {
-	projectID               string
 	projectName             string
 	clusterName             string
 	streamInstanceName      string
 	privateLinkEndpointID   string
 	privateLinkProviderName string
+	projectID               string
 	projects                []projectInfo
 	mu                      sync.Mutex
 	muSleep                 sync.Mutex
+	encryptionAtRestEnabled bool
 	init                    bool
 }{
 	projects: []projectInfo{},

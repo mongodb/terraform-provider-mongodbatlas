@@ -99,12 +99,25 @@ resource "mongodbatlas_encryption_at_rest_private_endpoint" "endpoint" {
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project.
 - `region_name` (String) Cloud provider region in which the Encryption At Rest private endpoint is located.
 
+### Optional
+
+- `delete_on_create_timeout` (Boolean) Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
+- `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
+
 ### Read-Only
 
 - `error_message` (String) Error message for failures associated with the Encryption At Rest private endpoint.
 - `id` (String) Unique 24-hexadecimal digit string that identifies the Private Endpoint Service.
 - `private_endpoint_connection_name` (String) Connection name of the Azure Private Endpoint.
 - `status` (String) State of the Encryption At Rest private endpoint.
+
+<a id="nestedatt--timeouts"></a>
+### Nested Schema for `timeouts`
+
+Optional:
+
+- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
 
 ## Import 
 Encryption At Rest Private Endpoint resource can be imported using the project ID, cloud provider, and private endpoint ID. The format must be `{project_id}-{cloud_provider}-{private_endpoint_id}` e.g.
