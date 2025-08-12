@@ -602,6 +602,7 @@ jobs:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
           MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
           MONGODB_ATLAS_USERNAME: ${{ vars.MONGODB_ATLAS_USERNAME }}
+          MONGODB_ATLAS_USERNAME_2: ${{ vars.MONGODB_ATLAS_USERNAME_2 }}
           ACCTEST_PACKAGES: |
             ./internal/service/clouduserorgassignment
             ./internal/service/clouduserprojectassignment
