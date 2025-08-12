@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clouduserprojectassignment"
 	"github.com/stretchr/testify/assert"
@@ -92,6 +93,39 @@ func TestCloudUserProjectAssignmentSDKToTFModel(t *testing.T) {
 			SDKResp:         fullResp,
 			expectedTFModel: expectedFullModel,
 		},
+		"Empty SDK response": {
+			SDKResp: &admin.GroupUserResponse{
+				Id:                  "",
+				Username:            "",
+				FirstName:           nil,
+				LastName:            nil,
+				Country:             nil,
+				MobileNumber:        nil,
+				OrgMembershipStatus: "",
+				CreatedAt:           nil,
+				LastAuth:            nil,
+				InvitationCreatedAt: nil,
+				InvitationExpiresAt: nil,
+				InviterUsername:     nil,
+				Roles:               nil,
+			},
+			expectedTFModel: &clouduserprojectassignment.TFModel{
+				UserId:              types.StringValue(""),
+				Username:            types.StringValue(""),
+				ProjectId:           types.StringValue(testProjectID),
+				FirstName:           types.StringNull(),
+				LastName:            types.StringNull(),
+				Country:             types.StringNull(),
+				MobileNumber:        types.StringNull(),
+				OrgMembershipStatus: types.StringValue(""),
+				CreatedAt:           types.StringNull(),
+				LastAuth:            types.StringNull(),
+				InvitationCreatedAt: types.StringNull(),
+				InvitationExpiresAt: types.StringNull(),
+				InviterUsername:     types.StringNull(),
+				Roles:               types.SetNull(types.StringType),
+			},
+		},
 	}
 
 	for testName, tc := range testCases {
@@ -133,6 +167,26 @@ func TestNewProjectUserRequest(t *testing.T) {
 				Roles:    testProjectRoles,
 			},
 		},
+		"Nil model": {
+			plan: &clouduserprojectassignment.TFModel{
+				Username: types.StringNull(),
+				Roles:    types.SetNull(types.StringType),
+			},
+			expected: &admin.GroupUserRequest{
+				Username: "",
+				Roles:    []string{},
+			},
+		},
+		"Empty model": {
+			plan: &clouduserprojectassignment.TFModel{
+				Username: types.StringValue(""),
+				Roles:    types.SetValueMust(types.StringType, []attr.Value{}),
+			},
+			expected: &admin.GroupUserRequest{
+				Username: "",
+				Roles:    []string{},
+			},
+		},
 	}
 
 	for name, tc := range testCases {
@@ -140,6 +194,90 @@ func TestNewProjectUserRequest(t *testing.T) {
 			req, diags := clouduserprojectassignment.NewProjectUserReq(ctx, tc.plan)
 			assert.False(t, diags.HasError(), "expected no diagnostics")
 			assert.Equal(t, tc.expected, req)
+		})
+	}
+}
+
+func TestNewAtlasUpdateReq(t *testing.T) {
+	ctx := t.Context()
+
+	type args struct {
+		stateRoles []string
+		planRoles  []string
+	}
+	tests := []struct {
+		name            string
+		args            args
+		wantAddRoles    []string
+		wantRemoveRoles []string
+	}{
+		{
+			name: "add and remove roles",
+			args: args{
+				stateRoles: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_ONLY"},
+				planRoles:  []string{"GROUP_OWNER", "GROUP_DATA_ACCESS_READ_ONLY"},
+			},
+			wantAddRoles:    []string{"GROUP_OWNER"},
+			wantRemoveRoles: []string{"GROUP_READ_ONLY"},
+		},
+		{
+			name: "no changes",
+			args: args{
+				stateRoles: []string{"GROUP_OWNER"},
+				planRoles:  []string{"GROUP_OWNER"},
+			},
+			wantAddRoles:    []string{},
+			wantRemoveRoles: []string{},
+		},
+		{
+			name: "all roles removed",
+			args: args{
+				stateRoles: []string{"GROUP_OWNER"},
+				planRoles:  []string{},
+			},
+			wantAddRoles:    []string{},
+			wantRemoveRoles: []string{"GROUP_OWNER"},
+		},
+		{
+			name: "all roles added",
+			args: args{
+				stateRoles: []string{},
+				planRoles:  []string{"GROUP_OWNER"},
+			},
+			wantAddRoles:    []string{"GROUP_OWNER"},
+			wantRemoveRoles: []string{},
+		},
+		{
+			name: "nil roles",
+			args: args{
+				stateRoles: nil,
+				planRoles:  []string{},
+			},
+			wantAddRoles:    []string{},
+			wantRemoveRoles: []string{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			planRoles, _ := types.SetValueFrom(ctx, types.StringType, tt.args.planRoles)
+
+			state := tt.args.stateRoles
+			plan := &clouduserprojectassignment.TFModel{Roles: planRoles}
+
+			addReqs, removeReqs, diags := clouduserprojectassignment.NewAtlasUpdateReq(ctx, plan, state)
+			assert.False(t, diags.HasError(), "expected no diagnostics")
+
+			var gotAddRoles, gotRemoveRoles []string
+			for _, r := range addReqs {
+				gotAddRoles = append(gotAddRoles, r.GroupRole)
+			}
+			for _, r := range removeReqs {
+				gotRemoveRoles = append(gotRemoveRoles, r.GroupRole)
+			}
+
+			assert.ElementsMatch(t, tt.wantAddRoles, gotAddRoles, "add roles mismatch")
+			assert.ElementsMatch(t, tt.wantRemoveRoles, gotRemoveRoles, "remove roles mismatch")
 		})
 	}
 }
