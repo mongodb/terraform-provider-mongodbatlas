@@ -19,12 +19,14 @@ data "mongodbatlas_cloud_user_team_assignment" "example_user_id" {
   org_id  = var.org_id
   team_id = var.team_id
   user_id = var.user_id
+  depends_on = [mongodbatlas_cloud_user_team_assignment.example]
 }
 
 data "mongodbatlas_cloud_user_team_assignment" "example_username" {
   org_id   = var.org_id
   team_id  = var.team_id
   username = var.user_email
+  depends_on = [mongodbatlas_cloud_user_team_assignment.example]
 }
 ```
 
@@ -33,8 +35,8 @@ data "mongodbatlas_cloud_user_team_assignment" "example_username" {
 
 ### Required
 
-- `org_id` (String) Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.
-- `team_id` (String) Unique 24-hexadecimal digit string that identifies the team to which you want to assign the MongoDB Cloud user. Use the [/teams](#tag/Teams/operation/listTeams) endpoint to retrieve all teams to which the authenticated user has access.
+- `org_id` (String) Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-organizations) endpoint to retrieve all organizations to which the authenticated user has access.
+- `team_id` (String) Unique 24-hexadecimal digit string that identifies the team to which you want to assign the MongoDB Cloud user. Use the [/teams](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-teams) endpoint to retrieve all teams to which the authenticated user has access.
 
 ### Optional
 

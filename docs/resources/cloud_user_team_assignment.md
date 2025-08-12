@@ -1,6 +1,6 @@
 # Resource: mongodbatlas_cloud_user_team_assignment
 
-`mongodbatlas_cloud_user_team_assignment` provides a Cloud User Team Assignment resource. The resource lets you import, assign, remove, or update a user to a team.
+`mongodbatlas_cloud_user_team_assignment` provides a Cloud User Team Assignment resource. It lets you manage the association between a cloud user and a team, enabling you to import, assign, remove, or update the user's membership.
 
 -> **NOTE**Users with pending invitations created using the deprecated `mongodbatlas_project_invitation` resource or via the deprecated [Invite One MongoDB Cloud User to One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser#tag/Projects/operation/createProjectInvitation)
 endpoint cannot be managed with this resource. See [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-listteamusers) for details.
@@ -19,12 +19,14 @@ data "mongodbatlas_cloud_user_team_assignment" "example_user_id" {
   org_id  = var.org_id
   team_id = var.team_id
   user_id = var.user_id
+  depends_on = [mongodbatlas_cloud_user_team_assignment.example]
 }
 
 data "mongodbatlas_cloud_user_team_assignment" "example_username" {
   org_id   = var.org_id
   team_id  = var.team_id
   username = var.user_email
+  depends_on = [mongodbatlas_cloud_user_team_assignment.example]
 }
 ```
 
@@ -33,8 +35,8 @@ data "mongodbatlas_cloud_user_team_assignment" "example_username" {
 
 ### Required
 
-- `org_id` (String) Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.
-- `team_id` (String) Unique 24-hexadecimal digit string that identifies the team to which you want to assign the MongoDB Cloud user. Use the [/teams](#tag/Teams/operation/listTeams) endpoint to retrieve all teams to which the authenticated user has access.
+- `org_id` (String) Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-organizations) endpoint to retrieve all organizations to which the authenticated user has access.
+- `team_id` (String) Unique 24-hexadecimal digit string that identifies the team to which you want to assign the MongoDB Cloud user. Use the [/teams](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-teams) endpoint to retrieve all teams to which the authenticated user has access.
 - `user_id` (String) Unique 24-hexadecimal digit string that identifies the MongoDB Cloud user.
 
 ### Read-Only
