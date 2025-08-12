@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -19,6 +20,10 @@ var DSNameUserID = "data.mongodbatlas_cloud_user_project_assignment.testUserID"
 
 func TestAccCloudUserProjectAssignment_basic(t *testing.T) {
 	resource.ParallelTest(t, *basicTestCase(t))
+}
+
+func TestAccCloudUserProjectAssignmentDS_error(t *testing.T) {
+	resource.ParallelTest(t, *errorTestCase(t))
 }
 
 func basicTestCase(t *testing.T) *resource.TestCase {
@@ -96,6 +101,34 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 	}
 }
 
+func errorTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	projectName := acc.RandomName()
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:      configError(orgID, projectName),
+				ExpectError: regexp.MustCompile("either username or user_id must be provided"),
+			},
+		},
+	}
+}
+
+func configError(orgID, projectName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+			name   = %[1]q
+			org_id = %[2]q
+		}
+		data "mongodbatlas_cloud_user_project_assignment" "test" {
+			project_id = mongodbatlas_project.test.id
+		}
+	`, projectName, orgID)
+}
+
 func configBasic(orgID, pendingUsername, activeUsername, projectName string, roles []string) string {
 	rolesStr := `"` + strings.Join(roles, `", "`) + `"`
 	return fmt.Sprintf(`
@@ -137,6 +170,7 @@ func checks(pendingUsername, activeUsername, projectName string, roles []string)
 		resource.TestCheckResourceAttrSet(resourceNameActive, "project_id"),
 		resource.TestCheckResourceAttr(resourceNameActive, "roles.#", fmt.Sprintf("%d", len(roles))),
 		resource.TestCheckResourceAttr(DSNameUserID, "username", pendingUsername),
+		resource.TestCheckResourceAttrPair(DSNameUserID, "username", resourceNamePending, "username"),
 		resource.TestCheckResourceAttrPair(DSNameUsername, "user_id", DSNameUserID, "user_id"),
 		resource.TestCheckResourceAttrPair(DSNameUsername, "project_id", DSNameUserID, "project_id"),
 		resource.TestCheckResourceAttrPair(DSNameUsername, "roles.#", DSNameUserID, "roles.#"),
