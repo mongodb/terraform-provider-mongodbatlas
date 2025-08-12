@@ -38,7 +38,7 @@ func NewTFModel(ctx context.Context, projectID string, apiResp *admin.GroupUserR
 }
 
 func NewProjectUserReq(ctx context.Context, plan *TFModel) (*admin.GroupUserRequest, diag.Diagnostics) {
-	var roleNames []string
+	roleNames := []string{}
 	if !plan.Roles.IsNull() && !plan.Roles.IsUnknown() {
 		roleNames = conversion.TypesSetToString(ctx, plan.Roles)
 	}
