@@ -22,10 +22,12 @@ func TestAccCloudUserProjectAssignmentRS_basic(t *testing.T) {
 func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	// Use MONGODB_ATLAS_USERNAME_2 to avoid USER_ALREADY_IN_GROUP.
+	// The default MONGODB_ATLAS_USERNAME (Org Owner) is auto-assigned if no ProjectOwner is set.
 	activeUsername := os.Getenv("MONGODB_ATLAS_USERNAME_2")
 	pendingUsername := acc.RandomEmail()
 	projectName := acc.RandomName()
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	roles := []string{"GROUP_OWNER", "GROUP_CLUSTER_MANAGER"}
 	updatedRoles := []string{"GROUP_OWNER", "GROUP_SEARCH_INDEX_EDITOR", "GROUP_READ_ONLY"}
 
