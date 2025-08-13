@@ -36,6 +36,30 @@ func (r *RSCommon) ReadProviderMetaCreate(ctx context.Context, req *resource.Cre
 	return meta
 }
 
+func (r *RSCommon) ReadProviderMetaUpdate(ctx context.Context, req *resource.UpdateRequest, diags *diag.Diagnostics) ProviderMeta {
+	var meta ProviderMeta
+	diags.Append(req.ProviderMeta.Get(ctx, &meta)...)
+	return meta
+}
+
+func (r *RSCommon) AddAnalyticsCreate(ctx context.Context, req *resource.CreateRequest, diags *diag.Diagnostics) context.Context {
+	meta := r.ReadProviderMetaCreate(ctx, req, diags)
+	return AddUserAgentExtra(ctx, UserAgentExtra{
+		ScriptLocation: meta.ScriptLocation.ValueString(),
+		Name:           r.ResourceName,
+		Operation:      "create",
+	})
+}
+
+func (r *RSCommon) AddAnalyticsUpdate(ctx context.Context, req *resource.UpdateRequest, diags *diag.Diagnostics) context.Context {
+	meta := r.ReadProviderMetaUpdate(ctx, req, diags)
+	return AddUserAgentExtra(ctx, UserAgentExtra{
+		ScriptLocation: meta.ScriptLocation.ValueString(),
+		Name:           r.ResourceName,
+		Operation:      "create",
+	})
+}
+
 func (r *RSCommon) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, r.ResourceName)
 }

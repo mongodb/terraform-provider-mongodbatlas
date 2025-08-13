@@ -60,10 +60,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 
 	connV2 := r.Client.AtlasV2
 	diags := &resp.Diagnostics
-	meta := r.ReadProviderMetaCreate(ctx, &req, diags)
-	scriptLocation := meta.ScriptLocation
-	fmt.Println("found script location: " + scriptLocation.ValueString())
-
+	ctx = r.AddAnalyticsCreate(ctx, &req, diags)
 	diags.Append(req.Plan.Get(ctx, &projectPlan)...)
 	if diags.HasError() {
 		return
@@ -246,6 +243,7 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	var projectState TFProjectRSModel
 	var projectPlan TFProjectRSModel
 	connV2 := r.Client.AtlasV2
+	ctx = r.AddAnalyticsUpdate(ctx, &req, &resp.Diagnostics)
 
 	// get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &projectState)...)

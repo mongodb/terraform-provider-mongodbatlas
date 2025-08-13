@@ -111,7 +111,7 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 	tfLoggingTransport := logging.NewTransport("Atlas", digestTransport)
 	// Add UserAgentExtra fields to the User-Agent header, see wrapper_provider_server.go
 	userAgentTransport := NewUserAgentTransport(tfLoggingTransport, c.AnalyticsEnabled)
-	client := &http.Client{Transport: userAgentTransport.Transport}
+	client := &http.Client{Transport: userAgentTransport}
 
 	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
 	if c.BaseURL != "" {
