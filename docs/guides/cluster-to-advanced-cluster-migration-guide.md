@@ -16,18 +16,18 @@ More information about the main changes between the two resources can be found [
 Due to its schema simplicity, `mongodbatlas_cluster` resource is unable to support most of the latest MongoDB Atlas features, such as [Multi-Cloud Clusters](https://www.mongodb.com/blog/post/introducing-multicloud-clusters-on-mongodb-atlas), [Asymmetric Sharding](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema), [Independent Scaling of Analytics Node Tiers](https://www.mongodb.com/blog/post/introducing-ability-independently-scale-atlas-analytics-node-tiers) and more.
 On the other hand, not only does `mongodbatlas_advanced_cluster` cover everything that `mongodbatlas_cluster` can do, but it offers all existing MongoDB Atlas functionalities and will continue to do so going forward.
 
-Having that in mind, to access all the latest functionalities and stay up to date with our best offering we recommend you to start planning your move to `mongodbatlas_advanced_cluster`. To maintain our focus on enhancing the overall experience with `mongodbatlas_advanced_cluster`, we will be phasing out `mongodbatlas_cluster` in the upcoming major provider version, 2.0.0, with the timeline yet to be determined. Begin your planning now to ensure you're ready for this transition.
+Having that in mind, to access all the latest functionalities and stay up to date with our best offering we recommend you to start planning your move to `mongodbatlas_advanced_cluster`. To maintain our focus on enhancing the overall experience with `mongodbatlas_advanced_cluster`, `mongodbatlas_cluster` has npw been deprecated starting from provider version 2.0.0, and will soon be removed from the provider completely. Begin your planning now to ensure you're ready for this transition.
 
-### What is the `mongodbatlas_advanced_cluster` Preview of MongoDB Atlas Provider 2.0.0?
+### What was the `mongodbatlas_advanced_cluster` Preview of MongoDB Atlas Provider 2.0.0?
 
-To make it easier to migrate to `mongodbatlas_advanced_cluster`, we decided to enable support for the [`moved` block](https://developer.hashicorp.com/terraform/language/moved). This functionality needs the resource to be implemented using the [Terraform Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework), whereas our existing implementation [uses the SDKv2](https://developer.hashicorp.com/terraform/plugin/sdkv2). Given the considerable changes between the two frameworks and the breaking changes it causes, we have decided to release a preview version of the `mongodbatlas_advanced_cluster` usable under an environment variable and keep the existing implementation as-is to avoid breaking existing users. 
-Once the MongoDB Atlas Provider 2.0.0 is released, only the new version will remain and the environment variable won't be needed.
-More information about the preview version of `mongodbatlas_advanced_cluster` can be found in the [resource documentation page](../resources/advanced_cluster%2520%2528preview%2520provider%25202.0.0%2529).
+To make it easier to migrate to `mongodbatlas_advanced_cluster`, we decided to enable support for the [`moved` block](https://developer.hashicorp.com/terraform/language/moved). This functionality needed the resource to be implemented using the [Terraform Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework), whereas our previous implementation [used the SDKv2](https://developer.hashicorp.com/terraform/plugin/sdkv2). Given the considerable changes between the two frameworks and the breaking changes it causesd we decided to release a preview version of the `mongodbatlas_advanced_cluster`, in our provider versions 1.29.0 and later, usable under an environment variable and kept the existing implementation as-is to avoid breaking existing users. 
+Now with the release of MongoDB Atlas Provider 2.0.0, only the new version remains and the environment variable is no longer needed.
+More information about the new version of `mongodbatlas_advanced_cluster` can be found in the [resource documentation page](../resources/advanced_cluster).
 
 ## How should I move to `mongodbatlas_advanced_cluster`?
 
 To move from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster` we offer two alternatives:
-1. [(Recommended) Use the `moved` block using the Preview of MongoDB Atlas Provider 2.0.0 for `mongodbatlas_advanced_cluster`](#migration-using-the-moved-block-recommended)
+1. [(Recommended) Use the `moved` block](#migration-using-the-moved-block-recommended)
 2. [Manually use the import command with the `mongodbatlas_advanced_cluster` resource](#migration-using-import)
 
 ### Best Practices Before Migrating
@@ -40,9 +40,8 @@ This is our recommended method to migrate from `mongodbatlas_cluster` to `mongod
 
 **Prerequisites:**
  - Terraform version 1.8 or later is required, more information in the [State Move page](https://developer.hashicorp.com/terraform/plugin/framework/resources/state-move).
- - MongoDB Atlas Provider version 1.29 or later is required.
- - Ability to set **Environment Variables** in your working space
-   - More information can be found in the [resource documentation page](../resources/advanced_cluster%2520%2528preview%2520provider%25202.0.0%2529).
+ - MongoDB Atlas Provider version 2.0 or later is required. 
+     - Note: If using version 1.29 or later, you can leverage the preview of the new schema. To learn more, please review our upgrade guides for the version you are using.
 
 The process to migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster` using the `moved` block varies if you are using `modules` or the resource directly. Module maintainers can upgrade their implementation to `mongodbatlas_advanced_cluster` by making this operation transparent to their users. To learn how, review the examples from a [module maintainer](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_cluster_to_advanced_cluster/module_maintainer) and [module user](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_cluster_to_advanced_cluster/module_user) point of view.
 
@@ -51,12 +50,11 @@ If you are managing the resource directly, see [this example](https://github.com
 The basic experience when using the `moved` block is as follows:
 1. Before starting, run `terraform plan` to make sure that there are no planned changes.
 2. Add the `mongodbatlas_advanced_cluster` resource definition.
-  - Set the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` in order to use the Preview for MongoDB Atlas Provider 2.0.0. You can also define the environment variable in your local development environment so your tools can use the new format and help you with linting and auto-completion.
   - You can use the [Atlas CLI plugin](https://github.com/mongodb-labs/atlas-cli-plugin-terraform) to generate the `mongodbatlas_advanced_cluster` resource definition. This is the recommended method as it will generate a clean configuration while keeping the original Terraform expressions. Please be aware of the [plugin limitations](https://github.com/mongodb-labs/atlas-cli-plugin-terraform#limitations), see the [section below](#alternatives-to-using-the-mongodb-atlas-cli-plugin-to-generate-the-mongodbatlas_advanced_cluster-resource-definition) for the available alternatives.
 3. Comment out or delete the `mongodbatlas_cluster` resource definition.
 4. Update the references from your previous cluster resource: `mongodbatlas_cluster.this.XXXX` to the new `mongodbatlas_advanced_cluster.this.XXX`.
    - Double check [output-changes](#output-changes) to ensure the underlying configuration stays unchanged.
-   - If you are using output variables that use the new resource `mongodbatlas_advanced_cluster.this`, the plan output can be more verbose than expected (extra `Note: Objects have changed outside of Terraform` section). Consider adding/updating output variables only **after** performing the move (see more in the [Github Issue](https://github.com/hashicorp/terraform/issues/36796).
+   - If you are using output variables that use the new resource `mongodbatlas_advanced_cluster.this`, the plan output can be more verbose than expected (extra `Note: Objects have changed outside of Terraform` section). Consider adding/updating output variables only **after** performing the move (see more in the [Github Issue](https://github.com/hashicorp/terraform/issues/36796)).
 5. Add the `moved` block to your configuration file, e.g.:
 ```terraform
 moved {
@@ -80,7 +78,7 @@ moved {
 
 ## Migration using import
 
-**Note**: We recommend the [`moved` block](#migration-using-the-moved-block-recommended) method as it's more convenient and less error-prone. If you continue with this method, you can still use the Preview for MongoDB Atlas Provider 2.0.0 by setting the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` to avoid having to migrate again in the future.
+**Note**: We recommend the [`moved` block](#migration-using-the-moved-block-recommended) method as it's more convenient and less error-prone.
 
 This method uses [Terraform native tools](https://developer.hashicorp.com/terraform/language/import/generating-configuration) and works if you:
 1. Have an existing cluster without any Terraform configuration and want to import and manage your cluster with Terraform.
@@ -119,7 +117,7 @@ import {
     termination_protection_enabled       = false
     version_release_system               = "LTS"
 
-    advanced_configuration {
+    advanced_configuration = {
       default_read_concern                 = null
       default_write_concern                = null
       fail_index_key_too_long              = false
@@ -133,19 +131,19 @@ import {
       transaction_lifetime_limit_seconds   = 0
     }
 
-    replication_specs {
+    replication_specs = [{
       container_id = {
         "AWS:US_EAST_1" = "669644ae01bf814e3d25b963"
       }
       id         = "66978026668b7619f6f48cf2"
       zone_name  = "ZoneName managed by Terraform"
 
-      region_configs {
+      region_configs = [{
         priority              = 7
         provider_name         = "AWS"
         region_name           = "US_EAST_1"
 
-        auto_scaling {
+        auto_scaling = {
           compute_enabled            = false
           compute_max_instance_size  = null
           compute_min_instance_size  = null
@@ -153,20 +151,20 @@ import {
           disk_gb_enabled            = false
         }
 
-        electable_specs {
+        electable_specs = {
           disk_iops       = 3000
           ebs_volume_type = null
           instance_size   = "M10"
           node_count      = 3
         }
-        analytics_specs {
+        analytics_specs = {
           disk_iops       = 3000
           ebs_volume_type = null
           instance_size   = "M10"
           node_count      = 1
         }
-      }
-    }
+      }]
+    }]
   }
   ```
 This file includes all configurable values in the schema, but none of the previous configuration defined for your `mongodbatlas_cluster`. Therefore, the new configuration will likely be a lot more verbose and contain none of your original [Terraform expressions](https://developer.hashicorp.com/terraform/language/expressions).
@@ -228,37 +226,6 @@ resource "mongodbatlas_advanced_cluster" "this" {
   cluster_type   = "REPLICASET"
   backup_enabled = true # 4 Backup Configuration
 
-  replication_specs {
-    region_configs {
-      auto_scaling { # 3 Auto Scaling
-        disk_gb_enabled = true
-      }
-      region_name   = "US_EAST_1"
-      priority      = 7
-      provider_name = "AWS" # 2 Provider Settings
-
-      electable_specs { # 1 Replication Spec Configuration
-        instance_size = "M10"
-        node_count    = 3
-      }
-      analytics_specs { # 1 Replication Spec Configuration
-        instance_size = "M10"
-        node_count    = 1
-      }
-    }
-  }
-}
-```
-
-### Example 3: New Configuration (`mongodbatlas_advanced_cluster`) using the Preview of MongoDB Atlas Provider 2.0.0
-
-```terraform
-resource "mongodbatlas_advanced_cluster" "this" {
-  project_id     = var.project_id
-  name           = "advanced-cluster"
-  cluster_type   = "REPLICASET"
-  backup_enabled = true # 4 Backup Configuration
-
   replication_specs = [
     {
       region_configs = [
@@ -309,4 +276,4 @@ While the [Atlas CLI plugin](https://github.com/mongodb-labs/atlas-cli-plugin-te
 
 - **Option 2**: Simplify your `mongodbatlas_cluster` resource definition by removing the [Atlas CLI plugin limitations](https://github.com/mongodb-labs/atlas-cli-plugin-terraform#limitations). Given the output, proceed with restoring the remaining configuration in the `mongodbatlas_advanced_cluster` resource.
 
-- **Option 3**: Generate the new configuration for `mongodbatlas_advanced_cluster` manually, looking at the examples we provide in our [resource documentation page](../resources/advanced_cluster%2520%2528preview%2520provider%25202.0.0%2529).
+- **Option 3**: Generate the new configuration for `mongodbatlas_advanced_cluster` manually, looking at the examples we provide in our [resource documentation page](../resources/advanced_cluster).

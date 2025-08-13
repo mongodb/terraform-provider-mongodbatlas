@@ -11,7 +11,7 @@
 
 -> **NOTE:** To delete an Atlas cluster that has an associated `mongodbatlas_cloud_backup_schedule` resource and an enabled Backup Compliance Policy, first instruct Terraform to remove the `mongodbatlas_cloud_backup_schedule` resource from the state and then use Terraform to delete the cluster. To learn more, see [Delete a Cluster with a Backup Compliance Policy](../guides/delete-cluster-with-backup-compliance-policy.md).
 
-**NOTE:** This data source also includes Flex clusters.
+-> **NOTE:** This data source also includes Flex clusters.
 
 ## Example Usage
 

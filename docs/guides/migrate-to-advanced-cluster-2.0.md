@@ -4,7 +4,7 @@ page_title: "Migration Guide: Advanced Cluster (v1.x → v2.0.0)"
 
 This guide helps you migrate from the legacy schema of `mongodbatlas_advanced_cluster` resource to the new schema introduced in v2.0.0 of the provider. The new implementation uses the recommended Terraform Plugin Framework, which, in addition to providing a better user experience and other features, adds support for the `moved` block between different resource types.
 
-~> **IMPORTANT:** Preview of the new schema was already released in versions >=1.29 which could be enabled by setting the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`. If you are already using the new schema preview, you would not be required to make any additional changes except that the mentioned environment variable is no longer required.
+~> **IMPORTANT:** Preview of the new schema was already released in versions 1.29.0 and later which could be enabled by setting the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`. If you are already using the new schema preview, you would not be required to make any additional changes except that the mentioned environment variable is no longer required.
 
 ## Configuration changes when upgrading from v1.x
 

@@ -36,9 +36,9 @@ Complete the following procedure to resolves the configuration drift in Terrafor
          cluster_type = "REPLICASET"
          name         = "clusterName"
          project_id   = "664619d870c247237f4b86a6"
-         replication_specs {
+         replication_specs = [{
             zone_name = "Zone 1"
-            region_configs {
+            region_configs = [{
                priority      = 7
                provider_name = "AWS"
                region_name   = "EU_WEST_1"
@@ -46,12 +46,12 @@ Complete the following procedure to resolves the configuration drift in Terrafor
                   instance_size = "M10"
                   node_count    = 0
                }
-               electable_specs {
+               electable_specs = {
                   instance_size = "M10"
                   node_count    = 3
                }
-            }
-         }
+            }]
+         }]
       }
       ```
    6. Re-use existing [Terraform expressions](https://developer.hashicorp.com/terraform/language/expressions). All fields in the generated configuration have static values. Look in your previous configuration for:
