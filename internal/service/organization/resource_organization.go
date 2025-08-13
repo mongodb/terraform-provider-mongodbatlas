@@ -122,6 +122,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		PrivateKey:       *organization.ApiKey.PrivateKey,
 		BaseURL:          meta.(*config.MongoDBClient).Config.BaseURL,
 		TerraformVersion: meta.(*config.MongoDBClient).Config.TerraformVersion,
+		AnalyticsEnabled: meta.(*config.MongoDBClient).Config.AnalyticsEnabled,
 	}
 
 	clients, _ := cfg.NewClient(ctx)
@@ -163,6 +164,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		PrivateKey:       d.Get("private_key").(string),
 		BaseURL:          meta.(*config.MongoDBClient).Config.BaseURL,
 		TerraformVersion: meta.(*config.MongoDBClient).Config.TerraformVersion,
+		AnalyticsEnabled: meta.(*config.MongoDBClient).Config.AnalyticsEnabled,
 	}
 
 	clients, _ := cfg.NewClient(ctx)
@@ -222,6 +224,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		PrivateKey:       d.Get("private_key").(string),
 		BaseURL:          meta.(*config.MongoDBClient).Config.BaseURL,
 		TerraformVersion: meta.(*config.MongoDBClient).Config.TerraformVersion,
+		AnalyticsEnabled: meta.(*config.MongoDBClient).Config.AnalyticsEnabled,
 	}
 
 	clients, _ := cfg.NewClient(ctx)
@@ -262,6 +265,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		PrivateKey:       d.Get("private_key").(string),
 		BaseURL:          meta.(*config.MongoDBClient).Config.BaseURL,
 		TerraformVersion: meta.(*config.MongoDBClient).Config.TerraformVersion,
+		AnalyticsEnabled: meta.(*config.MongoDBClient).Config.AnalyticsEnabled,
 	}
 
 	clients, _ := cfg.NewClient(ctx)

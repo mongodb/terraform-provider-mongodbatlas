@@ -126,11 +126,23 @@ func NewSdkV2Provider() *schema.Provider {
 				Optional:    true,
 				Description: "AWS Security Token Service provided session token.",
 			},
+			"enable_analytics": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Allow extra user agent headers such as script_location specified in provider_meta blocks.",
+			},
 		},
 		DataSourcesMap: getDataSourcesMap(),
 		ResourcesMap:   getResourcesMap(),
 	}
 	provider.ConfigureContextFunc = providerConfigure(provider)
+	provider.ProviderMetaSchema = map[string]*schema.Schema{
+		"script_location": {
+			Type:        schema.TypeString,
+			Description: "Example metadata field for analytics/usage.",
+			Optional:    true,
+		},
+	}
 	return provider
 }
 
@@ -287,6 +299,7 @@ func providerConfigure(provider *schema.Provider) func(ctx context.Context, d *s
 			BaseURL:          d.Get("base_url").(string),
 			RealmBaseURL:     d.Get("realm_base_url").(string),
 			TerraformVersion: provider.TerraformVersion,
+			AnalyticsEnabled: d.Get("enable_analytics").(bool),
 		}
 
 		assumeRoleValue, ok := d.GetOk("assume_role")

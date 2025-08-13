@@ -101,9 +101,20 @@ func AddUserAgentExtra(ctx context.Context, extra UserAgentExtra) context.Contex
 // UserAgentTransport wraps an http.RoundTripper to add User-Agent header with additional metadata.
 type UserAgentTransport struct {
 	Transport http.RoundTripper
+	Enabled   bool
+}
+
+func NewUserAgentTransport(transport http.RoundTripper, enabled bool) *UserAgentTransport {
+	return &UserAgentTransport{
+		Transport: transport,
+		Enabled:   enabled,
+	}
 }
 
 func (t *UserAgentTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if !t.Enabled {
+		return t.Transport.RoundTrip(req)
+	}
 	extra := ReadUserAgentExtra(req.Context())
 	if extra != nil {
 		userAgent := req.Header.Get(UserAgentHeader)
