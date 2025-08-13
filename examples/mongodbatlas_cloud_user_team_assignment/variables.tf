@@ -16,9 +16,11 @@ variable "user_id" {
 variable "public_key" {
   description = "Atlas API public key"
   type        = string
+  default     = ""
 }
 
 variable "private_key" {
   description = "Atlas API private key"
   type        = string
+  default     = ""
 }
