@@ -33,7 +33,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
     zone_name = "Zone 1"
 
     region_configs = [{
-      electable_specs {
+      electable_specs = {
         instance_size = "M30"
         node_count    = 3
       }

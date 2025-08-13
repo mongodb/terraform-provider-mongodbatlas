@@ -42,7 +42,7 @@ Complete the following procedure to resolves the configuration drift in Terrafor
                priority      = 7
                provider_name = "AWS"
                region_name   = "EU_WEST_1"
-               analytics_specs {
+               analytics_specs = {
                   instance_size = "M10"
                   node_count    = 0
                }
