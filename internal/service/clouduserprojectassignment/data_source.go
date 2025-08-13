@@ -48,7 +48,7 @@ func (d *cloudUserProjectAssignmentDS) Read(ctx context.Context, req datasource.
 		return
 	}
 	if userResp == nil {
-		resp.State.RemoveResource(ctx)
+		resp.Diagnostics.AddError("resource not found", "no user found with the specified identifier")
 		return
 	}
 
