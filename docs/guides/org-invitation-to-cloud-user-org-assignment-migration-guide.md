@@ -181,7 +181,7 @@ data "mongodbatlas_org_invitation" "test" {
   username      = local.username
   invitation_id = mongodbatlas_org_invitation.test.invitation_id
 }
-``;
+```
 
 Replace with the new data source:
 
