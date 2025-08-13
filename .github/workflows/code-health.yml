@@ -55,7 +55,7 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@4afd733a84b1f43292c63897423277bb7f4313a9
         with:
-          version: v2.1.6 # Also update GOLANGCI_VERSION variable in GNUmakefile when updating this version
+          version: v2.3.1 # Also update GOLANGCI_VERSION variable in GNUmakefile when updating this version
       - name: actionlint
         run: |
           make tools
