@@ -15,8 +15,8 @@ import (
 
 var resourceNamePending = "mongodbatlas_cloud_user_project_assignment.test_pending"
 var resourceNameActive = "mongodbatlas_cloud_user_project_assignment.test_active"
-var DSNameUsername = "data.mongodbatlas_cloud_user_project_assignment.testUsername"
-var DSNameUserID = "data.mongodbatlas_cloud_user_project_assignment.testUserID"
+var DSNameUsername = "data.mongodbatlas_cloud_user_project_assignment.test_username"
+var DSNameUserID = "data.mongodbatlas_cloud_user_project_assignment.test_user_id"
 
 func TestAccCloudUserProjectAssignment_basic(t *testing.T) {
 	resource.ParallelTest(t, *basicTestCase(t))
@@ -29,10 +29,12 @@ func TestAccCloudUserProjectAssignmentDS_error(t *testing.T) {
 func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 
-	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	// Use MONGODB_ATLAS_USERNAME_2 to avoid USER_ALREADY_IN_GROUP.
+	// The default MONGODB_ATLAS_USERNAME (Org Owner) is auto-assigned if no ProjectOwner is set.
 	activeUsername := os.Getenv("MONGODB_ATLAS_USERNAME_2")
 	pendingUsername := acc.RandomEmail()
 	projectID := acc.ProjectIDExecution(t)
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	roles := []string{"GROUP_OWNER", "GROUP_CLUSTER_MANAGER"}
 	updatedRoles := []string{"GROUP_OWNER", "GROUP_SEARCH_INDEX_EDITOR", "GROUP_READ_ONLY"}
 
@@ -144,13 +146,13 @@ func configBasic(orgID, pendingUsername, activeUsername, projectID string, roles
 			project_id = %[1]q
 			roles = [%[5]s]
 		}
-			
-		data "mongodbatlas_cloud_user_project_assignment" "testUsername" {
+
+		data "mongodbatlas_cloud_user_project_assignment" "test_username" {
 			project_id = %[1]q
 			username = mongodbatlas_cloud_user_project_assignment.test_pending.username
 		}
-			
-		data "mongodbatlas_cloud_user_project_assignment" "testUserID" {
+
+		data "mongodbatlas_cloud_user_project_assignment" "test_user_id" {
 			project_id = %[1]q
 			user_id = mongodbatlas_cloud_user_project_assignment.test_pending.user_id
 		}`,
