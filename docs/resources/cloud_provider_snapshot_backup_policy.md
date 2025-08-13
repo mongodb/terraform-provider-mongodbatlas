@@ -23,17 +23,17 @@ resource "mongodbatlas_advanced_cluster" "my_cluster" {
   cluster_type   = "REPLICASET"
   backup_enabled = true # must be enabled in order to use cloud_provider_snapshot_backup_policy resource
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AWS"
       region_name   = "EU_CENTRAL_1"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
@@ -95,17 +95,17 @@ resource "mongodbatlas_advanced_cluster" "my_cluster" {
   cluster_type   = "REPLICASET"
   backup_enabled = true # must be enabled in order to use cloud_provider_snapshot_backup_policy resource
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AWS"
       region_name   = "EU_CENTRAL_1"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {
@@ -169,17 +169,17 @@ resource "mongodbatlas_advanced_cluster" "my_cluster" {
   cluster_type   = "REPLICASET"
   backup_enabled = true # must be enabled in order to use cloud_provider_snapshot_backup_policy resource
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AWS"
       region_name   = "EU_CENTRAL_1"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 resource "mongodbatlas_cloud_provider_snapshot_backup_policy" "test" {

@@ -97,14 +97,14 @@ resource "mongodbatlas_advanced_cluster" "example-flex" {
   name         = "flex-cluster"
   cluster_type = "REPLICASET"
   
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       provider_name = "FLEX"
       backing_provider_name = "AWS"
       region_name = "US_EAST_1"
       priority = 7
-    }
-  }
+    }]
+  }]
 }
 
 data "mongodbatlas_advanced_clusters" "example" {

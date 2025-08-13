@@ -19,17 +19,17 @@ resource "mongodbatlas_advanced_cluster" "test" {
   cluster_type   = "REPLICASET"
   backup_enabled = true # enable cloud provider snapshots
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AWS"
       region_name   = "US_EAST_1"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 resource "mongodbatlas_ldap_verify" "test" {
