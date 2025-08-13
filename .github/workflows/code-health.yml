@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
     - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
       with:
         go-version-file: 'go.mod'
@@ -29,7 +29,7 @@ jobs:
     permissions:
       pull-requests: write # Needed by sticky-pull-request-comment
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       # Avoid: cannot run Terraform provider tests: error calling terraform version command: fork/exec /tmp/plugintest-terraformXXX/terraform: text file busy also speeds up the tests as terraform will already exist on path.
       # Also speeds up the tests
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
@@ -48,7 +48,7 @@ jobs:
     permissions: {}
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - name: Install Go
         uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
         with:
@@ -68,14 +68,14 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - name: Run ShellCheck
         uses: bewuethr/shellcheck-action@d01912909579c4b1a335828b8fca197fbb8e0aa4
   generate-doc-check:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - run: make tools generate-docs-all
       - name: Find mutations
         id: self_mutation
