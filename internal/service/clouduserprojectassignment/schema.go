@@ -1,18 +1,18 @@
 package clouduserprojectassignment
 
 import (
-	"context"
-
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
+	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
 
-func resourceSchema(ctx context.Context) schema.Schema {
+func resourceSchema() schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"country": schema.StringAttribute{
@@ -102,6 +102,26 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				Required:            true,
 				MarkdownDescription: "Email address that represents the username of the MongoDB Cloud user.",
 			},
+		},
+	}
+}
+
+func dataSourceSchema() dsschema.Schema {
+	return conversion.DataSourceSchemaFromResource(resourceSchema(), &conversion.DataSourceSchemaRequest{
+		RequiredFields:  []string{"project_id"},
+		OverridenFields: dataSourceOverridenFields(),
+	})
+}
+
+func dataSourceOverridenFields() map[string]dsschema.Attribute {
+	return map[string]dsschema.Attribute{
+		"user_id": dsschema.StringAttribute{
+			Optional:            true,
+			MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the MongoDB Cloud user.",
+		},
+		"username": dsschema.StringAttribute{
+			Optional:            true,
+			MarkdownDescription: "Email address that represents the username of the MongoDB Cloud user.",
 		},
 	}
 }

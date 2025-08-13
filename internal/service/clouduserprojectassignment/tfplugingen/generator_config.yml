@@ -15,3 +15,8 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/users/{userId}
       method: DELETE
 
+data_sources:
+  cloud_user_project_assignment:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/users/{userId}
+      method: GET

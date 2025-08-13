@@ -17,8 +17,11 @@ import (
 )
 
 const (
-	resourceName     = "cloud_user_project_assignment"
-	errorReadingUser = "Error retrieving project users"
+	resourceName           = "cloud_user_project_assignment"
+	errorReadingByUserID   = "Error getting project users by user_id"
+	errorReadingByUsername = "Error getting project users by username"
+	invalidImportID        = "Invalid import ID format"
+	errorReadingUser       = "Error retrieving project users"
 )
 
 var _ resource.ResourceWithConfigure = &rs{}
@@ -37,7 +40,7 @@ type rs struct {
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = resourceSchema(ctx)
+	resp.Schema = resourceSchema()
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
@@ -232,7 +235,7 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	importID := req.ID
 	ok, parts := conversion.ImportSplit(req.ID, 2)
 	if !ok {
-		resp.Diagnostics.AddError("invalid import ID format", "expected 'project_id/user_id' or 'project_id/username', got: "+importID)
+		resp.Diagnostics.AddError(invalidImportID, "expected 'project_id/user_id' or 'project_id/username', got: "+importID)
 		return
 	}
 	projectID, user := parts[0], parts[1]
