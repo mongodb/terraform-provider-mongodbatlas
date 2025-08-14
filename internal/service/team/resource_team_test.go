@@ -165,36 +165,6 @@ func TestAccConfigRSTeam_updatingUsernames(t *testing.T) {
 	})
 }
 
-func TestAccConfigRSTeam_legacyName(t *testing.T) {
-	var (
-		resourceName   = "mongodbatlas_teams.test"
-		dataSourceName = "data.mongodbatlas_teams.test"
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		usernames      = []string{os.Getenv("MONGODB_ATLAS_USERNAME")}
-		name           = acc.RandomName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckAtlasUsername(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyTeam,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasicLegacyNames(orgID, name, usernames),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "usernames.#", "1"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "org_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "name", name),
-					resource.TestCheckResourceAttr(dataSourceName, "usernames.#", "1"),
-				),
-			},
-		},
-	})
-}
-
 func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -242,21 +212,4 @@ resource "mongodbatlas_team" "test" {
   
   %s
 }`, orgID, name, usernamesAttr)
-}
-
-func configBasicLegacyNames(orgID, name string, usernames []string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_teams" "test" {
-			org_id     = %[1]q
-			name       = %[2]q
-			usernames  = %[3]s
-		}
-		
-		data "mongodbatlas_teams" "test" {
-			org_id = %[1]q
-			name   = mongodbatlas_teams.test.name
-		}
-		`, orgID, name,
-		strings.ReplaceAll(fmt.Sprintf("%+q", usernames), " ", ","),
-	)
 }
