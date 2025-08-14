@@ -67,13 +67,19 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	}
 }
 
+type TFPushBasedLogExportCommonModel struct {
+	BucketName types.String `tfsdk:"bucket_name"`
+	CreateDate types.String `tfsdk:"create_date"`
+	ProjectID  types.String `tfsdk:"project_id"`
+	IamRoleID  types.String `tfsdk:"iam_role_id"`
+	PrefixPath types.String `tfsdk:"prefix_path"`
+	State      types.String `tfsdk:"state"`
+}
+
 type TFPushBasedLogExportRSModel struct {
-	BucketName            types.String   `tfsdk:"bucket_name"`
-	CreateDate            types.String   `tfsdk:"create_date"`
-	ProjectID             types.String   `tfsdk:"project_id"`
-	IamRoleID             types.String   `tfsdk:"iam_role_id"`
-	PrefixPath            types.String   `tfsdk:"prefix_path"`
-	State                 types.String   `tfsdk:"state"`
+	TFPushBasedLogExportCommonModel
 	Timeouts              timeouts.Value `tfsdk:"timeouts"`
 	DeleteOnCreateTimeout types.Bool     `tfsdk:"delete_on_create_timeout"`
 }
+
+type TFPushBasedLogExportDSModel = TFPushBasedLogExportCommonModel
