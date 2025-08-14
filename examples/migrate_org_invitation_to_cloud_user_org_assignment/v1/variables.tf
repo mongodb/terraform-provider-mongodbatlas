@@ -1,5 +1,11 @@
-variable "public_key" { type = string }
-variable "private_key" { type = string }
+variable "public_key" {
+  type    = string
+  default = ""
+}
+variable "private_key" {
+  type    = string
+  default = ""
+}
 
 variable "org_id" { type = string }
 # Pending invite user
