@@ -1,4 +1,4 @@
-# v2: Migration - Moved + Import + Teams
+# v2: Migration: Moved block + Import block + Team assignments imported
 
 State:
 - Pending invitation → `mongodbatlas_cloud_user_org_assignment` using a moved block.
