@@ -50,18 +50,8 @@ func (d *pushBasedLogExportDS) Read(ctx context.Context, req datasource.ReadRequ
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-
-	dsModel := convertToDSModel(newTFModel)
-	resp.Diagnostics.Append(resp.State.Set(ctx, dsModel)...)
-}
-
-func convertToDSModel(inputModel *TFPushBasedLogExportRSModel) TFPushBasedLogExportDSModel {
-	return TFPushBasedLogExportDSModel{
-		BucketName: inputModel.BucketName,
-		CreateDate: inputModel.CreateDate,
-		ProjectID:  inputModel.ProjectID,
-		IamRoleID:  inputModel.IamRoleID,
-		PrefixPath: inputModel.PrefixPath,
-		State:      inputModel.State,
+	dsModel := TFPushBasedLogExportDSModel{
+		TFPushBasedLogExportCommonModel: newTFModel.TFPushBasedLogExportCommonModel,
 	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, dsModel)...)
 }
