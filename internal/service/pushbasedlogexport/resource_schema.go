@@ -82,4 +82,6 @@ type TFPushBasedLogExportRSModel struct {
 	DeleteOnCreateTimeout types.Bool     `tfsdk:"delete_on_create_timeout"`
 }
 
-type TFPushBasedLogExportDSModel = TFPushBasedLogExportCommonModel
+type TFPushBasedLogExportDSModel struct {
+	TFPushBasedLogExportCommonModel
+}
