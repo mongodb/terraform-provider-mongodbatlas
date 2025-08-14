@@ -1,29 +1,29 @@
 ---
-page_title: "Migration Guide: Team Usernames Attribute to Cloud User Team Assignment"  
+page_title: "Migration Guide: Team Usernames Attribute to Cloud User Team Assignment"
 ---
   
 # Migration Guide: Team Usernames Attribute to Cloud User Team Assignment
   
-**Objective**: Migrate from the deprecated `usernames` attribute on the `mongodbatlas_team` resource to the new `mongodbatlas_cloud_user_team_assignment` resource.  
+**Objective**: Migrate from the deprecated `usernames` attribute on the `mongodbatlas_team` resource to the new `mongodbatlas_cloud_user_team_assignment` resource.
   
 ---  
   
-## Before you begin  
+## Before you begin
   
 - Create a backup of your [Terraform state file](https://developer.hashicorp.com/terraform/cli/commands/state).
 - Ensure you are using the MongoDB Atlas Terraform Provider `2.0.0` or later (version that includes `mongodbatlas_cloud_user_team_assignment` resource).
-  
+
 ---  
 
-## Why should I migrate?  
+## Why should I migrate?
 
 - **Future Compatibility:** The `usernames` attribute on `mongodbatlas_team` is deprecated and may be removed in future provider versions. Migrating ensures your Terraform configuration remains functional.
 - **Flexibility:** Manage teams and user assignments independently, without coupling membership changes to team creation or updates.  
 - **Clarity:** Clear separation between the `mongodbatlas_team` resource (team definition) and `mongodbatlas_cloud_user_team_assignment` (membership management).  
 
----
+---  
   
-## What’s changing?  
+## What’s changing?
   
 - `mongodbatlas_team` included a `usernames` argument that allowed assigning users to a team directly inside the resource. This argument is now deprecated.
 - New attribute `users` in `mongodbatlas_team` data source can be used to retrieve information about all the users assigned to that team.
@@ -33,7 +33,7 @@ page_title: "Migration Guide: Team Usernames Attribute to Cloud User Team Assign
   
 ## From `mongodbatlas_team.usernames` to `mongodbatlas_cloud_user_team_assignment`
   
-### Original configuration  
+### Original configuration
   
 ```terraform
 locals {
@@ -79,7 +79,7 @@ data "mongodbatlas_team" "this" {
 } 
 ```
 
----
+---  
 
 ### Step 2: Add `mongodbatlas_cloud_user_team_assignment`  and use import blocks
 
@@ -172,10 +172,12 @@ output "team_usernames" {
 }  
 ```
 
----
+Run `terraform plan`. There should be **no changes**.
 
-## Data source migration  
-  
+---  
+
+## Data source migration
+
 If you previously used the `usernames` attribute in the `data.mongodbatlas_team` data source:  
   
 **Original:**  
@@ -183,22 +185,24 @@ If you previously used the `usernames` attribute in the `data.mongodbatlas_team`
 ```terraform  
 output "team_usernames" {  
   description = "Usernames in the MongoDB Atlas team"  
-  value       = data.mongodbatlas_team.test.usernames  
+  value       = data.mongodbatlas_team.this.usernames  
 }  
-```  
+```
   
 **Replace with:**  
 
 ```terraform  
 output "team_usernames" { 
   description = "Usernames in the MongoDB Atlas team"  
-  value = [for u in data.mongodbatlas_team.team_1.users : u.username]  
+  value = [for u in data.mongodbatlas_team.this.users : u.username]  
 }  
-```  
+```
+
+Run `terraform plan`. There should be **no changes**.
   
 ---  
   
-## Notes and tips  
+## Notes and tips
 
 - **Import format** for `mongodbatlas_cloud_user_team_assignment`:
 
