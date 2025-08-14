@@ -114,6 +114,7 @@ locals {
 
 ### Step 2: Define and import `mongodbatlas_cloud_user_org_assignment`
 
+Handling migration in modules:
 - Terraform import blocks cannot live inside modules; they must be defined in the root module. See `https://github.com/hashicorp/terraform/issues/33474`.
 
 Use the `local.active_users` map defined in Step 1 so you don’t have to manually curate a list:
@@ -144,6 +145,23 @@ Run `terraform plan` (you should see import operations), then `terraform apply`.
 ---
 
 ## Use-case 3: You also set `teams_ids` on the original invitation
+
+Original configuration where `mongodbatlas_org_invitation` defines `teams_ids`:
+
+```terraform
+locals {
+  org_id  = "<ORG_ID>"
+  username = "user1@email.com"
+  roles    = ["ORG_MEMBER"]
+}
+
+resource "mongodbatlas_org_invitation" "this" {
+  username  = local.username
+  org_id    = local.org_id
+  roles     = local.roles
+  teams_ids = local.team_ids
+}
+```
 
 Migrate team assignments to `mongodbatlas_cloud_user_team_assignment` in addition to Use-case 1 or 2 above.
 
