@@ -118,6 +118,9 @@ on:
       mongodb_atlas_asp_project_aws_role_arn:
         type: string
         required: true
+      mongodb_atlas_last_1x_version:
+        type: string
+        required: true
     secrets: # all secrets are passed explicitly in this workflow
       mongodb_atlas_public_key:
         required: true
@@ -302,6 +305,7 @@ jobs:
             - 'internal/service/controlplaneipaddresses/*.go'
           cloud_user:
             - 'internal/service/clouduserorgassignment/*.go'
+            - 'internal/service/clouduserprojectassignment/*.go'
             - 'internal/service/clouduserteamassignment/*.go'
           cluster:
             - 'internal/service/cluster/*.go'
@@ -381,34 +385,10 @@ jobs:
             - 'internal/service/streamprocessor/*.go'
             - 'internal/service/streamprivatelinkendpoint/*.go'
 
-  advanced_cluster:
-    needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster' }}
-    runs-on: ubuntu-latest
-    permissions: {}
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false  
-      - name: Acceptance Tests
-        env:
-          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
-          ACCTEST_PACKAGES: ./internal/service/advancedcluster
-        run: make testacc
 
   advanced_cluster_tpf:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf' }}
-    env:
-      MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: 'true'
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -425,6 +405,7 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          MONGODB_ATLAS_LAST_1X_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
           HTTP_MOCKER_CAPTURE: 'true'
           ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
           ACCTEST_PACKAGES: |
@@ -436,7 +417,6 @@ jobs:
     needs: [ change-detection, get-provider-version ]
     if: ${{ inputs.reduced_tests == false && (needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf') }}
     env:
-      MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: 'true'
       MONGODB_ATLAS_TEST_SDKV2_TO_TPF: 'true'
     runs-on: ubuntu-latest
     permissions: {}
@@ -453,9 +433,11 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          MONGODB_ATLAS_LAST_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
+          MONGODB_ATLAS_LAST_1X_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
           ACCTEST_REGEX_RUN: '^TestMig'
-          ACCTEST_PACKAGES: ./internal/service/advancedcluster
+          ACCTEST_PACKAGES: |
+            ./internal/service/advancedcluster
         run: make testacc
 
   assume_role:
@@ -555,6 +537,7 @@ jobs:
         env:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          MONGODB_ATLAS_LAST_1X_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
           AWS_REGION: ${{ vars.AWS_REGION_LOWERCASE }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
@@ -564,6 +547,7 @@ jobs:
           AZURE_ATLAS_APP_ID: ${{ inputs.azure_atlas_app_id }}
           AZURE_SERVICE_PRINCIPAL_ID: ${{ inputs.azure_service_principal_id }}
           AZURE_TENANT_ID: ${{ inputs.azure_tenant_id }}
+          MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: 'true' # required for migration tests that use provider version < 2.0.0
           ACCTEST_PACKAGES: |
             ./internal/service/cloudbackupschedule
             ./internal/service/cloudbackupsnapshot
@@ -618,8 +602,10 @@ jobs:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
           MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
           MONGODB_ATLAS_USERNAME: ${{ vars.MONGODB_ATLAS_USERNAME }}
+          MONGODB_ATLAS_USERNAME_2: ${{ vars.MONGODB_ATLAS_USERNAME_2 }}
           ACCTEST_PACKAGES: |
             ./internal/service/clouduserorgassignment
+            ./internal/service/clouduserprojectassignment
             ./internal/service/clouduserteamassignment
         run: make testacc
 
@@ -1098,6 +1084,7 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
+          MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: 'true' # required for migration tests that use provider version < 2.0.0
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: ./internal/service/searchdeployment
         run: make testacc

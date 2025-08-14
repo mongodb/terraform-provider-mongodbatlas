@@ -16,7 +16,7 @@ GITTAG=$(shell git describe --always --tags)
 VERSION=$(GITTAG:v%=%)
 LINKER_FLAGS=-s -w -X 'github.com/mongodb/terraform-provider-mongodbatlas/version.ProviderVersion=${VERSION}'
 
-GOLANGCI_VERSION=v2.1.6 # Also update golangci-lint GH action in code-health.yml when updating this version
+GOLANGCI_VERSION=v2.3.1 # Also update golangci-lint GH action in code-health.yml when updating this version
 
 export PATH := $(shell go env GOPATH)/bin:$(PATH)
 export SHELL := env PATH=$(PATH) /bin/bash
@@ -53,7 +53,6 @@ testmact: ## Run MacT tests (mocked acc tests)
 	@$(eval export MONGODB_ATLAS_ORG_ID?=111111111111111111111111)
 	@$(eval export MONGODB_ATLAS_PROJECT_ID?=111111111111111111111111)
 	@$(eval export MONGODB_ATLAS_CLUSTER_NAME?=mocked-cluster)
-	@$(eval export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER?=true)
 	@if [ "$(ACCTEST_PACKAGES)" = "./..." ]; then \
 		echo "Error: ACCTEST_PACKAGES must be explicitly set for testmact target, './...' is not allowed"; \
 		exit 1; \

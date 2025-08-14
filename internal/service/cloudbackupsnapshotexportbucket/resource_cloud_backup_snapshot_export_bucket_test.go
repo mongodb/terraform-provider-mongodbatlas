@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -19,11 +20,11 @@ var (
 )
 
 func TestAccBackupSnapshotExportBucket_basicAWS(t *testing.T) {
-	resource.ParallelTest(t, *basicAWSTestCase(t))
+	resource.Test(t, *basicAWSTestCase(t))
 }
 
 func TestAccBackupSnapshotExportBucket_basicAzure(t *testing.T) {
-	resource.ParallelTest(t, *basicAzureTestCase(t))
+	resource.Test(t, *basicAzureTestCase(t))
 }
 
 func basicAWSTestCase(tb testing.TB) *resource.TestCase {
