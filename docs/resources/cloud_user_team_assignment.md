@@ -1,30 +1,30 @@
-# Data Source: mongodbatlas_cloud_user_org_assignment
+# Resource: mongodbatlas_cloud_user_team_assignment
 
-`mongodbatlas_cloud_user_org_assignment` provides a Cloud User Organization Assignment data source. The data source lets you retrieve a user assigned to an organization.
+`mongodbatlas_cloud_user_team_assignment` provides a Cloud User Team Assignment resource. It lets you manage the association between a cloud user and a team, enabling you to import, assign, remove, or update the user's membership.
 
-**NOTE**: Users with pending invitations created using the deprecated `mongodbatlas_project_invitation` resource or via the deprecated [Invite One MongoDB Cloud User to One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser#tag/Projects/operation/createProjectInvitation)
-endpoint are not returned with this resource. See  [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser) for details.
-To manage such users with this resource, refer to our [Org Invitation to Cloud User Org Assignment Migration Guide](../guides/org-invitation-to-cloud-user-org-assignment-migration-guide).
+-> **NOTE**Users with pending invitations created using the deprecated `mongodbatlas_project_invitation` resource or via the deprecated [Invite One MongoDB Cloud User to One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser#tag/Projects/operation/createProjectInvitation)
+endpoint cannot be managed with this resource. See [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-listteamusers) for details.
+To manage such users with this resource, refer to our [migration guide]<link-to-migration-guide>.
 
 ## Example Usages
 
 ```terraform
-resource "mongodbatlas_cloud_user_org_assignment" "example" {
-  org_id   = var.org_id
-  username = var.user_email
-  roles = {
-    org_roles = ["ORG_MEMBER"]
-  }
-}
-
-data "mongodbatlas_cloud_user_org_assignment" "example_username" {
-  org_id   = var.org_id
-  username = mongodbatlas_cloud_user_org_assignment.example.username
-}
-
-data "mongodbatlas_cloud_user_org_assignment" "example_user_id" {
+resource "mongodbatlas_cloud_user_team_assignment" "example" {
   org_id  = var.org_id
-  user_id = mongodbatlas_cloud_user_org_assignment.example.user_id
+  team_id = var.team_id
+  user_id = var.user_id
+}
+
+data "mongodbatlas_cloud_user_team_assignment" "example_user_id" {
+  org_id  = var.org_id
+  team_id = var.team_id
+  user_id = mongodbatlas_cloud_user_team_assignment.example.user_id
+}
+
+data "mongodbatlas_cloud_user_team_assignment" "example_username" {
+  org_id   = var.org_id
+  team_id  = var.team_id
+  username = mongodbatlas_cloud_user_team_assignment.example.username
 }
 ```
 
@@ -34,11 +34,8 @@ data "mongodbatlas_cloud_user_org_assignment" "example_user_id" {
 ### Required
 
 - `org_id` (String) Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-organizations) endpoint to retrieve all organizations to which the authenticated user has access.
-
-### Optional
-
+- `team_id` (String) Unique 24-hexadecimal digit string that identifies the team to which you want to assign the MongoDB Cloud user. Use the [/teams](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-teams) endpoint to retrieve all teams to which the authenticated user has access.
 - `user_id` (String) Unique 24-hexadecimal digit string that identifies the MongoDB Cloud user.
-- `username` (String) Email address that represents the username of the MongoDB Cloud user.
 
 ### Read-Only
 
@@ -54,6 +51,7 @@ data "mongodbatlas_cloud_user_org_assignment" "example_user_id" {
 - `org_membership_status` (String) String enum that indicates whether the MongoDB Cloud user has a pending invitation to join the organization or they are already active in the organization.
 - `roles` (Attributes) Organization and project level roles to assign the MongoDB Cloud user within one organization. (see [below for nested schema](#nestedatt--roles))
 - `team_ids` (Set of String) List of unique 24-hexadecimal digit strings that identifies the teams to which this MongoDB Cloud user belongs.
+- `username` (String) Email address that represents the username of the MongoDB Cloud user.
 
 <a id="nestedatt--roles"></a>
 ### Nested Schema for `roles`
@@ -61,7 +59,7 @@ data "mongodbatlas_cloud_user_org_assignment" "example_user_id" {
 Read-Only:
 
 - `org_roles` (Set of String) One or more organization level roles to assign the MongoDB Cloud user.
-- `project_role_assignments` (Attributes List) List of project level role assignments to assign the MongoDB Cloud user. (see [below for nested schema](#nestedatt--roles--project_role_assignments))
+- `project_role_assignments` (Attributes Set) List of project level role assignments to assign the MongoDB Cloud user. (see [below for nested schema](#nestedatt--roles--project_role_assignments))
 
 <a id="nestedatt--roles--project_role_assignments"></a>
 ### Nested Schema for `roles.project_role_assignments`
@@ -71,4 +69,14 @@ Read-Only:
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies the project to which these roles belong.
 - `project_roles` (Set of String) One or more project-level roles assigned to the MongoDB Cloud user.
 
-For more information see: [MongoDB Atlas API - Cloud Users](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser) Documentation.
+## Import
+
+Cloud User Team Assignment resource can be imported using the Org ID & Team ID & User ID OR Org ID & Team ID & Username, in the format `ORG_ID/TEAM_ID/USER_ID` OR `ORG_ID/TEAM_ID/USERNAME`.
+
+```
+$ terraform import mongodbatlas_cloud_user_team_assignment.test 63cfbf302333a3011d98592e/9f3c1e7a4d8b2f6051acde47/5f18367ccb7a503a2b481b7a
+OR
+$ terraform import mongodbatlas_cloud_user_team_assignment.test 63cfbf302333a3011d98592e/9f3c1e7a4d8b2f6051acde47/test-user@example.com
+```
+
+For more information see: [MongoDB Atlas API - Cloud Users](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-addusertoteam) Documentation.
