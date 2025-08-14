@@ -6,10 +6,12 @@ import (
 	"slices"
 	"strings"
 
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 )
 
 const (
@@ -158,7 +160,7 @@ func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec
 		tfModels[i] = TFReplicationSpecsModel{
 			Id:            types.StringValue(legacyID),
 			ExternalId:    types.StringValue(conversion.SafeValue(item.Id)),
-			NumShards:     types.Int64Value(1),
+			// NumShards:     types.Int64Value(1),
 			ContainerId:   conversion.ToTFMapOfString(ctx, diags, containerIDs),
 			RegionConfigs: regionConfigs,
 			ZoneId:        types.StringValue(conversion.SafeValue(item.ZoneId)),
@@ -222,7 +224,7 @@ func convertReplicationSpecsLegacy(ctx context.Context, input *[]admin.Replicati
 			ExternalId:    types.StringValue(""), // Not meaningful with legacy schema
 			Id:            types.StringValue(legacyID),
 			RegionConfigs: regionConfigs,
-			NumShards:     types.Int64Value(numShards),
+			// NumShards:     types.Int64Value(numShards),
 			ZoneId:        types.StringValue(conversion.SafeValue(item.ZoneId)),
 			ZoneName:      types.StringValue(conversion.SafeValue(item.ZoneName)),
 		})

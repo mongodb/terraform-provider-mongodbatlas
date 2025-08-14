@@ -3,15 +3,16 @@ package advancedclustertpf
 import (
 	"context"
 	"fmt"
-	"reflect"
+
+	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 )
 
 func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
@@ -40,20 +41,20 @@ func overrideMapStringWithPrevStateValue(mapIn, mapOut *types.Map) {
 	}
 }
 
-func findNumShardsUpdates(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics) map[string]int64 {
-	if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) {
-		return nil
-	}
-	stateCounts := numShardsMap(ctx, state.ReplicationSpecs, diags)
-	planCounts := numShardsMap(ctx, plan.ReplicationSpecs, diags)
-	if diags.HasError() {
-		return nil
-	}
-	if reflect.DeepEqual(stateCounts, planCounts) {
-		return nil
-	}
-	return planCounts
-}
+// func findNumShardsUpdates(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics) map[string]int64 {
+// 	// if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) {
+// 	// 	return nil
+// 	// }
+// 	stateCounts := numShardsMap(ctx, state.ReplicationSpecs, diags)
+// 	planCounts := numShardsMap(ctx, plan.ReplicationSpecs, diags)
+// 	if diags.HasError() {
+// 		return nil
+// 	}
+// 	if reflect.DeepEqual(stateCounts, planCounts) {
+// 		return nil
+// 	}
+// 	return planCounts
+// }
 
 func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterLatest *admin.ClusterDescription20240805, useReplicationSpecPerShard bool) *ExtraAPIInfo {
 	var (
@@ -91,14 +92,14 @@ func normalizeFromTFModel(ctx context.Context, model *TFModel, diags *diag.Diagn
 	if diags.HasError() {
 		return nil
 	}
-	counts := numShardsCounts(ctx, model.ReplicationSpecs, diags)
-	if diags.HasError() {
-		return nil
-	}
-	usingLegacySchema := isNumShardsGreaterThanOne(counts)
-	if usingLegacySchema && shouldExpandNumShards {
-		expandNumShards(latestModel, counts)
-	}
+	// counts := numShardsCounts(ctx, model.ReplicationSpecs, diags)
+	// if diags.HasError() {
+	// 	return nil
+	// }
+	// usingLegacySchema := isNumShardsGreaterThanOne(counts)
+	// if usingLegacySchema && shouldExpandNumShards {
+	// 	expandNumShards(latestModel, counts)
+	// }
 	normalizeDiskSize(model, latestModel, diags)
 	if diags.HasError() {
 		return nil
@@ -142,48 +143,48 @@ func repSpecNoIDs(repspec admin.ReplicationSpec20240805) *admin.ReplicationSpec2
 	return &repspec
 }
 
-func numShardsCounts(ctx context.Context, input types.List, diags *diag.Diagnostics) []int64 {
-	elements := make([]TFReplicationSpecsModel, len(input.Elements()))
-	if len(elements) == 0 {
-		return nil
-	}
-	if localDiags := input.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
-		diags.Append(localDiags...)
-		return nil
-	}
-	counts := make([]int64, len(elements))
-	for i := range elements {
-		item := &elements[i]
-		counts[i] = item.NumShards.ValueInt64()
-	}
-	return counts
-}
+// func numShardsCounts(ctx context.Context, input types.List, diags *diag.Diagnostics) []int64 {
+// 	elements := make([]TFReplicationSpecsModel, len(input.Elements()))
+// 	if len(elements) == 0 {
+// 		return nil
+// 	}
+// 	if localDiags := input.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
+// 		diags.Append(localDiags...)
+// 		return nil
+// 	}
+// 	counts := make([]int64, len(elements))
+// 	for i := range elements {
+// 		item := &elements[i]
+// 		counts[i] = item.NumShards.ValueInt64()
+// 	}
+// 	return counts
+// }
 
-func usingNewShardingConfig(ctx context.Context, input types.List, diags *diag.Diagnostics) bool {
-	counts := numShardsCounts(ctx, input, diags)
-	if diags.HasError() {
-		return true
-	}
-	return !isNumShardsGreaterThanOne(counts)
-}
+// func usingNewShardingConfig(ctx context.Context, input types.List, diags *diag.Diagnostics) bool {
+// 	counts := numShardsCounts(ctx, input, diags)
+// 	if diags.HasError() {
+// 		return true
+// 	}
+// 	return !isNumShardsGreaterThanOne(counts)
+// }
 
-func numShardsMap(ctx context.Context, input types.List, diags *diag.Diagnostics) map[string]int64 {
-	elements := make([]TFReplicationSpecsModel, len(input.Elements()))
-	if len(elements) == 0 {
-		return nil
-	}
-	if localDiags := input.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
-		diags.Append(localDiags...)
-		return nil
-	}
-	counts := map[string]int64{}
-	for i := range elements {
-		e := elements[i]
-		zoneName := resolveZoneNameOrUseDefault(&e)
-		counts[zoneName] = e.NumShards.ValueInt64()
-	}
-	return counts
-}
+// func numShardsMap(ctx context.Context, input types.List, diags *diag.Diagnostics) map[string]int64 {
+// 	elements := make([]TFReplicationSpecsModel, len(input.Elements()))
+// 	if len(elements) == 0 {
+// 		return nil
+// 	}
+// 	if localDiags := input.ElementsAs(ctx, &elements, false); len(localDiags) > 0 {
+// 		diags.Append(localDiags...)
+// 		return nil
+// 	}
+// 	counts := map[string]int64{}
+// 	for i := range elements {
+// 		e := elements[i]
+// 		zoneName := resolveZoneNameOrUseDefault(&e)
+// 		counts[zoneName] = e.NumShards.ValueInt64()
+// 	}
+// 	return counts
+// }
 
 func numShardsMapFromOldAPI(clusterRespOld *admin20240530.AdvancedClusterDescription) map[string]int64 {
 	ret := make(map[string]int64)

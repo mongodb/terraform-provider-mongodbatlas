@@ -10,14 +10,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
@@ -218,13 +217,13 @@ func resourceSchema(ctx context.Context) schema.Schema {
 							Computed:            true,
 							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the replication object for a shard in a Cluster. This value corresponds to Shard ID displayed in the UI.",
 						},
-						"num_shards": schema.Int64Attribute{
-							DeprecationMessage:  deprecationMsgOldSchema("num_shards"),
-							Default:             int64default.StaticInt64(1),
-							Computed:            true,
-							Optional:            true,
-							MarkdownDescription: "Number of shards up to 50 to deploy for a sharded cluster.",
-						},
+						// "num_shards": schema.Int64Attribute{
+						// 	DeprecationMessage:  deprecationMsgOldSchema("num_shards"),
+						// 	Default:             int64default.StaticInt64(1),
+						// 	Computed:            true,
+						// 	Optional:            true,
+						// 	MarkdownDescription: "Number of shards up to 50 to deploy for a sharded cluster.",
+						// },
 						"region_configs": schema.ListNestedAttribute{
 							Required:            true,
 							MarkdownDescription: "Hardware specifications for nodes set for a given region. Each **regionConfigs** object describes the region's priority in elections and the number and type of MongoDB nodes that MongoDB Cloud deploys to the region. Each **regionConfigs** object must have either an **analyticsSpecs** object, **electableSpecs** object, or **readOnlySpecs** object. Tenant clusters only require **electableSpecs. Dedicated** clusters can specify any of these specifications, but must have at least one **electableSpecs** object within a **replicationSpec**.\n\n**Example:**\n\nIf you set `\"replicationSpecs[n].regionConfigs[m].analyticsSpecs.instanceSize\" : \"M30\"`, set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\" : `\"M30\"` if you have electable nodes and `\"replicationSpecs[n].regionConfigs[m].readOnlySpecs.instanceSize\" : `\"M30\"` if you have read-only nodes.",
@@ -673,14 +672,14 @@ type TFReplicationSpecsModel struct {
 	ExternalId    types.String `tfsdk:"external_id"`
 	ZoneId        types.String `tfsdk:"zone_id"`
 	ZoneName      types.String `tfsdk:"zone_name"`
-	NumShards     types.Int64  `tfsdk:"num_shards"`
+	// NumShards     types.Int64  `tfsdk:"num_shards"`
 }
 
 var ReplicationSpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"id":             types.StringType,
 	"container_id":   types.MapType{ElemType: types.StringType},
 	"external_id":    types.StringType,
-	"num_shards":     types.Int64Type,
+	// "num_shards":     types.Int64Type,
 	"region_configs": types.ListType{ElemType: RegionConfigsObjType},
 	"zone_id":        types.StringType,
 	"zone_name":      types.StringType,
