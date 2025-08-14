@@ -6,10 +6,10 @@ resource "mongodbatlas_cloud_user_project_assignment" "example" {
 
 data "mongodbatlas_cloud_user_project_assignment" "example_username" {
   project_id = var.project_id
-  username   = var.user_email
+  username   = mongodbatlas_cloud_user_project_assignment.example.username
 }
 
 data "mongodbatlas_cloud_user_project_assignment" "example_user_id" {
   project_id = var.project_id
-  user_id    = var.user_id
+  user_id    = mongodbatlas_cloud_user_project_assignment.example.user_id
 }

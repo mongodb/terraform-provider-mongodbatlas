@@ -8,17 +8,14 @@ variable "user_email" {
   type        = string
 }
 
-variable "user_id" {
-  description = "The user ID"
-  type        = string
-}
-
 variable "public_key" {
   description = "Atlas API public key"
   type        = string
+  default     = ""
 }
 
 variable "private_key" {
   description = "Atlas API private key"
   type        = string
+  default     = ""
 }
