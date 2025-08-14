@@ -40,9 +40,9 @@ resource "mongodbatlas_org_invitation" "this" {
 
 ### Step 1: Add `mongodbatlas_cloud_user_org_assignment`
 
-**Option A) [Recommended]** Moved block (module-friendly)
+**Option A) [Recommended]** Moved block
 
-Why this is module-friendly and recommended:
+Handling migration in modules:
 - For module maintainers: Add the new `mongodbatlas_cloud_user_org_assignment` resource inside the module, include a `moved {}` block from `mongodbatlas_org_invitation` to the new resource, and publish a new module version.
 - For module users: Simply bump the module version and run `terraform init -upgrade`, then `terraform plan` / `terraform apply`. Terraform performs an in-place state move without users writing import blocks or touching state.
 - Works at any scale (any number of module instances) and keeps the migration self-contained within the module. No per-environment import steps are required.
@@ -60,9 +60,9 @@ moved {
 }
 ```
 
-**Option B)** Import by username (not module-friendly)
+**Option B)** Import by username
 
-Why this is NOT module-friendly:
+Handling migration in modules:
 - Terraform import blocks cannot live inside modules; they must be defined in the root module. See `https://github.com/hashicorp/terraform/issues/33474`.
 - Module maintainers cannot ship import steps. Each module user must add root-level import blocks for every instance to import, which is error-prone and repetitive.
 - This creates extra coordination for every environment and workspace. Prefer Option A whenever you can modify the module source.
