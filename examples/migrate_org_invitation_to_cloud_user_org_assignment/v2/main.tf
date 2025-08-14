@@ -4,14 +4,6 @@
 # - Demonstrate import path for ACTIVE users and team assignments
 ############################################################
 
-# Pending invitation (with teams) still present
-resource "mongodbatlas_org_invitation" "pending" {
-  org_id    = var.org_id
-  username  = var.pending_username
-  roles     = var.roles
-  teams_ids = var.pending_team_ids
-}
-
 # New resource + moved block (recommended)
 resource "mongodbatlas_cloud_user_org_assignment" "pending" {
   org_id   = var.org_id
