@@ -38,9 +38,9 @@ resource "mongodbatlas_org_invitation" "this" {
 }
 ```
 
-### Step 1: Add `mongodbatlas_cloud_user_org_assignment`
+### Option A) [Recommended] Moved block
 
-**Option A) [Recommended]** Moved block
+#### Step 1: Add `mongodbatlas_cloud_user_org_assignment` and `moved` block
 
 Handling migration in modules:
 - For module maintainers: Add the new `mongodbatlas_cloud_user_org_assignment` resource inside the module, include a `moved {}` block from `mongodbatlas_org_invitation` to the new resource, and publish a new module version.
@@ -60,7 +60,14 @@ moved {
 }
 ```
 
-**Option B)** Import by username
+#### Step 2: Remove `mongodbatlas_org_invitation` from config and state
+
+- With a moved block, `terraform plan` should show the move and no other changes. Then `terraform apply`.
+
+
+### Option B) Import by username
+
+#### Step 1: Add `mongodbatlas_cloud_user_org_assignment` and `import` block
 
 Handling migration in modules:
 - Terraform import blocks cannot live inside modules; they must be defined in the root module. See `https://github.com/hashicorp/terraform/issues/33474`.
@@ -80,10 +87,9 @@ import {
 }
 ```
 
-### Step 2: Remove `mongodbatlas_org_invitation` from config and state
+#### Step 2: Remove `mongodbatlas_org_invitation` from config and state
 
-- With a moved block, `terraform plan` should show the move and no other changes. Then `terraform apply`.
-- If you used import, remove the old `mongodbatlas_org_invitation` block and delete it from state if still present: `terraform state rm mongodbatlas_org_invitation.this`.
+- With import, remove the old `mongodbatlas_org_invitation` block and delete it from state if still present: `terraform state rm mongodbatlas_org_invitation.this`.
 
 ---
 
