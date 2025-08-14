@@ -14,7 +14,7 @@ on:
         type: string
         required: false    
       test_group:
-        description: 'Test group to run, e.g. advanced_cluster_tpf, empty for all'
+        description: 'Test group to run, e.g. advanced_cluster, empty for all'
         type: string
         required: false
       test_name:
@@ -26,7 +26,7 @@ on:
         type: string
         required: false
       reduced_tests:
-        description: 'If run only minimum tests for advanced_cluster_tpf, e.g. in PRs'
+        description: 'If run only minimum tests for advanced_cluster, e.g. in PRs'
         type: boolean
         required: false
         default: false
@@ -241,7 +241,7 @@ jobs:
     env:
       mustTrigger: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_group == '' )  }}
     outputs: # ensure resources are sorted alphabetically
-      advanced_cluster_tpf: ${{ steps.filter.outputs.advanced_cluster_tpf == 'true' || env.mustTrigger == 'true' }}
+      advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
       assume_role: ${{ steps.filter.outputs.assume_role == 'true' || env.mustTrigger == 'true' }}
       autogen: ${{ steps.filter.outputs.autogen == 'true' || env.mustTrigger == 'true' }}
       backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
@@ -273,7 +273,7 @@ jobs:
       if: ${{ inputs.test_group == ''  && env.mustTrigger == 'false' }}
       with:
         filters: |
-          advanced_cluster_tpf:
+          advanced_cluster:
             - 'internal/service/advancedclustertpf/*.go'
             - 'internal/service/advancedcluster/*_test.go'
           assume_role:
@@ -381,9 +381,9 @@ jobs:
             - 'internal/service/streamprivatelinkendpoint/*.go'
 
 
-  advanced_cluster_tpf:
+  advanced_cluster:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf' }}
+    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster' }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -409,7 +409,7 @@ jobs:
  
   advanced_cluster_tpf_mig_from_sdkv2:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ inputs.reduced_tests == false && (needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf') }}
+    if: ${{ inputs.reduced_tests == false && (needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster') }}
     env:
       MONGODB_ATLAS_TEST_SDKV2_TO_TPF: 'true'
     runs-on: ubuntu-latest
