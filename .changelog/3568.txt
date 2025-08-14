@@ -1,0 +1,3 @@
+```release-note:new-resource
+resource/mongodbatlas_cloud_user_project_assignment 
+```
