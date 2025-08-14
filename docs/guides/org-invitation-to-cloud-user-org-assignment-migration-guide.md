@@ -224,6 +224,12 @@ Then:
 
 ---
 
+## Examples
+
+For complete, working configurations that mirror the use-cases above, see the examples in the provider repository: [migrate_org_invitation_to_cloud_user_org_assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_org_invitation_to_cloud_user_org_assignment). These include root-level setups for multiple approaches (e.g., moved blocks and imports) across different versions.
+
+---
+
 ## Notes and tips
 
 - Import formats:
