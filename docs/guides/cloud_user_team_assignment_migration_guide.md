@@ -51,8 +51,7 @@ resource "mongodbatlas_team" "this" {
   
 ### Step 1: User `mongodb_atlas_team` data source to retrieve user IDs
   
-We first need to retrieve each user's `user_id` from the Atlas API via a data source.  
-This is **required** if you already have a deployed team and want to migrate without recreating resources.  
+We first need to retrieve each user's `user_id` via the new `users` attribute in `mongodbatlas_team` data source.
   
 ```terraform  
 # Use data source to get team members (with user_id)  
@@ -63,7 +62,7 @@ locals {
         user.id => {      
             org_id   = var.org_id
             team_id  = mongodbatlas_team.this.team_id
-            user_id  = user.id  # Look up user_id here
+            user_id  = user.id
         }
     }
 }
