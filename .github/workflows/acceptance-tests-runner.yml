@@ -275,7 +275,6 @@ jobs:
         filters: |
           advanced_cluster:
             - 'internal/service/advancedclustertpf/*.go'
-            - 'internal/service/advancedcluster/*_test.go'
           assume_role:
             - 'internal/provider/*.go'
           autogen:
