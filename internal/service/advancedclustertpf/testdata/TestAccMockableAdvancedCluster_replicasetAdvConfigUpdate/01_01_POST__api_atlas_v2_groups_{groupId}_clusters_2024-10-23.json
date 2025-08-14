@@ -1,0 +1,32 @@
+{
+ "clusterType": "REPLICASET",
+ "labels": [],
+ "name": "{clusterName}",
+ "replicationSpecs": [
+  {
+   "regionConfigs": [
+    {
+     "autoScaling": {
+      "compute": {
+       "enabled": false,
+       "scaleDownEnabled": false
+      },
+      "diskGB": {
+       "enabled": true
+      }
+     },
+     "electableSpecs": {
+      "diskSizeGB": 10,
+      "instanceSize": "M10",
+      "nodeCount": 3
+     },
+     "priority": 7,
+     "providerName": "AWS",
+     "regionName": "US_EAST_1"
+    }
+   ],
+   "zoneName": "ZoneName managed by Terraform"
+  }
+ ],
+ "tags": []
+}

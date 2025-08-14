@@ -1,6 +1,7 @@
-package advancedcluster_test
+package advancedclustertpf_test
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -62,6 +63,7 @@ var (
 	configServerManagementModeFixedToDedicated = "FIXED_TO_DEDICATED"
 	configServerManagementModeAtlasManaged     = "ATLAS_MANAGED"
 	mockConfig                                 = unit.MockConfigAdvancedClusterTPF
+	errGeneric                                 = errors.New("generic")
 )
 
 func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
