@@ -224,7 +224,7 @@ func determineKeepUnknownsUnchangedReplicationSpecs(ctx context.Context, diags *
 	keepUnknowns := []string{}
 	// Could be set to "" if we are using an ISS cluster
 	// if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) { // When using new sharding config, the legacy id must never be copied
-		keepUnknowns = append(keepUnknowns, "id")
+	keepUnknowns = append(keepUnknowns, "id")
 	// }
 	// for isShardingConfigUpgrade, it will be empty in the plan, so we need to keep it unknown
 	// for listLenChanges, it might be an insertion in the middle of replication spec leading to wrong value from state copied

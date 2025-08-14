@@ -676,9 +676,9 @@ type TFReplicationSpecsModel struct {
 }
 
 var ReplicationSpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"id":             types.StringType,
-	"container_id":   types.MapType{ElemType: types.StringType},
-	"external_id":    types.StringType,
+	"id":           types.StringType,
+	"container_id": types.MapType{ElemType: types.StringType},
+	"external_id":  types.StringType,
 	// "num_shards":     types.Int64Type,
 	"region_configs": types.ListType{ElemType: RegionConfigsObjType},
 	"zone_id":        types.StringType,

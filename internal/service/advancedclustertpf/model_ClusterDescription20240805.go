@@ -158,8 +158,8 @@ func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec
 		legacyID := apiInfo.ZoneNameReplicationSpecIDs[zoneName]
 		containerIDs := selectContainerIDs(&item, apiInfo.ContainerIDs)
 		tfModels[i] = TFReplicationSpecsModel{
-			Id:            types.StringValue(legacyID),
-			ExternalId:    types.StringValue(conversion.SafeValue(item.Id)),
+			Id:         types.StringValue(legacyID),
+			ExternalId: types.StringValue(conversion.SafeValue(item.Id)),
 			// NumShards:     types.Int64Value(1),
 			ContainerId:   conversion.ToTFMapOfString(ctx, diags, containerIDs),
 			RegionConfigs: regionConfigs,
@@ -225,8 +225,8 @@ func convertReplicationSpecsLegacy(ctx context.Context, input *[]admin.Replicati
 			Id:            types.StringValue(legacyID),
 			RegionConfigs: regionConfigs,
 			// NumShards:     types.Int64Value(numShards),
-			ZoneId:        types.StringValue(conversion.SafeValue(item.ZoneId)),
-			ZoneName:      types.StringValue(conversion.SafeValue(item.ZoneName)),
+			ZoneId:   types.StringValue(conversion.SafeValue(item.ZoneId)),
+			ZoneName: types.StringValue(conversion.SafeValue(item.ZoneName)),
 		})
 	}
 	return &tfModels
