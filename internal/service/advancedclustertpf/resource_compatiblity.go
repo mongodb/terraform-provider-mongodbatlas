@@ -100,30 +100,30 @@ func normalizeFromTFModel(ctx context.Context, model *TFModel, diags *diag.Diagn
 	// if usingLegacySchema && shouldExpandNumShards {
 	// 	expandNumShards(latestModel, counts)
 	// }
-	normalizeDiskSize(model, latestModel, diags)
-	if diags.HasError() {
-		return nil
-	}
+	// normalizeDiskSize(model, latestModel, diags)
+	// if diags.HasError() {
+	// 	return nil
+	// }
 	return latestModel
 }
 
-func normalizeDiskSize(model *TFModel, latestModel *admin.ClusterDescription20240805, diags *diag.Diagnostics) {
-	rootDiskSize := conversion.NilForUnknown(model.DiskSizeGB, model.DiskSizeGB.ValueFloat64Pointer())
-	regionRootDiskSize := findFirstRegionDiskSizeGB(latestModel.ReplicationSpecs)
-	if rootDiskSize != nil && regionRootDiskSize != nil && (*regionRootDiskSize-*rootDiskSize) > 0.01 {
-		errMsg := fmt.Sprintf("disk_size_gb @ root != disk_size_gb @ region (%.2f!=%.2f)", *rootDiskSize, *regionRootDiskSize)
-		diags.AddError(errMsg, errMsg)
-		return
-	}
-	diskSize := rootDiskSize
-	// Prefer regionRootDiskSize over rootDiskSize
-	if regionRootDiskSize != nil {
-		diskSize = regionRootDiskSize
-	}
-	if diskSize != nil {
-		setDiskSize(latestModel, diskSize)
-	}
-}
+// func normalizeDiskSize(model *TFModel, latestModel *admin.ClusterDescription20240805, diags *diag.Diagnostics) {
+// 	rootDiskSize := conversion.NilForUnknown(model.DiskSizeGB, model.DiskSizeGB.ValueFloat64Pointer())
+// 	regionRootDiskSize := findFirstRegionDiskSizeGB(latestModel.ReplicationSpecs)
+// 	if rootDiskSize != nil && regionRootDiskSize != nil && (*regionRootDiskSize-*rootDiskSize) > 0.01 {
+// 		errMsg := fmt.Sprintf("disk_size_gb @ root != disk_size_gb @ region (%.2f!=%.2f)", *rootDiskSize, *regionRootDiskSize)
+// 		diags.AddError(errMsg, errMsg)
+// 		return
+// 	}
+// 	diskSize := rootDiskSize
+// 	// Prefer regionRootDiskSize over rootDiskSize
+// 	if regionRootDiskSize != nil {
+// 		diskSize = regionRootDiskSize
+// 	}
+// 	if diskSize != nil {
+// 		setDiskSize(latestModel, diskSize)
+// 	}
+// }
 
 func expandNumShards(req *admin.ClusterDescription20240805, counts []int64) {
 	specs := req.GetReplicationSpecs()

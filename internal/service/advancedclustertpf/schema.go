@@ -291,12 +291,12 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether to retain backup snapshots for the deleted dedicated cluster.",
 			},
-			"disk_size_gb": schema.Float64Attribute{
-				DeprecationMessage:  deprecationMsgOldSchema("disk_size_gb"),
-				Computed:            true,
-				Optional:            true,
-				MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
-			},
+			// "disk_size_gb": schema.Float64Attribute{
+			// 	DeprecationMessage:  deprecationMsgOldSchema("disk_size_gb"),
+			// 	Computed:            true,
+			// 	Optional:            true,
+			// 	MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
+			// },
 			"advanced_configuration": AdvancedConfigurationSchema(ctx),
 			"pinned_fcv": schema.SingleNestedAttribute{
 				Optional:            true,
@@ -537,7 +537,7 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 }
 
 type TFModel struct {
-	DiskSizeGB                                types.Float64  `tfsdk:"disk_size_gb"`
+	// DiskSizeGB                                types.Float64  `tfsdk:"disk_size_gb"`
 	Labels                                    types.Map      `tfsdk:"labels"`
 	ReplicationSpecs                          types.List     `tfsdk:"replication_specs"`
 	Tags                                      types.Map      `tfsdk:"tags"`
@@ -573,36 +573,36 @@ type TFModel struct {
 
 // TFModelDS differs from TFModel: removes timeouts, accept_data_risks_and_force_replica_set_reconfig; adds use_replication_spec_per_shard.
 type TFModelDS struct {
-	DiskSizeGB                       types.Float64 `tfsdk:"disk_size_gb"`
-	Labels                           types.Map     `tfsdk:"labels"`
-	ReplicationSpecs                 types.List    `tfsdk:"replication_specs"`
-	Tags                             types.Map     `tfsdk:"tags"`
-	ReplicaSetScalingStrategy        types.String  `tfsdk:"replica_set_scaling_strategy"`
-	Name                             types.String  `tfsdk:"name"`
-	AdvancedConfiguration            types.Object  `tfsdk:"advanced_configuration"`
-	BiConnectorConfig                types.Object  `tfsdk:"bi_connector_config"`
-	RootCertType                     types.String  `tfsdk:"root_cert_type"`
-	ClusterType                      types.String  `tfsdk:"cluster_type"`
-	MongoDBMajorVersion              types.String  `tfsdk:"mongo_db_major_version"`
-	ConfigServerType                 types.String  `tfsdk:"config_server_type"`
-	VersionReleaseSystem             types.String  `tfsdk:"version_release_system"`
-	ConnectionStrings                types.Object  `tfsdk:"connection_strings"`
-	StateName                        types.String  `tfsdk:"state_name"`
-	MongoDBVersion                   types.String  `tfsdk:"mongo_db_version"`
-	CreateDate                       types.String  `tfsdk:"create_date"`
-	EncryptionAtRestProvider         types.String  `tfsdk:"encryption_at_rest_provider"`
-	ProjectID                        types.String  `tfsdk:"project_id"`
-	ClusterID                        types.String  `tfsdk:"cluster_id"`
-	ConfigServerManagementMode       types.String  `tfsdk:"config_server_management_mode"`
-	PinnedFCV                        types.Object  `tfsdk:"pinned_fcv"`
-	UseReplicationSpecPerShard       types.Bool    `tfsdk:"use_replication_spec_per_shard"`
-	RedactClientLogData              types.Bool    `tfsdk:"redact_client_log_data"`
-	GlobalClusterSelfManagedSharding types.Bool    `tfsdk:"global_cluster_self_managed_sharding"`
-	BackupEnabled                    types.Bool    `tfsdk:"backup_enabled"`
-	RetainBackupsEnabled             types.Bool    `tfsdk:"retain_backups_enabled"`
-	Paused                           types.Bool    `tfsdk:"paused"`
-	TerminationProtectionEnabled     types.Bool    `tfsdk:"termination_protection_enabled"`
-	PitEnabled                       types.Bool    `tfsdk:"pit_enabled"`
+	// DiskSizeGB                       types.Float64 `tfsdk:"disk_size_gb"`
+	Labels                           types.Map    `tfsdk:"labels"`
+	ReplicationSpecs                 types.List   `tfsdk:"replication_specs"`
+	Tags                             types.Map    `tfsdk:"tags"`
+	ReplicaSetScalingStrategy        types.String `tfsdk:"replica_set_scaling_strategy"`
+	Name                             types.String `tfsdk:"name"`
+	AdvancedConfiguration            types.Object `tfsdk:"advanced_configuration"`
+	BiConnectorConfig                types.Object `tfsdk:"bi_connector_config"`
+	RootCertType                     types.String `tfsdk:"root_cert_type"`
+	ClusterType                      types.String `tfsdk:"cluster_type"`
+	MongoDBMajorVersion              types.String `tfsdk:"mongo_db_major_version"`
+	ConfigServerType                 types.String `tfsdk:"config_server_type"`
+	VersionReleaseSystem             types.String `tfsdk:"version_release_system"`
+	ConnectionStrings                types.Object `tfsdk:"connection_strings"`
+	StateName                        types.String `tfsdk:"state_name"`
+	MongoDBVersion                   types.String `tfsdk:"mongo_db_version"`
+	CreateDate                       types.String `tfsdk:"create_date"`
+	EncryptionAtRestProvider         types.String `tfsdk:"encryption_at_rest_provider"`
+	ProjectID                        types.String `tfsdk:"project_id"`
+	ClusterID                        types.String `tfsdk:"cluster_id"`
+	ConfigServerManagementMode       types.String `tfsdk:"config_server_management_mode"`
+	PinnedFCV                        types.Object `tfsdk:"pinned_fcv"`
+	UseReplicationSpecPerShard       types.Bool   `tfsdk:"use_replication_spec_per_shard"`
+	RedactClientLogData              types.Bool   `tfsdk:"redact_client_log_data"`
+	GlobalClusterSelfManagedSharding types.Bool   `tfsdk:"global_cluster_self_managed_sharding"`
+	BackupEnabled                    types.Bool   `tfsdk:"backup_enabled"`
+	RetainBackupsEnabled             types.Bool   `tfsdk:"retain_backups_enabled"`
+	Paused                           types.Bool   `tfsdk:"paused"`
+	TerminationProtectionEnabled     types.Bool   `tfsdk:"termination_protection_enabled"`
+	PitEnabled                       types.Bool   `tfsdk:"pit_enabled"`
 }
 
 type TFModelPluralDS struct {

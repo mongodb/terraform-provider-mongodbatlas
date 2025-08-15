@@ -163,9 +163,9 @@ func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 				newPlanAnalyticsSpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].AnalyticsSpecs)
 				// if disk_size_gb is defined at root level we cannot use analytics_specs.disk_size_gb from state as it can be outdated
 				// read_only_specs implicitly covers this as it uses value from electable_specs which is unknown if not defined.
-				if plan.DiskSizeGB.ValueFloat64() > 0 { // has known value in config
-					newPlanAnalyticsSpecs.DiskSizeGb = types.Float64Unknown()
-				}
+				// if plan.DiskSizeGB.ValueFloat64() > 0 { // has known value in config
+				// 	newPlanAnalyticsSpecs.DiskSizeGb = types.Float64Unknown()
+				// }
 				objType, diagsLocal := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, newPlanAnalyticsSpecs)
 				diags.Append(diagsLocal...)
 				if diags.HasError() {
