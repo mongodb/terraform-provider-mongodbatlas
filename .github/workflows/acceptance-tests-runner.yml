@@ -241,7 +241,7 @@ jobs:
     env:
       mustTrigger: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_group == '' )  }}
     outputs: # ensure resources are sorted alphabetically
-      advanced_cluster_tpf: ${{ steps.filter.outputs.advanced_cluster_tpf == 'true' || env.mustTrigger == 'true' }}
+      advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
       assume_role: ${{ steps.filter.outputs.assume_role == 'true' || env.mustTrigger == 'true' }}
       autogen: ${{ steps.filter.outputs.autogen == 'true' || env.mustTrigger == 'true' }}
       backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
@@ -273,9 +273,8 @@ jobs:
       if: ${{ inputs.test_group == ''  && env.mustTrigger == 'false' }}
       with:
         filters: |
-          advanced_cluster_tpf:
+          advanced_cluster:
             - 'internal/service/advancedclustertpf/*.go'
-            - 'internal/service/advancedcluster/*_test.go'
           assume_role:
             - 'internal/provider/*.go'
           autogen:
@@ -301,6 +300,7 @@ jobs:
             - 'internal/service/controlplaneipaddresses/*.go'
           cloud_user:
             - 'internal/service/clouduserorgassignment/*.go'
+            - 'internal/service/clouduserprojectassignment/*.go'
             - 'internal/service/clouduserteamassignment/*.go'
           cluster:
             - 'internal/service/cluster/*.go'
@@ -381,9 +381,9 @@ jobs:
             - 'internal/service/streamprivatelinkendpoint/*.go'
 
 
-  advanced_cluster_tpf:
+  advanced_cluster:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf' }}
+    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster' }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -409,7 +409,7 @@ jobs:
  
   advanced_cluster_tpf_mig_from_sdkv2:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ inputs.reduced_tests == false && (needs.change-detection.outputs.advanced_cluster_tpf == 'true' || inputs.test_group == 'advanced_cluster_tpf') }}
+    if: ${{ inputs.reduced_tests == false && (needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster') }}
     env:
       MONGODB_ATLAS_TEST_SDKV2_TO_TPF: 'true'
     runs-on: ubuntu-latest
@@ -596,8 +596,10 @@ jobs:
           MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
           MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
           MONGODB_ATLAS_USERNAME: ${{ vars.MONGODB_ATLAS_USERNAME }}
+          MONGODB_ATLAS_USERNAME_2: ${{ vars.MONGODB_ATLAS_USERNAME_2 }}
           ACCTEST_PACKAGES: |
             ./internal/service/clouduserorgassignment
+            ./internal/service/clouduserprojectassignment
             ./internal/service/clouduserteamassignment
         run: make testacc
 
