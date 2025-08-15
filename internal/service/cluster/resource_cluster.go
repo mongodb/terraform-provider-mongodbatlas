@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/spf13/cast"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -35,12 +36,14 @@ const (
 	errorClusterUpdate            = "error updating MongoDB Cluster (%s): %s"
 	errorAdvancedConfUpdate       = "error updating Advanced Configuration Option %s for MongoDB Cluster (%s): %s"
 	ErrorSnapshotBackupPolicyRead = "error getting a Cloud Provider Snapshot Backup Policy for the cluster(%s): %s"
+	clusterToAdvancedClusterGuide = "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide"
 )
 
 var defaultLabel = matlas.Label{Key: advancedclustertpf.LegacyIgnoredLabelKey, Value: "MongoDB Atlas Terraform Provider"}
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
+		DeprecationMessage:   fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "resource", "mongodbatlas_advanced_cluster", clusterToAdvancedClusterGuide),
 		CreateWithoutTimeout: resourceCreate,
 		ReadWithoutTimeout:   resourceRead,
 		UpdateWithoutTimeout: resourceUpdate,
