@@ -3,7 +3,7 @@
 `mongodbatlas_advanced_cluster` describes an Advanced Cluster. The data source requires your Project ID.
 
 
--> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
+-> **NOTE:** Groups and projects are synonymous terms. You might find group_id in the official documentation.
 
 ~> **IMPORTANT:**
 <br> &#8226; Changes to cluster configurations can affect costs. Before making changes, please see [Billing](https://docs.atlas.mongodb.com/billing/).
