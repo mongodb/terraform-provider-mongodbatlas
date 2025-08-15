@@ -22,17 +22,17 @@ resource "mongodbatlas_advanced_cluster" "my_cluster" {
   cluster_type   = "REPLICASET"
   backup_enabled = true # enable cloud backup snapshots
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AWS"
       region_name   = var.region
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 resource "mongodbatlas_cloud_backup_schedule" "test" {
@@ -211,5 +211,3 @@ $ terraform import mongodbatlas_backup_compliance_policy.backup_policy 5d0f1f73c
 ```
 
 For more information see: [MongoDB Atlas API Reference](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Cloud-Backups/operation/updateDataProtectionSettings) and [Backup Compliance Policy Prohibited Actions](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#prohibited-actions).
-
-

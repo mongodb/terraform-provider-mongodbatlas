@@ -32,11 +32,11 @@ resource "mongodbatlas_advanced_cluster" "test" {
   name         = "SymmetricShardedCluster"
   cluster_type = "SHARDED"
 
-  replication_specs {
+  replication_specs = [{
     # deprecation warning will be encoutered for using num_shards
     num_shards = 2 
-    region_configs {
-      electable_specs {
+    region_configs = [{
+      electable_specs = {
         instance_size = "M30"
         disk_iops = 3000
         node_count    = 3
@@ -44,8 +44,8 @@ resource "mongodbatlas_advanced_cluster" "test" {
       provider_name = "AWS"
       priority      = 7
       region_name   = "EU_WEST_1"
-    }
-  }
+    }]
+  }]
 }
 ```
 
@@ -57,9 +57,9 @@ resource "mongodbatlas_advanced_cluster" "test" {
   name         = "SymmetricShardedCluster"
   cluster_type = "SHARDED"
 
-  replication_specs { # first shard
-    region_configs {
-      electable_specs {
+  replication_specs = [{ # first shard
+    region_configs = [{
+      electable_specs = {
         instance_size = "M30"
         disk_iops = 3000
         node_count    = 3
@@ -67,12 +67,11 @@ resource "mongodbatlas_advanced_cluster" "test" {
       provider_name = "AWS"
       priority      = 7
       region_name   = "EU_WEST_1"
-    }
-  }
-
-  replication_specs { # second shard
-    region_configs {
-      electable_specs {
+    }]
+  },
+  { # second shard
+    region_configs = [{
+      electable_specs = {
         instance_size = "M30"
         disk_iops = 3000
         node_count    = 3
@@ -80,8 +79,8 @@ resource "mongodbatlas_advanced_cluster" "test" {
       provider_name = "AWS"
       priority      = 7
       region_name   = "EU_WEST_1"
-    }
-  }
+    }]
+  }]
 }
 ```
 
@@ -97,34 +96,33 @@ resource "mongodbatlas_advanced_cluster" "test" {
   name = "GeoShardedCluster"
   cluster_type   = "GEOSHARDED"
 
-  replication_specs {
+  replication_specs = [{
     zone_name  = "zone n1"
     num_shards = 2
-    region_configs {
-    electable_specs {
+    region_configs = [{
+    electable_specs = {
         instance_size = "M30"
         node_count    = 3
     }
     provider_name = "AWS"
     priority      = 7
     region_name   = "US_EAST_1"
-    }
-  }
-
-  replication_specs {
+    }]
+  }, 
+  {
     zone_name  = "zone n2"
     num_shards = 2
 
-    region_configs {
-    electable_specs {
+    region_configs = [{
+    electable_specs = {
         instance_size = "M30"
         node_count    = 3
     }
     provider_name = "AWS"
     priority      = 7
     region_name   = "EU_WEST_1"
-    }
-  }
+    }]
+  }]
 }
 ```
 
@@ -136,57 +134,55 @@ resource "mongodbatlas_advanced_cluster" "test" {
   name = "GeoShardedCluster"
   cluster_type   = "GEOSHARDED"
 
-  replication_specs { # first shard for zone n1
-    zone_name  = "zone n1"
-    region_configs {
-    electable_specs {
+  replication_specs = [
+  { # first shard for zone n1
+    zone_name = "zone n1"
+    region_configs = [{
+      electable_specs = {
         instance_size = "M30"
         node_count    = 3
-    }
-    provider_name = "AWS"
-    priority      = 7
-    region_name   = "US_EAST_1"
-    }
-  }
-
-  replication_specs { # second shard for zone n1
-    zone_name  = "zone n1"
-    region_configs {
-    electable_specs {
-        instance_size = "M30"
-        node_count    = 3
-    }
-    provider_name = "AWS"
-    priority      = 7
-    region_name   = "US_EAST_1"
-    }
-  }
-
-  replication_specs { # first shard for zone n2
-    zone_name  = "zone n2"
-    region_configs {
-    electable_specs {
-        instance_size = "M30"
-        node_count    = 3
-    }
-    provider_name = "AWS"
-    priority      = 7
-    region_name   = "EU_WEST_1"
-    }
-  }
-
-  replication_specs { # second shard for zone n2
-    zone_name  = "zone n2"
-    region_configs {
-    electable_specs {
-        instance_size = "M30"
-        node_count    = 3
-    }
-    provider_name = "AWS"
-    priority      = 7
-    region_name   = "EU_WEST_1"
-    }
-  }
+      }
+      provider_name = "AWS"
+      priority      = 7
+      region_name   = "US_EAST_1"
+    }]
+  },
+  { # second shard for zone n1
+      zone_name = "zone n1"
+      region_configs = [{
+        electable_specs = {
+          instance_size = "M30"
+          node_count    = 3
+        }
+        provider_name = "AWS"
+        priority      = 7
+        region_name   = "US_EAST_1"
+      }]
+  },
+  { # first shard for zone n2
+      zone_name = "zone n2"
+      region_configs = [{
+        electable_specs = {
+          instance_size = "M30"
+          node_count    = 3
+        }
+        provider_name = "AWS"
+        priority      = 7
+        region_name   = "EU_WEST_1"
+      }]
+  },
+  { # second shard for zone n2
+      zone_name = "zone n2"
+      region_configs = [{
+        electable_specs = {
+          instance_size = "M30"
+          node_count    = 3
+        }
+        provider_name = "AWS"
+        priority      = 7
+        region_name   = "EU_WEST_1"
+      }]
+  }]
 }
 ```
 
@@ -203,17 +199,17 @@ resource "mongodbatlas_advanced_cluster" "test" {
     name         = "ReplicaSetTransition"
     cluster_type = "REPLICASET"
 
-    replication_specs {
-        region_configs {
-            electable_specs {
+    replication_specs = [{
+        region_configs = [{
+            electable_specs = {
                 instance_size = "M30"
                 node_count    = 3
             }
             provider_name = "AZURE"
             priority      = 7
             region_name   = "US_EAST"
-        }
-    }
+        }]
+    }]
 }
 ```
 
@@ -227,17 +223,17 @@ resource "mongodbatlas_advanced_cluster" "test" {
     name         = "ReplicaSetTransition"
     cluster_type = "SHARDED"
 
-    replication_specs {
-        region_configs {
-            electable_specs {
+    replication_specs = [{
+        region_configs = [{
+            electable_specs = {
                 instance_size = "M30"
                 node_count    = 3
             }
             provider_name = "AZURE"
             priority      = 7
             region_name   = "US_EAST"
-        }
-    }
+        }]
+    }]
 }
 ```
 
@@ -251,29 +247,28 @@ resource "mongodbatlas_advanced_cluster" "test" {
     name         = "ReplicaSetTransition"
     cluster_type = "SHARDED"
 
-    replication_specs { # first shard
-        region_configs {
-            electable_specs {
+    replication_specs = [{ # first shard
+        region_configs = [{
+            electable_specs = {
                 instance_size = "M30"
                 node_count    = 3
             }
             provider_name = "AZURE"
             priority      = 7
             region_name   = "US_EAST"
-        }
-    }
-
-    replication_specs { # second shard
-        region_configs {
-            electable_specs {
+        }]
+    },
+    { # second shard
+        region_configs = [{
+            electable_specs = {
                 instance_size = "M30"
                 node_count    = 3
             }
             provider_name = "AZURE"
             priority      = 7
             region_name   = "US_EAST"
-        }
-    }
+        }]
+    }]
 }
 ```
 
@@ -287,29 +282,29 @@ resource "mongodbatlas_advanced_cluster" "test" {
   name         = "ShardedCluster"
   cluster_type = "SHARDED"
 
-  replication_specs { # first shard
-    region_configs {
-      electable_specs {
+  replication_specs = [
+  { # first shard
+    region_configs = [{
+      electable_specs = {
         instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "EU_WEST_1"
-    }
-  }
-
-  replication_specs { # second shard
-    region_configs {
-      electable_specs {
+    }]
+  },
+  { # second shard
+    region_configs = [{
+      electable_specs = {
         instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "EU_WEST_1"
-    }
-  }
+    }]
+  }]
 }
 ```
 
@@ -323,29 +318,29 @@ resource "mongodbatlas_advanced_cluster" "test" {
   name         = "ShardedCluster"
   cluster_type = "SHARDED"
 
-  replication_specs { # first shard upgraded to M40
-    region_configs {
-      electable_specs {
+  replication_specs = [
+  { # first shard upgraded to M40
+    region_configs = [{
+      electable_specs = {
         instance_size = "M40"
         node_count    = 3
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "EU_WEST_1"
-    }
-  }
-
-  replication_specs { # second shard preserves M30
-    region_configs {
-      electable_specs {
+    }]
+  },
+  { # second shard preserves M30
+    region_configs = [{
+      electable_specs = {
         instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "EU_WEST_1"
-    }
-  }
+    }]
+  }]
 }
 ```
 
@@ -360,54 +355,55 @@ resource "mongodbatlas_advanced_cluster" "test" {
   project_id   = var.project_id
   name         = "AutoScalingCluster"
   cluster_type = "SHARDED"
-  replication_specs { # first shard
-    region_configs {
-      electable_specs {
+  
+  replication_specs = [{ # first shard
+    region_configs = [{
+      electable_specs = {
         instance_size = "M40"
         node_count    = 3
       }
-      analytics_specs {
+      analytics_specs = {
         instance_size = "M40"
         node_count = 1
       }
-      auto_scaling {
+      auto_scaling = {
         compute_enabled = true
         compute_max_instance_size = "M60"
       }
-      analytics_auto_scaling {
+      analytics_auto_scaling = {
         compute_enabled = true
         compute_max_instance_size = "M60"
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "EU_WEST_1"
-    }
+    }]
     zone_name = "Zone 1"
-  }
-  replication_specs { # second shard
-    region_configs {
-      electable_specs {
+  },
+  { # second shard
+    region_configs = [{
+      electable_specs = {
         instance_size = "M40"
         node_count    = 3
       }
-      analytics_specs {
+      analytics_specs = {
         instance_size = "M40"
         node_count = 1
       }
-      auto_scaling {
+      auto_scaling = {
         compute_enabled = true
         compute_max_instance_size = "M60"
       }
-      analytics_auto_scaling {
+      analytics_auto_scaling = {
         compute_enabled = true
         compute_max_instance_size = "M60"
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "EU_WEST_1"
-    }
+    }]
     zone_name = "Zone 1"
-  }
+  }]
   lifecycle { # avoids future non-empty plans as instance size start to scale from initial values
     ignore_changes = [ 
       replication_specs[0].region_configs[0].electable_specs[0].instance_size, 
