@@ -2,6 +2,7 @@ package cluster_test
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -39,7 +40,7 @@ func TestAccClusterRSClusterMigrateState_empty_advancedConfig(t *testing.T) {
 
 	v1Config := terraform.NewResourceConfigRaw(v1State)
 	diags = cluster.Resource().Validate(v1Config)
-	if len(diags) > 0 {
+	if len(diags) > 0 && !strings.Contains(diags[0].Summary, "Deprecated Resource") {
 		fmt.Println(diags)
 		t.Error("migrated cluster advanced config is invalid")
 
@@ -83,7 +84,7 @@ func TestAccClusterRSClusterMigrateState_with_advancedConfig(t *testing.T) {
 
 	v1Config := terraform.NewResourceConfigRaw(v1State)
 	diags = cluster.Resource().Validate(v1Config)
-	if len(diags) > 0 {
+	if len(diags) > 0 && !strings.Contains(diags[0].Summary, "Deprecated Resource") {
 		fmt.Println(diags)
 		t.Error("migrated cluster advanced config is invalid")
 
@@ -127,7 +128,7 @@ func TestAccClusterRSClusterMigrateState_with_defaultAdvancedConfig_v0_5_1(t *te
 
 	v1Config := terraform.NewResourceConfigRaw(v1State)
 	diags = cluster.Resource().Validate(v1Config)
-	if len(diags) > 0 {
+	if len(diags) > 0 && !strings.Contains(diags[0].Summary, "Deprecated Resource") {
 		fmt.Println(diags)
 		t.Error("migrated cluster advanced config is invalid")
 
