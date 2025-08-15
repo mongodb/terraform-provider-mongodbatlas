@@ -14,7 +14,7 @@ on:
         type: string
         required: false    
       test_group:
-        description: 'Test group to run, e.g. advanced_cluster_tpf, empty for all'
+        description: 'Test group to run, e.g. advanced_cluster, empty for all'
         type: string
         required: false
       test_name:
@@ -26,7 +26,7 @@ on:
         type: string
         required: false
       reduced_tests:
-        description: 'If run only minimum tests for advanced_cluster_tpf, e.g. in PRs'
+        description: 'If run only minimum tests for advanced_cluster, e.g. in PRs'
         type: boolean
         required: false
         default: false
