@@ -41,7 +41,7 @@ This is our recommended method to migrate from `mongodbatlas_cluster` to `mongod
 **Prerequisites:**
  - Terraform version 1.8 or later is required, more information in the [State Move page](https://developer.hashicorp.com/terraform/plugin/framework/resources/state-move).
  - MongoDB Atlas Provider version 2.0 or later is required. 
-     - Note: If using version 1.29 or later, you can leverage the preview of the new schema. To learn more, please review our upgrade guides for the version you are using.
+     - Note: If you use version 1.29 or later, you can leverage the preview of the new schema. To learn more, please review our upgrade guides for the version you are using.
 
 The process to migrate from `mongodbatlas_cluster` to `mongodbatlas_advanced_cluster` using the `moved` block varies if you are using `modules` or the resource directly. Module maintainers can upgrade their implementation to `mongodbatlas_advanced_cluster` by making this operation transparent to their users. To learn how, review the examples from a [module maintainer](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_cluster_to_advanced_cluster/module_maintainer) and [module user](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_cluster_to_advanced_cluster/module_user) point of view.
 
@@ -54,7 +54,7 @@ The basic experience when using the `moved` block is as follows:
 3. Comment out or delete the `mongodbatlas_cluster` resource definition.
 4. Update the references from your previous cluster resource: `mongodbatlas_cluster.this.XXXX` to the new `mongodbatlas_advanced_cluster.this.XXX`.
    - Double check [output-changes](#output-changes) to ensure the underlying configuration stays unchanged.
-   - If you are using output variables that use the new resource `mongodbatlas_advanced_cluster.this`, the plan output can be more verbose than expected (extra `Note: Objects have changed outside of Terraform` section). Consider adding/updating output variables only **after** performing the move (see more in the [Github Issue](https://github.com/hashicorp/terraform/issues/36796)).
+   - If you use output variables that use the new resource `mongodbatlas_advanced_cluster.this`, the plan output can be more verbose than expected (extra `Note: Objects have changed outside of Terraform` section). Consider adding or updating output variables only **after** performing the move (see more in the [Github Issue](https://github.com/hashicorp/terraform/issues/36796)).
 5. Add the `moved` block to your configuration file, e.g.:
 ```terraform
 moved {
