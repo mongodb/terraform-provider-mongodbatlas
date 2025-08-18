@@ -3,8 +3,13 @@ variable "org_id" {
   type        = string
 }
 
-variable "user_email" {
-  description = "The email address of the user"
+variable "team_id" {
+  description = "The team ID"
+  type        = string
+}
+
+variable "user_id" {
+  description = "The user ID"
   type        = string
 }
 
