@@ -4,7 +4,7 @@
 
 **NOTE**: Users with pending invitations created using the deprecated `mongodbatlas_project_invitation` resource or via the deprecated [Invite One MongoDB Cloud User to One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser#tag/Projects/operation/createProjectInvitation)
 endpoint cannot be managed with this resource. See [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser) for details.
-To manage such users with this resource, refer to our [migration guide]<link-to-migration-guide>.
+To manage such users with this resource, refer to our [Org Invitation to Cloud User Org Assignment Migration Guide](../guides/org-invitation-to-cloud-user-org-assignment-migration-guide).
 
 ## Example Usages
 
@@ -19,12 +19,12 @@ resource "mongodbatlas_cloud_user_org_assignment" "example" {
 
 data "mongodbatlas_cloud_user_org_assignment" "example_username" {
   org_id   = var.org_id
-  username = var.user_email
+  username = mongodbatlas_cloud_user_org_assignment.example.username
 }
 
 data "mongodbatlas_cloud_user_org_assignment" "example_user_id" {
   org_id  = var.org_id
-  user_id = var.user_id
+  user_id = mongodbatlas_cloud_user_org_assignment.example.user_id
 }
 ```
 
@@ -33,7 +33,7 @@ data "mongodbatlas_cloud_user_org_assignment" "example_user_id" {
 
 ### Required
 
-- `org_id` (String) Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.
+- `org_id` (String) Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-organizations) endpoint to retrieve all organizations to which the authenticated user has access.
 - `roles` (Attributes) Organization and project level roles to assign the MongoDB Cloud user within one organization. (see [below for nested schema](#nestedatt--roles))
 - `username` (String) Email address that represents the username of the MongoDB Cloud user.
 

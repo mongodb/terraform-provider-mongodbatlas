@@ -1,4 +1,4 @@
-package advancedcluster_test
+package advancedclustertpf_test
 
 import (
 	"os"
