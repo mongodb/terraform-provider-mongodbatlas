@@ -31,4 +31,4 @@ data "mongodbatlas_team_project_assignment" "this" {
 
 - `role_names` (Set of String) One or more project-level roles assigned to the team.
 
-For more information see: [MongoDB Atlas API - Teams](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getprojectteam) Documentation.
+For more information, see: [MongoDB Atlas API - Teams](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getprojectteam) Documentation.
