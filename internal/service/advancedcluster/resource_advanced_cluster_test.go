@@ -153,7 +153,7 @@ func testAccAdvancedClusterFlexUpgrade(t *testing.T, projectID, clusterName, ins
 }
 
 func TestAccAdvancedCluster_basicTenant_flexUpgrade_dedicatedUpgrade(t *testing.T) {
-	projectID := acc.ProjectID(t) // only a single free tier cluster can exist per project
+	projectID := acc.ProjectID(t) // only a single free tier cluster can exist per project, creating dedicated project to ensure successful test
 	clusterName := acc.RandomClusterName()
 	resource.ParallelTest(t, testAccAdvancedClusterFlexUpgrade(t, projectID, clusterName, freeInstanceSize, true))
 }
@@ -164,7 +164,7 @@ func TestAccAdvancedCluster_sharedTier_flexUpgrade(t *testing.T) {
 }
 func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 	var (
-		projectID       = acc.ProjectID(t) // only a single free tier cluster can exist per project
+		projectID       = acc.ProjectID(t) // only a single free tier cluster can exist per project, creating dedicated project to ensure successful test
 		clusterName     = acc.RandomClusterName()
 		defaultZoneName = "Zone 1" // Uses backend default to avoid non-empty plan, see CLOUDP-294339
 	)
