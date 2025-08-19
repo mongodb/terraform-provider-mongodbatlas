@@ -76,10 +76,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		RetryTimeConfig(createTimeout, minTimeoutCreateUpdate))
 	err = cleanup.HandleCreateTimeout(cleanup.ResolveDeleteOnCreateTimeout(plan.DeleteOnCreateTimeout), err, func(ctxCleanup context.Context) error {
 		_, err := connV2.AtlasSearchApi.DeleteAtlasSearchDeployment(ctxCleanup, projectID, clusterName).Execute()
-		if err != nil {
-			return err
-		}
-		return nil
+		return err
 	})
 	if err != nil {
 		diags.AddError("error during search deployment creation", err.Error())
