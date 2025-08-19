@@ -24,7 +24,7 @@ require (
 	github.com/huandu/xstrings v1.5.0
 	github.com/jarcoal/httpmock v1.4.0
 	github.com/mongodb-forks/digest v1.1.0
-	github.com/mongodb/atlas-sdk-go v1.0.1-0.20250806084240-f8831d13e1be
+	github.com/mongodb/atlas-sdk-go v1.0.1-0.20250818084139-1d73a3158093
 	github.com/pb33f/libopenapi v0.25.3
 	github.com/sebdah/goldie/v2 v2.7.1
 	github.com/spf13/cast v1.9.2
