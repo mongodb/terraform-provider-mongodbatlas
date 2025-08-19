@@ -3,7 +3,6 @@ package searchdeployment
 import (
 	"context"
 	"errors"
-	"fmt"
 	"regexp"
 	"time"
 
@@ -68,18 +67,6 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	if plan.DeleteOnCreateTimeout.ValueBool() {
-		var deferCall func()
-		deleteOnTimeout := func(newCtx context.Context) error {
-			cleanup.ReplaceContextDeadlineExceededDiags(diags, createTimeout)
-			_, err := connV2.AtlasSearchApi.DeleteAtlasSearchDeployment(newCtx, projectID, clusterName).Execute()
-			return err
-		}
-		ctx, deferCall = cleanup.OnTimeout(
-			ctx, createTimeout, diags.AddWarning, fmt.Sprintf("Search Deployment %s, (%s)", clusterName, projectID), deleteOnTimeout,
-		)
-		defer deferCall()
-	}
 	if _, _, err := connV2.AtlasSearchApi.CreateAtlasSearchDeployment(ctx, projectID, clusterName, &createReq).Execute(); err != nil {
 		diags.AddError("error during search deployment creation", err.Error())
 		return
@@ -87,6 +74,13 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 
 	deploymentResp, err := WaitSearchNodeStateTransition(ctx, projectID, clusterName, connV2.AtlasSearchApi,
 		RetryTimeConfig(createTimeout, minTimeoutCreateUpdate))
+	err = cleanup.HandleCreateTimeout(cleanup.ResolveDeleteOnCreateTimeout(plan.DeleteOnCreateTimeout), err, func(ctxCleanup context.Context) error {
+		_, err := connV2.AtlasSearchApi.DeleteAtlasSearchDeployment(ctxCleanup, projectID, clusterName).Execute()
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
 		diags.AddError("error during search deployment creation", err.Error())
 		return
