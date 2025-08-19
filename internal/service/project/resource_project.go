@@ -37,11 +37,7 @@ var _ resource.ResourceWithConfigure = &projectRS{}
 var _ resource.ResourceWithImportState = &projectRS{}
 
 func Resource() resource.Resource {
-	return &projectRS{
-		RSCommon: config.RSCommon{
-			ResourceName: projectResourceName,
-		},
-	}
+	return config.AnalyticsResource(projectResourceName, &projectRS{})
 }
 
 type projectRS struct {
@@ -59,10 +55,10 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	var limits []TFLimitModel
 
 	connV2 := r.Client.AtlasV2
-
-	diags := req.Plan.Get(ctx, &projectPlan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	diags := &resp.Diagnostics
+	ctx = r.AddAnalyticsCreate(ctx, &req, diags)
+	diags.Append(req.Plan.Get(ctx, &projectPlan)...)
+	if diags.HasError() {
 		return
 	}
 	projectGroup := &admin.Group{
@@ -174,17 +170,16 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	filteredLimits := FilterUserDefinedLimits(projectProps.Limits, limits)
 	projectProps.Limits = filteredLimits
 
-	projectPlanNew, diags := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	projectPlanNew, localDiags := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
+	diags.Append(localDiags...)
+	if diags.HasError() {
 		return
 	}
 	updatePlanFromConfig(projectPlanNew, &projectPlan)
 
 	// set state to fully populated data
-	diags = resp.State.Set(ctx, projectPlanNew)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
+	diags.Append(resp.State.Set(ctx, projectPlanNew)...)
+	if diags.HasError() {
 		return
 	}
 }
@@ -244,6 +239,7 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	var projectState TFProjectRSModel
 	var projectPlan TFProjectRSModel
 	connV2 := r.Client.AtlasV2
+	ctx = r.AddAnalyticsUpdate(ctx, &req, &resp.Diagnostics)
 
 	// get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &projectState)...)
