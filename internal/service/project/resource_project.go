@@ -37,11 +37,7 @@ var _ resource.ResourceWithConfigure = &projectRS{}
 var _ resource.ResourceWithImportState = &projectRS{}
 
 func Resource() resource.Resource {
-	return &projectRS{
-		RSCommon: config.RSCommon{
-			ResourceName: projectResourceName,
-		},
-	}
+	return config.AnalyticsResource(projectResourceName, &projectRS{})
 }
 
 type projectRS struct {

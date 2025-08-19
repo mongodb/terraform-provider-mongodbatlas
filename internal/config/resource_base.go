@@ -25,9 +25,17 @@ type ProviderMeta struct {
 	ScriptLocation types.String `tfsdk:"script_location"`
 }
 
+func AnalyticsResource(name string, resource resource.ResourceWithImportState) resource.Resource {
+	return &RSCommon{
+		ResourceName: name,
+		Resource:     resource,
+	}
+}
+
 type RSCommon struct {
 	Client       *MongoDBClient
 	ResourceName string
+	Resource     resource.ResourceWithImportState
 }
 
 func (r *RSCommon) ReadProviderMetaCreate(ctx context.Context, req *resource.CreateRequest, diags *diag.Diagnostics) ProviderMeta {
@@ -62,6 +70,34 @@ func (r *RSCommon) AddAnalyticsUpdate(ctx context.Context, req *resource.UpdateR
 
 func (r *RSCommon) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, r.ResourceName)
+}
+
+func (r *RSCommon) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+	r.Resource.Schema(ctx, req, resp)
+}
+
+func (r *RSCommon) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	meta := r.ReadProviderMetaCreate(ctx, &req, &resp.Diagnostics)
+	ctx = AddUserAgentExtra(ctx, UserAgentExtra{
+		ModuleName:    meta.ModuleName.ValueString(),
+		ModuleVersion: meta.ModuleVersion.ValueString(),
+		Name:          r.ResourceName,
+		Operation:     "create",
+	})
+	r.Resource.Create(ctx, req, resp) // Call original create
+}
+
+func (r *RSCommon) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	r.Resource.Read(ctx, req, resp)
+}
+func (r *RSCommon) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	r.Resource.Update(ctx, req, resp)
+}
+func (r *RSCommon) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	r.Resource.ImportState(ctx, req, resp)
+}
+func (r *RSCommon) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	r.Resource.Delete(ctx, req, resp)
 }
 
 func (r *RSCommon) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

@@ -24,7 +24,7 @@ const (
 )
 
 func Resource() *schema.Resource {
-	return &schema.Resource{
+	return config.NewAnalyticsResource(&schema.Resource{
 		CreateContext: resourceCreate,
 		ReadContext:   resourceRead,
 		UpdateContext: resourceUpdate,
@@ -113,7 +113,7 @@ func Resource() *schema.Resource {
 			"storage_databases": schemaFederatedDatabaseInstanceDatabases(),
 			"storage_stores":    schemaFederatedDatabaseInstanceStores(),
 		},
-	}
+	})
 }
 
 func schemaFederatedDatabaseInstanceDatabases() *schema.Schema {
