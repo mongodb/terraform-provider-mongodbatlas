@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -81,7 +80,7 @@ func TestAccSearchDeployment_timeoutTest(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      configWithTimeout(timeoutsStrShort),
-				ExpectError: regexp.MustCompile(cleanup.TimeoutReachedPrefix),
+				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
 			},
 			{
 				PreConfig: func() {
