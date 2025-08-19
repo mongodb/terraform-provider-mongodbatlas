@@ -122,9 +122,8 @@ func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
 	}
 }
 
-func testAccAdvancedClusterFlexUpgrade(t *testing.T, instanceSize string, includeDedicated bool) resource.TestCase {
+func testAccAdvancedClusterFlexUpgrade(t *testing.T, projectID, clusterName, instanceSize string, includeDedicated bool) resource.TestCase {
 	t.Helper()
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 1)
 	defaultZoneName := "Zone 1" // Uses backend default as in existing tests
 
 	// avoid checking plural data source to reduce risk of being impacted from failure in other test using same project, allows running in parallel
@@ -154,16 +153,20 @@ func testAccAdvancedClusterFlexUpgrade(t *testing.T, instanceSize string, includ
 }
 
 func TestAccAdvancedCluster_basicTenant_flexUpgrade_dedicatedUpgrade(t *testing.T) {
-	resource.ParallelTest(t, testAccAdvancedClusterFlexUpgrade(t, freeInstanceSize, true))
+	projectID := acc.ProjectID(t) // only a single free tier cluster can exist per project
+	clusterName := acc.RandomClusterName()
+	resource.ParallelTest(t, testAccAdvancedClusterFlexUpgrade(t, projectID, clusterName, freeInstanceSize, true))
 }
 
 func TestAccAdvancedCluster_sharedTier_flexUpgrade(t *testing.T) {
-	resource.ParallelTest(t, testAccAdvancedClusterFlexUpgrade(t, sharedInstanceSize, false))
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 1)
+	resource.ParallelTest(t, testAccAdvancedClusterFlexUpgrade(t, projectID, clusterName, sharedInstanceSize, false))
 }
 func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1)
-		defaultZoneName        = "Zone 1" // Uses backend default to avoid non-empty plan, see CLOUDP-294339
+		projectID       = acc.ProjectID(t) // only a single free tier cluster can exist per project
+		clusterName     = acc.RandomClusterName()
+		defaultZoneName = "Zone 1" // Uses backend default to avoid non-empty plan, see CLOUDP-294339
 	)
 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),

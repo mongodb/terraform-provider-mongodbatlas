@@ -96,6 +96,15 @@ func ProjectIDExecutionWithCluster(tb testing.TB, totalNodeCount int) (projectID
 	})
 }
 
+// ProjectID creates a new project which will be deleted at the end of the test execution.
+// Use ProjectIDExecution or ProjectIDExecutionWithCluster if your test can share the project with other tests
+func ProjectID(tb testing.TB) string {
+	tb.Helper()
+	// Defining MaxClusterNodesPerProject as node count ensures a new project will be created
+	projectID, _ := ProjectIDExecutionWithCluster(tb, MaxClusterNodesPerProject)
+	return projectID
+}
+
 // ClusterNameExecution returns the name of a created cluster for the execution of the tests in the resource package.
 // This function relies on using an execution project and returns its id.
 // When `MONGODB_ATLAS_CLUSTER_NAME` and `MONGODB_ATLAS_PROJECT_ID` are defined it will be used instead of creating resources. This is useful for local execution but not intended for CI executions.
