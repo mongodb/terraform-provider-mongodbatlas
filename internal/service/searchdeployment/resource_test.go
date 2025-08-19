@@ -59,6 +59,11 @@ const deleteTimeout = 30 * time.Minute
 
 func TestAccSearchDeployment_timeoutTest(t *testing.T) {
 	var (
+		timeoutStrNoDeleteOnCreate = `
+			timeouts = {
+				create = "90s"
+			}
+		`
 		timeoutsStrShort = `
 			timeouts = {
 				create = "90s"
@@ -78,6 +83,10 @@ func TestAccSearchDeployment_timeoutTest(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
+			{
+				Config:      configWithTimeout(timeoutStrNoDeleteOnCreate),
+				ExpectError: regexp.MustCompile("will not run cleanup because delete_on_create_timeout is false"),
+			},
 			{
 				Config:      configWithTimeout(timeoutsStrShort),
 				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
