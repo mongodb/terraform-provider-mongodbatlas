@@ -88,6 +88,11 @@ func TestAccSearchDeployment_timeoutTest(t *testing.T) {
 				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
 			},
 			{
+				PreConfig: func() {
+					timeoutConfig := searchdeployment.RetryTimeConfig(deleteTimeout, 30*time.Second)
+					err := searchdeployment.WaitSearchNodeDelete(t.Context(), projectID, clusterName, acc.ConnV2().AtlasSearchApi, timeoutConfig)
+					require.NoError(t, err)
+				},
 				Config:      configWithTimeout(timeoutsStrShort),
 				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
 			},
