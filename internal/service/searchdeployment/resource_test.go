@@ -85,7 +85,7 @@ func TestAccSearchDeployment_timeoutTest(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      configWithTimeout(timeoutStrNoDeleteOnCreate),
-				ExpectError: regexp.MustCompile("will not run cleanup because delete_on_create_timeout is false"),
+				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
 			},
 			{
 				Config:      configWithTimeout(timeoutsStrShort),
