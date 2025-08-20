@@ -14,7 +14,7 @@ import (
 
 func TestAccAdvancedCluster_moveBasic(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3, 0)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -40,7 +40,7 @@ func TestAccAdvancedCluster_moveBasic(t *testing.T) {
 
 func TestAccAdvancedCluster_moveMultisharding(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 9)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 9, 0)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -66,7 +66,7 @@ func TestAccAdvancedCluster_moveMultisharding(t *testing.T) {
 
 func TestAccAdvancedCluster_moveInvalid(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 0, 0)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{

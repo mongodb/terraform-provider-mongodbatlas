@@ -15,6 +15,7 @@ import (
 
 const (
 	MaxClusterNodesPerProject = 30 // Choose to be conservative, 40 clusters per project is the limit before `CROSS_REGION_NETWORK_PERMISSIONS_LIMIT_EXCEEDED` error, see https://www.mongodb.com/docs/atlas/reference/atlas-limits/
+	MaxFreeTierClusterCount   = 1  // Project can have at most 1 free tier cluster
 )
 
 // SetupSharedResources must be called from TestMain test package in order to use ProjectIDExecution.
@@ -79,11 +80,11 @@ func ProjectIDExecution(tb testing.TB) string {
 	return sharedInfo.projectID
 }
 
-// ProjectIDExecutionWithCluster creates a project and reuses it for  `MaxClusterNodesPerProject ` nodes. The clusterName is always unique.
+// ProjectIDExecutionWithCluster creates a project and reuses it respecting `MaxClusterNodesPerProject` and `MaxFreeTierClusterCount` restrictions. The clusterName is always unique.
 // TotalNodeCount = sum(specs.node_count) * num_shards (1 if new schema)
-// This avoids the `CROSS_REGION_NETWORK_PERMISSIONS_LIMIT_EXCEEDED` error when creating too many clusters within the same project.
+// This avoids `CROSS_REGION_NETWORK_PERMISSIONS_LIMIT_EXCEEDED` and `project has reached the limit for the number of free clusters` errors when creating too many clusters within the same project.
 // When `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_CLUSTER_NAME` are defined, they are used instead of creating a project and clusterName.
-func ProjectIDExecutionWithCluster(tb testing.TB, totalNodeCount int) (projectID, clusterName string) {
+func ProjectIDExecutionWithCluster(tb testing.TB, totalNodeCount, freeTierClusterCount int) (projectID, clusterName string) {
 	tb.Helper()
 	if ExistingClusterUsed() {
 		return existingProjectIDClusterName()
@@ -91,18 +92,9 @@ func ProjectIDExecutionWithCluster(tb testing.TB, totalNodeCount int) (projectID
 	// Only skip after ExistingClusterUsed() to allow MacT (Mocked-Acceptance Tests) to return early instead of being skipped.
 	SkipInUnitTest(tb)
 	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
-	return NextProjectIDClusterName(totalNodeCount, func(projectName string) string {
+	return NextProjectIDClusterName(totalNodeCount, freeTierClusterCount, func(projectName string) string {
 		return createProject(tb, projectName)
 	})
-}
-
-// ProjectID creates a new project which will be deleted at the end of the test execution.
-// Use ProjectIDExecution or ProjectIDExecutionWithCluster if your test can share the project with other tests
-func ProjectID(tb testing.TB) string {
-	tb.Helper()
-	// Defining MaxClusterNodesPerProject as node count ensures a new project will be created
-	projectID, _ := ProjectIDExecutionWithCluster(tb, MaxClusterNodesPerProject)
-	return projectID
 }
 
 // ClusterNameExecution returns the name of a created cluster for the execution of the tests in the resource package.
@@ -180,9 +172,10 @@ func SerialSleep(tb testing.TB) {
 }
 
 type projectInfo struct {
-	id        string
-	name      string
-	nodeCount int
+	id                   string
+	name                 string
+	nodeCount            int
+	freeTierClusterCount int
 }
 
 var sharedInfo = struct {
@@ -198,12 +191,14 @@ var sharedInfo = struct {
 	projects: []projectInfo{},
 }
 
-// NextProjectIDClusterName is an internal method used when we want to reuse a projectID `MaxClustersPerProject` times
-func NextProjectIDClusterName(totalNodeCount int, projectCreator func(string) string) (projectID, clusterName string) {
+// NextProjectIDClusterName is an internal method used when we want to reuse a projectID respecting `MaxClustersNodesPerProject` and `MaxFreeTierClusterCount`
+func NextProjectIDClusterName(totalNodeCount, freeTierClusterCount int, projectCreator func(string) string) (projectID, clusterName string) {
 	sharedInfo.mu.Lock()
 	defer sharedInfo.mu.Unlock()
 	var project projectInfo
-	if len(sharedInfo.projects) == 0 || sharedInfo.projects[len(sharedInfo.projects)-1].nodeCount+totalNodeCount > MaxClusterNodesPerProject {
+	if len(sharedInfo.projects) == 0 ||
+		sharedInfo.projects[len(sharedInfo.projects)-1].nodeCount+totalNodeCount > MaxClusterNodesPerProject ||
+		sharedInfo.projects[len(sharedInfo.projects)-1].freeTierClusterCount+freeTierClusterCount > MaxFreeTierClusterCount {
 		project = projectInfo{
 			name:      RandomProjectName(),
 			nodeCount: totalNodeCount,
@@ -213,6 +208,7 @@ func NextProjectIDClusterName(totalNodeCount int, projectCreator func(string) st
 	} else {
 		project = sharedInfo.projects[len(sharedInfo.projects)-1]
 		sharedInfo.projects[len(sharedInfo.projects)-1].nodeCount += totalNodeCount
+		sharedInfo.projects[len(sharedInfo.projects)-1].freeTierClusterCount += freeTierClusterCount
 	}
 	return project.id, RandomClusterName()
 }
