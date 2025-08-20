@@ -199,8 +199,104 @@ output "team_usernames" {
 
 Run `terraform plan`. There should be **no changes**.
   
----  
-  
+--- 
+
+## Migration using Modules
+
+If you are using modules to manage teams and user assignments to teams, migrating from `mongodbatlas_team` to the new pattern requires special attention. Because the old `mongodbatlas_team.usernames` attribute corresponds to `mongodbatlas_cloud_user_team_assignment`, you cannot simply move the resource block inside your module and expect Terraform to handle the migration automatically. This section demonstrates how to migrate from a module using the `mongodbatlas_team` resource to a module using both `mongodbatlas_team` and the new `mongodbatlas_cloud_user_team_assignment` resources.
+
+**Key points for module users:**
+- You must use `terraform import` to bring existing user-team assignments into the new resources, even when they are managed inside a module.
+- The import command must match the resource address as used in your module (e.g., `module.<module_name>.mongodbatlas_api_key.<name>`).
+- If you were using a list of usernames in your previous configuration, you also need to include the `mongodbatlas_team` data source and use the new `users` attribute to retrieve the corresponding user IDs, along with team ID, for the import to work correctly.
+
+**Example import commands for modules:**
+```shell
+terraform import 'module.<module_name>.mongodbatlas_cloud_user_team_assignment.<name>' <ORG_ID>/<TEAM_ID>/<USER_ID>
+terraform import 'module.<module_name>.mongodbatlas_cloud_user_team_assignment.<name>' <ORG_ID>/<TEAM_ID>/<USERNAME>
+```
+
+**Example import blocks for modules**
+```terraform
+import {
+   to = module.<module_name>.mongodbatlas_cloud_user_team_assignment.<name>
+   id = "<ORG_ID>/<TEAM_ID>/<USER_ID>"
+}
+import {
+   to = module.<module_name>.mongodbatlas_cloud_user_team_assignment.<name>
+   id = "<ORG_ID>/<TEAM_ID>/<USERNAME>"
+}
+```
+
+### 1. Old Module Usage (Legacy)
+
+```hcl
+module "user_team_assignment" {  
+  source     = "./old_module"  
+  org_id     = var.org_id  
+  team_name  = var.team_name  
+  usernames  = var.usernames  
+}
+```
+
+### 2. New Module Usage (Recommended)
+
+```hcl
+data "mongodbatlas_team" "this" {  
+  org_id = var.org_id  
+  name   = var.team_name
+}
+
+locals {  
+  team_assigments = {
+    for user in data.mongodbatlas_team.this.users :
+    user.id => {
+      org_id  = var.org_id
+      team_id = data.mongodbatlas_team.this.team_id
+      user_id = user.id
+    }
+  }  
+}
+
+module "user_team_assignment" {
+  source     = "./new_module"
+  org_id     = var.org_id
+  team_name  = var.team_name
+  team_assigments = local.team_assigments
+}
+```
+### 3. Migration Steps
+
+1. **Add the new module to your configuration:**
+   - Add the new module block as shown above, using the same input variables as appropriate.
+   - Also add the `data.mongodbatlas_team` data source and declare the `team_assignments` local variable to retrieve user IDs and team ID.
+2. **Import the existing user-team assignments into the new resources:**
+   - Use the correct resource addresses for your module:
+   ```shell
+   terraform import 'module.user_team_assignment.mongodbatlas_cloud_user_team_assignment.this' <ORG_ID>/<TEAM_ID>/<USER_ID>
+   ```
+   ```
+   Alternatively a `import block` (available in Terraform 1.5 and later) can be used to import the resource, e.g.:
+   ```terraform
+   import {
+    for_each = local.team_assigments
+
+    to       = module.user_team_assignment.mongodbatlas_cloud_user_team_assignment.this[each.key]
+    id       = "${var.org_id}/${data.mongodbatlas_team.this.team_id}/${each.value.user_id}"
+  }
+   ```
+
+3. **Remove the old module block from your configuration.**
+4. **Run `terraform plan` to review the changes.**
+   - Ensure that Terraform imports the user-team assignments and does not plan to create these.
+   - Ensure that Terraform does not plan to destroy and recreate the `mongodbatlas_team` resource.
+5. **Run `terraform apply` to apply the migration.**
+
+For complete working examples, see:
+- [Old module example](<link-to-migration-path>)
+- [New module example](<link-to-migration-path>)
+
+
 ## Notes and tips
 
 - **Import format** for `mongodbatlas_cloud_user_team_assignment`:
@@ -210,5 +306,16 @@ Run `terraform plan`. There should be **no changes**.
   ORG_ID/TEAM_ID/USER_ID
 ```
 
-- If using modules, remember to put import blocks in the root module.
+- **Importing inside modules:** Terraform's `import` block cannot be placed inside a module's source code—`import` blocks are only supported in the root module. To migrate resources managed by a module, module users must use the `import` block in their root configuration, specifying the full resource address (e.g., `module.<module_name>.resource_type.resource_name`).
+
 - After successful migration, ensure **no references to** `mongodbatlas_team.usernames` remain.
+
+## FAQ
+**Q: Can I assign the same user to multiple teams?**
+A: Yes, simply create multiple `mongodbatlas_cloud_user_team_assignment` resources for each team.
+
+**Q: Where can I find a working example?**
+A: See [examples/mongodbatlas_cloud_user_team_assignment/main.tf](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_cloud_user_team_assignment/main.tf).
+
+## Further Resources
+- [Cloud User Team Assignment Resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_user_team_assignment)
