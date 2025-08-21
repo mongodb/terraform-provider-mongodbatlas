@@ -1,9 +1,4 @@
 # New resource outputs
-output "user_assignment_id" {
-  description = "ID of the new user project assignment"
-  value       = mongodbatlas_cloud_user_project_assignment.user_assignment.id
-}
-
 output "assigned_username" {
   description = "Username from the new assignment"
   value       = mongodbatlas_cloud_user_project_assignment.user_assignment.username

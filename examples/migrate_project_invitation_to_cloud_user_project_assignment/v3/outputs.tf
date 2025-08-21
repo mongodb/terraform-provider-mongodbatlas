@@ -1,9 +1,4 @@
 # Project assignment outputs
-output "assignment_id" {
-  description = "ID of the user project assignment"
-  value       = mongodbatlas_cloud_user_project_assignment.user_assignment.id
-}
-
 output "assigned_username" {
   description = "Username of the assigned user"
   value       = mongodbatlas_cloud_user_project_assignment.user_assignment.username
