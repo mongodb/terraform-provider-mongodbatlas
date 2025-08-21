@@ -1,3 +1,8 @@
+provider "mongodbatlas" {
+  public_key  = var.public_key
+  private_key = var.private_key
+}
+
 # New module usage
 data "mongodbatlas_team" "this" {
   org_id = var.org_id
