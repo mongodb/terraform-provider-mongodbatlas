@@ -83,6 +83,19 @@ Run `terraform apply` to create the assignment with the new resource. Afterwards
 
 ---
 
+## Examples
+
+For complete, working configurations that demonstrate the migration process, see the examples in the provider repository: [migrate_project_invitation_to_cloud_user_project_assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_project_invitation_to_cloud_user_project_assignment).
+
+The examples include:
+- **v1**: Original configuration using deprecated `mongodbatlas_project_invitation`
+- **v2**: Migration phase with re-creation using new resource and clean state removal
+- **v3**: Final clean configuration using only `mongodbatlas_cloud_user_project_assignment`
+
+These examples provide practical validation of the migration steps and demonstrate the re-creation approach for pending invitations.
+
+---
+
 ## Notes and tips
 
 - After successful migration, ensure no references to `mongodbatlas_project_invitation` remain in configuration or state.
