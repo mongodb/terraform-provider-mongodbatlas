@@ -64,3 +64,13 @@ output "migration_validation" {
     ready_for_v3            = local.email_mapping_matches && local.org_users_count_matches
   }
 }
+
+# Additional comparisons using username-based queries
+output "username_based_comparison" {
+  description = "Compare username-based queries between old and new data sources"
+  value = {
+    old_user_by_username = data.mongodbatlas_atlas_user.single_user_by_username.email_address
+    new_user_by_username = data.mongodbatlas_cloud_user_org_assignment.user_by_username.username
+    matches              = data.mongodbatlas_atlas_user.single_user_by_username.email_address == data.mongodbatlas_cloud_user_org_assignment.user_by_username.username
+  }
+}
