@@ -2,4 +2,4 @@
 
 This example demonstrates the legacy pattern for assigning users to a team using the `mongodbatlas_team` resource. It is intended to show the "before" state for users migrating to the new recommended pattern.
 
-For migration steps, see the [Migration Guide](../../../docs/guides/cloud_user_team_assignment_migration_guide.md). 
+For migration steps, see the [Migration Guide](../../../docs/guides/cloud_user_team_assignment_migration_guide.md).

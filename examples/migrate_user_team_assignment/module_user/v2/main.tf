@@ -1,11 +1,3 @@
-# Old module usage
-module "user_team_assignment" {  
-  source     = "./old_module"  
-  org_id     = var.org_id  
-  team_name  = var.team_name  
-  usernames  = var.usernames  
-}
-
 # New module usage
 data "mongodbatlas_team" "this" {  
   org_id = var.org_id  
@@ -24,7 +16,7 @@ locals {
 }
 
 module "user_team_assignment" {
-  source     = "./new_module"
+  source     = "../../module_maintainer/v2"
   org_id     = var.org_id
   team_name  = var.team_name
   team_assigments = local.team_assigments
