@@ -1,0 +1,15 @@
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` provides a Cloud User Project Assignment data source. The data source lets you retrieve a user assigned to a project.
+
+-> **NOTE:** Users with pending invitations created using the deprecated `mongodbatlas_project_invitation` resource or via the deprecated [Invite One MongoDB Cloud User to One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser#tag/Projects/operation/createProjectInvitation)
+endpoint are not returned with this resource. See  [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getprojectteam) for details.
+To manage such users with this resource, refer to our [migration guide]<link-to-migration-guide>.
+
+## Example Usages
+
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+For more information, see: [MongoDB Atlas API - Cloud Users](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getprojectuser) Documentation.
