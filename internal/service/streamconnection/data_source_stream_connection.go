@@ -25,7 +25,7 @@ type streamConnectionDS struct {
 
 func (d *streamConnectionDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.DataSourceSchemaRequest{
-		RequiredFields: []string{"project_id", "instance_name", "connection_name"},
+		RequiredFields: []string{"project_id", "connection_name"},
 	})
 }
 
@@ -38,7 +38,11 @@ func (d *streamConnectionDS) Read(ctx context.Context, req datasource.ReadReques
 
 	connV2 := d.Client.AtlasV2
 	projectID := streamConnectionConfig.ProjectID.ValueString()
-	instanceName := streamConnectionConfig.InstanceName.ValueString()
+	instanceName := getEffectiveInstanceName(&streamConnectionConfig)
+	if instanceName == "" {
+		resp.Diagnostics.AddError("validation error", "either instance_name or workspace_name must be provided")
+		return
+	}
 	connectionName := streamConnectionConfig.ConnectionName.ValueString()
 	apiResp, _, err := connV2.StreamsApi.GetStreamConnection(ctx, projectID, instanceName, connectionName).Execute()
 	if err != nil {
@@ -46,7 +50,7 @@ func (d *streamConnectionDS) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, nil, apiResp)
+	newStreamConnectionModel, diags := NewTFStreamConnectionWithOriginal(ctx, projectID, instanceName, nil, apiResp, &streamConnectionConfig)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

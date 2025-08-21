@@ -14,7 +14,10 @@ data "mongodbatlas_stream_connections" "test" {
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
-* `instance_name` - (Required) Human-readable label that identifies the stream instance.
+* `instance_name` - (Optional) Human-readable label that identifies the stream instance. Conflicts with `workspace_name`.
+* `workspace_name` - (Optional) Human-readable label that identifies the stream instance. This is an alias for `instance_name`. Conflicts with `instance_name`.
+
+~> **NOTE:** Either `instance_name` or `workspace_name` must be provided, but not both. These fields are functionally identical and `workspace_name` is provided as an alias for `instance_name`.
 
 * `page_num` - (Optional) Number of the page that displays the current set of the total objects that the response returns. Defaults to `1`.
 * `items_per_page` - (Optional) Number of items that the response returns per page, up to a maximum of `500`. Defaults to `100`.

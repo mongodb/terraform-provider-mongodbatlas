@@ -28,9 +28,20 @@ type streamConnectionsDS struct {
 
 func (d *streamConnectionsDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
-		RequiredFields:  []string{"project_id", "instance_name"},
+		RequiredFields:  []string{"project_id"},
 		HasLegacyFields: true,
 	})
+}
+
+// getEffectiveInstanceNameForDS returns the instance name from either instance_name or workspace_name field for datasource model
+func getEffectiveInstanceNameForDS(model *TFStreamConnectionsDSModel) string {
+	if !model.InstanceName.IsNull() && !model.InstanceName.IsUnknown() {
+		return model.InstanceName.ValueString()
+	}
+	if !model.WorkspaceName.IsNull() && !model.WorkspaceName.IsUnknown() {
+		return model.WorkspaceName.ValueString()
+	}
+	return ""
 }
 
 func (d *streamConnectionsDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -42,7 +53,11 @@ func (d *streamConnectionsDS) Read(ctx context.Context, req datasource.ReadReque
 
 	connV2 := d.Client.AtlasV2
 	projectID := streamConnectionsConfig.ProjectID.ValueString()
-	instanceName := streamConnectionsConfig.InstanceName.ValueString()
+	instanceName := getEffectiveInstanceNameForDS(&streamConnectionsConfig)
+	if instanceName == "" {
+		resp.Diagnostics.AddError("validation error", "either instance_name or workspace_name must be provided")
+		return
+	}
 	itemsPerPage := streamConnectionsConfig.ItemsPerPage.ValueInt64Pointer()
 	pageNum := streamConnectionsConfig.PageNum.ValueInt64Pointer()
 
@@ -58,7 +73,7 @@ func (d *streamConnectionsDS) Read(ctx context.Context, req datasource.ReadReque
 		return
 	}
 
-	newStreamConnectionsModel, diags := NewTFStreamConnections(ctx, &streamConnectionsConfig, apiResp)
+	newStreamConnectionsModel, diags := NewTFStreamConnectionsWithOriginal(ctx, &streamConnectionsConfig, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -67,11 +82,12 @@ func (d *streamConnectionsDS) Read(ctx context.Context, req datasource.ReadReque
 }
 
 type TFStreamConnectionsDSModel struct {
-	ID           types.String              `tfsdk:"id"`
-	ProjectID    types.String              `tfsdk:"project_id"`
-	InstanceName types.String              `tfsdk:"instance_name"`
-	Results      []TFStreamConnectionModel `tfsdk:"results"`
-	PageNum      types.Int64               `tfsdk:"page_num"`
-	ItemsPerPage types.Int64               `tfsdk:"items_per_page"`
-	TotalCount   types.Int64               `tfsdk:"total_count"`
+	ID            types.String              `tfsdk:"id"`
+	ProjectID     types.String              `tfsdk:"project_id"`
+	InstanceName  types.String              `tfsdk:"instance_name"`
+	WorkspaceName types.String              `tfsdk:"workspace_name"`
+	Results       []TFStreamConnectionModel `tfsdk:"results"`
+	PageNum       types.Int64               `tfsdk:"page_num"`
+	ItemsPerPage  types.Int64               `tfsdk:"items_per_page"`
+	TotalCount    types.Int64               `tfsdk:"total_count"`
 }
