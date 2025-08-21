@@ -8,7 +8,7 @@ page_title: "Migration Guide: Migrate off deprecated `mongodbatlas_atlas_user` a
 
 ## Before you begin
 
-- Ensure you are using the MongoDB Atlas Terraform Provider 2.0.0 version that includes `mongodbatlas_cloud_user_org_assignment`.
+- Ensure you are using MongoDB Atlas Terraform Provider version 2.0.0 or later that includes `mongodbatlas_cloud_user_org_assignment`.
 
 ## What’s changing?
 
