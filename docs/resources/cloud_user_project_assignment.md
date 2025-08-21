@@ -2,7 +2,12 @@
 
 `mongodbatlas_cloud_user_project_assignment` provides a Cloud User Project Assignment resource. It lets you manage the association between a cloud user and a project, enabling you to import, assign, remove, or update the user's membership.
 
-->**NOTE**Users with pending invitations created using the deprecated `mongodbatlas_project_invitation` resource or via the deprecated [Invite One MongoDB Cloud User to One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser#tag/Projects/operation/createProjectInvitation)
+Depending on the user's current membership status in the project's organization, MongoDB Cloud handles invitations and access in different ways:
+- If the user has a pending invitation to join the project's organization, MongoDB Cloud modifies it and grants project access.
+- If the user doesn't have an invitation to join the organization, MongoDB Cloud sends a new invitation that grants the user organization and project access.
+- If the user is already active in the project's organization, MongoDB Cloud grants access to the project.
+
+-> **NOTE:** Users with pending invitations created using the deprecated `mongodbatlas_project_invitation` resource or via the deprecated [Invite One MongoDB Cloud User to One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser#tag/Projects/operation/createProjectInvitation)
 endpoint cannot be managed with this resource. See [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getprojectteam) for details.
 To manage such users with this resource, refer to our [migration guide]<link-to-migration-guide>.
 
