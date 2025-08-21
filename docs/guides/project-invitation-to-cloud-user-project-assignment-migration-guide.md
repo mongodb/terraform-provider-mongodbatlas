@@ -9,7 +9,7 @@ page_title: "Migration Guide: Project Invitation to Cloud User Project Assignmen
 ## Before you begin
 
 - Back up your Terraform state file.
-- Ensure you are using the MongoDB Atlas Terraform Provider 2.0.0 version that includes `mongodbatlas_cloud_user_project_assignment`.
+- Ensure you are using MongoDB Atlas Terraform Provider version 2.0.0 or later that includes `mongodbatlas_cloud_user_project_assignment`.
 
 ## What’s changing?
 
