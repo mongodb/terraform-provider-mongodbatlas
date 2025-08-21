@@ -27,7 +27,7 @@ page_title: "Migration Guide: Team Usernames Attribute to Cloud User Team Assign
   
 - `mongodbatlas_team` included a `usernames` argument that allowed assigning users to a team directly inside the resource. This argument is now deprecated.
 - New attribute `users` in `mongodbatlas_team` data source can be used to retrieve information about all the users assigned to that team.
-- `mongodbatlas_cloud_user_team_assignment` manages the user’s organization membership (pending or active) and exposes both `username` and `user_id`. It supports import using either `ORG_ID/TEAM_ID/USERNAME` or `ORG_ID/TEAM_ID/USER_ID`.
+- `mongodbatlas_cloud_user_team_assignment` manages the user’s team membership (pending or active) and exposes both `username` and `user_id`. It supports import using either `ORG_ID/TEAM_ID/USERNAME` or `ORG_ID/TEAM_ID/USER_ID`.
 
 ---  
   
@@ -49,7 +49,7 @@ resource "mongodbatlas_team" "this" {
   
 ---  
   
-### Step 1: User `mongodb_atlas_team` data source to retrieve user IDs
+### Step 1: Use `mongodbatlas_team` data source to retrieve user IDs
   
 We first need to retrieve each user's `user_id` via the new `users` attribute in `mongodbatlas_team` data source.
   
@@ -70,6 +70,7 @@ locals {
 resource "mongodbatlas_team" "this" {  
     org_id = var.org_id  
     name   = var.team_name
+    usernames = local.usernames
 } 
 
 data "mongodbatlas_team" "this" {  
@@ -80,15 +81,9 @@ data "mongodbatlas_team" "this" {
 
 ---  
 
-### Step 2: Add `mongodbatlas_cloud_user_team_assignment`  and use import blocks
+### Step 2: Add `mongodbatlas_cloud_user_team_assignment` and use import blocks
 
-Handling migration in modules
-
-- Terraform import blocks cannot live inside modules; they must be defined in the root module. See ([Terraform issue](https://github.com/hashicorp/terraform/issues/33474)).
-- Module maintainers cannot ship import steps. Each module user must add root-level import blocks for every instance to import.
-
-```terraform  
-# Use data source to get team members (with user_id)  
+```terraform   
 locals {
     usernames = ["user1@email.com", "user2@email.com", "user3@email.com"]
     team_assignments = {
@@ -96,7 +91,7 @@ locals {
         user.id => {
             org_id   = var.org_id
             team_id  = mongodbatlas_team.this.team_id
-            user_id  = user.id  # Look up user_id here
+            user_id  = user.id
         }
     }
 }
@@ -104,6 +99,7 @@ locals {
 resource "mongodbatlas_team" "this" {
     org_id = var.org_id
     name   = var.team_name
+    usernames = local.usernames
 }
 
 data "mongodbatlas_team" "this" {
@@ -112,7 +108,7 @@ data "mongodbatlas_team" "this" {
 }
   
 # New resource for each (user, team) assignment  
- resource "mongodbatlas_cloud_user_team_assignment" "this" {           
+resource "mongodbatlas_cloud_user_team_assignment" "this" {           
     for_each = local.team_assignments
 
     org_id  = each.value.org_id   
@@ -207,14 +203,8 @@ If you are using modules to manage teams and user assignments to teams, migratin
 
 **Key points for module users:**
 - You must use `terraform import` to bring existing user-team assignments into the new resources, even when they are managed inside a module.
-- The import command must match the resource address as used in your module (e.g., `module.<module_name>.mongodbatlas_api_key.<name>`).
+- The import command must match the resource address as used in your module (e.g., `module.<module_name>.mongodbatlas_cloud_user_team_assignment.<name>`).
 - If you were using a list of usernames in your previous configuration, you also need to include the `mongodbatlas_team` data source and use the new `users` attribute to retrieve the corresponding user IDs, along with team ID, for the import to work correctly.
-
-**Example import commands for modules:**
-```shell
-terraform import 'module.<module_name>.mongodbatlas_cloud_user_team_assignment.<name>' <ORG_ID>/<TEAM_ID>/<USER_ID>
-terraform import 'module.<module_name>.mongodbatlas_cloud_user_team_assignment.<name>' <ORG_ID>/<TEAM_ID>/<USERNAME>
-```
 
 **Example import blocks for modules**
 ```terraform
@@ -226,6 +216,12 @@ import {
    to = module.<module_name>.mongodbatlas_cloud_user_team_assignment.<name>
    id = "<ORG_ID>/<TEAM_ID>/<USERNAME>"
 }
+```
+
+**Example import commands for modules:**
+```shell
+terraform import 'module.<module_name>.mongodbatlas_cloud_user_team_assignment.<name>' <ORG_ID>/<TEAM_ID>/<USER_ID>
+terraform import 'module.<module_name>.mongodbatlas_cloud_user_team_assignment.<name>' <ORG_ID>/<TEAM_ID>/<USERNAME>
 ```
 
 ### 1. Old Module Usage (Legacy)
@@ -265,26 +261,30 @@ module "user_team_assignment" {
   team_assigments = local.team_assigments
 }
 ```
+
 ### 3. Migration Steps
 
 1. **Add the new module to your configuration:**
    - Add the new module block as shown above, using the same input variables as appropriate.
    - Also add the `data.mongodbatlas_team` data source and declare the `team_assignments` local variable to retrieve user IDs and team ID.
+
 2. **Import the existing user-team assignments into the new resources:**
-   - Use the correct resource addresses for your module:
-   ```shell
-   terraform import 'module.user_team_assignment.mongodbatlas_cloud_user_team_assignment.this' <ORG_ID>/<TEAM_ID>/<USER_ID>
-   ```
-   ```
-   Alternatively a `import block` (available in Terraform 1.5 and later) can be used to import the resource, e.g.:
+
+-  An `import block` (available in Terraform 1.5 and later) can be used to import the resource and iterate through a list of users, e.g.:
    ```terraform
-   import {
+  import {
     for_each = local.team_assigments
 
     to       = module.user_team_assignment.mongodbatlas_cloud_user_team_assignment.this[each.key]
     id       = "${var.org_id}/${data.mongodbatlas_team.this.team_id}/${each.value.user_id}"
   }
-   ```
+```
+
+- Alternatively, use the correct resource addresses for your module and each of the user-team assignments:
+```shell
+  terraform import 'module.user_team_assignment.mongodbatlas_cloud_user_team_assignment.this' <ORG_ID>/<TEAM_ID>/<USER_ID>
+```
+   
 
 3. **Remove the old module block from your configuration.**
 4. **Run `terraform plan` to review the changes.**
@@ -293,8 +293,8 @@ module "user_team_assignment" {
 5. **Run `terraform apply` to apply the migration.**
 
 For complete working examples, see:
-- [Old module example](<link-to-migration-path>)
-- [New module example](<link-to-migration-path>)
+- [Old module example](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/migrate_user_team_assignment/module/old_module/)
+- [New module example](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/migrate_user_team_assignment/module/new_module/)
 
 
 ## Notes and tips
@@ -306,7 +306,7 @@ For complete working examples, see:
   ORG_ID/TEAM_ID/USER_ID
 ```
 
-- **Importing inside modules:** Terraform's `import` block cannot be placed inside a module's source code—`import` blocks are only supported in the root module. To migrate resources managed by a module, module users must use the `import` block in their root configuration, specifying the full resource address (e.g., `module.<module_name>.resource_type.resource_name`).
+- **Importing inside modules:** Terraform import blocks cannot live inside modules. See ([Terraform issue](https://github.com/hashicorp/terraform/issues/33474)). Each module user must add root-level import blocks for every instance to import.
 
 - After successful migration, ensure **no references to** `mongodbatlas_team.usernames` remain.
 
