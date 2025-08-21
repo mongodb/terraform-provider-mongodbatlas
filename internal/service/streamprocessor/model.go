@@ -80,6 +80,10 @@ func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSM
 }
 
 func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName string, apiResp *admin.StreamsProcessorWithStats) (*TFStreamProcessorRSModel, diag.Diagnostics) {
+	return NewStreamProcessorWithStatsAndOriginal(ctx, projectID, instanceName, apiResp, nil)
+}
+
+func NewStreamProcessorWithStatsAndOriginal(ctx context.Context, projectID, instanceName string, apiResp *admin.StreamsProcessorWithStats, originalModel *TFStreamProcessorRSModel) (*TFStreamProcessorRSModel, diag.Diagnostics) {
 	if apiResp == nil {
 		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("streamProcessor API response is nil", "")}
 	}
@@ -96,7 +100,6 @@ func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName st
 		return nil, diags
 	}
 	tfModel := &TFStreamProcessorRSModel{
-		InstanceName:  types.StringPointerValue(&instanceName),
 		Options:       *optionsTF,
 		Pipeline:      pipelineTF,
 		ProcessorID:   types.StringPointerValue(&apiResp.Id),
@@ -105,10 +108,30 @@ func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName st
 		State:         types.StringPointerValue(&apiResp.State),
 		Stats:         statsTF,
 	}
+
+	// Set the appropriate field based on the original model
+	if originalModel != nil {
+		if !originalModel.WorkspaceName.IsNull() && !originalModel.WorkspaceName.IsUnknown() {
+			tfModel.WorkspaceName = types.StringPointerValue(&instanceName)
+			tfModel.InstanceName = types.StringNull()
+		} else {
+			tfModel.InstanceName = types.StringPointerValue(&instanceName)
+			tfModel.WorkspaceName = types.StringNull()
+		}
+	} else {
+		// Default to instance_name for backward compatibility
+		tfModel.InstanceName = types.StringPointerValue(&instanceName)
+		tfModel.WorkspaceName = types.StringNull()
+	}
+
 	return tfModel, nil
 }
 
 func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName string, apiResp *admin.StreamsProcessorWithStats) (*TFStreamProcessorDSModel, diag.Diagnostics) {
+	return NewTFStreamprocessorDSModelWithOriginal(ctx, projectID, instanceName, apiResp, nil)
+}
+
+func NewTFStreamprocessorDSModelWithOriginal(ctx context.Context, projectID, instanceName string, apiResp *admin.StreamsProcessorWithStats, originalModel *TFStreamProcessorDSModel) (*TFStreamProcessorDSModel, diag.Diagnostics) {
 	if apiResp == nil {
 		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("streamProcessor API response is nil", "")}
 	}
@@ -126,7 +149,6 @@ func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName st
 	}
 	tfModel := &TFStreamProcessorDSModel{
 		ID:            types.StringPointerValue(&apiResp.Id),
-		InstanceName:  types.StringPointerValue(&instanceName),
 		Options:       *optionsTF,
 		Pipeline:      types.StringValue(pipelineTF.ValueString()),
 		ProcessorName: types.StringPointerValue(&apiResp.Name),
@@ -134,6 +156,22 @@ func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName st
 		State:         types.StringPointerValue(&apiResp.State),
 		Stats:         statsTF,
 	}
+
+	// Set the appropriate field based on the original model
+	if originalModel != nil {
+		if !originalModel.WorkspaceName.IsNull() && !originalModel.WorkspaceName.IsUnknown() {
+			tfModel.WorkspaceName = types.StringPointerValue(&instanceName)
+			tfModel.InstanceName = types.StringNull()
+		} else {
+			tfModel.InstanceName = types.StringPointerValue(&instanceName)
+			tfModel.WorkspaceName = types.StringNull()
+		}
+	} else {
+		// Default to instance_name for backward compatibility
+		tfModel.InstanceName = types.StringPointerValue(&instanceName)
+		tfModel.WorkspaceName = types.StringNull()
+	}
+
 	return tfModel, nil
 }
 
@@ -194,9 +232,23 @@ func convertStatsToTF(stats any) (types.String, diag.Diagnostics) {
 func NewTFStreamProcessors(ctx context.Context,
 	streamProcessorsConfig *TFStreamProcessorsDSModel,
 	sdkResults []admin.StreamsProcessorWithStats) (*TFStreamProcessorsDSModel, diag.Diagnostics) {
+	return NewTFStreamProcessorsWithOriginal(ctx, streamProcessorsConfig, sdkResults)
+}
+
+func NewTFStreamProcessorsWithOriginal(ctx context.Context,
+	streamProcessorsConfig *TFStreamProcessorsDSModel,
+	sdkResults []admin.StreamsProcessorWithStats) (*TFStreamProcessorsDSModel, diag.Diagnostics) {
 	results := make([]TFStreamProcessorDSModel, len(sdkResults))
 	projectID := streamProcessorsConfig.ProjectID.ValueString()
-	instanceName := streamProcessorsConfig.InstanceName.ValueString()
+
+	// Determine the effective instance name
+	var instanceName string
+	if !streamProcessorsConfig.InstanceName.IsNull() && !streamProcessorsConfig.InstanceName.IsUnknown() {
+		instanceName = streamProcessorsConfig.InstanceName.ValueString()
+	} else if !streamProcessorsConfig.WorkspaceName.IsNull() && !streamProcessorsConfig.WorkspaceName.IsUnknown() {
+		instanceName = streamProcessorsConfig.WorkspaceName.ValueString()
+	}
+
 	for i := range sdkResults {
 		processorModel, diags := NewTFStreamprocessorDSModel(ctx, projectID, instanceName, &sdkResults[i])
 		if diags.HasError() {
@@ -205,9 +257,10 @@ func NewTFStreamProcessors(ctx context.Context,
 		results[i] = *processorModel
 	}
 	return &TFStreamProcessorsDSModel{
-		ProjectID:    streamProcessorsConfig.ProjectID,
-		InstanceName: streamProcessorsConfig.InstanceName,
-		Results:      results,
+		ProjectID:     streamProcessorsConfig.ProjectID,
+		InstanceName:  streamProcessorsConfig.InstanceName,
+		WorkspaceName: streamProcessorsConfig.WorkspaceName,
+		Results:       results,
 	}, nil
 }
 

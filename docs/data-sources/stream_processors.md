@@ -96,6 +96,12 @@ data "mongodbatlas_stream_processors" "example-stream-processors" {
   instance_name = mongodbatlas_stream_instance.example.instance_name
 }
 
+# Example using workspace_name instead of instance_name
+data "mongodbatlas_stream_processors" "example-stream-processors-workspace" {
+  project_id     = var.project_id
+  workspace_name = mongodbatlas_stream_instance.example.instance_name
+}
+
 data "mongodbatlas_stream_processor" "example-stream-processor" {
   project_id     = var.project_id
   instance_name  = mongodbatlas_stream_instance.example.instance_name
@@ -117,10 +123,16 @@ output "stream_processors_results" {
 
 ### Required
 
-- `instance_name` (String) Human-readable label that identifies the stream instance.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
 
 **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+
+**NOTE**: Either `instance_name` or `workspace_name` must be provided, but not both. These fields are functionally identical and `workspace_name` is provided as an alias for `instance_name`.
+
+### Optional
+
+- `instance_name` (String) Human-readable label that identifies the stream instance. Conflicts with `workspace_name`.
+- `workspace_name` (String) Human-readable label that identifies the stream instance. This is an alias for `instance_name`. Conflicts with `instance_name`.
 
 ### Read-Only
 

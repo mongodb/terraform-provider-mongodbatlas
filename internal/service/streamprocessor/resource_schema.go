@@ -4,10 +4,13 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -22,8 +25,22 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"instance_name": schema.StringAttribute{
-				Required:            true,
+				Optional:            true,
 				MarkdownDescription: "Human-readable label that identifies the stream instance.",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(path.Expressions{
+						path.MatchRelative().AtParent().AtName("workspace_name"),
+					}...),
+				},
+			},
+			"workspace_name": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Human-readable label that identifies the stream instance. This is an alias for instance_name.",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(path.Expressions{
+						path.MatchRelative().AtParent().AtName("instance_name"),
+					}...),
+				},
 			},
 			"pipeline": schema.StringAttribute{
 				CustomType: jsontypes.NormalizedType{},
@@ -79,6 +96,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 type TFStreamProcessorRSModel struct {
 	InstanceName  types.String         `tfsdk:"instance_name"`
+	WorkspaceName types.String         `tfsdk:"workspace_name"`
 	Options       types.Object         `tfsdk:"options"`
 	Pipeline      jsontypes.Normalized `tfsdk:"pipeline"`
 	ProcessorID   types.String         `tfsdk:"id"`
@@ -112,6 +130,7 @@ var DlqObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 type TFStreamProcessorDSModel struct {
 	ID            types.String `tfsdk:"id"`
 	InstanceName  types.String `tfsdk:"instance_name"`
+	WorkspaceName types.String `tfsdk:"workspace_name"`
 	Options       types.Object `tfsdk:"options"`
 	Pipeline      types.String `tfsdk:"pipeline"`
 	ProcessorName types.String `tfsdk:"processor_name"`
@@ -121,7 +140,8 @@ type TFStreamProcessorDSModel struct {
 }
 
 type TFStreamProcessorsDSModel struct {
-	ProjectID    types.String               `tfsdk:"project_id"`
-	InstanceName types.String               `tfsdk:"instance_name"`
-	Results      []TFStreamProcessorDSModel `tfsdk:"results"`
+	ProjectID     types.String               `tfsdk:"project_id"`
+	InstanceName  types.String               `tfsdk:"instance_name"`
+	WorkspaceName types.String               `tfsdk:"workspace_name"`
+	Results       []TFStreamProcessorDSModel `tfsdk:"results"`
 }
