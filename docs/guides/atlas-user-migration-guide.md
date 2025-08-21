@@ -212,7 +212,20 @@ Run `terraform plan` to ensure no unexpected changes, then `terraform apply`.
 
 ---
 
+## Examples
+
+For complete, working configurations that demonstrate the migration process, see the examples in the provider repository: [migrate_atlas_user_and_atlas_users](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_atlas_user_and_atlas_users). 
+
+The examples include:
+- **v1**: Original configuration using deprecated data sources
+- **v2**: Migration phase with side-by-side comparison and validation
+- **v3**: Final clean configuration using only new data sources
+
+These examples provide practical validation of the migration steps and demonstrate the attribute mappings in working Terraform code.
+
+---
+
 ## Notes
 
-- The new data source requires the `org_id` context to read the user’s organization assignment.
+- The new data source requires the `org_id` context to read the user's organization assignment.
 - After migration, ensure no remaining references to `mongodbatlas_atlas_user` exist in your configuration.
