@@ -108,17 +108,17 @@ resource "mongodbatlas_advanced_cluster" "test" {
   cluster_type   = "REPLICASET"
   backup_enabled = true
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "GCP"
       region_name   = "US_EAST_4"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 
   depends_on = [ google_compute_network_peering.peering ]
 }
@@ -167,17 +167,17 @@ resource "mongodbatlas_advanced_cluster" "test" {
   cluster_type   = "REPLICASET"
   backup_enabled = true
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AZURE"
       region_name   = "US_EAST_2"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 
   depends_on = [ mongodbatlas_network_peering.test ]
 }
@@ -196,17 +196,17 @@ resource "mongodbatlas_advanced_cluster" "test" {
   cluster_type   = "REPLICASET"
   backup_enabled = true
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AWS"
       region_name   = "US_EAST_1"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 # the following assumes an AWS provider is configured
@@ -248,17 +248,17 @@ resource "mongodbatlas_advanced_cluster" "test" {
   cluster_type   = "REPLICASET"
   backup_enabled = true
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "GCP"
       region_name   = "US_EAST_2"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 # Create the peering connection request
@@ -300,17 +300,17 @@ resource "mongodbatlas_advanced_cluster" "test" {
   cluster_type   = "REPLICASET"
   backup_enabled = true
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AZURE"
       region_name   = "US_EAST_2"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 # Create the peering connection request
