@@ -2,6 +2,8 @@
 
 `atlas_users` provides Atlas Users associated with a specified Organization, Project, or Team.
 
+~> **DEPRECATION:** This data source is deprecated. Replace it with the `users` attribute on `mongodbatlas_organization`, `mongodbatlas_project`, or `mongodbatlas_team` data sources, depending on scope. See the [Migration Guide: Migrate off deprecated `mongodbatlas_atlas_user` and `mongodbatlas_atlas_users`](../guides/atlas-user-migration-guide).
+
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
 ## Example Usage
