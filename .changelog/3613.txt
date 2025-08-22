@@ -13,3 +13,11 @@ resource/mongodbatlas_org_invitation: Deprecates the resource
 ```release-note:note
 data-source/mongodbatlas_org_invitation: Deprecates the data source
 ```
+
+```release-note:note
+resource/mongodbatlas_project_invitation: Deprecates the resource
+```
+
+```release-note:note
+data-source/mongodbatlas_project_invitation: Deprecates the data source
+```

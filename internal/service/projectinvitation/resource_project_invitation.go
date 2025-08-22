@@ -16,10 +16,11 @@ import (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceCreate,
-		ReadContext:   resourceRead,
-		UpdateContext: resourceUpdate,
-		DeleteContext: resourceDelete,
+		DeprecationMessage: "This resource is deprecated and will be removed in the next major release. Please transition to mongodbatlas_cloud_user_project_assignment. For more details, see [Migration Guide: Project Invitation to Cloud User Project Assignment](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/project-invitation-to-cloud-user-project-assignment-migration-guide)",
+		CreateContext:      resourceCreate,
+		ReadContext:        resourceRead,
+		UpdateContext:      resourceUpdate,
+		DeleteContext:      resourceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceImport,
 		},
