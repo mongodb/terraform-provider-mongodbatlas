@@ -208,7 +208,36 @@ func configSharded(projectID, clusterName, description, retentionInDays string) 
 			backup_enabled = true
 		
 			replication_specs = [{
-				num_shards = 3
+				region_configs = [{
+					electable_specs = {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					analytics_specs = {
+						instance_size = "M10"
+						node_count    = 1
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_EAST_1"
+				}]
+			},
+			{
+				region_configs = [{
+					electable_specs = {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					analytics_specs = {
+						instance_size = "M10"
+						node_count    = 1
+					}
+					provider_name = "AWS"
+					priority      = 7
+					region_name   = "US_EAST_1"
+				}]
+			},
+			{
 				region_configs = [{
 					electable_specs = {
 						instance_size = "M10"
