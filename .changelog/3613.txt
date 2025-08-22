@@ -21,3 +21,11 @@ resource/mongodbatlas_project_invitation: Deprecates the resource
 ```release-note:note
 data-source/mongodbatlas_project_invitation: Deprecates the data source
 ```
+
+```release-note:note
+resource/mongodbatlas_project: Deprecates `teams` attribute
+```
+
+```release-note:note
+data-source/mongodbatlas_project: Deprecates `teams` attribute
+```
