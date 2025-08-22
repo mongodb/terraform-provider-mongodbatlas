@@ -25,11 +25,11 @@ variable "team_2_roles" {
 
 variable "public_key" {
   description = "Public key for MongoDB Atlas API"
-  type    = string
-  default = ""
+  type        = string
+  default     = ""
 }
 variable "private_key" {
   description = "Private key for MongoDB Atlas API"
-  type    = string
-  default = ""
+  type        = string
+  default     = ""
 }

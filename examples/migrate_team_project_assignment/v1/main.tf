@@ -5,8 +5,8 @@
 # Map of team IDs to their roles
 locals {
   team_map = {
-    var.team_id_1 = var.team_1_roles
-    var.team_id_2 = var.team_2_roles
+    (var.team_id_1) = var.team_1_roles
+    (var.team_id_2) = var.team_2_roles
   }
 }
 
@@ -18,23 +18,23 @@ resource "mongodbatlas_project" "this" {
   dynamic "teams" {
     for_each = local.team_map
     content {
-      team_id = teams.key
+      team_id    = teams.key
       role_names = teams.value
     }
   }
 }
- 
- output "project_teams" {  
-  description = "List of teams assigned to the Atlas project, with their roles"  
-  value       = mongodbatlas_project.this.teams  
+
+output "project_teams" {
+  description = "List of teams assigned to the Atlas project, with their roles"
+  value       = mongodbatlas_project.this.teams
 }
 
-output "project_teams_map" {  
-  description = "Map of team IDs to their roles (from teams attribute)"  
-  value = {  
-    for t in mongodbatlas_project.this.teams :  
-    t.team_id => t.role_names  
-  }  
-}  
+output "project_teams_map" {
+  description = "Map of team IDs to their roles (from teams attribute)"
+  value = {
+    for t in mongodbatlas_project.this.teams :
+    t.team_id => t.role_names
+  }
+}
 
 

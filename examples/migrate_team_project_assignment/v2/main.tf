@@ -5,8 +5,8 @@
 # Map of team IDs to their roles
 locals {
   team_map = {
-    var.team_id_1 = var.team_1_roles
-    var.team_id_2 = var.team_2_roles
+    (var.team_id_1) = var.team_1_roles
+    (var.team_id_2) = var.team_2_roles
   }
 }
 
