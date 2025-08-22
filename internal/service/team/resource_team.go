@@ -67,12 +67,6 @@ func Resource() *schema.Resource {
 	}
 }
 
-func LegacyTeamsResource() *schema.Resource {
-	res := Resource()
-	res.DeprecationMessage = fmt.Sprintf(constant.DeprecationResourceByDateWithReplacement, "November 2024", "mongodbatlas_team")
-	return res
-}
-
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV220241113
 	orgID := d.Get("org_id").(string)

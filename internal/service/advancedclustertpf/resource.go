@@ -137,7 +137,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	isFlex := IsFlex(latestReq.ReplicationSpecs)
 	projectID, clusterName := waitParams.ProjectID, waitParams.ClusterName
 	clusterDetailStr := fmt.Sprintf("Cluster name %s (project_id=%s).", clusterName, projectID)
-	if plan.DeleteOnCreateTimeout.ValueBool() {
+	if cleanup.ResolveDeleteOnCreateTimeout(plan.DeleteOnCreateTimeout) {
 		var deferCall func()
 		ctx, deferCall = cleanup.OnTimeout(
 			ctx, waitParams.Timeout, diags.AddWarning, clusterDetailStr, DeleteClusterNoWait(r.Client, projectID, clusterName, isFlex),

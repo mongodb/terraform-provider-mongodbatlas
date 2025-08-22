@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -60,6 +59,11 @@ const deleteTimeout = 30 * time.Minute
 
 func TestAccSearchDeployment_timeoutTest(t *testing.T) {
 	var (
+		timeoutStrNoDeleteOnCreate = `
+			timeouts = {
+				create = "90s"
+			}
+		`
 		timeoutsStrShort = `
 			timeouts = {
 				create = "90s"
@@ -80,8 +84,17 @@ func TestAccSearchDeployment_timeoutTest(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config:      configWithTimeout(timeoutStrNoDeleteOnCreate),
+				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
+			},
+			{
+				PreConfig: func() {
+					timeoutConfig := searchdeployment.RetryTimeConfig(deleteTimeout, 30*time.Second)
+					err := searchdeployment.WaitSearchNodeDelete(t.Context(), projectID, clusterName, acc.ConnV2().AtlasSearchApi, timeoutConfig)
+					require.NoError(t, err)
+				},
 				Config:      configWithTimeout(timeoutsStrShort),
-				ExpectError: regexp.MustCompile(cleanup.TimeoutReachedPrefix),
+				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
 			},
 			{
 				PreConfig: func() {
