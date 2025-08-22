@@ -100,5 +100,5 @@ These examples provide practical validation of the migration steps and demonstra
 
 - After successful migration, ensure no references to `mongodbatlas_project_invitation` remain in configuration or state.
 - Pending invitations are not discoverable by the new APIs and resources; there is no data source replacement for reading pending invites. Re-create them using the new resource as shown above.
-- For background on how accepted invitations are handled, see the `mongodbatlas_project_invitation` resource [documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project_invitation).
+- For additional details on how accepted invitations are handled, see the `mongodbatlas_project_invitation` resource [documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project_invitation).
 
