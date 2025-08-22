@@ -22,7 +22,7 @@ page_title: "Migration Guide: Project Invitation to Cloud User Project Assignmen
 
 ## Migrating PENDING invitation (resource exists in config)
 
-Original configuration (note: `user_id` does not exist on `mongodbatlas_project_invitation`):
+Original configuration:
 
 ```terraform
 locals {
