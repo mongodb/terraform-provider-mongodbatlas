@@ -12,7 +12,8 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceRead,
+		DeprecationMessage: "This data source is deprecated and will be removed in the next major release. Please transition to mongodbatlas_cloud_user_org_assignment. For more details, see [Migration Guide: Org Invitation to Cloud User Org Assignment](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/org-invitation-to-cloud-user-org-assignment-migration-guide)",
+		ReadContext:        dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"org_id": {
 				Type:     schema.TypeString,
