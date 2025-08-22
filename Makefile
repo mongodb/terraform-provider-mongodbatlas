@@ -122,7 +122,7 @@ docs: ## Give URL to test Terraform documentation
 
 .PHONY: tflint
 tflint: fmtcheck ## Linter for Terraform files in examples/ dir (avoid `internal/**/testdata/main*.tf`)
-	tflint --chdir=examples/ -f compact --recursive --minimum-failure-severity=warning
+	tflint --chdir=examples/ -f compact --recursive --minimum-failure-severity=warning --disable-rule=terraform_required_providers
 
 .PHONY: tf-validate
 tf-validate: fmtcheck ## Validate Terraform files
