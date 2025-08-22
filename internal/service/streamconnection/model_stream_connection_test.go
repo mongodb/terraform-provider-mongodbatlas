@@ -646,7 +646,7 @@ func tfDBRoleToExecuteObject(t *testing.T, role, roleType string) types.Object {
 func tfNetworkingObject(t *testing.T, networkingType string, connectionID *string) types.Object {
 	t.Helper()
 	networkingAccessModel, diags := types.ObjectValueFrom(t.Context(), streamconnection.NetworkingAccessObjectType.AttrTypes, streamconnection.TFNetworkingAccessModel{
-		Type:         types.StringValue(networkingType),
+		Type: types.StringValue(networkingType),
 		// ConnectionID: types.StringPointerValue(connectionID),
 	})
 	if diags.HasError() {

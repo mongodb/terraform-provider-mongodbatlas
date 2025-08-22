@@ -613,11 +613,11 @@ type TFModelPluralDS struct {
 
 type TFBiConnectorModel struct {
 	// ReadPreference types.String `tfsdk:"read_preference"`
-	Enabled        types.Bool   `tfsdk:"enabled"`
+	Enabled types.Bool `tfsdk:"enabled"`
 }
 
 var BiConnectorConfigObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"enabled":         types.BoolType,
+	"enabled": types.BoolType,
 	// "read_preference": types.StringType,
 }}
 
@@ -666,12 +666,12 @@ var EndpointsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 }}
 
 type TFReplicationSpecsModel struct {
-	RegionConfigs types.List   `tfsdk:"region_configs"`
-	ContainerId   types.Map    `tfsdk:"container_id"`
+	RegionConfigs types.List `tfsdk:"region_configs"`
+	ContainerId   types.Map  `tfsdk:"container_id"`
 	// Id            types.String `tfsdk:"id"`
-	ExternalId    types.String `tfsdk:"external_id"`
-	ZoneId        types.String `tfsdk:"zone_id"`
-	ZoneName      types.String `tfsdk:"zone_name"`
+	ExternalId types.String `tfsdk:"external_id"`
+	ZoneId     types.String `tfsdk:"zone_id"`
+	ZoneName   types.String `tfsdk:"zone_name"`
 	// NumShards     types.Int64  `tfsdk:"num_shards"`
 }
 
@@ -742,27 +742,27 @@ var SpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 }}
 
 type TFAdvancedConfigurationModel struct {
-	OplogMinRetentionHours                                types.Float64 `tfsdk:"oplog_min_retention_hours"`
-	CustomOpensslCipherConfigTls12                        types.Set     `tfsdk:"custom_openssl_cipher_config_tls12"`
-	MinimumEnabledTlsProtocol                             types.String  `tfsdk:"minimum_enabled_tls_protocol"`
-	DefaultWriteConcern                                   types.String  `tfsdk:"default_write_concern"`
+	OplogMinRetentionHours         types.Float64 `tfsdk:"oplog_min_retention_hours"`
+	CustomOpensslCipherConfigTls12 types.Set     `tfsdk:"custom_openssl_cipher_config_tls12"`
+	MinimumEnabledTlsProtocol      types.String  `tfsdk:"minimum_enabled_tls_protocol"`
+	DefaultWriteConcern            types.String  `tfsdk:"default_write_concern"`
 	// DefaultReadConcern                                    types.String  `tfsdk:"default_read_concern"`
-	TlsCipherConfigMode                                   types.String  `tfsdk:"tls_cipher_config_mode"`
-	SampleRefreshIntervalBiconnector                      types.Int64   `tfsdk:"sample_refresh_interval_bi_connector"`
-	SampleSizeBiconnector                                 types.Int64   `tfsdk:"sample_size_bi_connector"`
-	TransactionLifetimeLimitSeconds                       types.Int64   `tfsdk:"transaction_lifetime_limit_seconds"`
-	DefaultMaxTimeMS                                      types.Int64   `tfsdk:"default_max_time_ms"`
-	OplogSizeMb                                           types.Int64   `tfsdk:"oplog_size_mb"`
-	ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds types.Int64   `tfsdk:"change_stream_options_pre_and_post_images_expire_after_seconds"`
-	JavascriptEnabled                                     types.Bool    `tfsdk:"javascript_enabled"`
-	NoTableScan                                           types.Bool    `tfsdk:"no_table_scan"`
+	TlsCipherConfigMode                                   types.String `tfsdk:"tls_cipher_config_mode"`
+	SampleRefreshIntervalBiconnector                      types.Int64  `tfsdk:"sample_refresh_interval_bi_connector"`
+	SampleSizeBiconnector                                 types.Int64  `tfsdk:"sample_size_bi_connector"`
+	TransactionLifetimeLimitSeconds                       types.Int64  `tfsdk:"transaction_lifetime_limit_seconds"`
+	DefaultMaxTimeMS                                      types.Int64  `tfsdk:"default_max_time_ms"`
+	OplogSizeMb                                           types.Int64  `tfsdk:"oplog_size_mb"`
+	ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds types.Int64  `tfsdk:"change_stream_options_pre_and_post_images_expire_after_seconds"`
+	JavascriptEnabled                                     types.Bool   `tfsdk:"javascript_enabled"`
+	NoTableScan                                           types.Bool   `tfsdk:"no_table_scan"`
 	// FailIndexKeyTooLong                                   types.Bool    `tfsdk:"fail_index_key_too_long"`
 }
 
 var AdvancedConfigurationObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"change_stream_options_pre_and_post_images_expire_after_seconds": types.Int64Type,
 	// "default_read_concern":                 types.StringType,
-	"default_write_concern":                types.StringType,
+	"default_write_concern": types.StringType,
 	// "fail_index_key_too_long":              types.BoolType,
 	"javascript_enabled":                   types.BoolType,
 	"minimum_enabled_tls_protocol":         types.StringType,

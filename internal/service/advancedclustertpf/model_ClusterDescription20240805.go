@@ -72,7 +72,7 @@ func NewBiConnectorConfigObjType(ctx context.Context, input *admin.BiConnector, 
 		return types.ObjectNull(BiConnectorConfigObjType.AttrTypes)
 	}
 	tfModel := TFBiConnectorModel{
-		Enabled:        types.BoolValue(conversion.SafeValue(input.Enabled)),
+		Enabled: types.BoolValue(conversion.SafeValue(input.Enabled)),
 		// ReadPreference: types.StringValue(conversion.SafeValue(input.ReadPreference)),
 	}
 	objType, diagsLocal := types.ObjectValueFrom(ctx, BiConnectorConfigObjType.AttrTypes, tfModel)
@@ -117,7 +117,7 @@ func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationS
 		return types.ListNull(ReplicationSpecsObjType)
 	}
 	var tfModels *[]TFReplicationSpecsModel
-	
+
 	tfModels = convertReplicationSpecs(ctx, input, diags, apiInfo)
 	if diags.HasError() {
 		return types.ListNull(ReplicationSpecsObjType)

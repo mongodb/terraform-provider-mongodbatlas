@@ -36,7 +36,7 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *ProcessArgs
 		}
 		advancedConfig = TFAdvancedConfigurationModel{
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: types.Int64PointerValue(conversion.IntPtrToInt64Ptr(changeStreamOptionsPreAndPostImagesExpireAfterSeconds)),
-			DefaultWriteConcern:              types.StringValue(conversion.SafeValue(input.ArgsDefault.DefaultWriteConcern)),
+			DefaultWriteConcern: types.StringValue(conversion.SafeValue(input.ArgsDefault.DefaultWriteConcern)),
 			// DefaultReadConcern:               types.StringValue(conversion.SafeValue(input.ArgsLegacy.DefaultReadConcern)),
 			// FailIndexKeyTooLong:              types.BoolValue(failIndexKeyTooLong),
 			JavascriptEnabled:                types.BoolValue(conversion.SafeValue(input.ArgsDefault.JavascriptEnabled)),

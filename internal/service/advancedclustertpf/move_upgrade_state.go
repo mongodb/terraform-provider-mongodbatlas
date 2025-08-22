@@ -95,7 +95,7 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 		return
 	}
 	AddAdvancedConfig(ctx, model, &ProcessArgs{
-		ArgsDefault:           nil,
+		ArgsDefault: nil,
 		// ArgsLegacy:            nil,
 		ClusterAdvancedConfig: nil,
 	}, diags)
@@ -191,8 +191,8 @@ func replicationSpecModelWithNumShards(numShardsVal tftypes.Value) *TFReplicatio
 		RegionConfigs: types.ListNull(RegionConfigsObjType),
 		ContainerId:   types.MapNull(types.StringType),
 		// Id:            types.StringNull(),
-		ExternalId:    types.StringNull(),
-		ZoneId:        types.StringNull(),
-		ZoneName:      types.StringNull(),
+		ExternalId: types.StringNull(),
+		ZoneId:     types.StringNull(),
+		ZoneName:   types.StringNull(),
 	}
 }

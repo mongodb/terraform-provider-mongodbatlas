@@ -483,7 +483,7 @@ func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, cli
 	p *ProcessArgs) {
 	projectID := model.ProjectID.ValueString()
 	clusterName := model.Name.ValueString()
-	 _, advConfig := ReadIfUnsetAdvancedConfiguration(ctx, diags, client, projectID, clusterName, p.ArgsDefault)
+	_, advConfig := ReadIfUnsetAdvancedConfiguration(ctx, diags, client, projectID, clusterName, p.ArgsDefault)
 	if diags.HasError() {
 		return
 	}
