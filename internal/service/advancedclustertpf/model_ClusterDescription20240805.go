@@ -6,12 +6,10 @@ import (
 	"slices"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 )
 
 const (
@@ -40,14 +38,14 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, di
 	}
 	return &TFModel{
 		AcceptDataRisksAndForceReplicaSetReconfig: types.StringPointerValue(conversion.TimePtrToStringPtr(input.AcceptDataRisksAndForceReplicaSetReconfig)),
-		BackupEnabled:              types.BoolValue(conversion.SafeValue(input.BackupEnabled)),
-		BiConnectorConfig:          biConnector,
-		ClusterType:                types.StringValue(conversion.SafeValue(input.ClusterType)),
-		ConfigServerManagementMode: types.StringValue(conversion.SafeValue(input.ConfigServerManagementMode)),
-		ConfigServerType:           types.StringValue(conversion.SafeValue(input.ConfigServerType)),
-		ConnectionStrings:          connectionStrings,
-		CreateDate:                 types.StringValue(conversion.SafeValue(conversion.TimePtrToStringPtr(input.CreateDate))),
-		// DiskSizeGB:                       types.Float64PointerValue(findFirstRegionDiskSizeGB(input.ReplicationSpecs)),
+		BackupEnabled:                    types.BoolValue(conversion.SafeValue(input.BackupEnabled)),
+		BiConnectorConfig:                biConnector,
+		ClusterType:                      types.StringValue(conversion.SafeValue(input.ClusterType)),
+		ConfigServerManagementMode:       types.StringValue(conversion.SafeValue(input.ConfigServerManagementMode)),
+		ConfigServerType:                 types.StringValue(conversion.SafeValue(input.ConfigServerType)),
+		ConnectionStrings:                connectionStrings,
+		CreateDate:                       types.StringValue(conversion.SafeValue(conversion.TimePtrToStringPtr(input.CreateDate))),
+		DiskSizeGB:                       types.Float64PointerValue(findFirstRegionDiskSizeGB(input.ReplicationSpecs)),
 		EncryptionAtRestProvider:         types.StringValue(conversion.SafeValue(input.EncryptionAtRestProvider)),
 		GlobalClusterSelfManagedSharding: types.BoolValue(conversion.SafeValue(input.GlobalClusterSelfManagedSharding)),
 		ProjectID:                        types.StringValue(conversion.SafeValue(input.GroupId)),
@@ -158,9 +156,9 @@ func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec
 		legacyID := apiInfo.ZoneNameReplicationSpecIDs[zoneName]
 		containerIDs := selectContainerIDs(&item, apiInfo.ContainerIDs)
 		tfModels[i] = TFReplicationSpecsModel{
-			Id:         types.StringValue(legacyID),
-			ExternalId: types.StringValue(conversion.SafeValue(item.Id)),
-			// NumShards:     types.Int64Value(1),
+			Id:            types.StringValue(legacyID),
+			ExternalId:    types.StringValue(conversion.SafeValue(item.Id)),
+			NumShards:     types.Int64Value(1),
 			ContainerId:   conversion.ToTFMapOfString(ctx, diags, containerIDs),
 			RegionConfigs: regionConfigs,
 			ZoneId:        types.StringValue(conversion.SafeValue(item.ZoneId)),
@@ -224,9 +222,9 @@ func convertReplicationSpecsLegacy(ctx context.Context, input *[]admin.Replicati
 			ExternalId:    types.StringValue(""), // Not meaningful with legacy schema
 			Id:            types.StringValue(legacyID),
 			RegionConfigs: regionConfigs,
-			// NumShards:     types.Int64Value(numShards),
-			ZoneId:   types.StringValue(conversion.SafeValue(item.ZoneId)),
-			ZoneName: types.StringValue(conversion.SafeValue(item.ZoneName)),
+			NumShards:     types.Int64Value(numShards),
+			ZoneId:        types.StringValue(conversion.SafeValue(item.ZoneId)),
+			ZoneName:      types.StringValue(conversion.SafeValue(item.ZoneName)),
 		})
 	}
 	return &tfModels

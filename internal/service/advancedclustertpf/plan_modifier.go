@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
@@ -163,9 +162,9 @@ func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 				newPlanAnalyticsSpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].AnalyticsSpecs)
 				// if disk_size_gb is defined at root level we cannot use analytics_specs.disk_size_gb from state as it can be outdated
 				// read_only_specs implicitly covers this as it uses value from electable_specs which is unknown if not defined.
-				// if plan.DiskSizeGB.ValueFloat64() > 0 { // has known value in config
-				// 	newPlanAnalyticsSpecs.DiskSizeGb = types.Float64Unknown()
-				// }
+				if plan.DiskSizeGB.ValueFloat64() > 0 { // has known value in config
+					newPlanAnalyticsSpecs.DiskSizeGb = types.Float64Unknown()
+				}
 				objType, diagsLocal := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, newPlanAnalyticsSpecs)
 				diags.Append(diagsLocal...)
 				if diags.HasError() {
@@ -223,9 +222,9 @@ func determineKeepUnknownsChangedReplicationSpec(keepUnknownsAlways []string, at
 func determineKeepUnknownsUnchangedReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, attributeChanges *schemafunc.AttributeChanges) []string {
 	keepUnknowns := []string{}
 	// Could be set to "" if we are using an ISS cluster
-	// if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) { // When using new sharding config, the legacy id must never be copied
-	keepUnknowns = append(keepUnknowns, "id")
-	// }
+	if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) { // When using new sharding config, the legacy id must never be copied
+		keepUnknowns = append(keepUnknowns, "id")
+	}
 	// for isShardingConfigUpgrade, it will be empty in the plan, so we need to keep it unknown
 	// for listLenChanges, it might be an insertion in the middle of replication spec leading to wrong value from state copied
 	if isShardingConfigUpgrade(ctx, state, plan, diags) || attributeChanges.ListLenChanges("replication_specs") {

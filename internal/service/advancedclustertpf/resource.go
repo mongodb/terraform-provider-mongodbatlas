@@ -158,9 +158,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		diags.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 		return
 	}
-	// clusterResp := CreateCluster(ctx, diags, r.Client, latestReq, waitParams, usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags))
-	clusterResp := CreateCluster(ctx, diags, r.Client, latestReq, waitParams, true)
-
+	clusterResp := CreateCluster(ctx, diags, r.Client, latestReq, waitParams, usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags))
 	emptyAdvancedConfiguration := types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
 	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
 	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
@@ -397,17 +395,17 @@ func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, s
 		pauseAfterOtherChanges = true
 	}
 
-	// if !usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) {
-	// 	// With old sharding config we call older API (2023-02-01) for updating replication specs to avoid cluster having asymmetric autoscaling mode. Old sharding config can only represent symmetric clusters.
-	// 	r.updateLegacyReplicationSpecs(ctx, state, plan, diags, patchReq.ReplicationSpecs)
-	// 	if diags.HasError() {
-	// 		return nil
-	// 	}
-	// 	patchReq.ReplicationSpecs = nil // Already updated by 2023-02-01 API
-	// 	if update.IsZeroValues(patchReq) && !pauseAfterOtherChanges {
-	// 		return AwaitChanges(ctx, r.Client, waitParams, operationReplicationSpecsUpdateLegacy, diags)
-	// 	}
-	// }
+	if !usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) {
+		// With old sharding config we call older API (2023-02-01) for updating replication specs to avoid cluster having asymmetric autoscaling mode. Old sharding config can only represent symmetric clusters.
+		r.updateLegacyReplicationSpecs(ctx, state, plan, diags, patchReq.ReplicationSpecs)
+		if diags.HasError() {
+			return nil
+		}
+		patchReq.ReplicationSpecs = nil // Already updated by 2023-02-01 API
+		if update.IsZeroValues(patchReq) && !pauseAfterOtherChanges {
+			return AwaitChanges(ctx, r.Client, waitParams, operationReplicationSpecsUpdateLegacy, diags)
+		}
+	}
 
 	// latest API can be used safely because if old sharding config is used replication specs will not be included in this request
 	result = updateCluster(ctx, diags, r.Client, patchReq, waitParams, operationUpdate)
@@ -418,41 +416,39 @@ func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, s
 	return result
 }
 
-// func (r *rs) updateLegacyReplicationSpecs(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics, specChanges *[]admin.ReplicationSpec20240805) {
-// 	// numShardsUpdates := findNumShardsUpdates(ctx, state, plan, diags)
-// 	if diags.HasError() {
-// 		return
-// 	}
-// 	if specChanges == nil { //&& numShardsUpdates == nil { // No changes to replication specs
-// 		return
-// 	}
-// 	if specChanges == nil {
-// 		// Use state replication specs as there are no changes in plan except for numShards updates
-// 		specChanges = newReplicationSpec20240805(ctx, state.ReplicationSpecs, diags)
-// 		if diags.HasError() {
-// 			return
-// 		}
-// 	}
-// 	// numShardsPlan := numShardsMap(ctx, plan.ReplicationSpecs, diags)
-// 	// legacyIDs := externalIDToLegacyID(ctx, state.ReplicationSpecs, diags)
-// 	// if diags.HasError() {
-// 	// 	return
-// 	// }
-// 	// legacyPatch := newLegacyModel20240530ReplicationSpecsAndDiskGBOnly(specChanges, numShardsPlan, state.DiskSizeGB.ValueFloat64Pointer(), legacyIDs)
-// 	// if diags.HasError() {
-// 	// 	return
-// 	// }
-// 	// api20240530 := r.Client.AtlasV220240530.ClustersApi
-// 	// _, _, err := api20240530.UpdateCluster(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), legacyPatch).Execute()
-// 	// if err != nil {
-// 	// 	diags.AddError(errorUpdateLegacy20240530, defaultAPIErrorDetails(plan.Name.ValueString(), err))
-// 	// }
-// }
+func (r *rs) updateLegacyReplicationSpecs(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics, specChanges *[]admin.ReplicationSpec20240805) {
+	numShardsUpdates := findNumShardsUpdates(ctx, state, plan, diags)
+	if diags.HasError() {
+		return
+	}
+	if specChanges == nil && numShardsUpdates == nil { // No changes to replication specs
+		return
+	}
+	if specChanges == nil {
+		// Use state replication specs as there are no changes in plan except for numShards updates
+		specChanges = newReplicationSpec20240805(ctx, state.ReplicationSpecs, diags)
+		if diags.HasError() {
+			return
+		}
+	}
+	numShardsPlan := numShardsMap(ctx, plan.ReplicationSpecs, diags)
+	legacyIDs := externalIDToLegacyID(ctx, state.ReplicationSpecs, diags)
+	if diags.HasError() {
+		return
+	}
+	legacyPatch := newLegacyModel20240530ReplicationSpecsAndDiskGBOnly(specChanges, numShardsPlan, state.DiskSizeGB.ValueFloat64Pointer(), legacyIDs)
+	if diags.HasError() {
+		return
+	}
+	api20240530 := r.Client.AtlasV220240530.ClustersApi
+	_, _, err := api20240530.UpdateCluster(ctx, plan.ProjectID.ValueString(), plan.Name.ValueString(), legacyPatch).Execute()
+	if err != nil {
+		diags.AddError(errorUpdateLegacy20240530, defaultAPIErrorDetails(plan.Name.ValueString(), err))
+	}
+}
 
 func getBasicClusterModelResource(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel) (*TFModel, *ExtraAPIInfo) {
-	// useReplicationSpecPerShard := usingNewShardingConfig(ctx, modelIn.ReplicationSpecs, diags)
-	useReplicationSpecPerShard := true
-
+	useReplicationSpecPerShard := usingNewShardingConfig(ctx, modelIn.ReplicationSpecs, diags)
 	if diags.HasError() {
 		return nil, nil
 	}
@@ -557,14 +553,14 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	patchOptions := update.PatchOptions{
 		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknowns and shouldn't be used, `id` is added in updateLegacyReplicationSpecs
 	}
-	// if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) {
-	patchOptions.IgnoreInStateSuffix = append(patchOptions.IgnoreInStateSuffix, "id") // Not safe to send replication_spec.*.id when using the new schema: replicationSpecs.java.util.ArrayList[0].id attribute does not match expected format
-	// }
-	// if findNumShardsUpdates(ctx, state, plan, diags) != nil {
-	// 	// force update the replicationSpecs when update.PatchPayload will not detect changes by default:
-	// 	// `num_shards` updates is only in the legacy ClusterDescription
-	// 	patchOptions.ForceUpdateAttr = append(patchOptions.ForceUpdateAttr, "replicationSpecs")
-	// }
+	if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) {
+		patchOptions.IgnoreInStateSuffix = append(patchOptions.IgnoreInStateSuffix, "id") // Not safe to send replication_spec.*.id when using the new schema: replicationSpecs.java.util.ArrayList[0].id attribute does not match expected format
+	}
+	if findNumShardsUpdates(ctx, state, plan, diags) != nil {
+		// force update the replicationSpecs when update.PatchPayload will not detect changes by default:
+		// `num_shards` updates is only in the legacy ClusterDescription
+		patchOptions.ForceUpdateAttr = append(patchOptions.ForceUpdateAttr, "replicationSpecs")
+	}
 	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)
 	if err != nil {
 		diags.AddError(errorPatchPayload, err.Error())
@@ -610,10 +606,8 @@ func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *conf
 }
 
 func isShardingConfigUpgrade(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics) bool {
-	// stateUsingNewSharding := usingNewShardingConfig(ctx, state.ReplicationSpecs, diags)
-	//  planUsingNewSharding := usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags)
-	stateUsingNewSharding := false
-	planUsingNewSharding := true
+	stateUsingNewSharding := usingNewShardingConfig(ctx, state.ReplicationSpecs, diags)
+	planUsingNewSharding := usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags)
 	if stateUsingNewSharding && !planUsingNewSharding {
 		diags.AddError(errorSchemaDowngrade, fmt.Sprintf(errorSchemaDowngradeDetail, plan.Name.ValueString()))
 		return false
