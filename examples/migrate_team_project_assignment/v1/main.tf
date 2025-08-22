@@ -23,3 +23,18 @@ resource "mongodbatlas_project" "this" {
     }
   }
 }
+ 
+ output "project_teams" {  
+  description = "List of teams assigned to the Atlas project, with their roles"  
+  value       = mongodbatlas_project.this.teams  
+}
+
+output "project_teams_map" {  
+  description = "Map of team IDs to their roles (from teams attribute)"  
+  value = {  
+    for t in mongodbatlas_project.this.teams :  
+    t.team_id => t.role_names  
+  }  
+}  
+
+

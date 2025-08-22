@@ -1,4 +1,4 @@
-# v3: Final State
+# v2: Final State
 
 This is the clean, final configuration using only the new `mongodbatlas_team_project_assignment` resource.
 
@@ -17,7 +17,7 @@ This is the clean, final configuration using only the new `mongodbatlas_team_pro
 This configuration demonstrates:
 - Basic team assignment to project
 - Data source usage for reading assignments
-- Output examples showing common use cases
+- Output examples showing how to print team assignments in various formats
 
 ## Migration complete
 

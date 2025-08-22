@@ -131,7 +131,7 @@ Run `terraform plan` (you should see **import** operations), then `terraform app
 
 ## Examples
 
-For complete, working configurations that demonstrate the migration process, see the examples in the provider repository: [migrate_team_project_assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_team_project_assignment).
+For complete, working configurations that demonstrate the migration process, see the examples in the provider repository: [migrate_team_project_assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_team_project_assignment).
 
 The examples include:
 - **v1**: Original configuration using deprecated `teams` attribute in `mongodbatlas_project` resource.
@@ -157,4 +157,4 @@ A: No — using `ignore_changes` ensures they remain in Atlas until the provider
 ---  
   
 ## Further resources  
-- [`mongodbatlas_team_project_assignment` docs](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/team_project_assignment)  
+- [`mongodbatlas_team_project_assignment` docs](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/team_project_assignment)
