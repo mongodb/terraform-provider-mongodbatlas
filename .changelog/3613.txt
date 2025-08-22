@@ -37,3 +37,7 @@ resource/mongodbatlas_project: Deprecates `teams` attribute
 ```release-note:note
 data-source/mongodbatlas_project: Deprecates `teams` attribute
 ```
+
+```release-note:note
+data-source/mongodbatlas_projects: Deprecates `results.teams` attribute
+```
