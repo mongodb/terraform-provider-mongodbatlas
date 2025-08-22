@@ -29,9 +29,20 @@ type streamProcessorsDS struct {
 
 func (d *streamProcessorsDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
-		RequiredFields:     []string{"project_id", "instance_name"},
+		RequiredFields:     []string{"project_id"},
 		OverrideResultsDoc: "Returns all Stream Processors within the specified stream instance.\n\nTo use this resource, the requesting API Key must have the Project Owner\n\nrole or Project Stream Processing Owner role.",
 	})
+}
+
+// getEffectiveInstanceNameForPluralDS returns the instance name from either instance_name or workspace_name field for plural datasource model
+func getEffectiveInstanceNameForPluralDS(model *TFStreamProcessorsDSModel) string {
+	if !model.InstanceName.IsNull() && !model.InstanceName.IsUnknown() {
+		return model.InstanceName.ValueString()
+	}
+	if !model.WorkspaceName.IsNull() && !model.WorkspaceName.IsUnknown() {
+		return model.WorkspaceName.ValueString()
+	}
+	return ""
 }
 
 func (d *streamProcessorsDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -43,7 +54,11 @@ func (d *streamProcessorsDS) Read(ctx context.Context, req datasource.ReadReques
 
 	connV2 := d.Client.AtlasV2
 	projectID := streamConnectionsConfig.ProjectID.ValueString()
-	instanceName := streamConnectionsConfig.InstanceName.ValueString()
+	instanceName := getEffectiveInstanceNameForPluralDS(&streamConnectionsConfig)
+	if instanceName == "" {
+		resp.Diagnostics.AddError("validation error", "either instance_name or workspace_name must be provided")
+		return
+	}
 
 	params := admin.ListStreamProcessorsApiParams{
 		GroupId:    projectID,
@@ -59,7 +74,7 @@ func (d *streamProcessorsDS) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	newStreamConnectionsModel, diags := NewTFStreamProcessors(ctx, &streamConnectionsConfig, sdkProcessors)
+	newStreamConnectionsModel, diags := NewTFStreamProcessorsWithOriginal(ctx, &streamConnectionsConfig, sdkProcessors)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

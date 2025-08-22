@@ -307,6 +307,57 @@ func TestAccStreamProcessor_createErrors(t *testing.T) {
 		}})
 }
 
+func TestAccStreamProcessor_workspaceName(t *testing.T) {
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		randomSuffix            = acctest.RandString(5)
+		processorName           = "workspace-processor" + randomSuffix
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroyStreamProcessor,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithWorkspaceName(t, projectID, instanceName, processorName, "", randomSuffix, sampleSrcConfig, testLogDestConfig),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "workspace_name", instanceName),
+					resource.TestCheckResourceAttr(resourceName, "processor_name", processorName),
+					resource.TestCheckResourceAttr(resourceName, "state", streamprocessor.CreatedState),
+					resource.TestCheckNoResourceAttr(resourceName, "instance_name"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccStreamProcessor_conflictingFields(t *testing.T) {
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		randomSuffix            = acctest.RandString(5)
+		processorName           = "conflict-processor" + randomSuffix
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroyStreamProcessor,
+		Steps: []resource.TestStep{
+			{
+				Config:      configWithBothFields(t, projectID, instanceName, processorName, "", randomSuffix, sampleSrcConfig, testLogDestConfig),
+				ExpectError: regexp.MustCompile("Attribute \"instance_name\" cannot be specified when \"workspace_name\" is specified"),
+			},
+		},
+	})
+}
+
 func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -686,4 +737,85 @@ func configConnection(t *testing.T, projectID, instanceName string, config conne
 	}
 	t.Fatalf("Unknown connection type: %s", connectionType)
 	return connectionConfig, resourceID, pipelineStep
+}
+
+func configWithWorkspaceName(t *testing.T, projectID, instanceName, processorName, state, nameSuffix string, src, dest connectionConfig) string {
+	t.Helper()
+	stateConfig := ""
+	if state != "" {
+		stateConfig = fmt.Sprintf(`state = %[1]q`, state)
+	}
+
+	connectionConfigSrc, connectionIDSrc, pipelineStepSrc := configConnection(t, projectID, instanceName, src, nameSuffix)
+	connectionConfigDest, connectionIDDest, pipelineStepDest := configConnection(t, projectID, instanceName, dest, nameSuffix)
+	dependsOn := []string{}
+	if connectionIDSrc != "" && !strings.HasPrefix(connectionIDSrc, "data.") {
+		dependsOn = append(dependsOn, connectionIDSrc)
+	}
+	if connectionIDDest != "" && !strings.HasPrefix(connectionIDDest, "data.") {
+		dependsOn = append(dependsOn, connectionIDDest)
+	}
+	dependsOnStr := strings.Join(dependsOn, ", ")
+	pipeline := fmt.Sprintf("[{\"$source\":%1s},{\"$emit\":%2s}]", pipelineStepSrc, pipelineStepDest)
+
+	dataSource := fmt.Sprintf(`
+	data "mongodbatlas_stream_processor" "test" {
+		project_id = %[1]q
+		workspace_name = %[2]q
+		processor_name = %[3]q
+		depends_on = [%4s]
+	}`, projectID, instanceName, processorName, resourceName)
+	dataSourcePlural := fmt.Sprintf(`
+	data "mongodbatlas_stream_processors" "test" {
+		project_id = %[1]q
+		workspace_name = %[2]q
+		depends_on = [%3s]
+	}`, projectID, instanceName, resourceName)
+	otherConfig := connectionConfigSrc + connectionConfigDest + dataSource + dataSourcePlural
+
+	return fmt.Sprintf(`
+	resource "mongodbatlas_stream_processor" "processor" {
+		project_id     = %[1]q
+		workspace_name = %[2]q
+		processor_name = %[3]q
+		pipeline       = %[4]q
+		%[5]s
+		depends_on = [%[6]s]
+		}
+
+	`, projectID, instanceName, processorName, pipeline, stateConfig, dependsOnStr) + otherConfig
+}
+
+func configWithBothFields(t *testing.T, projectID, instanceName, processorName, state, nameSuffix string, src, dest connectionConfig) string {
+	t.Helper()
+	stateConfig := ""
+	if state != "" {
+		stateConfig = fmt.Sprintf(`state = %[1]q`, state)
+	}
+
+	connectionConfigSrc, connectionIDSrc, pipelineStepSrc := configConnection(t, projectID, instanceName, src, nameSuffix)
+	connectionConfigDest, connectionIDDest, pipelineStepDest := configConnection(t, projectID, instanceName, dest, nameSuffix)
+	dependsOn := []string{}
+	if connectionIDSrc != "" && !strings.HasPrefix(connectionIDSrc, "data.") {
+		dependsOn = append(dependsOn, connectionIDSrc)
+	}
+	if connectionIDDest != "" && !strings.HasPrefix(connectionIDDest, "data.") {
+		dependsOn = append(dependsOn, connectionIDDest)
+	}
+	dependsOnStr := strings.Join(dependsOn, ", ")
+	pipeline := fmt.Sprintf("[{\"$source\":%1s},{\"$emit\":%2s}]", pipelineStepSrc, pipelineStepDest)
+	otherConfig := connectionConfigSrc + connectionConfigDest
+
+	return fmt.Sprintf(`
+	resource "mongodbatlas_stream_processor" "processor" {
+		project_id     = %[1]q
+		instance_name  = %[2]q
+		workspace_name = %[2]q
+		processor_name = %[3]q
+		pipeline       = %[4]q
+		%[5]s
+		depends_on = [%[6]s]
+		}
+
+	`, projectID, instanceName, processorName, pipeline, stateConfig, dependsOnStr) + otherConfig
 }
