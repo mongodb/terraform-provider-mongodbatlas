@@ -9,7 +9,7 @@ Depending on the user's current membership status in the project's organization,
 
 -> **NOTE:** Users with pending invitations created using the deprecated `mongodbatlas_project_invitation` resource or via the deprecated [Invite One MongoDB Cloud User to One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser#tag/Projects/operation/createProjectInvitation)
 endpoint cannot be managed with this resource. See [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getprojectteam) for details.
-To manage such users with this resource, refer to our [migration guide]<link-to-migration-guide>.
+To manage such users with this resource, refer to our [Project Invitation to Cloud User Project Assignment Migration Guide](../guides/project-invitation-to-cloud-user-project-assignment-migration-guide).
 
 ## Example Usages
 
