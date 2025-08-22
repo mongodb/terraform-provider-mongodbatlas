@@ -6,13 +6,14 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		DeprecationMessage: "This data source is deprecated and will be removed in the next major release. Please transition to mongodbatlas_cloud_user_project_assignment. For more details, see [Migration Guide: Project Invitation to Cloud User Project Assignment](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/project-invitation-to-cloud-user-project-assignment-migration-guide)",
+		DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "data source", "mongodbatlas_cloud_user_project_assignment", "[Migration Guide: Project Invitation to Cloud User Project Assignment](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/project-invitation-to-cloud-user-project-assignment-migration-guide)"),
 		ReadContext:        dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
