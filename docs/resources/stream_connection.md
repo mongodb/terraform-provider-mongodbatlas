@@ -19,6 +19,18 @@ resource "mongodbatlas_stream_connection" "test" {
 }
 ```
 
+### Example Cluster Connection using workspace_name
+
+```terraform
+resource "mongodbatlas_stream_connection" "test" {
+    project_id = var.project_id
+    workspace_name = "WorkspaceName"
+    connection_name = "ConnectionName"
+    type = "Cluster"
+    cluster_name = "Cluster0"
+}
+```
+
 ### Example Cross Project Cluster Connection
 
 ```terraform
@@ -113,9 +125,12 @@ resource "mongodbatlas_stream_connection" "example-https" {
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
-* `instance_name` - (Required) Human-readable label that identifies the stream instance.
+* `instance_name` - (Optional) Human-readable label that identifies the stream instance. Conflicts with `workspace_name`.
+* `workspace_name` - (Optional) Human-readable label that identifies the stream instance. This is an alias for `instance_name`. Conflicts with `instance_name`.
 * `connection_name` - (Required) Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
 * `type` - (Required) Type of connection. Can be `AWSLambda`, `Cluster`, `Https`, `Kafka` or `Sample`.
+
+~> **NOTE:** Either `instance_name` or `workspace_name` must be provided, but not both. These fields are functionally identical and `workspace_name` is provided as an alias for `instance_name`.
 
 If `type` is of value `Cluster` the following additional arguments are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
