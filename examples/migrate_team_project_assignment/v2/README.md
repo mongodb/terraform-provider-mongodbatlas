@@ -1,6 +1,6 @@
 # v2: Final State
 
-This is the clean, final configuration using only the new `mongodbatlas_team_project_assignment` resource.
+This is the final configuration using only the new `mongodbatlas_team_project_assignment` resource while ignoring the deprecated `mongodbatlas_project.teams` attribute.
 
 ## What changed from v1
 
@@ -21,4 +21,4 @@ This configuration demonstrates:
 
 ## Migration complete
 
-At this point, you have successfully migrated from the deprecated `mongodbatlas_project.teams` attribute to the modern `mongodbatlas_team_project_assignment` resource. All references to the old attribute have been removed and replaced with the new resource.
+At this point, you have successfully migrated from the deprecated `mongodbatlas_project.teams` attribute to the new `mongodbatlas_team_project_assignment` resource. All references to the old attribute have been replaced with the new resource.

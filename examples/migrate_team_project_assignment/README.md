@@ -8,7 +8,7 @@ This example demonstrates how to migrate from the deprecated `mongodbatlas_proje
 Shows the original configuration using deprecated `mongodbatlas_project.teams` attribute for team assignments.
 
 ### v2: Final State (New Resource Only)
-Clean final configuration using only `mongodbatlas_team_project_assignment`.
+Update the configuration to use `mongodbatlas_team_project_assignment` & migrate away from deprecated `mongodbatlas_project.teams`.
 
 ## Usage
 
