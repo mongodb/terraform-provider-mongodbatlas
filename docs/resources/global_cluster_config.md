@@ -19,33 +19,32 @@ resource "mongodbatlas_advanced_cluster" "test" {
   cluster_type   = "GEOSHARDED"
   backup_enabled = true
 
-  replication_specs {
+  replication_specs = [{
     zone_name = "Zone 1"
 
-    region_configs {
-      electable_specs {
+    region_configs = [{
+      electable_specs = {
         instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "EU_CENTRAL_1"
-    }
-  }
-
-  replication_specs {
+    }]
+  },
+  {
     zone_name = "Zone 2"
 
-    region_configs {
-      electable_specs {
+    region_configs = [{
+      electable_specs = {
         instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "US_EAST_2"
-    }
-  }
+    }]
+  }]
 }
 
 resource "mongodbatlas_global_cluster_config" "config" {
