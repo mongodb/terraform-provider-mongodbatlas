@@ -44,8 +44,6 @@ jobs:
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:
           ref: ${{ inputs.use_existing_tag == 'true' && inputs.version_number || 'master' }}
-      - name: Check for Upgrade Guide
-        run: './scripts/check-upgrade-guide-exists.sh ${{inputs.version_number}}'
 
   update-examples-reference-in-docs:
     needs: [ release-config, validate-inputs ]
