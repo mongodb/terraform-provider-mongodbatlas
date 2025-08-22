@@ -7,6 +7,10 @@ data-source/mongodbatlas_atlas_users: Deprecates the data source
 ```
 
 ```release-note:note
+data-source/mongodbatlas_atlas_users: Deprecates `email_address` attribute
+```
+
+```release-note:note
 resource/mongodbatlas_org_invitation: Deprecates the resource
 ```
 

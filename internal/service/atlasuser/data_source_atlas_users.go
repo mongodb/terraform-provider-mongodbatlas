@@ -109,7 +109,8 @@ func (d *atlasUsersDS) Schema(ctx context.Context, req datasource.SchemaRequest,
 							Computed: true,
 						},
 						"email_address": schema.StringAttribute{
-							Computed: true,
+							DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "attribute", "data.mongodbatlas_organization.users.username, data.mongodbatlas_team.users.username or data.mongodbatlas_project.users.username attributes", "[Migration Guide: Migrate off deprecated `mongodbatlas_atlas_user` and `mongodbatlas_atlas_users`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/atlas-user-migration-guide)"),
+							Computed:           true,
 						},
 						"first_name": schema.StringAttribute{
 							Computed: true,
