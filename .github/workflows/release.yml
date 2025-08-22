@@ -41,7 +41,7 @@ jobs:
         run: |
           echo "${{ inputs.version_number }}" | grep -P '^v\d+\.\d+\.\d+(-pre[A-Za-z0-9-]*)?$'
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:
           ref: ${{ inputs.use_existing_tag == 'true' && inputs.version_number || 'master' }}
       - name: Check for Upgrade Guide
@@ -57,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - uses: ./.github/templates/run-script-and-commit
         with:
           script_call: './scripts/update-examples-reference-in-docs.sh ${{inputs.version_number}}'
@@ -78,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - uses: ./.github/templates/run-script-and-commit
         with:
           script_call: './scripts/update-changelog-header-for-release.sh ${{inputs.version_number}}'
@@ -100,7 +100,7 @@ jobs:
       && needs.release-config.outputs.creates_new_tag == 'true'
     steps: 
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:
           ref: 'master'
       - name: Get the latest commit SHA
@@ -137,7 +137,7 @@ jobs:
       && !contains(needs.*.result, 'failure')
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:
           ref: ${{ inputs.version_number }}
       - name: Set up Go
@@ -170,7 +170,7 @@ jobs:
       SILKBOMB_IMG: ${{ vars.SILKBOMB_IMG }}
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:
           ref: ${{ inputs.version_number }}
       - name: Generate SBOM
@@ -199,7 +199,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - uses: ./.github/templates/run-script-and-commit
         with:
           script_call: |

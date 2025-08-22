@@ -51,12 +51,6 @@ func DataSource() *schema.Resource {
 	}
 }
 
-func LegacyTeamsDataSource() *schema.Resource {
-	res := DataSource()
-	res.DeprecationMessage = fmt.Sprintf(constant.DeprecationDataSourceByDateWithReplacement, "November 2024", "mongodbatlas_team")
-	return res
-}
-
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	var (
 		/* Note: We continue using the legacy API for usernames endpoint due to behavioral differences

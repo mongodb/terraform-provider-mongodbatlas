@@ -38,7 +38,7 @@ resource "mongodbatlas_advanced_cluster" "my_cluster" {
   }]
 }
 
-resource "mongodbatlas_cloud_provider_snapshot" "test" {
+resource "mongodbatlas_cloud_backup_snapshot" "test" {
   project_id        = mongodbatlas_advanced_cluster.my_cluster.project_id
   cluster_name      = mongodbatlas_advanced_cluster.my_cluster.name
   description       = "myDescription"
@@ -46,9 +46,9 @@ resource "mongodbatlas_cloud_provider_snapshot" "test" {
 }
 
 resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
-  project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
-  cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
-  snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
+  project_id      = mongodbatlas_cloud_backup_snapshot.test.project_id
+  cluster_name    = mongodbatlas_cloud_backup_snapshot.test.cluster_name
+  snapshot_id     = mongodbatlas_cloud_backup_snapshot.test.snapshot_id
   delivery_type_config   {
     automated           = true
     target_cluster_name = "MyCluster"
@@ -79,7 +79,7 @@ resource "mongodbatlas_advanced_cluster" "my_cluster" {
   }]
 }
 
-resource "mongodbatlas_cloud_provider_snapshot" "test" {
+resource "mongodbatlas_cloud_backup_snapshot" "test" {
   project_id        = mongodbatlas_advanced_cluster.my_cluster.project_id
   cluster_name      = mongodbatlas_advanced_cluster.my_cluster.name
   description       = "myDescription"
@@ -87,9 +87,9 @@ resource "mongodbatlas_cloud_provider_snapshot" "test" {
 }
 
 resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
-  project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
-  cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
-  snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
+  project_id      = mongodbatlas_cloud_backup_snapshot.test.project_id
+  cluster_name    = mongodbatlas_cloud_backup_snapshot.test.cluster_name
+  snapshot_id     = mongodbatlas_cloud_backup_snapshot.test.snapshot_id
   delivery_type_config {
     download = true
   }
@@ -140,8 +140,8 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 ```
 
 ### Available complete examples
-- [Restore from backup snapshot at point in time](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_provider_snapshot_restore_job/point-in-time)
-- [Restore from backup snapshot using an advanced cluster resource](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_provider_snapshot_restore_job/point-in-time-advanced-cluster)
+- [Restore from backup snapshot at point in time](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_snapshot_restore_job/point-in-time)
+- [Restore from backup snapshot using an advanced cluster resource](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_snapshot_restore_job/point-in-time-advanced-cluster)
 
 ## Argument Reference
 
