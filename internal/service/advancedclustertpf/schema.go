@@ -44,11 +44,11 @@ func resourceSchema(ctx context.Context) schema.Schema {
 						Optional:            true,
 						MarkdownDescription: "Flag that indicates whether MongoDB Connector for Business Intelligence is enabled on the specified cluster.",
 					},
-					"read_preference": schema.StringAttribute{
-						Computed:            true,
-						Optional:            true,
-						MarkdownDescription: "Data source node designated for the MongoDB Connector for Business Intelligence on MongoDB Cloud. The MongoDB Connector for Business Intelligence on MongoDB Cloud reads data from the primary, secondary, or analytics node based on your read preferences. Defaults to `ANALYTICS` node, or `SECONDARY` if there are no `ANALYTICS` nodes.",
-					},
+					// "read_preference": schema.StringAttribute{
+					// 	Computed:            true,
+					// 	Optional:            true,
+					// 	MarkdownDescription: "Data source node designated for the MongoDB Connector for Business Intelligence on MongoDB Cloud. The MongoDB Connector for Business Intelligence on MongoDB Cloud reads data from the primary, secondary, or analytics node based on your read preferences. Defaults to `ANALYTICS` node, or `SECONDARY` if there are no `ANALYTICS` nodes.",
+					// },
 				},
 			},
 			"cluster_type": schema.StringAttribute{
@@ -203,11 +203,11 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "List of settings that configure your cluster regions. This array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"id": schema.StringAttribute{
-							DeprecationMessage:  deprecationMsgOldSchema("id"),
-							Computed:            true,
-							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the replication object for a shard in a Cluster. If you include existing shard replication configurations in the request, you must specify this parameter. If you add a new shard to an existing Cluster, you may specify this parameter. The request deletes any existing shards  in the Cluster that you exclude from the request. This corresponds to Shard ID displayed in the UI.",
-						},
+						// "id": schema.StringAttribute{
+						// 	DeprecationMessage:  deprecationMsgOldSchema("id"),
+						// 	Computed:            true,
+						// 	MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the replication object for a shard in a Cluster. If you include existing shard replication configurations in the request, you must specify this parameter. If you add a new shard to an existing Cluster, you may specify this parameter. The request deletes any existing shards  in the Cluster that you exclude from the request. This corresponds to Shard ID displayed in the UI.",
+						// },
 						"container_id": schema.MapAttribute{
 							ElementType:         types.StringType,
 							Computed:            true,
@@ -501,18 +501,18 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				Optional:            true,
 				MarkdownDescription: "Lifetime, in seconds, of multi-document transactions. Atlas considers the transactions that exceed this limit as expired and so aborts them through a periodic cleanup process.",
 			},
-			"default_read_concern": schema.StringAttribute{
-				DeprecationMessage:  deprecationMsgOldSchema("default_read_concern"),
-				Computed:            true,
-				Optional:            true,
-				MarkdownDescription: "Default level of acknowledgment requested from MongoDB for read operations set for this cluster.",
-			},
-			"fail_index_key_too_long": schema.BoolAttribute{
-				DeprecationMessage:  deprecationMsgOldSchema("fail_index_key_too_long"),
-				Computed:            true,
-				Optional:            true,
-				MarkdownDescription: "When true, documents can only be updated or inserted if, for all indexed fields on the target collection, the corresponding index entries do not exceed 1024 bytes. When false, mongod writes documents that exceed the limit but does not index them.",
-			},
+			// "default_read_concern": schema.StringAttribute{
+			// 	DeprecationMessage:  deprecationMsgOldSchema("default_read_concern"),
+			// 	Computed:            true,
+			// 	Optional:            true,
+			// 	MarkdownDescription: "Default level of acknowledgment requested from MongoDB for read operations set for this cluster.",
+			// },
+			// "fail_index_key_too_long": schema.BoolAttribute{
+			// 	DeprecationMessage:  deprecationMsgOldSchema("fail_index_key_too_long"),
+			// 	Computed:            true,
+			// 	Optional:            true,
+			// 	MarkdownDescription: "When true, documents can only be updated or inserted if, for all indexed fields on the target collection, the corresponding index entries do not exceed 1024 bytes. When false, mongod writes documents that exceed the limit but does not index them.",
+			// },
 			"default_max_time_ms": schema.Int64Attribute{
 				Computed:            true,
 				Optional:            true,
@@ -612,13 +612,13 @@ type TFModelPluralDS struct {
 }
 
 type TFBiConnectorModel struct {
-	ReadPreference types.String `tfsdk:"read_preference"`
+	// ReadPreference types.String `tfsdk:"read_preference"`
 	Enabled        types.Bool   `tfsdk:"enabled"`
 }
 
 var BiConnectorConfigObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"enabled":         types.BoolType,
-	"read_preference": types.StringType,
+	// "read_preference": types.StringType,
 }}
 
 type TFConnectionStringsModel struct {
@@ -668,7 +668,7 @@ var EndpointsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 type TFReplicationSpecsModel struct {
 	RegionConfigs types.List   `tfsdk:"region_configs"`
 	ContainerId   types.Map    `tfsdk:"container_id"`
-	Id            types.String `tfsdk:"id"`
+	// Id            types.String `tfsdk:"id"`
 	ExternalId    types.String `tfsdk:"external_id"`
 	ZoneId        types.String `tfsdk:"zone_id"`
 	ZoneName      types.String `tfsdk:"zone_name"`
@@ -676,7 +676,7 @@ type TFReplicationSpecsModel struct {
 }
 
 var ReplicationSpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"id":           types.StringType,
+	// "id":           types.StringType,
 	"container_id": types.MapType{ElemType: types.StringType},
 	"external_id":  types.StringType,
 	// "num_shards":     types.Int64Type,
@@ -746,7 +746,7 @@ type TFAdvancedConfigurationModel struct {
 	CustomOpensslCipherConfigTls12                        types.Set     `tfsdk:"custom_openssl_cipher_config_tls12"`
 	MinimumEnabledTlsProtocol                             types.String  `tfsdk:"minimum_enabled_tls_protocol"`
 	DefaultWriteConcern                                   types.String  `tfsdk:"default_write_concern"`
-	DefaultReadConcern                                    types.String  `tfsdk:"default_read_concern"`
+	// DefaultReadConcern                                    types.String  `tfsdk:"default_read_concern"`
 	TlsCipherConfigMode                                   types.String  `tfsdk:"tls_cipher_config_mode"`
 	SampleRefreshIntervalBiconnector                      types.Int64   `tfsdk:"sample_refresh_interval_bi_connector"`
 	SampleSizeBiconnector                                 types.Int64   `tfsdk:"sample_size_bi_connector"`
@@ -756,14 +756,14 @@ type TFAdvancedConfigurationModel struct {
 	ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds types.Int64   `tfsdk:"change_stream_options_pre_and_post_images_expire_after_seconds"`
 	JavascriptEnabled                                     types.Bool    `tfsdk:"javascript_enabled"`
 	NoTableScan                                           types.Bool    `tfsdk:"no_table_scan"`
-	FailIndexKeyTooLong                                   types.Bool    `tfsdk:"fail_index_key_too_long"`
+	// FailIndexKeyTooLong                                   types.Bool    `tfsdk:"fail_index_key_too_long"`
 }
 
 var AdvancedConfigurationObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"change_stream_options_pre_and_post_images_expire_after_seconds": types.Int64Type,
-	"default_read_concern":                 types.StringType,
+	// "default_read_concern":                 types.StringType,
 	"default_write_concern":                types.StringType,
-	"fail_index_key_too_long":              types.BoolType,
+	// "fail_index_key_too_long":              types.BoolType,
 	"javascript_enabled":                   types.BoolType,
 	"minimum_enabled_tls_protocol":         types.StringType,
 	"no_table_scan":                        types.BoolType,

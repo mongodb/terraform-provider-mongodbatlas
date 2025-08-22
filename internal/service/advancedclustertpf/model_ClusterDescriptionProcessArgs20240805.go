@@ -15,7 +15,7 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *ProcessArgs
 	var advancedConfig TFAdvancedConfigurationModel
 	var customCipherConfig *[]string
 
-	if input.ArgsDefault != nil && input.ArgsLegacy != nil {
+	if input.ArgsDefault != nil {
 		// Using the new API as source of Truth, only use `inputLegacy` for fields not in `input`
 		changeStreamOptionsPreAndPostImagesExpireAfterSeconds := input.ArgsDefault.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds
 		if changeStreamOptionsPreAndPostImagesExpireAfterSeconds == nil {
@@ -23,22 +23,22 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *ProcessArgs
 			changeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.Pointer(-1)
 		}
 		// When MongoDBMajorVersion is not 4.4 or lower, the API response for fail_index_key_too_long will always be null, to ensure no consistency issues, we need to match the config
-		failIndexKeyTooLong := input.ArgsLegacy.GetFailIndexKeyTooLong()
+		// failIndexKeyTooLong := input.ArgsLegacy.GetFailIndexKeyTooLong()
 		if tfModel != nil {
-			stateConfig := tfModel.AdvancedConfiguration
-			stateConfigSDK := NewAtlasReqAdvancedConfigurationLegacy(ctx, &stateConfig, diags)
-			if diags.HasError() {
-				return
-			}
-			if stateConfigSDK != nil && stateConfigSDK.GetFailIndexKeyTooLong() != failIndexKeyTooLong {
-				failIndexKeyTooLong = stateConfigSDK.GetFailIndexKeyTooLong()
-			}
+			// stateConfig := tfModel.AdvancedConfiguration
+			// stateConfigSDK := NewAtlasReqAdvancedConfigurationLegacy(ctx, &stateConfig, diags)
+			// if diags.HasError() {
+			// 	return
+			// }
+			// if stateConfigSDK != nil && stateConfigSDK.GetFailIndexKeyTooLong() != failIndexKeyTooLong {
+			// 	failIndexKeyTooLong = stateConfigSDK.GetFailIndexKeyTooLong()
+			// }
 		}
 		advancedConfig = TFAdvancedConfigurationModel{
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: types.Int64PointerValue(conversion.IntPtrToInt64Ptr(changeStreamOptionsPreAndPostImagesExpireAfterSeconds)),
 			DefaultWriteConcern:              types.StringValue(conversion.SafeValue(input.ArgsDefault.DefaultWriteConcern)),
-			DefaultReadConcern:               types.StringValue(conversion.SafeValue(input.ArgsLegacy.DefaultReadConcern)),
-			FailIndexKeyTooLong:              types.BoolValue(failIndexKeyTooLong),
+			// DefaultReadConcern:               types.StringValue(conversion.SafeValue(input.ArgsLegacy.DefaultReadConcern)),
+			// FailIndexKeyTooLong:              types.BoolValue(failIndexKeyTooLong),
 			JavascriptEnabled:                types.BoolValue(conversion.SafeValue(input.ArgsDefault.JavascriptEnabled)),
 			NoTableScan:                      types.BoolValue(conversion.SafeValue(input.ArgsDefault.NoTableScan)),
 			OplogMinRetentionHours:           types.Float64Value(conversion.SafeValue(input.ArgsDefault.OplogMinRetentionHours)),

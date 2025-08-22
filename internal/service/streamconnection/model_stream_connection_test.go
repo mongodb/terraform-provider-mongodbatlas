@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
-	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 )
 
 const (
@@ -645,7 +647,7 @@ func tfNetworkingObject(t *testing.T, networkingType string, connectionID *strin
 	t.Helper()
 	networkingAccessModel, diags := types.ObjectValueFrom(t.Context(), streamconnection.NetworkingAccessObjectType.AttrTypes, streamconnection.TFNetworkingAccessModel{
 		Type:         types.StringValue(networkingType),
-		ConnectionID: types.StringPointerValue(connectionID),
+		// ConnectionID: types.StringPointerValue(connectionID),
 	})
 	if diags.HasError() {
 		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())

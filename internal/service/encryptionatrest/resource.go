@@ -120,14 +120,14 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 				Validators:          []validator.List{listvalidator.SizeAtMost(1)},
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
-						"enabled": schema.BoolAttribute{
-							Optional: true,
-							Computed: true,
-							PlanModifiers: []planmodifier.Bool{
-								boolplanmodifier.UseStateForUnknown(),
-							},
-							MarkdownDescription: "Flag that indicates whether someone enabled encryption at rest for the specified project through Amazon Web Services (AWS) Key Management Service (KMS). To disable encryption at rest using customer key management and remove the configuration details, pass only this parameter with a value of `false`.",
-						},
+						// "enabled": schema.BoolAttribute{
+						// 	Optional: true,
+						// 	Computed: true,
+						// 	PlanModifiers: []planmodifier.Bool{
+						// 		boolplanmodifier.UseStateForUnknown(),
+						// 	},
+						// 	MarkdownDescription: "Flag that indicates whether someone enabled encryption at rest for the specified project through Amazon Web Services (AWS) Key Management Service (KMS). To disable encryption at rest using customer key management and remove the configuration details, pass only this parameter with a value of `false`.",
+						// },
 						"access_key_id": schema.StringAttribute{
 							Optional:            true,
 							Sensitive:           true,

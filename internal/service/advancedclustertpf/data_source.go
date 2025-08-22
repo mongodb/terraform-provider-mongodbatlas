@@ -76,7 +76,7 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		return nil
 	}
 	updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, &ProcessArgs{
-		ArgsLegacy:            nil,
+		// ArgsLegacy:            nil,
 		ArgsDefault:           nil,
 		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
 	})

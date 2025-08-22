@@ -22,8 +22,8 @@ import (
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
 var _ resource.ResourceWithMoveState = &rs{}
-var _ resource.ResourceWithUpgradeState = &rs{}
-var _ resource.ResourceWithModifyPlan = &rs{}
+// var _ resource.ResourceWithUpgradeState = &rs{}
+// var _ resource.ResourceWithModifyPlan = &rs{}
 
 const (
 	resourceName                  = "advanced_cluster"
@@ -95,24 +95,24 @@ type rs struct {
 // Why do we need this? Why can't we use planmodifier.UseStateForUnknown in different fields?
 // 1. UseStateForUnknown always copies the state for unknown values. However, that leads to `Error: Provider produced inconsistent result after apply` in some cases (see implementation below).
 // 2. Adding the different UseStateForUnknown is very verbose.
-func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() || req.Plan.Raw.IsFullyKnown() { // Return early unless it is an Update
-		return
-	}
-	var plan, state TFModel
-	diags := &resp.Diagnostics
-	diags.Append(req.Plan.Get(ctx, &plan)...)
-	diags.Append(req.State.Get(ctx, &state)...)
-	if diags.HasError() {
-		return
-	}
+// func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+// 	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() || req.Plan.Raw.IsFullyKnown() { // Return early unless it is an Update
+// 		return
+// 	}
+// 	var plan, state TFModel
+// 	diags := &resp.Diagnostics
+// 	diags.Append(req.Plan.Get(ctx, &plan)...)
+// 	diags.Append(req.State.Get(ctx, &state)...)
+// 	if diags.HasError() {
+// 		return
+// 	}
 
-	useStateForUnknowns(ctx, diags, &state, &plan)
-	if diags.HasError() {
-		return
-	}
-	diags.Append(resp.Plan.Set(ctx, plan)...)
-}
+// 	useStateForUnknowns(ctx, diags, &state, &plan)
+// 	if diags.HasError() {
+// 		return
+// 	}
+// 	diags.Append(resp.Plan.Set(ctx, plan)...)
+// }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = resourceSchema(ctx)
@@ -163,16 +163,16 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 
 	emptyAdvancedConfiguration := types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
 	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
-	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
+	// patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
 	if diags.HasError() {
 		return
 	}
 	p := &ProcessArgs{
-		ArgsLegacy:            patchReqProcessArgsLegacy,
+		// ArgsLegacy:            patchReqProcessArgsLegacy,
 		ArgsDefault:           patchReqProcessArgs,
 		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
 	}
-	legacyAdvConfig, advConfig, _ := UpdateAdvancedConfiguration(ctx, diags, r.Client, p, waitParams)
+	_, advConfig, _ := UpdateAdvancedConfiguration(ctx, diags, r.Client, p, waitParams)
 	if diags.HasError() {
 		return
 	}
@@ -187,10 +187,10 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	legacyAdvConfig, advConfig = ReadIfUnsetAdvancedConfiguration(ctx, diags, r.Client, waitParams.ProjectID, waitParams.ClusterName, legacyAdvConfig, advConfig)
+	_, advConfig = ReadIfUnsetAdvancedConfiguration(ctx, diags, r.Client, waitParams.ProjectID, waitParams.ClusterName, advConfig)
 
 	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
-		ArgsLegacy:            legacyAdvConfig,
+		// ArgsLegacy:            legacyAdvConfig,
 		ArgsDefault:           advConfig,
 		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
 	})
@@ -230,7 +230,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
-		ArgsLegacy:            nil,
+		// ArgsLegacy:            nil,
 		ArgsDefault:           nil,
 		ClusterAdvancedConfig: cluster.AdvancedConfiguration,
 	})
@@ -304,22 +304,22 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
-	patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
+	// patchReqProcessArgsLegacy := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfigurationLegacy)
 	if diags.HasError() {
 		return
 	}
 	p := &ProcessArgs{
-		ArgsLegacy:            patchReqProcessArgsLegacy,
+		// ArgsLegacy:            patchReqProcessArgsLegacy,
 		ArgsDefault:           patchReqProcessArgs,
 		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
 	}
-	legacyAdvConfig, advConfig, advConfigChanged := UpdateAdvancedConfiguration(ctx, diags, r.Client, p, waitParams)
+	_, advConfig, advConfigChanged := UpdateAdvancedConfiguration(ctx, diags, r.Client, p, waitParams)
 	if diags.HasError() {
 		return
 	}
 	if advConfigChanged {
 		updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
-			ArgsLegacy:            legacyAdvConfig,
+			// ArgsLegacy:            legacyAdvConfig,
 			ArgsDefault:           advConfig,
 			ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
 		})
@@ -483,12 +483,12 @@ func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, cli
 	p *ProcessArgs) {
 	projectID := model.ProjectID.ValueString()
 	clusterName := model.Name.ValueString()
-	legacyAdvConfig, advConfig := ReadIfUnsetAdvancedConfiguration(ctx, diags, client, projectID, clusterName, p.ArgsLegacy, p.ArgsDefault)
+	 _, advConfig := ReadIfUnsetAdvancedConfiguration(ctx, diags, client, projectID, clusterName, p.ArgsDefault)
 	if diags.HasError() {
 		return
 	}
 	p.ArgsDefault = advConfig
-	p.ArgsLegacy = legacyAdvConfig
+	// p.ArgsLegacy = legacyAdvConfig
 
 	AddAdvancedConfig(ctx, model, p, diags)
 }

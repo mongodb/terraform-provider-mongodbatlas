@@ -87,12 +87,12 @@ var DBRoleToExecuteObjectType = types.ObjectType{AttrTypes: map[string]attr.Type
 
 type TFNetworkingAccessModel struct {
 	Type         types.String `tfsdk:"type"`
-	ConnectionID types.String `tfsdk:"connection_id"`
+	// ConnectionID types.String `tfsdk:"connection_id"`
 }
 
 var NetworkingAccessObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"type":          types.StringType,
-	"connection_id": types.StringType,
+	// "connection_id": types.StringType,
 }}
 
 type TFNetworkingModel struct {
