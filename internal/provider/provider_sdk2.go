@@ -44,10 +44,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/orginvitation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privateendpointregionalmode"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpoint"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointserverless"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointservice"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointservicedatafederationonlinearchive"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointserviceserverless"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectinvitation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/rolesorgid"
@@ -160,8 +158,6 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archives": privatelinkendpointservicedatafederationonlinearchive.PluralDataSource(),
 		"mongodbatlas_privatelink_endpoint":                                         privatelinkendpoint.DataSource(),
 		"mongodbatlas_privatelink_endpoint_service":                                 privatelinkendpointservice.DataSource(),
-		"mongodbatlas_privatelink_endpoint_service_serverless":                      privatelinkendpointserviceserverless.DataSource(),
-		"mongodbatlas_privatelink_endpoints_service_serverless":                     privatelinkendpointserviceserverless.PluralDataSource(),
 		"mongodbatlas_third_party_integration":                                      thirdpartyintegration.DataSource(),
 		"mongodbatlas_third_party_integrations":                                     thirdpartyintegration.PluralDataSource(),
 		"mongodbatlas_cloud_provider_access_setup":                                  cloudprovideraccess.DataSourceSetup(),
@@ -231,9 +227,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_private_endpoint_regional_mode":                              privateendpointregionalmode.Resource(),
 		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archive": privatelinkendpointservicedatafederationonlinearchive.Resource(),
 		"mongodbatlas_privatelink_endpoint":                                        privatelinkendpoint.Resource(),
-		"mongodbatlas_privatelink_endpoint_serverless":                             privatelinkendpointserverless.Resource(),
 		"mongodbatlas_privatelink_endpoint_service":                                privatelinkendpointservice.Resource(),
-		"mongodbatlas_privatelink_endpoint_service_serverless":                     privatelinkendpointserviceserverless.Resource(),
 		"mongodbatlas_third_party_integration":                                     thirdpartyintegration.Resource(),
 		"mongodbatlas_online_archive":                                              onlinearchive.Resource(),
 		"mongodbatlas_custom_dns_configuration_cluster_aws":                        customdnsconfigurationclusteraws.Resource(),
