@@ -4,14 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 )
 
 func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) (*admin.StreamsConnection, diag.Diagnostics) {
@@ -75,8 +73,8 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 		}
 		streamConnection.Networking = &admin.StreamsKafkaNetworking{
 			Access: &admin.StreamsKafkaNetworkingAccess{
-				Type: networkingAccessModel.Type.ValueStringPointer(),
-				// ConnectionId: networkingAccessModel.ConnectionID.ValueStringPointer(),
+				Type:         networkingAccessModel.Type.ValueStringPointer(),
+				ConnectionId: networkingAccessModel.ConnectionID.ValueStringPointer(),
 			},
 		}
 	}
@@ -175,8 +173,8 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName string, cur
 	connectionModel.Networking = types.ObjectNull(NetworkingObjectType.AttrTypes)
 	if apiResp.Networking != nil {
 		networkingAccessModel, diags := types.ObjectValueFrom(ctx, NetworkingAccessObjectType.AttrTypes, TFNetworkingAccessModel{
-			Type: types.StringPointerValue(apiResp.Networking.Access.Type),
-			// ConnectionID: types.StringPointerValue(apiResp.Networking.Access.ConnectionId),
+			Type:         types.StringPointerValue(apiResp.Networking.Access.Type),
+			ConnectionID: types.StringPointerValue(apiResp.Networking.Access.ConnectionId),
 		})
 		if diags.HasError() {
 			return nil, diags
