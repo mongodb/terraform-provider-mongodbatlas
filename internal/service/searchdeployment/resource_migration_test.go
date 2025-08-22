@@ -11,7 +11,7 @@ import (
 func TestMigSearchDeployment_basic(t *testing.T) {
 	var (
 		resourceName           = "mongodbatlas_search_deployment.test"
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)
 		instanceSize           = "S30_HIGHCPU_NVME"
 		searchNodeCount        = 3
 		config                 = configBasic(projectID, clusterName, instanceSize, searchNodeCount, false)

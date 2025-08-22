@@ -80,11 +80,8 @@ func ProjectIDExecution(tb testing.TB) string {
 	return sharedInfo.projectID
 }
 
-// ProjectIDExecutionWithCluster creates a project and reuses it respecting `MaxClusterNodesPerProject` and `MaxFreeTierClusterCount` restrictions. The clusterName is always unique.
-// TotalNodeCount = sum(specs.node_count) * num_shards (1 if new schema)
-// This avoids `CROSS_REGION_NETWORK_PERMISSIONS_LIMIT_EXCEEDED` and `project has reached the limit for the number of free clusters` errors when creating too many clusters within the same project.
-// When `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_CLUSTER_NAME` are defined, they are used instead of creating a project and clusterName.
-func ProjectIDExecutionWithCluster(tb testing.TB, totalNodeCount, freeTierClusterCount int) (projectID, clusterName string) {
+// ProjectIDExecutionWithFreeCluster is identical to ProjectIDExecutionWithCluster but also contemplates the restriction of `MaxFreeTierClusterCount`
+func ProjectIDExecutionWithFreeCluster(tb testing.TB, totalNodeCount, freeTierClusterCount int) (projectID, clusterName string) {
 	tb.Helper()
 	if ExistingClusterUsed() {
 		return existingProjectIDClusterName()
@@ -95,6 +92,15 @@ func ProjectIDExecutionWithCluster(tb testing.TB, totalNodeCount, freeTierCluste
 	return NextProjectIDClusterName(totalNodeCount, freeTierClusterCount, func(projectName string) string {
 		return createProject(tb, projectName)
 	})
+}
+
+// ProjectIDExecutionWithCluster creates a project and reuses it with other tests respecting `MaxClusterNodesPerProject` restrictions. The clusterName is always unique.
+// TotalNodeCount = sum(specs.node_count) * num_shards (1 if new schema)
+// This avoids `CROSS_REGION_NETWORK_PERMISSIONS_LIMIT_EXCEEDED` and `project has reached the limit for the number of free clusters` errors when creating too many clusters within the same project.
+// When `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_CLUSTER_NAME` are defined, they are used instead of creating a project and clusterName.
+func ProjectIDExecutionWithCluster(tb testing.TB, totalNodeCount int) (projectID, clusterName string) {
+	tb.Helper()
+	return ProjectIDExecutionWithFreeCluster(tb, totalNodeCount, 0)
 }
 
 // ClusterNameExecution returns the name of a created cluster for the execution of the tests in the resource package.

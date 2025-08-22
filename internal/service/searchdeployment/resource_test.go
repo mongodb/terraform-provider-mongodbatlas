@@ -33,7 +33,7 @@ func importStep(tfConfig string) resource.TestStep {
 }
 func TestAccSearchDeployment_basic(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)
 		updateStep             = newSearchNodeTestStep(resourceID, projectID, clusterName, "S30_HIGHCPU_NVME", 4)
 		updateStepNoWait       = configBasic(projectID, clusterName, "S30_HIGHCPU_NVME", 4, true)
 	)
@@ -68,7 +68,7 @@ func TestAccSearchDeployment_timeoutTest(t *testing.T) {
 		`
 		timeoutsStrLong        = strings.ReplaceAll(timeoutsStrShort, "90s", "6000s")
 		timeoutsStrLongFalse   = strings.ReplaceAll(timeoutsStrLong, "true", "false")
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)
 		configWithTimeout      = func(timeoutsStr string) string {
 			normalConfig := configBasic(projectID, clusterName, "S20_HIGHCPU_NVME", 3, false)
 			configWithTimeout := acc.ConfigAddResourceStr(t, normalConfig, resourceID, timeoutsStr)

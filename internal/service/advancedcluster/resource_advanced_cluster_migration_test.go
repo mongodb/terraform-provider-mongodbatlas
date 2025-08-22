@@ -76,7 +76,7 @@ func TestMigAdvancedCluster_replicaSetAWSProviderUpdate(t *testing.T) {
 
 func TestMigAdvancedCluster_geoShardedOldSchemaUpdate(t *testing.T) {
 	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 12, 0)
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 12)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
@@ -99,7 +99,7 @@ func TestMigAdvancedCluster_geoShardedOldSchemaUpdate(t *testing.T) {
 func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
 	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
 
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8, 0)
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
@@ -121,7 +121,7 @@ func TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
 
 func TestMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) {
 	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8, 0)
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t) },
@@ -231,7 +231,7 @@ func TestMigAdvancedCluster_partialAdvancedConf(t *testing.T) {
 
 func TestMigAdvancedCluster_newSchemaFromAutoscalingDisabledToEnabled(t *testing.T) {
 	acc.SkipIfAdvancedClusterV2Schema(t) // This test is specific to the legacy schema
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8, 0)
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     acc.PreCheckBasicSleep(t, nil, projectID, clusterName),

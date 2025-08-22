@@ -153,17 +153,17 @@ func testAccAdvancedClusterFlexUpgrade(t *testing.T, projectID, clusterName, ins
 }
 
 func TestAccAdvancedCluster_basicTenant_flexUpgrade_dedicatedUpgrade(t *testing.T) {
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 3, 1)
+	projectID, clusterName := acc.ProjectIDExecutionWithFreeCluster(t, 3, 1)
 	resource.ParallelTest(t, testAccAdvancedClusterFlexUpgrade(t, projectID, clusterName, freeInstanceSize, true))
 }
 
 func TestAccAdvancedCluster_sharedTier_flexUpgrade(t *testing.T) {
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 1, 0)
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 1)
 	resource.ParallelTest(t, testAccAdvancedClusterFlexUpgrade(t, projectID, clusterName, sharedInstanceSize, false))
 }
 func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3, 1)
+		projectID, clusterName = acc.ProjectIDExecutionWithFreeCluster(t, 3, 1)
 		defaultZoneName        = "Zone 1" // Uses backend default to avoid non-empty plan, see CLOUDP-294339
 	)
 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
@@ -191,7 +191,7 @@ func TestAccClusterAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 func replicaSetAWSProviderTestCase(t *testing.T, usePreviewProvider bool) resource.TestCase {
 	t.Helper()
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)
 	)
 
 	return resource.TestCase{
@@ -284,7 +284,7 @@ func TestAccClusterAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
 func singleShardedMultiCloudTestCase(t *testing.T, usePreviewProvider bool) resource.TestCase {
 	t.Helper()
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 7, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 7)
 		clusterNameUpdated     = acc.RandomClusterName()
 	)
 
@@ -308,7 +308,7 @@ func singleShardedMultiCloudTestCase(t *testing.T, usePreviewProvider bool) reso
 
 func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
 		instanceSize           = "M10"
 		anotherInstanceSize    = "M20"
 	)
@@ -337,7 +337,7 @@ func TestAccClusterAdvancedCluster_unpausedToPaused(t *testing.T) {
 
 func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
 		instanceSize           = "M10"
 	)
 
@@ -368,7 +368,7 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 
 func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
 
 		processArgs20240530 = &admin20240530.ClusterDescriptionProcessArgs{
 			DefaultReadConcern:               conversion.StringPtr("available"),
@@ -413,7 +413,7 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 
 func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
 		clusterNameUpdated     = acc.RandomClusterName()
 		processArgs20240530    = &admin20240530.ClusterDescriptionProcessArgs{
 			DefaultReadConcern:               conversion.StringPtr("available"),
@@ -481,7 +481,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 
 func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
 		clusterNameUpdated     = acc.RandomClusterName()
 		processArgs            = &admin20240530.ClusterDescriptionProcessArgs{
 			DefaultReadConcern:               conversion.StringPtr("available"),
@@ -526,7 +526,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
 		autoScaling            = &admin.AdvancedAutoScalingSettings{
 			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(false), MaxInstanceSize: conversion.StringPtr("")},
 			DiskGB:  &admin.DiskGBAutoScaling{Enabled: conversion.Pointer(true)},
@@ -584,7 +584,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAutoScaling(t *testing.
 
 func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
 		clusterNameUpdated     = acc.RandomClusterName()
 		autoScaling            = &admin.AdvancedAutoScalingSettings{
 			Compute: &admin.AdvancedComputeAutoScaling{Enabled: conversion.Pointer(false), MaxInstanceSize: conversion.StringPtr("")},
@@ -636,7 +636,7 @@ func TestAccClusterAdvancedClusterConfig_replicationSpecsAnalyticsAutoScaling(t 
 }
 
 func TestAccClusterAdvancedClusterConfig_singleShardedTransitionToOldSchemaExpectsError(t *testing.T) {
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 9, 0)
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 9)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -735,7 +735,7 @@ func TestAccClusterAdvancedCluster_withLabelIgnored(t *testing.T) {
 
 func TestAccClusterAdvancedClusterConfig_selfManagedSharding(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)
 		checks                 = []resource.TestCheckFunc{
 			acc.CheckExistsCluster(resourceName),
 			acc.TestCheckResourceAttrPreviewProviderV2(true, resourceName, "global_cluster_self_managed_sharding", "true"),
@@ -764,7 +764,7 @@ func TestAccClusterAdvancedClusterConfig_selfManagedSharding(t *testing.T) {
 
 func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -782,7 +782,7 @@ func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *tes
 
 func TestAccMockableAdvancedCluster_symmetricShardedOldSchema(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 12, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 12)
 	)
 
 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
@@ -809,7 +809,7 @@ func TestAccClusterAdvancedClusterConfig_symmetricGeoShardedOldSchema(t *testing
 
 func symmetricGeoShardedOldSchemaTestCase(t *testing.T, usePreviewProvider bool) resource.TestCase {
 	t.Helper()
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 18, 0)
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 18)
 
 	return resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -834,7 +834,7 @@ func symmetricGeoShardedOldSchemaTestCase(t *testing.T, usePreviewProvider bool)
 }
 
 func TestAccMockableAdvancedCluster_symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) {
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 6, 0)
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 6)
 
 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -933,7 +933,7 @@ func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchemaInconsistentD
 }
 
 func TestAccClusterAdvancedClusterConfig_asymmetricGeoShardedNewSchemaAddingRemovingShard(t *testing.T) {
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 9, 0)
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 9)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -957,7 +957,7 @@ func TestAccClusterAdvancedClusterConfig_asymmetricGeoShardedNewSchemaAddingRemo
 }
 
 func TestAccClusterAdvancedClusterConfig_shardedTransitionFromOldToNewSchema(t *testing.T) {
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8, 0)
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -980,7 +980,7 @@ func TestAccClusterAdvancedClusterConfig_shardedTransitionFromOldToNewSchema(t *
 }
 
 func TestAccClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSchema(t *testing.T) {
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8, 0)
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -1064,7 +1064,7 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogDataOldSc
 
 // TestAccClusterAdvancedCluster_priorityOldSchema will be able to be simplied or deleted in CLOUDP-275825
 func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 6, 0)
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 6)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -1094,7 +1094,7 @@ func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
 
 // TestAccClusterAdvancedCluster_priorityNewSchema will be able to be simplied or deleted in CLOUDP-275825
 func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 3, 0)
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 3)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -1123,7 +1123,7 @@ func TestAccClusterAdvancedCluster_priorityNewSchema(t *testing.T) {
 
 func TestAccClusterAdvancedCluster_biConnectorConfig(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
@@ -1197,7 +1197,7 @@ func TestAccClusterAdvancedCluster_pinnedFCVWithVersionUpgradeAndDowngrade(t *te
 }
 
 func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8, 0)
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
@@ -1218,7 +1218,7 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
 }
 
 func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabledToEnabled(t *testing.T) {
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8, 0)
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
@@ -1244,7 +1244,7 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabledToEnabled(t *te
 
 func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
 		checksMap              = map[string]string{
 			"state_name": "IDLE",
 		}
@@ -1337,7 +1337,7 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 
 func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 8, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 8)
 		checksMap              = map[string]string{
 			"state_name": "IDLE",
 			"project_id": projectID,
@@ -1389,7 +1389,7 @@ func TestAccAdvancedCluster_removeBlocksFromConfig(t *testing.T) {
 		t.Skip("This test is not applicable for SDKv2")
 	}
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 15, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 15)
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -1411,7 +1411,7 @@ func TestAccAdvancedCluster_removeBlocksFromConfig(t *testing.T) {
 
 func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateReplicaset(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
 		configCall             = func(t *testing.T, timeoutSection string) string {
 			t.Helper()
 			return configBasicReplicaset(t, projectID, clusterName, "", timeoutSection)
@@ -1436,7 +1436,7 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateReplicaset(t *testing
 
 func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateFlex(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1)
 		configCall             = func(t *testing.T, timeoutSection string) string {
 			t.Helper()
 			return acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, fmt.Sprintf(`

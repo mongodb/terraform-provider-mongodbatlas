@@ -30,7 +30,7 @@ func TestAccCluster_basicAWS_simple(t *testing.T) {
 
 func basicTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
-	var projectID, clusterName = acc.ProjectIDExecutionWithCluster(tb, 3, 0)
+	var projectID, clusterName = acc.ProjectIDExecutionWithCluster(tb, 3)
 	return &resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(tb, nil, projectID, clusterName),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -84,7 +84,7 @@ func TestAccCluster_partial_advancedConf(t *testing.T) {
 }
 func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
-	var projectID, clusterName = acc.ProjectIDExecutionWithCluster(tb, 3, 0)
+	var projectID, clusterName = acc.ProjectIDExecutionWithCluster(tb, 3)
 	return &resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(tb, nil, projectID, clusterName),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -156,7 +156,7 @@ func partialAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 
 func basicDefaultWriteReadAdvancedConfTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
-	var projectID, clusterName = acc.ProjectIDExecutionWithCluster(tb, 3, 0)
+	var projectID, clusterName = acc.ProjectIDExecutionWithCluster(tb, 3)
 
 	return &resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(tb, nil, projectID, clusterName),
@@ -221,7 +221,7 @@ func TestAccCluster_basic_DefaultWriteRead_AdvancedConf(t *testing.T) {
 }
 
 func TestAccCluster_emptyAdvancedConf(t *testing.T) {
-	var projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3, 0)
+	var projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -261,7 +261,7 @@ func TestAccCluster_emptyAdvancedConf(t *testing.T) {
 }
 
 func TestAccCluster_basicAdvancedConf(t *testing.T) {
-	var projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3, 0)
+	var projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -331,7 +331,7 @@ func TestAccCluster_basicAdvancedConf(t *testing.T) {
 func TestAccCluster_basicAzure(t *testing.T) {
 	var (
 		resourceName           = "mongodbatlas_cluster.basic_azure"
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -368,7 +368,7 @@ func TestAccCluster_basicAzure(t *testing.T) {
 func TestAccCluster_basicGCP(t *testing.T) {
 	var (
 		resourceName           = "mongodbatlas_cluster.basic_gcp"
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -407,7 +407,7 @@ func TestAccCluster_basicGCP(t *testing.T) {
 func TestAccCluster_WithBiConnectorGCP(t *testing.T) {
 	var (
 		resourceName           = "mongodbatlas_cluster.basic_gcp"
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -448,7 +448,7 @@ func TestAccCluster_WithBiConnectorGCP(t *testing.T) {
 func TestAccCluster_MultiRegion(t *testing.T) {
 	var (
 		resourceName           = "mongodbatlas_cluster.multi_region"
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 7, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 7)
 	)
 
 	createRegionsConfig := `regions_config {
@@ -519,7 +519,7 @@ func TestAccCluster_MultiRegion(t *testing.T) {
 func TestAccCluster_ProviderRegionName(t *testing.T) {
 	var (
 		resourceName           = "mongodbatlas_cluster.multi_region"
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 7, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 7)
 	)
 
 	updatedRegionsConfig := `regions_config {
@@ -585,7 +585,7 @@ func TestAccCluster_ProviderRegionName(t *testing.T) {
 }
 
 func TestAccCluster_Global(t *testing.T) {
-	var projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 12, 0)
+	var projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 12)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -616,7 +616,7 @@ func TestAccCluster_Global(t *testing.T) {
 func TestAccCluster_AWSWithLabels(t *testing.T) {
 	var (
 		resourceName           = "mongodbatlas_cluster.aws_with_labels"
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -968,7 +968,7 @@ func TestAccCluster_withGCPAndContainerID(t *testing.T) {
 
 func TestAccCluster_withAutoScalingAWS(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
 
 		instanceSize = "M30"
 		minSize      = ""
@@ -1022,7 +1022,7 @@ func TestAccCluster_withAutoScalingAWS(t *testing.T) {
 func TestAccCluster_tenant(t *testing.T) {
 	var (
 		resourceName           = "mongodbatlas_cluster.tenant"
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1057,7 +1057,7 @@ func TestAccCluster_tenant(t *testing.T) {
 func TestAccCluster_tenant_m5(t *testing.T) {
 	var (
 		resourceName           = "mongodbatlas_cluster.tenant"
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -1081,7 +1081,7 @@ func TestAccCluster_tenant_m5(t *testing.T) {
 
 func TestAccCluster_basicGCPRegionNameWesternUS(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
 		regionName             = "WESTERN_US"
 	)
 
@@ -1104,7 +1104,7 @@ func TestAccCluster_basicGCPRegionNameWesternUS(t *testing.T) {
 
 func TestAccCluster_basicGCPRegionNameUSWest2(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
 		regionName             = "US_WEST_2"
 	)
 
@@ -1127,7 +1127,7 @@ func TestAccCluster_basicGCPRegionNameUSWest2(t *testing.T) {
 
 func TestAccCluster_RegionsConfig(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 9, 0)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 9)
 	)
 
 	replications := `replication_specs {
@@ -1242,7 +1242,7 @@ func TestAccCluster_RegionsConfig(t *testing.T) {
 }
 
 func TestAccCluster_basicAWS_UnpauseToPaused(t *testing.T) {
-	var projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3, 0)
+	var projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
@@ -1281,7 +1281,7 @@ func TestAccCluster_basicAWS_UnpauseToPaused(t *testing.T) {
 }
 
 func TestAccCluster_basicAWS_PausedToUnpaused(t *testing.T) {
-	var projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3, 0)
+	var projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
