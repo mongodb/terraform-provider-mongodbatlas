@@ -1,0 +1,7 @@
+```release-note:breaking-change
+resource/mongodbatlas_advanced_cluster: Changes default value of `delete_on_create_timeout` to `true`
+```
+
+```release-note:breaking-change
+resource/mongodbatlas_search_deployment: Changes default value of `delete_on_create_timeout` to `true`
+```

@@ -2,6 +2,8 @@
 
 `mongodbatlas_atlas_user` Provides a MongoDB Atlas User.
 
+~> **DEPRECATION:** This data source is deprecated. Use `mongodbatlas_cloud_user_org_assignment` to read organization user assignments. See the [Migration Guide: Migrate off deprecated `mongodbatlas_atlas_user` and `mongodbatlas_atlas_users`](../guides/atlas-user-migration-guide).
+
 -> **NOTE:** If you are the owner of a MongoDB Atlas organization or project, you can also retrieve the user profile for any user with membership in that organization or project.
 
 ## Example Usage
