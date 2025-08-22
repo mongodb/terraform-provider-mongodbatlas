@@ -36,5 +36,3 @@ output "project_teams_map" {
     t.team_id => t.role_names
   }
 }
-
-
