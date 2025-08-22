@@ -1,0 +1,7 @@
+```release-note:note
+data-source/mongodbatlas_atlas_user: Deprecates the data source
+```
+
+```release-note:note
+data-source/mongodbatlas_atlas_users: Deprecates the data source
+```

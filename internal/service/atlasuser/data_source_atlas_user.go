@@ -65,6 +65,7 @@ type atlasUserDS struct {
 
 func (d *atlasUserDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		DeprecationMessage: "This data source is deprecated and will be removed in the next major release. Please transition to mongodbatlas_cloud_user_org_assignment. For more details, see [Migration Guide: Migrate off deprecated `mongodbatlas_atlas_user` and `mongodbatlas_atlas_users`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/atlas-user-migration-guide)",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{ // required by hashicorps terraform plugin testing framework: https://github.com/hashicorp/terraform-plugin-testing/issues/84#issuecomment-1480006432
 				DeprecationMessage: "Please use user_id id attribute instead",
