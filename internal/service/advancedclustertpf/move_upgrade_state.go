@@ -185,14 +185,11 @@ func replicationSpecModelWithNumShards(numShardsVal tftypes.Value) *TFReplicatio
 	if err := numShardsVal.As(&numShardsFloat); err != nil || numShardsFloat == nil {
 		return nil
 	}
-	// numShards, _ := numShardsFloat.Int64()
 	return &TFReplicationSpecsModel{
-		// NumShards:     types.Int64Value(numShards),
 		RegionConfigs: types.ListNull(RegionConfigsObjType),
 		ContainerId:   types.MapNull(types.StringType),
-		// Id:            types.StringNull(),
-		ExternalId: types.StringNull(),
-		ZoneId:     types.StringNull(),
-		ZoneName:   types.StringNull(),
+		ExternalId:    types.StringNull(),
+		ZoneId:        types.StringNull(),
+		ZoneName:      types.StringNull(),
 	}
 }

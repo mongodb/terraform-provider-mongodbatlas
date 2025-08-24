@@ -116,9 +116,7 @@ func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationS
 	if input == nil {
 		return types.ListNull(ReplicationSpecsObjType)
 	}
-	var tfModels *[]TFReplicationSpecsModel
-
-	tfModels = convertReplicationSpecs(ctx, input, diags, apiInfo)
+	tfModels := convertReplicationSpecs(ctx, input, diags, apiInfo)
 	if diags.HasError() {
 		return types.ListNull(ReplicationSpecsObjType)
 	}
@@ -149,12 +147,9 @@ func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec
 			diags.AddError(errorZoneNameNotSet, errorZoneNameNotSet)
 			return &tfModels
 		}
-		// legacyID := apiInfo.ZoneNameReplicationSpecIDs[zoneName]
 		containerIDs := selectContainerIDs(&item, apiInfo.ContainerIDs)
 		tfModels[i] = TFReplicationSpecsModel{
-			// Id:         types.StringValue(legacyID),
-			ExternalId: types.StringValue(conversion.SafeValue(item.Id)),
-			// NumShards:     types.Int64Value(1),
+			ExternalId:    types.StringValue(conversion.SafeValue(item.Id)),
 			ContainerId:   conversion.ToTFMapOfString(ctx, diags, containerIDs),
 			RegionConfigs: regionConfigs,
 			ZoneId:        types.StringValue(conversion.SafeValue(item.ZoneId)),

@@ -48,15 +48,15 @@ func keepUnkownFuncWithNonEmptyAutoScaling(name string, replacement attr.Value) 
 
 // useStateForUnknowns should be called only in Update, because of findClusterDiff
 func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
-	shardingConfigUpgrade := isShardingConfigUpgrade(ctx, state, plan, diags)
-	if diags.HasError() {
-		return
-	}
-	// Don't adjust region_configs upgrades if it's a sharding config upgrade because it will be done only in the first shard, because state only has the first shard with num_shards > 1.
-	// This avoid errors like AUTO_SCALINGS_MUST_BE_IN_EVERY_REGION_CONFIG.
-	if !shardingConfigUpgrade {
-		AdjustRegionConfigsChildren(ctx, diags, state, plan)
-	}
+	// shardingConfigUpgrade := isShardingConfigUpgrade(ctx, state, plan, diags)
+	// if diags.HasError() {
+	// 	return
+	// }
+	// // Don't adjust region_configs upgrades if it's a sharding config upgrade because it will be done only in the first shard, because state only has the first shard with num_shards > 1.
+	// // This avoid errors like AUTO_SCALINGS_MUST_BE_IN_EVERY_REGION_CONFIG.
+	// if !shardingConfigUpgrade {
+	// 	AdjustRegionConfigsChildren(ctx, diags, state, plan)
+	// }
 	diff := findClusterDiff(ctx, state, plan, diags)
 	if diags.HasError() || diff.isAnyUpgrade() { // Don't do anything in upgrades
 		return
@@ -228,7 +228,7 @@ func determineKeepUnknownsUnchangedReplicationSpecs(ctx context.Context, diags *
 	// }
 	// for isShardingConfigUpgrade, it will be empty in the plan, so we need to keep it unknown
 	// for listLenChanges, it might be an insertion in the middle of replication spec leading to wrong value from state copied
-	if isShardingConfigUpgrade(ctx, state, plan, diags) || attributeChanges.ListLenChanges("replication_specs") {
+	if attributeChanges.ListLenChanges("replication_specs") {
 		keepUnknowns = append(keepUnknowns, "external_id")
 	}
 	return keepUnknowns
