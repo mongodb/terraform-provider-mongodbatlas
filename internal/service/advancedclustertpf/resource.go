@@ -69,8 +69,8 @@ func defaultAPIErrorDetails(clusterName string, err error) string {
 }
 
 var (
-	resumeRequest              = admin.ClusterDescription20240805{Paused: conversion.Pointer(false)}
-	pauseRequest               = admin.ClusterDescription20240805{Paused: conversion.Pointer(true)}
+	resumeRequest = admin.ClusterDescription20240805{Paused: conversion.Pointer(false)}
+	pauseRequest  = admin.ClusterDescription20240805{Paused: conversion.Pointer(true)}
 )
 
 func Resource() resource.Resource {
