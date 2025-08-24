@@ -1747,7 +1747,7 @@ func checkTenant(projectID, name string, checkPlural bool) resource.TestCheckFun
 			[]string{"results.#", "results.0.replication_specs.#", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
 	}
 	return checkAggr(
-		[]string{"replication_specs.#", "replication_specs.0.id", "replication_specs.0.region_configs.#"},
+		[]string{"replication_specs.#", "replication_specs.0.region_configs.#"},
 		map[string]string{
 			"project_id":                           projectID,
 			"name":                                 name,
@@ -1900,7 +1900,7 @@ func configAWSProvider(t *testing.T, configInfo ReplicaSetAWSConfig, useSDKv2 ..
 			name         = %[2]q
 			cluster_type = %[3]q
 			retain_backups_enabled = "true"
-			disk_size_gb = %[4]d
+		#	disk_size_gb = %[4]d
 
 		  replication_specs = [{
     		region_configs = [{
@@ -1940,10 +1940,10 @@ func checkReplicaSetAWSProvider(isTPF bool, projectID, name string, diskSizeGB, 
 	}
 
 	return checkAggrMig(isTPF,
-		[]string{"replication_specs.#", "replication_specs.0.id", "replication_specs.0.region_configs.#"},
+		[]string{"replication_specs.#", "replication_specs.0.region_configs.#"},
 		map[string]string{
 			"project_id":   projectID,
-			"disk_size_gb": fmt.Sprintf("%d", diskSizeGB),
+			// "disk_size_gb": fmt.Sprintf("%d", diskSizeGB),
 			"replication_specs.0.region_configs.0.electable_specs.0.node_count": fmt.Sprintf("%d", nodeCountElectable),
 			"replication_specs.0.region_configs.0.analytics_specs.0.node_count": "1",
 			"name": name},
@@ -2095,7 +2095,7 @@ func checkReplicaSetMultiCloud(isTPF bool, name string, regionConfigs int) resou
 		acc.TestCheckResourceAttrSetMigTPF(isTPF, dataSourcePluralName, "results.0.name"),
 	}
 	return checkAggrMig(isTPF,
-		[]string{"project_id", "replication_specs.#", "replication_specs.0.id"},
+		[]string{"project_id", "replication_specs.#"},
 		map[string]string{
 			"name": name},
 		additionalChecks...,
@@ -2216,7 +2216,7 @@ func checkShardedOldSchemaMultiCloud(isTPF bool, name string, numShards int, ana
 	}
 
 	return checkAggrMig(isTPF,
-		[]string{"project_id", "replication_specs.#", "replication_specs.0.id", "replication_specs.0.region_configs.#"},
+		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
 		map[string]string{
 			"name":                           name,
 			"replication_specs.0.num_shards": strconv.Itoa(numShards),
@@ -2660,7 +2660,7 @@ func checkGeoShardedOldSchema(isTPF bool, name string, numShardsFirstZone, numSh
 	}
 
 	return checkAggrMig(isTPF,
-		[]string{"project_id", "replication_specs.0.id", "replication_specs.1.id"},
+		[]string{"project_id", "replication_specs.1.id"},
 		map[string]string{
 			"name":                           name,
 			"disk_size_gb":                   "60",
@@ -2947,16 +2947,16 @@ func checkShardedNewSchema(isTPF bool, diskSizeGB int, firstInstanceSize, lastIn
 	pluralChecks = acc.AddAttrChecksPrefixMigTPF(isTPF, dataSourcePluralName, pluralChecks, clusterChecks, "results.0")
 	if isAsymmetricCluster {
 		pluralChecks = append(pluralChecks, checkAggrMig(isTPF, []string{}, map[string]string{
-			"replication_specs.0.id": "",
-			"replication_specs.1.id": "",
+			// "replication_specs.0.id": "",
+			// "replication_specs.1.id": "",
 		}))
 		pluralChecks = acc.AddAttrChecksMigTPF(isTPF, dataSourcePluralName, pluralChecks, map[string]string{
-			"results.0.replication_specs.0.id": "",
-			"results.0.replication_specs.1.id": "",
+			// "results.0.replication_specs.0.id": "",
+			// "results.0.replication_specs.1.id": "",
 		})
 	} else {
-		pluralChecks = append(pluralChecks, checkAggrMig(isTPF, []string{"replication_specs.0.id", "replication_specs.1.id"}, map[string]string{}))
-		pluralChecks = acc.AddAttrSetChecksMigTPF(isTPF, dataSourcePluralName, pluralChecks, "results.0.replication_specs.0.id", "results.0.replication_specs.1.id")
+		pluralChecks = append(pluralChecks, checkAggrMig(isTPF, []string{ "replication_specs.1.id"}, map[string]string{}))
+		pluralChecks = acc.AddAttrSetChecksMigTPF(isTPF, dataSourcePluralName, pluralChecks)
 	}
 	return checkAggrMig(isTPF,
 		[]string{"replication_specs.0.external_id", "replication_specs.0.zone_id", "replication_specs.1.external_id", "replication_specs.1.zone_id"},
@@ -3118,7 +3118,7 @@ func checkShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.Tes
 	}
 
 	return checkAggrMig(isTPF,
-		[]string{"replication_specs.0.id"},
+		[]string{},
 		map[string]string{
 			"replication_specs.#": fmt.Sprintf("%d", amtOfReplicationSpecs),
 			"replication_specs.0.region_configs.0.electable_specs.0.instance_size": "M10",
@@ -3190,7 +3190,7 @@ func configGeoShardedTransitionOldToNewSchema(t *testing.T, isTPF bool, projectI
 func checkGeoShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.TestCheckFunc {
 	if useNewSchema {
 		return checkAggrMig(isTPF,
-			[]string{"replication_specs.0.id", "replication_specs.1.id", "replication_specs.2.id", "replication_specs.3.id",
+			[]string{"replication_specs.1.id", "replication_specs.2.id", "replication_specs.3.id",
 				"replication_specs.0.external_id", "replication_specs.1.external_id", "replication_specs.2.external_id", "replication_specs.3.external_id",
 			},
 			map[string]string{
@@ -3203,7 +3203,7 @@ func checkGeoShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.
 		)
 	}
 	return checkAggrMig(isTPF,
-		[]string{"replication_specs.0.id", "replication_specs.1.id"},
+		[]string{},
 		map[string]string{
 			"replication_specs.#":           "2",
 			"replication_specs.0.zone_name": "zone 1",

@@ -39,7 +39,6 @@ const (
 	errorReadLegacy20240530       = "error reading cluster with legacy API 20240530"
 	errorResolveContainerIDs      = "error resolving container IDs"
 	errorRegionPriorities         = "priority values in region_configs must be in descending order"
-	errorAdvancedConfUpdateLegacy = "error updating Advanced Configuration from legacy API"
 
 	DeprecationOldSchemaAction                   = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide"
 	ErrorCodeClusterNotFound                     = "CLUSTER_NOT_FOUND"

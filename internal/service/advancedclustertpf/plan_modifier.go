@@ -16,7 +16,7 @@ import (
 var (
 	// Change mappings uses `attribute_name`, it doesn't care about the nested level.
 	attributeRootChangeMapping = map[string][]string{
-		"disk_size_gb":           {}, // disk_size_gb can be change at any level/spec
+		// "disk_size_gb":           {}, // disk_size_gb can be change at any level/spec
 		"replication_specs":      {},
 		"tls_cipher_config_mode": {"custom_openssl_cipher_config_tls12"},
 		"cluster_type":           {"config_server_management_mode", "config_server_type"}, // computed values of config server change when REPLICA_SET changes to SHARDED
@@ -31,12 +31,13 @@ var (
 		"region_name":     {"container_id"},    // container_id changes based on region_name changes
 		"zone_name":       {"zone_id"},         // zone_id copy from state is not safe when
 	}
-	keepUnknownsCalls = schemafunc.KeepUnknownFuncOr(keepUnkownFuncWithNodeCount, keepUnkownFuncWithNonEmptyAutoScaling)
+	keepUnknownsCalls = schemafunc.KeepUnknownFuncOr(keepUnkownFuncWithNonEmptyAutoScaling) // removed keepUnkownFuncWithNodeCount
+	// keepUnknownsCalls = schemafunc.KeepUnknownFuncOr(keepUnkownFuncWithNodeCount, keepUnkownFuncWithNonEmptyAutoScaling)
 )
 
-func keepUnkownFuncWithNodeCount(name string, replacement attr.Value) bool {
-	return name == "node_count" && !replacement.Equal(types.Int64Value(0))
-}
+// func keepUnkownFuncWithNodeCount(name string, replacement attr.Value) bool {
+// 	return name == "node_count" && !replacement.Equal(types.Int64Value(0))
+// }
 
 func keepUnkownFuncWithNonEmptyAutoScaling(name string, replacement attr.Value) bool {
 	autoScalingBoolValues := []string{"compute_enabled", "disk_gb_enabled", "compute_scale_down_enabled"}
