@@ -1942,7 +1942,7 @@ func checkReplicaSetAWSProvider(isTPF bool, projectID, name string, diskSizeGB, 
 	return checkAggrMig(isTPF,
 		[]string{"replication_specs.#", "replication_specs.0.region_configs.#"},
 		map[string]string{
-			"project_id":   projectID,
+			"project_id": projectID,
 			// "disk_size_gb": fmt.Sprintf("%d", diskSizeGB),
 			"replication_specs.0.region_configs.0.electable_specs.0.node_count": fmt.Sprintf("%d", nodeCountElectable),
 			"replication_specs.0.region_configs.0.analytics_specs.0.node_count": "1",
@@ -2955,7 +2955,7 @@ func checkShardedNewSchema(isTPF bool, diskSizeGB int, firstInstanceSize, lastIn
 			// "results.0.replication_specs.1.id": "",
 		})
 	} else {
-		pluralChecks = append(pluralChecks, checkAggrMig(isTPF, []string{ "replication_specs.1.id"}, map[string]string{}))
+		pluralChecks = append(pluralChecks, checkAggrMig(isTPF, []string{"replication_specs.1.id"}, map[string]string{}))
 		pluralChecks = acc.AddAttrSetChecksMigTPF(isTPF, dataSourcePluralName, pluralChecks)
 	}
 	return checkAggrMig(isTPF,
