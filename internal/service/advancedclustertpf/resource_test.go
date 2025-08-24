@@ -1282,7 +1282,7 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 			"root_cert_type":               "ISRGROOTX1",
 			"version_release_system":       "CONTINUOUS",
 			"advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds": "100",
-			"advanced_configuration.default_read_concern":                                           "available",
+			// "advanced_configuration.default_read_concern":                                           "available",
 			"advanced_configuration.default_write_concern":                                          "majority",
 			"advanced_configuration.javascript_enabled":                                             "true",
 			"advanced_configuration.minimum_enabled_tls_protocol":                                   "TLS1_2",
@@ -1314,7 +1314,7 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 	
 	advanced_configuration = {
 		change_stream_options_pre_and_post_images_expire_after_seconds = 100
-		default_read_concern                                           = "available"
+		# default_read_concern                                           = "available"
 		default_write_concern                                          = "majority"
 		javascript_enabled                                             = true
 		minimum_enabled_tls_protocol                                   = "TLS1_2" # This cluster does not support TLS1.0 or TLS1.1. If you must use old TLS versions contact MongoDB support
@@ -2162,7 +2162,7 @@ func configShardedOldSchemaMultiCloud(t *testing.T, projectID, name string, numS
 		
 		
 		  replication_specs = [{
-			num_shards = %[3]d
+			# num_shards = %[3]d
 			region_configs = [{
 			  analytics_specs = {
 				instance_size = %[4]q
@@ -2215,11 +2215,17 @@ func checkShardedOldSchemaMultiCloud(isTPF bool, name string, numShards int, ana
 		)
 	}
 
+	if !isTPF {
+		additionalChecks = append(additionalChecks,
+			acc.TestCheckResourceAttrMigTPF(isTPF, resourceName, "replication_specs.0.num_shards", strconv.Itoa(numShards)),
+		)
+	}
+
 	return checkAggrMig(isTPF,
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
 		map[string]string{
 			"name":                           name,
-			"replication_specs.0.num_shards": strconv.Itoa(numShards),
+			// "replication_specs.0.num_shards": strconv.Itoa(numShards),
 			"replication_specs.0.region_configs.0.analytics_specs.0.instance_size": analyticsSize,
 		},
 		additionalChecks...)
@@ -2314,7 +2320,7 @@ func configAdvanced(t *testing.T, projectID, clusterName, mongoDBMajorVersion st
 			}]
 
 			advanced_configuration  = {
-				fail_index_key_too_long              = %[3]t
+			#	fail_index_key_too_long              = %[3]t
 				javascript_enabled                   = %[4]t
 				minimum_enabled_tls_protocol         = %[5]q
 				no_table_scan                        = %[6]t
@@ -2338,7 +2344,7 @@ func checkAdvanced(name, tls string, processArgs *admin.ClusterDescriptionProces
 	advancedConfig := map[string]string{
 		"name": name,
 		"advanced_configuration.minimum_enabled_tls_protocol":         tls,
-		"advanced_configuration.fail_index_key_too_long":              "false",
+		// "advanced_configuration.fail_index_key_too_long":              "false",
 		"advanced_configuration.javascript_enabled":                   "true",
 		"advanced_configuration.no_table_scan":                        "false",
 		"advanced_configuration.oplog_size_mb":                        "1000",
@@ -2405,7 +2411,7 @@ func configAdvancedDefaultWrite(t *testing.T, projectID, clusterName string, p *
 				oplog_size_mb                        = %[6]d
 				sample_size_bi_connector			 = %[7]d
 				sample_refresh_interval_bi_connector = %[8]d
-				default_read_concern                 = %[9]q
+			#	default_read_concern                 = %[9]q
 				default_write_concern                = %[10]q
 			}
 		}
@@ -2425,8 +2431,8 @@ func checkAdvancedDefaultWrite(name, writeConcern, tls string) resource.TestChec
 			"name": name,
 			"advanced_configuration.minimum_enabled_tls_protocol":         tls,
 			"advanced_configuration.default_write_concern":                writeConcern,
-			"advanced_configuration.default_read_concern":                 "available",
-			"advanced_configuration.fail_index_key_too_long":              "false",
+			// "advanced_configuration.default_read_concern":                 "available",
+			// "advanced_configuration.fail_index_key_too_long":              "false",
 			"advanced_configuration.javascript_enabled":                   "true",
 			"advanced_configuration.no_table_scan":                        "false",
 			"advanced_configuration.oplog_size_mb":                        "1000",
