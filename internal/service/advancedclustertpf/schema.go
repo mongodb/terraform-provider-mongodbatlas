@@ -341,16 +341,16 @@ func dataSourceSchema(ctx context.Context) dsschema.Schema {
 func pluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 	return conversion.PluralDataSourceSchemaFromResource(resourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
 		RequiredFields: []string{"project_id"},
-		OverridenRootFields: map[string]dsschema.Attribute{
-			"use_replication_spec_per_shard": useReplicationSpecPerShardSchema(),
-		},
+		// OverridenRootFields: map[string]dsschema.Attribute{
+		// 	"use_replication_spec_per_shard": useReplicationSpecPerShardSchema(),
+		// },
 		OverridenFields: dataSourceOverridenFields(),
 	})
 }
 
 func dataSourceOverridenFields() map[string]dsschema.Attribute {
 	return map[string]dsschema.Attribute{
-		"use_replication_spec_per_shard":                   useReplicationSpecPerShardSchema(),
+		// "use_replication_spec_per_shard":                   useReplicationSpecPerShardSchema(),
 		"accept_data_risks_and_force_replica_set_reconfig": nil,
 		"delete_on_create_timeout":                         nil,
 	}
@@ -595,7 +595,7 @@ type TFModelDS struct {
 	ClusterID                        types.String `tfsdk:"cluster_id"`
 	ConfigServerManagementMode       types.String `tfsdk:"config_server_management_mode"`
 	PinnedFCV                        types.Object `tfsdk:"pinned_fcv"`
-	UseReplicationSpecPerShard       types.Bool   `tfsdk:"use_replication_spec_per_shard"`
+	// UseReplicationSpecPerShard       types.Bool   `tfsdk:"use_replication_spec_per_shard"`
 	RedactClientLogData              types.Bool   `tfsdk:"redact_client_log_data"`
 	GlobalClusterSelfManagedSharding types.Bool   `tfsdk:"global_cluster_self_managed_sharding"`
 	BackupEnabled                    types.Bool   `tfsdk:"backup_enabled"`
@@ -608,7 +608,7 @@ type TFModelDS struct {
 type TFModelPluralDS struct {
 	ProjectID                  types.String `tfsdk:"project_id"`
 	Results                    []*TFModelDS `tfsdk:"results"`
-	UseReplicationSpecPerShard types.Bool   `tfsdk:"use_replication_spec_per_shard"`
+	// UseReplicationSpecPerShard types.Bool   `tfsdk:"use_replication_spec_per_shard"`
 }
 
 type TFBiConnectorModel struct {

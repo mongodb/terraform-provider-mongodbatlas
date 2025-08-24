@@ -46,12 +46,12 @@ const (
 	data "mongodbatlas_advanced_cluster" "test" {
 		project_id = mongodbatlas_advanced_cluster.test.project_id
 		name 	     = mongodbatlas_advanced_cluster.test.name
-		use_replication_spec_per_shard = true
+		# use_replication_spec_per_shard = true
 		depends_on = [mongodbatlas_advanced_cluster.test]
 	}
 			
 	data "mongodbatlas_advanced_clusters" "test" {
-		use_replication_spec_per_shard = true
+		# use_replication_spec_per_shard = true
 		project_id = mongodbatlas_advanced_cluster.test.project_id
 		depends_on = [mongodbatlas_advanced_cluster.test]
 	}`
@@ -2742,17 +2742,17 @@ func configShardedNewSchema(t *testing.T, orgID, projectName, name string, diskS
 	data "mongodbatlas_advanced_cluster" "test" {
 		project_id = mongodbatlas_advanced_cluster.test.project_id
 		name 	     = mongodbatlas_advanced_cluster.test.name
-		use_replication_spec_per_shard = true
+	#	use_replication_spec_per_shard = true
 	}
 
 	data "mongodbatlas_advanced_clusters" "test-replication-specs-per-shard-false" {
 		project_id = mongodbatlas_advanced_cluster.test.project_id
-		use_replication_spec_per_shard = false
+		# use_replication_spec_per_shard = false
 	}
 
 	data "mongodbatlas_advanced_clusters" "test" {
 		project_id = mongodbatlas_advanced_cluster.test.project_id
-		use_replication_spec_per_shard = true
+		# use_replication_spec_per_shard = true
 	}
 	`
 

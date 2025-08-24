@@ -52,7 +52,8 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *TFModelDS) *TFModelDS {
 	clusterName := modelDS.Name.ValueString()
 	projectID := modelDS.ProjectID.ValueString()
-	useReplicationSpecPerShard := modelDS.UseReplicationSpecPerShard.ValueBool()
+	// useReplicationSpecPerShard := modelDS.UseReplicationSpecPerShard.ValueBool()
+	useReplicationSpecPerShard := true
 	clusterResp, flexClusterResp := GetClusterDetails(ctx, diags, projectID, clusterName, d.Client, false)
 	if diags.HasError() {
 		return nil
@@ -84,6 +85,6 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		return nil
 	}
 	modelOutDS := conversion.CopyModel[TFModelDS](modelOut)
-	modelOutDS.UseReplicationSpecPerShard = modelDS.UseReplicationSpecPerShard // attrs not in resource model
+	// modelOutDS.UseReplicationSpecPerShard = modelDS.UseReplicationSpecPerShard // attrs not in resource model
 	return modelOutDS
 }
