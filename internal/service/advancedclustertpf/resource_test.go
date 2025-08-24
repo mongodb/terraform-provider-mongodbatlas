@@ -1283,16 +1283,16 @@ func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
 			"version_release_system":       "CONTINUOUS",
 			"advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds": "100",
 			// "advanced_configuration.default_read_concern":                                           "available",
-			"advanced_configuration.default_write_concern":                                          "majority",
-			"advanced_configuration.javascript_enabled":                                             "true",
-			"advanced_configuration.minimum_enabled_tls_protocol":                                   "TLS1_2",
-			"advanced_configuration.no_table_scan":                                                  "true",
-			"advanced_configuration.sample_refresh_interval_bi_connector":                           "310",
-			"advanced_configuration.sample_size_bi_connector":                                       "110",
-			"advanced_configuration.transaction_lifetime_limit_seconds":                             "300",
-			"advanced_configuration.tls_cipher_config_mode":                                         "CUSTOM",
-			"advanced_configuration.custom_openssl_cipher_config_tls12.#":                           "1",
-			"advanced_configuration.default_max_time_ms":                                            "65",
+			"advanced_configuration.default_write_concern":                "majority",
+			"advanced_configuration.javascript_enabled":                   "true",
+			"advanced_configuration.minimum_enabled_tls_protocol":         "TLS1_2",
+			"advanced_configuration.no_table_scan":                        "true",
+			"advanced_configuration.sample_refresh_interval_bi_connector": "310",
+			"advanced_configuration.sample_size_bi_connector":             "110",
+			"advanced_configuration.transaction_lifetime_limit_seconds":   "300",
+			"advanced_configuration.tls_cipher_config_mode":               "CUSTOM",
+			"advanced_configuration.custom_openssl_cipher_config_tls12.#": "1",
+			"advanced_configuration.default_max_time_ms":                  "65",
 		}
 		checksUpdate = checkAggr(checksSet, afterUpdateMap, timeoutCheck, tagsCheck, labelsCheck)
 		fullUpdate   = `
@@ -2224,7 +2224,7 @@ func checkShardedOldSchemaMultiCloud(isTPF bool, name string, numShards int, ana
 	return checkAggrMig(isTPF,
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
 		map[string]string{
-			"name":                           name,
+			"name": name,
 			// "replication_specs.0.num_shards": strconv.Itoa(numShards),
 			"replication_specs.0.region_configs.0.analytics_specs.0.instance_size": analyticsSize,
 		},
@@ -2343,7 +2343,7 @@ func configAdvanced(t *testing.T, projectID, clusterName, mongoDBMajorVersion st
 func checkAdvanced(name, tls string, processArgs *admin.ClusterDescriptionProcessArgs20240805) resource.TestCheckFunc {
 	advancedConfig := map[string]string{
 		"name": name,
-		"advanced_configuration.minimum_enabled_tls_protocol":         tls,
+		"advanced_configuration.minimum_enabled_tls_protocol": tls,
 		// "advanced_configuration.fail_index_key_too_long":              "false",
 		"advanced_configuration.javascript_enabled":                   "true",
 		"advanced_configuration.no_table_scan":                        "false",
@@ -2429,8 +2429,8 @@ func checkAdvancedDefaultWrite(name, writeConcern, tls string) resource.TestChec
 		[]string{"project_id", "replication_specs.#", "replication_specs.0.region_configs.#"},
 		map[string]string{
 			"name": name,
-			"advanced_configuration.minimum_enabled_tls_protocol":         tls,
-			"advanced_configuration.default_write_concern":                writeConcern,
+			"advanced_configuration.minimum_enabled_tls_protocol": tls,
+			"advanced_configuration.default_write_concern":        writeConcern,
 			// "advanced_configuration.default_read_concern":                 "available",
 			// "advanced_configuration.fail_index_key_too_long":              "false",
 			"advanced_configuration.javascript_enabled":                   "true",
