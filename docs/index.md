@@ -249,6 +249,7 @@ We are committed to clear and proactive communication:
 <!-- MATRIX_PLACEHOLDER_START -->
 | HashiCorp Terraform Release | HashiCorp Terraform Release Date  | HashiCorp Terraform Full Support End Date  | MongoDB Atlas Support End Date |
 |:-------:|:------------:|:------------:|:------------:|
+| 1.13.x | 2025-08-20 | 2027-08-31 | 2027-08-31 |
 | 1.12.x | 2025-05-14 | 2027-05-31 | 2027-05-31 |
 | 1.11.x | 2025-02-27 | 2027-02-28 | 2027-02-28 |
 | 1.10.x | 2024-11-27 | 2026-11-30 | 2026-11-30 |
@@ -291,7 +292,7 @@ We ship binaries but do not prioritize fixes for the following operating system 
 ## Examples from MongoDB and the Community
 
 <!-- NOTE: the below examples link is updated during the release process, when doing changes in the following sentence verify scripts/update-examples-reference-in-docs.sh is not impacted-->
-We have [example configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.39.0/examples)
+We have [example configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.40.0/examples)
 in our GitHub repo that will help both beginner and more advanced users.
 
 Have a good example you've created and want to share?
