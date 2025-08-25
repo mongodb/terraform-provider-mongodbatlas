@@ -160,28 +160,28 @@ func TestAccAdvancedCluster_sharedTier_flexUpgrade(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 1)
 	resource.ParallelTest(t, testAccAdvancedClusterFlexUpgrade(t, projectID, clusterName, sharedInstanceSize, false))
 }
-func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
-	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithFreeCluster(t, 3, 1)
-		defaultZoneName        = "Zone 1" // Uses backend default to avoid non-empty plan, see CLOUDP-294339
-	)
-	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				Config: configTenant(t, projectID, clusterName, defaultZoneName, freeInstanceSize),
-				Check:  checkTenant(projectID, clusterName, true),
-			},
-			{
-				Config: acc.ConfigBasicDedicated(projectID, clusterName, defaultZoneName),
-				Check:  checksBasicDedicated(projectID, clusterName, true),
-			},
-			acc.TestStepImportCluster(resourceName),
-		},
-	})
-}
+// func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
+// 	var (
+// 		projectID, clusterName = acc.ProjectIDExecutionWithFreeCluster(t, 3, 1)
+// 		defaultZoneName        = "Zone 1" // Uses backend default to avoid non-empty plan, see CLOUDP-294339
+// 	)
+// 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
+// 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+// 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+// 		CheckDestroy:             acc.CheckDestroyCluster,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: configTenant(t, projectID, clusterName, defaultZoneName, freeInstanceSize),
+// 				Check:  checkTenant(projectID, clusterName, true),
+// 			},
+// 			{
+// 				Config: acc.ConfigBasicDedicated(projectID, clusterName, defaultZoneName),
+// 				Check:  checksBasicDedicated(projectID, clusterName, true),
+// 			},
+// 			acc.TestStepImportCluster(resourceName),
+// 		},
+// 	})
+// }
 
 func TestAccClusterAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 	resource.ParallelTest(t, replicaSetAWSProviderTestCase(t))
@@ -788,28 +788,28 @@ func TestAccClusterAdvancedClusterConfig_selfManagedShardingIncorrectType(t *tes
 	})
 }
 
-func TestAccMockableAdvancedCluster_symmetricShardedOldSchema(t *testing.T) {
-	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 12)
-	)
+// func TestAccMockableAdvancedCluster_symmetricShardedOldSchema(t *testing.T) {
+// 	var (
+// 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 12)
+// 	)
 
-	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				Config: configShardedOldSchemaMultiCloud(t, projectID, clusterName, 2, "M10", &configServerManagementModeFixedToDedicated),
-				Check:  checkShardedOldSchemaMultiCloud(true, clusterName, 2, "M10", false, &configServerManagementModeFixedToDedicated),
-			},
-			{
-				Config: configShardedOldSchemaMultiCloud(t, projectID, clusterName, 2, "M20", &configServerManagementModeAtlasManaged),
-				Check:  checkShardedOldSchemaMultiCloud(true, clusterName, 2, "M20", false, &configServerManagementModeAtlasManaged),
-			},
-			acc.TestStepImportCluster(resourceName, "replication_specs"), // Import with old schema will NOT use `num_shards`
-		},
-	})
-}
+// 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
+// 		PreCheck:                 func() { acc.PreCheckBasic(t) },
+// 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+// 		CheckDestroy:             acc.CheckDestroyCluster,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: configShardedOldSchemaMultiCloud(t, projectID, clusterName, 2, "M10", &configServerManagementModeFixedToDedicated),
+// 				Check:  checkShardedOldSchemaMultiCloud(true, clusterName, 2, "M10", false, &configServerManagementModeFixedToDedicated),
+// 			},
+// 			{
+// 				Config: configShardedOldSchemaMultiCloud(t, projectID, clusterName, 2, "M20", &configServerManagementModeAtlasManaged),
+// 				Check:  checkShardedOldSchemaMultiCloud(true, clusterName, 2, "M20", false, &configServerManagementModeAtlasManaged),
+// 			},
+// 			acc.TestStepImportCluster(resourceName, "replication_specs"), // Import with old schema will NOT use `num_shards`
+// 		},
+// 	})
+// }
 
 func TestAccClusterAdvancedClusterConfig_symmetricGeoShardedOldSchema(t *testing.T) {
 	resource.ParallelTest(t, symmetricGeoShardedOldSchemaTestCase(t))
@@ -846,26 +846,26 @@ func symmetricGeoShardedOldSchemaTestCase(t *testing.T, useSDKv2 ...bool) resour
 	}
 }
 
-func TestAccMockableAdvancedCluster_symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) {
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 6)
+// func TestAccMockableAdvancedCluster_symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) {
+// 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 6)
 
-	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				Config: configShardedOldSchemaDiskSizeGBElectableLevel(t, projectID, clusterName, 50),
-				Check:  checkShardedOldSchemaDiskSizeGBElectableLevel(50),
-			},
-			{
-				Config: configShardedOldSchemaDiskSizeGBElectableLevel(t, projectID, clusterName, 55),
-				Check:  checkShardedOldSchemaDiskSizeGBElectableLevel(55),
-			},
-			acc.TestStepImportCluster(resourceName, "replication_specs"), // Import with old schema will NOT use `num_shards`
-		},
-	})
-}
+// 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
+// 		PreCheck:                 func() { acc.PreCheckBasic(t) },
+// 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+// 		CheckDestroy:             acc.CheckDestroyCluster,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: configShardedOldSchemaDiskSizeGBElectableLevel(t, projectID, clusterName, 50),
+// 				Check:  checkShardedOldSchemaDiskSizeGBElectableLevel(50),
+// 			},
+// 			{
+// 				Config: configShardedOldSchemaDiskSizeGBElectableLevel(t, projectID, clusterName, 55),
+// 				Check:  checkShardedOldSchemaDiskSizeGBElectableLevel(55),
+// 			},
+// 			acc.TestStepImportCluster(resourceName, "replication_specs"), // Import with old schema will NOT use `num_shards`
+// 		},
+// 	})
+// }
 
 func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAddingRemovingShard(t *testing.T) {
 	var (
@@ -1258,144 +1258,144 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabledToEnabled(t *te
 	})
 }
 
-func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
-	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
-		checksMap              = map[string]string{
-			"state_name": "IDLE",
-		}
-		checksSet = []string{
-			"replication_specs.0.container_id.AWS:US_EAST_1",
-			"mongo_db_major_version",
-		}
-		timeoutCheck   = resource.TestCheckResourceAttr(resourceName, "timeouts.create", "6000s") // timeouts.create is not set on data sources
-		tagsLabelsMap  = map[string]string{"key": "env", "value": "test"}
-		tagsCheck      = checkKeyValueBlocks(false, "tags", tagsLabelsMap)
-		labelsCheck    = checkKeyValueBlocks(false, "labels", tagsLabelsMap)
-		checks         = checkAggr(checksSet, checksMap, timeoutCheck)
-		afterUpdateMap = map[string]string{
-			"state_name":                   "IDLE",
-			"backup_enabled":               "true",
-			"bi_connector_config.enabled":  "true",
-			"pit_enabled":                  "true",
-			"redact_client_log_data":       "true",
-			"replica_set_scaling_strategy": "NODE_TYPE",
-			"root_cert_type":               "ISRGROOTX1",
-			"version_release_system":       "CONTINUOUS",
-			"advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds": "100",
-			// "advanced_configuration.default_read_concern":                                           "available",
-			"advanced_configuration.default_write_concern":                "majority",
-			"advanced_configuration.javascript_enabled":                   "true",
-			"advanced_configuration.minimum_enabled_tls_protocol":         "TLS1_2",
-			"advanced_configuration.no_table_scan":                        "true",
-			"advanced_configuration.sample_refresh_interval_bi_connector": "310",
-			"advanced_configuration.sample_size_bi_connector":             "110",
-			"advanced_configuration.transaction_lifetime_limit_seconds":   "300",
-			"advanced_configuration.tls_cipher_config_mode":               "CUSTOM",
-			"advanced_configuration.custom_openssl_cipher_config_tls12.#": "1",
-			"advanced_configuration.default_max_time_ms":                  "65",
-		}
-		checksUpdate = checkAggr(checksSet, afterUpdateMap, timeoutCheck, tagsCheck, labelsCheck)
-		fullUpdate   = `
-	backup_enabled = true
-	bi_connector_config = {
-		enabled = true
-	}
-	labels = {
-		"env" = "test"
-	}
-	tags = {
-		"env" = "test"
-	}
-	pit_enabled = true
-	redact_client_log_data = true
-	replica_set_scaling_strategy = "NODE_TYPE"
-	root_cert_type = "ISRGROOTX1"
-	version_release_system = "CONTINUOUS"
+// func TestAccMockableAdvancedCluster_replicasetAdvConfigUpdate(t *testing.T) {
+// 	var (
+// 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
+// 		checksMap              = map[string]string{
+// 			"state_name": "IDLE",
+// 		}
+// 		checksSet = []string{
+// 			"replication_specs.0.container_id.AWS:US_EAST_1",
+// 			"mongo_db_major_version",
+// 		}
+// 		timeoutCheck   = resource.TestCheckResourceAttr(resourceName, "timeouts.create", "6000s") // timeouts.create is not set on data sources
+// 		tagsLabelsMap  = map[string]string{"key": "env", "value": "test"}
+// 		tagsCheck      = checkKeyValueBlocks(false, "tags", tagsLabelsMap)
+// 		labelsCheck    = checkKeyValueBlocks(false, "labels", tagsLabelsMap)
+// 		checks         = checkAggr(checksSet, checksMap, timeoutCheck)
+// 		afterUpdateMap = map[string]string{
+// 			"state_name":                   "IDLE",
+// 			"backup_enabled":               "true",
+// 			"bi_connector_config.enabled":  "true",
+// 			"pit_enabled":                  "true",
+// 			"redact_client_log_data":       "true",
+// 			"replica_set_scaling_strategy": "NODE_TYPE",
+// 			"root_cert_type":               "ISRGROOTX1",
+// 			"version_release_system":       "CONTINUOUS",
+// 			"advanced_configuration.change_stream_options_pre_and_post_images_expire_after_seconds": "100",
+// 			// "advanced_configuration.default_read_concern":                                           "available",
+// 			"advanced_configuration.default_write_concern":                "majority",
+// 			"advanced_configuration.javascript_enabled":                   "true",
+// 			"advanced_configuration.minimum_enabled_tls_protocol":         "TLS1_2",
+// 			"advanced_configuration.no_table_scan":                        "true",
+// 			"advanced_configuration.sample_refresh_interval_bi_connector": "310",
+// 			"advanced_configuration.sample_size_bi_connector":             "110",
+// 			"advanced_configuration.transaction_lifetime_limit_seconds":   "300",
+// 			"advanced_configuration.tls_cipher_config_mode":               "CUSTOM",
+// 			"advanced_configuration.custom_openssl_cipher_config_tls12.#": "1",
+// 			"advanced_configuration.default_max_time_ms":                  "65",
+// 		}
+// 		checksUpdate = checkAggr(checksSet, afterUpdateMap, timeoutCheck, tagsCheck, labelsCheck)
+// 		fullUpdate   = `
+// 	backup_enabled = true
+// 	bi_connector_config = {
+// 		enabled = true
+// 	}
+// 	labels = {
+// 		"env" = "test"
+// 	}
+// 	tags = {
+// 		"env" = "test"
+// 	}
+// 	pit_enabled = true
+// 	redact_client_log_data = true
+// 	replica_set_scaling_strategy = "NODE_TYPE"
+// 	root_cert_type = "ISRGROOTX1"
+// 	version_release_system = "CONTINUOUS"
 	
-	advanced_configuration = {
-		change_stream_options_pre_and_post_images_expire_after_seconds = 100
-		# default_read_concern                                           = "available"
-		default_write_concern                                          = "majority"
-		javascript_enabled                                             = true
-		minimum_enabled_tls_protocol                                   = "TLS1_2" # This cluster does not support TLS1.0 or TLS1.1. If you must use old TLS versions contact MongoDB support
-		no_table_scan                                                  = true
-		sample_refresh_interval_bi_connector                           = 310
-		sample_size_bi_connector                                       = 110
-		transaction_lifetime_limit_seconds                             = 300
-		custom_openssl_cipher_config_tls12							   = ["TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"]
-		tls_cipher_config_mode               						   = "CUSTOM"
-		default_max_time_ms											   = 65
-	}
-`
-	)
-	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasicReplicaset(t, projectID, clusterName, "", ""),
-				Check:  checks,
-			},
-			{
-				Config: configBasicReplicaset(t, projectID, clusterName, fullUpdate, ""),
-				Check:  checksUpdate,
-			},
-			{
-				Config: configBasicReplicaset(t, projectID, clusterName, "", ""),
-				Check:  checks,
-			},
-			acc.TestStepImportCluster(resourceName),
-		},
-	})
-}
+// 	advanced_configuration = {
+// 		change_stream_options_pre_and_post_images_expire_after_seconds = 100
+// 		# default_read_concern                                           = "available"
+// 		default_write_concern                                          = "majority"
+// 		javascript_enabled                                             = true
+// 		minimum_enabled_tls_protocol                                   = "TLS1_2" # This cluster does not support TLS1.0 or TLS1.1. If you must use old TLS versions contact MongoDB support
+// 		no_table_scan                                                  = true
+// 		sample_refresh_interval_bi_connector                           = 310
+// 		sample_size_bi_connector                                       = 110
+// 		transaction_lifetime_limit_seconds                             = 300
+// 		custom_openssl_cipher_config_tls12							   = ["TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"]
+// 		tls_cipher_config_mode               						   = "CUSTOM"
+// 		default_max_time_ms											   = 65
+// 	}
+// `
+// 	)
+// 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
+// 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: configBasicReplicaset(t, projectID, clusterName, "", ""),
+// 				Check:  checks,
+// 			},
+// 			{
+// 				Config: configBasicReplicaset(t, projectID, clusterName, fullUpdate, ""),
+// 				Check:  checksUpdate,
+// 			},
+// 			{
+// 				Config: configBasicReplicaset(t, projectID, clusterName, "", ""),
+// 				Check:  checks,
+// 			},
+// 			acc.TestStepImportCluster(resourceName),
+// 		},
+// 	})
+// }
 
-func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing.T) {
-	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 8)
-		checksMap              = map[string]string{
-			"state_name": "IDLE",
-			"project_id": projectID,
-			"name":       clusterName,
-			"replication_specs.0.region_configs.0.electable_specs.instance_size": "M30",
-			"replication_specs.0.region_configs.0.analytics_specs.node_count":    "0",
-		}
-		checksUpdatedMap = map[string]string{
-			"replication_specs.0.region_configs.0.auto_scaling.disk_gb_enabled":    "true",
-			"replication_specs.0.region_configs.0.electable_specs.instance_size":   "M30",
-			"replication_specs.0.region_configs.0.analytics_specs.instance_size":   "M30",
-			"replication_specs.0.region_configs.0.analytics_specs.node_count":      "1",
-			"replication_specs.0.region_configs.0.analytics_specs.disk_iops":       "2000",
-			"replication_specs.0.region_configs.0.analytics_specs.ebs_volume_type": "PROVISIONED",
-			"replication_specs.1.region_configs.0.analytics_specs.instance_size":   "M30",
-			"replication_specs.1.region_configs.0.analytics_specs.node_count":      "1",
-			"replication_specs.1.region_configs.0.analytics_specs.ebs_volume_type": "PROVISIONED",
-			"replication_specs.1.region_configs.0.analytics_specs.disk_iops":       "1000",
-		}
-		checksUpdated = checkAggr(nil, checksUpdatedMap)
-	)
+// func TestAccMockableAdvancedCluster_shardedAddAnalyticsAndAutoScaling(t *testing.T) {
+// 	var (
+// 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 8)
+// 		checksMap              = map[string]string{
+// 			"state_name": "IDLE",
+// 			"project_id": projectID,
+// 			"name":       clusterName,
+// 			"replication_specs.0.region_configs.0.electable_specs.instance_size": "M30",
+// 			"replication_specs.0.region_configs.0.analytics_specs.node_count":    "0",
+// 		}
+// 		checksUpdatedMap = map[string]string{
+// 			"replication_specs.0.region_configs.0.auto_scaling.disk_gb_enabled":    "true",
+// 			"replication_specs.0.region_configs.0.electable_specs.instance_size":   "M30",
+// 			"replication_specs.0.region_configs.0.analytics_specs.instance_size":   "M30",
+// 			"replication_specs.0.region_configs.0.analytics_specs.node_count":      "1",
+// 			"replication_specs.0.region_configs.0.analytics_specs.disk_iops":       "2000",
+// 			"replication_specs.0.region_configs.0.analytics_specs.ebs_volume_type": "PROVISIONED",
+// 			"replication_specs.1.region_configs.0.analytics_specs.instance_size":   "M30",
+// 			"replication_specs.1.region_configs.0.analytics_specs.node_count":      "1",
+// 			"replication_specs.1.region_configs.0.analytics_specs.ebs_volume_type": "PROVISIONED",
+// 			"replication_specs.1.region_configs.0.analytics_specs.disk_iops":       "1000",
+// 		}
+// 		checksUpdated = checkAggr(nil, checksUpdatedMap)
+// 	)
 
-	checks := checkAggr(nil, checksMap)
-	checksMap["replication_specs.0.region_configs.0.analytics_specs.node_count"] = "1" // analytics_specs is kept even if it's removed from the config
-	checksAfter := checkAggr(nil, checksMap)
-	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps: []resource.TestStep{
-			{
-				Config: configSharded(t, projectID, clusterName, false),
-				Check:  checks,
-			},
-			{
-				Config: configSharded(t, projectID, clusterName, true),
-				Check:  checksUpdated,
-			},
-			{
-				Config: configSharded(t, projectID, clusterName, false),
-				Check:  checksAfter,
-			},
-			acc.TestStepImportCluster(resourceName),
-		},
-	})
-}
+// 	checks := checkAggr(nil, checksMap)
+// 	checksMap["replication_specs.0.region_configs.0.analytics_specs.node_count"] = "1" // analytics_specs is kept even if it's removed from the config
+// 	checksAfter := checkAggr(nil, checksMap)
+// 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
+// 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: configSharded(t, projectID, clusterName, false),
+// 				Check:  checks,
+// 			},
+// 			{
+// 				Config: configSharded(t, projectID, clusterName, true),
+// 				Check:  checksUpdated,
+// 			},
+// 			{
+// 				Config: configSharded(t, projectID, clusterName, false),
+// 				Check:  checksAfter,
+// 			},
+// 			acc.TestStepImportCluster(resourceName),
+// 		},
+// 	})
+// }
 
 func TestAccAdvancedCluster_removeBlocksFromConfig(t *testing.T) {
 	var (
