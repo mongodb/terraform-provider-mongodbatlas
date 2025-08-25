@@ -151,6 +151,85 @@ func TestNetworkLoggingTransport_Disabled(t *testing.T) {
 	assert.Empty(t, logStr, "Expected no logs when network logging is disabled")
 }
 
+func TestUserAgentExtra_ToHeaderValue(t *testing.T) {
+	testCases := map[string]struct {
+		extra    config.UserAgentExtra
+		old      string
+		expected string
+	}{
+		"all fields": {
+			extra: config.UserAgentExtra{
+				Name:      "name1",
+				Operation: "op1",
+			},
+			old:      "base/1.0",
+			expected: "base/1.0 Type/type1 Name/name1 Operation/op1 ScriptLocation/loc1",
+		},
+		"some fields empty": {
+			extra: config.UserAgentExtra{
+				Name:      "name2",
+				Operation: "",
+			},
+			old:      "",
+			expected: "Name/name2",
+		},
+		"none": {
+			extra:    config.UserAgentExtra{},
+			old:      "",
+			expected: "",
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			got := tc.extra.ToHeaderValue(t.Context(), tc.old)
+			assert.Equal(t, tc.expected, got)
+		})
+	}
+}
+
+func TestUserAgentExtra_Combine(t *testing.T) {
+	testCases := map[string]struct {
+		base     config.UserAgentExtra
+		other    config.UserAgentExtra
+		expected config.UserAgentExtra
+	}{
+		"other overwrites non-empty": {
+			base:     config.UserAgentExtra{Name: "B", Operation: "C"},
+			other:    config.UserAgentExtra{Name: "Y", Operation: "Z"},
+			expected: config.UserAgentExtra{Name: "Y", Operation: "Z"},
+		},
+		"other empty": {
+			base:     config.UserAgentExtra{Name: "B", Operation: "C"},
+			other:    config.UserAgentExtra{},
+			expected: config.UserAgentExtra{Name: "B", Operation: "C"},
+		},
+		"mixed": {
+			base:     config.UserAgentExtra{Name: "B", Operation: "O"},
+			other:    config.UserAgentExtra{Name: "Y"},
+			expected: config.UserAgentExtra{Name: "Y", Operation: "O"},
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			got := tc.base.Combine(tc.other)
+			assert.Equal(t, tc.expected, got)
+		})
+	}
+}
+
+func TestAddUserAgentExtra(t *testing.T) {
+	base := config.UserAgentExtra{Name: "B"}
+	other := config.UserAgentExtra{Name: "Y", Operation: "O"}
+	ctx := config.AddUserAgentExtra(t.Context(), base)
+	ctx2 := config.AddUserAgentExtra(ctx, other)
+	ua := config.ReadUserAgentExtra(ctx2)
+	// The combined should have Type from base, Name from other, ScriptLocation from other
+	assert.Equal(t, "Y", ua.Name)
+	assert.Equal(t, "O", ua.Operation)
+	assert.Empty(t, ua.Operation)
+}
+
 func TestAccNetworkLogging(t *testing.T) {
 	acc.SkipInUnitTest(t)
 	acc.PreCheckBasic(t)
