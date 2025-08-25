@@ -151,6 +151,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 		},
 		Blocks: map[string]schema.Block{
 			"teams": schema.SetNestedBlock{
+				DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "parameter", "mongodbatlas_team_project_assignment", "[Migration Guide: Project Teams Attribute to Team Project Assignment Resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/team_project_assignment_migration_guide)"),
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"team_id": schema.StringAttribute{

@@ -1,3 +1,6 @@
+---
+subcategory: "Deprecated"    
+---
 # Data Source: mongodbatlas_project_invitation
 
 `mongodbatlas_project_invitation` describes an invitation to a user to join an Atlas project.

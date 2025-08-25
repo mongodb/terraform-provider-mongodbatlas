@@ -1,3 +1,7 @@
+---
+subcategory: "Deprecated"    
+---
+
 # Data Source: mongodbatlas_atlas_user
 
 `mongodbatlas_atlas_user` Provides a MongoDB Atlas User.
@@ -34,7 +38,7 @@ data "mongodbatlas_atlas_user" "test" {
 In addition to all arguments above, the following attributes are exported:
 * `country` - Two alphabet characters that identifies MongoDB Atlas user's geographic location. This parameter uses the ISO 3166-1a2 code format.
 * `created_at` - Date and time when the current account is created. This value is in the ISO 8601 timestamp format in UTC.
-* `email_address` - Email address that belongs to the MongoDB Atlas user.
+* `email_address` - **(DEPRECATED)** Email address that belongs to the MongoDB Atlas user.
 * `first_name` - First or given name that belongs to the MongoDB Atlas user.
 * `last_auth` - Date and time when the current account last authenticated. This value is in the ISO 8601 timestamp format in UTC.
 * `last_name` - Last name, family name, or surname that belongs to the MongoDB Atlas user.
