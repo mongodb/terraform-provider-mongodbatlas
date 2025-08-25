@@ -160,6 +160,7 @@ func TestAccAdvancedCluster_sharedTier_flexUpgrade(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 1)
 	resource.ParallelTest(t, testAccAdvancedClusterFlexUpgrade(t, projectID, clusterName, sharedInstanceSize, false))
 }
+
 // func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 // 	var (
 // 		projectID, clusterName = acc.ProjectIDExecutionWithFreeCluster(t, 3, 1)
@@ -1312,7 +1313,7 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabledToEnabled(t *te
 // 	replica_set_scaling_strategy = "NODE_TYPE"
 // 	root_cert_type = "ISRGROOTX1"
 // 	version_release_system = "CONTINUOUS"
-	
+
 // 	advanced_configuration = {
 // 		change_stream_options_pre_and_post_images_expire_after_seconds = 100
 // 		# default_read_concern                                           = "available"
@@ -2682,7 +2683,7 @@ func checkGeoShardedOldSchema(isTPF bool, name string, numShardsFirstZone, numSh
 	return checkAggrMig(isTPF,
 		[]string{"project_id", "replication_specs.1.id"},
 		map[string]string{
-			"name":                           name,
+			"name": name,
 		},
 		additionalChecks...,
 	)
