@@ -1889,11 +1889,12 @@ func configAWSProvider(t *testing.T, configInfo ReplicaSetAWSConfig, useSDKv2 ..
 	}
 
 	if configInfo.WithAnalyticsSpecs {
-		analyticsSpecs = `
+		analyticsSpecs = fmt.Sprintf(`
 		analytics_specs = {
 			instance_size = "M10"
 			node_count    = 1
-		}`
+			disk_size_gb = %[1]d
+		}`, configInfo.DiskSizeGB)
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
@@ -1901,13 +1902,14 @@ func configAWSProvider(t *testing.T, configInfo ReplicaSetAWSConfig, useSDKv2 ..
 			name         = %[2]q
 			cluster_type = %[3]q
 			retain_backups_enabled = "true"
-		#	disk_size_gb = %[4]d
+		
 
 		  replication_specs = [{
     		region_configs = [{
       			electable_specs = {
        				instance_size = "M10"
 					node_count    = %[5]d
+					disk_size_gb = %[4]d
 				}
 				%[6]s
 				priority      = 7
@@ -2592,6 +2594,46 @@ func configGeoShardedOldSchema(t *testing.T, projectID, name string, numShardsFi
 
 	`, projectID, name, numShardsFirstZone, numShardsSecondZone, selfManagedSharding)
 	} else {
+		var replicationSpecs string
+		for i := 0; i < numShardsFirstZone; i++ {
+			replicationSpecs += `
+			{
+				region_configs = [{
+					analytics_specs = {
+						instance_size = "M10"
+						node_count    = 0
+					}
+					electable_specs = {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					priority      = 7
+					provider_name = "AWS"
+					region_name   = "US_EAST_1"
+					}]
+				zone_name = "zone n1"
+			},`
+		}
+		for i := 0; i < numShardsSecondZone; i++ {
+			replicationSpecs += `
+			{
+				region_configs = [{
+					analytics_specs = {
+						instance_size = "M10"
+						node_count    = 0
+					}
+					electable_specs = {
+						instance_size = "M10"
+						node_count    = 3
+					}
+					priority      = 7
+					provider_name = "AWS"
+					region_name   = "EU_WEST_1"
+					}]
+				zone_name = "zone n2"
+			},`
+		}
+		replicationSpecs = strings.TrimSuffix(replicationSpecs, ",")
 		advClusterConfig = fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id = %[1]q
@@ -2599,46 +2641,14 @@ func configGeoShardedOldSchema(t *testing.T, projectID, name string, numShardsFi
 			backup_enabled = false
 			mongo_db_major_version = "7.0"
 			cluster_type   = "GEOSHARDED"
-			global_cluster_self_managed_sharding = %[5]t
-			disk_size_gb  = 60
+			global_cluster_self_managed_sharding = %[3]t
+			# disk_size_gb  = 60
 
-
-			replication_specs = [{
-				num_shards = %[3]d
-					region_configs = [{
-						analytics_specs = {
-							instance_size = "M10"
-							node_count    = 0
-						}
-						electable_specs = {
-							instance_size = "M10"
-							node_count    = 3
-						}
-					priority      = 7
-					provider_name = "AWS"
-					region_name   = "US_EAST_1"
-					}]
-				zone_name = "zone n1"
-				}, {
-				num_shards = %[4]d
-					region_configs = [{
-						analytics_specs = {
-							instance_size = "M10"
-							node_count    = 0
-						}
-						electable_specs = {
-							instance_size = "M10"
-							node_count    = 3
-						}
-					priority      = 7
-					provider_name = "AWS"
-					region_name   = "EU_WEST_1"
-					}]
-				zone_name = "zone n2"
-			}]
-
-}
-	`, projectID, name, numShardsFirstZone, numShardsSecondZone, selfManagedSharding)
+			replication_specs = [
+			%[4]s
+			]
+		}
+		`, projectID, name, selfManagedSharding, replicationSpecs)
 	}
 
 	return advClusterConfig + dataSourcesTFOldSchema
