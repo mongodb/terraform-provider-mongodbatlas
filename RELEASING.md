@@ -19,7 +19,9 @@ While QA acceptance tests are run in the release process automatically, we check
 
 ### Verify upgrade guide is defined (if required)
 
-- A doc ./docs/guides/X.Y.Z-upgrade-guide.md must be defined containing a summary of the most significant features, breaking changes, and additional information that can be helpful. The expectation is that this file is created during relevant pull requests (breaking changes, significant features), and not before the release process.
+- A document (./docs/guides/X.0.0-upgrade-guide.md) must be provided for each major version, summarizing the most significant features, breaking changes, and other helpful information. For minor version releases, this can be created if there are notable changes that warrant it.
+
+- The expectation is that this file is created during relevant pull requests (breaking changes, significant features), and not before the release process.
 
 - We keep [Guides](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/docs/guides) only for 12 months. Add header `subcategory: "Older Guides"` to previous versions.
 
