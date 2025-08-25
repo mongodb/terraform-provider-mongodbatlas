@@ -2602,10 +2602,12 @@ func configGeoShardedOldSchema(t *testing.T, projectID, name string, numShardsFi
 					analytics_specs = {
 						instance_size = "M10"
 						node_count    = 0
+						disk_size_gb  = 60
 					}
 					electable_specs = {
 						instance_size = "M10"
 						node_count    = 3
+						disk_size_gb  = 60
 					}
 					priority      = 7
 					provider_name = "AWS"
@@ -2621,10 +2623,12 @@ func configGeoShardedOldSchema(t *testing.T, projectID, name string, numShardsFi
 					analytics_specs = {
 						instance_size = "M10"
 						node_count    = 0
+						disk_size_gb  = 60
 					}
 					electable_specs = {
 						instance_size = "M10"
 						node_count    = 3
+						disk_size_gb  = 60
 					}
 					priority      = 7
 					provider_name = "AWS"
@@ -2642,7 +2646,6 @@ func configGeoShardedOldSchema(t *testing.T, projectID, name string, numShardsFi
 			mongo_db_major_version = "7.0"
 			cluster_type   = "GEOSHARDED"
 			global_cluster_self_managed_sharding = %[3]t
-			# disk_size_gb  = 60
 
 			replication_specs = [
 			%[4]s
@@ -2680,9 +2683,6 @@ func checkGeoShardedOldSchema(isTPF bool, name string, numShardsFirstZone, numSh
 		[]string{"project_id", "replication_specs.1.id"},
 		map[string]string{
 			"name":                           name,
-			"disk_size_gb":                   "60",
-			"replication_specs.0.num_shards": strconv.Itoa(numShardsFirstZone),
-			"replication_specs.1.num_shards": strconv.Itoa(numShardsSecondZone),
 		},
 		additionalChecks...,
 	)
