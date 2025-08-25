@@ -22,11 +22,11 @@ var _ resource.ResourceWithConfigure = &streamConnectionRS{}
 var _ resource.ResourceWithImportState = &streamConnectionRS{}
 
 func Resource() resource.Resource {
-	return &streamConnectionRS{
+	return config.AnalyticsResource(&streamConnectionRS{
 		RSCommon: config.RSCommon{
 			ResourceName: streamConnectionName,
 		},
-	}
+	})
 }
 
 type streamConnectionRS struct {

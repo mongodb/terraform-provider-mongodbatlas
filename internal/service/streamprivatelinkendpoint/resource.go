@@ -27,11 +27,11 @@ var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
 
 func Resource() resource.Resource {
-	return &rs{
+	return config.AnalyticsResource(&rs{
 		RSCommon: config.RSCommon{
 			ResourceName: resourceName,
 		},
-	}
+	})
 }
 
 type rs struct {

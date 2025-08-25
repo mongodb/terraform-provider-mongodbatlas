@@ -142,7 +142,7 @@ func TestCleanProjectAndClusters(t *testing.T) {
 		})
 	}
 	t.Cleanup(func() {
-		projectsAfter := readAllProjects(context.Background(), t, client) // reason: using context.Background() here intentionally because t.Context() is canceled at cleanup
+		projectsAfter := readAllProjects(context.Background(), t, client) //nolint:usetesting // reason: using context.Background() here intentionally because t.Context() is canceled at cleanup
 		t.Logf("SUMMARY\nProjects changed from %d to %d\ndelete_errors=%d\nempty_project_count=%d\nDRY_RUN=%t", projectsBefore, len(projectsAfter), deleteErrors, emptyProjectCount, dryRun)
 	})
 }

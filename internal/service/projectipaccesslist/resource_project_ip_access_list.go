@@ -33,11 +33,11 @@ type projectIPAccessListRS struct {
 }
 
 func Resource() resource.Resource {
-	return &projectIPAccessListRS{
+	return config.AnalyticsResource(&projectIPAccessListRS{
 		RSCommon: config.RSCommon{
 			ResourceName: projectIPAccessList,
 		},
-	}
+	})
 }
 
 var _ resource.ResourceWithConfigure = &projectIPAccessListRS{}

@@ -24,11 +24,12 @@ type ProviderMeta struct {
 type ImplementedResource interface {
 	resource.ResourceWithImportState
 	SetClient(*MongoDBClient)
+	GetName() string
 }
 
-func AnalyticsResource(name string, iResource ImplementedResource) resource.Resource {
+func AnalyticsResource(iResource ImplementedResource) resource.Resource {
 	return &RSCommon{
-		ResourceName: name,
+		ResourceName: iResource.GetName(),
 		Resource:     iResource,
 	}
 }
@@ -42,6 +43,10 @@ type RSCommon struct {
 	Resource     ImplementedResource
 	Client       *MongoDBClient
 	ResourceName string
+}
+
+func (r *RSCommon) GetName() string {
+	return r.ResourceName
 }
 
 func (r *RSCommon) SetClient(client *MongoDBClient) {
