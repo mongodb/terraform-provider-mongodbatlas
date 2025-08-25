@@ -104,22 +104,6 @@ func createStreamInstance(tb testing.TB, projectID, name string) {
 	require.NoError(tb, err, "Stream instance creation failed: %s, err: %s", name, err)
 }
 
-// ProjectID returns the id for a project name.
-// When `MONGODB_ATLAS_PROJECT_ID` is defined, it is used instead of creating a project. This is useful for local execution but not intended for CI executions.
-func ProjectID(tb testing.TB, name string) string {
-	tb.Helper()
-	SkipInUnitTest(tb)
-
-	if id := projectIDLocal(); id != "" {
-		return id
-	}
-
-	resp, _, _ := ConnV2().ProjectsApi.GetProjectByName(tb.Context(), name).Execute()
-	id := resp.GetId()
-	require.NotEmpty(tb, id, "Project name not found: %s", name)
-	return id
-}
-
 func projectIDLocal() string {
 	return os.Getenv("MONGODB_ATLAS_PROJECT_ID")
 }

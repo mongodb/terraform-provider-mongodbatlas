@@ -5,8 +5,7 @@ terraform {
       version = "0.2.0"
     }
     mongodbatlas = {
-      source  = "mongodb/mongodbatlas"
-      version = "~> 1.31"
+      source = "mongodb/mongodbatlas"
     }
   }
   required_version = ">= 1.0"
