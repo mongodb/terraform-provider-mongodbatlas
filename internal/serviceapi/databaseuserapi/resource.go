@@ -17,11 +17,11 @@ var _ resource.ResourceWithImportState = &rs{}
 const apiVersionHeader = "application/vnd.atlas.2023-01-01+json"
 
 func Resource() resource.Resource {
-	return &rs{
+	return config.AnalyticsResource(&rs{
 		RSCommon: config.RSCommon{
 			ResourceName: "database_user_api",
 		},
-	}
+	})
 }
 
 type rs struct {
