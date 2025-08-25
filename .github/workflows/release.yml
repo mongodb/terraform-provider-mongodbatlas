@@ -64,9 +64,9 @@ jobs:
           file_to_commit: 'docs/index.md'
           commit_message: 'chore: Updates examples link in index.md for ${{ github.event.inputs.version_number }} release'
           apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
-          remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
+          remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
           gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}
+          passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}      
 
   update-changelog-header:
     needs: [ release-config, validate-inputs, update-examples-reference-in-docs ]
@@ -85,9 +85,9 @@ jobs:
           file_to_commit: 'CHANGELOG.md'
           commit_message: 'chore: Updates CHANGELOG.md header for ${{ github.event.inputs.version_number }} release'
           apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
-          remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
+          remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
           gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}
+          passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}     
 
   create-tag:
     runs-on: ubuntu-latest
@@ -98,7 +98,7 @@ jobs:
       !cancelled()
       && !contains(needs.*.result, 'failure') 
       && needs.release-config.outputs.creates_new_tag == 'true'
-    steps:
+    steps: 
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:
@@ -125,10 +125,10 @@ jobs:
     with:
       atlas_cloud_env: "qa"
       ref: ${{ inputs.version_number }}
-
+  
   release:
     runs-on: ubuntu-latest
-    permissions:
+    permissions: 
       contents: write
     needs: [ validate-inputs, update-examples-reference-in-docs, update-changelog-header, create-tag, run-qa-acceptance-tests ]
     # Release is skipped if there are failures in previous steps
