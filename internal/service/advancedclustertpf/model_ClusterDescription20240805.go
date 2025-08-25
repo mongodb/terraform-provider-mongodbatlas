@@ -18,8 +18,8 @@ const (
 )
 
 type ExtraAPIInfo struct {
-	ZoneNameNumShards          map[string]int64
-	ZoneNameReplicationSpecIDs map[string]string
+	// ZoneNameNumShards          map[string]int64
+	// ZoneNameReplicationSpecIDs map[string]string
 	ContainerIDs               map[string]string
 	UseNewShardingConfig       bool
 	UseOldShardingConfigFailed bool

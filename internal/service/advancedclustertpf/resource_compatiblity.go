@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -43,20 +42,20 @@ func overrideMapStringWithPrevStateValue(mapIn, mapOut *types.Map) {
 
 func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterLatest *admin.ClusterDescription20240805, useReplicationSpecPerShard bool) *ExtraAPIInfo {
 	var (
-		api20240530                = client.AtlasV220240530.ClustersApi
+		// api20240530                = client.AtlasV220240530.ClustersApi
 		projectID                  = clusterLatest.GetGroupId()
 		clusterName                = clusterLatest.GetName()
 		useOldShardingConfigFailed = false
 	)
-	clusterRespOld, _, err := api20240530.GetCluster(ctx, projectID, clusterName).Execute()
-	if err != nil {
-		if validate.ErrorClusterIsAsymmetrics(err) {
-			useOldShardingConfigFailed = !useReplicationSpecPerShard
-		} else {
-			diags.AddError(errorReadLegacy20240530, defaultAPIErrorDetails(clusterName, err))
-			return nil
-		}
-	}
+	// clusterRespOld, _, err := api20240530.GetCluster(ctx, projectID, clusterName).Execute()
+	// if err != nil {
+	// 	if validate.ErrorClusterIsAsymmetrics(err) {
+	// 		useOldShardingConfigFailed = !useReplicationSpecPerShard
+	// 	} else {
+	// 		diags.AddError(errorReadLegacy20240530, defaultAPIErrorDetails(clusterName, err))
+	// 		return nil
+	// 	}
+	// }
 	containerIDs, err := resolveContainerIDs(ctx, projectID, clusterLatest, client.AtlasV2.NetworkPeeringApi)
 	if err != nil {
 		diags.AddError(errorResolveContainerIDs, fmt.Sprintf("cluster name = %s, error details: %s", clusterName, err.Error()))
@@ -64,9 +63,9 @@ func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config
 	}
 	return &ExtraAPIInfo{
 		ContainerIDs:               containerIDs,
-		ZoneNameReplicationSpecIDs: replicationSpecIDsFromOldAPI(clusterRespOld),
+		// ZoneNameReplicationSpecIDs: replicationSpecIDsFromOldAPI(clusterRespOld),
 		UseOldShardingConfigFailed: useOldShardingConfigFailed,
-		ZoneNameNumShards:          numShardsMapFromOldAPI(clusterRespOld),
+		// ZoneNameNumShards:          numShardsMapFromOldAPI(clusterRespOld),
 		UseNewShardingConfig:       useReplicationSpecPerShard,
 	}
 }

@@ -410,6 +410,7 @@ func getBasicClusterModelResource(ctx context.Context, diags *diag.Diagnostics, 
 
 func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, useReplicationSpecPerShard bool) (*TFModel, *ExtraAPIInfo) {
 	extraInfo := resolveAPIInfo(ctx, diags, client, clusterResp, useReplicationSpecPerShard)
+	// extraInfo := &ExtraAPIInfo{}
 	if diags.HasError() {
 		return nil, nil
 	}
