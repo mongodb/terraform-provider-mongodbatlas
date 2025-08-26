@@ -79,7 +79,7 @@ In addition to all arguments above, the following attributes are exported:
 * `cluster_count` - The number of Atlas clusters deployed in the project.
 * `created` - The ISO-8601-formatted timestamp of when Atlas created the project.
 * `tags` - Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the project. To learn more, see [Resource Tags](https://www.mongodb.com/docs/atlas/tags/)
-* `teams` - Returns all teams to which the authenticated user has access in the project. See [Teams](#teams).
+* `teams` - **(DEPRECATED)** Returns all teams to which the authenticated user has access in the project. See [Teams](#teams).
 * `limits` - The limits for the specified project. See [Limits](#limits).
 * `ip_addresses` - IP addresses in a project categorized by services. See [IP Addresses](#ip-addresses). **WARNING:** This attribute is deprecated, use the `mongodbatlas_project_ip_addresses` data source instead.
 * `users` - Returns list of all pending and active MongoDB Cloud users associated with the specified project.
@@ -93,6 +93,8 @@ In addition to all arguments above, the following attributes are exported:
 * `is_slow_operation_thresholding_enabled` - (Deprecated) Flag that enables MongoDB Cloud to use its slow operation threshold for the specified project. The threshold determines which operations the Performance Advisor and Query Profiler considers slow. When enabled, MongoDB Cloud uses the average execution time for operations on your cluster to determine slow-running queries. As a result, the threshold is more pertinent to your cluster workload. The slow operation threshold is enabled by default for dedicated clusters (M10+). When disabled, MongoDB Cloud considers any operation that takes longer than 100 milliseconds to be slow. **Note**: To use this attribute, the requesting API Key must have the Project Owner role, if not it will show a warning and will return `false`. If you are not using this field, you don't need to take any action.
 
 ### Teams
+
+~> **DEPRECATION:** This attribute is deprecated and will be removed in the next major release. Please transition to `mongodbatlas_team_project_assignment`. For more details, see [Migration Guide: Project Teams Attribute to Team Project Assignment Resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/team_project_assignment_migration_guide).
 
 * `team_id` - The unique identifier of the team you want to associate with the project. The team and project must share the same parent organization.
 * `role_names` - Each string in the array represents a project role assigned to the team. Every user associated with the team inherits these roles. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#organization-roles) describes the roles a user can have.
