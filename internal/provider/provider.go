@@ -497,7 +497,7 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 
 func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resource {
 	resources := []func() resource.Resource{
-		project.Resource,
+		config.AnalyticsResourceFunc(project.Resource()),
 		encryptionatrest.Resource,
 		databaseuser.Resource,
 		alertconfiguration.Resource,

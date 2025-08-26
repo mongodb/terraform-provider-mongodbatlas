@@ -243,7 +243,7 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_api_key":                           apikey.Resource(),
 		"mongodbatlas_access_list_api_key":               accesslistapikey.Resource(),
 		"mongodbatlas_project_api_key":                   projectapikey.Resource(),
-		"mongodbatlas_custom_db_role":                    customdbrole.Resource(),
+		"mongodbatlas_custom_db_role":                    config.NewAnalyticsResourceSDKv2(customdbrole.Resource(), "custom_db_role"),
 		"mongodbatlas_cluster":                           cluster.Resource(),
 		"mongodbatlas_network_container":                 networkcontainer.Resource(),
 		"mongodbatlas_network_peering":                   networkpeering.Resource(),
