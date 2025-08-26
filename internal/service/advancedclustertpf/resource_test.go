@@ -380,9 +380,9 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
 
 		processArgs20240530 = &admin20240530.ClusterDescriptionProcessArgs{
-			DefaultReadConcern:               conversion.StringPtr("available"),
+			// DefaultReadConcern:               conversion.StringPtr("available"),
 			DefaultWriteConcern:              conversion.StringPtr("1"),
-			FailIndexKeyTooLong:              conversion.Pointer(false),
+			// FailIndexKeyTooLong:              conversion.Pointer(false),
 			JavascriptEnabled:                conversion.Pointer(true),
 			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
 			NoTableScan:                      conversion.Pointer(false),
@@ -425,9 +425,9 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
 		clusterNameUpdated     = acc.RandomClusterName()
 		processArgs20240530    = &admin20240530.ClusterDescriptionProcessArgs{
-			DefaultReadConcern:               conversion.StringPtr("available"),
+			// DefaultReadConcern:               conversion.StringPtr("available"),
 			DefaultWriteConcern:              conversion.StringPtr("1"),
-			FailIndexKeyTooLong:              conversion.Pointer(false),
+			// FailIndexKeyTooLong:              conversion.Pointer(false),
 			JavascriptEnabled:                conversion.Pointer(true),
 			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
 			NoTableScan:                      conversion.Pointer(false),
@@ -442,9 +442,9 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		}
 
 		processArgs20240530Updated = &admin20240530.ClusterDescriptionProcessArgs{
-			DefaultReadConcern:               conversion.StringPtr("available"),
+			// DefaultReadConcern:               conversion.StringPtr("available"),
 			DefaultWriteConcern:              conversion.StringPtr("0"),
-			FailIndexKeyTooLong:              conversion.Pointer(false),
+			// FailIndexKeyTooLong:              conversion.Pointer(false),
 			JavascriptEnabled:                conversion.Pointer(true),
 			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
 			NoTableScan:                      conversion.Pointer(false),
@@ -493,7 +493,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
 		clusterNameUpdated     = acc.RandomClusterName()
 		processArgs            = &admin20240530.ClusterDescriptionProcessArgs{
-			DefaultReadConcern:               conversion.StringPtr("available"),
+			// DefaultReadConcern:               conversion.StringPtr("available"),
 			DefaultWriteConcern:              conversion.StringPtr("1"),
 			JavascriptEnabled:                conversion.Pointer(true),
 			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
@@ -503,7 +503,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 			SampleSizeBIConnector:            conversion.Pointer(110),
 		}
 		processArgsUpdated = &admin20240530.ClusterDescriptionProcessArgs{
-			DefaultReadConcern:               conversion.StringPtr("available"),
+			// DefaultReadConcern:               conversion.StringPtr("available"),
 			DefaultWriteConcern:              conversion.StringPtr("majority"),
 			JavascriptEnabled:                conversion.Pointer(true),
 			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),

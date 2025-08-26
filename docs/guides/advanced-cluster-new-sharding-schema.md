@@ -4,7 +4,7 @@ page_title: "Migration Guide: Advanced Cluster New Sharding Configurations"
 
 # Migration Guide: Advanced Cluster New Sharding Configurations
 
-**Objective**: Use this guide to migrate your existing `advanced_cluster` resources to support new sharding configurations introduced in version 1.18.0. The new sharding configurations allow you to scale shards independently. Additionally, as of version 1.23.0, compute auto-scaling supports scaling instance sizes independently for each shard when using the new sharding configuration. Existing sharding configurations continue to work, but you will receive deprecation messages if you continue to use them.
+**Objective**: Use this guide to migrate your existing `advanced_cluster` resources to support new sharding configurations. The new sharding configurations allow you to scale shards independently. Additionally, compute auto-scaling supports scaling instance sizes independently for each shard when using the new sharding configuration.
 
 Note: Once applied, the `advanced_cluster` resource making use of the new sharding configuration will not be able to transition back to the old sharding configuration.
 
@@ -21,7 +21,7 @@ Note: Once applied, the `advanced_cluster` resource making use of the new shardi
 ## Changes Overview
 
 `replication_specs` attribute now represents each individual cluster's shard with a unique replication spec element.
-When you use the new sharding configurations, it will no longer use the existing attribute `num_shards`, and instead the number of shards are defined by the number of `replication_specs` elements.
+When you use the new sharding configurations, it will no longer use the deprecated **(now removed)** attribute `num_shards`, and instead the number of shards are defined by the number of `replication_specs` elements.
 
 ### Migrate advanced_cluster type `SHARDED`
 
@@ -33,8 +33,8 @@ resource "mongodbatlas_advanced_cluster" "test" {
   cluster_type = "SHARDED"
 
   replication_specs = [{
-    # deprecation warning will be encoutered for using num_shards
-    num_shards = 2 
+    # this attribute has been removed in v2.0.0
+    num_shards = 2
     region_configs = [{
       electable_specs = {
         instance_size = "M30"
@@ -49,7 +49,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-In order to use our new sharding configurations, we will remove the use of `num_shards` and add a new identical `replication_specs` element for each shard. Note that these 2 changes must be done at the same time.
+In order to use our new sharding configurations, we will remove the use of `num_shards` and add a new identical `replication_specs` element for each shard. Note that all changes must be done at the same time.
 
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
@@ -84,11 +84,9 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-This updated configuration will trigger a Terraform update plan. However, the underlying cluster will not face any changes after the `apply` command, as both configurations represent a sharded cluster composed of two shards.
-
 ### Migrate advanced_cluster type `GEOSHARDED`
 
-Consider the following configuration of a `GEOSHARDED` cluster using the deprecated `num_shards`:
+Consider the following configuration of a `GEOSHARDED` cluster using the deprecated (now removed) `num_shards`:
 
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
@@ -98,7 +96,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
   replication_specs = [{
     zone_name  = "zone n1"
-    num_shards = 2
+    num_shards = 2     # this attribute has been removed in v2.0.0
     region_configs = [{
     electable_specs = {
         instance_size = "M30"
@@ -111,7 +109,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
   }, 
   {
     zone_name  = "zone n2"
-    num_shards = 2
+    num_shards = 2    # this attribute has been removed in v2.0.0
 
     region_configs = [{
     electable_specs = {
@@ -185,8 +183,6 @@ resource "mongodbatlas_advanced_cluster" "test" {
   }]
 }
 ```
-
-This updated configuration triggers a Terraform update plan. However, the underlying cluster will not face any changes after the `apply` command, as both configurations represent a geo sharded cluster with two zones and two shards in each one.
 
 ### Migrate advanced_cluster type `REPLICASET`
 
@@ -274,7 +270,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 ## Use Independent Shard Scaling 
 
-Use the new sharding configurations. Each shard must be represented with a unique `replication_specs` element and `num_shards` must not be used, as illustrated in the following example.
+Use the new sharding configurations. Each shard must be represented with a unique `replication_specs` element and the deprecated (now removed) `num_shards` must not be used, as illustrated in the following example.
 
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
@@ -406,10 +402,10 @@ resource "mongodbatlas_advanced_cluster" "test" {
   }]
   lifecycle { # avoids future non-empty plans as instance size start to scale from initial values
     ignore_changes = [ 
-      replication_specs[0].region_configs[0].electable_specs[0].instance_size, 
-      replication_specs[0].region_configs[0].analytics_specs[0].instance_size, 
-      replication_specs[1].region_configs[0].electable_specs[0].instance_size,
-      replication_specs[1].region_configs[0].analytics_specs[0].instance_size
+      replication_specs[0].region_configs[0].electable_specs.instance_size, 
+      replication_specs[0].region_configs[0].analytics_specs.instance_size, 
+      replication_specs[1].region_configs[0].electable_specs.instance_size,
+      replication_specs[1].region_configs[0].analytics_specs.instance_size
     ]
   }
 }
