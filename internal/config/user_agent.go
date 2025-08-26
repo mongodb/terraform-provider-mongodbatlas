@@ -49,9 +49,17 @@ func (e UserAgentExtra) Combine(other UserAgentExtra) UserAgentExtra {
 	if other.ModuleVersion != "" {
 		moduleVersion = other.ModuleVersion
 	}
-	newExtras := make(map[string]string)
-	maps.Copy(newExtras, e.Extras)
-	maps.Copy(newExtras, other.Extras)
+	var newExtras map[string]string
+	if e.Extras != nil {
+		newExtras = map[string]string{}
+		maps.Copy(newExtras, e.Extras)
+	}
+	if other.Extras != nil {
+		if newExtras == nil {
+			newExtras = map[string]string{}
+		}
+		maps.Copy(newExtras, other.Extras)
+	}
 	return UserAgentExtra{
 		Name:          name,
 		Operation:     operation,

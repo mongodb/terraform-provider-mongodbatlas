@@ -31,16 +31,14 @@ func AnalyticsResourceFunc(iResource resource.Resource) func() resource.Resource
 	a := func() resource.Resource {
 		commonResource, ok := iResource.(ImplementedResource)
 		if ok {
-			return &RSCommon{
-				ResourceName: commonResource.GetName(),
-				Resource:     commonResource,
-			}
+			return analyticsResource(commonResource)
 		}
 		return iResource
 	}
 	return a
 }
-func AnalyticsResource(iResource ImplementedResource) resource.Resource {
+
+func analyticsResource(iResource ImplementedResource) resource.Resource {
 	return &RSCommon{
 		ResourceName: iResource.GetName(),
 		Resource:     iResource,
