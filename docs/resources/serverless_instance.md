@@ -25,15 +25,6 @@ resource "mongodbatlas_serverless_instance" "test" {
 }
 ```
 
-**NOTE:**  `mongodbatlas_serverless_instance` and `mongodbatlas_privatelink_endpoint_service_serverless` resources have a circular dependency in some respects.\
-That is, the `serverless_instance` must exist before the `privatelink_endpoint_service` can be created,\
-and the `privatelink_endpoint_service` must exist before the `serverless_instance` gets its respective `connection_strings_private_endpoint_srv` values.
-
-Because of this, the `serverless_instance` data source has particular value as a source of the `connection_strings_private_endpoint_srv`.\
-When using the data_source in-tandem with the afforementioned resources, we can create and retrieve the `connection_strings_private_endpoint_srv` in a single `terraform apply`.
-
-Follow this example to [setup private connection to a serverless instance using aws vpc](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/aws-privatelink-endpoint/serverless-instance) and get the connection strings in a single `terraform apply`
-
 ## Argument Reference
 
 * `name` - (Required) Human-readable label that identifies the serverless instance.
