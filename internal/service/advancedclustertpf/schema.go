@@ -44,11 +44,11 @@ func resourceSchema(ctx context.Context) schema.Schema {
 						Optional:            true,
 						MarkdownDescription: "Flag that indicates whether MongoDB Connector for Business Intelligence is enabled on the specified cluster.",
 					},
-					// "read_preference": schema.StringAttribute{
-					// 	Computed:            true,
-					// 	Optional:            true,
-					// 	MarkdownDescription: "Data source node designated for the MongoDB Connector for Business Intelligence on MongoDB Cloud. The MongoDB Connector for Business Intelligence on MongoDB Cloud reads data from the primary, secondary, or analytics node based on your read preferences. Defaults to `ANALYTICS` node, or `SECONDARY` if there are no `ANALYTICS` nodes.",
-					// },
+					"read_preference": schema.StringAttribute{
+						Computed:            true,
+						Optional:            true,
+						MarkdownDescription: "Data source node designated for the MongoDB Connector for Business Intelligence on MongoDB Cloud. The MongoDB Connector for Business Intelligence on MongoDB Cloud reads data from the primary, secondary, or analytics node based on your read preferences. Defaults to `ANALYTICS` node, or `SECONDARY` if there are no `ANALYTICS` nodes.",
+					},
 				},
 			},
 			"cluster_type": schema.StringAttribute{
@@ -612,13 +612,13 @@ type TFModelPluralDS struct {
 }
 
 type TFBiConnectorModel struct {
-	// ReadPreference types.String `tfsdk:"read_preference"`
+	ReadPreference types.String `tfsdk:"read_preference"`
 	Enabled types.Bool `tfsdk:"enabled"`
 }
 
 var BiConnectorConfigObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"enabled": types.BoolType,
-	// "read_preference": types.StringType,
+	"read_preference": types.StringType,
 }}
 
 type TFConnectionStringsModel struct {

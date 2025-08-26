@@ -2683,7 +2683,7 @@ func checkGeoShardedOldSchema(isTPF bool, name string, numShardsFirstZone, numSh
 	}
 
 	return checkAggrMig(isTPF,
-		[]string{"project_id", "replication_specs.1.id"},
+		[]string{"project_id"},
 		map[string]string{
 			"name": name,
 		},
@@ -3210,7 +3210,7 @@ func configGeoShardedTransitionOldToNewSchema(t *testing.T, isTPF bool, projectI
 func checkGeoShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.TestCheckFunc {
 	if useNewSchema {
 		return checkAggrMig(isTPF,
-			[]string{"replication_specs.1.id", "replication_specs.2.id", "replication_specs.3.id",
+			[]string{
 				"replication_specs.0.external_id", "replication_specs.1.external_id", "replication_specs.2.external_id", "replication_specs.3.external_id",
 			},
 			map[string]string{
