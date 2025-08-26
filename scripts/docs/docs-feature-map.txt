@@ -1,0 +1,213 @@
+# Mapping of doc base names to feature folders under docs
+# Format blocks:
+# "Feature Path":
+# name1,
+# name2
+
+"Clusters":
+advanced_cluster,
+advanced_clusters,
+cluster,
+clusters,
+mongodb_employee_access_grant
+
+"Flex Clusters":
+flex_cluster,
+flex_clusters
+
+"Global Clusters":
+global_cluster_config
+
+"Cloud Backups":
+backup_compliance_policy,
+cloud_backup_schedule,
+cloud_backup_snapshot,
+cloud_backup_snapshots,
+cloud_backup_snapshot_restore_job,
+cloud_backup_snapshot_restore_jobs,
+cloud_backup_snapshot_export_bucket,
+cloud_backup_snapshot_export_buckets,
+cloud_backup_snapshot_export_job,
+cloud_backup_snapshot_export_jobs
+
+"Cloud Provider Snapshots":
+cloud_provider_snapshot,
+cloud_provider_snapshots,
+cloud_provider_snapshot_backup_policy,
+cloud_provider_snapshot_restore_job,
+cloud_provider_snapshot_restore_jobs
+
+"Shared-Tier Snapshots":
+cloud_provider_shared_tier_snapshot,
+cloud_provider_shared_tier_snapshots
+
+"Shared-Tier Restore Jobs":
+cloud_provider_shared_tier_restore_job,
+cloud_provider_shared_tier_restore_jobs
+
+"Flex Snapshots":
+flex_snapshot,
+flex_snapshots
+
+"Flex Restore Jobs":
+flex_restore_job,
+flex_restore_jobs
+
+"Cloud Provider Access":
+cloud_provider_access,
+cloud_provider_access_setup
+
+"Projects":
+project,
+projects,
+project_api_key,
+project_api_keys,
+project_invitation,
+project_ip_addresses,
+cloud_user_project_assignment
+
+"Project IP Access List":
+project_ip_access_list
+
+"Resource Policies":
+resource_policy,
+resource_policies
+
+"Push-Based Log Export":
+push_based_log_export
+
+"Maintenance Windows":
+maintenance_window
+
+"Organizations":
+organization,
+organizations,
+org_invitation,
+cloud_user_org_assignment,
+roles_org_id
+
+"Teams":
+team,
+teams,
+team_project_assignment,
+cloud_user_team_assignment
+
+"Network Peering":
+network_peering,
+network_peerings,
+network_container,
+network_containers
+
+"Private Endpoint Services":
+privatelink_endpoint,
+privatelink_endpoint_service,
+private_endpoint_regional_mode,
+privatelink_endpoints_service_adl
+
+"Serverless Private Endpoints":
+privatelink_endpoints_service_serverless,
+privatelink_endpoint_service_serverless,
+privatelink_endpoint_serverless
+
+"Data Federation":
+federated_database_instance,
+federated_database_instances,
+privatelink_endpoint_service_data_federation_online_archive,
+privatelink_endpoint_service_data_federation_online_archives,
+federated_query_limit,
+federated_query_limits,
+federated_settings_identity_providers
+
+"Federated Authentication":
+federated_settings_identity_provider,
+federated_settings_org_config,
+federated_settings_org_configs,
+federated_settings_org_role_mapping,
+federated_settings_org_role_mappings,
+federated_settings
+
+"Data Lake Pipelines":
+data_lake_pipeline,
+data_lake_pipelines,
+data_lake_pipeline_run,
+data_lake_pipeline_runs
+
+"Search":
+search_deployment,
+search_index,
+search_indexes
+
+"Cluster Outage Simulation":
+cluster_outage_simulation
+
+"Streams":
+stream_instance,
+stream_instances,
+stream_processor,
+stream_processors,
+stream_connection,
+stream_connections,
+stream_privatelink_endpoint,
+stream_privatelink_endpoints,
+stream_account_details
+
+"Serverless Instances":
+serverless_instance,
+serverless_instances
+
+"Database Users":
+database_user,
+database_users
+
+"X.509 Authentication":
+x509_authentication_database_user
+
+"LDAP Configuration":
+ldap_configuration,
+ldap_verify
+
+"Auditing":
+auditing
+
+"Custom Database Roles":
+custom_db_role,
+custom_db_roles
+
+"Encryption at Rest using Customer Key Management":
+encryption_at_rest,
+encryption_at_rest_private_endpoint,
+encryption_at_rest_private_endpoints
+
+"Alert Configurations":
+alert_configuration,
+alert_configurations
+
+"Third-Party Integrations":
+third_party_integration,
+third_party_integrations
+
+"Online Archive":
+online_archive,
+online_archives
+
+"Event Trigger":
+event_trigger,
+event_triggers
+
+"AWS Clusters DNS":
+custom_dns_configuration_cluster_aws
+
+"Root":
+control_plane_ip_addresses
+
+"Programmatic API Keys":
+api_key,
+api_keys,
+access_list_api_key,
+access_list_api_keys,
+api_key_project_assignment,
+api_key_project_assignments
+
+"Atlas Users (Deprecated)":
+atlas_user,
+atlas_users
