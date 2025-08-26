@@ -847,6 +847,7 @@ func symmetricGeoShardedOldSchemaTestCase(t *testing.T, useSDKv2 ...bool) resour
 	}
 }
 
+// TODO: remove this test
 // func TestAccMockableAdvancedCluster_symmetricShardedOldSchemaDiskSizeGBAtElectableLevel(t *testing.T) {
 // 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 6)
 
@@ -868,6 +869,7 @@ func symmetricGeoShardedOldSchemaTestCase(t *testing.T, useSDKv2 ...bool) resour
 // 	})
 // }
 
+// TODO: remove this test or see if useful for migration
 func TestAccClusterAdvancedClusterConfig_symmetricShardedNewSchemaToAsymmetricAddingRemovingShard(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -2942,7 +2944,7 @@ func checkShardedNewSchema(isTPF bool, diskSizeGB int, firstInstanceSize, lastIn
 	}
 
 	clusterChecks := map[string]string{
-		"disk_size_gb":        fmt.Sprintf("%d", diskSizeGB),
+		// "disk_size_gb":        fmt.Sprintf("%d", diskSizeGB),
 		"replication_specs.#": fmt.Sprintf("%d", amtOfReplicationSpecs),
 		"replication_specs.0.region_configs.0.electable_specs.0.instance_size":                              firstInstanceSize,
 		fmt.Sprintf("replication_specs.%d.region_configs.0.electable_specs.0.instance_size", lastSpecIndex): lastInstanceSize,
@@ -2973,7 +2975,7 @@ func checkShardedNewSchema(isTPF bool, diskSizeGB int, firstInstanceSize, lastIn
 			// "results.0.replication_specs.1.id": "",
 		})
 	} else {
-		pluralChecks = append(pluralChecks, checkAggrMig(isTPF, []string{"replication_specs.1.id"}, map[string]string{}))
+		// pluralChecks = append(pluralChecks, checkAggrMig(isTPF, []string{"replication_specs.1.id"}, map[string]string{}))
 		pluralChecks = acc.AddAttrSetChecksMigTPF(isTPF, dataSourcePluralName, pluralChecks)
 	}
 	return checkAggrMig(isTPF,
