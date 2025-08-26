@@ -63,6 +63,9 @@ func NewAnalyticsResourceSDKv2(d *schema.Resource, name string) *schema.Resource
 	if d.UpdateContext != nil {
 		resource.UpdateContext = analyticsResource.UpdateContext
 	}
+	if d.UpdateWithoutTimeout != nil {
+		resource.UpdateWithoutTimeout = analyticsResource.UpdateWithoutTimeout
+	}
 	// DeleteContext or DeleteWithoutTimeout, cannot use both
 	if d.DeleteContext != nil {
 		resource.DeleteContext = analyticsResource.DeleteContext
@@ -73,25 +76,33 @@ func NewAnalyticsResourceSDKv2(d *schema.Resource, name string) *schema.Resource
 	return resource
 }
 
+type ProviderMetaSDKv2 struct {
+	UserAgentExtra map[string]string `cty:"user_agent_extra"`
+	ModuleName     *string           `cty:"module_name"`
+	ModuleVersion  *string           `cty:"module_version"`
+}
+
 type AnalyticsResourceSDKv2 struct {
 	resource *schema.Resource
 	name     string
 }
 
 func (a *AnalyticsResourceSDKv2) CreateContext(ctx context.Context, r *schema.ResourceData, m interface{}) diag.Diagnostics {
-	// TODO: Add analytics
+	meta, err := parseProviderMeta(r)
+	if err != nil {
+		return a.resource.CreateContext(ctx, r, m)
+	}
+	ctx = a.updateContextWithProviderMeta(ctx, meta, UserAgentOperationValueCreate)
 	return a.resource.CreateContext(ctx, r, m)
 }
 
 func (a *AnalyticsResourceSDKv2) CreateWithoutTimeout(ctx context.Context, r *schema.ResourceData, m interface{}) diag.Diagnostics {
-	// TODO: Add analytics
+	meta, err := parseProviderMeta(r)
+	if err != nil {
+		return a.resource.CreateWithoutTimeout(ctx, r, m)
+	}
+	ctx = a.updateContextWithProviderMeta(ctx, meta, UserAgentOperationValueCreate)
 	return a.resource.CreateWithoutTimeout(ctx, r, m)
-}
-
-type ProviderMetaSDKv2 struct {
-	UserAgentExtra map[string]string `cty:"user_agent_extra"`
-	ModuleName     *string           `cty:"module_name"`
-	ModuleVersion  *string           `cty:"module_version"`
 }
 
 func (a *AnalyticsResourceSDKv2) ReadWithoutTimeout(ctx context.Context, r *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -112,6 +123,50 @@ func (a *AnalyticsResourceSDKv2) ReadContext(ctx context.Context, r *schema.Reso
 	return a.resource.ReadContext(ctx, r, m)
 }
 
+func (a *AnalyticsResourceSDKv2) UpdateContext(ctx context.Context, r *schema.ResourceData, m interface{}) diag.Diagnostics {
+	meta, err := parseProviderMeta(r)
+	if err != nil {
+		return a.resource.UpdateContext(ctx, r, m)
+	}
+	ctx = a.updateContextWithProviderMeta(ctx, meta, UserAgentOperationValueUpdate)
+	return a.resource.UpdateContext(ctx, r, m)
+}
+func (a *AnalyticsResourceSDKv2) UpdateWithoutTimeout(ctx context.Context, r *schema.ResourceData, m interface{}) diag.Diagnostics {
+	meta, err := parseProviderMeta(r)
+	if err != nil {
+		return a.resource.UpdateWithoutTimeout(ctx, r, m)
+	}
+	ctx = a.updateContextWithProviderMeta(ctx, meta, UserAgentOperationValueUpdate)
+	return a.resource.UpdateWithoutTimeout(ctx, r, m)
+}
+
+func (a *AnalyticsResourceSDKv2) DeleteContext(ctx context.Context, r *schema.ResourceData, m interface{}) diag.Diagnostics {
+	meta, err := parseProviderMeta(r)
+	if err != nil {
+		return a.resource.DeleteContext(ctx, r, m)
+	}
+	ctx = a.updateContextWithProviderMeta(ctx, meta, UserAgentOperationValueDelete)
+	return a.resource.DeleteContext(ctx, r, m)
+}
+
+func (a *AnalyticsResourceSDKv2) DeleteWithoutTimeout(ctx context.Context, r *schema.ResourceData, m interface{}) diag.Diagnostics {
+	meta, err := parseProviderMeta(r)
+	if err != nil {
+		return a.resource.DeleteWithoutTimeout(ctx, r, m)
+	}
+	ctx = a.updateContextWithProviderMeta(ctx, meta, UserAgentOperationValueDelete)
+	return a.resource.DeleteWithoutTimeout(ctx, r, m)
+}
+
+func (a *AnalyticsResourceSDKv2) resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
+	// Import doesn't have providerMeta
+	ctx = AddUserAgentExtra(ctx, UserAgentExtra{
+		Name:      a.name,
+		Operation: UserAgentOperationValueImport,
+	})
+	return a.resource.Importer.StateContext(ctx, d, meta)
+}
+
 func (a *AnalyticsResourceSDKv2) updateContextWithProviderMeta(ctx context.Context, meta ProviderMetaSDKv2, operationName string) context.Context {
 	moduleName := ""
 	if meta.ModuleName != nil {
@@ -124,7 +179,7 @@ func (a *AnalyticsResourceSDKv2) updateContextWithProviderMeta(ctx context.Conte
 
 	uaExtra := UserAgentExtra{
 		Name:          a.name,
-		Operation:     UserAgentOperationValueRead,
+		Operation:     operationName,
 		Extras:        meta.UserAgentExtra,
 		ModuleName:    moduleName,
 		ModuleVersion: moduleVersion,
@@ -140,20 +195,4 @@ func parseProviderMeta(r *schema.ResourceData) (ProviderMetaSDKv2, error) {
 		log.Printf("[WARN] failed to decode provider meta: %s, meta: %v", err, meta)
 	}
 	return meta, err
-}
-
-func (a *AnalyticsResourceSDKv2) UpdateContext(ctx context.Context, r *schema.ResourceData, m interface{}) diag.Diagnostics {
-	return a.resource.UpdateContext(ctx, r, m)
-}
-
-func (a *AnalyticsResourceSDKv2) DeleteContext(ctx context.Context, r *schema.ResourceData, m interface{}) diag.Diagnostics {
-	return a.resource.DeleteContext(ctx, r, m)
-}
-
-func (a *AnalyticsResourceSDKv2) DeleteWithoutTimeout(ctx context.Context, r *schema.ResourceData, m interface{}) diag.Diagnostics {
-	return a.resource.DeleteWithoutTimeout(ctx, r, m)
-}
-
-func (a *AnalyticsResourceSDKv2) resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	return a.resource.Importer.StateContext(ctx, d, meta)
 }
