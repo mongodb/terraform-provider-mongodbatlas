@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -289,7 +290,12 @@ func getResourcesMap() map[string]*schema.Resource {
 	if !config.PreviewProviderV2AdvancedCluster() {
 		resourcesMap["mongodbatlas_advanced_cluster"] = advancedcluster.Resource()
 	}
-	return resourcesMap
+	analyticsMap := map[string]*schema.Resource{}
+	for fullName, resource := range resourcesMap {
+		name := strings.TrimPrefix(fullName, "mongodbatlas_")
+		analyticsMap[fullName] = config.NewAnalyticsResourceSDKv2(resource, name)
+	}
+	return analyticsMap
 }
 
 func providerConfigure(provider *schema.Provider) func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
