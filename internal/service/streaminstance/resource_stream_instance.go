@@ -19,11 +19,11 @@ var _ resource.ResourceWithImportState = &streamInstanceRS{}
 const streamInstanceName = "stream_instance"
 
 func Resource() resource.Resource {
-	return config.AnalyticsResource(&streamInstanceRS{
+	return &streamInstanceRS{
 		RSCommon: config.RSCommon{
 			ResourceName: streamInstanceName,
 		},
-	})
+	}
 }
 
 type streamInstanceRS struct {

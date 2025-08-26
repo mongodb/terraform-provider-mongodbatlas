@@ -29,11 +29,11 @@ const (
 )
 
 func Resource() resource.Resource {
-	return config.AnalyticsResource(&resourcePolicyRS{
+	return &resourcePolicyRS{
 		RSCommon: config.RSCommon{
 			ResourceName: resourceName,
 		},
-	})
+	}
 }
 
 type resourcePolicyRS struct {

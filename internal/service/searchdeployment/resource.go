@@ -24,11 +24,11 @@ var _ resource.ResourceWithImportState = &rs{}
 const resourceName = "search_deployment"
 
 func Resource() resource.Resource {
-	return config.AnalyticsResource(&rs{
+	return &rs{
 		RSCommon: config.RSCommon{
 			ResourceName: resourceName,
 		},
-	})
+	}
 }
 
 type rs struct {

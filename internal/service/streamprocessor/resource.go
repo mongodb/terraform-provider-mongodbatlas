@@ -27,11 +27,11 @@ const (
 )
 
 func Resource() resource.Resource {
-	return config.AnalyticsResource(&streamProcessorRS{
+	return &streamProcessorRS{
 		RSCommon: config.RSCommon{
 			ResourceName: StreamProcessorName,
 		},
-	})
+	}
 }
 
 type streamProcessorRS struct {

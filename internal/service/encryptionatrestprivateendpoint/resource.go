@@ -30,11 +30,11 @@ var _ resource.ResourceWithConfigure = &encryptionAtRestPrivateEndpointRS{}
 var _ resource.ResourceWithImportState = &encryptionAtRestPrivateEndpointRS{}
 
 func Resource() resource.Resource {
-	return config.AnalyticsResource(&encryptionAtRestPrivateEndpointRS{
+	return &encryptionAtRestPrivateEndpointRS{
 		RSCommon: config.RSCommon{
 			ResourceName: encryptionAtRestPrivateEndpointName,
 		},
-	})
+	}
 }
 
 type encryptionAtRestPrivateEndpointRS struct {

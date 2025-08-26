@@ -22,11 +22,11 @@ var (
 )
 
 func Resource() resource.Resource {
-	return config.AnalyticsResource(&rs{
+	return &rs{
 		RSCommon: config.RSCommon{
 			ResourceName: resourceName,
 		},
-	})
+	}
 }
 
 type rs struct {

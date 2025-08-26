@@ -35,11 +35,11 @@ type databaseUserRS struct {
 }
 
 func Resource() resource.Resource {
-	return config.AnalyticsResource(&databaseUserRS{
+	return &databaseUserRS{
 		RSCommon: config.RSCommon{
 			ResourceName: databaseUserResourceName,
 		},
-	})
+	}
 }
 
 type TfDatabaseUserModel struct {

@@ -41,11 +41,11 @@ var _ resource.ResourceWithConfigure = &alertConfigurationRS{}
 var _ resource.ResourceWithImportState = &alertConfigurationRS{}
 
 func Resource() resource.Resource {
-	return config.AnalyticsResource(&alertConfigurationRS{
+	return &alertConfigurationRS{
 		RSCommon: config.RSCommon{
 			ResourceName: alertConfigurationResourceName,
 		},
-	})
+	}
 }
 
 type alertConfigurationRS struct {

@@ -41,11 +41,11 @@ var _ resource.ResourceWithConfigure = &encryptionAtRestRS{}
 var _ resource.ResourceWithImportState = &encryptionAtRestRS{}
 
 func Resource() resource.Resource {
-	return config.AnalyticsResource(&encryptionAtRestRS{
+	return &encryptionAtRestRS{
 		RSCommon: config.RSCommon{
 			ResourceName: encryptionAtRestResourceName,
 		},
-	})
+	}
 }
 
 type encryptionAtRestRS struct {

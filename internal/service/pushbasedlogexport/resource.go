@@ -29,11 +29,11 @@ var _ resource.ResourceWithConfigure = &pushBasedLogExportRS{}
 var _ resource.ResourceWithImportState = &pushBasedLogExportRS{}
 
 func Resource() resource.Resource {
-	return config.AnalyticsResource(&pushBasedLogExportRS{
+	return &pushBasedLogExportRS{
 		RSCommon: config.RSCommon{
 			ResourceName: pushBasedLogExportName,
 		},
-	})
+	}
 }
 
 type pushBasedLogExportRS struct {
