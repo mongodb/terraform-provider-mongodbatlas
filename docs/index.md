@@ -172,12 +172,84 @@ In addition to [generic `provider` arguments](https://www.terraform.io/docs/conf
 
 For more information on configuring and managing programmatic API Keys see the [MongoDB Atlas Documentation](https://docs.atlas.mongodb.com/tutorial/manage-programmatic-access/index.html).
 
+## MongoDB Atlas Provider Versioning Policy
+
+In order to promote stability, predictability, and transparency, the MongoDB Atlas Terraform Provider will implement **semantic versioning** with a **scheduled release cadence**. Our goal is to deliver regular improvements to the provider without overburdening users with frequent breaking changes.
+
+---
+
+### Definition of Breaking Changes
+
+Our definition of breaking changes aligns with the impact updates have on the customer:
+
+Breaking changes are defined as any change that requires user intervention to address.
+This may include:
+
+- Modifying existing schema (e.g., removing or renaming fields, renaming resources)
+- Changes to business logic (e.g., implicit default values or server-side behavior)
+- Provider-level changes (e.g., changing retry behavior)
+
+Final confirmation of a breaking change — possibly leading to an exemption — is subject to:
+
+- MongoDB’s understanding of the adoption level of the feature
+- Timing of the next planned major release
+- The change's relation to a bug fix
+
+---
+
+### Versioning Strategy
+
+We follow [semantic versioning](https://semver.org/) for all updates:
+
+- **Major (X.0.0):** Introduces breaking changes (as defined by MongoDB)
+- **Minor (X.Y.0):** Adds non-breaking changes and announces deprecations
+- **Patch (X.Y.Z):** Includes bug fixes and documentation updates
+
+We do not utilize pre-release versioning at this time.
+
+---
+
+### Release Cadence
+
+To minimize unexpected changes, we follow a scheduled cadence:
+
+- **Minor and patch** versions follow a **biweekly** release pattern
+- **Major** versions are released **once per year**, with a maximum of **two per calendar year**
+- The provider team may adjust the schedule based on need
+
+**Off-cycle releases** may occur for critical security flaws or regressions.
+
+---
+
+### Deprecation Policy
+
+We use a structured deprecation window to notify customers in advance:
+
+- Breaking changes are **deprecated in a minor version** with:
+  - Warnings in migration guides, changelogs, and resource usage
+- Deprecated functionality is **removed in the next 1–2 major versions**, unless otherwise stated
+
+---
+
+### Customer Communication
+
+We are committed to clear and proactive communication:
+
+- **Each release** includes a [changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/releases) clearly labeling:
+  - `breaking`, `deprecated`, `bug-fix`, `feature`, and `enhancement` changes
+- **Major versions** include migration guides
+- **Minor and patch versions** generally do not include migration guides, but may if warranted
+- **GitHub tags** with `vX.Y.Z` format are provided for all releases
+
+---
+
 ## [HashiCorp Terraform Version](https://www.terraform.io/downloads.html) Compatibility Matrix
 
 <!-- DO NOT remove below placeholder comments as this table is auto-generated -->
 <!-- MATRIX_PLACEHOLDER_START -->
 | HashiCorp Terraform Release | HashiCorp Terraform Release Date  | HashiCorp Terraform Full Support End Date  | MongoDB Atlas Support End Date |
 |:-------:|:------------:|:------------:|:------------:|
+| 1.13.x | 2025-08-20 | 2027-08-31 | 2027-08-31 |
 | 1.12.x | 2025-05-14 | 2027-05-31 | 2027-05-31 |
 | 1.11.x | 2025-02-27 | 2027-02-28 | 2027-02-28 |
 | 1.10.x | 2024-11-27 | 2026-11-30 | 2026-11-30 |
@@ -220,7 +292,7 @@ We ship binaries but do not prioritize fixes for the following operating system 
 ## Examples from MongoDB and the Community
 
 <!-- NOTE: the below examples link is updated during the release process, when doing changes in the following sentence verify scripts/update-examples-reference-in-docs.sh is not impacted-->
-We have [example configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.39.0/examples)
+We have [example configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.40.0/examples)
 in our GitHub repo that will help both beginner and more advanced users.
 
 Have a good example you've created and want to share?

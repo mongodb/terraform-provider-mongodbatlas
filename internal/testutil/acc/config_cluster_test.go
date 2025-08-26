@@ -3,10 +3,11 @@ package acc_test
 import (
 	"testing"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 var standardClusterResource = `
@@ -41,7 +42,7 @@ resource "mongodbatlas_advanced_cluster" "cluster_info" {
   project_id             = mongodbatlas_project.test.id
   backup_enabled         = true
   cluster_type           = "GEOSHARDED"
-  mongo_db_major_version = "6.0"
+  mongo_db_major_version = "8.0"
   name                   = "my-name"
   pit_enabled            = true
   retain_backups_enabled = true
@@ -311,7 +312,7 @@ func Test_ClusterResourceHcl(t *testing.T) {
 					ClusterName:          clusterName,
 					Geosharded:           true,
 					CloudBackup:          true,
-					MongoDBMajorVersion:  "6.0",
+					MongoDBMajorVersion:  "8.0",
 					RetainBackupsEnabled: true,
 					ReplicationSpecs: []acc.ReplicationSpecRequest{
 						{Region: "MY_REGION_1", ZoneName: "Zone X", InstanceSize: "M30", NodeCount: 30, ProviderName: constant.AZURE, EbsVolumeType: "STANDARD"},
