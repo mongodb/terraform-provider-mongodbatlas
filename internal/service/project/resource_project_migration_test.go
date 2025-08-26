@@ -79,15 +79,24 @@ func TestMigProject_withTeams(t *testing.T) {
 	})
 }
 
-func TestMigProject_withFalseDefaultSettings(t *testing.T) {
+// empty is tested by the TestMigProject_basic
+func TestMigProject_withFalseDefaultAlertSettings(t *testing.T) {
+	resource.ParallelTest(t, *defaultAlertSettingsTestCase(t, false))
+}
+
+func TestMigProject_withTrueDefaultAlertSettings(t *testing.T) {
+	resource.ParallelTest(t, *defaultAlertSettingsTestCase(t, true))
+}
+
+func defaultAlertSettingsTestCase(t *testing.T, withDefaultAlertSettings bool) *resource.TestCase {
+	t.Helper()
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 		projectName    = acc.RandomProjectName()
-		config         = configWithDefaultAlertSettings(orgID, projectName, projectOwnerID, false)
+		config         = configWithDefaultAlertSettings(orgID, projectName, projectOwnerID, withDefaultAlertSettings)
 	)
-
-	resource.Test(t, resource.TestCase{
+	return &resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasicOwnerID(t) },
 		CheckDestroy: acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
@@ -102,7 +111,7 @@ func TestMigProject_withFalseDefaultSettings(t *testing.T) {
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},
-	})
+	}
 }
 
 func TestMigProject_withLimits(t *testing.T) {
