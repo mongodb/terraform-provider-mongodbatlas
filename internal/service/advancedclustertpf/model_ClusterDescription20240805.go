@@ -72,8 +72,8 @@ func NewBiConnectorConfigObjType(ctx context.Context, input *admin.BiConnector, 
 		return types.ObjectNull(BiConnectorConfigObjType.AttrTypes)
 	}
 	tfModel := TFBiConnectorModel{
-		Enabled: types.BoolValue(conversion.SafeValue(input.Enabled)),
-		// ReadPreference: types.StringValue(conversion.SafeValue(input.ReadPreference)),
+		Enabled:        types.BoolValue(conversion.SafeValue(input.Enabled)),
+		ReadPreference: types.StringValue(conversion.SafeValue(input.ReadPreference)),
 	}
 	objType, diagsLocal := types.ObjectValueFrom(ctx, BiConnectorConfigObjType.AttrTypes, tfModel)
 	diags.Append(diagsLocal...)

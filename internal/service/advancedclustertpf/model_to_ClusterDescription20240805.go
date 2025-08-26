@@ -79,8 +79,8 @@ func newBiConnector(ctx context.Context, input types.Object, diags *diag.Diagnos
 		return resp
 	}
 	return &admin.BiConnector{
-		Enabled: conversion.NilForUnknown(item.Enabled, item.Enabled.ValueBoolPointer()),
-		// ReadPreference: conversion.NilForUnknown(item.ReadPreference, item.ReadPreference.ValueStringPointer()),
+		Enabled:        conversion.NilForUnknown(item.Enabled, item.Enabled.ValueBoolPointer()),
+		ReadPreference: conversion.NilForUnknown(item.ReadPreference, item.ReadPreference.ValueStringPointer()),
 	}
 }
 

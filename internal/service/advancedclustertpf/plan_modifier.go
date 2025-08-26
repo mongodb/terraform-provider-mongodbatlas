@@ -161,12 +161,38 @@ func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 			planAnalyticsSpecs := TFModelObject[TFSpecsModel](ctx, planRegionConfigsTF[j].AnalyticsSpecs)
 			// don't get analytics_specs from state if node_count is 0 to avoid possible ANALYTICS_INSTANCE_SIZE_MUST_MATCH errors
 			if planAnalyticsSpecs == nil && stateAnalyticsSpecs != nil && stateAnalyticsSpecs.NodeCount.ValueInt64() > 0 {
-				newPlanAnalyticsSpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].AnalyticsSpecs)
-				// if disk_size_gb is defined at root level we cannot use analytics_specs.disk_size_gb from state as it can be outdated
-				// read_only_specs implicitly covers this as it uses value from electable_specs which is unknown if not defined.
-				// if plan.DiskSizeGB.ValueFloat64() > 0 { // has known value in config
-				// 	newPlanAnalyticsSpecs.DiskSizeGb = types.Float64Unknown()
+				// newPlanAnalyticsSpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].AnalyticsSpecs)
+				// // if disk_size_gb is defined at root level we cannot use analytics_specs.disk_size_gb from state as it can be outdated
+				// // read_only_specs implicitly covers this as it uses value from electable_specs which is unknown if not defined.
+				// // if plan.DiskSizeGB.ValueFloat64() > 0 { // has known value in config
+				// // 	newPlanAnalyticsSpecs.DiskSizeGb = types.Float64Unknown()
+				// // }
+				// objType, diagsLocal := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, newPlanAnalyticsSpecs)
+				// diags.Append(diagsLocal...)
+				// if diags.HasError() {
+				// 	return
 				// }
+				// planRegionConfigsTF[j].AnalyticsSpecs = objType
+
+				newPlanAnalyticsSpecs := planAnalyticsSpecs
+				if newPlanAnalyticsSpecs == nil {
+					newPlanAnalyticsSpecs = new(TFSpecsModel) // start with null attributes if not present plan
+				}
+				baseAnalyticsSpecs := stateAnalyticsSpecs      // using values directly from state if no electable specs are present in plan
+				if planElectableSpecInReplicationSpec != nil { // ensures values are taken from a defined electable spec if not present in current region config
+					baseAnalyticsSpecs = planElectableSpecInReplicationSpec
+				}
+				if planElectableSpecs != nil {
+					// we favor plan electable spec defined in same region config over one defined in replication spec
+					// with current API this is redudant but is more future proof in case scaling between regions becomes independent in the future
+					baseAnalyticsSpecs = planElectableSpecs
+				}
+				copyAttrIfDestNotKnown(&baseAnalyticsSpecs.DiskSizeGb, &newPlanAnalyticsSpecs.DiskSizeGb)
+				copyAttrIfDestNotKnown(&baseAnalyticsSpecs.EbsVolumeType, &newPlanAnalyticsSpecs.EbsVolumeType)
+				copyAttrIfDestNotKnown(&baseAnalyticsSpecs.InstanceSize, &newPlanAnalyticsSpecs.InstanceSize)
+				copyAttrIfDestNotKnown(&baseAnalyticsSpecs.DiskIops, &newPlanAnalyticsSpecs.DiskIops)
+				// unknown node_count is always taken from state as it not dependent on electable_specs changes
+				copyAttrIfDestNotKnown(&stateAnalyticsSpecs.NodeCount, &newPlanAnalyticsSpecs.NodeCount)
 				objType, diagsLocal := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, newPlanAnalyticsSpecs)
 				diags.Append(diagsLocal...)
 				if diags.HasError() {
