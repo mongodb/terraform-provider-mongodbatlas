@@ -56,7 +56,7 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	// // Don't adjust region_configs upgrades if it's a sharding config upgrade because it will be done only in the first shard, because state only has the first shard with num_shards > 1.
 	// // This avoid errors like AUTO_SCALINGS_MUST_BE_IN_EVERY_REGION_CONFIG.
 	// if !shardingConfigUpgrade {
-		AdjustRegionConfigsChildren(ctx, diags, state, plan)
+	AdjustRegionConfigsChildren(ctx, diags, state, plan)
 	// }
 	diff := findClusterDiff(ctx, state, plan, diags)
 	if diags.HasError() || diff.isAnyUpgrade() { // Don't do anything in upgrades
