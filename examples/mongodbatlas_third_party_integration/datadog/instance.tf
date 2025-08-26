@@ -4,7 +4,7 @@ resource "mongodbatlas_advanced_cluster" "my_cluster" {
   cluster_type = "REPLICASET"
 
   replication_specs = [{
-    zone_name  = "Zone 1"
+    zone_name = "Zone 1"
     region_configs = [{
       provider_name = "AWS"
       region_name   = "US_EAST_1"

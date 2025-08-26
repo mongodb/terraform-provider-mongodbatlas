@@ -5,10 +5,10 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   backup_enabled              = true
   encryption_at_rest_provider = var.provider_name
 
-  replication_specs = [{ 
+  replication_specs = [{
     # shard 1
     region_configs = [
-      {  
+      {
         electable_specs = {
           instance_size = var.instance_size
           node_count    = 3
@@ -35,7 +35,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
         region_name   = var.aws_region_shard_2
       }
     ]
-  },  { # shard 2
+    }, { # shard 2
     region_configs = [
       {
         electable_specs = {
@@ -64,7 +64,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
         region_name   = var.aws_region_shard_2
       }
     ]
-  }
+    }
   ]
 
   advanced_configuration = {
