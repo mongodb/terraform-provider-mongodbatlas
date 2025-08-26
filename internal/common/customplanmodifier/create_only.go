@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-type Modifier interface {
+type CreateOnlyModifier interface {
 	planmodifier.String
 	planmodifier.Bool
 }
@@ -22,11 +22,11 @@ type Modifier interface {
 // It shows a helpful error message helping the user to update their config to match the state.
 // Never use a schema.Default for create only attributes, instead use WithXXXDefault, the default will lead to plan changes that are not expected after import.
 // Implement CopyFromPlan if the attribute is not in the API Response.
-func CreateOnlyAttributePlanModifier() Modifier {
+func CreateOnlyAttributePlanModifier() CreateOnlyModifier {
 	return &createOnlyAttributePlanModifier{}
 }
 
-func CreateOnlyAttributePlanModifierWithBoolDefault(b bool) Modifier {
+func CreateOnlyAttributePlanModifierWithBoolDefault(b bool) CreateOnlyModifier {
 	return &createOnlyAttributePlanModifier{defaultBool: &b}
 }
 
