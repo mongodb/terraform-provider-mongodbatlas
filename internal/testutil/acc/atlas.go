@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 )
 
 func createProject(tb testing.TB, name string) string {
@@ -85,20 +85,23 @@ func clusterReq(name, projectID string) admin.ClusterDescription20240805 {
 	}
 }
 
-// ProjectID returns the id for a project name.
-// When `MONGODB_ATLAS_PROJECT_ID` is defined, it is used instead of creating a project. This is useful for local execution but not intended for CI executions.
-func ProjectID(tb testing.TB, name string) string {
+func createStreamInstance(tb testing.TB, projectID, name string) {
 	tb.Helper()
-	SkipInUnitTest(tb)
-
-	if id := projectIDLocal(); id != "" {
-		return id
+	req := admin.StreamsTenant{
+		Name: admin.PtrString(name),
+		DataProcessRegion: &admin.StreamsDataProcessRegion{
+			Region:        "VIRGINIA_USA",
+			CloudProvider: constant.AWS,
+		},
+		StreamConfig: &admin.StreamConfig{
+			Tier: admin.PtrString("SP10"),
+		},
+		SampleConnections: &admin.StreamsSampleConnections{
+			Solar: admin.PtrBool(true),
+		},
 	}
-
-	resp, _, _ := ConnV2().ProjectsApi.GetProjectByName(tb.Context(), name).Execute()
-	id := resp.GetId()
-	require.NotEmpty(tb, id, "Project name not found: %s", name)
-	return id
+	_, _, err := ConnV2().StreamsApi.CreateStreamInstance(tb.Context(), projectID, &req).Execute()
+	require.NoError(tb, err, "Stream instance creation failed: %s, err: %s", name, err)
 }
 
 func projectIDLocal() string {

@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -139,9 +139,6 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		d.SetId("")
 		return diag.FromErr(fmt.Errorf("an error occurred when updating Organization settings: %s", err))
 	}
-	if err := d.Set("org_id", orgID); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `org_id`: %s", err))
-	}
 	d.SetId(conversion.EncodeStateID(map[string]string{
 		"org_id": orgID,
 	}))
@@ -168,6 +165,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	}
 	if err := d.Set("skip_default_alerts_settings", organization.SkipDefaultAlertsSettings); err != nil {
 		return diag.Errorf("error setting `skip_default_alerts_settings` for organization (%s): %s", orgID, err)
+	}
+	if err := d.Set("org_id", orgID); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `org_id`: %s", err))
 	}
 
 	settings, _, err := conn.OrganizationsApi.GetOrganizationSettings(ctx, orgID).Execute()

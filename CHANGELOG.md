@@ -1,5 +1,28 @@
 ## (Unreleased)
 
+## 1.40.0 (August 21, 2025)
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_stream_privatelink_endpoint: Support S3 PrivateLink Endpoints for Atlas Stream Processing ([#3554](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3554))
+* resource/mongodbatlas_stream_privatelink_endpoint: Support S3 PrivateLink Endpoints for Atlas Stream Processing ([#3554](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3554))
+
+## 1.39.0 (July 24, 2025)
+
+NOTES:
+
+* New environment variables: We added support for the `MONGODB_ATLAS_PUBLIC_API_KEY` and `MONGODB_ATLAS_PRIVATE_API_KEY` environment variables which are widely used across the MongoDB ecosystem. ([#3505](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3505))
+
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_federated_database_instance: Adds `azure` attribute to support reading federated databases with Azure cloud provider configuration ([#3484](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3484))
+* data-source/mongodbatlas_federated_database_instances: Adds `azure` attribute to support reading federated databases with Azure cloud provider configuration ([#3484](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3484))
+* resource/mongodbatlas_federated_database_instance: Adds `azure` attribute to allow the creation of federated databases with Azure cloud provider configuration ([#3484](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3484))
+
+BUG FIXES:
+
+* resource/mongodbatlas_organization: Sets org_id on import ([#3513](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3513))
+
 ## 1.38.0 (July 10, 2025)
 
 NOTES:

@@ -3,7 +3,7 @@ package flexcluster
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"

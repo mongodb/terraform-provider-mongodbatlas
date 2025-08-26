@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -75,12 +76,12 @@ func writeToFile(fileName, content string) error {
 
 // formatGoFile runs goimports and fieldalignment on the specified Go file
 func formatGoFile(filePath string) {
-	goimportsCmd := exec.Command("goimports", "-w", filePath)
+	goimportsCmd := exec.CommandContext(context.Background(), "goimports", "-w", filePath)
 	if output, err := goimportsCmd.CombinedOutput(); err != nil {
 		log.Printf("warning: goimports failed for %s: %v\nOutput: %s", filePath, err, output)
 	}
 
-	fieldalignmentCmd := exec.Command("fieldalignment", "-fix", filePath)
+	fieldalignmentCmd := exec.CommandContext(context.Background(), "fieldalignment", "-fix", filePath)
 	if output, err := fieldalignmentCmd.CombinedOutput(); err != nil {
 		log.Printf("warning: fieldalignment failed for %s: %v\nOutput: %s", filePath, err, output)
 	}

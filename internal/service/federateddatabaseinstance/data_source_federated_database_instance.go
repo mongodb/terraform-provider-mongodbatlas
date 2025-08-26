@@ -33,47 +33,7 @@ func DataSource() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			"cloud_provider_config": {
-				Type:     schema.TypeList,
-				MaxItems: 1,
-				Computed: true,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"aws": {
-							Type:     schema.TypeList,
-							MaxItems: 1,
-							Computed: true,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"role_id": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"test_s3_bucket": {
-										Type:     schema.TypeString,
-										Computed: true,
-										Optional: true,
-									},
-									"iam_assumed_role_arn": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"iam_user_arn": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"external_id": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
+			"cloud_provider_config": cloudProviderConfig(true),
 			"data_process_region": {
 				Type:     schema.TypeList,
 				Computed: true,

@@ -1,7 +1,0 @@
-```release-note:enhancement
-resource/mongodbatlas_search_deployment: Adds `encryption_at_rest_provider` computed attribute
-```
-
-```release-note:enhancement
-data-source/mongodbatlas_search_deployment: Adds `encryption_at_rest_provider` computed attribute
-```

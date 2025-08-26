@@ -13,7 +13,7 @@ This project provides examples for both creating new MongoDB Atlas Organizations
 
 * Terraform v0.15 or greater
 * A MongoDB Atlas account 
-* provider.mongodbatlas: version = "~> 1.10.0" for creating an organization, 1.38.0 for importing an existing organization.
+* provider.mongodbatlas: version = "~> 1.10" for creating an organization, 1.38 for importing an existing organization.
 * [Cross-organization billing](https://www.mongodb.com/docs/atlas/billing/#cross-organization-billing) enabled and the requesting API Key's organization must be a paying organization. 
 * Some users (see [here](https://github.com/mongodb/terraform-provider-mongodbatlas/issues/1083)) have reported issues deploying this starter example with Mac M1 CPU. you encounter this issue, try deploying instead on x86 linux if possible. See list of supported binaries [here](https://github.com/mongodb/terraform-provider-mongodbatlas/releases/tag/v1.8.1)  
 

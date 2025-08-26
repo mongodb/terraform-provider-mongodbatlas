@@ -1,3 +1,0 @@
-```release-note:bug
-data-source/mongodbatlas_network_peering: Ensures `accepter_region_name` is set when it is has the same value as the container resource
-```

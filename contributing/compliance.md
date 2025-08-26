@@ -10,10 +10,5 @@ We generate Software Bill of Materials (SBOM) files for each release as part of 
 
 Augmented SBOMs can be generated on customer request for any released version. This can only be done by MongoDB employees as it requires access to our GitHub workflow.
 
-## Papertrail Integration
-All releases are recorded using a MongoDB-internal application called Papertrail. This records various pieces of information about releases, including the date and time of the release, who triggered the release (by pushing to Evergreen), and a checksum of each release file.
-
-This is done automatically as part of the release.
-
 ## Release Artifact Signing
 All releases are signed automatically as part of the release process.

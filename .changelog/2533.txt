@@ -1,3 +1,0 @@
-```release-note:new-datasource
-data-source/mongodbatlas_project_ip_addresses
-```

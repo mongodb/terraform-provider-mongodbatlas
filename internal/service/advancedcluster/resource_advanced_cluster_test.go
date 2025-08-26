@@ -12,7 +12,7 @@ import (
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	mockadmin20240530 "go.mongodb.org/atlas-sdk/v20240530005/mockadmin"
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -122,25 +122,25 @@ func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
 	}
 }
 
-func testAccAdvancedClusterFlexUpgrade(t *testing.T, instanceSize string, includeDedicated bool) resource.TestCase {
+func testAccAdvancedClusterFlexUpgrade(t *testing.T, projectID, clusterName, instanceSize string, includeDedicated bool) resource.TestCase {
 	t.Helper()
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 1)
 	defaultZoneName := "Zone 1" // Uses backend default as in existing tests
 
+	// avoid checking plural data source to reduce risk of being impacted from failure in other test using same project, allows running in parallel
 	steps := []resource.TestStep{
 		{
 			Config: configTenant(t, true, projectID, clusterName, defaultZoneName, instanceSize),
-			Check:  checkTenant(true, projectID, clusterName),
+			Check:  checkTenant(true, projectID, clusterName, false),
 		},
 		{
 			Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", defaultZoneName, false),
-			Check:  checkFlexClusterConfig(projectID, clusterName, "AWS", "US_EAST_1", false),
+			Check:  checkFlexClusterConfig(projectID, clusterName, "AWS", "US_EAST_1", false, false),
 		},
 	}
 	if includeDedicated {
 		steps = append(steps, resource.TestStep{
 			Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, acc.ConfigBasicDedicated(projectID, clusterName, defaultZoneName)),
-			Check:  checksBasicDedicated(projectID, clusterName),
+			Check:  checksBasicDedicated(projectID, clusterName, false),
 		})
 	}
 
@@ -153,15 +153,17 @@ func testAccAdvancedClusterFlexUpgrade(t *testing.T, instanceSize string, includ
 }
 
 func TestAccAdvancedCluster_basicTenant_flexUpgrade_dedicatedUpgrade(t *testing.T) {
-	resource.Test(t, testAccAdvancedClusterFlexUpgrade(t, freeInstanceSize, true))
+	projectID, clusterName := acc.ProjectIDExecutionWithFreeCluster(t, 3, 1)
+	resource.ParallelTest(t, testAccAdvancedClusterFlexUpgrade(t, projectID, clusterName, freeInstanceSize, true))
 }
 
 func TestAccAdvancedCluster_sharedTier_flexUpgrade(t *testing.T) {
-	resource.Test(t, testAccAdvancedClusterFlexUpgrade(t, sharedInstanceSize, false))
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 1)
+	resource.ParallelTest(t, testAccAdvancedClusterFlexUpgrade(t, projectID, clusterName, sharedInstanceSize, false))
 }
 func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 1)
+		projectID, clusterName = acc.ProjectIDExecutionWithFreeCluster(t, 3, 1)
 		defaultZoneName        = "Zone 1" // Uses backend default to avoid non-empty plan, see CLOUDP-294339
 	)
 	unit.CaptureOrMockTestCaseAndRun(t, mockConfig, &resource.TestCase{
@@ -171,11 +173,11 @@ func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, configTenant(t, true, projectID, clusterName, defaultZoneName, freeInstanceSize)),
-				Check:  checkTenant(true, projectID, clusterName),
+				Check:  checkTenant(true, projectID, clusterName, true),
 			},
 			{
 				Config: acc.ConvertAdvancedClusterToPreviewProviderV2(t, true, acc.ConfigBasicDedicated(projectID, clusterName, defaultZoneName)),
-				Check:  checksBasicDedicated(projectID, clusterName),
+				Check:  checksBasicDedicated(projectID, clusterName, true),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -397,11 +399,11 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:      configAdvanced(t, true, projectID, clusterName, "6.0", processArgs20240530, processArgs),
+				Config:      configAdvanced(t, true, projectID, clusterName, "7.0", processArgs20240530, processArgs),
 				ExpectError: regexp.MustCompile(advancedcluster.ErrorDefaultMaxTimeMinVersion),
 			},
 			{
-				Config: configAdvanced(t, true, projectID, clusterName, "6.0", processArgs20240530, processArgsCipherConfig),
+				Config: configAdvanced(t, true, projectID, clusterName, "7.0", processArgs20240530, processArgsCipherConfig),
 				Check:  checkAdvanced(true, clusterName, "TLS1_2", processArgsCipherConfig),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -1767,9 +1769,12 @@ func configTenant(t *testing.T, usePreviewProvider bool, projectID, name, zoneNa
 	`, projectID, name, zoneNameLine, instanceSize)) + dataSourcesTFNewSchema
 }
 
-func checkTenant(usePreviewProvider bool, projectID, name string) resource.TestCheckFunc {
-	pluralChecks := acc.AddAttrSetChecksPreviewProviderV2(usePreviewProvider, dataSourcePluralName, nil,
-		[]string{"results.#", "results.0.replication_specs.#", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
+func checkTenant(usePreviewProvider bool, projectID, name string, checkPlural bool) resource.TestCheckFunc {
+	var pluralChecks []resource.TestCheckFunc
+	if checkPlural {
+		pluralChecks = acc.AddAttrSetChecksPreviewProviderV2(usePreviewProvider, dataSourcePluralName, nil,
+			[]string{"results.#", "results.0.replication_specs.#", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
+	}
 	return checkAggr(usePreviewProvider,
 		[]string{"replication_specs.#", "replication_specs.0.id", "replication_specs.0.region_configs.#"},
 		map[string]string{
@@ -1780,8 +1785,8 @@ func checkTenant(usePreviewProvider bool, projectID, name string) resource.TestC
 		pluralChecks...)
 }
 
-func checksBasicDedicated(projectID, name string) resource.TestCheckFunc {
-	originalChecks := checkTenant(true, projectID, name)
+func checksBasicDedicated(projectID, name string, checkPlural bool) resource.TestCheckFunc {
+	originalChecks := checkTenant(true, projectID, name, checkPlural)
 	checkMap := map[string]string{
 		"replication_specs.0.region_configs.0.electable_specs.0.node_count":    "3",
 		"replication_specs.0.region_configs.0.electable_specs.0.instance_size": "M10",
@@ -3280,11 +3285,11 @@ func TestAccClusterFlexCluster_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", false),
-				Check:  checkFlexClusterConfig(projectID, clusterName, "AWS", "US_EAST_1", false),
+				Check:  checkFlexClusterConfig(projectID, clusterName, "AWS", "US_EAST_1", false, true),
 			},
 			{
 				Config: configFlexCluster(t, projectID, clusterName, "AWS", "US_EAST_1", "", true),
-				Check:  checkFlexClusterConfig(projectID, clusterName, "AWS", "US_EAST_1", true),
+				Check:  checkFlexClusterConfig(projectID, clusterName, "AWS", "US_EAST_1", true, true),
 			},
 			acc.TestStepImportCluster(resourceName),
 			{
@@ -3295,7 +3300,7 @@ func TestAccClusterFlexCluster_basic(t *testing.T) {
 	})
 }
 
-func checkFlexClusterConfig(projectID, clusterName, providerName, region string, tagsCheck bool) resource.TestCheckFunc {
+func checkFlexClusterConfig(projectID, clusterName, providerName, region string, tagsCheck, checkPlural bool) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{acc.CheckExistsFlexCluster()}
 	attrMapAdvCluster := map[string]string{
 		"name":                                 clusterName,
@@ -3338,17 +3343,22 @@ func checkFlexClusterConfig(projectID, clusterName, providerName, region string,
 		tagsCheck := checkKeyValueBlocks(true, true, "tags", tagsMap)
 		checks = append(checks, tagsCheck)
 	}
-	pluralMap := map[string]string{
-		"project_id": projectID,
-		"results.#":  "1",
-	}
 	checks = acc.AddAttrChecks(acc.FlexDataSourceName, checks, attrMapFlex)
 	checks = acc.AddAttrSetChecks(acc.FlexDataSourceName, checks, attrSetFlex...)
-	checks = acc.AddAttrChecks(acc.FlexDataSourcePluralName, checks, pluralMap)
-	checks = acc.AddAttrChecksPrefix(acc.FlexDataSourcePluralName, checks, attrMapFlex, "results.0")
-	checks = acc.AddAttrSetChecksPrefix(acc.FlexDataSourcePluralName, checks, attrSetFlex, "results.0")
-	checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
 	ds := conversion.StringPtr(dataSourceName)
-	dsp := conversion.StringPtr(dataSourcePluralName)
+	var dsp *string
+
+	if checkPlural {
+		dsp = conversion.StringPtr(dataSourcePluralName)
+
+		pluralMap := map[string]string{
+			"project_id": projectID,
+			"results.#":  "1",
+		}
+		checks = acc.AddAttrChecks(acc.FlexDataSourcePluralName, checks, pluralMap)
+		checks = acc.AddAttrChecksPrefix(acc.FlexDataSourcePluralName, checks, attrMapFlex, "results.0")
+		checks = acc.AddAttrSetChecksPrefix(acc.FlexDataSourcePluralName, checks, attrSetFlex, "results.0")
+		checks = acc.AddAttrChecks(dataSourcePluralName, checks, pluralMap)
+	}
 	return acc.CheckRSAndDSPreviewProviderV2(true, resourceName, ds, dsp, attrSetAdvCluster, attrMapAdvCluster, checks...)
 }

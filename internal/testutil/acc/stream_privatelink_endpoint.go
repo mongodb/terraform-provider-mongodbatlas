@@ -156,3 +156,26 @@ func GetCompleteMskConfig(projectID, clusterArn string) string {
 		]
 	}`, projectID, clusterArn)
 }
+
+func GetCompleteS3Config(projectID, region string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_stream_privatelink_endpoint" "test" {
+		project_id          = %[1]q
+		provider_name       = "AWS"
+		vendor              = "S3"
+		region              = %[2]q
+		service_endpoint_id = "com.amazonaws.%[2]s.s3"
+	}
+
+	data "mongodbatlas_stream_privatelink_endpoint" "test" {
+		project_id = %[1]q
+		id         = mongodbatlas_stream_privatelink_endpoint.test.id
+	}
+
+	data "mongodbatlas_stream_privatelink_endpoints" "test" {
+		project_id = %[1]q
+		depends_on = [
+			mongodbatlas_stream_privatelink_endpoint.test
+		]
+	}`, projectID, region)
+}

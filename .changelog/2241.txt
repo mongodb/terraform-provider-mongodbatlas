@@ -1,3 +1,0 @@
-```release-note:enhancement
-data-source/mongodbatlas_cloud_backup_snapshot_export_bucket: Marks `id` as computed not required
-```
