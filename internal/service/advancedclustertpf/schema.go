@@ -613,11 +613,11 @@ type TFModelPluralDS struct {
 
 type TFBiConnectorModel struct {
 	ReadPreference types.String `tfsdk:"read_preference"`
-	Enabled types.Bool `tfsdk:"enabled"`
+	Enabled        types.Bool   `tfsdk:"enabled"`
 }
 
 var BiConnectorConfigObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"enabled": types.BoolType,
+	"enabled":         types.BoolType,
 	"read_preference": types.StringType,
 }}
 
