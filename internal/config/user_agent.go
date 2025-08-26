@@ -10,15 +10,16 @@ import (
 )
 
 const (
-	UserAgentKeyName              = "Name"
-	UserAgentKeyOperation         = "Operation"
-	UserAgentKeyModuleName        = "ModuleName"
-	UserAgentKeyModuleVersion     = "ModuleVersion"
-	UserAgentOperationValueCreate = "create"
-	UserAgentOperationValueRead   = "read"
-	UserAgentOperationValueUpdate = "update"
-	UserAgentOperationValueDelete = "delete"
-	UserAgentOperationValueImport = "import"
+	UserAgentKeyName                  = "Name"
+	UserAgentKeyOperation             = "Operation"
+	UserAgentKeyModuleName            = "ModuleName"
+	UserAgentKeyModuleVersion         = "ModuleVersion"
+	UserAgentOperationValueCreate     = "create"
+	UserAgentOperationValueRead       = "read"
+	UserAgentOperationValueUpdate     = "update"
+	UserAgentOperationValueDelete     = "delete"
+	UserAgentOperationValueImport     = "import"
+	UserAgentOperationValuePlanModify = "plan-modify"
 )
 
 // UserAgentExtra holds additional metadata to be appended to the User-Agent header and context.
