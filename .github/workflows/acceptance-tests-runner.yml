@@ -427,7 +427,7 @@ jobs:
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
           MONGODB_ATLAS_LAST_1X_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
-          ACCTEST_REGEX_RUN: '^TestMig'
+          ACCTEST_REGEX_RUN: '^TestV1xMig'
           ACCTEST_PACKAGES: |
             ./internal/service/advancedclustertpf
         run: make testacc
