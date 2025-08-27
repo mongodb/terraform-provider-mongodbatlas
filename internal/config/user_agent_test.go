@@ -106,13 +106,13 @@ func TestUserAgentExtra_Combine(t *testing.T) {
 }
 
 func TestAddUserAgentExtra(t *testing.T) {
-	base := config.UserAgentExtra{Name: "B"}
-	other := config.UserAgentExtra{Name: "Y", Operation: "O"}
+	base := config.UserAgentExtra{Name: "ChangedName", ModuleName: "FromBase"}
+	other := config.UserAgentExtra{Name: "NewName", Operation: "FromOther"}
 	ctx := config.AddUserAgentExtra(t.Context(), base)
 	ctx2 := config.AddUserAgentExtra(ctx, other)
 	ua := config.ReadUserAgentExtra(ctx2)
-	// The combined should have Type from base, Name from other, ScriptLocation from other
-	assert.Equal(t, "Y", ua.Name)
-	assert.Equal(t, "O", ua.Operation)
-	assert.Empty(t, ua.Operation)
+	// Name from other
+	assert.Equal(t, "FromBase", ua.ModuleName)
+	assert.Equal(t, "NewName", ua.Name)
+	assert.Equal(t, "FromOther", ua.Operation)
 }
