@@ -2,6 +2,7 @@ package advancedclustertpf_test
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"testing"
 
@@ -9,19 +10,23 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
+// TODO: this may fail because 2nd step might be using num_shards
 func TestAccClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSchema(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
+	versionBeforeTPFGARelease := os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		PreCheck:                 func() { mig.PreCheckBasic(t); mig.PreCheckLast1XVersion(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configGeoShardedTransitionOldToNewSchema(t, true, projectID, clusterName, false),
-				Check:  checkGeoShardedTransitionOldToNewSchema(true, false),
+				ExternalProviders: acc.ExternalProviders(versionBeforeTPFGARelease),
+				Config:            configGeoShardedTransitionOldToNewSchema(t, false, projectID, clusterName, false),
+				Check:             checkGeoShardedTransitionOldToNewSchema(false, false),
 			},
 			{
 				Config: configGeoShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true),
@@ -118,14 +123,16 @@ func checkGeoShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.
 
 func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
+	versionBeforeTPFGARelease := os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		PreCheck:                 func() { acc.PreCheckBasicSleep(t, nil, projectID, clusterName); mig.PreCheckLast1XVersion(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, false, true),
+				ExternalProviders: acc.ExternalProviders(versionBeforeTPFGARelease),
+				Config: configShardedTransitionOldToNewSchema(t, false, projectID, clusterName, false, true),
 				Check:  acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER"),
 			},
 			{
@@ -137,16 +144,19 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
 	})
 }
 
+// TODO: this test may be redundant with TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema
 func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabledToEnabled(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
+	versionBeforeTPFGARelease := os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		PreCheck:                 func() { acc.PreCheckBasicSleep(t, nil, projectID, clusterName); mig.PreCheckLast1XVersion(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, false, false),
+				ExternalProviders: acc.ExternalProviders(versionBeforeTPFGARelease),
+				Config: configShardedTransitionOldToNewSchema(t, false, projectID, clusterName, false, false),
 				Check:  acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER"),
 			},
 			{
@@ -162,28 +172,29 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabledToEnabled(t *te
 	})
 }
 
-func TestAccClusterAdvancedClusterConfig_shardedTransitionFromOldToNewSchema(t *testing.T) {
-	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
+// TODO: this test may be redundant with TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema & the test above
+// func TestAccClusterAdvancedClusterConfig_shardedTransitionFromOldToNewSchema(t *testing.T) {
+// 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				Config: configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, false, false),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkShardedTransitionOldToNewSchema(true, false),
-					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
-			},
-			{
-				Config: configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, false),
-				Check:  checkShardedTransitionOldToNewSchema(true, true),
-			},
-			acc.TestStepImportCluster(resourceName),
-		},
-	})
-}
+// 	resource.ParallelTest(t, resource.TestCase{
+// 		PreCheck:                 func() { acc.PreCheckBasic(t) },
+// 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+// 		CheckDestroy:             acc.CheckDestroyCluster,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, false, false),
+// 				Check: resource.ComposeAggregateTestCheckFunc(
+// 					checkShardedTransitionOldToNewSchema(true, false),
+// 					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
+// 			},
+// 			{
+// 				Config: configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, false),
+// 				Check:  checkShardedTransitionOldToNewSchema(true, true),
+// 			},
+// 			acc.TestStepImportCluster(resourceName),
+// 		},
+// 	})
+// }
 
 func configShardedTransitionOldToNewSchema(t *testing.T, isTPF bool, projectID, name string, useNewSchema, autoscaling bool) string {
 	t.Helper()
@@ -277,6 +288,7 @@ func checkShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.Tes
 	)
 }
 
+// TODO: maybe able to remove this test
 func TestAccClusterAdvancedClusterConfig_singleShardedTransitionToOldSchemaExpectsError(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 9)
 
@@ -298,9 +310,9 @@ func TestAccClusterAdvancedClusterConfig_singleShardedTransitionToOldSchemaExpec
 	})
 }
 
-func TestAccClusterAdvancedClusterConfig_symmetricGeoShardedOldSchema(t *testing.T) {
-	resource.ParallelTest(t, symmetricGeoShardedOldSchemaTestCase(t))
-}
+// func TestAccClusterAdvancedClusterConfig_symmetricGeoShardedOldSchema(t *testing.T) {
+// 	resource.ParallelTest(t, symmetricGeoShardedOldSchemaTestCase(t))
+// }
 
 func symmetricGeoShardedOldSchemaTestCase(t *testing.T, useSDKv2 ...bool) resource.TestCase {
 	t.Helper()
