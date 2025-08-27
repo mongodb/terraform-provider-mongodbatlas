@@ -132,8 +132,8 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders(versionBeforeTPFGARelease),
-				Config: configShardedTransitionOldToNewSchema(t, false, projectID, clusterName, false, true),
-				Check:  acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER"),
+				Config:            configShardedTransitionOldToNewSchema(t, false, projectID, clusterName, false, true),
+				Check:             acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER"),
 			},
 			{
 				Config: configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, true),
@@ -156,8 +156,8 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabledToEnabled(t *te
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders(versionBeforeTPFGARelease),
-				Config: configShardedTransitionOldToNewSchema(t, false, projectID, clusterName, false, false),
-				Check:  acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER"),
+				Config:            configShardedTransitionOldToNewSchema(t, false, projectID, clusterName, false, false),
+				Check:             acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER"),
 			},
 			{
 				Config: configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, false),
