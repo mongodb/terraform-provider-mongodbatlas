@@ -895,35 +895,6 @@ func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogData(t *t
 	})
 }
 
-func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogDataOldSchema(t *testing.T) {
-	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		clusterName = acc.RandomClusterName()
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             acc.CheckDestroyCluster,
-		Steps: []resource.TestStep{
-			{
-				Config: configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(t, orgID, projectName, clusterName, "WORKLOAD_TYPE", false),
-				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData("WORKLOAD_TYPE", false),
-			},
-			{
-				Config: configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(t, orgID, projectName, clusterName, "SEQUENTIAL", true),
-				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData("SEQUENTIAL", true),
-			},
-			{
-				Config: configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(t, orgID, projectName, clusterName, "NODE_TYPE", false),
-				Check:  checkReplicaSetScalingStrategyAndRedactClientLogData("NODE_TYPE", false),
-			},
-			acc.TestStepImportCluster(resourceName, "replication_specs"), // Import with old schema will NOT use `num_shards`
-		},
-	})
-}
-
 // TestAccClusterAdvancedCluster_priorityOldSchema will be able to be simplied or deleted in CLOUDP-275825
 func TestAccClusterAdvancedCluster_priorityOldSchema(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 6)
@@ -2483,63 +2454,6 @@ func checkAggrMig(isTPF bool, useDataSource bool, attrsSet []string, attrsMap ma
 // 	)
 // }
 
-func configShardedOldSchemaDiskSizeGBElectableLevel(t *testing.T, projectID, name string, diskSizeGB int) string {
-	t.Helper()
-	return fmt.Sprintf(`
-		resource "mongodbatlas_advanced_cluster" "test" {
-			project_id = %[1]q
-			name = %[2]q
-			backup_enabled = false
-			mongo_db_major_version = "7.0"
-			cluster_type   = "SHARDED"
-
-			replication_specs = [{
-				region_configs = [{
-				electable_specs = {
-					instance_size = "M10"
-					node_count    = 3
-					disk_size_gb  = %[3]d
-				}
-				analytics_specs = {
-					instance_size = "M10"
-					node_count    = 0
-					disk_size_gb  = %[3]d
-				}
-				provider_name = "AWS"
-				priority      = 7
-				region_name   = "US_EAST_1"
-				}]
-			},
-			{
-				region_configs = [{
-				electable_specs = {
-					instance_size = "M10"
-					node_count    = 3
-					disk_size_gb  = %[3]d
-				}
-				analytics_specs = {
-					instance_size = "M10"
-					node_count    = 0
-					disk_size_gb  = %[3]d
-				}
-				provider_name = "AWS"
-				priority      = 7
-				region_name   = "US_EAST_1"
-				}]
-			}]
-		}
-	`, projectID, name, diskSizeGB) + dataSourcesTFNewSchema
-}
-
-func checkShardedOldSchemaDiskSizeGBElectableLevel(diskSizeGB int) resource.TestCheckFunc {
-	return checkAggr(
-		[]string{},
-		map[string]string{
-			"replication_specs.0.region_configs.0.electable_specs.disk_size_gb": fmt.Sprintf("%d", diskSizeGB),
-			"replication_specs.0.region_configs.0.analytics_specs.disk_size_gb": fmt.Sprintf("%d", diskSizeGB),
-		})
-}
-
 func configShardedNewSchema(t *testing.T, orgID, projectName, name string, diskSizeGB int, firstInstanceSize, lastInstanceSize string, firstDiskIOPS, lastDiskIOPS *int, includeMiddleSpec, increaseDiskSizeShard2 bool, useSDKv2 ...bool) string {
 	t.Helper()
 	var thirdReplicationSpec string
@@ -2889,43 +2803,6 @@ func configReplicaSetScalingStrategyAndRedactClientLogData(t *testing.T, orgID, 
 			}]
 		}
 	`, orgID, projectName, name, replicaSetScalingStrategy, redactClientLogData) + dataSourcesTFNewSchema
-}
-
-func configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(t *testing.T, orgID, projectName, name, replicaSetScalingStrategy string, redactClientLogData bool) string {
-	t.Helper()
-	return fmt.Sprintf(`
-		resource "mongodbatlas_project" "cluster_project" {
-			org_id = %[1]q
-			name   = %[2]q
-		}
-
-		resource "mongodbatlas_advanced_cluster" "test" {
-			project_id = mongodbatlas_project.cluster_project.id
-			name = %[3]q
-			backup_enabled = false
-			cluster_type   = "SHARDED"
-			replica_set_scaling_strategy = %[4]q
-			redact_client_log_data = %[5]t
-
-			replication_specs = [{
-				region_configs = [{
-					electable_specs = {
-						instance_size ="M10"
-						node_count    = 3
-						disk_size_gb  = 10
-					}
-					analytics_specs = {
-						instance_size = "M10"
-						node_count    = 1
-						disk_size_gb  = 10
-					}
-					provider_name = "AWS"
-					priority      = 7
-					region_name   = "EU_WEST_1"
-				}]
-			}]
-		}
-	`, orgID, projectName, name, replicaSetScalingStrategy, redactClientLogData) + dataSourcesTFOldSchema
 }
 
 func checkReplicaSetScalingStrategyAndRedactClientLogData(replicaSetScalingStrategy string, redactClientLogData bool) resource.TestCheckFunc {
