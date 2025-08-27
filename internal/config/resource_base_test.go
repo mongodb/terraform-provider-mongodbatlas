@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNoResoureInterfaceLoss(t *testing.T) {
+func TestNoResourceInterfaceLoss(t *testing.T) {
 	analyticsResource := config.AnalyticsResourceFunc(advancedclustertpf.Resource())()
 	_, ok := analyticsResource.(resource.ResourceWithModifyPlan)
 	assert.True(t, ok)
