@@ -20,7 +20,6 @@ func TestAccClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSchema(
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { mig.PreCheckBasic(t); mig.PreCheckLast1XVersion(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
@@ -29,6 +28,7 @@ func TestAccClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSchema(
 				Check:             checkGeoShardedTransitionOldToNewSchema(false, false),
 			},
 			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config: configGeoShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true),
 				Check:  checkGeoShardedTransitionOldToNewSchema(true, true),
 			},
@@ -127,7 +127,6 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasicSleep(t, nil, projectID, clusterName); mig.PreCheckLast1XVersion(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
@@ -136,6 +135,7 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
 				Check:             acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER"),
 			},
 			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config: configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, true),
 				Check:  acc.CheckIndependentShardScalingMode(resourceName, clusterName, "SHARD"),
 			},
@@ -151,7 +151,6 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabledToEnabled(t *te
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasicSleep(t, nil, projectID, clusterName); mig.PreCheckLast1XVersion(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
@@ -160,10 +159,12 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabledToEnabled(t *te
 				Check:             acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER"),
 			},
 			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config: configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, false),
 				Check:  acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER"),
 			},
 			{
+				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config: configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, true),
 				Check:  acc.CheckIndependentShardScalingMode(resourceName, clusterName, "SHARD"),
 			},
