@@ -19,8 +19,8 @@ func TestAccClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSchema(
 	versionBeforeTPFGARelease := os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { mig.PreCheckBasic(t); mig.PreCheckLast1XVersion(t) },
-		CheckDestroy:             acc.CheckDestroyCluster,
+		PreCheck:     func() { mig.PreCheckBasic(t); mig.PreCheckLast1XVersion(t) },
+		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders(versionBeforeTPFGARelease),
@@ -29,8 +29,8 @@ func TestAccClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSchema(
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config: configGeoShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true),
-				Check:  checkGeoShardedTransitionOldToNewSchema(true, true),
+				Config:                   configGeoShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true),
+				Check:                    checkGeoShardedTransitionOldToNewSchema(true, true),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -126,8 +126,8 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
 	versionBeforeTPFGARelease := os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasicSleep(t, nil, projectID, clusterName); mig.PreCheckLast1XVersion(t) },
-		CheckDestroy:             acc.CheckDestroyCluster,
+		PreCheck:     func() { acc.PreCheckBasicSleep(t, nil, projectID, clusterName); mig.PreCheckLast1XVersion(t) },
+		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders(versionBeforeTPFGARelease),
@@ -136,8 +136,8 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config: configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, true),
-				Check:  acc.CheckIndependentShardScalingMode(resourceName, clusterName, "SHARD"),
+				Config:                   configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, true),
+				Check:                    acc.CheckIndependentShardScalingMode(resourceName, clusterName, "SHARD"),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -150,8 +150,8 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabledToEnabled(t *te
 	versionBeforeTPFGARelease := os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasicSleep(t, nil, projectID, clusterName); mig.PreCheckLast1XVersion(t) },
-		CheckDestroy:             acc.CheckDestroyCluster,
+		PreCheck:     func() { acc.PreCheckBasicSleep(t, nil, projectID, clusterName); mig.PreCheckLast1XVersion(t) },
+		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders(versionBeforeTPFGARelease),
@@ -160,13 +160,13 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabledToEnabled(t *te
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config: configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, false),
-				Check:  acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER"),
+				Config:                   configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, false),
+				Check:                    acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER"),
 			},
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config: configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, true),
-				Check:  acc.CheckIndependentShardScalingMode(resourceName, clusterName, "SHARD"),
+				Config:                   configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, true),
+				Check:                    acc.CheckIndependentShardScalingMode(resourceName, clusterName, "SHARD"),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
