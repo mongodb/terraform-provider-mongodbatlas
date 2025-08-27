@@ -2005,14 +2005,13 @@ func configShardedOldSchemaMultiCloud(t *testing.T, projectID, name string, numS
 				name         = %[2]q
 				  cluster_type = "SHARDED"
 		
-				%[5]s
+				%[4]s
 		
 		
 		  replication_specs = [{
-			# num_shards = %[3]d
 			region_configs = [{
 			  analytics_specs = {
-				instance_size = %[4]q
+				instance_size = %[3]q
 				node_count    = 1
 			  }
 			  electable_specs = {
@@ -2033,7 +2032,7 @@ func configShardedOldSchemaMultiCloud(t *testing.T, projectID, name string, numS
 			}]
 		  }]
 		}
-			`, projectID, name, numShards, analyticsSize, rootConfig)
+			`, projectID, name, analyticsSize, rootConfig)
 	}
 
 	return advClusterConfig + dataSourcesTFOldSchema
@@ -2537,8 +2536,6 @@ func configShardedOldSchemaDiskSizeGBElectableLevel(t *testing.T, projectID, nam
 			cluster_type   = "SHARDED"
 
 			replication_specs = [{
-				# num_shards = 2
-
 				region_configs = [{
 				electable_specs = {
 					instance_size = "M10"
@@ -2953,7 +2950,6 @@ func configReplicaSetScalingStrategyAndRedactClientLogDataOldSchema(t *testing.T
 			redact_client_log_data = %[5]t
 
 			replication_specs = [{
-				num_shards = 2
 				region_configs = [{
 					electable_specs = {
 						instance_size ="M10"

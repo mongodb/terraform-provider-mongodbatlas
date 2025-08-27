@@ -1,0 +1,54 @@
+{
+ "replicationSpecs": [
+  {
+   "regionConfigs": [
+    {
+     "analyticsSpecs": {
+      "diskSizeGB": 55,
+      "instanceSize": "M10",
+      "nodeCount": 0
+     },
+     "electableSpecs": {
+      "diskSizeGB": 55,
+      "instanceSize": "M10",
+      "nodeCount": 3
+     },
+     "priority": 7,
+     "providerName": "AWS",
+     "readOnlySpecs": {
+      "diskSizeGB": 55,
+      "instanceSize": "M10",
+      "nodeCount": 0
+     },
+     "regionName": "US_EAST_1"
+    }
+   ],
+   "zoneName": "ZoneName managed by Terraform"
+  },
+  {
+   "regionConfigs": [
+    {
+     "analyticsSpecs": {
+      "diskSizeGB": 55,
+      "instanceSize": "M10",
+      "nodeCount": 0
+     },
+     "electableSpecs": {
+      "diskSizeGB": 55,
+      "instanceSize": "M10",
+      "nodeCount": 3
+     },
+     "priority": 7,
+     "providerName": "AWS",
+     "readOnlySpecs": {
+      "diskSizeGB": 55,
+      "instanceSize": "M10",
+      "nodeCount": 0
+     },
+     "regionName": "US_EAST_1"
+    }
+   ],
+   "zoneName": "ZoneName managed by Terraform"
+  }
+ ]
+}
