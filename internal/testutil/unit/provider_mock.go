@@ -26,6 +26,7 @@ type HTTPClientModifier interface {
 }
 
 type ProviderMocked struct {
+	// Embed directly to support the same methods
 	*provider.MongodbtlasProvider
 	ClientModifier HTTPClientModifier
 	t              *testing.T
