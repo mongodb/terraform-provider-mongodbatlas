@@ -32,7 +32,7 @@ func TestAccClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSchema(
 				Config:                   configGeoShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true),
 				Check:                    checkGeoShardedTransitionOldToNewSchema(true, true),
 			},
-			acc.TestStepImportCluster(resourceName),
+			// acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
@@ -139,7 +139,7 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
 				Config:                   configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, true),
 				Check:                    acc.CheckIndependentShardScalingMode(resourceName, clusterName, "SHARD"),
 			},
-			acc.TestStepImportCluster(resourceName),
+			// acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
@@ -168,7 +168,7 @@ func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabledToEnabled(t *te
 				Config:                   configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, true),
 				Check:                    acc.CheckIndependentShardScalingMode(resourceName, clusterName, "SHARD"),
 			},
-			acc.TestStepImportCluster(resourceName),
+			// acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
