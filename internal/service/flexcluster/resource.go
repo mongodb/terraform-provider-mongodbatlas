@@ -80,8 +80,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	flexClusterResp, err := CreateFlexCluster(ctx, projectID, clusterName, flexClusterReq, connV2.FlexClustersApi, &createTimeout)
 
 	// Handle timeout with cleanup logic
-	deleteOnCreateTimeout := cleanup.ResolveDeleteOnCreateTimeout(tfModel.DeleteOnCreateTimeout)
-	err = cleanup.HandleCreateTimeout(deleteOnCreateTimeout, err, func(ctxCleanup context.Context) error {
+	err = cleanup.HandleCreateTimeout(tfModel.DeleteOnCreateTimeout.ValueBool(), err, func(ctxCleanup context.Context) error {
 		cleanResp, cleanErr := r.Client.AtlasV2.FlexClustersApi.DeleteFlexCluster(ctxCleanup, projectID, clusterName).Execute()
 		if validate.StatusNotFound(cleanResp) {
 			return nil
