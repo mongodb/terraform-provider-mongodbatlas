@@ -149,29 +149,33 @@ func (r *RSCommon) SetClient(client *MongoDBClient) {
 
 func (r *RSCommon) asUserAgentExtra(ctx context.Context, reqOperation string, reqProviderMeta tfsdk.Config) UserAgentExtra {
 	var meta ProviderMeta
-	var parsed UserAgentExtra
+	uaExtra := UserAgentExtra{
+		Name:      r.ResourceName,
+		Operation: reqOperation,
+	}
+	if reqProviderMeta.Raw.IsNull() {
+		return uaExtra
+	}
 	diags := reqProviderMeta.Get(ctx, &meta)
 	if diags.HasError() {
-		return parsed
+		return uaExtra
 	}
 
 	extrasLen := len(meta.UserAgentExtra.Elements())
 	userExtras := make(map[string]types.String, extrasLen)
 	diags.Append(meta.UserAgentExtra.ElementsAs(ctx, &userExtras, false)...)
 	if diags.HasError() {
-		return parsed
+		return uaExtra
 	}
 	userExtrasString := make(map[string]string, extrasLen)
 	for k, v := range userExtras {
 		userExtrasString[k] = v.ValueString()
 	}
-	return UserAgentExtra{
-		Name:          r.ResourceName,
-		Operation:     reqOperation,
+	return uaExtra.Combine(UserAgentExtra{
 		Extras:        userExtrasString,
 		ModuleName:    meta.ModuleName.ValueString(),
 		ModuleVersion: meta.ModuleVersion.ValueString(),
-	}
+	})
 }
 
 // DSCommon is used as an embedded struct for all framework data sources. Implements the following plugin-framework defined functions:
