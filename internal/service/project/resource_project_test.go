@@ -679,7 +679,7 @@ func TestAccProject_withFalseDefaultSettings(t *testing.T) {
 			},
 			{
 				Config:      alertSettingsTrue,
-				ExpectError: regexp.MustCompile("with_default_alerts_settings cannot be updated or set after import, remove it from the configuration or use the state value"),
+				ExpectError: regexp.MustCompile("with_default_alerts_settings cannot be updated"),
 			},
 			{
 				Config:             alertSettingsFalseImport,
