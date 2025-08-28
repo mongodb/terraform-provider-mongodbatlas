@@ -1,0 +1,7 @@
+```release-note:bug
+resource/mongodbatlas_advanced_cluster: Allow upgrade from tenant and flex cluster to dedicated NVMe with backup enabled
+```
+
+```release-note:bug
+resource/mongodbatlas_advanced_cluster (preview provider 2.0.0): Allow upgrade from tenant and flex cluster to dedicated NVMe with backup enabled
+```
