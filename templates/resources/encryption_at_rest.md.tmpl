@@ -65,11 +65,12 @@ resource "mongodbatlas_encryption_at_rest" "test" {
 }
 ```
 
-{{ .SchemaMarkdown | trimspace }}
-
 ### Further Examples
 - [AWS KMS Encryption at Rest](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_encryption_at_rest/aws)
 - [Azure Key Vault Encryption at Rest](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_encryption_at_rest/azure)
+
+
+{{ .SchemaMarkdown | trimspace }}
 
 ## Import 
 Encryption at Rest Settings can be imported using project ID, in the format `project_id`, e.g.
