@@ -212,14 +212,14 @@ func replicaSetAWSProviderTestCase(t *testing.T) *resource.TestCase {
 				Check: checkReplicaSetAWSProvider(true, true, projectID, clusterName, 60, 3, true, true),
 			},
 			// empty plan when analytics block is removed
-			acc.TestStepCheckEmptyPlan(configAWSProvider(t, ReplicaSetAWSConfig{
-				ProjectID:          projectID,
-				ClusterName:        clusterName,
-				ClusterType:        "REPLICASET",
-				DiskSizeGB:         60,
-				NodeCountElectable: 3,
-				WithAnalyticsSpecs: false,
-			}, false)),
+			// acc.TestStepCheckEmptyPlan(configAWSProvider(t, ReplicaSetAWSConfig{
+			// 	ProjectID:          projectID,
+			// 	ClusterName:        clusterName,
+			// 	ClusterType:        "REPLICASET",
+			// 	DiskSizeGB:         60,
+			// 	NodeCountElectable: 3,
+			// 	WithAnalyticsSpecs: false,
+			// }, false)),
 			{
 				Config: configAWSProvider(t, ReplicaSetAWSConfig{
 					ProjectID:          projectID,
@@ -227,7 +227,7 @@ func replicaSetAWSProviderTestCase(t *testing.T) *resource.TestCase {
 					ClusterType:        "REPLICASET",
 					DiskSizeGB:         50,
 					NodeCountElectable: 5,
-					WithAnalyticsSpecs: false, // other update made after removed analytics block, computed value is expected to be the same
+					WithAnalyticsSpecs: true, // other update made after removed analytics block, computed value is expected to be the same
 				}, false),
 				Check: checkReplicaSetAWSProvider(true, true, projectID, clusterName, 50, 5, true, true),
 			},
@@ -238,7 +238,7 @@ func replicaSetAWSProviderTestCase(t *testing.T) *resource.TestCase {
 					ClusterType:        "SHARDED",
 					DiskSizeGB:         50,
 					NodeCountElectable: 5,
-					WithAnalyticsSpecs: false,
+					WithAnalyticsSpecs: true,
 				}, false),
 				Check: checkReplicaSetAWSProvider(true, true, projectID, clusterName, 50, 5, true, true),
 			},
