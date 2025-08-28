@@ -13,12 +13,8 @@ import (
 
 var versionBeforeTPFGARelease = os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
 
-// TODO: this may fail because 2nd step might be using num_shards
-// geo-sharded ISS
-// this requires dataSources = dataSourcesTFNewSchema ONLY as all steps use new schema
 func TestV1xMigClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSchema(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
-	versionBeforeTPFGARelease := os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
 	isSDKv2 := true
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -36,7 +32,6 @@ func TestV1xMigClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSche
 				Check:                    checkGeoShardedTransitionOldToNewSchema(true, true),
 			},
 			mig.TestStepCheckEmptyPlan(configGeoShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true)),
-			// acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
@@ -125,10 +120,8 @@ func checkGeoShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.
 	)
 }
 
-// sharded -pre-ISS
 func TestV1xMigAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
-	versionBeforeTPFGARelease := os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
 	isSDKv2 := true
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -151,65 +144,10 @@ func TestV1xMigAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T
 				Check:                    acc.CheckIndependentShardScalingMode(resourceName, clusterName, "SHARD"),
 			},
 			mig.TestStepCheckEmptyPlan(configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, true, true)),
-			// acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
 
-// TODO: this test may be redundant with TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema
-// func TestAccAdvancedCluster_oldToNewSchemaWithAutoscalingDisabledToEnabled(t *testing.T) {
-// 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
-// 	versionBeforeTPFGARelease := os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
-
-// 	resource.ParallelTest(t, resource.TestCase{
-// 		PreCheck:     func() { acc.PreCheckBasicSleep(t, nil, projectID, clusterName); mig.PreCheckLast1XVersion(t) },
-// 		CheckDestroy: acc.CheckDestroyCluster,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				ExternalProviders: acc.ExternalProviders(versionBeforeTPFGARelease),
-// 				Config:            configShardedTransitionOldToNewSchema(t, false, projectID, clusterName, false, false),
-// 				Check:             acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER"),
-// 			},
-// 			{
-// 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-// 				Config:                   configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, false),
-// 				Check:                    acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER"),
-// 			},
-// 			{
-// 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-// 				Config:                   configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, true),
-// 				Check:                    acc.CheckIndependentShardScalingMode(resourceName, clusterName, "SHARD"),
-// 			},
-// 			// acc.TestStepImportCluster(resourceName),
-// 		},
-// 	})
-// }
-
-// TODO: this test may be redundant with TestMigAdvancedCluster_shardedMigrationFromOldToNewSchema & the test above
-// func TestAccClusterAdvancedClusterConfig_shardedTransitionFromOldToNewSchema(t *testing.T) {
-// 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
-
-// 	resource.ParallelTest(t, resource.TestCase{
-// 		PreCheck:                 func() { acc.PreCheckBasic(t) },
-// 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-// 		CheckDestroy:             acc.CheckDestroyCluster,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				Config: configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, false, false),
-// 				Check: resource.ComposeAggregateTestCheckFunc(
-// 					checkShardedTransitionOldToNewSchema(true, false),
-// 					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
-// 			},
-// 			{
-// 				Config: configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, false),
-// 				Check:  checkShardedTransitionOldToNewSchema(true, true),
-// 			},
-// 			acc.TestStepImportCluster(resourceName),
-// 		},
-// 	})
-// }
-
-// sharded -ISS
 func TestV1xMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 	versionBeforeTPFGARelease := os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
@@ -224,11 +162,6 @@ func TestV1xMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) 
 				Config:            configShardedTransitionOldToNewSchema(t, !isSDKv2, projectID, clusterName, true, false, false),
 				Check:             checkShardedTransitionOldToNewSchema(!isSDKv2, true),
 			},
-			// {
-			// 	ExternalProviders: acc.ExternalProviders(versionBeforeTPFGARelease),
-			// 	Config:            configShardedTransitionOldToNewSchema(t, false, projectID, clusterName, true, false),
-			// 	Check:             checkShardedTransitionOldToNewSchema(false, true),
-			// },
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, false, false),
@@ -320,7 +253,7 @@ func checkShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.Tes
 	var checksForNewSchema []resource.TestCheckFunc
 	if useNewSchema {
 		checksForNewSchema = []resource.TestCheckFunc{
-			checkAggrMig(isTPF, false, []string{"replication_specs.1.id", "replication_specs.0.external_id", "replication_specs.1.external_id"},
+			checkAggrMig(isTPF, false, []string{"replication_specs.0.external_id", "replication_specs.1.external_id"},
 				map[string]string{
 					"replication_specs.#": fmt.Sprintf("%d", amtOfReplicationSpecs),
 					"replication_specs.1.region_configs.0.electable_specs.0.instance_size": "M10",
@@ -340,55 +273,6 @@ func checkShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.Tes
 	)
 }
 
-// geo-sharded pre-ISS
-// func TestMigAdvancedCluster_symmetricGeoShardedOldSchema(t *testing.T) {
-// 	// migTest(t, symmetricGeoShardedOldSchemaTestCase)
-// 	resource.ParallelTest(t, symmetricGeoShardedOldSchemaTestCase(t, true))
-// }
-
-// func symmetricGeoShardedOldSchemaTestCase(t *testing.T, useSDKv2 ...bool) resource.TestCase {
-// 	t.Helper()
-
-// 	var (
-// 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 18)
-// 		isSDKv2                = isOptionalTrue(useSDKv2...)
-// 		// isTPF                  = !isSDKv2
-// 		versionBeforeTPFGARelease = os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
-// 	)
-
-// 	return resource.TestCase{
-// 		PreCheck:                 func() { acc.PreCheckBasic(t); mig.PreCheckLast1XVersion(t) },
-// 		CheckDestroy:             acc.CheckDestroyCluster,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				ExternalProviders: acc.ExternalProviders(versionBeforeTPFGARelease),
-// 				Config: configGeoShardedOldSchema(t, projectID, clusterName, 2, 2, false, isSDKv2),
-// 				Check: resource.ComposeAggregateTestCheckFunc(
-// 					checkGeoShardedOldSchema(!isSDKv2, clusterName, 2, 2, true, false),
-// 					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
-// 			},
-// 			{
-// 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-// 				Config: configGeoShardedOldSchema(t, projectID, clusterName, 2, 2, false, false),
-// 				Check: resource.ComposeAggregateTestCheckFunc(
-// 					checkGeoShardedOldSchema(true, clusterName, 2, 2, true, false),
-// 					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
-// 			},
-// 			{
-// 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-// 				Config: configGeoShardedOldSchema(t, projectID, clusterName, 3, 3, false, false),
-// 				Check: resource.ComposeAggregateTestCheckFunc(
-// 					checkGeoShardedOldSchema(true, clusterName, 3, 3, true, true),
-// 					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
-// 			},
-// 			// acc.TestStepImportCluster(resourceName, "replication_specs"), // Import with old schema will NOT use `num_shards`
-// 			// acc.TestStepImportCluster(resourceName), // Import with old schema will NOT use `num_shards`
-
-// 		},
-// 	}
-// }
-
-// geo- pre-ISS
 func TestV1xMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 	versionBeforeTPFGARelease := os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
@@ -471,9 +355,7 @@ func TestV1xMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 		projectName        = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
-
 		isSDKv2 = true
-		// isTPF              = !isSDKv2
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
