@@ -17,11 +17,11 @@ Before triggering a release, view the corresponding [unreleased jira page](https
 
 While QA acceptance tests are run in the release process automatically, we check [workflows/test-suite.yml](https://github.com/mongodb/terraform-provider-mongodbatlas/actions/workflows/test-suite.yml) and see if the latest run of the Test Suite action is successful (it runs every day at midnight UTC time). This can help detect failures before proceeding with the next steps.
 
-### Verify upgrade guide is defined
+### Verify upgrade guide is defined (if required)
 
-**Note**: Only applies if the right most version digit is 0 (considered a major or minor version in [semantic versioning](https://semver.org/)).
+- A document (./docs/guides/X.0.0-upgrade-guide.md) must be provided for each major version, summarizing the most significant features, breaking changes, and other helpful information. For minor version releases, this can be created if there are notable changes that warrant it.
 
-- A doc ./docs/guides/X.Y.0-upgrade-guide.md must be defined containing a summary of the most significant features, breaking changes, and additional information that can be helpful. If not defined the release process will be stopped automatically. The expectation is that this file is created during relevant pull requests (breaking changes, significant features), and not before the release process.
+- The expectation is that this file is created during relevant pull requests (breaking changes, significant features), and not before the release process.
 
 - We keep [Guides](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/docs/guides) only for 12 months. Add header `subcategory: "Older Guides"` to previous versions.
 

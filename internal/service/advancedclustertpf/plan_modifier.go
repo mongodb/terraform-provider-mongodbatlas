@@ -9,14 +9,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
 var (
 	// Change mappings uses `attribute_name`, it doesn't care about the nested level.
 	attributeRootChangeMapping = map[string][]string{
-		// "disk_size_gb":           {}, // disk_size_gb can be change at any level/spec
+		"disk_size_gb":           {}, // disk_size_gb can be change at any level/spec
 		"replication_specs":      {},
 		"tls_cipher_config_mode": {"custom_openssl_cipher_config_tls12"},
 		"cluster_type":           {"config_server_management_mode", "config_server_type"}, // computed values of config server change when REPLICA_SET changes to SHARDED
@@ -31,13 +30,12 @@ var (
 		"region_name":     {"container_id"},    // container_id changes based on region_name changes
 		"zone_name":       {"zone_id"},         // zone_id copy from state is not safe when
 	}
-	keepUnknownsCalls = schemafunc.KeepUnknownFuncOr(keepUnkownFuncWithNonEmptyAutoScaling) // removed keepUnkownFuncWithNodeCount
-	// keepUnknownsCalls = schemafunc.KeepUnknownFuncOr(keepUnkownFuncWithNodeCount, keepUnkownFuncWithNonEmptyAutoScaling)
+	keepUnknownsCalls = schemafunc.KeepUnknownFuncOr(keepUnkownFuncWithNodeCount, keepUnkownFuncWithNonEmptyAutoScaling)
 )
 
-// func keepUnkownFuncWithNodeCount(name string, replacement attr.Value) bool {
-// 	return name == "node_count" && !replacement.Equal(types.Int64Value(0))
-// }
+func keepUnkownFuncWithNodeCount(name string, replacement attr.Value) bool {
+	return name == "node_count" && !replacement.Equal(types.Int64Value(0))
+}
 
 func keepUnkownFuncWithNonEmptyAutoScaling(name string, replacement attr.Value) bool {
 	autoScalingBoolValues := []string{"compute_enabled", "disk_gb_enabled", "compute_scale_down_enabled"}
@@ -49,15 +47,15 @@ func keepUnkownFuncWithNonEmptyAutoScaling(name string, replacement attr.Value) 
 
 // useStateForUnknowns should be called only in Update, because of findClusterDiff
 func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
-	// shardingConfigUpgrade := isShardingConfigUpgrade(ctx, state, plan, diags)
-	// if diags.HasError() {
-	// 	return
-	// }
-	// // Don't adjust region_configs upgrades if it's a sharding config upgrade because it will be done only in the first shard, because state only has the first shard with num_shards > 1.
-	// // This avoid errors like AUTO_SCALINGS_MUST_BE_IN_EVERY_REGION_CONFIG.
-	// if !shardingConfigUpgrade {
-	AdjustRegionConfigsChildren(ctx, diags, state, plan)
-	// }
+	shardingConfigUpgrade := isShardingConfigUpgrade(ctx, state, plan, diags)
+	if diags.HasError() {
+		return
+	}
+	// Don't adjust region_configs upgrades if it's a sharding config upgrade because it will be done only in the first shard, because state only has the first shard with num_shards > 1.
+	// This avoid errors like AUTO_SCALINGS_MUST_BE_IN_EVERY_REGION_CONFIG.
+	if !shardingConfigUpgrade {
+		AdjustRegionConfigsChildren(ctx, diags, state, plan)
+	}
 	diff := findClusterDiff(ctx, state, plan, diags)
 	if diags.HasError() || diff.isAnyUpgrade() { // Don't do anything in upgrades
 		return
@@ -164,41 +162,15 @@ func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 				newPlanAnalyticsSpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].AnalyticsSpecs)
 				// if disk_size_gb is defined at root level we cannot use analytics_specs.disk_size_gb from state as it can be outdated
 				// read_only_specs implicitly covers this as it uses value from electable_specs which is unknown if not defined.
-				// if plan.DiskSizeGB.ValueFloat64() > 0 { // has known value in config
-				// 	newPlanAnalyticsSpecs.DiskSizeGb = types.Float64Unknown()
-				// }
+				if plan.DiskSizeGB.ValueFloat64() > 0 { // has known value in config
+					newPlanAnalyticsSpecs.DiskSizeGb = types.Float64Unknown()
+				}
 				objType, diagsLocal := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, newPlanAnalyticsSpecs)
 				diags.Append(diagsLocal...)
 				if diags.HasError() {
 					return
 				}
 				planRegionConfigsTF[j].AnalyticsSpecs = objType
-
-				// newPlanAnalyticsSpecs := planAnalyticsSpecs
-				// if newPlanAnalyticsSpecs == nil {
-				// 	newPlanAnalyticsSpecs = new(TFSpecsModel) // start with null attributes if not present plan
-				// }
-				// baseAnalyticsSpecs := stateAnalyticsSpecs      // using values directly from state if no electable specs are present in plan
-				// if planElectableSpecInReplicationSpec != nil { // ensures values are taken from a defined electable spec if not present in current region config
-				// 	baseAnalyticsSpecs = planElectableSpecInReplicationSpec
-				// }
-				// if planElectableSpecs != nil {
-				// 	// we favor plan electable spec defined in same region config over one defined in replication spec
-				// 	// with current API this is redudant but is more future proof in case scaling between regions becomes independent in the future
-				// 	baseAnalyticsSpecs = planElectableSpecs
-				// }
-				// copyAttrIfDestNotKnown(&baseAnalyticsSpecs.DiskSizeGb, &newPlanAnalyticsSpecs.DiskSizeGb)
-				// copyAttrIfDestNotKnown(&baseAnalyticsSpecs.EbsVolumeType, &newPlanAnalyticsSpecs.EbsVolumeType)
-				// copyAttrIfDestNotKnown(&baseAnalyticsSpecs.InstanceSize, &newPlanAnalyticsSpecs.InstanceSize)
-				// copyAttrIfDestNotKnown(&baseAnalyticsSpecs.DiskIops, &newPlanAnalyticsSpecs.DiskIops)
-				// // unknown node_count is always taken from state as it not dependent on electable_specs changes
-				// copyAttrIfDestNotKnown(&stateAnalyticsSpecs.NodeCount, &newPlanAnalyticsSpecs.NodeCount)
-				// objType, diagsLocal := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, newPlanAnalyticsSpecs)
-				// diags.Append(diagsLocal...)
-				// if diags.HasError() {
-				// 	return
-				// }
-				// planRegionConfigsTF[j].AnalyticsSpecs = objType
 			}
 
 			// don't use auto_scaling or analytics_auto_scaling from state if it's not enabled as it doesn't need to be present in Update request payload
@@ -250,12 +222,12 @@ func determineKeepUnknownsChangedReplicationSpec(keepUnknownsAlways []string, at
 func determineKeepUnknownsUnchangedReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, attributeChanges *schemafunc.AttributeChanges) []string {
 	keepUnknowns := []string{}
 	// Could be set to "" if we are using an ISS cluster
-	// if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) { // When using new sharding config, the legacy id must never be copied
-	keepUnknowns = append(keepUnknowns, "id")
-	// }
+	if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) { // When using new sharding config, the legacy id must never be copied
+		keepUnknowns = append(keepUnknowns, "id")
+	}
 	// for isShardingConfigUpgrade, it will be empty in the plan, so we need to keep it unknown
 	// for listLenChanges, it might be an insertion in the middle of replication spec leading to wrong value from state copied
-	if attributeChanges.ListLenChanges("replication_specs") {
+	if isShardingConfigUpgrade(ctx, state, plan, diags) || attributeChanges.ListLenChanges("replication_specs") {
 		keepUnknowns = append(keepUnknowns, "external_id")
 	}
 	return keepUnknowns

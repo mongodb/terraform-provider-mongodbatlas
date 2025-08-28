@@ -87,8 +87,8 @@ jobs:
           cat doc.repo.patch
           exit 1
   call-acceptance-tests-workflow:
-    needs: [build, shellcheck, generate-doc-check]
+    needs: [build, lint, shellcheck, unit-test, generate-doc-check]
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
     with:
-        reduced_tests: false
+        reduced_tests: true

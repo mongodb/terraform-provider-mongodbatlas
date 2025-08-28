@@ -2,13 +2,14 @@ package advancedclustertpf
 
 import (
 	"context"
-
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"fmt"
+	"slices"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 )
 
 const (
@@ -18,8 +19,8 @@ const (
 )
 
 type ExtraAPIInfo struct {
-	// ZoneNameNumShards          map[string]int64
-	// ZoneNameReplicationSpecIDs map[string]string
+	ZoneNameNumShards          map[string]int64
+	ZoneNameReplicationSpecIDs map[string]string
 	ContainerIDs               map[string]string
 	UseNewShardingConfig       bool
 	UseOldShardingConfigFailed bool
@@ -37,14 +38,14 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, di
 	}
 	return &TFModel{
 		AcceptDataRisksAndForceReplicaSetReconfig: types.StringPointerValue(conversion.TimePtrToStringPtr(input.AcceptDataRisksAndForceReplicaSetReconfig)),
-		BackupEnabled:              types.BoolValue(conversion.SafeValue(input.BackupEnabled)),
-		BiConnectorConfig:          biConnector,
-		ClusterType:                types.StringValue(conversion.SafeValue(input.ClusterType)),
-		ConfigServerManagementMode: types.StringValue(conversion.SafeValue(input.ConfigServerManagementMode)),
-		ConfigServerType:           types.StringValue(conversion.SafeValue(input.ConfigServerType)),
-		ConnectionStrings:          connectionStrings,
-		CreateDate:                 types.StringValue(conversion.SafeValue(conversion.TimePtrToStringPtr(input.CreateDate))),
-		// DiskSizeGB:                       types.Float64PointerValue(findFirstRegionDiskSizeGB(input.ReplicationSpecs)),
+		BackupEnabled:                    types.BoolValue(conversion.SafeValue(input.BackupEnabled)),
+		BiConnectorConfig:                biConnector,
+		ClusterType:                      types.StringValue(conversion.SafeValue(input.ClusterType)),
+		ConfigServerManagementMode:       types.StringValue(conversion.SafeValue(input.ConfigServerManagementMode)),
+		ConfigServerType:                 types.StringValue(conversion.SafeValue(input.ConfigServerType)),
+		ConnectionStrings:                connectionStrings,
+		CreateDate:                       types.StringValue(conversion.SafeValue(conversion.TimePtrToStringPtr(input.CreateDate))),
+		DiskSizeGB:                       types.Float64PointerValue(findFirstRegionDiskSizeGB(input.ReplicationSpecs)),
 		EncryptionAtRestProvider:         types.StringValue(conversion.SafeValue(input.EncryptionAtRestProvider)),
 		GlobalClusterSelfManagedSharding: types.BoolValue(conversion.SafeValue(input.GlobalClusterSelfManagedSharding)),
 		ProjectID:                        types.StringValue(conversion.SafeValue(input.GroupId)),
@@ -116,7 +117,12 @@ func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationS
 	if input == nil {
 		return types.ListNull(ReplicationSpecsObjType)
 	}
-	tfModels := convertReplicationSpecs(ctx, input, diags, apiInfo)
+	var tfModels *[]TFReplicationSpecsModel
+	if apiInfo.UseNewShardingConfig {
+		tfModels = convertReplicationSpecs(ctx, input, diags, apiInfo)
+	} else {
+		tfModels = convertReplicationSpecsLegacy(ctx, input, diags, apiInfo)
+	}
 	if diags.HasError() {
 		return types.ListNull(ReplicationSpecsObjType)
 	}
@@ -147,9 +153,12 @@ func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec
 			diags.AddError(errorZoneNameNotSet, errorZoneNameNotSet)
 			return &tfModels
 		}
+		legacyID := apiInfo.ZoneNameReplicationSpecIDs[zoneName]
 		containerIDs := selectContainerIDs(&item, apiInfo.ContainerIDs)
 		tfModels[i] = TFReplicationSpecsModel{
+			Id:            types.StringValue(legacyID),
 			ExternalId:    types.StringValue(conversion.SafeValue(item.Id)),
+			NumShards:     types.Int64Value(1),
 			ContainerId:   conversion.ToTFMapOfString(ctx, diags, containerIDs),
 			RegionConfigs: regionConfigs,
 			ZoneId:        types.StringValue(conversion.SafeValue(item.ZoneId)),
@@ -174,6 +183,51 @@ func selectContainerIDs(spec *admin.ReplicationSpec20240805, allIDs map[string]s
 		containerIDs[key] = value
 	}
 	return containerIDs
+}
+
+func convertReplicationSpecsLegacy(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, apiInfo *ExtraAPIInfo) *[]TFReplicationSpecsModel {
+	tfModels := []TFReplicationSpecsModel{}
+	tfModelsSkipIndexes := []int{}
+	for i, item := range *input {
+		if slices.Contains(tfModelsSkipIndexes, i) {
+			continue
+		}
+		regionConfigs := NewRegionConfigsObjType(ctx, item.RegionConfigs, diags)
+		zoneName := item.GetZoneName()
+		if zoneName == "" {
+			diags.AddError(errorZoneNameNotSet, errorZoneNameNotSet)
+			return &tfModels
+		}
+		numShards, ok := apiInfo.ZoneNameNumShards[zoneName]
+		errMsg := []string{}
+		if !ok {
+			errMsg = append(errMsg, fmt.Sprintf(errorNumShardsNotSet, zoneName))
+		}
+		legacyID, ok := apiInfo.ZoneNameReplicationSpecIDs[zoneName]
+		if !ok {
+			errMsg = append(errMsg, fmt.Sprintf(errorReplicationSpecIDNotSet, zoneName))
+		}
+		if len(errMsg) > 0 {
+			diags.AddError("replicationSpecsLegacySchema", strings.Join(errMsg, ", "))
+			return &tfModels
+		}
+		if numShards > 1 {
+			for j := 1; j < int(numShards); j++ {
+				tfModelsSkipIndexes = append(tfModelsSkipIndexes, i+j)
+			}
+		}
+		containerIDs := selectContainerIDs(&item, apiInfo.ContainerIDs)
+		tfModels = append(tfModels, TFReplicationSpecsModel{
+			ContainerId:   conversion.ToTFMapOfString(ctx, diags, containerIDs),
+			ExternalId:    types.StringValue(""), // Not meaningful with legacy schema
+			Id:            types.StringValue(legacyID),
+			RegionConfigs: regionConfigs,
+			NumShards:     types.Int64Value(numShards),
+			ZoneId:        types.StringValue(conversion.SafeValue(item.ZoneId)),
+			ZoneName:      types.StringValue(conversion.SafeValue(item.ZoneName)),
+		})
+	}
+	return &tfModels
 }
 
 func NewTagsObjType(ctx context.Context, diags *diag.Diagnostics, input *[]admin.ResourceTag) types.Map {

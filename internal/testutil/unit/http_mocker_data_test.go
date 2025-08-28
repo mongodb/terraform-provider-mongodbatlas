@@ -4,12 +4,10 @@ import (
 	"strings"
 	"testing"
 
-	"gopkg.in/yaml.v3"
-
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
+	"gopkg.in/yaml.v3"
 )
 
 func TestMockHTTPData_UpdateVariables(t *testing.T) {
@@ -69,15 +67,17 @@ steps:
       data "mongodbatlas_advanced_cluster" "test" {
         project_id                     = mongodbatlas_advanced_cluster.test.project_id
         name                           = mongodbatlas_advanced_cluster.test.name
+        use_replication_spec_per_shard = true
       }
       data "mongodbatlas_advanced_clusters" "test" {
         project_id                     = mongodbatlas_advanced_cluster.test.project_id
+        use_replication_spec_per_shard = true
       }
     diff_requests: []
     request_responses: []
 `
 
-var tfDsString = "\ndata \"mongodbatlas_advanced_cluster\" \"test\" {\n  project_id                     = mongodbatlas_advanced_cluster.test.project_id\n  name                           = mongodbatlas_advanced_cluster.test.name\n}\ndata \"mongodbatlas_advanced_clusters\" \"test\" {\n  project_id                     = mongodbatlas_advanced_cluster.test.project_id\n}\n \n"
+var tfDsString = "\ndata \"mongodbatlas_advanced_cluster\" \"test\" {\n  project_id                     = mongodbatlas_advanced_cluster.test.project_id\n  name                           = mongodbatlas_advanced_cluster.test.name\n  use_replication_spec_per_shard = true\n}\ndata \"mongodbatlas_advanced_clusters\" \"test\" {\n  project_id                     = mongodbatlas_advanced_cluster.test.project_id\n  use_replication_spec_per_shard = true\n}\n \n"
 
 func TestDumpingConfigUsesLiteralStyle(t *testing.T) {
 	mockData := unit.NewMockHTTPData(t, 2, []string{"", tfDsString})

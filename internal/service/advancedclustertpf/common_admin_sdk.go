@@ -90,14 +90,34 @@ func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, c
 			return nil, nil, false
 		}
 	}
+	if !update.IsZeroValues(p.ArgsLegacy) {
+		changed = true
+		legacyAdvConfig, _, err = client.AtlasV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, p.ArgsLegacy).Execute()
+		if err != nil {
+			addErrorDiag(diags, operationAdvancedConfigurationUpdate20240530, defaultAPIErrorDetails(clusterName, err))
+			diags.AddError(errorAdvancedConfUpdateLegacy, defaultAPIErrorDetails(clusterName, err))
+			return nil, nil, false
+		}
+		_ = AwaitChanges(ctx, client, waitParams, operationAdvancedConfigurationUpdate20240530, diags)
+		if diags.HasError() {
+			return nil, nil, false
+		}
+	}
 	if !update.IsZeroValues(p.ClusterAdvancedConfig) {
 		changed = true
 	}
 	return legacyAdvConfig, advConfig, changed
 }
 
-func ReadIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, projectID, clusterName string, configNew *admin.ClusterDescriptionProcessArgs20240805) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805) {
+func ReadIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, projectID, clusterName string, configLegacy *admin20240530.ClusterDescriptionProcessArgs, configNew *admin.ClusterDescriptionProcessArgs20240805) (legacy *admin20240530.ClusterDescriptionProcessArgs, latest *admin.ClusterDescriptionProcessArgs20240805) {
 	var err error
+	if configLegacy == nil {
+		configLegacy, _, err = client.AtlasV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
+		if err != nil {
+			diags.AddError(errorAdvancedConfReadLegacy, defaultAPIErrorDetails(clusterName, err))
+			return
+		}
+	}
 	if configNew == nil {
 		configNew, _, err = client.AtlasV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 		if err != nil {
@@ -105,7 +125,7 @@ func ReadIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnosti
 			return
 		}
 	}
-	return nil, configNew
+	return configLegacy, configNew
 }
 
 func UpgradeTenant(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.ClusterDescription20240805 {
