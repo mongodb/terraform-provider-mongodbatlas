@@ -13,6 +13,13 @@
 ### AWS S3 Privatelink
 {{ tffile (printf "examples/%s/s3/main.tf" .Name )}}
 
+### Further Examples
+- [AWS Confluent PrivateLink](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_stream_privatelink_endpoint/confluent_serverless)
+- [Confluent Dedicated Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_stream_privatelink_endpoint/confluent_dedicated_cluster)
+- [AWS MSK PrivateLink](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_stream_privatelink_endpoint/aws_msk_cluster)
+- [AWS S3 PrivateLink](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_stream_privatelink_endpoint/s3)
+- [Azure PrivateLink](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_stream_privatelink_endpoint/azure)
+
 {{ .SchemaMarkdown | trimspace }}
 
 For more information see: [MongoDB Atlas API - Streams Privatelink](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprivatelinkconnection) Documentation.
