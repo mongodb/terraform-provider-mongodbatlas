@@ -20,3 +20,8 @@ func TestMigAdvancedCluster_singleShardedMultiCloud(t *testing.T) {
 	mig.SkipIfVersionBelow(t, "2.0.0")
 	mig.CreateAndRunTest(t, singleShardedMultiCloudTestCase(t))
 }
+
+func TestMigAdvancedClusterConfig_asymmetricGeoShardedNewSchema(t *testing.T) {
+	mig.SkipIfVersionBelow(t, "2.0.0")
+	mig.CreateAndRunTest(t, asymmetricGeoShardedNewSchema(t))
+}

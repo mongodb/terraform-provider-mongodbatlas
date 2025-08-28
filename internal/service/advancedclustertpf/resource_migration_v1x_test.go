@@ -13,9 +13,11 @@ import (
 
 var versionBeforeTPFGARelease = os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
 
-func TestV1xMigClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSchema(t *testing.T) {
+// SDKv2/TPF pre NEW to new - geo-sharded
+func TestV1xMigClusterAdvancedClusterConfig_geoShardedTransitionNewSchema(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
-	isSDKv2 := true
+	isSDKv2 := acc.IsTestSDKv2ToTPF()
+	// isTPFPreview := os.Getenv("MONGODB_ATLAS_TEST_PREVIEW_TO_TPF")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t); mig.PreCheckLast1XVersion(t) },
@@ -26,6 +28,7 @@ func TestV1xMigClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSche
 				Config:            configGeoShardedTransitionOldToNewSchema(t, !isSDKv2, projectID, clusterName, true),
 				Check:             checkGeoShardedTransitionOldToNewSchema(!isSDKv2, true),
 			},
+			mig.TestStepCheckEmptyPlan(configGeoShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true)),
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configGeoShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true),
@@ -39,8 +42,10 @@ func TestV1xMigClusterAdvancedClusterConfig_geoShardedTransitionFromOldToNewSche
 func configGeoShardedTransitionOldToNewSchema(t *testing.T, isTPF bool, projectID, name string, useNewSchema bool) string {
 	t.Helper()
 	var numShardsStr string
+	var diskSizeGB string
 	if !useNewSchema {
 		numShardsStr = `num_shards = 2`
+		diskSizeGB = `disk_size_gb = 15`
 	}
 	replicationSpec := `
 		replication_specs {
@@ -90,9 +95,11 @@ func configGeoShardedTransitionOldToNewSchema(t *testing.T, isTPF bool, projectI
 			backup_enabled = false
 			cluster_type   = "GEOSHARDED"
 
+			%[4]s
+
 			%[3]s
 		}
-	`, projectID, name, replicationSpecs)) + dataSources
+	`, projectID, name, replicationSpecs, diskSizeGB)) + dataSources
 }
 
 func checkGeoShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.TestCheckFunc {
@@ -120,9 +127,12 @@ func checkGeoShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.
 	)
 }
 
+// SDKv2/TPF pre OLD to new - sharded
 func TestV1xMigAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
-	isSDKv2 := true
+	isSDKv2 := acc.IsTestSDKv2ToTPF()
+	// if not SDKv2, ensure preview flag is set - add to precheck
+	// isTPFPreview := os.Getenv("MONGODB_ATLAS_TEST_PREVIEW_TO_TPF")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheckBasicSleep(t, nil, projectID, clusterName); mig.PreCheckLast1XVersion(t) },
@@ -133,6 +143,7 @@ func TestV1xMigAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T
 				Config:            configShardedTransitionOldToNewSchema(t, !isSDKv2, projectID, clusterName, false, true, false),
 				Check:             acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER"),
 			},
+			mig.TestStepCheckEmptyPlan(configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, true, false)),
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, true, false),
@@ -148,10 +159,12 @@ func TestV1xMigAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T
 	})
 }
 
-func TestV1xMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) {
+// SDKv2/TPF pre NEW to new - sharded
+func TestV1xMigAdvancedCluster_shardedMigrationNewSchema(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 	versionBeforeTPFGARelease := os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
-	isSDKv2 := true
+	isSDKv2 := acc.IsTestSDKv2ToTPF()
+	// isTPFPreview := os.Getenv("MONGODB_ATLAS_TEST_PREVIEW_TO_TPF")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t); mig.PreCheckLast1XVersion(t) },
@@ -175,8 +188,10 @@ func TestV1xMigAdvancedCluster_shardedMigrationFromOldToNewSchema(t *testing.T) 
 func configShardedTransitionOldToNewSchema(t *testing.T, isTPF bool, projectID, name string, useNewSchema, autoscaling, isUpdate bool) string {
 	t.Helper()
 	var numShardsStr string
+	var diskSizeGBStr string
 	if !useNewSchema {
 		numShardsStr = `num_shards = 2`
+		diskSizeGBStr = `disk_size_gb = 15`
 	}
 	var autoscalingStr string
 	if autoscaling {
@@ -198,6 +213,7 @@ func configShardedTransitionOldToNewSchema(t *testing.T, isTPF bool, projectID, 
 	replicationSpec := fmt.Sprintf(`
 		replication_specs {
 			%[1]s
+
 			region_configs {
 				electable_specs {
 					instance_size = "M10"
@@ -237,10 +253,12 @@ func configShardedTransitionOldToNewSchema(t *testing.T, isTPF bool, projectID, 
 			backup_enabled = false
 			cluster_type   = "SHARDED"
 
+			%[4]s
+
 			%[3]s
 		}
 
-	`, projectID, name, replicationSpecs)) + dataSources
+	`, projectID, name, replicationSpecs, diskSizeGBStr)) + dataSources
 }
 
 func checkShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.TestCheckFunc {
@@ -273,10 +291,12 @@ func checkShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.Tes
 	)
 }
 
+// SDKv2/TPF pre OLD to new - geo-sharded
 func TestV1xMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 	versionBeforeTPFGARelease := os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
-	isSDKv2 := true
+	isSDKv2 := acc.IsTestSDKv2ToTPF()
+	// isTPFPreview := os.Getenv("MONGODB_ATLAS_TEST_PREVIEW_TO_TPF")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t); mig.PreCheckLast1XVersion(t) },
@@ -289,6 +309,7 @@ func TestV1xMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.
 					checkGeoShardedTransitionOldToNewSchema(false, false),
 					acc.CheckIndependentShardScalingMode(resourceName, clusterName, "CLUSTER")),
 			},
+			mig.TestStepCheckEmptyPlan(configGeoShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true)),
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configGeoShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true),
@@ -305,7 +326,7 @@ func TestV1xMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 	var (
 		projectID, clusterName    = acc.ProjectIDExecutionWithCluster(t, 6)
 		versionBeforeTPFGARelease = os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
-		isSDKv2                   = true
+		isSDKv2                   = acc.IsTestSDKv2ToTPF()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -321,9 +342,17 @@ func TestV1xMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 					DiskSizeGB:         60,
 					NodeCountElectable: 3,
 					WithAnalyticsSpecs: true,
-				}, isSDKv2),
+				}, !isSDKv2),
 				Check: checkReplicaSetAWSProvider(!isSDKv2, false, projectID, clusterName, 60, 3, true, true),
 			},
+			mig.TestStepCheckEmptyPlan(configAWSProvider(t, ReplicaSetAWSConfig{
+				ProjectID:          projectID,
+				ClusterName:        clusterName,
+				ClusterType:        "REPLICASET",
+				DiskSizeGB:         60,
+				NodeCountElectable: 3,
+				WithAnalyticsSpecs: true,
+			}, true)),
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config: configAWSProvider(t, ReplicaSetAWSConfig{
@@ -333,17 +362,9 @@ func TestV1xMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 					DiskSizeGB:         60,
 					NodeCountElectable: 3,
 					WithAnalyticsSpecs: true,
-				}, false),
+				}, true),
 				Check: checkReplicaSetAWSProvider(true, false, projectID, clusterName, 60, 3, true, true),
 			},
-			mig.TestStepCheckEmptyPlan(configAWSProvider(t, ReplicaSetAWSConfig{
-				ProjectID:          projectID,
-				ClusterName:        clusterName,
-				ClusterType:        "REPLICASET",
-				DiskSizeGB:         60,
-				NodeCountElectable: 3,
-				WithAnalyticsSpecs: true,
-			}, false)),
 		},
 	})
 
@@ -355,7 +376,7 @@ func TestV1xMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 		projectName        = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
-		isSDKv2            = true
+		isSDKv2            = acc.IsTestSDKv2ToTPF()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -364,15 +385,15 @@ func TestV1xMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				ExternalProviders: acc.ExternalProviders(versionBeforeTPFGARelease),
-				Config:            configReplicaSetMultiCloud(t, orgID, projectName, clusterName, isSDKv2),
+				Config:            configReplicaSetMultiCloud(t, orgID, projectName, clusterName, !isSDKv2),
 				Check:             checkReplicaSetMultiCloud(!isSDKv2, false, clusterName, 3),
 			},
+			mig.TestStepCheckEmptyPlan(configReplicaSetMultiCloud(t, orgID, projectName, clusterNameUpdated, true)),
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configReplicaSetMultiCloud(t, orgID, projectName, clusterNameUpdated, false),
+				Config:                   configReplicaSetMultiCloud(t, orgID, projectName, clusterNameUpdated, true),
 				Check:                    checkReplicaSetMultiCloud(true, false, clusterNameUpdated, 3),
 			},
-			mig.TestStepCheckEmptyPlan(configReplicaSetMultiCloud(t, orgID, projectName, clusterNameUpdated, false)),
 		},
 	})
 }

@@ -208,7 +208,7 @@ func replicaSetAWSProviderTestCase(t *testing.T) *resource.TestCase {
 					DiskSizeGB:         60,
 					NodeCountElectable: 3,
 					WithAnalyticsSpecs: true,
-				}, false),
+				}, true),
 				Check: checkReplicaSetAWSProvider(true, true, projectID, clusterName, 60, 3, true, true),
 			},
 			// empty plan when analytics block is removed
@@ -228,7 +228,7 @@ func replicaSetAWSProviderTestCase(t *testing.T) *resource.TestCase {
 					DiskSizeGB:         50,
 					NodeCountElectable: 5,
 					WithAnalyticsSpecs: true, // other update made after removed analytics block, computed value is expected to be the same
-				}, false),
+				}, true),
 				Check: checkReplicaSetAWSProvider(true, true, projectID, clusterName, 50, 5, true, true),
 			},
 			{ // testing transition from replica set to sharded cluster
@@ -239,7 +239,7 @@ func replicaSetAWSProviderTestCase(t *testing.T) *resource.TestCase {
 					DiskSizeGB:         50,
 					NodeCountElectable: 5,
 					WithAnalyticsSpecs: true,
-				}, false),
+				}, true),
 				Check: checkReplicaSetAWSProvider(true, true, projectID, clusterName, 50, 5, true, true),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs", "retain_backups_enabled"),
@@ -269,11 +269,11 @@ func replicaSetMultiCloudTestCase(t *testing.T, useSDKv2 ...bool) *resource.Test
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configReplicaSetMultiCloud(t, orgID, projectName, clusterName, isSDKv2),
+				Config: configReplicaSetMultiCloud(t, orgID, projectName, clusterName, !isSDKv2),
 				Check:  checkReplicaSetMultiCloud(isTPF, true, clusterName, 3),
 			},
 			{
-				Config: configReplicaSetMultiCloud(t, orgID, projectName, clusterNameUpdated, isSDKv2),
+				Config: configReplicaSetMultiCloud(t, orgID, projectName, clusterNameUpdated, !isSDKv2),
 				Check:  checkReplicaSetMultiCloud(isTPF, true, clusterNameUpdated, 3),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -862,8 +862,14 @@ func TestAccClusterAdvancedClusterConfig_asymmetricShardedNewSchemaInconsistentD
 }
 
 func TestAccClusterAdvancedClusterConfig_asymmetricGeoShardedNewSchemaAddingRemovingShard(t *testing.T) {
+	resource.ParallelTest(t, *asymmetricGeoShardedNewSchema(t))
+}
+
+func asymmetricGeoShardedNewSchema(t *testing.T) *resource.TestCase {
+	t.Helper()
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 9)
-	resource.ParallelTest(t, resource.TestCase{
+
+	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
@@ -882,7 +888,7 @@ func TestAccClusterAdvancedClusterConfig_asymmetricGeoShardedNewSchemaAddingRemo
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
-	})
+	}
 }
 
 func TestAccAdvancedCluster_replicaSetScalingStrategyAndRedactClientLogData(t *testing.T) {
@@ -1643,11 +1649,11 @@ type ReplicaSetAWSConfig struct {
 	WithAnalyticsSpecs bool
 }
 
-func configAWSProvider(t *testing.T, configInfo ReplicaSetAWSConfig, useSDKv2 ...bool) string {
+func configAWSProvider(t *testing.T, configInfo ReplicaSetAWSConfig, isTPF bool) string {
 	t.Helper()
 	analyticsSpecs := ""
 
-	if isOptionalTrue(useSDKv2...) {
+	if !isTPF {
 		if configInfo.WithAnalyticsSpecs {
 			analyticsSpecs = `
 			analytics_specs {
@@ -1774,7 +1780,7 @@ func configIncorrectTypeGobalClusterSelfManagedSharding(t *testing.T, projectID,
 	`, projectID, name)
 }
 
-func configReplicaSetMultiCloud(t *testing.T, orgID, projectName, name string, useSDKv2 ...bool) string {
+func configReplicaSetMultiCloud(t *testing.T, orgID, projectName, name string, isTPF bool) string {
 	t.Helper()
 
 	projectConfig := fmt.Sprintf(`
@@ -1786,7 +1792,7 @@ func configReplicaSetMultiCloud(t *testing.T, orgID, projectName, name string, u
 
 	advClusterConfig := ""
 
-	if isOptionalTrue(useSDKv2...) {
+	if !isTPF {
 		advClusterConfig = fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = mongodbatlas_project.cluster_project.id
