@@ -68,6 +68,9 @@ resource "mongodbatlas_data_lake_pipeline" "pipeline" {
 }
 ```
 
+### Further Examples
+- [Data Lake Pipeline](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_data_lake_pipeline)
+
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project to create a data lake pipeline.
