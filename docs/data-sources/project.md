@@ -1,0 +1,136 @@
+---
+subcategory: "Projects"
+---
+
+# Data Source: mongodbatlas_project
+
+`mongodbatlas_project` describes a MongoDB Atlas Project. This represents a project that has been created.
+
+-> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
+
+## Example Usage
+
+### Using project_id attribute to query
+```terraform
+data "mongodbatlas_roles_org_id" "test" {
+}
+
+resource "mongodbatlas_project" "test" {
+  name   = "project-name"
+  org_id = data.mongodbatlas_roles_org_id.test.org_id
+
+  teams {
+    team_id    = "5e0fa8c99ccf641c722fe645"
+    role_names = ["GROUP_OWNER"]
+  }
+
+  teams {
+    team_id    = "5e1dd7b4f2a30ba80a70cd4rw"
+    role_names = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_WRITE"]
+  }
+
+  limits {
+    name = "atlas.project.deployment.clusters"
+    value = 26
+  }
+}
+
+data "mongodbatlas_project" "test" {
+  project_id = "${mongodbatlas_project.test.id}"
+}
+```
+
+### Using name attribute to query
+```terraform
+resource "mongodbatlas_project" "test" {
+  name   = "project-name"
+  org_id = "<ORG_ID>"
+
+  teams {
+    team_id    = "5e0fa8c99ccf641c722fe645"
+    role_names = ["GROUP_OWNER"]
+  }
+
+  teams {
+    team_id    = "5e1dd7b4f2a30ba80a70cd4rw"
+    role_names = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_WRITE"]
+  }
+
+  limits {
+    name = "atlas.project.deployment.clusters"
+    value = 26
+  }
+}
+
+data "mongodbatlas_project" "test" {
+  name = mongodbatlas_project.test.name
+}
+```
+
+## Argument Reference
+
+* `project_id` - (Optional) The unique ID for the project.
+* `name` - (Optional) The unique ID for the project.
+
+~> **IMPORTANT:** Either `project_id` or `name` must be configurated.
+
+## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
+
+* `name` - The name of the project you want to create.
+* `org_id` - The ID of the organization you want to create the project within.
+* `cluster_count` - The number of Atlas clusters deployed in the project.
+* `created` - The ISO-8601-formatted timestamp of when Atlas created the project.
+* `tags` - Map that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the project. To learn more, see [Resource Tags](https://www.mongodb.com/docs/atlas/tags/)
+* `teams` - **(DEPRECATED)** Returns all teams to which the authenticated user has access in the project. See [Teams](#teams).
+* `limits` - The limits for the specified project. See [Limits](#limits).
+* `ip_addresses` - IP addresses in a project categorized by services. See [IP Addresses](#ip-addresses). **WARNING:** This attribute is deprecated, use the `mongodbatlas_project_ip_addresses` data source instead.
+* `users` - Returns list of all pending and active MongoDB Cloud users associated with the specified project.
+* `is_collect_database_specifics_statistics_enabled` - Flag that indicates whether to enable statistics in [cluster metrics](https://www.mongodb.com/docs/atlas/monitor-cluster-metrics/) collection for the project.
+* `is_data_explorer_enabled` - Flag that indicates whether to enable Data Explorer for the project. If enabled, you can query your database with an easy to use interface.
+* `is_extended_storage_sizes_enabled` - Flag that indicates whether to enable extended storage sizes for the specified project.
+* `is_performance_advisor_enabled` - Flag that indicates whether to enable Performance Advisor and Profiler for the project. If enabled, you can analyze database logs to recommend performance improvements.
+* `is_realtime_performance_panel_enabled` - Flag that indicates whether to enable Real Time Performance Panel for the project. If enabled, you can see real time metrics from your MongoDB database.
+* `is_schema_advisor_enabled` - Flag that indicates whether to enable Schema Advisor for the project. If enabled, you receive customized recommendations to optimize your data model and enhance performance. Disable this setting to disable schema suggestions in the [Performance Advisor](https://www.mongodb.com/docs/atlas/performance-advisor/#std-label-performance-advisor) and the [Data Explorer](https://www.mongodb.com/docs/atlas/atlas-ui/#std-label-atlas-ui).
+* `region_usage_restrictions` - If GOV_REGIONS_ONLY the project can be used for government regions only, otherwise defaults to standard regions. For more information see [MongoDB Atlas for Government](https://www.mongodb.com/docs/atlas/government/api/#creating-a-project).
+* `is_slow_operation_thresholding_enabled` - (Deprecated) Flag that enables MongoDB Cloud to use its slow operation threshold for the specified project. The threshold determines which operations the Performance Advisor and Query Profiler considers slow. When enabled, MongoDB Cloud uses the average execution time for operations on your cluster to determine slow-running queries. As a result, the threshold is more pertinent to your cluster workload. The slow operation threshold is enabled by default for dedicated clusters (M10+). When disabled, MongoDB Cloud considers any operation that takes longer than 100 milliseconds to be slow. **Note**: To use this attribute, the requesting API Key must have the Project Owner role, if not it will show a warning and will return `false`. If you are not using this field, you don't need to take any action.
+
+### Teams
+
+~> **DEPRECATION:** This attribute is deprecated and will be removed in the next major release. Please transition to `mongodbatlas_team_project_assignment`. For more details, see [Migration Guide: Project Teams Attribute to Team Project Assignment Resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/team_project_assignment_migration_guide).
+
+* `team_id` - The unique identifier of the team you want to associate with the project. The team and project must share the same parent organization.
+* `role_names` - Each string in the array represents a project role assigned to the team. Every user associated with the team inherits these roles. The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-roles/#organization-roles) describes the roles a user can have.
+
+### Limits
+
+* `name` - Human-readable label that identifies this project limit.
+* `value` - Amount the limit is set to.
+* `current_usage` - Amount that indicates the current usage of the limit.
+* `default_limit` - Default value of the limit.
+* `maximum_limit` - Maximum value of the limit.
+
+
+### IP Addresses
+
+* `services.clusters.#.cluster_name` - Human-readable label that identifies the cluster.
+* `services.clusters.#.inbound` - List of inbound IP addresses associated with the cluster. If your network allows outbound HTTP requests only to specific IP addresses, you must allow access to the following IP addresses so that your application can connect to your Atlas cluster.
+* `services.clusters.#.outbound` - List of outbound IP addresses associated with the cluster. If your network allows inbound HTTP requests only from specific IP addresses, you must allow access from the following IP addresses so that your Atlas cluster can communicate with your webhooks and KMS.
+
+### Users
+* `id`- Unique 24-hexadecimal digit string that identifies the MongoDB Cloud user.
+* `orgMembershipStatus`- String enum that indicates whether the MongoDB Cloud user has a pending invitation to join the organization or they are already active in the organization.
+* `roles`- One or more project-level roles assigned to the MongoDB Cloud user.
+* `username`- Email address that represents the username of the MongoDB Cloud user.
+* `country`- Two-character alphabetical string that identifies the MongoDB Cloud user's geographic location. This parameter uses the ISO 3166-1a2 code format.
+* `createdAt`- Date and time when MongoDB Cloud created the current account. This value is in the ISO 8601 timestamp format in UTC.
+* `firstName`- First or given name that belongs to the MongoDB Cloud user.
+* `lastAuth` - Date and time when the current account last authenticated. This value is in the ISO 8601 timestamp format in UTC.
+* `lastName`- Last name, family name, or surname that belongs to the MongoDB Cloud user.
+* `mobileNumber` - Mobile phone number that belongs to the MongoDB Cloud user.
+
+~> **NOTE:** - Does not return pending users invited via the deprecated [Invite One MongoDB Cloud User to Join One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprojectinvitation) endpoint or pending invitations created using [`mongodbatlas_project_invitation`](../resources/project_invitation.md) resource.
+
+  
+See [MongoDB Atlas API - Project](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Projects) - [and MongoDB Atlas API - Teams](https://docs.atlas.mongodb.com/reference/api/project-get-teams/) Documentation for more information.
