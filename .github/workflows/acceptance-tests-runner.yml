@@ -398,7 +398,7 @@ jobs:
       - name: Acceptance Tests
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          MONGODB_ATLAS_LAST_1X_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
+          #MONGODB_ATLAS_LAST_1X_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
           HTTP_MOCKER_CAPTURE: 'true'
           ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
           ACCTEST_PACKAGES: |
@@ -425,9 +425,9 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          # MONGODB_ATLAS_LAST_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
+          MONGODB_ATLAS_LAST_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
           MONGODB_ATLAS_LAST_1X_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
-          ACCTEST_REGEX_RUN: '^TestV1xMig'
+          ACCTEST_REGEX_RUN: ${{ !inputs.reduced_tests && '^TestV1xMig' || env.ACCTEST_REGEX_RUN }}
           ACCTEST_PACKAGES: |
             ./internal/service/advancedclustertpf
         run: make testacc
@@ -452,10 +452,10 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          # MONGODB_ATLAS_LAST_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
+          MONGODB_ATLAS_LAST_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
           MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: 'true' # required for migration tests that use provider version < 2.0.0
           MONGODB_ATLAS_LAST_1X_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
-          ACCTEST_REGEX_RUN: '^TestV1xMig'
+          ACCTEST_REGEX_RUN: ${{ !inputs.reduced_tests && '^TestV1xMig' || env.ACCTEST_REGEX_RUN }}
           ACCTEST_PACKAGES: |
             ./internal/service/advancedclustertpf
         run: make testacc
