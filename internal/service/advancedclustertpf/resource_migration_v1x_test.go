@@ -355,7 +355,7 @@ func TestV1xMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 		projectName        = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
 		clusterName        = acc.RandomClusterName()
 		clusterNameUpdated = acc.RandomClusterName()
-		isSDKv2 = true
+		isSDKv2            = true
 	)
 
 	resource.ParallelTest(t, resource.TestCase{

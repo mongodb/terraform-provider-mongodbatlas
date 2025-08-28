@@ -2670,14 +2670,13 @@ func checkShardedNewSchema(isTPF bool, diskSizeGB int, firstInstanceSize, lastIn
 	pluralChecks := acc.AddAttrSetChecksMigTPF(isTPF, dataSourcePluralName, nil,
 		[]string{"results.#", "results.0.replication_specs.#", "results.0.replication_specs.0.region_configs.#", "results.0.name", "results.0.termination_protection_enabled", "results.0.global_cluster_self_managed_sharding"}...)
 
+	pluralChecks = acc.AddAttrChecksPrefixMigTPF(isTPF, dataSourcePluralName, pluralChecks, clusterChecks, "results.0")
 
-		pluralChecks = acc.AddAttrChecksPrefixMigTPF(isTPF, dataSourcePluralName, pluralChecks, clusterChecks, "results.0")
-
-if isAsymmetricCluster {
-	pluralChecks = append(pluralChecks, checkAggrMig(isTPF, true, nil, nil))
-} else {
-	pluralChecks = acc.AddAttrSetChecksMigTPF(isTPF, dataSourcePluralName, pluralChecks)
-}
+	if isAsymmetricCluster {
+		pluralChecks = append(pluralChecks, checkAggrMig(isTPF, true, nil, nil))
+	} else {
+		pluralChecks = acc.AddAttrSetChecksMigTPF(isTPF, dataSourcePluralName, pluralChecks)
+	}
 
 	return checkAggrMig(isTPF, true,
 		[]string{"replication_specs.0.external_id", "replication_specs.0.zone_id", "replication_specs.1.external_id", "replication_specs.1.zone_id"},
