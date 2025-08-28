@@ -26,7 +26,7 @@
 
 set -euo pipefail
 
-TF_VERSION="${TF_VERSION:-"1.13.1"}" # TF version to use when running tfplugindocs. Default: 1.13.1
+TF_VERSION="${TF_VERSION:-"1.13.0"}" # TF version to use when running tfplugindocs. Default: 1.13.0
 TEMPLATE_FOLDER_PATH="${TEMPLATE_FOLDER_PATH:-"templates"}" # PATH to the templates folder. Default: templates
 
 trap 'rm -R docs-out/' EXIT # temp dir cleanup when script exits
