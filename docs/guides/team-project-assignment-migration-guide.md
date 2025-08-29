@@ -1,6 +1,7 @@
----  
+---
 page_title: "Migration Guide: Project Teams Attribute to Team Project Assignment Resource"
----  
+---
+
   
 # Migration Guide: Project Teams Attribute to Team Project Assignment Resource
   
