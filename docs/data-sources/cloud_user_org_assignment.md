@@ -1,5 +1,5 @@
 ---
-subcategory: "Organizations"
+subcategory: "MongoDB Cloud Users"
 ---
 
 # Data Source: mongodbatlas_cloud_user_org_assignment

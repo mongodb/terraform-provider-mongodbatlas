@@ -2,10 +2,6 @@
 subcategory: "Projects"
 ---
 
----
-subcategory: "Deprecated"    
----
-
 # Resource: mongodbatlas_project_invitation
 
 `mongodbatlas_project_invitation` invites a user to join an Atlas project.

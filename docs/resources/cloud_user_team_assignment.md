@@ -1,5 +1,5 @@
 ---
-subcategory: "Teams"
+subcategory: "MongoDB Cloud Users"
 ---
 
 # Resource: mongodbatlas_cloud_user_team_assignment

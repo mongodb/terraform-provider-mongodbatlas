@@ -2,10 +2,6 @@
 subcategory: "Organizations"
 ---
 
----
-subcategory: "Deprecated"    
----
-
 # Data Source: mongodbatlas_org_invitation
 
 `mongodbatlas_org_invitation` describes an invitation for a user to join an Atlas organization.

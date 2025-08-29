@@ -1,9 +1,5 @@
 ---
-subcategory: "Atlas Users (Deprecated)"
----
-
----
-subcategory: "Deprecated"    
+subcategory: "MongoDB Cloud Users"
 ---
 
 # Data Source: mongodbatlas_atlas_user

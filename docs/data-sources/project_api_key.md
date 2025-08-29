@@ -1,5 +1,5 @@
 ---
-subcategory: "Projects"
+subcategory: "Programmatic API Keys"
 ---
 
 # Data Source: mongodbatlas_project_api_key

@@ -6,7 +6,7 @@ subcategory: "Clusters"
 
 `mongodbatlas_cluster` describes all Clusters by the provided project_id. The data source requires your Project ID.
 
-**WARNING:** This datasource is deprecated and will be removed in the next major release. Please use `mongodbatlas_advanced_clusters`. For more details, see [our migration guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
+~> **DEPRECATION:** This datasource is deprecated and will be removed in the next major release. Please use `mongodbatlas_advanced_clusters`. For more details, see [our migration guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
 
 ~> **IMPORTANT:**
 <br> &#8226; Multi Region Cluster: The `mongodbatlas_cluster` data source doesn't return the `container_id` for each region utilized by the cluster. For retrieving the `container_id`, we recommend the [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/advanced_clusters) data source instead.

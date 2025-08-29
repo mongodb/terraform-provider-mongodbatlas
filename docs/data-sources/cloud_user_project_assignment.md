@@ -1,5 +1,5 @@
 ---
-subcategory: "Projects"
+subcategory: "MongoDB Cloud Users"
 ---
 
 # Data Source: mongodbatlas_cloud_user_project_assignment
