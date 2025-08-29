@@ -22,6 +22,10 @@ data "mongodbatlas_federated_settings_org_configs" "org_configs_ds" {
 }
 ```
 
+### Further Examples
+- [Azure Federated Identity Provider with Org Config](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_federated_settings_identity_provider/azure)
+- [Federated Settings Org Role Mappings](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_federated_settings_org_role_mapping)
+
 ## Argument Reference
 
 * `federation_settings_id` - (Required) Unique 24-hexadecimal digit string that identifies the federated authentication configuration. 
@@ -57,4 +61,3 @@ $ terraform import mongodbatlas_federated_settings_org_config.org_connection 627
 ```
 
 For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/federation-configuration/)
-

@@ -44,6 +44,11 @@ resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
 
 ```
 
+### Further Examples
+- [AWS Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_provider_access/aws)
+- [Azure Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_provider_access/azure)
+
+
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project

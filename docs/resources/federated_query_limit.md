@@ -18,6 +18,9 @@ resource "mongodbatlas_federated_query_limit" "test" {
 }
 ```
 
+### Further Examples
+- [Federated Query Limit](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_federated_query_limit)
+
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project to create a Federated Database Instance.

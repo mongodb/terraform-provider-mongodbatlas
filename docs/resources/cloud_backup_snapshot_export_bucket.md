@@ -33,6 +33,10 @@ resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
 }
 ```
 
+### Further Examples
+- [AWS Cloud Backup Snapshot Export Bucket](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_snapshot_export_bucket/aws)
+- [Azure Cloud Backup Snapshot Export Bucket](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_snapshot_export_bucket/azure)
+
 ## Argument Reference
 
 * `project_id` - (Required) The unique identifier of the project for the Atlas cluster.

@@ -24,6 +24,9 @@ resource "mongodbatlas_third_party_integration" "test_datadog" {
 
 ```
 
+### Further Examples
+- [Third-Party Integration Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_third_party_integration)
+
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project to get all Third-Party service integrations

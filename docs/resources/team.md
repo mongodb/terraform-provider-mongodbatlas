@@ -16,6 +16,10 @@ resource "mongodbatlas_team" "test" {
 }
 ```
 
+### Further Examples
+- [Team and user assignment (module maintainer) v1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_user_team_assignment/module_maintainer/v1)
+- [Team and user assignment (module maintainer) v2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_user_team_assignment/module_maintainer/v2)
+
 ## Argument Reference
 
 * `org_id` - (Required) The unique identifier for the organization you want to associate the team with.

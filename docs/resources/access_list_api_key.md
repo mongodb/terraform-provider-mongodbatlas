@@ -32,6 +32,9 @@ resource "mongodbatlas_access_list_api_key" "test" {
 }
 ```
 
+### Further Examples
+- [Create Programmatic API Key](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_api_key)
+
 ## Argument Reference
 
 * `org_id` - (Required) Unique 24-hexadecimal digit string that identifies the organization that contains your projects.

@@ -58,6 +58,11 @@ resource "mongodbatlas_project_ip_access_list" "test" {
 
 ~> **IMPORTANT:** In order to use AWS Security Group(s) VPC Peering must be enabled like above example.
 
+
+### Further Examples
+- [Project IP Access List](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_project_ip_access_list)
+
+
 ## Argument Reference
 
 * `project_id` - (Required) Unique identifier for the project to which you want to add one or more access list entries.

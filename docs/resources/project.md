@@ -45,6 +45,9 @@ resource "mongodbatlas_project" "test" {
 }
 ```
 
+### Further Examples
+- [Atlas Project with custom limits](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_project)
+
 ## Argument Reference
 
 * `name` - (Required) The name of the project you want to create.

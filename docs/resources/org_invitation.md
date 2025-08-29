@@ -44,6 +44,9 @@ resource "mongodbatlas_org_invitation" "test1" {
 }
 ```
 
+### Further Examples
+- [Migrate Org Invitation to Cloud User Org Assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_org_invitation_to_cloud_user_org_assignment)
+
 ## Argument Reference
 
 * `org_id` - (Required) Unique 24-hexadecimal digit string that identifies the organization to which you want to invite a user.
