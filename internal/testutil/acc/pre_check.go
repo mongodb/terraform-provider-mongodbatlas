@@ -148,7 +148,7 @@ func PreCheckPublicKey2(tb testing.TB) {
 	}
 }
 
-func PreCheckGPCEnv(tb testing.TB) {
+func PreCheckGCPEnv(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("GCP_SERVICE_ACCOUNT_KEY") == "" || os.Getenv("GCP_KEY_VERSION_RESOURCE_ID") == "" {
 		tb.Fatal("`GCP_SERVICE_ACCOUNT_KEY` and `GCP_KEY_VERSION_RESOURCE_ID` must be set for acceptance testing")
