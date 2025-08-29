@@ -208,7 +208,7 @@ func replicaSetAWSProviderTestCase(t *testing.T) *resource.TestCase {
 					DiskSizeGB:         60,
 					NodeCountElectable: 3,
 					WithAnalyticsSpecs: true,
-				}, true, true),
+				}, true),
 				Check: checkReplicaSetAWSProvider(true, true, projectID, clusterName, 60, 3, true, true),
 			},
 			// empty plan when analytics block is removed
@@ -228,7 +228,7 @@ func replicaSetAWSProviderTestCase(t *testing.T) *resource.TestCase {
 					DiskSizeGB:         50,
 					NodeCountElectable: 5,
 					WithAnalyticsSpecs: true, // other update made after removed analytics block, computed value is expected to be the same
-				}, true, true),
+				}, true),
 				Check: checkReplicaSetAWSProvider(true, true, projectID, clusterName, 50, 5, true, true),
 			},
 			{ // testing transition from replica set to sharded cluster
@@ -239,7 +239,7 @@ func replicaSetAWSProviderTestCase(t *testing.T) *resource.TestCase {
 					DiskSizeGB:         50,
 					NodeCountElectable: 5,
 					WithAnalyticsSpecs: true,
-				}, true, true),
+				}, true),
 				Check: checkReplicaSetAWSProvider(true, true, projectID, clusterName, 50, 5, true, true),
 			},
 			acc.TestStepImportCluster(resourceName, "replication_specs", "retain_backups_enabled"),
@@ -1649,14 +1649,9 @@ type ReplicaSetAWSConfig struct {
 	WithAnalyticsSpecs bool
 }
 
-func configAWSProvider(t *testing.T, configInfo ReplicaSetAWSConfig, useDataSource, isTPF bool) string {
+func configAWSProvider(t *testing.T, configInfo ReplicaSetAWSConfig, isTPF bool) string {
 	t.Helper()
 	analyticsSpecs := ""
-	dataSourceStr := ""
-
-	if useDataSource {
-		dataSourceStr = dataSourcesTFNewSchema
-	}
 
 	if !isTPF {
 		if configInfo.WithAnalyticsSpecs {
@@ -1688,7 +1683,7 @@ func configAWSProvider(t *testing.T, configInfo ReplicaSetAWSConfig, useDataSour
 				}
 			}
 		}
-	`, configInfo.ProjectID, configInfo.ClusterName, configInfo.ClusterType, configInfo.DiskSizeGB, configInfo.NodeCountElectable, analyticsSpecs) + dataSourceStr
+	`, configInfo.ProjectID, configInfo.ClusterName, configInfo.ClusterType, configInfo.DiskSizeGB, configInfo.NodeCountElectable, analyticsSpecs) + dataSourcesTFOldSchema
 	}
 
 	if configInfo.WithAnalyticsSpecs {
@@ -1721,7 +1716,7 @@ func configAWSProvider(t *testing.T, configInfo ReplicaSetAWSConfig, useDataSour
 				}]
 			}]
 	}
-	`, configInfo.ProjectID, configInfo.ClusterName, configInfo.ClusterType, configInfo.DiskSizeGB, configInfo.NodeCountElectable, analyticsSpecs) + dataSourceStr
+	`, configInfo.ProjectID, configInfo.ClusterName, configInfo.ClusterType, configInfo.DiskSizeGB, configInfo.NodeCountElectable, analyticsSpecs) + dataSourcesTFNewSchema
 }
 
 func checkReplicaSetAWSProvider(isTPF, useDataSource bool, projectID, name string, diskSizeGB, nodeCountElectable int, checkDiskSizeGBInnerLevel, checkExternalID bool) resource.TestCheckFunc {
