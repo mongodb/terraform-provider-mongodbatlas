@@ -48,7 +48,7 @@ func ResourceSetup() *schema.Resource {
 			"provider_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{constant.AWS, constant.AZURE}, false),
+				ValidateFunc: validation.StringInSlice([]string{constant.AWS, constant.AZURE, constant.GCP}, false),
 				ForceNew:     true,
 			},
 			"aws_config": {
@@ -83,6 +83,22 @@ func ResourceSetup() *schema.Resource {
 						"tenant_id": {
 							Type:     schema.TypeString,
 							Required: true,
+						},
+					},
+				},
+			},
+			"gcp_config": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"status": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"service_account_for_atlas": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -209,6 +225,19 @@ func roleToSchemaSetup(role *admin.CloudProviderAccessRole) map[string]any {
 			"aws_config": []any{map[string]any{
 				"atlas_aws_account_arn":          role.GetAtlasAWSAccountArn(),
 				"atlas_assumed_role_external_id": role.GetAtlasAssumedRoleExternalId(),
+			}},
+			"created_date": conversion.TimeToString(role.GetCreatedDate()),
+			"role_id":      role.GetRoleId(),
+		}
+		return out
+	}
+
+	if role.ProviderName == "GCP" {
+		out := map[string]any{
+			"provider_name": role.GetProviderName(),
+			"gcp_config": []any{map[string]any{
+				"service_account_for_atlas": role.GetGcpServiceAccountForAtlas(),
+				"status":                    role.GetStatus(),
 			}},
 			"created_date": conversion.TimeToString(role.GetCreatedDate()),
 			"role_id":      role.GetRoleId(),
