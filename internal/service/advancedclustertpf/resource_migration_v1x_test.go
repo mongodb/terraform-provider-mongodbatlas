@@ -388,10 +388,10 @@ func TestV1xMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 				Config:            configReplicaSetMultiCloud(t, orgID, projectName, clusterName, !isSDKv2),
 				Check:             checkReplicaSetMultiCloud(!isSDKv2, false, clusterName, 3),
 			},
-			mig.TestStepCheckEmptyPlan(configReplicaSetMultiCloud(t, orgID, projectName, clusterNameUpdated, true)),
+			mig.TestStepCheckEmptyPlan(configReplicaSetMultiCloud(t, orgID, projectName, clusterName, true)),
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configReplicaSetMultiCloud(t, orgID, projectName, clusterNameUpdated, true),
+				Config:                   configReplicaSetMultiCloud(t, orgID, projectName, clusterName, true),
 				Check:                    checkReplicaSetMultiCloud(true, false, clusterNameUpdated, 3),
 			},
 		},
