@@ -83,11 +83,6 @@ func configGeoShardedTransitionOldToNewSchema(t *testing.T, isTPF bool, projectI
 			fmt.Sprintf(replicationSpec, numShardsStr, "EU_WEST_1", "zone 2"), fmt.Sprintf(replicationSpec, numShardsStr, "EU_WEST_1", "zone 2"))
 	}
 
-	var dataSources = dataSourcesTFOldSchema
-	if useNewSchema {
-		dataSources = dataSourcesTFNewSchema
-	}
-
 	return acc.ConvertAdvancedClusterToTPF(t, isTPF, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id = %[1]q
@@ -99,7 +94,7 @@ func configGeoShardedTransitionOldToNewSchema(t *testing.T, isTPF bool, projectI
 
 			%[3]s
 		}
-	`, projectID, name, replicationSpecs, diskSizeGB)) + dataSources
+	`, projectID, name, replicationSpecs, diskSizeGB))
 }
 
 func checkGeoShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.TestCheckFunc {
@@ -241,11 +236,6 @@ func configShardedTransitionOldToNewSchema(t *testing.T, isTPF bool, projectID, 
 		replicationSpecs = replicationSpec
 	}
 
-	var dataSources = dataSourcesTFOldSchema
-	if useNewSchema {
-		dataSources = dataSourcesTFNewSchema
-	}
-
 	return acc.ConvertAdvancedClusterToTPF(t, isTPF, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id = %[1]q
@@ -258,7 +248,7 @@ func configShardedTransitionOldToNewSchema(t *testing.T, isTPF bool, projectID, 
 			%[3]s
 		}
 
-	`, projectID, name, replicationSpecs, diskSizeGBStr)) + dataSources
+	`, projectID, name, replicationSpecs, diskSizeGBStr))
 }
 
 func checkShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.TestCheckFunc {
@@ -342,7 +332,7 @@ func TestV1xMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 					DiskSizeGB:         60,
 					NodeCountElectable: 3,
 					WithAnalyticsSpecs: true,
-				}, !isSDKv2),
+				}, false, !isSDKv2),
 				Check: checkReplicaSetAWSProvider(!isSDKv2, false, projectID, clusterName, 60, 3, true, true),
 			},
 			mig.TestStepCheckEmptyPlan(configAWSProvider(t, ReplicaSetAWSConfig{
@@ -352,7 +342,7 @@ func TestV1xMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 				DiskSizeGB:         60,
 				NodeCountElectable: 3,
 				WithAnalyticsSpecs: true,
-			}, true)),
+			}, false, true)),
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config: configAWSProvider(t, ReplicaSetAWSConfig{
@@ -362,7 +352,7 @@ func TestV1xMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 					DiskSizeGB:         60,
 					NodeCountElectable: 3,
 					WithAnalyticsSpecs: true,
-				}, true),
+				}, false, true),
 				Check: checkReplicaSetAWSProvider(true, false, projectID, clusterName, 60, 3, true, true),
 			},
 		},
@@ -388,10 +378,10 @@ func TestV1xMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 				Config:            configReplicaSetMultiCloud(t, orgID, projectName, clusterName, !isSDKv2),
 				Check:             checkReplicaSetMultiCloud(!isSDKv2, false, clusterName, 3),
 			},
-			mig.TestStepCheckEmptyPlan(configReplicaSetMultiCloud(t, orgID, projectName, clusterNameUpdated, true)),
+			mig.TestStepCheckEmptyPlan(configReplicaSetMultiCloud(t, orgID, projectName, clusterName, true)),
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-				Config:                   configReplicaSetMultiCloud(t, orgID, projectName, clusterNameUpdated, true),
+				Config:                   configReplicaSetMultiCloud(t, orgID, projectName, clusterName, true),
 				Check:                    checkReplicaSetMultiCloud(true, false, clusterNameUpdated, 3),
 			},
 		},
