@@ -1,5 +1,5 @@
 ---
-subcategory: "Search"
+subcategory: "Atlas Search"
 ---
 
 # Data Source: mongodbatlas_search_deployment

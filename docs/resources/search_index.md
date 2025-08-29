@@ -1,5 +1,5 @@
 ---
-subcategory: "Search"
+subcategory: "Atlas Search"
 ---
 
 # Resource: mongodbatlas_search_index
