@@ -256,7 +256,7 @@ Refer to the following for full privatelink endpoint connection string examples:
 * [AWS, Regionalized Private Endpoints](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/aws/cluster-geosharded)
 
 
-### Further Examples
+### Further Examples 
 - [NVMe Upgrade (Dedicated Cluster)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cluster/nvme-upgrade)
 - [Tenant to Dedicated Upgrade (Cluster)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cluster/tenant-upgrade)
 
