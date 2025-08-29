@@ -150,7 +150,6 @@ func TestNetworkLoggingTransport_Disabled(t *testing.T) {
 	logStr := logOutput.String()
 	assert.Empty(t, logStr, "Expected no logs when network logging is disabled")
 }
-
 func TestAccNetworkLogging(t *testing.T) {
 	acc.SkipInUnitTest(t)
 	acc.PreCheckBasic(t)
