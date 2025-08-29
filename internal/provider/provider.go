@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -52,11 +53,17 @@ import (
 )
 
 const (
-	MongodbGovCloudURL    = "https://cloud.mongodbgov.com"
-	MongodbGovCloudQAURL  = "https://cloud-qa.mongodbgov.com"
-	MongodbGovCloudDevURL = "https://cloud-dev.mongodbgov.com"
-	ProviderConfigError   = "error in configuring the provider."
-	MissingAuthAttrError  = "either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set"
+	MongodbGovCloudURL             = "https://cloud.mongodbgov.com"
+	MongodbGovCloudQAURL           = "https://cloud-qa.mongodbgov.com"
+	MongodbGovCloudDevURL          = "https://cloud-dev.mongodbgov.com"
+	ProviderConfigError            = "error in configuring the provider."
+	MissingAuthAttrError           = "either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set"
+	ProviderMetaUserAgentExtra     = "user_agent_extra"
+	ProviderMetaUserAgentExtraDesc = "Key Values of that will be formatted as {key}/{value} in the User-Agent Header"
+	ProviderMetaModuleName         = "module_name"
+	ProviderMetaModuleNameDesc     = "The name of the module using the provider"
+	ProviderMetaModuleVersion      = "module_version"
+	ProviderMetaModuleVersionDesc  = "The version of the module using the provider"
 )
 
 type MongodbtlasProvider struct {
@@ -104,6 +111,26 @@ var AssumeRoleType = types.ObjectType{AttrTypes: map[string]attr.Type{
 func (p *MongodbtlasProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "mongodbatlas"
 	resp.Version = version.ProviderVersion
+}
+
+func (p *MongodbtlasProvider) MetaSchema(ctx context.Context, req provider.MetaSchemaRequest, resp *provider.MetaSchemaResponse) {
+	resp.Schema = metaschema.Schema{
+		Attributes: map[string]metaschema.Attribute{
+			ProviderMetaModuleName: metaschema.StringAttribute{
+				Description: ProviderMetaModuleNameDesc,
+				Optional:    true,
+			},
+			ProviderMetaModuleVersion: metaschema.StringAttribute{
+				Description: ProviderMetaModuleVersionDesc,
+				Optional:    true,
+			},
+			ProviderMetaUserAgentExtra: metaschema.MapAttribute{
+				Description: ProviderMetaUserAgentExtraDesc,
+				Optional:    true,
+				ElementType: types.StringType,
+			},
+		},
+	}
 }
 
 func (p *MongodbtlasProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
