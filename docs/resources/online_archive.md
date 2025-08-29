@@ -1,3 +1,7 @@
+---
+subcategory: "Online Archive"
+---
+
 # Resource: mongodbatlas_online_archive
 
 `mongodbatlas_online_archive` resource provides access to create, edit, pause and resume an online archive for a collection. 

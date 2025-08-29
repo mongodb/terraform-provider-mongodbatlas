@@ -1,3 +1,7 @@
+---
+subcategory: "Database Users"
+---
+
 # Data Source: mongodbatlas_database_user
 
 `mongodbatlas_database_user` describes a Database User. This represents a database user which will be applied to all clusters within the project.

@@ -1,3 +1,7 @@
+---
+subcategory: "Federated Authentication"
+---
+
 # Resource: mongodbatlas_federated_settings_org_role_mapping
 
 `mongodbatlas_federated_settings_org_role_mapping` provides an Role Mapping resource. This allows organization role mapping to be created.

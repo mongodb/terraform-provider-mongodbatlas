@@ -1,3 +1,7 @@
+---
+subcategory: "Clusters"
+---
+
 # Data Source: mongodbatlas_advanced_cluster
 
 `mongodbatlas_advanced_cluster` describes an Advanced Cluster. The data source requires your Project ID.

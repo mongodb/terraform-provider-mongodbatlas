@@ -1,3 +1,7 @@
+---
+subcategory: "Online Archive"
+---
+
 # Data Source: mongodbatlas_online_archive
 
 `mongodbatlas_online_archive` describes an Online Archive

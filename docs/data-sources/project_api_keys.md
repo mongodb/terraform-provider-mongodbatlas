@@ -1,3 +1,7 @@
+---
+subcategory: "Programmatic API Keys"
+---
+
 # Data Source: mongodbatlas_project_api_keys
 
 `mongodbatlas_project_api_keys` describes all API Keys. This represents API Keys that have been created.

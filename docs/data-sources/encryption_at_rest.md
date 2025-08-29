@@ -1,3 +1,7 @@
+---
+subcategory: "Encryption at Rest using Customer Key Management"
+---
+
 # Data Source: mongodbatlas_encryption_at_rest
 
 `mongodbatlas_encryption_at_rest` describes encryption at rest configuration for an Atlas project with one of the following providers:

@@ -1,3 +1,7 @@
+---
+subcategory: "Global Clusters"
+---
+
 # Data Source: mongodbatlas_global_cluster_config
 
 `mongodbatlas_global_cluster_config` describes all managed namespaces and custom zone mappings associated with the specified Global Cluster.

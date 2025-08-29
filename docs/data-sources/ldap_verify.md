@@ -1,3 +1,7 @@
+---
+subcategory: "LDAP Configuration"
+---
+
 # Data Source: mongodbatlas_ldap_verify
 
 `mongodbatlas_ldap_verify` describes a LDAP Verify.

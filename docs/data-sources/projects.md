@@ -1,3 +1,7 @@
+---
+subcategory: "Projects"
+---
+
 # Data Source: mongodbatlas_projects
 
 `mongodbatlas_projects` describes all Projects. This represents projects that have been created.

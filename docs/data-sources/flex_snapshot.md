@@ -1,3 +1,7 @@
+---
+subcategory: "Flex Snapshots"
+---
+
 # Data Source: mongodbatlas_flex_snapshot
 
 `mongodbatlas_flex_snapshot` describes a flex snapshot.

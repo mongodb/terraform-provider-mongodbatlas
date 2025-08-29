@@ -1,3 +1,7 @@
+---
+subcategory: "Data Federation"
+---
+
 # Data Source: mongodbatlas_federated_database_instance
 
 `mongodbatlas_federated_database_instance` provides a Federated Database Instance data source.

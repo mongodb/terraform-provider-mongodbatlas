@@ -1,3 +1,7 @@
+---
+subcategory: "Network Peering"
+---
+
 # Data Source: mongodbatlas_network_containers
 
 `mongodbatlas_network_containers` describes all Network Peering Containers. The data source requires your Project ID.

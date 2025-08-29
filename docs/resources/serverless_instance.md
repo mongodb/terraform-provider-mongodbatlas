@@ -1,8 +1,8 @@
 ---
-subcategory: "Deprecated"    
+subcategory: "Serverless Instances"
 ---
 
-**WARNING:** This resource is deprecated and will be removed in January 2026. For more details, see [Migration Guide: Transition out of Serverless Instances and Shared-tier clusters](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide).
+~> **DEPRECATION:** This resource is deprecated and will be removed in January 2026. For more details, see [Migration Guide: Transition out of Serverless Instances and Shared-tier clusters](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide).
 
 # Resource: mongodbatlas_serverless_instance
 

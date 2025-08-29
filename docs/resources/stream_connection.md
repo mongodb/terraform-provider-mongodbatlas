@@ -1,3 +1,7 @@
+---
+subcategory: "Streams"
+---
+
 # Resource: mongodbatlas_stream_connection
 
 `mongodbatlas_stream_connection` provides a Stream Connection resource. The resource lets you create, edit, and delete stream instance connections.

@@ -1,8 +1,8 @@
 ---
-subcategory: "Deprecated"    
+subcategory: "Data Lake Pipelines"
 ---
 
-**WARNING:** Data Lake is deprecated. To learn more, see <https://dochub.mongodb.org/core/data-lake-deprecation>
+~> **DEPRECATION:** Data Lake is deprecated. To learn more, see <https://dochub.mongodb.org/core/data-lake-deprecation>
 
 # Resource: mongodbatlas_data_lake_pipeline
 

@@ -1,3 +1,7 @@
+---
+subcategory: "Resource Policies"
+---
+
 # Resource: mongodbatlas_resource_policy
 
 `mongodbatlas_resource_policy` provides a Resource Policy resource. The resource lets you create, edit and delete resource policies to prevent misconfigurations and reduce the need for corrective interventions in your organization.

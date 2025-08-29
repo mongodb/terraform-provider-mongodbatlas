@@ -1,3 +1,7 @@
+---
+subcategory: "Network Peering"
+---
+
 # Data Source: mongodbatlas_network_peerings
 
 `mongodbatlas_network_peerings` describes all Network Peering Connections.

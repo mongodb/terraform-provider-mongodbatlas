@@ -1,3 +1,7 @@
+---
+subcategory: "Projects"
+---
+
 # Resource: mongodbatlas_project
 
 `mongodbatlas_project` provides a Project resource. This allows project to be created.

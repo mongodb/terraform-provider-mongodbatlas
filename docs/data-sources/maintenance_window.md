@@ -1,3 +1,7 @@
+---
+subcategory: "Maintenance Windows"
+---
+
 # Data Source: mongodbatlas_maintenance_window
 
 `mongodbatlas_maintenance_window` provides a Maintenance Window entry datasource. Gets information regarding the configured maintenance window for a MongoDB Atlas project.

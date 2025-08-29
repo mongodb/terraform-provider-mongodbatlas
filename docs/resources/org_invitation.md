@@ -1,5 +1,5 @@
 ---
-subcategory: "Deprecated"    
+subcategory: "Organizations"
 ---
 
 # Resource: mongodbatlas_org_invitation

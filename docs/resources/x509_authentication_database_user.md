@@ -1,3 +1,7 @@
+---
+subcategory: "X.509 Authentication"
+---
+
 # Resource: mongodbatlas_x509_authentication_database_user
 
 `mongodbatlas_x509_authentication_database_user` provides a X509 Authentication Database User resource. The mongodbatlas_x509_authentication_database_user resource lets you manage MongoDB users who authenticate using X.509 certificates. You can manage these X.509 certificates or let Atlas do it for you.

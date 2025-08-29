@@ -1,3 +1,7 @@
+---
+subcategory: "Projects"
+---
+
 # Data Source: mongodbatlas_project_ip_addresses
 
 `mongodbatlas_project_ip_addresses` returns the IP addresses in a project categorized by services.

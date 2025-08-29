@@ -1,3 +1,7 @@
+---
+subcategory: "MongoDB Cloud Users"
+---
+
 # Resource: mongodbatlas_cloud_user_org_assignment
 
 `mongodbatlas_cloud_user_org_assignment` provides a Cloud User Organization Assignment resource. The resource lets you import, assign, remove, or update a user to an organization.

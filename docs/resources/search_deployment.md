@@ -1,3 +1,7 @@
+---
+subcategory: "Atlas Search"
+---
+
 # Resource: mongodbatlas_search_deployment
 
 `mongodbatlas_search_deployment` provides a Search Deployment resource. The resource lets you create, edit and delete dedicated search nodes in a cluster.

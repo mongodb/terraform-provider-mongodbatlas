@@ -1,3 +1,7 @@
+---
+subcategory: "Programmatic API Keys"
+---
+
 # Data Source: mongodbatlas_api_key
 
 `mongodbatlas_api_key` describes a MongoDB Atlas API Key. This represents a API Key that has been created.

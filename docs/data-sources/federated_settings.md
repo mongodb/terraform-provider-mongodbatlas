@@ -1,3 +1,7 @@
+---
+subcategory: "Federated Authentication"
+---
+
 # Data Source: mongodbatlas_federated_settings
 
 `mongodbatlas_federated_settings` provides a federated settings data source. Atlas Cloud federated settings provides federated settings outputs.

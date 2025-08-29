@@ -1,3 +1,7 @@
+---
+subcategory: "Streams"
+---
+
 # Data Source: mongodbatlas_stream_connections
 
 `mongodbatlas_stream_connections` describes all connections of a stream instance for the specified project.

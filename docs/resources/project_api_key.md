@@ -1,3 +1,7 @@
+---
+subcategory: "Programmatic API Keys"
+---
+
 # Resource: mongodbatlas_project_api_key
 
 `mongodbatlas_project_api_key` provides a Project API Key resource. This allows project API Key to be created.

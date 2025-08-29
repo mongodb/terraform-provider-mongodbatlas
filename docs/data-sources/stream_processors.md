@@ -1,3 +1,7 @@
+---
+subcategory: "Streams"
+---
+
 # Data Source: mongodbatlas_stream_processors
 
 `mongodbatlas_stream_processors` returns all stream processors in a stream instance.

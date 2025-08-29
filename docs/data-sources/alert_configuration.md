@@ -1,3 +1,7 @@
+---
+subcategory: "Alert Configurations"
+---
+
 # Data Source: mongodbatlas_alert_configuration
 
 `mongodbatlas_alert_configuration` describes an Alert Configuration.

@@ -1,3 +1,7 @@
+---
+subcategory: "Streams"
+---
+
 # Data Source: mongodbatlas_stream_privatelink_endpoints
 
 `mongodbatlas_stream_privatelink_endpoints` describes a Privatelink Endpoint for Streams.

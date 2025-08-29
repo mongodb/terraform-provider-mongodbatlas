@@ -1,3 +1,7 @@
+---
+subcategory: "Streams"
+---
+
 # Data Source: mongodbatlas_stream_processor
 
 `mongodbatlas_stream_processor` describes a stream processor.

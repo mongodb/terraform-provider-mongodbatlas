@@ -1,3 +1,7 @@
+---
+subcategory: "Alert Configurations"
+---
+
 # Resource: mongodbatlas_alert_configuration
 
 `mongodbatlas_alert_configuration` provides an Alert Configuration resource to define the conditions that trigger an alert and the methods of notification within a MongoDB Atlas project.

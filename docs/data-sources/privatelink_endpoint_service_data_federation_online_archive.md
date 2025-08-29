@@ -1,3 +1,7 @@
+---
+subcategory: "Data Federation"
+---
+
 # Data Source: mongodbatlas_privatelink_endpoint_service_data_federation_online_archive
 
 `mongodbatlas_privatelink_endpoint_service_data_federation_online_archive` describes a Private Endpoint Service resource for Data Federation and Online Archive.

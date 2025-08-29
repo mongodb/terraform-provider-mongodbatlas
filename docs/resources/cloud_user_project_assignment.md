@@ -1,3 +1,7 @@
+---
+subcategory: "MongoDB Cloud Users"
+---
+
 # Resource: mongodbatlas_cloud_user_project_assignment
 
 `mongodbatlas_cloud_user_project_assignment` provides a Cloud User Project Assignment resource. It lets you manage the association between a cloud user and a project, enabling you to import, assign, remove, or update the user's membership.

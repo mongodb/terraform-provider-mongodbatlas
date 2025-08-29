@@ -1,3 +1,7 @@
+---
+subcategory: "Private Endpoint Services"
+---
+
 # Data Source: privatelink_endpoints_service_adl
 
 `privatelink_endpoints_service_adl` describes the list of all Atlas Data Lake (ADL) and Online Archive PrivateLink endpoints resource.

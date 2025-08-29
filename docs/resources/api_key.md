@@ -1,3 +1,7 @@
+---
+subcategory: "Programmatic API Keys"
+---
+
 # Resource: mongodbatlas_api_key
 
 `mongodbatlas_api_key` provides a Organization API key resource. This allows an Organizational API key to be created.

@@ -1,3 +1,7 @@
+---
+subcategory: "Programmatic API Keys"
+---
+
 # Data Source: mongodbatlas_api_key_project_assignments
 
 `mongodbatlas_api_key_project_assignments` provides an API Key Project Assignments data source. The data source lets you list all API key project assignments for an organization.

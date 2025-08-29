@@ -1,3 +1,7 @@
+---
+subcategory: "Teams"
+---
+
 # Data Source: mongodbatlas_team
 
 `mongodbatlas_team` describes a Team. The resource requires your Organization ID, Project ID and Team ID.

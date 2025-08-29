@@ -1,3 +1,7 @@
+---
+subcategory: "Cloud Backups"
+---
+
 # Resource: mongodbatlas_cloud_backup_snapshot_export_bucket
 
 `mongodbatlas_cloud_backup_snapshot_export_bucket` allows you to create an export snapshot bucket for the specified project.

@@ -1,3 +1,7 @@
+---
+subcategory: "Database Users"
+---
+
 # Resource: mongodbatlas_database_user
 
 `mongodbatlas_database_user` provides a Database User resource. This represents a database user which will be applied to all clusters within the project.
