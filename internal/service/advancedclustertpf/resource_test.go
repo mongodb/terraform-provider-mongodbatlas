@@ -1863,11 +1863,11 @@ func configShardedMultiCloud(t *testing.T, projectID, name string, numShards int
 	}
 
 	for i := 0; i < numShards; i++ {
-		replicationSpecs += `
+		replicationSpecs += fmt.Sprintf(`
 			{
 			region_configs = [{
 			  analytics_specs = {
-				instance_size = %[3]q
+				instance_size = %[1]q
 				node_count    = 1
 			  }
 			  electable_specs = {
@@ -1886,7 +1886,7 @@ func configShardedMultiCloud(t *testing.T, projectID, name string, numShards int
 			  provider_name = "AZURE"
 			  region_name   = "US_EAST_2"
 			}]
-		  },`
+		  },`, analyticsSize)
 	}
 	replicationSpecs = strings.TrimSuffix(replicationSpecs, ",")
 
@@ -1896,14 +1896,14 @@ func configShardedMultiCloud(t *testing.T, projectID, name string, numShards int
 				name         = %[2]q
 				  cluster_type = "SHARDED"
 		
-				%[4]s
+				%[3]s
 		
 		
 		  replication_specs = [
-		  %[5]s
+		  %[4]s
 		  ]
 		}
-			`, projectID, name, analyticsSize, rootConfig, replicationSpecs)
+			`, projectID, name, rootConfig, replicationSpecs)
 
 	return advClusterConfig + dataSourcesConfig
 }
