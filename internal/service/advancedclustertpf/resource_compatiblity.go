@@ -63,9 +63,7 @@ func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config
 	}
 	return &ExtraAPIInfo{
 		ContainerIDs: containerIDs,
-		// ZoneNameReplicationSpecIDs: replicationSpecIDsFromOldAPI(clusterRespOld),
 		UseOldShardingConfigFailed: useOldShardingConfigFailed,
-		// ZoneNameNumShards:          numShardsMapFromOldAPI(clusterRespOld),
 		UseNewShardingConfig: useReplicationSpecPerShard,
 	}
 }

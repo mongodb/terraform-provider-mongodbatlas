@@ -180,7 +180,6 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	_, advConfig = ReadIfUnsetAdvancedConfiguration(ctx, diags, r.Client, waitParams.ProjectID, waitParams.ClusterName, advConfig)
 
 	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
-		// ArgsLegacy:            legacyAdvConfig,
 		ArgsDefault:           advConfig,
 		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
 	})
@@ -220,7 +219,6 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
-		// ArgsLegacy:            nil,
 		ArgsDefault:           nil,
 		ClusterAdvancedConfig: cluster.AdvancedConfiguration,
 	})
@@ -307,7 +305,6 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 	if advConfigChanged {
 		updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
-			// ArgsLegacy:            legacyAdvConfig,
 			ArgsDefault:           advConfig,
 			ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
 		})
@@ -385,7 +382,6 @@ func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, s
 		pauseAfterOtherChanges = true
 	}
 
-	// latest API can be used safely because if old sharding config is used replication specs will not be included in this request
 	result = updateCluster(ctx, diags, r.Client, patchReq, waitParams, operationUpdate)
 
 	if pauseAfterOtherChanges {
