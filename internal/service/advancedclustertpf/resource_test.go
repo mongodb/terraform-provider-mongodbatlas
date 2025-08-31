@@ -1908,7 +1908,7 @@ func configShardedMultiCloud(t *testing.T, projectID, name string, numShards int
 	return advClusterConfig + dataSourcesConfig
 }
 
-func checkShardedMultiCloud(name string, analyticsSize string, verifyExternalID bool, configServerManagementMode *string) resource.TestCheckFunc {
+func checkShardedMultiCloud(name, analyticsSize string, verifyExternalID bool, configServerManagementMode *string) resource.TestCheckFunc {
 	additionalChecks := []resource.TestCheckFunc{
 		acc.TestCheckResourceAttrWithMigTPF(true, resourceName, "replication_specs.0.region_configs.0.electable_specs.0.disk_iops", acc.IntGreatThan(0)),
 		acc.TestCheckResourceAttrWithMigTPF(true, resourceName, "replication_specs.0.region_configs.0.analytics_specs.0.disk_iops", acc.IntGreatThan(0)),
@@ -2761,10 +2761,9 @@ func configPriority(t *testing.T, projectID, clusterName string, swapPriorities 
 			backup_enabled = false
 			
 			replication_specs = [{
-				%[4]s
 				region_configs = [
  					
- 					%[5]s
+ 					%[4]s
 				]
 			}]
 		}

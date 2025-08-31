@@ -21,6 +21,10 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"use_replication_spec_per_shard": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"advanced_configuration": SchemaAdvancedConfigDS(),
 			"backup_enabled": {
 				Type:     schema.TypeBool,
@@ -283,9 +287,12 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("name").(string)
-	useReplicationSpecPerShard := true
+	useReplicationSpecPerShard := false
 	var replicationSpecs []map[string]any
 
+	if v, ok := d.GetOk("use_replication_spec_per_shard"); ok {
+		useReplicationSpecPerShard = v.(bool)
+	}
 	clusterDesc, flexClusterResp, diags := GetClusterDetails(ctx, client, projectID, clusterName)
 	if diags.HasError() {
 		return diags

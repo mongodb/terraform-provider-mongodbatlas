@@ -493,9 +493,6 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	patchOptions := update.PatchOptions{
 		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknowns and shouldn't be used, `id` is added in updateLegacyReplicationSpecs
 	}
-	// TODO: This is no longer needed since we are using the new sharding config -- remove next line:
-	patchOptions.IgnoreInStateSuffix = append(patchOptions.IgnoreInStateSuffix, "id") // Not safe to send replication_spec.*.id when using the new schema: replicationSpecs.java.util.ArrayList[0].id attribute does not match expected format
-
 	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)
 	if err != nil {
 		diags.AddError(errorPatchPayload, err.Error())

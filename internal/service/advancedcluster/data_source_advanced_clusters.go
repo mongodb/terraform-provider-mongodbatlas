@@ -31,6 +31,10 @@ func PluralDataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"use_replication_spec_per_shard": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 			"results": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -298,9 +302,13 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
-	useReplicationSpecPerShard := true
+	useReplicationSpecPerShard := false
 
 	d.SetId(id.UniqueId())
+
+	if v, ok := d.GetOk("use_replication_spec_per_shard"); ok {
+		useReplicationSpecPerShard = v.(bool)
+	}
 
 	list, resp, err := connV2.ClustersApi.ListClusters(ctx, projectID).Execute()
 	if err != nil {
