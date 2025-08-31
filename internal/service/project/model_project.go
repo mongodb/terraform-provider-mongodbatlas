@@ -2,6 +2,7 @@ package project
 
 import (
 	"context"
+	"fmt"
 
 	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -82,7 +84,8 @@ func dataSourceOverridenFields() map[string]schema.Attribute {
 		},
 		"users": UsersProjectSchema(),
 		"teams": schema.ListNestedAttribute{
-			Computed: true,
+			DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "parameter", "mongodbatlas_team_project_assignment", "[Migration Guide: Project Teams Attribute to Team Project Assignment Resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/team_project_assignment_migration_guide)"),
+			Computed:           true,
 			NestedObject: schema.NestedAttributeObject{
 				Attributes: map[string]schema.Attribute{
 					"team_id": schema.StringAttribute{
