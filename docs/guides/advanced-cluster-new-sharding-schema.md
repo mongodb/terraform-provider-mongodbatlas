@@ -440,7 +440,6 @@ If you have an existing cluster that becomes asymmetric due to independent shard
 
 **Error Symptoms:**
 - `mongodbatlas_cluster` data source fails with API error code `ASYMMETRIC_SHARD_UNSUPPORTED`
-- `mongodbatlas_advanced_cluster` data source without `use_replication_spec_per_shard = true` returns an error asking you to enable this attribute
 
 #### Required Changes
 
@@ -451,23 +450,16 @@ data "mongodbatlas_cluster" "example" {
   project_id = var.project_id
   name       = "my-cluster"
 }
-
-# This fails and ask you to set use_replication_spec_per_shard = true
-data "mongodbatlas_advanced_cluster" "example" {
-  project_id = var.project_id
-  name       = "my-cluster"
-}
 ```
 
 **After (succeeds for asymmetric clusters):**
 ```hcl
 # Remove mongodbatlas_cluster data source completely
-# Replace with mongodbatlas_advanced_cluster and enable the new schema
+# Replace with mongodbatlas_advanced_cluster
 
 data "mongodbatlas_advanced_cluster" "example" {
   project_id                     = var.project_id
   name                           = "my-cluster"
-  use_replication_spec_per_shard = true  # Required for asymmetric clusters
 }
 ```
 
@@ -476,7 +468,7 @@ data "mongodbatlas_advanced_cluster" "example" {
 
 For modules or configurations that need to support both symmetric and asymmetric clusters, you can use conditional data source creation. 
 
-**Note**: While `use_replication_spec_per_shard = true` supports both symmetric and asymmetric clusters, you may want to use the conditional pattern if you prefer to preserve the legacy data source representation for symmetric clusters, or if you need to maintain backward compatibility with existing module consumers.
+**Note**: While `data.mongodbatlas_advanced_cluster` supports both symmetric and asymmetric clusters, you may want to use the conditional pattern if you prefer to preserve the legacy data source representation for symmetric clusters, or if you need to maintain backward compatibility with existing module consumers.
 
 ```hcl
 # Example: Conditional data source based on cluster configuration
@@ -498,7 +490,6 @@ data "mongodbatlas_advanced_cluster" "this" {
   count                          = local.cluster_uses_new_sharding ? 1 : 0
   name                           = mongodbatlas_advanced_cluster.this.name
   project_id                     = mongodbatlas_advanced_cluster.this.project_id
-  use_replication_spec_per_shard = true
   depends_on                     = [mongodbatlas_advanced_cluster.this]
 }
 ```
