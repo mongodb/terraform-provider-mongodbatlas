@@ -58,7 +58,7 @@ func Resource() *schema.Resource {
 				Type:       schema.TypeSet,
 				Optional:   true,
 				Computed:   true,
-				Deprecated: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "parameter", "mongodbatlas_cloud_user_team_assignment", "[Migration Guide: Team Usernames Attribute to Cloud User Team Assignment](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cloud_user_team_assignment_migration_guide.md)"),
+				Deprecated: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "parameter", "mongodbatlas_cloud_user_team_assignment", "<link-to-migration-guide>"),
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},

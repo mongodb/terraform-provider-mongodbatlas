@@ -9,13 +9,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
 var (
 	// Change mappings uses `attribute_name`, it doesn't care about the nested level.
 	attributeRootChangeMapping = map[string][]string{
-		"disk_size_gb":           {}, // disk_size_gb can be change at any level/spec
 		"replication_specs":      {},
 		"tls_cipher_config_mode": {"custom_openssl_cipher_config_tls12"},
 		"cluster_type":           {"config_server_management_mode", "config_server_type"}, // computed values of config server change when REPLICA_SET changes to SHARDED
@@ -30,12 +30,8 @@ var (
 		"region_name":     {"container_id"},    // container_id changes based on region_name changes
 		"zone_name":       {"zone_id"},         // zone_id copy from state is not safe when
 	}
-	keepUnknownsCalls = schemafunc.KeepUnknownFuncOr(keepUnkownFuncWithNodeCount, keepUnkownFuncWithNonEmptyAutoScaling)
+	keepUnknownsCalls = schemafunc.KeepUnknownFuncOr(keepUnkownFuncWithNonEmptyAutoScaling)
 )
-
-func keepUnkownFuncWithNodeCount(name string, replacement attr.Value) bool {
-	return name == "node_count" && !replacement.Equal(types.Int64Value(0))
-}
 
 func keepUnkownFuncWithNonEmptyAutoScaling(name string, replacement attr.Value) bool {
 	autoScalingBoolValues := []string{"compute_enabled", "disk_gb_enabled", "compute_scale_down_enabled"}
@@ -47,15 +43,8 @@ func keepUnkownFuncWithNonEmptyAutoScaling(name string, replacement attr.Value) 
 
 // useStateForUnknowns should be called only in Update, because of findClusterDiff
 func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
-	shardingConfigUpgrade := isShardingConfigUpgrade(ctx, state, plan, diags)
-	if diags.HasError() {
-		return
-	}
-	// Don't adjust region_configs upgrades if it's a sharding config upgrade because it will be done only in the first shard, because state only has the first shard with num_shards > 1.
-	// This avoid errors like AUTO_SCALINGS_MUST_BE_IN_EVERY_REGION_CONFIG.
-	if !shardingConfigUpgrade {
-		AdjustRegionConfigsChildren(ctx, diags, state, plan)
-	}
+	AdjustRegionConfigsChildren(ctx, diags, state, plan)
+
 	diff := findClusterDiff(ctx, state, plan, diags)
 	if diags.HasError() || diff.isAnyUpgrade() { // Don't do anything in upgrades
 		return
@@ -65,11 +54,6 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
-	/* pending revision if logic can be reincorporated safely:
-	if slices.Contains(keepUnknown, "replication_specs") {
-		useStateForUnknownsReplicationSpecs(ctx, diags, state, plan, &attributeChanges)
-	}
-	*/
 }
 
 func UseStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, attrChanges *schemafunc.AttributeChanges) {
@@ -79,7 +63,7 @@ func UseStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagno
 		return
 	}
 	planWithUnknowns := []TFReplicationSpecsModel{}
-	keepUnknownsUnchangedSpec := determineKeepUnknownsUnchangedReplicationSpecs(ctx, diags, state, plan, attrChanges)
+	keepUnknownsUnchangedSpec := determineKeepUnknownsUnchangedReplicationSpecs(attrChanges)
 	keepUnknownsUnchangedSpec = append(keepUnknownsUnchangedSpec, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
 	if diags.HasError() {
 		return
@@ -160,11 +144,6 @@ func AdjustRegionConfigsChildren(ctx context.Context, diags *diag.Diagnostics, s
 			// don't get analytics_specs from state if node_count is 0 to avoid possible ANALYTICS_INSTANCE_SIZE_MUST_MATCH errors
 			if planAnalyticsSpecs == nil && stateAnalyticsSpecs != nil && stateAnalyticsSpecs.NodeCount.ValueInt64() > 0 {
 				newPlanAnalyticsSpecs := TFModelObject[TFSpecsModel](ctx, stateRegionConfigsTF[j].AnalyticsSpecs)
-				// if disk_size_gb is defined at root level we cannot use analytics_specs.disk_size_gb from state as it can be outdated
-				// read_only_specs implicitly covers this as it uses value from electable_specs which is unknown if not defined.
-				if plan.DiskSizeGB.ValueFloat64() > 0 { // has known value in config
-					newPlanAnalyticsSpecs.DiskSizeGb = types.Float64Unknown()
-				}
 				objType, diagsLocal := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, newPlanAnalyticsSpecs)
 				diags.Append(diagsLocal...)
 				if diags.HasError() {
@@ -219,15 +198,14 @@ func determineKeepUnknownsChangedReplicationSpec(keepUnknownsAlways []string, at
 	return append(keepUnknowns, attributeChanges.KeepUnknown(attributeReplicationSpecChangeMapping)...)
 }
 
-func determineKeepUnknownsUnchangedReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, attributeChanges *schemafunc.AttributeChanges) []string {
+func determineKeepUnknownsUnchangedReplicationSpecs(attributeChanges *schemafunc.AttributeChanges) []string {
 	keepUnknowns := []string{}
 	// Could be set to "" if we are using an ISS cluster
-	if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) { // When using new sharding config, the legacy id must never be copied
-		keepUnknowns = append(keepUnknowns, "id")
-	}
-	// for isShardingConfigUpgrade, it will be empty in the plan, so we need to keep it unknown
-	// for listLenChanges, it might be an insertion in the middle of replication spec leading to wrong value from state copied
-	if isShardingConfigUpgrade(ctx, state, plan, diags) || attributeChanges.ListLenChanges("replication_specs") {
+	// When using new sharding config, the legacy id must never be copied
+	keepUnknowns = append(keepUnknowns, "id")
+
+	// it might be an insertion in the middle of replication spec leading to wrong value from state copied
+	if attributeChanges.ListLenChanges("replication_specs") {
 		keepUnknowns = append(keepUnknowns, "external_id")
 	}
 	return keepUnknowns

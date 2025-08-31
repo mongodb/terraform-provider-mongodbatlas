@@ -2,7 +2,6 @@ package advancedclustertpf
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -13,12 +12,6 @@ import (
 
 var _ datasource.DataSource = &ds{}
 var _ datasource.DataSourceWithConfigure = &ds{}
-
-const (
-	errorReadDatasource                      = "Error reading  advanced cluster datasource"
-	errorReadDatasourceForceAsymmetric       = "Error reading advanced cluster datasource, was expecting symmetric shards but found asymmetric shards"
-	errorReadDatasourceForceAsymmetricDetail = "Cluster name %s. Please add `use_replication_spec_per_shard = true` to your data source configuration to enable asymmetric shard support. %s"
-)
 
 func DataSource() datasource.DataSource {
 	return &ds{
@@ -52,7 +45,6 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *TFModelDS) *TFModelDS {
 	clusterName := modelDS.Name.ValueString()
 	projectID := modelDS.ProjectID.ValueString()
-	useReplicationSpecPerShard := modelDS.UseReplicationSpecPerShard.ValueBool()
 	clusterResp, flexClusterResp := GetClusterDetails(ctx, diags, projectID, clusterName, d.Client, false)
 	if diags.HasError() {
 		return nil
@@ -67,16 +59,11 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		}
 		return conversion.CopyModel[TFModelDS](modelOut)
 	}
-	modelOut, extraInfo := getBasicClusterModel(ctx, diags, d.Client, clusterResp, useReplicationSpecPerShard)
+	modelOut := getBasicClusterModel(ctx, diags, d.Client, clusterResp)
 	if diags.HasError() {
 		return nil
 	}
-	if extraInfo.UseOldShardingConfigFailed {
-		diags.AddError(errorReadDatasourceForceAsymmetric, fmt.Sprintf(errorReadDatasourceForceAsymmetricDetail, clusterName, DeprecationOldSchemaAction))
-		return nil
-	}
 	updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, &ProcessArgs{
-		ArgsLegacy:            nil,
 		ArgsDefault:           nil,
 		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
 	})
@@ -84,6 +71,5 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		return nil
 	}
 	modelOutDS := conversion.CopyModel[TFModelDS](modelOut)
-	modelOutDS.UseReplicationSpecPerShard = modelDS.UseReplicationSpecPerShard // attrs not in resource model
 	return modelOutDS
 }
