@@ -115,6 +115,10 @@ resource "mongodbatlas_database_user" "test" {
 Note: OIDC support is only avalible starting in [MongoDB 7.0](https://www.mongodb.com/evolved#mdbsevenzero) or later. To learn more, see the [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/security-oidc/).
 
 
+### Further Examples
+- [Database User](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_database_user)
+
+
 ## Argument Reference
 
 * `auth_database_name` - (Required) Database against which Atlas authenticates the user. A user must provide both a username and authentication database to log into MongoDB.

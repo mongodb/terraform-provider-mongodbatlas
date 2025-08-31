@@ -33,6 +33,9 @@ resource "mongodbatlas_cluster_outage_simulation" "outage_simulation" {
 }
 ```
 
+### Further Examples
+- [Cluster Outage Simulation](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cluster_outage_simulation)
+
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project that contains the cluster that is/will undergoing outage simulation.

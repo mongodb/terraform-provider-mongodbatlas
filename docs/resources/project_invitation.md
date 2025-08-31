@@ -1,3 +1,7 @@
+---
+subcategory: "Deprecated"    
+---
+
 # Resource: mongodbatlas_project_invitation
 
 `mongodbatlas_project_invitation` invites a user to join an Atlas project.
@@ -32,6 +36,9 @@ resource "mongodbatlas_project_invitation" "test" {
   roles       = [ "GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_ONLY" ]
 }
 ```
+
+### Further Examples
+- [Migrate Project Invitation to Cloud User Project Assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_project_invitation_to_cloud_user_project_assignment)
 
 ## Argument Reference
 
