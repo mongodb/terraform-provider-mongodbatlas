@@ -151,7 +151,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		diags.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 		return
 	}
-	clusterResp := CreateCluster(ctx, diags, r.Client, latestReq, waitParams, true)
+	clusterResp := CreateCluster(ctx, diags, r.Client, latestReq, waitParams)
 
 	emptyAdvancedConfiguration := types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
 	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
@@ -162,7 +162,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		ArgsDefault:           patchReqProcessArgs,
 		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
 	}
-	_, advConfig, _ := UpdateAdvancedConfiguration(ctx, diags, r.Client, p, waitParams)
+	advConfig, _ := UpdateAdvancedConfiguration(ctx, diags, r.Client, p, waitParams)
 	if diags.HasError() {
 		return
 	}
@@ -177,7 +177,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	_, advConfig = ReadIfUnsetAdvancedConfiguration(ctx, diags, r.Client, waitParams.ProjectID, waitParams.ClusterName, advConfig)
+	advConfig = ReadIfUnsetAdvancedConfiguration(ctx, diags, r.Client, waitParams.ProjectID, waitParams.ClusterName, advConfig)
 
 	updateModelAdvancedConfig(ctx, diags, r.Client, modelOut, &ProcessArgs{
 		ArgsDefault:           advConfig,
@@ -299,7 +299,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		ArgsDefault:           patchReqProcessArgs,
 		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
 	}
-	_, advConfig, advConfigChanged := UpdateAdvancedConfiguration(ctx, diags, r.Client, p, waitParams)
+	advConfig, advConfigChanged := UpdateAdvancedConfiguration(ctx, diags, r.Client, p, waitParams)
 	if diags.HasError() {
 		return
 	}
@@ -424,7 +424,7 @@ func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, cli
 	p *ProcessArgs) {
 	projectID := model.ProjectID.ValueString()
 	clusterName := model.Name.ValueString()
-	_, advConfig := ReadIfUnsetAdvancedConfiguration(ctx, diags, client, projectID, clusterName, p.ArgsDefault)
+	advConfig := ReadIfUnsetAdvancedConfiguration(ctx, diags, client, projectID, clusterName, p.ArgsDefault)
 	if diags.HasError() {
 		return
 	}

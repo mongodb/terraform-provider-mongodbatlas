@@ -529,7 +529,7 @@ type TFModel struct {
 	DeleteOnCreateTimeout                     types.Bool     `tfsdk:"delete_on_create_timeout"`
 }
 
-// TFModelDS differs from TFModel: removes timeouts, accept_data_risks_and_force_replica_set_reconfig; adds use_replication_spec_per_shard.
+// TFModelDS differs from TFModel: removes timeouts, accept_data_risks_and_force_replica_set_reconfig
 type TFModelDS struct {
 	Labels                           types.Map    `tfsdk:"labels"`
 	ReplicationSpecs                 types.List   `tfsdk:"replication_specs"`
