@@ -31,10 +31,6 @@ func PluralDataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			// "use_replication_spec_per_shard": {
-			// 	Type:     schema.TypeBool,
-			// 	Optional: true,
-			// },
 			"results": {
 				Type:     schema.TypeList,
 				Computed: true,

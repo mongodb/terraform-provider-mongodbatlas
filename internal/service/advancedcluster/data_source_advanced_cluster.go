@@ -21,10 +21,6 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			// "use_replication_spec_per_shard": {
-			// 	Type:     schema.TypeBool,
-			// 	Optional: true,
-			// },
 			"advanced_configuration": SchemaAdvancedConfigDS(),
 			"backup_enabled": {
 				Type:     schema.TypeBool,
