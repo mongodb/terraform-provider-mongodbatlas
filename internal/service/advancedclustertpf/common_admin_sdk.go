@@ -56,10 +56,10 @@ func updateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 // belong in the advanced_configuration attribute we still need to check for any changes
 func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, p *ProcessArgs, waitParams *ClusterWaitParams) (latest *admin.ClusterDescriptionProcessArgs20240805, changed bool) {
 	var (
-		err             error
-		advConfig       *admin.ClusterDescriptionProcessArgs20240805
-		projectID       = waitParams.ProjectID
-		clusterName     = waitParams.ClusterName
+		err         error
+		advConfig   *admin.ClusterDescriptionProcessArgs20240805
+		projectID   = waitParams.ProjectID
+		clusterName = waitParams.ClusterName
 	)
 	if !update.IsZeroValues(p.ArgsDefault) {
 		changed = true

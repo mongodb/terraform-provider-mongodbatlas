@@ -81,11 +81,6 @@ func configGeoShardedTransitionOldToNewSchema(t *testing.T, isTPF bool, projectI
 			fmt.Sprintf(replicationSpec, numShardsStr, "EU_WEST_1", "zone 2"), fmt.Sprintf(replicationSpec, numShardsStr, "EU_WEST_1", "zone 2"))
 	}
 
-	var dataSources = dataSourcesTFOldSchema
-	if useNewSchema {
-		dataSources = dataSourcesTFNewSchema
-	}
-
 	return acc.ConvertAdvancedClusterToTPF(t, isTPF, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id = %[1]q
@@ -97,7 +92,7 @@ func configGeoShardedTransitionOldToNewSchema(t *testing.T, isTPF bool, projectI
 
 			%[3]s
 		}
-	`, projectID, name, replicationSpecs, diskSizeGB)) + dataSources
+	`, projectID, name, replicationSpecs, diskSizeGB)) + dataSourcesConfig
 }
 
 func checkGeoShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.TestCheckFunc {
@@ -238,11 +233,6 @@ func configShardedTransitionOldToNewSchema(t *testing.T, isTPF bool, projectID, 
 		replicationSpecs = replicationSpec
 	}
 
-	var dataSources = dataSourcesTFOldSchema
-	if useNewSchema {
-		dataSources = dataSourcesTFNewSchema
-	}
-
 	return acc.ConvertAdvancedClusterToTPF(t, isTPF, fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id = %[1]q
@@ -255,7 +245,7 @@ func configShardedTransitionOldToNewSchema(t *testing.T, isTPF bool, projectID, 
 			%[3]s
 		}
 
-	`, projectID, name, replicationSpecs, diskSizeGBStr)) + dataSources
+	`, projectID, name, replicationSpecs, diskSizeGBStr)) + dataSourcesConfig
 }
 
 func checkShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.TestCheckFunc {

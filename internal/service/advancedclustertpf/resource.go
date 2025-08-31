@@ -40,7 +40,6 @@ const (
 	errorResolveContainerIDs    = "error resolving container IDs"
 	errorRegionPriorities       = "priority values in region_configs must be in descending order"
 
-	DeprecationOldSchemaAction                   = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide"
 	ErrorCodeClusterNotFound                     = "CLUSTER_NOT_FOUND"
 	operationUpdate                              = "update"
 	operationCreate                              = "create"
