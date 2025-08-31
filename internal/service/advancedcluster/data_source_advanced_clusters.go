@@ -306,10 +306,6 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 
 	d.SetId(id.UniqueId())
 
-	// if v, ok := d.GetOk("use_replication_spec_per_shard"); ok {
-	// 	useReplicationSpecPerShard = v.(bool)
-	// }
-
 	list, resp, err := connV2.ClustersApi.ListClusters(ctx, projectID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {

@@ -13,12 +13,6 @@ import (
 var _ datasource.DataSource = &ds{}
 var _ datasource.DataSourceWithConfigure = &ds{}
 
-const (
-	errorReadDatasource                      = "Error reading  advanced cluster datasource"
-	errorReadDatasourceForceAsymmetric       = "Error reading advanced cluster datasource, was expecting symmetric shards but found asymmetric shards"
-	errorReadDatasourceForceAsymmetricDetail = "Cluster name %s. Please add `use_replication_spec_per_shard = true` to your data source configuration to enable asymmetric shard support. %s"
-)
-
 func DataSource() datasource.DataSource {
 	return &ds{
 		DSCommon: config.DSCommon{
@@ -70,7 +64,6 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		return nil
 	}
 	updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, &ProcessArgs{
-		// ArgsLegacy:            nil,
 		ArgsDefault:           nil,
 		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
 	})
@@ -78,6 +71,5 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		return nil
 	}
 	modelOutDS := conversion.CopyModel[TFModelDS](modelOut)
-	// modelOutDS.UseReplicationSpecPerShard = modelDS.UseReplicationSpecPerShard // attrs not in resource model
 	return modelOutDS
 }

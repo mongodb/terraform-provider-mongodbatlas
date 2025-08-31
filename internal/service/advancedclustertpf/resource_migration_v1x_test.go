@@ -13,11 +13,9 @@ import (
 
 var versionBeforeTPFGARelease = os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
 
-// SDKv2/TPF pre NEW to new - geo-sharded
-func TestV1xMigClusterAdvancedClusterConfig_geoShardedTransitionNewSchema(t *testing.T) {
+func TestV1xMigClusterAdvancedClusterConfig_geoShardedNewSchema(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 	isSDKv2 := acc.IsTestSDKv2ToTPF()
-	// isTPFPreview := os.Getenv("MONGODB_ATLAS_TEST_PREVIEW_TO_TPF")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t); mig.PreCheckLast1XVersion(t) },
@@ -159,12 +157,10 @@ func TestV1xMigAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T
 	})
 }
 
-// SDKv2/TPF pre NEW to new - sharded
-func TestV1xMigAdvancedCluster_shardedMigrationNewSchema(t *testing.T) {
+func TestV1xMigAdvancedCluster_shardedNewSchema(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 	versionBeforeTPFGARelease := os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
 	isSDKv2 := acc.IsTestSDKv2ToTPF()
-	// isTPFPreview := os.Getenv("MONGODB_ATLAS_TEST_PREVIEW_TO_TPF")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t); mig.PreCheckLast1XVersion(t) },
@@ -292,12 +288,10 @@ func checkShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.Tes
 	)
 }
 
-// SDKv2/TPF pre OLD to new - geo-sharded
 func TestV1xMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 	versionBeforeTPFGARelease := os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
 	isSDKv2 := acc.IsTestSDKv2ToTPF()
-	// isTPFPreview := os.Getenv("MONGODB_ATLAS_TEST_PREVIEW_TO_TPF")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasic(t); mig.PreCheckLast1XVersion(t) },
@@ -368,7 +362,6 @@ func TestV1xMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestV1xMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {

@@ -290,9 +290,6 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	useReplicationSpecPerShard := true
 	var replicationSpecs []map[string]any
 
-	// if v, ok := d.GetOk("use_replication_spec_per_shard"); ok {
-	// 	useReplicationSpecPerShard = v.(bool)
-	// }
 	clusterDesc, flexClusterResp, diags := GetClusterDetails(ctx, client, projectID, clusterName)
 	if diags.HasError() {
 		return diags
