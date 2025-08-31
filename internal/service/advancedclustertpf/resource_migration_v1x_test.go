@@ -372,11 +372,10 @@ func TestV1xMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 
 func TestV1xMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 	var (
-		orgID              = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName        = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
-		clusterName        = acc.RandomClusterName()
-		clusterNameUpdated = acc.RandomClusterName()
-		isSDKv2            = acc.IsTestSDKv2ToTPF()
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
+		clusterName = acc.RandomClusterName()
+		isSDKv2     = acc.IsTestSDKv2ToTPF()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -392,7 +391,7 @@ func TestV1xMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configReplicaSetMultiCloud(t, orgID, projectName, clusterName, true),
-				Check:                    checkReplicaSetMultiCloud(true, false, clusterNameUpdated, 3),
+				Check:                    checkReplicaSetMultiCloud(true, false, clusterName, 3),
 			},
 		},
 	})
