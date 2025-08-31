@@ -2,16 +2,13 @@ package advancedclustertpf
 
 import (
 	"context"
-	"fmt"
 
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
@@ -29,6 +26,7 @@ func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
 	overrideMapStringWithPrevStateValue(&modelIn.Labels, &modelOut.Labels)
 	overrideMapStringWithPrevStateValue(&modelIn.Tags, &modelOut.Tags)
 }
+
 func overrideMapStringWithPrevStateValue(mapIn, mapOut *types.Map) {
 	if mapIn == nil || mapOut == nil || len(mapOut.Elements()) > 0 {
 		return
@@ -40,47 +38,11 @@ func overrideMapStringWithPrevStateValue(mapIn, mapOut *types.Map) {
 	}
 }
 
-func resolveAPIInfo(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterLatest *admin.ClusterDescription20240805, useReplicationSpecPerShard bool) *ExtraAPIInfo {
-	var (
-		// api20240530                = client.AtlasV220240530.ClustersApi
-		projectID                  = clusterLatest.GetGroupId()
-		clusterName                = clusterLatest.GetName()
-		useOldShardingConfigFailed = false
-	)
-	// clusterRespOld, _, err := api20240530.GetCluster(ctx, projectID, clusterName).Execute()
-	// if err != nil {
-	// 	if validate.ErrorClusterIsAsymmetrics(err) {
-	// 		useOldShardingConfigFailed = !useReplicationSpecPerShard
-	// 	} else {
-	// 		diags.AddError(errorReadLegacy20240530, defaultAPIErrorDetails(clusterName, err))
-	// 		return nil
-	// 	}
-	// }
-	containerIDs, err := resolveContainerIDs(ctx, projectID, clusterLatest, client.AtlasV2.NetworkPeeringApi)
-	if err != nil {
-		diags.AddError(errorResolveContainerIDs, fmt.Sprintf("cluster name = %s, error details: %s", clusterName, err.Error()))
-		return nil
-	}
-	return &ExtraAPIInfo{
-		ContainerIDs: containerIDs,
-		UseOldShardingConfigFailed: useOldShardingConfigFailed,
-		UseNewShardingConfig: useReplicationSpecPerShard,
-	}
-}
-
-func normalizeFromTFModel(ctx context.Context, model *TFModel, diags *diag.Diagnostics, shouldExpandNumShards bool) *admin.ClusterDescription20240805 {
+// TODO: this should be removed, can directly use NewAtlasReq instead of normalizeFromTFModel
+func normalizeFromTFModel(ctx context.Context, model *TFModel, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
 	latestModel := NewAtlasReq(ctx, model, diags)
 	if diags.HasError() {
 		return nil
 	}
 	return latestModel
-}
-
-func numShardsMapFromOldAPI(clusterRespOld *admin20240530.AdvancedClusterDescription) map[string]int64 {
-	ret := make(map[string]int64)
-	for i := range clusterRespOld.GetReplicationSpecs() {
-		spec := &clusterRespOld.GetReplicationSpecs()[i]
-		ret[spec.GetZoneName()] = int64(spec.GetNumShards())
-	}
-	return ret
 }

@@ -175,6 +175,7 @@ func TestV1xMigAdvancedCluster_shardedMigrationNewSchema(t *testing.T) {
 				Config:            configShardedTransitionOldToNewSchema(t, !isSDKv2, projectID, clusterName, true, false, false),
 				Check:             checkShardedTransitionOldToNewSchema(!isSDKv2, true),
 			},
+			mig.TestStepCheckEmptyPlan(configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, false, false)),
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 				Config:                   configShardedTransitionOldToNewSchema(t, true, projectID, clusterName, true, false, false),

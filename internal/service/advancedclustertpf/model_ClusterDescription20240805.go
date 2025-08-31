@@ -17,19 +17,11 @@ const (
 	errorReplicationSpecIDNotSet = "replicationSpecID not set for zoneName %s"
 )
 
-type ExtraAPIInfo struct {
-	// ZoneNameNumShards          map[string]int64
-	// ZoneNameReplicationSpecIDs map[string]string
-	ContainerIDs               map[string]string
-	UseNewShardingConfig       bool
-	UseOldShardingConfigFailed bool
-}
-
-func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, diags *diag.Diagnostics, apiInfo ExtraAPIInfo) *TFModel {
+func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, diags *diag.Diagnostics, containerIDs map[string]string) *TFModel {
 	biConnector := NewBiConnectorConfigObjType(ctx, input.BiConnector, diags)
 	connectionStrings := NewConnectionStringsObjType(ctx, input.ConnectionStrings, diags)
 	labels := NewLabelsObjType(ctx, diags, input.Labels)
-	replicationSpecs := NewReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags, &apiInfo)
+	replicationSpecs := NewReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags, containerIDs)
 	tags := NewTagsObjType(ctx, diags, input.Tags)
 	pinnedFCV := NewPinnedFCVObjType(ctx, input, diags)
 	if diags.HasError() {
@@ -112,11 +104,11 @@ func NewLabelsObjType(ctx context.Context, diags *diag.Diagnostics, input *[]adm
 	return conversion.ToTFMapOfString(ctx, diags, elms)
 }
 
-func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, apiInfo *ExtraAPIInfo) types.List {
+func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, containerIDs map[string]string) types.List {
 	if input == nil {
 		return types.ListNull(ReplicationSpecsObjType)
 	}
-	tfModels := convertReplicationSpecs(ctx, input, diags, apiInfo)
+	tfModels := convertReplicationSpecs(ctx, input, diags, containerIDs)
 	if diags.HasError() {
 		return types.ListNull(ReplicationSpecsObjType)
 	}
@@ -138,7 +130,7 @@ func NewPinnedFCVObjType(ctx context.Context, cluster *admin.ClusterDescription2
 	return objType
 }
 
-func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, apiInfo *ExtraAPIInfo) *[]TFReplicationSpecsModel {
+func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, containerIDs map[string]string) *[]TFReplicationSpecsModel {
 	tfModels := make([]TFReplicationSpecsModel, len(*input))
 	for i, item := range *input {
 		regionConfigs := NewRegionConfigsObjType(ctx, item.RegionConfigs, diags)
@@ -147,7 +139,7 @@ func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec
 			diags.AddError(errorZoneNameNotSet, errorZoneNameNotSet)
 			return &tfModels
 		}
-		containerIDs := selectContainerIDs(&item, apiInfo.ContainerIDs)
+		containerIDs := selectContainerIDs(&item, containerIDs)
 		tfModels[i] = TFReplicationSpecsModel{
 			ExternalId:    types.StringValue(conversion.SafeValue(item.Id)),
 			ContainerId:   conversion.ToTFMapOfString(ctx, diags, containerIDs),
@@ -161,6 +153,10 @@ func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec
 
 func selectContainerIDs(spec *admin.ReplicationSpec20240805, allIDs map[string]string) map[string]string {
 	containerIDs := map[string]string{}
+	if allIDs == nil {
+		return containerIDs
+	}
+
 	regions := spec.GetRegionConfigs()
 	for i := range regions {
 		regionConfig := regions[i]

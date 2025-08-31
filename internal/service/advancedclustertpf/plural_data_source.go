@@ -52,8 +52,6 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 
 func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pluralModel *TFModelPluralDS) (*TFModelPluralDS, *diag.Diagnostics) {
 	projectID := pluralModel.ProjectID.ValueString()
-	// useReplicationSpecPerShard := pluralModel.UseReplicationSpecPerShard.ValueBool()
-	useReplicationSpecPerShard := true
 	api := d.Client.AtlasV2.ClustersApi
 	params := admin.ListClustersApiParams{
 		GroupId: projectID,
@@ -69,11 +67,10 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 	}
 	outs := &TFModelPluralDS{
 		ProjectID: pluralModel.ProjectID,
-		// UseReplicationSpecPerShard: pluralModel.UseReplicationSpecPerShard,
 	}
 	for i := range list {
 		clusterResp := &list[i]
-		modelOut, extraInfo := getBasicClusterModel(ctx, diags, d.Client, clusterResp, useReplicationSpecPerShard)
+		modelOut := getBasicClusterModel(ctx, diags, d.Client, clusterResp)
 		if diags.HasError() {
 			if DiagsHasOnlyClusterNotFoundErrors(diags) {
 				diags = ResetClusterNotFoundErrors(diags)
@@ -81,11 +78,7 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 			}
 			return nil, diags
 		}
-		if extraInfo.UseOldShardingConfigFailed {
-			continue
-		}
 		updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, &ProcessArgs{
-			// ArgsLegacy:            nil,
 			ArgsDefault:           nil,
 			ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
 		})
@@ -97,7 +90,6 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 			return nil, diags
 		}
 		modelOutDS := conversion.CopyModel[TFModelDS](modelOut)
-		// modelOutDS.UseReplicationSpecPerShard = pluralModel.UseReplicationSpecPerShard // attrs not in resource model
 		outs.Results = append(outs.Results, modelOutDS)
 	}
 	flexModels := d.getFlexClustersModels(ctx, diags, projectID)

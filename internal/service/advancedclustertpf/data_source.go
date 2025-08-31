@@ -2,7 +2,6 @@ package advancedclustertpf
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -52,8 +51,6 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *TFModelDS) *TFModelDS {
 	clusterName := modelDS.Name.ValueString()
 	projectID := modelDS.ProjectID.ValueString()
-	// useReplicationSpecPerShard := modelDS.UseReplicationSpecPerShard.ValueBool()
-	useReplicationSpecPerShard := true
 	clusterResp, flexClusterResp := GetClusterDetails(ctx, diags, projectID, clusterName, d.Client, false)
 	if diags.HasError() {
 		return nil
@@ -68,12 +65,8 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		}
 		return conversion.CopyModel[TFModelDS](modelOut)
 	}
-	modelOut, extraInfo := getBasicClusterModel(ctx, diags, d.Client, clusterResp, useReplicationSpecPerShard)
+	modelOut := getBasicClusterModel(ctx, diags, d.Client, clusterResp)
 	if diags.HasError() {
-		return nil
-	}
-	if extraInfo.UseOldShardingConfigFailed {
-		diags.AddError(errorReadDatasourceForceAsymmetric, fmt.Sprintf(errorReadDatasourceForceAsymmetricDetail, clusterName, DeprecationOldSchemaAction))
 		return nil
 	}
 	updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, &ProcessArgs{

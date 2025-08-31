@@ -2383,10 +2383,11 @@ func configGeoShardedOldSchema(t *testing.T, projectID, name string, numShardsFi
 
 	`, projectID, name, numShardsFirstZone, numShardsSecondZone, selfManagedSharding)
 		return advClusterConfig + dataSourcesTFOldSchema
-	} else {
-		var replicationSpecs string
-		for i := 0; i < numShardsFirstZone; i++ {
-			replicationSpecs += `
+	}
+
+	var replicationSpecs string
+	for i := 0; i < numShardsFirstZone; i++ {
+		replicationSpecs += `
 			{
 				region_configs = [{
 					analytics_specs = {
@@ -2405,9 +2406,9 @@ func configGeoShardedOldSchema(t *testing.T, projectID, name string, numShardsFi
 					}]
 				zone_name = "zone n1"
 			},`
-		}
-		for i := 0; i < numShardsSecondZone; i++ {
-			replicationSpecs += `
+	}
+	for i := 0; i < numShardsSecondZone; i++ {
+		replicationSpecs += `
 			{
 				region_configs = [{
 					analytics_specs = {
@@ -2426,9 +2427,9 @@ func configGeoShardedOldSchema(t *testing.T, projectID, name string, numShardsFi
 					}]
 				zone_name = "zone n2"
 			},`
-		}
-		replicationSpecs = strings.TrimSuffix(replicationSpecs, ",")
-		advClusterConfig = fmt.Sprintf(`
+	}
+	replicationSpecs = strings.TrimSuffix(replicationSpecs, ",")
+	advClusterConfig = fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id = %[1]q
 			name = %[2]q
@@ -2442,12 +2443,11 @@ func configGeoShardedOldSchema(t *testing.T, projectID, name string, numShardsFi
 			]
 		}
 		`, projectID, name, selfManagedSharding, replicationSpecs)
-	}
 
 	return advClusterConfig + dataSourcesTFNewSchema
 }
 
-func checkAggrMig(isTPF bool, useDataSource bool, attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
+func checkAggrMig(isTPF, useDataSource bool, attrsSet []string, attrsMap map[string]string, extra ...resource.TestCheckFunc) resource.TestCheckFunc {
 	extraChecks := extra
 	extraChecks = append(extraChecks, acc.CheckExistsCluster(resourceName))
 	if useDataSource {

@@ -119,7 +119,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	latestReq := normalizeFromTFModel(ctx, &plan, diags, true)
+	latestReq := normalizeFromTFModel(ctx, &plan, diags)
 	if diags.HasError() {
 		return
 	}
@@ -173,7 +173,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
-	modelOut, _ := getBasicClusterModelResource(ctx, diags, r.Client, clusterResp, &plan)
+	modelOut := getBasicClusterModelResource(ctx, diags, r.Client, clusterResp, &plan)
 	if diags.HasError() {
 		return
 	}
@@ -207,14 +207,14 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 	if flexCluster != nil {
-		newFlexClusterModel := NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(normalizeFromTFModel(ctx, &state, diags, false).ReplicationSpecs), &state)
+		newFlexClusterModel := NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(normalizeFromTFModel(ctx, &state, diags).ReplicationSpecs), &state)
 		if diags.HasError() {
 			return
 		}
 		diags.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 		return
 	}
-	modelOut, _ := getBasicClusterModelResource(ctx, diags, r.Client, cluster, &state)
+	modelOut := getBasicClusterModelResource(ctx, diags, r.Client, cluster, &state)
 	if diags.HasError() {
 		return
 	}
@@ -280,14 +280,14 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		clusterResp, flexResp = GetClusterDetails(ctx, diags, waitParams.ProjectID, waitParams.ClusterName, r.Client, false)
 		// This should never happen since the switch case should handle the two flex cases (update/upgrade) and return, but keeping it here for safety.
 		if flexResp != nil {
-			flexPriority := GetPriorityOfFlexReplicationSpecs(normalizeFromTFModel(ctx, &plan, diags, false).ReplicationSpecs)
+			flexPriority := GetPriorityOfFlexReplicationSpecs(normalizeFromTFModel(ctx, &plan, diags).ReplicationSpecs)
 			if flexOut := NewTFModelFlexResource(ctx, diags, flexResp, flexPriority, &plan); flexOut != nil {
 				diags.Append(resp.State.Set(ctx, flexOut)...)
 			}
 			return
 		}
 	}
-	modelOut, _ := getBasicClusterModelResource(ctx, diags, r.Client, clusterResp, &plan)
+	modelOut := getBasicClusterModelResource(ctx, diags, r.Client, clusterResp, &plan)
 	if diags.HasError() {
 		return
 	}
@@ -390,34 +390,34 @@ func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, s
 	return result
 }
 
-func getBasicClusterModelResource(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel) (*TFModel, *ExtraAPIInfo) {
-	useReplicationSpecPerShard := true
-
+func getBasicClusterModelResource(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, modelIn *TFModel) *TFModel {
 	if diags.HasError() {
-		return nil, nil
+		return nil
 	}
-	modelOut, apiInfo := getBasicClusterModel(ctx, diags, client, clusterResp, useReplicationSpecPerShard)
+	modelOut := getBasicClusterModel(ctx, diags, client, clusterResp)
 	if modelOut != nil {
 		modelOut.Timeouts = modelIn.Timeouts
 		overrideAttributesWithPrevStateValue(modelIn, modelOut)
 	}
-	return modelOut, apiInfo
+	return modelOut
 }
 
-func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, useReplicationSpecPerShard bool) (*TFModel, *ExtraAPIInfo) {
-	extraInfo := resolveAPIInfo(ctx, diags, client, clusterResp, useReplicationSpecPerShard)
-	// extraInfo := &ExtraAPIInfo{}
+func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805) *TFModel {
+	var (
+		projectID   = clusterResp.GetGroupId()
+		clusterName = clusterResp.GetName()
+	)
+	containerIDs, err := resolveContainerIDs(ctx, projectID, clusterResp, client.AtlasV2.NetworkPeeringApi)
+	if err != nil {
+		diags.AddError(errorResolveContainerIDs, fmt.Sprintf("cluster name = %s, error details: %s", clusterName, err.Error()))
+		return nil
+	}
+
+	modelOut := NewTFModel(ctx, clusterResp, diags, containerIDs)
 	if diags.HasError() {
-		return nil, nil
+		return nil
 	}
-	if extraInfo.UseOldShardingConfigFailed { // can't create a model if the cluster does not support old sharding config
-		return nil, extraInfo
-	}
-	modelOut := NewTFModel(ctx, clusterResp, diags, *extraInfo)
-	if diags.HasError() {
-		return nil, nil
-	}
-	return modelOut, extraInfo
+	return modelOut
 }
 
 func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModel,
@@ -474,11 +474,8 @@ func (c *clusterDiff) isAnyUpgrade() bool {
 
 // findClusterDiff should be called only in Update, e.g. it will fail for a flex cluster with no changes.
 func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics) clusterDiff {
-	// if _ = isShardingConfigUpgrade(ctx, state, plan, diags); diags.HasError() { // Checks that there is no downgrade from new sharding config to old one
-	// 	return clusterDiff{}
-	// }
-	stateReq := normalizeFromTFModel(ctx, state, diags, false)
-	planReq := normalizeFromTFModel(ctx, plan, diags, false)
+	stateReq := normalizeFromTFModel(ctx, state, diags)
+	planReq := normalizeFromTFModel(ctx, plan, diags)
 	if diags.HasError() {
 		return clusterDiff{}
 	}
@@ -497,14 +494,9 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 	patchOptions := update.PatchOptions{
 		IgnoreInStatePrefix: []string{"replicationSpecs"}, // only use config values for replicationSpecs, state values might come from the UseStateForUnknowns and shouldn't be used, `id` is added in updateLegacyReplicationSpecs
 	}
-	// if usingNewShardingConfig(ctx, plan.ReplicationSpecs, diags) {
+	// TODO: This is no longer needed since we are using the new sharding config -- remove next line:
 	patchOptions.IgnoreInStateSuffix = append(patchOptions.IgnoreInStateSuffix, "id") // Not safe to send replication_spec.*.id when using the new schema: replicationSpecs.java.util.ArrayList[0].id attribute does not match expected format
-	// }
-	// if findNumShardsUpdates(ctx, state, plan, diags) != nil {
-	// 	// force update the replicationSpecs when update.PatchPayload will not detect changes by default:
-	// 	// `num_shards` updates is only in the legacy ClusterDescription
-	// 	patchOptions.ForceUpdateAttr = append(patchOptions.ForceUpdateAttr, "replicationSpecs")
-	// }
+
 	patchReq, err := update.PatchPayload(stateReq, planReq, patchOptions)
 	if err != nil {
 		diags.AddError(errorPatchPayload, err.Error())
@@ -522,7 +514,7 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 }
 
 func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, plan *TFModel) *TFModel {
-	configReq := normalizeFromTFModel(ctx, plan, diags, false)
+	configReq := normalizeFromTFModel(ctx, plan, diags)
 	if diags.HasError() {
 		return nil
 	}
@@ -534,7 +526,7 @@ func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *con
 }
 
 func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, plan *TFModel) *TFModel {
-	configReq := normalizeFromTFModel(ctx, plan, diags, false)
+	configReq := normalizeFromTFModel(ctx, plan, diags)
 	if diags.HasError() {
 		return nil
 	}
