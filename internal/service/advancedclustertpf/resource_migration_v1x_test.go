@@ -315,7 +315,7 @@ func TestV1xMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		PreCheck:     func() { acc.PreCheckBasicSleep(t, nil, projectID, clusterName); mig.PreCheckLast1XVersion(t) },
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
@@ -363,7 +363,7 @@ func TestV1xMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasic(t) },
+		PreCheck:     func() { acc.PreCheckBasic(t); mig.PreCheckLast1XVersion(t) },
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
