@@ -134,6 +134,8 @@ Please review the [`mongodbatlas_encryption_at_rest_private_endpoint` resource d
 
 
 ### Configuring encryption at rest using customer key management in GCP
+For authentication, you must provide either serviceAccountKey (static credentials) or roleId (service-account–based authentication) Once roleId is configured, serviceAccountKey is no longer supported.
+
 ```terraform
 resource "mongodbatlas_encryption_at_rest" "test" {
   project_id = var.atlas_project_id
