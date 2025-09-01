@@ -248,8 +248,13 @@ func roleToSchemaSetup(role *admin.CloudProviderAccessRole) map[string]any {
 	}
 
 	out := map[string]any{
-		"service_account_for_atlas": role.GetGcpServiceAccountForAtlas(),
-		"status":                    role.GetStatus(),
+		"provider_name": role.ProviderName,
+		"role_id":       role.GetId(),
+		"gcp_config": []any{map[string]any{
+			"status":                    role.GetStatus(),
+			"service_account_for_atlas": role.GetGcpServiceAccountForAtlas(),
+		}},
+		"created_date": conversion.TimeToString(role.GetCreatedDate()),
 	}
 
 	return out
