@@ -220,10 +220,10 @@ func resourceCloudProviderAccessSetupDelete(ctx context.Context, d *schema.Resou
 
 func roleToSchemaSetup(role *admin.CloudProviderAccessRole) map[string]any {
 	out := map[string]any{
-		"provider_name": role.GetProviderName(),
-		"created_date":  conversion.TimeToString(role.GetCreatedDate()),
+		"provider_name":     role.GetProviderName(),
+		"created_date":      conversion.TimeToString(role.GetCreatedDate()),
 		"last_updated_date": conversion.TimeToString(role.GetLastUpdatedDate()),
-		"role_id":       role.GetRoleId(),
+		"role_id":           role.GetRoleId(),
 	}
 
 	switch role.GetProviderName() {
