@@ -181,6 +181,7 @@ Read-Only:
 
 - `enabled` (Boolean) Flag that indicates whether someone enabled encryption at rest for the specified  project. To disable encryption at rest using customer key management and remove the configuration details, pass only this parameter with a value of `false`.
 - `key_version_resource_id` (String, Sensitive) Resource path that displays the key version resource ID for your Google Cloud KMS.
+- `role_id` (String) Unique 24-hexadecimal digit string that identifies the Google Cloud Provider Access Role that MongoDB Cloud uses to access the Google Cloud KMS.
 - `service_account_key` (String, Sensitive) JavaScript Object Notation (JSON) object that contains the Google Cloud Key Management Service (KMS). Format the JSON as a string and not as an object.
 - `valid` (Boolean) Flag that indicates whether the Google Cloud Key Management Service (KMS) encryption key can encrypt and decrypt data.
 
