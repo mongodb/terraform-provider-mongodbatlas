@@ -235,19 +235,7 @@ func TestAccEncryptionAtRest_basicGCPWithRole(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configGoogleCloudKmsWithRole(projectID, &googleCloudKms, true),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					acc.CheckEARExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "google_cloud_kms_config.0.role_id", os.Getenv("GCP_ROLE_ID")),
-					resource.TestCheckResourceAttr(resourceName, "google_cloud_kms_config.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "google_cloud_kms_config.0.valid", "true"),
-					resource.TestCheckResourceAttrSet(resourceName, "google_cloud_kms_config.0.key_version_resource_id"),
-
-					resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(datasourceName, "google_cloud_kms_config.enabled", "true"),
-					resource.TestCheckResourceAttr(datasourceName, "google_cloud_kms_config.valid", "true"),
-					resource.TestCheckResourceAttrSet(datasourceName, "google_cloud_kms_config.key_version_resource_id"),
-				),
+				Check:  checkEARResourceGCPWithRole(projectID),
 			},
 		},
 	})
@@ -675,5 +663,21 @@ func checkEARResourceAWS(projectID string, enabledForSearchNodes bool, awsKmsAtt
 		resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
 		resource.TestCheckResourceAttr(datasourceName, "enabled_for_search_nodes", strconv.FormatBool(enabledForSearchNodes)),
 		acc.EARCheckResourceAttr(datasourceName, "aws_kms_config.", awsKmsAttrMap),
+	)
+}
+
+func checkEARResourceGCPWithRole(projectID string) resource.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(
+		acc.CheckEARExists(resourceName),
+		resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+		resource.TestCheckResourceAttr(resourceName, "google_cloud_kms_config.0.role_id", os.Getenv("GCP_ROLE_ID")),
+		resource.TestCheckResourceAttr(resourceName, "google_cloud_kms_config.0.enabled", "true"),
+		resource.TestCheckResourceAttr(resourceName, "google_cloud_kms_config.0.valid", "true"),
+		resource.TestCheckResourceAttrSet(resourceName, "google_cloud_kms_config.0.key_version_resource_id"),
+
+		resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
+		resource.TestCheckResourceAttr(datasourceName, "google_cloud_kms_config.enabled", "true"),
+		resource.TestCheckResourceAttr(datasourceName, "google_cloud_kms_config.valid", "true"),
+		resource.TestCheckResourceAttrSet(datasourceName, "google_cloud_kms_config.key_version_resource_id"),
 	)
 }
