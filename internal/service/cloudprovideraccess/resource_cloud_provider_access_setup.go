@@ -233,23 +233,23 @@ func roleToSchemaSetup(role *admin.CloudProviderAccessRole) map[string]any {
 	}
 	if role.ProviderName == "AZURE" {
 		out := map[string]any{
-		"provider_name": role.ProviderName,
-		"azure_config": []any{map[string]any{
-			"atlas_azure_app_id":   role.GetAtlasAzureAppId(),
-			"service_principal_id": role.GetServicePrincipalId(),
-			"tenant_id":            role.GetTenantId(),
-		}},
-		"aws_config":        []any{map[string]any{}},
-		"created_date":      conversion.TimeToString(role.GetCreatedDate()),
-		"last_updated_date": conversion.TimeToString(role.GetLastUpdatedDate()),
-		"role_id":           role.GetId(),
+			"provider_name": role.ProviderName,
+			"azure_config": []any{map[string]any{
+				"atlas_azure_app_id":   role.GetAtlasAzureAppId(),
+				"service_principal_id": role.GetServicePrincipalId(),
+				"tenant_id":            role.GetTenantId(),
+			}},
+			"aws_config":        []any{map[string]any{}},
+			"created_date":      conversion.TimeToString(role.GetCreatedDate()),
+			"last_updated_date": conversion.TimeToString(role.GetLastUpdatedDate()),
+			"role_id":           role.GetId(),
 		}
 		return out
 	}
 
 	out := map[string]any{
-			"service_account_for_atlas": role.GetGcpServiceAccountForAtlas(),
-			"status":                    role.GetStatus(),
+		"service_account_for_atlas": role.GetGcpServiceAccountForAtlas(),
+		"status":                    role.GetStatus(),
 	}
 
 	return out
