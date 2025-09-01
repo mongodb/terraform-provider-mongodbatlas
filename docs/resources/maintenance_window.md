@@ -41,6 +41,9 @@ Once maintenance is scheduled for your cluster, you cannot change your maintenan
   }
 ```
 
+### Further Examples
+- [Configure Maintenance Window](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_maintenance_window)
+
 ## Argument Reference
 
 * `project_id` - The unique identifier of the project for the Maintenance Window.

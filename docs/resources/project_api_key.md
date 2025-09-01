@@ -41,6 +41,9 @@ resource "mongodbatlas_project_api_key" "test" {
 }
 ```
 
+### Further Examples
+- [Legacy Module: Create and Assign Project API Key](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_api_key_assignment/module/old_module)
+
 ## Argument Reference
 
 * `description` - (Required) Description of this Project API key.

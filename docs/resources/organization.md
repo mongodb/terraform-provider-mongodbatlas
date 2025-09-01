@@ -21,6 +21,11 @@ resource "mongodbatlas_organization" "test" {
 }
 ```
 
+### Further Examples
+- [Organization setup - step 1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_organization/organization-step-1)
+- [Organization setup - step 2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_organization/organization-step-2)
+- [Organization import](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_organization/organization-import)
+
 ## Argument Reference
 
 * `name` - (Required) The name of the organization.

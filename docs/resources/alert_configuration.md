@@ -136,6 +136,10 @@ resource "mongodbatlas_alert_configuration" "test" {
 }
 ```
 
+### Further Examples
+- [Alert Configuration](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_alert_configuration)
+
+
 ## Argument Reference
 
 * `project_id` - (Required) The ID of the project where the alert configuration will create.

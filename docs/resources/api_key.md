@@ -18,6 +18,9 @@ resource "mongodbatlas_api_key" "test" {
 }
 ```
 
+### Further Examples
+- [Create Programmatic API Key](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_api_key)
+
 ## Argument Reference
 
 * `org_id` - Unique identifier for the organization whose API keys you want to retrieve. Use the /orgs endpoint to retrieve all organizations to which the authenticated user has access.

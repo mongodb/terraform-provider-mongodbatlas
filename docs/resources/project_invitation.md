@@ -37,6 +37,9 @@ resource "mongodbatlas_project_invitation" "test" {
 }
 ```
 
+### Further Examples
+- [Migrate Project Invitation to Cloud User Project Assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_project_invitation_to_cloud_user_project_assignment)
+
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies the project to which you want to invite a user.

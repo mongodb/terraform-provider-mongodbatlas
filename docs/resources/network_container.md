@@ -51,6 +51,9 @@ resource "mongodbatlas_network_container" "test" {
 }
 ```
 
+### Further Examples
+- [GCP and MongoDB Atlas VPC Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_network_peering/gcp)
+
 ## Argument Reference
 
 * `project_id` - (Required) Unique identifier for the Atlas project for this Network Peering Container.

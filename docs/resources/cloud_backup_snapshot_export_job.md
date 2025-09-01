@@ -85,6 +85,9 @@ resource "mongodbatlas_cloud_backup_schedule" "backup" {
 }
 ```
 
+### Further Examples
+- [Cloud Backup Snapshot Export Job](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_snapshot_export_job)
+
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies the project which contains the Atlas cluster whose snapshot you want to export.

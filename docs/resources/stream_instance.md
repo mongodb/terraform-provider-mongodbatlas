@@ -19,6 +19,9 @@ resource "mongodbatlas_stream_instance" "test" {
 }
 ```
 
+### Further Examples
+- [Atlas Stream Instance](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_stream_instance)
+
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.

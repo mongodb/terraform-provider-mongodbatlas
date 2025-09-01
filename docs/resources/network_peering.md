@@ -329,6 +329,12 @@ resource "mongodbatlas_network_peering" "test" {
 }
 ```
 
+### Further Examples
+- [AWS Network Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_network_peering/aws)
+- [Azure Network Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_network_peering/azure)
+- [GCP Network Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_network_peering/gcp)
+
+
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the MongoDB Atlas project.
