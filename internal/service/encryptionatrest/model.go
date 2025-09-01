@@ -102,7 +102,7 @@ func NewTFGcpKmsConfigItem(gcpKms *admin.GoogleCloudKMS) *TFGcpKmsConfigModel {
 		KeyVersionResourceID: types.StringValue(gcpKms.GetKeyVersionResourceID()),
 		ServiceAccountKey:    conversion.StringNullIfEmpty(gcpKms.GetServiceAccountKey()),
 		Valid:                types.BoolPointerValue(gcpKms.Valid),
-		RoleID:               types.StringValue(gcpKms.GetRoleId()),
+		RoleID:               conversion.StringNullIfEmpty(gcpKms.GetRoleId()),
 	}
 }
 
