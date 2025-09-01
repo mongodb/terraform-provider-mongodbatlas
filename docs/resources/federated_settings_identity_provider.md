@@ -1,3 +1,7 @@
+---
+subcategory: "Federated Authentication"
+---
+
 # Resource: mongodbatlas_federated_settings_identity_provider
 
 `mongodbatlas_federated_settings_identity_provider` provides an Atlas federated settings identity provider resource provides a subset of settings to be maintained post import of the existing resource.

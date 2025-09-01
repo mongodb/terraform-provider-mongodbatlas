@@ -1,5 +1,5 @@
 ---
-subcategory: "Deprecated"    
+subcategory: "MongoDB Cloud Users"
 ---
 
 # Data Source: atlas_users

@@ -1,3 +1,7 @@
+---
+subcategory: "Streams"
+---
+
 # Resource: mongodbatlas_stream_instance
 
 `mongodbatlas_stream_instance` provides a Stream Instance resource. The resource lets you create, edit, and delete stream instances in a project.

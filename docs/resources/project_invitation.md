@@ -1,5 +1,5 @@
 ---
-subcategory: "Deprecated"    
+subcategory: "Projects"
 ---
 
 # Resource: mongodbatlas_project_invitation

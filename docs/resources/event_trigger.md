@@ -1,3 +1,7 @@
+---
+subcategory: "Event Trigger"
+---
+
 # Resource: mongodbatlas_event_trigger
 
 `mongodbatlas_event_trigger` provides a Event Trigger resource. 

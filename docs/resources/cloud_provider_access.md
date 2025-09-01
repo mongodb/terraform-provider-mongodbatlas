@@ -1,3 +1,7 @@
+---
+subcategory: "Cloud Provider Access"
+---
+
 # Resource: Cloud Provider Access Configuration Paths
 
 The Terraform MongoDB Atlas Provider offers the following path to perform an authorization for a cloud provider role -

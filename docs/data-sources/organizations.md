@@ -1,3 +1,7 @@
+---
+subcategory: "Organizations"
+---
+
 # Data Source: mongodbatlas_organizations
 
 `mongodbatlas_organizations` describes all MongoDB Atlas Organizations. This represents organizations that have been created.
