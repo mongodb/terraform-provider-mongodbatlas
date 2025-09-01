@@ -71,6 +71,22 @@ func DataSourceSetup() *schema.Resource {
 					},
 				},
 			},
+			"gcp_config": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"status": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"service_account_for_atlas": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"created_date": {
 				Type:     schema.TypeString,
 				Computed: true,
