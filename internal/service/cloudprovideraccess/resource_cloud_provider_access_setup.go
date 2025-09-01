@@ -219,31 +219,39 @@ func resourceCloudProviderAccessSetupDelete(ctx context.Context, d *schema.Resou
 }
 
 func roleToSchemaSetup(role *admin.CloudProviderAccessRole) map[string]any {
-	out := map[string]any{
-		"provider_name":     role.GetProviderName(),
-		"created_date":      conversion.TimeToString(role.GetCreatedDate()),
-		"last_updated_date": conversion.TimeToString(role.GetLastUpdatedDate()),
-		"role_id":           role.GetRoleId(),
+	if role.ProviderName == "AWS" {
+		out := map[string]any{
+			"provider_name": role.GetProviderName(),
+			"aws_config": []any{map[string]any{
+				"atlas_aws_account_arn":          role.GetAtlasAWSAccountArn(),
+				"atlas_assumed_role_external_id": role.GetAtlasAssumedRoleExternalId(),
+			}},
+			"created_date": conversion.TimeToString(role.GetCreatedDate()),
+			"role_id":      role.GetRoleId(),
+		}
+		return out
 	}
-
-	switch role.GetProviderName() {
-	case constant.AWS:
-		out["aws_config"] = []any{map[string]any{
-			"atlas_aws_account_arn":          role.GetAtlasAWSAccountArn(),
-			"atlas_assumed_role_external_id": role.GetAtlasAssumedRoleExternalId(),
-		}}
-	case constant.AZURE:
-		out["azure_config"] = []any{map[string]any{
+	if role.ProviderName == "AZURE" {
+		out := map[string]any{
+		"provider_name": role.ProviderName,
+		"azure_config": []any{map[string]any{
 			"atlas_azure_app_id":   role.GetAtlasAzureAppId(),
 			"service_principal_id": role.GetServicePrincipalId(),
 			"tenant_id":            role.GetTenantId(),
-		}}
-	case constant.GCP:
-		out["gcp_config"] = []any{map[string]any{
+		}},
+		"aws_config":        []any{map[string]any{}},
+		"created_date":      conversion.TimeToString(role.GetCreatedDate()),
+		"last_updated_date": conversion.TimeToString(role.GetLastUpdatedDate()),
+		"role_id":           role.GetId(),
+		}
+		return out
+	}
+
+	out := map[string]any{
 			"service_account_for_atlas": role.GetGcpServiceAccountForAtlas(),
 			"status":                    role.GetStatus(),
-		}}
 	}
+
 	return out
 }
 
