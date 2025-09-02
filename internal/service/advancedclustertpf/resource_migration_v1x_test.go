@@ -120,12 +120,9 @@ func checkGeoShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.
 	)
 }
 
-// SDKv2/TPF pre OLD to new - sharded
 func TestV1xMigAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 	isSDKv2 := acc.IsTestSDKv2ToTPF()
-	// if not SDKv2, ensure preview flag is set - add to precheck
-	// isTPFPreview := os.Getenv("MONGODB_ATLAS_TEST_PREVIEW_TO_TPF")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheckBasicSleep(t, nil, projectID, clusterName); mig.PreCheckLast1XVersion(t) },

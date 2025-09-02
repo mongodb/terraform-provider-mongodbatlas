@@ -205,7 +205,7 @@ func replicaSetAWSProviderTestCase(t *testing.T) *resource.TestCase {
 					ClusterType:        "REPLICASET",
 					DiskSizeGB:         50,
 					NodeCountElectable: 5,
-					WithAnalyticsSpecs: true, // other update made after removed analytics block, computed value is expected to be the same
+					WithAnalyticsSpecs: true,
 				}, true),
 				Check: checkReplicaSetAWSProvider(true, true, projectID, clusterName, 50, 5, true, true),
 			},

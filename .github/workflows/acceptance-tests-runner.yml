@@ -426,7 +426,7 @@ jobs:
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
           MONGODB_ATLAS_LAST_1X_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
-          ACCTEST_REGEX_RUN: ${{ !inputs.reduced_tests && '^TestV1xMig' || env.ACCTEST_REGEX_RUN }}
+          ACCTEST_REGEX_RUN: '^TestV1xMig'
           ACCTEST_PACKAGES: |
             ./internal/service/advancedclustertpf
         run: make testacc
@@ -454,7 +454,7 @@ jobs:
           MONGODB_ATLAS_LAST_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
           MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: 'true' # required for migration tests that use provider version < 2.0.0
           MONGODB_ATLAS_LAST_1X_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
-          ACCTEST_REGEX_RUN: ${{ !inputs.reduced_tests && '^TestV1xMig' || env.ACCTEST_REGEX_RUN }}
+          ACCTEST_REGEX_RUN: '^TestV1xMig'
           ACCTEST_PACKAGES: |
             ./internal/service/advancedclustertpf
         run: make testacc
