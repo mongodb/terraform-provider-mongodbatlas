@@ -179,7 +179,7 @@ func resourceCloudProviderAccessAuthorizationUpdate(ctx context.Context, d *sche
 		return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, "cloud provider access role not found in mongodbatlas, please create it first"))
 	}
 
-	if d.HasChange("aws") || d.HasChange("azure") || d.HasChange("gcp") {
+	if d.HasChange("aws") || d.HasChange("azure") {
 		return authorizeRole(ctx, conn, d, projectID, targetRole)
 	}
 
