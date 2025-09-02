@@ -223,7 +223,7 @@ func resourceCloudProviderAccessSetupDelete(ctx context.Context, d *schema.Resou
 
 func roleToSchemaSetup(role *admin.CloudProviderAccessRole) (map[string]any, error) {
 	switch role.ProviderName {
-	case "AWS":
+	case constant.AWS:
 		return map[string]any{
 			"provider_name": role.GetProviderName(),
 			"aws_config": []any{map[string]any{
@@ -234,7 +234,7 @@ func roleToSchemaSetup(role *admin.CloudProviderAccessRole) (map[string]any, err
 			"created_date": conversion.TimeToString(role.GetCreatedDate()),
 			"role_id":      role.GetRoleId(),
 		}, nil
-	case "AZURE":
+	case constant.AZURE:
 		return map[string]any{
 			"provider_name": role.ProviderName,
 			"azure_config": []any{map[string]any{
@@ -248,7 +248,7 @@ func roleToSchemaSetup(role *admin.CloudProviderAccessRole) (map[string]any, err
 			"last_updated_date": conversion.TimeToString(role.GetLastUpdatedDate()),
 			"role_id":           role.GetId(),
 		}, nil
-	case "GCP":
+	case constant.GCP:
 		return map[string]any{
 			"provider_name": role.GetProviderName(),
 			"gcp_config": []any{map[string]any{
