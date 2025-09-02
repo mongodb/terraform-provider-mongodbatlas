@@ -79,11 +79,11 @@ func TestAccCloudProviderAccessSetupGCP_basic(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(resourceName, "role_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "gcp_config.0.service_account_for_atlas"),
-					resource.TestCheckResourceAttr(resourceName, "gcp_config.0.status", "ACTIVE"),
+					resource.TestCheckResourceAttr(resourceName, "gcp_config.0.status", "COMPLETE"),
 
 					resource.TestCheckResourceAttrSet(dataSourceName, "role_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "gcp_config.0.service_account_for_atlas"),
-					resource.TestCheckResourceAttr(dataSourceName, "gcp_config.0.status", "ACTIVE"),
+					resource.TestCheckResourceAttr(dataSourceName, "gcp_config.0.status", "COMPLETE"),
 				),
 			},
 		},
