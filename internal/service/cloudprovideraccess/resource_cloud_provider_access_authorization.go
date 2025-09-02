@@ -180,6 +180,10 @@ func resourceCloudProviderAccessAuthorizationUpdate(ctx context.Context, d *sche
 	}
 
 	if d.HasChange("aws") || d.HasChange("azure") {
+		// Re-authorize the role with updated AWS or Azure configuration.
+		// GCP authorization only requires a role ID and has no additional configuration to update.
+		// Therefore, "updating" a GCP role would effectively be creating a new authorization,
+		// which should be handled by creating a new resource rather than updating an existing one.
 		return authorizeRole(ctx, conn, d, projectID, targetRole)
 	}
 
