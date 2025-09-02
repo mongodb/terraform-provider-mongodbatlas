@@ -1,6 +1,6 @@
 ---
 page_title: "Migration Guide: Programmatic API Key (v1.10.0)"
-subcategory: "Older Guides"
+subcategory: "Older Guides - Version 1"  
 ---
 
 # Migration Guide: Programmatic API Key (v1.10.0)
