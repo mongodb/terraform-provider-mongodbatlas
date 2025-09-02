@@ -133,7 +133,10 @@ func resourceCloudProviderAccessSetupRead(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, err))
 	}
 
-	roleSchema := roleToSchemaSetup(role)
+	roleSchema, err := roleToSchemaSetup(role)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, err))
+	}
 	for key, val := range roleSchema {
 		if err := d.Set(key, val); err != nil {
 			return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, err))
@@ -170,7 +173,10 @@ func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.Resou
 	}
 
 	// once multiple providers enable here do a switch, select for provider type
-	roleSchema := roleToSchemaSetup(role)
+	roleSchema, err := roleToSchemaSetup(role)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
+	}
 
 	resourceID := role.GetRoleId()
 	if role.ProviderName == constant.AZURE {
@@ -216,41 +222,49 @@ func resourceCloudProviderAccessSetupDelete(ctx context.Context, d *schema.Resou
 	return nil
 }
 
-func roleToSchemaSetup(role *admin.CloudProviderAccessRole) map[string]any {
-	out := map[string]any{}
-
+func roleToSchemaSetup(role *admin.CloudProviderAccessRole) (map[string]any, error) {
 	if role.ProviderName == "AWS" {
-		out["provider_name"] = role.GetProviderName()
-		out["aws_config"] = []any{map[string]any{
-			"atlas_aws_account_arn":          role.GetAtlasAWSAccountArn(),
-			"atlas_assumed_role_external_id": role.GetAtlasAssumedRoleExternalId(),
-		}}
-		out["gcp_config"] = []any{map[string]any{}}
-		out["created_date"] = conversion.TimeToString(role.GetCreatedDate())
-		out["role_id"] = role.GetRoleId()
+		out := map[string]any{
+			"provider_name": role.GetProviderName(),
+			"aws_config": []any{map[string]any{
+				"atlas_aws_account_arn":          role.GetAtlasAWSAccountArn(),
+				"atlas_assumed_role_external_id": role.GetAtlasAssumedRoleExternalId(),
+			}},
+			"gcp_config":   []any{map[string]any{}},
+			"created_date": conversion.TimeToString(role.GetCreatedDate()),
+			"role_id":      role.GetRoleId(),
+		}
+		return out, nil
 	} else if role.ProviderName == "AZURE" {
-		out["provider_name"] = role.GetProviderName()
-		out["azure_config"] = []any{map[string]any{
-			"atlas_azure_app_id":   role.GetAtlasAzureAppId(),
-			"service_principal_id": role.GetServicePrincipalId(),
-			"tenant_id":            role.GetTenantId(),
-		}}
-		out["aws_config"] = []any{map[string]any{}}
-		out["gcp_config"] = []any{map[string]any{}}
-		out["created_date"] = conversion.TimeToString(role.GetCreatedDate())
-		out["last_updated_date"] = conversion.TimeToString(role.GetLastUpdatedDate())
-		out["role_id"] = role.GetId()
+		out := map[string]any{
+			"provider_name": role.ProviderName,
+			"azure_config": []any{map[string]any{
+				"atlas_azure_app_id":   role.GetAtlasAzureAppId(),
+				"service_principal_id": role.GetServicePrincipalId(),
+				"tenant_id":            role.GetTenantId(),
+			}},
+			"aws_config":        []any{map[string]any{}},
+			"gcp_config":        []any{map[string]any{}},
+			"created_date":      conversion.TimeToString(role.GetCreatedDate()),
+			"last_updated_date": conversion.TimeToString(role.GetLastUpdatedDate()),
+			"role_id":           role.GetId(),
+		}
+		return out, nil
 	} else if role.ProviderName == "GCP" {
-		out["provider_name"] = role.GetProviderName()
-		out["gcp_config"] = []any{map[string]any{
-			"status":                    role.GetStatus(),
-			"service_account_for_atlas": role.GetGcpServiceAccountForAtlas(),
-		}}
-		out["role_id"] = role.GetId()
-		out["aws_config"] = []any{map[string]any{}}
-		out["created_date"] = conversion.TimeToString(role.GetCreatedDate())
+		out := map[string]any{
+			"provider_name": role.GetProviderName(),
+			"gcp_config": []any{map[string]any{
+				"status":                    role.GetStatus(),
+				"service_account_for_atlas": role.GetGcpServiceAccountForAtlas(),
+			}},
+			"aws_config":   []any{map[string]any{}},
+			"role_id":      role.GetId(),
+			"created_date": conversion.TimeToString(role.GetCreatedDate()),
+		}
+		return out, nil
+	} else {
+		return nil, fmt.Errorf("unsupported provider: %s", role.GetProviderName())
 	}
-	return out
 }
 
 func resourceCloudProviderAccessSetupImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
