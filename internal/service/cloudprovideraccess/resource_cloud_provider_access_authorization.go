@@ -70,6 +70,19 @@ func ResourceAuthorization() *schema.Resource {
 					},
 				},
 			},
+			"gcp": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"service_account_for_atlas": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"feature_usages": {
 				Type:     schema.TypeList,
 				Elem:     featureUsagesSchema(),
@@ -167,7 +180,7 @@ func resourceCloudProviderAccessAuthorizationUpdate(ctx context.Context, d *sche
 		return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, "cloud provider access role not found in mongodbatlas, please create it first"))
 	}
 
-	if d.HasChange("aws") || d.HasChange("azure") {
+	if d.HasChange("aws") || d.HasChange("azure") || d.HasChange("gcp") {
 		return authorizeRole(ctx, conn, d, projectID, targetRole)
 	}
 
@@ -197,6 +210,14 @@ func roleToSchemaAuthorization(role *admin.CloudProviderAccessRole) map[string]a
 				"tenant_id":            role.GetTenantId(),
 			}},
 			"authorized_date": conversion.TimeToString(role.GetAuthorizedDate()),
+		}
+	}
+	if role.ProviderName == "GCP" {
+		out = map[string]any{
+			"role_id": role.GetRoleId(),
+			"gcp": []any{map[string]any{
+				"service_account_for_atlas": role.GetGcpServiceAccountForAtlas(),
+			}},
 		}
 	}
 
@@ -281,6 +302,7 @@ func authorizeRole(ctx context.Context, client *admin.APIClient, d *schema.Resou
 		req.SetServicePrincipalId(targetRole.GetServicePrincipalId())
 		roleID = targetRole.GetId()
 	}
+	// No specific GCP config is needed, only providerName and roleID are needed
 
 	var role *admin.CloudProviderAccessRole
 	var err error

@@ -142,6 +142,8 @@ Conditional
 * `id`               - Unique identifier used by terraform for internal management.
 * `authorized_date`  - Date on which this role was authorized.
 * `feature_usages`   - Atlas features this AWS IAM role is linked to.
+* `gcp`
+   * `service_account_for_atlas` - Email address for the Google Service Account created by Atlas.
 
 
 
