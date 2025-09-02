@@ -135,7 +135,7 @@ func resourceCloudProviderAccessSetupRead(ctx context.Context, d *schema.Resourc
 
 	roleSchema, err := roleToSchemaSetup(role)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, err))
+		return diag.Errorf(errorCloudProviderAccessCreate, err)
 	}
 	for key, val := range roleSchema {
 		if err := d.Set(key, val); err != nil {
@@ -175,7 +175,7 @@ func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.Resou
 	// once multiple providers enable here do a switch, select for provider type
 	roleSchema, err := roleToSchemaSetup(role)
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
+		return diag.Errorf(errorCloudProviderAccessCreate, err)
 	}
 
 	resourceID := role.GetRoleId()
@@ -217,7 +217,6 @@ func resourceCloudProviderAccessSetupDelete(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf(errorCloudProviderAccessDelete, err))
 	}
 
-	d.SetId("")
 	d.SetId("")
 	return nil
 }
