@@ -1,3 +1,7 @@
+---
+subcategory: "Project IP Access List"
+---
+
 # Resource: mongodbatlas_project_ip_access_list
 
 `mongodbatlas_project_ip_access_list` provides an IP Access List entry resource. The access list grants access from IPs, CIDRs or AWS Security Groups (if VPC Peering is enabled) to clusters within the Project.

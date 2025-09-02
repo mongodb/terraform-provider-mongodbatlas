@@ -1,3 +1,7 @@
+---
+subcategory: "Flex Restore Jobs"
+---
+
 # Data Source: mongodbatlas_flex_restore_jobs
 
 `mongodbatlas_flex_restore_jobs` returns all flex restore job of a flex cluster.

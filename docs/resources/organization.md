@@ -1,3 +1,7 @@
+---
+subcategory: "Organizations"
+---
+
 # Resource: mongodbatlas_organization
 
 `mongodbatlas_organization` provides programmatic management (including creation) of a MongoDB Atlas Organization resource.

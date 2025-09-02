@@ -1,3 +1,7 @@
+---
+subcategory: "Streams"
+---
+
 # Resource: mongodbatlas_stream_processor
 
 `mongodbatlas_stream_processor` provides a Stream Processor resource. The resource lets you create, delete, import, start and stop a stream processor in a stream instance.

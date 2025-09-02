@@ -1,3 +1,7 @@
+---
+subcategory: "Streams"
+---
+
 # Data Source: mongodbatlas_stream_instance
 
 `mongodbatlas_stream_instance` describes a stream instance.

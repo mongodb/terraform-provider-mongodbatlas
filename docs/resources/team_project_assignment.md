@@ -1,3 +1,7 @@
+---
+subcategory: "Teams"
+---
+
 # Resource: mongodbatlas_team_project_assignment
 
 `mongodbatlas_team_project_assignment` provides a Team Project Assignment resource. It lets you manage the association between a team and a project, enabling you to import, assign, remove, or update the team's membership.

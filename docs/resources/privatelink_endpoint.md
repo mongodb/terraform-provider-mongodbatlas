@@ -1,3 +1,7 @@
+---
+subcategory: "Private Endpoint Services"
+---
+
 # Resource: mongodbatlas_privatelink_endpoint
 
 `mongodbatlas_privatelink_endpoint` provides a Private Endpoint resource. This represents a [Private Endpoint Service](https://www.mongodb.com/docs/atlas/security-private-endpoint/#private-endpoint-concepts) that can be created in an Atlas project.

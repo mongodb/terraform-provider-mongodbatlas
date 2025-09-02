@@ -1,3 +1,7 @@
+---
+subcategory: "Programmatic API Keys"
+---
+
 # Resource: mongodbatlas_api_key_project_assignment
 
 `mongodbatlas_api_key_project_assignment` provides an API Key Project Assignment resource. The resource lets you create, edit, and delete Organization API keys assignments to projects.

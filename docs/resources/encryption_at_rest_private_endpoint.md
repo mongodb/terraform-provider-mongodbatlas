@@ -1,3 +1,7 @@
+---
+subcategory: "Encryption at Rest using Customer Key Management"
+---
+
 # Resource: mongodbatlas_encryption_at_rest_private_endpoint
 
 `mongodbatlas_encryption_at_rest_private_endpoint` provides a resource for managing a private endpoint used for encryption at rest with customer-managed keys. This ensures all traffic between Atlas and customer key management systems take place over private network interfaces.

@@ -1,3 +1,7 @@
+---
+subcategory: "Teams"
+---
+
 # Data Source: mongodbatlas_team_project_assignment
 
 `mongodbatlas_team_project_assignment` provides a Team Project Assignment data source. The data source lets you retrieve a team assigned to a project.

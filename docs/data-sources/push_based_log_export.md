@@ -1,3 +1,7 @@
+---
+subcategory: "Push-Based Log Export"
+---
+
 # Data Source: mongodbatlas_push_based_log_export
 
 `mongodbatlas_push_based_log_export` describes the configured project level settings for the push-based log export feature.

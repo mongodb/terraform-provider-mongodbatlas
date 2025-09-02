@@ -1,3 +1,7 @@
+---
+subcategory: "Flex Clusters"
+---
+
 # Resource: mongodbatlas_flex_cluster
 
 `mongodbatlas_flex_cluster` provides a Flex Cluster resource. The resource lets you create, update, delete and import a flex cluster.

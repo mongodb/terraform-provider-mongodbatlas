@@ -1,3 +1,7 @@
+---
+subcategory: "Clusters"
+---
+
 # Resource: mongodbatlas_advanced_cluster
 
 `mongodbatlas_advanced_cluster` provides an Advanced Cluster resource. The resource lets you create, edit and delete advanced clusters.
