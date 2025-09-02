@@ -58,8 +58,8 @@ data "mongodbatlas_organizations" "test" {
 * `mobile_number` - Mobile phone number that belongs to the MongoDB Cloud user.
 
 
-~> **NOTE:** - Users with pending invitations created using [`mongodbatlas_project_invitation`](../resources/project_invitation.md) resource or via the deprecated [Invite One MongoDB Cloud User to Join One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprojectinvitation) endpoint are excluded (or cannot be managed) with this resource. See  [MongoDB Atlas API]<link-to-resource-API> for details. 
-To manage these users with this resource/data source, refer to our [migration guide]<link-to-migration-guide>.
+~> **NOTE:** - Users with pending invitations created using [`mongodbatlas_project_invitation`](../resources/project_invitation.md) resource or via the deprecated [Invite One MongoDB Cloud User to Join One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprojectinvitation) endpoint are excluded (or cannot be managed) with this resource. See [MongoDB Atlas API - MongoDB Cloud Users](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-mongodb-cloud-users) for details.
+To manage these users with this resource/data source, refer to our [Org Invitation to Cloud User Org Assignment Migration Guide](../guides/org-invitation-to-cloud-user-org-assignment-migration-guide).
 
 
 ~> **NOTE:** - If you create an organization with our Terraform provider version >=1.30.0, this field is set to `true` by default.<br> - If you have an existing organization created with our Terraform provider version <1.30.0, this field might be `false`, which is the [API default value](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createorganization). To prevent the creation of future default alerts, set this explicitly to `true` using the [`mongodbatlas_organization`](../resources/organization.md) resource.
