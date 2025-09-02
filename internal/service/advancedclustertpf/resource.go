@@ -118,7 +118,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	latestReq := normalizeFromTFModel(ctx, &plan, diags)
+	latestReq := newAtlasReq(ctx, &plan, diags)
 	if diags.HasError() {
 		return
 	}
@@ -206,7 +206,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 	if flexCluster != nil {
-		newFlexClusterModel := NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(normalizeFromTFModel(ctx, &state, diags).ReplicationSpecs), &state)
+		newFlexClusterModel := NewTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(newAtlasReq(ctx, &state, diags).ReplicationSpecs), &state)
 		if diags.HasError() {
 			return
 		}
@@ -279,7 +279,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		clusterResp, flexResp = GetClusterDetails(ctx, diags, waitParams.ProjectID, waitParams.ClusterName, r.Client, false)
 		// This should never happen since the switch case should handle the two flex cases (update/upgrade) and return, but keeping it here for safety.
 		if flexResp != nil {
-			flexPriority := GetPriorityOfFlexReplicationSpecs(normalizeFromTFModel(ctx, &plan, diags).ReplicationSpecs)
+			flexPriority := GetPriorityOfFlexReplicationSpecs(newAtlasReq(ctx, &plan, diags).ReplicationSpecs)
 			if flexOut := NewTFModelFlexResource(ctx, diags, flexResp, flexPriority, &plan); flexOut != nil {
 				diags.Append(resp.State.Set(ctx, flexOut)...)
 			}
@@ -473,8 +473,8 @@ func (c *clusterDiff) isAnyUpgrade() bool {
 
 // findClusterDiff should be called only in Update, e.g. it will fail for a flex cluster with no changes.
 func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diagnostics) clusterDiff {
-	stateReq := normalizeFromTFModel(ctx, state, diags)
-	planReq := normalizeFromTFModel(ctx, plan, diags)
+	stateReq := newAtlasReq(ctx, state, diags)
+	planReq := newAtlasReq(ctx, plan, diags)
 	if diags.HasError() {
 		return clusterDiff{}
 	}
@@ -510,7 +510,7 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 }
 
 func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, plan *TFModel) *TFModel {
-	configReq := normalizeFromTFModel(ctx, plan, diags)
+	configReq := newAtlasReq(ctx, plan, diags)
 	if diags.HasError() {
 		return nil
 	}
@@ -522,7 +522,7 @@ func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *con
 }
 
 func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, plan *TFModel) *TFModel {
-	configReq := normalizeFromTFModel(ctx, plan, diags)
+	configReq := newAtlasReq(ctx, plan, diags)
 	if diags.HasError() {
 		return nil
 	}

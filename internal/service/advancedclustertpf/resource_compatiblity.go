@@ -1,11 +1,6 @@
 package advancedclustertpf
 
 import (
-	"context"
-
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
-
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -36,13 +31,4 @@ func overrideMapStringWithPrevStateValue(mapIn, mapOut *types.Map) {
 	} else {
 		*mapOut = types.MapValueMust(types.StringType, nil)
 	}
-}
-
-// TODO: this should be removed, can directly use NewAtlasReq instead of normalizeFromTFModel
-func normalizeFromTFModel(ctx context.Context, model *TFModel, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
-	latestModel := NewAtlasReq(ctx, model, diags)
-	if diags.HasError() {
-		return nil
-	}
-	return latestModel
 }
