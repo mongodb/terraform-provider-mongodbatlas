@@ -223,8 +223,9 @@ func resourceCloudProviderAccessSetupDelete(ctx context.Context, d *schema.Resou
 }
 
 func roleToSchemaSetup(role *admin.CloudProviderAccessRole) (map[string]any, error) {
-	if role.ProviderName == "AWS" {
-		out := map[string]any{
+	switch role.ProviderName {
+	case "AWS":
+		return map[string]any{
 			"provider_name": role.GetProviderName(),
 			"aws_config": []any{map[string]any{
 				"atlas_aws_account_arn":          role.GetAtlasAWSAccountArn(),
@@ -233,10 +234,9 @@ func roleToSchemaSetup(role *admin.CloudProviderAccessRole) (map[string]any, err
 			"gcp_config":   []any{map[string]any{}},
 			"created_date": conversion.TimeToString(role.GetCreatedDate()),
 			"role_id":      role.GetRoleId(),
-		}
-		return out, nil
-	} else if role.ProviderName == "AZURE" {
-		out := map[string]any{
+		}, nil
+	case "AZURE":
+		return map[string]any{
 			"provider_name": role.ProviderName,
 			"azure_config": []any{map[string]any{
 				"atlas_azure_app_id":   role.GetAtlasAzureAppId(),
@@ -248,10 +248,9 @@ func roleToSchemaSetup(role *admin.CloudProviderAccessRole) (map[string]any, err
 			"created_date":      conversion.TimeToString(role.GetCreatedDate()),
 			"last_updated_date": conversion.TimeToString(role.GetLastUpdatedDate()),
 			"role_id":           role.GetId(),
-		}
-		return out, nil
-	} else if role.ProviderName == "GCP" {
-		out := map[string]any{
+		}, nil
+	case "GCP":
+		return map[string]any{
 			"provider_name": role.GetProviderName(),
 			"gcp_config": []any{map[string]any{
 				"status":                    role.GetStatus(),
@@ -260,9 +259,8 @@ func roleToSchemaSetup(role *admin.CloudProviderAccessRole) (map[string]any, err
 			"aws_config":   []any{map[string]any{}},
 			"role_id":      role.GetId(),
 			"created_date": conversion.TimeToString(role.GetCreatedDate()),
-		}
-		return out, nil
-	} else {
+		}, nil
+	default:
 		return nil, fmt.Errorf("unsupported provider: %s", role.GetProviderName())
 	}
 }
