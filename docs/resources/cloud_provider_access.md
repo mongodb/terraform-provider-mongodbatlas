@@ -135,7 +135,10 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 Conditional 
 * `aws`
    * `iam_assumed_role_arn` - (Required) ARN of the IAM Role that Atlas assumes when accessing resources in your AWS account. This value is required after the creation (register of the role) as part of [Set Up Unified AWS Access](https://docs.atlas.mongodb.com/security/set-up-unified-aws-access/#set-up-unified-aws-access).
-   
+* `azure`
+   * `atlas_azure_app_id` - (Required) Azure Active Directory Application ID of Atlas.
+   * `service_principal_id` - (Required) UUID string that identifies the Azure Service Principal.
+   * `tenant_id` - (Required) UUID String that identifies the Azure Active Directory Tenant ID.
 
 ## Attributes Reference
 
