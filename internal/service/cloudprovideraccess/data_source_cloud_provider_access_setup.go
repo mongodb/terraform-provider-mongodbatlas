@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -20,9 +19,8 @@ func DataSourceSetup() *schema.Resource {
 				Required: true,
 			},
 			"provider_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{"AWS", "AZURE", "GCP"}, false),
+				Type:     schema.TypeString,
+				Required: true,
 			},
 			"role_id": {
 				Type:     schema.TypeString,

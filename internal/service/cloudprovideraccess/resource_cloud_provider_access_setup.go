@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
@@ -46,10 +45,9 @@ func ResourceSetup() *schema.Resource {
 				Required: true,
 			},
 			"provider_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{constant.AWS, constant.AZURE, constant.GCP}, false),
-				ForceNew:     true,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 			"aws_config": {
 				Type:     schema.TypeList,
@@ -219,47 +217,39 @@ func resourceCloudProviderAccessSetupDelete(ctx context.Context, d *schema.Resou
 }
 
 func roleToSchemaSetup(role *admin.CloudProviderAccessRole) map[string]any {
-	if role.ProviderName == "AWS" {
-		out := map[string]any{
-			"provider_name": role.GetProviderName(),
-			"aws_config": []any{map[string]any{
-				"atlas_aws_account_arn":          role.GetAtlasAWSAccountArn(),
-				"atlas_assumed_role_external_id": role.GetAtlasAssumedRoleExternalId(),
-			}},
-			"gcp_config":   []any{map[string]any{}},
-			"created_date": conversion.TimeToString(role.GetCreatedDate()),
-			"role_id":      role.GetRoleId(),
-		}
-		return out
-	}
-	if role.ProviderName == "AZURE" {
-		out := map[string]any{
-			"provider_name": role.ProviderName,
-			"azure_config": []any{map[string]any{
-				"atlas_azure_app_id":   role.GetAtlasAzureAppId(),
-				"service_principal_id": role.GetServicePrincipalId(),
-				"tenant_id":            role.GetTenantId(),
-			}},
-			"aws_config":        []any{map[string]any{}},
-			"gcp_config":        []any{map[string]any{}},
-			"created_date":      conversion.TimeToString(role.GetCreatedDate()),
-			"last_updated_date": conversion.TimeToString(role.GetLastUpdatedDate()),
-			"role_id":           role.GetId(),
-		}
-		return out
-	}
+	out := map[string]any{}
 
-	out := map[string]any{
-		"provider_name": role.ProviderName,
-		"role_id":       role.GetId(),
-		"gcp_config": []any{map[string]any{
+	if role.ProviderName == "AWS" {
+		out["provider_name"] = role.GetProviderName()
+		out["aws_config"] = []any{map[string]any{
+			"atlas_aws_account_arn":          role.GetAtlasAWSAccountArn(),
+			"atlas_assumed_role_external_id": role.GetAtlasAssumedRoleExternalId(),
+		}}
+		out["gcp_config"] = []any{map[string]any{}}
+		out["created_date"] = conversion.TimeToString(role.GetCreatedDate())
+		out["role_id"] = role.GetRoleId()
+	} else if role.ProviderName == "AZURE" {
+		out["provider_name"] = role.GetProviderName()
+		out["azure_config"] = []any{map[string]any{
+			"atlas_azure_app_id":   role.GetAtlasAzureAppId(),
+			"service_principal_id": role.GetServicePrincipalId(),
+			"tenant_id":            role.GetTenantId(),
+		}}
+		out["aws_config"] = []any{map[string]any{}}
+		out["gcp_config"] = []any{map[string]any{}}
+		out["created_date"] = conversion.TimeToString(role.GetCreatedDate())
+		out["last_updated_date"] = conversion.TimeToString(role.GetLastUpdatedDate())
+		out["role_id"] = role.GetId()
+	} else if role.ProviderName == "GCP" {
+		out["provider_name"] = role.GetProviderName()
+		out["gcp_config"] = []any{map[string]any{
 			"status":                    role.GetStatus(),
 			"service_account_for_atlas": role.GetGcpServiceAccountForAtlas(),
-		}},
-		"aws_config":   []any{map[string]any{}},
-		"created_date": conversion.TimeToString(role.GetCreatedDate()),
+		}}
+		out["role_id"] = role.GetId()
+		out["aws_config"] = []any{map[string]any{}}
+		out["created_date"] = conversion.TimeToString(role.GetCreatedDate())
 	}
-
 	return out
 }
 

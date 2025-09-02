@@ -71,7 +71,7 @@ resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
    * `atlas_assumed_role_external_id` - Unique external ID Atlas uses when assuming the IAM role in your AWS account.
    * `atlas_aws_account_arn`          - ARN associated with the Atlas AWS account used to assume IAM roles in your AWS account.
 * `gcp_config` - gcp related configuration
-  * `status` - The status of the GCP cloud provider access setup (e.g., `IN_PROGRESS`, `COMPLETE`, `FAILED`, `NOT_INITIATED`).
+  * `status` - The status of the GCP cloud provider access setup. See [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getgroupcloudprovideraccess#operation-getgroupcloudprovideraccess-200-body-application-vnd-atlas-2023-01-01-json-gcp-object-status).
   * `service_account_for_atlas` - The GCP service account email that Atlas uses.
 * `created_date`                   - Date on which this role was created.
 * `last_updated_date`                - Date and time when this Azure Service Principal was last updated. This parameter expresses its value in the ISO 8601 timestamp format in UTC.

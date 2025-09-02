@@ -71,7 +71,7 @@ In addition to all arguments above, the following attributes are exported:
    * `service_principal_id`- UUID string that identifies the Azure Service Principal.
    * `tenant_id`          - UUID String that identifies the Azure Active Directory Tenant ID.
  * `gcp_config` - gcp related configurations
-   * `status` - The status of the GCP cloud provider access setup (e.g., `IN_PROGRESS`, `COMPLETE`, `FAILED`, `NOT INITIATED`).
+   * `status` - The status of the GCP cloud provider access setup. See [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getgroupcloudprovideraccess#operation-getgroupcloudprovideraccess-200-body-application-vnd-atlas-2023-01-01-json-gcp-object-status).
    * `service_account_for_atlas` - The GCP service account email that Atlas uses.
 * `created_date`  - Date on which this role was created.
 * `last_updated_date`                - Date and time when this Azure Service Principal was last updated. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
