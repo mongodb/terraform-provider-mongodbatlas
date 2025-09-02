@@ -198,6 +198,7 @@ func roleToSchemaAuthorization(role *admin.CloudProviderAccessRole) map[string]a
 			"iam_assumed_role_arn": role.GetIamAssumedRoleArn(),
 		}},
 		"authorized_date": conversion.TimeToString(role.GetAuthorizedDate()),
+		"gcp":             []any{map[string]any{}},
 	}
 
 	if role.ProviderName == "AZURE" {
@@ -209,6 +210,7 @@ func roleToSchemaAuthorization(role *admin.CloudProviderAccessRole) map[string]a
 				"tenant_id":            role.GetTenantId(),
 			}},
 			"authorized_date": conversion.TimeToString(role.GetAuthorizedDate()),
+			"gcp":             []any{map[string]any{}},
 		}
 	}
 	if role.ProviderName == "GCP" {
