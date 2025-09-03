@@ -22,14 +22,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"project_id": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
-					customplanmodifier.CreateOnlyStringPlanModifier(),
+					customplanmodifier.CreateOnlyAttributePlanModifier(),
 				},
 				MarkdownDescription: "Unique 24-hexadecimal character string that identifies the project.",
 			},
 			"name": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
-					customplanmodifier.CreateOnlyStringPlanModifier(),
+					customplanmodifier.CreateOnlyAttributePlanModifier(),
 				},
 				MarkdownDescription: "Human-readable label that identifies the instance.",
 			},
@@ -38,7 +38,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"backing_provider_name": schema.StringAttribute{
 						Required: true,
 						PlanModifiers: []planmodifier.String{
-							customplanmodifier.CreateOnlyStringPlanModifier(),
+							customplanmodifier.CreateOnlyAttributePlanModifier(),
 						},
 						MarkdownDescription: "Cloud service provider on which MongoDB Cloud provisioned the flex cluster.",
 					},
@@ -59,7 +59,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"region_name": schema.StringAttribute{
 						Required: true,
 						PlanModifiers: []planmodifier.String{
-							customplanmodifier.CreateOnlyStringPlanModifier(),
+							customplanmodifier.CreateOnlyAttributePlanModifier(),
 						},
 						MarkdownDescription: "Human-readable label that identifies the geographic location of your MongoDB flex cluster. The region you choose can affect network latency for clients accessing your databases. For a complete list of region names, see [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/#std-label-amazon-aws), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), and [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).",
 					},
