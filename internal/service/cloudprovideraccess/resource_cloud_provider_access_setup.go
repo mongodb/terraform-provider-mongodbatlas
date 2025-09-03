@@ -150,7 +150,6 @@ func resourceCloudProviderAccessSetupRead(ctx context.Context, d *schema.Resourc
 }
 
 func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
 	conn := meta.(*config.MongoDBClient).AtlasV2
@@ -182,7 +181,6 @@ func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.Resou
 	}
 
 	if role.ProviderName == constant.GCP {
-		// Long running operation only needs to be setup if role.ProviderName == constant.GCP
 		requestParams := &admin.GetCloudProviderAccessRoleApiParams{
 			RoleId:  resourceID,
 			GroupId: projectID,
@@ -191,7 +189,7 @@ func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.Resou
 		stateConf := retry.StateChangeConf{
 			Pending:    []string{"IN_PROGRESS", "NOT_INITIATED"},
 			Target:     []string{"COMPLETE", "FAILED"},
-			Refresh:    resourceRefreshFunc(ctx, requestParams, connV2),
+			Refresh:    resourceRefreshFunc(ctx, requestParams, conn),
 			Timeout:    defaultTimeout,
 			MinTimeout: 60 * time.Second,
 			Delay:      30 * time.Second,
@@ -230,9 +228,9 @@ func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.Resou
 	return nil
 }
 
-func resourceRefreshFunc(ctx context.Context, requestParams *admin.GetCloudProviderAccessRoleApiParams, connV2 *admin.APIClient) retry.StateRefreshFunc {
+func resourceRefreshFunc(ctx context.Context, requestParams *admin.GetCloudProviderAccessRoleApiParams, conn *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		roleId, resp, err := connV2.CloudProviderAccessApi.GetCloudProviderAccessRoleWithParams(ctx, requestParams).Execute()
+		role, resp, err := conn.CloudProviderAccessApi.GetCloudProviderAccessRoleWithParams(ctx, requestParams).Execute()
 		if err != nil {
 			return nil, "FAILED", err
 		}
@@ -241,12 +239,12 @@ func resourceRefreshFunc(ctx context.Context, requestParams *admin.GetCloudProvi
 			return nil, "FAILED", fmt.Errorf("cloud provider access role %q not found in project %q", requestParams.RoleId, requestParams.GroupId)
 		}
 
-		status := roleId.GetStatus()
+		status := role.GetStatus()
 		switch status {
 		case "IN_PROGRESS", "NOT_INITIATED":
-			return roleId, status, nil
+			return role, status, nil
 		case "COMPLETE":
-			return roleId, status, nil
+			return role, status, nil
 		case "FAILED":
 			return nil, status, fmt.Errorf("cloud provider access setup failed for role %q", requestParams.RoleId)
 		default:
