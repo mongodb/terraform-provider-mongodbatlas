@@ -69,7 +69,7 @@ resource "mongodbatlas_data_lake_pipeline" "pipeline" {
 ```
 
 ### Further Examples
-- [Data Lake Pipeline](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_data_lake_pipeline)
+- [Data Lake Pipeline](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/mongodbatlas_data_lake_pipeline)
 
 ## Argument Reference
 

@@ -50,7 +50,7 @@ resource "mongodbatlas_project" "test" {
 ```
 
 ### Further Examples
-- [Atlas Project with custom limits](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_project)
+- [Atlas Project with custom limits](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/mongodbatlas_project)
 
 ## Argument Reference
 
