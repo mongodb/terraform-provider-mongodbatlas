@@ -47,6 +47,13 @@ func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
 				},
 			},
 			{
+				ConfigFilename: "main_node_count_unknown.tf",
+				Checks: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
+					plancheck.ExpectUnknownValue(resourceName, regionConfig0.AtMapKey("read_only_specs").AtMapKey("node_count")),
+				},
+			},
+			{
 				ConfigFilename: "main_removed_blocks_from_config_and_instance_change.tf",
 				Checks: []plancheck.PlanCheck{
 					plancheck.ExpectResourceAction(resourceName, plancheck.ResourceActionUpdate),
