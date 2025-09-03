@@ -1,3 +1,7 @@
+---
+subcategory: "Cloud Provider Access"
+---
+
 # Resource: Cloud Provider Access Configuration Paths
 
 The Terraform MongoDB Atlas Provider offers the following path to perform an authorization for a cloud provider role -
@@ -54,6 +58,10 @@ resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
 }
 
 ```
+
+### Further Examples
+- [AWS Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_provider_access/aws)
+- [Azure Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_provider_access/azure)
 
 ## Argument Reference
 

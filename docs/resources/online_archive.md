@@ -1,3 +1,7 @@
+---
+subcategory: "Online Archive"
+---
+
 # Resource: mongodbatlas_online_archive
 
 `mongodbatlas_online_archive` resource provides access to create, edit, pause and resume an online archive for a collection. 
@@ -102,6 +106,8 @@ resource "mongodbatlas_online_archive" "test" {
     }
 }
 ```
+### Further Examples
+- [Online Archive Example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_online_archive)
 
 ## Argument Reference
 * `project_id` - (Required) The unique ID for the project

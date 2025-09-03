@@ -1,3 +1,7 @@
+---
+subcategory: "Data Federation"
+---
+
 # Resource: mongodbatlas_federated_database_instance
 
 `mongodbatlas_federated_database_instance` provides a Federated Database Instance resource.
@@ -34,6 +38,10 @@ resource "mongodbatlas_federated_database_instance" "test" {
   }
 }
 ```
+
+### Further Examples
+- [AWS Federated Database Instance](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_federated_database_instance/aws)
+- [Azure Federated Database Instance](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_federated_database_instance/azure)
 
 ## Example Usages with Amazon S3 bucket as storage database
 

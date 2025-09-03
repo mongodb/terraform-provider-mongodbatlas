@@ -1,3 +1,7 @@
+---
+subcategory: "Private Endpoint Services"
+---
+
 # Resource: private_endpoint_regional_mode
 
 `mongodbatlas_private_endpoint_regional_mode` provides a Private Endpoint Regional Mode resource. This represents a regionalized private endpoint setting for a Project. Enable it to allow region specific private endpoints.
@@ -119,6 +123,9 @@ resource "aws_vpc_endpoint" "test_east" {
 }
 
 ```
+
+### Further Examples
+- [AWS PrivateLink Geosharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/aws/cluster-geosharded)
 
 ## Argument Reference
 * `project_id` - (Required) Unique identifier for the project.

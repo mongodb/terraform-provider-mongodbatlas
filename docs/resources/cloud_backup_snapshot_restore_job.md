@@ -1,3 +1,7 @@
+---
+subcategory: "Cloud Backups"
+---
+
 # Resource: mongodbatlas_cloud_backup_snapshot_restore_job
 
 `mongodbatlas_cloud_backup_snapshot_restore_job` provides a resource to create a new restore job from a cloud backup snapshot of a specified cluster. The restore job must define one of three delivery types:
@@ -139,7 +143,7 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 }
 ```
 
-### Available complete examples
+### Further Examples
 - [Restore from backup snapshot at point in time](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_snapshot_restore_job/point-in-time)
 - [Restore from backup snapshot using an advanced cluster resource](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_snapshot_restore_job/point-in-time-advanced-cluster)
 

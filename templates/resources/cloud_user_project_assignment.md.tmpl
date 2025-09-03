@@ -1,3 +1,7 @@
+---
+subcategory: "MongoDB Cloud Users"
+---
+
 # {{.Type}}: {{.Name}}
 
 `{{.Name}}` provides a Cloud User Project Assignment resource. It lets you manage the association between a cloud user and a project, enabling you to import, assign, remove, or update the user's membership.
@@ -14,6 +18,9 @@ To manage such users with this resource, refer to our [Project Invitation to Clo
 ## Example Usages
 
 {{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+### Further Examples
+- [Cloud User Project Assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_user_project_assignment)
 
 {{ .SchemaMarkdown | trimspace }}
 

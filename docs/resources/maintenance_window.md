@@ -1,3 +1,7 @@
+---
+subcategory: "Maintenance Windows"
+---
+
 # Resource: mongodbatlas_maintenance_window
 
 `mongodbatlas_maintenance_window` provides a resource to schedule the maintenance window for your MongoDB Atlas Project and/or set to defer a scheduled maintenance up to two times. Please refer to [Maintenance Windows](https://www.mongodb.com/docs/atlas/tutorial/cluster-maintenance-window/#configure-maintenance-window) documentation for more details.
@@ -36,6 +40,9 @@ Once maintenance is scheduled for your cluster, you cannot change your maintenan
     defer      = true
   }
 ```
+
+### Further Examples
+- [Configure Maintenance Window](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_maintenance_window)
 
 ## Argument Reference
 

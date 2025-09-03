@@ -1,3 +1,7 @@
+---
+subcategory: "Projects"
+---
+
 # Resource: mongodbatlas_project
 
 `mongodbatlas_project` provides a Project resource. This allows project to be created.
@@ -44,6 +48,9 @@ resource "mongodbatlas_project" "test" {
   is_slow_operation_thresholding_enabled           = true
 }
 ```
+
+### Further Examples
+- [Atlas Project with custom limits](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_project)
 
 ## Argument Reference
 

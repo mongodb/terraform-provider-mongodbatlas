@@ -1,5 +1,5 @@
 ---
-subcategory: "Deprecated"    
+subcategory: "Organizations"
 ---
 
 # Resource: mongodbatlas_org_invitation
@@ -43,6 +43,9 @@ resource "mongodbatlas_org_invitation" "test1" {
   roles       = [ "ORG_MEMBER" ]
 }
 ```
+
+### Further Examples
+- [Migrate Org Invitation to Cloud User Org Assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_org_invitation_to_cloud_user_org_assignment)
 
 ## Argument Reference
 

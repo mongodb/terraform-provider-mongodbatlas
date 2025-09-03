@@ -1,9 +1,16 @@
+---
+subcategory: "Teams"
+---
+
 # {{.Type}}: {{.Name}}
 
 `{{.Name}}` provides a Team Project Assignment resource. It lets you manage the association between a team and a project, enabling you to import, assign, remove, or update the team's membership.
 ## Example Usages
 
 {{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+### Further Examples
+- [Team Project Assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_team_project_assignment)
 
 {{ .SchemaMarkdown | trimspace }}
 

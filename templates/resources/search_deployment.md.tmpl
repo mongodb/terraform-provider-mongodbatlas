@@ -1,3 +1,7 @@
+---
+subcategory: "Atlas Search"
+---
+
 # {{.Type}}: {{.Name}}
 
 `{{.Name}}` provides a Search Deployment resource. The resource lets you create, edit and delete dedicated search nodes in a cluster.
@@ -9,6 +13,9 @@
 ## Example Usages
 
 {{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+### Further Examples
+- [Atlas Cluster with dedicated Search Nodes Deployment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_search_deployment)
 
 {{ .SchemaMarkdown | trimspace }}
 

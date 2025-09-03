@@ -1,3 +1,7 @@
+---
+subcategory: "Programmatic API Keys"
+---
+
 # Data Source: mongodbatlas_api_key_project_assignment
 
 `mongodbatlas_api_key_project_assignment` describes an API Key Project Assignment.

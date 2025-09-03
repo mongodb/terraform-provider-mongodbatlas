@@ -1,3 +1,7 @@
+---
+subcategory: "Programmatic API Keys"
+---
+
 # {{.Type}}: {{.Name}}
 
 `{{.Name}}` provides an API Key Project Assignment resource. The resource lets you create, edit, and delete Organization API keys assignments to projects.
@@ -5,6 +9,9 @@
 ## Example Usages
 
 {{ tffile "examples/mongodbatlas_api_key/main.tf"}}
+
+### Further Examples
+- [Assign API Key to Project](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_api_key_assignment)
 
 {{ .SchemaMarkdown | trimspace }}
 

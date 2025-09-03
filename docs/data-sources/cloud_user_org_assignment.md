@@ -1,3 +1,7 @@
+---
+subcategory: "MongoDB Cloud Users"
+---
+
 # Data Source: mongodbatlas_cloud_user_org_assignment
 
 `mongodbatlas_cloud_user_org_assignment` provides a Cloud User Organization Assignment data source. The data source lets you retrieve a user assigned to an organization.

@@ -1,3 +1,7 @@
+---
+subcategory: "Atlas Search"
+---
+
 # Data Source: mongodbatlas_search_index
 
 `mongodbatlas_search_index` describes a single search indexes. This represents a single search index that have been created.

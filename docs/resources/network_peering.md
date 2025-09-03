@@ -1,3 +1,7 @@
+---
+subcategory: "Network Peering"
+---
+
 # Resource: mongodbatlas_network_peering
 
 `mongodbatlas_network_peering` provides a Network Peering Connection resource. The resource lets you create, edit and delete network peering connections. The resource requires your Project ID.  
@@ -324,6 +328,12 @@ resource "mongodbatlas_network_peering" "test" {
   vnet_name             = local.AZURE_VNET_NAME
 }
 ```
+
+### Further Examples
+- [AWS Network Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_network_peering/aws)
+- [Azure Network Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_network_peering/azure)
+- [GCP Network Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_network_peering/gcp)
+
 
 ## Argument Reference
 

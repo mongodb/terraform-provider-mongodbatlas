@@ -1,3 +1,7 @@
+---
+subcategory: "Flex Snapshots"
+---
+
 # Data Source: mongodbatlas_flex_snapshots
 
 `mongodbatlas_flex_snapshots` returns all snapshots of a flex cluster.

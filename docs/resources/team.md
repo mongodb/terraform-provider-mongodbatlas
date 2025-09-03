@@ -1,3 +1,7 @@
+---
+subcategory: "Teams"
+---
+
 # Resource: mongodbatlas_team
 
 `mongodbatlas_team` provides a Team resource. The resource lets you create, edit and delete Teams. Also, Teams can be assigned to multiple projects, and team members’ access to the project is determined by the team’s project role.
@@ -15,6 +19,10 @@ resource "mongodbatlas_team" "test" {
   usernames  = ["user1@email.com", "user2@email.com", "user3@email.com"]
 }
 ```
+
+### Further Examples
+- [Team and user assignment (module maintainer) v1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_user_team_assignment/module_maintainer/v1)
+- [Team and user assignment (module maintainer) v2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_user_team_assignment/module_maintainer/v2)
 
 ## Argument Reference
 
