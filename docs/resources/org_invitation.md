@@ -45,7 +45,7 @@ resource "mongodbatlas_org_invitation" "test1" {
 ```
 
 ### Further Examples
-- [Migrate Org Invitation to Cloud User Org Assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_org_invitation_to_cloud_user_org_assignment)
+- [Migrate Org Invitation to Cloud User Org Assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_org_invitation_to_cloud_user_org_assignment)
 
 ## Argument Reference
 

@@ -42,7 +42,7 @@ resource "mongodbatlas_federated_settings_identity_provider" "oidc" {
 }
 ```
 ### Further Examples
-- [Azure Federated Settings Identity Provider](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/mongodbatlas_federated_settings_identity_provider/azure)
+- [Azure Federated Settings Identity Provider](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_federated_settings_identity_provider/azure)
 
 ## Argument Reference
 
