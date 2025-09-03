@@ -6,7 +6,7 @@ subcategory: "Projects"
 
 `mongodbatlas_project_invitation` describes an invitation to a user to join an Atlas project.
 
-~> **DEPRECATION:** This data source is deprecated. Use `mongodbatlas_cloud_user_project_assignment` to read project user assignments. See the [Project Invitation to Cloud User Project Assignment Migration Guide](../guides/project-invitation-to-cloud-user-project-assignment-migration-guide).
+~> **DEPRECATION:** This data source is deprecated. Use `mongodbatlas_cloud_user_project_assignment` to read project user assignments. See the [Project Invitation to Cloud User Project Assignment Migration Guide](../guides/atlas-user-management).
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find GROUP-ID in the official documentation.
 

@@ -18,7 +18,7 @@ import (
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "resource", "mongodbatlas_cloud_user_org_assignment", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/org-invitation-to-cloud-user-org-assignment-migration-guide"),
+		DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "resource", "mongodbatlas_cloud_user_org_assignment", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/atlas-user-management"),
 		CreateContext:      resourceCreate,
 		ReadContext:        resourceRead,
 		DeleteContext:      resourceDelete,

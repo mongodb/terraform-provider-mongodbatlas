@@ -14,7 +14,7 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "data source", "mongodbatlas_cloud_user_org_assignment", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/org-invitation-to-cloud-user-org-assignment-migration-guide"),
+		DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "data source", "mongodbatlas_cloud_user_org_assignment", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/atlas-user-management"),
 		ReadContext:        dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"org_id": {

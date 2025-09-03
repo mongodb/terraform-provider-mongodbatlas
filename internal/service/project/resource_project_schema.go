@@ -153,7 +153,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 		},
 		Blocks: map[string]schema.Block{
 			"teams": schema.SetNestedBlock{
-				DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "parameter", "mongodbatlas_team_project_assignment", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/team_project_assignment_migration_guide"),
+				DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "parameter", "mongodbatlas_team_project_assignment", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/atlas-user-management"),
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"team_id": schema.StringAttribute{

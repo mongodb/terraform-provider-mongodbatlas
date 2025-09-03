@@ -6,7 +6,7 @@ subcategory: "MongoDB Cloud Users"
 
 `mongodbatlas_atlas_user` Provides a MongoDB Atlas User.
 
-~> **DEPRECATION:** This data source is deprecated. Use `mongodbatlas_cloud_user_org_assignment` to read organization user assignments. See the [Migration Guide: Migrate off deprecated `mongodbatlas_atlas_user` and `mongodbatlas_atlas_users`](../guides/atlas-user-migration-guide).
+~> **DEPRECATION:** This data source is deprecated. Use `mongodbatlas_cloud_user_org_assignment` to read organization user assignments. See the [Migration Guide: Migrate off deprecated `mongodbatlas_atlas_user` and `mongodbatlas_atlas_users`](../guides/atlas-user-management).
 
 -> **NOTE:** If you are the owner of a MongoDB Atlas organization or project, you can also retrieve the user profile for any user with membership in that organization or project.
 
@@ -38,7 +38,7 @@ data "mongodbatlas_atlas_user" "test" {
 In addition to all arguments above, the following attributes are exported:
 * `country` - Two alphabet characters that identifies MongoDB Atlas user's geographic location. This parameter uses the ISO 3166-1a2 code format.
 * `created_at` - Date and time when the current account is created. This value is in the ISO 8601 timestamp format in UTC.
-* `email_address` - **(DEPRECATED)** Email address that belongs to the MongoDB Atlas user. This attribute is deprecated and will be removed in the next major release. Please transition to `data.mongodbatlas_organization.users.username`, `data.mongodbatlas_team.users.username` or `data.mongodbatlas_project.users.username` attributes. For more details, see [Migration Guide: Migrate off deprecated `mongodbatlas_atlas_user` and `mongodbatlas_atlas_users`](../guides/atlas-user-migration-guide)."
+* `email_address` - **(DEPRECATED)** Email address that belongs to the MongoDB Atlas user. This attribute is deprecated and will be removed in the next major release. Please transition to `data.mongodbatlas_organization.users.username`, `data.mongodbatlas_team.users.username` or `data.mongodbatlas_project.users.username` attributes. For more details, see [Migration Guide: Migrate off deprecated `mongodbatlas_atlas_user` and `mongodbatlas_atlas_users`](../guides/atlas-user-management)."
 * `first_name` - First or given name that belongs to the MongoDB Atlas user.
 * `last_auth` - Date and time when the current account last authenticated. This value is in the ISO 8601 timestamp format in UTC.
 * `last_name` - Last name, family name, or surname that belongs to the MongoDB Atlas user.
