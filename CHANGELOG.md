@@ -1,5 +1,10 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_encryption_at_rest: Supports role_id in google_cloud_kms_config ([#3636](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3636))
+* resource/mongodbatlas_encryption_at_rest: Supports role_id in google_cloud_kms_config ([#3636](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3636))
+
 ## 1.40.0 (August 21, 2025)
 
 ENHANCEMENTS:
