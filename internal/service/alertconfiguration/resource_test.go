@@ -576,7 +576,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.ConnV2().AlertConfigurationsApi.GetAlertConfiguration(context.Background(), ids[alertconfiguration.EncodedIDKeyProjectID], ids[alertconfiguration.EncodedIDKeyAlertID]).Execute()
+		_, _, err := acc.ConnV2().AlertConfigurationsApi.GetAlertConfig(context.Background(), ids[alertconfiguration.EncodedIDKeyProjectID], ids[alertconfiguration.EncodedIDKeyAlertID]).Execute()
 		if err != nil {
 			return fmt.Errorf("the Alert Configuration(%s) does not exist", ids[alertconfiguration.EncodedIDKeyAlertID])
 		}
@@ -591,7 +591,7 @@ func checkDestroy() resource.TestCheckFunc {
 				continue
 			}
 			ids := conversion.DecodeStateID(rs.Primary.ID)
-			alert, _, err := acc.ConnV2().AlertConfigurationsApi.GetAlertConfiguration(context.Background(), ids[alertconfiguration.EncodedIDKeyProjectID], ids[alertconfiguration.EncodedIDKeyAlertID]).Execute()
+			alert, _, err := acc.ConnV2().AlertConfigurationsApi.GetAlertConfig(context.Background(), ids[alertconfiguration.EncodedIDKeyProjectID], ids[alertconfiguration.EncodedIDKeyAlertID]).Execute()
 			if alert != nil {
 				return fmt.Errorf("the Project Alert Configuration(%s) still exists %s", ids[alertconfiguration.EncodedIDKeyAlertID], err)
 			}
@@ -1308,7 +1308,7 @@ func checkCount(resourceName string) resource.TestCheckFunc {
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		projectID := ids["project_id"]
 
-		alertResp, _, err := acc.ConnV2().AlertConfigurationsApi.ListAlertConfigurations(context.Background(), projectID).Execute()
+		alertResp, _, err := acc.ConnV2().AlertConfigurationsApi.ListAlertConfigs(context.Background(), projectID).Execute()
 
 		if err != nil {
 			return fmt.Errorf("the Alert Configurations List for project (%s) could not be read", projectID)

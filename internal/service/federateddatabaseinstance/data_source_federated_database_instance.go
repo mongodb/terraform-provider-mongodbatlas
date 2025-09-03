@@ -279,7 +279,7 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstanceRead(ctx context.Context, d 
 	projectID := d.Get("project_id").(string)
 	name := d.Get("name").(string)
 
-	dataFederationInstance, _, err := connV2.DataFederationApi.GetFederatedDatabase(ctx, projectID, name).Execute()
+	dataFederationInstance, _, err := connV2.DataFederationApi.GetDataFederation(ctx, projectID, name).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("couldn't import data lake(%s) for project (%s), error: %s", name, projectID, err))
 	}

@@ -115,7 +115,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 	peerID := conversion.GetEncodedID(d.Get("peering_id").(string), "peer_id")
 
-	peer, resp, err := conn.NetworkPeeringApi.GetPeeringConnection(ctx, projectID, peerID).Execute()
+	peer, resp, err := conn.NetworkPeeringApi.GetGroupPeer(ctx, projectID, peerID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			return nil
@@ -172,6 +172,6 @@ func readAtlasCidrBlock(ctx context.Context, conn admin.NetworkPeeringApi, proje
 }
 
 func getContainer(ctx context.Context, conn admin.NetworkPeeringApi, projectID, containerID string) (*admin.CloudProviderContainer, error) {
-	container, _, err := conn.GetPeeringContainer(ctx, projectID, containerID).Execute()
+	container, _, err := conn.GetGroupContainer(ctx, projectID, containerID).Execute()
 	return container, err
 }

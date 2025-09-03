@@ -169,7 +169,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("no ID is set")
 		}
 		projectID := rs.Primary.ID
-		_, _, err := acc.ConnV2().PrivateEndpointServicesApi.GetRegionalizedPrivateEndpointSetting(context.Background(), projectID).Execute()
+		_, _, err := acc.ConnV2().PrivateEndpointServicesApi.GetRegionalEndpointMode(context.Background(), projectID).Execute()
 		if err == nil {
 			return nil
 		}
@@ -182,7 +182,7 @@ func checkDestroy(s *terraform.State) error {
 		if rs.Type != "mongodbatlas_private_endpoint_regional_mode" {
 			continue
 		}
-		setting, _, _ := acc.ConnV2().PrivateEndpointServicesApi.GetRegionalizedPrivateEndpointSetting(context.Background(), rs.Primary.ID).Execute()
+		setting, _, _ := acc.ConnV2().PrivateEndpointServicesApi.GetRegionalEndpointMode(context.Background(), rs.Primary.ID).Execute()
 		if setting != nil && setting.Enabled != false {
 			return fmt.Errorf("Regionalized private endpoint setting for project %q was not properly disabled", rs.Primary.ID)
 		}

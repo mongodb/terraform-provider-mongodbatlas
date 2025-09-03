@@ -62,13 +62,13 @@ func PluralDataSource() *schema.Resource {
 func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	orgID := d.Get("org_id").(string)
-	params := &admin.ListApiKeysApiParams{
+	params := &admin.ListOrgApiKeysApiParams{
 		PageNum:      conversion.IntPtr(d.Get("page_num").(int)),
 		ItemsPerPage: conversion.IntPtr(d.Get("items_per_page").(int)),
 		OrgId:        orgID,
 	}
 
-	apiKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListApiKeysWithParams(ctx, params).Execute()
+	apiKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListOrgApiKeysWithParams(ctx, params).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting api keys information: %s", err))

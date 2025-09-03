@@ -346,7 +346,7 @@ func flattenAdvancedClusters(ctx context.Context, connV220240530 *admin20240530.
 		if err != nil {
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", cluster.GetId(), err)
 		}
-		processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
+		processArgs, _, err := connV2.ClustersApi.GetProcessArgs(ctx, cluster.GetGroupId(), cluster.GetName()).Execute()
 		if err != nil {
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", cluster.GetId(), err)
 		}

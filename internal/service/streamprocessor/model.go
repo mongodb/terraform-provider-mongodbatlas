@@ -42,13 +42,13 @@ func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) 
 	return streamProcessor, nil
 }
 
-func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.ModifyStreamProcessorApiParams, diag.Diagnostics) {
+func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.UpdateStreamProcessorApiParams, diag.Diagnostics) {
 	pipeline, diags := convertPipelineToSdk(plan.Pipeline.ValueString())
 	if diags != nil {
 		return nil, diags
 	}
 
-	streamProcessorAPIParams := &admin.ModifyStreamProcessorApiParams{
+	streamProcessorAPIParams := &admin.UpdateStreamProcessorApiParams{
 		GroupId:       plan.ProjectID.ValueString(),
 		TenantName:    plan.InstanceName.ValueString(),
 		ProcessorName: plan.ProcessorName.ValueString(),

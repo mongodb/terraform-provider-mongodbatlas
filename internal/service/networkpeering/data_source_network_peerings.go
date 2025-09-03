@@ -119,7 +119,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	peers, _, err := conn.NetworkPeeringApi.ListPeeringConnections(ctx, projectID).Execute()
+	peers, _, err := conn.NetworkPeeringApi.ListGroupPeers(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting network peering connections information: %s", err))
 	}

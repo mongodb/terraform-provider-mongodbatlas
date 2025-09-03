@@ -58,7 +58,7 @@ func (r *resourcePolicyRS) ModifyPlan(ctx context.Context, req resource.ModifyPl
 		Policies: sdkPolicies,
 	}
 	connV2 := r.Client.AtlasV2
-	_, _, err := connV2.ResourcePoliciesApi.ValidateAtlasResourcePolicy(ctx, *orgID, sdkCreate).Execute()
+	_, _, err := connV2.ResourcePoliciesApi.ValidateResourcePolicies(ctx, *orgID, sdkCreate).Execute()
 	if err != nil {
 		conversion.AddJSONBodyErrorToDiagnostics(fmt.Sprintf("Policy Validation failed (name=%s): ", *name), err, &resp.Diagnostics)
 	}

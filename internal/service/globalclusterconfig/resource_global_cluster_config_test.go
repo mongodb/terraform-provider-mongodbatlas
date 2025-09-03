@@ -264,7 +264,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		config, _, err := acc.ConnV2().GlobalClustersApi.GetManagedNamespace(context.Background(), ids["project_id"], ids["cluster_name"]).Execute()
+		config, _, err := acc.ConnV2().GlobalClustersApi.GetClusterGlobalWrites(context.Background(), ids["project_id"], ids["cluster_name"]).Execute()
 		if err == nil {
 			if len(config.GetCustomZoneMapping()) > 0 || len(config.GetManagedNamespaces()) > 0 {
 				return nil
@@ -291,7 +291,7 @@ func checkDestroy(s *terraform.State) error {
 			continue
 		}
 
-		globalConfig, _, err := acc.ConnV2().GlobalClustersApi.GetManagedNamespace(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
+		globalConfig, _, err := acc.ConnV2().GlobalClustersApi.GetClusterGlobalWrites(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["cluster_name"]).Execute()
 		if err != nil {
 			if strings.Contains(err.Error(), "NOT_FOUND") {
 				return nil

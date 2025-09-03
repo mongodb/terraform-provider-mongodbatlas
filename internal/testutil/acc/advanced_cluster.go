@@ -162,7 +162,7 @@ func PopulateWithSampleDataTestCheck(projectID, clusterName string) resource.Tes
 // PopulateWithSampleData adds Sample Data to the cluster, otherwise resources like online archive or indexes won't work
 func PopulateWithSampleData(projectID, clusterName string) error {
 	ctx := context.Background()
-	jobLoad, _, err := ConnV2().ClustersApi.LoadSampleDataset(context.Background(), projectID, clusterName).Execute()
+	jobLoad, _, err := ConnV2().ClustersApi.RequestSampleDatasetLoad(context.Background(), projectID, clusterName).Execute()
 	if err != nil || jobLoad == nil {
 		return fmt.Errorf("cluster(%s:%s) loading sample data set error: %s", projectID, clusterName, err)
 	}
@@ -174,7 +174,7 @@ func PopulateWithSampleData(projectID, clusterName string) error {
 		MinTimeout: 1 * time.Minute,
 		Delay:      1 * time.Minute,
 		Refresh: func() (result any, state string, err error) {
-			job, _, err := ConnV2().ClustersApi.GetSampleDatasetLoadStatus(ctx, projectID, jobID).Execute()
+			job, _, err := ConnV2().ClustersApi.GetSampleDatasetLoad(ctx, projectID, jobID).Execute()
 			state = job.GetState()
 			return job, state, err
 		},

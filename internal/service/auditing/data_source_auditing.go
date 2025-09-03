@@ -41,7 +41,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	auditing, _, err := connV2.AuditingApi.GetAuditingConfiguration(ctx, projectID).Execute()
+	auditing, _, err := connV2.AuditingApi.GetGroupAuditLog(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorAuditingRead, projectID, err))
 	}

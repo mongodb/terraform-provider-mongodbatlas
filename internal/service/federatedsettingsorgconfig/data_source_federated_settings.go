@@ -62,7 +62,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	)
 
 	if orgIDOk {
-		org, _, err = conn.OrganizationsApi.GetOrganization(ctx, orgID.(string)).Execute()
+		org, _, err = conn.OrganizationsApi.GetOrg(ctx, orgID.(string)).Execute()
 	}
 
 	if err != nil {

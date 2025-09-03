@@ -102,7 +102,7 @@ func dataSourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *
 	projectID := d.Get("project_id").(string)
 	roleID := d.Get("role_id").(string)
 
-	role, _, err := conn.CloudProviderAccessApi.GetCloudProviderAccessRole(ctx, projectID, roleID).Execute()
+	role, _, err := conn.CloudProviderAccessApi.GetCloudProviderAccess(ctx, projectID, roleID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, err))
 	}

@@ -76,7 +76,7 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstancesRead(ctx context.Context, d
 
 	projectID := d.Get("project_id").(string)
 
-	federatedDatabaseInstances, _, err := connV2.DataFederationApi.ListFederatedDatabases(ctx, projectID).Execute()
+	federatedDatabaseInstances, _, err := connV2.DataFederationApi.ListDataFederation(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting MongoDB Atlas Federated Database Instances information: %s", err))
 	}

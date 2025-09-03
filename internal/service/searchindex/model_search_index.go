@@ -119,7 +119,7 @@ func diffSuppressJSON(k, old, newStr string, d *schema.ResourceData) bool {
 
 func resourceSearchIndexRefreshFunc(ctx context.Context, clusterName, projectID, indexID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		searchIndex, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
+		searchIndex, _, err := connV2.AtlasSearchApi.GetClusterSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 		if err != nil {
 			return nil, "ERROR", err
 		}

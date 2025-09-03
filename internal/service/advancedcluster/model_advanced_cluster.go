@@ -704,11 +704,11 @@ func flattenAdvancedReplicationSpecRegionConfigs(ctx context.Context, apiObjects
 		}
 
 		if apiObject.GetProviderName() != "TENANT" {
-			params := &admin.ListPeeringContainerByCloudProviderApiParams{
+			params := &admin.ListGroupContainersApiParams{
 				GroupId:      d.Get("project_id").(string),
 				ProviderName: apiObject.ProviderName,
 			}
-			containers, _, err := connV2.NetworkPeeringApi.ListPeeringContainerByCloudProviderWithParams(ctx, params).Execute()
+			containers, _, err := connV2.NetworkPeeringApi.ListGroupContainersWithParams(ctx, params).Execute()
 			if err != nil {
 				return nil, nil, err
 			}

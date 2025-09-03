@@ -123,7 +123,7 @@ func resourceCloudProviderAccessSetupRead(ctx context.Context, d *schema.Resourc
 	projectID := ids["project_id"]
 	roleID := ids["id"]
 
-	role, resp, err := conn.CloudProviderAccessApi.GetCloudProviderAccessRole(context.Background(), projectID, roleID).Execute()
+	role, resp, err := conn.CloudProviderAccessApi.GetCloudProviderAccess(context.Background(), projectID, roleID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -167,7 +167,7 @@ func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.Resou
 		requestParameters.SetTenantId(value.(string))
 	}
 
-	role, _, err := conn.CloudProviderAccessApi.CreateCloudProviderAccessRole(ctx, projectID, requestParameters).Execute()
+	role, _, err := conn.CloudProviderAccessApi.CreateCloudProviderAccess(ctx, projectID, requestParameters).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
 	}
@@ -206,13 +206,13 @@ func resourceCloudProviderAccessSetupDelete(ctx context.Context, d *schema.Resou
 	roleID := ids["id"]
 	providerName := ids["provider_name"]
 
-	req := &admin.DeauthorizeCloudProviderAccessRoleApiParams{
+	req := &admin.DeauthorizeProviderAccessRoleApiParams{
 		CloudProvider: providerName,
 		RoleId:        roleID,
 		GroupId:       projectID,
 	}
 
-	_, err := conn.CloudProviderAccessApi.DeauthorizeCloudProviderAccessRoleWithParams(ctx, req).Execute()
+	_, err := conn.CloudProviderAccessApi.DeauthorizeProviderAccessRoleWithParams(ctx, req).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCloudProviderAccessDelete, err))
 	}

@@ -326,7 +326,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineSetting, "transformations", name, err))
 	}
 
-	snapshots, _, err := connV2.DataLakePipelinesApi.ListPipelineSnapshots(ctx, projectID, name).Execute()
+	snapshots, _, err := connV2.DataLakePipelinesApi.GetAvailablePipelineSnapshots(ctx, projectID, name).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineRead, name, err))
 	}
@@ -335,7 +335,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineSetting, "snapshots", name, err))
 	}
 
-	ingestionSchedules, _, err := connV2.DataLakePipelinesApi.ListPipelineSchedules(ctx, projectID, name).Execute()
+	ingestionSchedules, _, err := connV2.DataLakePipelinesApi.GetAvailablePipelineSchedules(ctx, projectID, name).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineRead, name, err))
 	}
@@ -440,7 +440,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 		"name":       pipeline.GetName(),
 	}))
 
-	snapshots, _, err := connV2.DataLakePipelinesApi.ListPipelineSnapshots(ctx, projectID, name).Execute()
+	snapshots, _, err := connV2.DataLakePipelinesApi.GetAvailablePipelineSnapshots(ctx, projectID, name).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorDataLakePipelineImport, name, err)
 	}
@@ -449,7 +449,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 		return nil, fmt.Errorf(errorDataLakePipelineImportField, "snapshots", name, err)
 	}
 
-	ingestionSchedules, _, err := connV2.DataLakePipelinesApi.ListPipelineSchedules(ctx, projectID, name).Execute()
+	ingestionSchedules, _, err := connV2.DataLakePipelinesApi.GetAvailablePipelineSchedules(ctx, projectID, name).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorDataLakePipelineImport, name, err)
 	}

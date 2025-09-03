@@ -266,7 +266,7 @@ func (d *alertConfigurationDS) Read(ctx context.Context, req datasource.ReadRequ
 	outputs := alertConfigurationConfig.Output
 
 	connV2 := d.Client.AtlasV2
-	alert, _, err := connV2.AlertConfigurationsApi.GetAlertConfiguration(ctx, projectID, alertID).Execute()
+	alert, _, err := connV2.AlertConfigurationsApi.GetAlertConfig(ctx, projectID, alertID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(errorReadAlertConf, err.Error())
 		return

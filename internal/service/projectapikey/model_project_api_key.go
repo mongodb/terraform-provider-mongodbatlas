@@ -73,7 +73,7 @@ func getKeyDetails(ctx context.Context, connV2 *admin.APIClient, apiKeyID string
 	}
 	for _, role := range root.ApiKey.GetRoles() {
 		if orgID := role.GetOrgId(); orgID != "" {
-			key, _, err := connV2.ProgrammaticAPIKeysApi.GetApiKey(ctx, orgID, apiKeyID).Execute()
+			key, _, err := connV2.ProgrammaticAPIKeysApi.GetOrgApiKey(ctx, orgID, apiKeyID).Execute()
 			if err != nil {
 				if admin.IsErrorCode(err, "API_KEY_NOT_FOUND") {
 					return nil, orgID, nil

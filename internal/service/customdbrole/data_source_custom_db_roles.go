@@ -87,7 +87,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	customDBRoles, _, err := connV2.CustomDatabaseRolesApi.ListCustomDatabaseRoles(ctx, projectID).Execute()
+	customDBRoles, _, err := connV2.CustomDatabaseRolesApi.ListCustomDbRoles(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting custom db roles information: %s", err))
 	}

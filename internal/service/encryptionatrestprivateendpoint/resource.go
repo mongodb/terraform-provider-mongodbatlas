@@ -57,7 +57,7 @@ func (r *encryptionAtRestPrivateEndpointRS) Create(ctx context.Context, req reso
 	connV2 := r.Client.AtlasV2
 	projectID := earPrivateEndpointPlan.ProjectID.ValueString()
 	cloudProvider := earPrivateEndpointPlan.CloudProvider.ValueString()
-	createResp, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.CreateEncryptionAtRestPrivateEndpoint(ctx, projectID, cloudProvider, privateEndpointReq).Execute()
+	createResp, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.CreateRestPrivateEndpoint(ctx, projectID, cloudProvider, privateEndpointReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error creating resource", err.Error())
 		return
@@ -88,7 +88,7 @@ func (r *encryptionAtRestPrivateEndpointRS) Read(ctx context.Context, req resour
 	cloudProvider := earPrivateEndpointState.CloudProvider.ValueString()
 	endpointID := earPrivateEndpointState.ID.ValueString()
 
-	endpointModel, apiResp, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRestPrivateEndpoint(ctx, projectID, cloudProvider, endpointID).Execute()
+	endpointModel, apiResp, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetRestPrivateEndpoint(ctx, projectID, cloudProvider, endpointID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(apiResp) {
 			resp.State.RemoveResource(ctx)
@@ -119,7 +119,7 @@ func (r *encryptionAtRestPrivateEndpointRS) Delete(ctx context.Context, req reso
 	projectID := earPrivateEndpointState.ProjectID.ValueString()
 	cloudProvider := earPrivateEndpointState.CloudProvider.ValueString()
 	endpointID := earPrivateEndpointState.ID.ValueString()
-	if _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.RequestEncryptionAtRestPrivateEndpointDeletion(ctx, projectID, cloudProvider, endpointID).Execute(); err != nil {
+	if _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.RequestPrivateEndpointDeletion(ctx, projectID, cloudProvider, endpointID).Execute(); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}

@@ -137,7 +137,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		}
 		projectID := rs.Primary.Attributes["project_id"]
 		apiKeyID := rs.Primary.Attributes["api_key_id"]
-		apiKeys, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.ListProjectApiKeys(context.Background(), projectID).Execute()
+		apiKeys, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.ListGroupApiKeys(context.Background(), projectID).Execute()
 		if err != nil {
 			return fmt.Errorf("error fetching API Keys: %w", err)
 		}
@@ -157,7 +157,7 @@ func checkDestroy(s *terraform.State) error {
 		}
 		projectID := rs.Primary.Attributes["project_id"]
 		apiKeyID := rs.Primary.Attributes["api_key_id"]
-		apiKeys, apiResp, err := acc.ConnV2().ProgrammaticAPIKeysApi.ListProjectApiKeys(context.Background(), projectID).Execute()
+		apiKeys, apiResp, err := acc.ConnV2().ProgrammaticAPIKeysApi.ListGroupApiKeys(context.Background(), projectID).Execute()
 		if err != nil {
 			if validate.StatusNotFound(apiResp) {
 				return nil

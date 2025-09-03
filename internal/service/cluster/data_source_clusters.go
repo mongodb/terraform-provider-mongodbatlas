@@ -392,7 +392,7 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 		if err != nil {
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", clusters[i].ID, err)
 		}
-		processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, clusters[i].GroupID, clusters[i].Name).Execute()
+		processArgs, _, err := connV2.ClustersApi.GetProcessArgs(ctx, clusters[i].GroupID, clusters[i].Name).Execute()
 		if err != nil {
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", clusters[i].ID, err)
 		}

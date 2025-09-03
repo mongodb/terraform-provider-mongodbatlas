@@ -139,12 +139,12 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Description:     conversion.StringPtr(d.Get("description").(string)),
 		RetentionInDays: conversion.Pointer(d.Get("retention_in_days").(int)),
 	}
-	snapshot, _, err := connV2.CloudBackupsApi.TakeSnapshot(ctx, groupID, clusterName, params).Execute()
+	snapshot, _, err := connV2.CloudBackupsApi.TakeSnapshots(ctx, groupID, clusterName, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error taking a snapshot: %s", err))
 	}
 
-	requestParams := &admin.GetReplicaSetBackupApiParams{
+	requestParams := &admin.GetClusterBackupSnapshotApiParams{
 		GroupId:     groupID,
 		ClusterName: clusterName,
 		SnapshotId:  snapshot.GetId(),
@@ -179,7 +179,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	clusterName := ids["cluster_name"]
 	snapshotID := ids["snapshot_id"]
 
-	snapshot, resp, err := connV2.CloudBackupsApi.GetReplicaSetBackup(ctx, groupID, clusterName, snapshotID).Execute()
+	snapshot, resp, err := connV2.CloudBackupsApi.GetClusterBackupSnapshot(ctx, groupID, clusterName, snapshotID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -232,7 +232,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf("error setting `replica_set_name` for snapshot (%s): %s", snapshotID, err))
 	}
 
-	sharded, _, _ := connV2.CloudBackupsApi.GetShardedClusterBackup(ctx, groupID, clusterName, snapshotID).Execute()
+	sharded, _, _ := connV2.CloudBackupsApi.GetBackupShardedCluster(ctx, groupID, clusterName, snapshotID).Execute()
 	if sharded != nil {
 		if err = d.Set("members", flattenCloudMembers(sharded.GetMembers())); err != nil {
 			return diag.FromErr(fmt.Errorf("error setting `members` for snapshot (%s): %s", snapshotID, err))
@@ -251,7 +251,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	groupID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 	snapshotID := ids["snapshot_id"]
-	_, err := connV2.CloudBackupsApi.DeleteReplicaSetBackup(ctx, groupID, clusterName, snapshotID).Execute()
+	_, err := connV2.CloudBackupsApi.DeleteClusterBackupSnapshot(ctx, groupID, clusterName, snapshotID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting a snapshot (%s): %s", snapshotID, err))
 	}
@@ -266,7 +266,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 		return nil, err
 	}
 
-	snapshot, _, err := connV2.CloudBackupsApi.GetReplicaSetBackupWithParams(ctx, params).Execute()
+	snapshot, _, err := connV2.CloudBackupsApi.GetClusterBackupSnapshotWithParams(ctx, params).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import snapshot %s in project %s, error: %s", params.ClusterName, params.GroupId, err)
 	}
@@ -292,9 +292,9 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceRefreshFunc(ctx context.Context, requestParams *admin.GetReplicaSetBackupApiParams, connV2 *admin.APIClient) retry.StateRefreshFunc {
+func resourceRefreshFunc(ctx context.Context, requestParams *admin.GetClusterBackupSnapshotApiParams, connV2 *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		snapshot, resp, err := connV2.CloudBackupsApi.GetReplicaSetBackupWithParams(ctx, requestParams).Execute()
+		snapshot, resp, err := connV2.CloudBackupsApi.GetClusterBackupSnapshotWithParams(ctx, requestParams).Execute()
 		if err != nil {
 			return nil, "failed", err
 		}

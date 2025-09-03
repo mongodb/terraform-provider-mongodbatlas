@@ -22,7 +22,7 @@ func checkDestroyProject(conn *admin.APIClient, s *terraform.State) error {
 		if rs.Type != "mongodbatlas_project" {
 			continue
 		}
-		projectRes, _, _ := conn.ProjectsApi.GetProjectByName(context.Background(), rs.Primary.ID).Execute()
+		projectRes, _, _ := conn.ProjectsApi.GetGroupByName(context.Background(), rs.Primary.ID).Execute()
 		if projectRes != nil {
 			return fmt.Errorf("project (%s) still exists", rs.Primary.ID)
 		}

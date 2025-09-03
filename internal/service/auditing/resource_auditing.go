@@ -76,7 +76,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		auditingReq.Enabled = conversion.Pointer(enabled.(bool))
 	}
 
-	_, _, err := connV2.AuditingApi.UpdateAuditingConfiguration(ctx, projectID, auditingReq).Execute()
+	_, _, err := connV2.AuditingApi.UpdateAuditLog(ctx, projectID, auditingReq).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorAuditingCreate, projectID, err))
 	}
@@ -87,7 +87,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	auditing, resp, err := connV2.AuditingApi.GetAuditingConfiguration(ctx, d.Id()).Execute()
+	auditing, resp, err := connV2.AuditingApi.GetGroupAuditLog(ctx, d.Id()).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -132,7 +132,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		auditingReq.Enabled = conversion.Pointer(d.Get("enabled").(bool))
 	}
 
-	_, _, err := connV2.AuditingApi.UpdateAuditingConfiguration(ctx, d.Id(), auditingReq).Execute()
+	_, _, err := connV2.AuditingApi.UpdateAuditLog(ctx, d.Id(), auditingReq).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorAuditingUpdate, d.Id(), err))
 	}
@@ -145,7 +145,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	auditingReq := &admin.AuditLog{
 		Enabled: conversion.Pointer(false),
 	}
-	_, _, err := connV2.AuditingApi.UpdateAuditingConfiguration(ctx, d.Id(), auditingReq).Execute()
+	_, _, err := connV2.AuditingApi.UpdateAuditLog(ctx, d.Id(), auditingReq).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorAuditingDelete, d.Id(), err))
 	}

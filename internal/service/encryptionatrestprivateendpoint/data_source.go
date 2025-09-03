@@ -42,7 +42,7 @@ func (d *encryptionAtRestPrivateEndpointDS) Read(ctx context.Context, req dataso
 	cloudProvider := earPrivateEndpointConfig.CloudProvider.ValueString()
 	endpointID := earPrivateEndpointConfig.ID.ValueString()
 
-	endpointModel, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRestPrivateEndpoint(ctx, projectID, cloudProvider, endpointID).Execute()
+	endpointModel, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetRestPrivateEndpoint(ctx, projectID, cloudProvider, endpointID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error fetching resource", err.Error())
 		return

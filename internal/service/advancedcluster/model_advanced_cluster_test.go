@@ -135,9 +135,9 @@ func TestFlattenAdvancedReplicationSpecsOldShardingConfig(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			peeringAPI := mockadmin.NetworkPeeringApi{}
 
-			peeringAPI.EXPECT().ListPeeringContainerByCloudProviderWithParams(mock.Anything, mock.Anything).Return(admin.ListPeeringContainerByCloudProviderApiRequest{ApiService: &peeringAPI})
+			peeringAPI.EXPECT().ListGroupContainersWithParams(mock.Anything, mock.Anything).Return(admin.ListGroupContainersApiRequest{ApiService: &peeringAPI})
 			containerResult := []admin.CloudProviderContainer{{Id: conversion.StringPtr("c1"), RegionName: &regionName, ProviderName: &providerName}}
-			peeringAPI.EXPECT().ListPeeringContainerByCloudProviderExecute(mock.Anything).Return(&admin.PaginatedCloudProviderContainer{Results: &containerResult}, nil, nil)
+			peeringAPI.EXPECT().ListGroupContainersExecute(mock.Anything).Return(&admin.PaginatedCloudProviderContainer{Results: &containerResult}, nil, nil)
 
 			client := &admin.APIClient{
 				NetworkPeeringApi: &peeringAPI,

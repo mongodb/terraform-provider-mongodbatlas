@@ -195,7 +195,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 func readGlobalClusterConfig(ctx context.Context, meta any, projectID, clusterName string, d *schema.ResourceData) (notFound bool, err error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
-	resp, httpResp, err := connV2.GlobalClustersApi.GetManagedNamespace(ctx, projectID, clusterName).Execute()
+	resp, httpResp, err := connV2.GlobalClustersApi.GetClusterGlobalWrites(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if validate.StatusNotFound(httpResp) {
 			return true, nil
@@ -278,7 +278,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if v, ok := d.GetOk("custom_zone_mappings"); ok {
 		if v.(*schema.Set).Len() > 0 {
-			if _, _, err := connV2.GlobalClustersApi.DeleteAllCustomZoneMappings(ctx, projectID, clusterName).Execute(); err != nil {
+			if _, _, err := connV2.GlobalClustersApi.DeleteCustomZoneMapping(ctx, projectID, clusterName).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorGlobalClusterDelete, clusterName, err))
 			}
 		}
@@ -334,14 +334,14 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 func removeManagedNamespaces(ctx context.Context, connV2 *admin.APIClient, remove []any, projectID, clusterName string) error {
 	for _, m := range remove {
 		mn := m.(map[string]any)
-		managedNamespace := &admin.DeleteManagedNamespaceApiParams{
+		managedNamespace := &admin.DeleteManagedNamespacesApiParams{
 			Collection:  conversion.StringPtr(mn["collection"].(string)),
 			Db:          conversion.StringPtr(mn["db"].(string)),
 			ClusterName: clusterName,
 			GroupId:     projectID,
 		}
 
-		_, _, err := connV2.GlobalClustersApi.DeleteManagedNamespaceWithParams(ctx, managedNamespace).Execute()
+		_, _, err := connV2.GlobalClustersApi.DeleteManagedNamespacesWithParams(ctx, managedNamespace).Execute()
 
 		if err != nil {
 			return err
@@ -470,7 +470,7 @@ func updateCustomZoneMappings(ctx context.Context, connV2 *admin.APIClient, proj
 		if newSet.Len() != 0 {
 			return fmt.Errorf("partial deletion of custom_zone_mappings is not allowed; remove either all mappings or none")
 		}
-		if _, _, err := connV2.GlobalClustersApi.DeleteAllCustomZoneMappings(ctx, projectID, clusterName).Execute(); err != nil {
+		if _, _, err := connV2.GlobalClustersApi.DeleteCustomZoneMapping(ctx, projectID, clusterName).Execute(); err != nil {
 			return err
 		}
 	}

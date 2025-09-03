@@ -73,13 +73,13 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	orgID := d.Get("org_id").(string)
 	apiKeyID := d.Get("api_key_id").(string)
-	params := &admin.ListApiKeyAccessListsEntriesApiParams{
+	params := &admin.ListOrgAccessEntriesApiParams{
 		PageNum:      conversion.IntPtr(d.Get("page_num").(int)),
 		ItemsPerPage: conversion.IntPtr(d.Get("items_per_page").(int)),
 		OrgId:        orgID,
 		ApiUserId:    apiKeyID,
 	}
-	accessListAPIKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListApiKeyAccessListsEntriesWithParams(ctx, params).Execute()
+	accessListAPIKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListOrgAccessEntriesWithParams(ctx, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting access list api keys information: %s", err))
 	}

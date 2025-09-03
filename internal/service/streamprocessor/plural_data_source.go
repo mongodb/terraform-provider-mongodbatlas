@@ -45,12 +45,12 @@ func (d *streamProcessorsDS) Read(ctx context.Context, req datasource.ReadReques
 	projectID := streamConnectionsConfig.ProjectID.ValueString()
 	instanceName := streamConnectionsConfig.InstanceName.ValueString()
 
-	params := admin.ListStreamProcessorsApiParams{
+	params := admin.GetStreamProcessorsApiParams{
 		GroupId:    projectID,
 		TenantName: instanceName,
 	}
 	sdkProcessors, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.StreamsProcessorWithStats], *http.Response, error) {
-		request := connV2.StreamsApi.ListStreamProcessorsWithParams(ctx, &params)
+		request := connV2.StreamsApi.GetStreamProcessorsWithParams(ctx, &params)
 		request = request.PageNum(pageNum)
 		return request.Execute()
 	})

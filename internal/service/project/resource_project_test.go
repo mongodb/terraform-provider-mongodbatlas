@@ -114,17 +114,17 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			projectsMock := mockadmin.NewProjectsApi(t)
 			perfMock := mockadmin.NewPerformanceAdvisorApi(t)
 
-			teamsMock.EXPECT().ListProjectTeams(mock.Anything, mock.Anything).Return(admin.ListProjectTeamsApiRequest{ApiService: teamsMock})
-			teamsMock.EXPECT().ListProjectTeamsExecute(mock.Anything).Return(tc.teamRoleReponse.TeamRole, tc.teamRoleReponse.HTTPResponse, tc.teamRoleReponse.Err)
+			teamsMock.EXPECT().ListGroupTeams(mock.Anything, mock.Anything).Return(admin.ListGroupTeamsApiRequest{ApiService: teamsMock})
+			teamsMock.EXPECT().ListGroupTeamsExecute(mock.Anything).Return(tc.teamRoleReponse.TeamRole, tc.teamRoleReponse.HTTPResponse, tc.teamRoleReponse.Err)
 
-			projectsMock.EXPECT().ListProjectLimits(mock.Anything, mock.Anything).Return(admin.ListProjectLimitsApiRequest{ApiService: projectsMock}).Maybe()
-			projectsMock.EXPECT().ListProjectLimitsExecute(mock.Anything).Return(tc.limitResponse.Limits, tc.limitResponse.HTTPResponse, tc.limitResponse.Err).Maybe()
+			projectsMock.EXPECT().ListGroupLimits(mock.Anything, mock.Anything).Return(admin.ListGroupLimitsApiRequest{ApiService: projectsMock}).Maybe()
+			projectsMock.EXPECT().ListGroupLimitsExecute(mock.Anything).Return(tc.limitResponse.Limits, tc.limitResponse.HTTPResponse, tc.limitResponse.Err).Maybe()
 
-			projectsMock.EXPECT().GetProjectSettings(mock.Anything, mock.Anything).Return(admin.GetProjectSettingsApiRequest{ApiService: projectsMock}).Maybe()
-			projectsMock.EXPECT().GetProjectSettingsExecute(mock.Anything).Return(tc.groupResponse.GroupSettings, tc.groupResponse.HTTPResponse, tc.groupResponse.Err).Maybe()
+			projectsMock.EXPECT().GetGroupSettings(mock.Anything, mock.Anything).Return(admin.GetGroupSettingsApiRequest{ApiService: projectsMock}).Maybe()
+			projectsMock.EXPECT().GetGroupSettingsExecute(mock.Anything).Return(tc.groupResponse.GroupSettings, tc.groupResponse.HTTPResponse, tc.groupResponse.Err).Maybe()
 
-			projectsMock.EXPECT().ReturnAllIpAddresses(mock.Anything, mock.Anything).Return(admin.ReturnAllIpAddressesApiRequest{ApiService: projectsMock}).Maybe()
-			projectsMock.EXPECT().ReturnAllIpAddressesExecute(mock.Anything).Return(tc.ipAddressesResponse.IPAddresses, tc.ipAddressesResponse.HTTPResponse, tc.ipAddressesResponse.Err).Maybe()
+			projectsMock.EXPECT().GetGroupIpAddresses(mock.Anything, mock.Anything).Return(admin.GetGroupIpAddressesApiRequest{ApiService: projectsMock}).Maybe()
+			projectsMock.EXPECT().GetGroupIpAddressesExecute(mock.Anything).Return(tc.ipAddressesResponse.IPAddresses, tc.ipAddressesResponse.HTTPResponse, tc.ipAddressesResponse.Err).Maybe()
 
 			perfMock.EXPECT().GetManagedSlowMs(mock.Anything, mock.Anything).Return(admin.GetManagedSlowMsApiRequest{ApiService: perfMock}).Maybe()
 			perfMock.EXPECT().GetManagedSlowMsExecute(mock.Anything).Return(true, nil, nil).Maybe()
@@ -227,9 +227,9 @@ func TestUpdateProject(t *testing.T) {
 	for i, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			svc := mockadmin.NewProjectsApi(t)
-			svc.EXPECT().UpdateProject(mock.Anything, mock.Anything, mock.Anything).Return(admin.UpdateProjectApiRequest{ApiService: svc}).Maybe()
+			svc.EXPECT().UpdateGroup(mock.Anything, mock.Anything, mock.Anything).Return(admin.UpdateGroupApiRequest{ApiService: svc}).Maybe()
 
-			svc.EXPECT().UpdateProjectExecute(mock.Anything).Return(tc.mockResponses.Project, tc.mockResponses.HTTPResponse, tc.mockResponses.Err).Maybe()
+			svc.EXPECT().UpdateGroupExecute(mock.Anything).Return(tc.mockResponses.Project, tc.mockResponses.HTTPResponse, tc.mockResponses.Err).Maybe()
 
 			err := project.UpdateProject(t.Context(), svc, &testCases[i].projectState, &testCases[i].projectPlan)
 
@@ -334,11 +334,11 @@ func TestUpdateProjectLimits(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			svc := mockadmin.NewProjectsApi(t)
 
-			svc.EXPECT().DeleteProjectLimit(mock.Anything, mock.Anything, mock.Anything).Return(admin.DeleteProjectLimitApiRequest{ApiService: svc}).Maybe()
-			svc.EXPECT().DeleteProjectLimitExecute(mock.Anything).Return(tc.mockResponses.HTTPResponse, tc.mockResponses.Err).Maybe()
+			svc.EXPECT().DeleteGroupLimit(mock.Anything, mock.Anything, mock.Anything).Return(admin.DeleteGroupLimitApiRequest{ApiService: svc}).Maybe()
+			svc.EXPECT().DeleteGroupLimitExecute(mock.Anything).Return(tc.mockResponses.HTTPResponse, tc.mockResponses.Err).Maybe()
 
-			svc.EXPECT().SetProjectLimit(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(admin.SetProjectLimitApiRequest{ApiService: svc}).Maybe()
-			svc.EXPECT().SetProjectLimitExecute(mock.Anything).Return(nil, nil, nil).Maybe()
+			svc.EXPECT().SetGroupLimit(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(admin.SetGroupLimitApiRequest{ApiService: svc}).Maybe()
+			svc.EXPECT().SetGroupLimitExecute(mock.Anything).Return(nil, nil, nil).Maybe()
 
 			err := project.UpdateProjectLimits(t.Context(), svc, &testCases[i].projectState, &testCases[i].projectPlan)
 
@@ -427,14 +427,14 @@ func TestUpdateProjectTeams(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			svc := mockadmin.NewTeamsApi(t)
 
-			svc.EXPECT().AddAllTeamsToProject(mock.Anything, mock.Anything, mock.Anything).Return(admin.AddAllTeamsToProjectApiRequest{ApiService: svc}).Maybe()
-			svc.EXPECT().AddAllTeamsToProjectExecute(mock.Anything).Return(nil, nil, nil).Maybe()
+			svc.EXPECT().AddGroupTeams(mock.Anything, mock.Anything, mock.Anything).Return(admin.AddGroupTeamsApiRequest{ApiService: svc}).Maybe()
+			svc.EXPECT().AddGroupTeamsExecute(mock.Anything).Return(nil, nil, nil).Maybe()
 
-			svc.EXPECT().RemoveProjectTeam(mock.Anything, mock.Anything, mock.Anything).Return(admin.RemoveProjectTeamApiRequest{ApiService: svc}).Maybe()
-			svc.EXPECT().RemoveProjectTeamExecute(mock.Anything).Return(nil, nil).Maybe()
+			svc.EXPECT().RemoveGroupTeam(mock.Anything, mock.Anything, mock.Anything).Return(admin.RemoveGroupTeamApiRequest{ApiService: svc}).Maybe()
+			svc.EXPECT().RemoveGroupTeamExecute(mock.Anything).Return(nil, nil).Maybe()
 
-			svc.EXPECT().UpdateTeamRoles(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(admin.UpdateTeamRolesApiRequest{ApiService: svc}).Maybe()
-			svc.EXPECT().UpdateTeamRolesExecute(mock.Anything).Return(nil, nil, nil).Maybe()
+			svc.EXPECT().UpdateGroupTeam(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(admin.UpdateGroupTeamApiRequest{ApiService: svc}).Maybe()
+			svc.EXPECT().UpdateGroupTeamExecute(mock.Anything).Return(nil, nil, nil).Maybe()
 
 			err := project.UpdateProjectTeams(t.Context(), svc, &testCases[i].projectState, &testCases[i].projectPlan)
 
@@ -1108,13 +1108,13 @@ func TestAccProject_slowOperationReadOnly(t *testing.T) {
 
 func changeRoles(t *testing.T, orgID, projectName, roleName string) {
 	t.Helper()
-	respProject, _, _ := acc.ConnV2().ProjectsApi.GetProjectByName(t.Context(), projectName).Execute()
+	respProject, _, _ := acc.ConnV2().ProjectsApi.GetGroupByName(t.Context(), projectName).Execute()
 	projectID := respProject.GetId()
 	if projectID == "" {
 		t.Errorf("PreConfig: error finding project %s", projectName)
 	}
 	api := acc.ConnV2().ProgrammaticAPIKeysApi
-	respList, _, _ := api.ListApiKeys(t.Context(), orgID).Execute()
+	respList, _, _ := api.ListOrgApiKeys(t.Context(), orgID).Execute()
 	publicKey := os.Getenv("MONGODB_ATLAS_PUBLIC_KEY_READ_ONLY")
 	keys := respList.GetResults()
 	for _, result := range keys {
@@ -1168,7 +1168,7 @@ func checkExistsWithConn(resourceName string, conn *admin.APIClient) resource.Te
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		if _, _, err := conn.ProjectsApi.GetProjectByName(context.Background(), rs.Primary.Attributes["name"]).Execute(); err == nil {
+		if _, _, err := conn.ProjectsApi.GetGroupByName(context.Background(), rs.Primary.Attributes["name"]).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("project (%s) does not exist", rs.Primary.ID)

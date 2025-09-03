@@ -76,7 +76,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	projectID := d.Get("project_id").(string)
 	instanceName := d.Get("instance_name").(string)
 
-	privateLinkEndpoints, _, err := connV2.ServerlessPrivateEndpointsApi.ListServerlessPrivateEndpoints(ctx, projectID, instanceName).Execute()
+	privateLinkEndpoints, _, err := connV2.ServerlessPrivateEndpointsApi.ListServerlessPrivateEndpoint(ctx, projectID, instanceName).Execute()
 	if err != nil {
 		return diag.Errorf("error getting Serverless PrivateLink Endpoints Information: %s", err)
 	}

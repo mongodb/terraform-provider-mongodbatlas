@@ -52,7 +52,7 @@ func WaitSearchNodeDelete(ctx context.Context, projectID, clusterName string, cl
 
 func searchDeploymentRefreshFunc(ctx context.Context, projectID, clusterName string, client admin.AtlasSearchApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		deploymentResp, resp, err := client.GetAtlasSearchDeployment(ctx, projectID, clusterName).Execute()
+		deploymentResp, resp, err := client.GetClusterSearchDeployment(ctx, projectID, clusterName).Execute()
 		if err != nil && deploymentResp == nil && resp == nil {
 			return nil, "", err
 		}

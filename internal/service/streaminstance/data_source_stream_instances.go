@@ -44,7 +44,7 @@ func (d *streamInstancesDS) Read(ctx context.Context, req datasource.ReadRequest
 	projectID := streamInstancesConfig.ProjectID.ValueString()
 	itemsPerPage := streamInstancesConfig.ItemsPerPage.ValueInt64Pointer()
 	pageNum := streamInstancesConfig.PageNum.ValueInt64Pointer()
-	apiResp, _, err := connV2.StreamsApi.ListStreamInstancesWithParams(ctx, &admin.ListStreamInstancesApiParams{
+	apiResp, _, err := connV2.StreamsApi.ListStreamWorkspacesWithParams(ctx, &admin.ListStreamWorkspacesApiParams{
 		GroupId:      projectID,
 		ItemsPerPage: conversion.Int64PtrToIntPtr(itemsPerPage),
 		PageNum:      conversion.Int64PtrToIntPtr(pageNum),

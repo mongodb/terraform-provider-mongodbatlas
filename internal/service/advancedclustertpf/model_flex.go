@@ -142,7 +142,7 @@ func NewTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *a
 }
 
 func FlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.FlexClusterDescription20241113 {
-	if _, _, err := client.AtlasV2.ClustersApi.UpgradeSharedCluster(ctx, waitParams.ProjectID, req).Execute(); err != nil {
+	if _, _, err := client.AtlasV2.ClustersApi.UpgradeTenantUpgrade(ctx, waitParams.ProjectID, req).Execute(); err != nil {
 		diags.AddError(fmt.Sprintf(flexcluster.ErrorUpgradeFlex, req.Name), err.Error())
 		return nil
 	}

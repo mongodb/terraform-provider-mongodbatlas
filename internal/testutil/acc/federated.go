@@ -14,7 +14,7 @@ func CheckDestroyFederatedDatabaseInstance(s *terraform.State) error {
 			continue
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := ConnV2().DataFederationApi.GetFederatedDatabase(context.Background(), ids["project_id"], ids["name"]).Execute()
+		_, _, err := ConnV2().DataFederationApi.GetDataFederation(context.Background(), ids["project_id"], ids["name"]).Execute()
 		if err == nil {
 			return fmt.Errorf("federated database instance (%s) still exists", ids["project_id"])
 		}

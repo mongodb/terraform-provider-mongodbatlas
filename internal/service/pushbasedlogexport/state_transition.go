@@ -62,7 +62,7 @@ func WaitResourceDelete(ctx context.Context, projectID string, client admin.Push
 
 func refreshFunc(ctx context.Context, projectID string, client admin.PushBasedLogExportApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		logConfig, resp, err := client.GetPushBasedLogConfiguration(ctx, projectID).Execute()
+		logConfig, resp, err := client.GetLogExport(ctx, projectID).Execute()
 		if err != nil && logConfig == nil && resp == nil {
 			return nil, "", err
 		}

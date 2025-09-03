@@ -197,7 +197,7 @@ func checkDestroy(s *terraform.State) error {
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 
 		id := ids["id"]
-		role, _, err := acc.ConnV2().CloudProviderAccessApi.GetCloudProviderAccessRole(context.Background(), ids["project_id"], id).Execute()
+		role, _, err := acc.ConnV2().CloudProviderAccessApi.GetCloudProviderAccess(context.Background(), ids["project_id"], id).Execute()
 		if err != nil {
 			return fmt.Errorf(cloudprovideraccess.ErrorCloudProviderGetRead, err)
 		}

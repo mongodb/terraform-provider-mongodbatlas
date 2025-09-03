@@ -41,7 +41,7 @@ func dataSourcesRead(ctx context.Context, d *schema.ResourceData, meta any) diag
 	projectID := d.Get("project_id").(string)
 	tenantName := d.Get("tenant_name").(string)
 
-	queryLimits, _, err := conn.DataFederationApi.ReturnFederatedDatabaseQueryLimits(ctx, projectID, tenantName).Execute()
+	queryLimits, _, err := conn.DataFederationApi.ListDataFederationLimits(ctx, projectID, tenantName).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting federated database query limits for project (%s), tenant (%s), error: %s", projectID, tenantName, err))
 	}

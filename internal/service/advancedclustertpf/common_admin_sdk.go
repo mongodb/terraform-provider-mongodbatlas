@@ -80,7 +80,7 @@ func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, c
 	)
 	if !update.IsZeroValues(p.ArgsDefault) {
 		changed = true
-		advConfig, _, err = client.AtlasV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, p.ArgsDefault).Execute()
+		advConfig, _, err = client.AtlasV2.ClustersApi.UpdateProcessArgs(ctx, projectID, clusterName, p.ArgsDefault).Execute()
 		if err != nil {
 			addErrorDiag(diags, operationAdvancedConfigurationUpdate, defaultAPIErrorDetails(clusterName, err))
 			return nil, nil, false
@@ -119,7 +119,7 @@ func ReadIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnosti
 		}
 	}
 	if configNew == nil {
-		configNew, _, err = client.AtlasV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
+		configNew, _, err = client.AtlasV2.ClustersApi.GetProcessArgs(ctx, projectID, clusterName).Execute()
 		if err != nil {
 			diags.AddError(errorAdvancedConfRead, defaultAPIErrorDetails(clusterName, err))
 			return
@@ -129,7 +129,7 @@ func ReadIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnosti
 }
 
 func UpgradeTenant(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.ClusterDescription20240805 {
-	_, _, err := client.AtlasV2.ClustersApi.UpgradeSharedCluster(ctx, waitParams.ProjectID, req).Execute()
+	_, _, err := client.AtlasV2.ClustersApi.UpgradeTenantUpgrade(ctx, waitParams.ProjectID, req).Execute()
 	if err != nil {
 		addErrorDiag(diags, operationTenantUpgrade, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
@@ -138,7 +138,7 @@ func UpgradeTenant(ctx context.Context, diags *diag.Diagnostics, client *config.
 }
 
 func UpgradeFlexToDedicated(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.AtlasTenantClusterUpgradeRequest20240805) *admin.ClusterDescription20240805 {
-	_, _, err := client.AtlasV2.FlexClustersApi.UpgradeFlexCluster(ctx, waitParams.ProjectID, req).Execute()
+	_, _, err := client.AtlasV2.FlexClustersApi.TenantUpgrade(ctx, waitParams.ProjectID, req).Execute()
 	if err != nil {
 		addErrorDiag(diags, operationFlexUpgrade, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil

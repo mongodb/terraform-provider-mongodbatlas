@@ -119,14 +119,14 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
-	request := admin.ListBackupExportJobsApiParams{
+	request := admin.ListBackupExportsApiParams{
 		GroupId:      projectID,
 		ClusterName:  clusterName,
 		PageNum:      conversion.IntPtr(d.Get("page_num").(int)),
 		ItemsPerPage: conversion.IntPtr(d.Get("items_per_page").(int)),
 	}
 
-	jobs, _, err := connV2.CloudBackupsApi.ListBackupExportJobsWithParams(ctx, &request).Execute()
+	jobs, _, err := connV2.CloudBackupsApi.ListBackupExportsWithParams(ctx, &request).Execute()
 	if err != nil {
 		return diag.Errorf("error getting CloudProviderSnapshotExportJobs information: %s", err)
 	}

@@ -62,7 +62,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	projectID := d.Get("project_id").(string)
 	apiKeyID := d.Get("api_key_id").(string)
-	projectAPIKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListProjectApiKeys(ctx, projectID).Execute()
+	projectAPIKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListGroupApiKeys(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting api key information: %s", err))
 	}

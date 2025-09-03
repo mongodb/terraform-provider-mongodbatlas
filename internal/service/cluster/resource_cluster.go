@@ -583,7 +583,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if err != nil {
 				return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, advancedcluster.V20240530, cluster.Name, err))
 			}
-			_, _, err = connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.Name, &params).Execute()
+			_, _, err = connV2.ClustersApi.UpdateProcessArgs(ctx, projectID, cluster.Name, &params).Execute()
 			if err != nil {
 				return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, "", cluster.Name, err))
 			}
@@ -794,7 +794,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, advancedcluster.V20240530, clusterName, err))
 	}
-	processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
+	processArgs, _, err := connV2.ClustersApi.GetProcessArgs(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, "", clusterName, err))
 	}
@@ -1011,7 +1011,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 				}
 			}
 			if !reflect.DeepEqual(params, admin.ClusterDescriptionProcessArgs20240805{}) {
-				_, _, err = connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params).Execute()
+				_, _, err = connV2.ClustersApi.UpdateProcessArgs(ctx, projectID, clusterName, &params).Execute()
 				if err != nil {
 					return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, "", clusterName, err))
 				}

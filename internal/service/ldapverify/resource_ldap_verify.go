@@ -136,7 +136,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params.AuthzQueryTemplate = conversion.Pointer(v.(string))
 	}
 
-	ldap, _, err := connV2.LDAPConfigurationApi.VerifyLdapConfiguration(ctx, projectID, params).Execute()
+	ldap, _, err := connV2.LDAPConfigurationApi.VerifyUserSecurityLdap(ctx, projectID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCreate, projectID, err))
 	}
@@ -168,7 +168,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	requestID := ids["request_id"]
-	ldapResp, resp, err := connV2.LDAPConfigurationApi.GetLdapConfigurationStatus(context.Background(), projectID, requestID).Execute()
+	ldapResp, resp, err := connV2.LDAPConfigurationApi.GetUserSecurityVerify(context.Background(), projectID, requestID).Execute()
 	if err != nil || ldapResp == nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -228,7 +228,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	projectID := parts[0]
 	requestID := parts[1]
 
-	_, _, err := connV2.LDAPConfigurationApi.GetLdapConfigurationStatus(ctx, projectID, requestID).Execute()
+	_, _, err := connV2.LDAPConfigurationApi.GetUserSecurityVerify(ctx, projectID, requestID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorRead, requestID, err)
 	}
@@ -250,7 +250,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 
 func resourceRefreshFunc(ctx context.Context, projectID, requestID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		ldap, resp, err := connV2.LDAPConfigurationApi.GetLdapConfigurationStatus(ctx, projectID, requestID).Execute()
+		ldap, resp, err := connV2.LDAPConfigurationApi.GetUserSecurityVerify(ctx, projectID, requestID).Execute()
 		if err != nil {
 			if validate.StatusNotFound(resp) {
 				return "", "DELETED", nil
