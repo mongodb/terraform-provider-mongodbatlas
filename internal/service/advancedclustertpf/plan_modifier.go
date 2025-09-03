@@ -30,8 +30,12 @@ var (
 		"region_name":     {"container_id"},    // container_id changes based on region_name changes
 		"zone_name":       {"zone_id"},         // zone_id copy from state is not safe when
 	}
-	keepUnknownsCalls = schemafunc.KeepUnknownFuncOr(keepUnkownFuncWithNonEmptyAutoScaling)
+	keepUnknownsCalls = schemafunc.KeepUnknownFuncOr(keepUnkownFuncWithNodeCount, keepUnkownFuncWithNonEmptyAutoScaling)
 )
+
+func keepUnkownFuncWithNodeCount(name string, replacement attr.Value) bool {
+	return name == "node_count" && !replacement.Equal(types.Int64Value(0))
+}
 
 func keepUnkownFuncWithNonEmptyAutoScaling(name string, replacement attr.Value) bool {
 	autoScalingBoolValues := []string{"compute_enabled", "disk_gb_enabled", "compute_scale_down_enabled"}

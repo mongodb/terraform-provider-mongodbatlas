@@ -350,9 +350,9 @@ func TestV1xMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 
 func TestV1xMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		orgID                    = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)
-		isSDKv2     = acc.IsTestSDKv2ToTPF()
+		isSDKv2                  = acc.IsTestSDKv2ToTPF()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
