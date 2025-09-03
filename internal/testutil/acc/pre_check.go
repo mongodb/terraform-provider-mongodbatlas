@@ -155,6 +155,13 @@ func PreCheckGCPEnv(tb testing.TB) {
 	}
 }
 
+func PreCheckGCPEnvWithRole(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("GCP_ROLE_ID") == "" || os.Getenv("GCP_KEY_VERSION_RESOURCE_ID") == "" {
+		tb.Fatal("`GCP_ROLE_ID` and `GCP_KEY_VERSION_RESOURCE_ID` must be set for acceptance testing")
+	}
+}
+
 func PreCheckPeeringEnvAWS(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("AWS_ACCOUNT_ID") == "" ||
