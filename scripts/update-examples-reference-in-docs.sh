@@ -15,16 +15,20 @@ FILES=()
 # 1) docs/index.md
 FILES+=("./docs/index.md")
 
-# 2) collect docs/resources (.md), templates/resources (.md.tmpl),
-#    docs/data-sources (.md), templates/data-sources (.md.tmpl)
-TARGETS=( "./docs/resources|*.md" "./templates/resources|*.md.tmpl" "./docs/data-sources|*.md" "./templates/data-sources|*.md.tmpl" )
+# 2) collect all *.md and *.md.tmpl under docs/resources, templates/resources,
+#    docs/data-sources, and templates/data-sources
+TARGET_DIRS=(
+  "./docs/resources"
+  "./templates/resources"
+  "./docs/data-sources"
+  "./templates/data-sources"
+)
 
-for TARGET in "${TARGETS[@]}"; do
-  IFS='|' read -r DIR PATTERN <<< "$TARGET"
+for DIR in "${TARGET_DIRS[@]}"; do
   if [ -d "$DIR" ]; then
     while IFS= read -r -d '' f; do
       FILES+=("$f")
-    done < <(find "$DIR" -type f -name "$PATTERN" -print0)
+    done < <(find "$DIR" -type f \( -name "*.md" -o -name "*.md.tmpl" \) -print0)
   fi
 done
 
