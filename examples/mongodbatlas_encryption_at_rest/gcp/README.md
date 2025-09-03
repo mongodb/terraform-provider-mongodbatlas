@@ -91,7 +91,7 @@ After successful deployment, you should see outputs including:
 Unlike AWS and Azure, GCP Cloud Provider Access:
 - **No Configuration Updates**: GCP authorization only requires a role ID and has no additional configuration parameters
 - **Immutable After Creation**: Once authorized, you cannot "update" a GCP cloud provider access role
-- **New Authorization = New Resource**: If you need to change GCP settings, create a new `mongodbatlas_cloud_provider_access_setup` and `mongodbatlas_cloud_provider_access_authorization` resource
+- **New Authorization = New Resource**: If you need to change GCP settings, create a new `mongodbatlas_cloud_provider_access_setup` and `mongodbatlas_cloud_provider_access_authorization` resource and then delete the old one
 
 ### Resource Dependencies
 
