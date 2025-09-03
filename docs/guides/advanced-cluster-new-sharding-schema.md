@@ -4,7 +4,7 @@ page_title: "Migration Guide: Advanced Cluster New Sharding Configurations"
 
 # Migration Guide: Advanced Cluster New Sharding Configurations
 
-**Objective**: Use this guide to migrate your existing `advanced_cluster` resources that may be using the legacy sharding schema (i.e. using `num_shards`) to support the new sharding configurations instead. The new sharding configurations allow you to scale shards independently. Additionally, compute auto-scaling supports scaling instance sizes independently for each shard when using the new sharding configuration.
+**Objective**: Use this guide to migrate your existing `advanced_cluster` resources that may be using the legacy sharding schema _(i.e. using `num_shards` which was deprecated in v1.18.0 and removed in 2.0.0)_ to support the new sharding configurations instead. The new sharding configurations allow you to scale shards independently. Additionally, compute auto-scaling supports scaling instance sizes independently for each shard when using the new sharding configuration.
 
 Note: Once applied, the `advanced_cluster` resource making use of the new sharding configuration will not be able to transition back to the old sharding configuration.
 
@@ -418,7 +418,9 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 While the example initially defines 2 symmetric shards, auto-scaling of `electable_specs` or `analytic_specs` can lead to asymmetric shards due to changes in `instance_size`.
 
--> **NOTE:** In the following scenarios, a `mongodbatlas_advanced_cluster` using the new sharding configuration (single `replication_specs` per shard) might not have shard-level auto-scaling enabled: <br/>1. Configuration was defined prior to version 1.23.0 when auto-scaling per shard feature was released.<br/>2. Cluster was imported from a legacy schema (For example, `mongodbatlas_cluster` or `mongodbatlas_advanced_cluster` using `num_shards` > 1).<br/><br/>In these cases, you must update the cluster configuration to activate the auto-scaling per shard feature. This can be done by temporarily modifying a value like `compute_min_instance_size`.
+-> **NOTE:** In the following scenarios, a `mongodbatlas_advanced_cluster` using the new sharding configuration (single `replication_specs` per shard) might not have shard-level auto-scaling enabled: <br/>1. Configuration was defined prior to version 1.23.0 when auto-scaling per shard feature was released.<br/>2. Cluster was imported from a legacy schema (For example, `mongodbatlas_cluster` or `mongodbatlas_advanced_cluster` using `num_shards` > 1).
+<br/>3. Configuration is updated directly from a v1.x version of our provider directly to v2.0.0+ as no update is triggered.
+<br/><br/>In these cases, you must update the cluster configuration to activate the auto-scaling per shard feature. This can be done by temporarily modifying a value like `compute_min_instance_size`.
 
 -> **NOTE:** See the table [below](#resources-and-data-sources-impacted-by-independent-shard-scaling) for other impacted resources when a cluster transitions to independently scaled shards.
 

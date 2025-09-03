@@ -73,9 +73,10 @@ replication_specs = [
   }
 ]
 ```
-Additionally, `mongodbatlas_advanced_cluster` now supports only the new sharding configuration that allows scaling shards independently. If not using the new configuration already, please also see the [Migration Guide: Advanced Cluster New Sharding Configurations](advanced-cluster-new-sharding-schema#migration-sharded).
 
-3. Elements `connection_strings`, `timeouts`, `advanced_configuration`, `bi_connector_config`, `pinned_fcv`, `electable_specs`, `read_only_specs`, `analytics_specs`, `auto_scaling` and `analytics_auto_scaling` are now single attributes instead of blocks so they are an object. For example,
+3. `mongodbatlas_advanced_cluster` now supports only the new sharding configuration that allows scaling shards independently. If your configuration defines the num_shards attribute (removed in 2.0.0), please also see the [Migration Guide: Advanced Cluster New Sharding Configurations](advanced-cluster-new-sharding-schema#migration-sharded).
+
+4. Elements `connection_strings`, `timeouts`, `advanced_configuration`, `bi_connector_config`, `pinned_fcv`, `electable_specs`, `read_only_specs`, `analytics_specs`, `auto_scaling` and `analytics_auto_scaling` are now single attributes instead of blocks so they are an object. For example,
 ```terraform 
 advanced_configuration {
   default_write_concern = "majority"
@@ -108,7 +109,7 @@ output "javascript_enabled" {
 }
 ```
 
-4. Elements `tags` and `labels` are now `maps` instead of `blocks`. For example,
+5. Elements `tags` and `labels` are now `maps` instead of `blocks`. For example,
 ```terraform
 tags {
   key   = "env"
@@ -160,11 +161,9 @@ After you upgrade to v2.0.0+ from v1.x.x, when you run `terraform plan`, syntax 
 - **Step #1:** Apply definition changes [explained on this page](#configuration-changes-when-upgrading-from-v1x) until there are no errors and no planned changes. 
   - **[Recommended]** You can also use the [Atlas CLI plugin](https://github.com/mongodb-labs/atlas-cli-plugin-terraform?tab=readme-ov-file#2-advancedclustertov2-adv2v2) to generate the `mongodbatlas_advanced_cluster` resource definition. This is the recommended method as it will generate a clean configuration while keeping the original Terraform expressions. Please be aware of the [plugin limitations](https://github.com/mongodb-labs/atlas-cli-plugin-terraform/blob/main/docs/command_adv2v2.md#limitations).
 
-~> NOTE: If not using the new **sharding** configuration already, you would also need to adjust `replication_specs` as per the [Migration Guide: Advanced Cluster New Sharding Configurations](advanced-cluster-new-sharding-schema#migration-sharded).
-
 - **Step #2:** Remove any deprecated attributes (and their references) mentioned [above](#configuration-changes-when-upgrading-from-v1x). 
 
-~> NOTE:  For nested attributes that have been removed, such as `replication_specs.#.num_shards` etc, Terraform may not throw an explicit error even if these attributes are left in the configuration. This is a [known Terraform issue](https://github.com/hashicorp/terraform-plugin-framework/issues/1210). Users should ensure to remove any such attributes from the configuration to avoid any confusion.
+~> NOTE:  For nested attributes that have been removed, such as `replication_specs.#.num_shards` etc, Terraform may NOT throw an explicit error even if these attributes are left in the configuration. This is a [known Terraform issue](https://github.com/hashicorp/terraform-plugin-framework/issues/1210). Users should ensure to remove any such attributes from the configuration to avoid any confusion.
 
 ~> **IMPORTANT:** Don't apply until the plan is empty. If it shows other changes, you must update the `mongodbatlas_advanced_cluster` configuration until it matches the original configuration.
 
