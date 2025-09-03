@@ -313,7 +313,7 @@ func roleToSchemaSetup(role *admin.CloudProviderAccessRole) (map[string]any, err
 				"service_account_for_atlas": role.GetGcpServiceAccountForAtlas(),
 			}},
 			"aws_config":   []any{map[string]any{}},
-			"role_id":      role.GetId(),
+			"role_id":      role.GetRoleId(),
 			"created_date": conversion.TimeToString(role.GetCreatedDate()),
 		}, nil
 	default:
