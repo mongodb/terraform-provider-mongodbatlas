@@ -215,6 +215,32 @@ func TestAccEncryptionAtRest_basicGCP(t *testing.T) {
 	})
 }
 
+func TestAccEncryptionAtRest_basicGCPWithRole(t *testing.T) {
+	acc.SkipTestForCI(t) // needs GCP configuration
+
+	var (
+		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_ID")
+
+		googleCloudKms = admin.GoogleCloudKMS{
+			Enabled:              conversion.Pointer(true),
+			RoleId:               conversion.StringPtr(os.Getenv("GCP_ROLE_ID")),
+			KeyVersionResourceID: conversion.StringPtr(os.Getenv("GCP_KEY_VERSION_RESOURCE_ID")),
+		}
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheck(t); acc.PreCheckGCPEnvWithRole(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.EARDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configGoogleCloudKmsWithRole(projectID, &googleCloudKms, true),
+				Check:  checkEARResourceGCPWithRole(projectID),
+			},
+		},
+	})
+}
+
 func TestAccEncryptionAtRestWithRole_basicAWS(t *testing.T) {
 	acc.SkipTestForCI(t) // needs AWS configuration. This test case is similar to TestAccEncryptionAtRest_basicAWS except that it creates it's own AWS resources such as IAM roles, cloud provider access, etc so we don't need to run this in CI but may be used for local testing.
 
@@ -516,6 +542,25 @@ func configGoogleCloudKms(projectID string, google *admin.GoogleCloudKMS, useDat
 	return config
 }
 
+func configGoogleCloudKmsWithRole(projectID string, google *admin.GoogleCloudKMS, useDatasource bool) string {
+	config := fmt.Sprintf(`
+		resource "mongodbatlas_encryption_at_rest" "test" {
+			project_id = "%s"
+
+		  google_cloud_kms_config {
+				enabled                 = %t
+				role_id                 = "%s"
+				key_version_resource_id = "%s"
+			}
+		}
+	`, projectID, *google.Enabled, google.GetRoleId(), google.GetKeyVersionResourceID())
+
+	if useDatasource {
+		return fmt.Sprintf(`%s %s`, config, acc.EARDatasourceConfig())
+	}
+	return config
+}
+
 func testAccMongoDBAtlasEncryptionAtRestConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, awsKeyName string, awsEar *admin.AWSKMSConfiguration) string {
 	test := fmt.Sprintf(`
 	locals {
@@ -618,5 +663,21 @@ func checkEARResourceAWS(projectID string, enabledForSearchNodes bool, awsKmsAtt
 		resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
 		resource.TestCheckResourceAttr(datasourceName, "enabled_for_search_nodes", strconv.FormatBool(enabledForSearchNodes)),
 		acc.EARCheckResourceAttr(datasourceName, "aws_kms_config.", awsKmsAttrMap),
+	)
+}
+
+func checkEARResourceGCPWithRole(projectID string) resource.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(
+		acc.CheckEARExists(resourceName),
+		resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+		resource.TestCheckResourceAttr(resourceName, "google_cloud_kms_config.0.role_id", os.Getenv("GCP_ROLE_ID")),
+		resource.TestCheckResourceAttr(resourceName, "google_cloud_kms_config.0.enabled", "true"),
+		resource.TestCheckResourceAttr(resourceName, "google_cloud_kms_config.0.valid", "true"),
+		resource.TestCheckResourceAttrSet(resourceName, "google_cloud_kms_config.0.key_version_resource_id"),
+
+		resource.TestCheckResourceAttr(datasourceName, "project_id", projectID),
+		resource.TestCheckResourceAttr(datasourceName, "google_cloud_kms_config.enabled", "true"),
+		resource.TestCheckResourceAttr(datasourceName, "google_cloud_kms_config.valid", "true"),
+		resource.TestCheckResourceAttrSet(datasourceName, "google_cloud_kms_config.key_version_resource_id"),
 	)
 }
