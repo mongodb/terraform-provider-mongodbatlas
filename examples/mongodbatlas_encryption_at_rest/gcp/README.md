@@ -68,7 +68,7 @@ crypto_key_name  = <CRYPTO_KEY_NAME>
 location         = <GCP_LOCATION>
 ```
 
-### 4. Deploy the Infrastructure
+### 2. Deploy the Infrastructure
 
 ```bash
 terraform init
@@ -76,7 +76,7 @@ terraform plan
 terraform apply
 ```
 
-### 5. Verify the Setup
+### 3. Verify the Setup
 
 After successful deployment, you should see outputs including:
 - Atlas role ID

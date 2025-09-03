@@ -14,11 +14,11 @@ resource "mongodbatlas_encryption_at_rest" "test" {
   google_cloud_kms_config {
     enabled                 = true
     key_version_resource_id = google_kms_crypto_key.crypto_key.primary[0].name
-    role_id = mongodbatlas_cloud_provider_access_authorization.this.role_id
+    role_id                 = mongodbatlas_cloud_provider_access_authorization.this.role_id
   }
 
-  depends_on = [ 
-	google_kms_crypto_key_iam_binding.encrypter_decrypter_binding, 
-	google_kms_crypto_key_iam_binding.viewer_binding 
-]
+  depends_on = [
+    google_kms_crypto_key_iam_binding.encrypter_decrypter_binding,
+    google_kms_crypto_key_iam_binding.viewer_binding
+  ]
 }
