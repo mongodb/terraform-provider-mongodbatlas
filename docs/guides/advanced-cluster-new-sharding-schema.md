@@ -91,7 +91,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 ### Migrate advanced_cluster type `GEOSHARDED`
 
-Consider the following configuration of a `GEOSHARDED` cluster using the deprecated (now removed) `num_shards`:
+Consider the following configuration of a `GEOSHARDED` cluster using the deprecated (removed in v2.0.0) `num_shards`:
 
 ```
 resource "mongodbatlas_advanced_cluster" "test" {
