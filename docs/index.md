@@ -20,9 +20,9 @@ provider "mongodbatlas" {
 
 ### Provider and terraform version constraints
 
-We recommend pinning the [provider version](https://developer.hashicorp.com/terraform/language/providers/requirements#version) of the Atlas Provider to at least the [major version](#versioning-strategy) (e.g. `~> 2.0`) to avoid accidental upgrades to incompatible new versions. From version `2.0.0` onwards our [MongoDB Atlas Provider Versioning Policy](#mongodb-atlas-provider-versioning-policy) ensures minor and patch versions do not include [Breaking Changes](#definition-of-breaking-changes). 
+We recommend that you pin your Atlas [provider version](https://developer.hashicorp.com/terraform/language/providers/requirements#version) to at least the [major version](#versioning-strategy) (e.g. `~> 2.0`) to avoid accidental upgrades to incompatible new versions. Starting on `2.0.0`, the [MongoDB Atlas Provider Versioning Policy](#mongodb-atlas-provider-versioning-policy) ensures that minor and patch versions do not include [Breaking Changes](#definition-of-breaking-changes). 
 
-Regarding the terraform version we recommend using the latest [HashiCorp Terraform Core Version](https://github.com/hashicorp/terraform). For more details see [HashiCorp Terraform Version Compatibility Matrix](#hashicorp-terraform-version-compatibility-matrix).
+For Terraform version, we recommend that you use the latest [HashiCorp Terraform Core Version](https://github.com/hashicorp/terraform). For more details see [HashiCorp Terraform Version Compatibility Matrix](#hashicorp-terraform-version-compatibility-matrix).
 
 ## Configure Atlas Programmatic Access
 
