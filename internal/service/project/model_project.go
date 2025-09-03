@@ -8,14 +8,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
 func UsersProjectSchema() schema.ListNestedAttribute {
@@ -84,7 +83,7 @@ func dataSourceOverridenFields() map[string]schema.Attribute {
 		},
 		"users": UsersProjectSchema(),
 		"teams": schema.ListNestedAttribute{
-			DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "parameter", "mongodbatlas_team_project_assignment", "[Migration Guide: Project Teams Attribute to Team Project Assignment Resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/team_project_assignment_migration_guide)"),
+			DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "parameter", "mongodbatlas_team_project_assignment", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/team_project_assignment_migration_guide"),
 			Computed:           true,
 			NestedObject: schema.NestedAttributeObject{
 				Attributes: map[string]schema.Attribute{

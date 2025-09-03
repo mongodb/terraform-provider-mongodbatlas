@@ -5,19 +5,20 @@ import (
 	"fmt"
 	"regexp"
 
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 )
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "resource", "mongodbatlas_cloud_user_project_assignment", "[Migration Guide: Project Invitation to Cloud User Project Assignment](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/project-invitation-to-cloud-user-project-assignment-migration-guide)"),
+		DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "resource", "mongodbatlas_cloud_user_project_assignment", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/project-invitation-to-cloud-user-project-assignment-migration-guide"),
 		CreateContext:      resourceCreate,
 		ReadContext:        resourceRead,
 		UpdateContext:      resourceUpdate,

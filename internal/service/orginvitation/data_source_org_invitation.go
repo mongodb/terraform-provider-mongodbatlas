@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -13,7 +14,7 @@ import (
 
 func DataSource() *schema.Resource {
 	return &schema.Resource{
-		DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "data source", "mongodbatlas_cloud_user_org_assignment", "[Migration Guide: Org Invitation to Cloud User Org Assignment](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/org-invitation-to-cloud-user-org-assignment-migration-guide)"),
+		DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "data source", "mongodbatlas_cloud_user_org_assignment", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/org-invitation-to-cloud-user-org-assignment-migration-guide"),
 		ReadContext:        dataSourceRead,
 		Schema: map[string]*schema.Schema{
 			"org_id": {
