@@ -128,7 +128,6 @@ data "mongodbatlas_advanced_cluster" "example" {
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The cluster ID.
 * `bi_connector_config` - Configuration settings applied to BI Connector for Atlas on this cluster. See [below](#bi_connector_config). In prior versions of the MongoDB Atlas Terraform Provider, this parameter was named `bi_connector`.
 * `cluster_type` - Type of the cluster that you want to create.
 * `encryption_at_rest_provider` - Possible values are AWS, GCP, AZURE or NONE. 
@@ -250,7 +249,6 @@ In addition to all arguments above, the following attributes are exported:
 
 * `cluster_id` - The cluster ID.
 *  `mongo_db_version` - Version of MongoDB the cluster runs, in `major-version`.`minor-version` format.
-* `id` -	The Terraform's unique identifier used internally for state management.
 * `connection_strings` - Set of connection strings that your applications use to connect to this cluster. More information in [Connection-strings](https://docs.mongodb.com/manual/reference/connection-string/). Use the parameters in this object to connect your applications to this cluster. To learn more about the formats of connection strings, see [Connection String Options](https://docs.atlas.mongodb.com/reference/faq/connection-changes/). NOTE: Atlas returns the contents of this object after the cluster is operational, not while it builds the cluster.
 
   **NOTE** Connection strings must be returned as a list, therefore to refer to a specific attribute value add index notation. Example: mongodbatlas_advanced_cluster.cluster-test.connection_strings.0.standard_srv
