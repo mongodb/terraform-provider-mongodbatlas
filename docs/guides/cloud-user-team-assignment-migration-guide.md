@@ -42,7 +42,7 @@ locals {
 
 resource "mongodbatlas_team" "this" {  
   org_id    = var.org_id  
-  name      = "this"
+  name      = var.team_name
   usernames = local.usernames
 } 
 ```  
@@ -126,14 +126,7 @@ import {
 ```
   
 ---  
-  
-## Step 3: Run migration
-
-Run `terraform plan` (you should see **import** operations), then `terraform apply`.
-  
----  
-  
-## Step 4: Remove deprecated `usernames` from `mongodbatlas_team`  
+## Step 3: Remove deprecated `usernames` from `mongodbatlas_team`  
   
 Once the new resources are in place:  
   
@@ -144,10 +137,14 @@ resource "mongodbatlas_team" "this" {
   # usernames = local.usernames  # Remove this line
 }  
 ```  
-  
-Run `terraform plan`. There should be **no changes**.  
+
+---
+## Step 4: Run migration
+
+Run `terraform plan` (you should see **import** operations), then `terraform apply`.
   
 ---  
+
   
 ## Step 5: Update any references to `mongodbatlas_team.usernames`  
   

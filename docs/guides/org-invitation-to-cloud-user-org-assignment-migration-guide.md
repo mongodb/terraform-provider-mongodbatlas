@@ -34,7 +34,7 @@ resource "mongodbatlas_org_invitation" "this" {
   username  = local.username
   org_id    = local.org_id
   roles     = local.roles
-  # teams_ids = local.team_ids  # if applicable
+  # teams_ids = local.team_ids  # if applicable, also see Use-case #3 below
 }
 ```
 
@@ -43,7 +43,7 @@ resource "mongodbatlas_org_invitation" "this" {
 #### Step 1: Add `mongodbatlas_cloud_user_org_assignment` and `moved` block
 
 Handling migration in modules:
-- For module maintainers: Add the new `mongodbatlas_cloud_user_org_assignment` resource inside the module, include a `moved {}` block from `mongodbatlas_org_invitation` to the new resource, and publish a new module version.
+- For module maintainers: Add the new `mongodbatlas_cloud_user_org_assignment` resource inside the module with a `moved {}` block from `mongodbatlas_org_invitation` to the new resource, remove current `mongodbatlas_org_invitation` resource (Step 2) and publish a new module version.
 - For module users: Simply bump the module version and run `terraform init -upgrade`, then `terraform plan` / `terraform apply`. Terraform performs an in-place state move without users writing import blocks or touching state.
 - Works at any scale (any number of module instances) and keeps the migration self-contained within the module. No per-environment import steps are required.
 
@@ -237,4 +237,3 @@ For complete, working configurations that mirror the use-cases above, see the ex
   - Team assignment: `ORG_ID/TEAM_ID/USERNAME` or `ORG_ID/TEAM_ID/USER_ID`.
 - If you use modules, keep in mind import blocks must be placed at the root module.
 - After successful migration, ensure no references to `mongodbatlas_org_invitation` remain.
-

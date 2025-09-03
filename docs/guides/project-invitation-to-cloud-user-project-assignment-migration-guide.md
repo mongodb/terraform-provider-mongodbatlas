@@ -67,8 +67,6 @@ removed {
 }
 ```
 
-Prerequisite: Terraform version 1.7 or later.
-
 #### Option B) Manual state removal
 
 Remove the `mongodbatlas_project_invitation` resource from configuration and then remove it from the Terraform state using the command line (this does not affect the actual invitation in Atlas):
@@ -101,4 +99,3 @@ These examples provide practical validation of the migration steps and demonstra
 - After successful migration, ensure no references to `mongodbatlas_project_invitation` remain in configuration or state.
 - Pending invitations are not discoverable by the new APIs and resources; there is no data source replacement for reading pending invites. Re-create them using the new resource as shown above.
 - For additional details on how accepted invitations are handled, see the `mongodbatlas_project_invitation` resource [documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project_invitation).
-

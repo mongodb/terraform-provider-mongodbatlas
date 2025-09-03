@@ -37,7 +37,6 @@ page_title: "Migration Guide: Project Teams Attribute to Team Project Assignment
   
 ```hcl  
 locals {  
-  project_id = <PROJECT_ID>  
   team_map = { # team_id => set(role_names)
     <TEAM_ID_1>  = ["GROUP_OWNER"]
     <TEAM_ID_2>  = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_WRITE"]
@@ -45,9 +44,9 @@ locals {
 }
 
 resource "mongodbatlas_project" "this" {
-  name             = "<PROJECT_NAME>"
-  org_id           = "<ORG_ID>"
-  project_owner_id = "<OWNER_ID>"
+  name             = var.project_name
+  org_id           = var.org_id
+  project_owner_id = var.project_owner_id
 
   dynamic "teams" {
     for_each = local.team_map
@@ -69,9 +68,9 @@ Replace the `mongodbatlas_project.teams` block with:
   
 ```hcl  
 resource "mongodbatlas_project" "this" {  
-  name             = "<PROJECT_NAME>"
-  org_id           = "<ORG_ID>"
-  project_owner_id = "<OWNER_ID>"  
+  name             = var.project_name
+  org_id           = var.org_id
+  project_owner_id = var.project_owner_id
   
   lifecycle {  
     ignore_changes = ["teams"]  
@@ -94,9 +93,9 @@ This removes the `teams` block from the config but keeps the assignments in Atla
   
 ```hcl  
 resource "mongodbatlas_project" "this" {  
-  name             = "<PROJECT_NAME>"
-  org_id           = "<ORG_ID>"
-  project_owner_id = "<OWNER_ID>"  
+  name             = var.project_name
+  org_id           = var.org_id
+  project_owner_id = var.project_owner_id
   
   lifecycle {  
     ignore_changes = ["teams"]  
