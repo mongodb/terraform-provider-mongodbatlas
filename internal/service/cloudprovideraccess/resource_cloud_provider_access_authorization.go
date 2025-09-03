@@ -31,10 +31,12 @@ func ResourceAuthorization() *schema.Resource {
 			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"role_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"aws": {
 				Type:     schema.TypeList,
