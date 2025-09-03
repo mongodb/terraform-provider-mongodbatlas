@@ -61,7 +61,7 @@ jobs:
       - uses: ./.github/templates/run-script-and-commit
         with:
           script_call: './scripts/update-examples-reference-in-docs.sh ${{inputs.version_number}}'
-          file_to_commit: 'docs/index.md'
+          file_to_commit: 'docs/* templates/*'
           commit_message: 'chore: Update example links in registry docs for ${{ github.event.inputs.version_number }} release'
           apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
           remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
