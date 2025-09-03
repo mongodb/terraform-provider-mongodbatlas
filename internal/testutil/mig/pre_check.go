@@ -3,7 +3,6 @@ package mig
 import (
 	"os"
 	"strconv"
-
 	"testing"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -38,6 +37,7 @@ func PreCheck(tb testing.TB) {
 	acc.PreCheck(tb)
 }
 
+// This pre-check can be removed when migration testing against v1.x is no longer needed
 func PreCheckOldPreviewEnv(tb testing.TB) func() {
 	tb.Helper()
 	return func() {
