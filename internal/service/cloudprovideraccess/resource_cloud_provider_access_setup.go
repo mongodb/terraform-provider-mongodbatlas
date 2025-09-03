@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"time"
 
 	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -22,11 +24,12 @@ import (
 */
 
 const (
-	errorCloudProviderAccessCreate   = "error creating cloud provider access %s"
-	errorCloudProviderAccessUpdate   = "error updating cloud provider access %s"
-	errorCloudProviderAccessDelete   = "error deleting cloud provider access %s"
-	errorCloudProviderAccessImporter = "error importing cloud provider access %s"
-	ErrorCloudProviderGetRead        = "error reading cloud provider access %s"
+	errorCloudProviderAccessCreate                 = "error creating cloud provider access %s"
+	errorCloudProviderAccessUpdate                 = "error updating cloud provider access %s"
+	errorCloudProviderAccessDelete                 = "error deleting cloud provider access %s"
+	errorCloudProviderAccessImporter               = "error importing cloud provider access %s"
+	ErrorCloudProviderGetRead                      = "error reading cloud provider access %s"
+	defaultTimeout                   time.Duration = 20 * time.Minute
 )
 
 func ResourceSetup() *schema.Resource {
@@ -147,6 +150,7 @@ func resourceCloudProviderAccessSetupRead(ctx context.Context, d *schema.Resourc
 }
 
 func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
 	conn := meta.(*config.MongoDBClient).AtlasV2
@@ -172,15 +176,43 @@ func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.Resou
 		return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
 	}
 
+	resourceID := role.GetRoleId()
+	if role.ProviderName == constant.AZURE {
+		resourceID = role.GetId()
+	}
+
+	if role.ProviderName == constant.GCP {
+		// Long running operation only needs to be setup if role.ProviderName == constant.GCP
+		requestParams := &admin.GetCloudProviderAccessRoleApiParams{
+			RoleId:  resourceID,
+			GroupId: projectID,
+		}
+
+		stateConf := retry.StateChangeConf{
+			Pending:    []string{"IN_PROGRESS", "NOT_INITIATED"},
+			Target:     []string{"COMPLETE", "FAILED"},
+			Refresh:    resourceRefreshFunc(ctx, requestParams, connV2),
+			Timeout:    defaultTimeout,
+			MinTimeout: 60 * time.Second,
+			Delay:      30 * time.Second,
+		}
+
+		finalResponse, err := stateConf.WaitForStateContext(ctx)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		r, ok := finalResponse.(*admin.CloudProviderAccessRole)
+		if !ok {
+			return diag.FromErr(fmt.Errorf("unexpected type for result: %T", finalResponse))
+		}
+		role = r
+	}
+
 	// once multiple providers enable here do a switch, select for provider type
 	roleSchema, err := roleToSchemaSetup(role)
 	if err != nil {
 		return diag.Errorf(errorCloudProviderAccessCreate, err)
-	}
-
-	resourceID := role.GetRoleId()
-	if role.ProviderName == constant.AZURE {
-		resourceID = role.GetId()
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
@@ -196,6 +228,31 @@ func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.Resou
 	}
 
 	return nil
+}
+
+func resourceRefreshFunc(ctx context.Context, requestParams *admin.GetCloudProviderAccessRoleApiParams, connV2 *admin.APIClient) retry.StateRefreshFunc {
+	return func() (any, string, error) {
+		roleId, resp, err := connV2.CloudProviderAccessApi.GetCloudProviderAccessRoleWithParams(ctx, requestParams).Execute()
+		if err != nil {
+			return nil, "FAILED", err
+		}
+
+		if validate.StatusNotFound(resp) {
+			return nil, "FAILED", fmt.Errorf("cloud provider access role %q not found in project %q", requestParams.RoleId, requestParams.GroupId)
+		}
+
+		status := roleId.GetStatus()
+		switch status {
+		case "IN_PROGRESS", "NOT_INITIATED":
+			return roleId, status, nil
+		case "COMPLETE":
+			return roleId, status, nil
+		case "FAILED":
+			return nil, status, fmt.Errorf("cloud provider access setup failed for role %q", requestParams.RoleId)
+		default:
+			return nil, "FAILED", fmt.Errorf("unexpected status %q for role %q", status, requestParams.RoleId)
+		}
+	}
 }
 
 func resourceCloudProviderAccessSetupDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
