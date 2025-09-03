@@ -63,7 +63,6 @@ func TestAccCloudProviderAccessSetupAzure_basic(t *testing.T) {
 	)
 }
 func TestAccCloudProviderAccessSetupGCP_basic(t *testing.T) {
-	acc.SkipTestForCI(t) // Code needs to support long running operations for successful test: CLOUDP-341440
 	var (
 		resourceName   = "mongodbatlas_cloud_provider_access_setup.test"
 		dataSourceName = "data.mongodbatlas_cloud_provider_access_setup.test"

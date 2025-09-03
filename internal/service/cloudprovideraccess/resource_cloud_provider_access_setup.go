@@ -232,11 +232,10 @@ func resourceRefreshFunc(ctx context.Context, requestParams *admin.GetCloudProvi
 	return func() (any, string, error) {
 		role, resp, err := conn.CloudProviderAccessApi.GetCloudProviderAccessRoleWithParams(ctx, requestParams).Execute()
 		if err != nil {
-			return nil, "FAILED", err
-		}
-
-		if validate.StatusNotFound(resp) {
-			return nil, "FAILED", fmt.Errorf("cloud provider access role %q not found in project %q", requestParams.RoleId, requestParams.GroupId)
+			if validate.StatusNotFound(resp) {
+				return nil, "", fmt.Errorf("cloud provider access role %q not found in project %q", requestParams.RoleId, requestParams.GroupId)
+			}
+			return nil, "", err
 		}
 
 		status := role.GetStatus()
