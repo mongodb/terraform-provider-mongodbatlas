@@ -62,7 +62,7 @@ jobs:
         with:
           script_call: './scripts/update-examples-reference-in-docs.sh ${{inputs.version_number}}'
           file_to_commit: 'docs/index.md'
-          commit_message: 'chore: Updates examples link in index.md for ${{ github.event.inputs.version_number }} release'
+          commit_message: 'chore: Update example links in registry docs for ${{ github.event.inputs.version_number }} release'
           apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
           remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
           gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
