@@ -200,9 +200,6 @@ func determineKeepUnknownsChangedReplicationSpec(keepUnknownsAlways []string, at
 
 func determineKeepUnknownsUnchangedReplicationSpecs(attributeChanges *schemafunc.AttributeChanges) []string {
 	keepUnknowns := []string{}
-	// Could be set to "" if we are using an ISS cluster
-	// When using new sharding config, the legacy id must never be copied
-	keepUnknowns = append(keepUnknowns, "id")
 
 	// it might be an insertion in the middle of replication spec leading to wrong value from state copied
 	if attributeChanges.ListLenChanges("replication_specs") {

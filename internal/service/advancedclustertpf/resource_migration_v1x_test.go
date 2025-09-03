@@ -323,7 +323,6 @@ func TestV1xMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 					ClusterType:        "REPLICASET",
 					DiskSizeGB:         60,
 					NodeCountElectable: 3,
-					WithAnalyticsSpecs: true,
 				}, !isSDKv2),
 				Check: checkReplicaSetAWSProvider(!isSDKv2, false, projectID, clusterName, 60, 3, true, true),
 			},
@@ -333,7 +332,6 @@ func TestV1xMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 				ClusterType:        "REPLICASET",
 				DiskSizeGB:         60,
 				NodeCountElectable: 3,
-				WithAnalyticsSpecs: true,
 			}, true)),
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -343,7 +341,6 @@ func TestV1xMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 					ClusterType:        "REPLICASET",
 					DiskSizeGB:         60,
 					NodeCountElectable: 3,
-					WithAnalyticsSpecs: true,
 				}, true),
 				Check: checkReplicaSetAWSProvider(true, false, projectID, clusterName, 60, 3, true, true),
 			},
@@ -354,8 +351,7 @@ func TestV1xMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 func TestV1xMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
-		clusterName = acc.RandomClusterName()
+		projectName, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)
 		isSDKv2     = acc.IsTestSDKv2ToTPF()
 	)
 

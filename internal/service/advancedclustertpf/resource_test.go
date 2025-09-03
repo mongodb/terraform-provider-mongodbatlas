@@ -194,7 +194,6 @@ func replicaSetAWSProviderTestCase(t *testing.T) *resource.TestCase {
 					ClusterType:        "REPLICASET",
 					DiskSizeGB:         60,
 					NodeCountElectable: 3,
-					WithAnalyticsSpecs: true,
 				}, true),
 				Check: checkReplicaSetAWSProvider(true, true, projectID, clusterName, 60, 3, true, true),
 			},
@@ -205,7 +204,6 @@ func replicaSetAWSProviderTestCase(t *testing.T) *resource.TestCase {
 					ClusterType:        "REPLICASET",
 					DiskSizeGB:         50,
 					NodeCountElectable: 5,
-					WithAnalyticsSpecs: true,
 				}, true),
 				Check: checkReplicaSetAWSProvider(true, true, projectID, clusterName, 50, 5, true, true),
 			},
@@ -216,7 +214,6 @@ func replicaSetAWSProviderTestCase(t *testing.T) *resource.TestCase {
 					ClusterType:        "SHARDED",
 					DiskSizeGB:         50,
 					NodeCountElectable: 5,
-					WithAnalyticsSpecs: true,
 				}, true),
 				Check: checkReplicaSetAWSProvider(true, true, projectID, clusterName, 50, 5, true, true),
 			},
@@ -1592,22 +1589,12 @@ type ReplicaSetAWSConfig struct {
 	ClusterType        string
 	DiskSizeGB         int
 	NodeCountElectable int
-	WithAnalyticsSpecs bool
 }
 
 func configAWSProvider(t *testing.T, configInfo ReplicaSetAWSConfig, isTPF bool) string {
 	t.Helper()
-	analyticsSpecs := ""
 
 	if !isTPF {
-		if configInfo.WithAnalyticsSpecs {
-			analyticsSpecs = `
-			analytics_specs {
-				instance_size = "M10"
-				node_count    = 1
-			}`
-		}
-
 		return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
@@ -1622,24 +1609,19 @@ func configAWSProvider(t *testing.T, configInfo ReplicaSetAWSConfig, isTPF bool)
 						instance_size = "M10"
 						node_count    = %[5]d
 					}
-					%[6]s
+					analytics_specs {
+					instance_size = "M10"
+					node_count    = 1
+					}
 					provider_name = "AWS"
 					priority      = 7
 					region_name   = "US_WEST_2"
 				}
 			}
 		}
-	`, configInfo.ProjectID, configInfo.ClusterName, configInfo.ClusterType, configInfo.DiskSizeGB, configInfo.NodeCountElectable, analyticsSpecs) + dataSourcesConfig
+	`, configInfo.ProjectID, configInfo.ClusterName, configInfo.ClusterType, configInfo.DiskSizeGB, configInfo.NodeCountElectable) + dataSourcesConfig
 	}
 
-	if configInfo.WithAnalyticsSpecs {
-		analyticsSpecs = fmt.Sprintf(`
-		analytics_specs = {
-			instance_size = "M10"
-			node_count    = 1
-			disk_size_gb = %[1]d
-		}`, configInfo.DiskSizeGB)
-	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
 			project_id   = %[1]q
@@ -1655,14 +1637,18 @@ func configAWSProvider(t *testing.T, configInfo ReplicaSetAWSConfig, isTPF bool)
 					node_count    = %[5]d
 					disk_size_gb = %[4]d
 				}
-				%[6]s
+				analytics_specs = {
+					instance_size = "M10"
+					node_count    = 1
+					disk_size_gb = %[4]d
+				}
 				priority      = 7
 				provider_name = "AWS"
 				region_name   = "US_WEST_2"
 				}]
 			}]
 	}
-	`, configInfo.ProjectID, configInfo.ClusterName, configInfo.ClusterType, configInfo.DiskSizeGB, configInfo.NodeCountElectable, analyticsSpecs) + dataSourcesConfig
+	`, configInfo.ProjectID, configInfo.ClusterName, configInfo.ClusterType, configInfo.DiskSizeGB, configInfo.NodeCountElectable) + dataSourcesConfig
 }
 
 func checkReplicaSetAWSProvider(isTPF, useDataSource bool, projectID, name string, diskSizeGB, nodeCountElectable int, checkDiskSizeGBInnerLevel, checkExternalID bool) resource.TestCheckFunc {
