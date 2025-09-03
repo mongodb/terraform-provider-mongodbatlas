@@ -44,10 +44,21 @@ resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
 
 ```
 
+## Example Usage with GCP
+
+```terraform
+
+resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
+   project_id = "64259ee860c43338194b0f8e"
+   provider_name = "GCP"
+}
+
+```
+
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project
-* `provider_name` - (Required) The cloud provider for which to create a new role. Currently only AWS and AZURE are supported. **WARNING** Changing the `provider_name` will result in destruction of the existing resource and the creation of a new resource.
+* `provider_name` - (Required) The cloud provider for which to create a new role. Currently, AWS, AZURE and GCP are supported. **WARNING** Changing the `provider_name` will result in destruction of the existing resource and the creation of a new resource.
 * `azure_config` - azure related configurations 
    * `atlas_azure_app_id` - Azure Active Directory Application ID of Atlas. This property is required when `provider_name = "AZURE".`
    * `service_principal_id`- UUID string that identifies the Azure Service Principal. This property is required when `provider_name = "AZURE".`
@@ -59,6 +70,9 @@ resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
 * `aws_config` - aws related arn roles 
    * `atlas_assumed_role_external_id` - Unique external ID Atlas uses when assuming the IAM role in your AWS account.
    * `atlas_aws_account_arn`          - ARN associated with the Atlas AWS account used to assume IAM roles in your AWS account.
+* `gcp_config` - gcp related configuration
+  * `status` - The status of the GCP cloud provider access setup. See [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getgroupcloudprovideraccess#operation-getgroupcloudprovideraccess-200-body-application-vnd-atlas-2023-01-01-json-gcp-object-status).
+  * `service_account_for_atlas` - The GCP service account email that Atlas uses.
 * `created_date`                   - Date on which this role was created.
 * `last_updated_date`                - Date and time when this Azure Service Principal was last updated. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 * `role_id`                        - Unique ID of this role.

@@ -119,7 +119,7 @@ func TestMigEncryptionAtRest_basicGCP(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheck(t); acc.PreCheckGPCEnv(t) },
+		PreCheck:     func() { mig.PreCheck(t); acc.PreCheckGCPEnv(t) },
 		CheckDestroy: acc.EARDestroy,
 		Steps: []resource.TestStep{
 			{
