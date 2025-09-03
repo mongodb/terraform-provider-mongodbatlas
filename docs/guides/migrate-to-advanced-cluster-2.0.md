@@ -134,6 +134,7 @@ tags = {
 }
 ```
 
+6. `id` attribute which was an internal encoded resource identifier has been removed. Use `cluster_id` instead.
 
 ### Configuration changes when upgrading `data.mongodbatlas_advanced_cluster` and `data.mongodbatlas_advanced_clusters` from v1.x
 
@@ -145,7 +146,9 @@ tags = {
   - `advanced_configuration.default_read_concern`
   - `advanced_configuration.fail_index_key_too_long`
 
-2. Additionally, deprecated attribute `use_replication_spec_per_shard` has been removed. The data sources will now return only the new sharding configuration of the clusters.
+2. Deprecated attribute `use_replication_spec_per_shard` has been removed. The data sources will now return only the new sharding configuration of the clusters.
+
+3. `id` attribute which was an internal encoded resource identifier has been removed. Use `cluster_id` instead.
 
 
 ## How to migrate
