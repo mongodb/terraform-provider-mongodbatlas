@@ -4,7 +4,7 @@ This example demonstrates how to set up MongoDB Atlas Cloud Provider Access with
 
 ## What This Example Does
 
-This Terraform configuration:
+The following Terraform configurations:
 
 1. **Creates Cloud Provider Access Setup**: Establishes the initial setup for MongoDB Atlas to access GCP resources
 2. **Authorizes the Access Role**: Completes the authorization process, creating a GCP service account that MongoDB Atlas can use
@@ -50,7 +50,7 @@ Your user or service account needs the following IAM roles:
 - `roles/cloudkms.admin` - To create and manage KMS resources
 - `roles/resourcemanager.projectIamAdmin` - To manage IAM bindings
 
-## Usage
+## Procedure
 
 ### 1. Set Up Variables
 
@@ -78,7 +78,7 @@ terraform apply
 
 ### 3. Verify the Setup
 
-After successful deployment, you should see outputs including:
+After having successfully deployed your infrastructure, you should get the following outputs:
 - Atlas role ID
 - GCP service account email created by Atlas
 - KMS key ring and crypto key IDs
