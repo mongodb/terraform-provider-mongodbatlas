@@ -161,7 +161,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		}
 		log.Printf("[DEBUG] orgID: %s", orgID)
 		log.Printf("[DEBUG] teamID: %s", id)
-		_, _, err := acc.ConnV2().TeamsApi.GetGroupTeam(context.Background(), orgID, id).Execute()
+		_, _, err := acc.ConnV2().TeamsApi.GetOrgTeam(context.Background(), orgID, id).Execute()
 		if err == nil {
 			return nil
 		}
