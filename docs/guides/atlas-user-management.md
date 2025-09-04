@@ -1,6 +1,5 @@
 ---
 page_title: "Migration Guide: Atlas User Management"
-sidebar_current: "docs-mongodbatlas-guides-200"
 ---
 
 # Migration Guide: Atlas User Management
