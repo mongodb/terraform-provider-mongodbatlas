@@ -11,20 +11,16 @@ The following Terraform configurations:
 
 ## Architecture Overview
 
-```
-┌─────────────────────┐    ┌─────────────────────────┐
-│   MongoDB Atlas     │    │     Google Cloud        │
-│                     │    │                         │
-│  ┌───────────────┐  │    │                         │
-│  │   Project     │  │    │                         │
-│  │               │  │    │                         │
-│  │ Cloud Provider│  │    │                         │
-│  │    Access     │  │◄──►│   Service Account       │
-│  │               │  │    │   (Created by Atlas)    │
-│  │               │  │    │                         │
-│  └───────────────┘  │    │                         │
-│                     │    │                         │
-└─────────────────────┘    └─────────────────────────┘
+```mermaid
+graph LR
+      subgraph "MongoDB Atlas"
+          A[Project<br/>Cloud Provider<br/>Access]
+      end
+
+      subgraph "Google Cloud"
+          B[Service Account<br/>Created by Atlas]
+      end
+      A <--> B
 ```
 
 ## Prerequisites

@@ -53,13 +53,11 @@ Please review the [`mongodbatlas_encryption_at_rest_private_endpoint` resource d
 
 
 ### Configuring encryption at rest using customer key management in GCP
-The configuration of encryption at rest with customer key management in GCP uses role-based authentication through Cloud Provider Access, which is the recommended approach over static service account keys.
+For GCP environments using static service account key, we recommend configuring encryption at rest with customer key management. This approach uses role-based authentication through Cloud Provider Access for a more secure solution
 
 {{ tffile (printf "examples/%s/gcp/main.tf" .Name )}}
 
-**NOTE**  If using the two resources path for cloud provider access, `cloud_provider_access_setup` and `cloud_provider_access_authorization`, you may need to define a `depends_on` statement for these two resources, because terraform is not able to infer the dependency.
-
-For a complete example including GCP KMS resource creation and IAM binding setup, see the [GCP encryption at rest example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_encryption_at_rest/gcp/).
+For a complete example that includes GCP KMS resource creation and IAM binding setup, see the [GCP encryption at rest example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_encryption_at_rest/gcp/).
 
 {{ .SchemaMarkdown | trimspace }}
 
