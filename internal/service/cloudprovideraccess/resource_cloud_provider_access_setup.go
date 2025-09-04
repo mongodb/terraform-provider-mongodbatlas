@@ -24,12 +24,12 @@ import (
 */
 
 const (
-	errorCloudProviderAccessCreate                 = "error creating cloud provider access %s"
-	errorCloudProviderAccessUpdate                 = "error updating cloud provider access %s"
-	errorCloudProviderAccessDelete                 = "error deleting cloud provider access %s"
-	errorCloudProviderAccessImporter               = "error importing cloud provider access %s"
-	ErrorCloudProviderGetRead                      = "error reading cloud provider access %s"
-	defaultTimeout                   time.Duration = 20 * time.Minute
+	errorCreate                  = "error creating cloud provider access %s"
+	errorUpdate                  = "error updating cloud provider access %s"
+	errorDelete                  = "error deleting cloud provider access %s"
+	errorImporter                = "error importing cloud provider access %s"
+	ErrorGetRead                 = "error reading cloud provider access %s"
+	defaultTimeout time.Duration = 20 * time.Minute
 )
 
 func ResourceSetup() *schema.Resource {
@@ -133,16 +133,16 @@ func resourceCloudProviderAccessSetupRead(ctx context.Context, d *schema.Resourc
 			return nil
 		}
 
-		return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, err))
+		return diag.FromErr(fmt.Errorf(ErrorGetRead, err))
 	}
 
 	roleSchema, err := roleToSchemaSetup(role)
 	if err != nil {
-		return diag.Errorf(errorCloudProviderAccessCreate, err)
+		return diag.Errorf(errorCreate, err)
 	}
 	for key, val := range roleSchema {
 		if err := d.Set(key, val); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, err))
+			return diag.FromErr(fmt.Errorf(ErrorGetRead, err))
 		}
 	}
 
@@ -172,7 +172,7 @@ func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.Resou
 
 	role, _, err := conn.CloudProviderAccessApi.CreateCloudProviderAccessRole(ctx, projectID, requestParameters).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
+		return diag.FromErr(fmt.Errorf(errorCreate, err))
 	}
 
 	resourceID := role.GetRoleId()
@@ -191,7 +191,7 @@ func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.Resou
 	// once multiple providers enable here do a switch, select for provider type
 	roleSchema, err := roleToSchemaSetup(role)
 	if err != nil {
-		return diag.Errorf(errorCloudProviderAccessCreate, err)
+		return diag.Errorf(errorCreate, err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
@@ -202,7 +202,7 @@ func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.Resou
 
 	for key, val := range roleSchema {
 		if err := d.Set(key, val); err != nil {
-			return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
+			return diag.FromErr(fmt.Errorf(errorCreate, err))
 		}
 	}
 
@@ -272,7 +272,7 @@ func resourceCloudProviderAccessSetupDelete(ctx context.Context, d *schema.Resou
 
 	_, err := conn.CloudProviderAccessApi.DeauthorizeCloudProviderAccessRoleWithParams(ctx, req).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(errorCloudProviderAccessDelete, err))
+		return diag.FromErr(fmt.Errorf(errorDelete, err))
 	}
 
 	d.SetId("")
@@ -326,7 +326,7 @@ func resourceCloudProviderAccessSetupImportState(ctx context.Context, d *schema.
 	projectID, providerName, roleID, err := splitCloudProviderAccessID(d.Id())
 
 	if err != nil {
-		return nil, fmt.Errorf(errorCloudProviderAccessImporter, err)
+		return nil, fmt.Errorf(errorImporter, err)
 	}
 
 	// searching id in internal format
@@ -339,17 +339,17 @@ func resourceCloudProviderAccessSetupImportState(ctx context.Context, d *schema.
 	err2 := resourceCloudProviderAccessSetupRead(ctx, d, meta)
 
 	if err2 != nil {
-		return nil, fmt.Errorf(errorCloudProviderAccessImporter, err)
+		return nil, fmt.Errorf(errorImporter, err)
 	}
 
 	// case of not found
 	if d.Id() == "" {
-		return nil, fmt.Errorf(errorCloudProviderAccessImporter, " Resource not found at the cloud please check your id")
+		return nil, fmt.Errorf(errorImporter, " Resource not found at the cloud please check your id")
 	}
 
 	// params syncing
 	if err = d.Set("project_id", projectID); err != nil {
-		return nil, fmt.Errorf(errorCloudProviderAccessImporter, err)
+		return nil, fmt.Errorf(errorImporter, err)
 	}
 
 	return []*schema.ResourceData{d}, nil
@@ -361,7 +361,7 @@ func splitCloudProviderAccessID(id string) (projectID, providerName, roleID stri
 	parts := re.FindStringSubmatch(id)
 
 	if len(parts) != 4 {
-		err = fmt.Errorf(errorCloudProviderAccessImporter, "format please use {project_id}-{provider-name}-{role-id}")
+		err = fmt.Errorf(errorImporter, "format please use {project_id}-{provider-name}-{role-id}")
 		return
 	}
 
