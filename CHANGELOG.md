@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * data-source/mongodbatlas_cloud_provider_access_setup: Adds support for GCP as a Cloud Provider. ([#3637](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3637))
 * data-source/mongodbatlas_encryption_at_rest: Supports role_id in google_cloud_kms_config ([#3636](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3636))
+* resource/mongodbatlas_cloud_provider_access_authorization: Changes to `project_id` or `role_id` will now result in the destruction and recreation of the authorization resource ([#3646](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3646))
 * resource/mongodbatlas_cloud_provider_access_authorization: Supports GCP cloud provider ([#3639](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3639))
 * resource/mongodbatlas_cloud_provider_access_setup: Adds support for GCP as a Cloud Provider. ([#3637](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3637))
 * resource/mongodbatlas_encryption_at_rest: Supports role_id in google_cloud_kms_config ([#3636](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3636))
