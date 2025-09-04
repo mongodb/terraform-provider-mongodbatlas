@@ -4,9 +4,9 @@ page_title: "Migration Guide: Advanced Cluster New Sharding Configurations"
 
 # Migration Guide: Advanced Cluster New Sharding Configurations
 
-**Objective**: Use this guide to migrate your existing `advanced_cluster` resources that may be using the legacy sharding schema _(i.e. using `num_shards` which was deprecated in v1.18.0 and removed in 2.0.0)_ to support the new sharding configurations instead. The new sharding configurations allow you to scale shards independently. Additionally, compute auto-scaling supports scaling instance sizes independently for each shard when using the new sharding configuration.
+**Objective**: Use this guide to migrate your existing `mongodbatlas_advanced_cluster` resources that may be using the legacy sharding schema _(i.e. using `num_shards` which was deprecated in v1.18.0 and removed in 2.0.0)_ to support the new sharding configurations instead. The new sharding configurations allow you to scale shards independently. Additionally, compute auto-scaling supports scaling instance sizes independently for each shard when using the new sharding configuration.
 
-Note: Once applied, the `advanced_cluster` resource making use of the new sharding configuration will not be able to transition back to the old sharding configuration.
+Note: Once applied, the `mongodbatlas_advanced_cluster` resource making use of the new sharding configuration will not be able to transition back to the old sharding configuration.
 
 - [Prerequisites](#prerequisites)
 - [Migration Guide: Advanced Cluster New Sharding Configurations](#migration-guide-advanced-cluster-new-sharding-schema)
