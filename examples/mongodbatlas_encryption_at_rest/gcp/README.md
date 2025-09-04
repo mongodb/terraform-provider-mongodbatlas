@@ -84,15 +84,6 @@ After having successfully deployed your infrastructure, you should get the follo
 - KMS key ring and crypto key IDs
 - Key version resource ID used for encryption
 
-## Important Notes
-
-### GCP-Specific Behavior
-
-Unlike AWS and Azure, GCP Cloud Provider Access:
-- **No Configuration Updates**: GCP authorization only requires a role ID and has no additional configuration parameters
-- **Immutable After Creation**: Once authorized, you cannot "update" a GCP cloud provider access role
-- **New Authorization = New Resource**: If you need to change GCP settings, create a new `mongodbatlas_cloud_provider_access_setup` and `mongodbatlas_cloud_provider_access_authorization` resource and then delete the old one
-
 ### Resource Dependencies
 
 The configuration manages dependencies between resources:
