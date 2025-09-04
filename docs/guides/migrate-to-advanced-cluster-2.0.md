@@ -2,15 +2,28 @@
 page_title: "Migration Guide: Advanced Cluster (v1.x → v2.0.0)"
 ---
 
-This guide helps you migrate from the legacy schema of `mongodbatlas_advanced_cluster` resource to the new schema introduced in v2.0.0 of the provider. The new implementation uses the recommended Terraform Plugin Framework, which, in addition to providing a better user experience and other features, adds support for the `moved` block between different resource types.
+# Migration Guide: Advanced Cluster (v1.x → v2.0.0)
 
-~> **IMPORTANT:** Preview of the new schema was already released in versions 1.29.0 and later which could be enabled by setting the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`. If you are already using the new schema preview and not using deprecated attributes, you would not be required to make any additional changes except that the mentioned environment variable is no longer required.
+This guide helps you migrate from the legacy schema of `mongodbatlas_advanced_cluster` resource to the new schema introduced in v2.0.0 of the provider. The new implementation uses:
+ 
+1. The recommended Terraform Plugin Framework, which, in addition to providing a better user experience and other features, adds support for the `moved` block between different resource types.
+2. New sharding configurations that supports scaling shards independently (see the [Migration Guide: Advanced Cluster New Sharding Configurations](advanced-cluster-new-sharding-schema#migration-sharded)).
+
+~> **IMPORTANT:** Preview of the new schema was already released in versions 1.29.0 and later which could be enabled by setting the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`. If you are already using the new schema preview with the new sharding configurations **and not using deprecated attributes**, you would not be required to make any additional changes except that the mentioned environment variable is no longer required.
 
 ## Configuration changes when upgrading from v1.x
 
 In this section you can find the configuration changes between the legacy `mongodbatlas_advanced_cluster` and the new one released in v2.0.0.
 
-1. Elements `replication_specs` and `region_configs` are now list attributes instead of blocks so they are an array of objects. If there is only one object, it still needs to be in an array. For example,
+1. Below deprecated attributes have been removed:
+- `id`
+- `disk_size_gb`
+- `replication_specs.#.num_shards`
+- `replication_specs.#.id`
+- `advanced_configuration.default_read_concern`
+- `advanced_configuration.fail_index_key_too_long`
+
+2. Elements `replication_specs` and `region_configs` are now list attributes instead of blocks so they are an array of objects. If there is only one object, it still needs to be in an array. For example,
 ```terraform
 replication_specs {
   region_configs {
@@ -61,7 +74,9 @@ replication_specs = [
 ]
 ```
 
-2. Elements `connection_strings`, `timeouts`, `advanced_configuration`, `bi_connector_config`, `pinned_fcv`, `electable_specs`, `read_only_specs`, `analytics_specs`, `auto_scaling` and `analytics_auto_scaling` are now single attributes instead of blocks so they are an object. For example,
+3. `mongodbatlas_advanced_cluster` now supports only the new sharding configuration that allows scaling shards independently. If your configuration defines the num_shards attribute (removed in 2.0.0), please also see the [Migration Guide: Advanced Cluster New Sharding Configurations](advanced-cluster-new-sharding-schema#migration-sharded).
+
+4. Elements `connection_strings`, `timeouts`, `advanced_configuration`, `bi_connector_config`, `pinned_fcv`, `electable_specs`, `read_only_specs`, `analytics_specs`, `auto_scaling` and `analytics_auto_scaling` are now single attributes instead of blocks so they are an object. For example,
 ```terraform 
 advanced_configuration {
   default_write_concern = "majority"
@@ -94,7 +109,7 @@ output "javascript_enabled" {
 }
 ```
 
-3. Elements `tags` and `labels` are now `maps` instead of `blocks`. For example,
+5. Elements `tags` and `labels` are now `maps` instead of `blocks`. For example,
 ```terraform
 tags {
   key   = "env"
@@ -119,6 +134,23 @@ tags = {
 }
 ```
 
+6. `id` attribute which was an internal encoded resource identifier has been removed. Use `cluster_id` instead.
+
+### Configuration changes when upgrading `data.mongodbatlas_advanced_cluster` and `data.mongodbatlas_advanced_clusters` from v1.x
+
+1. Below deprecated attributes have been removed (same as resource):
+  - `id`
+  - `disk_size_gb`
+  - `replication_specs.#.num_shards`
+  - `replication_specs.#.id`
+  - `advanced_configuration.default_read_concern`
+  - `advanced_configuration.fail_index_key_too_long`
+
+2. Deprecated attribute `use_replication_spec_per_shard` has been removed. The data sources will now return only the new sharding configuration of the clusters.
+
+3. `id` attribute which was an internal encoded resource identifier has been removed. Use `cluster_id` instead.
+
+
 ## How to migrate
 
 If you currently use `mongodbatlas_cluster`, see our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
@@ -127,9 +159,18 @@ If you currently use `mongodbatlas_advanced_cluster` from v1.x.x of our provider
 
 ~> **IMPORTANT:** Before you migrate, create a backup of your [Terraform state file](https://developer.hashicorp.com/terraform/cli/commands/state). The state file will update to the new format and the old format will no longer be supported.
 
-1. After you upgrade to v2.0.0+ from v1.x.x, when you run `terraform plan`, syntax errors will return as expected since the definition file hasn't been updated yet using the latest schema.
-2. At this point, you can apply definition changes [explained on this page](#configuration-changes) until there are no errors and no planned changes. **Important**: Don't apply until the plan is empty. If it shows other changes, you must update the `mongodbatlas_advanced_cluster` configuration until it matches the original configuration.
-3. Run `terraform apply` to apply the changes. Although there are no plan changes shown to the user, the `mongodbatlas_advanced_cluster` state will be updated to support the new schema.
+After you upgrade to v2.0.0+ from v1.x.x, when you run `terraform plan`, syntax errors will return as expected since the definition file hasn't been updated yet using the latest schema. At this point, you need to update the configuration by following all of below steps at once and finally running `terraform apply`:
+
+- **Step #1:** Apply definition changes [explained on this page](#configuration-changes-when-upgrading-from-v1x) until there are no errors and no planned changes. 
+  - **[Recommended]** You can also use the [Atlas CLI plugin](https://github.com/mongodb-labs/atlas-cli-plugin-terraform?tab=readme-ov-file#2-advancedclustertov2-adv2v2) to generate the `mongodbatlas_advanced_cluster` resource definition. This is the recommended method as it will generate a clean configuration while keeping the original Terraform expressions. Please be aware of the [plugin limitations](https://github.com/mongodb-labs/atlas-cli-plugin-terraform/blob/main/docs/command_adv2v2.md#limitations).
+
+- **Step #2:** Remove any deprecated attributes (and their references) mentioned [above](#configuration-changes-when-upgrading-from-v1x). 
+
+~> NOTE:  For nested attributes that have been removed, such as `replication_specs.#.num_shards` etc, Terraform may NOT throw an explicit error even if these attributes are left in the configuration. This is a [known Terraform issue](https://github.com/hashicorp/terraform-plugin-framework/issues/1210). Users should ensure to remove any such attributes from the configuration to avoid any confusion.
+
+~> **IMPORTANT:** Don't apply until the plan is empty. If it shows other changes, you must update the `mongodbatlas_advanced_cluster` configuration until it matches the original configuration.
+
+- **Step #3:** Even though there are no plan changes shown at this point, run `terraform apply`. This will update the `mongodbatlas_advanced_cluster` state to support the new schema.
 
 ## Important notes
 
