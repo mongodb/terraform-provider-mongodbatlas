@@ -120,12 +120,9 @@ func checkGeoShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.
 	)
 }
 
-// SDKv2/TPF pre OLD to new - sharded
 func TestV1xMigAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
 	isSDKv2 := acc.IsTestSDKv2ToTPF()
-	// if not SDKv2, ensure preview flag is set - add to precheck
-	// isTPFPreview := os.Getenv("MONGODB_ATLAS_TEST_PREVIEW_TO_TPF")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acc.PreCheckBasicSleep(t, nil, projectID, clusterName); mig.PreCheckLast1XVersion(t) },
@@ -315,7 +312,7 @@ func TestV1xMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
+		PreCheck:     func() { acc.PreCheckBasicSleep(t, nil, projectID, clusterName); mig.PreCheckLast1XVersion(t) },
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
@@ -326,7 +323,6 @@ func TestV1xMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 					ClusterType:        "REPLICASET",
 					DiskSizeGB:         60,
 					NodeCountElectable: 3,
-					WithAnalyticsSpecs: true,
 				}, !isSDKv2),
 				Check: checkReplicaSetAWSProvider(!isSDKv2, false, projectID, clusterName, 60, 3, true, true),
 			},
@@ -336,7 +332,6 @@ func TestV1xMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 				ClusterType:        "REPLICASET",
 				DiskSizeGB:         60,
 				NodeCountElectable: 3,
-				WithAnalyticsSpecs: true,
 			}, true)),
 			{
 				ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
@@ -346,7 +341,6 @@ func TestV1xMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 					ClusterType:        "REPLICASET",
 					DiskSizeGB:         60,
 					NodeCountElectable: 3,
-					WithAnalyticsSpecs: true,
 				}, true),
 				Check: checkReplicaSetAWSProvider(true, false, projectID, clusterName, 60, 3, true, true),
 			},
@@ -356,14 +350,13 @@ func TestV1xMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
 
 func TestV1xMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName() // No ProjectIDExecution to avoid cross-region limits because multi-region
-		clusterName = acc.RandomClusterName()
-		isSDKv2     = acc.IsTestSDKv2ToTPF()
+		orgID                    = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)
+		isSDKv2                  = acc.IsTestSDKv2ToTPF()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasic(t) },
+		PreCheck:     func() { acc.PreCheckBasic(t); mig.PreCheckLast1XVersion(t) },
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{

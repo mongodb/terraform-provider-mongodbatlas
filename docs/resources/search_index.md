@@ -1,3 +1,7 @@
+---
+subcategory: "Atlas Search"
+---
+
 # Resource: mongodbatlas_search_index
 
 `mongodbatlas_search_index` provides a Search Index resource. This allows indexes to be created.

@@ -1,3 +1,7 @@
+---
+subcategory: "Clusters"
+---
+
 # Data Source: mongodbatlas_advanced_clusters
 
 `mongodbatlas_advanced_clusters` returns all Advanced Clusters for a project_id.

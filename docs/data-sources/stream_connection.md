@@ -1,3 +1,7 @@
+---
+subcategory: "Streams"
+---
+
 # Data Source: mongodbatlas_stream_connection
 
 `mongodbatlas_stream_connection` describes a stream connection.

@@ -1,3 +1,7 @@
+---
+subcategory: "Cloud Backups"
+---
+
 # Resource: mongodbatlas_cloud_backup_snapshot
 
 `mongodbatlas_cloud_backup_snapshot` provides a resource to take a cloud backup snapshot on demand.

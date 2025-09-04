@@ -1,3 +1,7 @@
+---
+subcategory: "Atlas Search"
+---
+
 # Data Source: mongodbatlas_search_deployment
 
 `mongodbatlas_search_deployment` describes a search node deployment.

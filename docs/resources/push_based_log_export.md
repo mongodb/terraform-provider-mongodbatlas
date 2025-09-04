@@ -1,3 +1,7 @@
+---
+subcategory: "Push-Based Log Export"
+---
+
 # Resource: mongodbatlas_push_based_log_export
 
 `mongodbatlas_push_based_log_export` provides a resource for push-based log export feature. The resource lets you configure, enable & disable the project level settings for the push-based log export feature. Using this resource you 
