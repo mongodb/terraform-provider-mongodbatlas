@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
