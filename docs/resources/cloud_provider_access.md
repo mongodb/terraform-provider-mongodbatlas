@@ -93,7 +93,7 @@ $ terraform import mongodbatlas_cloud_provider_access_setup.my_role 1112222b3bf9
 This is the second resource in the two-resource path as described above.
 `mongodbatlas_cloud_provider_access_authorization`  Allows you to authorize an AWS or AZURE IAM roles in Atlas.
 
--> **IMPORTANT:** Changes to `project_id` or `role_id` will result in the destruction and recreation of the authorization resource. This is because these fields uniquely identify the authorization and cannot be modified in-place.
+-> **IMPORTANT:** Changes to `project_id` or `role_id` will result in the destruction and recreation of the authorization resource. This action happens as these fields uniquely identify the authorization and cannot be modified in-place.
 
 ## Example Usage with AWS
 ```terraform
