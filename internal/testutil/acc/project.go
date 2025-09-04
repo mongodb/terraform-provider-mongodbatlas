@@ -36,7 +36,6 @@ func ConfigProjectWithSettings(projectName, orgID, projectOwnerID string, value 
 			name   			 = %[1]q
 			org_id 			 = %[2]q
 			project_owner_id = %[3]q
-			with_default_alerts_settings = %[4]t
 			is_collect_database_specifics_statistics_enabled = %[4]t
 			is_data_explorer_enabled = %[4]t
 			is_extended_storage_sizes_enabled = %[4]t
