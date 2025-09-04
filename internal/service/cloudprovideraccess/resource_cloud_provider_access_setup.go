@@ -177,32 +177,13 @@ func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.Resou
 
 	resourceID := role.GetRoleId()
 	if role.ProviderName == constant.AZURE {
-		resourceID = role.GetId()
+		resourceID = role.GetId() // For Azure, the unique identifier is in the "id" field, not "roleId".
 	}
 
 	if role.ProviderName == constant.GCP {
-		requestParams := &admin.GetCloudProviderAccessRoleApiParams{
-			RoleId:  resourceID,
-			GroupId: projectID,
-		}
-
-		stateConf := retry.StateChangeConf{
-			Pending:    []string{"IN_PROGRESS", "NOT_INITIATED"},
-			Target:     []string{"COMPLETE", "FAILED"},
-			Refresh:    resourceRefreshFunc(ctx, requestParams, conn),
-			Timeout:    defaultTimeout,
-			MinTimeout: 60 * time.Second,
-			Delay:      30 * time.Second,
-		}
-
-		finalResponse, err := stateConf.WaitForStateContext(ctx)
+		r, err := waitForGCPProviderAccessCompletion(ctx, projectID, resourceID, conn)
 		if err != nil {
 			return diag.FromErr(err)
-		}
-
-		r, ok := finalResponse.(*admin.CloudProviderAccessRole)
-		if !ok {
-			return diag.FromErr(fmt.Errorf("unexpected type for result: %T", finalResponse))
 		}
 		role = r
 	}
@@ -228,6 +209,33 @@ func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.Resou
 	return nil
 }
 
+func waitForGCPProviderAccessCompletion(ctx context.Context, projectID, resourceID string, conn *admin.APIClient) (*admin.CloudProviderAccessRole, error) {
+	requestParams := &admin.GetCloudProviderAccessRoleApiParams{
+		RoleId:  resourceID,
+		GroupId: projectID,
+	}
+
+	stateConf := retry.StateChangeConf{
+		Pending:    []string{"IN_PROGRESS", "NOT_INITIATED"},
+		Target:     []string{"COMPLETE", "FAILED"},
+		Refresh:    resourceRefreshFunc(ctx, requestParams, conn),
+		Timeout:    defaultTimeout,
+		MinTimeout: 60 * time.Second,
+		Delay:      30 * time.Second,
+	}
+
+	finalResponse, err := stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	r, ok := finalResponse.(*admin.CloudProviderAccessRole)
+	if !ok {
+		return nil, fmt.Errorf("unexpected type for result: %T", finalResponse)
+	}
+	return r, nil
+}
+
 func resourceRefreshFunc(ctx context.Context, requestParams *admin.GetCloudProviderAccessRoleApiParams, conn *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
 		role, resp, err := conn.CloudProviderAccessApi.GetCloudProviderAccessRoleWithParams(ctx, requestParams).Execute()
@@ -240,14 +248,10 @@ func resourceRefreshFunc(ctx context.Context, requestParams *admin.GetCloudProvi
 
 		status := role.GetStatus()
 		switch status {
-		case "IN_PROGRESS", "NOT_INITIATED":
+		case "IN_PROGRESS", "NOT_INITIATED", "COMPLETE":
 			return role, status, nil
-		case "COMPLETE":
-			return role, status, nil
-		case "FAILED":
-			return nil, status, fmt.Errorf("cloud provider access setup failed for role %q", requestParams.RoleId)
 		default:
-			return nil, "FAILED", fmt.Errorf("unexpected status %q for role %q", status, requestParams.RoleId)
+			return nil, status, fmt.Errorf("cloud provider access setup failed %q for role %q", status, requestParams.RoleId)
 		}
 	}
 }
@@ -286,7 +290,7 @@ func roleToSchemaSetup(role *admin.CloudProviderAccessRole) (map[string]any, err
 			}},
 			"gcp_config":   []any{map[string]any{}},
 			"created_date": conversion.TimeToString(role.GetCreatedDate()),
-			"role_id":      role.GetRoleId(),
+			"role_id":      role.GetRoleId(), // For AWS, the unique identifier is in the "roleId" field
 		}, nil
 	case constant.AZURE:
 		return map[string]any{
@@ -300,7 +304,7 @@ func roleToSchemaSetup(role *admin.CloudProviderAccessRole) (map[string]any, err
 			"gcp_config":        []any{map[string]any{}},
 			"created_date":      conversion.TimeToString(role.GetCreatedDate()),
 			"last_updated_date": conversion.TimeToString(role.GetLastUpdatedDate()),
-			"role_id":           role.GetId(),
+			"role_id":           role.GetId(), // For Azure, the unique identifier is in the "id" field, not "roleId".
 		}, nil
 	case constant.GCP:
 		return map[string]any{
@@ -310,7 +314,7 @@ func roleToSchemaSetup(role *admin.CloudProviderAccessRole) (map[string]any, err
 				"service_account_for_atlas": role.GetGcpServiceAccountForAtlas(),
 			}},
 			"aws_config":   []any{map[string]any{}},
-			"role_id":      role.GetRoleId(),
+			"role_id":      role.GetRoleId(), // For GCP, the unique identifier is in the "roleId"
 			"created_date": conversion.TimeToString(role.GetCreatedDate()),
 		}, nil
 	default:
