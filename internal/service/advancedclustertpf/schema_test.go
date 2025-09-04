@@ -55,10 +55,6 @@ func TestAdvancedCluster_PlanModifierErrors(t *testing.T) {
 				ExpectError: regexp.MustCompile("`advanced_configuration.default_max_time_ms` can only be configured if the mongo_db_major_version is 8.0 or higher"),
 			},
 			{
-				Config:      configBasic(projectID, clusterName, "advanced_configuration = { fail_index_key_too_long = true }"),
-				ExpectError: regexp.MustCompile("`advanced_configuration.fail_index_key_too_long` can only be configured if the mongo_db_major_version is 4.4 or lower"),
-			},
-			{
 				Config:      configBasic(projectID, clusterName, "accept_data_risks_and_force_replica_set_reconfig = \"2006-01-02T15:04:05Z\""),
 				ExpectError: regexp.MustCompile("Update only attribute set on create: accept_data_risks_and_force_replica_set_reconfig"),
 			},
@@ -86,11 +82,6 @@ func TestAdvancedCluster_PlanModifierValid(t *testing.T) {
 			},
 			{
 				Config:             configBasic(projectID, clusterName, "advanced_configuration = { change_stream_options_pre_and_post_images_expire_after_seconds = 100 }"), // mongo_db_major_version is not set should also work
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: true,
-			},
-			{
-				Config:             configBasic(projectID, clusterName, "advanced_configuration = { fail_index_key_too_long = true }\nmongo_db_major_version=\"4\""),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
 			},
