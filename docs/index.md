@@ -5,10 +5,7 @@ The provider needs to be configured with the proper credentials before it can be
 
 Use the navigation to the left to read about the available provider resources and data sources.
 
-You may want to consider pinning the [provider version](https://www.terraform.io/docs/configuration/providers.html#provider-versions) to ensure you have a chance to review and prepare for changes.
-Speaking of changes, see [CHANGELOG](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/CHANGELOG.md) for current version information.  
-
-For the best experience, we recommend using the latest [HashiCorp Terraform Core Version](https://github.com/hashicorp/terraform). For more details see [HashiCorp Terraform Version Compatibility Matrix](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs#hashicorp-terraform-versionhttpswwwterraformiodownloadshtml-compatibility-matrix).
+See [CHANGELOG](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/CHANGELOG.md) for current version information.  
 
 ## Example Usage
 
@@ -20,6 +17,13 @@ provider "mongodbatlas" {
 }
 # Create the resources
 ```
+
+### Provider and terraform version constraints
+
+We recommend that you pin your Atlas [provider version](https://developer.hashicorp.com/terraform/language/providers/requirements#version) to at least the [major version](#versioning-strategy) (e.g. `~> 2.0`) to avoid accidental upgrades to incompatible new versions. Starting on `2.0.0`, the [MongoDB Atlas Provider Versioning Policy](#mongodb-atlas-provider-versioning-policy) ensures that minor and patch versions do not include [Breaking Changes](#definition-of-breaking-changes). 
+
+For Terraform version, we recommend that you use the latest [HashiCorp Terraform Core Version](https://github.com/hashicorp/terraform). For more details see [HashiCorp Terraform Version Compatibility Matrix](#hashicorp-terraform-version-compatibility-matrix).
+
 ## Configure Atlas Programmatic Access
 
 In order to set up authentication with the MongoDB Atlas provider, you must generate a programmatic API key for MongoDB Atlas with the appropriate [role](https://docs.atlas.mongodb.com/reference/user-roles/).
