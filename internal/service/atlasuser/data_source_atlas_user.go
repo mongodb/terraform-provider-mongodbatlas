@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -66,7 +67,7 @@ type atlasUserDS struct {
 
 func (d *atlasUserDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "data source", "data.mongodbatlas_organization.users, data.mongodbatlas_team.users or data.mongodbatlas_project.users attributes", "[Migration Guide: Migrate off deprecated `mongodbatlas_atlas_user` and `mongodbatlas_atlas_users`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/atlas-user-migration-guide)"),
+		DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "data source", "data.mongodbatlas_organization.users, data.mongodbatlas_team.users or data.mongodbatlas_project.users attributes", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/atlas-user-management"),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{ // required by hashicorps terraform plugin testing framework: https://github.com/hashicorp/terraform-plugin-testing/issues/84#issuecomment-1480006432
 				DeprecationMessage: "Please use user_id id attribute instead",
@@ -91,7 +92,7 @@ func (d *atlasUserDS) Schema(ctx context.Context, req datasource.SchemaRequest, 
 				Computed: true,
 			},
 			"email_address": schema.StringAttribute{
-				DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "attribute", "data.mongodbatlas_organization.users.username, data.mongodbatlas_team.users.username or data.mongodbatlas_project.users.username attributes", "[Migration Guide: Migrate off deprecated `mongodbatlas_atlas_user` and `mongodbatlas_atlas_users`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/atlas-user-migration-guide)"),
+				DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "attribute", "data.mongodbatlas_organization.users.username, data.mongodbatlas_team.users.username or data.mongodbatlas_project.users.username attributes", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/atlas-user-management"),
 				Computed:           true,
 			},
 			"first_name": schema.StringAttribute{

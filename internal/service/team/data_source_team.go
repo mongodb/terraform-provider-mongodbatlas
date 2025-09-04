@@ -41,7 +41,7 @@ func DataSource() *schema.Resource {
 			"usernames": {
 				Type:       schema.TypeSet,
 				Computed:   true,
-				Deprecated: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "parameter", "data.mongodbatlas_team.users", "[Migration Guide: Team Usernames Attribute to Cloud User Team Assignment](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cloud_user_team_assignment_migration_guide.md)"),
+				Deprecated: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "parameter", "data.mongodbatlas_team.users", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/atlas-user-management"),
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},

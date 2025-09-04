@@ -91,7 +91,7 @@ To learn more, see [Resource Tags](https://www.mongodb.com/docs/atlas/tags/).
 ### Teams
 Teams attribute is optional
 
-~> **DEPRECATION:** This attribute is deprecated and will be removed in the next major release. Please transition to `mongodbatlas_team_project_assignment`. For more details, see [Migration Guide: Project Teams Attribute to Team Project Assignment Resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/team_project_assignment_migration_guide).
+~> **DEPRECATION:** This attribute is deprecated and will be removed in the next major release. Please transition to `mongodbatlas_team_project_assignment`. For more details, see [Migration Guide: Project Teams Attribute to Team Project Assignment Resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/atlas-user-management).
 
 ~> **NOTE:** Atlas limits the number of users to a maximum of 100 teams per project and a maximum of 250 teams per organization.
 

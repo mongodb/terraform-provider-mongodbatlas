@@ -28,7 +28,7 @@ resource "mongodbatlas_team" "test" {
 
 * `org_id` - (Required) The unique identifier for the organization you want to associate the team with.
 * `name` - (Required) The name of the team you want to create.
-* `usernames` - **(DEPRECATED)** (Optional) The Atlas usernames (email address). You can only add Atlas users who are part of the organization. Users who have not accepted an invitation to join the organization cannot be added as team members. There is a maximum of 250 Atlas users per team. This attribute is deprecated and will be removed in the next major release. Please transition to `mongodbatlas_team_project_assignment`. For more details, see [Migration Guide: Team Usernames Attribute to Cloud User Team Assignment](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cloud_user_team_assignment_migration_guide.md).
+* `usernames` - **(DEPRECATED)** (Optional) The Atlas usernames (email address). You can only add Atlas users who are part of the organization. Users who have not accepted an invitation to join the organization cannot be added as team members. There is a maximum of 250 Atlas users per team. This attribute is deprecated and will be removed in the next major release. Please transition to `mongodbatlas_cloud_user_team_assignment`. For more details, see [Migration Guide: Team Usernames Attribute to Cloud User Team Assignment](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/atlas-user-management.md).
 
 ## Attributes Reference
 
