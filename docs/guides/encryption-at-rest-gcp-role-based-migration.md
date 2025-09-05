@@ -14,7 +14,7 @@ page_title: "Migration Guide: Encryption at Rest (GCP) Service Account JSON to R
 
 ### Current (using Service Account JSON key)
 ```hcl
-resource "mongodbatlas_encryption_at_rest" "test" {
+resource "mongodbatlas_encryption_at_rest" "this" {
   project_id = var.atlas_project_id
 
   google_cloud_kms_config {
@@ -91,7 +91,7 @@ gcloud kms keys add-iam-policy-binding \
 Replace the `service_account_key` with `role_id` using the value from the authorization resource:
 
 ```hcl
-resource "mongodbatlas_encryption_at_rest" "test" {
+resource "mongodbatlas_encryption_at_rest" "this" {
   project_id = var.atlas_project_id
 
   google_cloud_kms_config {
@@ -105,7 +105,7 @@ resource "mongodbatlas_encryption_at_rest" "test" {
 **Note:** If KMS IAM bindings are being granted within the same apply, a `depends_on` block is required in `mongodbatlas_encryption_at_rest`. This ensures bindings are correctly configured prior to the role being configured in `mongodbatlas_encryption_at_rest` resource.
 
 ```
-resource "mongodbatlas_encryption_at_rest" "test" {
+resource "mongodbatlas_encryption_at_rest" "this" {
   ...
 
   depends_on = [
@@ -121,7 +121,7 @@ Running `terraform plan` should show a change similar to:
 
 ```
 # mongodbatlas_encryption_at_rest.test will be updated in-place
-  ~ resource "mongodbatlas_encryption_at_rest" "test" {
+  ~ resource "mongodbatlas_encryption_at_rest" "this" {
         id                       = "66d6d2bdb181f8665222509b"
         # (2 unchanged attributes hidden)
 
