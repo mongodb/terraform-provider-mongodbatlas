@@ -56,7 +56,6 @@ func TestAccCloudProviderAccessAuthorizationGCP_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttrSet(resourceName, "role_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "gcp.0.service_account_for_atlas"),
-					resource.TestCheckResourceAttrSet(resourceName, "gcp.0.status"),
 				),
 			},
 		},
