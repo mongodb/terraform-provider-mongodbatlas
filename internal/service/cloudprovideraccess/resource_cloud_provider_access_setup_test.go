@@ -62,6 +62,33 @@ func TestAccCloudProviderAccessSetupAzure_basic(t *testing.T) {
 	},
 	)
 }
+func TestAccCloudProviderAccessSetupGCP_basic(t *testing.T) {
+	acc.SkipTestForCI(t) // Code needs to support long running operations for successful test: CLOUDP-341440
+	var (
+		resourceName   = "mongodbatlas_cloud_provider_access_setup.test"
+		dataSourceName = "data.mongodbatlas_cloud_provider_access_setup.test"
+		projectID      = acc.ProjectIDExecution(t)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckGCPEnv(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configSetupGCP(projectID),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "role_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "gcp_config.0.service_account_for_atlas"),
+					resource.TestCheckResourceAttr(resourceName, "gcp_config.0.status", "COMPLETE"),
+
+					resource.TestCheckResourceAttrSet(dataSourceName, "role_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "gcp_config.0.service_account_for_atlas"),
+					resource.TestCheckResourceAttr(dataSourceName, "gcp_config.0.status", "COMPLETE"),
+				),
+			},
+		},
+	})
+}
 
 func basicSetupTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
@@ -111,6 +138,21 @@ func configSetupAWS(projectID string) string {
 	 }
 
 	`, projectID)
+}
+
+func configSetupGCP(projectID string) string {
+	return fmt.Sprintf(`
+    resource "mongodbatlas_cloud_provider_access_setup" "test" {
+        project_id = %[1]q
+        provider_name = "GCP"
+    }
+
+    data "mongodbatlas_cloud_provider_access_setup" "test" {
+        project_id = mongodbatlas_cloud_provider_access_setup.test.project_id
+        provider_name = mongodbatlas_cloud_provider_access_setup.test.provider_name
+        role_id = mongodbatlas_cloud_provider_access_setup.test.role_id
+    }
+    `, projectID)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {

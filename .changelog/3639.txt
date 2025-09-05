@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/mongodbatlas_cloud_provider_access_authorization: Supports GCP cloud provider
+```

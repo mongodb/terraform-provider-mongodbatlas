@@ -128,6 +128,10 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 						Computed:            true,
 						MarkdownDescription: "Flag that indicates whether the Google Cloud Key Management Service (KMS) encryption key can encrypt and decrypt data.",
 					},
+					"role_id": schema.StringAttribute{
+						Computed:            true,
+						MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the Google Cloud Provider Access Role that MongoDB Cloud uses to access the Google Cloud KMS.",
+					},
 				},
 				Computed:            true,
 				MarkdownDescription: "Details that define the configuration of Encryption at Rest using Google Cloud Key Management Service (KMS).",

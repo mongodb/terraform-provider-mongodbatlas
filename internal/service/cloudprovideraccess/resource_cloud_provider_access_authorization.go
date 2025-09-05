@@ -70,6 +70,18 @@ func ResourceAuthorization() *schema.Resource {
 					},
 				},
 			},
+			"gcp": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"service_account_for_atlas": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"feature_usages": {
 				Type:     schema.TypeList,
 				Elem:     featureUsagesSchema(),
@@ -168,6 +180,10 @@ func resourceCloudProviderAccessAuthorizationUpdate(ctx context.Context, d *sche
 	}
 
 	if d.HasChange("aws") || d.HasChange("azure") {
+		// Re-authorize the role with updated AWS or Azure configuration.
+		// GCP authorization only requires a role ID and has no additional configuration to update.
+		// Therefore, "updating" a GCP role would effectively be creating a new authorization,
+		// which should be handled by creating a new resource rather than updating an existing one.
 		return authorizeRole(ctx, conn, d, projectID, targetRole)
 	}
 
@@ -186,6 +202,7 @@ func roleToSchemaAuthorization(role *admin.CloudProviderAccessRole) map[string]a
 			"iam_assumed_role_arn": role.GetIamAssumedRoleArn(),
 		}},
 		"authorized_date": conversion.TimeToString(role.GetAuthorizedDate()),
+		"gcp":             []any{map[string]any{}},
 	}
 
 	if role.ProviderName == "AZURE" {
@@ -197,6 +214,15 @@ func roleToSchemaAuthorization(role *admin.CloudProviderAccessRole) map[string]a
 				"tenant_id":            role.GetTenantId(),
 			}},
 			"authorized_date": conversion.TimeToString(role.GetAuthorizedDate()),
+			"gcp":             []any{map[string]any{}},
+		}
+	}
+	if role.ProviderName == "GCP" {
+		out = map[string]any{
+			"role_id": role.GetRoleId(),
+			"gcp": []any{map[string]any{
+				"service_account_for_atlas": role.GetGcpServiceAccountForAtlas(),
+			}},
 		}
 	}
 
@@ -281,6 +307,7 @@ func authorizeRole(ctx context.Context, client *admin.APIClient, d *schema.Resou
 		req.SetServicePrincipalId(targetRole.GetServicePrincipalId())
 		roleID = targetRole.GetId()
 	}
+	// No specific GCP config is needed, only providerName and roleID are needed
 
 	var role *admin.CloudProviderAccessRole
 	var err error

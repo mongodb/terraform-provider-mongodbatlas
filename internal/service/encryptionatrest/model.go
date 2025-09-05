@@ -102,6 +102,7 @@ func NewTFGcpKmsConfigItem(gcpKms *admin.GoogleCloudKMS) *TFGcpKmsConfigModel {
 		KeyVersionResourceID: types.StringValue(gcpKms.GetKeyVersionResourceID()),
 		ServiceAccountKey:    conversion.StringNullIfEmpty(gcpKms.GetServiceAccountKey()),
 		Valid:                types.BoolPointerValue(gcpKms.Valid),
+		RoleID:               conversion.StringNullIfEmpty(gcpKms.GetRoleId()),
 	}
 }
 
@@ -134,6 +135,7 @@ func NewAtlasGcpKms(tfGcpKmsConfigSlice []TFGcpKmsConfigModel) *admin.GoogleClou
 		Enabled:              v.Enabled.ValueBoolPointer(),
 		ServiceAccountKey:    v.ServiceAccountKey.ValueStringPointer(),
 		KeyVersionResourceID: v.KeyVersionResourceID.ValueStringPointer(),
+		RoleId:               v.RoleID.ValueStringPointer(),
 	}
 }
 

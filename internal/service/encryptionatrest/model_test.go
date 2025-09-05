@@ -76,11 +76,13 @@ var (
 		Enabled:              &enabled,
 		KeyVersionResourceID: &keyVersionResourceID,
 		ServiceAccountKey:    &serviceAccountKey,
+		RoleId:               &roleID,
 	}
 	TfGcpKmsConfigModel = encryptionatrest.TFGcpKmsConfigModel{
 		Enabled:              types.BoolValue(enabled),
 		KeyVersionResourceID: types.StringValue(keyVersionResourceID),
 		ServiceAccountKey:    types.StringValue(serviceAccountKey),
+		RoleID:               types.StringValue(roleID),
 	}
 	EncryptionAtRest = &admin.EncryptionAtRest{
 		AwsKms:                AWSKMSConfiguration,
