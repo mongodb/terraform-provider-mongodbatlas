@@ -108,6 +108,12 @@ func (r *rs) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, res
 	if diags.HasError() {
 		return
 	}
+	// The replication specs can be unknown if the cluster depends on another resource.
+	// useStateForUnknowns will try to convert the field to `Target Type: []advancedclustertpf.TFReplicationSpecsModel`.
+	// But since the field is unknown the user gets an error: `Error: Value Conversion Error`.
+	if plan.ReplicationSpecs.IsUnknown() {
+		return
+	}
 
 	useStateForUnknowns(ctx, diags, &state, &plan)
 	if diags.HasError() {
