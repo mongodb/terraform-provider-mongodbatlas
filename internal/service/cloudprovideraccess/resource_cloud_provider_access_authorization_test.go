@@ -64,7 +64,7 @@ func TestAccCloudProviderAccessAuthorizationGCP_basic(t *testing.T) {
 
 func configAuthorizationGCP(projectID string) string {
 	return fmt.Sprintf(`
-	resource "mongodbatlas_cloud_provider_access_setup" "gcp_setup"{
+	resource "mongodbatlas_cloud_provider_access_setup" "gcp_setup" {
 		project_id    = %[1]q
 		provider_name = "GCP"
 	}
