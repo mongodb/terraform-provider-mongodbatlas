@@ -210,7 +210,7 @@ func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.Resou
 }
 
 func waitForGCPProviderAccessCompletion(ctx context.Context, projectID, resourceID string, conn *admin.APIClient) (*admin.CloudProviderAccessRole, error) {
-	requestParams := &admin.GetCloudProviderAccessRoleApiParams{
+	requestParams := &admin.GetCloudProviderAccessApiParams{
 		RoleId:  resourceID,
 		GroupId: projectID,
 	}
@@ -236,9 +236,9 @@ func waitForGCPProviderAccessCompletion(ctx context.Context, projectID, resource
 	return r, nil
 }
 
-func resourceRefreshFunc(ctx context.Context, requestParams *admin.GetCloudProviderAccessRoleApiParams, conn *admin.APIClient) retry.StateRefreshFunc {
+func resourceRefreshFunc(ctx context.Context, requestParams *admin.GetCloudProviderAccessApiParams, conn *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		role, resp, err := conn.CloudProviderAccessApi.GetCloudProviderAccessRoleWithParams(ctx, requestParams).Execute()
+		role, resp, err := conn.CloudProviderAccessApi.GetCloudProviderAccessWithParams(ctx, requestParams).Execute()
 		if err != nil {
 			if validate.StatusNotFound(resp) {
 				return nil, "", fmt.Errorf("cloud provider access role %q not found in project %q", requestParams.RoleId, requestParams.GroupId)
