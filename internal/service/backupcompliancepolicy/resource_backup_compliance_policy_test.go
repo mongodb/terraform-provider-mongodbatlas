@@ -196,7 +196,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		projectID := ids["project_id"]
-		policy, _, err := acc.ConnV2().CloudBackupsApi.GetDataProtectionSettings(context.Background(), projectID).Execute()
+		policy, _, err := acc.ConnV2().CloudBackupsApi.GetCompliancePolicy(context.Background(), projectID).Execute()
 		if err != nil || policy == nil {
 			return fmt.Errorf("backup compliance policy (%s) does not exist: %s", rs.Primary.ID, err)
 		}

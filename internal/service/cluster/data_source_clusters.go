@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -394,7 +394,7 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 		if err != nil {
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", clusters[i].ID, err)
 		}
-		processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, clusters[i].GroupID, clusters[i].Name).Execute()
+		processArgs, _, err := connV2.ClustersApi.GetProcessArgs(ctx, clusters[i].GroupID, clusters[i].Name).Execute()
 		if err != nil {
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", clusters[i].ID, err)
 		}

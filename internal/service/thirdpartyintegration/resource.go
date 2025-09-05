@@ -167,7 +167,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	requestBody := schemaToIntegration(d)
 
-	_, _, err := connV2.ThirdPartyIntegrationsApi.CreateThirdPartyIntegration(ctx, integrationType, projectID, requestBody).Execute()
+	_, _, err := connV2.ThirdPartyIntegrationsApi.CreateGroupIntegration(ctx, integrationType, projectID, requestBody).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error creating third party integration %s", err))
@@ -182,7 +182,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	projectID := d.Get("project_id").(string)
 	integrationType := d.Get("type").(string)
 
-	integration, resp, err := connV2.ThirdPartyIntegrationsApi.GetThirdPartyIntegration(ctx, projectID, integrationType).Execute()
+	integration, resp, err := connV2.ThirdPartyIntegrationsApi.GetGroupIntegration(ctx, projectID, integrationType).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -210,7 +210,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 	integrationType := d.Get("type").(string)
 
-	integration, _, err := connV2.ThirdPartyIntegrationsApi.GetThirdPartyIntegration(ctx, projectID, integrationType).Execute()
+	integration, _, err := connV2.ThirdPartyIntegrationsApi.GetGroupIntegration(ctx, projectID, integrationType).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting third party integration resource info %s %w", integrationType, err))
@@ -220,7 +220,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	updateIntegrationFromSchema(d, integration)
 
-	_, _, err = connV2.ThirdPartyIntegrationsApi.UpdateThirdPartyIntegration(ctx, integrationType, projectID, integration).Execute()
+	_, _, err = connV2.ThirdPartyIntegrationsApi.UpdateGroupIntegration(ctx, integrationType, projectID, integration).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error updating third party integration type `%s` (%s): %w", integrationType, d.Id(), err))
@@ -253,7 +253,7 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 		return nil, err
 	}
 
-	_, _, err = connV2.ThirdPartyIntegrationsApi.GetThirdPartyIntegration(ctx, projectID, integrationType).Execute()
+	_, _, err = connV2.ThirdPartyIntegrationsApi.GetGroupIntegration(ctx, projectID, integrationType).Execute()
 
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import third party integration (%s) in project(%s), error: %w", integrationType, projectID, err)

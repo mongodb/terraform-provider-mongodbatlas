@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -281,7 +281,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 
-	policy, resp, err := connV2.CloudBackupsApi.GetDataProtectionSettings(ctx, projectID).Execute()
+	policy, resp, err := connV2.CloudBackupsApi.GetCompliancePolicy(ctx, projectID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -379,7 +379,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
-	_, err := connV2.CloudBackupsApi.DisableDataProtectionSettings(ctx, projectID).Execute()
+	_, err := connV2.CloudBackupsApi.DisableCompliancePolicy(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorBackupPolicyDelete, projectID, err))
 	}
@@ -395,7 +395,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	}
 	projectID := parts[0]
 
-	_, _, err := connV2.CloudBackupsApi.GetDataProtectionSettings(ctx, projectID).Execute()
+	_, _, err := connV2.CloudBackupsApi.GetCompliancePolicy(ctx, projectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorBackupPolicyRead, projectID, err)
 	}
@@ -534,11 +534,11 @@ func updateOrCreateDataProtectionSetting(ctx context.Context, d *schema.Resource
 		dataProtectionSettings.ScheduledPolicyItems = &backupPoliciesItem
 	}
 
-	params := admin.UpdateDataProtectionSettingsApiParams{
+	params := admin.UpdateCompliancePolicyApiParams{
 		GroupId:                        projectID,
 		DataProtectionSettings20231001: dataProtectionSettings,
 		OverwriteBackupPolicies:        conversion.Pointer(false),
 	}
-	_, _, err := connV2.CloudBackupsApi.UpdateDataProtectionSettingsWithParams(ctx, &params).Execute()
+	_, _, err := connV2.CloudBackupsApi.UpdateCompliancePolicyWithParams(ctx, &params).Execute()
 	return err
 }

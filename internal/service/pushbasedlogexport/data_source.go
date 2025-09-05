@@ -39,7 +39,7 @@ func (d *pushBasedLogExportDS) Read(ctx context.Context, req datasource.ReadRequ
 
 	connV2 := d.Client.AtlasV2
 	projectID := tfConfig.ProjectID.ValueString()
-	logConfig, _, err := connV2.PushBasedLogExportApi.GetPushBasedLogConfiguration(ctx, projectID).Execute()
+	logConfig, _, err := connV2.PushBasedLogExportApi.GetLogExport(ctx, projectID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("Error when getting push-based log export configuration", err.Error())
 		return

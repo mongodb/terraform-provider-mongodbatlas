@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
-	"go.mongodb.org/atlas-sdk/v20250312006/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
@@ -135,9 +135,9 @@ func TestFlattenAdvancedReplicationSpecsOldShardingConfig(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			peeringAPI := mockadmin.NetworkPeeringApi{}
 
-			peeringAPI.EXPECT().ListPeeringContainerByCloudProviderWithParams(mock.Anything, mock.Anything).Return(admin.ListPeeringContainerByCloudProviderApiRequest{ApiService: &peeringAPI})
+			peeringAPI.EXPECT().ListGroupContainersWithParams(mock.Anything, mock.Anything).Return(admin.ListGroupContainersApiRequest{ApiService: &peeringAPI})
 			containerResult := []admin.CloudProviderContainer{{Id: conversion.StringPtr("c1"), RegionName: &regionName, ProviderName: &providerName}}
-			peeringAPI.EXPECT().ListPeeringContainerByCloudProviderExecute(mock.Anything).Return(&admin.PaginatedCloudProviderContainer{Results: &containerResult}, nil, nil)
+			peeringAPI.EXPECT().ListGroupContainersExecute(mock.Anything).Return(&admin.PaginatedCloudProviderContainer{Results: &containerResult}, nil, nil)
 
 			client := &admin.APIClient{
 				NetworkPeeringApi: &peeringAPI,

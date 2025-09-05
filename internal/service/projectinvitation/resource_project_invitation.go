@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -74,7 +74,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Username: conversion.StringPtr(d.Get("username").(string)),
 	}
 
-	invitationRes, _, err := connV2.ProjectsApi.CreateProjectInvitation(ctx, projectID, invitationReq).Execute()
+	invitationRes, _, err := connV2.ProjectsApi.CreateGroupInvite(ctx, projectID, invitationReq).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error creating Project invitation for user %s: %w", d.Get("username").(string), err))
 	}
@@ -95,7 +95,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
 
-	projectInvitation, resp, err := connV2.ProjectsApi.GetProjectInvitation(ctx, projectID, invitationID).Execute()
+	projectInvitation, resp, err := connV2.ProjectsApi.GetGroupInvite(ctx, projectID, invitationID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) { // case 404: deleted in the backend case
 			d.SetId("")
@@ -153,7 +153,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	invitationReq := &admin.GroupInvitationUpdateRequest{
 		Roles: &roles,
 	}
-	_, _, err := connV2.ProjectsApi.UpdateProjectInvitationById(ctx, projectID, invitationID, invitationReq).Execute()
+	_, _, err := connV2.ProjectsApi.UpdateInviteById(ctx, projectID, invitationID, invitationReq).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error updating Project invitation for user %s: %w", username, err))
 	}
@@ -166,7 +166,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := ids["project_id"]
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
-	_, err := connV2.ProjectsApi.DeleteProjectInvitation(ctx, projectID, invitationID).Execute()
+	_, err := connV2.ProjectsApi.DeleteGroupInvite(ctx, projectID, invitationID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting Project invitation for user %s: %w", username, err))
 	}
@@ -180,7 +180,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 		return nil, err
 	}
 
-	projectInvitations, _, err := connV2.ProjectsApi.ListProjectInvitations(ctx, projectID).Execute()
+	projectInvitations, _, err := connV2.ProjectsApi.ListGroupInvites(ctx, projectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import Project invitations, error: %s", err)
 	}

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -52,14 +52,14 @@ func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 
 	if !projectState.ProjectID.IsNull() {
 		projectID := projectState.ProjectID.ValueString()
-		project, _, err = connV2.ProjectsApi.GetProject(ctx, projectID).Execute()
+		project, _, err = connV2.ProjectsApi.GetGroup(ctx, projectID).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError("error when getting project from Atlas", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 			return
 		}
 	} else {
 		name := projectState.Name.ValueString()
-		project, _, err = connV2.ProjectsApi.GetProjectByName(ctx, name).Execute()
+		project, _, err = connV2.ProjectsApi.GetGroupByName(ctx, name).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError("error when getting project from Atlas", fmt.Sprintf(ErrorProjectRead, name, err.Error()))
 			return
@@ -94,7 +94,7 @@ func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *
 
 func ListAllProjectUsers(ctx context.Context, projectID string, mongoDBCloudUsersAPI admin.MongoDBCloudUsersApi) ([]admin.GroupUserResponse, error) {
 	return dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.GroupUserResponse], *http.Response, error) {
-		request := mongoDBCloudUsersAPI.ListProjectUsers(ctx, projectID)
+		request := mongoDBCloudUsersAPI.ListGroupUsers(ctx, projectID)
 		request = request.PageNum(pageNum)
 		return request.Execute()
 	})

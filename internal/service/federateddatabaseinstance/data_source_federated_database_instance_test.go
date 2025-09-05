@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 )
 
 func TestAccFederatedDatabaseInstanceDS_s3Bucket(t *testing.T) {
@@ -55,7 +55,7 @@ func checkExists(resourceName string, dataFederatedInstance *admin.DataLakeTenan
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		if dataLakeResp, _, err := acc.ConnV2().DataFederationApi.GetFederatedDatabase(context.Background(), ids["project_id"], ids["name"]).Execute(); err == nil {
+		if dataLakeResp, _, err := acc.ConnV2().DataFederationApi.GetDataFederation(context.Background(), ids["project_id"], ids["name"]).Execute(); err == nil {
 			*dataFederatedInstance = *dataLakeResp
 			return nil
 		}

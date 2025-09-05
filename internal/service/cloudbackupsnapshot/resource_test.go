@@ -131,7 +131,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if ids["snapshot_id"] == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		if _, _, err := acc.ConnV2().CloudBackupsApi.GetReplicaSetBackup(context.Background(), ids["project_id"], ids["cluster_name"], ids["snapshot_id"]).Execute(); err != nil {
+		if _, _, err := acc.ConnV2().CloudBackupsApi.GetClusterBackupSnapshot(context.Background(), ids["project_id"], ids["cluster_name"], ids["snapshot_id"]).Execute(); err != nil {
 			return fmt.Errorf("cloudBackupSnapshot (%s) does not exist", rs.Primary.Attributes["snapshot_id"])
 		}
 
@@ -151,7 +151,7 @@ func checkDestroy(s *terraform.State) error {
 			continue
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		res, _, _ := acc.ConnV2().CloudBackupsApi.GetReplicaSetBackup(context.Background(), ids["project_id"], ids["cluster_name"], ids["snapshot_id"]).Execute()
+		res, _, _ := acc.ConnV2().CloudBackupsApi.GetClusterBackupSnapshot(context.Background(), ids["project_id"], ids["cluster_name"], ids["snapshot_id"]).Execute()
 		if res != nil {
 			return fmt.Errorf("cloudBackupSnapshot (%s) still exists", rs.Primary.Attributes["snapshot_id"])
 		}

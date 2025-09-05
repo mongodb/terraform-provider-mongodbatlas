@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -67,7 +67,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	if _, _, err := connV2.AtlasSearchApi.CreateAtlasSearchDeployment(ctx, projectID, clusterName, &createReq).Execute(); err != nil {
+	if _, _, err := connV2.AtlasSearchApi.CreateClusterSearchDeployment(ctx, projectID, clusterName, &createReq).Execute(); err != nil {
 		diags.AddError("error during search deployment creation", err.Error())
 		return
 	}
@@ -75,7 +75,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	deploymentResp, err := WaitSearchNodeStateTransition(ctx, projectID, clusterName, connV2.AtlasSearchApi,
 		RetryTimeConfig(createTimeout, minTimeoutCreateUpdate))
 	err = cleanup.HandleCreateTimeout(cleanup.ResolveDeleteOnCreateTimeout(plan.DeleteOnCreateTimeout), err, func(ctxCleanup context.Context) error {
-		_, err := connV2.AtlasSearchApi.DeleteAtlasSearchDeployment(ctxCleanup, projectID, clusterName).Execute()
+		_, err := connV2.AtlasSearchApi.DeleteClusterSearchDeployment(ctxCleanup, projectID, clusterName).Execute()
 		return err
 	})
 	if err != nil {
@@ -103,7 +103,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	connV2 := r.Client.AtlasV2
 	projectID := state.ProjectID.ValueString()
 	clusterName := state.ClusterName.ValueString()
-	deploymentResp, getResp, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(ctx, projectID, clusterName).Execute()
+	deploymentResp, getResp, err := connV2.AtlasSearchApi.GetClusterSearchDeployment(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if validate.StatusNotFound(getResp) {
 			resp.State.RemoveResource(ctx)
@@ -140,7 +140,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	projectID := plan.ProjectID.ValueString()
 	clusterName := plan.ClusterName.ValueString()
 	updateReq := NewSearchDeploymentReq(ctx, &plan)
-	deploymentResp, _, err := connV2.AtlasSearchApi.UpdateAtlasSearchDeployment(ctx, projectID, clusterName, &updateReq).Execute()
+	deploymentResp, _, err := connV2.AtlasSearchApi.UpdateClusterSearchDeployment(ctx, projectID, clusterName, &updateReq).Execute()
 	if err != nil {
 		diags.AddError("error during search deployment update", err.Error())
 		return
@@ -181,7 +181,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	connV2 := r.Client.AtlasV2
 	projectID := state.ProjectID.ValueString()
 	clusterName := state.ClusterName.ValueString()
-	if _, err := connV2.AtlasSearchApi.DeleteAtlasSearchDeployment(ctx, projectID, clusterName).Execute(); err != nil {
+	if _, err := connV2.AtlasSearchApi.DeleteClusterSearchDeployment(ctx, projectID, clusterName).Execute(); err != nil {
 		diags.AddError("error during search deployment delete", err.Error())
 		return
 	}

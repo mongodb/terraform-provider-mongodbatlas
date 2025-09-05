@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"regexp"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -54,7 +54,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
-	apiResp, _, err := connV2.MongoDBCloudUsersApi.CreateOrganizationUser(ctx, orgID, orgUserRequest).Execute()
+	apiResp, _, err := connV2.MongoDBCloudUsersApi.CreateOrgUser(ctx, orgID, orgUserRequest).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf("error assigning user to OrgID(%s):", orgID), err.Error())
 		return
@@ -84,18 +84,18 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 
 	if !state.UserId.IsNull() && state.UserId.ValueString() != "" {
 		userID := state.UserId.ValueString()
-		userResp, httpResp, err = connV2.MongoDBCloudUsersApi.GetOrganizationUser(ctx, orgID, userID).Execute()
+		userResp, httpResp, err = connV2.MongoDBCloudUsersApi.GetOrgUser(ctx, orgID, userID).Execute()
 		if validate.StatusNotFound(httpResp) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
 	} else if !state.Username.IsNull() && state.Username.ValueString() != "" { // required for import
 		username := state.Username.ValueString()
-		params := &admin.ListOrganizationUsersApiParams{
+		params := &admin.ListOrgUsersApiParams{
 			OrgId:    orgID,
 			Username: &username,
 		}
-		usersResp, _, err := connV2.MongoDBCloudUsersApi.ListOrganizationUsersWithParams(ctx, params).Execute()
+		usersResp, _, err := connV2.MongoDBCloudUsersApi.ListOrgUsersWithParams(ctx, params).Execute()
 		if err == nil && usersResp != nil && usersResp.Results != nil {
 			if len(*usersResp.Results) == 0 {
 				resp.State.RemoveResource(ctx)
@@ -137,7 +137,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 
-	apiResp, _, err := connV2.MongoDBCloudUsersApi.UpdateOrganizationUser(ctx, orgID, userID, updateReq).Execute()
+	apiResp, _, err := connV2.MongoDBCloudUsersApi.UpdateOrgUser(ctx, orgID, userID, updateReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf("error updating user(%s) in OrgID(%s):", username, orgID), err.Error())
 		return
@@ -163,7 +163,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	userID := state.UserId.ValueString()
 	username := state.Username.ValueString()
 
-	httpResp, err := connV2.MongoDBCloudUsersApi.RemoveOrganizationUser(ctx, orgID, userID).Execute()
+	httpResp, err := connV2.MongoDBCloudUsersApi.RemoveOrgUser(ctx, orgID, userID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(httpResp) {
 			resp.State.RemoveResource(ctx)

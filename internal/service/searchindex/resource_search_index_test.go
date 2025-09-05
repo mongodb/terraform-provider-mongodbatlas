@@ -288,7 +288,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.ConnV2().AtlasSearchApi.GetAtlasSearchIndex(context.Background(), ids["project_id"], ids["cluster_name"], ids["index_id"]).Execute()
+		_, _, err := acc.ConnV2().AtlasSearchApi.GetClusterSearchIndex(context.Background(), ids["project_id"], ids["cluster_name"], ids["index_id"]).Execute()
 		if err != nil {
 			return fmt.Errorf("index (%s) does not exist", ids["index_id"])
 		}

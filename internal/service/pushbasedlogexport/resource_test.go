@@ -386,7 +386,7 @@ func checkDestroy(state *terraform.State) error {
 	}
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type == "mongodbatlas_push_based_log_export" {
-			resp, _, err := acc.ConnV2().PushBasedLogExportApi.GetPushBasedLogConfiguration(context.Background(), rs.Primary.Attributes["project_id"]).Execute()
+			resp, _, err := acc.ConnV2().PushBasedLogExportApi.GetLogExport(context.Background(), rs.Primary.Attributes["project_id"]).Execute()
 			if err == nil && *resp.State != pushbasedlogexport.UnconfiguredState {
 				return fmt.Errorf("push-based log export for project_id %s still configured with state %s", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["state"])
 			}

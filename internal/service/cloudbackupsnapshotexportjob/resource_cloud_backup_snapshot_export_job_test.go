@@ -85,7 +85,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if err != nil {
 			return err
 		}
-		_, _, err = acc.ConnV2().CloudBackupsApi.GetBackupExportJob(context.Background(), projectID, clusterName, exportJobID).Execute()
+		_, _, err = acc.ConnV2().CloudBackupsApi.GetBackupExport(context.Background(), projectID, clusterName, exportJobID).Execute()
 		if err == nil {
 			return nil
 		}

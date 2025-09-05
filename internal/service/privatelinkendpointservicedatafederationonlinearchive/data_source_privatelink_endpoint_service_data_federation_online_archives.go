@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/datalakepipeline"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 )
 
 const errorPrivateEndpointServiceDataFederationOnlineArchiveList = "error reading Private Endpoings for projectId %s: %s"
@@ -62,7 +62,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	privateEndpoints, _, err := connV2.DataFederationApi.ListDataFederationPrivateEndpoints(ctx, projectID).Execute()
+	privateEndpoints, _, err := connV2.DataFederationApi.ListPrivateEndpointIds(ctx, projectID).Execute()
 	if err != nil {
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveList, projectID, err)
 	}

@@ -107,7 +107,7 @@ func checkDestroy(s *terraform.State) error {
 		teamID := rs.Primary.Attributes["team_id"]
 		projectID := rs.Primary.Attributes["project_id"]
 		conn := acc.ConnV2()
-		apiListResp, _, err := conn.TeamsApi.ListProjectTeams(context.Background(), projectID).Execute()
+		apiListResp, _, err := conn.TeamsApi.ListGroupTeams(context.Background(), projectID).Execute()
 		if err != nil {
 			continue
 		}

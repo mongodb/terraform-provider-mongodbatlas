@@ -3,7 +3,7 @@ package encryptionatrest
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -102,6 +102,7 @@ func NewTFGcpKmsConfigItem(gcpKms *admin.GoogleCloudKMS) *TFGcpKmsConfigModel {
 		KeyVersionResourceID: types.StringValue(gcpKms.GetKeyVersionResourceID()),
 		ServiceAccountKey:    conversion.StringNullIfEmpty(gcpKms.GetServiceAccountKey()),
 		Valid:                types.BoolPointerValue(gcpKms.Valid),
+		RoleID:               conversion.StringNullIfEmpty(gcpKms.GetRoleId()),
 	}
 }
 
@@ -134,6 +135,7 @@ func NewAtlasGcpKms(tfGcpKmsConfigSlice []TFGcpKmsConfigModel) *admin.GoogleClou
 		Enabled:              v.Enabled.ValueBoolPointer(),
 		ServiceAccountKey:    v.ServiceAccountKey.ValueStringPointer(),
 		KeyVersionResourceID: v.KeyVersionResourceID.ValueStringPointer(),
+		RoleId:               v.RoleID.ValueStringPointer(),
 	}
 }
 

@@ -193,7 +193,7 @@ func checkDestroy(s *terraform.State) error {
 		userID := r.Primary.Attributes["user_id"]
 		projectID := r.Primary.Attributes["project_id"]
 
-		_, _, err := acc.ConnV2().MongoDBCloudUsersApi.GetProjectUser(context.Background(), projectID, userID).Execute()
+		_, _, err := acc.ConnV2().MongoDBCloudUsersApi.GetGroupUser(context.Background(), projectID, userID).Execute()
 		if err == nil {
 			return fmt.Errorf("cloud user project assignment for user (%s) in project (%s) still exists", userID, projectID)
 		}

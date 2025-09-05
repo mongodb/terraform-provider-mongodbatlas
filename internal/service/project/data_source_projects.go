@@ -12,7 +12,7 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 )
 
 const projectsDataSourceName = "projects"
@@ -45,11 +45,11 @@ func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp 
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &stateModel)...)
 
-	projectParams := &admin.ListProjectsApiParams{
+	projectParams := &admin.ListGroupsApiParams{
 		PageNum:      conversion.IntPtr(int(stateModel.PageNum.ValueInt64())),
 		ItemsPerPage: conversion.IntPtr(int(stateModel.ItemsPerPage.ValueInt64())),
 	}
-	projectsRes, _, err := connV2.ProjectsApi.ListProjectsWithParams(ctx, projectParams).Execute()
+	projectsRes, _, err := connV2.ProjectsApi.ListGroupsWithParams(ctx, projectParams).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error in monogbatlas_projects data source", fmt.Sprintf("error getting projects information: %s", err.Error()))
 		return

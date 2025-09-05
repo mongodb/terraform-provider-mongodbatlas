@@ -107,7 +107,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	clusterName := d.Get("cluster_name").(string)
 	snapshotID := d.Get("snapshot_id").(string)
 
-	snapshot, _, err := connV2.CloudBackupsApi.GetReplicaSetBackup(ctx, groupID, clusterName, snapshotID).Execute()
+	snapshot, _, err := connV2.CloudBackupsApi.GetClusterBackupSnapshot(ctx, groupID, clusterName, snapshotID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting cloudProviderSnapshot Information: %s", err))
 	}
@@ -156,7 +156,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf("error setting `replica_set_name` for snapshot (%s): %s", d.Id(), err))
 	}
 
-	sharded, _, _ := connV2.CloudBackupsApi.GetShardedClusterBackup(ctx, groupID, clusterName, snapshotID).Execute()
+	sharded, _, _ := connV2.CloudBackupsApi.GetBackupShardedCluster(ctx, groupID, clusterName, snapshotID).Execute()
 	if sharded != nil {
 		if err = d.Set("members", flattenCloudMembers(sharded.GetMembers())); err != nil {
 			return diag.FromErr(fmt.Errorf("error setting `members` for snapshot (%s): %s", d.Id(), err))

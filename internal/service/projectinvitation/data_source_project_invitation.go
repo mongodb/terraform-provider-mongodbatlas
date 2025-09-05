@@ -58,7 +58,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	username := d.Get("username").(string)
 	invitationID := d.Get("invitation_id").(string)
 
-	projectInvitation, _, err := connV2.ProjectsApi.GetProjectInvitation(ctx, projectID, invitationID).Execute()
+	projectInvitation, _, err := connV2.ProjectsApi.GetGroupInvite(ctx, projectID, invitationID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting Project Invitation information: %w", err))
 	}

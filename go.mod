@@ -1,6 +1,6 @@
 module github.com/mongodb/terraform-provider-mongodbatlas
 
-go 1.24.6
+go 1.25.0
 
 require (
 	github.com/andygrunwald/go-jira/v2 v2.0.0-20240116150243-50d59fe116d6
@@ -24,8 +24,8 @@ require (
 	github.com/huandu/xstrings v1.5.0
 	github.com/jarcoal/httpmock v1.4.1
 	github.com/mongodb-forks/digest v1.1.0
-	github.com/mongodb/atlas-sdk-go v1.0.1-0.20250825084037-c95a65f18752
-	github.com/pb33f/libopenapi v0.25.3
+	github.com/mongodb/atlas-sdk-go v1.0.1-0.20250903083742-9deacb6fa6f2
+	github.com/pb33f/libopenapi v0.25.8
 	github.com/sebdah/goldie/v2 v2.7.1
 	github.com/spf13/cast v1.9.2
 	github.com/stretchr/testify v1.11.0
@@ -42,7 +42,7 @@ require (
 require (
 	github.com/hashicorp/terraform-json v0.26.0
 	github.com/hashicorp/terraform-plugin-framework-jsontypes v0.2.0
-	go.mongodb.org/atlas-sdk/v20250312006 v20250312006.1.0
+	go.mongodb.org/atlas-sdk/v20250312007 v20250312007.0.0
 )
 
 require (

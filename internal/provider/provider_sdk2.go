@@ -128,6 +128,24 @@ func NewSdkV2Provider() *schema.Provider {
 		ResourcesMap:   getResourcesMap(),
 	}
 	provider.ConfigureContextFunc = providerConfigure(provider)
+	provider.ProviderMetaSchema = map[string]*schema.Schema{
+		ProviderMetaModuleName: {
+			Type:        schema.TypeString,
+			Description: ProviderMetaModuleNameDesc,
+			Optional:    true,
+		},
+		ProviderMetaModuleVersion: {
+			Type:        schema.TypeString,
+			Description: ProviderMetaModuleVersionDesc,
+			Optional:    true,
+		},
+		ProviderMetaUserAgentExtra: {
+			Type:        schema.TypeMap,
+			Elem:        schema.TypeString,
+			Description: ProviderMetaUserAgentExtraDesc,
+			Optional:    true,
+		},
+	}
 	return provider
 }
 

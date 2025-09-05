@@ -4,11 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
@@ -18,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -52,13 +52,16 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"project_owner_id": schema.StringAttribute{
 				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					customplanmodifier.CreateOnlyStringPlanModifier(),
+				},
 			},
 			"with_default_alerts_settings": schema.BoolAttribute{
 				// Default values also must be Computed otherwise Terraform throws error:
-				// Schema Using Attribute Default For Non-Computed Attribute
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(true),
+				// Provider produced invalid plan: planned an invalid value for a non-computed attribute.
+				Optional:      true,
+				Computed:      true,
+				PlanModifiers: []planmodifier.Bool{customplanmodifier.CreateOnlyAttributePlanModifierWithBoolDefault(true)},
 			},
 			"is_collect_database_specifics_statistics_enabled": schema.BoolAttribute{
 				Computed: true,

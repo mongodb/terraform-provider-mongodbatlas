@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 )
 
 func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.StreamsProcessor, diag.Diagnostics) {
@@ -43,13 +43,13 @@ func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) 
 	return streamProcessor, nil
 }
 
-func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.ModifyStreamProcessorApiParams, diag.Diagnostics) {
+func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.UpdateStreamProcessorApiParams, diag.Diagnostics) {
 	pipeline, diags := convertPipelineToSdk(plan.Pipeline.ValueString())
 	if diags != nil {
 		return nil, diags
 	}
 
-	streamProcessorAPIParams := &admin.ModifyStreamProcessorApiParams{
+	streamProcessorAPIParams := &admin.UpdateStreamProcessorApiParams{
 		GroupId:       plan.ProjectID.ValueString(),
 		TenantName:    plan.InstanceName.ValueString(),
 		ProcessorName: plan.ProcessorName.ValueString(),

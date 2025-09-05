@@ -3,7 +3,7 @@ package encryptionatrest
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -127,6 +127,10 @@ func DataSourceSchema(ctx context.Context) schema.Schema {
 					"valid": schema.BoolAttribute{
 						Computed:            true,
 						MarkdownDescription: "Flag that indicates whether the Google Cloud Key Management Service (KMS) encryption key can encrypt and decrypt data.",
+					},
+					"role_id": schema.StringAttribute{
+						Computed:            true,
+						MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the Google Cloud Provider Access Role that MongoDB Cloud uses to access the Google Cloud KMS.",
 					},
 				},
 				Computed:            true,

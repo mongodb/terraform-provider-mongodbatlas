@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -322,7 +322,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	// MongoDB Atlas automatically generates a default backup policy for that cluster.
 	// As a result, we need to first delete the default policies to avoid having
 	// the infrastructure differs from the TF configuration file.
-	if _, _, err := connV2.CloudBackupsApi.DeleteAllBackupSchedules(ctx, projectID, clusterName).Execute(); err != nil {
+	if _, _, err := connV2.CloudBackupsApi.DeleteClusterBackupSchedule(ctx, projectID, clusterName).Execute(); err != nil {
 		diagWarning := diag.Diagnostic{
 			Severity: diag.Warning,
 			Summary:  "Error deleting default backup schedule",
@@ -454,7 +454,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	_, _, err := connV2.CloudBackupsApi.DeleteAllBackupSchedules(ctx, projectID, clusterName).Execute()
+	_, _, err := connV2.CloudBackupsApi.DeleteClusterBackupSchedule(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.Errorf("error deleting MongoDB Cloud Backup Schedule (%s): %s", clusterName, err)
 	}

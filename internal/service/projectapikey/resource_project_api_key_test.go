@@ -233,13 +233,13 @@ func TestAccProjectAPIKey_invalidRole(t *testing.T) {
 }
 
 func deleteAPIKeyManually(orgID, descriptionPrefix string) error {
-	list, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.ListApiKeys(context.Background(), orgID).Execute()
+	list, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.ListOrgApiKeys(context.Background(), orgID).Execute()
 	if err != nil {
 		return err
 	}
 	for _, key := range list.GetResults() {
 		if strings.HasPrefix(key.GetDesc(), descriptionPrefix) {
-			if _, err := acc.ConnV2().ProgrammaticAPIKeysApi.DeleteApiKey(context.Background(), orgID, key.GetId()).Execute(); err != nil {
+			if _, err := acc.ConnV2().ProgrammaticAPIKeysApi.DeleteOrgApiKey(context.Background(), orgID, key.GetId()).Execute(); err != nil {
 				return err
 			}
 		}
@@ -253,7 +253,7 @@ func checkDestroy(projectID string) resource.TestCheckFunc {
 			if rs.Type != "mongodbatlas_project_api_key" {
 				continue
 			}
-			projectAPIKeys, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.ListProjectApiKeys(context.Background(), projectID).Execute()
+			projectAPIKeys, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.ListGroupApiKeys(context.Background(), projectID).Execute()
 			if err != nil {
 				return nil
 			}
@@ -280,7 +280,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		apiKeyID := ids["api_key_id"]
 		orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-		if found, _, _ := acc.ConnV2().ProgrammaticAPIKeysApi.GetApiKey(context.Background(), orgID, apiKeyID).Execute(); found == nil {
+		if found, _, _ := acc.ConnV2().ProgrammaticAPIKeysApi.GetOrgApiKey(context.Background(), orgID, apiKeyID).Execute(); found == nil {
 			return fmt.Errorf("API Key (%s) does not exist", apiKeyID)
 		}
 		return nil

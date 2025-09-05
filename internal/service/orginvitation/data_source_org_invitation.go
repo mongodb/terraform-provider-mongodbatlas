@@ -65,7 +65,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	username := d.Get("username").(string)
 	invitationID := d.Get("invitation_id").(string)
 
-	orgInvitation, _, err := connV2.OrganizationsApi.GetOrganizationInvitation(ctx, orgID, invitationID).Execute()
+	orgInvitation, _, err := connV2.OrganizationsApi.GetOrgInvite(ctx, orgID, invitationID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting Organization Invitation information: %w", err))
 	}

@@ -61,13 +61,13 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	 NOTE: API returns all teams in the project instead of just the assigned team,
 	 requiring a separate GET call. Issue has been reported for future fix (CLOUDP-335018).
 	*/
-	_, _, err := connV2.TeamsApi.AddAllTeamsToProject(ctx, projectID, teamProjectReq).Execute()
+	_, _, err := connV2.TeamsApi.AddGroupTeams(ctx, projectID, teamProjectReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf(errorAssigment, projectID), err.Error())
 		return
 	}
 
-	apiResp, _, err := connV2.TeamsApi.GetProjectTeam(ctx, projectID, teamID).Execute()
+	apiResp, _, err := connV2.TeamsApi.GetGroupTeam(ctx, projectID, teamID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf(errorAssigment, projectID), err.Error())
 		return
@@ -92,7 +92,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	projectID := state.ProjectId.ValueString()
 	teamID := state.TeamId.ValueString()
 
-	apiResp, httpResp, err := connV2.TeamsApi.GetProjectTeam(ctx, projectID, teamID).Execute()
+	apiResp, httpResp, err := connV2.TeamsApi.GetGroupTeam(ctx, projectID, teamID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(httpResp) {
 			resp.State.RemoveResource(ctx)
@@ -130,13 +130,13 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	 NOTE: API returns all teams in the project instead of just the updated team,
 	 requiring a separate GET call. Issue has been reported for future fix (CLOUDP-335018).
 	*/
-	_, _, err := connV2.TeamsApi.UpdateTeamRoles(ctx, projectID, teamID, updateReq).Execute()
+	_, _, err := connV2.TeamsApi.UpdateGroupTeam(ctx, projectID, teamID, updateReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf(errorUpdate, teamID, projectID), err.Error())
 		return
 	}
 
-	apiResp, _, err := connV2.TeamsApi.GetProjectTeam(ctx, projectID, teamID).Execute()
+	apiResp, _, err := connV2.TeamsApi.GetGroupTeam(ctx, projectID, teamID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf(errorUpdate, teamID, projectID), err.Error())
 		return
@@ -161,7 +161,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	projectID := state.ProjectId.ValueString()
 	teamID := state.TeamId.ValueString()
 
-	httpResp, err := connV2.TeamsApi.RemoveProjectTeam(ctx, projectID, teamID).Execute()
+	httpResp, err := connV2.TeamsApi.RemoveGroupTeam(ctx, projectID, teamID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(httpResp) {
 			resp.State.RemoveResource(ctx)

@@ -38,7 +38,7 @@ func (d *teamProjectAssignmentDS) Read(ctx context.Context, req datasource.ReadR
 	projectID := state.ProjectId.ValueString()
 	teamID := state.TeamId.ValueString()
 
-	apiResp, httpResp, err := connV2.TeamsApi.GetProjectTeam(ctx, projectID, teamID).Execute()
+	apiResp, httpResp, err := connV2.TeamsApi.GetGroupTeam(ctx, projectID, teamID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(httpResp) {
 			resp.State.RemoveResource(ctx)

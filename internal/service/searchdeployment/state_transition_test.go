@@ -11,8 +11,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
-	"go.mongodb.org/atlas-sdk/v20250312006/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/mockadmin"
 )
 
 var (
@@ -74,11 +74,11 @@ func TestSearchDeploymentStateTransition(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			m := mockadmin.NewAtlasSearchApi(t)
-			m.EXPECT().GetAtlasSearchDeployment(mock.Anything, mock.Anything, mock.Anything).Return(admin.GetAtlasSearchDeploymentApiRequest{ApiService: m})
+			m.EXPECT().GetClusterSearchDeployment(mock.Anything, mock.Anything, mock.Anything).Return(admin.GetClusterSearchDeploymentApiRequest{ApiService: m})
 
 			for _, resp := range tc.mockResponses {
 				modelResp, httpResp, err := resp.get()
-				m.EXPECT().GetAtlasSearchDeploymentExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
+				m.EXPECT().GetClusterSearchDeploymentExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
 			resp, err := searchdeployment.WaitSearchNodeStateTransition(t.Context(), dummyProjectID, "Cluster0", m, testTimeoutConfig)
 			assert.Equal(t, tc.expectedError, err != nil)
@@ -117,11 +117,11 @@ func TestSearchDeploymentStateTransitionForDelete(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			m := mockadmin.NewAtlasSearchApi(t)
-			m.EXPECT().GetAtlasSearchDeployment(mock.Anything, mock.Anything, mock.Anything).Return(admin.GetAtlasSearchDeploymentApiRequest{ApiService: m})
+			m.EXPECT().GetClusterSearchDeployment(mock.Anything, mock.Anything, mock.Anything).Return(admin.GetClusterSearchDeploymentApiRequest{ApiService: m})
 
 			for _, resp := range tc.mockResponses {
 				modelResp, httpResp, err := resp.get()
-				m.EXPECT().GetAtlasSearchDeploymentExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
+				m.EXPECT().GetClusterSearchDeploymentExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
 			err := searchdeployment.WaitSearchNodeDelete(t.Context(), dummyProjectID, clusterName, m, testTimeoutConfig)
 			assert.Equal(t, tc.expectedError, err != nil)

@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -20,9 +19,8 @@ func DataSourceSetup() *schema.Resource {
 				Required: true,
 			},
 			"provider_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{"AWS", "AZURE"}, false),
+				Type:     schema.TypeString,
+				Required: true,
 			},
 			"role_id": {
 				Type:     schema.TypeString,
@@ -71,6 +69,22 @@ func DataSourceSetup() *schema.Resource {
 					},
 				},
 			},
+			"gcp_config": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"status": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"service_account_for_atlas": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 			"created_date": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -88,15 +102,19 @@ func dataSourceMongoDBAtlasCloudProviderAccessSetupRead(ctx context.Context, d *
 	projectID := d.Get("project_id").(string)
 	roleID := d.Get("role_id").(string)
 
-	role, _, err := conn.CloudProviderAccessApi.GetCloudProviderAccessRole(ctx, projectID, roleID).Execute()
+	role, _, err := conn.CloudProviderAccessApi.GetCloudProviderAccess(ctx, projectID, roleID).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, err))
+		return diag.FromErr(fmt.Errorf(ErrorGetRead, err))
 	}
 
-	roleSchema := roleToSchemaSetup(role)
+	roleSchema, err := roleToSchemaSetup(role)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorGetRead, err))
+	}
+
 	for key, val := range roleSchema {
 		if err := d.Set(key, val); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, err))
+			return diag.FromErr(fmt.Errorf(ErrorGetRead, err))
 		}
 	}
 

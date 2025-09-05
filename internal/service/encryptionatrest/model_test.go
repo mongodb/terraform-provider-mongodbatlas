@@ -3,7 +3,7 @@ package encryptionatrest_test
 import (
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
@@ -76,11 +76,13 @@ var (
 		Enabled:              &enabled,
 		KeyVersionResourceID: &keyVersionResourceID,
 		ServiceAccountKey:    &serviceAccountKey,
+		RoleId:               &roleID,
 	}
 	TfGcpKmsConfigModel = encryptionatrest.TFGcpKmsConfigModel{
 		Enabled:              types.BoolValue(enabled),
 		KeyVersionResourceID: types.StringValue(keyVersionResourceID),
 		ServiceAccountKey:    types.StringValue(serviceAccountKey),
+		RoleID:               types.StringValue(roleID),
 	}
 	EncryptionAtRest = &admin.EncryptionAtRest{
 		AwsKms:                AWSKMSConfiguration,

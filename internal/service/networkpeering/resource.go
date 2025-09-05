@@ -16,7 +16,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/networkcontainer"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 )
 
 const (
@@ -251,7 +251,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		peerRequest.SetVnetName(vnetName.(string))
 	}
 
-	peer, _, err := conn.NetworkPeeringApi.CreatePeeringConnection(ctx, projectID, peerRequest).Execute()
+	peer, _, err := conn.NetworkPeeringApi.CreateGroupPeer(ctx, projectID, peerRequest).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPeersCreate, err))
 	}
@@ -271,7 +271,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		deleteOnCreateTimeout = v.(bool)
 	}
 	errWait = cleanup.HandleCreateTimeout(deleteOnCreateTimeout, errWait, func(ctxCleanup context.Context) error {
-		_, _, errCleanup := conn.NetworkPeeringApi.DeletePeeringConnection(ctxCleanup, projectID, peerID).Execute()
+		_, _, errCleanup := conn.NetworkPeeringApi.DeleteGroupPeer(ctxCleanup, projectID, peerID).Execute()
 		return errCleanup
 	})
 	if errWait != nil {
@@ -294,7 +294,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	peerID := ids["peer_id"]
 	providerName := d.Get("provider_name").(string)
 
-	peer, resp, err := conn.NetworkPeeringApi.GetPeeringConnection(ctx, projectID, peerID).Execute()
+	peer, resp, err := conn.NetworkPeeringApi.GetGroupPeer(ctx, projectID, peerID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -433,7 +433,7 @@ func ensureAccepterRegionName(ctx context.Context, peer *admin.BaseNetworkPeerin
 	if peer.GetAccepterRegionName() != "" {
 		acepterRegionName = peer.GetAccepterRegionName()
 	} else {
-		container, _, err := conn.GetPeeringContainer(ctx, projectID, peer.GetContainerId()).Execute()
+		container, _, err := conn.GetGroupContainer(ctx, projectID, peer.GetContainerId()).Execute()
 		if err != nil {
 			return "", err
 		}
@@ -461,7 +461,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		peer.SetRouteTableCidrBlock(d.Get("route_table_cidr_block").(string))
 		peer.SetVpcId(d.Get("vpc_id").(string))
 	}
-	peerConn, resp, getErr := conn.NetworkPeeringApi.GetPeeringConnection(ctx, projectID, peerID).Execute()
+	peerConn, resp, getErr := conn.NetworkPeeringApi.GetGroupPeer(ctx, projectID, peerID).Execute()
 	if getErr != nil {
 		if validate.StatusNotFound(resp) {
 			return nil
@@ -469,7 +469,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	fmt.Print(peerConn.GetStatus())
 
-	_, _, err := conn.NetworkPeeringApi.UpdatePeeringConnection(ctx, projectID, peerID, peer).Execute()
+	_, _, err := conn.NetworkPeeringApi.UpdateGroupPeer(ctx, projectID, peerID, peer).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPeersUpdate, peerID, err))
 	}
@@ -497,7 +497,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := ids["project_id"]
 	peerID := ids["peer_id"]
 
-	_, _, err := conn.NetworkPeeringApi.DeletePeeringConnection(ctx, projectID, peerID).Execute()
+	_, _, err := conn.NetworkPeeringApi.DeleteGroupPeer(ctx, projectID, peerID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPeersDelete, peerID, err))
 	}
@@ -531,7 +531,7 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 	peerID := parts[1]
 	providerName := parts[2]
 
-	peer, _, err := conn.NetworkPeeringApi.GetPeeringConnection(ctx, projectID, peerID).Execute()
+	peer, _, err := conn.NetworkPeeringApi.GetGroupPeer(ctx, projectID, peerID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import peer %s in project %s, error: %w", peerID, projectID, err)
 	}
@@ -559,7 +559,7 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 
 func resourceRefreshFunc(ctx context.Context, peerID, projectID, containerID string, api admin.NetworkPeeringApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		c, resp, err := api.GetPeeringConnection(ctx, projectID, peerID).Execute()
+		c, resp, err := api.GetGroupPeer(ctx, projectID, peerID).Execute()
 		if err != nil {
 			if validate.StatusNotFound(resp) {
 				return "", "DELETED", nil
@@ -578,7 +578,7 @@ func resourceRefreshFunc(ctx context.Context, peerID, projectID, containerID str
 		 * is right, and the Mongo parameters used on the Google side to configure the reciprocal connection
 		 * are now available. */
 		if status == "WAITING_FOR_USER" {
-			container, _, err := api.GetPeeringContainer(ctx, projectID, containerID).Execute()
+			container, _, err := api.GetGroupContainer(ctx, projectID, containerID).Execute()
 
 			if err != nil {
 				return nil, "", fmt.Errorf(networkcontainer.ErrorContainerRead, containerID, err)

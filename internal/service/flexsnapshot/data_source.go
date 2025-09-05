@@ -42,7 +42,7 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 	}
 	projectID := tfModel.ProjectId.ValueString()
 	name := tfModel.Name.ValueString()
-	apiResp, _, err := d.Client.AtlasV2.FlexSnapshotsApi.GetFlexBackup(ctx, projectID, name, tfModel.SnapshotId.ValueString()).Execute()
+	apiResp, _, err := d.Client.AtlasV2.FlexSnapshotsApi.GetFlexBackupSnapshot(ctx, projectID, name, tfModel.SnapshotId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(errorRead, err.Error())
 		return

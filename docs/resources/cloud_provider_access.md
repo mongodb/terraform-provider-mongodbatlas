@@ -48,6 +48,17 @@ resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
 
 ```
 
+## Example Usage with GCP
+
+```terraform
+
+resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
+   project_id = "64259ee860c43338194b0f8e"
+   provider_name = "GCP"
+}
+
+```
+
 ### Further Examples
 - [AWS Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_provider_access/aws)
 - [Azure Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_provider_access/azure)
@@ -56,7 +67,7 @@ resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project
-* `provider_name` - (Required) The cloud provider for which to create a new role. Currently only AWS and AZURE are supported. **WARNING** Changing the `provider_name` will result in destruction of the existing resource and the creation of a new resource.
+* `provider_name` - (Required) The cloud provider for which to create a new role. Currently, AWS, AZURE and GCP are supported. **WARNING** Changing the `provider_name` will result in destruction of the existing resource and the creation of a new resource.
 * `azure_config` - azure related configurations 
    * `atlas_azure_app_id` - Azure Active Directory Application ID of Atlas. This property is required when `provider_name = "AZURE".`
    * `service_principal_id`- UUID string that identifies the Azure Service Principal. This property is required when `provider_name = "AZURE".`
@@ -68,6 +79,9 @@ resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
 * `aws_config` - aws related arn roles 
    * `atlas_assumed_role_external_id` - Unique external ID Atlas uses when assuming the IAM role in your AWS account.
    * `atlas_aws_account_arn`          - ARN associated with the Atlas AWS account used to assume IAM roles in your AWS account.
+* `gcp_config` - gcp related configuration
+  * `status` - The status of the GCP cloud provider access setup. See [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getgroupcloudprovideraccess#operation-getgroupcloudprovideraccess-200-body-application-vnd-atlas-2023-01-01-json-gcp-object-status).
+  * `service_account_for_atlas` - The GCP service account email that Atlas uses.
 * `created_date`                   - Date on which this role was created.
 * `last_updated_date`                - Date and time when this Azure Service Principal was last updated. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
 * `role_id`                        - Unique ID of this role.
@@ -87,6 +101,8 @@ $ terraform import mongodbatlas_cloud_provider_access_setup.my_role 1112222b3bf9
 
 This is the second resource in the two-resource path as described above.
 `mongodbatlas_cloud_provider_access_authorization`  Allows you to authorize an AWS or AZURE IAM roles in Atlas.
+
+-> **IMPORTANT:** Changes to `project_id` or `role_id` will result in the destruction and recreation of the authorization resource. This action happens as these fields uniquely identify the authorization and cannot be modified in-place.
 
 ## Example Usage with AWS
 ```terraform
@@ -138,19 +154,24 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 
 ## Argument Reference
 
-* `project_id` - (Required) The unique ID for the project
-* `role_id`    - (Required) Unique ID of this role returned by mongodb atlas api
+* `project_id` - (Required) The unique ID for the project. **WARNING**: Changing the `project_id` will result in destruction of the existing authorization resource and the creation of a new authorization resource.
+* `role_id`    - (Required) Unique ID of this role returned by mongodb atlas api. **WARNING**: Changing the `role_id` will result in destruction of the existing authorization resource and the creation of a new authorization resource.
 
 Conditional 
 * `aws`
    * `iam_assumed_role_arn` - (Required) ARN of the IAM Role that Atlas assumes when accessing resources in your AWS account. This value is required after the creation (register of the role) as part of [Set Up Unified AWS Access](https://docs.atlas.mongodb.com/security/set-up-unified-aws-access/#set-up-unified-aws-access).
-   
+* `azure`
+   * `atlas_azure_app_id` - (Required) Azure Active Directory Application ID of Atlas.
+   * `service_principal_id` - (Required) UUID string that identifies the Azure Service Principal.
+   * `tenant_id` - (Required) UUID String that identifies the Azure Active Directory Tenant ID.
 
 ## Attributes Reference
 
 * `id`               - Unique identifier used by terraform for internal management.
 * `authorized_date`  - Date on which this role was authorized.
 * `feature_usages`   - Atlas features this AWS IAM role is linked to.
+* `gcp`
+   * `service_account_for_atlas` - Email address for the Google Service Account created by Atlas.
 
 
 

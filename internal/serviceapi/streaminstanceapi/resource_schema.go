@@ -21,14 +21,35 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							Computed:            true,
 							MarkdownDescription: "User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode.",
 							Attributes: map[string]schema.Attribute{
+								"client_id": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "OIDC client identifier for authentication to the Kafka cluster.",
+								},
+								"client_secret": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "OIDC client secret for authentication to the Kafka cluster.",
+									Sensitive:           true,
+								},
+								"https_ca_pem": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "HTTPS CA certificate in PEM format for SSL/TLS verification.",
+								},
 								"mechanism": schema.StringAttribute{
 									Computed:            true,
-									MarkdownDescription: "Style of authentication. Can be one of PLAIN, SCRAM-256, or SCRAM-512.",
+									MarkdownDescription: "Style of authentication. Can be one of PLAIN, SCRAM-256, SCRAM-512, or OAUTHBEARER.",
 								},
 								"password": schema.StringAttribute{
 									Computed:            true,
 									MarkdownDescription: "Password of the account to connect to the Kafka cluster.",
 									Sensitive:           true,
+								},
+								"sasl_oauthbearer_extensions": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "SASL OAUTHBEARER extensions parameter for additional OAuth2 configuration.",
+								},
+								"scope": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "OIDC scope parameter defining the access permissions requested.",
 								},
 								"ssl_certificate": schema.StringAttribute{
 									Computed:            true,
@@ -41,6 +62,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								"ssl_key_password": schema.StringAttribute{
 									Computed:            true,
 									MarkdownDescription: "Password for the SSL key, if it is password protected.",
+								},
+								"token_endpoint_url": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "OIDC token endpoint URL for obtaining access tokens.",
 								},
 								"username": schema.StringAttribute{
 									Computed:            true,
@@ -118,10 +143,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											Computed:            true,
 											MarkdownDescription: "Reserved. Will be used by PRIVATE_LINK connection type.",
 										},
-										"tgw_id": schema.StringAttribute{
-											Computed:            true,
-											MarkdownDescription: "Reserved. Will be used by TRANSIT_GATEWAY connection type.",
-										},
 										"tgw_route_id": schema.StringAttribute{
 											Computed:            true,
 											MarkdownDescription: "Reserved. Will be used by TRANSIT_GATEWAY connection type.",
@@ -129,10 +150,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										"type": schema.StringAttribute{
 											Computed:            true,
 											MarkdownDescription: "Selected networking type. Either PUBLIC, VPC, PRIVATE_LINK, or TRANSIT_GATEWAY. Defaults to PUBLIC. For VPC, ensure that VPC peering exists and connectivity has been established between Atlas VPC and the VPC where Kafka cluster is hosted for the connection to function properly. TRANSIT_GATEWAY support is coming soon.",
-										},
-										"vpc_cidr": schema.StringAttribute{
-											Computed:            true,
-											MarkdownDescription: "Reserved. Will be used by TRANSIT_GATEWAY connection type.",
 										},
 									},
 								},
@@ -240,12 +257,18 @@ type TFConnectionsModel struct {
 	Url              types.String `tfsdk:"url" autogen:"omitjson"`
 }
 type TFConnectionsAuthenticationModel struct {
-	Mechanism      types.String `tfsdk:"mechanism" autogen:"omitjson"`
-	Password       types.String `tfsdk:"password" autogen:"omitjson"`
-	SslCertificate types.String `tfsdk:"ssl_certificate" autogen:"omitjson"`
-	SslKey         types.String `tfsdk:"ssl_key" autogen:"omitjson"`
-	SslKeyPassword types.String `tfsdk:"ssl_key_password" autogen:"omitjson"`
-	Username       types.String `tfsdk:"username" autogen:"omitjson"`
+	ClientId                  types.String `tfsdk:"client_id" autogen:"omitjson"`
+	ClientSecret              types.String `tfsdk:"client_secret" autogen:"omitjson"`
+	HttpsCaPem                types.String `tfsdk:"https_ca_pem" autogen:"omitjson"`
+	Mechanism                 types.String `tfsdk:"mechanism" autogen:"omitjson"`
+	Password                  types.String `tfsdk:"password" autogen:"omitjson"`
+	SaslOauthbearerExtensions types.String `tfsdk:"sasl_oauthbearer_extensions" autogen:"omitjson"`
+	Scope                     types.String `tfsdk:"scope" autogen:"omitjson"`
+	SslCertificate            types.String `tfsdk:"ssl_certificate" autogen:"omitjson"`
+	SslKey                    types.String `tfsdk:"ssl_key" autogen:"omitjson"`
+	SslKeyPassword            types.String `tfsdk:"ssl_key_password" autogen:"omitjson"`
+	TokenEndpointUrl          types.String `tfsdk:"token_endpoint_url" autogen:"omitjson"`
+	Username                  types.String `tfsdk:"username" autogen:"omitjson"`
 }
 type TFConnectionsAwsModel struct {
 	RoleArn    types.String `tfsdk:"role_arn" autogen:"omitjson"`
@@ -261,10 +284,8 @@ type TFConnectionsNetworkingModel struct {
 type TFConnectionsNetworkingAccessModel struct {
 	ConnectionId types.String `tfsdk:"connection_id" autogen:"omitjson"`
 	Name         types.String `tfsdk:"name" autogen:"omitjson"`
-	TgwId        types.String `tfsdk:"tgw_id" autogen:"omitjson"`
 	TgwRouteId   types.String `tfsdk:"tgw_route_id" autogen:"omitjson"`
 	Type         types.String `tfsdk:"type" autogen:"omitjson"`
-	VpcCidr      types.String `tfsdk:"vpc_cidr" autogen:"omitjson"`
 }
 type TFConnectionsSecurityModel struct {
 	BrokerPublicCertificate types.String `tfsdk:"broker_public_certificate" autogen:"omitjson"`

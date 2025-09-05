@@ -17,7 +17,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 )
 
 func Resource() *schema.Resource {
@@ -117,7 +117,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Target:  []string{"created", "failed"},
 		Refresh: func() (any, string, error) {
 			// Atlas Create is called inside refresh because the endpoint doesn't support concurrent POST requests so it's retried if it fails because of that.
-			customDBRoleRes, _, err := connV2.CustomDatabaseRolesApi.CreateCustomDatabaseRole(ctx, projectID, customDBRoleReq).Execute()
+			customDBRoleRes, _, err := connV2.CustomDatabaseRolesApi.CreateCustomDbRole(ctx, projectID, customDBRoleReq).Execute()
 			if err != nil {
 				if strings.Contains(err.Error(), "Unexpected error") ||
 					strings.Contains(err.Error(), "UNEXPECTED_ERROR") ||
@@ -156,7 +156,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	projectID := ids["project_id"]
 	roleName := ids["role_name"]
 
-	customDBRole, resp, err := connV2.CustomDatabaseRolesApi.GetCustomDatabaseRole(ctx, projectID, roleName).Execute()
+	customDBRole, resp, err := connV2.CustomDatabaseRolesApi.GetCustomDbRole(ctx, projectID, roleName).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -192,7 +192,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			Actions:        expandActions(d),
 			InheritedRoles: expandInheritedRoles(d),
 		}
-		_, _, err := connV2.CustomDatabaseRolesApi.UpdateCustomDatabaseRole(ctx, projectID, roleName, updateParams).Execute()
+		_, _, err := connV2.CustomDatabaseRolesApi.UpdateCustomDbRole(ctx, projectID, roleName, updateParams).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error updating custom db role (%s): %s", roleName, err))
 		}
@@ -210,7 +210,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Pending: []string{"deleting"},
 		Target:  []string{"deleted", "failed"},
 		Refresh: func() (any, string, error) {
-			_, _, err := connV2.CustomDatabaseRolesApi.GetCustomDatabaseRole(ctx, projectID, roleName).Execute()
+			_, _, err := connV2.CustomDatabaseRolesApi.GetCustomDbRole(ctx, projectID, roleName).Execute()
 			if err != nil {
 				if strings.Contains(err.Error(), "404") ||
 					strings.Contains(err.Error(), "ATLAS_CUSTOM_ROLE_NOT_FOUND") {
@@ -219,7 +219,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 				return nil, "failed", err
 			}
 
-			_, err = connV2.CustomDatabaseRolesApi.DeleteCustomDatabaseRole(ctx, projectID, roleName).Execute()
+			_, err = connV2.CustomDatabaseRolesApi.DeleteCustomDbRole(ctx, projectID, roleName).Execute()
 			if err != nil {
 				return nil, "failed", fmt.Errorf("error deleting custom db role (%s): %s", roleName, err)
 			}
@@ -251,7 +251,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	projectID := parts[0]
 	roleName := parts[1]
 
-	r, _, err := connV2.CustomDatabaseRolesApi.GetCustomDatabaseRole(ctx, projectID, roleName).Execute()
+	r, _, err := connV2.CustomDatabaseRolesApi.GetCustomDbRole(ctx, projectID, roleName).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import custom db role %s in project %s, error: %s", roleName, projectID, err)
 	}

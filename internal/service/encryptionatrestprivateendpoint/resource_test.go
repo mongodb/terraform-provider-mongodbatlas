@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -422,7 +422,7 @@ func checkDestroy(state *terraform.State) error {
 		projectID := rs.Primary.Attributes["project_id"]
 		cloudProvider := rs.Primary.Attributes["cloud_provider"]
 		endpointID := rs.Primary.Attributes["id"]
-		_, _, err := acc.ConnV2().EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRestPrivateEndpoint(context.Background(), projectID, cloudProvider, endpointID).Execute()
+		_, _, err := acc.ConnV2().EncryptionAtRestUsingCustomerKeyManagementApi.GetRestPrivateEndpoint(context.Background(), projectID, cloudProvider, endpointID).Execute()
 		if err == nil {
 			return fmt.Errorf("EAR private endpoint (%s:%s:%s) still exists", projectID, cloudProvider, endpointID)
 		}

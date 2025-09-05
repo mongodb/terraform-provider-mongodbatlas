@@ -5,7 +5,7 @@ import (
 	"errors"
 	"regexp"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -223,7 +223,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	streamProcessorResp, _, err := r.Client.AtlasV2.StreamsApi.ModifyStreamProcessorWithParams(ctx, modifyAPIRequestParams).Execute()
+	streamProcessorResp, _, err := r.Client.AtlasV2.StreamsApi.UpdateStreamProcessorWithParams(ctx, modifyAPIRequestParams).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("Error modifying stream processor", err.Error())
 		return

@@ -111,7 +111,7 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 	}
 
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	searchIndex, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID.(string), clusterName.(string), indexID.(string)).Execute()
+	searchIndex, _, err := connV2.AtlasSearchApi.GetClusterSearchIndex(ctx, projectID.(string), clusterName.(string), indexID.(string)).Execute()
 	if err != nil {
 		return diag.Errorf("error getting search index information: %s", err)
 	}
