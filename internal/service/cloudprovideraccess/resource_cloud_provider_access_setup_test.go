@@ -62,6 +62,32 @@ func TestAccCloudProviderAccessSetupAzure_basic(t *testing.T) {
 	},
 	)
 }
+func TestAccCloudProviderAccessSetupGCP_basic(t *testing.T) {
+	var (
+		resourceName   = "mongodbatlas_cloud_provider_access_setup.test"
+		dataSourceName = "data.mongodbatlas_cloud_provider_access_setup.test"
+		projectID      = acc.ProjectIDExecution(t)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configSetupGCP(projectID),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "role_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "gcp_config.0.service_account_for_atlas"),
+					resource.TestCheckResourceAttr(resourceName, "gcp_config.0.status", "COMPLETE"),
+
+					resource.TestCheckResourceAttrSet(dataSourceName, "role_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "gcp_config.0.service_account_for_atlas"),
+					resource.TestCheckResourceAttr(dataSourceName, "gcp_config.0.status", "COMPLETE"),
+				),
+			},
+		},
+	})
+}
 
 func basicSetupTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
@@ -113,6 +139,21 @@ func configSetupAWS(projectID string) string {
 	`, projectID)
 }
 
+func configSetupGCP(projectID string) string {
+	return fmt.Sprintf(`
+    resource "mongodbatlas_cloud_provider_access_setup" "test" {
+        project_id = %[1]q
+        provider_name = "GCP"
+    }
+
+    data "mongodbatlas_cloud_provider_access_setup" "test" {
+        project_id = mongodbatlas_cloud_provider_access_setup.test.project_id
+        provider_name = mongodbatlas_cloud_provider_access_setup.test.provider_name
+        role_id = mongodbatlas_cloud_provider_access_setup.test.role_id
+    }
+    `, projectID)
+}
+
 func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -127,7 +168,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 
 		role, _, err := acc.ConnV2().CloudProviderAccessApi.GetCloudProviderAccessRole(context.Background(), ids["project_id"], id).Execute()
 		if err != nil {
-			return fmt.Errorf(cloudprovideraccess.ErrorCloudProviderGetRead, err)
+			return fmt.Errorf(cloudprovideraccess.ErrorGetRead, err)
 		}
 		if role.GetId() == id || role.GetRoleId() == id {
 			return nil

@@ -647,9 +647,21 @@ func TestAccGovProject_withProjectOwner(t *testing.T) {
 
 func TestAccProject_withFalseDefaultSettings(t *testing.T) {
 	var (
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
-		projectName    = acc.RandomProjectName()
+		orgID               = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectOwnerID      = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+		projectName         = acc.RandomProjectName()
+		importResourceName  = resourceName + "2"
+		alertSettingsFalse  = configWithDefaultAlertSettings(orgID, projectName, projectOwnerID, false)
+		alertSettingsTrue   = configWithDefaultAlertSettings(orgID, projectName, projectOwnerID, true)
+		alertSettingsAbsent = configBasic(orgID, projectName, "", false, nil, nil)
+		// To test plan behavior after import it is necessary to use a different resource name, otherwise we get:
+		// Terraform is already managing a remote object for mongodbatlas_project.test. To import to this address you must first remove the existing object from the state.
+		// This happens because `ImportStatePersist` uses the previous WorkingDirectory where the state from previous steps are saved
+		// resource "mongodbatlas_project" "test"  --> resource "mongodbatlas_project" "test2"
+		alertSettingsFalseImport = strings.Replace(alertSettingsFalse, "test", "test2", 1)
+		// Need BOTH  mongodbatlas_project.test and mongodbatlas_project.test2, otherwise we get:
+		// expected empty plan, but mongodbatlas_project.test has planned action(s): [delete]
+		alertSettingsAbsentImport = alertSettingsFalse + strings.Replace(alertSettingsAbsent, "test", "test2", 1)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -658,13 +670,25 @@ func TestAccProject_withFalseDefaultSettings(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithFalseDefaultSettings(orgID, projectName, projectOwnerID),
+				Config: alertSettingsFalse,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
 			},
+			{
+				Config:      alertSettingsTrue,
+				ExpectError: regexp.MustCompile("with_default_alerts_settings cannot be updated or set after import, remove it from the configuration or use the state value"),
+			},
+			{
+				Config:             alertSettingsFalseImport,
+				ResourceName:       importResourceName,
+				ImportStateIdFunc:  acc.ImportStateProjectIDFunc(resourceName),
+				ImportState:        true,
+				ImportStatePersist: true, // save the state to use it in the next plan
+			},
+			acc.TestStepCheckEmptyPlan(alertSettingsAbsentImport),
 		},
 	})
 }
@@ -688,7 +712,7 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "project_owner_id", projectOwnerID),
-					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "false"),
+					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "true"), // uses default value
 					resource.TestCheckResourceAttr(resourceName, "is_collect_database_specifics_statistics_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_data_explorer_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_extended_storage_sizes_enabled", "false"),
@@ -701,7 +725,7 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "true"),
+					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "true"), // uses default value
 					resource.TestCheckResourceAttr(resourceName, "is_collect_database_specifics_statistics_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "is_data_explorer_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "is_extended_storage_sizes_enabled", "true"),
@@ -714,7 +738,7 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "false"),
+					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "true"), // uses default value
 					resource.TestCheckResourceAttr(resourceName, "is_collect_database_specifics_statistics_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_data_explorer_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_extended_storage_sizes_enabled", "false"),
@@ -1232,15 +1256,15 @@ func configGovWithOwner(orgID, projectName, projectOwnerID string) string {
 	`, orgID, projectName, projectOwnerID)
 }
 
-func configWithFalseDefaultSettings(orgID, projectName, projectOwnerID string) string {
+func configWithDefaultAlertSettings(orgID, projectName, projectOwnerID string, withDefaultAlertsSettings bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			org_id 			 = %[1]q
 			name   			 = %[2]q
 			project_owner_id = %[3]q
-			with_default_alerts_settings = false
+			with_default_alerts_settings = %[4]t
 		}
-	`, orgID, projectName, projectOwnerID)
+	`, orgID, projectName, projectOwnerID, withDefaultAlertsSettings)
 }
 
 func configWithLimits(orgID, projectName string, limits []*admin.DataFederationLimit) string {

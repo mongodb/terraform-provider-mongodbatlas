@@ -59,7 +59,7 @@ const (
 	ProviderConfigError            = "error in configuring the provider."
 	MissingAuthAttrError           = "either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set"
 	ProviderMetaUserAgentExtra     = "user_agent_extra"
-	ProviderMetaUserAgentExtraDesc = "Key Values of that will be formatted as {key}/{value} in the User-Agent Header"
+	ProviderMetaUserAgentExtraDesc = "You can extend the user agent header for each request made by the provider to the Atlas Admin API. The Key Values will be formatted as {key}/{value}."
 	ProviderMetaModuleName         = "module_name"
 	ProviderMetaModuleNameDesc     = "The name of the module using the provider"
 	ProviderMetaModuleVersion      = "module_version"
