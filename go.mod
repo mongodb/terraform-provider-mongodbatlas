@@ -28,7 +28,7 @@ require (
 	github.com/pb33f/libopenapi v0.25.9
 	github.com/sebdah/goldie/v2 v2.7.1
 	github.com/spf13/cast v1.9.2
-	github.com/stretchr/testify v1.11.0
+	github.com/stretchr/testify v1.11.1
 	github.com/wI2L/jsondiff v0.7.0
 	github.com/zclconf/go-cty v1.16.4
 	go.mongodb.org/atlas v0.38.0
