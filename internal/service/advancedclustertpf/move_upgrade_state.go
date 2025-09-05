@@ -90,13 +90,12 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 	model := NewTFModel(ctx, &admin.ClusterDescription20240805{
 		GroupId: projectID,
 		Name:    name,
-	}, diags, ExtraAPIInfo{})
+	}, diags, nil)
 	if diags.HasError() {
 		return
 	}
 	AddAdvancedConfig(ctx, model, &ProcessArgs{
 		ArgsDefault:           nil,
-		ArgsLegacy:            nil,
 		ClusterAdvancedConfig: nil,
 	}, diags)
 	model.Timeouts = getTimeoutFromStateObj(stateObj)
@@ -185,12 +184,9 @@ func replicationSpecModelWithNumShards(numShardsVal tftypes.Value) *TFReplicatio
 	if err := numShardsVal.As(&numShardsFloat); err != nil || numShardsFloat == nil {
 		return nil
 	}
-	numShards, _ := numShardsFloat.Int64()
 	return &TFReplicationSpecsModel{
-		NumShards:     types.Int64Value(numShards),
 		RegionConfigs: types.ListNull(RegionConfigsObjType),
 		ContainerId:   types.MapNull(types.StringType),
-		Id:            types.StringNull(),
 		ExternalId:    types.StringNull(),
 		ZoneId:        types.StringNull(),
 		ZoneName:      types.StringNull(),

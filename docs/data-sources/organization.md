@@ -54,7 +54,7 @@ In addition to all arguments above, the following attributes are exported:
 
 
 ~> **NOTE:** - Users with pending invitations created using [`mongodbatlas_project_invitation`](../resources/project_invitation.md) resource or via the deprecated [Invite One MongoDB Cloud User to Join One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprojectinvitation) endpoint are excluded (or cannot be managed) with this resource. See [MongoDB Atlas API - MongoDB Cloud Users](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-mongodb-cloud-users) for details.
-To manage these users with this resource/data source, refer to our [Org Invitation to Cloud User Org Assignment Migration Guide](../guides/org-invitation-to-cloud-user-org-assignment-migration-guide).
+To manage these users with this resource/data source, refer to our [Org Invitation to Cloud User Org Assignment Migration Guide](../guides/atlas-user-management).
 
 
 

@@ -54,7 +54,7 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - Terraform's unique identifier used internally for state management.
 * `team_id` -  The unique identifier for the team.
 * `name` -  The name of the team you want to create.
-* `usernames` - **(DEPRECATED)** The users who are part of the team. This attribute is deprecated and will be removed in the next major release. Please transition to `data.mongodbatlas_team.users`. For more details, see [Migration Guide: Team Usernames Attribute to Cloud User Team Assignment](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cloud_user_team_assignment_migration_guide.md).
+* `usernames` - **(DEPRECATED)** The users who are part of the team. This attribute is deprecated and will be removed in the next major release. Please transition to `data.mongodbatlas_team.users`. For more details, see [Migration Guide: Team Usernames Attribute to Cloud User Team Assignment](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/atlas-user-management.md).
 * `users`- Returns a list of all pending and active MongoDB Cloud users associated with the specified team.
 
 ### Users
@@ -75,6 +75,6 @@ In addition to all arguments above, the following attributes are exported:
 
 
 ~> **NOTE:** - Users with pending invitations created using [`mongodbatlas_project_invitation`](../resources/project_invitation.md) resource or via the deprecated [Invite One MongoDB Cloud User to Join One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprojectinvitation) endpoint are excluded (or cannot be managed) with this resource. See  [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-mongodb-cloud-users) for details. 
-To manage these users with this resource/data source, refer to our [Migration Guide: Team Usernames Attribute to Cloud User Team Assignment](../guides/cloud-user-team-assignment-migration-guide).
+To manage these users with this resource/data source, refer to our [Migration Guide: Team Usernames Attribute to Cloud User Team Assignment](../guides/atlas-user-management).
 
 See detailed information for arguments and attributes: [MongoDB API Teams](https://docs.atlas.mongodb.com/reference/api/teams-create-one/)

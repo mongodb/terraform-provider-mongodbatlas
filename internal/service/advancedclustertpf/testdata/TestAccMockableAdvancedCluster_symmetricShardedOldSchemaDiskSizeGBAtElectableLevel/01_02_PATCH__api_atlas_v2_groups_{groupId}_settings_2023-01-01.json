@@ -1,8 +1,0 @@
-{
- "isCollectDatabaseSpecificsStatisticsEnabled": true,
- "isDataExplorerEnabled": true,
- "isExtendedStorageSizesEnabled": false,
- "isPerformanceAdvisorEnabled": true,
- "isRealtimePerformancePanelEnabled": true,
- "isSchemaAdvisorEnabled": true
-}
