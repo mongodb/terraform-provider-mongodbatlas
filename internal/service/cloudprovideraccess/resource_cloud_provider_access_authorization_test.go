@@ -40,7 +40,7 @@ func TestAccCloudProviderAccessAuthorizationAzure_basic(t *testing.T) {
 
 func TestAccCloudProviderAccessAuthorizationGCP_basic(t *testing.T) {
 	var (
-		resourceName = "mongodbatlas_cloud_provider_access_authorization.auth_role"
+		resourceName = "mongodbatlas_cloud_provider_access_authorization.this"
 		projectID    = acc.ProjectIDExecution(t)
 	)
 
@@ -69,7 +69,7 @@ func configAuthorizationGCP(projectID string) string {
 		provider_name = "GCP"
 	}
 
-	resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
+	resource "mongodbatlas_cloud_provider_access_authorization" "this" {
 		project_id = mongodbatlas_cloud_provider_access_setup.gcp_setup.project_id
 		role_id    = mongodbatlas_cloud_provider_access_setup.gcp_setup.role_id
 	}
