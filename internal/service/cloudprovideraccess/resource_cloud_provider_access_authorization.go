@@ -31,10 +31,12 @@ func ResourceAuthorization() *schema.Resource {
 			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"role_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"aws": {
 				Type:     schema.TypeList,
@@ -123,13 +125,13 @@ func resourceCloudProviderAccessAuthorizationRead(ctx context.Context, d *schema
 	}
 
 	if targetRole == nil {
-		return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, "cloud provider access role not found in mongodbatlas, please create it first"))
+		return diag.FromErr(fmt.Errorf(ErrorGetRead, "cloud provider access role not found in mongodbatlas, please create it first"))
 	}
 
 	roleSchema := roleToSchemaAuthorization(targetRole)
 	for key, val := range roleSchema {
 		if err := d.Set(key, val); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, err))
+			return diag.FromErr(fmt.Errorf(ErrorGetRead, err))
 		}
 	}
 
@@ -156,7 +158,7 @@ func resourceCloudProviderAccessAuthorizationCreate(ctx context.Context, d *sche
 	}
 
 	if targetRole == nil {
-		return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, "cloud provider access role not found in mongodbatlas, please create it first"))
+		return diag.FromErr(fmt.Errorf(ErrorGetRead, "cloud provider access role not found in mongodbatlas, please create it first"))
 	}
 
 	return authorizeRole(ctx, conn, d, projectID, targetRole)
@@ -176,7 +178,7 @@ func resourceCloudProviderAccessAuthorizationUpdate(ctx context.Context, d *sche
 	}
 
 	if targetRole == nil {
-		return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, "cloud provider access role not found in mongodbatlas, please create it first"))
+		return diag.FromErr(fmt.Errorf(ErrorGetRead, "cloud provider access role not found in mongodbatlas, please create it first"))
 	}
 
 	if d.HasChange("aws") || d.HasChange("azure") {
@@ -238,7 +240,7 @@ func roleToSchemaAuthorization(role *admin.CloudProviderAccessRole) map[string]a
 func FindRole(ctx context.Context, conn *admin.APIClient, projectID, roleID string) (*admin.CloudProviderAccessRole, error) {
 	role, _, err := conn.CloudProviderAccessApi.GetCloudProviderAccess(ctx, projectID, roleID).Execute()
 	if err != nil {
-		return nil, fmt.Errorf(ErrorCloudProviderGetRead, err)
+		return nil, fmt.Errorf(ErrorGetRead, err)
 	}
 
 	return role, nil
@@ -343,7 +345,7 @@ func authorizeRole(ctx context.Context, client *admin.APIClient, d *schema.Resou
 
 	for key, val := range authSchema {
 		if err := d.Set(key, val); err != nil {
-			return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
+			return diag.FromErr(fmt.Errorf(errorCreate, err))
 		}
 	}
 

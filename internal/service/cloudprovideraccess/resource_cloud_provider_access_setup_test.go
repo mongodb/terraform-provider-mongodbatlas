@@ -63,7 +63,6 @@ func TestAccCloudProviderAccessSetupAzure_basic(t *testing.T) {
 	)
 }
 func TestAccCloudProviderAccessSetupGCP_basic(t *testing.T) {
-	acc.SkipTestForCI(t) // Code needs to support long running operations for successful test: CLOUDP-341440
 	var (
 		resourceName   = "mongodbatlas_cloud_provider_access_setup.test"
 		dataSourceName = "data.mongodbatlas_cloud_provider_access_setup.test"
@@ -71,7 +70,7 @@ func TestAccCloudProviderAccessSetupGCP_basic(t *testing.T) {
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckGCPEnv(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
@@ -169,7 +168,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 
 		role, _, err := acc.ConnV2().CloudProviderAccessApi.GetCloudProviderAccess(context.Background(), ids["project_id"], id).Execute()
 		if err != nil {
-			return fmt.Errorf(cloudprovideraccess.ErrorCloudProviderGetRead, err)
+			return fmt.Errorf(cloudprovideraccess.ErrorGetRead, err)
 		}
 		if role.GetId() == id || role.GetRoleId() == id {
 			return nil
