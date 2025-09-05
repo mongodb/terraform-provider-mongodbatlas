@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -83,7 +83,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 	endpointID := d.Get("endpoint_id").(string)
 
-	_, _, err := connV2.DataFederationApi.CreateDataFederationPrivateEndpoint(ctx, projectID, newPrivateNetworkEndpointIDEntry(d)).Execute()
+	_, _, err := connV2.DataFederationApi.CreatePrivateEndpointId(ctx, projectID, newPrivateNetworkEndpointIDEntry(d)).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveCreate, projectID, err))
 	}
@@ -102,7 +102,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	projectID := ids["project_id"]
 	endpointID := ids["endpoint_id"]
 
-	privateEndpoint, resp, err := connV2.DataFederationApi.GetDataFederationPrivateEndpoint(ctx, projectID, endpointID).Execute()
+	privateEndpoint, resp, err := connV2.DataFederationApi.GetPrivateEndpointId(ctx, projectID, endpointID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -123,7 +123,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	endpointID := ids["endpoint_id"]
-	privateEndpoint, resp, err := connV2.DataFederationApi.GetDataFederationPrivateEndpoint(ctx, projectID, endpointID).Execute()
+	privateEndpoint, resp, err := connV2.DataFederationApi.GetPrivateEndpointId(ctx, projectID, endpointID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -134,7 +134,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if d.HasChange("comment") {
 		privateEndpoint.Comment = conversion.StringPtr(d.Get("comment").(string))
-		_, _, err = connV2.DataFederationApi.CreateDataFederationPrivateEndpoint(ctx, projectID, privateEndpoint).Execute()
+		_, _, err = connV2.DataFederationApi.CreatePrivateEndpointId(ctx, projectID, privateEndpoint).Execute()
 		if err != nil {
 			return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveCreate, endpointID, projectID)
 		}
@@ -148,7 +148,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := ids["project_id"]
 	endpointID := ids["endpoint_id"]
 
-	_, err := connV2.DataFederationApi.DeleteDataFederationPrivateEndpoint(ctx, projectID, endpointID).Execute()
+	_, err := connV2.DataFederationApi.DeletePrivateEndpointId(ctx, projectID, endpointID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveDelete, endpointID, projectID, err))
 	}
@@ -165,7 +165,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 		return nil, err
 	}
 
-	privateEndpoint, _, err := connV2.DataFederationApi.GetDataFederationPrivateEndpoint(ctx, projectID, endpointID).Execute()
+	privateEndpoint, _, err := connV2.DataFederationApi.GetPrivateEndpointId(ctx, projectID, endpointID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveImport, endpointID, projectID, err)
 	}

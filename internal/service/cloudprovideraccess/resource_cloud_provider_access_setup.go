@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -126,7 +126,7 @@ func resourceCloudProviderAccessSetupRead(ctx context.Context, d *schema.Resourc
 	projectID := ids["project_id"]
 	roleID := ids["id"]
 
-	role, resp, err := conn.CloudProviderAccessApi.GetCloudProviderAccessRole(context.Background(), projectID, roleID).Execute()
+	role, resp, err := conn.CloudProviderAccessApi.GetCloudProviderAccess(context.Background(), projectID, roleID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -170,7 +170,7 @@ func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.Resou
 		requestParameters.SetTenantId(value.(string))
 	}
 
-	role, _, err := conn.CloudProviderAccessApi.CreateCloudProviderAccessRole(ctx, projectID, requestParameters).Execute()
+	role, _, err := conn.CloudProviderAccessApi.CreateCloudProviderAccess(ctx, projectID, requestParameters).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCreate, err))
 	}
@@ -210,7 +210,7 @@ func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.Resou
 }
 
 func waitForGCPProviderAccessCompletion(ctx context.Context, projectID, resourceID string, conn *admin.APIClient) (*admin.CloudProviderAccessRole, error) {
-	requestParams := &admin.GetCloudProviderAccessRoleApiParams{
+	requestParams := &admin.GetCloudProviderAccessApiParams{
 		RoleId:  resourceID,
 		GroupId: projectID,
 	}
@@ -236,9 +236,9 @@ func waitForGCPProviderAccessCompletion(ctx context.Context, projectID, resource
 	return r, nil
 }
 
-func resourceRefreshFunc(ctx context.Context, requestParams *admin.GetCloudProviderAccessRoleApiParams, conn *admin.APIClient) retry.StateRefreshFunc {
+func resourceRefreshFunc(ctx context.Context, requestParams *admin.GetCloudProviderAccessApiParams, conn *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		role, resp, err := conn.CloudProviderAccessApi.GetCloudProviderAccessRoleWithParams(ctx, requestParams).Execute()
+		role, resp, err := conn.CloudProviderAccessApi.GetCloudProviderAccessWithParams(ctx, requestParams).Execute()
 		if err != nil {
 			if validate.StatusNotFound(resp) {
 				return nil, "", fmt.Errorf("cloud provider access role %q not found in project %q", requestParams.RoleId, requestParams.GroupId)
@@ -264,13 +264,13 @@ func resourceCloudProviderAccessSetupDelete(ctx context.Context, d *schema.Resou
 	roleID := ids["id"]
 	providerName := ids["provider_name"]
 
-	req := &admin.DeauthorizeCloudProviderAccessRoleApiParams{
+	req := &admin.DeauthorizeProviderAccessRoleApiParams{
 		CloudProvider: providerName,
 		RoleId:        roleID,
 		GroupId:       projectID,
 	}
 
-	_, err := conn.CloudProviderAccessApi.DeauthorizeCloudProviderAccessRoleWithParams(ctx, req).Execute()
+	_, err := conn.CloudProviderAccessApi.DeauthorizeProviderAccessRoleWithParams(ctx, req).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorDelete, err))
 	}

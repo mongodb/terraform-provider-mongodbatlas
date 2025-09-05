@@ -79,7 +79,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 	roleName := d.Get("role_name").(string)
 
-	customDBRole, _, err := connV2.CustomDatabaseRolesApi.GetCustomDatabaseRole(ctx, projectID, roleName).Execute()
+	customDBRole, _, err := connV2.CustomDatabaseRolesApi.GetCustomDbRole(ctx, projectID, roleName).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting custom db role information: %s", err))
 	}

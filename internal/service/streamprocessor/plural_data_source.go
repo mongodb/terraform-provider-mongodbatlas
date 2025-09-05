@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 )
 
 var _ datasource.DataSource = &StreamProccesorDS{}
@@ -45,12 +45,12 @@ func (d *streamProcessorsDS) Read(ctx context.Context, req datasource.ReadReques
 	projectID := streamConnectionsConfig.ProjectID.ValueString()
 	instanceName := streamConnectionsConfig.InstanceName.ValueString()
 
-	params := admin.ListStreamProcessorsApiParams{
+	params := admin.GetStreamProcessorsApiParams{
 		GroupId:    projectID,
 		TenantName: instanceName,
 	}
 	sdkProcessors, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.StreamsProcessorWithStats], *http.Response, error) {
-		request := connV2.StreamsApi.ListStreamProcessorsWithParams(ctx, &params)
+		request := connV2.StreamsApi.GetStreamProcessorsWithParams(ctx, &params)
 		request = request.PageNum(pageNum)
 		return request.Execute()
 	})

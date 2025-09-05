@@ -3,13 +3,13 @@ package clean
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 )
 
 // RemoveStreamInstances deletes all stream instances in the project.
 // It will also remove all stream processors associated with the stream instance.
 func RemoveStreamInstances(ctx context.Context, dryRun bool, client *admin.APIClient, projectID string) (int, error) {
-	streamInstances, _, err := client.StreamsApi.ListStreamInstances(ctx, projectID).Execute()
+	streamInstances, _, err := client.StreamsApi.ListStreamWorkspaces(ctx, projectID).Execute()
 	if err != nil {
 		return 0, err
 	}
@@ -18,9 +18,9 @@ func RemoveStreamInstances(ctx context.Context, dryRun bool, client *admin.APICl
 		instanceName := *instance.Name
 
 		if !dryRun {
-			_, err = client.StreamsApi.DeleteStreamInstance(ctx, projectID, instanceName).Execute()
+			_, err = client.StreamsApi.DeleteStreamWorkspace(ctx, projectID, instanceName).Execute()
 			if err != nil && admin.IsErrorCode(err, "STREAM_TENANT_HAS_STREAM_PROCESSORS") {
-				streamProcessors, _, spErr := client.StreamsApi.ListStreamProcessors(ctx, projectID, instanceName).Execute()
+				streamProcessors, _, spErr := client.StreamsApi.GetStreamProcessors(ctx, projectID, instanceName).Execute()
 				if spErr != nil {
 					return 0, spErr
 				}
@@ -32,7 +32,7 @@ func RemoveStreamInstances(ctx context.Context, dryRun bool, client *admin.APICl
 					}
 				}
 
-				_, err = client.StreamsApi.DeleteStreamInstance(ctx, projectID, instanceName).Execute()
+				_, err = client.StreamsApi.DeleteStreamWorkspace(ctx, projectID, instanceName).Execute()
 				if err != nil {
 					return 0, err
 				}

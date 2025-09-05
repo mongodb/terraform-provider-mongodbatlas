@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 
@@ -64,7 +64,7 @@ func waitStateTransitionForStates(ctx context.Context, pending, target []string,
 
 func refreshFunc(ctx context.Context, projectID, cloudProvider, endpointID string, client admin.EncryptionAtRestUsingCustomerKeyManagementApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		model, resp, err := client.GetEncryptionAtRestPrivateEndpoint(ctx, projectID, cloudProvider, endpointID).Execute()
+		model, resp, err := client.GetRestPrivateEndpoint(ctx, projectID, cloudProvider, endpointID).Execute()
 		if err != nil && model == nil && resp == nil {
 			return nil, "", err
 		}

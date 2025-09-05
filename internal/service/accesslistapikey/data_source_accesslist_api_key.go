@@ -58,7 +58,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	orgID := d.Get("org_id").(string)
 	apiKeyID := d.Get("api_key_id").(string)
 	ipAddress := d.Get("ip_address").(string)
-	accessListAPIKey, _, err := connV2.ProgrammaticAPIKeysApi.GetApiKeyAccessList(ctx, orgID, ipAddress, apiKeyID).Execute()
+	accessListAPIKey, _, err := connV2.ProgrammaticAPIKeysApi.GetOrgAccessEntry(ctx, orgID, ipAddress, apiKeyID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting access list api key information: %s", err))
 	}

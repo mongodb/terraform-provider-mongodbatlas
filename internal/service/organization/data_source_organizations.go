@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
@@ -101,13 +101,13 @@ func PluralDataSource() *schema.Resource {
 func pluralDataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).AtlasV2
 
-	organizationOptions := &admin.ListOrganizationsApiParams{
+	organizationOptions := &admin.ListOrgsApiParams{
 		PageNum:      conversion.IntPtr(d.Get("page_num").(int)),
 		ItemsPerPage: conversion.IntPtr(d.Get("items_per_page").(int)),
 		Name:         conversion.Pointer(d.Get("name").(string)),
 	}
 
-	organizations, _, err := conn.OrganizationsApi.ListOrganizationsWithParams(ctx, organizationOptions).Execute()
+	organizations, _, err := conn.OrganizationsApi.ListOrgsWithParams(ctx, organizationOptions).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting organization information: %s", err))
@@ -138,7 +138,7 @@ func flattenOrganizations(ctx context.Context, conn *admin.APIClient, organizati
 	results = make([]map[string]any, len(organizations))
 
 	for k, organization := range organizations {
-		settings, _, err := conn.OrganizationsApi.GetOrganizationSettings(ctx, *organization.Id).Execute()
+		settings, _, err := conn.OrganizationsApi.GetOrgSettings(ctx, *organization.Id).Execute()
 		if err != nil {
 			return nil, fmt.Errorf("error getting organization settings (orgID: %s, org Name: %s): %s", organization.GetId(), organization.GetName(), err)
 		}

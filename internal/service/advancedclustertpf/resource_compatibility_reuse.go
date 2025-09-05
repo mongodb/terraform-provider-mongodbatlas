@@ -8,7 +8,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 )
 
 type MajorVersionOperator int
@@ -58,7 +58,7 @@ func resolveContainerIDs(ctx context.Context, projectID string, cluster *admin.C
 			if providerName == constant.TENANT {
 				continue
 			}
-			params := &admin.ListPeeringContainerByCloudProviderApiParams{
+			params := &admin.ListGroupContainersApiParams{
 				GroupId:      projectID,
 				ProviderName: &providerName,
 			}
@@ -71,7 +71,7 @@ func resolveContainerIDs(ctx context.Context, projectID string, cluster *admin.C
 			if response, ok := responseCache[providerName]; ok {
 				containersResponse = response
 			} else {
-				containersResponse, _, err = api.ListPeeringContainerByCloudProviderWithParams(ctx, params).Execute()
+				containersResponse, _, err = api.ListGroupContainersWithParams(ctx, params).Execute()
 				if err != nil {
 					return nil, err
 				}

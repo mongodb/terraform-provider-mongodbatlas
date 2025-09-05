@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -208,7 +208,7 @@ func TestAccConfigDSOrganizations_withPagination(t *testing.T) {
 func TestAccConfigRSOrganization_import(t *testing.T) {
 	acc.SkipInUnitTest(t) // needed so OrganizationsApi is not called in unit tests
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	resp, _, _ := acc.ConnV2().OrganizationsApi.GetOrganization(t.Context(), orgID).Execute()
+	resp, _, _ := acc.ConnV2().OrganizationsApi.GetOrg(t.Context(), orgID).Execute()
 	orgName := resp.GetName()
 	require.NotEmpty(t, orgName)
 
@@ -303,7 +303,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return err
 		}
 
-		orgs, _, err := conn.OrganizationsApi.ListOrganizations(context.Background()).Execute()
+		orgs, _, err := conn.OrganizationsApi.ListOrgs(context.Background()).Execute()
 		if err == nil {
 			for _, val := range orgs.GetResults() {
 				if val.GetId() == ids["org_id"] {
@@ -329,7 +329,7 @@ func checkDestroy(s *terraform.State) error {
 			return err
 		}
 
-		orgs, _, err := conn.OrganizationsApi.ListOrganizations(context.Background()).Execute()
+		orgs, _, err := conn.OrganizationsApi.ListOrgs(context.Background()).Execute()
 		if err == nil {
 			for _, val := range orgs.GetResults() {
 				if val.GetId() == ids["org_id"] {

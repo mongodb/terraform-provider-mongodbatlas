@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshot"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 )
 
 func TestSplitSnapshotImportID(t *testing.T) {
@@ -14,7 +14,7 @@ func TestSplitSnapshotImportID(t *testing.T) {
 		t.Errorf("splitSnapshotImportID returned error(%s), expected error=nil", err)
 	}
 
-	expected := &admin.GetReplicaSetBackupApiParams{
+	expected := &admin.GetClusterBackupSnapshotApiParams{
 		GroupId:     "5cf5a45a9ccf6400e60981b6",
 		ClusterName: "projectname-environment-mongo-global-cluster",
 		SnapshotId:  "5cf5a45a9ccf6400e60981b7",

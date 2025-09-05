@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 )
 
 type permCtxKey string
@@ -70,7 +70,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 	projectID := d.Id()
 
-	setting, resp, err := conn.PrivateEndpointServicesApi.GetRegionalizedPrivateEndpointSetting(ctx, projectID).Execute()
+	setting, resp, err := conn.PrivateEndpointServicesApi.GetRegionalEndpointMode(ctx, projectID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -100,7 +100,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	settingParam := admin.ProjectSettingItem{
 		Enabled: enabled,
 	}
-	_, resp, err := conn.PrivateEndpointServicesApi.ToggleRegionalizedPrivateEndpointSetting(ctx, projectID, &settingParam).Execute()
+	_, resp, err := conn.PrivateEndpointServicesApi.ToggleRegionalEndpointMode(ctx, projectID, &settingParam).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			return nil
@@ -143,7 +143,7 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Id()
 
-	setting, _, err := conn.PrivateEndpointServicesApi.GetRegionalizedPrivateEndpointSetting(ctx, projectID).Execute()
+	setting, _, err := conn.PrivateEndpointServicesApi.GetRegionalEndpointMode(ctx, projectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import Private Endpoint Regional Mode for project %s error: %s", projectID, err)
 	}

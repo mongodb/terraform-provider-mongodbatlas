@@ -66,7 +66,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if groupID == "" {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
-		if _, _, err := acc.ConnV2().AuditingApi.GetAuditingConfiguration(context.Background(), groupID).Execute(); err == nil {
+		if _, _, err := acc.ConnV2().AuditingApi.GetGroupAuditLog(context.Background(), groupID).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("auditing configuration for project(%s) does not exist", groupID)
@@ -82,7 +82,7 @@ func checkDestroy(s *terraform.State) error {
 		if groupID == "" {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
-		auditingConfig, _, _ := acc.ConnV2().AuditingApi.GetAuditingConfiguration(context.Background(), groupID).Execute()
+		auditingConfig, _, _ := acc.ConnV2().AuditingApi.GetGroupAuditLog(context.Background(), groupID).Execute()
 		// Check if it's back to default settings (enabled = false means it's been reset)
 		if auditingConfig.GetEnabled() {
 			return fmt.Errorf("auditing configuration for project (%s) was not properly reset to defaults", groupID)

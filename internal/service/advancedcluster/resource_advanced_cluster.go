@@ -13,7 +13,7 @@ import (
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -583,7 +583,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if err != nil {
 				return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
 			}
-			_, _, err = connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params).Execute()
+			_, _, err = connV2.ClustersApi.UpdateProcessArgs(ctx, projectID, clusterName, &params).Execute()
 			if err != nil {
 				return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
 			}
@@ -701,7 +701,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorConfigRead, clusterName, err))
 	}
-	processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
+	processArgs, _, err := connV2.ClustersApi.GetProcessArgs(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorConfigRead, clusterName, err))
 	}
@@ -1023,7 +1023,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 				}
 			}
 			if !reflect.DeepEqual(params, admin.ClusterDescriptionProcessArgs20240805{}) {
-				_, _, err := connV2.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params).Execute()
+				_, _, err := connV2.ClustersApi.UpdateProcessArgs(ctx, projectID, clusterName, &params).Execute()
 				if err != nil {
 					return diag.FromErr(fmt.Errorf(errorConfigUpdate, clusterName, err))
 				}
@@ -1403,14 +1403,14 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 
 func upgradeCluster(ctx context.Context, connV2 *admin.APIClient, request *admin.LegacyAtlasTenantClusterUpgradeRequest, flexRequest *admin.AtlasTenantClusterUpgradeRequest20240805, projectID, name string, timeout time.Duration) (*admin.ClusterDescription20240805, *admin.FlexClusterDescription20241113, error) {
 	if request == nil && flexRequest != nil { // upgrade flex to dedicated
-		_, _, err := connV2.FlexClustersApi.UpgradeFlexCluster(ctx, projectID, flexRequest).Execute()
+		_, _, err := connV2.FlexClustersApi.TenantUpgrade(ctx, projectID, flexRequest).Execute()
 		if err != nil {
 			return nil, nil, err
 		}
 	} else {
 		request.Name = name
 		request.GroupId = &projectID
-		_, _, err := connV2.ClustersApi.UpgradeSharedCluster(ctx, projectID, request).Execute()
+		_, _, err := connV2.ClustersApi.UpgradeTenantUpgrade(ctx, projectID, request).Execute()
 		if err != nil {
 			return nil, nil, err
 		}

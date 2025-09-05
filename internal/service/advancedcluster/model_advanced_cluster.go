@@ -13,7 +13,7 @@ import (
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -704,11 +704,11 @@ func flattenAdvancedReplicationSpecRegionConfigs(ctx context.Context, apiObjects
 		}
 
 		if apiObject.GetProviderName() != "TENANT" {
-			params := &admin.ListPeeringContainerByCloudProviderApiParams{
+			params := &admin.ListGroupContainersApiParams{
 				GroupId:      d.Get("project_id").(string),
 				ProviderName: apiObject.ProviderName,
 			}
-			containers, _, err := connV2.NetworkPeeringApi.ListPeeringContainerByCloudProviderWithParams(ctx, params).Execute()
+			containers, _, err := connV2.NetworkPeeringApi.ListGroupContainersWithParams(ctx, params).Execute()
 			if err != nil {
 				return nil, nil, err
 			}

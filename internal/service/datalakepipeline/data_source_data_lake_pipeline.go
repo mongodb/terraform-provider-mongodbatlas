@@ -232,12 +232,12 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineRead, name, err))
 	}
 
-	snapshots, _, err := connV2.DataLakePipelinesApi.ListPipelineSnapshots(ctx, projectID, name).Execute()
+	snapshots, _, err := connV2.DataLakePipelinesApi.GetAvailablePipelineSnapshots(ctx, projectID, name).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineRead, name, err))
 	}
 
-	ingestionSchedules, _, err := connV2.DataLakePipelinesApi.ListPipelineSchedules(ctx, projectID, name).Execute()
+	ingestionSchedules, _, err := connV2.DataLakePipelinesApi.GetAvailablePipelineSchedules(ctx, projectID, name).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakePipelineRead, name, err))
 	}

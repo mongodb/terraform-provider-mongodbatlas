@@ -45,19 +45,19 @@ func (d *searchDeploymentDS) Read(ctx context.Context, req datasource.ReadReques
 	connV2 := d.Client.AtlasV2
 	projectID := searchDeploymentConfig.ProjectID.ValueString()
 	clusterName := searchDeploymentConfig.ClusterName.ValueString()
-	deploymentResp, _, err := connV2.AtlasSearchApi.GetAtlasSearchDeployment(ctx, projectID, clusterName).Execute()
+	apiResp, _, err := connV2.AtlasSearchApi.GetClusterSearchDeployment(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error getting search node information", err.Error())
 		return
 	}
 
-	if IsNotFoundDeploymentResponse(deploymentResp) {
+	if IsNotFoundDeploymentResponse(apiResp) {
 		resp.Diagnostics.AddError("search deployment not found",
 			fmt.Sprintf("no search deployment exists for cluster %s in project %s", clusterName, projectID))
 		return
 	}
 
-	newSearchDeploymentModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, deploymentResp, nil, true)
+	newSearchDeploymentModel, diagnostics := NewTFSearchDeployment(ctx, clusterName, apiResp, nil, true)
 	resp.Diagnostics.Append(diagnostics...)
 	if resp.Diagnostics.HasError() {
 		return

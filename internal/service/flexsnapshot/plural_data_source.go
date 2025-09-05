@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
@@ -53,12 +53,12 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 }
 
 func ListFlexSnapshots(ctx context.Context, projectID, name string, client admin.FlexSnapshotsApi) (*[]admin.FlexBackupSnapshot20241113, error) {
-	params := admin.ListFlexBackupsApiParams{
+	params := admin.ListFlexBackupSnapshotsApiParams{
 		GroupId: projectID,
 		Name:    name,
 	}
 	flexClusters, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.FlexBackupSnapshot20241113], *http.Response, error) {
-		request := client.ListFlexBackupsWithParams(ctx, &params)
+		request := client.ListFlexBackupSnapshotsWithParams(ctx, &params)
 		request = request.PageNum(pageNum)
 		return request.Execute()
 	})

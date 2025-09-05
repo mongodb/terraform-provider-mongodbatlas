@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/stretchr/testify/require"
 
@@ -150,7 +150,7 @@ func TestCleanProjectAndClusters(t *testing.T) {
 func readAllProjects(ctx context.Context, t *testing.T, client *admin.APIClient) []admin.Group {
 	t.Helper()
 	projects, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.Group], *http.Response, error) {
-		return client.ProjectsApi.ListProjects(ctx).ItemsPerPage(itemsPerPage).PageNum(pageNum).Execute()
+		return client.ProjectsApi.ListGroups(ctx).ItemsPerPage(itemsPerPage).PageNum(pageNum).Execute()
 	})
 	require.NoError(t, err)
 	return projects
@@ -168,7 +168,7 @@ func findRetryErrorCode(err error) string {
 	return ""
 }
 func deleteProject(ctx context.Context, client *admin.APIClient, projectID string) error {
-	_, err := client.ProjectsApi.DeleteProject(ctx, projectID).Execute()
+	_, err := client.ProjectsApi.DeleteGroup(ctx, projectID).Execute()
 	if err == nil || admin.IsErrorCode(err, "PROJECT_NOT_FOUND") {
 		return nil
 	}
@@ -293,7 +293,7 @@ func removeNetworkPeering(ctx context.Context, t *testing.T, dryRun bool, client
 	t.Helper()
 	peeringIDs := []string{}
 	for _, providerName := range []string{constant.AWS, constant.AZURE, constant.GCP} {
-		peering, _, err := client.NetworkPeeringApi.ListPeeringConnectionsWithParams(ctx, &admin.ListPeeringConnectionsApiParams{
+		peering, _, err := client.NetworkPeeringApi.ListGroupPeersWithParams(ctx, &admin.ListGroupPeersApiParams{
 			ProviderName: &providerName,
 			GroupId:      projectID,
 		}).ItemsPerPage(itemsPerPage).Execute()
@@ -308,7 +308,7 @@ func removeNetworkPeering(ctx context.Context, t *testing.T, dryRun bool, client
 	for _, peerID := range peeringIDs {
 		t.Logf("delete peering %s", peerID)
 		if !dryRun {
-			_, _, err := client.NetworkPeeringApi.DeletePeeringConnection(ctx, projectID, peerID).Execute()
+			_, _, err := client.NetworkPeeringApi.DeleteGroupPeer(ctx, projectID, peerID).Execute()
 			if admin.IsErrorCode(err, "PEER_ALREADY_REQUESTED_DELETION") {
 				t.Logf("peering %s already requested deletion", peerID)
 				continue
@@ -347,7 +347,7 @@ func removePrivateEndpointServices(ctx context.Context, t *testing.T, dryRun boo
 	cloudProviders := []string{"AWS", "AZURE", "GCP"}
 
 	for _, provider := range cloudProviders {
-		endpointServices, _, err := client.PrivateEndpointServicesApi.ListPrivateEndpointServices(ctx, projectID, provider).Execute()
+		endpointServices, _, err := client.PrivateEndpointServicesApi.ListPrivateEndpointService(ctx, projectID, provider).Execute()
 		if err != nil {
 			t.Errorf("failed to list private endpoint services for %s: %v", provider, err)
 			continue
@@ -369,14 +369,14 @@ func removePrivateEndpointServices(ctx context.Context, t *testing.T, dryRun boo
 
 func removeFederatedDatabasePrivateEndpoints(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
 	t.Helper()
-	paginatedResults, _, err := client.DataFederationApi.ListDataFederationPrivateEndpoints(ctx, projectID).Execute()
+	paginatedResults, _, err := client.DataFederationApi.ListPrivateEndpointIds(ctx, projectID).Execute()
 	require.NoError(t, err)
 	endpoints := paginatedResults.GetResults()
 	for _, f := range endpoints {
 		endpointID := f.GetEndpointId()
 		t.Logf("delete federated private endpoint %s", endpointID)
 		if !dryRun {
-			_, err = client.DataFederationApi.DeleteDataFederationPrivateEndpoint(ctx, projectID, endpointID).Execute()
+			_, err = client.DataFederationApi.DeletePrivateEndpointId(ctx, projectID, endpointID).Execute()
 			require.NoError(t, err)
 		}
 	}
@@ -385,7 +385,7 @@ func removeFederatedDatabasePrivateEndpoints(ctx context.Context, t *testing.T, 
 
 func removeFederatedDatabases(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
 	t.Helper()
-	federatedResults, _, err := client.DataFederationApi.ListFederatedDatabases(ctx, projectID).Execute()
+	federatedResults, _, err := client.DataFederationApi.ListDataFederation(ctx, projectID).Execute()
 	if admin.IsErrorCode(err, "DATA_FEDERATION_TENANT_NOT_FOUND_FOR_ID") {
 		t.Logf("no federated databases found for project %s, must delete this manually from the UI", projectID) // Deletion task was only partially successful - deleted the storage config but not the tenant config (internal slack thread)
 		return 0
@@ -395,7 +395,7 @@ func removeFederatedDatabases(ctx context.Context, t *testing.T, dryRun bool, cl
 		federatedName := f.GetName()
 		t.Logf("delete federated %s", federatedName)
 		if !dryRun {
-			_, err = client.DataFederationApi.DeleteFederatedDatabase(ctx, projectID, federatedName).Execute()
+			_, err = client.DataFederationApi.DeleteDataFederation(ctx, projectID, federatedName).Execute()
 			require.NoError(t, err)
 		}
 	}
@@ -406,7 +406,7 @@ func removeEncryptionAtRestPrivateEndpoints(ctx context.Context, t *testing.T, d
 	t.Helper()
 	endpointsCount := 0
 	for _, cloudProvider := range []string{constant.AWS, constant.AZURE} {
-		privateEndpoints, _, err := client.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRestPrivateEndpointsForCloudProvider(ctx, projectID, cloudProvider).Execute()
+		privateEndpoints, _, err := client.EncryptionAtRestUsingCustomerKeyManagementApi.ListRestPrivateEndpoints(ctx, projectID, cloudProvider).Execute()
 		require.NoError(t, err)
 		endpoints := privateEndpoints.GetResults()
 		endpointsCount += len(endpoints)
@@ -414,7 +414,7 @@ func removeEncryptionAtRestPrivateEndpoints(ctx context.Context, t *testing.T, d
 			endpointID := endpoint.GetId()
 			t.Logf("delete encryption at rest private endpoint %s", endpointID)
 			if !dryRun {
-				_, err = client.EncryptionAtRestUsingCustomerKeyManagementApi.RequestEncryptionAtRestPrivateEndpointDeletion(ctx, projectID, cloudProvider, endpointID).Execute()
+				_, err = client.EncryptionAtRestUsingCustomerKeyManagementApi.RequestPrivateEndpointDeletion(ctx, projectID, cloudProvider, endpointID).Execute()
 				require.NoError(t, err)
 				time.Sleep(30 * time.Second)
 			}

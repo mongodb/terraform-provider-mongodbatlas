@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -76,7 +76,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	projectID := d.Get("project_id").(string)
 	instanceName := d.Get("instance_name").(string)
 
-	privateLinkEndpoints, _, err := connV2.ServerlessPrivateEndpointsApi.ListServerlessPrivateEndpoints(ctx, projectID, instanceName).Execute()
+	privateLinkEndpoints, _, err := connV2.ServerlessPrivateEndpointsApi.ListServerlessPrivateEndpoint(ctx, projectID, instanceName).Execute()
 	if err != nil {
 		return diag.Errorf("error getting Serverless PrivateLink Endpoints Information: %s", err)
 	}

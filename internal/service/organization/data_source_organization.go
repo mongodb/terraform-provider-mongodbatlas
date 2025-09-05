@@ -75,7 +75,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	orgID := d.Get("org_id").(string)
 
-	organization, _, err := conn.OrganizationsApi.GetOrganization(ctx, orgID).Execute()
+	organization, _, err := conn.OrganizationsApi.GetOrg(ctx, orgID).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting organizations information: %s", err))
@@ -97,7 +97,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf("error setting `is_deleted`: %s", err))
 	}
 
-	settings, _, err := conn.OrganizationsApi.GetOrganizationSettings(ctx, orgID).Execute()
+	settings, _, err := conn.OrganizationsApi.GetOrgSettings(ctx, orgID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting organization settings: %s", err))
 	}
