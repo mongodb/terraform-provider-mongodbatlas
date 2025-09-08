@@ -18,16 +18,6 @@ resource "mongodbatlas_project" "test" {
   name   = "project-name"
   org_id = data.mongodbatlas_roles_org_id.test.org_id
 
-  teams {
-    team_id    = "5e0fa8c99ccf641c722fe645"
-    role_names = ["GROUP_OWNER"]
-  }
-
-  teams {
-    team_id    = "5e1dd7b4f2a30ba80a70cd4rw"
-    role_names = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_WRITE"]
-  }
-
   limits {
     name = "atlas.project.deployment.clusters"
     value = 26
@@ -108,4 +98,4 @@ data "mongodbatlas_projects" "test" {
 
 ~> **NOTE:** - Does not return pending users invited via the deprecated [Invite One MongoDB Cloud User to Join One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprojectinvitation) endpoint or pending invitations created using [`mongodbatlas_project_invitation`](../resources/project_invitation.md) resource.
 
-See [MongoDB Atlas API - Projects](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Projects) - [and MongoDB Atlas API - Teams](https://docs.atlas.mongodb.com/reference/api/project-get-teams/) Documentation for more information.
+See [MongoDB Atlas API - Projects](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Projects) Documentation for more information.
