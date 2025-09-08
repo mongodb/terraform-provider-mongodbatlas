@@ -15,7 +15,7 @@ import (
 // It shows a helpful error message helping the user to update their config to match the state.
 // Never use a schema.Default for create only attributes, instead use `WithDefault`, the default will lead to plan changes that are not expected after import.
 // No default value implemented for string until we have a use case.
-// Implement CopyFromPlan if the attribute is not in the API Response.
+// If the attribute is not in the API Response implement CopyFromPlan behavior when converting API Model to TF Model.
 func CreateOnlyString() planmodifier.String {
 	return &createOnlyStringPlanModifier{}
 }

@@ -16,7 +16,7 @@ import (
 // This is useful for attributes only supported in create and not in update.
 // It shows a helpful error message helping the user to update their config to match the state.
 // Never use a schema.Default for create only attributes, instead use `WithDefault`, the default will lead to plan changes that are not expected after import.
-// Implement CopyFromPlan if the attribute is not in the API Response.
+// If the attribute is not in the API Response implement CopyFromPlan behavior when converting API Model to TF Model.
 func CreateOnlyBool() planmodifier.Bool {
 	return &createOnlyBoolPlanModifier{}
 }
@@ -25,6 +25,7 @@ func CreateOnlyBool() planmodifier.Bool {
 // This avoids any custom logic in the resource "Create" handler.
 // On update the default has no impact and the UseStateForUnknown behavior is observed instead.
 // Always use Optional+Computed when using a default value.
+// If the attribute is not in the API Response implement CopyFromPlan behavior when converting API Model to TF Model.
 func CreateOnlyBoolWithDefault(b bool) planmodifier.Bool {
 	return &createOnlyBoolPlanModifier{defaultBool: &b}
 }
@@ -38,7 +39,7 @@ func (d *createOnlyBoolPlanModifier) Description(ctx context.Context) string {
 }
 
 func (d *createOnlyBoolPlanModifier) MarkdownDescription(ctx context.Context) string {
-	return "Ensures the update operation fails when updating an attribute. If the read after import don't equal the configuration value it will also raise an error."
+	return "Ensures the update operation fails when updating an attribute. If the read after import doesn't equal the configuration value it will also raise an error."
 }
 
 // isCreate uses the full state to check if this is a create operation
@@ -55,18 +56,6 @@ func (d *createOnlyBoolPlanModifier) PlanModifyBool(ctx context.Context, req pla
 		if !IsKnown(req.PlanValue) && d.UseDefault() {
 			resp.PlanValue = types.BoolPointerValue(d.defaultBool)
 		}
-		return
-	}
-	if isUpdated(req.StateValue, req.PlanValue) {
-		d.addDiags(&resp.Diagnostics, req.Path, req.StateValue)
-	}
-	if !IsKnown(req.PlanValue) {
-		resp.PlanValue = req.StateValue
-	}
-}
-
-func (d *createOnlyBoolPlanModifier) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
-	if isCreate(&req.State) {
 		return
 	}
 	if isUpdated(req.StateValue, req.PlanValue) {
