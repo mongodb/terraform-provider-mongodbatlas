@@ -53,7 +53,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"project_owner_id": schema.StringAttribute{
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
-					customplanmodifier.CreateOnlyStringPlanModifier(),
+					customplanmodifier.CreateOnlyString(),
 				},
 			},
 			"with_default_alerts_settings": schema.BoolAttribute{
@@ -61,7 +61,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				// Provider produced invalid plan: planned an invalid value for a non-computed attribute.
 				Optional:      true,
 				Computed:      true,
-				PlanModifiers: []planmodifier.Bool{customplanmodifier.CreateOnlyBoolWithDefaultPlanModifier(true)},
+				PlanModifiers: []planmodifier.Bool{customplanmodifier.CreateOnlyBoolWithDefault(true)},
 			},
 			"is_collect_database_specifics_statistics_enabled": schema.BoolAttribute{
 				Computed: true,

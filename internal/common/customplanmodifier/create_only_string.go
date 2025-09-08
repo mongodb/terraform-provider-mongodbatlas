@@ -10,13 +10,13 @@ import (
 	planmodifier "github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 )
 
-// CreateOnlyStringPlanModifier creates a plan modifier that prevents updates to string attributes.
+// CreateOnlyString creates a plan modifier that prevents updates to string attributes.
 // This is useful for attributes only supported in create and not in update.
 // It shows a helpful error message helping the user to update their config to match the state.
 // Never use a schema.Default for create only attributes, instead use `WithDefault`, the default will lead to plan changes that are not expected after import.
 // No default value implemented for string until we have a use case.
 // Implement CopyFromPlan if the attribute is not in the API Response.
-func CreateOnlyStringPlanModifier() planmodifier.String {
+func CreateOnlyString() planmodifier.String {
 	return &createOnlyStringPlanModifier{}
 }
 
