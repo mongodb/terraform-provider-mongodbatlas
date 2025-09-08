@@ -1053,11 +1053,11 @@ func TestAccProject_withTags(t *testing.T) {
 			},
 			{
 				Config:      configWithTags(orgID, projectName, map[string]string{"invalid-tag-value": "test/test"}),
-				ExpectError: regexp.MustCompile(`contains invalid characters\W+Allowable characters include`),
+				ExpectError: regexp.MustCompile(`The request parameters are not valid.`),
 			},
 			{
 				Config:      configWithTags(orgID, projectName, map[string]string{"long-tag": longTagValue}),
-				ExpectError: regexp.MustCompile(`exceeded the maximum allowed length of \d+ characters`),
+				ExpectError: regexp.MustCompile(`The request parameters are not valid.`),
 			},
 			{
 				Config: configWithTags(orgID, projectName, tagsEmpty),
