@@ -10,6 +10,10 @@ ENHANCEMENTS:
 * resource/mongodbatlas_cloud_provider_access_setup: Adds support for GCP as a Cloud Provider. ([#3637](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3637))
 * resource/mongodbatlas_encryption_at_rest: Supports role_id in google_cloud_kms_config ([#3636](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3636))
 
+BUG FIXES:
+
+* resource/mongodbatlas_advanced_cluster: Fixes `Value Conversion Error` when replication_specs are unknown ([#3652](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3652))
+
 ## 1.40.0 (August 21, 2025)
 
 ENHANCEMENTS:
