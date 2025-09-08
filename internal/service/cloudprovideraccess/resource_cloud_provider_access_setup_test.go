@@ -169,7 +169,7 @@ func configSetupAWSWithTimeoutAndDeleteOnCreateTimeout(projectID string) string 
 			project_id = %[1]q
 			provider_name = "AWS"
 			delete_on_create_timeout = true
-			timeouts = {
+			timeouts {
 				create = "1s"
 			}
 		}
