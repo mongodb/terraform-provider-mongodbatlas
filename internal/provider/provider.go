@@ -517,7 +517,11 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 	if config.PreviewProviderV2AdvancedCluster() {
 		resources = append(resources, advancedclustertpf.Resource)
 	}
-	return resources
+	analyticsResources := []func() resource.Resource{}
+	for _, resourceFunc := range resources {
+		analyticsResources = append(analyticsResources, config.AnalyticsResourceFunc(resourceFunc()))
+	}
+	return analyticsResources
 }
 
 func NewFrameworkProvider() provider.Provider {
