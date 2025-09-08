@@ -38,6 +38,44 @@ func TestAccCloudProviderAccessAuthorizationAzure_basic(t *testing.T) {
 	)
 }
 
+func TestAccCloudProviderAccessAuthorizationGCP_basic(t *testing.T) {
+	var (
+		resourceName = "mongodbatlas_cloud_provider_access_authorization.this"
+		projectID    = acc.ProjectIDExecution(t)
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configAuthorizationGCP(projectID),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttrSet(resourceName, "role_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "gcp.0.service_account_for_atlas"),
+				),
+			},
+		},
+	})
+}
+
+func configAuthorizationGCP(projectID string) string {
+	return fmt.Sprintf(`
+	resource "mongodbatlas_cloud_provider_access_setup" "gcp_setup" {
+		project_id    = %[1]q
+		provider_name = "GCP"
+	}
+
+	resource "mongodbatlas_cloud_provider_access_authorization" "this" {
+		project_id = mongodbatlas_cloud_provider_access_setup.gcp_setup.project_id
+		role_id    = mongodbatlas_cloud_provider_access_setup.gcp_setup.role_id
+	}
+	`, projectID)
+}
+
 func basicAuthorizationTestCase(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 

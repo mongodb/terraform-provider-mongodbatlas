@@ -138,7 +138,9 @@ Please review the [`mongodbatlas_encryption_at_rest_private_endpoint` resource d
 
 
 ### Configuring encryption at rest using customer key management in GCP
-For GCP environments using static service account key, we recommend configuring encryption at rest with customer key management. This approach uses role-based authentication through Cloud Provider Access for a more secure solution
+For GCP environments using static service account key, we recommend configuring encryption at rest with customer key management. For more details see our [Migration Guide: Encryption at Rest (GCP) Service Account JSON to Role-based Auth](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/encryption-at-rest-gcp-role-based-migration).
+
+This approach uses role-based authentication through Cloud Provider Access for a more secure solution.
 
 ```terraform
 resource "mongodbatlas_cloud_provider_access_setup" "this" {
