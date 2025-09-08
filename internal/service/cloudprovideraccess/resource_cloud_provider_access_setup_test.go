@@ -137,6 +137,7 @@ func basicSetupTestCaseWithDeleteOnCreateTimeout(tb testing.TB) *resource.TestCa
 
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		CheckDestroy:             checkDestroy,
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
