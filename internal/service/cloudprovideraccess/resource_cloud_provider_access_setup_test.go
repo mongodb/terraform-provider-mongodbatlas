@@ -167,7 +167,7 @@ func configSetupGCPWithTimeoutAndDeleteOnCreateTimeout(projectID string) string 
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cloud_provider_access_setup" "test" {
 			project_id = %[1]q
-			provider_name = "GCO"
+			provider_name = "GCP"
 			delete_on_create_timeout = true
 			timeouts {
 				create = "1s"
