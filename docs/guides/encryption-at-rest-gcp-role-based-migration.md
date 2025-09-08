@@ -6,6 +6,8 @@ page_title: "Migration Guide: Encryption at Rest (GCP) Service Account JSON to R
 
 **Objective**: Migrate from using a static Service Account JSON key in `mongodbatlas_encryption_at_rest.google_cloud_kms_config.service_account_key` to role-based authentication using an Atlas-managed service account via `mongodbatlas_encryption_at_rest.google_cloud_kms_config.role_id`.
 
+**Note**: Once migrated to using role-based authentication, it is not possible to revert back to using a static Service Account JSON key.
+
 ## Best Practices Before Migrating
 - Test the migration in a non-production environment if possible.
 
