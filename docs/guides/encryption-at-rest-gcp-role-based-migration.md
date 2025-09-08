@@ -4,15 +4,17 @@ page_title: "Migration Guide: Encryption at Rest (GCP) Service Account JSON to R
 
 # Migration Guide: Encryption at Rest (GCP) Service Account JSON to Role-based Auth
 
-**Objective**: Migrate from using a long-lived static Service Account JSON key in `mongodbatlas_encryption_at_rest.google_cloud_kms_config.service_account_key` to role-based authentication using an Atlas-managed service account via `mongodbatlas_encryption_at_rest.google_cloud_kms_config.role_id`.
+**Objective**: Migrate from using a static Service Account JSON key in `mongodbatlas_encryption_at_rest.google_cloud_kms_config.service_account_key` to role-based authentication using an Atlas-managed service account via `mongodbatlas_encryption_at_rest.google_cloud_kms_config.role_id`.
 
 ## Best Practices Before Migrating
-- Back up your Terraform state file before making changes.
 - Test the migration in a non-production environment if possible.
 
 ## Migration Steps
 
 ### Current (using Service Account JSON key)
+
+This configuration serves as the starting point for the migration.
+
 ```hcl
 resource "mongodbatlas_encryption_at_rest" "this" {
   project_id = var.atlas_project_id
@@ -68,7 +70,7 @@ resource "google_kms_crypto_key_iam_binding" "viewer_binding" {
 }
 ```
 
-Alternatively, the Google Cloud CLI can be used:
+Alternatively, you can use Google Cloud CLI:
 
 ```shell
 gcloud kms keys add-iam-policy-binding \
@@ -102,7 +104,7 @@ resource "mongodbatlas_encryption_at_rest" "this" {
 }
 ```
 
-**Note:** If KMS IAM bindings are being granted within the same apply, a `depends_on` block is required in `mongodbatlas_encryption_at_rest`. This ensures bindings are correctly configured prior to the role being configured in `mongodbatlas_encryption_at_rest` resource.
+**Note:** If you grant KMS IAM bindings within the same apply, you must add a `depends_on` block to `mongodbatlas_encryption_at_rest`. This ensures Terraform configures the bindings before it configures the role in the `mongodbatlas_encryption_at_rest` resource.
 
 ```
 resource "mongodbatlas_encryption_at_rest" "this" {
