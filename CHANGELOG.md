@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.41.0 (September 08, 2025)
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_cloud_provider_access_setup: Adds support for GCP as a Cloud Provider. ([#3637](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3637))
