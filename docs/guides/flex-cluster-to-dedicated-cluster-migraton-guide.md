@@ -1,5 +1,6 @@
 ---
 page_title: "Migration Guide: Flex Cluster to Dedicated Cluster"
+subcategory: "Older Guides"
 ---
 
 # Migration Guide: Flex Cluster to Dedicated Cluster

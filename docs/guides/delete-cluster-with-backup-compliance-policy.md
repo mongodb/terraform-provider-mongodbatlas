@@ -1,5 +1,6 @@
 ---
 page_title: "Guide: Delete a MongoDB Atlas Cluster with an active Backup Compliance Policy"
+subcategory: "Older Guides"
 ---
 
 # Guide: Delete a MongoDB Atlas Cluster with an Active Backup Compliance Policy
