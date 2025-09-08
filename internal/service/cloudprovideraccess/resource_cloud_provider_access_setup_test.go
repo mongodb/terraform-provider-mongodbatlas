@@ -140,7 +140,7 @@ func basicSetupTestCaseWithDeleteOnCreateTimeout(tb testing.TB) *resource.TestCa
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      configSetupAWSWithTimeoutAndDeleteOnCreateTimeout(projectID),
+				Config:      configSetupGCPWithTimeoutAndDeleteOnCreateTimeout(projectID),
 				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
 			},
 		},
@@ -163,11 +163,11 @@ func configSetupAWS(projectID string) string {
 	`, projectID)
 }
 
-func configSetupAWSWithTimeoutAndDeleteOnCreateTimeout(projectID string) string {
+func configSetupGCPWithTimeoutAndDeleteOnCreateTimeout(projectID string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cloud_provider_access_setup" "test" {
 			project_id = %[1]q
-			provider_name = "AWS"
+			provider_name = "GCO"
 			delete_on_create_timeout = true
 			timeouts {
 				create = "1s"
