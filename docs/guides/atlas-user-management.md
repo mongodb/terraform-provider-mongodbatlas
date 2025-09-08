@@ -844,7 +844,7 @@ These examples provide practical validation of the migration steps and demonstra
 
 - `mongodbatlas_atlas_user` returned a user profile by `user_id` or `username` and is deprecated. Replace it with `mongodbatlas_cloud_user_org_assignment` which reads a user's assignment in a specific organization using either `username` or `user_id` together with `org_id`. For details, see the `mongodbatlas_cloud_user_org_assignment` data source [documentation](../data-sources/cloud_user_org_assignment).
 
-- `mongodbatlas_atlas_users` returned lists of users by `org_id`, `project_id`, or `team_id` and is deprecated. Replace it with the `users` attribute available on `mongodbatlas_organization`, `mongodbatlas_project`, or `mongodbatlas_team` data sources, respectively.
+- `mongodbatlas_atlas_users` returned lists of users by `org_id`, `project_id`, or `team_id` and is deprecated. Replace it with the `users` attribute available on `mongodbatlas_organization`, `mongodbatlas_project`, or `mongodbatlas_team` data sources, respectively. The resulting `users` list now includes both active and pending users.
 - Attribute structure differences: The new organization users API does not return `email_address` as a separate field and replaces the consolidated `roles` with structured `org_roles` and `project_role_assignments`.
 
 ---
