@@ -212,7 +212,7 @@ resource "mongodbatlas_cloud_user_team_assignment" "team" {
 
   org_id  = local.org_id
   team_id = each.key
-  user_id = mongodbatlas_cloud_user_org_assignment.this.id
+  user_id = mongodbatlas_cloud_user_org_assignment.this.user_id
 }
 
 # Import existing team assignments (root module only)
@@ -553,8 +553,8 @@ module "user_team_assignment" {
 5. **Run `terraform apply` to apply the migration.**
 
 For complete working examples, see:
-- [Old module example](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/migrate_user_team_assignment/module/old_module/)
-- [New module example](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/migrate_user_team_assignment/module/new_module/)
+- [Old module definition](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/migrate_user_team_assignment/module_maintainer/v1) and [old module usage](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/migrate_user_team_assignment/module_user/v1).
+- [New module definition](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/migrate_user_team_assignment/module_maintainer/v2) and [new module usage](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/migrate_user_team_assignment/module_user/v2).
 
 ---
 ### Notes and tips
@@ -743,7 +743,7 @@ A: No — using `ignore_changes` ensures they remain in Atlas until the provider
 ### What’s changing?
 
 - `mongodbatlas_project_invitation` only managed invitations and is deprecated. If the user accepted the invitation and is now a project member, the provider removed the invitation from Terraform state and you should remove it from your configuration as well. See the resource [documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project_invitation) for more details.
-- `mongodbatlas_cloud_user_project_assignment` manages the user’s project membership (active members).
+- `mongodbatlas_cloud_user_project_assignment` manages the user’s project membership (both invited and active members).
 - Pending project invitations are not discoverable with the new APIs. The only migration path for existing PENDING invites is to re-create them using `mongodbatlas_cloud_user_project_assignment` with the same `username` and `roles`.
  - For details on the new resource, see the `mongodbatlas_cloud_user_project_assignment` resource documentation: https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_user_project_assignment
  
