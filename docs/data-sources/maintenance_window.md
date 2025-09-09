@@ -8,6 +8,8 @@ subcategory: "Maintenance Windows"
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
+-> **NOTE:** Maintenance window times use the project's configured timezone. To change the timezone, update the Project Time Zone setting in the Atlas Project Settings.
+
 ## Examples Usage
 
 ```terraform
@@ -27,7 +29,7 @@ data "mongodbatlas_maintenance_window" "test" {
 ```terraform
 resource "mongodbatlas_maintenance_window" "test" {
   project_id  = "<your-project-id>"
-  start_asap  = true 
+  start_asap  = true
 }
 
 data "mongodbatlas_maintenance_window" "test" {
@@ -44,7 +46,7 @@ data "mongodbatlas_maintenance_window" "test" {
 In addition to all arguments above, the following attributes are exported:
 
 * `day_of_week` - Day of the week when you would like the maintenance window to start as a 1-based integer: Su=1, M=2, T=3, W=4, T=5, F=6, Sa=7.
-* `hour_of_day` - Hour of the day when you would like the maintenance window to start. This parameter uses the 24-hour clock, where midnight is 0, noon is 12  (Time zone is UTC).
+* `hour_of_day` - Hour of the day when you would like the maintenance window to start. This parameter uses the 24-hour clock, where midnight is 0, noon is 12. Uses the project's configured timezone.
 * `start_asap` - Flag indicating whether project maintenance has been directed to start immediately. If requested, this field returns true from the time the request was made until the time the maintenance event completes.
 * `number_of_deferrals` - Number of times the current maintenance event for this project has been deferred, there can be a maximum of 2 deferrals.
 * `auto_defer_once_enabled` - Flag that indicates whether you want to defer all maintenance windows one week they would be triggered.
