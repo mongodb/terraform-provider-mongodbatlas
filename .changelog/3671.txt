@@ -1,0 +1,19 @@
+```release-note:breaking-change
+resource/mongodbatlas_data_lake_pipeline: Removes the resource
+```
+
+```release-note:breaking-change
+data-source/mongodbatlas_data_lake_pipeline: Removes the data source
+```
+
+```release-note:breaking-change
+data-source/mongodbatlas_data_lake_pipelines: Removes the data source
+```
+
+```release-note:breaking-change
+data-source/mongodbatlas_data_lake_pipeline_run: Removes the data source
+```
+
+```release-note:breaking-change
+data-source/mongodbatlas_data_lake_pipeline_runs: Removes the data source
+```

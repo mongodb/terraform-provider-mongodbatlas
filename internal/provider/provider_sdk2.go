@@ -26,7 +26,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clusteroutagesimulation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/customdbrole"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/customdnsconfigurationclusteraws"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/datalakepipeline"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/eventtrigger"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federateddatabaseinstance"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedquerylimit"
@@ -186,10 +185,6 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_ldap_verify":                                                  ldapverify.DataSource(),
 		"mongodbatlas_search_index":                                                 searchindex.DataSource(),
 		"mongodbatlas_search_indexes":                                               searchindex.PluralDataSource(),
-		"mongodbatlas_data_lake_pipeline_run":                                       datalakepipeline.DataSourceRun(),
-		"mongodbatlas_data_lake_pipeline_runs":                                      datalakepipeline.PluralDataSourceRun(),
-		"mongodbatlas_data_lake_pipeline":                                           datalakepipeline.DataSource(),
-		"mongodbatlas_data_lake_pipelines":                                          datalakepipeline.PluralDataSource(),
 		"mongodbatlas_event_trigger":                                                eventtrigger.DataSource(),
 		"mongodbatlas_event_triggers":                                               eventtrigger.PluralDataSource(),
 		"mongodbatlas_project_invitation":                                           projectinvitation.DataSource(),
@@ -254,7 +249,6 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_cloud_provider_access_setup":                                 cloudprovideraccess.ResourceSetup(),
 		"mongodbatlas_cloud_provider_access_authorization":                         cloudprovideraccess.ResourceAuthorization(),
 		"mongodbatlas_search_index":                                                searchindex.Resource(),
-		"mongodbatlas_data_lake_pipeline":                                          datalakepipeline.Resource(),
 		"mongodbatlas_event_trigger":                                               eventtrigger.Resource(),
 		"mongodbatlas_project_invitation":                                          projectinvitation.Resource(),
 		"mongodbatlas_org_invitation":                                              orginvitation.Resource(),

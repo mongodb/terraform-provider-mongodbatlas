@@ -8,11 +8,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/datalakepipeline"
 	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 )
 
-const errorPrivateEndpointServiceDataFederationOnlineArchiveList = "error reading Private Endpoings for projectId %s: %s"
+const (
+	errorPrivateEndpointServiceDataFederationOnlineArchiveList = "error reading Private Endpoings for projectId %s: %s"
+	errorDataLakeSetting                                       = "error setting `%s` for MongoDB Atlas DataLake (%s): %s"
+)
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
@@ -68,7 +70,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	}
 
 	if err := d.Set("results", flattenPrivateLinkEndpointDataLakeResponse(privateEndpoints.GetResults())); err != nil {
-		return diag.FromErr(fmt.Errorf(datalakepipeline.ErrorDataLakeSetting, "results", projectID, err))
+		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "results", projectID, err))
 	}
 
 	d.SetId(id.UniqueId())
