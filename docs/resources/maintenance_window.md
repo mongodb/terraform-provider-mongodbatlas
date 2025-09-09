@@ -10,6 +10,8 @@ subcategory: "Maintenance Windows"
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
+-> **NOTE:** Maintenance window times use the project's configured timezone. To change the timezone, update the Project Time Zone setting in the Atlas Project Settings.
+
 ## Maintenance Window Considerations:
 - Urgent Maintenance Activities Cannot Wait: Urgent maintenance activities such as security patches cannot wait for your chosen window. Atlas will start those maintenance activities when needed.
 
@@ -48,7 +50,7 @@ Once maintenance is scheduled for your cluster, you cannot change your maintenan
 
 * `project_id` - The unique identifier of the project for the Maintenance Window.
 * `day_of_week` - (Required) Day of the week when you would like the maintenance window to start as a 1-based integer: Su=1, M=2, T=3, W=4, T=5, F=6, Sa=7.
-* `hour_of_day` - (Required) Hour of the day when you would like the maintenance window to start. This parameter uses the 24-hour clock, where midnight is 0, noon is 12 (Time zone is UTC).
+* `hour_of_day` - (Required) Hour of the day when you would like the maintenance window to start. This parameter uses the 24-hour clock, where midnight is 0, noon is 12. Uses the project's configured timezone.
 * `defer` - Defer the next scheduled maintenance for the given project for one week.
 * `auto_defer` - Defer any scheduled maintenance for the given project for one week.
 * `auto_defer_once_enabled` - Flag that indicates whether you want to defer all maintenance windows one week they would be triggered.
