@@ -105,7 +105,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Pending:    []string{"START_REQUESTED", "STARTING"},
 		Target:     []string{"SIMULATING"},
 		Refresh:    resourceRefreshFunc(ctx, clusterName, projectID, connV2),
-		Timeout:    d.Timeout(schema.TimeoutCreate) - oneMinute, // When using a CRUD function with a timeout, any StateChangeConf timeouts must be configured below that duration to avoid returning the SDK context: deadline exceeded error instead of the retry logic error.
+		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: oneMinute,
 		Delay:      oneMinute,
 	}
