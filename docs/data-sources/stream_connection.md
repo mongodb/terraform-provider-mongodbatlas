@@ -43,9 +43,15 @@ If `type` is of value `Https` the following additional attributes are defined:
 
 ### Authentication
 
-* `mechanism` - Style of authentication. Can be one of `PLAIN`, `SCRAM-256`, or `SCRAM-512`.
+* `mechanism` - Style of authentication. Can be one of `PLAIN`, `SCRAM-256`, `SCRAM-512`, or `OAUTHBEARER`.
 * `username` - Username of the account to connect to the Kafka cluster.
 * `password` - Password of the account to connect to the Kafka cluster.
+* `token_endpoint_url` -  OAUTH issuer token endpoint HTTP(S) URI used to retrieve the token.
+* `client_id` - Public identifier for the kafka client. It must be unique across all clients that the authorization server handles.
+* `client_secret` - Secret known only to the kafka client and the authorization server.
+* `scope` - Kafka clients use this to specify the scope of the access request to the broker.
+* `sasl_oauthbearer_extensions` - Additional information to be provided to the kafka broker.
+* `https_ca_pem` - The CA certificates as a PEM string.
 
 ### Security
 

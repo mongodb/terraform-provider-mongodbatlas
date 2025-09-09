@@ -27,9 +27,15 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 			return nil, diags
 		}
 		streamConnection.Authentication = &admin.StreamsKafkaAuthentication{
-			Mechanism: authenticationModel.Mechanism.ValueStringPointer(),
-			Password:  authenticationModel.Password.ValueStringPointer(),
-			Username:  authenticationModel.Username.ValueStringPointer(),
+			Mechanism:                 authenticationModel.Mechanism.ValueStringPointer(),
+			Password:                  authenticationModel.Password.ValueStringPointer(),
+			Username:                  authenticationModel.Username.ValueStringPointer(),
+			TokenEndpointUrl:          authenticationModel.TokenEndpointUrl.ValueStringPointer(),
+			ClientId:                  authenticationModel.ClientId.ValueStringPointer(),
+			ClientSecret:              authenticationModel.ClientSecret.ValueStringPointer(),
+			Scope:                     authenticationModel.Scope.ValueStringPointer(),
+			SaslOauthbearerExtensions: authenticationModel.SaslOauthbearerExtensions.ValueStringPointer(),
+			HttpsCaPem:                authenticationModel.HttpsCaPem.ValueStringPointer(),
 		}
 	}
 	if !plan.Security.IsNull() {
@@ -215,8 +221,13 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName string, cur
 func newTFConnectionAuthenticationModel(ctx context.Context, currAuthConfig *types.Object, authResp *admin.StreamsKafkaAuthentication) (*types.Object, diag.Diagnostics) {
 	if authResp != nil {
 		resultAuthModel := TFConnectionAuthenticationModel{
-			Mechanism: types.StringPointerValue(authResp.Mechanism),
-			Username:  types.StringPointerValue(authResp.Username),
+			Mechanism:                 types.StringPointerValue(authResp.Mechanism),
+			Username:                  types.StringPointerValue(authResp.Username),
+			TokenEndpointUrl:          types.StringPointerValue(authResp.TokenEndpointUrl),
+			ClientId:                  types.StringPointerValue(authResp.ClientId),
+			Scope:                     types.StringPointerValue(authResp.Scope),
+			SaslOauthbearerExtensions: types.StringPointerValue(authResp.SaslOauthbearerExtensions),
+			HttpsCaPem:                types.StringPointerValue(authResp.HttpsCaPem),
 		}
 
 		if currAuthConfig != nil && !currAuthConfig.IsNull() { // if config is available (create & update of resource) password value is set in new state
@@ -225,6 +236,7 @@ func newTFConnectionAuthenticationModel(ctx context.Context, currAuthConfig *typ
 				return nil, diags
 			}
 			resultAuthModel.Password = configAuthModel.Password
+			resultAuthModel.ClientSecret = configAuthModel.ClientSecret
 		}
 
 		resultObject, diags := types.ObjectValueFrom(ctx, ConnectionAuthenticationObjectType.AttrTypes, resultAuthModel)
