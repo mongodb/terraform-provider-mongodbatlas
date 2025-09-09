@@ -6,7 +6,7 @@ subcategory: "MongoDB Cloud Users"
 
 `mongodbatlas_cloud_user_team_assignment` provides a Cloud User Team Assignment resource. It lets you manage the association between a cloud user and a team, enabling you to import, assign, remove, or update the user's membership.
 
--> **NOTE**Users with pending invitations created using the deprecated `mongodbatlas_project_invitation` resource or via the deprecated [Invite One MongoDB Cloud User to One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser#tag/Projects/operation/createProjectInvitation)
+-> **NOTE**Users with pending invitations created using the deprecated `mongodbatlas_project_invitation` resource or via the deprecated [Invite One MongoDB Cloud User to One Project](https://https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-creategroupinvite)
 endpoint cannot be managed with this resource. See [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-listteamusers) for details.
 To manage such users with this resource, refer to our [Migration Guide: Team Usernames Attribute to Cloud User Team Assignment](../guides/atlas-user-management).
 
