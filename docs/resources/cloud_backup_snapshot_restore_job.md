@@ -101,7 +101,7 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 ```
 
 ### Example of a point in time restore
-```
+```terraform
 resource "mongodbatlas_advanced_cluster" "my_cluster" {
   project_id     = "<PROJECT-ID>"
   name           = "MyCluster"

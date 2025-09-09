@@ -115,7 +115,6 @@ resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
    provider_name = "AWS"
 }
 
-
 resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
    project_id =  mongodbatlas_cloud_provider_access_setup.setup_only.project_id
    role_id    =  mongodbatlas_cloud_provider_access_setup.setup_only.role_id
@@ -127,6 +126,7 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 
 ```
 
+## Example Usage with Azure
 
 ```terraform
 
