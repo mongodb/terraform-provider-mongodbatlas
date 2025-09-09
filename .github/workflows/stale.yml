@@ -13,7 +13,7 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.APIX_BOT_PAT }}
     steps:
-      - uses: actions/stale@5bef64f19d7facfb25b37b414482c7164d639639
+      - uses: actions/stale@3a9db7e6a41a89f618792c92c0e97cc736e1b13f
         id: stale
         with:
           stale-issue-message: 'This issue has gone 7 days without any activity and meets the project’s definition of "stale". This will be auto-closed if there is no new activity over the next 7 days. If the issue is still relevant and active, you can simply comment with a "bump" to keep it open, or add the label "not_stale". Thanks for keeping our repository healthy!'
