@@ -1,6 +1,5 @@
 ---
 page_title: "Guide: Importing MongoDB Atlas Organizations"
-subcategory: "Older Guides"
 ---
 
 # Importing MongoDB Atlas Organizations

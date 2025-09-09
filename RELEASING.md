@@ -23,7 +23,7 @@ While QA acceptance tests are run in the release process automatically, we check
 
 - The expectation is that this file is created during relevant pull requests (breaking changes, significant features), and not before the release process.
 
-- We keep [Guides](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/docs/guides) only for current major version. Add header `subcategory: "Older Guides"` to previous version guides.
+- We keep [Guides](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/docs/guides) only for 12 months. Add header `subcategory: "Older Guides - Version X"` to previous versions.
 
 ### Trigger release workflow
 
