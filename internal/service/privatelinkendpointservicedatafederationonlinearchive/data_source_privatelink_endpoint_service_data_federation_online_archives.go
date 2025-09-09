@@ -69,7 +69,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveList, projectID, err)
 	}
 
-	if err := d.Set("results", flattenPrivateLinkEndpointDataLakeResponse(privateEndpoints.GetResults())); err != nil {
+	if err := d.Set("results", flattenPrivateLinkEndpointDataFederationResponse(privateEndpoints.GetResults())); err != nil {
 		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "results", projectID, err))
 	}
 
@@ -78,7 +78,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	return nil
 }
 
-func flattenPrivateLinkEndpointDataLakeResponse(atlasPrivateLinkEndpointDataLakes []admin.PrivateNetworkEndpointIdEntry) []map[string]any {
+func flattenPrivateLinkEndpointDataFederationResponse(atlasPrivateLinkEndpointDataLakes []admin.PrivateNetworkEndpointIdEntry) []map[string]any {
 	if len(atlasPrivateLinkEndpointDataLakes) == 0 {
 		return []map[string]any{}
 	}
