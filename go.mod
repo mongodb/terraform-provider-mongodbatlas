@@ -27,7 +27,7 @@ require (
 	github.com/mongodb/atlas-sdk-go v1.0.1-0.20250903083742-9deacb6fa6f2
 	github.com/pb33f/libopenapi v0.25.9
 	github.com/sebdah/goldie/v2 v2.7.1
-	github.com/spf13/cast v1.9.2
+	github.com/spf13/cast v1.10.0
 	github.com/stretchr/testify v1.11.1
 	github.com/wI2L/jsondiff v0.7.0
 	github.com/zclconf/go-cty v1.16.4
