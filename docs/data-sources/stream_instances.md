@@ -1,3 +1,7 @@
+---
+subcategory: "Streams"
+---
+
 # Data Source: mongodbatlas_stream_instances
 
 `mongodbatlas_stream_instances` describes the stream instances defined in a project.

@@ -185,7 +185,40 @@ func TestAccConfigDSOrganization_basic(t *testing.T) {
 			{
 				Config: configWithPluralDS(orgID),
 				Check: checkAggrDS(resource.TestCheckResourceAttr(datasourceName, "gen_ai_features_enabled", "true"),
-					resource.TestCheckResourceAttr(pluralDSName, "results.0.gen_ai_features_enabled", "true")),
+					resource.TestCheckResourceAttr(pluralDSName, "results.0.gen_ai_features_enabled", "true"),
+					resource.TestCheckResourceAttrSet(datasourceName, "users.#"),
+					resource.TestCheckResourceAttrSet(datasourceName, "users.0.id")),
+			},
+		},
+	})
+}
+
+func TestAccConfigDSOrganization_users(t *testing.T) {
+	var (
+		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithPluralDS(orgID),
+				Check: checkAggrDS(
+					resource.TestCheckResourceAttrWith(datasourceName, "users.#", acc.IntGreatThan(0)),
+					resource.TestCheckResourceAttrSet(datasourceName, "users.0.id"),
+					resource.TestCheckResourceAttrSet(datasourceName, "users.0.roles.0.org_roles.#"),
+					resource.TestCheckResourceAttrSet(datasourceName, "users.0.roles.0.project_role_assignments.#"),
+					resource.TestCheckResourceAttrWith(datasourceName, "users.0.username", acc.IsUsername()),
+					resource.TestCheckResourceAttrWith(datasourceName, "users.0.last_auth", acc.IsTimestamp()),
+					resource.TestCheckResourceAttrWith(datasourceName, "users.0.created_at", acc.IsTimestamp()),
+
+					resource.TestCheckResourceAttrWith(pluralDSName, "results.0.users.#", acc.IntGreatThan(0)),
+					resource.TestCheckResourceAttrSet(pluralDSName, "results.0.users.0.id"),
+					resource.TestCheckResourceAttrSet(pluralDSName, "results.0.users.0.roles.0.org_roles.#"),
+					resource.TestCheckResourceAttrSet(pluralDSName, "results.0.users.0.roles.0.project_role_assignments.#"),
+					resource.TestCheckResourceAttrWith(pluralDSName, "results.0.users.0.username", acc.IsUsername()),
+					resource.TestCheckResourceAttrWith(pluralDSName, "results.0.users.0.last_auth", acc.IsTimestamp()),
+				),
 			},
 		},
 	})
@@ -229,7 +262,7 @@ func TestAccConfigRSOrganization_import(t *testing.T) {
 			{
 				// Use removed block so the organization is not deleted.
 				// Even if something goes wrong, the organization wouldn't be deleted if it has some projects, it would return ORG_NOT_EMPTY error.
-				Config: configImportRemove(),
+				Config: acc.ConfigRemove(resourceName),
 			},
 		},
 	})
@@ -273,17 +306,6 @@ func configImportSet(orgID, orgName string) string {
   		}
 		}
 	`, orgID, orgName)
-}
-
-func configImportRemove() string {
-	return `
-		removed {
-			from = mongodbatlas_organization.test
-			lifecycle {
-				destroy = false
-			}
-		}
-	`
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {

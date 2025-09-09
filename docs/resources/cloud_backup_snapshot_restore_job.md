@@ -1,3 +1,7 @@
+---
+subcategory: "Cloud Backups"
+---
+
 # Resource: mongodbatlas_cloud_backup_snapshot_restore_job
 
 `mongodbatlas_cloud_backup_snapshot_restore_job` provides a resource to create a new restore job from a cloud backup snapshot of a specified cluster. The restore job must define one of three delivery types:
@@ -25,20 +29,20 @@ resource "mongodbatlas_advanced_cluster" "my_cluster" {
   cluster_type   = "REPLICASET"
   backup_enabled = true # enable cloud backup snapshots
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AWS"
       region_name   = "EU_WEST_2"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
-resource "mongodbatlas_cloud_provider_snapshot" "test" {
+resource "mongodbatlas_cloud_backup_snapshot" "test" {
   project_id        = mongodbatlas_advanced_cluster.my_cluster.project_id
   cluster_name      = mongodbatlas_advanced_cluster.my_cluster.name
   description       = "myDescription"
@@ -46,9 +50,9 @@ resource "mongodbatlas_cloud_provider_snapshot" "test" {
 }
 
 resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
-  project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
-  cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
-  snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
+  project_id      = mongodbatlas_cloud_backup_snapshot.test.project_id
+  cluster_name    = mongodbatlas_cloud_backup_snapshot.test.cluster_name
+  snapshot_id     = mongodbatlas_cloud_backup_snapshot.test.snapshot_id
   delivery_type_config   {
     automated           = true
     target_cluster_name = "MyCluster"
@@ -66,20 +70,20 @@ resource "mongodbatlas_advanced_cluster" "my_cluster" {
   cluster_type   = "REPLICASET"
   backup_enabled = true # enable cloud backup snapshots
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AWS"
       region_name   = "EU_WEST_2"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
-resource "mongodbatlas_cloud_provider_snapshot" "test" {
+resource "mongodbatlas_cloud_backup_snapshot" "test" {
   project_id        = mongodbatlas_advanced_cluster.my_cluster.project_id
   cluster_name      = mongodbatlas_advanced_cluster.my_cluster.name
   description       = "myDescription"
@@ -87,9 +91,9 @@ resource "mongodbatlas_cloud_provider_snapshot" "test" {
 }
 
 resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
-  project_id      = mongodbatlas_cloud_provider_snapshot.test.project_id
-  cluster_name    = mongodbatlas_cloud_provider_snapshot.test.cluster_name
-  snapshot_id     = mongodbatlas_cloud_provider_snapshot.test.snapshot_id
+  project_id      = mongodbatlas_cloud_backup_snapshot.test.project_id
+  cluster_name    = mongodbatlas_cloud_backup_snapshot.test.cluster_name
+  snapshot_id     = mongodbatlas_cloud_backup_snapshot.test.snapshot_id
   delivery_type_config {
     download = true
   }
@@ -104,17 +108,17 @@ resource "mongodbatlas_advanced_cluster" "my_cluster" {
   cluster_type   = "REPLICASET"
   backup_enabled = true # enable cloud backup snapshots
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AWS"
       region_name   = "EU_WEST_2"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 resource "mongodbatlas_cloud_backup_snapshot" "test" {
@@ -139,9 +143,9 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 }
 ```
 
-### Available complete examples
-- [Restore from backup snapshot at point in time](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_provider_snapshot_restore_job/point-in-time)
-- [Restore from backup snapshot using an advanced cluster resource](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_provider_snapshot_restore_job/point-in-time-advanced-cluster)
+### Further Examples
+- [Restore from backup snapshot at point in time](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_snapshot_restore_job/point-in-time)
+- [Restore from backup snapshot using an advanced cluster resource](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_snapshot_restore_job/point-in-time-advanced-cluster)
 
 ## Argument Reference
 

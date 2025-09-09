@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
@@ -34,12 +35,15 @@ const (
 
 func ResourceSetup() *schema.Resource {
 	return &schema.Resource{
-		ReadContext:   resourceCloudProviderAccessSetupRead,
-		CreateContext: resourceCloudProviderAccessSetupCreate,
-		UpdateContext: resourceCloudProviderAccessAuthorizationPlaceHolder,
-		DeleteContext: resourceCloudProviderAccessSetupDelete,
+		ReadWithoutTimeout:   resourceCloudProviderAccessSetupRead,
+		CreateWithoutTimeout: resourceCloudProviderAccessSetupCreate,
+		UpdateWithoutTimeout: resourceCloudProviderAccessAuthorizationPlaceHolder,
+		DeleteWithoutTimeout: resourceCloudProviderAccessSetupDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceCloudProviderAccessSetupImportState,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(defaultTimeout),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -116,6 +120,11 @@ func ResourceSetup() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"delete_on_create_timeout": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.",
+			},
 		},
 	}
 }
@@ -181,7 +190,11 @@ func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.Resou
 	}
 
 	if role.ProviderName == constant.GCP {
-		r, err := waitForGCPProviderAccessCompletion(ctx, projectID, resourceID, conn)
+		deleteOnCreateTimeout := true // default value when not set
+		if v, ok := d.GetOkExists("delete_on_create_timeout"); ok {
+			deleteOnCreateTimeout = v.(bool)
+		}
+		r, err := waitForGCPProviderAccessCompletion(ctx, projectID, resourceID, conn, d.Timeout(schema.TimeoutCreate), deleteOnCreateTimeout)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -209,7 +222,7 @@ func resourceCloudProviderAccessSetupCreate(ctx context.Context, d *schema.Resou
 	return nil
 }
 
-func waitForGCPProviderAccessCompletion(ctx context.Context, projectID, resourceID string, conn *admin.APIClient) (*admin.CloudProviderAccessRole, error) {
+func waitForGCPProviderAccessCompletion(ctx context.Context, projectID, resourceID string, conn *admin.APIClient, timeout time.Duration, deleteOnCreateTimeout bool) (*admin.CloudProviderAccessRole, error) {
 	requestParams := &admin.GetCloudProviderAccessApiParams{
 		RoleId:  resourceID,
 		GroupId: projectID,
@@ -219,12 +232,16 @@ func waitForGCPProviderAccessCompletion(ctx context.Context, projectID, resource
 		Pending:    []string{"IN_PROGRESS", "NOT_INITIATED"},
 		Target:     []string{"COMPLETE", "FAILED"},
 		Refresh:    resourceRefreshFunc(ctx, requestParams, conn),
-		Timeout:    defaultTimeout,
+		Timeout:    timeout,
 		MinTimeout: 60 * time.Second,
 		Delay:      30 * time.Second,
 	}
 
 	finalResponse, err := stateConf.WaitForStateContext(ctx)
+	err = cleanup.HandleCreateTimeout(deleteOnCreateTimeout, err, func(ctxCleanup context.Context) error {
+		_, errCleanup := conn.CloudProviderAccessApi.DeauthorizeProviderAccessRole(ctxCleanup, projectID, constant.GCP, resourceID).Execute()
+		return errCleanup
+	})
 	if err != nil {
 		return nil, err
 	}

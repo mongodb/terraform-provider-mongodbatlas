@@ -12,6 +12,46 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+// CreateOnlyStringPlanModifier creates a plan modifier that prevents updates to string attributes.
+func CreateOnlyStringPlanModifier() planmodifier.String {
+	return &createOnlyAttributePlanModifier{}
+}
+
+// CreateOnlyBoolPlanModifier creates a plan modifier that prevents updates to boolean attributes.
+func CreateOnlyBoolPlanModifier() planmodifier.Bool {
+	return &createOnlyAttributePlanModifier{}
+}
+
+// Plan modifier that implements create-only behavior for multiple attribute types
+type createOnlyAttributePlanModifier struct{}
+
+func (d *createOnlyAttributePlanModifier) Description(ctx context.Context) string {
+	return d.MarkdownDescription(ctx)
+}
+
+func (d *createOnlyAttributePlanModifier) MarkdownDescription(ctx context.Context) string {
+	return "Ensures that update operations fail when attempting to modify a create-only attribute."
+}
+
+func (d *createOnlyAttributePlanModifier) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+	validateCreateOnly(req.PlanValue, req.StateValue, req.Path, &resp.Diagnostics)
+}
+
+func (d *createOnlyAttributePlanModifier) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
+	validateCreateOnly(req.PlanValue, req.StateValue, req.Path, &resp.Diagnostics)
+}
+
+// validateCreateOnly checks if an attribute value has changed and adds an error if it has
+func validateCreateOnly(planValue, stateValue attr.Value, attrPath path.Path, diagnostics *diag.Diagnostics,
+) {
+	if !stateValue.IsNull() && !stateValue.Equal(planValue) {
+		diagnostics.AddError(
+			fmt.Sprintf("%s cannot be updated", attrPath),
+			fmt.Sprintf("%s cannot be updated", attrPath),
+		)
+	}
+}
+
 type CreateOnlyModifier interface {
 	planmodifier.String
 	planmodifier.Bool
@@ -31,18 +71,18 @@ func CreateOnlyAttributePlanModifier() CreateOnlyModifier {
 // On update the default has no impact and the UseStateForUnknown behavior is observed instead.
 // Always use Optional+Computed when using a default value.
 func CreateOnlyAttributePlanModifierWithBoolDefault(b bool) CreateOnlyModifier {
-	return &createOnlyAttributePlanModifier{defaultBool: &b}
+	return &createOnlyAttributePlanModifierWithBoolDefault{defaultBool: &b}
 }
 
-type createOnlyAttributePlanModifier struct {
+type createOnlyAttributePlanModifierWithBoolDefault struct {
 	defaultBool *bool
 }
 
-func (d *createOnlyAttributePlanModifier) Description(ctx context.Context) string {
+func (d *createOnlyAttributePlanModifierWithBoolDefault) Description(ctx context.Context) string {
 	return d.MarkdownDescription(ctx)
 }
 
-func (d *createOnlyAttributePlanModifier) MarkdownDescription(ctx context.Context) string {
+func (d *createOnlyAttributePlanModifierWithBoolDefault) MarkdownDescription(ctx context.Context) string {
 	return "Ensures the update operation fails when updating an attribute. If the read after import don't equal the configuration value it will also raise an error."
 }
 
@@ -50,11 +90,11 @@ func isCreate(t *tfsdk.State) bool {
 	return t.Raw.IsNull()
 }
 
-func (d *createOnlyAttributePlanModifier) UseDefault() bool {
+func (d *createOnlyAttributePlanModifierWithBoolDefault) UseDefault() bool {
 	return d.defaultBool != nil
 }
 
-func (d *createOnlyAttributePlanModifier) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
+func (d *createOnlyAttributePlanModifierWithBoolDefault) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
 	if isCreate(&req.State) {
 		if !IsKnown(req.PlanValue) && d.UseDefault() {
 			resp.PlanValue = types.BoolPointerValue(d.defaultBool)
@@ -69,7 +109,7 @@ func (d *createOnlyAttributePlanModifier) PlanModifyBool(ctx context.Context, re
 	}
 }
 
-func (d *createOnlyAttributePlanModifier) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+func (d *createOnlyAttributePlanModifierWithBoolDefault) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if isCreate(&req.State) {
 		return
 	}
@@ -88,7 +128,7 @@ func isUpdated(state, plan attr.Value) bool {
 	return !state.Equal(plan)
 }
 
-func (d *createOnlyAttributePlanModifier) addDiags(diags *diag.Diagnostics, attrPath path.Path, stateValue attr.Value) {
+func (d *createOnlyAttributePlanModifierWithBoolDefault) addDiags(diags *diag.Diagnostics, attrPath path.Path, stateValue attr.Value) {
 	message := fmt.Sprintf("%s cannot be updated or set after import, remove it from the configuration or use the state value (see below).", attrPath)
 	detail := fmt.Sprintf("The current state value is %s", stateValue)
 	diags.AddError(message, detail)

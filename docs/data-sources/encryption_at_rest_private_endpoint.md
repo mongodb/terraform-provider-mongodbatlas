@@ -1,3 +1,7 @@
+---
+subcategory: "Encryption at Rest using Customer Key Management"
+---
+
 # Data Source: mongodbatlas_encryption_at_rest_private_endpoint
 
 `mongodbatlas_encryption_at_rest_private_endpoint` describes a private endpoint used for encryption at rest using customer-managed keys.

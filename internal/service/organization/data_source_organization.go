@@ -3,11 +3,14 @@ package organization
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -43,6 +46,7 @@ func DataSource() *schema.Resource {
 					},
 				},
 			},
+			"users": dsschema.DSOrgUsersSchema(),
 			"api_access_list_required": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -97,6 +101,14 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf("error setting `is_deleted`: %s", err))
 	}
 
+	users, err := listAllOrganizationUsers(ctx, orgID, conn)
+	if err != nil {
+		return diag.FromErr(fmt.Errorf("error getting organization users: %s", err))
+	}
+	if err := d.Set("users", conversion.FlattenUsers(users)); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting `users`: %s", err))
+	}
+
 	settings, _, err := conn.OrganizationsApi.GetOrgSettings(ctx, orgID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting organization settings: %s", err))
@@ -120,4 +132,12 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	d.SetId(organization.GetId())
 
 	return nil
+}
+
+func listAllOrganizationUsers(ctx context.Context, orgID string, conn *admin.APIClient) ([]admin.OrgUserResponse, error) {
+	return dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.OrgUserResponse], *http.Response, error) {
+		request := conn.MongoDBCloudUsersApi.ListOrgUsers(ctx, orgID)
+		request = request.PageNum(pageNum)
+		return request.Execute()
+	})
 }

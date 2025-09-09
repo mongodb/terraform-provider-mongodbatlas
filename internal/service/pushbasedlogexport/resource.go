@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
@@ -74,6 +75,15 @@ func (r *pushBasedLogExportRS) Create(ctx context.Context, req resource.CreateRe
 
 	logExportConfigResp, err := WaitStateTransition(ctx, projectID, connV2.PushBasedLogExportApi,
 		retryTimeConfig(timeout, minTimeoutCreateUpdate))
+
+	err = cleanup.HandleCreateTimeout(cleanup.ResolveDeleteOnCreateTimeout(tfPlan.DeleteOnCreateTimeout), err, func(ctx context.Context) error {
+		cleanResp, cleanErr := connV2.PushBasedLogExportApi.DeleteLogExport(ctx, projectID).Execute()
+		if validate.StatusNotFound(cleanResp) {
+			return nil
+		}
+		return cleanErr
+	})
+
 	if err != nil {
 		resp.Diagnostics.AddError("Error when creating push-based log export configuration", err.Error())
 
@@ -84,7 +94,7 @@ func (r *pushBasedLogExportRS) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	newTFModel, diags := NewTFPushBasedLogExport(ctx, projectID, logExportConfigResp, &tfPlan.Timeouts)
+	newTFModel, diags := NewTFPushBasedLogExport(ctx, projectID, logExportConfigResp, &tfPlan.Timeouts, &tfPlan.DeleteOnCreateTimeout)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -111,7 +121,7 @@ func (r *pushBasedLogExportRS) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	newTFModel, diags := NewTFPushBasedLogExport(ctx, projectID, logConfig, &tfState.Timeouts)
+	newTFModel, diags := NewTFPushBasedLogExport(ctx, projectID, logConfig, &tfState.Timeouts, &tfState.DeleteOnCreateTimeout)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -148,7 +158,7 @@ func (r *pushBasedLogExportRS) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	newTFModel, diags := NewTFPushBasedLogExport(ctx, projectID, logExportConfigResp, &tfPlan.Timeouts)
+	newTFModel, diags := NewTFPushBasedLogExport(ctx, projectID, logExportConfigResp, &tfPlan.Timeouts, &tfPlan.DeleteOnCreateTimeout)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

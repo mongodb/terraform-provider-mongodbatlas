@@ -1,3 +1,7 @@
+---
+subcategory: "Network Peering"
+---
+
 # Resource: mongodbatlas_network_peering
 
 `mongodbatlas_network_peering` provides a Network Peering Connection resource. The resource lets you create, edit and delete network peering connections. The resource requires your Project ID.  
@@ -108,17 +112,17 @@ resource "mongodbatlas_advanced_cluster" "test" {
   cluster_type   = "REPLICASET"
   backup_enabled = true
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "GCP"
       region_name   = "US_EAST_4"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 
   depends_on = [ google_compute_network_peering.peering ]
 }
@@ -167,17 +171,17 @@ resource "mongodbatlas_advanced_cluster" "test" {
   cluster_type   = "REPLICASET"
   backup_enabled = true
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AZURE"
       region_name   = "US_EAST_2"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 
   depends_on = [ mongodbatlas_network_peering.test ]
 }
@@ -196,17 +200,17 @@ resource "mongodbatlas_advanced_cluster" "test" {
   cluster_type   = "REPLICASET"
   backup_enabled = true
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AWS"
       region_name   = "US_EAST_1"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 # the following assumes an AWS provider is configured
@@ -248,17 +252,17 @@ resource "mongodbatlas_advanced_cluster" "test" {
   cluster_type   = "REPLICASET"
   backup_enabled = true
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "GCP"
       region_name   = "US_EAST_2"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 # Create the peering connection request
@@ -300,17 +304,17 @@ resource "mongodbatlas_advanced_cluster" "test" {
   cluster_type   = "REPLICASET"
   backup_enabled = true
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AZURE"
       region_name   = "US_EAST_2"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 # Create the peering connection request
@@ -325,11 +329,19 @@ resource "mongodbatlas_network_peering" "test" {
 }
 ```
 
+### Further Examples
+- [AWS Network Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_network_peering/aws)
+- [Azure Network Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_network_peering/azure)
+- [GCP Network Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_network_peering/gcp)
+
+
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the MongoDB Atlas project.
 * `container_id` - (Required) Unique identifier of the MongoDB Atlas container for the provider (GCP) or provider/region (AWS, AZURE). You can create an MongoDB Atlas container using the network_container resource or it can be obtained from the cluster returned values if a cluster has been created before the first container.
 * `provider_name` - (Required) Cloud provider to whom the peering connection is being made. (Possible Values `AWS`, `AZURE`, `GCP`).
+* `timeouts`- (Optional) The duration of time to wait for the resource to be created, updated, or deleted. The default timeout is `1h`. The timeout value is defined by a signed sequence of decimal numbers with a time unit suffix such as: `1h45m`, `300s`, `10m`, etc. The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. Learn more about timeouts [here](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
+* `delete_on_create_timeout`- (Optional) Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
 
 **AWS ONLY:**
 

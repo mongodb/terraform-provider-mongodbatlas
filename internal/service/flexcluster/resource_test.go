@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
@@ -26,13 +27,68 @@ func TestAccFlexClusterRS_failedUpdate(t *testing.T) {
 	resource.Test(t, *tc)
 }
 
+func TestAccFlexClusterRS_createTimeoutWithDeleteOnCreateFlex(t *testing.T) {
+	var (
+		projectID             = acc.ProjectIDExecution(t)
+		clusterName           = acc.RandomName()
+		provider              = "AWS"
+		region                = "US_EAST_1"
+		createTimeout         = "1s"
+		deleteOnCreateTimeout = true
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:      configBasic(projectID, clusterName, provider, region, acc.TimeoutConfig(&createTimeout, nil, nil), true, false, &deleteOnCreateTimeout),
+				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
+			},
+		},
+	})
+}
+
+func TestAccFlexClusterRS_updateDeleteTimeout(t *testing.T) {
+	acc.SkipTestForCI(t) // Update is consistently too fast and it does not time out, making the test flaky
+	var (
+		projectID     = acc.ProjectIDExecution(t)
+		clusterName   = acc.RandomName()
+		provider      = "AWS"
+		region        = "US_EAST_1"
+		updateTimeout = "1s"
+		deleteTimeout = "1s"
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasic(projectID, clusterName, provider, region, acc.TimeoutConfig(nil, &updateTimeout, &deleteTimeout), false, false, nil),
+			},
+			{
+				Config:      configBasic(projectID, clusterName, provider, region, acc.TimeoutConfig(nil, &updateTimeout, &deleteTimeout), false, true, nil),
+				ExpectError: regexp.MustCompile("timeout while waiting for state to become 'IDLE'"),
+			},
+			{
+				Config:      acc.ConfigEmpty(), // triggers delete and because delete timeout is 1s, it times out
+				ExpectError: regexp.MustCompile("timeout while waiting for state to become 'DELETED'"),
+			},
+			{
+				// deletion of the flex cluster has been triggered, but has timed out in previous step, so this is needed in order to avoid "Error running post-test destroy, there may be dangling resource [...] Cluster already requested to be deleted"
+				Config: acc.ConfigRemove(resourceName),
+			},
+		},
+	})
+}
+
 func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
-		projectID   = acc.ProjectIDExecution(t)
-		clusterName = acc.RandomName()
-		provider    = "AWS"
-		region      = "US_EAST_1"
+		projectID          = acc.ProjectIDExecution(t)
+		clusterName        = acc.RandomName()
+		provider           = "AWS"
+		region             = "US_EAST_1"
+		emptyTimeoutConfig = ""
 	)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -40,15 +96,14 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyFlexCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, clusterName, provider, region, true, false),
+				Config: configBasic(projectID, clusterName, provider, region, emptyTimeoutConfig, true, false, nil),
 				Check:  checksFlexCluster(projectID, clusterName, true, false),
 			},
 			{
-				Config: configBasic(projectID, clusterName, provider, region, false, true),
+				Config: configBasic(projectID, clusterName, provider, region, emptyTimeoutConfig, false, true, nil),
 				Check:  checksFlexCluster(projectID, clusterName, false, true),
 			},
 			{
-				Config:            configBasic(projectID, clusterName, provider, region, true, true),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: acc.ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
 				ImportState:       true,
@@ -69,6 +124,7 @@ func failedUpdateTestCase(t *testing.T) *resource.TestCase {
 		providerUpdated    = "GCP"
 		region             = "US_EAST_1"
 		regionUpdated      = "US_EAST_2"
+		emptyTimeoutConfig = ""
 	)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -76,36 +132,42 @@ func failedUpdateTestCase(t *testing.T) *resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyFlexCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, clusterName, provider, region, false, false),
+				Config: configBasic(projectID, clusterName, provider, region, emptyTimeoutConfig, false, false, nil),
 				Check:  checksFlexCluster(projectID, clusterName, false, false),
 			},
 			{
-				Config:      configBasic(projectID, clusterNameUpdated, provider, region, false, false),
+				Config:      configBasic(projectID, clusterNameUpdated, provider, region, emptyTimeoutConfig, false, false, nil),
 				ExpectError: regexp.MustCompile("name cannot be updated"),
 			},
 			{
-				Config:      configBasic(projectIDUpdated, clusterName, provider, region, false, false),
+				Config:      configBasic(projectIDUpdated, clusterName, provider, region, emptyTimeoutConfig, false, false, nil),
 				ExpectError: regexp.MustCompile("project_id cannot be updated"),
 			},
 			{
-				Config:      configBasic(projectID, clusterName, providerUpdated, region, false, false),
+				Config:      configBasic(projectID, clusterName, providerUpdated, region, emptyTimeoutConfig, false, false, nil),
 				ExpectError: regexp.MustCompile("provider_settings.backing_provider_name cannot be updated"),
 			},
 			{
-				Config:      configBasic(projectID, clusterName, provider, regionUpdated, false, false),
+				Config:      configBasic(projectID, clusterName, provider, regionUpdated, emptyTimeoutConfig, false, false, nil),
 				ExpectError: regexp.MustCompile("provider_settings.region_name cannot be updated"),
 			},
 		},
 	}
 }
 
-func configBasic(projectID, clusterName, provider, region string, terminationProtectionEnabled, tags bool) string {
+func configBasic(projectID, clusterName, provider, region, timeoutConfig string, terminationProtectionEnabled, tags bool, deleteOnCreateTimeout *bool) string {
 	tagsConfig := ""
 	if tags {
 		tagsConfig = `
 			tags = {
 				testKey = "testValue"
 			}`
+	}
+	deleteOnCreateTimeoutConfig := ""
+	if deleteOnCreateTimeout != nil {
+		deleteOnCreateTimeoutConfig = fmt.Sprintf(`
+			delete_on_create_timeout = %[1]t
+		`, *deleteOnCreateTimeout)
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_flex_cluster" "test" {
@@ -117,9 +179,11 @@ func configBasic(projectID, clusterName, provider, region string, terminationPro
 			}
 			termination_protection_enabled = %[5]t
 			%[6]s
+			%[7]s
+			%[8]s
 		}
-		%[7]s
-		`, projectID, clusterName, provider, region, terminationProtectionEnabled, tagsConfig, acc.FlexDataSource)
+		%[9]s
+		`, projectID, clusterName, provider, region, terminationProtectionEnabled, deleteOnCreateTimeoutConfig, tagsConfig, timeoutConfig, acc.FlexDataSource)
 }
 
 func checksFlexCluster(projectID, clusterName string, terminationProtectionEnabled, tagsCheck bool) resource.TestCheckFunc {

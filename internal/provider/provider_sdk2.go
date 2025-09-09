@@ -13,7 +13,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/accesslistapikey"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/apikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/auditing"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/backupcompliancepolicy"
@@ -45,10 +44,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/orginvitation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privateendpointregionalmode"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpoint"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointserverless"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointservice"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointservicedatafederationonlinearchive"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointserviceserverless"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectinvitation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/rolesorgid"
@@ -172,7 +169,6 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_maintenance_window":                maintenancewindow.DataSource(),
 		"mongodbatlas_auditing":                          auditing.DataSource(),
 		"mongodbatlas_team":                              team.DataSource(),
-		"mongodbatlas_teams":                             team.LegacyTeamsDataSource(),
 		"mongodbatlas_global_cluster_config":             globalclusterconfig.DataSource(),
 		"mongodbatlas_x509_authentication_database_user": x509authenticationdatabaseuser.DataSource(),
 		"mongodbatlas_private_endpoint_regional_mode":    privateendpointregionalmode.DataSource(),
@@ -180,8 +176,6 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archives": privatelinkendpointservicedatafederationonlinearchive.PluralDataSource(),
 		"mongodbatlas_privatelink_endpoint":                                         privatelinkendpoint.DataSource(),
 		"mongodbatlas_privatelink_endpoint_service":                                 privatelinkendpointservice.DataSource(),
-		"mongodbatlas_privatelink_endpoint_service_serverless":                      privatelinkendpointserviceserverless.DataSource(),
-		"mongodbatlas_privatelink_endpoints_service_serverless":                     privatelinkendpointserviceserverless.PluralDataSource(),
 		"mongodbatlas_third_party_integration":                                      thirdpartyintegration.DataSource(),
 		"mongodbatlas_third_party_integrations":                                     thirdpartyintegration.PluralDataSource(),
 		"mongodbatlas_cloud_provider_access_setup":                                  cloudprovideraccess.DataSourceSetup(),
@@ -231,34 +225,27 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_shared_tier_snapshot":                                         sharedtier.DataSourceSnapshot(),
 		"mongodbatlas_shared_tier_snapshots":                                        sharedtier.PluralDataSourceSnapshot(),
 	}
-	if !config.PreviewProviderV2AdvancedCluster() {
-		dataSourcesMap["mongodbatlas_advanced_cluster"] = advancedcluster.DataSource()
-		dataSourcesMap["mongodbatlas_advanced_clusters"] = advancedcluster.PluralDataSource()
-	}
 	return dataSourcesMap
 }
 
 func getResourcesMap() map[string]*schema.Resource {
 	resourcesMap := map[string]*schema.Resource{
-		"mongodbatlas_api_key":                           apikey.Resource(),
-		"mongodbatlas_access_list_api_key":               accesslistapikey.Resource(),
-		"mongodbatlas_project_api_key":                   projectapikey.Resource(),
-		"mongodbatlas_custom_db_role":                    customdbrole.Resource(),
-		"mongodbatlas_cluster":                           cluster.Resource(),
-		"mongodbatlas_network_container":                 networkcontainer.Resource(),
-		"mongodbatlas_network_peering":                   networkpeering.Resource(),
-		"mongodbatlas_maintenance_window":                maintenancewindow.Resource(),
-		"mongodbatlas_auditing":                          auditing.Resource(),
-		"mongodbatlas_team":                              team.Resource(),
-		"mongodbatlas_teams":                             team.LegacyTeamsResource(),
-		"mongodbatlas_global_cluster_config":             globalclusterconfig.Resource(),
-		"mongodbatlas_x509_authentication_database_user": x509authenticationdatabaseuser.Resource(),
-		"mongodbatlas_private_endpoint_regional_mode":    privateendpointregionalmode.Resource(),
+		"mongodbatlas_api_key":                                                     apikey.Resource(),
+		"mongodbatlas_access_list_api_key":                                         accesslistapikey.Resource(),
+		"mongodbatlas_project_api_key":                                             projectapikey.Resource(),
+		"mongodbatlas_custom_db_role":                                              customdbrole.Resource(),
+		"mongodbatlas_cluster":                                                     cluster.Resource(),
+		"mongodbatlas_network_container":                                           networkcontainer.Resource(),
+		"mongodbatlas_network_peering":                                             networkpeering.Resource(),
+		"mongodbatlas_maintenance_window":                                          maintenancewindow.Resource(),
+		"mongodbatlas_auditing":                                                    auditing.Resource(),
+		"mongodbatlas_team":                                                        team.Resource(),
+		"mongodbatlas_global_cluster_config":                                       globalclusterconfig.Resource(),
+		"mongodbatlas_x509_authentication_database_user":                           x509authenticationdatabaseuser.Resource(),
+		"mongodbatlas_private_endpoint_regional_mode":                              privateendpointregionalmode.Resource(),
 		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archive": privatelinkendpointservicedatafederationonlinearchive.Resource(),
 		"mongodbatlas_privatelink_endpoint":                                        privatelinkendpoint.Resource(),
-		"mongodbatlas_privatelink_endpoint_serverless":                             privatelinkendpointserverless.Resource(),
 		"mongodbatlas_privatelink_endpoint_service":                                privatelinkendpointservice.Resource(),
-		"mongodbatlas_privatelink_endpoint_service_serverless":                     privatelinkendpointserviceserverless.Resource(),
 		"mongodbatlas_third_party_integration":                                     thirdpartyintegration.Resource(),
 		"mongodbatlas_online_archive":                                              onlinearchive.Resource(),
 		"mongodbatlas_custom_dns_configuration_cluster_aws":                        customdnsconfigurationclusteraws.Resource(),
@@ -285,9 +272,6 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_federated_query_limit":                                       federatedquerylimit.Resource(),
 		"mongodbatlas_serverless_instance":                                         serverlessinstance.Resource(),
 		"mongodbatlas_cluster_outage_simulation":                                   clusteroutagesimulation.Resource(),
-	}
-	if !config.PreviewProviderV2AdvancedCluster() {
-		resourcesMap["mongodbatlas_advanced_cluster"] = advancedcluster.Resource()
 	}
 	return resourcesMap
 }

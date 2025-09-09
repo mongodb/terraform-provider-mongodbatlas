@@ -1,3 +1,7 @@
+---
+subcategory: "Event Trigger"
+---
+
 # Data Source: mongodbatlas_event_triggers
 
 `mongodbatlas_event_triggers` describes all Event Triggers.

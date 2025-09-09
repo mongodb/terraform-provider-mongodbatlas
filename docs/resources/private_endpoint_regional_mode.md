@@ -1,3 +1,7 @@
+---
+subcategory: "Private Endpoint Services"
+---
+
 # Resource: private_endpoint_regional_mode
 
 `mongodbatlas_private_endpoint_regional_mode` provides a Private Endpoint Regional Mode resource. This represents a regionalized private endpoint setting for a Project. Enable it to allow region specific private endpoints.
@@ -22,53 +26,50 @@ resource "mongodbatlas_advanced_cluster" "cluster_atlas" {
   cluster_type   = "GEOSHARDED"
   backup_enabled = true
 
-  replication_specs { # Shard 1
+  replication_specs = [{ # Shard 1
     zone_name = "Zone 1"
 
-    region_configs {
-      electable_specs {
+    region_configs = [{
+      electable_specs = {
         instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = var.atlas_region_east
-    }
-
-    region_configs {
-      electable_specs {
+    }, 
+    {
+      electable_specs = {
         instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AWS"
       priority      = 6
       region_name   = var.atlas_region_west
-    }
-  }
-
-  replication_specs { # Shard 2
+    }]
+  },
+  { # Shard 2
     zone_name = "Zone 1"
 
-    region_configs {
-      electable_specs {
+    region_configs = [{
+      electable_specs = {
         instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = var.atlas_region_east
-    }
-
-    region_configs {
-      electable_specs {
+    },
+    {
+      electable_specs = {
         instance_size = "M30"
         node_count    = 2
       }
       provider_name = "AWS"
       priority      = 6
       region_name   = var.atlas_region_west
-    }
-  }
+    }]
+  }]
 
   depends_on = [
     mongodbatlas_privatelink_endpoint_service.test_west,
@@ -122,6 +123,9 @@ resource "aws_vpc_endpoint" "test_east" {
 }
 
 ```
+
+### Further Examples
+- [AWS PrivateLink Geosharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/aws/cluster-geosharded)
 
 ## Argument Reference
 * `project_id` - (Required) Unique identifier for the project.

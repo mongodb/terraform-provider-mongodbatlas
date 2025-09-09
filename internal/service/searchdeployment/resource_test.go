@@ -10,11 +10,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/searchdeployment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
-	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -60,6 +59,11 @@ const deleteTimeout = 30 * time.Minute
 
 func TestAccSearchDeployment_timeoutTest(t *testing.T) {
 	var (
+		timeoutStrNoDeleteOnCreate = `
+			timeouts = {
+				create = "90s"
+			}
+		`
 		timeoutsStrShort = `
 			timeouts = {
 				create = "90s"
@@ -71,8 +75,7 @@ func TestAccSearchDeployment_timeoutTest(t *testing.T) {
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)
 		configWithTimeout      = func(timeoutsStr string) string {
 			normalConfig := configBasic(projectID, clusterName, "S20_HIGHCPU_NVME", 3, false)
-			configWithTimeout := acc.ConfigAddResourceStr(t, normalConfig, resourceID, timeoutsStr)
-			return acc.ConvertAdvancedClusterToPreviewProviderV2(t, config.PreviewProviderV2AdvancedCluster(), configWithTimeout)
+			return acc.ConfigAddResourceStr(t, normalConfig, resourceID, timeoutsStr)
 		}
 	)
 	resource.ParallelTest(t, resource.TestCase{
@@ -81,8 +84,17 @@ func TestAccSearchDeployment_timeoutTest(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config:      configWithTimeout(timeoutStrNoDeleteOnCreate),
+				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
+			},
+			{
+				PreConfig: func() {
+					timeoutConfig := searchdeployment.RetryTimeConfig(deleteTimeout, 30*time.Second)
+					err := searchdeployment.WaitSearchNodeDelete(t.Context(), projectID, clusterName, acc.ConnV2().AtlasSearchApi, timeoutConfig)
+					require.NoError(t, err)
+				},
 				Config:      configWithTimeout(timeoutsStrShort),
-				ExpectError: regexp.MustCompile(cleanup.TimeoutReachedPrefix),
+				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
 			},
 			{
 				PreConfig: func() {

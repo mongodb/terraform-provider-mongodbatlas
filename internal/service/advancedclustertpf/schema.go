@@ -10,14 +10,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
@@ -137,7 +136,7 @@ func resourceSchema(ctx context.Context) schema.Schema {
 			},
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Optional:            true,
-				MarkdownDescription: "Flag that indicates whether to delete the cluster if the cluster creation times out. Default is false.",
+				MarkdownDescription: "Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.",
 			},
 			"encryption_at_rest_provider": schema.StringAttribute{
 				Computed:            true,
@@ -204,11 +203,6 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "List of settings that configure your cluster regions. This array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"id": schema.StringAttribute{
-							DeprecationMessage:  deprecationMsgOldSchema("id"),
-							Computed:            true,
-							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the replication object for a shard in a Cluster. If you include existing shard replication configurations in the request, you must specify this parameter. If you add a new shard to an existing Cluster, you may specify this parameter. The request deletes any existing shards  in the Cluster that you exclude from the request. This corresponds to Shard ID displayed in the UI.",
-						},
 						"container_id": schema.MapAttribute{
 							ElementType:         types.StringType,
 							Computed:            true,
@@ -217,13 +211,6 @@ func resourceSchema(ctx context.Context) schema.Schema {
 						"external_id": schema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the replication object for a shard in a Cluster. This value corresponds to Shard ID displayed in the UI.",
-						},
-						"num_shards": schema.Int64Attribute{
-							DeprecationMessage:  deprecationMsgOldSchema("num_shards"),
-							Default:             int64default.StaticInt64(1),
-							Computed:            true,
-							Optional:            true,
-							MarkdownDescription: "Number of shards up to 50 to deploy for a sharded cluster.",
 						},
 						"region_configs": schema.ListNestedAttribute{
 							Required:            true,
@@ -292,12 +279,6 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether to retain backup snapshots for the deleted dedicated cluster.",
 			},
-			"disk_size_gb": schema.Float64Attribute{
-				DeprecationMessage:  deprecationMsgOldSchema("disk_size_gb"),
-				Computed:            true,
-				Optional:            true,
-				MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
-			},
 			"advanced_configuration": AdvancedConfigurationSchema(ctx),
 			"pinned_fcv": schema.SingleNestedAttribute{
 				Optional:            true,
@@ -341,26 +322,15 @@ func dataSourceSchema(ctx context.Context) dsschema.Schema {
 
 func pluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 	return conversion.PluralDataSourceSchemaFromResource(resourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
-		RequiredFields: []string{"project_id"},
-		OverridenRootFields: map[string]dsschema.Attribute{
-			"use_replication_spec_per_shard": useReplicationSpecPerShardSchema(),
-		},
+		RequiredFields:  []string{"project_id"},
 		OverridenFields: dataSourceOverridenFields(),
 	})
 }
 
 func dataSourceOverridenFields() map[string]dsschema.Attribute {
 	return map[string]dsschema.Attribute{
-		"use_replication_spec_per_shard":                   useReplicationSpecPerShardSchema(),
 		"accept_data_risks_and_force_replica_set_reconfig": nil,
 		"delete_on_create_timeout":                         nil,
-	}
-}
-
-func useReplicationSpecPerShardSchema() dsschema.BoolAttribute {
-	return dsschema.BoolAttribute{
-		Optional:            true,
-		MarkdownDescription: "Set this field to true to allow the data source to use the latest schema representing each shard with an individual replication_specs object. This enables representing clusters with independent shard scaling.",
 	}
 }
 
@@ -502,18 +472,6 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				Optional:            true,
 				MarkdownDescription: "Lifetime, in seconds, of multi-document transactions. Atlas considers the transactions that exceed this limit as expired and so aborts them through a periodic cleanup process.",
 			},
-			"default_read_concern": schema.StringAttribute{
-				DeprecationMessage:  deprecationMsgOldSchema("default_read_concern"),
-				Computed:            true,
-				Optional:            true,
-				MarkdownDescription: "Default level of acknowledgment requested from MongoDB for read operations set for this cluster.",
-			},
-			"fail_index_key_too_long": schema.BoolAttribute{
-				DeprecationMessage:  deprecationMsgOldSchema("fail_index_key_too_long"),
-				Computed:            true,
-				Optional:            true,
-				MarkdownDescription: "When true, documents can only be updated or inserted if, for all indexed fields on the target collection, the corresponding index entries do not exceed 1024 bytes. When false, mongod writes documents that exceed the limit but does not index them.",
-			},
 			"default_max_time_ms": schema.Int64Attribute{
 				Computed:            true,
 				Optional:            true,
@@ -538,7 +496,6 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 }
 
 type TFModel struct {
-	DiskSizeGB                                types.Float64  `tfsdk:"disk_size_gb"`
 	Labels                                    types.Map      `tfsdk:"labels"`
 	ReplicationSpecs                          types.List     `tfsdk:"replication_specs"`
 	Tags                                      types.Map      `tfsdk:"tags"`
@@ -572,44 +529,41 @@ type TFModel struct {
 	DeleteOnCreateTimeout                     types.Bool     `tfsdk:"delete_on_create_timeout"`
 }
 
-// TFModelDS differs from TFModel: removes timeouts, accept_data_risks_and_force_replica_set_reconfig; adds use_replication_spec_per_shard.
+// TFModelDS differs from TFModel: removes timeouts, accept_data_risks_and_force_replica_set_reconfig
 type TFModelDS struct {
-	DiskSizeGB                       types.Float64 `tfsdk:"disk_size_gb"`
-	Labels                           types.Map     `tfsdk:"labels"`
-	ReplicationSpecs                 types.List    `tfsdk:"replication_specs"`
-	Tags                             types.Map     `tfsdk:"tags"`
-	ReplicaSetScalingStrategy        types.String  `tfsdk:"replica_set_scaling_strategy"`
-	Name                             types.String  `tfsdk:"name"`
-	AdvancedConfiguration            types.Object  `tfsdk:"advanced_configuration"`
-	BiConnectorConfig                types.Object  `tfsdk:"bi_connector_config"`
-	RootCertType                     types.String  `tfsdk:"root_cert_type"`
-	ClusterType                      types.String  `tfsdk:"cluster_type"`
-	MongoDBMajorVersion              types.String  `tfsdk:"mongo_db_major_version"`
-	ConfigServerType                 types.String  `tfsdk:"config_server_type"`
-	VersionReleaseSystem             types.String  `tfsdk:"version_release_system"`
-	ConnectionStrings                types.Object  `tfsdk:"connection_strings"`
-	StateName                        types.String  `tfsdk:"state_name"`
-	MongoDBVersion                   types.String  `tfsdk:"mongo_db_version"`
-	CreateDate                       types.String  `tfsdk:"create_date"`
-	EncryptionAtRestProvider         types.String  `tfsdk:"encryption_at_rest_provider"`
-	ProjectID                        types.String  `tfsdk:"project_id"`
-	ClusterID                        types.String  `tfsdk:"cluster_id"`
-	ConfigServerManagementMode       types.String  `tfsdk:"config_server_management_mode"`
-	PinnedFCV                        types.Object  `tfsdk:"pinned_fcv"`
-	UseReplicationSpecPerShard       types.Bool    `tfsdk:"use_replication_spec_per_shard"`
-	RedactClientLogData              types.Bool    `tfsdk:"redact_client_log_data"`
-	GlobalClusterSelfManagedSharding types.Bool    `tfsdk:"global_cluster_self_managed_sharding"`
-	BackupEnabled                    types.Bool    `tfsdk:"backup_enabled"`
-	RetainBackupsEnabled             types.Bool    `tfsdk:"retain_backups_enabled"`
-	Paused                           types.Bool    `tfsdk:"paused"`
-	TerminationProtectionEnabled     types.Bool    `tfsdk:"termination_protection_enabled"`
-	PitEnabled                       types.Bool    `tfsdk:"pit_enabled"`
+	Labels                           types.Map    `tfsdk:"labels"`
+	ReplicationSpecs                 types.List   `tfsdk:"replication_specs"`
+	Tags                             types.Map    `tfsdk:"tags"`
+	ReplicaSetScalingStrategy        types.String `tfsdk:"replica_set_scaling_strategy"`
+	Name                             types.String `tfsdk:"name"`
+	AdvancedConfiguration            types.Object `tfsdk:"advanced_configuration"`
+	BiConnectorConfig                types.Object `tfsdk:"bi_connector_config"`
+	RootCertType                     types.String `tfsdk:"root_cert_type"`
+	ClusterType                      types.String `tfsdk:"cluster_type"`
+	MongoDBMajorVersion              types.String `tfsdk:"mongo_db_major_version"`
+	ConfigServerType                 types.String `tfsdk:"config_server_type"`
+	VersionReleaseSystem             types.String `tfsdk:"version_release_system"`
+	ConnectionStrings                types.Object `tfsdk:"connection_strings"`
+	StateName                        types.String `tfsdk:"state_name"`
+	MongoDBVersion                   types.String `tfsdk:"mongo_db_version"`
+	CreateDate                       types.String `tfsdk:"create_date"`
+	EncryptionAtRestProvider         types.String `tfsdk:"encryption_at_rest_provider"`
+	ProjectID                        types.String `tfsdk:"project_id"`
+	ClusterID                        types.String `tfsdk:"cluster_id"`
+	ConfigServerManagementMode       types.String `tfsdk:"config_server_management_mode"`
+	PinnedFCV                        types.Object `tfsdk:"pinned_fcv"`
+	RedactClientLogData              types.Bool   `tfsdk:"redact_client_log_data"`
+	GlobalClusterSelfManagedSharding types.Bool   `tfsdk:"global_cluster_self_managed_sharding"`
+	BackupEnabled                    types.Bool   `tfsdk:"backup_enabled"`
+	RetainBackupsEnabled             types.Bool   `tfsdk:"retain_backups_enabled"`
+	Paused                           types.Bool   `tfsdk:"paused"`
+	TerminationProtectionEnabled     types.Bool   `tfsdk:"termination_protection_enabled"`
+	PitEnabled                       types.Bool   `tfsdk:"pit_enabled"`
 }
 
 type TFModelPluralDS struct {
-	ProjectID                  types.String `tfsdk:"project_id"`
-	Results                    []*TFModelDS `tfsdk:"results"`
-	UseReplicationSpecPerShard types.Bool   `tfsdk:"use_replication_spec_per_shard"`
+	ProjectID types.String `tfsdk:"project_id"`
+	Results   []*TFModelDS `tfsdk:"results"`
 }
 
 type TFBiConnectorModel struct {
@@ -669,18 +623,14 @@ var EndpointsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 type TFReplicationSpecsModel struct {
 	RegionConfigs types.List   `tfsdk:"region_configs"`
 	ContainerId   types.Map    `tfsdk:"container_id"`
-	Id            types.String `tfsdk:"id"`
 	ExternalId    types.String `tfsdk:"external_id"`
 	ZoneId        types.String `tfsdk:"zone_id"`
 	ZoneName      types.String `tfsdk:"zone_name"`
-	NumShards     types.Int64  `tfsdk:"num_shards"`
 }
 
 var ReplicationSpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"id":             types.StringType,
 	"container_id":   types.MapType{ElemType: types.StringType},
 	"external_id":    types.StringType,
-	"num_shards":     types.Int64Type,
 	"region_configs": types.ListType{ElemType: RegionConfigsObjType},
 	"zone_id":        types.StringType,
 	"zone_name":      types.StringType,
@@ -747,7 +697,6 @@ type TFAdvancedConfigurationModel struct {
 	CustomOpensslCipherConfigTls12                        types.Set     `tfsdk:"custom_openssl_cipher_config_tls12"`
 	MinimumEnabledTlsProtocol                             types.String  `tfsdk:"minimum_enabled_tls_protocol"`
 	DefaultWriteConcern                                   types.String  `tfsdk:"default_write_concern"`
-	DefaultReadConcern                                    types.String  `tfsdk:"default_read_concern"`
 	TlsCipherConfigMode                                   types.String  `tfsdk:"tls_cipher_config_mode"`
 	SampleRefreshIntervalBiconnector                      types.Int64   `tfsdk:"sample_refresh_interval_bi_connector"`
 	SampleSizeBiconnector                                 types.Int64   `tfsdk:"sample_size_bi_connector"`
@@ -757,14 +706,11 @@ type TFAdvancedConfigurationModel struct {
 	ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds types.Int64   `tfsdk:"change_stream_options_pre_and_post_images_expire_after_seconds"`
 	JavascriptEnabled                                     types.Bool    `tfsdk:"javascript_enabled"`
 	NoTableScan                                           types.Bool    `tfsdk:"no_table_scan"`
-	FailIndexKeyTooLong                                   types.Bool    `tfsdk:"fail_index_key_too_long"`
 }
 
 var AdvancedConfigurationObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"change_stream_options_pre_and_post_images_expire_after_seconds": types.Int64Type,
-	"default_read_concern":                 types.StringType,
 	"default_write_concern":                types.StringType,
-	"fail_index_key_too_long":              types.BoolType,
 	"javascript_enabled":                   types.BoolType,
 	"minimum_enabled_tls_protocol":         types.StringType,
 	"no_table_scan":                        types.BoolType,

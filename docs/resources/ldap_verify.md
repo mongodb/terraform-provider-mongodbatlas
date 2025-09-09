@@ -1,3 +1,7 @@
+---
+subcategory: "LDAP Configuration"
+---
+
 # Resource: mongodbatlas_ldap_verify
 
 `mongodbatlas_ldap_verify` provides an LDAP Verify resource. This allows a a verification of an LDAP configuration over TLS for an Atlas project. Atlas retains only the most recent request for each project.
@@ -16,17 +20,17 @@ resource "mongodbatlas_advanced_cluster" "test" {
   cluster_type   = "REPLICASET"
   backup_enabled = true # enable cloud backup snapshots
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AWS"
       region_name   = "US_EAST_1"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 resource "mongodbatlas_ldap_verify" "test" {

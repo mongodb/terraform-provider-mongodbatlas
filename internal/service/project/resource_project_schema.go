@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
@@ -13,9 +15,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
-	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -51,7 +53,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"project_owner_id": schema.StringAttribute{
 				Optional: true,
 				PlanModifiers: []planmodifier.String{
-					customplanmodifier.CreateOnlyAttributePlanModifier(),
+					customplanmodifier.CreateOnlyStringPlanModifier(),
 				},
 			},
 			"with_default_alerts_settings": schema.BoolAttribute{
@@ -154,6 +156,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 		},
 		Blocks: map[string]schema.Block{
 			"teams": schema.SetNestedBlock{
+				DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "parameter", "mongodbatlas_team_project_assignment", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/atlas-user-management"),
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"team_id": schema.StringAttribute{

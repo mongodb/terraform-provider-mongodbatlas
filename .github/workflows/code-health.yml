@@ -41,8 +41,6 @@ jobs:
           go-version-file: 'go.mod'
       - name: Unit Test
         run: make test
-        env:
-          MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER: "true"
   lint:
     runs-on: ubuntu-latest
     permissions: {}

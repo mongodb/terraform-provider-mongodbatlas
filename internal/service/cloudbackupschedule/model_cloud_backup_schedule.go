@@ -1,7 +1,6 @@
 package cloudbackupschedule
 
 import (
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 )
 
@@ -31,20 +30,6 @@ func FlattenExport(roles *admin.DiskBackupSnapshotSchedule20240805) []map[string
 		})
 	}
 	return exportList
-}
-
-func flattenCopySettingsOldSDK(copySettingList []admin20240530.DiskBackupCopySetting) []map[string]any {
-	copySettings := make([]map[string]any, 0)
-	for _, v := range copySettingList {
-		copySettings = append(copySettings, map[string]any{
-			"cloud_provider":      v.GetCloudProvider(),
-			"frequencies":         v.GetFrequencies(),
-			"region_name":         v.GetRegionName(),
-			"replication_spec_id": v.GetReplicationSpecId(),
-			"should_copy_oplogs":  v.GetShouldCopyOplogs(),
-		})
-	}
-	return copySettings
 }
 
 func FlattenCopySettings(copySettingList []admin.DiskBackupCopySetting20240805) []map[string]any {

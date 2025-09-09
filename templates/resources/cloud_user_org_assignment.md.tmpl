@@ -1,0 +1,32 @@
+---
+subcategory: "MongoDB Cloud Users"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` provides a Cloud User Organization Assignment resource. The resource lets you import, assign, remove, or update a user to an organization.
+
+**NOTE**: Users with pending invitations created using the deprecated `mongodbatlas_project_invitation` resource or via the deprecated [Invite One MongoDB Cloud User to One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser#tag/Projects/operation/createProjectInvitation)
+endpoint cannot be managed with this resource. See [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser) for details.
+To manage such users with this resource, refer to our [Org Invitation to Cloud User Org Assignment Migration Guide](../guides/atlas-user-management).
+
+## Example Usages
+
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+### Further Examples
+- [Cloud User Organization Assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_user_org_assignment)
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Cloud User Org Assignment resource can be imported using the Org ID & Username OR Org ID & User ID, in the format `ORG_ID/USERNAME` OR `ORG_ID/USER_ID`.
+
+```
+$ terraform import mongodbatlas_cloud_user_org_assignment.test 63cfbf302333a3011d98592e/test-user@example.com
+OR
+$ terraform import mongodbatlas_cloud_user_org_assignment.test 63cfbf302333a3011d98592e/5f18367ccb7a503a2b481b7a
+```
+
+For more information see: [MongoDB Atlas API - Cloud Users](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createorganizationuser) Documentation.

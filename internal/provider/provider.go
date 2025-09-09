@@ -30,6 +30,9 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/apikeyprojectassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clouduserorgassignment"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clouduserprojectassignment"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clouduserteamassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/controlplaneipaddresses"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/databaseuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/encryptionatrest"
@@ -49,6 +52,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprivatelinkendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teamprojectassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
@@ -267,12 +271,11 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 	}
 
 	cfg := config.Config{
-		PublicKey:                       data.PublicKey.ValueString(),
-		PrivateKey:                      data.PrivateKey.ValueString(),
-		BaseURL:                         data.BaseURL.ValueString(),
-		RealmBaseURL:                    data.RealmBaseURL.ValueString(),
-		TerraformVersion:                req.TerraformVersion,
-		PreviewV2AdvancedClusterEnabled: config.PreviewProviderV2AdvancedCluster(),
+		PublicKey:        data.PublicKey.ValueString(),
+		PrivateKey:       data.PrivateKey.ValueString(),
+		BaseURL:          data.BaseURL.ValueString(),
+		RealmBaseURL:     data.RealmBaseURL.ValueString(),
+		TerraformVersion: req.TerraformVersion,
 	}
 
 	var assumeRoles []tfAssumeRoleModel
@@ -486,11 +489,14 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		flexrestorejob.PluralDataSource,
 		resourcepolicy.DataSource,
 		resourcepolicy.PluralDataSource,
+		clouduserorgassignment.DataSource,
+		clouduserprojectassignment.DataSource,
+		clouduserteamassignment.DataSource,
+		teamprojectassignment.DataSource,
 		apikeyprojectassignment.DataSource,
 		apikeyprojectassignment.PluralDataSource,
-	}
-	if config.PreviewProviderV2AdvancedCluster() {
-		dataSources = append(dataSources, advancedclustertpf.DataSource, advancedclustertpf.PluralDataSource)
+		advancedclustertpf.DataSource,
+		advancedclustertpf.PluralDataSource,
 	}
 	return dataSources
 }
@@ -512,10 +518,12 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		streamprivatelinkendpoint.Resource,
 		flexcluster.Resource,
 		resourcepolicy.Resource,
+		clouduserorgassignment.Resource,
 		apikeyprojectassignment.Resource,
-	}
-	if config.PreviewProviderV2AdvancedCluster() {
-		resources = append(resources, advancedclustertpf.Resource)
+		clouduserprojectassignment.Resource,
+		teamprojectassignment.Resource,
+		clouduserteamassignment.Resource,
+		advancedclustertpf.Resource,
 	}
 	return resources
 }

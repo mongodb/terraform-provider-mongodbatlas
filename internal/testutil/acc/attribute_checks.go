@@ -14,6 +14,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
+var (
+	matchTimestamp = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$`)
+	matchUsername  = regexp.MustCompile(`.*@mongodb\.com$`)
+)
+
 func MatchesExpression(expr string) resource.CheckResourceAttrWithFunc {
 	return func(value string) error {
 		matched, err := regexp.MatchString(expr, value)
@@ -22,6 +27,33 @@ func MatchesExpression(expr string) resource.CheckResourceAttrWithFunc {
 		}
 		if !matched {
 			return fmt.Errorf("%s did not match expression %s", value, expr)
+		}
+		return nil
+	}
+}
+
+// IsTimestamp checks if the value is a valid timestamp in RFC3339 format.
+func IsTimestamp() resource.CheckResourceAttrWithFunc {
+	return func(value string) error {
+		matched, err := regexp.MatchString(matchTimestamp.String(), value)
+		if err != nil {
+			return err
+		}
+		if !matched {
+			return fmt.Errorf("expected a timestamp, got %s", value)
+		}
+		return nil
+	}
+}
+
+func IsUsername() resource.CheckResourceAttrWithFunc {
+	return func(value string) error {
+		matched, err := regexp.MatchString(matchUsername.String(), value)
+		if err != nil {
+			return err
+		}
+		if !matched {
+			return fmt.Errorf("expected a username, got %s", value)
 		}
 		return nil
 	}

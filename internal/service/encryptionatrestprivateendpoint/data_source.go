@@ -31,7 +31,7 @@ func (d *encryptionAtRestPrivateEndpointDS) Schema(ctx context.Context, req data
 }
 
 func (d *encryptionAtRestPrivateEndpointDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var earPrivateEndpointConfig TFEarPrivateEndpointModel
+	var earPrivateEndpointConfig TFEarPrivateEndpointModelDS
 	resp.Diagnostics.Append(req.Config.Get(ctx, &earPrivateEndpointConfig)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -48,5 +48,5 @@ func (d *encryptionAtRestPrivateEndpointDS) Read(ctx context.Context, req dataso
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFEarPrivateEndpoint(*endpointModel, projectID))...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFEarPrivateEndpointDS(*endpointModel, projectID))...)
 }

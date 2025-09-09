@@ -6,19 +6,23 @@ import (
 	"regexp"
 	"strings"
 
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 )
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceCreate,
-		ReadContext:   resourceRead,
-		DeleteContext: resourceDelete,
-		UpdateContext: resourceUpdate,
+		DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "resource", "mongodbatlas_cloud_user_org_assignment", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/atlas-user-management"),
+		CreateContext:      resourceCreate,
+		ReadContext:        resourceRead,
+		DeleteContext:      resourceDelete,
+		UpdateContext:      resourceUpdate,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceImport,
 		},

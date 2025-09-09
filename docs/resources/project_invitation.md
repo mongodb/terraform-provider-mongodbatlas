@@ -1,6 +1,12 @@
+---
+subcategory: "Projects"
+---
+
 # Resource: mongodbatlas_project_invitation
 
 `mongodbatlas_project_invitation` invites a user to join an Atlas project.
+
+~> **DEPRECATION:** This resource is deprecated. Migrate to `mongodbatlas_cloud_user_project_assignment` for managing project membership. See the [Project Invitation to Cloud User Project Assignment Migration Guide](../guides/atlas-user-management).
 
 Each invitation for an Atlas user includes roles that Atlas grants the user when they accept the invitation.
 
@@ -30,6 +36,9 @@ resource "mongodbatlas_project_invitation" "test" {
   roles       = [ "GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_ONLY" ]
 }
 ```
+
+### Further Examples
+- [Migrate Project Invitation to Cloud User Project Assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_project_invitation_to_cloud_user_project_assignment)
 
 ## Argument Reference
 

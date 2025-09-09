@@ -1,3 +1,7 @@
+---
+subcategory: "Federated Authentication"
+---
+
 # Resource: mongodbatlas_federated_settings_org_config
 
 `mongodbatlas_federated_settings_org_config` provides an Federated Settings Identity Providers datasource. Atlas Cloud Federated Settings Identity Providers provides federated settings outputs for the configured Identity Providers.
@@ -21,6 +25,10 @@ data "mongodbatlas_federated_settings_org_configs" "org_configs_ds" {
   federation_settings_id = data.mongodbatlas_federated_settings_org_config.org_connection.id
 }
 ```
+
+### Further Examples
+- [Azure Federated Identity Provider with Org Config](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_federated_settings_identity_provider/azure)
+- [Federated Settings Org Role Mappings](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_federated_settings_org_role_mapping)
 
 ## Argument Reference
 
@@ -57,4 +65,3 @@ $ terraform import mongodbatlas_federated_settings_org_config.org_connection 627
 ```
 
 For more information see: [MongoDB Atlas API Reference.](https://www.mongodb.com/docs/atlas/reference/api/federation-configuration/)
-

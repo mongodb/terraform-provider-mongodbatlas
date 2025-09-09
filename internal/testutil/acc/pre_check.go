@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func PreCheckBasic(tb testing.TB) {
@@ -16,13 +15,6 @@ func PreCheckBasic(tb testing.TB) {
 		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
 		os.Getenv("MONGODB_ATLAS_ORG_ID") == "" {
 		tb.Fatal("`MONGODB_ATLAS_PUBLIC_KEY`, `MONGODB_ATLAS_PRIVATE_KEY`, and `MONGODB_ATLAS_ORG_ID` must be set for acceptance testing")
-	}
-}
-
-func SkipIfAdvancedClusterV2Schema(tb testing.TB) {
-	tb.Helper()
-	if config.PreviewProviderV2AdvancedCluster() {
-		tb.Skip("Skipping test in PreviewProviderV2AdvancedCluster as implementation is pending or test is not applicable")
 	}
 }
 

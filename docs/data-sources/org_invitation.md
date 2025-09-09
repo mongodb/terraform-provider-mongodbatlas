@@ -1,6 +1,12 @@
+---
+subcategory: "Organizations"
+---
+
 # Data Source: mongodbatlas_org_invitation
 
 `mongodbatlas_org_invitation` describes an invitation for a user to join an Atlas organization.
+
+~> **DEPRECATION:** This data source is deprecated. Use `mongodbatlas_cloud_user_org_assignment` to read organization user assignments. See the [Org Invitation to Cloud User Org Assignment Migration Guide](../guides/atlas-user-management).
 
 ## Example Usage
 

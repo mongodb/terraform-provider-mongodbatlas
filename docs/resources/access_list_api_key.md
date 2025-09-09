@@ -1,3 +1,7 @@
+---
+subcategory: "Programmatic API Keys"
+---
+
 # Resource: mongodbatlas_access_list_api_key
 
 `mongodbatlas_access_list_api_key` provides an IP Access List entry resource. The access list grants access from IPs, CIDRs or AWS Security Groups (if VPC Peering is enabled) to clusters within the Project.
@@ -31,6 +35,9 @@ resource "mongodbatlas_access_list_api_key" "test" {
   api_key_id = "<API_KEY_ID>"
 }
 ```
+
+### Further Examples
+- [Create Programmatic API Key](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_api_key)
 
 ## Argument Reference
 

@@ -1,8 +1,8 @@
 ---
-subcategory: "Deprecated"    
+subcategory: "Data Lake Pipelines"
 ---
 
-**WARNING:** Data Lake is deprecated. To learn more, see <https://dochub.mongodb.org/core/data-lake-deprecation>
+~> **DEPRECATION:** Data Lake is deprecated. To learn more, see <https://dochub.mongodb.org/core/data-lake-deprecation>
 
 # Data Source: mongodbatlas_data_lake_pipeline
 
@@ -25,17 +25,17 @@ resource "mongodbatlas_advanced_cluster" "automated_backup_test" {
   cluster_type   = "REPLICASET"
   backup_enabled = true # enable cloud backup snapshots
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "GCP"
       region_name   = "US_EAST_4"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 resource "mongodbatlas_data_lake_pipeline" "pipeline" {

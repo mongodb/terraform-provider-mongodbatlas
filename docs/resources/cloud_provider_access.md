@@ -1,3 +1,7 @@
+---
+subcategory: "Cloud Provider Access"
+---
+
 # Resource: Cloud Provider Access Configuration Paths
 
 The Terraform MongoDB Atlas Provider offers the following path to perform an authorization for a cloud provider role -
@@ -55,6 +59,12 @@ resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
 
 ```
 
+### Further Examples
+- [AWS Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_provider_access/aws)
+- [Azure Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_provider_access/azure)
+- [GCP Cloud Provider Access](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_provider_access/gcp)
+
+
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project
@@ -63,6 +73,8 @@ resource "mongodbatlas_cloud_provider_access_setup" "test_role" {
    * `atlas_azure_app_id` - Azure Active Directory Application ID of Atlas. This property is required when `provider_name = "AZURE".`
    * `service_principal_id`- UUID string that identifies the Azure Service Principal. This property is required when `provider_name = "AZURE".`
    * `tenant_id`          - UUID String that identifies the Azure Active Directory Tenant ID. This property is required when `provider_name = "AZURE".`
+* `timeouts`- (Optional) The duration of time to wait for the resource to be created. The default timeout is `1h`. The timeout value is defined by a signed sequence of decimal numbers with a time unit suffix such as: `1h45m`, `300s`, `10m`, etc. The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. Learn more about timeouts [here](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
+* `delete_on_create_timeout`- (Optional) Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
 
 ## Attributes Reference
 

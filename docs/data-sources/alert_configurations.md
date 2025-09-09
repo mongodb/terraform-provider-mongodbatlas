@@ -1,3 +1,7 @@
+---
+subcategory: "Alert Configurations"
+---
+
 # Data Source: mongodbatlas_alert_configurations
 
 `mongodbatlas_alert_configurations` describes all Alert Configurations by the provided project_id. The data source requires your Project ID.

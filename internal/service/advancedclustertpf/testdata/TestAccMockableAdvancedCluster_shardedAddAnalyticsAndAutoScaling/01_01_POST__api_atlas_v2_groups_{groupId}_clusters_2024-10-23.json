@@ -1,0 +1,40 @@
+{
+ "clusterType": "SHARDED",
+ "labels": [],
+ "name": "{clusterName}",
+ "replicationSpecs": [
+  {
+   "regionConfigs": [
+    {
+     "electableSpecs": {
+      "diskIOPS": 2000,
+      "ebsVolumeType": "PROVISIONED",
+      "instanceSize": "M30",
+      "nodeCount": 3
+     },
+     "priority": 7,
+     "providerName": "AWS",
+     "regionName": "EU_WEST_1"
+    }
+   ],
+   "zoneName": "ZoneName managed by Terraform"
+  },
+  {
+   "regionConfigs": [
+    {
+     "electableSpecs": {
+      "diskIOPS": 1000,
+      "ebsVolumeType": "PROVISIONED",
+      "instanceSize": "M30",
+      "nodeCount": 3
+     },
+     "priority": 7,
+     "providerName": "AWS",
+     "regionName": "EU_WEST_1"
+    }
+   ],
+   "zoneName": "ZoneName managed by Terraform"
+  }
+ ],
+ "tags": []
+}

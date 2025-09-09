@@ -1,3 +1,7 @@
+---
+subcategory: "Streams"
+---
+
 # Resource: mongodbatlas_stream_connection
 
 `mongodbatlas_stream_connection` provides a Stream Connection resource. The resource lets you create, edit, and delete stream instance connections.
@@ -18,6 +22,9 @@ resource "mongodbatlas_stream_connection" "test" {
     cluster_name = "Cluster0"
 }
 ```
+
+### Further Examples
+- [Atlas Stream Connection](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_stream_connection)
 
 ### Example Cross Project Cluster Connection
 

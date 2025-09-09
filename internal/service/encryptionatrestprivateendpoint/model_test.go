@@ -174,7 +174,7 @@ func TestEncryptionAtRestPrivateEndpointPluralDSSDKToTFModel(t *testing.T) {
 			expectedTFModel: &encryptionatrestprivateendpoint.TFEncryptionAtRestPrivateEndpointsDSModel{
 				CloudProvider: types.StringValue(testCloudProvider),
 				ProjectID:     types.StringValue(testProjectID),
-				Results: []encryptionatrestprivateendpoint.TFEarPrivateEndpointModel{
+				Results: []encryptionatrestprivateendpoint.TFEarPrivateEndpointModelDS{
 					{
 						CloudProvider:                 types.StringValue(testCloudProvider),
 						ErrorMessage:                  types.StringNull(),
