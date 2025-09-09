@@ -1033,6 +1033,7 @@ func TestAccProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 }
 
 func TestAccProject_withTags(t *testing.T) {
+	t.Skip("skipping until CLOUDP-342944 is implemented")
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acc.RandomProjectName()
