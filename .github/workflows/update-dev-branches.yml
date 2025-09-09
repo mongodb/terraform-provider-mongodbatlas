@@ -6,9 +6,6 @@ on:
       branches:
         description: 'Dev branch names to update from master'
         default: '["CLOUDP-320243-dev-2.0.0"]'
-  schedule:
-    - cron: "0 5 * * 3" # workflow runs every Wednesday at 5 AM UTC
-
 concurrency:
   group: '${{ github.workflow }}'
   cancel-in-progress: false
