@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	errorPrivateEndpointServiceDataFederationOnlineArchiveList = "error reading Private Endpoings for projectId %s: %s"
+	errorPrivateEndpointServiceDataFederationOnlineArchiveList = "error reading Private Endpoints for projectId %s: %s"
 	errorDataLakeSetting                                       = "error setting `%s` for MongoDB Atlas DataLake (%s): %s"
 )
 
