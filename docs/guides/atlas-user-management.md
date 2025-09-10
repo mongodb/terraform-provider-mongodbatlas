@@ -7,37 +7,35 @@ page_title: "Migration Guide: Atlas User Management"
 ## Overview
 
 With MongoDB Atlas Terraform Provider `2.0.0`, several attributes and resources
-were deprecated in favor of new, assignment-based resources.\
-These changes improve **clarity, separation of concerns, and alignment with
-Atlas APIs**.\
-This guide covers migrating to the new resources/attributes for Atlas user
-management in context of **organization, teams, and projects**:
+were deprecated in favor of new, assignment-based resources. These changes
+improve **clarity, separation of concerns, and alignment with Atlas APIs**. This
+guide covers migrating to the new resources/attributes for Atlas user management
+in context of **organization, teams, and projects**:
 
 ## Quick Finder: What changed
 
 - **Org membership:** The `mongodbatlas_org_invitation` resource is deprecated.
-  Use `mongodbatlas_cloud_user_org_assignment`.\
-  → See [Org Invitation to Cloud User Org Assignment](#migr-org-invitation)
+  Use `mongodbatlas_cloud_user_org_assignment`. See
+  [Org Invitation to Cloud User Org Assignment](#org-invitation-to-cloud-user-org-assignment)
 
 - **Team membership:** The `usernames` attribute on `mongodbatlas_team` is
-  deprecated. Use `mongodbatlas_cloud_user_team_assignment`.\
-  → See [Team Usernames to Cloud User Team Assignment](#migr-team-usernames)
+  deprecated. Use `mongodbatlas_cloud_user_team_assignment`. See
+  [Team Usernames to Cloud User Team Assignment](#team-usernames-to-cloud-user-team-assignment)
 
 - **Project team assignments:** The `teams` block inside `mongodbatlas_project`
-  is deprecated. Use `mongodbatlas_team_project_assignment`.\
-  → See [Project Teams to Team Project Assignment](#migr-project-teams)
+  is deprecated. Use `mongodbatlas_team_project_assignment`. See
+  [Project Teams to Team Project Assignment](#project-teams-to-team-project-assignment)
 
 - **Project membership:** The `mongodbatlas_project_invitation` resource is
-  deprecated. Use `mongodbatlas_cloud_user_project_assignment`.\
-  → See
-  [Project Invitation to Cloud User Project Assignment](#migr-project-invitation)
+  deprecated. Use `mongodbatlas_cloud_user_project_assignment`. See
+  [Project Invitation to Cloud User Project Assignment](#project-invitation-to-cloud-user-project-assignment)
 
 - **Atlas User details:** The `mongodbatlas_atlas_user` and
-  `mongodbatlas_atlas_users` data sources are deprecated.\
-  Use `mongodbatlas_cloud_user_org_assignment` for a single user in an org, and
-  the `users` attributes on `mongodbatlas_organization`, `mongodbatlas_project`,
-  or `mongodbatlas_team` for listings.\
-  → See [Atlas User/Users Data Sources](#migr-atlas-user-users)
+  `mongodbatlas_atlas_users` data sources are deprecated. Use
+  `mongodbatlas_cloud_user_org_assignment` for a single user in an org, and the
+  `users` attributes on `mongodbatlas_organization`, `mongodbatlas_project`, or
+  `mongodbatlas_team` for listings.\
+  → See [Atlas User/Users Data Sources](#atlas-userusers-data-sources)
 
 These updates ensure that **organization membership, team membership, and
 project assignments** are modeled as explicit and independent resources — giving
@@ -64,8 +62,6 @@ you more flexible control over Atlas access management.
 
 ---
 
-<a id="migr-org-invitation"></a>
-
 <details>
   <summary><span style="font-size:1.4em; font-weight:bold;">Org Membership</span></summary>
 
@@ -89,7 +85,7 @@ to `mongodbatlas_cloud_user_team_assignment`.
 
 ---
 
-### _Use-case 1: Existing org invite is still PENDING (resource exists in config)_
+### **Use-case 1**: Existing org invite is still PENDING (resource exists in config)
 
 Original configuration (note: `user_id` does not exist on
 `mongodbatlas_org_invitation`):
@@ -113,21 +109,6 @@ resource "mongodbatlas_org_invitation" "this" {
 
 #### Step 1: Add `mongodbatlas_cloud_user_org_assignment` and `moved` block
 
-Handling migration in modules:
-
-- For module maintainers: Add the new `mongodbatlas_cloud_user_org_assignment`
-  resource inside the module with a `moved {}` block from
-  `mongodbatlas_org_invitation` to the new resource, remove current
-  `mongodbatlas_org_invitation` resource (Step 2) and publish a new module
-  version.
-- For module users: Simply bump the module version and run
-  `terraform init -upgrade`, then `terraform plan` / `terraform apply`.
-  Terraform performs an in-place state move without users writing import blocks
-  or touching state.
-- Works at any scale (any number of module instances) and keeps the migration
-  self-contained within the module. No per-environment import steps are
-  required.
-
 ```terraform
 resource "mongodbatlas_cloud_user_org_assignment" "this" {
   org_id   = local.org_id
@@ -146,19 +127,24 @@ moved {
 - With a moved block, `terraform plan` should show the move and no other
   changes. Then `terraform apply`.
 
+#### Module considerations
+
+- For module maintainers: Add the new `mongodbatlas_cloud_user_org_assignment`
+  resource inside the module with a `moved {}` block from
+  `mongodbatlas_org_invitation` to the new resource, remove current
+  `mongodbatlas_org_invitation` resource (Step 2) and publish a new module
+  version.
+- For module users: Simply bump the module version and run
+  `terraform init -upgrade`, then `terraform plan` / `terraform apply`.
+  Terraform performs an in-place state move without users writing import blocks
+  or touching state.
+- Works at any scale (any number of module instances) and keeps the migration
+  self-contained within the module. No per-environment import steps are
+  required.
+
 ### Option B) Import by username
 
 #### Step 1: Add `mongodbatlas_cloud_user_org_assignment` and `import` block
-
-Handling migration in modules:
-
-- Terraform import blocks cannot live inside modules; they must be defined in
-  the root module. See `https://github.com/hashicorp/terraform/issues/33474`.
-- Module maintainers cannot ship import steps. Each module user must add
-  root-level import blocks for every instance to import, which is error-prone
-  and repetitive.
-- This creates extra coordination for every environment and workspace. Prefer
-  Option A whenever you can modify the module source.
 
 ```terraform
 resource "mongodbatlas_cloud_user_org_assignment" "this" {
@@ -179,9 +165,20 @@ import {
   from state if still present:
   `terraform state rm mongodbatlas_org_invitation.this`.
 
+#### Module considerations
+
+- Terraform import blocks cannot live inside modules; they must be defined in
+  the root module. See
+  ([Terraform issue](https://github.com/hashicorp/terraform/issues/33474)).
+- Module maintainers cannot ship import steps. Each module user must add
+  root-level import blocks for every instance to import, which is error-prone
+  and repetitive.
+- This creates extra coordination for every environment and workspace. Prefer
+  Option A whenever you can modify the module source.
+
 ---
 
-### _Use-case 2: Invitations already ACCEPTED (no `mongodbatlas_org_invitation` in config)_
+### **Use-case 2**: Invitations already ACCEPTED (no `mongodbatlas_org_invitation` in config)
 
 When an invite is accepted, Atlas deletes the underlying invitation. To manage
 these users going forward, import them into
@@ -203,11 +200,6 @@ locals {
 ```
 
 #### Step 2: Define and import `mongodbatlas_cloud_user_org_assignment`
-
-Handling migration in modules:
-
-- Terraform import blocks cannot live inside modules; they must be defined in
-  the root module. See `https://github.com/hashicorp/terraform/issues/33474`.
 
 Use the `local.active_users` map defined in Step 1 so you don’t have to manually
 curate a list:
@@ -233,11 +225,17 @@ import {
 }
 ```
 
+#### Module considerations
+
+- Terraform import blocks cannot live inside modules; they must be defined in
+  the root module. See
+  ([Terraform issue](https://github.com/hashicorp/terraform/issues/33474)).
+
 Run `terraform plan` (you should see import operations), then `terraform apply`.
 
 ---
 
-### _Use-case 3: You also set `teams_ids` on the original invitation_
+### **Use-case 3**: You also set `teams_ids` on the original invitation
 
 Original configuration where `mongodbatlas_org_invitation` defines `teams_ids`:
 
@@ -337,8 +335,6 @@ imports) across different versions.
   `mongodbatlas_org_invitation` remain.
 
 </details>
-
-<a id="migr-team-usernames"></a>
 
 <details>
   <summary><span style="font-size:1.4em; font-weight:bold;">Team Membership</span></summary>
@@ -532,13 +528,13 @@ Run `terraform plan`. There should be **no changes**.
 ### Migration using Modules
 
 If you are using modules to manage teams and user assignments to teams,
-migrating from `mongodbatlas_team` to the new pattern requires special
-attention. Because the old `mongodbatlas_team.usernames` attribute corresponds
-to `mongodbatlas_cloud_user_team_assignment`, you cannot simply move the
-resource block inside your module and expect Terraform to handle the migration
-automatically. This section demonstrates how to migrate from a module using the
-`mongodbatlas_team` resource to a module using both `mongodbatlas_team` and the
-new `mongodbatlas_cloud_user_team_assignment` resources.
+migrating from `mongodbatlas_team` to the new pattern requires some additional
+steps. The main consideration is that the old `mongodbatlas_team.usernames`
+attribute now maps to the resource `mongodbatlas_cloud_user_team_assignment`,
+hence the `moved` block can't be used. This section demonstrates how to migrate
+from a module using the `mongodbatlas_team` resource to a module using both
+`mongodbatlas_team` and the new `mongodbatlas_cloud_user_team_assignment`
+resources.
 
 **Key points for module users:**
 
@@ -556,10 +552,13 @@ new `mongodbatlas_cloud_user_team_assignment` resources.
 ```terraform
 import {
    to = module.<module_name>.mongodbatlas_cloud_user_team_assignment.<name>
+   # Using USER_ID
    id = "<ORG_ID>/<TEAM_ID>/<USER_ID>"
 }
+
 import {
    to = module.<module_name>.mongodbatlas_cloud_user_team_assignment.<name>
+   # Using USERNAME
    id = "<ORG_ID>/<TEAM_ID>/<USERNAME>"
 }
 ```
@@ -567,11 +566,14 @@ import {
 **Example import commands for modules:**
 
 ```shell
+# Using USER_ID
 terraform import 'module.<module_name>.mongodbatlas_cloud_user_team_assignment.<name>' <ORG_ID>/<TEAM_ID>/<USER_ID>
+
+# Using USERNAME
 terraform import 'module.<module_name>.mongodbatlas_cloud_user_team_assignment.<name>' <ORG_ID>/<TEAM_ID>/<USERNAME>
 ```
 
-#### 1. Old Module Usage (Legacy)
+#### 1. Old Module Usage Example (Using deprecated resources)
 
 ```hcl
 module "user_team_assignment" {  
@@ -582,7 +584,7 @@ module "user_team_assignment" {
 }
 ```
 
-#### 2. New Module Usage (Recommended)
+#### 2. New Module Usage Example (Using new resources)
 
 ```hcl
 data "mongodbatlas_team" "this" {  
@@ -621,21 +623,21 @@ module "user_team_assignment" {
 
 - An `import block` (available in Terraform 1.5 and later) can be used to import
   the resource and iterate through a list of users, e.g.:
+
   ```terraform
+  import { 
+      for_each = local.team_assigments
+      to       = module.user_team_assignment.mongodbatlas_cloud_user_team_assignment.this[each.key]
+      id       = "${var.org_id}/${data.mongodbatlas_team.this.team_id}/${each.value.user_id}"
+  }
   ```
 
-import { for_each = local.team_assigments
+- Alternatively, use the correct resource addresses for your module and each of
+  the user-team assignments:
 
-    to       = module.user_team_assignment.mongodbatlas_cloud_user_team_assignment.this[each.key]
-    id       = "${var.org_id}/${data.mongodbatlas_team.this.team_id}/${each.value.user_id}"
-
-}
-
-````
-- Alternatively, use the correct resource addresses for your module and each of the user-team assignments:
 ```shell
-  terraform import 'module.user_team_assignment.mongodbatlas_cloud_user_team_assignment.this' <ORG_ID>/<TEAM_ID>/<USER_ID>
-````
+terraform import 'module.user_team_assignment.mongodbatlas_cloud_user_team_assignment.this' <ORG_ID>/<TEAM_ID>/<USER_ID>
+```
 
 3. **Remove the old module block from your configuration.**
 4. **Run `terraform plan` to review the changes.**
@@ -647,12 +649,12 @@ import { for_each = local.team_assigments
 
 For complete working examples, see:
 
-- [Old module definition](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/migrate_user_team_assignment/module_maintainer/v1)
+- [Old module definition](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_user_team_assignment/module_maintainer/v1)
   and
-  [old module usage](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/migrate_user_team_assignment/module_user/v1).
-- [New module definition](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/migrate_user_team_assignment/module_maintainer/v2)
+  [old module usage](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_user_team_assignment/module_user/v1).
+- [New module definition](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_user_team_assignment/module_maintainer/v2)
   and
-  [new module usage](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/migrate_user_team_assignment/module_user/v2).
+  [new module usage](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_user_team_assignment/module_user/v2).
 
 ---
 
@@ -681,7 +683,7 @@ ORG_ID/TEAM_ID/USER_ID
 multiple `mongodbatlas_cloud_user_team_assignment` resources for each team.
 
 **Q: Where can I find a working example?** A: See
-[examples/mongodbatlas_cloud_user_team_assignment/main.tf](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_cloud_user_team_assignment/main.tf).
+[examples/mongodbatlas_cloud_user_team_assignment/main.tf](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/mongodbatlas_cloud_user_team_assignment/main.tf).
 
 ---
 
@@ -690,8 +692,6 @@ multiple `mongodbatlas_cloud_user_team_assignment` resources for each team.
 - [Cloud User Team Assignment Resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cloud_user_team_assignment)
 
 </details>
-
-<a id="migr-project-teams"></a>
 
 <details>
   <summary><span style="font-size:1.4em; font-weight:bold;">Project Team Assignment</span></summary>
@@ -713,10 +713,9 @@ multiple `mongodbatlas_cloud_user_team_assignment` resources for each team.
 
 ### What's changing?
 
-- Historically, `mongodbatlas_project` accepted an inline `teams` block to
-  assign one or more teams to a project with specific roles.
-- Now, each project-team role mapping must be managed with
-  `mongodbatlas_team_project_assignment`.
+Historically, `mongodbatlas_project` accepted an inline `teams` block to assign
+one or more teams to a project with specific roles. Now, each project-team role
+mapping must be managed with `mongodbatlas_team_project_assignment`.
 
 ---
 
@@ -763,6 +762,8 @@ resource "mongodbatlas_project" "this" {
   project_owner_id = var.project_owner_id
   
   lifecycle {  
+    # Ignore `teams` field as it's deprecated.
+    # It can now be managed with the new `mongodbatlas_team_project_assignment` resources
     ignore_changes = ["teams"]  
   }  
 }
@@ -865,8 +866,6 @@ field. Then you can drop the lifecycle rule.
 
 </details>
 
-<a id="migr-project-invitation"></a>
-
 <details>
   <summary><span style="font-size:1.4em; font-weight:bold;">Project Membership</span></summary>
 
@@ -879,8 +878,8 @@ resource.
 ### What’s changing?
 
 - `mongodbatlas_project_invitation` only managed invitations and is deprecated.
-  If the user accepted the invitation and is now a project member, the provider
-  removed the invitation from Terraform state and you should remove it from your
+  When the user accepted the invitation and became a project member, the
+  underlying invitation entity went away and you needed to remove it from your
   configuration as well. See the resource
   [documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project_invitation)
   for more details.
@@ -929,7 +928,7 @@ Use the same `roles` as the original invitation to avoid drift.
 
 #### Step 2: Remove the deprecated resource from the configuration and state
 
-#### Option A) [Recommended] Removed block
+##### Option A) [Recommended] Removed block
 
 Remove the resource block and replace it with a `removed` block to cleanly
 remove the old resource from state:
@@ -944,7 +943,7 @@ removed {
 }
 ```
 
-#### Option B) Manual state removal
+##### Option B) Manual state removal
 
 Remove the `mongodbatlas_project_invitation` resource from configuration and
 then remove it from the Terraform state using the command line (this does not
@@ -965,7 +964,7 @@ Afterwards, run `terraform plan` and ensure no further changes are pending.
 
 For complete, working configurations that demonstrate the migration process, see
 the examples in the provider repository:
-[migrate_project_invitation_to_cloud_user_project_assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_project_invitation_to_cloud_user_project_assignment).
+[migrate_project_invitation_to_cloud_user_project_assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_project_invitation_to_cloud_user_project_assignment).
 
 The examples include:
 
@@ -993,8 +992,6 @@ demonstrate the re-creation approach for pending invitations.
   [documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/project_invitation).
 
 </details>
-
-<a id="migr-atlas-user-users"></a>
 
 <details>
   <summary><span style="font-size:1.4em; font-weight:bold;">Atlas User details</span></summary>
@@ -1238,7 +1235,7 @@ Run `terraform plan` to ensure no unexpected changes, then `terraform apply`.
 
 For complete, working configurations that demonstrate the migration process, see
 the examples in the provider repository:
-[migrate_atlas_user_and_atlas_users](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_atlas_user_and_atlas_users).
+[migrate_atlas_user_and_atlas_users](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_atlas_user_and_atlas_users).
 
 The examples include:
 
