@@ -30,7 +30,7 @@ require (
 	github.com/spf13/cast v1.10.0
 	github.com/stretchr/testify v1.11.1
 	github.com/wI2L/jsondiff v0.7.0
-	github.com/zclconf/go-cty v1.16.4
+	github.com/zclconf/go-cty v1.17.0
 	go.mongodb.org/atlas v0.38.0
 	go.mongodb.org/atlas-sdk/v20240530005 v20240530005.0.0
 	go.mongodb.org/atlas-sdk/v20240805005 v20240805005.0.1-0.20250402112219-2468c5354718 // uses api-bot-update-v20240805-backport-cluster to support AdvancedConfiguration in create/updateCluster APIs
