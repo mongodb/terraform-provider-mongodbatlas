@@ -11,16 +11,17 @@ import (
 )
 
 const (
-	connectionName            = "Connection"
-	typeValue                 = ""
-	clusterName               = "Cluster0"
-	dummyProjectID            = "111111111111111111111111"
-	instanceName              = "InstanceName"
-	authMechanism             = "PLAIN"
-	authMechanismOAuth        = "OAUTHBEARER"
-	authUsername              = "user1"
-	clientID                  = "auth0Client"
-	clientSecret              = "secret"
+	connectionName     = "Connection"
+	typeValue          = ""
+	clusterName        = "Cluster0"
+	dummyProjectID     = "111111111111111111111111"
+	instanceName       = "InstanceName"
+	authMechanism      = "PLAIN"
+	authMechanismOAuth = "OAUTHBEARER"
+	authUsername       = "user1"
+	clientID           = "auth0Client"
+	clientSecret       = "secret"
+	// #nosec G101
 	tokenEndpointURL          = "https://your-domain.com/oauth2/token"
 	scope                     = "read:messages write:messages"
 	saslOauthbearerExtentions = "logicalCluster=cluster-kmo17m,identityPoolId=pool-l7Arl"
@@ -642,13 +643,13 @@ func tfAuthenticationObject(t *testing.T, mechanism, username, password string) 
 	return auth
 }
 
-func tfAuthenticationObjectForOAuth(t *testing.T, mechanism, clientId, clientSecret, tokenEndpointUrl, scope, saslOauthbearerExtensions, httpsCaPem string) types.Object {
+func tfAuthenticationObjectForOAuth(t *testing.T, mechanism, clientID, clientSecret, tokenEndpointURL, scope, saslOauthbearerExtensions, httpsCaPem string) types.Object {
 	t.Helper()
 	auth, diags := types.ObjectValueFrom(t.Context(), streamconnection.ConnectionAuthenticationObjectType.AttrTypes, streamconnection.TFConnectionAuthenticationModel{
 		Mechanism:                 types.StringValue(mechanism),
-		ClientID:                  types.StringValue(clientId),
+		ClientID:                  types.StringValue(clientID),
 		ClientSecret:              types.StringValue(clientSecret),
-		TokenEndpointURL:          types.StringValue(tokenEndpointUrl),
+		TokenEndpointURL:          types.StringValue(tokenEndpointURL),
 		Scope:                     types.StringValue(scope),
 		SaslOauthbearerExtensions: types.StringValue(saslOauthbearerExtensions),
 		HTTPSCaPem:                types.StringValue(httpsCaPem),
