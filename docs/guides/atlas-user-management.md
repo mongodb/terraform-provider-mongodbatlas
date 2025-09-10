@@ -28,14 +28,14 @@ in context of **organization, teams, and projects**:
 
 - **Project membership:** The `mongodbatlas_project_invitation` resource is
   deprecated. Use `mongodbatlas_cloud_user_project_assignment`. See
-  [Project Invitation to Cloud User Project Assignment](#project-invitation-to-cloud-user-project-assignment)
+  [Project Invitation to Cloud User Project Assignment](#project-invitation-to-cloud-user-project-assignment).
 
 - **Atlas User details:** The `mongodbatlas_atlas_user` and
   `mongodbatlas_atlas_users` data sources are deprecated. Use
   `mongodbatlas_cloud_user_org_assignment` for a single user in an org, and the
   `users` attributes on `mongodbatlas_organization`, `mongodbatlas_project`, or
-  `mongodbatlas_team` for listings.
-  See [Atlas User/Users Data Sources](#atlas-userusers-data-sources).
+  `mongodbatlas_team` for listings. See
+  [Atlas User/Users Data Sources](#atlas-userusers-data-sources).
 
 These updates ensure that **organization membership, team membership, and
 project assignments** are modeled as explicit and independent resources — giving
@@ -45,7 +45,7 @@ you more flexible control over Atlas access management.
 
 - Backup your
   [Terraform state](https://developer.hashicorp.com/terraform/cli/commands/state)
-  file
+  file.
 - Use MongoDB Atlas Terraform Provider **v2.0.0+** or later.
 - Terraform version requirements:
   - **v1.5+** for
