@@ -293,22 +293,6 @@ func PreCheckSTSAssumeRole(tb testing.TB) {
 	}
 }
 
-func PreCheckDataLakePipelineRun(tb testing.TB) {
-	tb.Helper()
-	if os.Getenv("MONGODB_ATLAS_DATA_LAKE_PIPELINE_RUN_ID") == "" {
-		tb.Fatal("`MONGODB_ATLAS_DATA_LAKE_PIPELINE_RUN_ID` must be set for Projects acceptance testing")
-	}
-	PreCheckDataLakePipelineRuns(tb)
-}
-
-func PreCheckDataLakePipelineRuns(tb testing.TB) {
-	tb.Helper()
-	if os.Getenv("MONGODB_ATLAS_DATA_LAKE_PIPELINE_NAME") == "" {
-		tb.Fatal("`MONGODB_ATLAS_DATA_LAKE_PIPELINE_NAME` must be set for Projects acceptance testing")
-	}
-	PreCheck(tb)
-}
-
 func PreCheckLDAP(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_LDAP_HOSTNAME") == "" ||
