@@ -30,12 +30,12 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 			Mechanism:                 authenticationModel.Mechanism.ValueStringPointer(),
 			Password:                  authenticationModel.Password.ValueStringPointer(),
 			Username:                  authenticationModel.Username.ValueStringPointer(),
-			TokenEndpointUrl:          authenticationModel.TokenEndpointUrl.ValueStringPointer(),
-			ClientId:                  authenticationModel.ClientId.ValueStringPointer(),
+			TokenEndpointUrl:          authenticationModel.TokenEndpointURL.ValueStringPointer(),
+			ClientId:                  authenticationModel.ClientID.ValueStringPointer(),
 			ClientSecret:              authenticationModel.ClientSecret.ValueStringPointer(),
 			Scope:                     authenticationModel.Scope.ValueStringPointer(),
 			SaslOauthbearerExtensions: authenticationModel.SaslOauthbearerExtensions.ValueStringPointer(),
-			HttpsCaPem:                authenticationModel.HttpsCaPem.ValueStringPointer(),
+			HttpsCaPem:                authenticationModel.HTTPSCaPem.ValueStringPointer(),
 		}
 	}
 	if !plan.Security.IsNull() {
@@ -223,11 +223,11 @@ func newTFConnectionAuthenticationModel(ctx context.Context, currAuthConfig *typ
 		resultAuthModel := TFConnectionAuthenticationModel{
 			Mechanism:                 types.StringPointerValue(authResp.Mechanism),
 			Username:                  types.StringPointerValue(authResp.Username),
-			TokenEndpointUrl:          types.StringPointerValue(authResp.TokenEndpointUrl),
-			ClientId:                  types.StringPointerValue(authResp.ClientId),
+			TokenEndpointURL:          types.StringPointerValue(authResp.TokenEndpointUrl),
+			ClientID:                  types.StringPointerValue(authResp.ClientId),
 			Scope:                     types.StringPointerValue(authResp.Scope),
 			SaslOauthbearerExtensions: types.StringPointerValue(authResp.SaslOauthbearerExtensions),
-			HttpsCaPem:                types.StringPointerValue(authResp.HttpsCaPem),
+			HTTPSCaPem:                types.StringPointerValue(authResp.HttpsCaPem),
 		}
 
 		if currAuthConfig != nil && !currAuthConfig.IsNull() { // if config is available (create & update of resource) password value is set in new state

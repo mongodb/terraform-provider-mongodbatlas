@@ -57,12 +57,12 @@ type TFConnectionAuthenticationModel struct {
 	Mechanism                 types.String `tfsdk:"mechanism"`
 	Password                  types.String `tfsdk:"password"`
 	Username                  types.String `tfsdk:"username"`
-	TokenEndpointUrl          types.String `tfsdk:"token_endpoint_url"`
-	ClientId                  types.String `tfsdk:"client_id"`
+	TokenEndpointURL          types.String `tfsdk:"token_endpoint_url"`
+	ClientID                  types.String `tfsdk:"client_id"`
 	ClientSecret              types.String `tfsdk:"client_secret"`
 	Scope                     types.String `tfsdk:"scope"`
 	SaslOauthbearerExtensions types.String `tfsdk:"sasl_oauthbearer_extensions"`
-	HttpsCaPem                types.String `tfsdk:"https_ca_pem"`
+	HTTPSCaPem                types.String `tfsdk:"https_ca_pem"`
 }
 
 var ConnectionAuthenticationObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{

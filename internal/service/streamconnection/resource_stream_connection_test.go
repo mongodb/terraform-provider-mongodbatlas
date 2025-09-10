@@ -125,18 +125,18 @@ func testCaseKafkaOAuthBearer(t *testing.T, nameSuffix string) *resource.TestCas
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourcesConfig + configureKafka(projectID, instanceName, connectionName, getKafkaAuthenticationConfig("OAUTHBEARER", "", "", tokenEndpointUrl, clientId, clientSecret, scope, saslOauthbearerExtentions, httpsCaPem), "localhost:9092,localhost:9092", "earliest", "", false),
+				Config: dataSourcesConfig + configureKafka(projectID, instanceName, connectionName, getKafkaAuthenticationConfig("OAUTHBEARER", "", "", tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtentions, httpsCaPem), "localhost:9092,localhost:9092", "earliest", "", false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkKafkaOAuthAttributes(resourceName, instanceName, connectionName, tokenEndpointUrl, clientId, clientSecret, scope, saslOauthbearerExtentions, httpsCaPem, "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, true),
-					checkKafkaOAuthAttributes(dataSourceName, instanceName, connectionName, tokenEndpointUrl, clientId, clientSecret, scope, saslOauthbearerExtentions, httpsCaPem, "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, false),
+					checkKafkaOAuthAttributes(resourceName, instanceName, connectionName, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtentions, httpsCaPem, "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, true),
+					checkKafkaOAuthAttributes(dataSourceName, instanceName, connectionName, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtentions, httpsCaPem, "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, false),
 					streamConnectionsAttributeChecks(pluralDataSourceName, nil, nil),
 				),
 			},
 			{
-				Config: dataSourcesWithPagination + configureKafka(projectID, instanceName, connectionName, getKafkaAuthenticationConfig("OAUTHBEARER", "", "", tokenEndpointUrl, "clientId2", "clientSecret", scope, saslOauthbearerExtentions, httpsCaPem), "localhost:9093", "latest", kafkaNetworkingPublic, false),
+				Config: dataSourcesWithPagination + configureKafka(projectID, instanceName, connectionName, getKafkaAuthenticationConfig("OAUTHBEARER", "", "", tokenEndpointURL, "clientId2", "clientSecret", scope, saslOauthbearerExtentions, httpsCaPem), "localhost:9093", "latest", kafkaNetworkingPublic, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkKafkaOAuthAttributes(resourceName, instanceName, connectionName, tokenEndpointUrl, "clientId2", "clientSecret", scope, saslOauthbearerExtentions, httpsCaPem, "localhost:9093", "latest", networkingTypePublic, false, true),
-					checkKafkaOAuthAttributes(dataSourceName, instanceName, connectionName, tokenEndpointUrl, "clientId2", "clientSecret", scope, saslOauthbearerExtentions, httpsCaPem, "localhost:9093", "latest", networkingTypePublic, false, false),
+					checkKafkaOAuthAttributes(resourceName, instanceName, connectionName, tokenEndpointURL, "clientId2", "clientSecret", scope, saslOauthbearerExtentions, httpsCaPem, "localhost:9093", "latest", networkingTypePublic, false, true),
+					checkKafkaOAuthAttributes(dataSourceName, instanceName, connectionName, tokenEndpointURL, "clientId2", "clientSecret", scope, saslOauthbearerExtentions, httpsCaPem, "localhost:9093", "latest", networkingTypePublic, false, false),
 					streamConnectionsAttributeChecks(pluralDataSourceName, conversion.Pointer(2), conversion.Pointer(1)),
 				),
 			},

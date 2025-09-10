@@ -19,9 +19,9 @@ const (
 	authMechanism             = "PLAIN"
 	authMechanismOAuth        = "OAUTHBEARER"
 	authUsername              = "user1"
-	clientId                  = "auth0Client"
+	clientID                  = "auth0Client"
 	clientSecret              = "secret"
-	tokenEndpointUrl          = "https://your-domain.com/oauth2/token"
+	tokenEndpointURL          = "https://your-domain.com/oauth2/token"
 	scope                     = "read:messages write:messages"
 	saslOauthbearerExtentions = "logicalCluster=cluster-kmo17m,identityPoolId=pool-l7Arl"
 	httpsCaPem                = "MHWER3343"
@@ -57,7 +57,7 @@ type sdkToTFModelTestCase struct {
 
 func TestStreamConnectionSDKToTFModel(t *testing.T) {
 	var authConfigWithPasswordDefined = tfAuthenticationObject(t, authMechanism, authUsername, "raw password")
-	var authConfigWithOAuth = tfAuthenticationObjectForOAuth(t, authMechanismOAuth, clientId, clientSecret, tokenEndpointUrl, scope, saslOauthbearerExtentions, httpsCaPem)
+	var authConfigWithOAuth = tfAuthenticationObjectForOAuth(t, authMechanismOAuth, clientID, clientSecret, tokenEndpointURL, scope, saslOauthbearerExtentions, httpsCaPem)
 
 	testCases := []sdkToTFModelTestCase{
 		{
@@ -161,8 +161,8 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				Type: admin.PtrString("Kafka"),
 				Authentication: &admin.StreamsKafkaAuthentication{
 					Mechanism:                 admin.PtrString(authMechanismOAuth),
-					ClientId:                  admin.PtrString(clientId),
-					TokenEndpointUrl:          admin.PtrString(tokenEndpointUrl),
+					ClientId:                  admin.PtrString(clientID),
+					TokenEndpointUrl:          admin.PtrString(tokenEndpointURL),
 					Scope:                     admin.PtrString(scope),
 					SaslOauthbearerExtensions: admin.PtrString(saslOauthbearerExtentions),
 					HttpsCaPem:                admin.PtrString(httpsCaPem),
@@ -182,7 +182,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				InstanceName:     types.StringValue(instanceName),
 				ConnectionName:   types.StringValue(connectionName),
 				Type:             types.StringValue("Kafka"),
-				Authentication:   tfAuthenticationObjectForOAuth(t, authMechanismOAuth, clientId, clientSecret, tokenEndpointUrl, scope, saslOauthbearerExtentions, httpsCaPem), // password value is obtained from config, not api resp.
+				Authentication:   tfAuthenticationObjectForOAuth(t, authMechanismOAuth, clientID, clientSecret, tokenEndpointURL, scope, saslOauthbearerExtentions, httpsCaPem), // password value is obtained from config, not api resp.
 				BootstrapServers: types.StringValue(bootstrapServers),
 				Config:           tfConfigMap(t, configMap),
 				Security:         tfSecurityObject(t, DummyCACert, securityProtocol),
@@ -646,12 +646,12 @@ func tfAuthenticationObjectForOAuth(t *testing.T, mechanism, clientId, clientSec
 	t.Helper()
 	auth, diags := types.ObjectValueFrom(t.Context(), streamconnection.ConnectionAuthenticationObjectType.AttrTypes, streamconnection.TFConnectionAuthenticationModel{
 		Mechanism:                 types.StringValue(mechanism),
-		ClientId:                  types.StringValue(clientId),
+		ClientID:                  types.StringValue(clientId),
 		ClientSecret:              types.StringValue(clientSecret),
-		TokenEndpointUrl:          types.StringValue(tokenEndpointUrl),
+		TokenEndpointURL:          types.StringValue(tokenEndpointUrl),
 		Scope:                     types.StringValue(scope),
 		SaslOauthbearerExtensions: types.StringValue(saslOauthbearerExtensions),
-		HttpsCaPem:                types.StringValue(httpsCaPem),
+		HTTPSCaPem:                types.StringValue(httpsCaPem),
 	})
 	if diags.HasError() {
 		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
