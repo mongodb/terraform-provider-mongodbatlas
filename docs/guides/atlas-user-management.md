@@ -34,7 +34,7 @@ in context of **organization, teams, and projects**:
   `mongodbatlas_atlas_users` data sources are deprecated. Use
   `mongodbatlas_cloud_user_org_assignment` for a single user in an org, and the
   `users` attributes on `mongodbatlas_organization`, `mongodbatlas_project`, or
-  `mongodbatlas_team` for listings.\
+  `mongodbatlas_team` for listings.
   → See [Atlas User/Users Data Sources](#atlas-userusers-data-sources)
 
 These updates ensure that **organization membership, team membership, and
