@@ -16,15 +16,15 @@ in context of **organization, teams, and projects**:
 
 - **Org membership:** The `mongodbatlas_org_invitation` resource is deprecated.
   Use `mongodbatlas_cloud_user_org_assignment`. See
-  [Org Invitation to Cloud User Org Assignment](#org-invitation-to-cloud-user-org-assignment)
+  [Org Invitation to Cloud User Org Assignment](#org-invitation-to-cloud-user-org-assignment).
 
 - **Team membership:** The `usernames` attribute on `mongodbatlas_team` is
   deprecated. Use `mongodbatlas_cloud_user_team_assignment`. See
-  [Team Usernames to Cloud User Team Assignment](#team-usernames-to-cloud-user-team-assignment)
+  [Team Usernames to Cloud User Team Assignment](#team-usernames-to-cloud-user-team-assignment).
 
 - **Project team assignments:** The `teams` block inside `mongodbatlas_project`
   is deprecated. Use `mongodbatlas_team_project_assignment`. See
-  [Project Teams to Team Project Assignment](#project-teams-to-team-project-assignment)
+  [Project Teams to Team Project Assignment](#project-teams-to-team-project-assignment).
 
 - **Project membership:** The `mongodbatlas_project_invitation` resource is
   deprecated. Use `mongodbatlas_cloud_user_project_assignment`. See
@@ -35,7 +35,7 @@ in context of **organization, teams, and projects**:
   `mongodbatlas_cloud_user_org_assignment` for a single user in an org, and the
   `users` attributes on `mongodbatlas_organization`, `mongodbatlas_project`, or
   `mongodbatlas_team` for listings.
-  → See [Atlas User/Users Data Sources](#atlas-userusers-data-sources)
+  See [Atlas User/Users Data Sources](#atlas-userusers-data-sources).
 
 These updates ensure that **organization membership, team membership, and
 project assignments** are modeled as explicit and independent resources — giving
@@ -85,7 +85,7 @@ to `mongodbatlas_cloud_user_team_assignment`.
 
 ---
 
-### **Use-case 1**: Existing org invite is still PENDING (resource exists in config)
+### Use-case 1: Existing org invite is still PENDING (resource exists in config)
 
 Original configuration (note: `user_id` does not exist on
 `mongodbatlas_org_invitation`):
@@ -178,7 +178,7 @@ import {
 
 ---
 
-### **Use-case 2**: Invitations already ACCEPTED (no `mongodbatlas_org_invitation` in config)
+### Use-case 2: Invitations already ACCEPTED (no `mongodbatlas_org_invitation` in config)
 
 When an invite is accepted, Atlas deletes the underlying invitation. To manage
 these users going forward, import them into
@@ -235,7 +235,7 @@ Run `terraform plan` (you should see import operations), then `terraform apply`.
 
 ---
 
-### **Use-case 3**: You also set `teams_ids` on the original invitation
+### Use-case 3: You also set `teams_ids` on the original invitation
 
 Original configuration where `mongodbatlas_org_invitation` defines `teams_ids`:
 
