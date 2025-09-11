@@ -22,7 +22,7 @@ variable "kafka_password" {
 }
 
 variable "kafka_client_secret" {
-  description = "Secret known only to the kafka client and the authorization server"
+  description = "Secret known only to the Kafka client and the authorization server"
   type        = string
 }
 
