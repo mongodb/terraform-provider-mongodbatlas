@@ -1,5 +1,5 @@
 ---
-subcategory: "AWS Clusters DNS"
+subcategory: "Projects"
 ---
 
 # Data Source: mongodbatlas_custom_dns_configuration_cluster_aws

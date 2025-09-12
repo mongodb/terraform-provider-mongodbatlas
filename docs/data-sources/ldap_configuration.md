@@ -1,5 +1,5 @@
 ---
-subcategory: "LDAP Configuration"
+subcategory: "Projects"
 ---
 
 # Data Source: mongodbatlas_ldap_configuration

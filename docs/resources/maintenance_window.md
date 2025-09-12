@@ -1,5 +1,5 @@
 ---
-subcategory: "Maintenance Windows"
+subcategory: "Projects"
 ---
 
 # Resource: mongodbatlas_maintenance_window

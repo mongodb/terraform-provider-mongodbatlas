@@ -1,5 +1,5 @@
 ---
-subcategory: "Cluster Outage Simulation"
+subcategory: "Clusters"
 ---
 
 # Resource: mongodbatlas_cluster_outage_simulation

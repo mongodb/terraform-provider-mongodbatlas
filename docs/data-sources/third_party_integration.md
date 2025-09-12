@@ -1,5 +1,5 @@
 ---
-subcategory: "Third-Party Integrations"
+subcategory: "Projects"
 ---
 
 # Data Source: mongodbatlas_third_party_integration
