@@ -4,7 +4,7 @@ resource "mongodbatlas_team" "this" {
 }
 
 resource "mongodbatlas_cloud_user_team_assignment" "this" {
-  for_each = var.team_assigments
+  for_each = var.user_ids
 
   org_id  = each.value.org_id
   team_id = each.value.team_id
