@@ -84,6 +84,14 @@ func PreCheckBasicOwnerID(tb testing.TB) {
 	}
 }
 
+func PreCheckCloudUserID(tb testing.TB) {
+	tb.Helper()
+	PreCheckBasic(tb)
+	if os.Getenv("MONGODB_ATLAS_CLOUD_USER_ID") == "" {
+		tb.Fatal("`MONGODB_ATLAS_CLOUD_USER_ID` must be set ")
+	}
+}
+
 func PreCheckAtlasUsername(tb testing.TB) {
 	tb.Helper()
 	PreCheckBasic(tb)
