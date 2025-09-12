@@ -814,7 +814,7 @@ Keep
 
 For complete, working configurations that demonstrate the migration process, see
 the examples in the provider repository:
-[migrate_team_project_assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_team_project_assignment).
+[migrate_team_project_assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_team_project_assignment).
 
 The examples include:
 
@@ -932,7 +932,7 @@ Run `terraform apply` to create the assignment with the new resource & delete th
 
 For complete, working configurations that demonstrate the migration process, see
 the examples in the provider repository:
-[migrate_project_invitation_to_cloud_user_project_assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_project_invitation_to_cloud_user_project_assignment).
+[migrate_project_invitation_to_cloud_user_project_assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_project_invitation_to_cloud_user_project_assignment).
 
 The examples include:
 
@@ -1221,7 +1221,7 @@ Since data sources don’t live in state, in this case migration is about replac
 
 For complete, working configurations that demonstrate the migration process, see
 the examples in the provider repository:
-[migrate_atlas_user_and_atlas_users](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/migrate_atlas_user_and_atlas_users).
+[migrate_atlas_user_and_atlas_users](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_atlas_user_and_atlas_users).
 
 The examples include:
 
