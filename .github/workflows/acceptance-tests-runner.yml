@@ -43,6 +43,9 @@ on:
       mongodb_atlas_project_owner_id:
         type: string
         required: true
+      mongodb_atlas_cloud_user_id:
+        type: string
+        required: true
       mongodb_atlas_teams_ids:
         type: string
         required: true  
