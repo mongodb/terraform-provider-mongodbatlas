@@ -17,6 +17,7 @@ var dataSourceName1 = "data.mongodbatlas_cloud_user_team_assignment.test1"
 var dataSourceName2 = "data.mongodbatlas_cloud_user_team_assignment.test2"
 
 func TestAccCloudUserTeamAssignment_basic(t *testing.T) {
+	// TODO: temporary change to trigger tests
 	resource.Test(t, *basicTestCase(t))
 }
 
