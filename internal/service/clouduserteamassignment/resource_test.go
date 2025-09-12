@@ -22,7 +22,6 @@ func TestAccCloudUserTeamAssignment_basic(t *testing.T) {
 
 func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
-
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	userID := os.Getenv("MONGODB_ATLAS_CLOUD_USER_ID")
 	teamName := acc.RandomName()
