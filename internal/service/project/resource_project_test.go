@@ -24,8 +24,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-// TODO: temproary run project tests
-
 var (
 	name             = types.StringValue("sameName")
 	diffName         = types.StringValue("diffName")
