@@ -1,8 +1,3 @@
-variable "org_id" {
-  description = "The ID of the MongoDB Atlas organization"
-  type        = string
-}
-
 variable "team_id_1" {
   description = "The ID of the first team"
   type        = string
@@ -32,4 +27,10 @@ variable "private_key" {
   description = "Private key for MongoDB Atlas API"
   type        = string
   default     = ""
+}
+
+variable "project_id" {
+  description = "Atlas project ID"
+  type        = string
+
 }

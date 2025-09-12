@@ -10,20 +10,20 @@ locals {
   }
 }
 
-# Ignore the deprecated teams block in mongodbatlas_project
-resource "mongodbatlas_project" "this" {
-  name   = "this"
-  org_id = var.org_id
-  lifecycle {
-    ignore_changes = [teams]
-  }
-}
+# If you are managing your project you need to ignore the deprecated teams block in mongodbatlas_project
+# resource "mongodbatlas_project" "this" {
+#   name   = "this"
+#   org_id = var.org_id
+#   lifecycle {
+#     ignore_changes = [teams]
+#   }
+# }
 
 # Use the new mongodbatlas_team_project_assignment resource
 resource "mongodbatlas_team_project_assignment" "this" {
   for_each = local.team_map
 
-  project_id = mongodbatlas_project.this.id
+  project_id = var.project_id
   team_id    = each.key
   role_names = each.value
 }
@@ -32,7 +32,7 @@ resource "mongodbatlas_team_project_assignment" "this" {
 import {
   for_each = local.team_map
   to       = mongodbatlas_team_project_assignment.this[each.key]
-  id       = "${mongodbatlas_project.this.id}/${each.key}"
+  id       = "${var.project_id}/${each.key}"
 }
 
 # Example outputs showing team assignments in various formats
@@ -57,7 +57,7 @@ output "team_project_assignments_map" {
 
 # Data source to read current team assignments for the project
 data "mongodbatlas_team_project_assignment" "this" {
-  project_id = mongodbatlas_project.this.id
+  project_id = var.project_id
   team_id    = var.team_id_1 # Example for one team; repeat for others as needed
 }
 
