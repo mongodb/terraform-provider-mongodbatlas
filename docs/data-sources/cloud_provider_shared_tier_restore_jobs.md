@@ -1,5 +1,5 @@
 ---
-subcategory: "Shared-Tier Restore Jobs"
+subcategory: "Cloud Backups"
 ---
 
 ~> **DEPRECATION:** This data source is deprecated and will be removed in January 2026. For more details, see [Migration Guide: Transition out of Serverless Instances and Shared-tier clusters](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/serverless-shared-migration-guide).

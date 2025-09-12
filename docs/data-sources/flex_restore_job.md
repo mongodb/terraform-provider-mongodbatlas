@@ -1,5 +1,5 @@
 ---
-subcategory: "Flex Restore Jobs"
+subcategory: "Cloud Backups"
 ---
 
 # Data Source: mongodbatlas_flex_restore_job

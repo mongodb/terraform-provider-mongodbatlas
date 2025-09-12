@@ -1,5 +1,5 @@
 ---
-subcategory: "Project IP Access List"
+subcategory: "Projects"
 ---
 
 # Data Source: mongodbatlas_project_ip_access_list
