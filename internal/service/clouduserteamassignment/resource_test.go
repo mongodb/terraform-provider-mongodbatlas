@@ -17,7 +17,6 @@ var dataSourceName1 = "data.mongodbatlas_cloud_user_team_assignment.test1"
 var dataSourceName2 = "data.mongodbatlas_cloud_user_team_assignment.test2"
 
 func TestAccCloudUserTeamAssignment_basic(t *testing.T) {
-	// TODO: temporary change to trigger tests
 	resource.Test(t, *basicTestCase(t))
 }
 
@@ -25,11 +24,11 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-	userID := os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+	userID := os.Getenv("MONGODB_ATLAS_CLOUD_USER_ID")
 	teamName := acc.RandomName()
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckBasicOwnerID(t) },
+		PreCheck:                 func() { acc.PreCheckCloudUserID(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
