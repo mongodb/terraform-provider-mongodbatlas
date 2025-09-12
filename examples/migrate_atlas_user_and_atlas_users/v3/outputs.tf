@@ -63,8 +63,8 @@ output "org_users_with_roles" {
     for user in data.mongodbatlas_organization.org.users : {
       username            = user.username
       user_id             = user.id
-      org_roles           = user.roles[0].org_roles
-      project_assignments = user.roles[0].project_role_assignments
+      org_roles           = length(user.roles) > 0 ? user.roles[0].org_roles : []
+      project_assignments = length(user.roles) > 0 ? user.roles[0].project_role_assignments : []
     }
   ]
 }
