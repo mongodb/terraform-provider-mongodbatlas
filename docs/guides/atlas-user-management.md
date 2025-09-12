@@ -569,7 +569,7 @@ cannot be used. Existing team memberships must be imported.
   - Add an `import block` (or `terraform import`) to import the resources and iterate through the list of users:
     ```terraform
     import { 
-        for_each = local.team_assigments
+        for_each = local.team_assignments
         
         to       = module.user_team_assignment.mongodbatlas_cloud_user_team_assignment.this[each.key]
         id       = "${var.org_id}/${data.mongodbatlas_team.this.team_id}/${each.value}"
