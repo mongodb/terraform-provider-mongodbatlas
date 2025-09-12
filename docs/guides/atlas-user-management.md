@@ -155,25 +155,31 @@ import {
 
 ```
 
-
 #### Step 3: Apply and clean up
 - Run `terraform plan` (you should see import & moved operations), then `terraform apply`.
 - Finally, remove any remaining `mongodbatlas_org_invitation` references from
 config and state:
-`terraform state rm mongodbatlas_org_invitation.this`.
+  ```terraform
+  removed {
+    from = mongodbatlas_org_invitation.this
+
+    lifecycle {
+      destroy = false
+    }
+  }
+  ```
+  - Alternatively, use the Terraform CLI command: `terraform state rm mongodbatlas_org_invitation.this`.
 
 #### Module considerations
 
 - **Module maintainers**
-
-  - Add `mongodbatlas_cloud_user_org_assignment` inside the module and a `moved {}` from `mongodbatlas_org_invitation`; remove the old resource and publish a new version.
+  - Add `mongodbatlas_cloud_user_org_assignment` inside the module and a `moved` block from `mongodbatlas_org_invitation`; remove the old resource and publish a new version.
   - If `teams_ids` were used, model them as `mongodbatlas_cloud_user_team_assignment` resources in the module that will be imported by module users.
   - Terraform doesn’t allow import blocks in the module ([Terraform issue](https://github.com/hashicorp/terraform/issues/33474)). Document the import ID formats for users:
         - Org assignment: `org_id/user_id`
         - Team assignment (if applicable): `org_id/team_id/user_id`
 
 - **Module users**
-  
   - Upgrade the module (`terraform init -upgrade`) and run `terraform plan` **but do not apply**.
   - Org assignment moves happen automatically via the module’s moved {}—no imports or state edits needed.
   - For team assignments, if applicable, add **root-level** `import {}` blocks (or run `terraform import`) for each existing:
@@ -213,17 +219,24 @@ import {
 - Finally, remove any remaining `mongodbatlas_org_invitation` references from
 config and state:
 `terraform state rm mongodbatlas_org_invitation.this`.
+  ```terraform
+  removed {
+    from = mongodbatlas_org_invitation.this
+
+    lifecycle {
+      destroy = false
+    }
+  }
+  ```
+  - Alternatively, use the Terraform CLI command: `terraform state rm mongodbatlas_org_invitation.this`.
 
 #### Module considerations
 
 - **Module maintainers**
-
-  - Add `mongodbatlas_cloud_user_org_assignment` inside the module and a `moved {}` from `mongodbatlas_org_invitation`; remove the old resource and publish a new version.
-
-- **Module users**
-
-  - Simply bump the module version and run `terraform init -upgrade`, then `terraform plan` and `terraform apply`. Terraform performs an in-place state move without users touching state.
+  - Add `mongodbatlas_cloud_user_org_assignment` inside the module and a `moved` block from `mongodbatlas_org_invitation`; remove the old resource and publish a new version.
   
+- **Module users**
+  - Simply bump the module version and run `terraform init -upgrade`, then `terraform plan` and `terraform apply`. Terraform performs an in-place state move without users touching state.
 
 ---
 ### Use-case 3: Invitations already ACCEPTED (no `mongodbatlas_org_invitation` in config)
@@ -281,11 +294,20 @@ import {
 - Finally, remove any remaining `mongodbatlas_org_invitation` references from
 config and state:
 `terraform state rm mongodbatlas_org_invitation.this`.
+  ```terraform
+  removed {
+    from = mongodbatlas_org_invitation.this
+
+    lifecycle {
+      destroy = false
+    }
+  }
+  ```
+  - Alternatively, use the Terraform CLI command: `terraform state rm mongodbatlas_org_invitation.this`.
 
 #### Module considerations
 
 - **Module maintainers**
-
   - Add `mongodbatlas_cloud_user_org_assignment` in the module. Since invites are already **accepted**, these existing org users need to be imported to be managed with Terraform going forward.
   - If teams are in scope, define `mongodbatlas_cloud_user_team_assignment` in the module as well.
   - Terraform doesn’t allow import blocks in the module ([Terraform issue](https://github.com/hashicorp/terraform/issues/33474)). Document the import ID formats for users:
@@ -294,7 +316,6 @@ config and state:
   - Publish a new module version.
 
 - **Module users**
-
   - Upgrade the module (`terraform init -upgrade`) and run `terraform plan` **but do not apply**.
   - Add **root-level** `import {}` blocks (or run `terraform import`) for each existing:
       - Org assignment: `org_id/user_id`
@@ -335,7 +356,7 @@ Then:
 1. Run `terraform apply` to ensure the new data source reads correctly.
 2. Replace all usages of `data.mongodbatlas_org_invitation.test` with
    `data.mongodbatlas_cloud_user_org_assignment.user_1`.
-3. Run `terraform plan` followed by `terraform apply`.
+3. Run `terraform plan`, then `terraform apply`.
 
 
 
@@ -494,7 +515,7 @@ Run `terraform plan`. There should be **no changes**.
 
 #### Module considerations
 The legacy `mongodbatlas_team.usernames` list maps to individual
-`mongodbatlas_cloud_user_team_assignment` resources, so a `moved {}` block
+`mongodbatlas_cloud_user_team_assignment` resources, so a `moved` block
 cannot be used. Existing team memberships must be imported.
 
 - **Module maintainers**
@@ -570,7 +591,6 @@ cannot be used. Existing team memberships must be imported.
     ```terraform
     import { 
         for_each = local.team_assignments
-        
         to       = module.user_team_assignment.mongodbatlas_cloud_user_team_assignment.this[each.key]
         id       = "${var.org_id}/${data.mongodbatlas_team.this.team_id}/${each.value}"
     }
@@ -711,7 +731,7 @@ resource "mongodbatlas_project" "this" {
 }
 ```
 
-- Run `terraform plan` followed by `terraform apply`.
+- Run `terraform plan`, then `terraform apply`.
 
 
 This removes the `teams` block from the config but keeps the assignments in
@@ -758,7 +778,7 @@ import {
 
 #### Module considerations
 Inline `mongodbatlas_project.teams` now maps to separate
-`mongodbatlas_team_project_assignment` resources, so no `moved {}` is possible.
+`mongodbatlas_team_project_assignment` resources, so no `moved` block is possible.
 Existing assignments must be imported at the root module. 
 
 Keep
@@ -770,7 +790,6 @@ Keep
 - Terraform doesn’t allow import blocks in the module ([Terraform issue](https://github.com/hashicorp/terraform/issues/33474)). Document the import ID formats for users:
   - `project_id/team_id`
 - Publish a new module version.
-
 
 - **Module users**
   - Upgrade the module (`terraform init -upgrade`) and run `terraform plan` **but do not apply**.
@@ -898,19 +917,13 @@ Run `terraform apply` to create the assignment with the new resource & delete th
 
 - **Module maintainers**
   - Replace `mongodbatlas_project_invitation` with `mongodbatlas_cloud_user_project_assignment` inside the module.
-
   - Keep inputs consistent (`project_id`, `username`, `roles`) so the new resource re-creates the pending invite with the same roles.
-
   - Remove the deprecated `mongodbatlas_project_invitation` resource block from the module.
-
   - Publish a new module version.
 
 - **Module users**
-
   - Upgrade to the new module version and run `terraform plan`.
-
   - Expect to see planned creation `mongodbatlas_cloud_user_project_assignment` and deletion of `mongodbatlas_project_invitation`.
-  
   - Run `terraform apply`.
 
 ---
@@ -1194,7 +1207,6 @@ Since data sources don’t live in state, in this case migration is about replac
   - Replace deprecated data sources with the new resources as mentioned in above steps.
   - Update attribute references as mentioned above.
   - Publish a new module version.
-
 
 - **Module users**
   - Upgrade to the new module version and run `terraform plan`.
