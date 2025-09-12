@@ -16,10 +16,10 @@ locals {
 }
 
 module "user_team_assignment" {
-  source          = "../../module_maintainer/v2"
-  org_id          = var.org_id
-  team_name       = var.team_name
-  user_ids = local.user_ids
+  source    = "../../module_maintainer/v2"
+  org_id    = var.org_id
+  team_name = var.team_name
+  user_ids  = local.user_ids
 }
 
 import {
