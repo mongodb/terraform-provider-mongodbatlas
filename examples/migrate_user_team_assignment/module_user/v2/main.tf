@@ -26,5 +26,5 @@ import {
   for_each = local.user_ids
 
   to = module.user_team_assignment.mongodbatlas_cloud_user_team_assignment.this[each.key]
-  id = "${var.org_id}/${data.mongodbatlas_team.this.team_id}/${each.value.user_id}"
+  id = "${var.org_id}/${data.mongodbatlas_team.this.team_id}/${each.value}"
 }
