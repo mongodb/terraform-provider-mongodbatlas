@@ -1,8 +1,3 @@
-variable "org_id" {
-  description = "The ID of the MongoDB Atlas organization"
-  type        = string
-}
-
 variable "team_id_1" {
   description = "The ID of the first team"
   type        = string
