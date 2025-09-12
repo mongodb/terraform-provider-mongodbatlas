@@ -785,11 +785,11 @@ Keep
 `ignore_changes = ["teams"]` on the project until the provider removes that field.
 
 - **Module maintainers**
-- Replace the inline `mongodbatlas_project.teams` block with explicit `mongodbatlas_team_project_assignment` resources in the module and add a lifecycle rule to ignore `teams` in `mongodbatlas_project` as mentioned in Step #1 and #2 above.
-- Expose the `project_id` as a module output so users can form import IDs.
-- Terraform doesn’t allow import blocks in the module ([Terraform issue](https://github.com/hashicorp/terraform/issues/33474)). Document the import ID formats for users:
-  - `project_id/team_id`
-- Publish a new module version.
+  - Replace the inline `mongodbatlas_project.teams` block with explicit `mongodbatlas_team_project_assignment` resources in the module and add a lifecycle rule to ignore `teams` in `mongodbatlas_project` as mentioned in Step #1 and #2 above.
+  - Expose the `project_id` as a module output so users can form import IDs.
+  - Terraform doesn’t allow import blocks in the module ([Terraform issue](https://github.com/hashicorp/terraform/issues/33474)). Document the import ID formats for users:
+      - `project_id/team_id`
+  - Publish a new module version.
 
 - **Module users**
   - Upgrade the module (`terraform init -upgrade`) and run `terraform plan` **but do not apply**.
