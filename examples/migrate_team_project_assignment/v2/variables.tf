@@ -33,3 +33,9 @@ variable "private_key" {
   type        = string
   default     = ""
 }
+
+variable "project_id" {
+  description = "Atlas project ID"
+  type        = string
+
+}
