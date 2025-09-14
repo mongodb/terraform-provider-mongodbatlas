@@ -1,5 +1,5 @@
 ---
-subcategory: "Project IP Access List"
+subcategory: "Projects"
 ---
 
 # Resource: mongodbatlas_project_ip_access_list

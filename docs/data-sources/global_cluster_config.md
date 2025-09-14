@@ -1,5 +1,5 @@
 ---
-subcategory: "Global Clusters"
+subcategory: "Clusters"
 ---
 
 # Data Source: mongodbatlas_global_cluster_config

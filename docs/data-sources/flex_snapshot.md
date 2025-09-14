@@ -1,5 +1,5 @@
 ---
-subcategory: "Flex Snapshots"
+subcategory: "Cloud Backups"
 ---
 
 # Data Source: mongodbatlas_flex_snapshot
