@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 2.0.0 (September 15, 2025)
+
 BREAKING CHANGES:
 
 * data-source/mongodbatlas_advanced_cluster: Disables legacy SDKv2 implementation of this datasource and removes the MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER feature flag ([#3547](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3547))
