@@ -61,10 +61,11 @@ output "org_users_with_roles" {
   description = "Organization users with their roles"
   value = [
     for user in data.mongodbatlas_organization.org.users : {
-      username            = user.username
-      user_id             = user.id
-      org_roles           = user.roles.org_roles
-      project_assignments = user.roles.project_role_assignments
+      username = user.username
+      user_id  = user.id
+      # Although the API defines roles as an object, in the organization and team data sources roles are represented as a list. This is due to SDK v2 only supporting blocks for nested elements.
+      org_roles           = user.roles[0].org_roles
+      project_assignments = user.roles[0].project_role_assignments
     }
   ]
 }
