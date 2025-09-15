@@ -155,7 +155,7 @@ tags = {
 
 If you currently use `mongodbatlas_cluster`, see our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
 
-If you currently use `mongodbatlas_advanced_cluster` with the prevew of the new schema [released in versions 1.29.0](https://registry.terraform.io/providers/mongodb/mongodbatlas/1.29.0/docs/resources/advanced_cluster%2520%2528preview%2520provider%25202.0.0%2529) **and not using deprecated attributes**, you would not be required to make any additional changes except that the `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` environment variable is no longer required.
+If you currently use `mongodbatlas_advanced_cluster` with the preview of the new schema [released in versions 1.29.0](https://registry.terraform.io/providers/mongodb/mongodbatlas/1.29.0/docs/resources/advanced_cluster%2520%2528preview%2520provider%25202.0.0%2529) **and not using deprecated attributes**, you would not be required to make any additional changes except that the `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` environment variable is no longer required.
 
 If you currently use `mongodbatlas_advanced_cluster` from v1.x.x of our provider, we recommend that you do the following steps:
 
