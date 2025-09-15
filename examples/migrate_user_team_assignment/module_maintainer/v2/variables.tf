@@ -8,10 +8,7 @@ variable "team_name" {
   description = "Name of the Atlas team"
 }
 
-variable "team_assigments" {
-  type = map(object({
-    org_id  = string
-    team_id = string
-    user_id = string
-  }))
+variable "user_ids" {
+  description = "Set of user IDs to assign to the team"
+  type        = set(string)
 }
