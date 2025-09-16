@@ -108,18 +108,13 @@ func testCaseKafkaPlaintext(t *testing.T, nameSuffix string) *resource.TestCase 
 }
 
 func TestAccStreamRSStreamConnection_kafkaOAuthBearer(t *testing.T) {
-	testCase := testCaseKafkaOAuthBearer(t, "")
-	resource.ParallelTest(t, *testCase)
-}
-
-func testCaseKafkaOAuthBearer(t *testing.T, nameSuffix string) *resource.TestCase {
 	t.Helper()
 	var (
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		connectionName          = "kafka-conn-oauthbearer" + nameSuffix
+		connectionName          = "kafka-conn-oauthbearer"
 	)
 
-	return &resource.TestCase{
+	testCase := &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
@@ -149,6 +144,7 @@ func testCaseKafkaOAuthBearer(t *testing.T, nameSuffix string) *resource.TestCas
 			},
 		},
 	}
+	resource.ParallelTest(t, *testCase)
 }
 
 func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
