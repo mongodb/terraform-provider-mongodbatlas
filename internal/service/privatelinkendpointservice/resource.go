@@ -26,7 +26,6 @@ const (
 	ErrorServiceEndpointRead = "error reading MongoDB Private Service Endpoint Connection(%s): %s"
 	errorEndpointDelete      = "error deleting MongoDB Private Service Endpoint Connection(%s): %s"
 	ErrorEndpointSetting     = "error setting `%s` for MongoDB Private Service Endpoint Connection(%s): %s"
-	oneMinute                = 1 * time.Minute
 	delayAndMinTimeout       = 10 * time.Second
 )
 
@@ -183,7 +182,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Pending:    []string{"NONE", "INITIATING", "PENDING_ACCEPTANCE", "PENDING", "DELETING", "VERIFIED"},
 		Target:     []string{"AVAILABLE", "REJECTED", "DELETED", "FAILED"},
 		Refresh:    resourceRefreshFunc(ctx, connV2, projectID, providerName, privateLinkID, endpointServiceID),
-		Timeout:    d.Timeout(schema.TimeoutCreate) - oneMinute, // When using a CRUD function with a timeout, any StateChangeConf timeouts must be configured below that duration to avoid returning the SDK context: deadline exceeded error instead of the retry logic error.
+		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: delayAndMinTimeout,
 		Delay:      delayAndMinTimeout,
 	}
@@ -205,7 +204,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Pending:    []string{"REPEATING", "PENDING"},
 		Target:     []string{"IDLE", "DELETED"},
 		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
-		Timeout:    d.Timeout(schema.TimeoutCreate) - oneMinute, // When using a CRUD function with a timeout, any StateChangeConf timeouts must be configured below that duration to avoid returning the SDK context: deadline exceeded error instead of the retry logic error.
+		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: delayAndMinTimeout,
 		Delay:      delayAndMinTimeout,
 	}

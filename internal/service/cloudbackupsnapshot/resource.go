@@ -133,7 +133,7 @@ func Resource() *schema.Resource {
 }
 
 const (
-	oneMinute = 1 * time.Minute
+	timeout = 1 * time.Minute
 )
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -166,8 +166,8 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Target:     []string{"completed", "failed"},
 		Refresh:    resourceRefreshFunc(ctx, requestParams, connV2),
 		Timeout:    d.Timeout(schema.TimeoutCreate) - time.Minute,
-		MinTimeout: oneMinute,
-		Delay:      oneMinute,
+		MinTimeout: timeout,
+		Delay:      timeout,
 	}
 	_, errWait := stateConf.WaitForStateContext(ctx)
 	deleteOnCreateTimeout := true // default value when not set
