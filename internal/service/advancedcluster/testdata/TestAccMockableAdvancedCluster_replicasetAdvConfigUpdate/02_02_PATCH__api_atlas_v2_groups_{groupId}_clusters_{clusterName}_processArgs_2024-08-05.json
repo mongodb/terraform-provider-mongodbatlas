@@ -1,9 +1,0 @@
-{
- "changeStreamOptionsPreAndPostImagesExpireAfterSeconds": 100,
- "defaultMaxTimeMS": 65,
- "defaultWriteConcern": "majority",
- "noTableScan": true,
- "sampleRefreshIntervalBIConnector": 310,
- "sampleSizeBIConnector": 110,
- "transactionLifetimeLimitSeconds": 300
-}
