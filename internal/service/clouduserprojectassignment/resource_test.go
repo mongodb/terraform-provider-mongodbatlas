@@ -19,13 +19,14 @@ var DSNameUsername = "data.mongodbatlas_cloud_user_project_assignment.test_usern
 var DSNameUserID = "data.mongodbatlas_cloud_user_project_assignment.test_user_id"
 
 func TestAccCloudUserProjectAssignment_basic(t *testing.T) {
-	resource.ParallelTest(t, *basicTestCase(t))
+	resource.Test(t, *basicTestCase(t))
 }
 
 func TestAccCloudUserProjectAssignmentDS_error(t *testing.T) {
 	resource.ParallelTest(t, *errorTestCase(t))
 }
 
+// basicTestCase must be called in serial to avoid multiple tests to use the same Atlas resources and interfere with each other.
 func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 
@@ -39,7 +40,7 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 	updatedRoles := []string{"GROUP_OWNER", "GROUP_SEARCH_INDEX_EDITOR", "GROUP_READ_ONLY"}
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckAtlasUsernames(t) },
+		PreCheck:                 func() { acc.PreCheckAtlasUsernames(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{

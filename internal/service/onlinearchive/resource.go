@@ -23,7 +23,7 @@ const (
 	errorOnlineArchivesCreate = "error creating MongoDB Atlas Online Archive:: %s"
 	errorOnlineArchivesDelete = "error deleting MongoDB Atlas Online Archive: %s archive_id (%s)"
 	scheduleTypeDefault       = "DEFAULT"
-	oneMinute                 = 1 * time.Minute
+	timeout                   = 1 * time.Minute
 )
 
 func Resource() *schema.Resource {
@@ -250,9 +250,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			Pending:    []string{"PENDING", "ARCHIVING", "PAUSING", "PAUSED", "ORPHANED", "REPEATING"},
 			Target:     []string{"IDLE", "ACTIVE"},
 			Refresh:    resourceOnlineRefreshFunc(ctx, projectID, clusterName, archiveID, connV2),
-			Timeout:    d.Timeout(schema.TimeoutCreate) - oneMinute, // When using a CRUD function with a timeout, any StateChangeConf timeouts must be configured below that duration to avoid returning the SDK context: deadline exceeded error instead of the retry logic error.
-			MinTimeout: oneMinute,
-			Delay:      oneMinute,
+			Timeout:    d.Timeout(schema.TimeoutCreate),
+			MinTimeout: timeout,
+			Delay:      timeout,
 		}
 
 		// Wait, catching any errors

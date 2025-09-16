@@ -22,7 +22,7 @@ const (
 	errorClusterOutageSimulationDelete  = "error ending MongoDB Atlas Cluster Outage Simulation for Project (%s), Cluster (%s): %s"
 	errorClusterOutageSimulationSetting = "error setting `%s` for MongoDB Atlas Cluster Outage Simulation: %s"
 	defaultOutageFilterType             = "REGION"
-	oneMinute                           = 1 * time.Minute
+	timeout                             = 1 * time.Minute
 )
 
 func Resource() *schema.Resource {
@@ -106,8 +106,8 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Target:     []string{"SIMULATING"},
 		Refresh:    resourceRefreshFunc(ctx, clusterName, projectID, connV2),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
-		MinTimeout: oneMinute,
-		Delay:      oneMinute,
+		MinTimeout: timeout,
+		Delay:      timeout,
 	}
 
 	_, errWait := stateConf.WaitForStateContext(ctx)
@@ -187,8 +187,8 @@ func waitForDeletableState(ctx context.Context, connV2 *admin.APIClient, project
 		Target:     []string{"SIMULATING", "FAILED", "DELETED"},
 		Refresh:    resourceRefreshFunc(ctx, clusterName, projectID, connV2),
 		Timeout:    timeout,
-		MinTimeout: oneMinute,
-		Delay:      oneMinute,
+		MinTimeout: timeout,
+		Delay:      timeout,
 	}
 
 	result, err := stateConf.WaitForStateContext(ctx)
@@ -236,8 +236,8 @@ func endOutageSimulationAndWait(ctx context.Context, connV2 *admin.APIClient, pr
 		Target:     []string{"DELETED"},
 		Refresh:    resourceRefreshFunc(ctx, clusterName, projectID, connV2),
 		Timeout:    timeout,
-		MinTimeout: oneMinute,
-		Delay:      oneMinute,
+		MinTimeout: timeout,
+		Delay:      timeout,
 	}
 
 	_, err = stateConf.WaitForStateContext(ctx)
