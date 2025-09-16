@@ -40,7 +40,7 @@ require (
 )
 
 require (
-	github.com/hashicorp/terraform-json v0.26.0
+	github.com/hashicorp/terraform-json v0.27.1
 	github.com/hashicorp/terraform-plugin-framework-jsontypes v0.2.0
 	go.mongodb.org/atlas-sdk/v20250312007 v20250312007.0.0
 )
