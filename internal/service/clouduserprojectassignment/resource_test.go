@@ -19,7 +19,7 @@ var DSNameUsername = "data.mongodbatlas_cloud_user_project_assignment.test_usern
 var DSNameUserID = "data.mongodbatlas_cloud_user_project_assignment.test_user_id"
 
 func TestAccCloudUserProjectAssignment_basic(t *testing.T) {
-	resource.ParallelTest(t, *basicTestCase(t))
+	resource.Test(t, *basicTestCase(t))
 }
 
 func TestAccCloudUserProjectAssignmentDS_error(t *testing.T) {

@@ -14,13 +14,12 @@ import (
 
 const (
 	resourceInvitationName            = "mongodbatlas_project_invitation.mig_test"
-	resourceProjectName               = "mongodbatlas_project.mig_test"
 	resourceUserProjectAssignmentName = "mongodbatlas_cloud_user_project_assignment.user_mig_test"
 )
 
 func TestMigCloudUserProjectAssignmentRS_basic(t *testing.T) {
 	mig.SkipIfVersionBelow(t, "2.0.0") // when resource 1st released
-	mig.CreateAndRunTest(t, basicTestCase(t))
+	mig.CreateAndRunTestNonParallel(t, basicTestCase(t))
 }
 
 func TestMigCloudUserProjectAssignmentRS_migrationJourney(t *testing.T) {
