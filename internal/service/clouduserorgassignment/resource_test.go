@@ -3,6 +3,7 @@ package clouduserorgassignment_test
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -167,7 +168,7 @@ func checkDestroy(s *terraform.State) error {
 
 		if userID != "" {
 			_, resp, err := conn.MongoDBCloudUsersApi.GetOrgUser(context.Background(), orgID, userID).Execute()
-			if err == nil && resp != nil && resp.StatusCode != 404 {
+			if err == nil && resp != nil && resp.StatusCode != http.StatusNotFound {
 				return fmt.Errorf("cloud user org assignment (%s) still exists", userID)
 			}
 		} else if username != "" {

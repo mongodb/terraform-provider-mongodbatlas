@@ -71,7 +71,7 @@ func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
 	}{
 		"Error in the API call": {
 			mockCluster:    &admin20240530.AdvancedClusterDescription{},
-			mockResponse:   &http.Response{StatusCode: 400},
+			mockResponse:   &http.Response{StatusCode: http.StatusBadRequest},
 			mockError:      errGeneric,
 			expectedError:  errGeneric,
 			expectedResult: nil,
