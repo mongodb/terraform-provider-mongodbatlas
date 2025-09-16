@@ -68,7 +68,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			name: "Fail to get project's teams assigned ",
 			teamRoleReponse: TeamRoleResponse{
 				TeamRole:     nil,
-				HTTPResponse: &http.Response{StatusCode: 503},
+				HTTPResponse: &http.Response{StatusCode: http.StatusServiceUnavailable},
 				Err:          errors.New("Service Unavailable"),
 			},
 			expectedError: true,
@@ -78,7 +78,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			teamRoleReponse: successfulTeamRoleResponse,
 			limitResponse: LimitsResponse{
 				Limits:       nil,
-				HTTPResponse: &http.Response{StatusCode: 503},
+				HTTPResponse: &http.Response{StatusCode: http.StatusServiceUnavailable},
 				Err:          errors.New("Service Unavailable"),
 			},
 			expectedError: true,
@@ -89,7 +89,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			limitResponse:   successfulLimitsResponse,
 			groupResponse: GroupSettingsResponse{
 				GroupSettings: nil,
-				HTTPResponse:  &http.Response{StatusCode: 503},
+				HTTPResponse:  &http.Response{StatusCode: http.StatusServiceUnavailable},
 				Err:           errors.New("Service Unavailable"),
 			},
 			expectedError: true,
@@ -101,7 +101,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			groupResponse:   successfulGroupSettingsResponse,
 			ipAddressesResponse: IPAddressesResponse{
 				IPAddresses:  nil,
-				HTTPResponse: &http.Response{StatusCode: 503},
+				HTTPResponse: &http.Response{StatusCode: http.StatusServiceUnavailable},
 				Err:          errors.New("Service Unavailable"),
 			},
 			expectedError: true,
@@ -227,7 +227,7 @@ func TestUpdateProject(t *testing.T) {
 			projectPlan:  projectStateNameDiff,
 			mockResponses: ProjectResponse{
 				Project:      nil,
-				HTTPResponse: &http.Response{StatusCode: 503},
+				HTTPResponse: &http.Response{StatusCode: http.StatusServiceUnavailable},
 				Err:          errors.New("Service Unavailable"),
 			},
 			expectedError: true,

@@ -234,7 +234,7 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 		{
 			name:          "Error in the API call: HTTP 404",
 			mockError:     errGeneric,
-			mockResponse:  &http.Response{StatusCode: 404},
+			mockResponse:  &http.Response{StatusCode: http.StatusNotFound},
 			expectedError: false,
 			expectedResult: Result{
 				response: "",
@@ -245,7 +245,7 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 		{
 			name:          "Error in the API call: HTTP 503",
 			mockError:     errGeneric,
-			mockResponse:  &http.Response{StatusCode: 503},
+			mockResponse:  &http.Response{StatusCode: http.StatusServiceUnavailable},
 			expectedError: false,
 			expectedResult: Result{
 				response: "",
@@ -256,7 +256,7 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 		{
 			name:          "Error in the API call: Neither HTTP 503 or 404",
 			mockError:     errGeneric,
-			mockResponse:  &http.Response{StatusCode: 400},
+			mockResponse:  &http.Response{StatusCode: http.StatusBadRequest},
 			expectedError: true,
 			expectedResult: Result{
 				response: nil,
@@ -267,7 +267,7 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 		{
 			name:          "Successful but with at least one cluster not idle",
 			mockCluster:   &admin.PaginatedClusterDescription20240805{Results: &advancedClusters},
-			mockResponse:  &http.Response{StatusCode: 200},
+			mockResponse:  &http.Response{StatusCode: http.StatusOK},
 			expectedError: false,
 			expectedResult: Result{
 				response: advancedClusters[0],
@@ -278,7 +278,7 @@ func TestResourceListAdvancedRefreshFunc(t *testing.T) {
 		{
 			name:          "Successful",
 			mockCluster:   &admin.PaginatedClusterDescription20240805{},
-			mockResponse:  &http.Response{StatusCode: 200},
+			mockResponse:  &http.Response{StatusCode: http.StatusOK},
 			expectedError: false,
 			expectedResult: Result{
 				response: &admin.PaginatedClusterDescription20240805{},

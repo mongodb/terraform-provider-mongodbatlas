@@ -2,6 +2,7 @@ package unit_test
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"path"
 	"strings"
@@ -74,7 +75,7 @@ func createImportMockData(t *testing.T, srcMockFile, destOutputDir string, stepN
 	relevantStep := data.Steps[stepNr-1]
 	getRequestsInStep := []unit.RequestInfo{}
 	for _, req := range relevantStep.RequestResponses {
-		if req.Method == "GET" {
+		if req.Method == http.MethodGet {
 			getRequestsInStep = append(getRequestsInStep, req)
 		}
 	}

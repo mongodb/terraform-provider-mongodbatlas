@@ -17,7 +17,7 @@ import (
 
 func configureIsDiff(config *MockHTTPDataConfig) func(*RoundTrip) bool {
 	return func(rt *RoundTrip) bool {
-		if rt.Request.Method == "GET" {
+		if rt.Request.Method == http.MethodGet {
 			return false
 		}
 		if config == nil {
