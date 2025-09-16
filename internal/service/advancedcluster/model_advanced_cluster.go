@@ -1156,23 +1156,6 @@ func expandRegionConfigAutoScaling(tfList []any) *admin.AdvancedAutoScalingSetti
 	return &settings
 }
 
-func flattenAdvancedReplicationSpecsDS(ctx context.Context, apiRepSpecs []admin.ReplicationSpec20240805, zoneNameToOldReplicationSpecMeta map[string]OldShardConfigMeta, d *schema.ResourceData, connV2 *admin.APIClient) ([]map[string]any, error) {
-	if len(apiRepSpecs) == 0 {
-		return nil, nil
-	}
-
-	tfList := make([]map[string]any, len(apiRepSpecs))
-
-	for i, apiRepSpec := range apiRepSpecs {
-		tfReplicationSpec, err := flattenAdvancedReplicationSpec(ctx, &apiRepSpec, zoneNameToOldReplicationSpecMeta, nil, d, connV2)
-		if err != nil {
-			return nil, err
-		}
-		tfList[i] = tfReplicationSpec
-	}
-	return tfList, nil
-}
-
 func flattenAdvancedReplicationSpec(ctx context.Context, apiObject *admin.ReplicationSpec20240805, zoneNameToOldReplicationSpecMeta map[string]OldShardConfigMeta, tfMapObject map[string]any,
 	d *schema.ResourceData, connV2 *admin.APIClient) (map[string]any, error) {
 	if apiObject == nil {
