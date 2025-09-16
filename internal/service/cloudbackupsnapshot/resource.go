@@ -165,7 +165,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Pending:    []string{"queued", "inProgress"},
 		Target:     []string{"completed", "failed"},
 		Refresh:    resourceRefreshFunc(ctx, requestParams, connV2),
-		Timeout:    d.Timeout(schema.TimeoutCreate) - time.Minute,
+		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: timeout,
 		Delay:      timeout,
 	}
