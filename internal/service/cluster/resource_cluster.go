@@ -37,9 +37,13 @@ const (
 	errorAdvancedConfUpdate       = "error updating Advanced Configuration Option %s for MongoDB Cluster (%s): %s"
 	ErrorSnapshotBackupPolicyRead = "error getting a Cloud Provider Snapshot Backup Policy for the cluster(%s): %s"
 	clusterToAdvancedClusterGuide = "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide"
+	deprecationOldSchemaAction    = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide"
 )
 
-var defaultLabel = matlas.Label{Key: advancedclustertpf.LegacyIgnoredLabelKey, Value: "MongoDB Atlas Terraform Provider"}
+var (
+	deprecationMsgOldSchema = fmt.Sprintf("%s %s", constant.DeprecationParam, deprecationOldSchemaAction)
+	defaultLabel            = matlas.Label{Key: advancedclustertpf.LegacyIgnoredLabelKey, Value: "MongoDB Atlas Terraform Provider"}
+)
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
@@ -314,7 +318,7 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"advanced_configuration": advancedcluster.SchemaAdvancedConfig(),
+			"advanced_configuration": schemaAdvancedConfig(),
 			"labels": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -383,6 +387,96 @@ func Resource() *schema.Resource {
 			Create: schema.DefaultTimeout(3 * time.Hour),
 			Update: schema.DefaultTimeout(3 * time.Hour),
 			Delete: schema.DefaultTimeout(3 * time.Hour),
+		},
+	}
+}
+
+func schemaAdvancedConfig() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"default_read_concern": {
+					Type:       schema.TypeString,
+					Optional:   true,
+					Computed:   true,
+					Deprecated: deprecationMsgOldSchema,
+				},
+				"default_write_concern": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+				"fail_index_key_too_long": {
+					Type:       schema.TypeBool,
+					Optional:   true,
+					Computed:   true,
+					Deprecated: deprecationMsgOldSchema,
+				},
+				"javascript_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
+				"minimum_enabled_tls_protocol": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+				"no_table_scan": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
+				"oplog_size_mb": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+				"oplog_min_retention_hours": {
+					Type:     schema.TypeFloat,
+					Optional: true,
+				},
+				"sample_size_bi_connector": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+				"sample_refresh_interval_bi_connector": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+				"transaction_lifetime_limit_seconds": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+				"change_stream_options_pre_and_post_images_expire_after_seconds": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Default:  -1,
+				},
+				"default_max_time_ms": {
+					Type:     schema.TypeInt,
+					Optional: true,
+				},
+				"custom_openssl_cipher_config_tls12": {
+					Type:     schema.TypeSet,
+					Optional: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+				"tls_cipher_config_mode": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+			},
 		},
 	}
 }

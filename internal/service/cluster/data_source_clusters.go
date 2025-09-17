@@ -37,7 +37,7 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"advanced_configuration": advancedcluster.SchemaAdvancedConfigDS(),
+						"advanced_configuration": schemaAdvancedConfigDS(),
 						"auto_scaling_disk_gb_enabled": {
 							Type:     schema.TypeBool,
 							Computed: true,

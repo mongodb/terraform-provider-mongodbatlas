@@ -28,7 +28,7 @@ func DataSource() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"advanced_configuration": advancedcluster.SchemaAdvancedConfigDS(),
+			"advanced_configuration": schemaAdvancedConfigDS(),
 			"auto_scaling_disk_gb_enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -336,6 +336,82 @@ func DataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func schemaAdvancedConfigDS() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"default_read_concern": {
+					Type:       schema.TypeString,
+					Computed:   true,
+					Deprecated: deprecationMsgOldSchema,
+				},
+				"default_write_concern": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"fail_index_key_too_long": {
+					Type:       schema.TypeBool,
+					Computed:   true,
+					Deprecated: deprecationMsgOldSchema,
+				},
+				"javascript_enabled": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+				"minimum_enabled_tls_protocol": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"no_table_scan": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+				"oplog_size_mb": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+				"sample_size_bi_connector": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+				"sample_refresh_interval_bi_connector": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+				"oplog_min_retention_hours": {
+					Type:     schema.TypeFloat,
+					Computed: true,
+				},
+				"transaction_lifetime_limit_seconds": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+				"change_stream_options_pre_and_post_images_expire_after_seconds": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+				"default_max_time_ms": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+				"tls_cipher_config_mode": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"custom_openssl_cipher_config_tls12": {
+					Type:     schema.TypeSet,
+					Computed: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
 					},
 				},
 			},
