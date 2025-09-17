@@ -34,41 +34,6 @@ const (
 	errorUpdate                    = "error updating advanced cluster (%s): %s"
 )
 
-var (
-	DSTagsSchema = schema.Schema{
-		Type:     schema.TypeSet,
-		Computed: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"key": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"value": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-			},
-		},
-	}
-	RSTagsSchema = schema.Schema{
-		Type:     schema.TypeSet,
-		Optional: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"key": {
-					Type:     schema.TypeString,
-					Required: true,
-				},
-				"value": {
-					Type:     schema.TypeString,
-					Required: true,
-				},
-			},
-		},
-	}
-)
-
 func SchemaConnectionStrings() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,

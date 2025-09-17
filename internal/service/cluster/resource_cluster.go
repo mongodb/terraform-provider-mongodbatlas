@@ -43,6 +43,38 @@ const (
 var (
 	deprecationMsgOldSchema = fmt.Sprintf("%s %s", constant.DeprecationParam, deprecationOldSchemaAction)
 	defaultLabel            = matlas.Label{Key: advancedclustertpf.LegacyIgnoredLabelKey, Value: "MongoDB Atlas Terraform Provider"}
+	DSTagsSchema            = schema.Schema{
+		Type:     schema.TypeSet,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"key": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"value": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+	RSTagsSchema = schema.Schema{
+		Type:     schema.TypeSet,
+		Optional: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"key": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+				"value": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+			},
+		},
+	}
 )
 
 func Resource() *schema.Resource {
@@ -336,7 +368,7 @@ func Resource() *schema.Resource {
 					},
 				},
 			},
-			"tags":                   &advancedcluster.RSTagsSchema,
+			"tags":                   &RSTagsSchema,
 			"snapshot_backup_policy": computedCloudProviderSnapshotBackupPolicySchema(),
 			"termination_protection_enabled": {
 				Type:     schema.TypeBool,

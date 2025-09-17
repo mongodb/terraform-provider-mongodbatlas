@@ -305,7 +305,7 @@ func DataSource() *schema.Resource {
 					},
 				},
 			},
-			"tags":                   &advancedcluster.DSTagsSchema,
+			"tags":                   &DSTagsSchema,
 			"snapshot_backup_policy": computedCloudProviderSnapshotBackupPolicySchema(),
 			"container_id": {
 				Type:     schema.TypeString,

@@ -17,6 +17,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 )
 
@@ -124,9 +125,7 @@ func resourceSchema() map[string]*schema.Schema {
 			Optional:   true,
 			Computed:   true,
 		},
-		// TODO: TEMPORARY CHANGE, DON'T MERGE
-		// TODO: TEMPORARY CHANGE, DON'T MERGE
-		"tags": &advancedcluster.RSTagsSchema,
+		"tags": &cluster.RSTagsSchema,
 	}
 }
 

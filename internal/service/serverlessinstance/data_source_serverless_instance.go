@@ -10,6 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 )
 
 func DataSource() *schema.Resource {
@@ -102,9 +103,7 @@ func dataSourceSchema() map[string]*schema.Schema {
 			Optional:   true,
 			Computed:   true,
 		},
-		// TODO: TEMPORARY CHANGE, DON'T MERGE
-		// TODO: TEMPORARY CHANGE, DON'T MERGE
-		"tags": &advancedcluster.DSTagsSchema,
+		"tags": &cluster.DSTagsSchema,
 	}
 }
 
