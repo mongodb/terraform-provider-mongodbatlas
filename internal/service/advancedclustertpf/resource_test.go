@@ -66,7 +66,7 @@ func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
 		mockCluster    *admin20240530.AdvancedClusterDescription
 		mockResponse   *http.Response
 		mockError      error
-		expectedResult map[string]advancedcluster.OldShardConfigMeta
+		expectedResult map[string]advancedclustertpf.OldShardConfigMeta
 		expectedError  error
 	}{
 		"Error in the API call": {
@@ -89,7 +89,7 @@ func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
 			mockResponse:  &http.Response{},
 			mockError:     nil,
 			expectedError: nil,
-			expectedResult: map[string]advancedcluster.OldShardConfigMeta{
+			expectedResult: map[string]advancedclustertpf.OldShardConfigMeta{
 				zoneName: {ID: ID, NumShard: numShard},
 			},
 		},
@@ -101,7 +101,7 @@ func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
 			testObject.EXPECT().GetCluster(mock.Anything, mock.Anything, mock.Anything).Return(admin20240530.GetClusterApiRequest{ApiService: testObject}).Once()
 			testObject.EXPECT().GetClusterExecute(mock.Anything).Return(tc.mockCluster, tc.mockResponse, tc.mockError).Once()
 
-			result, err := advancedcluster.GetReplicationSpecAttributesFromOldAPI(t.Context(), projectID, clusterName, testObject)
+			result, err := advancedclustertpf.GetReplicationSpecAttributesFromOldAPI(t.Context(), projectID, clusterName, testObject)
 			assert.Equal(t, tc.expectedError, err)
 			assert.Equal(t, tc.expectedResult, result)
 		})
