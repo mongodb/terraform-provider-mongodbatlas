@@ -1,7 +1,6 @@
 package advancedclustertpf
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -28,11 +27,6 @@ type ProcessArgs struct {
 	ArgsLegacy            *admin20240530.ClusterDescriptionProcessArgs
 	ArgsDefault           *admin.ClusterDescriptionProcessArgs20240805
 	ClusterAdvancedConfig *admin.ApiAtlasClusterAdvancedConfiguration
-}
-
-type OldShardConfigMeta struct {
-	ID       string
-	NumShard int
 }
 
 func FormatMongoDBMajorVersion(version string) string {
@@ -119,19 +113,4 @@ func GetPriorityOfFlexReplicationSpecs(replicationSpecs *[]admin.ReplicationSpec
 		return nil
 	}
 	return regionConfig.Priority
-}
-
-// GetReplicationSpecAttributesFromOldAPI returns the id and num shard values of replication specs coming from old API. This is used to populate replication_specs.*.id and replication_specs.*.num_shard attributes for old sharding confirgurations.
-// In the old API (2023-02-01), each replications spec has a 1:1 relation with each zone, so ids and num shards are stored in a struct OldShardConfigMeta and are returned in a map from zoneName to OldShardConfigMeta.
-func GetReplicationSpecAttributesFromOldAPI(ctx context.Context, projectID, clusterName string, client20240530 admin20240530.ClustersApi) (map[string]OldShardConfigMeta, error) {
-	clusterOldAPI, _, err := client20240530.GetCluster(ctx, projectID, clusterName).Execute()
-	if err != nil {
-		return nil, err
-	}
-	specs := clusterOldAPI.GetReplicationSpecs()
-	result := make(map[string]OldShardConfigMeta, len(specs))
-	for _, spec := range specs {
-		result[spec.GetZoneName()] = OldShardConfigMeta{spec.GetId(), spec.GetNumShards()}
-	}
-	return result, nil
 }

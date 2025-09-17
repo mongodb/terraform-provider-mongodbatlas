@@ -1,9 +1,7 @@
 package advancedclustertpf_test
 
 import (
-	"errors"
 	"fmt"
-	"net/http"
 	"os"
 	"regexp"
 	"strconv"
@@ -12,13 +10,10 @@ import (
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	mockadmin20240530 "go.mongodb.org/atlas-sdk/v20240530005/mockadmin"
 	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
@@ -50,63 +45,7 @@ var (
 	configServerManagementModeFixedToDedicated = "FIXED_TO_DEDICATED"
 	configServerManagementModeAtlasManaged     = "ATLAS_MANAGED"
 	mockConfig                                 = unit.MockConfigAdvancedClusterTPF
-	errGeneric                                 = errors.New("generic")
 )
-
-func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
-	var (
-		projectID   = "11111"
-		clusterName = "testCluster"
-		ID          = "111111"
-		numShard    = 2
-		zoneName    = "ZoneName managed by Terraform"
-	)
-
-	testCases := map[string]struct {
-		mockCluster    *admin20240530.AdvancedClusterDescription
-		mockResponse   *http.Response
-		mockError      error
-		expectedResult map[string]advancedclustertpf.OldShardConfigMeta
-		expectedError  error
-	}{
-		"Error in the API call": {
-			mockCluster:    &admin20240530.AdvancedClusterDescription{},
-			mockResponse:   &http.Response{StatusCode: http.StatusBadRequest},
-			mockError:      errGeneric,
-			expectedError:  errGeneric,
-			expectedResult: nil,
-		},
-		"Successful": {
-			mockCluster: &admin20240530.AdvancedClusterDescription{
-				ReplicationSpecs: &[]admin20240530.ReplicationSpec{
-					{
-						NumShards: &numShard,
-						Id:        &ID,
-						ZoneName:  &zoneName,
-					},
-				},
-			},
-			mockResponse:  &http.Response{},
-			mockError:     nil,
-			expectedError: nil,
-			expectedResult: map[string]advancedclustertpf.OldShardConfigMeta{
-				zoneName: {ID: ID, NumShard: numShard},
-			},
-		},
-	}
-	for name, tc := range testCases {
-		t.Run(name, func(t *testing.T) {
-			testObject := mockadmin20240530.NewClustersApi(t)
-
-			testObject.EXPECT().GetCluster(mock.Anything, mock.Anything, mock.Anything).Return(admin20240530.GetClusterApiRequest{ApiService: testObject}).Once()
-			testObject.EXPECT().GetClusterExecute(mock.Anything).Return(tc.mockCluster, tc.mockResponse, tc.mockError).Once()
-
-			result, err := advancedclustertpf.GetReplicationSpecAttributesFromOldAPI(t.Context(), projectID, clusterName, testObject)
-			assert.Equal(t, tc.expectedError, err)
-			assert.Equal(t, tc.expectedResult, result)
-		})
-	}
-}
 
 func testAccAdvancedClusterFlexUpgrade(t *testing.T, projectID, clusterName, instanceSize string, includeDedicated bool) resource.TestCase {
 	t.Helper()
