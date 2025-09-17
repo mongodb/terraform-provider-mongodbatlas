@@ -112,8 +112,10 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	log.Println("[INFO] Waiting for MongoDB Clusters' Private Endpoints to be updated")
 
 	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"REPEATING", "PENDING"},
-		Target:     []string{"IDLE", "DELETED"},
+		Pending: []string{"REPEATING", "PENDING"},
+		Target:  []string{"IDLE", "DELETED"},
+		// TODO: TEMPORARY CHANGE, DON'T MERGE
+		// TODO: TEMPORARY CHANGE, DON'T MERGE
 		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, conn.ClustersApi),
 		Timeout:    d.Timeout(timeoutKey.(string)),
 		MinTimeout: 15 * time.Second,

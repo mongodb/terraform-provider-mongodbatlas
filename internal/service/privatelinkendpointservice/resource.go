@@ -201,8 +201,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	clusterConf := &retry.StateChangeConf{
-		Pending:    []string{"REPEATING", "PENDING"},
-		Target:     []string{"IDLE", "DELETED"},
+		Pending: []string{"REPEATING", "PENDING"},
+		Target:  []string{"IDLE", "DELETED"},
+		// TODO: TEMPORARY CHANGE, DON'T MERGE
+		// TODO: TEMPORARY CHANGE, DON'T MERGE
 		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: delayAndMinTimeout,

@@ -124,6 +124,8 @@ func resourceSchema() map[string]*schema.Schema {
 			Optional:   true,
 			Computed:   true,
 		},
+		// TODO: TEMPORARY CHANGE, DON'T MERGE
+		// TODO: TEMPORARY CHANGE, DON'T MERGE
 		"tags": &advancedcluster.RSTagsSchema,
 	}
 }

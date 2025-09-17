@@ -747,7 +747,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	}
 
 	if cluster.ProviderSettings != nil {
-		flattenProviderSettings(d, cluster.ProviderSettings, clusterName)
+		flattenProviderSettings(d, cluster.ProviderSettings)
 	}
 
 	if err := d.Set("replication_specs", flattenReplicationSpecs(cluster.ReplicationSpecs)); err != nil {
