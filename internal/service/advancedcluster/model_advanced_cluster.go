@@ -3,18 +3,15 @@ package advancedcluster
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"hash/crc32"
 	"strconv"
 	"strings"
-	"time"
 
 	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
@@ -31,7 +28,6 @@ const (
 	ErrorFlexClusterSetting        = "error setting `%s` for MongoDB Flex Cluster (%s): %s"
 	ErrorAdvancedClusterListStatus = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
 	ErrorDefaultMaxTimeMinVersion  = "`advanced_configuration.default_max_time_ms` can only be configured if the mongo_db_major_version is 8.0 or higher"
-	errorUpdate                    = "error updating advanced cluster (%s): %s"
 )
 
 func SchemaConnectionStrings() *schema.Schema {
@@ -134,90 +130,11 @@ func IsSharedTier(instanceSize string) bool {
 	return instanceSize == "M0" || instanceSize == "M2" || instanceSize == "M5"
 }
 
-func CreateStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, projectID, name string, timeout time.Duration) retry.StateChangeConf {
-	return retry.StateChangeConf{
-		Pending:    []string{"CREATING", "UPDATING", "REPAIRING", "REPEATING", "PENDING"},
-		Target:     []string{"IDLE"},
-		Refresh:    resourceRefreshFunc(ctx, name, projectID, connV2),
-		Timeout:    timeout,
-		MinTimeout: 1 * time.Minute,
-		Delay:      3 * time.Minute,
-	}
-}
-
-func resourceRefreshFunc(ctx context.Context, name, projectID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
-	return func() (any, string, error) {
-		cluster, resp, err := connV2.ClustersApi.GetCluster(ctx, projectID, name).Execute()
-		if err != nil && strings.Contains(err.Error(), "reset by peer") {
-			return nil, "REPEATING", nil
-		}
-
-		if err != nil && cluster == nil && resp == nil {
-			return nil, "", err
-		}
-
-		if err != nil {
-			if validate.StatusNotFound(resp) {
-				return "", "DELETED", nil
-			}
-			if validate.StatusServiceUnavailable(resp) {
-				return "", "PENDING", nil
-			}
-			return nil, "", err
-		}
-
-		state := cluster.GetStateName()
-		return cluster, state, nil
-	}
-}
-
-func DeleteStateChangeConfig(ctx context.Context, connV2 *admin.APIClient, projectID, name string, timeout time.Duration) retry.StateChangeConf {
-	return retry.StateChangeConf{
-		Pending:    []string{"IDLE", "CREATING", "UPDATING", "REPAIRING", "DELETING", "PENDING", "REPEATING"},
-		Target:     []string{"DELETED"},
-		Refresh:    resourceRefreshFunc(ctx, name, projectID, connV2),
-		Timeout:    timeout,
-		MinTimeout: 30 * time.Second,
-		Delay:      1 * time.Minute,
-	}
-}
-
 func WarningIfFCVExpiredOrUnpinnedExternally(d *schema.ResourceData, cluster *admin.ClusterDescription20240805) diag.Diagnostics {
 	pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any)
 	fcvPresentInState := len(pinnedFCVBlock) > 0
 	diagsTpf := advancedclustertpf.GenerateFCVPinningWarningForRead(fcvPresentInState, cluster.FeatureCompatibilityVersionExpirationDate)
 	return conversion.FromTPFDiagsToSDKV2Diags(diagsTpf)
-}
-
-func HandlePinnedFCVUpdate(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, d *schema.ResourceData, timeout time.Duration) diag.Diagnostics {
-	if d.HasChange("pinned_fcv") {
-		pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any)
-		isFCVPresentInConfig := len(pinnedFCVBlock) > 0
-		if isFCVPresentInConfig {
-			// pinned_fcv has been defined or updated expiration date
-			nestedObj := pinnedFCVBlock[0].(map[string]any)
-			expDateStr := cast.ToString(nestedObj["expiration_date"])
-			if err := advancedclustertpf.PinFCV(ctx, connV2.ClustersApi, projectID, clusterName, expDateStr); err != nil {
-				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
-			}
-		} else {
-			// pinned_fcv has been removed from the config so unpin method is called
-			if _, err := connV2.ClustersApi.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
-				return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
-			}
-		}
-		// ensures cluster is in IDLE state before continuing with other changes
-		if err := waitForUpdateToFinish(ctx, connV2, projectID, clusterName, timeout); err != nil {
-			return diag.FromErr(fmt.Errorf(errorUpdate, clusterName, err))
-		}
-	}
-	return nil
-}
-
-func waitForUpdateToFinish(ctx context.Context, connV2 *admin.APIClient, projectID, clusterName string, timeout time.Duration) error {
-	stateConf := CreateStateChangeConfig(ctx, connV2, projectID, clusterName, timeout)
-	_, err := stateConf.WaitForStateContext(ctx)
-	return err
 }
 
 // GetDiskSizeGBFromReplicationSpec obtains the diskSizeGB value by looking into the electable spec of the first replication spec.

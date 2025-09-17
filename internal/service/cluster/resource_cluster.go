@@ -694,7 +694,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	timeout := d.Timeout(schema.TimeoutCreate)
-	stateConf := advancedcluster.CreateStateChangeConfig(ctx, connV2, projectID, clusterName, timeout)
+	stateConf := CreateStateChangeConfig(ctx, connV2, projectID, clusterName, timeout)
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterCreate, err))
 	}
@@ -742,7 +742,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if err := advancedclustertpf.PinFCV(ctx, connV2.ClustersApi, projectID, clusterName, expDateStr); err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
-		stateConf := advancedcluster.CreateStateChangeConfig(ctx, connV2, projectID, clusterName, timeout)
+		stateConf := CreateStateChangeConfig(ctx, connV2, projectID, clusterName, timeout)
 		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
@@ -987,7 +987,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	)
 
 	// FCV update is intentionally handled before other cluster updates, and will wait for cluster to reach IDLE state before continuing
-	if diags := advancedcluster.HandlePinnedFCVUpdate(ctx, connV2, projectID, clusterName, d, timeout); diags != nil {
+	if diags := handlePinnedFCVUpdate(ctx, connV2, projectID, clusterName, d, timeout); diags != nil {
 		return diags
 	}
 
@@ -1260,7 +1260,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(errorClusterDelete, clusterName, err))
 	}
 
-	stateConf := advancedcluster.DeleteStateChangeConfig(ctx, connV2, projectID, clusterName, d.Timeout(schema.TimeoutDelete))
+	stateConf := DeleteStateChangeConfig(ctx, connV2, projectID, clusterName, d.Timeout(schema.TimeoutDelete))
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterDelete, clusterName, err))
 	}
@@ -1397,7 +1397,7 @@ func updateCluster(ctx context.Context, conn *matlas.Client, connV2 *admin.APICl
 		return nil, nil, err
 	}
 
-	stateConf := advancedcluster.CreateStateChangeConfig(ctx, connV2, projectID, name, timeout)
+	stateConf := CreateStateChangeConfig(ctx, connV2, projectID, name, timeout)
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return nil, nil, err
 	}
@@ -1492,7 +1492,7 @@ func upgradeCluster(ctx context.Context, conn *matlas.Client, connV2 *admin.APIC
 		return nil, nil, err
 	}
 
-	stateConf := advancedcluster.CreateStateChangeConfig(ctx, connV2, projectID, name, timeout)
+	stateConf := CreateStateChangeConfig(ctx, connV2, projectID, name, timeout)
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return nil, nil, err
 	}

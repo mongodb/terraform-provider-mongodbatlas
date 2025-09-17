@@ -14,7 +14,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 )
 
@@ -140,10 +140,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	groupID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
-
-	// TODO: TEMPORARY CHANGE, DON'T MERGE
-	// TODO: TEMPORARY CHANGE, DON'T MERGE
-	stateConf := advancedcluster.CreateStateChangeConfig(ctx, connV2, groupID, clusterName, 15*time.Minute)
+	stateConf := cluster.CreateStateChangeConfig(ctx, connV2, groupID, clusterName, 15*time.Minute)
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return diag.FromErr(err)
 	}
