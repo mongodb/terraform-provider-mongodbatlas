@@ -35,6 +35,8 @@ const (
 	toolName                             = "terraform-provider-mongodbatlas"
 	terraformPlatformName                = "Terraform"
 	previewV2AdvancedClusterEnabledUAKey = "AdvancedClusterPreview"
+	serviceAccountAuthMethod             = "service_account"
+	digestAuthMethod                     = "digest"
 
 	timeout               = 5 * time.Second
 	keepAlive             = 30 * time.Second
@@ -110,8 +112,8 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 	var optsAtlas []matlasClient.ClientOpt
 
 	// Determine authentication method based on available credentials
-	switch {
-	case c.ClientID != "" && c.ClientSecret != "":
+	switch authMethod := resolveAuthMethod(c); authMethod {
+	case serviceAccountAuthMethod:
 		conf := clientcredentials.NewConfig(c.ClientID, c.ClientSecret)
 		// Override TokenURL and RevokeURL if custom BaseURL is provided
 		if c.BaseURL != "" {
@@ -145,7 +147,7 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 		oauthClient.Transport = tfLoggingTransport
 		client = oauthClient
 		optsAtlas = []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
-	case c.PublicKey != "" && c.PrivateKey != "":
+	case digestAuthMethod:
 		digestTransport := digest.NewTransportWithHTTPRoundTripper(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey), networkLoggingTransport)
 		// Don't change logging.NewTransport to NewSubsystemLoggingHTTPTransport until all resources are in TPF.
 		tfLoggingTransport := logging.NewTransport("Atlas", digestTransport)
@@ -367,4 +369,14 @@ func userAgent(c *Config) string {
 	}
 
 	return strings.Join(parts, " ")
+}
+
+func resolveAuthMethod(c *Config) string {
+	if c.ClientID != "" && c.ClientSecret != "" {
+		return "service_account"
+	}
+	if c.PublicKey != "" && c.PrivateKey != "" {
+		return "digest"
+	}
+	return "unknown"
 }
