@@ -153,8 +153,6 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 		tfLoggingTransport := logging.NewTransport("Atlas", digestTransport)
 		client = &http.Client{Transport: tfLoggingTransport}
 		optsAtlas = []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
-	default:
-		return nil, errors.New("no valid authentication credentials provided: either set client_id/client_secret for service account auth or public_key/private_key for digest auth")
 	}
 
 	if c.BaseURL != "" {
