@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
@@ -15,8 +16,9 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 )
+
+const minVersionForChangeStreamOptions = 6.0
 
 type ProcessArgs struct {
 	argsDefault           *admin.ClusterDescriptionProcessArgs20240805
@@ -312,7 +314,7 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 		}
 	}
 
-	if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok && advancedcluster.IsChangeStreamOptionsMinRequiredMajorVersion(mongodbMajorVersion) {
+	if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok && IsChangeStreamOptionsMinRequiredMajorVersion(mongodbMajorVersion) {
 		res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.Pointer(cast.ToInt(p["change_stream_options_pre_and_post_images_expire_after_seconds"]))
 	}
 
@@ -534,4 +536,25 @@ func containsLabelOrKey(list []matlas.Label, item matlas.Label) bool {
 		}
 	}
 	return false
+}
+
+func IsChangeStreamOptionsMinRequiredMajorVersion(input *string) bool {
+	return isMinRequiredMajorVersion(input, minVersionForChangeStreamOptions)
+}
+
+func isMinRequiredMajorVersion(input *string, minVersion float64) bool {
+	if input == nil || *input == "" {
+		return true
+	}
+	parts := strings.SplitN(*input, ".", 2)
+	if len(parts) == 0 {
+		return false
+	}
+
+	value, err := strconv.ParseFloat(parts[0], 64)
+	if err != nil {
+		return false
+	}
+
+	return value >= minVersion
 }

@@ -1,9 +1,9 @@
-package advancedcluster_test
+package cluster_test
 
 import (
 	"testing"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 )
 
 func TestIsChangeStreamOptionsMinRequiredMajorVersion(t *testing.T) {
@@ -23,7 +23,7 @@ func TestIsChangeStreamOptionsMinRequiredMajorVersion(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := advancedcluster.IsChangeStreamOptionsMinRequiredMajorVersion(&tt.input); got != tt.want {
+			if got := cluster.IsChangeStreamOptionsMinRequiredMajorVersion(&tt.input); got != tt.want {
 				t.Errorf("abc(%v) = %v, want %v", tt.input, got, tt.want)
 			}
 		})

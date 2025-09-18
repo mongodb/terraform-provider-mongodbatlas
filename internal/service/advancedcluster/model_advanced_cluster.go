@@ -3,8 +3,6 @@ package advancedcluster
 import (
 	"bytes"
 	"hash/crc32"
-	"strconv"
-	"strings"
 
 	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
@@ -14,8 +12,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 )
-
-const minVersionForChangeStreamOptions = 6.0
 
 func HashFunctionForKeyValuePair(v any) int {
 	var buf bytes.Buffer
@@ -61,25 +57,4 @@ func FlattenPinnedFCV(cluster *admin.ClusterDescription20240805) []map[string]st
 	nestedObj["version"] = cluster.GetFeatureCompatibilityVersion()
 	nestedObj["expiration_date"] = conversion.TimeToString(cluster.GetFeatureCompatibilityVersionExpirationDate())
 	return []map[string]string{nestedObj}
-}
-
-func isMinRequiredMajorVersion(input *string, minVersion float64) bool {
-	if input == nil || *input == "" {
-		return true
-	}
-	parts := strings.SplitN(*input, ".", 2)
-	if len(parts) == 0 {
-		return false
-	}
-
-	value, err := strconv.ParseFloat(parts[0], 64)
-	if err != nil {
-		return false
-	}
-
-	return value >= minVersion
-}
-
-func IsChangeStreamOptionsMinRequiredMajorVersion(input *string) bool {
-	return isMinRequiredMajorVersion(input, minVersionForChangeStreamOptions)
 }
