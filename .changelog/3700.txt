@@ -1,0 +1,3 @@
+```release-note:enhancement
+provider: Support Service Account as credentials to authenticate the provider
+```
