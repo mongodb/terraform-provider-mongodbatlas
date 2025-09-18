@@ -1,10 +1,10 @@
-package advancedclustertpf_test
+package advancedcluster_test
 
 import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -48,7 +48,7 @@ func TestDiagsHasOnlyClusterNotFound(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			result := advancedclustertpf.DiagsHasOnlyClusterNotFoundErrors(&tc.diags)
+			result := advancedcluster.DiagsHasOnlyClusterNotFoundErrors(&tc.diags)
 			assert.Equal(t, tc.expected, result)
 		})
 	}
@@ -102,7 +102,7 @@ func TestResetClusterNotFoundErrors(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			result := advancedclustertpf.ResetClusterNotFoundErrors(&tc.input)
+			result := advancedcluster.ResetClusterNotFoundErrors(&tc.input)
 			assert.Equal(t, tc.expected, *result)
 		})
 	}

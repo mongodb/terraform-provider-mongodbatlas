@@ -1,4 +1,4 @@
-package advancedclustertpf_test
+package advancedcluster_test
 
 import (
 	"fmt"
@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 )
@@ -617,7 +617,7 @@ func TestAccClusterAdvancedCluster_withLabelIgnored(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      configWithKeyValueBlocks(t, orgID, projectName, clusterName, "labels", acc.ClusterLabelsMapIgnored),
-				ExpectError: regexp.MustCompile(advancedclustertpf.ErrLegacyIgnoreLabel.Error()),
+				ExpectError: regexp.MustCompile(advancedcluster.ErrLegacyIgnoreLabel.Error()),
 			},
 		},
 	})
@@ -1108,11 +1108,11 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateReplicaset(t *testing
 		}
 		waitOnClusterDeleteDone = func() {
 			diags := &diag.Diagnostics{}
-			clusterResp, _ := advancedclustertpf.GetClusterDetails(t.Context(), diags, projectID, clusterName, acc.MongoDBClient, false)
+			clusterResp, _ := advancedcluster.GetClusterDetails(t.Context(), diags, projectID, clusterName, acc.MongoDBClient, false)
 			if clusterResp == nil {
 				t.Fatalf("cluster %s not found in %s", clusterName, projectID)
 			}
-			advancedclustertpf.AwaitChanges(t.Context(), acc.MongoDBClient, &advancedclustertpf.ClusterWaitParams{
+			advancedcluster.AwaitChanges(t.Context(), acc.MongoDBClient, &advancedcluster.ClusterWaitParams{
 				ProjectID:   projectID,
 				ClusterName: clusterName,
 				Timeout:     60 * time.Second,

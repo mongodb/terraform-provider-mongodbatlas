@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 )
 
 var (
@@ -47,7 +47,7 @@ var (
 	}
 
 	ClusterLabelsMapIgnored = map[string]string{
-		"key":   advancedclustertpf.LegacyIgnoredLabelKey,
+		"key":   advancedcluster.LegacyIgnoredLabelKey,
 		"value": "value",
 	}
 )

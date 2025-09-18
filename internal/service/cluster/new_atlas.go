@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/spf13/cast"
 	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 )
@@ -111,7 +111,7 @@ func handlePinnedFCVUpdate(ctx context.Context, connV2 *admin.APIClient, project
 			// pinned_fcv has been defined or updated expiration date
 			nestedObj := pinnedFCVBlock[0].(map[string]any)
 			expDateStr := cast.ToString(nestedObj["expiration_date"])
-			if err := advancedclustertpf.PinFCV(ctx, connV2.ClustersApi, projectID, clusterName, expDateStr); err != nil {
+			if err := advancedcluster.PinFCV(ctx, connV2.ClustersApi, projectID, clusterName, expDateStr); err != nil {
 				return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 			}
 		} else {

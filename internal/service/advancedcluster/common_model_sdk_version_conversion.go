@@ -1,4 +1,4 @@
-package advancedclustertpf
+package advancedcluster
 
 import (
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"

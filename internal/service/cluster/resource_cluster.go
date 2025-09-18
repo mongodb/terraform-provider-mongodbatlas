@@ -26,7 +26,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 )
 
 const (
@@ -45,7 +45,7 @@ const (
 
 var (
 	deprecationMsgOldSchema = fmt.Sprintf("%s %s", constant.DeprecationParam, deprecationOldSchemaAction)
-	defaultLabel            = matlas.Label{Key: advancedclustertpf.LegacyIgnoredLabelKey, Value: "MongoDB Atlas Terraform Provider"}
+	defaultLabel            = matlas.Label{Key: advancedcluster.LegacyIgnoredLabelKey, Value: "MongoDB Atlas Terraform Provider"}
 	DSTagsSchema            = schema.Schema{
 		Type:     schema.TypeSet,
 		Computed: true,
@@ -726,7 +726,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if containsLabelOrKey(expandLabelSliceFromSetSchema(d), defaultLabel) {
-		return diag.FromErr(advancedclustertpf.ErrLegacyIgnoreLabel)
+		return diag.FromErr(advancedcluster.ErrLegacyIgnoreLabel)
 	}
 
 	clusterRequest.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
@@ -813,7 +813,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any); len(pinnedFCVBlock) > 0 {
 		nestedObj := pinnedFCVBlock[0].(map[string]any)
 		expDateStr := cast.ToString(nestedObj["expiration_date"])
-		if err := advancedclustertpf.PinFCV(ctx, connV2.ClustersApi, projectID, clusterName, expDateStr); err != nil {
+		if err := advancedcluster.PinFCV(ctx, connV2.ClustersApi, projectID, clusterName, expDateStr); err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
 		stateConf := CreateStateChangeConfig(ctx, connV2, projectID, clusterName, timeout)
@@ -1173,7 +1173,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if d.HasChange("labels") {
 		if containsLabelOrKey(expandLabelSliceFromSetSchema(d), defaultLabel) {
-			return diag.FromErr(advancedclustertpf.ErrLegacyIgnoreLabel)
+			return diag.FromErr(advancedcluster.ErrLegacyIgnoreLabel)
 		}
 
 		cluster.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
@@ -1575,7 +1575,7 @@ func upgradeCluster(ctx context.Context, conn *matlas.Client, connV2 *admin.APIC
 }
 
 func formatMongoDBMajorVersion(val any) string {
-	return advancedclustertpf.FormatMongoDBMajorVersion(val.(string))
+	return advancedcluster.FormatMongoDBMajorVersion(val.(string))
 }
 
 func flattenPinnedFCV(cluster *admin.ClusterDescription20240805) []map[string]string {
@@ -1591,7 +1591,7 @@ func flattenPinnedFCV(cluster *admin.ClusterDescription20240805) []map[string]st
 func warningIfFCVExpiredOrUnpinnedExternally(d *schema.ResourceData, cluster *admin.ClusterDescription20240805) diag.Diagnostics {
 	pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any)
 	fcvPresentInState := len(pinnedFCVBlock) > 0
-	diagsTpf := advancedclustertpf.GenerateFCVPinningWarningForRead(fcvPresentInState, cluster.FeatureCompatibilityVersionExpirationDate)
+	diagsTpf := advancedcluster.GenerateFCVPinningWarningForRead(fcvPresentInState, cluster.FeatureCompatibilityVersionExpirationDate)
 	return conversion.FromTPFDiagsToSDKV2Diags(diagsTpf)
 }
 

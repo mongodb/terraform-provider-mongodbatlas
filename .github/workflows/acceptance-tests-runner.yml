@@ -277,7 +277,7 @@ jobs:
       with:
         filters: |
           advanced_cluster:
-            - 'internal/service/advancedclustertpf/*.go'
+            - 'internal/service/advancedcluster/*.go'
           assume_role:
             - 'internal/provider/*.go'
           autogen:
@@ -404,7 +404,7 @@ jobs:
           HTTP_MOCKER_CAPTURE: 'true'
           ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
           ACCTEST_PACKAGES: |
-            ./internal/service/advancedclustertpf
+            ./internal/service/advancedcluster
         run: make testacc
  
   advanced_cluster_tpf_mig_from_sdkv2:
@@ -430,7 +430,7 @@ jobs:
           MONGODB_ATLAS_TEST_SDKV2_TO_TPF: 'true'
           ACCTEST_REGEX_RUN: '^TestV1xMig'
           ACCTEST_PACKAGES: |
-            ./internal/service/advancedclustertpf
+            ./internal/service/advancedcluster
         run: make testacc
 
   advanced_cluster_tpf_mig_from_tpf_preview:
@@ -457,7 +457,7 @@ jobs:
           MONGODB_ATLAS_TEST_SDKV2_TO_TPF: 'false'
           ACCTEST_REGEX_RUN: '^TestV1xMig'
           ACCTEST_PACKAGES: |
-            ./internal/service/advancedclustertpf
+            ./internal/service/advancedcluster
         run: make testacc
 
   assume_role:
