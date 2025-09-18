@@ -1,6 +1,7 @@
-package advancedclustertpf
+package advancedcluster
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -9,9 +10,11 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 )
 
@@ -113,4 +116,36 @@ func GetPriorityOfFlexReplicationSpecs(replicationSpecs *[]admin.ReplicationSpec
 		return nil
 	}
 	return regionConfig.Priority
+}
+
+func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, clustersAPI admin.ClustersApi) retry.StateRefreshFunc {
+	return func() (any, string, error) {
+		clusters, resp, err := clustersAPI.ListClusters(ctx, projectID).Execute()
+
+		if err != nil && strings.Contains(err.Error(), "reset by peer") {
+			return nil, "REPEATING", nil
+		}
+
+		if err != nil && clusters == nil && resp == nil {
+			return nil, "", err
+		}
+
+		if err != nil {
+			if validate.StatusNotFound(resp) {
+				return "", "DELETED", nil
+			}
+			if validate.StatusServiceUnavailable(resp) {
+				return "", "PENDING", nil
+			}
+			return nil, "", err
+		}
+
+		for i := range clusters.GetResults() {
+			cluster := clusters.GetResults()[i]
+			if cluster.GetStateName() != "IDLE" {
+				return cluster, "PENDING", nil
+			}
+		}
+		return clusters, "IDLE", nil
+	}
 }

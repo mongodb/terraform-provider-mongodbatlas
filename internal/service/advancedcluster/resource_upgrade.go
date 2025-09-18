@@ -1,4 +1,4 @@
-package advancedclustertpf
+package advancedcluster
 
 import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"

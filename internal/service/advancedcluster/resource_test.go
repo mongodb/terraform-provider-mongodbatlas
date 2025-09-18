@@ -1,9 +1,7 @@
-package advancedclustertpf_test
+package advancedcluster_test
 
 import (
-	"errors"
 	"fmt"
-	"net/http"
 	"os"
 	"regexp"
 	"strconv"
@@ -12,17 +10,13 @@ import (
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	mockadmin20240530 "go.mongodb.org/atlas-sdk/v20240530005/mockadmin"
 	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 )
@@ -42,71 +36,16 @@ const (
 		project_id = mongodbatlas_advanced_cluster.test.project_id
 		depends_on = [mongodbatlas_advanced_cluster.test]
 	}`
-	freeInstanceSize   = "M0"
-	sharedInstanceSize = "M2"
+	freeInstanceSize            = "M0"
+	sharedInstanceSize          = "M2"
+	errDefaultMaxTimeMinVersion = "`advanced_configuration.default_max_time_ms` can only be configured if the mongo_db_major_version is 8.0 or higher"
 )
 
 var (
 	configServerManagementModeFixedToDedicated = "FIXED_TO_DEDICATED"
 	configServerManagementModeAtlasManaged     = "ATLAS_MANAGED"
-	mockConfig                                 = unit.MockConfigAdvancedClusterTPF
-	errGeneric                                 = errors.New("generic")
+	mockConfig                                 = unit.MockConfigAdvancedCluster
 )
-
-func TestGetReplicationSpecAttributesFromOldAPI(t *testing.T) {
-	var (
-		projectID   = "11111"
-		clusterName = "testCluster"
-		ID          = "111111"
-		numShard    = 2
-		zoneName    = "ZoneName managed by Terraform"
-	)
-
-	testCases := map[string]struct {
-		mockCluster    *admin20240530.AdvancedClusterDescription
-		mockResponse   *http.Response
-		mockError      error
-		expectedResult map[string]advancedcluster.OldShardConfigMeta
-		expectedError  error
-	}{
-		"Error in the API call": {
-			mockCluster:    &admin20240530.AdvancedClusterDescription{},
-			mockResponse:   &http.Response{StatusCode: http.StatusBadRequest},
-			mockError:      errGeneric,
-			expectedError:  errGeneric,
-			expectedResult: nil,
-		},
-		"Successful": {
-			mockCluster: &admin20240530.AdvancedClusterDescription{
-				ReplicationSpecs: &[]admin20240530.ReplicationSpec{
-					{
-						NumShards: &numShard,
-						Id:        &ID,
-						ZoneName:  &zoneName,
-					},
-				},
-			},
-			mockResponse:  &http.Response{},
-			mockError:     nil,
-			expectedError: nil,
-			expectedResult: map[string]advancedcluster.OldShardConfigMeta{
-				zoneName: {ID: ID, NumShard: numShard},
-			},
-		},
-	}
-	for name, tc := range testCases {
-		t.Run(name, func(t *testing.T) {
-			testObject := mockadmin20240530.NewClustersApi(t)
-
-			testObject.EXPECT().GetCluster(mock.Anything, mock.Anything, mock.Anything).Return(admin20240530.GetClusterApiRequest{ApiService: testObject}).Once()
-			testObject.EXPECT().GetClusterExecute(mock.Anything).Return(tc.mockCluster, tc.mockResponse, tc.mockError).Once()
-
-			result, err := advancedcluster.GetReplicationSpecAttributesFromOldAPI(t.Context(), projectID, clusterName, testObject)
-			assert.Equal(t, tc.expectedError, err)
-			assert.Equal(t, tc.expectedResult, result)
-		})
-	}
-}
 
 func testAccAdvancedClusterFlexUpgrade(t *testing.T, projectID, clusterName, instanceSize string, includeDedicated bool) resource.TestCase {
 	t.Helper()
@@ -378,7 +317,7 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 		Steps: []resource.TestStep{
 			{
 				Config:      configAdvanced(t, projectID, clusterName, "7.0", processArgs20240530, processArgs),
-				ExpectError: regexp.MustCompile(advancedcluster.ErrorDefaultMaxTimeMinVersion),
+				ExpectError: regexp.MustCompile(errDefaultMaxTimeMinVersion),
 			},
 			{
 				Config: configAdvanced(t, projectID, clusterName, "7.0", processArgs20240530, processArgsCipherConfig),
@@ -678,7 +617,7 @@ func TestAccClusterAdvancedCluster_withLabelIgnored(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      configWithKeyValueBlocks(t, orgID, projectName, clusterName, "labels", acc.ClusterLabelsMapIgnored),
-				ExpectError: regexp.MustCompile(advancedclustertpf.ErrLegacyIgnoreLabel.Error()),
+				ExpectError: regexp.MustCompile(advancedcluster.ErrLegacyIgnoreLabel.Error()),
 			},
 		},
 	})
@@ -1169,11 +1108,11 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateReplicaset(t *testing
 		}
 		waitOnClusterDeleteDone = func() {
 			diags := &diag.Diagnostics{}
-			clusterResp, _ := advancedclustertpf.GetClusterDetails(t.Context(), diags, projectID, clusterName, acc.MongoDBClient, false)
+			clusterResp, _ := advancedcluster.GetClusterDetails(t.Context(), diags, projectID, clusterName, acc.MongoDBClient, false)
 			if clusterResp == nil {
 				t.Fatalf("cluster %s not found in %s", clusterName, projectID)
 			}
-			advancedclustertpf.AwaitChanges(t.Context(), acc.MongoDBClient, &advancedclustertpf.ClusterWaitParams{
+			advancedcluster.AwaitChanges(t.Context(), acc.MongoDBClient, &advancedcluster.ClusterWaitParams{
 				ProjectID:   projectID,
 				ClusterName: clusterName,
 				Timeout:     60 * time.Second,

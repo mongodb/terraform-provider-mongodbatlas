@@ -22,11 +22,12 @@ import (
 )
 
 const (
-	errorServiceEndpointAdd  = "error adding MongoDB Private Service Endpoint Connection(%s) to a Private Endpoint (%s): %s"
-	ErrorServiceEndpointRead = "error reading MongoDB Private Service Endpoint Connection(%s): %s"
-	errorEndpointDelete      = "error deleting MongoDB Private Service Endpoint Connection(%s): %s"
-	ErrorEndpointSetting     = "error setting `%s` for MongoDB Private Service Endpoint Connection(%s): %s"
-	delayAndMinTimeout       = 10 * time.Second
+	errorServiceEndpointAdd        = "error adding MongoDB Private Service Endpoint Connection(%s) to a Private Endpoint (%s): %s"
+	errorServiceEndpointRead       = "error reading MongoDB Private Service Endpoint Connection(%s): %s"
+	errorEndpointDelete            = "error deleting MongoDB Private Service Endpoint Connection(%s): %s"
+	errorEndpointSetting           = "error setting `%s` for MongoDB Private Service Endpoint Connection(%s): %s"
+	errorAdvancedClusterListStatus = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
+	delayAndMinTimeout             = 10 * time.Second
 )
 
 func Resource() *schema.Resource {
@@ -211,7 +212,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if _, err = clusterConf.WaitForStateContext(ctx); err != nil {
 		// error awaiting advanced clusters IDLE should not result in failure to apply changes to this resource
-		log.Printf(advancedcluster.ErrorAdvancedClusterListStatus, err)
+		log.Printf(errorAdvancedClusterListStatus, err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
@@ -239,54 +240,54 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			d.SetId("")
 			return nil
 		}
-		return diag.FromErr(fmt.Errorf(ErrorServiceEndpointRead, endpointServiceID, err))
+		return diag.FromErr(fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err))
 	}
 
 	if err := d.Set("delete_requested", privateEndpoint.GetDeleteRequested()); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "delete_requested", endpointServiceID, err))
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "delete_requested", endpointServiceID, err))
 	}
 
 	if err := d.Set("error_message", privateEndpoint.GetErrorMessage()); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "error_message", endpointServiceID, err))
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "error_message", endpointServiceID, err))
 	}
 
 	if err := d.Set("aws_connection_status", privateEndpoint.GetConnectionStatus()); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "aws_connection_status", endpointServiceID, err))
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "aws_connection_status", endpointServiceID, err))
 	}
 
 	if providerName == "AZURE" {
 		if err := d.Set("azure_status", privateEndpoint.GetStatus()); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "azure_status", endpointServiceID, err))
+			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "azure_status", endpointServiceID, err))
 		}
 	}
 
 	if err := d.Set("interface_endpoint_id", privateEndpoint.GetInterfaceEndpointId()); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "interface_endpoint_id", endpointServiceID, err))
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "interface_endpoint_id", endpointServiceID, err))
 	}
 
 	if err := d.Set("private_endpoint_connection_name", privateEndpoint.GetPrivateEndpointConnectionName()); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "private_endpoint_connection_name", endpointServiceID, err))
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_connection_name", endpointServiceID, err))
 	}
 
 	if err := d.Set("private_endpoint_ip_address", privateEndpoint.GetPrivateEndpointIPAddress()); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "private_endpoint_ip_address", endpointServiceID, err))
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_ip_address", endpointServiceID, err))
 	}
 
 	if err := d.Set("private_endpoint_resource_id", privateEndpoint.GetPrivateEndpointResourceId()); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "private_endpoint_resource_id", endpointServiceID, err))
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "private_endpoint_resource_id", endpointServiceID, err))
 	}
 
 	if err := d.Set("endpoint_service_id", endpointServiceID); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "endpoint_service_id", endpointServiceID, err))
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "endpoint_service_id", endpointServiceID, err))
 	}
 
 	if err := d.Set("endpoints", flattenGCPEndpoints(privateEndpoint.Endpoints)); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "endpoints", endpointServiceID, err))
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "endpoints", endpointServiceID, err))
 	}
 
 	if providerName == "GCP" {
 		if err := d.Set("gcp_status", privateEndpoint.GetStatus()); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "gcp_status", endpointServiceID, err))
+			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "gcp_status", endpointServiceID, err))
 		}
 	}
 
@@ -337,7 +338,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 		if _, err = clusterConf.WaitForStateContext(ctx); err != nil {
 			// error awaiting advanced clusters IDLE should not result in failure to apply changes to this resource
-			log.Printf(advancedcluster.ErrorAdvancedClusterListStatus, err)
+			log.Printf(errorAdvancedClusterListStatus, err)
 		}
 	}
 
@@ -359,23 +360,23 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 
 	_, _, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
 	if err != nil {
-		return nil, fmt.Errorf(ErrorServiceEndpointRead, endpointServiceID, err)
+		return nil, fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err)
 	}
 
 	if err := d.Set("project_id", projectID); err != nil {
-		return nil, fmt.Errorf(ErrorEndpointSetting, "project_id", privateLinkID, err)
+		return nil, fmt.Errorf(errorEndpointSetting, "project_id", privateLinkID, err)
 	}
 
 	if err := d.Set("private_link_id", privateLinkID); err != nil {
-		return nil, fmt.Errorf(ErrorEndpointSetting, "private_link_id", privateLinkID, err)
+		return nil, fmt.Errorf(errorEndpointSetting, "private_link_id", privateLinkID, err)
 	}
 
 	if err := d.Set("endpoint_service_id", endpointServiceID); err != nil {
-		return nil, fmt.Errorf(ErrorEndpointSetting, "endpoint_service_id", privateLinkID, err)
+		return nil, fmt.Errorf(errorEndpointSetting, "endpoint_service_id", privateLinkID, err)
 	}
 
 	if err := d.Set("provider_name", providerName); err != nil {
-		return nil, fmt.Errorf(ErrorEndpointSetting, "provider_name", privateLinkID, err)
+		return nil, fmt.Errorf(errorEndpointSetting, "provider_name", privateLinkID, err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
