@@ -16,13 +16,6 @@ import (
 )
 
 const minVersionForChangeStreamOptions = 6.0
-const V20240530 = "(v20240530)"
-
-const (
-	ErrorAdvancedConfRead          = "error reading Advanced Configuration Option %s for MongoDB Cluster (%s): %s"
-	ErrorAdvancedClusterListStatus = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
-	ErrorDefaultMaxTimeMinVersion  = "`advanced_configuration.default_max_time_ms` can only be configured if the mongo_db_major_version is 8.0 or higher"
-)
 
 func HashFunctionForKeyValuePair(v any) int {
 	var buf bytes.Buffer

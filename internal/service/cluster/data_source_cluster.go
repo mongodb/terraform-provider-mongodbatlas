@@ -567,11 +567,11 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	*/
 	processArgs20240530, _, err := connV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, advancedcluster.V20240530, clusterName, err))
+		return diag.FromErr(fmt.Errorf(errorAdvancedConfRead, v20240530, clusterName, err))
 	}
 	processArgs, _, err := connV2.ClustersApi.GetProcessArgs(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, "", clusterName, err))
+		return diag.FromErr(fmt.Errorf(errorAdvancedConfRead, "", clusterName, err))
 	}
 
 	p := &ProcessArgs{

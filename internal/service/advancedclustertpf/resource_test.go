@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
@@ -37,8 +36,9 @@ const (
 		project_id = mongodbatlas_advanced_cluster.test.project_id
 		depends_on = [mongodbatlas_advanced_cluster.test]
 	}`
-	freeInstanceSize   = "M0"
-	sharedInstanceSize = "M2"
+	freeInstanceSize            = "M0"
+	sharedInstanceSize          = "M2"
+	errDefaultMaxTimeMinVersion = "`advanced_configuration.default_max_time_ms` can only be configured if the mongo_db_major_version is 8.0 or higher"
 )
 
 var (
@@ -317,7 +317,7 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 		Steps: []resource.TestStep{
 			{
 				Config:      configAdvanced(t, projectID, clusterName, "7.0", processArgs20240530, processArgs),
-				ExpectError: regexp.MustCompile(advancedcluster.ErrorDefaultMaxTimeMinVersion),
+				ExpectError: regexp.MustCompile(errDefaultMaxTimeMinVersion),
 			},
 			{
 				Config: configAdvanced(t, projectID, clusterName, "7.0", processArgs20240530, processArgsCipherConfig),

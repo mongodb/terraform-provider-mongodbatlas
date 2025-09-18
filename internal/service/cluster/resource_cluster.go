@@ -36,9 +36,11 @@ const (
 	errorClusterDelete            = "error deleting MongoDB Cluster (%s): %s"
 	errorClusterUpdate            = "error updating MongoDB Cluster (%s): %s"
 	errorAdvancedConfUpdate       = "error updating Advanced Configuration Option %s for MongoDB Cluster (%s): %s"
+	errorAdvancedConfRead         = "error reading Advanced Configuration Option %s for MongoDB Cluster (%s): %s"
 	ErrorSnapshotBackupPolicyRead = "error getting a Cloud Provider Snapshot Backup Policy for the cluster(%s): %s"
 	clusterToAdvancedClusterGuide = "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide"
 	deprecationOldSchemaAction    = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide"
+	v20240530                     = "(v20240530)"
 )
 
 var (
@@ -782,7 +784,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if ok {
 			_, _, err = connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.Name, &params20240530).Execute()
 			if err != nil {
-				return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, advancedcluster.V20240530, cluster.Name, err))
+				return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, v20240530, cluster.Name, err))
 			}
 			_, _, err = connV2.ClustersApi.UpdateProcessArgs(ctx, projectID, cluster.Name, &params).Execute()
 			if err != nil {
@@ -993,11 +995,11 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	*/
 	processArgs20240530, _, err := connV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, advancedcluster.V20240530, clusterName, err))
+		return diag.FromErr(fmt.Errorf(errorAdvancedConfRead, v20240530, clusterName, err))
 	}
 	processArgs, _, err := connV2.ClustersApi.GetProcessArgs(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, "", clusterName, err))
+		return diag.FromErr(fmt.Errorf(errorAdvancedConfRead, "", clusterName, err))
 	}
 
 	p := &ProcessArgs{
@@ -1208,7 +1210,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if !reflect.DeepEqual(params20240530, admin20240530.ClusterDescriptionProcessArgs{}) {
 				_, _, err := connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params20240530).Execute()
 				if err != nil {
-					return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, advancedcluster.V20240530, clusterName, err))
+					return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, v20240530, clusterName, err))
 				}
 			}
 			if !reflect.DeepEqual(params, admin.ClusterDescriptionProcessArgs20240805{}) {
