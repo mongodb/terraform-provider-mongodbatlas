@@ -1034,9 +1034,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "mongo_db_major_version", clusterName, err))
 	}
 
-	warning := advancedcluster.WarningIfFCVExpiredOrUnpinnedExternally(d, latestClusterModel) // has to be called before pinned_fcv value is updated in ResourceData to know prior state value
+	warning := warningIfFCVExpiredOrUnpinnedExternally(d, latestClusterModel) // has to be called before pinned_fcv value is updated in ResourceData to know prior state value
 
-	if err := d.Set("pinned_fcv", advancedcluster.FlattenPinnedFCV(latestClusterModel)); err != nil {
+	if err := d.Set("pinned_fcv", flattenPinnedFCV(latestClusterModel)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "pinned_fcv", clusterName, err))
 	}
 
@@ -1576,4 +1576,21 @@ func upgradeCluster(ctx context.Context, conn *matlas.Client, connV2 *admin.APIC
 
 func formatMongoDBMajorVersion(val any) string {
 	return advancedclustertpf.FormatMongoDBMajorVersion(val.(string))
+}
+
+func flattenPinnedFCV(cluster *admin.ClusterDescription20240805) []map[string]string {
+	if cluster.FeatureCompatibilityVersionExpirationDate == nil { // pinned_fcv is defined in state only if featureCompatibilityVersionExpirationDate is present in cluster response
+		return nil
+	}
+	nestedObj := map[string]string{}
+	nestedObj["version"] = cluster.GetFeatureCompatibilityVersion()
+	nestedObj["expiration_date"] = conversion.TimeToString(cluster.GetFeatureCompatibilityVersionExpirationDate())
+	return []map[string]string{nestedObj}
+}
+
+func warningIfFCVExpiredOrUnpinnedExternally(d *schema.ResourceData, cluster *admin.ClusterDescription20240805) diag.Diagnostics {
+	pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any)
+	fcvPresentInState := len(pinnedFCVBlock) > 0
+	diagsTpf := advancedclustertpf.GenerateFCVPinningWarningForRead(fcvPresentInState, cluster.FeatureCompatibilityVersionExpirationDate)
+	return conversion.FromTPFDiagsToSDKV2Diags(diagsTpf)
 }

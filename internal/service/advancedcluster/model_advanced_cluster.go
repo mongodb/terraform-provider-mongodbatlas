@@ -3,14 +3,6 @@ package advancedcluster
 import (
 	"bytes"
 	"hash/crc32"
-
-	"go.mongodb.org/atlas-sdk/v20250312007/admin"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 )
 
 func HashFunctionForKeyValuePair(v any) int {
@@ -40,21 +32,4 @@ func HashCodeString(s string) int {
 
 func IsSharedTier(instanceSize string) bool {
 	return instanceSize == "M0" || instanceSize == "M2" || instanceSize == "M5"
-}
-
-func WarningIfFCVExpiredOrUnpinnedExternally(d *schema.ResourceData, cluster *admin.ClusterDescription20240805) diag.Diagnostics {
-	pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any)
-	fcvPresentInState := len(pinnedFCVBlock) > 0
-	diagsTpf := advancedclustertpf.GenerateFCVPinningWarningForRead(fcvPresentInState, cluster.FeatureCompatibilityVersionExpirationDate)
-	return conversion.FromTPFDiagsToSDKV2Diags(diagsTpf)
-}
-
-func FlattenPinnedFCV(cluster *admin.ClusterDescription20240805) []map[string]string {
-	if cluster.FeatureCompatibilityVersionExpirationDate == nil { // pinned_fcv is defined in state only if featureCompatibilityVersionExpirationDate is present in cluster response
-		return nil
-	}
-	nestedObj := map[string]string{}
-	nestedObj["version"] = cluster.GetFeatureCompatibilityVersion()
-	nestedObj["expiration_date"] = conversion.TimeToString(cluster.GetFeatureCompatibilityVersionExpirationDate())
-	return []map[string]string{nestedObj}
 }

@@ -12,7 +12,6 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 )
 
 func DataSource() *schema.Resource {
@@ -607,7 +606,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "redact_client_log_data", clusterName, err))
 	}
 
-	if err := d.Set("pinned_fcv", advancedcluster.FlattenPinnedFCV(latestClusterModel)); err != nil {
+	if err := d.Set("pinned_fcv", flattenPinnedFCV(latestClusterModel)); err != nil {
 		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "pinned_fcv", clusterName, err))
 	}
 

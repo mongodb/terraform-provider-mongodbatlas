@@ -16,7 +16,6 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -455,7 +454,7 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 			"version_release_system":                          clusters[i].VersionReleaseSystem,
 			"container_id":                                    containerID,
 			"redact_client_log_data":                          latestClusterModels[clusters[i].Name].GetRedactClientLogData(),
-			"pinned_fcv":                                      advancedcluster.FlattenPinnedFCV(latestClusterModels[clusters[i].Name]),
+			"pinned_fcv":                                      flattenPinnedFCV(latestClusterModels[clusters[i].Name]),
 		}
 		results = append(results, result)
 	}
