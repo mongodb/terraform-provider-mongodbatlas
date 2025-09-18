@@ -61,7 +61,7 @@ const (
 	MongodbGovCloudQAURL           = "https://cloud-qa.mongodbgov.com"
 	MongodbGovCloudDevURL          = "https://cloud-dev.mongodbgov.com"
 	ProviderConfigError            = "error in configuring the provider."
-	MissingAuthAttrError           = "either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set"
+	MissingAuthAttrError           = "either Atlas Programmatic API Keys, Service Accounts, or AWS Secrets Manager attributes must be set"
 	ProviderMetaUserAgentExtra     = "user_agent_extra"
 	ProviderMetaUserAgentExtraDesc = "You can extend the user agent header for each request made by the provider to the Atlas Admin API. The Key Values will be formatted as {key}/{value}."
 	ProviderMetaModuleName         = "module_name"
@@ -398,9 +398,6 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 			"MONGODB_ATLAS_PUBLIC_KEY",
 			"MCLI_PUBLIC_API_KEY",
 		}, "").(string))
-		if data.PublicKey.ValueString() == "" && !awsRoleDefined {
-			resp.Diagnostics.AddWarning(ProviderConfigError, MissingAuthAttrError)
-		}
 	}
 
 	if data.PrivateKey.ValueString() == "" {
@@ -409,9 +406,6 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 			"MONGODB_ATLAS_PRIVATE_KEY",
 			"MCLI_PRIVATE_API_KEY",
 		}, "").(string))
-		if data.PrivateKey.ValueString() == "" && !awsRoleDefined {
-			resp.Diagnostics.AddWarning(ProviderConfigError, MissingAuthAttrError)
-		}
 	}
 
 	if data.RealmBaseURL.ValueString() == "" {
@@ -474,6 +468,14 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 			"MONGODB_ATLAS_CLIENT_SECRET",
 			"TF_VAR_CLIENT_SECRET",
 		}, "").(string))
+	}
+
+	// Check if any valid authentication method is provided
+	hasDigestAuth := data.PublicKey.ValueString() != "" && data.PrivateKey.ValueString() != ""
+	hasServiceAccountAuth := data.ClientID.ValueString() != "" && data.ClientSecret.ValueString() != ""
+
+	if !hasDigestAuth && !hasServiceAccountAuth && !awsRoleDefined {
+		resp.Diagnostics.AddWarning(ProviderConfigError, MissingAuthAttrError)
 	}
 
 	return *data

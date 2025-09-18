@@ -367,9 +367,6 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 	}); err != nil {
 		return append(diagnostics, diag.FromErr(err)...)
 	}
-	if d.Get("public_key").(string) == "" && !awsRoleDefined { //TODO: condition for warning needs to change
-		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: MissingAuthAttrError})
-	}
 
 	if err := setValueFromConfigOrEnv(d, "private_key", []string{
 		"MONGODB_ATLAS_PRIVATE_API_KEY",
@@ -377,10 +374,6 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 		"MCLI_PRIVATE_API_KEY",
 	}); err != nil {
 		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if d.Get("private_key").(string) == "" && !awsRoleDefined { //TODO: condition for warning needs to change
-		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: MissingAuthAttrError})
 	}
 
 	if err := setValueFromConfigOrEnv(d, "realm_base_url", []string{
@@ -443,6 +436,14 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 		"TF_VAR_CLIENT_SECRET",
 	}); err != nil {
 		return append(diagnostics, diag.FromErr(err)...)
+	}
+
+	// Check if any valid authentication method is provided
+	hasDigestAuth := d.Get("public_key").(string) != "" && d.Get("private_key").(string) != ""
+	hasServiceAccountAuth := d.Get("client_id").(string) != "" && d.Get("client_secret").(string) != ""
+
+	if !hasDigestAuth && !hasServiceAccountAuth && !awsRoleDefined {
+		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: MissingAuthAttrError})
 	}
 
 	return diagnostics
