@@ -122,6 +122,16 @@ func NewSdkV2Provider() *schema.Provider {
 				Optional:    true,
 				Description: "AWS Security Token Service provided session token.",
 			},
+			"client_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "MongoDB Atlas Client ID.",
+			},
+			"client_secret": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "MongoDB Atlas Client Secret.",
+			},
 		},
 		DataSourcesMap: getDataSourcesMap(),
 		ResourcesMap:   getResourcesMap(),
@@ -283,6 +293,8 @@ func providerConfigure(provider *schema.Provider) func(ctx context.Context, d *s
 			BaseURL:          d.Get("base_url").(string),
 			RealmBaseURL:     d.Get("realm_base_url").(string),
 			TerraformVersion: provider.TerraformVersion,
+			ClientID:         d.Get("client_id").(string),
+			ClientSecret:     d.Get("client_secret").(string),
 		}
 
 		assumeRoleValue, ok := d.GetOk("assume_role")

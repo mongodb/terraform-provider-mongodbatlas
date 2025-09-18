@@ -75,16 +75,18 @@ type MongodbtlasProvider struct {
 
 type tfMongodbAtlasProviderModel struct {
 	AssumeRole           types.List   `tfsdk:"assume_role"`
-	PublicKey            types.String `tfsdk:"public_key"`
+	Region               types.String `tfsdk:"region"`
 	PrivateKey           types.String `tfsdk:"private_key"`
 	BaseURL              types.String `tfsdk:"base_url"`
 	RealmBaseURL         types.String `tfsdk:"realm_base_url"`
 	SecretName           types.String `tfsdk:"secret_name"`
-	Region               types.String `tfsdk:"region"`
+	PublicKey            types.String `tfsdk:"public_key"`
 	StsEndpoint          types.String `tfsdk:"sts_endpoint"`
 	AwsAccessKeyID       types.String `tfsdk:"aws_access_key_id"`
 	AwsSecretAccessKeyID types.String `tfsdk:"aws_secret_access_key"`
 	AwsSessionToken      types.String `tfsdk:"aws_session_token"`
+	ClientID             types.String `tfsdk:"client_id"`
+	ClientSecret         types.String `tfsdk:"client_secret"`
 	IsMongodbGovCloud    types.Bool   `tfsdk:"is_mongodbgov_cloud"`
 }
 
@@ -188,6 +190,14 @@ func (p *MongodbtlasProvider) Schema(ctx context.Context, req provider.SchemaReq
 				Optional:    true,
 				Description: "AWS Security Token Service provided session token.",
 			},
+			"client_id": schema.StringAttribute{
+				Optional:    true,
+				Description: "MongoDB Atlas Client ID.",
+			},
+			"client_secret": schema.StringAttribute{
+				Optional:    true,
+				Description: "MongoDB Atlas Client Secret.",
+			},
 		},
 	}
 }
@@ -276,6 +286,8 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		BaseURL:          data.BaseURL.ValueString(),
 		RealmBaseURL:     data.RealmBaseURL.ValueString(),
 		TerraformVersion: req.TerraformVersion,
+		ClientID:         data.ClientID.ValueString(),
+		ClientSecret:     data.ClientSecret.ValueString(),
 	}
 
 	var assumeRoles []tfAssumeRoleModel
