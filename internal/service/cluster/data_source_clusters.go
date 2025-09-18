@@ -375,7 +375,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	}
 
 	if err := d.Set("results", flattenClusters(ctx, d, conn, connV2, connV220240530, clusters, latestClusterModels)); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "results", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "results", d.Id(), err))
 	}
 
 	return nil

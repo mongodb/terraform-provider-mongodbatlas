@@ -22,7 +22,6 @@ const minVersionForChangeStreamOptions = 6.0
 const V20240530 = "(v20240530)"
 
 const (
-	ErrorClusterSetting            = "error setting `%s` for MongoDB Cluster (%s): %s"
 	ErrorAdvancedConfRead          = "error reading Advanced Configuration Option %s for MongoDB Cluster (%s): %s"
 	ErrorClusterAdvancedSetting    = "error setting `%s` for MongoDB ClusterAdvanced (%s): %s"
 	ErrorFlexClusterSetting        = "error setting `%s` for MongoDB Flex Cluster (%s): %s"
