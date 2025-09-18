@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hash/crc32"
 	"log"
 	"net/http"
 	"reflect"
@@ -25,7 +26,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 )
 
@@ -321,7 +321,7 @@ func Resource() *schema.Resource {
 					buf.WriteString(fmt.Sprintf("%d", m["num_shards"].(int)))
 					buf.WriteString(m["zone_name"].(string))
 					buf.WriteString(fmt.Sprintf("%+v", m["regions_config"].(*schema.Set)))
-					return advancedcluster.HashCodeString(buf.String())
+					return hashCodeString(buf.String())
 				},
 			},
 			"mongo_db_version": {
@@ -357,7 +357,7 @@ func Resource() *schema.Resource {
 			"labels": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				Set:      advancedcluster.HashFunctionForKeyValuePair,
+				Set:      hashFunctionForKeyValuePair,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
@@ -1263,7 +1263,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	if d.Get("paused").(bool) && !advancedcluster.IsSharedTier(d.Get("provider_instance_size_name").(string)) {
+	if d.Get("paused").(bool) && !isSharedTier(d.Get("provider_instance_size_name").(string)) {
 		clusterRequest := &matlas.Cluster{
 			Paused: conversion.Pointer(true),
 		}
@@ -1402,7 +1402,7 @@ func getInstanceSizeToInt(instanceSize string) int {
 func isUpgradeRequired(d *schema.ResourceData) bool {
 	currentSize, updatedSize := d.GetChange("provider_instance_size_name")
 
-	return currentSize != updatedSize && advancedcluster.IsSharedTier(currentSize.(string))
+	return currentSize != updatedSize && isSharedTier(currentSize.(string))
 }
 
 func resourceClusterCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta any) error {
@@ -1593,4 +1593,33 @@ func warningIfFCVExpiredOrUnpinnedExternally(d *schema.ResourceData, cluster *ad
 	fcvPresentInState := len(pinnedFCVBlock) > 0
 	diagsTpf := advancedclustertpf.GenerateFCVPinningWarningForRead(fcvPresentInState, cluster.FeatureCompatibilityVersionExpirationDate)
 	return conversion.FromTPFDiagsToSDKV2Diags(diagsTpf)
+}
+
+func isSharedTier(instanceSize string) bool {
+	return instanceSize == "M0" || instanceSize == "M2" || instanceSize == "M5"
+}
+
+func hashFunctionForKeyValuePair(v any) int {
+	var buf bytes.Buffer
+	m := v.(map[string]any)
+	buf.WriteString(m["key"].(string))
+	buf.WriteString(m["value"].(string))
+	return hashCodeString(buf.String())
+}
+
+// HashCodeString hashes a string to a unique hashcode.
+//
+// crc32 returns a uint32, but for our use we need
+// and non negative integer. Here we cast to an integer
+// and invert it if the result is negative.
+func hashCodeString(s string) int {
+	v := int(crc32.ChecksumIEEE([]byte(s)))
+	if v >= 0 {
+		return v
+	}
+	if -v >= 0 {
+		return -v
+	}
+	// v == MinInt
+	return 0
 }
