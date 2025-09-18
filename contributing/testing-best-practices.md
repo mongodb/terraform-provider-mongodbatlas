@@ -138,9 +138,6 @@ It is advised to only run a **single** test at a time when a plural data source 
 
 For a full example see [plan_modifier_test.go](../internal/service/advancedcluster/plan_modifier_test.go).
 
-### File generation
-For a full example of generation see [`http_mocker_plan_checks_test.go`](../internal/testutil/unit/http_mocker_plan_checks_test.go)
-
 1. Stores the last `GET` response from an existing [MacT](#mact---mocked-acceptance-tests) test case step. For example the last GET of `/api/atlas/v2/groups/{groupId}/clusters/{clusterName}`
    1. ImportName: `ClusterTwoRepSpecsWithAutoScalingAndSpecs`
    2. GET responses are stored in `testdata/{ImportName}/import_*.json`
