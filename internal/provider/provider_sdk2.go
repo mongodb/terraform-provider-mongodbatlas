@@ -429,6 +429,20 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 		return append(diagnostics, diag.FromErr(err)...)
 	}
 
+	if err := setValueFromConfigOrEnv(d, "client_id", []string{
+		"MONGODB_ATLAS_CLIENT_ID",
+		"TF_VAR_CLIENT_ID",
+	}); err != nil {
+		return append(diagnostics, diag.FromErr(err)...)
+	}
+
+	if err := setValueFromConfigOrEnv(d, "client_secret", []string{
+		"MONGODB_ATLAS_CLIENT_SECRET",
+		"TF_VAR_CLIENT_SECRET",
+	}); err != nil {
+		return append(diagnostics, diag.FromErr(err)...)
+	}
+
 	return diagnostics
 }
 

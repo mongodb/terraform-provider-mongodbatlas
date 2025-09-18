@@ -462,6 +462,20 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 		}, "").(string))
 	}
 
+	if data.ClientID.ValueString() == "" {
+		data.ClientID = types.StringValue(MultiEnvDefaultFunc([]string{
+			"MONGODB_ATLAS_CLIENT_ID",
+			"TF_VAR_CLIENT_ID",
+		}, "").(string))
+	}
+
+	if data.ClientSecret.ValueString() == "" {
+		data.ClientSecret = types.StringValue(MultiEnvDefaultFunc([]string{
+			"MONGODB_ATLAS_CLIENT_SECRET",
+			"TF_VAR_CLIENT_SECRET",
+		}, "").(string))
+	}
+
 	return *data
 }
 
