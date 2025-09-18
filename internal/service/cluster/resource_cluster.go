@@ -177,7 +177,7 @@ func Resource() *schema.Resource {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Computed:  true,
-				StateFunc: advancedcluster.FormatMongoDBMajorVersion,
+				StateFunc: formatMongoDBMajorVersion,
 			},
 			"num_shards": {
 				Type:     schema.TypeInt,
@@ -670,7 +670,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		clusterRequest.DiskSizeGB = tenantDisksize
 	}
 	if v, ok := d.GetOk("mongo_db_major_version"); ok {
-		clusterRequest.MongoDBMajorVersion = advancedcluster.FormatMongoDBMajorVersion(v.(string))
+		clusterRequest.MongoDBMajorVersion = formatMongoDBMajorVersion(v.(string))
 	}
 
 	if r, ok := d.GetOk("replication_factor"); ok {
@@ -1055,7 +1055,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("mongo_db_major_version") {
-		cluster.MongoDBMajorVersion = advancedcluster.FormatMongoDBMajorVersion(d.Get("mongo_db_major_version"))
+		cluster.MongoDBMajorVersion = formatMongoDBMajorVersion(d.Get("mongo_db_major_version"))
 	}
 
 	if d.HasChange("cluster_type") {
@@ -1499,4 +1499,8 @@ func upgradeCluster(ctx context.Context, conn *matlas.Client, connV2 *admin.APIC
 	}
 
 	return cluster, resp, nil
+}
+
+func formatMongoDBMajorVersion(val any) string {
+	return advancedclustertpf.FormatMongoDBMajorVersion(val.(string))
 }

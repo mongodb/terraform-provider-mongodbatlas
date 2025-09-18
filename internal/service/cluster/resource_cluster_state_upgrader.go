@@ -106,7 +106,7 @@ func ResourceClusterResourceV0() *schema.Resource {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Computed:  true,
-				StateFunc: advancedcluster.FormatMongoDBMajorVersion,
+				StateFunc: formatMongoDBMajorVersion,
 			},
 			"num_shards": {
 				Type:     schema.TypeInt,

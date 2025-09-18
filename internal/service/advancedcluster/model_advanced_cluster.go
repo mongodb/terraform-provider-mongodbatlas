@@ -171,12 +171,6 @@ func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID strin
 	}
 }
 
-func FormatMongoDBMajorVersion(val any) string {
-	return advancedclustertpf.FormatMongoDBMajorVersion(val.(string))
-}
-
-// CheckRegionConfigsPriorityOrder will be deleted in CLOUDP-275825
-
 func FlattenPinnedFCV(cluster *admin.ClusterDescription20240805) []map[string]string {
 	if cluster.FeatureCompatibilityVersionExpirationDate == nil { // pinned_fcv is defined in state only if featureCompatibilityVersionExpirationDate is present in cluster response
 		return nil
