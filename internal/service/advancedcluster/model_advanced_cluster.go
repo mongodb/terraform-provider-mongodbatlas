@@ -23,8 +23,6 @@ const V20240530 = "(v20240530)"
 
 const (
 	ErrorAdvancedConfRead          = "error reading Advanced Configuration Option %s for MongoDB Cluster (%s): %s"
-	ErrorClusterAdvancedSetting    = "error setting `%s` for MongoDB ClusterAdvanced (%s): %s"
-	ErrorFlexClusterSetting        = "error setting `%s` for MongoDB Flex Cluster (%s): %s"
 	ErrorAdvancedClusterListStatus = "error awaiting MongoDB ClusterAdvanced List IDLE: %s"
 	ErrorDefaultMaxTimeMinVersion  = "`advanced_configuration.default_max_time_ms` can only be configured if the mongo_db_major_version is 8.0 or higher"
 )

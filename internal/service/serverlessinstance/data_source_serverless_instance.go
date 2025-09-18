@@ -9,7 +9,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 )
 
@@ -181,7 +180,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if err := d.Set("tags", conversion.FlattenTags(instance.GetTags())); err != nil {
-		return diag.Errorf(advancedcluster.ErrorClusterAdvancedSetting, "tags", d.Id(), err)
+		return diag.Errorf(errorServerlessInstanceSetting, "tags", d.Id(), err)
 	}
 
 	d.SetId(conversion.EncodeStateID(map[string]string{
