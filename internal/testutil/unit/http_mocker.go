@@ -79,17 +79,19 @@ func IsTfLogDebug() bool {
 type mockClientModifier struct {
 	config           *MockHTTPDataConfig
 	mockRoundTripper http.RoundTripper
+	oldRoundTripper  http.RoundTripper
 }
 
 func (c *mockClientModifier) ModifyHTTPClient(httpClient *http.Client) error {
-	// Simply replace the transport with our mock transport
-	// The copying is now handled in wrapClientDuringCheck to avoid data races
+	c.oldRoundTripper = httpClient.Transport
 	httpClient.Transport = c.mockRoundTripper
 	return nil
 }
 
 func (c *mockClientModifier) ResetHTTPClient(httpClient *http.Client) {
-	// Reset is now handled in wrapClientDuringCheck, so this is a no-op
+	if c.oldRoundTripper != nil {
+		httpClient.Transport = c.oldRoundTripper
+	}
 }
 
 func MockConfigFilePath(t *testing.T) string {
@@ -247,32 +249,15 @@ func wrapClientDuringCheck(oldCheck resource.TestCheckFunc, clientModifier HTTPC
 	}
 	return func(s *terraform.State) error {
 		accClientLock.Lock()
-		defer accClientLock.Unlock()
-
-		// Get the shared client and make a complete copy to avoid any shared state
-		originalClient := acc.ConnV2().GetConfig().HTTPClient
-
-		// Create a completely new client instead of modifying the shared one
-		testClient := &http.Client{
-			Transport:     originalClient.Transport,
-			CheckRedirect: originalClient.CheckRedirect,
-			Jar:           originalClient.Jar,
-			Timeout:       originalClient.Timeout,
-		}
-
-		// Modify our private copy
-		modifyErr := clientModifier.ModifyHTTPClient(testClient)
+		accClient := acc.ConnV2().GetConfig().HTTPClient
+		modifyErr := clientModifier.ModifyHTTPClient(accClient)
+		defer func() {
+			clientModifier.ResetHTTPClient(accClient)
+			accClientLock.Unlock()
+		}()
 		if modifyErr != nil {
 			return modifyErr
 		}
-
-		// Replace the entire client temporarily (atomic operation)
-		acc.ConnV2().GetConfig().HTTPClient = testClient
-		defer func() {
-			// Restore the original client
-			acc.ConnV2().GetConfig().HTTPClient = originalClient
-		}()
-
 		if oldCheck != nil {
 			if err := oldCheck(s); err != nil {
 				return err
