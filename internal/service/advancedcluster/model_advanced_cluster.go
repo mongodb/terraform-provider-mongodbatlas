@@ -2,7 +2,6 @@ package advancedcluster
 
 import (
 	"bytes"
-	"context"
 	"hash/crc32"
 	"strconv"
 	"strings"
@@ -10,11 +9,9 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 )
 
@@ -132,41 +129,6 @@ func WarningIfFCVExpiredOrUnpinnedExternally(d *schema.ResourceData, cluster *ad
 	fcvPresentInState := len(pinnedFCVBlock) > 0
 	diagsTpf := advancedclustertpf.GenerateFCVPinningWarningForRead(fcvPresentInState, cluster.FeatureCompatibilityVersionExpirationDate)
 	return conversion.FromTPFDiagsToSDKV2Diags(diagsTpf)
-}
-
-// GetDiskSizeGBFromReplicationSpec obtains the diskSizeGB value by looking into the electable spec of the first replication spec.
-// Independent storage size scaling is not supported (CLOUDP-201331), meaning all electable/analytics/readOnly configs in all replication specs are the same.
-
-func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, clustersAPI admin.ClustersApi) retry.StateRefreshFunc {
-	return func() (any, string, error) {
-		clusters, resp, err := clustersAPI.ListClusters(ctx, projectID).Execute()
-
-		if err != nil && strings.Contains(err.Error(), "reset by peer") {
-			return nil, "REPEATING", nil
-		}
-
-		if err != nil && clusters == nil && resp == nil {
-			return nil, "", err
-		}
-
-		if err != nil {
-			if validate.StatusNotFound(resp) {
-				return "", "DELETED", nil
-			}
-			if validate.StatusServiceUnavailable(resp) {
-				return "", "PENDING", nil
-			}
-			return nil, "", err
-		}
-
-		for i := range clusters.GetResults() {
-			cluster := clusters.GetResults()[i]
-			if cluster.GetStateName() != "IDLE" {
-				return cluster, "PENDING", nil
-			}
-		}
-		return clusters, "IDLE", nil
-	}
 }
 
 func FlattenPinnedFCV(cluster *admin.ClusterDescription20240805) []map[string]string {

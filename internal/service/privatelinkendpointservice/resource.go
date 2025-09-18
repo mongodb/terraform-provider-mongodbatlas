@@ -18,6 +18,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 )
 
@@ -201,11 +202,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	clusterConf := &retry.StateChangeConf{
-		Pending: []string{"REPEATING", "PENDING"},
-		Target:  []string{"IDLE", "DELETED"},
-		// TODO: TEMPORARY CHANGE, DON'T MERGE
-		// TODO: TEMPORARY CHANGE, DON'T MERGE
-		Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
+		Pending:    []string{"REPEATING", "PENDING"},
+		Target:     []string{"IDLE", "DELETED"},
+		Refresh:    advancedclustertpf.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: delayAndMinTimeout,
 		Delay:      delayAndMinTimeout,
@@ -331,7 +330,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		clusterConf := &retry.StateChangeConf{
 			Pending:    []string{"REPEATING", "PENDING"},
 			Target:     []string{"IDLE", "DELETED"},
-			Refresh:    advancedcluster.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
+			Refresh:    advancedclustertpf.ResourceClusterListAdvancedRefreshFunc(ctx, projectID, connV2.ClustersApi),
 			Timeout:    d.Timeout(schema.TimeoutDelete),
 			MinTimeout: delayAndMinTimeout,
 			Delay:      delayAndMinTimeout,
