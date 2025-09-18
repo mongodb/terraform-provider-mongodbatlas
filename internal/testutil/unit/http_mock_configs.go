@@ -12,13 +12,13 @@ const (
 )
 
 var (
-	MockConfigAdvancedClusterTPF = MockHTTPDataConfig{AllowMissingRequests: true, RunBeforeEach: shortenClusterTPFRetries, IsDiffMustSubstrings: []string{"/clusters"}, QueryVars: []string{"providerName"}}
-	onceShortenClusterTPFRetries sync.Once
+	MockConfigAdvancedCluster = MockHTTPDataConfig{AllowMissingRequests: true, RunBeforeEach: shortenClusterRetries, IsDiffMustSubstrings: []string{"/clusters"}, QueryVars: []string{"providerName"}}
+	onceShortenClusterRetries sync.Once
 )
 
-// shortenClusterTPFRetries must meet the interface func() error as it is used in RunBeforeEach which runs as part of TestCase.PreCheck()
-func shortenClusterTPFRetries() error {
-	onceShortenClusterTPFRetries.Do(func() {
+// shortenClusterRetries must meet the interface func() error as it is used in RunBeforeEach which runs as part of TestCase.PreCheck()
+func shortenClusterRetries() error {
+	onceShortenClusterRetries.Do(func() {
 		advancedcluster.RetryMinTimeout = shortRefresh
 		advancedcluster.RetryDelay = shortRefresh
 		advancedcluster.RetryPollInterval = shortRefresh

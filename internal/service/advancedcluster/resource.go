@@ -159,7 +159,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	clusterResp := CreateCluster(ctx, diags, r.Client, latestReq, waitParams)
 
 	emptyAdvancedConfiguration := types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
-	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
+	patchReqProcessArgs := update.PatchPayloadCluster(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
 	if diags.HasError() {
 		return
 	}
@@ -296,7 +296,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	patchReqProcessArgs := update.PatchPayloadTpf(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
+	patchReqProcessArgs := update.PatchPayloadCluster(ctx, diags, &state.AdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
 	if diags.HasError() {
 		return
 	}

@@ -44,7 +44,7 @@ const (
 var (
 	configServerManagementModeFixedToDedicated = "FIXED_TO_DEDICATED"
 	configServerManagementModeAtlasManaged     = "ATLAS_MANAGED"
-	mockConfig                                 = unit.MockConfigAdvancedClusterTPF
+	mockConfig                                 = unit.MockConfigAdvancedCluster
 )
 
 func testAccAdvancedClusterFlexUpgrade(t *testing.T, projectID, clusterName, instanceSize string, includeDedicated bool) resource.TestCase {
