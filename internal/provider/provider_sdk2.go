@@ -57,8 +57,10 @@ import (
 )
 
 type SecretData struct {
-	PublicKey  string `json:"public_key"`
-	PrivateKey string `json:"private_key"`
+	PublicKey    string `json:"public_key"`
+	PrivateKey   string `json:"private_key"`
+	ClientID     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
 }
 
 // NewSdkV2Provider returns the provider to be use by the code.
@@ -365,7 +367,7 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 	}); err != nil {
 		return append(diagnostics, diag.FromErr(err)...)
 	}
-	if d.Get("public_key").(string) == "" && !awsRoleDefined {
+	if d.Get("public_key").(string) == "" && !awsRoleDefined { //TODO: condition for warning needs to change
 		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: MissingAuthAttrError})
 	}
 
@@ -377,7 +379,7 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 		return append(diagnostics, diag.FromErr(err)...)
 	}
 
-	if d.Get("private_key").(string) == "" && !awsRoleDefined {
+	if d.Get("private_key").(string) == "" && !awsRoleDefined { //TODO: condition for warning needs to change
 		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: MissingAuthAttrError})
 	}
 
