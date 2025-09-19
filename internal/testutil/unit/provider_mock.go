@@ -60,6 +60,10 @@ func (p *ProviderMocked) Configure(ctx context.Context, req fwProvider.Configure
 	}
 
 	if p.ClientModifier != nil {
+		// Since we're using a copied client, set skipReset to avoid data races
+		if mockModifier, ok := p.ClientModifier.(*mockClientModifier); ok {
+			mockModifier.skipReset = true
+		}
 		err := p.ClientModifier.ModifyHTTPClient(mockedClient)
 		if err != nil {
 			p.t.Fatal(err)
@@ -101,6 +105,10 @@ func muxProviderFactory(t *testing.T, clientModifier HTTPClientModifier) func() 
 			Timeout:   originalClient.Timeout,
 		}
 
+		// Since we're using a copied client, set skipReset to avoid data races
+		if mockModifier, ok := clientModifier.(*mockClientModifier); ok {
+			mockModifier.skipReset = true
+		}
 		err := clientModifier.ModifyHTTPClient(mockedClient)
 		if err != nil {
 			t.Fatalf("Failed to modify HTTPClient: %s", err)
