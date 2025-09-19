@@ -40,6 +40,24 @@ func TestAccSTSAssumeRole_basic(t *testing.T) {
 	})
 }
 
+func TestAccServiceAccount_basic(t *testing.T) {
+	var (
+		resourceName = "data.mongodbatlas_projects.test"
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckServiceAccount(t); acc.PreCheckRegularCredsAreEmpty(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configDataSourceProject(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "results.#"),
+				),
+			},
+		},
+	})
+}
+
 func configProject(orgID, projectName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
@@ -47,4 +65,11 @@ func configProject(orgID, projectName string) string {
 			name  			 = %[2]q
 		}
 	`, orgID, projectName)
+}
+
+func configDataSourceProject() string {
+	return `
+		data "mongodbatlas_projects" "test" {
+		}
+	`
 }

@@ -57,8 +57,10 @@ import (
 )
 
 type SecretData struct {
-	PublicKey  string `json:"public_key"`
-	PrivateKey string `json:"private_key"`
+	PublicKey    string `json:"public_key"`
+	PrivateKey   string `json:"private_key"`
+	ClientID     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
 }
 
 // NewSdkV2Provider returns the provider to be use by the code.
@@ -121,6 +123,16 @@ func NewSdkV2Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "AWS Security Token Service provided session token.",
+			},
+			"client_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "MongoDB Atlas Client ID.",
+			},
+			"client_secret": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "MongoDB Atlas Client Secret.",
 			},
 		},
 		DataSourcesMap: getDataSourcesMap(),
@@ -283,6 +295,8 @@ func providerConfigure(provider *schema.Provider) func(ctx context.Context, d *s
 			BaseURL:          d.Get("base_url").(string),
 			RealmBaseURL:     d.Get("realm_base_url").(string),
 			TerraformVersion: provider.TerraformVersion,
+			ClientID:         d.Get("client_id").(string),
+			ClientSecret:     d.Get("client_secret").(string),
 		}
 
 		assumeRoleValue, ok := d.GetOk("assume_role")
@@ -353,9 +367,6 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 	}); err != nil {
 		return append(diagnostics, diag.FromErr(err)...)
 	}
-	if d.Get("public_key").(string) == "" && !awsRoleDefined {
-		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: MissingAuthAttrError})
-	}
 
 	if err := setValueFromConfigOrEnv(d, "private_key", []string{
 		"MONGODB_ATLAS_PRIVATE_API_KEY",
@@ -363,10 +374,6 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 		"MCLI_PRIVATE_API_KEY",
 	}); err != nil {
 		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if d.Get("private_key").(string) == "" && !awsRoleDefined {
-		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: MissingAuthAttrError})
 	}
 
 	if err := setValueFromConfigOrEnv(d, "realm_base_url", []string{
@@ -415,6 +422,28 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 		"TF_VAR_AWS_SESSION_TOKEN",
 	}); err != nil {
 		return append(diagnostics, diag.FromErr(err)...)
+	}
+
+	if err := setValueFromConfigOrEnv(d, "client_id", []string{
+		"MONGODB_ATLAS_CLIENT_ID",
+		"TF_VAR_CLIENT_ID",
+	}); err != nil {
+		return append(diagnostics, diag.FromErr(err)...)
+	}
+
+	if err := setValueFromConfigOrEnv(d, "client_secret", []string{
+		"MONGODB_ATLAS_CLIENT_SECRET",
+		"TF_VAR_CLIENT_SECRET",
+	}); err != nil {
+		return append(diagnostics, diag.FromErr(err)...)
+	}
+
+	// Check if any valid authentication method is provided
+	hasDigestAuth := d.Get("public_key").(string) != "" && d.Get("private_key").(string) != ""
+	hasServiceAccountAuth := d.Get("client_id").(string) != "" && d.Get("client_secret").(string) != ""
+
+	if !hasDigestAuth && !hasServiceAccountAuth && !awsRoleDefined {
+		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: MissingAuthAttrError})
 	}
 
 	return diagnostics

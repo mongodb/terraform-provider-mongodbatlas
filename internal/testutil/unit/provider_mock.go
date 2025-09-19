@@ -46,16 +46,32 @@ func (p *ProviderMocked) Configure(ctx context.Context, req fwProvider.Configure
 	if !ok {
 		p.t.Fatal("Failed to cast ResourceData to MongoDBClient")
 	}
-	httpClient := client.AtlasV2.GetConfig().HTTPClient
-	if httpClient == nil {
+
+	// Create a copy of the HTTP client to avoid data races with OAuth2 background operations
+	originalClient := client.AtlasV2.GetConfig().HTTPClient
+	if originalClient == nil {
 		p.t.Fatal("HTTPClient is nil, mocking will fail")
 	}
+
+	// Create a new HTTP client to avoid modifying the live one
+	mockedClient := &http.Client{
+		Transport: originalClient.Transport,
+		Timeout:   originalClient.Timeout,
+	}
+
 	if p.ClientModifier != nil {
-		err := p.ClientModifier.ModifyHTTPClient(httpClient)
+		// Since we're using a copied client, set skipReset to avoid data races
+		if mockModifier, ok := p.ClientModifier.(*mockClientModifier); ok {
+			mockModifier.skipReset = true
+		}
+		err := p.ClientModifier.ModifyHTTPClient(mockedClient)
 		if err != nil {
 			p.t.Fatal(err)
 		}
 	}
+
+	// Replace the HTTP client in the Atlas configuration
+	client.AtlasV2.GetConfig().HTTPClient = mockedClient
 }
 
 func (p *ProviderMocked) DataSources(ctx context.Context) []func() datasource.DataSource {
@@ -76,11 +92,30 @@ func muxProviderFactory(t *testing.T, clientModifier HTTPClientModifier) func() 
 		if !ok {
 			t.Fatalf("Failed to cast response to MongoDBClient, Got type %T", resp)
 		}
-		httpClient := client.AtlasV2.GetConfig().HTTPClient
-		err := clientModifier.ModifyHTTPClient(httpClient)
+
+		// Create a copy of the HTTP client to avoid data races with OAuth2 background operations
+		originalClient := client.AtlasV2.GetConfig().HTTPClient
+		if originalClient == nil {
+			t.Fatalf("HTTPClient is nil, mocking will fail")
+		}
+
+		// Create a new HTTP client to avoid modifying the live one
+		mockedClient := &http.Client{
+			Transport: originalClient.Transport,
+			Timeout:   originalClient.Timeout,
+		}
+
+		// Since we're using a copied client, set skipReset to avoid data races
+		if mockModifier, ok := clientModifier.(*mockClientModifier); ok {
+			mockModifier.skipReset = true
+		}
+		err := clientModifier.ModifyHTTPClient(mockedClient)
 		if err != nil {
 			t.Fatalf("Failed to modify HTTPClient: %s", err)
 		}
+
+		// Replace the HTTP client in the Atlas configuration
+		client.AtlasV2.GetConfig().HTTPClient = mockedClient
 		return resp, diags
 	}
 	fwProviderInstance := provider.NewFrameworkProvider()

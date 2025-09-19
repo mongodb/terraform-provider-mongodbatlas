@@ -377,3 +377,11 @@ func PreCheckAwsMsk(tb testing.TB) {
 		tb.Fatal("`AWS_MSK_ARN` must be set for AWS MSK acceptance testing")
 	}
 }
+
+func PreCheckServiceAccount(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("MONGODB_ATLAS_CLIENT_ID") == "" ||
+		os.Getenv("MONGODB_ATLAS_CLIENT_SECRET") == "" {
+		tb.Fatal("`MONGODB_ATLAS_CLIENT_ID`, `MONGODB_ATLAS_CLIENT_SECRET` must be set for Service Account acceptance testing")
+	}
+}
