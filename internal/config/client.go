@@ -122,10 +122,9 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 			conf.RevokeURL = baseURL + clientcredentials.RevokeAPIPath
 		}
 
-		// Create a base HTTP client for token acquisition with increased timeout
+		// Create a base HTTP client for token acquisition
 		baseHTTPClient := &http.Client{
 			Transport: networkLoggingTransport,
-			Timeout:   30 * time.Second, // Increase timeout for OAuth2 token requests
 		}
 
 		// Set the HTTP client in context for token acquisition
