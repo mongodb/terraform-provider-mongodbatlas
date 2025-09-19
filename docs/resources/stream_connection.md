@@ -62,6 +62,38 @@ resource "mongodbatlas_stream_connection" "test" {
 }    
 ```
 
+### Example Kafka SASL OAuthbearer Connection
+
+```terraform
+resource "mongodbatlas_stream_connection" "example-kafka-oauthbearer" {
+    project_id      = var.project_id
+    instance_name   = mongodbatlas_stream_instance.example.instance_name
+    connection_name = "KafkaOAuthbearerConnection"
+    type            = "Kafka"
+    authentication = {
+        mechanism = "OAUTHBEARER"
+        token_endpoint_url = "https://example.com/oauth/token"
+        client_id  = "auth0Client"
+        client_secret  = var.kafka_client_secret
+        scope = "read:messages write:messages"
+        sasl_oauthbearer_extensions = "logicalCluster=lkc-kmom,identityPoolId=pool-lAr"
+        https_ca_pem = "pemtext"
+    }
+    bootstrap_servers = "localhost:9092,localhost:9092"
+    config = {
+        "auto.offset.reset" : "earliest"
+    }
+    security = {
+        protocol = "SASL_PLAINTEXT"
+    }
+    networking = {
+        access = {
+        type = "PUBLIC"
+        }
+    }
+}
+```
+
 ### Example Kafka SASL SSL Connection
 
 ```terraform
@@ -148,6 +180,12 @@ If `type` is of value `Https` the following additional attributes are defined:
 * `mechanism` - Style of authentication. Can be one of `PLAIN`, `SCRAM-256`, or `SCRAM-512`.
 * `username` - Username of the account to connect to the Kafka cluster.
 * `password` - Password of the account to connect to the Kafka cluster.
+* `token_endpoint_url` -  OAUTH issuer(IdP provider) token endpoint HTTP(S) URI used to retrieve the token.
+* `client_id` - Public identifier for the Kafka client.
+* `client_secret` - Secret known only to the Kafka client and the authorization server.
+* `scope` - Kafka clients use this to specify the scope of the access request to the broker.
+* `sasl_oauthbearer_extensions` - Additional information to be provided to the Kafka broker.
+* `https_ca_pem` - The CA certificates as a PEM string.
 
 ### Security
 
