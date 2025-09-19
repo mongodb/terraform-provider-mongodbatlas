@@ -481,7 +481,6 @@ jobs:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false    
       - id: sts-assume-role
-        if: matrix.auth_method == 'sts_assume_role'
         name: Generate STS Temporary credential for acceptance testing
         shell: bash
         env:
