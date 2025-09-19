@@ -506,6 +506,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ steps.sts-assume-role.outputs.aws_secret_access_key }}
           AWS_SESSION_TOKEN: ${{ steps.sts-assume-role.outputs.AWS_SESSION_TOKEN }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          ACCTEST_REGEX_RUN: '^TestAccSTSAssumeRole'
           ACCTEST_PACKAGES: ./internal/provider
         run: make testacc
       - name: Acceptance Tests (Service Account)
@@ -516,6 +517,7 @@ jobs:
           MONGODB_ATLAS_CLIENT_ID: ${{ secrets.mongodb_atlas_client_id }}
           MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          ACCTEST_REGEX_RUN: '^TestAccServiceAccount'
           ACCTEST_PACKAGES: ./internal/provider
         run: make testacc
 
