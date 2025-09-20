@@ -828,16 +828,16 @@ When modifying cluster configurations, you may see `(known after apply)` markers
 
 The provider v2.x uses the Terraform [Plugin Framework (TPF)](https://developer.hashicorp.com/terraform/plugin/framework), which is more strict and verbose with computed values than the legacy [SDKv2 framework](https://developer.hashicorp.com/terraform/plugin/sdkv2) used in v1.x. Key points:
 
-- **"(known after apply)" doesn't mean the value will change** - It indicates a computed value that can't be known in advance, even if the value remains the same.
-- **Optional/Computed attributes** (like `disk_iops`) show as "known after apply" when not explicitly set, but won't actually change.
-- **Actual changes are marked with an arrow (`->`) in the plan** - These values will truly change.
-- **Dependent attributes may change** - Some changes can affect related attributes (e.g., change to `zone_name` may update `zone_id`, `region_name` may update `container_id`, `instance_size` may update `disk_iops`, or `provider_name` may update `ebs_volume_type`).
+- "(known after apply)" doesn't mean the value will change - It indicates a computed value that can't be known in advance, even if the value remains the same.
+- Optional/Computed attributes show as "known after apply" when not explicitly set, but won't actually change.
+- Actual changes are marked with an arrow (`->`) in the plan** - These values will truly change.
+- Dependent attributes may change - Some changes can affect related attributes (e.g., change to `zone_name` may update `zone_id`, `region_name` may update `container_id`, `instance_size` may update `disk_iops`, or `provider_name` may update `ebs_volume_type`).
 
 **Mitigating Plan Verbosity**
 
 To reduce the number of `(known after apply)` entries in your plan output:
 
-1. **Explicitly declare known values** in your configuration where possible:
+1. Explicitly declare known values in your configuration where possible:
    ```terraform
    replication_specs = [
      {
@@ -857,7 +857,7 @@ To reduce the number of `(known after apply)` entries in your plan output:
    ]
    ```
 
-2. **Use lifecycle ignore_changes** for attributes that frequently show as unknown but don't affect your infrastructure, for example:
+2. Use lifecycle ignore_changes for attributes that frequently show as unknown but don't affect your infrastructure, for example:
    ```terraform
    lifecycle {
      ignore_changes = [
@@ -869,9 +869,9 @@ To reduce the number of `(known after apply)` entries in your plan output:
    }
    ```
 
-3. **Review the plan carefully** to distinguish between:
-   - **Actual changes**: Attributes you're intentionally modifying.
-   - **Computed updates**: Attributes marked as `(known after apply)` that will be recalculated but won't cause operational changes.
+3. Review the plan carefully to distinguish between:
+   - Actual changes: Attributes you're intentionally modifying.
+   - Computed updates: Attributes marked as `(known after apply)` that will be recalculated but won't cause operational changes.
 
 **Important Notes**
 
