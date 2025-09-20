@@ -846,9 +846,9 @@ To reduce the number of `(known after apply)` entries in your plan output:
            electable_specs = {
              instance_size   = "M30"
              node_count      = 3
-             disk_size_gb    = 100  # Explicitly set even if it's the default
+             disk_size_gb    = 100  # Explicitly set if known
              disk_iops       = 3000 # Explicitly set if known
-             ebs_volume_type = "STANDARD" # Explicitly set the volume type
+             ebs_volume_type = "STANDARD" # Explicitly set even if it's the default
            }
            # ... other configuration
          }
