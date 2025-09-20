@@ -6,11 +6,11 @@ subcategory: "Clusters"
 
 `mongodbatlas_advanced_cluster` provides an Advanced Cluster resource. The resource lets you create, edit and delete advanced clusters.
 
-
 ~> **IMPORTANT:** If upgrading from our provider versions 1.x.x to 2.0.0 or later, you will be required to update your `mongodbatlas_advanced_cluster` resource configuration. Please refer [this guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/migrate-to-advanced-cluster-2.0) for details. This new implementation uses the recommended Terraform Plugin Framework, which, in addition to providing a better user experience and other features, adds support for the `moved` block between different resource types.
 
-
 ~> **IMPORTANT:** We recommend all new MongoDB Atlas Terraform users start with the [`mongodbatlas_advanced_cluster`](advanced_cluster) resource.  Key differences between [`mongodbatlas_cluster`](cluster) and [`mongodbatlas_advanced_cluster`](advanced_cluster) include support for [Multi-Cloud Clusters](https://www.mongodb.com/blog/post/introducing-multicloud-clusters-on-mongodb-atlas), [Asymmetric Sharding](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema), and [Independent Scaling of Analytics Node Tiers](https://www.mongodb.com/blog/post/introducing-ability-independently-scale-atlas-analytics-node-tiers). For existing [`mongodbatlas_cluster`](cluster) resource users see our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
+
+-> **IMPORTANT:** When modifying cluster configurations, you may notice increased verbosity in Terraform plan output with multiple attributes showing as `(known after apply)`, even for unrelated fields. For guidance on managing this behavior, see the ["known after apply" verbosity](#known-after-apply-verbosity) section below.
 
 -> **NOTE:** If Backup Compliance Policy is enabled for the project for which this backup schedule is defined, you cannot modify the backup schedule for an individual cluster below the minimum requirements set in the Backup Compliance Policy.  See [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy).
 
