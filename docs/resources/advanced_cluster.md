@@ -10,7 +10,7 @@ subcategory: "Clusters"
 
 ~> **IMPORTANT:** We recommend all new MongoDB Atlas Terraform users start with the [`mongodbatlas_advanced_cluster`](advanced_cluster) resource.  Key differences between [`mongodbatlas_cluster`](cluster) and [`mongodbatlas_advanced_cluster`](advanced_cluster) include support for [Multi-Cloud Clusters](https://www.mongodb.com/blog/post/introducing-multicloud-clusters-on-mongodb-atlas), [Asymmetric Sharding](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema), and [Independent Scaling of Analytics Node Tiers](https://www.mongodb.com/blog/post/introducing-ability-independently-scale-atlas-analytics-node-tiers). For existing [`mongodbatlas_cluster`](cluster) resource users see our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
 
--> **IMPORTANT:** When modifying cluster configurations, you may notice increased verbosity in Terraform plan output with multiple attributes showing as `(known after apply)`, even for unrelated fields. For guidance on managing this behavior, see the ["known after apply" verbosity](#known-after-apply-verbosity) section below.
+-> **IMPORTANT:** When modifying cluster configurations, you may see `(known after apply)` markers for many attributes, even those you haven't changed. This is expected behavior. See the ["known after apply" verbosity](#known-after-apply-verbosity) section below for details.
 
 -> **NOTE:** If Backup Compliance Policy is enabled for the project for which this backup schedule is defined, you cannot modify the backup schedule for an individual cluster below the minimum requirements set in the Backup Compliance Policy.  See [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy).
 
@@ -822,9 +822,62 @@ More information about moving resources can be found in our [Migration Guide](ht
 
 ### "known after apply" verbosity
 
-When making changes to your cluster, it is expected that your Terraform plan might show `known after apply` entries in attributes that have not been modified and does not have any side effects. The reason why this is happening is because some of the changes you make can affect other values of the cluster, hence the provider plugin will show the inability to know the future value until MongoDB Atlas provides those value in the response. As an example, a change in `instance_size` can affect `disk_iops`. This behaviour is related to how [Terraform Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework) behaves when the resource schema makes use of computed attributes.
+When modifying cluster configurations, you may see `(known after apply)` markers in your Terraform plan output, even for attributes you haven't modified. This is expected behavior.
 
-If you want to reduce the `known after apply` verbosity in Terraform plan output, explicitly declare expected values for those attributes in your configuration where possible. This approach gives Terraform more information upfront, resulting in clearer, more predictable plan output.
+#### Understanding "Known After Apply" Behavior
+
+The provider v2.x uses the Terraform [Plugin Framework (TPF)](https://developer.hashicorp.com/terraform/plugin/framework), which is more strict and verbose with computed values than the legacy [SDKv2 framework](https://developer.hashicorp.com/terraform/plugin/sdkv2) used in v1.x. Key points:
+
+- **"(known after apply)" doesn't mean the value will change** - It indicates a computed value that can't be known in advance, even if the value remains the same.
+- **Optional/Computed attributes** (like `disk_iops`) show as "known after apply" when not explicitly set, but won't actually change.
+- **Actual changes are marked with an arrow (`->`) in the plan** - These values will truly change.
+- **Dependent attributes may change** - Some changes can affect related attributes (e.g., change to `zone_name` may update `zone_id`, `region_name` may update `container_id`, `instance_size` may update `disk_iops`, or `provider_name` may update `ebs_volume_type`).
+
+#### Mitigating Plan Verbosity
+
+To reduce the number of `(known after apply)` entries in your plan output:
+
+1. **Explicitly declare known values** in your configuration where possible:
+   ```terraform
+   replication_specs = [
+     {
+       region_configs = [
+         {
+           electable_specs = {
+             instance_size   = "M30"
+             node_count      = 3
+             disk_size_gb    = 100  # Explicitly set even if it's the default
+             disk_iops       = 3000 # Explicitly set if known
+             ebs_volume_type = "STANDARD" # Explicitly set the volume type
+           }
+           # ... other configuration
+         }
+       ]
+     }
+   ]
+   ```
+
+2. **Use lifecycle ignore_changes** for attributes that frequently show as unknown but don't affect your infrastructure, for example:
+   ```terraform
+   lifecycle {
+     ignore_changes = [
+       state_name,
+       replication_specs[0].container_id,
+       replication_specs[0].external_id,
+       replication_specs[0].zone_id
+     ]
+   }
+   ```
+
+3. **Review the plan carefully** to distinguish between:
+   - **Actual changes**: Attributes you're intentionally modifying.
+   - **Computed updates**: Attributes marked as `(known after apply)` that will be recalculated but won't cause operational changes.
+
+#### Important Notes
+
+- `(known after apply)` markers don't represent actual changes—only values with an arrow (`->`) will change, along with any dependent attributes affected by those changes.
+- Plans with `(known after apply)` entries are safe to apply.
+- The MongoDB team is working to reduce plan verbosity, though no timeline is available yet.
 
 ### Remove or disable functionality
 
