@@ -61,7 +61,7 @@ const (
 	MongodbGovCloudQAURL           = "https://cloud-qa.mongodbgov.com"
 	MongodbGovCloudDevURL          = "https://cloud-dev.mongodbgov.com"
 	ProviderConfigError            = "error in configuring the provider."
-	MissingAuthAttrError           = "either Atlas Programmatic API Keys, Service Accounts, or AWS Secrets Manager attributes must be set"
+	MissingAuthAttrError           = "either AWS Secrets Manager, Service Accounts, or Atlas Programmatic API Keys attributes must be set"
 	ProviderMetaUserAgentExtra     = "user_agent_extra"
 	ProviderMetaUserAgentExtraDesc = "You can extend the user agent header for each request made by the provider to the Atlas Admin API. The Key Values will be formatted as {key}/{value}."
 	ProviderMetaModuleName         = "module_name"
@@ -192,11 +192,11 @@ func (p *MongodbtlasProvider) Schema(ctx context.Context, req provider.SchemaReq
 			},
 			"client_id": schema.StringAttribute{
 				Optional:    true,
-				Description: "MongoDB Atlas Client ID.",
+				Description: "MongoDB Atlas Client ID for Service Account.",
 			},
 			"client_secret": schema.StringAttribute{
 				Optional:    true,
-				Description: "MongoDB Atlas Client Secret.",
+				Description: "MongoDB Atlas Client Secret for Service Account.",
 			},
 		},
 	}

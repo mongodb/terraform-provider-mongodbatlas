@@ -133,12 +133,12 @@ func NewSdkV2Provider() *schema.Provider {
 			"client_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "MongoDB Atlas Client ID.",
+				Description: "MongoDB Atlas Client ID for Service Account.",
 			},
 			"client_secret": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "MongoDB Atlas Client Secret.",
+				Description: "MongoDB Atlas Client Secret for Service Account.",
 			},
 		},
 		DataSourcesMap: getDataSourcesMap(),
