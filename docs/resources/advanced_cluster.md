@@ -828,7 +828,7 @@ The provider v2.x uses the Terraform [Plugin Framework (TPF)](https://developer.
 
 - "(known after apply)" doesn't mean the value will change - It indicates a computed value that can't be known in advance, even if the value remains the same.
 - Optional/Computed attributes show as "known after apply" when not explicitly set, but won't actually change.
-- Actual changes are marked with an arrow (`->`) in the plan - These values will truly change.
+- All attributes which are marked as "known after apply", including their nested attributes, can be safely ignored.
 - Dependent attributes may change - Some changes can affect related attributes (e.g., change to `zone_name` may update `zone_id`, `region_name` may update `container_id`, `instance_size` may update `disk_iops`, or `provider_name` may update `ebs_volume_type`).
 
 To reduce the number of `(known after apply)` entries in your plan output, explicitly declare known values in your configuration where possible:
