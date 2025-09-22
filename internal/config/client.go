@@ -112,7 +112,7 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 	var optsAtlas []matlasClient.ClientOpt
 
 	// Determine authentication method based on available credentials
-	switch authMethod := resolveAuthMethod(c); authMethod {
+	switch resolveAuthMethod(c) {
 	case serviceAccountAuthMethod:
 		conf := clientcredentials.NewConfig(c.ClientID, c.ClientSecret)
 		// Override TokenURL and RevokeURL if custom BaseURL is provided
