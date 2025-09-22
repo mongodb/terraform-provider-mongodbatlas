@@ -824,8 +824,6 @@ More information about moving resources can be found in our [Migration Guide](ht
 
 When modifying cluster configurations, you may see `(known after apply)` markers in your Terraform plan output, even for attributes you haven't modified. This is expected behavior.
 
-▸Understanding the Behavior
-
 The provider v2.x uses the Terraform [Plugin Framework (TPF)](https://developer.hashicorp.com/terraform/plugin/framework), which is more strict and verbose with computed values than the legacy [SDKv2 framework](https://developer.hashicorp.com/terraform/plugin/sdkv2) used in v1.x. Key points:
 
 - "(known after apply)" doesn't mean the value will change - It indicates a computed value that can't be known in advance, even if the value remains the same.
@@ -833,11 +831,7 @@ The provider v2.x uses the Terraform [Plugin Framework (TPF)](https://developer.
 - Actual changes are marked with an arrow (`->`) in the plan - These values will truly change.
 - Dependent attributes may change - Some changes can affect related attributes (e.g., change to `zone_name` may update `zone_id`, `region_name` may update `container_id`, `instance_size` may update `disk_iops`, or `provider_name` may update `ebs_volume_type`).
 
-▸Mitigating Plan Verbosity
-
-To reduce the number of `(known after apply)` entries in your plan output:
-
-1. Explicitly declare known values in your configuration where possible:
+To reduce the number of `(known after apply)` entries in your plan output, explicitly declare known values in your configuration where possible:
    ```terraform
    replication_specs = [
      {
@@ -857,27 +851,7 @@ To reduce the number of `(known after apply)` entries in your plan output:
    ]
    ```
 
-2. Use lifecycle ignore_changes for attributes that frequently show as unknown but don't affect your infrastructure, for example:
-   ```terraform
-   lifecycle {
-     ignore_changes = [
-       state_name,
-       replication_specs[0].container_id,
-       replication_specs[0].external_id,
-       replication_specs[0].zone_id
-     ]
-   }
-   ```
-
-3. Review the plan carefully to distinguish between:
-   - Actual changes: Attributes you're intentionally modifying.
-   - Computed updates: Attributes marked as `(known after apply)` that will be recalculated but won't cause operational changes.
-
-▸Important Notes
-
-- `(known after apply)` markers don't represent actual changes—only values with an arrow (`->`) will change, along with any dependent attributes affected by those changes.
-- Plans with `(known after apply)` entries are safe to apply.
-- The MongoDB team is working to reduce plan verbosity, though no timeline is available yet.
+The MongoDB team is working to reduce plan verbosity, though no timeline is available yet.
 
 ### Remove or disable functionality
 
