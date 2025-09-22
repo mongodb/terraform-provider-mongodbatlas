@@ -469,9 +469,6 @@ jobs:
     if: ${{ needs.change-detection.outputs.authentication == 'true' || inputs.test_group == 'authentication' }}
     runs-on: ubuntu-latest
     permissions: {}
-    strategy:
-      matrix:
-        auth_method: [sts_assume_role, service_account]
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:
@@ -484,7 +481,6 @@ jobs:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false    
       - id: sts-assume-role
-        if: matrix.auth_method == 'sts_assume_role'
         name: Generate STS Temporary credential for acceptance testing
         shell: bash
         env:
@@ -494,7 +490,6 @@ jobs:
           ASSUME_ROLE_ARN: ${{ vars.ASSUME_ROLE_ARN }}
         run: bash ./scripts/generate-credentials-with-sts-assume-role.sh
       - name: Acceptance Tests (STS Assume Role)
-        if: matrix.auth_method == 'sts_assume_role'
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ""
           MONGODB_ATLAS_PRIVATE_KEY: ""
@@ -510,7 +505,6 @@ jobs:
           ACCTEST_PACKAGES: ./internal/provider
         run: make testacc
       - name: Acceptance Tests (Service Account)
-        if: matrix.auth_method == 'service_account'
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ""
           MONGODB_ATLAS_PRIVATE_KEY: ""
