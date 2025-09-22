@@ -52,6 +52,29 @@ const (
 	Unknown
 )
 
+// CredentialProvider interface for types that can provide MongoDB Atlas credentials
+type CredentialProvider interface {
+	GetPublicKey() string
+	GetPrivateKey() string
+	GetClientID() string
+	GetClientSecret() string
+}
+
+// IsDigestAuth checks if public/private key credentials are present
+func IsDigestAuth(publicKey, privateKey string) bool {
+	return publicKey != "" && privateKey != ""
+}
+
+// IsServiceAccountAuth checks if client ID/secret credentials are present
+func IsServiceAccountAuth(clientID, clientSecret string) bool {
+	return clientID != "" && clientSecret != ""
+}
+
+// HasValidAuthCredentials checks if any valid authentication method is provided
+func HasValidAuthCredentials(publicKey, privateKey, clientID, clientSecret string) bool {
+	return IsDigestAuth(publicKey, privateKey) || IsServiceAccountAuth(clientID, clientSecret)
+}
+
 var baseTransport = &http.Transport{
 	DialContext: (&net.Dialer{
 		Timeout:   timeout,
@@ -88,6 +111,12 @@ type Config struct {
 	PreviewV2AdvancedClusterEnabled bool
 }
 
+// CredentialProvider implementation for Config
+func (c *Config) GetPublicKey() string    { return c.PublicKey }
+func (c *Config) GetPrivateKey() string   { return c.PrivateKey }
+func (c *Config) GetClientID() string     { return c.ClientID }
+func (c *Config) GetClientSecret() string { return c.ClientSecret }
+
 type AssumeRole struct {
 	Tags              map[string]string
 	RoleARN           string
@@ -118,7 +147,7 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 	var optsAtlas []matlasClient.ClientOpt
 
 	// Determine authentication method based on available credentials
-	switch resolveAuthMethod(c) {
+	switch ResolveAuthMethod(c) {
 	case ServiceAccount:
 		conf := clientcredentials.NewConfig(c.ClientID, c.ClientSecret)
 		// Override TokenURL and RevokeURL if custom BaseURL is provided
@@ -375,11 +404,12 @@ func userAgent(c *Config) string {
 	return strings.Join(parts, " ")
 }
 
-func resolveAuthMethod(c *Config) AuthMethod {
-	if c.ClientID != "" && c.ClientSecret != "" {
+// ResolveAuthMethod determines the authentication method from any credential provider
+func ResolveAuthMethod(cg CredentialProvider) AuthMethod {
+	if IsServiceAccountAuth(cg.GetClientID(), cg.GetClientSecret()) {
 		return ServiceAccount
 	}
-	if c.PublicKey != "" && c.PrivateKey != "" {
+	if IsDigestAuth(cg.GetPublicKey(), cg.GetPrivateKey()) {
 		return Digest
 	}
 	return Unknown

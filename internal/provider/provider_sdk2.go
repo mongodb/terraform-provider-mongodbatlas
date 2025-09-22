@@ -63,6 +63,12 @@ type SecretData struct {
 	ClientSecret string `json:"client_secret"`
 }
 
+// CredentialProvider implementation for SecretData
+func (s *SecretData) GetPublicKey() string    { return s.PublicKey }
+func (s *SecretData) GetPrivateKey() string   { return s.PrivateKey }
+func (s *SecretData) GetClientID() string     { return s.ClientID }
+func (s *SecretData) GetClientSecret() string { return s.ClientSecret }
+
 // NewSdkV2Provider returns the provider to be use by the code.
 func NewSdkV2Provider() *schema.Provider {
 	provider := &schema.Provider{
@@ -439,10 +445,7 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 	}
 
 	// Check if any valid authentication method is provided
-	hasDigestAuth := d.Get("public_key").(string) != "" && d.Get("private_key").(string) != ""
-	hasServiceAccountAuth := d.Get("client_id").(string) != "" && d.Get("client_secret").(string) != ""
-
-	if !hasDigestAuth && !hasServiceAccountAuth && !awsRoleDefined {
+	if !config.HasValidAuthCredentials(d.Get("public_key").(string), d.Get("private_key").(string), d.Get("client_id").(string), d.Get("client_secret").(string)) && !awsRoleDefined {
 		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: MissingAuthAttrError})
 	}
 

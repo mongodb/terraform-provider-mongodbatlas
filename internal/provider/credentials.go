@@ -75,14 +75,14 @@ func configureCredentialsSTS(cfg *config.Config, secret, region, awsAccessKeyID,
 		return *cfg, err
 	}
 
-	switch {
-	case secretData.PrivateKey != "" && secretData.PublicKey != "":
+	switch config.ResolveAuthMethod(&secretData) {
+	case config.Digest:
 		cfg.PublicKey = secretData.PublicKey
 		cfg.PrivateKey = secretData.PrivateKey
-	case secretData.ClientID != "" && secretData.ClientSecret != "":
+	case config.ServiceAccount:
 		cfg.ClientID = secretData.ClientID
 		cfg.ClientSecret = secretData.ClientSecret
-	default:
+	case config.Unknown:
 		return *cfg, fmt.Errorf("secret missing value for supported credentials: PrivateKey/PublicKey or ClientID/ClientSecret")
 	}
 
