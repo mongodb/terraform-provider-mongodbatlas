@@ -471,7 +471,12 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 	}
 
 	// Check if any valid authentication method is provided
-	if !config.HasValidAuthCredentials(data.PublicKey.ValueString(), data.PrivateKey.ValueString(), data.ClientID.ValueString(), data.ClientSecret.ValueString()) && !awsRoleDefined {
+	if !config.HasValidAuthCredentials(&config.Config{
+		PublicKey:    data.PublicKey.ValueString(),
+		PrivateKey:   data.PrivateKey.ValueString(),
+		ClientID:     data.ClientID.ValueString(),
+		ClientSecret: data.ClientSecret.ValueString(),
+	}) && !awsRoleDefined {
 		resp.Diagnostics.AddWarning(ProviderConfigError, MissingAuthAttrError)
 	}
 

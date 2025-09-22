@@ -445,7 +445,12 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 	}
 
 	// Check if any valid authentication method is provided
-	if !config.HasValidAuthCredentials(d.Get("public_key").(string), d.Get("private_key").(string), d.Get("client_id").(string), d.Get("client_secret").(string)) && !awsRoleDefined {
+	if !config.HasValidAuthCredentials(&config.Config{
+		PublicKey:    d.Get("public_key").(string),
+		PrivateKey:   d.Get("private_key").(string),
+		ClientID:     d.Get("client_id").(string),
+		ClientSecret: d.Get("client_secret").(string),
+	}) && !awsRoleDefined {
 		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: MissingAuthAttrError})
 	}
 

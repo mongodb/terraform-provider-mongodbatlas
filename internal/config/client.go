@@ -61,18 +61,18 @@ type CredentialProvider interface {
 }
 
 // IsDigestAuth checks if public/private key credentials are present
-func IsDigestAuth(publicKey, privateKey string) bool {
-	return publicKey != "" && privateKey != ""
+func IsDigestAuth(cp CredentialProvider) bool {
+	return cp.GetPublicKey() != "" && cp.GetPrivateKey() != ""
 }
 
 // IsServiceAccountAuth checks if client ID/secret credentials are present
-func IsServiceAccountAuth(clientID, clientSecret string) bool {
-	return clientID != "" && clientSecret != ""
+func IsServiceAccountAuth(cp CredentialProvider) bool {
+	return cp.GetClientID() != "" && cp.GetClientSecret() != ""
 }
 
 // HasValidAuthCredentials checks if any valid authentication method is provided
-func HasValidAuthCredentials(publicKey, privateKey, clientID, clientSecret string) bool {
-	return IsDigestAuth(publicKey, privateKey) || IsServiceAccountAuth(clientID, clientSecret)
+func HasValidAuthCredentials(cp CredentialProvider) bool {
+	return IsDigestAuth(cp) || IsServiceAccountAuth(cp)
 }
 
 var baseTransport = &http.Transport{
@@ -406,10 +406,10 @@ func userAgent(c *Config) string {
 
 // ResolveAuthMethod determines the authentication method from any credential provider
 func ResolveAuthMethod(cg CredentialProvider) AuthMethod {
-	if IsServiceAccountAuth(cg.GetClientID(), cg.GetClientSecret()) {
+	if IsServiceAccountAuth(cg) {
 		return ServiceAccount
 	}
-	if IsDigestAuth(cg.GetPublicKey(), cg.GetPrivateKey()) {
+	if IsDigestAuth(cg) {
 		return Digest
 	}
 	return Unknown
