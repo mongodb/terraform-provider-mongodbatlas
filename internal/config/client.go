@@ -35,8 +35,6 @@ const (
 	toolName                             = "terraform-provider-mongodbatlas"
 	terraformPlatformName                = "Terraform"
 	previewV2AdvancedClusterEnabledUAKey = "AdvancedClusterPreview"
-	serviceAccountAuthMethod             = "service_account"
-	digestAuthMethod                     = "digest"
 
 	timeout               = 5 * time.Second
 	keepAlive             = 30 * time.Second
@@ -44,6 +42,14 @@ const (
 	maxIdleConnsPerHost   = 5
 	idleConnTimeout       = 30 * time.Second
 	expectContinueTimeout = 1 * time.Second
+)
+
+type AuthMethod int
+
+const (
+	ServiceAccount AuthMethod = iota
+	Digest
+	Unknown
 )
 
 var baseTransport = &http.Transport{
@@ -113,7 +119,7 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 
 	// Determine authentication method based on available credentials
 	switch resolveAuthMethod(c) {
-	case serviceAccountAuthMethod:
+	case ServiceAccount:
 		conf := clientcredentials.NewConfig(c.ClientID, c.ClientSecret)
 		// Override TokenURL and RevokeURL if custom BaseURL is provided
 		if c.BaseURL != "" {
@@ -146,12 +152,13 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 		oauthClient.Transport = tfLoggingTransport
 		client = oauthClient
 		optsAtlas = []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
-	case digestAuthMethod:
+	case Digest:
 		digestTransport := digest.NewTransportWithHTTPRoundTripper(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey), networkLoggingTransport)
 		// Don't change logging.NewTransport to NewSubsystemLoggingHTTPTransport until all resources are in TPF.
 		tfLoggingTransport := logging.NewTransport("Atlas", digestTransport)
 		client = &http.Client{Transport: tfLoggingTransport}
 		optsAtlas = []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
+	case Unknown:
 	}
 
 	if c.BaseURL != "" {
@@ -368,12 +375,12 @@ func userAgent(c *Config) string {
 	return strings.Join(parts, " ")
 }
 
-func resolveAuthMethod(c *Config) string {
+func resolveAuthMethod(c *Config) AuthMethod {
 	if c.ClientID != "" && c.ClientSecret != "" {
-		return "service_account"
+		return ServiceAccount
 	}
 	if c.PublicKey != "" && c.PrivateKey != "" {
-		return "digest"
+		return Digest
 	}
-	return "unknown"
+	return Unknown
 }
