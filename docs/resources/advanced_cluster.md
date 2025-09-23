@@ -845,7 +845,7 @@ When modifying cluster configurations, you may see `(known after apply)` markers
 ...
 !                       electable_specs        = {
 !                           disk_iops       = 3000 -> (known after apply)
-!                           disk_size_gb    = 60 -> (known after apply)
+!                           disk_size_gb    = 60 -> 80  # CHANGE DONE IN THE CONFIGURATION FILE
 !                           ebs_volume_type = "STANDARD" -> (known after apply)
                             # (2 unchanged attributes hidden)
                         }
@@ -853,12 +853,12 @@ When modifying cluster configurations, you may see `(known after apply)` markers
     }
 ```
 
-The provider v2.x uses the Terraform [Plugin Framework (TPF)](https://developer.hashicorp.com/terraform/plugin/framework), which is more strict and verbose with computed values than the legacy [SDKv2 framework](https://developer.hashicorp.com/terraform/plugin/sdkv2) used in v1.x. Key points:
+The provider v2.x uses the Terraform [Plugin Framework (TPF)](https://developer.hashicorp.com/terraform/plugin/framework), which is more strict and verbose with computed values than the legacy [SDKv2 framework](https://developer.hashicorp.com/terraform/plugin/sdkv2) used in v1.x. For more information, see [this discussion](https://discuss.hashicorp.com/t/best-practices-for-handling-known-after-apply-plan-verbosity-in-tpf-resources/73806). Key points:
 
 - "(known after apply)" doesn't mean the value will change - It indicates a computed value that [can't be known in advance](https://developer.hashicorp.com/terraform/language/expressions/references#values-not-yet-known), even if the value remains the same.
-- Optional/Computed attributes show as "known after apply" when not explicitly set, but won't actually change.
 - All attributes which are marked as "known after apply", including their nested attributes, can be safely ignored.
 - Dependent attributes may change - Some changes can affect related attributes (e.g., change to `zone_name` may update `zone_id`, `region_name` may update `container_id`, `instance_size` may update `disk_iops`, or `provider_name` may update `ebs_volume_type`).
+- Optional/Computed attributes show as "known after apply" when not explicitly set, but only attributes modified in the Terraform configuration files will change along with their dependent attributes.
 
 To reduce the number of `(known after apply)` entries in your plan output, explicitly declare known values in your configuration where possible:
    ```terraform
