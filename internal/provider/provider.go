@@ -477,7 +477,7 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 		ClientID:     data.ClientID.ValueString(),
 		ClientSecret: data.ClientSecret.ValueString(),
 	}) && !awsRoleDefined {
-		resp.Diagnostics.AddWarning(ProviderConfigError, MissingAuthAttrError)
+		resp.Diagnostics.AddError(ProviderConfigError, MissingAuthAttrError)
 	}
 
 	return *data

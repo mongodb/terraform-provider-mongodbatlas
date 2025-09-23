@@ -451,7 +451,7 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 		ClientID:     d.Get("client_id").(string),
 		ClientSecret: d.Get("client_secret").(string),
 	}) && !awsRoleDefined {
-		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: MissingAuthAttrError})
+		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Error, Summary: MissingAuthAttrError})
 	}
 
 	return diagnostics
