@@ -31,10 +31,10 @@ func ConfigEARAzureKeyVault(projectID string, azure *admin.AzureKeyVault, useReq
 				azure_environment   = "%s"
 				subscription_id     = "%s"
 				resource_group_name = "%s"
-				key_vault_name  	  = "%s"
-				key_identifier  	  = "%s"
-				secret  						= "%s"
-				tenant_id  					= "%s"
+				key_vault_name      = "%s"
+				key_identifier      = "%s"
+				secret  		    = "%s"
+				tenant_id  		    = "%s"
 				%s
 			}
 		}
@@ -47,33 +47,102 @@ func ConfigEARAzureKeyVault(projectID string, azure *admin.AzureKeyVault, useReq
 	return config
 }
 
-func ConfigAwsKms(projectID string, aws *admin.AWSKMSConfiguration, useDatasource, useRequirePrivateNetworking, useEnabledForSearchNodes bool) string {
+func ConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName string, awsKms *admin.AWSKMSConfiguration, useDatasource, useRequirePrivateNetworking, useEnabledForSearchNodes bool) string {
 	requirePrivateNetworkingStr := ""
 	if useRequirePrivateNetworking {
-		requirePrivateNetworkingStr = fmt.Sprintf("require_private_networking = %t", aws.GetRequirePrivateNetworking())
+		requirePrivateNetworkingStr = fmt.Sprintf("require_private_networking = %t", awsKms.GetRequirePrivateNetworking())
 	}
-	enabledForSearchNodes := ""
+	enabledForSearchNodesStr := ""
 	if useEnabledForSearchNodes {
-		enabledForSearchNodes = fmt.Sprintf("enabled_for_search_nodes = %t", useEnabledForSearchNodes)
+		enabledForSearchNodesStr = fmt.Sprintf("enabled_for_search_nodes = %t", useEnabledForSearchNodes)
+	}
+	datasourceStr := ""
+	if useDatasource {
+		datasourceStr = EARDatasourceConfig()
 	}
 	config := fmt.Sprintf(`
-		resource "mongodbatlas_encryption_at_rest" "test" {
-			project_id = %[1]q
-
-		  	aws_kms_config {
-				enabled                = %[2]t
-				customer_master_key_id = %[3]q
-				region                 = %[4]q
-				role_id              = %[5]q
-				%[6]s
-			}
-			%[7]s
+		locals {
+			project_id                 = %[1]q
+			aws_ear_enabled			   = %[2]t
+			aws_iam_role_name          = %[3]q
+			aws_iam_role_policy_name   = %[4]q
+			aws_customer_master_key_id = %[5]q
+			aws_region				   = %[6]q
 		}
-	`, projectID, aws.GetEnabled(), aws.GetCustomerMasterKeyID(), aws.GetRegion(), aws.GetRoleId(), requirePrivateNetworkingStr, enabledForSearchNodes)
 
-	if useDatasource {
-		return fmt.Sprintf(`%s %s`, config, EARDatasourceConfig())
-	}
+		resource "aws_iam_role_policy" "test_policy" {
+			name = local.aws_iam_role_policy_name
+			role = aws_iam_role.test_role.id
+	  
+			policy = jsonencode({
+				"Version" : "2012-10-17",
+				"Statement" : [
+					{
+						"Effect" : "Allow",
+						"Action" : [
+							"kms:Decrypt",
+							"kms:Encrypt",
+							"kms:DescribeKey"
+						],
+						"Resource" : [
+							"${local.aws_customer_master_key_id}"
+						]
+					}
+			  ]
+			})
+		}
+	  
+		resource "aws_iam_role" "test_role" {
+			name = local.aws_iam_role_name
+	  
+			assume_role_policy = jsonencode({
+				"Version" : "2012-10-17",
+				"Statement" : [
+					{
+						"Effect" : "Allow",
+						"Principal" : {
+							"AWS" : "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config[0].atlas_aws_account_arn}"
+						},
+						"Action" : "sts:AssumeRole",
+						"Condition" : {
+							"StringEquals" : {
+								"sts:ExternalId" : "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config[0].atlas_assumed_role_external_id}"
+							}
+						}
+					}
+				]
+			})
+		}
+
+		resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
+			project_id    = local.project_id
+			provider_name = "AWS"
+		}
+	  
+		resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
+			project_id = local.project_id
+			role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
+	  
+			aws {
+				iam_assumed_role_arn = aws_iam_role.test_role.arn
+			}
+		}
+
+		resource "mongodbatlas_encryption_at_rest" "test" {
+			project_id = local.project_id
+
+			aws_kms_config {
+				enabled                = local.aws_ear_enabled
+				customer_master_key_id = local.aws_customer_master_key_id
+				region                 = local.aws_region
+				role_id                = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+				%[7]s
+			}
+			%[8]s
+		}
+
+		%[9]s
+	`, projectID, awsKms.GetEnabled(), awsIAMRoleName, awsIAMRolePolicyName, awsKms.GetCustomerMasterKeyID(), awsKms.GetRegion(), requirePrivateNetworkingStr, enabledForSearchNodesStr, datasourceStr)
 	return config
 }
 
@@ -103,7 +172,6 @@ func ConvertToAwsKmsEARAttrMap(awsKms *admin.AWSKMSConfiguration) map[string]str
 	return map[string]string{
 		"enabled":                    strconv.FormatBool(awsKms.GetEnabled()),
 		"region":                     awsKms.GetRegion(),
-		"role_id":                    awsKms.GetRoleId(),
 		"customer_master_key_id":     awsKms.GetCustomerMasterKeyID(),
 		"valid":                      "true",
 		"require_private_networking": strconv.FormatBool(awsKms.GetRequirePrivateNetworking()),

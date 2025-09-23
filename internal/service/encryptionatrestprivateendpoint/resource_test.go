@@ -161,20 +161,21 @@ func TestAccEncryptionAtRestPrivateEndpoint_AWS_basic(t *testing.T) {
 func basicTestCaseAWS(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 	var (
-		projectID = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID") // to use RequirePrivateNetworking, Atlas Project is required to have FF enabled
+		projectID = acc.ProjectIDExecution(tb)
+
+		awsIAMRoleName       = acc.RandomIAMRole()
+		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
 
 		awsKms = admin.AWSKMSConfiguration{
 			Enabled:                  conversion.Pointer(true),
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RoleId:                   conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
 			RequirePrivateNetworking: conversion.Pointer(false),
 		}
 		awsKmsPrivateNetworking = admin.AWSKMSConfiguration{
 			Enabled:                  conversion.Pointer(true),
 			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
 			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RoleId:                   conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
 			RequirePrivateNetworking: conversion.Pointer(true),
 		}
 		region = conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))
@@ -182,22 +183,23 @@ func basicTestCaseAWS(tb testing.TB) *resource.TestCase {
 
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckEncryptionAtRestEnvAWS(tb) },
+		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigAwsKms(projectID, &awsKms, false, true, false),
+				Config: acc.ConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, &awsKms, false, true, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(earResourceName, "aws_kms_config.0.enabled", "true"),
 					resource.TestCheckResourceAttr(earResourceName, "aws_kms_config.0.require_private_networking", "false"),
 				),
 			},
 			{
-				Config: configAWSBasic(projectID, &awsKmsPrivateNetworking, region),
+				Config: configAWSBasic(projectID, awsIAMRoleName, awsIAMRolePolicyName, &awsKmsPrivateNetworking),
 				Check:  checkBasic(projectID, "AWS", region, true),
 			},
 			{
-				Config:            configAWSBasic(projectID, &awsKms, region),
+				Config:            configAWSBasic(projectID, awsIAMRoleName, awsIAMRolePolicyName, &awsKms),
 				ResourceName:      resourceName,
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
@@ -344,19 +346,8 @@ func checkBasic(projectID, cloudProvider, region string, expectApproved bool) re
 		})
 }
 
-func configAWSBasic(projectID string, awsKms *admin.AWSKMSConfiguration, region string) string {
-	return configAWSBasicWithTimeout(projectID, awsKms, region, "", nil)
-}
-
-func configAWSBasicWithTimeout(projectID string, awsKms *admin.AWSKMSConfiguration, region, timeoutConfig string, deleteOnCreateTimeout *bool) string {
-	encryptionAtRestConfig := acc.ConfigAwsKms(projectID, awsKms, false, true, false)
-
-	deleteOnCreateTimeoutConfig := ""
-	if deleteOnCreateTimeout != nil {
-		deleteOnCreateTimeoutConfig = fmt.Sprintf(`
-			delete_on_create_timeout = %[1]t
-		`, *deleteOnCreateTimeout)
-	}
+func configAWSBasic(projectID, awsIAMRoleName, awsIAMRolePolicyName string, awsKms *admin.AWSKMSConfiguration) string {
+	encryptionAtRestConfig := acc.ConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, awsKms, false, true, false)
 
 	config := fmt.Sprintf(`
 		%[1]s
@@ -365,13 +356,10 @@ func configAWSBasicWithTimeout(projectID string, awsKms *admin.AWSKMSConfigurati
 		    project_id = mongodbatlas_encryption_at_rest.test.project_id
 		    cloud_provider = "AWS"
 		    region_name = %[2]q
-		    %[3]s
-		    %[4]s
 		}
 
-		%[5]s
-
-	`, encryptionAtRestConfig, region, deleteOnCreateTimeoutConfig, timeoutConfig, configDS())
+		%[3]s
+	`, encryptionAtRestConfig, awsKms.GetRegion(), configDS())
 
 	return config
 }
