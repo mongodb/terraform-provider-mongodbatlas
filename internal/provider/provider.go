@@ -61,7 +61,7 @@ const (
 	MongodbGovCloudQAURL           = "https://cloud-qa.mongodbgov.com"
 	MongodbGovCloudDevURL          = "https://cloud-dev.mongodbgov.com"
 	ProviderConfigError            = "error in configuring the provider."
-	MissingAuthAttrError           = "either AWS Secrets Manager, Service Accounts, or Atlas Programmatic API Keys attributes must be set"
+	MissingAuthAttrError           = "either AWS Secrets Manager, Service Accounts or Atlas Programmatic API Keys attributes must be set"
 	ProviderMetaUserAgentExtra     = "user_agent_extra"
 	ProviderMetaUserAgentExtraDesc = "You can extend the user agent header for each request made by the provider to the Atlas Admin API. The Key Values will be formatted as {key}/{value}."
 	ProviderMetaModuleName         = "module_name"
