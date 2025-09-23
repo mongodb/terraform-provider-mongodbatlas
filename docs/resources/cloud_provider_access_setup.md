@@ -8,7 +8,7 @@ subcategory: "Cloud Provider Access"
 
 The Terraform MongoDB Atlas Provider offers a two-resource path to perform an authorization for a cloud provider role.
 - The first resource, `mongodbatlas_cloud_provider_access_setup`, only generates the initial configuration (create, delete operations).
-- The second resource, [`mongodbatlas_cloud_provider_access_authorization`](mongodbatlas_cloud_provider_access_authorization), helps to perform the authorization using the `role_id` of the first resource.
+- The second resource, [`mongodbatlas_cloud_provider_access_authorization`](cloud_provider_access_authorization), helps to perform the authorization using the `role_id` of the first resource.
 
 This path is helpful in a multi-provider Terraform file, and allows for a single and decoupled apply.
 See example of this two-resource path option with AWS Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/mongodbatlas_cloud_provider_access/aws), AZURE Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/mongodbatlas_cloud_provider_access/azure) and GCP Cloud [here](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/mongodbatlas_cloud_provider_access/gcp).
