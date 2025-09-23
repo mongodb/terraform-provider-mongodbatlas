@@ -25,6 +25,10 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
+
+	"go.mongodb.org/atlas-sdk/v20250312007/auth/clientcredentials"
+
+	"go.mongodb.org/atlas-sdk/v20250312007/auth"
 )
 
 const (
@@ -39,6 +43,37 @@ const (
 	idleConnTimeout       = 30 * time.Second
 	expectContinueTimeout = 1 * time.Second
 )
+
+type AuthMethod int
+
+const (
+	ServiceAccount AuthMethod = iota
+	Digest
+	Unknown
+)
+
+// CredentialProvider interface for types that can provide MongoDB Atlas credentials
+type CredentialProvider interface {
+	GetPublicKey() string
+	GetPrivateKey() string
+	GetClientID() string
+	GetClientSecret() string
+}
+
+// IsDigestAuth checks if public/private key credentials are present
+func IsDigestAuth(cp CredentialProvider) bool {
+	return cp.GetPublicKey() != "" && cp.GetPrivateKey() != ""
+}
+
+// IsServiceAccountAuth checks if client ID/secret credentials are present
+func IsServiceAccountAuth(cp CredentialProvider) bool {
+	return cp.GetClientID() != "" && cp.GetClientSecret() != ""
+}
+
+// HasValidAuthCredentials checks if any valid authentication method is provided
+func HasValidAuthCredentials(cp CredentialProvider) bool {
+	return IsDigestAuth(cp) || IsServiceAccountAuth(cp)
+}
 
 var baseTransport = &http.Transport{
 	DialContext: (&net.Dialer{
@@ -71,8 +106,16 @@ type Config struct {
 	BaseURL                         string
 	RealmBaseURL                    string
 	TerraformVersion                string
+	ClientID                        string
+	ClientSecret                    string
 	PreviewV2AdvancedClusterEnabled bool
 }
+
+// CredentialProvider implementation for Config
+func (c *Config) GetPublicKey() string    { return c.PublicKey }
+func (c *Config) GetPrivateKey() string   { return c.PrivateKey }
+func (c *Config) GetClientID() string     { return c.ClientID }
+func (c *Config) GetClientSecret() string { return c.ClientSecret }
 
 type AssumeRole struct {
 	Tags              map[string]string
@@ -97,15 +140,56 @@ type UAMetadata struct {
 }
 
 func (c *Config) NewClient(ctx context.Context) (any, error) {
-	// Network Logging transport is before Digest transport so it can log the first Digest requests with 401 Unauthorized.
-	// Terraform logging transport is after Digest transport so the Unauthorized request bodies are not logged.
+	// Network Logging transport is before authentication transport so it can log authentication requests
 	networkLoggingTransport := NewTransportWithNetworkLogging(baseTransport, logging.IsDebugOrHigher())
-	digestTransport := digest.NewTransportWithHTTPRoundTripper(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey), networkLoggingTransport)
-	// Don't change logging.NewTransport to NewSubsystemLoggingHTTPTransport until all resources are in TPF.
-	tfLoggingTransport := logging.NewTransport("Atlas", digestTransport)
-	client := &http.Client{Transport: tfLoggingTransport}
 
-	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
+	var client *http.Client
+	var optsAtlas []matlasClient.ClientOpt
+
+	// Determine authentication method based on available credentials
+	switch ResolveAuthMethod(c) {
+	case ServiceAccount:
+		conf := clientcredentials.NewConfig(c.ClientID, c.ClientSecret)
+		// Override TokenURL and RevokeURL if custom BaseURL is provided
+		if c.BaseURL != "" {
+			baseURL := strings.TrimRight(c.BaseURL, "/")
+			conf.TokenURL = baseURL + clientcredentials.TokenAPIPath
+			conf.RevokeURL = baseURL + clientcredentials.RevokeAPIPath
+		}
+
+		// Create a base HTTP client for token acquisition
+		baseHTTPClient := &http.Client{
+			Transport: networkLoggingTransport,
+		}
+
+		// Set the HTTP client in context for token acquisition
+		ctx = context.WithValue(ctx, auth.HTTPClient, baseHTTPClient)
+
+		tokenSource := conf.TokenSource(ctx)
+
+		// Acquire an initial token upfront for several reasons:
+		// 1. OAuth2 token caching: The oauth2 library only caches tokens after successful acquisition
+		// 2. Early credential validation: Fail fast during provider init rather than first resource operation
+		// 3. Performance: Subsequent requests use cached tokens instead of blocking for token acquisition
+		_, err := tokenSource.Token()
+		if err != nil {
+			return nil, fmt.Errorf("failed to acquire OAuth2 token: %w", err)
+		}
+
+		oauthClient := auth.NewClient(ctx, tokenSource)
+		tfLoggingTransport := logging.NewTransport("Atlas", oauthClient.Transport)
+		oauthClient.Transport = tfLoggingTransport
+		client = oauthClient
+		optsAtlas = []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
+	case Digest:
+		digestTransport := digest.NewTransportWithHTTPRoundTripper(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey), networkLoggingTransport)
+		// Don't change logging.NewTransport to NewSubsystemLoggingHTTPTransport until all resources are in TPF.
+		tfLoggingTransport := logging.NewTransport("Atlas", digestTransport)
+		client = &http.Client{Transport: tfLoggingTransport}
+		optsAtlas = []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
+	case Unknown:
+	}
+
 	if c.BaseURL != "" {
 		optsAtlas = append(optsAtlas, matlasClient.SetBaseURL(c.BaseURL))
 	}
@@ -318,4 +402,15 @@ func userAgent(c *Config) string {
 	}
 
 	return strings.Join(parts, " ")
+}
+
+// ResolveAuthMethod determines the authentication method from any credential provider
+func ResolveAuthMethod(cg CredentialProvider) AuthMethod {
+	if IsServiceAccountAuth(cg) {
+		return ServiceAccount
+	}
+	if IsDigestAuth(cg) {
+		return Digest
+	}
+	return Unknown
 }

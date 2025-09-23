@@ -61,7 +61,7 @@ const (
 	MongodbGovCloudQAURL           = "https://cloud-qa.mongodbgov.com"
 	MongodbGovCloudDevURL          = "https://cloud-dev.mongodbgov.com"
 	ProviderConfigError            = "error in configuring the provider."
-	MissingAuthAttrError           = "either Atlas Programmatic API Keys or AWS Secrets Manager attributes must be set"
+	MissingAuthAttrError           = "either AWS Secrets Manager, Service Accounts or Atlas Programmatic API Keys attributes must be set"
 	ProviderMetaUserAgentExtra     = "user_agent_extra"
 	ProviderMetaUserAgentExtraDesc = "You can extend the user agent header for each request made by the provider to the Atlas Admin API. The Key Values will be formatted as {key}/{value}."
 	ProviderMetaModuleName         = "module_name"
@@ -75,16 +75,18 @@ type MongodbtlasProvider struct {
 
 type tfMongodbAtlasProviderModel struct {
 	AssumeRole           types.List   `tfsdk:"assume_role"`
-	PublicKey            types.String `tfsdk:"public_key"`
+	Region               types.String `tfsdk:"region"`
 	PrivateKey           types.String `tfsdk:"private_key"`
 	BaseURL              types.String `tfsdk:"base_url"`
 	RealmBaseURL         types.String `tfsdk:"realm_base_url"`
 	SecretName           types.String `tfsdk:"secret_name"`
-	Region               types.String `tfsdk:"region"`
+	PublicKey            types.String `tfsdk:"public_key"`
 	StsEndpoint          types.String `tfsdk:"sts_endpoint"`
 	AwsAccessKeyID       types.String `tfsdk:"aws_access_key_id"`
 	AwsSecretAccessKeyID types.String `tfsdk:"aws_secret_access_key"`
 	AwsSessionToken      types.String `tfsdk:"aws_session_token"`
+	ClientID             types.String `tfsdk:"client_id"`
+	ClientSecret         types.String `tfsdk:"client_secret"`
 	IsMongodbGovCloud    types.Bool   `tfsdk:"is_mongodbgov_cloud"`
 }
 
@@ -188,6 +190,14 @@ func (p *MongodbtlasProvider) Schema(ctx context.Context, req provider.SchemaReq
 				Optional:    true,
 				Description: "AWS Security Token Service provided session token.",
 			},
+			"client_id": schema.StringAttribute{
+				Optional:    true,
+				Description: "MongoDB Atlas Client ID for Service Account.",
+			},
+			"client_secret": schema.StringAttribute{
+				Optional:    true,
+				Description: "MongoDB Atlas Client Secret for Service Account.",
+			},
 		},
 	}
 }
@@ -276,6 +286,8 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		BaseURL:          data.BaseURL.ValueString(),
 		RealmBaseURL:     data.RealmBaseURL.ValueString(),
 		TerraformVersion: req.TerraformVersion,
+		ClientID:         data.ClientID.ValueString(),
+		ClientSecret:     data.ClientSecret.ValueString(),
 	}
 
 	var assumeRoles []tfAssumeRoleModel
@@ -386,9 +398,6 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 			"MONGODB_ATLAS_PUBLIC_KEY",
 			"MCLI_PUBLIC_API_KEY",
 		}, "").(string))
-		if data.PublicKey.ValueString() == "" && !awsRoleDefined {
-			resp.Diagnostics.AddWarning(ProviderConfigError, MissingAuthAttrError)
-		}
 	}
 
 	if data.PrivateKey.ValueString() == "" {
@@ -397,9 +406,6 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 			"MONGODB_ATLAS_PRIVATE_KEY",
 			"MCLI_PRIVATE_API_KEY",
 		}, "").(string))
-		if data.PrivateKey.ValueString() == "" && !awsRoleDefined {
-			resp.Diagnostics.AddWarning(ProviderConfigError, MissingAuthAttrError)
-		}
 	}
 
 	if data.RealmBaseURL.ValueString() == "" {
@@ -448,6 +454,30 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 			"SECRET_NAME",
 			"TF_VAR_SECRET_NAME",
 		}, "").(string))
+	}
+
+	if data.ClientID.ValueString() == "" {
+		data.ClientID = types.StringValue(MultiEnvDefaultFunc([]string{
+			"MONGODB_ATLAS_CLIENT_ID",
+			"TF_VAR_CLIENT_ID",
+		}, "").(string))
+	}
+
+	if data.ClientSecret.ValueString() == "" {
+		data.ClientSecret = types.StringValue(MultiEnvDefaultFunc([]string{
+			"MONGODB_ATLAS_CLIENT_SECRET",
+			"TF_VAR_CLIENT_SECRET",
+		}, "").(string))
+	}
+
+	// Check if any valid authentication method is provided
+	if !config.HasValidAuthCredentials(&config.Config{
+		PublicKey:    data.PublicKey.ValueString(),
+		PrivateKey:   data.PrivateKey.ValueString(),
+		ClientID:     data.ClientID.ValueString(),
+		ClientSecret: data.ClientSecret.ValueString(),
+	}) && !awsRoleDefined {
+		resp.Diagnostics.AddError(ProviderConfigError, MissingAuthAttrError)
 	}
 
 	return *data
