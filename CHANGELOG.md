@@ -4,6 +4,7 @@ ENHANCEMENTS:
 
 * data-source/mongodbatlas_stream_connection: Adds new authentication mechanism(OIDC) to the Kafka connection ([#3680](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3680))
 * data-source/mongodbatlas_stream_connections: Adds new authentication mechanism(OIDC) to the Kafka connection ([#3680](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3680))
+* resource/mongodbatlas_advanced_cluster: Improves documentation about `known after apply` markers in update plans ([#3701](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3701))
 * resource/mongodbatlas_stream_connection: Adds new authentication mechanism(OIDC) to the Kafka connection ([#3680](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3680))
 
 ## 2.0.0 (September 15, 2025)
