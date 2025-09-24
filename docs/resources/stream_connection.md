@@ -16,7 +16,7 @@ subcategory: "Streams"
 ```terraform
 resource "mongodbatlas_stream_connection" "test" {
     project_id = var.project_id
-    instance_name = "InstanceName"
+    workspace_name = "WorkspaceName"
     connection_name = "ConnectionName"
     type = "Cluster"
     cluster_name = "Cluster0"
@@ -31,7 +31,7 @@ resource "mongodbatlas_stream_connection" "test" {
 ```terraform
 resource "mongodbatlas_stream_connection" "test" {
     project_id         = var.project_id
-    instance_name      = "InstanceName"
+    workspace_name      = "WorskpaceName"
     connection_name    = "ConnectionName"
     type               = "Cluster"
     cluster_name       = "OtherCluster"
@@ -44,7 +44,7 @@ resource "mongodbatlas_stream_connection" "test" {
 ```terraform
 resource "mongodbatlas_stream_connection" "test" {
     project_id = var.project_id
-    instance_name = "NewInstance"
+    workspace_name = "NewWorkspace"
     connection_name = "KafkaConnection"
     type = "Kafka"
     authentication = {
@@ -67,7 +67,7 @@ resource "mongodbatlas_stream_connection" "test" {
 ```terraform
 resource "mongodbatlas_stream_connection" "example-kafka-oauthbearer" {
     project_id      = var.project_id
-    instance_name   = mongodbatlas_stream_instance.example.instance_name
+    workspace_name   = mongodbatlas_stream_instance.example.instance_name
     connection_name = "KafkaOAuthbearerConnection"
     type            = "Kafka"
     authentication = {
@@ -99,7 +99,7 @@ resource "mongodbatlas_stream_connection" "example-kafka-oauthbearer" {
 ```terraform
 resource "mongodbatlas_stream_connection" "test" {
     project_id = var.project_id
-    instance_name = "NewInstance"
+    workspace_name = "NewWorkspace"
     connection_name = "KafkaConnection"
     type = "Kafka"
     authentication = {
@@ -123,7 +123,7 @@ resource "mongodbatlas_stream_connection" "test" {
 ```terraform
 resource "mongodbatlas_stream_connection" "test" {
     project_id      = var.project_id
-    instance_name   = "NewInstance"
+    workspace_name   = "NewWorkspace"
     connection_name = "AWSLambdaConnection"
     type            = "AWSLambda"
     aws             = {
@@ -138,7 +138,7 @@ resource "mongodbatlas_stream_connection" "test" {
 ```terraform
 resource "mongodbatlas_stream_connection" "example-https" {
   project_id      = var.project_id
-  instance_name   = mongodbatlas_stream_instance.example.instance_name
+  workspace_name   = mongodbatlas_stream_instance.example.instance_name
   connection_name = "https_connection_tf_new"
   type            = "Https"
   url             = "https://example.com"
@@ -152,9 +152,12 @@ resource "mongodbatlas_stream_connection" "example-https" {
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
-* `instance_name` - (Required) Human-readable label that identifies the stream instance.
+* `instance_name` - (Deprecated) Human-readable label that identifies the stream instance. Attribute is deprecated and will be removed in version 3.0.0 in favor of `workspace_name`.
+* `workspace_name` - (Optional) Human-readable label that identifies the stream instance. Conflicts with `instance_name`.
 * `connection_name` - (Required) Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
 * `type` - (Required) Type of connection. Can be `AWSLambda`, `Cluster`, `Https`, `Kafka` or `Sample`.
+
+~> **NOTE:** Either `instance_name` or `workspace_name` must be provided, but not both. These fields are functionally identical and `workspace_name` is an alias for `instance_name`. `workspace_name` should be used instead of `instance_name`.
 
 If `type` is of value `Cluster` the following additional arguments are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
@@ -209,7 +212,7 @@ If `type` is of value `Https` the following additional attributes are defined:
 
 ## Import
 
-You can import a stream connection resource using the instance name, project ID, and connection name. The format must be `INSTANCE_NAME-PROJECT_ID-CONNECTION_NAME`. For example:
+You can import a stream connection resource using the workspace name, project ID, and connection name. The format must be `WORKSPACE_NAME-PROJECT_ID-CONNECTION_NAME`. For example:
 
 ```
 $ terraform import mongodbatlas_stream_connection.test "DefaultInstance-12251446ae5f3f6ec7968b13-NewConnection"
