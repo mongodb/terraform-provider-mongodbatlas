@@ -2,6 +2,7 @@ package streamconnection_test
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -483,6 +484,25 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 				Results:      []streamconnection.TFStreamConnectionModel{},
 			},
 		},
+		{
+			name: "With workspace name and no page options",
+			SDKResp: &admin.PaginatedApiStreamsConnection{
+				Results:    &[]admin.StreamsConnection{},
+				TotalCount: admin.PtrInt(0),
+			},
+			providedConfig: &streamconnection.TFStreamConnectionsDSModel{
+				ProjectID:     types.StringValue(dummyProjectID),
+				WorkspaceName: types.StringValue(instanceName),
+			},
+			expectedTFModel: &streamconnection.TFStreamConnectionsDSModel{
+				ProjectID:     types.StringValue(dummyProjectID),
+				WorkspaceName: types.StringValue(instanceName),
+				PageNum:       types.Int64Null(),
+				ItemsPerPage:  types.Int64Null(),
+				TotalCount:    types.Int64Value(0),
+				Results:       []streamconnection.TFStreamConnectionModel{},
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -494,6 +514,44 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 			tc.expectedTFModel.ID = resultModel.ID // id is auto-generated, have no way of defining within expected model
 			if !assert.Equal(t, tc.expectedTFModel, resultModel) {
 				t.Fatalf("created terraform model did not match expected output")
+			}
+		})
+	}
+}
+
+type connectionsSDKToTFModelErrorTestCase struct {
+	SDKResp             *admin.PaginatedApiStreamsConnection
+	providedConfig      *streamconnection.TFStreamConnectionsDSModel
+	expectedTFModel     *streamconnection.TFStreamConnectionsDSModel
+	expectedErrorString string
+	name                string
+}
+
+func TestStreamConnectionsSDKToTFModelError(t *testing.T) {
+	testCases := []connectionsSDKToTFModelErrorTestCase{
+		{
+			name: "With workspace name and instance name",
+			SDKResp: &admin.PaginatedApiStreamsConnection{
+				Results:    &[]admin.StreamsConnection{},
+				TotalCount: admin.PtrInt(0),
+			},
+			providedConfig: &streamconnection.TFStreamConnectionsDSModel{
+				ProjectID:     types.StringValue(dummyProjectID),
+				WorkspaceName: types.StringValue(instanceName),
+				InstanceName:  types.StringValue(instanceName),
+			},
+			expectedErrorString: "Attribute \"instance_name\" cannot be specified when \"workspace_name\" is specified",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, diags := streamconnection.NewTFStreamConnections(t.Context(), tc.providedConfig, tc.SDKResp)
+			if !diags.HasError() {
+				t.Fatalf("expected error but got none")
+			}
+			if !strings.Contains(diags.Errors()[0].Summary(), tc.expectedErrorString) {
+				t.Fatalf("expected error %s but got %s", tc.expectedErrorString, diags.Errors()[0].Summary())
 			}
 		})
 	}
