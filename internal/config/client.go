@@ -7,7 +7,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 
@@ -32,9 +31,8 @@ import (
 )
 
 const (
-	toolName                             = "terraform-provider-mongodbatlas"
-	terraformPlatformName                = "Terraform"
-	previewV2AdvancedClusterEnabledUAKey = "AdvancedClusterPreview"
+	toolName              = "terraform-provider-mongodbatlas"
+	terraformPlatformName = "Terraform"
 
 	timeout               = 5 * time.Second
 	keepAlive             = 30 * time.Second
@@ -100,15 +98,14 @@ type MongoDBClient struct {
 
 // Config contains the configurations needed to use SDKs
 type Config struct {
-	AssumeRole                      *AssumeRole
-	PublicKey                       string
-	PrivateKey                      string
-	BaseURL                         string
-	RealmBaseURL                    string
-	TerraformVersion                string
-	ClientID                        string
-	ClientSecret                    string
-	PreviewV2AdvancedClusterEnabled bool
+	AssumeRole       *AssumeRole
+	PublicKey        string
+	PrivateKey       string
+	BaseURL          string
+	RealmBaseURL     string
+	TerraformVersion string
+	ClientID         string
+	ClientSecret     string
 }
 
 // CredentialProvider implementation for Config
@@ -386,14 +383,10 @@ func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParam
 }
 
 func userAgent(c *Config) string {
-	isPreviewV2AdvancedClusterEnabled := c.PreviewV2AdvancedClusterEnabled
-
 	metadata := []UAMetadata{
 		{toolName, version.ProviderVersion},
 		{terraformPlatformName, c.TerraformVersion},
-		{previewV2AdvancedClusterEnabledUAKey, strconv.FormatBool(isPreviewV2AdvancedClusterEnabled)},
 	}
-
 	var parts []string
 	for _, info := range metadata {
 		part := fmt.Sprintf("%s/%s", info.Name, info.Value)
