@@ -3,7 +3,11 @@ package streamconnection
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -26,6 +30,26 @@ type streamConnectionDS struct {
 func (d *streamConnectionDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.DataSourceSchemaRequest{
 		RequiredFields: []string{"project_id", "connection_name"},
+		OverridenFields: map[string]dsschema.Attribute{
+			"instance_name": dsschema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Human-readable label that identifies the stream instance. Conflicts with `workspace_name`.",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(path.Expressions{
+						path.MatchRelative().AtParent().AtName("workspace_name"),
+					}...),
+				},
+			},
+			"workspace_name": dsschema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Human-readable label that identifies the stream instance. This is an alias for `instance_name`. Conflicts with `instance_name`.",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(path.Expressions{
+						path.MatchRelative().AtParent().AtName("instance_name"),
+					}...),
+				},
+			},
+		},
 	})
 }
 

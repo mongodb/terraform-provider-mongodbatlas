@@ -4,7 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -30,6 +34,26 @@ func (d *streamConnectionsDS) Schema(ctx context.Context, req datasource.SchemaR
 	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
 		RequiredFields:  []string{"project_id"},
 		HasLegacyFields: true,
+		OverridenRootFields: map[string]dsschema.Attribute{
+			"instance_name": dsschema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Human-readable label that identifies the stream instance. Conflicts with `workspace_name`.",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(path.Expressions{
+						path.MatchRelative().AtParent().AtName("workspace_name"),
+					}...),
+				},
+			},
+			"workspace_name": dsschema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Human-readable label that identifies the stream instance. This is an alias for `instance_name`. Conflicts with `instance_name`.",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(path.Expressions{
+						path.MatchRelative().AtParent().AtName("instance_name"),
+					}...),
+				},
+			},
+		},
 	})
 }
 

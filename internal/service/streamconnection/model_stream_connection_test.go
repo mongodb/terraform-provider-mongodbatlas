@@ -78,7 +78,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			providedAuthConfig:   nil,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:       types.StringValue(dummyProjectID),
-				InstanceName:    types.StringValue(instanceName),
+				WorkspaceName:   types.StringValue(instanceName),
 				ConnectionName:  types.StringValue(connectionName),
 				Type:            types.StringValue("Cluster"),
 				ClusterName:     types.StringValue(clusterName),
@@ -108,7 +108,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			providedAuthConfig:   nil,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:        types.StringValue(dummyProjectID),
-				InstanceName:     types.StringValue(instanceName),
+				WorkspaceName:    types.StringValue(instanceName),
 				ConnectionName:   types.StringValue(connectionName),
 				Type:             types.StringValue("Cluster"),
 				ClusterName:      types.StringValue(clusterName),
@@ -143,7 +143,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			providedAuthConfig:   &authConfigWithPasswordDefined,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:        types.StringValue(dummyProjectID),
-				InstanceName:     types.StringValue(instanceName),
+				WorkspaceName:    types.StringValue(instanceName),
 				ConnectionName:   types.StringValue(connectionName),
 				Type:             types.StringValue("Kafka"),
 				Authentication:   tfAuthenticationObject(t, authMechanism, authUsername, "raw password"), // password value is obtained from config, not api resp.
@@ -181,7 +181,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			providedAuthConfig:   &authConfigWithOAuth,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:        types.StringValue(dummyProjectID),
-				InstanceName:     types.StringValue(instanceName),
+				WorkspaceName:    types.StringValue(instanceName),
 				ConnectionName:   types.StringValue(connectionName),
 				Type:             types.StringValue("Kafka"),
 				Authentication:   tfAuthenticationObjectForOAuth(t, authMechanismOAuth, clientID, clientSecret, tokenEndpointURL, scope, saslOauthbearerExtentions, httpsCaPem), // password value is obtained from config, not api resp.
@@ -205,7 +205,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			providedAuthConfig:   nil,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:       types.StringValue(dummyProjectID),
-				InstanceName:    types.StringValue(instanceName),
+				WorkspaceName:   types.StringValue(instanceName),
 				ConnectionName:  types.StringValue(connectionName),
 				Type:            types.StringValue("Kafka"),
 				Authentication:  types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
@@ -238,7 +238,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			providedAuthConfig:   nil,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:        types.StringValue(dummyProjectID),
-				InstanceName:     types.StringValue(instanceName),
+				WorkspaceName:    types.StringValue(instanceName),
 				ConnectionName:   types.StringValue(connectionName),
 				Type:             types.StringValue("Kafka"),
 				Authentication:   tfAuthenticationObjectWithNoPassword(t, authMechanism, authUsername),
@@ -261,7 +261,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			providedInstanceName: instanceName,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:       types.StringValue(dummyProjectID),
-				InstanceName:    types.StringValue(instanceName),
+				WorkspaceName:   types.StringValue(instanceName),
 				ConnectionName:  types.StringValue(sampleConnectionName),
 				Type:            types.StringValue("Sample"),
 				Authentication:  types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
@@ -284,7 +284,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			providedInstanceName: instanceName,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:       types.StringValue(dummyProjectID),
-				InstanceName:    types.StringValue(instanceName),
+				WorkspaceName:   types.StringValue(instanceName),
 				ConnectionName:  types.StringValue(awslambdaConnectionName),
 				Type:            types.StringValue("AWSLambda"),
 				Authentication:  types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
@@ -522,7 +522,6 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 type connectionsSDKToTFModelErrorTestCase struct {
 	SDKResp             *admin.PaginatedApiStreamsConnection
 	providedConfig      *streamconnection.TFStreamConnectionsDSModel
-	expectedTFModel     *streamconnection.TFStreamConnectionsDSModel
 	expectedErrorString string
 	name                string
 }

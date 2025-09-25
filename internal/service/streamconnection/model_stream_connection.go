@@ -128,7 +128,7 @@ func NewTFStreamConnection(ctx context.Context, projID, workspaceName string, cu
 }
 
 // determines if the original model was created with instance_name or workspace_name and sets the appropriate field
-func NewTFStreamConnectionWithInstanceName(ctx context.Context, projID, instanceName string, workspaceName string, currAuthConfig *types.Object, apiResp *admin.StreamsConnection) (*TFStreamConnectionModel, diag.Diagnostics) {
+func NewTFStreamConnectionWithInstanceName(ctx context.Context, projID, instanceName, workspaceName string, currAuthConfig *types.Object, apiResp *admin.StreamsConnection) (*TFStreamConnectionModel, diag.Diagnostics) {
 	rID := fmt.Sprintf("%s-%s-%s", instanceName, projID, conversion.SafeString(apiResp.Name))
 	connectionModel := TFStreamConnectionModel{
 		ID:               types.StringValue(rID),
