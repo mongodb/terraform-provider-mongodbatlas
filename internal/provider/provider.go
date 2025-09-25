@@ -26,7 +26,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/apikeyprojectassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
@@ -525,8 +525,8 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		teamprojectassignment.DataSource,
 		apikeyprojectassignment.DataSource,
 		apikeyprojectassignment.PluralDataSource,
-		advancedclustertpf.DataSource,
-		advancedclustertpf.PluralDataSource,
+		advancedcluster.DataSource,
+		advancedcluster.PluralDataSource,
 	}
 	return dataSources
 }
@@ -553,7 +553,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		clouduserprojectassignment.Resource,
 		teamprojectassignment.Resource,
 		clouduserteamassignment.Resource,
-		advancedclustertpf.Resource,
+		advancedcluster.Resource,
 	}
 	return resources
 }

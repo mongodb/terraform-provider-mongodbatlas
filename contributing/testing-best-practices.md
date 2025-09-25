@@ -136,10 +136,7 @@ It is advised to only run a **single** test at a time when a plural data source 
 1. Import state with a fixed `.tf` file
 2. Run terraform plan with an updated `*.tf` file and perform plan checks, for example check for known/unknown values in the plan. The actual update is not performed. See [Hashicorp docs](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-testing@v1.12.0/plancheck#PlanCheck) for plan check options.
 
-For a full example see [plan_modifier_test.go](../internal/service/advancedclustertpf/plan_modifier_test.go).
-
-### File generation
-For a full example of generation see [`http_mocker_plan_checks_test.go`](../internal/testutil/unit/http_mocker_plan_checks_test.go)
+For a full example see [plan_modifier_test.go](../internal/service/advancedcluster/plan_modifier_test.go).
 
 1. Stores the last `GET` response from an existing [MacT](#mact---mocked-acceptance-tests) test case step. For example the last GET of `/api/atlas/v2/groups/{groupId}/clusters/{clusterName}`
    1. ImportName: `ClusterTwoRepSpecsWithAutoScalingAndSpecs`

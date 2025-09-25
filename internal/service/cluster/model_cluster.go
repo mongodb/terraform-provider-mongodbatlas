@@ -3,9 +3,9 @@ package cluster
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
@@ -16,8 +16,9 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 )
+
+const minVersionForChangeStreamOptions = 6.0
 
 type ProcessArgs struct {
 	argsDefault           *admin.ClusterDescriptionProcessArgs20240805
@@ -298,28 +299,22 @@ func expandProcessArgs(d *schema.ResourceData, p map[string]any, mongodbMajorVer
 	if _, ok := d.GetOkExists("advanced_configuration.0.oplog_size_mb"); ok {
 		if sizeMB := cast.ToInt64(p["oplog_size_mb"]); sizeMB != 0 {
 			res.OplogSizeMB = conversion.Pointer(cast.ToInt(p["oplog_size_mb"]))
-		} else {
-			log.Printf(advancedcluster.ErrorClusterSetting, `oplog_size_mb`, "", cast.ToString(sizeMB))
 		}
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.oplog_min_retention_hours"); ok {
 		if minRetentionHours := cast.ToFloat64(p["oplog_min_retention_hours"]); minRetentionHours >= 0 {
 			res.OplogMinRetentionHours = conversion.Pointer(cast.ToFloat64(p["oplog_min_retention_hours"]))
-		} else {
-			log.Printf(advancedcluster.ErrorClusterSetting, `oplog_min_retention_hours`, "", cast.ToString(minRetentionHours))
 		}
 	}
 
 	if _, ok := d.GetOkExists("advanced_configuration.0.transaction_lifetime_limit_seconds"); ok {
 		if transactionLifetimeLimitSeconds := cast.ToInt64(p["transaction_lifetime_limit_seconds"]); transactionLifetimeLimitSeconds > 0 {
 			res.TransactionLifetimeLimitSeconds = conversion.Pointer(cast.ToInt64(p["transaction_lifetime_limit_seconds"]))
-		} else {
-			log.Printf(advancedcluster.ErrorClusterSetting, `transaction_lifetime_limit_seconds`, "", cast.ToString(transactionLifetimeLimitSeconds))
 		}
 	}
 
-	if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok && advancedcluster.IsChangeStreamOptionsMinRequiredMajorVersion(mongodbMajorVersion) {
+	if _, ok := d.GetOkExists("advanced_configuration.0.change_stream_options_pre_and_post_images_expire_after_seconds"); ok && IsChangeStreamOptionsMinRequiredMajorVersion(mongodbMajorVersion) {
 		res.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds = conversion.Pointer(cast.ToInt(p["change_stream_options_pre_and_post_images_expire_after_seconds"]))
 	}
 
@@ -470,35 +465,29 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 		autoScalingEnabled = d.Get("auto_scaling_compute_enabled").(bool)
 		providerName       = cast.ToString(d.Get("provider_name"))
 	)
-
 	if minInstanceSize != 0 && autoScalingEnabled {
 		if instanceSize < minInstanceSize {
 			return nil, fmt.Errorf("`provider_auto_scaling_compute_min_instance_size` must be lower than `provider_instance_size_name`")
 		}
-
 		compute = &matlas.Compute{
 			MinInstanceSize: d.Get("provider_auto_scaling_compute_min_instance_size").(string),
 		}
 	}
-
 	if maxInstanceSize != 0 && autoScalingEnabled {
 		if instanceSize > maxInstanceSize {
 			return nil, fmt.Errorf("`provider_auto_scaling_compute_max_instance_size` must be higher than `provider_instance_size_name`")
 		}
-
 		if compute == nil {
 			compute = &matlas.Compute{}
 		}
 		compute.MaxInstanceSize = d.Get("provider_auto_scaling_compute_max_instance_size").(string)
 	}
-
 	providerSettings := &matlas.ProviderSettings{
 		InstanceSizeName: cast.ToString(d.Get("provider_instance_size_name")),
 		ProviderName:     providerName,
 		RegionName:       region,
 		VolumeType:       cast.ToString(d.Get("provider_volume_type")),
 	}
-
 	if d.HasChange("provider_disk_type_name") {
 		_, newdiskTypeName := d.GetChange("provider_disk_type_name")
 		diskTypeName := cast.ToString(newdiskTypeName)
@@ -506,66 +495,38 @@ func expandProviderSetting(d *schema.ResourceData) (*matlas.ProviderSettings, er
 			providerSettings.DiskTypeName = diskTypeName
 		}
 	}
-
 	if providerName == "TENANT" {
 		providerSettings.BackingProviderName = cast.ToString(d.Get("backing_provider_name"))
 	}
-
 	if autoScalingEnabled {
 		providerSettings.AutoScaling = &matlas.AutoScaling{Compute: compute}
 	}
-
 	if d.Get("provider_name") == "AWS" {
 		// Check if the Provider Disk IOS sets in the Terraform configuration and if the instance size name is not NVME.
 		// If it didn't, the MongoDB Atlas server would set it to the default for the amount of storage.
 		if v, ok := d.GetOk("provider_disk_iops"); ok && !strings.Contains(providerSettings.InstanceSizeName, "NVME") {
 			providerSettings.DiskIOPS = conversion.Pointer(cast.ToInt64(v))
 		}
-
 		providerSettings.EncryptEBSVolume = conversion.Pointer(true)
 	}
-
 	return providerSettings, nil
 }
 
-func flattenProviderSettings(d *schema.ResourceData, settings *matlas.ProviderSettings, clusterName string) {
+func flattenProviderSettings(d *schema.ResourceData, settings *matlas.ProviderSettings) {
 	if settings.ProviderName == "TENANT" {
-		if err := d.Set("backing_provider_name", settings.BackingProviderName); err != nil {
-			log.Printf(advancedcluster.ErrorClusterSetting, "backing_provider_name", clusterName, err)
-		}
+		_ = d.Set("backing_provider_name", settings.BackingProviderName)
 	}
-
 	if settings.DiskIOPS != nil && *settings.DiskIOPS != 0 {
-		if err := d.Set("provider_disk_iops", *settings.DiskIOPS); err != nil {
-			log.Printf(advancedcluster.ErrorClusterSetting, "provider_disk_iops", clusterName, err)
-		}
+		_ = d.Set("provider_disk_iops", *settings.DiskIOPS)
 	}
-
-	if err := d.Set("provider_disk_type_name", settings.DiskTypeName); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "provider_disk_type_name", clusterName, err)
-	}
-
+	_ = d.Set("provider_disk_type_name", settings.DiskTypeName)
 	if settings.EncryptEBSVolume != nil {
-		if err := d.Set("provider_encrypt_ebs_volume_flag", *settings.EncryptEBSVolume); err != nil {
-			log.Printf(advancedcluster.ErrorClusterSetting, "provider_encrypt_ebs_volume_flag", clusterName, err)
-		}
+		_ = d.Set("provider_encrypt_ebs_volume_flag", *settings.EncryptEBSVolume)
 	}
-
-	if err := d.Set("provider_instance_size_name", settings.InstanceSizeName); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "provider_instance_size_name", clusterName, err)
-	}
-
-	if err := d.Set("provider_name", settings.ProviderName); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "provider_name", clusterName, err)
-	}
-
-	if err := d.Set("provider_region_name", settings.RegionName); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "provider_region_name", clusterName, err)
-	}
-
-	if err := d.Set("provider_volume_type", settings.VolumeType); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "provider_volume_type", clusterName, err)
-	}
+	_ = d.Set("provider_instance_size_name", settings.InstanceSizeName)
+	_ = d.Set("provider_name", settings.ProviderName)
+	_ = d.Set("provider_region_name", settings.RegionName)
+	_ = d.Set("provider_volume_type", settings.VolumeType)
 }
 
 func containsLabelOrKey(list []matlas.Label, item matlas.Label) bool {
@@ -574,6 +535,26 @@ func containsLabelOrKey(list []matlas.Label, item matlas.Label) bool {
 			return true
 		}
 	}
-
 	return false
+}
+
+func IsChangeStreamOptionsMinRequiredMajorVersion(input *string) bool {
+	return isMinRequiredMajorVersion(input, minVersionForChangeStreamOptions)
+}
+
+func isMinRequiredMajorVersion(input *string, minVersion float64) bool {
+	if input == nil || *input == "" {
+		return true
+	}
+	parts := strings.SplitN(*input, ".", 2)
+	if len(parts) == 0 {
+		return false
+	}
+
+	value, err := strconv.ParseFloat(parts[0], 64)
+	if err != nil {
+		return false
+	}
+
+	return value >= minVersion
 }

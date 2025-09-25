@@ -107,34 +107,34 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	serviceEndpoint, _, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpoint(ctx, projectID, providerName, endpointServiceID, privateLinkID).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorServiceEndpointRead, endpointServiceID, err))
+		return diag.FromErr(fmt.Errorf(errorServiceEndpointRead, endpointServiceID, err))
 	}
 
 	if err := d.Set("delete_requested", cast.ToBool(serviceEndpoint.GetDeleteRequested())); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "delete_requested", endpointServiceID, err))
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "delete_requested", endpointServiceID, err))
 	}
 
 	if err := d.Set("error_message", serviceEndpoint.GetErrorMessage()); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "error_message", endpointServiceID, err))
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "error_message", endpointServiceID, err))
 	}
 
 	if err := d.Set("aws_connection_status", serviceEndpoint.GetConnectionStatus()); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "aws_connection_status", endpointServiceID, err))
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "aws_connection_status", endpointServiceID, err))
 	}
 
 	if strings.EqualFold(providerName, "azure") {
 		if err := d.Set("azure_status", serviceEndpoint.GetStatus()); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "azure_status", endpointServiceID, err))
+			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "azure_status", endpointServiceID, err))
 		}
 	}
 
 	if err := d.Set("endpoints", flattenGCPEndpoints(serviceEndpoint.Endpoints)); err != nil {
-		return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "endpoints", endpointServiceID, err))
+		return diag.FromErr(fmt.Errorf(errorEndpointSetting, "endpoints", endpointServiceID, err))
 	}
 
 	if strings.EqualFold(providerName, "gcp") {
 		if err := d.Set("gcp_status", serviceEndpoint.GetStatus()); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorEndpointSetting, "gcp_status", endpointServiceID, err))
+			return diag.FromErr(fmt.Errorf(errorEndpointSetting, "gcp_status", endpointServiceID, err))
 		}
 	}
 
