@@ -68,7 +68,6 @@ resource "mongodbatlas_stream_connection" "example-kafka-oauthbearer" {
     client_secret               = var.kafka_client_secret
     scope                       = "read:messages write:messages"
     sasl_oauthbearer_extensions = "logicalCluster=lkc-kmom,identityPoolId=pool-lAr"
-    https_ca_pem                = "pemtext"
   }
   bootstrap_servers = "localhost:9092,localhost:9092"
   config = {

@@ -98,9 +98,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"sasl_oauthbearer_extensions": schema.StringAttribute{
 						Optional: true,
 					},
-					"https_ca_pem": schema.StringAttribute{
-						Optional: true,
-					},
 				},
 			},
 			"bootstrap_servers": schema.StringAttribute{

@@ -30,10 +30,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									MarkdownDescription: "OIDC client secret for authentication to the Kafka cluster.",
 									Sensitive:           true,
 								},
-								"https_ca_pem": schema.StringAttribute{
-									Computed:            true,
-									MarkdownDescription: "HTTPS CA certificate in PEM format for SSL/TLS verification.",
-								},
 								"mechanism": schema.StringAttribute{
 									Computed:            true,
 									MarkdownDescription: "Style of authentication. Can be one of PLAIN, SCRAM-256, SCRAM-512, or OAUTHBEARER.",
@@ -259,7 +255,6 @@ type TFConnectionsModel struct {
 type TFConnectionsAuthenticationModel struct {
 	ClientId                  types.String `tfsdk:"client_id" autogen:"omitjson"`
 	ClientSecret              types.String `tfsdk:"client_secret" autogen:"omitjson"`
-	HttpsCaPem                types.String `tfsdk:"https_ca_pem" autogen:"omitjson"`
 	Mechanism                 types.String `tfsdk:"mechanism" autogen:"omitjson"`
 	Password                  types.String `tfsdk:"password" autogen:"omitjson"`
 	SaslOauthbearerExtensions types.String `tfsdk:"sasl_oauthbearer_extensions" autogen:"omitjson"`
