@@ -175,7 +175,6 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to acquire OAuth2 token: %w", err)
 		}
-
 		oauthClient := auth.NewClient(ctx, tokenSource)
 		tfLoggingTransport := logging.NewTransport("Atlas", oauthClient.Transport)
 		oauthClient.Transport = tfLoggingTransport
