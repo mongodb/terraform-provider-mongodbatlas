@@ -1,6 +1,6 @@
 resource "mongodbatlas_stream_instance" "example" {
   project_id    = var.project_id
-  workspace_name = "WorkspaceName"
+  instance_name = "InstanceName"
   data_process_region = {
     region         = "VIRGINIA_USA"
     cloud_provider = "AWS"
@@ -140,7 +140,7 @@ data "mongodbatlas_stream_connection" "example-kafka-ssl" {
 }
 
 data "mongodbatlas_stream_connections" "example" {
-  project_id    = var.project_id
+  project_id     = var.project_id
   workspace_name = mongodbatlas_stream_instance.example.instance_name
 }
 
