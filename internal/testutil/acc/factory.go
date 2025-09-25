@@ -63,6 +63,8 @@ func init() {
 	cfg := config.Config{
 		PublicKey:    os.Getenv("MONGODB_ATLAS_PUBLIC_KEY"),
 		PrivateKey:   os.Getenv("MONGODB_ATLAS_PRIVATE_KEY"),
+		ClientID:     os.Getenv("MONGODB_ATLAS_CLIENT_ID"),
+		ClientSecret: os.Getenv("MONGODB_ATLAS_CLIENT_SECRET"),
 		BaseURL:      os.Getenv("MONGODB_ATLAS_BASE_URL"),
 		RealmBaseURL: os.Getenv("MONGODB_REALM_BASE_URL"),
 	}
