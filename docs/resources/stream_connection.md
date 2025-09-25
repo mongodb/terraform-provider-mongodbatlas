@@ -152,12 +152,12 @@ resource "mongodbatlas_stream_connection" "example-https" {
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
-* `instance_name` - (Deprecated) Human-readable label that identifies the stream instance. Attribute is deprecated and will be removed in version 3.0.0 in favor of `workspace_name`.
+* `instance_name` - (Deprecated) Human-readable label that identifies the stream instance. Attribute is deprecated and will be removed in following major versions in favor of `workspace_name`.
 * `workspace_name` - (Optional) Human-readable label that identifies the stream instance. Conflicts with `instance_name`.
 * `connection_name` - (Required) Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
 * `type` - (Required) Type of connection. Can be `AWSLambda`, `Cluster`, `Https`, `Kafka` or `Sample`.
 
-~> **NOTE:** Either `instance_name` or `workspace_name` must be provided, but not both. These fields are functionally identical and `workspace_name` is an alias for `instance_name`. `workspace_name` should be used instead of `instance_name`.
+~> **NOTE:** Either `workspace_name` or `instance_name` must be provided, but not both. These fields are functionally identical and `workspace_name` is an alias for `instance_name`. `workspace_name` should be used instead of `instance_name`.
 
 If `type` is of value `Cluster` the following additional arguments are defined:
 * `cluster_name` - Name of the cluster configured for this connection.

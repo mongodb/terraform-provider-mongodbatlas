@@ -1,11 +1,22 @@
-```release-note:enhancement
-resource/mongodbatlas_stream_connection: Adds workspace_name field as alias for instance_name.
+```release-note:note
+resource/mongodbatlas_stream_connection: Deprecates the `instance_name` field in favor of `workspace_name`.
+```
+```release-note:note
+data-source/mongodbatlas_stream_connection: Deprecates the `instance_name` field in favor of `workspace_name`.
+```
+
+```release-note:note
+data-source/mongodbatlas_stream_connections: Deprecates the `instance_name` field in favor of `workspace_name`.
 ```
 
 ```release-note:enhancement
-data-source/mongodbatlas_stream_connection: Adds support for GCP as a Cloud Provider.
+resource/mongodbatlas_stream_connection: Adds `workspace_name` field as alias for `instance_name`.
 ```
 
 ```release-note:enhancement
-data-source/mongodbatlas_stream_connections: Adds support for GCP as a Cloud Provider.
+data-source/mongodbatlas_stream_connection: Adds `workspace_name` field as alias for `instance_name`.
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_stream_connections: Adds `workspace_name` field as alias for `instance_name`.
 ```
