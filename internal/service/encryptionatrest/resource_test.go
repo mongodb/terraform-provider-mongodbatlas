@@ -27,8 +27,14 @@ const (
 )
 
 func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
+	resource.Test(t, *basicTestCaseAWS(t, true, false, false))
+}
+
+func basicTestCaseAWS(tb testing.TB, useDatasource, useRequirePrivateNetworking, useEnabledForSearchNodes bool) *resource.TestCase {
+	tb.Helper()
+
 	var (
-		projectID = acc.ProjectIDExecution(t)
+		projectID = acc.ProjectIDExecution(tb)
 
 		awsIAMRoleName       = acc.RandomIAMRole()
 		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
@@ -50,23 +56,23 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 		awsKmsUpdatedAttrMap = acc.ConvertToAwsKmsEARAttrMap(&awsKmsUpdated)
 	)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckAwsEnv(t) },
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckAwsEnv(tb) },
 		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.EARDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acc.ConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, &awsKms, true, false, false),
-				Check:  checkEARResourceAWS(projectID, false, awsKmsAttrMap),
+				Config: acc.ConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, &awsKms, useDatasource, useRequirePrivateNetworking, useEnabledForSearchNodes),
+				Check:  checkEARResourceAWS(projectID, useEnabledForSearchNodes, awsKmsAttrMap),
 			},
 			{
-				Config: acc.ConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, &awsKmsUpdated, true, true, true),
-				Check:  checkEARResourceAWS(projectID, true, awsKmsUpdatedAttrMap),
+				Config: acc.ConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, &awsKmsUpdated, useDatasource, !useRequirePrivateNetworking, !useEnabledForSearchNodes),
+				Check:  checkEARResourceAWS(projectID, !useEnabledForSearchNodes, awsKmsUpdatedAttrMap),
 			},
 			{
-				Config: acc.ConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, &awsKmsUpdated, true, true, false),
-				Check:  checkEARResourceAWS(projectID, false, awsKmsUpdatedAttrMap),
+				Config: acc.ConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, &awsKmsUpdated, useDatasource, !useRequirePrivateNetworking, useEnabledForSearchNodes),
+				Check:  checkEARResourceAWS(projectID, useEnabledForSearchNodes, awsKmsUpdatedAttrMap),
 			},
 			{
 				ResourceName:      resourceName,
@@ -75,7 +81,7 @@ func TestAccEncryptionAtRest_basicAWS(t *testing.T) {
 				ImportStateVerify: true,
 			},
 		},
-	})
+	}
 }
 
 func TestAccEncryptionAtRest_basicAzure(t *testing.T) {

@@ -106,9 +106,6 @@ on:
       confluent_cloud_privatelink_access_id:
         type: string
         required: true
-      mongodb_atlas_project_ear_pe_aws_id:
-        type: string
-        required: true
       mongodb_atlas_asp_project_ear_pe_id:
         type: string
         required: true
@@ -754,7 +751,6 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           AWS_CUSTOMER_MASTER_KEY_ID: ${{ secrets.aws_customer_master_key_id }}
-          MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID: ${{ inputs.mongodb_atlas_project_ear_pe_aws_id }}
           MONGODB_ATLAS_ASP_PROJECT_EAR_PE_ID: ${{ inputs.mongodb_atlas_asp_project_ear_pe_id }}
           MONGODB_ATLAS_ASP_PROJECT_AWS_ROLE_ARN: ${{ inputs.mongodb_atlas_asp_project_aws_role_arn }}
         run: make testacc

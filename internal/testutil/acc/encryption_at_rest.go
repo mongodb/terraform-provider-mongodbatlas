@@ -3,16 +3,12 @@ package acc
 import (
 	"context"
 	"fmt"
-	"os"
 	"strconv"
-	"testing"
 
 	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/stretchr/testify/require"
 )
 
 func ConfigEARAzureKeyVault(projectID string, azure *admin.AzureKeyVault, useRequirePrivateNetworking, useDatasource bool) string {
@@ -61,30 +57,83 @@ func ConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName string
 		datasourceStr = EARDatasourceConfig()
 	}
 	config := fmt.Sprintf(`
-		resource "aws_iam_role_policy" "test_policy" {
-			name = %[4]q
-			role = aws_iam_role.test_role.id
-	  
-			policy = jsonencode({
-				"Version" : "2012-10-17",
-				"Statement" : [
-					{
-						"Effect" : "Allow",
-						"Action" : [
-							"kms:Decrypt",
-							"kms:Encrypt",
-							"kms:DescribeKey"
-						],
-						"Resource" : [
- 							%[5]q
-						]
-					}
-			  ]
-			})
+		%[2]s
+
+		resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
+			project_id    = %[1]q
+			provider_name = "AWS"
 		}
 	  
+		resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
+			project_id = %[1]q
+			role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
+	  
+			aws {
+				iam_assumed_role_arn = aws_iam_role.test_role.arn
+			}
+		}
+
+		resource "mongodbatlas_encryption_at_rest" "test" {
+			project_id = %[1]q
+
+			aws_kms_config {
+				enabled                = %[3]t
+				customer_master_key_id = %[4]q
+				region                 = %[5]q
+				role_id                = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+				%[6]s
+			}
+			%[7]s
+		}
+
+		%[8]s
+	`, projectID, configAwsRoleAndPolicy(awsIAMRoleName, awsIAMRolePolicyName, awsKms), awsKms.GetEnabled(), awsKms.GetCustomerMasterKeyID(), awsKms.GetRegion(), requirePrivateNetworkingStr, enabledForSearchNodesStr, datasourceStr)
+
+	return config
+}
+
+func ConfigProjectWithAwsKmsPrivateNetworking(projectName, orgID, awsIAMRoleName, awsIAMRolePolicyName string, awsKms *admin.AWSKMSConfiguration, useDatasource, useRequirePrivateNetworking, useEnabledForSearchNodes bool) string {
+	config := fmt.Sprintf(`
+		resource "mongodbatlas_project" "test" {
+		   name   = %[1]q
+		   org_id = %[2]q
+		}
+
+		%[3]s
+
+		resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
+			project_id    = mongodbatlas_project.test.id
+			provider_name = "AWS"
+		}
+	  
+		resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
+			project_id = mongodbatlas_project.test.id
+			role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
+	  
+			aws {
+				iam_assumed_role_arn = aws_iam_role.test_role.arn
+			}
+		}
+
+		resource "mongodbatlas_encryption_at_rest" "test" {
+			project_id = mongodbatlas_project.test.id
+
+			aws_kms_config {
+				enabled                    = %[4]t
+				customer_master_key_id     = %[5]q
+				region                     = %[6]q
+				role_id                    = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
+				require_private_networking = %[7]t, 
+			}
+		}
+	`, projectName, orgID, configAwsRoleAndPolicy(awsIAMRoleName, awsIAMRolePolicyName, awsKms), awsKms.GetEnabled(), awsKms.GetCustomerMasterKeyID(), awsKms.GetRegion(), awsKms.GetRequirePrivateNetworking())
+	return config
+}
+
+func configAwsRoleAndPolicy(awsIamRoleName, awsIAMRolePolicyName string, awsKms *admin.AWSKMSConfiguration) string {
+	config := fmt.Sprintf(`
 		resource "aws_iam_role" "test_role" {
-			name = %[3]q
+			name = %[1]q
 	  
 			assume_role_policy = jsonencode({
 				"Version" : "2012-10-17",
@@ -105,35 +154,28 @@ func ConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName string
 			})
 		}
 
-		resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
-			project_id    = %[1]q
-			provider_name = "AWS"
-		}
+		resource "aws_iam_role_policy" "test_policy" {
+			name = %[2]q
+			role = aws_iam_role.test_role.id
 	  
-		resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
-			project_id = %[1]q
-			role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
-	  
-			aws {
-				iam_assumed_role_arn = aws_iam_role.test_role.arn
-			}
+			policy = jsonencode({
+				"Version" : "2012-10-17",
+				"Statement" : [
+					{
+						"Effect" : "Allow",
+						"Action" : [
+							"kms:Decrypt",
+							"kms:Encrypt",
+							"kms:DescribeKey"
+						],
+						"Resource" : [
+ 							%[3]q
+						]
+					}
+			  ]
+			})
 		}
-
-		resource "mongodbatlas_encryption_at_rest" "test" {
-			project_id = %[1]q
-
-			aws_kms_config {
-				enabled                = %[2]t
-				customer_master_key_id = %[5]q
-				region                 = %[6]q
-				role_id                = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-				%[7]s
-			}
-			%[8]s
-		}
-
-		%[9]s
-	`, projectID, awsKms.GetEnabled(), awsIAMRoleName, awsIAMRolePolicyName, awsKms.GetCustomerMasterKeyID(), awsKms.GetRegion(), requirePrivateNetworkingStr, enabledForSearchNodesStr, datasourceStr)
+	`, awsIamRoleName, awsIAMRolePolicyName, awsKms.GetCustomerMasterKeyID())
 	return config
 }
 
@@ -214,67 +256,5 @@ func EARImportStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 		}
 
 		return rs.Primary.ID, nil
-	}
-}
-
-// EncryptionAtRestExecution creates an encryption at rest configuration for test execution.
-func EncryptionAtRestExecution(tb testing.TB) string {
-	tb.Helper()
-	SkipInUnitTest(tb)
-	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
-
-	projectID := os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID")
-
-	sharedInfo.mu.Lock()
-	defer sharedInfo.mu.Unlock()
-
-	// lazy creation so it's only done if really needed
-	if !sharedInfo.encryptionAtRestEnabled {
-		tb.Logf("Creating execution encryption at rest configuration for project: %s\n", projectID)
-
-		// Create encryption at rest configuration using environment variables
-		awsKms := &admin.AWSKMSConfiguration{
-			Enabled:                  conversion.Pointer(true),
-			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RoleId:                   conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
-			RequirePrivateNetworking: conversion.Pointer(true),
-		}
-
-		createEncryptionAtRest(tb, projectID, awsKms)
-		sharedInfo.encryptionAtRestEnabled = true
-	}
-
-	return projectID
-}
-
-func createEncryptionAtRest(tb testing.TB, projectID string, aws *admin.AWSKMSConfiguration) {
-	tb.Helper()
-
-	encryptionAtRestReq := &admin.EncryptionAtRest{
-		AwsKms: aws,
-	}
-
-	_, _, err := ConnV2().EncryptionAtRestUsingCustomerKeyManagementApi.UpdateEncryptionAtRest(tb.Context(), projectID, encryptionAtRestReq).Execute()
-	require.NoError(tb, err, "Failed to create encryption at rest configuration for project: %s", projectID)
-}
-
-func deleteEncryptionAtRest(projectID string) {
-	// Disable encryption at rest by setting all providers to disabled
-	encryptionAtRestReq := &admin.EncryptionAtRest{
-		AwsKms: &admin.AWSKMSConfiguration{
-			Enabled: conversion.Pointer(false),
-		},
-		AzureKeyVault: &admin.AzureKeyVault{
-			Enabled: conversion.Pointer(false),
-		},
-		GoogleCloudKms: &admin.GoogleCloudKMS{
-			Enabled: conversion.Pointer(false),
-		},
-	}
-
-	_, _, err := ConnV2().EncryptionAtRestUsingCustomerKeyManagementApi.UpdateEncryptionAtRest(context.Background(), projectID, encryptionAtRestReq).Execute()
-	if err != nil {
-		fmt.Printf("Failed to delete encryption at rest for project %s: %s\n", projectID, err)
 	}
 }

@@ -26,7 +26,6 @@ const (
 	dataSourceName       = "data.mongodbatlas_encryption_at_rest_private_endpoint.test"
 	pluralDataSourceName = "data.mongodbatlas_encryption_at_rest_private_endpoints.test"
 	earResourceName      = "mongodbatlas_encryption_at_rest.test"
-	earDatasourceName    = "data.mongodbatlas_encryption_at_rest.test"
 )
 
 func TestAccEncryptionAtRestPrivateEndpoint_Azure_basic(t *testing.T) {
@@ -34,27 +33,37 @@ func TestAccEncryptionAtRestPrivateEndpoint_Azure_basic(t *testing.T) {
 }
 
 func TestAccEncryptionAtRestPrivateEndpoint_createTimeoutWithDeleteOnCreate(t *testing.T) {
-	// This test is skipped because it creates a race condition with other tests:
-	// 1. This test creates an encryption at rest private endpoint with a 1s timeout, causing it to fail and trigger cleanup
-	// 2. The private endpoint deletion doesn't complete immediately
-	// 3. Other tests share the same project and attempt to disable encryption at rest during cleanup
-	// 4. MongoDB Atlas returns "CANNOT_DISABLE_ENCRYPTION_AT_REST_REQUIRE_PRIVATE_NETWORKING_WHILE_PRIVATE_ENDPOINTS_EXIST"
-	//    because the private endpoint from this test is still being deleted
-	// This race condition occurs even when tests don't run in parallel due to the async nature of private endpoint deletion.
+	// This test is skipped because the deletion of the private endpoint when delete_on_create_timeout is true is currently failing
+	// due to a change in the Atlas API which prevents the deletion of private endpoints during provisioning.
+	//  - When attempting deletion, we get a ENCRYPTION_AT_REST_PRIVATE_ENDPOINT_DELETE_BLOCKED_DURING_PROVISIONING error.
+	// A long term solution is in the works by the API team which will re-allow deletion of private endpoints during provisioning.
 	acc.SkipTestForCI(t)
+
 	var (
 		createTimeout         = "1s"
 		deleteOnCreateTimeout = true
-		region                = conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))
-		// Create encryption at rest configuration outside of test configuration to avoid cleanup issues
-		projectID = acc.EncryptionAtRestExecution(t)
+
+		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectName = acc.RandomProjectName()
+
+		awsIAMRoleName       = acc.RandomIAMRole()
+		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
+
+		awsKms = admin.AWSKMSConfiguration{
+			Enabled:                  conversion.Pointer(true),
+			CustomerMasterKeyID:      conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
+			Region:                   conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
+			RequirePrivateNetworking: conversion.Pointer(true),
+		}
 	)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckEncryptionAtRestEnvAWS(t) },
+		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config:      configEARPrivateEndpointWithTimeout(projectID, region, acc.TimeoutConfig(&createTimeout, nil, nil), &deleteOnCreateTimeout),
+				Config:      configAWSProject(projectName, orgID, awsIAMRoleName, awsIAMRolePolicyName, &awsKms, acc.TimeoutConfig(&createTimeout, nil, nil), &deleteOnCreateTimeout),
 				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
 			},
 		},
@@ -350,6 +359,19 @@ func checkBasic(projectID, cloudProvider, region string, expectApproved bool) re
 
 func configAWSBasic(projectID, awsIAMRoleName, awsIAMRolePolicyName string, awsKms *admin.AWSKMSConfiguration) string {
 	encryptionAtRestConfig := acc.ConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName, awsKms, false, true, false)
+	return configEARPrivateEndpoint(encryptionAtRestConfig, awsKms, "", nil)
+}
+
+func configAWSProject(projectName, orgID, awsIAMRoleName, awsIAMRolePolicyName string, awsKms *admin.AWSKMSConfiguration, timeoutConfig string, deleteOnCreateTimeout *bool) string {
+	encryptionAtRestConfig := acc.ConfigProjectWithAwsKmsPrivateNetworking(projectName, orgID, awsIAMRoleName, awsIAMRolePolicyName, awsKms, false, true, false)
+	return configEARPrivateEndpoint(encryptionAtRestConfig, awsKms, timeoutConfig, deleteOnCreateTimeout)
+}
+
+func configEARPrivateEndpoint(encryptionAtRestConfig string, awsKms *admin.AWSKMSConfiguration, timeoutConfig string, deleteOnCreateTimeout *bool) string {
+	deleteOnCreateTimeoutConfig := ""
+	if deleteOnCreateTimeout != nil {
+		deleteOnCreateTimeoutConfig = fmt.Sprintf("delete_on_create_timeout = %t", *deleteOnCreateTimeout)
+	}
 
 	config := fmt.Sprintf(`
 		%[1]s
@@ -358,34 +380,12 @@ func configAWSBasic(projectID, awsIAMRoleName, awsIAMRolePolicyName string, awsK
 		    project_id = mongodbatlas_encryption_at_rest.test.project_id
 		    cloud_provider = "AWS"
 		    region_name = %[2]q
-		}
-
-		%[3]s
-	`, encryptionAtRestConfig, awsKms.GetRegion(), configDS())
-
-	return config
-}
-
-func configEARPrivateEndpointWithTimeout(projectID, region, timeoutConfig string, deleteOnCreateTimeout *bool) string {
-	deleteOnCreateTimeoutConfig := ""
-	if deleteOnCreateTimeout != nil {
-		deleteOnCreateTimeoutConfig = fmt.Sprintf(`
-			delete_on_create_timeout = %[1]t
-		`, *deleteOnCreateTimeout)
-	}
-
-	config := fmt.Sprintf(`
-		resource "mongodbatlas_encryption_at_rest_private_endpoint" "test" {
-		    project_id = %[1]q
-		    cloud_provider = "AWS"
-		    region_name = %[2]q
 		    %[3]s
 		    %[4]s
 		}
 
 		%[5]s
-
-	`, projectID, region, deleteOnCreateTimeoutConfig, timeoutConfig, configDS())
+	`, encryptionAtRestConfig, awsKms.GetRegion(), deleteOnCreateTimeoutConfig, timeoutConfig, configDS())
 
 	return config
 }
