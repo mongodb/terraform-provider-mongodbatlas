@@ -70,5 +70,7 @@ for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u)
     echo "v1 schema detected for $DIR"
     terraform validate
   fi
+  rm -rf ".terraform"
+  rm -rf ".terraform.lock.hcl"
   popd
 done
