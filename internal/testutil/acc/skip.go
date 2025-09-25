@@ -2,7 +2,7 @@ package acc
 
 import (
 	"os"
-	"strings"
+	"strconv"
 	"testing"
 )
 
@@ -15,7 +15,8 @@ func SkipTestForCI(tb testing.TB) {
 }
 
 func InCI() bool {
-	return strings.EqualFold(os.Getenv("CI"), "true")
+	val, _ := strconv.ParseBool(os.Getenv("CI"))
+	return val
 }
 
 // SkipInUnitTest allows skipping a test entirely when TF_ACC=1 is not defined.
