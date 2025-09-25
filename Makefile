@@ -6,7 +6,10 @@ else
 endif
 
 ACCTEST_TIMEOUT?=300m
-PARALLEL_GO_TEST?=50
+ACCTEST_PARALLEL?=50 # wait more in I/O
+
+UNITEST_TIMEOUT?=120s
+UNITTEST_PARALLEL?=10 # more compute intensive
 
 BINARY_NAME=terraform-provider-mongodbatlas
 DESTINATION=./bin/$(BINARY_NAME)
@@ -43,7 +46,7 @@ test: fmtcheck ## Run unit tests
 	@$(eval export MONGODB_ATLAS_ORG_ID?=111111111111111111111111)
 	@$(eval export MONGODB_ATLAS_PROJECT_ID?=111111111111111111111111)
 	@$(eval export MONGODB_ATLAS_CLUSTER_NAME?=mocked-cluster)
-	go test ./... -timeout=120s -parallel=$(PARALLEL_GO_TEST) -race
+	go test ./... -timeout=$(UNITEST_TIMEOUT) -parallel=$(UNITTEST_PARALLEL) -race
 
 .PHONY: testmact
 testmact: ## Run MacT tests (mocked acc tests)
@@ -57,7 +60,7 @@ testmact: ## Run MacT tests (mocked acc tests)
 		echo "Error: ACCTEST_PACKAGES must be explicitly set for testmact target, './...' is not allowed"; \
 		exit 1; \
 	fi
-	TF_ACC=1 go test $(ACCTEST_PACKAGES) -run '$(ACCTEST_REGEX_RUN)' -v -parallel $(PARALLEL_GO_TEST) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
+	TF_ACC=1 go test $(ACCTEST_PACKAGES) -run '$(ACCTEST_REGEX_RUN)' -v -parallel $(ACCTEST_PARALLEL) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
 
 .PHONY: testmact-capture
 testmact-capture: ## Capture HTTP traffic for MacT tests
@@ -68,12 +71,12 @@ testmact-capture: ## Capture HTTP traffic for MacT tests
 		echo "Error: ACCTEST_PACKAGES must be explicitly set for testmact-capture target, './...' is not allowed"; \
 		exit 1; \
 	fi
-	TF_ACC=1 go test $(ACCTEST_PACKAGES) -run '$(ACCTEST_REGEX_RUN)' -v -parallel $(PARALLEL_GO_TEST) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
+	TF_ACC=1 go test $(ACCTEST_PACKAGES) -run '$(ACCTEST_REGEX_RUN)' -v -parallel $(ACCTEST_PARALLEL) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
 
 .PHONY: testacc
 testacc: fmtcheck ## Run acc & mig tests (acceptance & migration tests)
 	@$(eval ACCTEST_REGEX_RUN?=^TestAcc)
-	TF_ACC=1 go test $(ACCTEST_PACKAGES) -run '$(ACCTEST_REGEX_RUN)' -v -parallel $(PARALLEL_GO_TEST) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
+	TF_ACC=1 go test $(ACCTEST_PACKAGES) -run '$(ACCTEST_REGEX_RUN)' -v -parallel $(ACCTEST_PARALLEL) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
 
 .PHONY: testaccgov
 testaccgov: fmtcheck ## Run Government cloud-provider acc & mig tests
