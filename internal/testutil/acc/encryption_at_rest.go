@@ -23,19 +23,19 @@ func ConfigEARAzureKeyVault(projectID string, azure *admin.AzureKeyVault, useReq
 
 	config := fmt.Sprintf(`
 		resource "mongodbatlas_encryption_at_rest" "test" {
-			project_id = "%s"
+			project_id = "%[1]s"
 
-		  azure_key_vault_config {
-				enabled             = %t
-				client_id           = "%s"
-				azure_environment   = "%s"
-				subscription_id     = "%s"
-				resource_group_name = "%s"
-				key_vault_name      = "%s"
-				key_identifier      = "%s"
-				secret  		    = "%s"
-				tenant_id  		    = "%s"
-				%s
+			azure_key_vault_config {
+				enabled             = %[2]t
+				client_id           = %[3]q
+				azure_environment   = %[4]q
+				subscription_id     = %[5]q
+				resource_group_name = %[6]q
+				key_vault_name      = %[7]q
+				key_identifier      = %[8]q
+				secret  		    = %[9]q
+				tenant_id  		    = %[10]q
+				%[11]s
 			}
 		}
 	`, projectID, *azure.Enabled, azure.GetClientID(), azure.GetAzureEnvironment(), azure.GetSubscriptionID(), azure.GetResourceGroupName(),
@@ -61,17 +61,8 @@ func ConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName string
 		datasourceStr = EARDatasourceConfig()
 	}
 	config := fmt.Sprintf(`
-		locals {
-			project_id                 = %[1]q
-			aws_ear_enabled			   = %[2]t
-			aws_iam_role_name          = %[3]q
-			aws_iam_role_policy_name   = %[4]q
-			aws_customer_master_key_id = %[5]q
-			aws_region				   = %[6]q
-		}
-
 		resource "aws_iam_role_policy" "test_policy" {
-			name = local.aws_iam_role_policy_name
+			name = %[4]q
 			role = aws_iam_role.test_role.id
 	  
 			policy = jsonencode({
@@ -85,7 +76,7 @@ func ConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName string
 							"kms:DescribeKey"
 						],
 						"Resource" : [
-							"${local.aws_customer_master_key_id}"
+ 							%[5]q
 						]
 					}
 			  ]
@@ -93,7 +84,7 @@ func ConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName string
 		}
 	  
 		resource "aws_iam_role" "test_role" {
-			name = local.aws_iam_role_name
+			name = %[3]q
 	  
 			assume_role_policy = jsonencode({
 				"Version" : "2012-10-17",
@@ -115,12 +106,12 @@ func ConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName string
 		}
 
 		resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
-			project_id    = local.project_id
+			project_id    = %[1]q
 			provider_name = "AWS"
 		}
 	  
 		resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
-			project_id = local.project_id
+			project_id = %[1]q
 			role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
 	  
 			aws {
@@ -129,12 +120,12 @@ func ConfigAwsKmsWithRole(projectID, awsIAMRoleName, awsIAMRolePolicyName string
 		}
 
 		resource "mongodbatlas_encryption_at_rest" "test" {
-			project_id = local.project_id
+			project_id = %[1]q
 
 			aws_kms_config {
-				enabled                = local.aws_ear_enabled
-				customer_master_key_id = local.aws_customer_master_key_id
-				region                 = local.aws_region
+				enabled                = %[2]t
+				customer_master_key_id = %[5]q
+				region                 = %[6]q
 				role_id                = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
 				%[7]s
 			}

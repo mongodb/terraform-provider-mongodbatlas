@@ -64,7 +64,8 @@ func TestAccEncryptionAtRestPrivateEndpoint_createTimeoutWithDeleteOnCreate(t *t
 func basicTestCaseAzure(tb testing.TB) *resource.TestCase {
 	tb.Helper()
 	var (
-		projectID     = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_ID")
+		projectID = acc.ProjectIDExecution(tb)
+
 		azureKeyVault = &admin.AzureKeyVault{
 			Enabled:                  conversion.Pointer(true),
 			RequirePrivateNetworking: conversion.Pointer(true),
@@ -111,9 +112,10 @@ func TestAccEncryptionAtRestPrivateEndpoint_approveEndpointWithAzureProvider(t *
 	acc.SkipTestForCI(t) // uses azure/azapi Terraform provider which can log sensitive information in CI like Azure subscriptionID used in parent_id of the resource
 
 	var (
+		projectID = acc.ProjectIDExecution(t)
+
 		subscriptionID    = os.Getenv("AZURE_SUBSCRIPTION_ID")
 		resourceGroupName = os.Getenv("AZURE_RESOURCE_GROUP_NAME")
-		projectID         = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_ID")
 		keyVaultName      = os.Getenv("AZURE_KEY_VAULT_NAME")
 		azureKeyVault     = &admin.AzureKeyVault{
 			Enabled:                  conversion.Pointer(true),
