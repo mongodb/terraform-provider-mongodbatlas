@@ -36,6 +36,7 @@ type streamConnectionRS struct {
 type TFStreamConnectionModel struct {
 	ID               types.String `tfsdk:"id"`
 	ProjectID        types.String `tfsdk:"project_id"`
+	WorkspaceName    types.String `tfsdk:"workspace_name"`
 	InstanceName     types.String `tfsdk:"instance_name"`
 	ConnectionName   types.String `tfsdk:"connection_name"`
 	Type             types.String `tfsdk:"type"`
@@ -128,6 +129,17 @@ func (r *streamConnectionRS) Schema(ctx context.Context, req resource.SchemaRequ
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
+// getEffectiveWorkspaceName returns the workspace name from workspace_name or instance_name field
+func getEffectiveWorkspaceName(model *TFStreamConnectionModel) string {
+	if !model.WorkspaceName.IsNull() && !model.WorkspaceName.IsUnknown() {
+		return model.WorkspaceName.ValueString()
+	}
+	if !model.InstanceName.IsNull() && !model.InstanceName.IsUnknown() {
+		return model.InstanceName.ValueString()
+	}
+	return ""
+}
+
 func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var streamConnectionPlan TFStreamConnectionModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &streamConnectionPlan)...)
@@ -137,19 +149,27 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 
 	connV2 := r.Client.AtlasV2
 	projectID := streamConnectionPlan.ProjectID.ValueString()
-	instanceName := streamConnectionPlan.InstanceName.ValueString()
+	effectiveWorkspaceName := getEffectiveWorkspaceName(&streamConnectionPlan)
+	if effectiveWorkspaceName == "" {
+		resp.Diagnostics.AddError("validation error", "workspace_name must be provided")
+		return
+	}
+
 	streamConnectionReq, diags := NewStreamConnectionReq(ctx, &streamConnectionPlan)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	apiResp, _, err := connV2.StreamsApi.CreateStreamConnection(ctx, projectID, instanceName, streamConnectionReq).Execute()
+	apiResp, _, err := connV2.StreamsApi.CreateStreamConnection(ctx, projectID, effectiveWorkspaceName, streamConnectionReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error creating resource", err.Error())
 		return
 	}
 
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, &streamConnectionPlan.Authentication, apiResp)
+	instanceName := streamConnectionPlan.InstanceName.ValueString()
+	workspaceName := streamConnectionPlan.WorkspaceName.ValueString()
+
+	newStreamConnectionModel, diags := NewTFStreamConnectionWithInstanceName(ctx, projectID, instanceName, workspaceName, &streamConnectionPlan.Authentication, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -166,9 +186,13 @@ func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest,
 
 	connV2 := r.Client.AtlasV2
 	projectID := streamConnectionState.ProjectID.ValueString()
-	instanceName := streamConnectionState.InstanceName.ValueString()
+	effectiveWorkspaceName := getEffectiveWorkspaceName(&streamConnectionState)
+	if effectiveWorkspaceName == "" {
+		resp.Diagnostics.AddError("validation error", "workspace_name must be provided")
+		return
+	}
 	connectionName := streamConnectionState.ConnectionName.ValueString()
-	apiResp, getResp, err := connV2.StreamsApi.GetStreamConnection(ctx, projectID, instanceName, connectionName).Execute()
+	apiResp, getResp, err := connV2.StreamsApi.GetStreamConnection(ctx, projectID, effectiveWorkspaceName, connectionName).Execute()
 	if err != nil {
 		if validate.StatusNotFound(getResp) {
 			resp.State.RemoveResource(ctx)
@@ -178,7 +202,9 @@ func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, &streamConnectionState.Authentication, apiResp)
+	instanceName := streamConnectionState.InstanceName.ValueString()
+	workspaceName := streamConnectionState.WorkspaceName.ValueString()
+	newStreamConnectionModel, diags := NewTFStreamConnectionWithInstanceName(ctx, projectID, instanceName, workspaceName, &streamConnectionState.Authentication, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -195,20 +221,26 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 
 	connV2 := r.Client.AtlasV2
 	projectID := streamConnectionPlan.ProjectID.ValueString()
-	instanceName := streamConnectionPlan.InstanceName.ValueString()
+	effectiveWorkspaceName := getEffectiveWorkspaceName(&streamConnectionPlan)
+	if effectiveWorkspaceName == "" {
+		resp.Diagnostics.AddError("validation error", "workspace_name must be provided")
+		return
+	}
 	connectionName := streamConnectionPlan.ConnectionName.ValueString()
 	streamConnectionReq, diags := NewStreamConnectionUpdateReq(ctx, &streamConnectionPlan)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	apiResp, _, err := connV2.StreamsApi.UpdateStreamConnection(ctx, projectID, instanceName, connectionName, streamConnectionReq).Execute()
+	apiResp, _, err := connV2.StreamsApi.UpdateStreamConnection(ctx, projectID, effectiveWorkspaceName, connectionName, streamConnectionReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error updating resource", err.Error())
 		return
 	}
 
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, &streamConnectionPlan.Authentication, apiResp)
+	instanceName := streamConnectionPlan.InstanceName.ValueString()
+	workspaceName := streamConnectionPlan.WorkspaceName.ValueString()
+	newStreamConnectionModel, diags := NewTFStreamConnectionWithInstanceName(ctx, projectID, instanceName, workspaceName, &streamConnectionPlan.Authentication, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -225,7 +257,11 @@ func (r *streamConnectionRS) Delete(ctx context.Context, req resource.DeleteRequ
 
 	connV2 := r.Client.AtlasV2
 	projectID := streamConnectionState.ProjectID.ValueString()
-	instanceName := streamConnectionState.InstanceName.ValueString()
+	instanceName := getEffectiveWorkspaceName(streamConnectionState)
+	if instanceName == "" {
+		resp.Diagnostics.AddError("validation error", "workspace_name must be provided")
+		return
+	}
 	connectionName := streamConnectionState.ConnectionName.ValueString()
 	if err := DeleteStreamConnection(ctx, connV2.StreamsApi, projectID, instanceName, connectionName, 10*time.Minute); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())

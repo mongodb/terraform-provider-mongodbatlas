@@ -25,7 +25,7 @@ type streamConnectionDS struct {
 
 func (d *streamConnectionDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.DataSourceSchemaRequest{
-		RequiredFields: []string{"project_id", "instance_name", "connection_name"},
+		RequiredFields: []string{"project_id", "connection_name"},
 	})
 }
 
@@ -38,15 +38,21 @@ func (d *streamConnectionDS) Read(ctx context.Context, req datasource.ReadReques
 
 	connV2 := d.Client.AtlasV2
 	projectID := streamConnectionConfig.ProjectID.ValueString()
-	instanceName := streamConnectionConfig.InstanceName.ValueString()
+	effectiveWorkspaceName := getEffectiveWorkspaceName(&streamConnectionConfig)
+	if effectiveWorkspaceName == "" {
+		resp.Diagnostics.AddError("validation error", "workspace_name must be provided")
+		return
+	}
 	connectionName := streamConnectionConfig.ConnectionName.ValueString()
-	apiResp, _, err := connV2.StreamsApi.GetStreamConnection(ctx, projectID, instanceName, connectionName).Execute()
+	apiResp, _, err := connV2.StreamsApi.GetStreamConnection(ctx, projectID, effectiveWorkspaceName, connectionName).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error fetching resource", err.Error())
 		return
 	}
 
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, nil, apiResp)
+	instanceName := streamConnectionConfig.InstanceName.ValueString()
+	workspaceName := streamConnectionConfig.WorkspaceName.ValueString()
+	newStreamConnectionModel, diags := NewTFStreamConnectionWithInstanceName(ctx, projectID, instanceName, workspaceName, nil, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

@@ -19,7 +19,7 @@ const (
 	dataSourceConfig = `
 data "mongodbatlas_stream_connection" "test" {
 		project_id = mongodbatlas_stream_connection.test.project_id
-		instance_name = mongodbatlas_stream_connection.test.instance_name
+		workspace_name = mongodbatlas_stream_connection.test.workspace_name
 		connection_name = mongodbatlas_stream_connection.test.connection_name
 }
 `
@@ -27,13 +27,13 @@ data "mongodbatlas_stream_connection" "test" {
 	dataSourcePluralConfig = `
 data "mongodbatlas_stream_connections" "test" {
 		project_id = mongodbatlas_stream_connection.test.project_id
-		instance_name = mongodbatlas_stream_connection.test.instance_name
+		workspace_name = mongodbatlas_stream_connection.test.workspace_name
 }
 `
 	dataSourcePluralConfigWithPage = `
 data "mongodbatlas_stream_connections" "test" {
 		project_id = mongodbatlas_stream_connection.test.project_id
-		instance_name = mongodbatlas_stream_connection.test.instance_name
+		workspace_name = mongodbatlas_stream_connection.test.workspace_name
 		page_num = 2 # no specific reason for 2, just to test pagination
 		items_per_page = 1
 	}
@@ -400,6 +400,57 @@ func TestAccStreamRSStreamConnection_AWSLambda(t *testing.T) {
 	})
 }
 
+func TestAccStreamRSStreamConnection_workspaceName(t *testing.T) {
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		connectionName          = "workspace-name-test"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: configureKafkaWithWorkspaceName(projectID, instanceName, connectionName, "user", "password", "localhost:9092"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkStreamConnectionExists(),
+					resource.TestCheckResourceAttr(resourceName, "workspace_name", instanceName),
+					resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
+					resource.TestCheckResourceAttr(resourceName, "type", "Kafka"),
+					resource.TestCheckNoResourceAttr(resourceName, "instance_name"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"authentication.password"},
+			},
+		},
+	})
+}
+
+func TestAccStreamRSStreamConnection_conflictingFields(t *testing.T) {
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		connectionName          = "conflict-test"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config:      configureKafkaWithInstanceAndWorkspaceName(projectID, instanceName, connectionName, "user", "password", "localhost:9092"),
+				ExpectError: regexp.MustCompile("Attribute \"instance_name\" cannot be specified when \"workspace_name\" is specified"),
+			},
+		},
+	})
+}
+
 func getKafkaAuthenticationConfig(mechanism, username, password, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtensions, httpsCaPem string) string {
 	if mechanism == "PLAIN" {
 		return fmt.Sprintf(`authentication = {
@@ -462,6 +513,53 @@ func configureSampleStream(projectID, instanceName, sampleName string) string {
 		 	type = "Sample"
 		}
 	`, streamInstanceConfig, sampleName)
+}
+
+func configureKafkaWithWorkspaceName(projectID, instanceName, connectionName, username, password, bootstrapServers string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_stream_connection" "test" {
+		    project_id = %[1]q
+			workspace_name = %[2]q
+		 	connection_name = %[3]q
+		 	type = "Kafka"
+		 	authentication = {
+		    	mechanism = "PLAIN"
+		    	username = %[4]q
+		    	password = %[5]q
+		    }
+		    bootstrap_servers = %[6]q
+		    config = {
+		    	"auto.offset.reset": "earliest"
+		    }
+		    security = {
+				protocol = "SASL_PLAINTEXT"
+			}
+		}
+	`, projectID, instanceName, connectionName, username, password, bootstrapServers)
+}
+
+func configureKafkaWithInstanceAndWorkspaceName(projectID, instanceName, connectionName, username, password, bootstrapServers string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_stream_connection" "test" {
+		    project_id = %[1]q
+			instance_name = %[2]q
+			workspace_name = %[2]q
+		 	connection_name = %[3]q
+		 	type = "Kafka"
+		 	authentication = {
+		    	mechanism = "PLAIN"
+		    	username = %[4]q
+		    	password = %[5]q
+		    }
+		    bootstrap_servers = %[6]q
+		    config = {
+		    	"auto.offset.reset": "earliest"
+		    }
+		    security = {
+				protocol = "SASL_PLAINTEXT"
+			}
+		}
+	`, projectID, instanceName, connectionName, username, password, bootstrapServers)
 }
 
 func checkSampleStreamAttributes(
