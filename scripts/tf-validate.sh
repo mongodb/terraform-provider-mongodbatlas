@@ -22,6 +22,11 @@ find ./examples -type f -name ".terraform.lock.hcl" -exec rm -f {} +
 
 export TF_CLI_CONFIG_FILE="$PWD/bin-examples/tf-validate.tfrc"
 
+# Cache plugins so no need to download them every time
+CACHE_DIR="$PWD/cache-examples"
+mkdir -p "$CACHE_DIR"
+export TF_PLUGIN_CACHE_DIR="$CACHE_DIR"
+
 # Use local provider to validate examples
 go build -o bin-examples/terraform-provider-mongodbatlas .
 
