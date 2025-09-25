@@ -93,7 +93,7 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project. **WARNING**: Changing the `project_id` will result in destruction of the existing authorization resource and the creation of a new authorization resource.
-* `role_id`    - (Required) Unique ID of this role returned by mongodb atlas api. **WARNING**: Changing the `role_id` will result in destruction of the existing authorization resource and the creation of a new authorization resource.
+* `role_id`    - (Required) The unique ID of this role returned by the mongodb atlas api. **WARNING**: Changing the `role_id` will result in destruction of the existing authorization resource and the creation of a new authorization resource.
 
 Conditional 
 * `aws`
