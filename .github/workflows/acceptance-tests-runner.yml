@@ -283,6 +283,7 @@ jobs:
           advanced_cluster:
             - 'internal/service/advancedcluster/*.go'
           authentication:
+            - 'internal/config/*.go'
             - 'internal/provider/*.go'
           autogen:
             - 'internal/common/autogen/*.go'
