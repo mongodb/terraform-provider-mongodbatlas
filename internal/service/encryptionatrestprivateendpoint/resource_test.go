@@ -36,7 +36,7 @@ func TestAccEncryptionAtRestPrivateEndpoint_createTimeoutWithDeleteOnCreate(t *t
 	// This test is skipped because the deletion of the private endpoint when delete_on_create_timeout is true is currently failing
 	// due to a change in the Atlas API which prevents the deletion of private endpoints during provisioning.
 	//  - When attempting deletion, we get a ENCRYPTION_AT_REST_PRIVATE_ENDPOINT_DELETE_BLOCKED_DURING_PROVISIONING error.
-	// A long term solution is in the works by the API team which will re-allow deletion of private endpoints during provisioning.
+	// A long term solution is in the works by the API team which will re-allow deletion of private endpoints during provisioning: CLOUDP-344647
 	acc.SkipTestForCI(t)
 
 	var (
