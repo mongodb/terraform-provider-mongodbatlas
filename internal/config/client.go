@@ -7,7 +7,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 
@@ -26,15 +25,12 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 
-	"go.mongodb.org/atlas-sdk/v20250312007/auth/clientcredentials"
-
 	"go.mongodb.org/atlas-sdk/v20250312007/auth"
 )
 
 const (
-	toolName                             = "terraform-provider-mongodbatlas"
-	terraformPlatformName                = "Terraform"
-	previewV2AdvancedClusterEnabledUAKey = "AdvancedClusterPreview"
+	toolName              = "terraform-provider-mongodbatlas"
+	terraformPlatformName = "Terraform"
 
 	timeout               = 5 * time.Second
 	keepAlive             = 30 * time.Second
@@ -100,15 +96,14 @@ type MongoDBClient struct {
 
 // Config contains the configurations needed to use SDKs
 type Config struct {
-	AssumeRole                      *AssumeRole
-	PublicKey                       string
-	PrivateKey                      string
-	BaseURL                         string
-	RealmBaseURL                    string
-	TerraformVersion                string
-	ClientID                        string
-	ClientSecret                    string
-	PreviewV2AdvancedClusterEnabled bool
+	AssumeRole       *AssumeRole
+	PublicKey        string
+	PrivateKey       string
+	BaseURL          string
+	RealmBaseURL     string
+	TerraformVersion string
+	ClientID         string
+	ClientSecret     string
 }
 
 // CredentialProvider implementation for Config
@@ -144,87 +139,58 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 	networkLoggingTransport := NewTransportWithNetworkLogging(baseTransport, logging.IsDebugOrHigher())
 
 	var client *http.Client
-	var optsAtlas []matlasClient.ClientOpt
 
 	// Determine authentication method based on available credentials
 	switch ResolveAuthMethod(c) {
 	case ServiceAccount:
-		conf := clientcredentials.NewConfig(c.ClientID, c.ClientSecret)
-		// Override TokenURL and RevokeURL if custom BaseURL is provided
-		if c.BaseURL != "" {
-			baseURL := strings.TrimRight(c.BaseURL, "/")
-			conf.TokenURL = baseURL + clientcredentials.TokenAPIPath
-			conf.RevokeURL = baseURL + clientcredentials.RevokeAPIPath
-		}
-
-		// Create a base HTTP client for token acquisition
-		baseHTTPClient := &http.Client{
-			Transport: networkLoggingTransport,
-		}
-
-		// Set the HTTP client in context for token acquisition
-		ctx = context.WithValue(ctx, auth.HTTPClient, baseHTTPClient)
-
-		tokenSource := conf.TokenSource(ctx)
-
-		// Acquire an initial token upfront for several reasons:
-		// 1. OAuth2 token caching: The oauth2 library only caches tokens after successful acquisition
-		// 2. Early credential validation: Fail fast during provider init rather than first resource operation
-		// 3. Performance: Subsequent requests use cached tokens instead of blocking for token acquisition
-		_, err := tokenSource.Token()
+		tokenSource, err := tokenSource(ctx, c, networkLoggingTransport)
 		if err != nil {
-			return nil, fmt.Errorf("failed to acquire OAuth2 token: %w", err)
+			return nil, err
 		}
-
 		oauthClient := auth.NewClient(ctx, tokenSource)
+		// Don't change logging.NewTransport to NewSubsystemLoggingHTTPTransport until all resources are in TPF.
 		tfLoggingTransport := logging.NewTransport("Atlas", oauthClient.Transport)
 		oauthClient.Transport = tfLoggingTransport
 		client = oauthClient
-		optsAtlas = []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
 	case Digest:
 		digestTransport := digest.NewTransportWithHTTPRoundTripper(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey), networkLoggingTransport)
 		// Don't change logging.NewTransport to NewSubsystemLoggingHTTPTransport until all resources are in TPF.
 		tfLoggingTransport := logging.NewTransport("Atlas", digestTransport)
 		client = &http.Client{Transport: tfLoggingTransport}
-		optsAtlas = []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
 	case Unknown:
 	}
 
+	// Initialize the old SDK
+	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
 	if c.BaseURL != "" {
 		optsAtlas = append(optsAtlas, matlasClient.SetBaseURL(c.BaseURL))
 	}
-
-	// Initialize the MongoDB Atlas API Client.
 	atlasClient, err := matlasClient.New(client, optsAtlas...)
 	if err != nil {
 		return nil, err
 	}
 
+	// Initialize the new SDK for different versions
 	sdkV2Client, err := c.newSDKV2Client(client)
 	if err != nil {
 		return nil, err
 	}
-
 	sdkPreviewClient, err := c.newSDKPreviewClient(client)
 	if err != nil {
 		return nil, err
 	}
-
 	sdkV220240530Client, err := c.newSDKV220240530Client(client)
 	if err != nil {
 		return nil, err
 	}
-
 	sdkV220240805Client, err := c.newSDKV220240805Client(client)
 	if err != nil {
 		return nil, err
 	}
-
 	sdkV220241113Client, err := c.newSDKV220241113Client(client)
 	if err != nil {
 		return nil, err
 	}
-
 	clients := &MongoDBClient{
 		Atlas:           atlasClient,
 		AtlasV2:         sdkV2Client,
@@ -387,14 +353,10 @@ func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParam
 }
 
 func userAgent(c *Config) string {
-	isPreviewV2AdvancedClusterEnabled := c.PreviewV2AdvancedClusterEnabled
-
 	metadata := []UAMetadata{
 		{toolName, version.ProviderVersion},
 		{terraformPlatformName, c.TerraformVersion},
-		{previewV2AdvancedClusterEnabledUAKey, strconv.FormatBool(isPreviewV2AdvancedClusterEnabled)},
 	}
-
 	var parts []string
 	for _, info := range metadata {
 		part := fmt.Sprintf("%s/%s", info.Name, info.Value)
