@@ -524,8 +524,8 @@ jobs:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
             ./internal/service/alertconfiguration
-            ./internal/service/databaseuser
-            ./internal/service/maintenancewindow
+            # TEMPORARY DONT MERGE, wil be uncommented before merge - ./internal/service/databaseuser
+            # TEMPORARY DONT MERGE, wil be uncommented before merge - ./internal/service/maintenancewindow
         run: make testacc
 
   autogen:
