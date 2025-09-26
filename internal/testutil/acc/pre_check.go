@@ -396,6 +396,6 @@ func PreCheckServiceAccount(tb testing.TB) {
 func PreCheckAccessToken(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_OAUTH_TOKEN") == "" {
-		tb.Fatal("`MONGODB_ATLAS_OAUTH_TOKEN` must be set for Atlas Programmatic API Key acceptance testing")
+		tb.Fatal("`MONGODB_ATLAS_OAUTH_TOKEN` must be set for Atlas Access Token acceptance testing")
 	}
 }
