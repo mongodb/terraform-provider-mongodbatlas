@@ -158,6 +158,17 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 
 	// Determine authentication method based on available credentials
 	switch ResolveAuthMethod(c) {
+	case AccessToken:
+		// Use a static bearer token with oauth2 transport
+		tokenSource := oauth2.StaticTokenSource(&oauth2.Token{
+			AccessToken: c.AccessToken,
+			TokenType:   "Bearer",
+		})
+		oauthClient := auth.NewClient(ctx, tokenSource)
+		tfLoggingTransport := logging.NewTransport("Atlas", oauthClient.Transport)
+		oauthClient.Transport = tfLoggingTransport
+		client = oauthClient
+		optsAtlas = []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
 	case ServiceAccount:
 		conf := clientcredentials.NewConfig(c.ClientID, c.ClientSecret)
 		// Override TokenURL and RevokeURL if custom BaseURL is provided
@@ -196,17 +207,6 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 		// Don't change logging.NewTransport to NewSubsystemLoggingHTTPTransport until all resources are in TPF.
 		tfLoggingTransport := logging.NewTransport("Atlas", digestTransport)
 		client = &http.Client{Transport: tfLoggingTransport}
-		optsAtlas = []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
-	case AccessToken:
-		// Use a static bearer token with oauth2 transport
-		tokenSource := oauth2.StaticTokenSource(&oauth2.Token{
-			AccessToken: c.AccessToken,
-			TokenType:   "Bearer",
-		})
-		oauthClient := auth.NewClient(ctx, tokenSource)
-		tfLoggingTransport := logging.NewTransport("Atlas", oauthClient.Transport)
-		oauthClient.Transport = tfLoggingTransport
-		client = oauthClient
 		optsAtlas = []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
 	case Unknown:
 	}
@@ -427,14 +427,14 @@ func userAgent(c *Config) string {
 
 // ResolveAuthMethod determines the authentication method from any credential provider
 func ResolveAuthMethod(cg CredentialProvider) AuthMethod {
+	if IsAccessTokenAuth(cg) {
+		return AccessToken
+	}
 	if IsServiceAccountAuth(cg) {
 		return ServiceAccount
 	}
 	if IsDigestAuth(cg) {
 		return Digest
-	}
-	if IsAccessTokenAuth(cg) {
-		return AccessToken
 	}
 	return Unknown
 }
