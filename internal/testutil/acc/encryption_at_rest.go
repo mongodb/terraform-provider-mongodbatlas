@@ -19,7 +19,7 @@ func ConfigEARAzureKeyVault(projectID string, azure *admin.AzureKeyVault, useReq
 
 	config := fmt.Sprintf(`
 		resource "mongodbatlas_encryption_at_rest" "test" {
-			project_id = "%[1]s"
+			project_id = %[1]q
 
 			azure_key_vault_config {
 				enabled             = %[2]t
