@@ -16,7 +16,7 @@ func TestAccSTSAssumeRole_basic(t *testing.T) {
 		projectName  = acc.RandomProjectName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckSTSAssumeRole(t); acc.PreCheckRegularCredsAreEmpty(t) },
+		PreCheck:                 func() { acc.PreCheckSTSAssumeRole(t); acc.PreCheckPAKCredsAreEmpty(t); acc.PreCheckSACredsAreEmpty(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
@@ -42,16 +42,37 @@ func TestAccSTSAssumeRole_basic(t *testing.T) {
 
 func TestAccServiceAccount_basic(t *testing.T) {
 	var (
-		resourceName = "data.mongodbatlas_projects.test"
+		resourceName = "data.mongodbatlas_organization.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckServiceAccount(t); acc.PreCheckRegularCredsAreEmpty(t) },
+		PreCheck:                 func() { acc.PreCheckServiceAccount(t); acc.PreCheckPAKCredsAreEmpty(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
-				Config: configDataSourceProject(),
+				Config: configDataSourceOrg(orgID),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet(resourceName, "results.#"),
+					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAccessToken_basic(t *testing.T) {
+	acc.SkipTestForCI(t) // access token has a validity period of 1 hour, so it cannot be used in CI reliably
+	var (
+		resourceName = "data.mongodbatlas_organization.test"
+		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckAccessToken(t); acc.PreCheckPAKCredsAreEmpty(t); acc.PreCheckSACredsAreEmpty(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configDataSourceOrg(orgID),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "org_id"),
 				),
 			},
 		},
@@ -67,9 +88,10 @@ func configProject(orgID, projectName string) string {
 	`, orgID, projectName)
 }
 
-func configDataSourceProject() string {
-	return `
-		data "mongodbatlas_projects" "test" {
+func configDataSourceOrg(orgID string) string {
+	return fmt.Sprintf(`
+		data "mongodbatlas_organization" "test" {
+  			org_id = %[1]q
 		}
-	`
+	`, orgID)
 }

@@ -87,6 +87,7 @@ type tfMongodbAtlasProviderModel struct {
 	AwsSessionToken      types.String `tfsdk:"aws_session_token"`
 	ClientID             types.String `tfsdk:"client_id"`
 	ClientSecret         types.String `tfsdk:"client_secret"`
+	AccessToken          types.String `tfsdk:"access_token"`
 	IsMongodbGovCloud    types.Bool   `tfsdk:"is_mongodbgov_cloud"`
 }
 
@@ -198,6 +199,10 @@ func (p *MongodbtlasProvider) Schema(ctx context.Context, req provider.SchemaReq
 				Optional:    true,
 				Description: "MongoDB Atlas Client Secret for Service Account.",
 			},
+			"access_token": schema.StringAttribute{
+				Optional:    true,
+				Description: "MongoDB Atlas Access Token for Service Account.",
+			},
 		},
 	}
 }
@@ -288,6 +293,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		TerraformVersion: req.TerraformVersion,
 		ClientID:         data.ClientID.ValueString(),
 		ClientSecret:     data.ClientSecret.ValueString(),
+		AccessToken:      data.AccessToken.ValueString(),
 	}
 
 	var assumeRoles []tfAssumeRoleModel
@@ -470,12 +476,20 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 		}, "").(string))
 	}
 
+	if data.AccessToken.ValueString() == "" {
+		data.AccessToken = types.StringValue(MultiEnvDefaultFunc([]string{
+			"MONGODB_ATLAS_OAUTH_TOKEN",
+			"TF_VAR_OAUTH_TOKEN",
+		}, "").(string))
+	}
+
 	// Check if any valid authentication method is provided
 	if !config.HasValidAuthCredentials(&config.Config{
 		PublicKey:    data.PublicKey.ValueString(),
 		PrivateKey:   data.PrivateKey.ValueString(),
 		ClientID:     data.ClientID.ValueString(),
 		ClientSecret: data.ClientSecret.ValueString(),
+		AccessToken:  data.AccessToken.ValueString(),
 	}) && !awsRoleDefined {
 		resp.Diagnostics.AddError(ProviderConfigError, MissingAuthAttrError)
 	}
