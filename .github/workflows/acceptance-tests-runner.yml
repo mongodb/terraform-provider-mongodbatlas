@@ -459,7 +459,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Same-region
+          # Same region
           - name: same-region-us-east-1
             aws_region: US_EAST_1
             sts_endpoint: https://sts.us-east-1.amazonaws.com/
