@@ -11,7 +11,17 @@ subcategory: "Streams"
 ```terraform
 data "mongodbatlas_stream_connection" "example" {
     project_id = "<PROJECT_ID>"
-    instance_name = "<INSTANCE_NAME>"
+    workspace_name = "<WORKSPACE_NAME>"
+    connection_name = "<CONNECTION_NAME>"
+}
+```
+
+### Example using workspace_name
+
+```terraform
+data "mongodbatlas_stream_connection" "example" {
+    project_id = "<PROJECT_ID>"
+    workspace_name = "<WORKSPACE_NAME>"
     connection_name = "<CONNECTION_NAME>"
 }
 ```
@@ -19,8 +29,11 @@ data "mongodbatlas_stream_connection" "example" {
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
-* `instance_name` - (Required) Human-readable label that identifies the stream instance.
+* `instance_name` - (Deprecated) Human-readable label that identifies the stream instance. Attribute is deprecated and will be removed in version 3.0.0 in favor of `workspace_name`.
+* `workspace_name` - (Optional) Human-readable label that identifies the stream instance. Conflicts with `workspace_name`.
 * `connection_name` - (Required) Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
+
+~> **NOTE:** Either `workspace_name` or `workspace_name` must be provided, but not both. These fields are functionally identical and `workspace_name` is an alias for `workspace_name`. `workspace_name` should be used instead of `workspace_name`.
 
 ## Attributes Reference
 
