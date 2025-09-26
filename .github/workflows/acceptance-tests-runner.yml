@@ -463,12 +463,10 @@ jobs:
           - name: same-region-us-east-1
             aws_region: US_EAST_1
             sts_endpoint: https://sts.us-east-1.amazonaws.com/
-
-          # Cross-region: STS east-1, secrets eu-north-1
+          # Cross-region
           - name: cross-sts-us-east-1-secret-eu-north-1
             aws_region: EU_NORTH_1
             sts_endpoint: https://sts.us-east-1.amazonaws.com/
-
           # Global STS endpoint (signs as us-east-1), secrets in eu-west-1
           - name: global-sts-secret-eu-west-1
             aws_region: EU_WEST_1
