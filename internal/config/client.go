@@ -29,6 +29,7 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312007/auth/clientcredentials"
 
 	"go.mongodb.org/atlas-sdk/v20250312007/auth"
+	"golang.org/x/oauth2"
 )
 
 const (
@@ -49,6 +50,7 @@ type AuthMethod int
 const (
 	ServiceAccount AuthMethod = iota
 	Digest
+	AccessToken
 	Unknown
 )
 
@@ -58,6 +60,7 @@ type CredentialProvider interface {
 	GetPrivateKey() string
 	GetClientID() string
 	GetClientSecret() string
+	GetAccessToken() string
 }
 
 // IsDigestAuth checks if public/private key credentials are present
@@ -70,9 +73,14 @@ func IsServiceAccountAuth(cp CredentialProvider) bool {
 	return cp.GetClientID() != "" && cp.GetClientSecret() != ""
 }
 
+// IsAccessTokenAuth checks if access token credentials are present
+func IsAccessTokenAuth(cp CredentialProvider) bool {
+	return cp.GetAccessToken() != ""
+}
+
 // HasValidAuthCredentials checks if any valid authentication method is provided
 func HasValidAuthCredentials(cp CredentialProvider) bool {
-	return IsDigestAuth(cp) || IsServiceAccountAuth(cp)
+	return IsDigestAuth(cp) || IsServiceAccountAuth(cp) || IsAccessTokenAuth(cp)
 }
 
 var baseTransport = &http.Transport{
@@ -108,6 +116,7 @@ type Config struct {
 	TerraformVersion                string
 	ClientID                        string
 	ClientSecret                    string
+	AccessToken                     string
 	PreviewV2AdvancedClusterEnabled bool
 }
 
@@ -116,6 +125,7 @@ func (c *Config) GetPublicKey() string    { return c.PublicKey }
 func (c *Config) GetPrivateKey() string   { return c.PrivateKey }
 func (c *Config) GetClientID() string     { return c.ClientID }
 func (c *Config) GetClientSecret() string { return c.ClientSecret }
+func (c *Config) GetAccessToken() string  { return c.AccessToken }
 
 type AssumeRole struct {
 	Tags              map[string]string
@@ -186,6 +196,17 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 		// Don't change logging.NewTransport to NewSubsystemLoggingHTTPTransport until all resources are in TPF.
 		tfLoggingTransport := logging.NewTransport("Atlas", digestTransport)
 		client = &http.Client{Transport: tfLoggingTransport}
+		optsAtlas = []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
+	case AccessToken:
+		// Use a static bearer token with oauth2 transport
+		tokenSource := oauth2.StaticTokenSource(&oauth2.Token{
+			AccessToken: c.AccessToken,
+			TokenType:   "Bearer",
+		})
+		oauthClient := auth.NewClient(ctx, tokenSource)
+		tfLoggingTransport := logging.NewTransport("Atlas", oauthClient.Transport)
+		oauthClient.Transport = tfLoggingTransport
+		client = oauthClient
 		optsAtlas = []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
 	case Unknown:
 	}
@@ -411,6 +432,9 @@ func ResolveAuthMethod(cg CredentialProvider) AuthMethod {
 	}
 	if IsDigestAuth(cg) {
 		return Digest
+	}
+	if IsAccessTokenAuth(cg) {
+		return AccessToken
 	}
 	return Unknown
 }

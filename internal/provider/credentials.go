@@ -82,8 +82,10 @@ func configureCredentialsSTS(cfg *config.Config, secret, region, awsAccessKeyID,
 	case config.ServiceAccount:
 		cfg.ClientID = secretData.ClientID
 		cfg.ClientSecret = secretData.ClientSecret
+	case config.AccessToken:
+		cfg.AccessToken = secretData.AccessToken
 	case config.Unknown:
-		return *cfg, fmt.Errorf("secret missing value for supported credentials: PrivateKey/PublicKey or ClientID/ClientSecret")
+		return *cfg, fmt.Errorf("secret missing value for supported credentials: PrivateKey/PublicKey, ClientID/ClientSecret or AccessToken")
 	}
 
 	return *cfg, nil
