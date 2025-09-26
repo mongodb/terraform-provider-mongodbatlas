@@ -66,7 +66,6 @@ If `type` is of value `Https` the following additional attributes are defined:
 * `client_secret` - Secret known only to the Kafka client and the authorization server.
 * `scope` - Kafka clients use this to specify the scope of the access request to the broker.
 * `sasl_oauthbearer_extensions` - Additional information to be provided to the Kafka broker.
-* `https_ca_pem` - The CA certificates as a PEM string.
 
 ### Security
 

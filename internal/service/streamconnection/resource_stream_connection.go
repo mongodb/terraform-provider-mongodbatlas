@@ -62,7 +62,6 @@ type TFConnectionAuthenticationModel struct {
 	ClientSecret              types.String `tfsdk:"client_secret"`
 	Scope                     types.String `tfsdk:"scope"`
 	SaslOauthbearerExtensions types.String `tfsdk:"sasl_oauthbearer_extensions"`
-	HTTPSCaPem                types.String `tfsdk:"https_ca_pem"`
 }
 
 var ConnectionAuthenticationObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
@@ -74,7 +73,6 @@ var ConnectionAuthenticationObjectType = types.ObjectType{AttrTypes: map[string]
 	"client_secret":               types.StringType,
 	"scope":                       types.StringType,
 	"sasl_oauthbearer_extensions": types.StringType,
-	"https_ca_pem":                types.StringType,
 }}
 
 type TFConnectionSecurityModel struct {

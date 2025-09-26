@@ -1,0 +1,11 @@
+```release-note:bug
+resource/mongodbatlas_stream_connection: remove https_ca_pem from the Kafka stream connection
+```
+
+```release-note:bug
+data-source/mongodbatlas_stream_connection: remove https_ca_pem from the Kafka stream connection
+```
+
+```release-note:bug
+data-source/mongodbatlas_stream_connections: remove https_ca_pem from the Kafka stream connection
+```

@@ -25,7 +25,6 @@ const (
 	tokenEndpointURL          = "https://your-domain.com/oauth2/token"
 	scope                     = "read:messages write:messages"
 	saslOauthbearerExtentions = "logicalCluster=cluster-kmo17m,identityPoolId=pool-l7Arl"
-	httpsCaPem                = "MHWER3343"
 	securityProtocol          = "SASL_SSL"
 	bootstrapServers          = "localhost:9092,another.host:9092"
 	dbRole                    = "customRole"
@@ -58,7 +57,7 @@ type sdkToTFModelTestCase struct {
 
 func TestStreamConnectionSDKToTFModel(t *testing.T) {
 	var authConfigWithPasswordDefined = tfAuthenticationObject(t, authMechanism, authUsername, "raw password")
-	var authConfigWithOAuth = tfAuthenticationObjectForOAuth(t, authMechanismOAuth, clientID, clientSecret, tokenEndpointURL, scope, saslOauthbearerExtentions, httpsCaPem)
+	var authConfigWithOAuth = tfAuthenticationObjectForOAuth(t, authMechanismOAuth, clientID, clientSecret, tokenEndpointURL, scope, saslOauthbearerExtentions)
 
 	testCases := []sdkToTFModelTestCase{
 		{
@@ -166,7 +165,6 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 					TokenEndpointUrl:          admin.PtrString(tokenEndpointURL),
 					Scope:                     admin.PtrString(scope),
 					SaslOauthbearerExtensions: admin.PtrString(saslOauthbearerExtentions),
-					HttpsCaPem:                admin.PtrString(httpsCaPem),
 				},
 				BootstrapServers: admin.PtrString(bootstrapServers),
 				Config:           &configMap,
@@ -183,7 +181,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				InstanceName:     types.StringValue(instanceName),
 				ConnectionName:   types.StringValue(connectionName),
 				Type:             types.StringValue("Kafka"),
-				Authentication:   tfAuthenticationObjectForOAuth(t, authMechanismOAuth, clientID, clientSecret, tokenEndpointURL, scope, saslOauthbearerExtentions, httpsCaPem), // password value is obtained from config, not api resp.
+				Authentication:   tfAuthenticationObjectForOAuth(t, authMechanismOAuth, clientID, clientSecret, tokenEndpointURL, scope, saslOauthbearerExtentions), // password value is obtained from config, not api resp.
 				BootstrapServers: types.StringValue(bootstrapServers),
 				Config:           tfConfigMap(t, configMap),
 				Security:         tfSecurityObject(t, DummyCACert, securityProtocol),
@@ -643,7 +641,7 @@ func tfAuthenticationObject(t *testing.T, mechanism, username, password string) 
 	return auth
 }
 
-func tfAuthenticationObjectForOAuth(t *testing.T, mechanism, clientID, clientSecret, tokenEndpointURL, scope, saslOauthbearerExtensions, httpsCaPem string) types.Object {
+func tfAuthenticationObjectForOAuth(t *testing.T, mechanism, clientID, clientSecret, tokenEndpointURL, scope, saslOauthbearerExtensions string) types.Object {
 	t.Helper()
 	auth, diags := types.ObjectValueFrom(t.Context(), streamconnection.ConnectionAuthenticationObjectType.AttrTypes, streamconnection.TFConnectionAuthenticationModel{
 		Mechanism:                 types.StringValue(mechanism),
@@ -652,7 +650,6 @@ func tfAuthenticationObjectForOAuth(t *testing.T, mechanism, clientID, clientSec
 		TokenEndpointURL:          types.StringValue(tokenEndpointURL),
 		Scope:                     types.StringValue(scope),
 		SaslOauthbearerExtensions: types.StringValue(saslOauthbearerExtensions),
-		HTTPSCaPem:                types.StringValue(httpsCaPem),
 	})
 	if diags.HasError() {
 		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())

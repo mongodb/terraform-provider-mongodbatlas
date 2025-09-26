@@ -35,7 +35,6 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 			ClientSecret:              authenticationModel.ClientSecret.ValueStringPointer(),
 			Scope:                     authenticationModel.Scope.ValueStringPointer(),
 			SaslOauthbearerExtensions: authenticationModel.SaslOauthbearerExtensions.ValueStringPointer(),
-			HttpsCaPem:                authenticationModel.HTTPSCaPem.ValueStringPointer(),
 		}
 	}
 	if !plan.Security.IsNull() {
@@ -227,7 +226,6 @@ func newTFConnectionAuthenticationModel(ctx context.Context, currAuthConfig *typ
 			ClientID:                  types.StringPointerValue(authResp.ClientId),
 			Scope:                     types.StringPointerValue(authResp.Scope),
 			SaslOauthbearerExtensions: types.StringPointerValue(authResp.SaslOauthbearerExtensions),
-			HTTPSCaPem:                types.StringPointerValue(authResp.HttpsCaPem),
 		}
 
 		if currAuthConfig != nil && !currAuthConfig.IsNull() { // if config is available (create & update of resource) password value is set in new state
