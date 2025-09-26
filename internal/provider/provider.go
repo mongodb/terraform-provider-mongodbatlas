@@ -56,6 +56,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
+// TEMPORARY: trigger tests
+
 const (
 	MongodbGovCloudURL             = "https://cloud.mongodbgov.com"
 	MongodbGovCloudQAURL           = "https://cloud-qa.mongodbgov.com"
