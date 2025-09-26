@@ -20,7 +20,7 @@ import (
 
 const (
 	endPointSTSHostnameDefault = "sts.amazonaws.com"
-	defaultRegionSTS   = "us-east-1"
+	defaultRegionSTS           = "us-east-1"
 )
 
 func configureCredentialsSTS(cfg *config.Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (config.Config, error) {
@@ -35,12 +35,11 @@ func configureCredentialsSTS(cfg *config.Config, secret, region, awsAccessKeyID,
 		}
 		return defaultResolver.EndpointFor(service, region, optFns...)
 	}
-	
 
 	sess := session.Must(session.NewSession(&aws.Config{
-		Region:              aws.String(region),
-		Credentials:         credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, awsSessionToken),
-		EndpointResolver:    endpoints.ResolverFunc(stsCustResolverFn),
+		Region:           aws.String(region),
+		Credentials:      credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, awsSessionToken),
+		EndpointResolver: endpoints.ResolverFunc(stsCustResolverFn),
 	}))
 
 	creds := stscreds.NewCredentials(sess, cfg.AssumeRole.RoleARN)
@@ -79,47 +78,44 @@ func configureCredentialsSTS(cfg *config.Config, secret, region, awsAccessKeyID,
 	return *cfg, nil
 }
 
-
 func deriveSTSRegionFromEndpoint(ep string) string {
-    if ep == "" {
-        return ""
-    }
-    u, err := url.Parse(ep)
-    if err != nil {
-        return defaultRegionSTS
-    }
-    host := u.Hostname() // valid values: sts.us-west-2.amazonaws.com or sts.amazonaws.com
+	if ep == "" {
+		return ""
+	}
+	u, err := url.Parse(ep)
+	if err != nil {
+		return defaultRegionSTS
+	}
+	host := u.Hostname() // valid values: sts.us-west-2.amazonaws.com or sts.amazonaws.com
 
-    if host == endPointSTSHostnameDefault {
-        return defaultRegionSTS
-    }
+	if host == endPointSTSHostnameDefault {
+		return defaultRegionSTS
+	}
 
-    parts := strings.Split(host, ".")
-    if len(parts) >= 4 && parts[0] == "sts" {
-        return parts[1]
-    }
-    return defaultRegionSTS
+	parts := strings.Split(host, ".")
+	if len(parts) >= 4 && parts[0] == "sts" {
+		return parts[1]
+	}
+	return defaultRegionSTS
 }
 
 func resolveSTSEndpoint(stsEndpoint, secretsRegion string) (endpoints.ResolvedEndpoint, error) {
-    ep := stsEndpoint
-    if ep == "" {
-        r := secretsRegion
-        if r == "" {
-            r = defaultRegionSTS
-        }
-        ep = fmt.Sprintf("https://sts.%s.amazonaws.com/", r)
-    }
+	ep := stsEndpoint
+	if ep == "" {
+		r := secretsRegion
+		if r == "" {
+			r = defaultRegionSTS
+		}
+		ep = fmt.Sprintf("https://sts.%s.amazonaws.com/", r)
+	}
 
-    signingRegion := deriveSTSRegionFromEndpoint(ep)
+	signingRegion := deriveSTSRegionFromEndpoint(ep)
 
-    return endpoints.ResolvedEndpoint{
-        URL:           ep,
-        SigningRegion: signingRegion,
-    }, nil
+	return endpoints.ResolvedEndpoint{
+		URL:           ep,
+		SigningRegion: signingRegion,
+	}, nil
 }
-
-
 
 func secretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secret string) (string, error) {
 	svc := secretsmanager.New(sess, creds)
