@@ -39,7 +39,7 @@
   ```bash
   export TF_CLI_CONFIG_FILE=PATH/TO/dev.trfc
   ```
-- Run `terraform init` to inizialize terraform
+- Run `terraform init` to initialize terraform
 - Run `terraform apply` to use terraform with the local binary
 
 For more explained information about plugin override check [Development Overrides for Provider Developers](https://www.terraform.io/docs/cli/config/config-file.html#development-overrides-for-provider-developers)

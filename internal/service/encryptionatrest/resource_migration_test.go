@@ -15,43 +15,11 @@ import (
 )
 
 func TestMigEncryptionAtRest_basicAWS(t *testing.T) {
-	var (
-		resourceName = "mongodbatlas_encryption_at_rest.test"
-		projectID    = os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID") // to use RequirePrivateNetworking, Atlas Project is required to have FF enabled
-
-		awsKms = admin.AWSKMSConfiguration{
-			Enabled:             conversion.Pointer(true),
-			CustomerMasterKeyID: conversion.StringPtr(os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID")),
-			Region:              conversion.StringPtr(conversion.AWSRegionToMongoDBRegion(os.Getenv("AWS_REGION"))),
-			RoleId:              conversion.StringPtr(os.Getenv("AWS_EAR_ROLE_ID")),
-		}
-		useDatasource               = mig.IsProviderVersionAtLeast("1.19.0") // data source introduced in this version
-		useRequirePrivateNetworking = mig.IsProviderVersionAtLeast("1.28.0") // require_private_networking introduced in this version
-		useEnabledForSearchNodes    = mig.IsProviderVersionAtLeast("1.32.0") // enabled_for_search_nodes introduced in this version
-	)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckAwsEnv(t) },
-		CheckDestroy: acc.EARDestroy,
-		Steps: []resource.TestStep{
-			{
-				ExternalProviders: mig.ExternalProviders(),
-				Config:            acc.ConfigAwsKms(projectID, &awsKms, useDatasource, useRequirePrivateNetworking, useEnabledForSearchNodes),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					acc.CheckEARExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "aws_kms_config.0.enabled", "true"),
-				),
-			},
-			mig.TestStepCheckEmptyPlan(acc.ConfigAwsKms(projectID, &awsKms, useDatasource, useRequirePrivateNetworking, useEnabledForSearchNodes)),
-		},
-	})
-}
-
-func TestMigEncryptionAtRest_withRole_basicAWS(t *testing.T) {
-	acc.SkipTestForCI(t) // needs AWS configuration
-	mig.SkipIfVersionBelow(t, "1.28.0")
-
-	mig.CreateTestAndRunUseExternalProviderNonParallel(t, testCaseWithRoleBasicAWS(t), mig.ExternalProvidersWithAWS(), nil)
+	useDatasource := mig.IsProviderVersionAtLeast("1.19.0")               // data source introduced in this version
+	useRequirePrivateNetworking := mig.IsProviderVersionAtLeast("1.28.0") // require_private_networking introduced in this version
+	useEnabledForSearchNodes := mig.IsProviderVersionAtLeast("1.32.0")    // enabled_for_search_nodes introduced in this version
+	testCase := basicTestCaseAWS(t, useDatasource, useRequirePrivateNetworking, useEnabledForSearchNodes)
+	mig.CreateTestAndRunUseExternalProviderNonParallel(t, testCase, mig.ExternalProvidersWithAWS(), nil)
 }
 
 func TestMigEncryptionAtRest_basicAzure(t *testing.T) {

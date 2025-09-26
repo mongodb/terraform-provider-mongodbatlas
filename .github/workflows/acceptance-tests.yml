@@ -124,9 +124,6 @@ jobs:
       mongodb_atlas_gov_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_GOV_ORG_ID_QA || vars.MONGODB_ATLAS_GOV_ORG_ID_DEV }}
       mongodb_atlas_gov_project_owner_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_GOV_PROJECT_OWNER_ID_QA || vars.MONGODB_ATLAS_GOV_PROJECT_OWNER_ID_DEV }}
       mongodb_atlas_federated_settings_associated_domain: ${{ vars.MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN }}
-      mongodb_atlas_project_ear_pe_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_PROJECT_EAR_PE_ID_QA || vars.MONGODB_ATLAS_PROJECT_EAR_PE_ID_DEV }}
-      mongodb_atlas_project_ear_pe_aws_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID_QA || vars.MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID_DEV }}
-      aws_ear_role_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.AWS_EAR_ROLE_ID_QA || vars.AWS_EAR_ROLE_ID_DEV }}
       azure_private_endpoint_region: ${{ vars.AZURE_PRIVATE_ENDPOINT_REGION }}
       mongodb_atlas_rp_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_RP_ORG_ID_QA || vars.MONGODB_ATLAS_RP_ORG_ID_DEV }}
       confluent_cloud_network_id: ${{ vars.CONFLUENT_CLOUD_NETWORK_ID }} 
