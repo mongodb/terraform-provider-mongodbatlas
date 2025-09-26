@@ -1,0 +1,3 @@
+```release-note:bug
+Fixes STS region resolution when using cross-region authentication
+```
