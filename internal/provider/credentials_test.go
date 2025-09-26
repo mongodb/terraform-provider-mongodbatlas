@@ -11,15 +11,15 @@ func Test_deriveSTSRegionFromEndpoint(t *testing.T) {
 		input    string
 		expected string
 	}{
-		"empty endpoint returns empty": {
+		"empty endpoint": {
 			input:    "",
 			expected: "",
 		},
-		"global endpoint -> us-east-1": {
+		"global endpoint": {
 			input:    "https://sts.amazonaws.com",
 			expected: provider.DefaultRegionSTS,
 		},
-		"regional us-east-1": {
+		"regional": {
 			input:    "https://sts.us-east-1.amazonaws.com/",
 			expected: "us-east-1",
 		},
@@ -27,11 +27,11 @@ func Test_deriveSTSRegionFromEndpoint(t *testing.T) {
 			input:    "https://sts.eu-north-1.amazonaws.com/",
 			expected: "eu-north-1",
 		},
-		"malformed url -> default": {
+		"malformed url": {
 			input:    "://not-a-url",
 			expected: provider.DefaultRegionSTS,
 		},
-		"unexpected host shape -> default": {
+		"unexpected host shape": {
 			input:    "https://sts.something-weird",
 			expected: provider.DefaultRegionSTS,
 		},
@@ -55,25 +55,25 @@ func Test_resolveSTSEndpoint(t *testing.T) {
 		expectedURL   string
 		expectedSign  string
 	}{
-		"explicit regional endpoint wins": {
+		"explicit regional endpoint": {
 			stsEndpoint:   "https://sts.eu-north-1.amazonaws.com/",
 			secretsRegion: "us-east-1",
 			expectedURL:   "https://sts.eu-north-1.amazonaws.com/",
 			expectedSign:  "eu-north-1",
 		},
-		"global endpoint -> us-east-1 signing": {
+		"global endpoint - us-east-1 signing": {
 			stsEndpoint:   "https://sts.amazonaws.com",
 			secretsRegion: "eu-west-1",
 			expectedURL:   "https://sts.amazonaws.com",
 			expectedSign:  provider.DefaultRegionSTS,
 		},
-		"no endpoint builds from secrets region": {
+		"no endpoint - uses secrets region": {
 			stsEndpoint:   "",
 			secretsRegion: "us-west-2",
 			expectedURL:   "https://sts.us-west-2.amazonaws.com/",
 			expectedSign:  "us-west-2",
 		},
-		"no endpoint and empty region defaults to us-east-1": {
+		"no endpoint and empty region": {
 			stsEndpoint:   "",
 			secretsRegion: "",
 			expectedURL:   "https://sts.us-east-1.amazonaws.com/",
