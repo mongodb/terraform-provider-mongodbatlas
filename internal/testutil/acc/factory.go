@@ -52,8 +52,11 @@ func ConnV2UsingGov() *admin.APIClient {
 }
 
 func init() {
-	if InUnitTest() && hasAuthCredentials() {
-		panic("auth credentials can not be set in unit tests")
+	if InUnitTest() { // Dummy credentials for unit tests
+		os.Setenv("MONGODB_ATLAS_PUBLIC_KEY", "dummy")
+		os.Setenv("MONGODB_ATLAS_PRIVATE_KEY", "dummy")
+		os.Unsetenv("MONGODB_ATLAS_CLIENT_ID")
+		os.Unsetenv("MONGODB_ATLAS_CLIENT_SECRET")
 	}
 	TestAccProviderV6Factories = map[string]func() (tfprotov6.ProviderServer, error){
 		ProviderNameMongoDBAtlas: func() (tfprotov6.ProviderServer, error) {
@@ -70,9 +73,4 @@ func init() {
 	}
 	client, _ := cfg.NewClient(context.Background())
 	MongoDBClient = client.(*config.MongoDBClient)
-}
-
-func hasAuthCredentials() bool {
-	return os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") != "" || os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") != "" ||
-		os.Getenv("MONGODB_ATLAS_CLIENT_ID") != "" || os.Getenv("MONGODB_ATLAS_CLIENT_SECRET") != ""
 }
