@@ -408,8 +408,7 @@ jobs:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           HTTP_MOCKER_CAPTURE: 'true'
           ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
-          ACCTEST_PACKAGES: |
-            ./internal/service/advancedcluster
+          ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
  
   advanced_cluster_tpf_mig_from_sdkv2:
@@ -434,8 +433,7 @@ jobs:
           MONGODB_ATLAS_LAST_1X_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
           MONGODB_ATLAS_TEST_SDKV2_TO_TPF: 'true'
           ACCTEST_REGEX_RUN: '^TestV1xMig'
-          ACCTEST_PACKAGES: |
-            ./internal/service/advancedcluster
+          ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
 
   advanced_cluster_tpf_mig_from_tpf_preview:
@@ -461,8 +459,7 @@ jobs:
           MONGODB_ATLAS_LAST_1X_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
           MONGODB_ATLAS_TEST_SDKV2_TO_TPF: 'false'
           ACCTEST_REGEX_RUN: '^TestV1xMig'
-          ACCTEST_PACKAGES: |
-            ./internal/service/advancedcluster
+          ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
 
   authentication:
@@ -524,8 +521,9 @@ jobs:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
             ./internal/service/alertconfiguration
+            ./internal/service/databaseuser
+            ./internal/service/maintenancewindow
         run: make testacc
-
   autogen:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.autogen == 'true' || inputs.test_group == 'autogen' }}
