@@ -19,22 +19,11 @@ jobs:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
         with:
-          go-version-file: "go.mod"
-          cache: false
+          go-version-file: 'go.mod'
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
-          terraform_version: "1.13.x"
+          terraform_version: '1.13.x'
           terraform_wrapper: false
-      - name: Prepare Go packages
-        run: make tools build
-      - uses: actions/cache@fd5de65bc895cf536527842281bea11763fefd77
-        with:
-          path: |
-            ~/go/pkg/mod
-            ~/.cache/go-build
-          key: ${{ runner.os }}-go-${{ hashFiles('go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
       - name: tf-validate
         run: make tools tf-validate
   tflint:
