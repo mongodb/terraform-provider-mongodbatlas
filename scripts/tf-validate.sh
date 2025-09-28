@@ -38,12 +38,34 @@ provider_installation {
 }
 EOF
 
-for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u); do
-  [ ! -d "$DIR" ] && continue
-  pushd "$DIR"
-  echo; echo -e "\e[1;35m===> Example: $DIR <===\e[0m"; echo
-  TF_LOG=TRACE terraform init
-  terraform fmt -check -recursive
-  terraform validate
-  popd
-done
+# Function to validate a single directory
+validate_dir() {
+  local dir=$1
+  local tempfile=$(mktemp)
+
+  # Capture all output to a temp file to keep it grouped
+  {
+    [ ! -d "$dir" ] && return 0
+    cd "$dir"
+    echo
+    echo -e "\e[1;35m===> Example: $dir <===\e[0m"
+    echo
+    TF_LOG=TRACE terraform init 2>&1
+    terraform fmt -check -recursive 2>&1
+    terraform validate 2>&1
+  } &> "$tempfile"
+
+  # Output the grouped logs
+  cat "$tempfile"
+  local exit_code=$?
+  rm -f "$tempfile"
+  return $exit_code
+}
+
+export -f validate_dir
+export TF_CLI_CONFIG_FILE
+export TF_PLUGIN_CACHE_DIR
+
+# Find all directories and run validation in parallel with 10 workers
+find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u | \
+  xargs -P 10 -I {} bash -c 'validate_dir "$@"' _ {}
