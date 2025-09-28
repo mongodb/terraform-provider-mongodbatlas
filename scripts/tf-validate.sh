@@ -20,15 +20,19 @@ set -Eeou pipefail
 find ./examples -type d -name ".terraform" -exec rm -rf {} +
 find ./examples -type f -name ".terraform.lock.hcl" -exec rm -f {} +
 
-export TF_CLI_CONFIG_FILE="$PWD/bin-examples/tf-validate.tfrc"
+export TF_CLI_CONFIG_FILE="$PWD/examples-bin/tf-validate.tfrc"
+
+export TF_PLUGIN_CACHE_DIR="$PWD/examples-cache"
+rm -rf "$TF_PLUGIN_CACHE_DIR"
+mkdir -p "$TF_PLUGIN_CACHE_DIR"
 
 # Use local provider to validate examples
-go build -o bin-examples/terraform-provider-mongodbatlas .
+go build -o examples-bin/terraform-provider-mongodbatlas .
 
 cat << EOF > "$TF_CLI_CONFIG_FILE"
 provider_installation { 
   dev_overrides {
-    "mongodb/mongodbatlas" = "$PWD/bin-examples"
+    "mongodb/mongodbatlas" = "$PWD/examples-bin"
   }
   direct {} 
 }
@@ -41,8 +45,5 @@ for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u)
   TF_LOG=TRACE terraform init
   terraform fmt -check -recursive
   terraform validate
-
-  rm -rf ".terraform"
-  rm -f ".terraform.lock.hcl"
   popd
 done
