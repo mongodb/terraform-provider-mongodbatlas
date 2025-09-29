@@ -81,7 +81,7 @@ func testCaseKafkaPlaintext(t *testing.T, nameSuffix string) *resource.TestCase 
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourcesConfig + configureKafka(projectID, instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", "", false),
+				Config: dataSourcesConfig + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", "", false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkKafkaAttributes(resourceName, instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, true),
 					checkKafkaAttributes(dataSourceName, instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, false),
@@ -89,7 +89,7 @@ func testCaseKafkaPlaintext(t *testing.T, nameSuffix string) *resource.TestCase 
 				),
 			},
 			{
-				Config: dataSourcesWithPagination + configureKafka(projectID, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", kafkaNetworkingPublic, false),
+				Config: dataSourcesWithPagination + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", kafkaNetworkingPublic, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkKafkaAttributes(resourceName, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, true),
 					checkKafkaAttributes(dataSourceName, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, false),
@@ -113,8 +113,8 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 		vpcID                   = os.Getenv("AWS_VPC_ID")
 		vpcCIDRBlock            = os.Getenv("AWS_VPC_CIDR_BLOCK")
 		awsAccountID            = os.Getenv("AWS_ACCOUNT_ID")
-		containerRegion         = os.Getenv("AWS_REGION")
-		peerRegion              = conversion.MongoDBRegionToAWSRegion(containerRegion)
+		peerRegion              = os.Getenv("AWS_REGION")
+		containerRegion         = conversion.AWSRegionToMongoDBRegion(peerRegion)
 		providerName            = "AWS"
 		networkPeeringConfig    = configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
 	)
@@ -125,7 +125,7 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: networkPeeringConfig + configureKafka(projectID, instanceName, "kafka-conn-vpc", "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingVPC, true),
+				Config: networkPeeringConfig + configureKafka("mongodbatlas_network_peering.test.project_id", instanceName, "kafka-conn-vpc", "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingVPC, true),
 				Check:  checkKafkaAttributes(resourceName, instanceName, "kafka-conn-vpc", "user", "rawpassword", "localhost:9092", "earliest", networkingTypeVPC, true, true),
 			},
 			{
@@ -145,8 +145,8 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 		vpcID                   = os.Getenv("AWS_VPC_ID")
 		vpcCIDRBlock            = os.Getenv("AWS_VPC_CIDR_BLOCK")
 		awsAccountID            = os.Getenv("AWS_ACCOUNT_ID")
-		containerRegion         = os.Getenv("AWS_REGION")
-		peerRegion              = conversion.MongoDBRegionToAWSRegion(containerRegion)
+		peerRegion              = os.Getenv("AWS_REGION")
+		containerRegion         = conversion.AWSRegionToMongoDBRegion(peerRegion)
 		providerName            = "AWS"
 		networkPeeringConfig    = configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion)
 	)
@@ -156,7 +156,7 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf("%s\n%s", configureKafka(projectID, instanceName, "kafka-conn-ssl", "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPublic, true), dataSourceConfig),
+				Config: fmt.Sprintf("%s\n%s", configureKafka(fmt.Sprintf("%q", projectID), instanceName, "kafka-conn-ssl", "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPublic, true), dataSourceConfig),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkKafkaAttributes(resourceName, instanceName, "kafka-conn-ssl", "user", "rawpassword", "localhost:9092", "earliest", networkingTypePublic, true, true),
 					checkKafkaAttributes(dataSourceName, instanceName, "kafka-conn-ssl", "user", "rawpassword", "localhost:9092", "earliest", networkingTypePublic, true, false),
@@ -164,7 +164,7 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 			},
 			// cannot change networking access type once set
 			{
-				Config:      networkPeeringConfig + configureKafka(projectID, instanceName, "kafka-conn-ssl", "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingVPC, true),
+				Config:      networkPeeringConfig + configureKafka("mongodbatlas_network_peering.test.project_id", instanceName, "kafka-conn-ssl", "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingVPC, true),
 				ExpectError: regexp.MustCompile("STREAM_NETWORKING_ACCESS_TYPE_CANNOT_BE_MODIFIED"),
 			},
 			{
@@ -321,7 +321,7 @@ func TestAccStreamPrivatelinkEndpoint_streamConnection(t *testing.T) {
 				Config: fmt.Sprintf(`
 					%[1]s
 					%[2]s
-				`, privatelinkConfig, configureKafka(projectID, instanceName, "kafka-conn-privatelink", "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPrivatelink, true)),
+				`, privatelinkConfig, configureKafka(fmt.Sprintf("%q", projectID), instanceName, "kafka-conn-privatelink", "user", "rawpassword", "localhost:9092", "earliest", kafkaNetworkingPrivatelink, true)),
 				Check: checkKafkaAttributes(resourceName, instanceName, "kafka-conn-privatelink", "user", "rawpassword", "localhost:9092", "earliest", networkingTypePrivatelink, true, true),
 			},
 			{
@@ -361,7 +361,7 @@ func TestAccStreamRSStreamConnection_AWSLambda(t *testing.T) {
 	})
 }
 
-func configureKafka(projectID, instanceName, connectionName, username, password, bootstrapServers, configValue, networkingConfig string, useSSL bool) string {
+func configureKafka(projectRef, instanceName, connectionName, username, password, bootstrapServers, configValue, networkingConfig string, useSSL bool) string {
 	securityConfig := `
 		security = {
 			protocol = "SASL_PLAINTEXT"
@@ -376,7 +376,7 @@ func configureKafka(projectID, instanceName, connectionName, username, password,
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_connection" "test" {
-		    project_id = %[1]q
+		    project_id = %[1]s
 			instance_name = %[2]q
 		 	connection_name = %[3]q
 		 	type = "Kafka"
@@ -392,7 +392,7 @@ func configureKafka(projectID, instanceName, connectionName, username, password,
 		    %[8]s
 			%[9]s
 		}
-	`, projectID, instanceName, connectionName, username, password, bootstrapServers, configValue, networkingConfig, securityConfig)
+	`, projectRef, instanceName, connectionName, username, password, bootstrapServers, configValue, networkingConfig, securityConfig)
 }
 
 func configureSampleStream(projectID, instanceName, sampleName string) string {
