@@ -20,8 +20,9 @@ import (
 )
 
 const (
-	endPointSTSHostnameDefault = "sts.amazonaws.com"
-	DefaultRegionSTS           = "us-east-1"
+	endPointSTSHostnameDefault    = "sts.amazonaws.com"
+	DefaultRegionSTS              = "us-east-1"
+	minSegmentsForSTSRegionalHost = 4
 )
 
 func configureCredentialsSTS(cfg *config.Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (config.Config, error) {
@@ -94,7 +95,7 @@ func DeriveSTSRegionFromEndpoint(ep string) string {
 	}
 
 	parts := strings.Split(host, ".")
-	if len(parts) >= 4 && parts[0] == "sts" {
+	if len(parts) >= minSegmentsForSTSRegionalHost && parts[0] == "sts" {
 		return parts[1]
 	}
 	return DefaultRegionSTS
