@@ -23,7 +23,7 @@ var saInfo = struct {
 	mu           sync.Mutex
 }{}
 
-func tokenSource(c *Config, base http.RoundTripper) (auth.TokenSource, error) {
+func getTokenSource(c *Config, tokenRenewalBase http.RoundTripper) (auth.TokenSource, error) {
 	saInfo.mu.Lock()
 	defer saInfo.mu.Unlock()
 
@@ -41,7 +41,7 @@ func tokenSource(c *Config, base http.RoundTripper) (auth.TokenSource, error) {
 		conf.RevokeURL = baseURL + clientcredentials.RevokeAPIPath
 	}
 	// Use a new context to avoid "context canceled" errors as the token source is reused and can outlast the callee context.
-	ctx := context.WithValue(context.Background(), auth.HTTPClient, &http.Client{Transport: base})
+	ctx := context.WithValue(context.Background(), auth.HTTPClient, &http.Client{Transport: tokenRenewalBase})
 	tokenSource := oauth2.ReuseTokenSourceWithExpiry(nil, conf.TokenSource(ctx), saTokenExpiryBuffer)
 	if _, err := tokenSource.Token(); err != nil { // Retrieve token to fail-fast if credentials are invalid.
 		return nil, err
