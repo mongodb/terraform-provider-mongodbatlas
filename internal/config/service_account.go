@@ -6,11 +6,14 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/mongodb/atlas-sdk-go/auth"
 	"github.com/mongodb/atlas-sdk-go/auth/clientcredentials"
 	"golang.org/x/oauth2"
 )
+
+const saTokenExpiryBuffer = 10 * time.Minute
 
 var saInfo = struct {
 	tokenSource  auth.TokenSource
@@ -24,7 +27,7 @@ func tokenSource(ctx context.Context, c *Config, base http.RoundTripper) (auth.T
 	saInfo.mu.Lock()
 	defer saInfo.mu.Unlock()
 
-	if saInfo.tokenSource != nil {
+	if saInfo.tokenSource != nil { // Token source in cache.
 		if saInfo.clientID != c.ClientID || saInfo.clientSecret != c.ClientSecret || saInfo.baseURL != c.BaseURL {
 			return nil, fmt.Errorf("service account credentials changed")
 		}
@@ -38,14 +41,13 @@ func tokenSource(ctx context.Context, c *Config, base http.RoundTripper) (auth.T
 		conf.RevokeURL = baseURL + clientcredentials.RevokeAPIPath
 	}
 	ctx = context.WithValue(ctx, auth.HTTPClient, &http.Client{Transport: base})
-	token, err := conf.TokenSource(ctx).Token()
-	if err != nil {
+	tokenSource := oauth2.ReuseTokenSourceWithExpiry(nil, conf.TokenSource(ctx), saTokenExpiryBuffer)
+	if _, err := tokenSource.Token(); err != nil { // Retrieve token to fail-fast if credentials are invalid.
 		return nil, err
 	}
 	saInfo.clientID = c.ClientID
 	saInfo.clientSecret = c.ClientSecret
 	saInfo.baseURL = c.BaseURL
-	// TODO: token will be refreshed in a follow-up PR
-	saInfo.tokenSource = oauth2.StaticTokenSource(token)
+	saInfo.tokenSource = tokenSource
 	return saInfo.tokenSource, nil
 }
