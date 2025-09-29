@@ -29,6 +29,11 @@ on:
         description: 'The branch, tag or SHA where tests will run, e.g. v1.14.0, empty for default branch'
         type: string
         required: false  
+      use_sa:
+        description: "Run tests using Service Account instead of API Keys"
+        type: boolean
+        required: false
+
   workflow_call: # workflow runs after Test Suite or code-health
     inputs:
       terraform_version:
