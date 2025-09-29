@@ -25,7 +25,6 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 
-	"go.mongodb.org/atlas-sdk/v20250312007/auth"
 	"golang.org/x/oauth2"
 )
 
@@ -158,20 +157,24 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 			AccessToken: c.AccessToken,
 			TokenType:   "Bearer",
 		})
-		oauthClient := auth.NewClient(ctx, tokenSource)
-		tfLoggingTransport := logging.NewTransport("Atlas", oauthClient.Transport)
-		oauthClient.Transport = tfLoggingTransport
-		client = oauthClient
+		oauthTransport := &oauth2.Transport{
+			Source: tokenSource,
+			Base:   networkLoggingTransport,
+		}
+		tfLoggingTransport := logging.NewTransport("Atlas", oauthTransport)
+		client = &http.Client{Transport: tfLoggingTransport}
 	case ServiceAccount:
 		tokenSource, err := tokenSource(c, networkLoggingTransport)
 		if err != nil {
 			return nil, err
 		}
-		oauthClient := auth.NewClient(ctx, tokenSource)
+		oauthTransport := &oauth2.Transport{
+			Source: tokenSource,
+			Base:   networkLoggingTransport,
+		}
 		// Don't change logging.NewTransport to NewSubsystemLoggingHTTPTransport until all resources are in TPF.
-		tfLoggingTransport := logging.NewTransport("Atlas", oauthClient.Transport)
-		oauthClient.Transport = tfLoggingTransport
-		client = oauthClient
+		tfLoggingTransport := logging.NewTransport("Atlas", oauthTransport)
+		client = &http.Client{Transport: tfLoggingTransport}
 	case Digest:
 		digestTransport := digest.NewTransportWithHTTPRoundTripper(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey), networkLoggingTransport)
 		// Don't change logging.NewTransport to NewSubsystemLoggingHTTPTransport until all resources are in TPF.
