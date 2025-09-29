@@ -26,6 +26,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 
 	"go.mongodb.org/atlas-sdk/v20250312007/auth"
+	"golang.org/x/oauth2"
 )
 
 const (
@@ -45,6 +46,7 @@ type AuthMethod int
 const (
 	ServiceAccount AuthMethod = iota
 	Digest
+	AccessToken
 	Unknown
 )
 
@@ -54,21 +56,27 @@ type CredentialProvider interface {
 	GetPrivateKey() string
 	GetClientID() string
 	GetClientSecret() string
+	GetAccessToken() string
 }
 
 // IsDigestAuth checks if public/private key credentials are present
-func IsDigestAuth(cp CredentialProvider) bool {
+func IsDigestAuthPresent(cp CredentialProvider) bool {
 	return cp.GetPublicKey() != "" && cp.GetPrivateKey() != ""
 }
 
 // IsServiceAccountAuth checks if client ID/secret credentials are present
-func IsServiceAccountAuth(cp CredentialProvider) bool {
+func IsServiceAccountAuthPresent(cp CredentialProvider) bool {
 	return cp.GetClientID() != "" && cp.GetClientSecret() != ""
+}
+
+// IsAccessTokenAuth checks if access token credentials are present
+func IsAccessTokenAuthPresent(cp CredentialProvider) bool {
+	return cp.GetAccessToken() != ""
 }
 
 // HasValidAuthCredentials checks if any valid authentication method is provided
 func HasValidAuthCredentials(cp CredentialProvider) bool {
-	return IsDigestAuth(cp) || IsServiceAccountAuth(cp)
+	return IsDigestAuthPresent(cp) || IsServiceAccountAuthPresent(cp) || IsAccessTokenAuthPresent(cp)
 }
 
 var baseTransport = &http.Transport{
@@ -104,6 +112,7 @@ type Config struct {
 	TerraformVersion string
 	ClientID         string
 	ClientSecret     string
+	AccessToken      string
 }
 
 // CredentialProvider implementation for Config
@@ -111,6 +120,7 @@ func (c *Config) GetPublicKey() string    { return c.PublicKey }
 func (c *Config) GetPrivateKey() string   { return c.PrivateKey }
 func (c *Config) GetClientID() string     { return c.ClientID }
 func (c *Config) GetClientSecret() string { return c.ClientSecret }
+func (c *Config) GetAccessToken() string  { return c.AccessToken }
 
 type AssumeRole struct {
 	Tags              map[string]string
@@ -142,6 +152,16 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 
 	// Determine authentication method based on available credentials
 	switch ResolveAuthMethod(c) {
+	case AccessToken:
+		// Use a static bearer token with oauth2 transport
+		tokenSource := oauth2.StaticTokenSource(&oauth2.Token{
+			AccessToken: c.AccessToken,
+			TokenType:   "Bearer",
+		})
+		oauthClient := auth.NewClient(ctx, tokenSource)
+		tfLoggingTransport := logging.NewTransport("Atlas", oauthClient.Transport)
+		oauthClient.Transport = tfLoggingTransport
+		client = oauthClient
 	case ServiceAccount:
 		tokenSource, err := tokenSource(ctx, c, networkLoggingTransport)
 		if err != nil {
@@ -368,10 +388,13 @@ func userAgent(c *Config) string {
 
 // ResolveAuthMethod determines the authentication method from any credential provider
 func ResolveAuthMethod(cg CredentialProvider) AuthMethod {
-	if IsServiceAccountAuth(cg) {
+	if IsAccessTokenAuthPresent(cg) {
+		return AccessToken
+	}
+	if IsServiceAccountAuthPresent(cg) {
 		return ServiceAccount
 	}
-	if IsDigestAuth(cg) {
+	if IsDigestAuthPresent(cg) {
 		return Digest
 	}
 	return Unknown

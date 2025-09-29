@@ -61,6 +61,7 @@ type SecretData struct {
 	PrivateKey   string `json:"private_key"`
 	ClientID     string `json:"client_id"`
 	ClientSecret string `json:"client_secret"`
+	AccessToken  string `json:"access_token"`
 }
 
 // CredentialProvider implementation for SecretData
@@ -68,6 +69,7 @@ func (s *SecretData) GetPublicKey() string    { return s.PublicKey }
 func (s *SecretData) GetPrivateKey() string   { return s.PrivateKey }
 func (s *SecretData) GetClientID() string     { return s.ClientID }
 func (s *SecretData) GetClientSecret() string { return s.ClientSecret }
+func (s *SecretData) GetAccessToken() string  { return s.AccessToken }
 
 // NewSdkV2Provider returns the provider to be use by the code.
 func NewSdkV2Provider() *schema.Provider {
@@ -139,6 +141,11 @@ func NewSdkV2Provider() *schema.Provider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "MongoDB Atlas Client Secret for Service Account.",
+			},
+			"access_token": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "MongoDB Atlas Access Token for Service Account.",
 			},
 		},
 		DataSourcesMap: getDataSourcesMap(),
@@ -303,6 +310,7 @@ func providerConfigure(provider *schema.Provider) func(ctx context.Context, d *s
 			TerraformVersion: provider.TerraformVersion,
 			ClientID:         d.Get("client_id").(string),
 			ClientSecret:     d.Get("client_secret").(string),
+			AccessToken:      d.Get("access_token").(string),
 		}
 
 		assumeRoleValue, ok := d.GetOk("assume_role")
@@ -444,12 +452,20 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 		return append(diagnostics, diag.FromErr(err)...)
 	}
 
+	if err := setValueFromConfigOrEnv(d, "access_token", []string{
+		"MONGODB_ATLAS_OAUTH_TOKEN",
+		"TF_VAR_OAUTH_TOKEN",
+	}); err != nil {
+		return append(diagnostics, diag.FromErr(err)...)
+	}
+
 	// Check if any valid authentication method is provided
 	if !config.HasValidAuthCredentials(&config.Config{
 		PublicKey:    d.Get("public_key").(string),
 		PrivateKey:   d.Get("private_key").(string),
 		ClientID:     d.Get("client_id").(string),
 		ClientSecret: d.Get("client_secret").(string),
+		AccessToken:  d.Get("access_token").(string),
 	}) && !awsRoleDefined {
 		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Error, Summary: MissingAuthAttrError})
 	}

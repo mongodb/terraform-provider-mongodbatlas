@@ -267,10 +267,17 @@ func PreCheckAwsEnvPrivateLinkEndpointService(tb testing.TB) {
 	}
 }
 
-func PreCheckRegularCredsAreEmpty(tb testing.TB) {
+func PreCheckPAKCredsAreEmpty(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") != "" || os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") != "" {
 		tb.Fatal(`"MONGODB_ATLAS_PUBLIC_KEY" and "MONGODB_ATLAS_PRIVATE_KEY" are defined in this test and they should not.`)
+	}
+}
+
+func PreCheckSACredsAreEmpty(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("MONGODB_ATLAS_CLIENT_ID") != "" || os.Getenv("MONGODB_ATLAS_CLIENT_SECRET") != "" {
+		tb.Fatal(`"MONGODB_ATLAS_CLIENT_ID" and "MONGODB_ATLAS_CLIENT_SECRET" are defined in this test and they should not.`)
 	}
 }
 
@@ -381,5 +388,12 @@ func PreCheckServiceAccount(tb testing.TB) {
 	if os.Getenv("MONGODB_ATLAS_CLIENT_ID") == "" ||
 		os.Getenv("MONGODB_ATLAS_CLIENT_SECRET") == "" {
 		tb.Fatal("`MONGODB_ATLAS_CLIENT_ID`, `MONGODB_ATLAS_CLIENT_SECRET` must be set for Service Account acceptance testing")
+	}
+}
+
+func PreCheckAccessToken(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("MONGODB_ATLAS_OAUTH_TOKEN") == "" {
+		tb.Fatal("`MONGODB_ATLAS_OAUTH_TOKEN` must be set for Atlas Access Token acceptance testing")
 	}
 }
