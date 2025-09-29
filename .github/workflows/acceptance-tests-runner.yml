@@ -1160,6 +1160,8 @@ jobs:
             CONFLUENT_CLOUD_NETWORK_ID: ${{ inputs.confluent_cloud_network_id }}
             CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID: ${{ inputs.confluent_cloud_privatelink_access_id }}
             AWS_REGION: ${{ vars.AWS_REGION }}
+            AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
             AWS_VPC_CIDR_BLOCK: ${{ vars.AWS_VPC_CIDR_BLOCK }}
             AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
             ACCTEST_PACKAGES: |
