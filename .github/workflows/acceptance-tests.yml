@@ -1,5 +1,5 @@
 name: 'Acceptance Tests'
-run-name: 'Acceptance Tests ${{ inputs.atlas_cloud_env }} ${{ inputs.test_group }}'
+run-name: "Acceptance Tests ${{ inputs.atlas_cloud_env }} ${{ inputs.test_group }} ${{ inputs.use_sa && 'sa' || 'pak'}}"
 
 # Used for running acceptance tests, either triggered manually or called by other workflows. 
 on:
@@ -52,6 +52,11 @@ on:
         type: boolean
         required: false
   
+      use_sa:
+        description: "Run tests using Service Account instead of API Keys"
+        type: boolean
+        required: false
+
 jobs:
   tests:
     name: tests-${{ inputs.terraform_version || 'latest' }}-${{ inputs.provider_version || 'latest' }}-${{ inputs.atlas_cloud_env || 'dev' }}

@@ -31,6 +31,11 @@ on:
         required: false
         default: false
         
+
+      use_sa:
+        description: "Run tests using Service Account instead of API Keys"
+        type: boolean
+        required: false
       mongodb_atlas_org_id:
         type: string
         required: true
@@ -214,8 +219,10 @@ env:
   MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
   MONGODB_REALM_BASE_URL: ${{ inputs.mongodb_realm_base_url }}
   MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-  MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-  MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
+  MONGODB_ATLAS_PUBLIC_KEY: ${{ inputs.use_sa == false && secrets.mongodb_atlas_public_key || '' }}
+  MONGODB_ATLAS_PRIVATE_KEY: ${{ inputs.use_sa == false && secrets.mongodb_atlas_private_key || '' }}
+  MONGODB_ATLAS_CLIENT_ID: ${{ inputs.use_sa  && secrets.mongodb_atlas_client_id || '' }}
+  MONGODB_ATLAS_CLIENT_SECRET: ${{ inputs.use_sa && secrets.mongodb_atlas_client_secret || '' }}
   MONGODB_ATLAS_PUBLIC_KEY_READ_ONLY: ${{ secrets.mongodb_atlas_public_key_read_only }}
   MONGODB_ATLAS_PRIVATE_KEY_READ_ONLY: ${{ secrets.mongodb_atlas_private_key_read_only }}
   MONGODB_ATLAS_GOV_PUBLIC_KEY: ${{ secrets.mongodb_atlas_gov_public_key }}
