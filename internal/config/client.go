@@ -154,7 +154,7 @@ type UAMetadata struct {
 }
 
 func (c *Config) NewClient(ctx context.Context) (any, error) {
-	var transport = networkLoggingTransport
+	transport := networkLoggingTransport
 	switch ResolveAuthMethod(c) {
 	case AccessToken:
 		tokenSource := oauth2.StaticTokenSource(&oauth2.Token{
