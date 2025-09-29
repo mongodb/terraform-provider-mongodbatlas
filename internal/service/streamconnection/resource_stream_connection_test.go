@@ -337,19 +337,19 @@ func TestAccStreamPrivatelinkEndpoint_streamConnection(t *testing.T) {
 
 func TestAccStreamRSStreamConnection_AWSLambda(t *testing.T) {
 	var (
-		projectID      = os.Getenv("MONGODB_ATLAS_ASP_PROJECT_EAR_PE_ID")
-		instanceName   = acc.RandomStreamInstanceName() // Using the ASP projectID, so must create its own stream instance
-		connectionName = acc.RandomName()
-		roleArn        = os.Getenv("MONGODB_ATLAS_ASP_PROJECT_AWS_ROLE_ARN")
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		awsIAMRoleName          = acc.RandomIAMRole()
+		connectionName          = acc.RandomName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ExternalProviders:        acc.ExternalProvidersOnlyAWS(),
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: configureAWSLambda(projectID, instanceName, connectionName, roleArn),
-				Check:  checkAWSLambdaAttributes(resourceName, instanceName, connectionName, roleArn),
+				Config: configureAWSLambda(projectID, instanceName, connectionName, awsIAMRoleName),
+				Check:  checkAWSLambdaAttributes(resourceName, instanceName, connectionName),
 			},
 			{
 				ResourceName:      resourceName,
@@ -581,33 +581,65 @@ func configNetworkPeeringAWS(projectID, providerName, vpcID, awsAccountID, vpcCI
 `, projectID, providerName, vpcID, awsAccountID, vpcCIDRBlock, awsRegionContainer, awsRegionPeer)
 }
 
-func configureAWSLambda(projectID, instanceName, connectionName, roleArn string) string {
-	streamInstanceConfig := acc.StreamInstanceConfig(projectID, instanceName, "VIRGINIA_USA", "AWS")
+func configureAWSLambda(projectID, instanceName, connectionName, awsIamRoleName string) string {
+	config := fmt.Sprintf(`
+		resource "aws_iam_role" "test_role" {
+			name = %[4]q
+	  
+			assume_role_policy = jsonencode({
+				"Version" : "2012-10-17",
+				"Statement" : [
+					{
+						"Effect" : "Allow",
+						"Principal" : {
+							"AWS" : "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config[0].atlas_aws_account_arn}"
+						},
+						"Action" : "sts:AssumeRole",
+						"Condition" : {
+							"StringEquals" : {
+								"sts:ExternalId" : "${mongodbatlas_cloud_provider_access_setup.setup_only.aws_config[0].atlas_assumed_role_external_id}"
+							}
+						}
+					}
+				]
+			})
+		}
 
-	return fmt.Sprintf(`
-		%[1]s
-
-		resource "mongodbatlas_stream_connection" "test" {
-		    project_id = mongodbatlas_stream_instance.test.project_id
-			instance_name = mongodbatlas_stream_instance.test.instance_name
-		 	connection_name = %[2]q
-		 	type = "AWSLambda"
-            aws = {
-				role_arn = %[3]q
+		resource "mongodbatlas_cloud_provider_access_setup" "setup_only" {
+			project_id    = %[1]q
+			provider_name = "AWS"
+		}
+	  
+		resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
+			project_id = %[1]q
+			role_id    = mongodbatlas_cloud_provider_access_setup.setup_only.role_id
+	  
+			aws {
+				iam_assumed_role_arn = aws_iam_role.test_role.arn
 			}
 		}
-	`, streamInstanceConfig, connectionName, roleArn)
+
+		resource "mongodbatlas_stream_connection" "test" {
+		    project_id = %[1]q
+			instance_name = %[2]q
+		 	connection_name = %[3]q
+		 	type = "AWSLambda"
+            aws = {
+				role_arn = mongodbatlas_cloud_provider_access_authorization.auth_role.aws[0].iam_assumed_role_arn
+			}
+		}
+	`, projectID, instanceName, connectionName, awsIamRoleName)
+	return config
 }
 
-func checkAWSLambdaAttributes(
-	resourceName, instanceName, connectionName, roleArn string) resource.TestCheckFunc {
+func checkAWSLambdaAttributes(resourceName, instanceName, connectionName string) resource.TestCheckFunc {
 	resourceChecks := []resource.TestCheckFunc{
 		checkStreamConnectionExists(),
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 		resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
 		resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
 		resource.TestCheckResourceAttr(resourceName, "type", "AWSLambda"),
-		resource.TestCheckResourceAttr(resourceName, "aws.role_arn", roleArn),
+		resource.TestCheckResourceAttrSet(resourceName, "aws.role_arn"),
 	}
 	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
 }

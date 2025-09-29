@@ -106,12 +106,6 @@ on:
       confluent_cloud_privatelink_access_id:
         type: string
         required: true
-      mongodb_atlas_asp_project_ear_pe_id:
-        type: string
-        required: true
-      mongodb_atlas_asp_project_aws_role_arn:
-        type: string
-        required: true
       mongodb_atlas_last_1x_version:
         type: string
         required: true
@@ -751,8 +745,6 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           AWS_CUSTOMER_MASTER_KEY_ID: ${{ secrets.aws_customer_master_key_id }}
-          MONGODB_ATLAS_ASP_PROJECT_EAR_PE_ID: ${{ inputs.mongodb_atlas_asp_project_ear_pe_id }}
-          MONGODB_ATLAS_ASP_PROJECT_AWS_ROLE_ARN: ${{ inputs.mongodb_atlas_asp_project_aws_role_arn }}
         run: make testacc
 
   event_trigger:
@@ -1170,8 +1162,6 @@ jobs:
             AWS_REGION: ${{ vars.AWS_REGION }}
             AWS_VPC_CIDR_BLOCK: ${{ vars.AWS_VPC_CIDR_BLOCK }}
             AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
-            MONGODB_ATLAS_ASP_PROJECT_AWS_ROLE_ARN: ${{ inputs.mongodb_atlas_asp_project_aws_role_arn }}
-            MONGODB_ATLAS_ASP_PROJECT_EAR_PE_ID: ${{ inputs.mongodb_atlas_asp_project_ear_pe_id }}
             ACCTEST_PACKAGES: |
               ./internal/service/streamaccountdetails
               ./internal/service/streamconnection
