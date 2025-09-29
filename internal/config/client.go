@@ -163,7 +163,7 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 		oauthClient.Transport = tfLoggingTransport
 		client = oauthClient
 	case ServiceAccount:
-		tokenSource, err := tokenSource(ctx, c, networkLoggingTransport)
+		tokenSource, err := tokenSource(c, networkLoggingTransport)
 		if err != nil {
 			return nil, err
 		}
