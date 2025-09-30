@@ -69,6 +69,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						"secret": schema.StringAttribute{
 							Computed:            true,
 							MarkdownDescription: "The secret for the Service Account. It will be returned only the first time after creation.",
+							Sensitive:           true,
 						},
 					},
 				},

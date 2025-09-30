@@ -458,3 +458,7 @@ resources:
     delete:
       path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
       method: DELETE
+    schema:
+      overrides:
+        secrets.secret:
+          sensitive: true
