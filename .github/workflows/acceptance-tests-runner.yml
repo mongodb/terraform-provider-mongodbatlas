@@ -537,8 +537,7 @@ jobs:
         run: make testacc
   autogen:
     needs: [change-detection, get-provider-version]
-    # autogen doesn't support SA yet
-    if: ${{ inputs.use_sa == false && (needs.change-detection.outputs.autogen == 'true' || inputs.test_group == 'autogen') }}
+    if: ${{ needs.change-detection.outputs.autogen == 'true' || inputs.test_group == 'autogen' }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
