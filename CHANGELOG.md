@@ -6,6 +6,10 @@ ENHANCEMENTS:
 * resource/mongodbatlas_cloud_provider_access_authorization: Splits `cloud_provider_access` documentation page into `mongodbatlas_cloud_provider_access_setup` and `mongodbatlas_cloud_provider_access_authorization` ([#3703](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3703))
 * resource/mongodbatlas_cloud_provider_access_setup: Splits `cloud_provider_access` documentation page into `mongodbatlas_cloud_provider_access_setup` and `mongodbatlas_cloud_provider_access_authorization` ([#3703](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3703))
 
+BUG FIXES:
+
+* provider: Fixes STS region resolution when using cross-region authentication ([#3718](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3718))
+
 ## 2.0.0 (September 15, 2025)
 
 BREAKING CHANGES:
