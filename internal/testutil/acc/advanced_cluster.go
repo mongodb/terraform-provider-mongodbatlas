@@ -227,9 +227,9 @@ func ConfigDedicatedNVMeBackupEnabled(projectID, name, zoneName string) string {
         			ebs_volume_type = "PROVISIONED"
         			node_count      = 3
 				}
-			}
+			}]
 			%[3]s
-		}
+		}]
 	}
 	%[4]s
 	`, projectID, name, zoneNameLine, advancedClusterDataSources)
