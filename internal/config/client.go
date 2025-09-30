@@ -77,22 +77,22 @@ func HasValidAuthCredentials(cp CredentialProvider) bool {
 	return IsDigestAuthPresent(cp) || IsServiceAccountAuthPresent(cp) || IsAccessTokenAuthPresent(cp)
 }
 
-var (
-	baseTransport http.RoundTripper = &http.Transport{
-		DialContext: (&net.Dialer{
-			Timeout:   timeout,
-			KeepAlive: keepAlive,
-		}).DialContext,
-		MaxIdleConns:          maxIdleConns,
-		MaxIdleConnsPerHost:   maxIdleConnsPerHost,
-		Proxy:                 http.ProxyFromEnvironment,
-		IdleConnTimeout:       idleConnTimeout,
-		ExpectContinueTimeout: expectContinueTimeout,
-	}
+var baseTransport = &http.Transport{
+	DialContext: (&net.Dialer{
+		Timeout:   timeout,
+		KeepAlive: keepAlive,
+	}).DialContext,
+	MaxIdleConns:          maxIdleConns,
+	MaxIdleConnsPerHost:   maxIdleConnsPerHost,
+	Proxy:                 http.ProxyFromEnvironment,
+	IdleConnTimeout:       idleConnTimeout,
+	ExpectContinueTimeout: expectContinueTimeout,
+}
 
-	// Network Logging transport should be used as a base for authentication transport so authentication requests can be logged.
-	networkLoggingTransport = NewTransportWithNetworkLogging(baseTransport, logging.IsDebugOrHigher())
-)
+// networkLoggingBaseTransport should be used as a base for authentication transport so authentication requests can be logged.
+func networkLoggingBaseTransport() http.RoundTripper {
+	return NewTransportWithNetworkLogging(baseTransport, logging.IsDebugOrHigher())
+}
 
 // tfLoggingInterceptor should wrap the authentication transport to add Terraform logging.
 func tfLoggingInterceptor(base http.RoundTripper) http.RoundTripper {
@@ -154,7 +154,7 @@ type UAMetadata struct {
 }
 
 func (c *Config) NewClient(ctx context.Context) (any, error) {
-	transport := networkLoggingTransport
+	transport := networkLoggingBaseTransport()
 	switch ResolveAuthMethod(c) {
 	case AccessToken:
 		tokenSource := oauth2.StaticTokenSource(&oauth2.Token{
@@ -163,19 +163,19 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 		})
 		transport = &oauth2.Transport{
 			Source: tokenSource,
-			Base:   networkLoggingTransport,
+			Base:   networkLoggingBaseTransport(),
 		}
 	case ServiceAccount:
-		tokenSource, err := getTokenSource(c, networkLoggingTransport)
+		tokenSource, err := getTokenSource(c, networkLoggingBaseTransport())
 		if err != nil {
 			return nil, err
 		}
 		transport = &oauth2.Transport{
 			Source: tokenSource,
-			Base:   networkLoggingTransport,
+			Base:   networkLoggingBaseTransport(),
 		}
 	case Digest:
-		transport = digest.NewTransportWithHTTPRoundTripper(c.PublicKey, c.PrivateKey, networkLoggingTransport)
+		transport = digest.NewTransportWithHTTPRoundTripper(c.PublicKey, c.PrivateKey, networkLoggingBaseTransport())
 	case Unknown:
 	}
 	client := &http.Client{Transport: tfLoggingInterceptor(transport)}
