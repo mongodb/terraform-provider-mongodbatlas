@@ -272,7 +272,7 @@ func PreCheckSTSAssumeRole(tb testing.TB) {
 	envVars := []string{"AWS_REGION", "STS_ENDPOINT", "ASSUME_ROLE_ARN", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_SESSION_TOKEN", "SECRET_NAME"}
 	for _, envVar := range envVars {
 		if os.Getenv(envVar) == "" {
-			tb.Fatal(`'${envVar}' must be set for acceptance testing with STS Assume Role.`)
+			tb.Fatalf("`%s` must be set for acceptance testing with STS Assume Role.", envVar)
 		}
 	}
 }
