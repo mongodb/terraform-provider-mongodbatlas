@@ -444,3 +444,17 @@ resources:
           computability:
             optional: true
             computed: true
+
+  org_service_account_api:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts
+      method: POST
+    update:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
+      method: DELETE
