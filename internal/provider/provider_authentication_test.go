@@ -10,13 +10,15 @@ import (
 )
 
 func TestAccSTSAssumeRole_basic(t *testing.T) {
+	acc.SkipInPAK(t, "skipping as this test is for AWS credentials only")
+	acc.SkipInSA(t, "skipping as this test is for AWS credentials only")
 	var (
 		resourceName = "mongodbatlas_project.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acc.RandomProjectName()
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckSTSAssumeRole(t); acc.PreCheckPAKCredsAreEmpty(t); acc.PreCheckSACredsAreEmpty(t) },
+		PreCheck:                 func() { acc.PreCheckSTSAssumeRole(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
@@ -41,12 +43,13 @@ func TestAccSTSAssumeRole_basic(t *testing.T) {
 }
 
 func TestAccServiceAccount_basic(t *testing.T) {
+	acc.SkipInPAK(t, "skipping as this test is for SA only")
 	var (
 		resourceName = "data.mongodbatlas_organization.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckServiceAccount(t); acc.PreCheckPAKCredsAreEmpty(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
@@ -61,12 +64,14 @@ func TestAccServiceAccount_basic(t *testing.T) {
 
 func TestAccAccessToken_basic(t *testing.T) {
 	acc.SkipTestForCI(t) // access token has a validity period of 1 hour, so it cannot be used in CI reliably
+	acc.SkipInPAK(t, "skipping as this test is for Token credentials only")
+	acc.SkipInSA(t, "skipping as this test is for Token credentials only")
 	var (
 		resourceName = "data.mongodbatlas_organization.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckAccessToken(t); acc.PreCheckPAKCredsAreEmpty(t); acc.PreCheckSACredsAreEmpty(t) },
+		PreCheck:                 func() { acc.PreCheckAccessToken(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{

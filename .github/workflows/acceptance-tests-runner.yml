@@ -499,6 +499,8 @@ jobs:
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ""
           MONGODB_ATLAS_PRIVATE_KEY: ""
+          MONGODB_ATLAS_CLIENT_ID: ""
+          MONGODB_ATLAS_CLIENT_SECRET: ""
           ASSUME_ROLE_ARN: ${{ vars.ASSUME_ROLE_ARN }}
           AWS_REGION: ${{ vars.AWS_REGION }}
           STS_ENDPOINT: ${{ vars.STS_ENDPOINT }}
@@ -534,8 +536,9 @@ jobs:
             ./internal/service/maintenancewindow
         run: make testacc
   autogen:
-    needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.autogen == 'true' || inputs.test_group == 'autogen' }}
+    needs: [change-detection, get-provider-version]
+    # autogen doesn't support SA yet
+    if: ${{ inputs.use_sa == false && (needs.change-detection.outputs.autogen == 'true' || inputs.test_group == 'autogen') }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -801,8 +804,9 @@ jobs:
         run: make testacc
 
   event_trigger:
-    needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.event_trigger == 'true' || inputs.test_group == 'event_trigger' }}
+    needs: [change-detection, get-provider-version]
+    # Realm SDK doesn't support SA
+    if: ${{ inputs.use_sa == false && (needs.change-detection.outputs.event_trigger == 'true' || inputs.test_group == 'event_trigger') }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
