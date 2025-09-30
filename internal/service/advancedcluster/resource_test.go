@@ -64,8 +64,8 @@ func testAccAdvancedClusterFlexUpgrade(t *testing.T, projectID, clusterName, ins
 	}
 	if includeDedicated {
 		steps = append(steps, resource.TestStep{
-			Config: acc.ConfigBasicDedicated(projectID, clusterName, defaultZoneName),
-			Check:  checksBasicDedicated(projectID, clusterName, false),
+			Config: acc.ConfigDedicatedNVMeBackupEnabled(projectID, clusterName, defaultZoneName),
+			Check:  checksDedicatedNVMeBackupEnabled(projectID, clusterName, false),
 		})
 	}
 
@@ -102,8 +102,8 @@ func TestAccMockableAdvancedCluster_tenantUpgrade(t *testing.T) {
 				Check:  checkTenant(projectID, clusterName, true),
 			},
 			{
-				Config: acc.ConfigBasicDedicated(projectID, clusterName, defaultZoneName),
-				Check:  checksBasicDedicated(projectID, clusterName, true),
+				Config: acc.ConfigDedicatedNVMeBackupEnabled(projectID, clusterName, defaultZoneName),
+				Check:  checksDedicatedNVMeBackupEnabled(projectID, clusterName, true),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -1437,12 +1437,14 @@ func checkTenant(projectID, name string, checkPlural bool) resource.TestCheckFun
 		pluralChecks...)
 }
 
-func checksBasicDedicated(projectID, name string, checkPlural bool) resource.TestCheckFunc {
+func checksDedicatedNVMeBackupEnabled(projectID, name string, checkPlural bool) resource.TestCheckFunc {
 	originalChecks := checkTenant(projectID, name, checkPlural)
 	checkMap := map[string]string{
-		"replication_specs.0.region_configs.0.electable_specs.node_count":    "3",
-		"replication_specs.0.region_configs.0.electable_specs.instance_size": "M10",
-		"replication_specs.0.region_configs.0.provider_name":                 "AWS",
+		"backup_enabled": "true",
+		"replication_specs.0.region_configs.0.electable_specs.node_count":      "3",
+		"replication_specs.0.region_configs.0.electable_specs.instance_size":   "M40_NVME",
+		"replication_specs.0.region_configs.0.electable_specs.ebs_volume_type": "PROVISIONED",
+		"replication_specs.0.region_configs.0.provider_name":                   "AWS",
 	}
 	return checkAggr(nil, checkMap, originalChecks)
 }
