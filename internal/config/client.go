@@ -21,11 +21,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"github.com/mongodb-forks/digest"
 	adminpreview "github.com/mongodb/atlas-sdk-go/admin"
-	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 
-	"go.mongodb.org/atlas-sdk/v20250312007/auth"
 	"golang.org/x/oauth2"
 )
 
@@ -91,6 +89,17 @@ var baseTransport = &http.Transport{
 	ExpectContinueTimeout: expectContinueTimeout,
 }
 
+// networkLoggingBaseTransport should be used as a base for authentication transport so authentication requests can be logged.
+func networkLoggingBaseTransport() http.RoundTripper {
+	return NewTransportWithNetworkLogging(baseTransport, logging.IsDebugOrHigher())
+}
+
+// tfLoggingInterceptor should wrap the authentication transport to add Terraform logging.
+func tfLoggingInterceptor(base http.RoundTripper) http.RoundTripper {
+	// Don't change logging.NewTransport to NewSubsystemLoggingHTTPTransport until all resources are in TPF.
+	return logging.NewTransport("Atlas", base)
+}
+
 // MongoDBClient contains the mongodbatlas clients and configurations
 type MongoDBClient struct {
 	Atlas           *matlasClient.Client
@@ -145,40 +154,31 @@ type UAMetadata struct {
 }
 
 func (c *Config) NewClient(ctx context.Context) (any, error) {
-	// Network Logging transport is before authentication transport so it can log authentication requests
-	networkLoggingTransport := NewTransportWithNetworkLogging(baseTransport, logging.IsDebugOrHigher())
-
-	var client *http.Client
-
-	// Determine authentication method based on available credentials
+	transport := networkLoggingBaseTransport()
 	switch ResolveAuthMethod(c) {
 	case AccessToken:
-		// Use a static bearer token with oauth2 transport
 		tokenSource := oauth2.StaticTokenSource(&oauth2.Token{
 			AccessToken: c.AccessToken,
-			TokenType:   "Bearer",
+			TokenType:   "Bearer", // Use a static bearer token with oauth2 transport.
 		})
-		oauthClient := auth.NewClient(ctx, tokenSource)
-		tfLoggingTransport := logging.NewTransport("Atlas", oauthClient.Transport)
-		oauthClient.Transport = tfLoggingTransport
-		client = oauthClient
+		transport = &oauth2.Transport{
+			Source: tokenSource,
+			Base:   networkLoggingBaseTransport(),
+		}
 	case ServiceAccount:
-		tokenSource, err := tokenSource(ctx, c, networkLoggingTransport)
+		tokenSource, err := getTokenSource(c, networkLoggingBaseTransport())
 		if err != nil {
 			return nil, err
 		}
-		oauthClient := auth.NewClient(ctx, tokenSource)
-		// Don't change logging.NewTransport to NewSubsystemLoggingHTTPTransport until all resources are in TPF.
-		tfLoggingTransport := logging.NewTransport("Atlas", oauthClient.Transport)
-		oauthClient.Transport = tfLoggingTransport
-		client = oauthClient
+		transport = &oauth2.Transport{
+			Source: tokenSource,
+			Base:   networkLoggingBaseTransport(),
+		}
 	case Digest:
-		digestTransport := digest.NewTransportWithHTTPRoundTripper(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey), networkLoggingTransport)
-		// Don't change logging.NewTransport to NewSubsystemLoggingHTTPTransport until all resources are in TPF.
-		tfLoggingTransport := logging.NewTransport("Atlas", digestTransport)
-		client = &http.Client{Transport: tfLoggingTransport}
+		transport = digest.NewTransportWithHTTPRoundTripper(c.PublicKey, c.PrivateKey, networkLoggingBaseTransport())
 	case Unknown:
 	}
+	client := &http.Client{Transport: tfLoggingInterceptor(transport)}
 
 	// Initialize the old SDK
 	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}

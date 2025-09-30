@@ -31,6 +31,11 @@ on:
         required: false
         default: false
         
+
+      use_sa:
+        description: "Run tests using Service Account instead of API Keys"
+        type: boolean
+        required: false
       mongodb_atlas_org_id:
         type: string
         required: true
@@ -208,14 +213,17 @@ env:
   TF_ACC: 1
   TF_LOG: ${{ vars.LOG_LEVEL }}
   ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
-  # Only Migration tests are run when a specific previous provider version is set
-  # If the name (regex) of the test is set, only that test is run
-  ACCTEST_REGEX_RUN: ${{ inputs.test_name || inputs.provider_version == '' && '^Test(Acc|Mig)' || '^TestMig' }}
+  # Only Migration tests are run when a specific previous provider version is set.
+  # Don't run migration tests if using Service Accounts because previous provider versions don't support SA yet.
+  # If the name (regex) of the test is set, only that test is run.
+  ACCTEST_REGEX_RUN: ${{ inputs.test_name || inputs.use_sa && '^TestAcc' || inputs.provider_version == '' && '^Test(Acc|Mig)' || '^TestMig' }}
   MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
   MONGODB_REALM_BASE_URL: ${{ inputs.mongodb_realm_base_url }}
   MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-  MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-  MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
+  MONGODB_ATLAS_PUBLIC_KEY: ${{ inputs.use_sa == false && secrets.mongodb_atlas_public_key || '' }}
+  MONGODB_ATLAS_PRIVATE_KEY: ${{ inputs.use_sa == false && secrets.mongodb_atlas_private_key || '' }}
+  MONGODB_ATLAS_CLIENT_ID: ${{ inputs.use_sa  && secrets.mongodb_atlas_client_id || '' }}
+  MONGODB_ATLAS_CLIENT_SECRET: ${{ inputs.use_sa && secrets.mongodb_atlas_client_secret || '' }}
   MONGODB_ATLAS_PUBLIC_KEY_READ_ONLY: ${{ secrets.mongodb_atlas_public_key_read_only }}
   MONGODB_ATLAS_PRIVATE_KEY_READ_ONLY: ${{ secrets.mongodb_atlas_private_key_read_only }}
   MONGODB_ATLAS_GOV_PUBLIC_KEY: ${{ secrets.mongodb_atlas_gov_public_key }}
@@ -413,7 +421,7 @@ jobs:
  
   advanced_cluster_tpf_mig_from_sdkv2:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ inputs.reduced_tests == false && (needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster') }}
+    if: ${{ inputs.reduced_tests == false && inputs.use_sa == false && (needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster') }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -438,7 +446,7 @@ jobs:
 
   advanced_cluster_tpf_mig_from_tpf_preview:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ inputs.reduced_tests == false && (needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster') }}
+    if: ${{ inputs.reduced_tests == false && inputs.use_sa == false && (needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster') }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -491,6 +499,8 @@ jobs:
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ""
           MONGODB_ATLAS_PRIVATE_KEY: ""
+          MONGODB_ATLAS_CLIENT_ID: ""
+          MONGODB_ATLAS_CLIENT_SECRET: ""
           ASSUME_ROLE_ARN: ${{ vars.ASSUME_ROLE_ARN }}
           AWS_REGION: ${{ vars.AWS_REGION }}
           STS_ENDPOINT: ${{ vars.STS_ENDPOINT }}
@@ -526,7 +536,7 @@ jobs:
             ./internal/service/maintenancewindow
         run: make testacc
   autogen:
-    needs: [ change-detection, get-provider-version ]
+    needs: [change-detection, get-provider-version]
     if: ${{ needs.change-detection.outputs.autogen == 'true' || inputs.test_group == 'autogen' }}
     runs-on: ubuntu-latest
     permissions: {}
@@ -793,8 +803,9 @@ jobs:
         run: make testacc
 
   event_trigger:
-    needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.event_trigger == 'true' || inputs.test_group == 'event_trigger' }}
+    needs: [change-detection, get-provider-version]
+    # Realm SDK doesn't support SA
+    if: ${{ inputs.use_sa == false && (needs.change-detection.outputs.event_trigger == 'true' || inputs.test_group == 'event_trigger') }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:

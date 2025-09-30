@@ -6,11 +6,15 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/mongodb/atlas-sdk-go/auth"
 	"github.com/mongodb/atlas-sdk-go/auth/clientcredentials"
 	"golang.org/x/oauth2"
 )
+
+// Renew token if it expires within 10 minutes to avoid authentication errors during Atlas API calls.
+const saTokenExpiryBuffer = 10 * time.Minute
 
 var saInfo = struct {
 	tokenSource  auth.TokenSource
@@ -20,11 +24,11 @@ var saInfo = struct {
 	mu           sync.Mutex
 }{}
 
-func tokenSource(ctx context.Context, c *Config, base http.RoundTripper) (auth.TokenSource, error) {
+func getTokenSource(c *Config, tokenRenewalBase http.RoundTripper) (auth.TokenSource, error) {
 	saInfo.mu.Lock()
 	defer saInfo.mu.Unlock()
 
-	if saInfo.tokenSource != nil {
+	if saInfo.tokenSource != nil { // Token source in cache.
 		if saInfo.clientID != c.ClientID || saInfo.clientSecret != c.ClientSecret || saInfo.baseURL != c.BaseURL {
 			return nil, fmt.Errorf("service account credentials changed")
 		}
@@ -37,15 +41,15 @@ func tokenSource(ctx context.Context, c *Config, base http.RoundTripper) (auth.T
 		conf.TokenURL = baseURL + clientcredentials.TokenAPIPath
 		conf.RevokeURL = baseURL + clientcredentials.RevokeAPIPath
 	}
-	ctx = context.WithValue(ctx, auth.HTTPClient, &http.Client{Transport: base})
-	token, err := conf.TokenSource(ctx).Token()
-	if err != nil {
+	// Use a new context to avoid "context canceled" errors as the token source is reused and can outlast the callee context.
+	ctx := context.WithValue(context.Background(), auth.HTTPClient, &http.Client{Transport: tokenRenewalBase})
+	tokenSource := oauth2.ReuseTokenSourceWithExpiry(nil, conf.TokenSource(ctx), saTokenExpiryBuffer)
+	if _, err := tokenSource.Token(); err != nil { // Retrieve token to fail-fast if credentials are invalid.
 		return nil, err
 	}
 	saInfo.clientID = c.ClientID
 	saInfo.clientSecret = c.ClientSecret
 	saInfo.baseURL = c.BaseURL
-	// TODO: token will be refreshed in a follow-up PR
-	saInfo.tokenSource = oauth2.StaticTokenSource(token)
+	saInfo.tokenSource = tokenSource
 	return saInfo.tokenSource, nil
 }

@@ -31,3 +31,25 @@ func SkipInUnitTest(tb testing.TB) {
 func InUnitTest() bool {
 	return os.Getenv("TF_ACC") == ""
 }
+
+func HasPAKCreds() bool {
+	return os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") != "" || os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") != ""
+}
+
+func HasSACreds() bool {
+	return os.Getenv("MONGODB_ATLAS_CLIENT_ID") != "" || os.Getenv("MONGODB_ATLAS_CLIENT_SECRET") != ""
+}
+
+func SkipInSA(tb testing.TB, description string) {
+	tb.Helper()
+	if HasSACreds() {
+		tb.Skip(description)
+	}
+}
+
+func SkipInPAK(tb testing.TB, description string) {
+	tb.Helper()
+	if HasPAKCreds() {
+		tb.Skip(description)
+	}
+}

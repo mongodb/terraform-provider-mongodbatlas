@@ -160,9 +160,11 @@ func TestAccNetworkLogging(t *testing.T) {
 	log.SetOutput(&logOutput)
 	defer log.SetOutput(os.Stderr)
 	cfg := &config.Config{
-		PublicKey:  os.Getenv("MONGODB_ATLAS_PUBLIC_KEY"),
-		PrivateKey: os.Getenv("MONGODB_ATLAS_PRIVATE_KEY"),
-		BaseURL:    os.Getenv("MONGODB_ATLAS_BASE_URL"),
+		PublicKey:    os.Getenv("MONGODB_ATLAS_PUBLIC_KEY"),
+		PrivateKey:   os.Getenv("MONGODB_ATLAS_PRIVATE_KEY"),
+		ClientID:     os.Getenv("MONGODB_ATLAS_CLIENT_ID"),
+		ClientSecret: os.Getenv("MONGODB_ATLAS_CLIENT_SECRET"),
+		BaseURL:      os.Getenv("MONGODB_ATLAS_BASE_URL"),
 	}
 	clientInterface, err := cfg.NewClient(t.Context())
 	require.NoError(t, err)
