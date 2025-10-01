@@ -38,9 +38,9 @@ on:
         description: 'Send the Slack notification if any of the tests fail.'
         type: boolean
         default: true
-
   schedule:
     - cron: "0 0 2-31 * *" # workflow runs every day at midnight UTC except on the first day of the month
+
 concurrency:
   group: '${{ github.workflow }}'
   cancel-in-progress: false

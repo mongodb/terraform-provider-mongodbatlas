@@ -48,14 +48,6 @@ func PreCheck(tb testing.TB) {
 	}
 }
 
-func PreCheckEncryptionAtRestPrivateEndpoint(tb testing.TB) {
-	tb.Helper()
-	PreCheckBasic(tb)
-	if os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_ID") == "" {
-		tb.Fatal("`MONGODB_ATLAS_PROJECT_EAR_PE_ID` must be set for acceptance testing")
-	}
-}
-
 func PreCheckCert(tb testing.TB) {
 	tb.Helper()
 	PreCheckBasic(tb)
