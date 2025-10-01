@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/url"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -12,48 +14,39 @@ import (
 	"github.com/aws/aws-sdk-go/aws/endpoints"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
+	"github.com/aws/aws-sdk-go/service/sts"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 const (
-	endPointSTSDefault = "https://sts.amazonaws.com"
+	endPointSTSHostnameDefault    = "sts.amazonaws.com"
+	DefaultRegionSTS              = "us-east-1"
+	minSegmentsForSTSRegionalHost = 4
 )
 
 func configureCredentialsSTS(cfg *config.Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (config.Config, error) {
-	ep, err := endpoints.GetSTSRegionalEndpoint("regional")
-	if err != nil {
-		log.Printf("GetSTSRegionalEndpoint error: %s", err)
-		return *cfg, err
-	}
-
 	defaultResolver := endpoints.DefaultResolver()
-	stsCustResolverFn := func(service, region string, optFns ...func(*endpoints.Options)) (endpoints.ResolvedEndpoint, error) {
-		if service == endpoints.StsServiceID {
-			if endpoint == "" {
-				return endpoints.ResolvedEndpoint{
-					URL:           endPointSTSDefault,
-					SigningRegion: region,
-				}, nil
+	stsCustResolverFn := func(service, _ string, optFns ...func(*endpoints.Options)) (endpoints.ResolvedEndpoint, error) {
+		if service == sts.EndpointsID {
+			resolved, err := ResolveSTSEndpoint(endpoint, region)
+			if err != nil {
+				return endpoints.ResolvedEndpoint{}, err
 			}
-			return endpoints.ResolvedEndpoint{
-				URL:           endpoint,
-				SigningRegion: region,
-			}, nil
+			return resolved, nil
 		}
-
 		return defaultResolver.EndpointFor(service, region, optFns...)
 	}
 
 	sess := session.Must(session.NewSession(&aws.Config{
-		Region:              aws.String(region),
-		Credentials:         credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, awsSessionToken),
-		STSRegionalEndpoint: ep,
-		EndpointResolver:    endpoints.ResolverFunc(stsCustResolverFn),
+		Region:           aws.String(region),
+		Credentials:      credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, awsSessionToken),
+		EndpointResolver: endpoints.ResolverFunc(stsCustResolverFn),
 	}))
 
 	creds := stscreds.NewCredentials(sess, cfg.AssumeRole.RoleARN)
 
-	_, err = sess.Config.Credentials.Get()
+	_, err := sess.Config.Credentials.Get()
 	if err != nil {
 		log.Printf("Session get credentials error: %s", err)
 		return *cfg, err
@@ -85,6 +78,45 @@ func configureCredentialsSTS(cfg *config.Config, secret, region, awsAccessKeyID,
 	cfg.PublicKey = secretData.PublicKey
 	cfg.PrivateKey = secretData.PrivateKey
 	return *cfg, nil
+}
+
+func DeriveSTSRegionFromEndpoint(ep string) string {
+	if ep == "" {
+		return ""
+	}
+	u, err := url.Parse(ep)
+	if err != nil {
+		return DefaultRegionSTS
+	}
+	host := u.Hostname() // valid values: sts.us-west-2.amazonaws.com or sts.amazonaws.com
+
+	if host == endPointSTSHostnameDefault {
+		return DefaultRegionSTS
+	}
+
+	parts := strings.Split(host, ".")
+	if len(parts) >= minSegmentsForSTSRegionalHost && parts[0] == "sts" {
+		return parts[1]
+	}
+	return DefaultRegionSTS
+}
+
+func ResolveSTSEndpoint(stsEndpoint, secretsRegion string) (endpoints.ResolvedEndpoint, error) {
+	ep := stsEndpoint
+	if ep == "" {
+		r := secretsRegion
+		if r == "" {
+			r = DefaultRegionSTS
+		}
+		ep = fmt.Sprintf("https://sts.%s.amazonaws.com/", r)
+	}
+
+	signingRegion := DeriveSTSRegionFromEndpoint(ep)
+
+	return endpoints.ResolvedEndpoint{
+		URL:           ep,
+		SigningRegion: signingRegion,
+	}, nil
 }
 
 func secretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secret string) (string, error) {
