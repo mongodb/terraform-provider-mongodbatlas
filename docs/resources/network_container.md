@@ -52,7 +52,7 @@ resource "mongodbatlas_network_container" "test" {
 ```
 
 ### Further Examples
-- [GCP and MongoDB Atlas VPC Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_network_peering/gcp)
+- [GCP and MongoDB Atlas VPC Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.41.1/examples/mongodbatlas_network_peering/gcp)
 
 ## Argument Reference
 

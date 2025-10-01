@@ -29,7 +29,7 @@ resource "mongodbatlas_third_party_integration" "test_datadog" {
 ```
 
 ### Further Examples
-- [Third-Party Integration Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_third_party_integration)
+- [Third-Party Integration Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.41.1/examples/mongodbatlas_third_party_integration)
 
 ## Argument Reference
 

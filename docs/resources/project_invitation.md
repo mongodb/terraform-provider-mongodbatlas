@@ -38,7 +38,7 @@ resource "mongodbatlas_project_invitation" "test" {
 ```
 
 ### Further Examples
-- [Migrate Project Invitation to Cloud User Project Assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/migrate_project_invitation_to_cloud_user_project_assignment)
+- [Migrate Project Invitation to Cloud User Project Assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.41.1/examples/migrate_project_invitation_to_cloud_user_project_assignment)
 
 ## Argument Reference
 
