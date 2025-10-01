@@ -102,9 +102,6 @@ on:
       mongodb_atlas_federated_settings_associated_domain:
         type: string
         required: true
-      mongodb_atlas_project_ear_pe_id:
-        type: string
-        required: true
       azure_private_endpoint_region:
         type: string
         required: true
@@ -112,18 +109,6 @@ on:
         type: string
         required: true
       confluent_cloud_privatelink_access_id:
-        type: string
-        required: true
-      aws_ear_role_id:
-        type: string
-        required: true
-      mongodb_atlas_project_ear_pe_aws_id:
-        type: string
-        required: true
-      mongodb_atlas_asp_project_ear_pe_id:
-        type: string
-        required: true
-      mongodb_atlas_asp_project_aws_role_arn:
         type: string
         required: true
       mongodb_atlas_last_1x_version:
@@ -781,7 +766,6 @@ jobs:
           ACCTEST_PACKAGES: |
            ./internal/service/encryptionatrest
            ./internal/service/encryptionatrestprivateendpoint
-          MONGODB_ATLAS_PROJECT_EAR_PE_ID: ${{ inputs.mongodb_atlas_project_ear_pe_id }}
           AZURE_PRIVATE_ENDPOINT_REGION: ${{ inputs.azure_private_endpoint_region }}
           AZURE_CLIENT_ID: ${{ secrets.azure_client_id }}
           AZURE_RESOURCE_GROUP_NAME: ${{ secrets.azure_resource_group_name }}
@@ -796,10 +780,6 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           AWS_CUSTOMER_MASTER_KEY_ID: ${{ secrets.aws_customer_master_key_id }}
-          MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID: ${{ inputs.mongodb_atlas_project_ear_pe_aws_id }}
-          AWS_EAR_ROLE_ID: ${{ inputs.aws_ear_role_id }}
-          MONGODB_ATLAS_ASP_PROJECT_EAR_PE_ID: ${{ inputs.mongodb_atlas_asp_project_ear_pe_id }}
-          MONGODB_ATLAS_ASP_PROJECT_AWS_ROLE_ARN: ${{ inputs.mongodb_atlas_asp_project_aws_role_arn }}
         run: make testacc
 
   event_trigger:
@@ -1215,11 +1195,11 @@ jobs:
             CONFLUENT_CLOUD_API_SECRET: ${{ secrets.confluent_cloud_api_secret }}
             CONFLUENT_CLOUD_NETWORK_ID: ${{ inputs.confluent_cloud_network_id }}
             CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID: ${{ inputs.confluent_cloud_privatelink_access_id }}
-            AWS_REGION: ${{ vars.AWS_REGION }}
+            AWS_REGION: ${{ vars.AWS_REGION_LOWERCASE }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
+            AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
             AWS_VPC_CIDR_BLOCK: ${{ vars.AWS_VPC_CIDR_BLOCK }}
             AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
-            MONGODB_ATLAS_ASP_PROJECT_AWS_ROLE_ARN: ${{ inputs.mongodb_atlas_asp_project_aws_role_arn }}
-            MONGODB_ATLAS_ASP_PROJECT_EAR_PE_ID: ${{ inputs.mongodb_atlas_asp_project_ear_pe_id }}
             ACCTEST_PACKAGES: |
               ./internal/service/streamaccountdetails
               ./internal/service/streamconnection
