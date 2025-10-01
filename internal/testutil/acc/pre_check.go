@@ -236,9 +236,8 @@ func PreCheckEncryptionAtRestEnvAWS(tb testing.TB) {
 	if os.Getenv("AWS_ACCESS_KEY_ID") == "" ||
 		os.Getenv("AWS_SECRET_ACCESS_KEY") == "" ||
 		os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID") == "" ||
-		os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID") == "" ||
 		os.Getenv("AWS_REGION") == "" {
-		tb.Fatal("`AWS_ACCESS_KEY_ID`, `AWS_VPC_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_CUSTOMER_MASTER_KEY_ID`, `AWS_REGION` and `MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID` must be set for acceptance testing")
+		tb.Fatal("`AWS_ACCESS_KEY_ID`, `AWS_VPC_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_CUSTOMER_MASTER_KEY_ID` and `AWS_REGION` must be set for acceptance testing")
 	}
 }
 

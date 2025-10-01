@@ -43,6 +43,7 @@ func TestAccSTSAssumeRole_basic(t *testing.T) {
 }
 
 func TestAccServiceAccount_basic(t *testing.T) {
+	acc.SkipInSA(t, "skipping because SA is not implemented in master yet") // TODO: remove this skip in SA dev branch
 	acc.SkipInPAK(t, "skipping as this test is for SA only")
 	var (
 		resourceName = "data.mongodbatlas_organization.test"
