@@ -120,7 +120,7 @@ Note: OIDC support is only avalible starting in [MongoDB 7.0](https://www.mongod
 
 
 ### Further Examples
-- [Database User](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/mongodbatlas_database_user)
+- [Database User](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_database_user)
 
 
 ## Argument Reference

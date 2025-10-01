@@ -330,9 +330,9 @@ resource "mongodbatlas_network_peering" "test" {
 ```
 
 ### Further Examples
-- [AWS Network Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/mongodbatlas_network_peering/aws)
-- [Azure Network Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/mongodbatlas_network_peering/azure)
-- [GCP Network Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/mongodbatlas_network_peering/gcp)
+- [AWS Network Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_network_peering/aws)
+- [Azure Network Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_network_peering/azure)
+- [GCP Network Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_network_peering/gcp)
 
 
 ## Argument Reference
