@@ -52,6 +52,12 @@ func ConnV2UsingGov() *admin.APIClient {
 }
 
 func init() {
+	if InUnitTest() { // Dummy credentials for unit tests
+		os.Setenv("MONGODB_ATLAS_PUBLIC_KEY", "dummy")
+		os.Setenv("MONGODB_ATLAS_PRIVATE_KEY", "dummy")
+		os.Unsetenv("MONGODB_ATLAS_CLIENT_ID")
+		os.Unsetenv("MONGODB_ATLAS_CLIENT_SECRET")
+	}
 	TestAccProviderV6Factories = map[string]func() (tfprotov6.ProviderServer, error){
 		ProviderNameMongoDBAtlas: func() (tfprotov6.ProviderServer, error) {
 			return provider.MuxProviderFactory()(), nil
@@ -60,6 +66,8 @@ func init() {
 	cfg := config.Config{
 		PublicKey:    os.Getenv("MONGODB_ATLAS_PUBLIC_KEY"),
 		PrivateKey:   os.Getenv("MONGODB_ATLAS_PRIVATE_KEY"),
+		ClientID:     os.Getenv("MONGODB_ATLAS_CLIENT_ID"),
+		ClientSecret: os.Getenv("MONGODB_ATLAS_CLIENT_SECRET"),
 		BaseURL:      os.Getenv("MONGODB_ATLAS_BASE_URL"),
 		RealmBaseURL: os.Getenv("MONGODB_REALM_BASE_URL"),
 	}
