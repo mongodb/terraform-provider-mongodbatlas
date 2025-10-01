@@ -406,6 +406,7 @@ jobs:
  
   advanced_cluster_tpf_mig_from_sdkv2:
     needs: [ change-detection, get-provider-version ]
+    # Previous advanced_cluster versions don't support SA.
     if: ${{ inputs.reduced_tests == false && inputs.use_sa == false && (needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster') }}
     runs-on: ubuntu-latest
     permissions: {}
@@ -431,6 +432,7 @@ jobs:
 
   advanced_cluster_tpf_mig_from_tpf_preview:
     needs: [ change-detection, get-provider-version ]
+    # Previous advanced_cluster versions don't support SA.
     if: ${{ inputs.reduced_tests == false && inputs.use_sa == false && (needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster') }}
     runs-on: ubuntu-latest
     permissions: {}
@@ -818,7 +820,7 @@ jobs:
 
   event_trigger:
     needs: [change-detection, get-provider-version]
-    # Realm SDK doesn't support SA
+    # Realm SDK doesn't support SA.
     if: ${{ inputs.use_sa == false && (needs.change-detection.outputs.event_trigger == 'true' || inputs.test_group == 'event_trigger') }}
     runs-on: ubuntu-latest
     permissions: {}
