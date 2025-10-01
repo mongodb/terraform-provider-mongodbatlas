@@ -56,7 +56,6 @@ on:
         description: 'If run only minimum tests for advanced_cluster, e.g. in PRs'
         type: boolean
         required: false
-  
       use_sa:
         description: "Run tests using Service Account instead of API Keys"
         type: boolean
@@ -107,7 +106,6 @@ jobs:
       confluent_cloud_api_secret: ${{ secrets.CONFLUENT_CLOUD_API_SECRET }}
       aws_customer_master_key_id: ${{ secrets.AWS_CUSTOMER_MASTER_KEY_ID }}
 
-
     with:
       terraform_version: ${{ inputs.terraform_version || '1.13.x' }}
       provider_version: ${{ inputs.provider_version }}
@@ -137,13 +135,8 @@ jobs:
       mongodb_atlas_gov_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_GOV_ORG_ID_QA || vars.MONGODB_ATLAS_GOV_ORG_ID_DEV }}
       mongodb_atlas_gov_project_owner_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_GOV_PROJECT_OWNER_ID_QA || vars.MONGODB_ATLAS_GOV_PROJECT_OWNER_ID_DEV }}
       mongodb_atlas_federated_settings_associated_domain: ${{ vars.MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN }}
-      mongodb_atlas_project_ear_pe_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_PROJECT_EAR_PE_ID_QA || vars.MONGODB_ATLAS_PROJECT_EAR_PE_ID_DEV }}
-      mongodb_atlas_project_ear_pe_aws_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID_QA || vars.MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID_DEV }}
-      aws_ear_role_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.AWS_EAR_ROLE_ID_QA || vars.AWS_EAR_ROLE_ID_DEV }}
       azure_private_endpoint_region: ${{ vars.AZURE_PRIVATE_ENDPOINT_REGION }}
       mongodb_atlas_rp_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_RP_ORG_ID_QA || vars.MONGODB_ATLAS_RP_ORG_ID_DEV }}
       confluent_cloud_network_id: ${{ vars.CONFLUENT_CLOUD_NETWORK_ID }} 
       confluent_cloud_privatelink_access_id: ${{ vars.CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID }}
-      mongodb_atlas_asp_project_ear_pe_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_ASP_PROJECT_EAR_PE_ID_QA || vars.MONGODB_ATLAS_ASP_PROJECT_EAR_PE_ID_DEV }}
-      mongodb_atlas_asp_project_aws_role_arn: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_ASP_PROJECT_AWS_ROLE_ARN_QA || vars.MONGODB_ATLAS_ASP_PROJECT_AWS_ROLE_ARN_DEV }}
       mongodb_atlas_last_1x_version: ${{ vars.MONGODB_ATLAS_LAST_1X_VERSION }}

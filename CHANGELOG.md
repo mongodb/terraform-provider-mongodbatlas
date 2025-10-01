@@ -1,11 +1,22 @@
 ## (Unreleased)
 
+## 1.41.1 (October 01, 2025)
+
+BUG FIXES:
+
+* resource/mongodbatlas_advanced_cluster: Allows upgrade from tenant and flex cluster to dedicated NVMe with backup enabled ([#3725](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3725))
+
+## 2.0.1 (October 01, 2025)
+
 ENHANCEMENTS:
 
-* data-source/mongodbatlas_stream_connection: Adds new authentication mechanism(OIDC) to the Kafka connection ([#3680](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3680))
-* data-source/mongodbatlas_stream_connections: Adds new authentication mechanism(OIDC) to the Kafka connection ([#3680](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3680))
 * resource/mongodbatlas_advanced_cluster: Improves documentation about `known after apply` markers in update plans ([#3701](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3701))
-* resource/mongodbatlas_stream_connection: Adds new authentication mechanism(OIDC) to the Kafka connection ([#3680](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3680))
+* resource/mongodbatlas_cloud_provider_access_authorization: Splits `cloud_provider_access` documentation page into `mongodbatlas_cloud_provider_access_setup` and `mongodbatlas_cloud_provider_access_authorization` ([#3703](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3703))
+* resource/mongodbatlas_cloud_provider_access_setup: Splits `cloud_provider_access` documentation page into `mongodbatlas_cloud_provider_access_setup` and `mongodbatlas_cloud_provider_access_authorization` ([#3703](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3703))
+
+BUG FIXES:
+
+* provider: Fixes STS region resolution when using cross-region authentication ([#3718](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3718))
 
 ## 2.0.0 (September 15, 2025)
 
