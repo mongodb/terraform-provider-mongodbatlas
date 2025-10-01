@@ -171,7 +171,7 @@ func TestAccNetworkLogging(t *testing.T) {
 	client, ok := clientInterface.(*config.MongoDBClient)
 	require.True(t, ok)
 
-	// Make a simple API call that should trigger our enhanced logging
+	// Make a simple API call that should trigger our enhanced logging.
 	_, _, err = client.AtlasV2.OrganizationsApi.ListOrgs(t.Context()).Execute()
 	require.NoError(t, err)
 	logStr := logOutput.String()
