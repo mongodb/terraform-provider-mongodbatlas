@@ -481,10 +481,10 @@ func checkAggr(orgOwnerID, name, description string, settings *admin.Organizatio
 		"name":                       name,
 		"org_owner_id":               orgOwnerID,
 		"description":                description,
-		"api_access_list_required":   strconv.FormatBool(*settings.ApiAccessListRequired),
-		"multi_factor_auth_required": strconv.FormatBool(*settings.MultiFactorAuthRequired),
-		"restrict_employee_access":   strconv.FormatBool(*settings.RestrictEmployeeAccess),
-		"gen_ai_features_enabled":    strconv.FormatBool(*settings.GenAIFeaturesEnabled),
+		"api_access_list_required":   strconv.FormatBool(settings.GetApiAccessListRequired()),
+		"multi_factor_auth_required": strconv.FormatBool(settings.GetMultiFactorAuthRequired()),
+		"restrict_employee_access":   strconv.FormatBool(settings.GetRestrictEmployeeAccess()),
+		"gen_ai_features_enabled":    strconv.FormatBool(settings.GetGenAIFeaturesEnabled()),
 		"security_contact":           settings.GetSecurityContact(),
 	}
 	checks := []resource.TestCheckFunc{
