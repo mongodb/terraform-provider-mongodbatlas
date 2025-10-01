@@ -56,34 +56,6 @@ resource "mongodbatlas_stream_connection" "example-kafka-plaintext" {
   }
 }
 
-resource "mongodbatlas_stream_connection" "example-kafka-oauthbearer" {
-  project_id      = var.project_id
-  workspace_name   = mongodbatlas_stream_instance.example.instance_name
-  connection_name = "KafkaOAuthbearerConnection"
-  type            = "Kafka"
-  authentication = {
-    mechanism                   = "OAUTHBEARER"
-    token_endpoint_url          = "https://example.com/oauth/token"
-    client_id                   = "auth0Client"
-    client_secret               = var.kafka_client_secret
-    scope                       = "read:messages write:messages"
-    sasl_oauthbearer_extensions = "logicalCluster=lkc-kmom,identityPoolId=pool-lAr"
-    https_ca_pem                = "pemtext"
-  }
-  bootstrap_servers = "localhost:9092,localhost:9092"
-  config = {
-    "auto.offset.reset" : "earliest"
-  }
-  security = {
-    protocol = "SASL_PLAINTEXT"
-  }
-  networking = {
-    access = {
-      type = "PUBLIC"
-    }
-  }
-}
-
 resource "mongodbatlas_stream_connection" "example-kafka-ssl" {
   project_id      = var.project_id
   workspace_name   = mongodbatlas_stream_instance.example.instance_name

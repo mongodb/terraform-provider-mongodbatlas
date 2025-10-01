@@ -42,5 +42,7 @@ for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u)
   terraform fmt -check -recursive
   terraform validate
 
+  rm -rf ".terraform"
+  rm -rf ".terraform.lock.hcl"
   popd
 done

@@ -55,27 +55,15 @@ type TFStreamConnectionModel struct {
 }
 
 type TFConnectionAuthenticationModel struct {
-	Mechanism                 types.String `tfsdk:"mechanism"`
-	Password                  types.String `tfsdk:"password"`
-	Username                  types.String `tfsdk:"username"`
-	TokenEndpointURL          types.String `tfsdk:"token_endpoint_url"`
-	ClientID                  types.String `tfsdk:"client_id"`
-	ClientSecret              types.String `tfsdk:"client_secret"`
-	Scope                     types.String `tfsdk:"scope"`
-	SaslOauthbearerExtensions types.String `tfsdk:"sasl_oauthbearer_extensions"`
-	HTTPSCaPem                types.String `tfsdk:"https_ca_pem"`
+	Mechanism types.String `tfsdk:"mechanism"`
+	Password  types.String `tfsdk:"password"`
+	Username  types.String `tfsdk:"username"`
 }
 
 var ConnectionAuthenticationObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"mechanism":                   types.StringType,
-	"password":                    types.StringType,
-	"username":                    types.StringType,
-	"token_endpoint_url":          types.StringType,
-	"client_id":                   types.StringType,
-	"client_secret":               types.StringType,
-	"scope":                       types.StringType,
-	"sasl_oauthbearer_extensions": types.StringType,
-	"https_ca_pem":                types.StringType,
+	"mechanism": types.StringType,
+	"password":  types.StringType,
+	"username":  types.StringType,
 }}
 
 type TFConnectionSecurityModel struct {

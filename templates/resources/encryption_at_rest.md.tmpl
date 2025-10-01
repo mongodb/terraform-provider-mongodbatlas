@@ -53,7 +53,7 @@ resource "mongodbatlas_encryption_at_rest" "default" {
 #### Manage Customer Keys with Azure Key Vault Over Private Endpoints
 It is possible to configure Atlas Encryption at Rest to communicate with Customer Managed Keys (Azure Key Vault or AWS KMS) over private network interfaces (Azure Private Link or AWS PrivateLink). This requires enabling the `azure_key_vault_config.require_private_networking` or the `aws_kms_config.require_private_networking` attribute, together with the configuration of the `mongodbatlas_encryption_at_rest_private_endpoint` resource. 
 
-Please review the [`mongodbatlas_encryption_at_rest_private_endpoint` resource documentation](encryption_at_rest_private_endpoint) and [complete the example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/mongodbatlas_encryption_at_rest_private_endpoint/) for details on this functionality.
+Please review the [`mongodbatlas_encryption_at_rest_private_endpoint` resource documentation](encryption_at_rest_private_endpoint) and [complete the example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.41.1/examples/mongodbatlas_encryption_at_rest_private_endpoint/) for details on this functionality.
 
 
 ### Configuring encryption at rest using customer key management in GCP
@@ -64,9 +64,9 @@ This approach uses role-based authentication through Cloud Provider Access for a
 {{ tffile (printf "examples/%s/gcp/main.tf" .Name )}}
 
 ### Further Examples
-- [AWS KMS Encryption at Rest](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/mongodbatlas_encryption_at_rest/aws)
-- [Azure Key Vault Encryption at Rest](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/mongodbatlas_encryption_at_rest/azure)
-- [GCP KMS Encryption at Rest](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/mongodbatlas_encryption_at_rest/gcp/)
+- [AWS KMS Encryption at Rest](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.41.1/examples/mongodbatlas_encryption_at_rest/aws)
+- [Azure Key Vault Encryption at Rest](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.41.1/examples/mongodbatlas_encryption_at_rest/azure)
+- [GCP KMS Encryption at Rest](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.41.1/examples/mongodbatlas_encryption_at_rest/gcp/)
 
 
 {{ .SchemaMarkdown | trimspace }}

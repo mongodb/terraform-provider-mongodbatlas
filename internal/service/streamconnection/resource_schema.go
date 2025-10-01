@@ -99,25 +99,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"username": schema.StringAttribute{
 						Optional: true,
 					},
-					"token_endpoint_url": schema.StringAttribute{
-						Optional: true,
-					},
-					"client_id": schema.StringAttribute{
-						Optional: true,
-					},
-					"client_secret": schema.StringAttribute{
-						Optional:  true,
-						Sensitive: true,
-					},
-					"scope": schema.StringAttribute{
-						Optional: true,
-					},
-					"sasl_oauthbearer_extensions": schema.StringAttribute{
-						Optional: true,
-					},
-					"https_ca_pem": schema.StringAttribute{
-						Optional: true,
-					},
 				},
 			},
 			"bootstrap_servers": schema.StringAttribute{

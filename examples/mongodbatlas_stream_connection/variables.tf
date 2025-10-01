@@ -21,11 +21,6 @@ variable "kafka_password" {
   type        = string
 }
 
-variable "kafka_client_secret" {
-  description = "Secret known only to the Kafka client and the authorization server"
-  type        = string
-}
-
 variable "kafka_ssl_cert" {
   description = "Public certificate used for SASL_SSL configuration to connect to your Kafka cluster"
   type        = string

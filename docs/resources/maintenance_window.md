@@ -44,7 +44,7 @@ Once maintenance is scheduled for your cluster, you cannot change your maintenan
 ```
 
 ### Further Examples
-- [Configure Maintenance Window](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.0/examples/mongodbatlas_maintenance_window)
+- [Configure Maintenance Window](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.41.1/examples/mongodbatlas_maintenance_window)
 
 ## Argument Reference
 
