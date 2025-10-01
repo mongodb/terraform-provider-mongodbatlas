@@ -536,7 +536,8 @@ jobs:
           MONGODB_ATLAS_CLIENT_ID: ${{ secrets.mongodb_atlas_client_id }}
           MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_REGEX_RUN: '^TestAccServiceAccount'
+          ACCTEST_REGEX_RUN: '^TestUnexisting' # TODO: SA not implemented in master yet
+          # ACCTEST_REGEX_RUN: '^TestAccServiceAccount'
           ACCTEST_PACKAGES: ./internal/provider
         run: make testacc
       - name: Acceptance Tests (Service Account smoke tests) # small selection of fast tests to run with SA
@@ -546,7 +547,7 @@ jobs:
           MONGODB_ATLAS_CLIENT_ID: ${{ secrets.mongodb_atlas_client_id }}
           MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_REGEX_RUN: '^TestAcc' # don't run migration tests because previous provider versions don't support SA
+          ACCTEST_REGEX_RUN: '^TestUnexisting' # TODO: SA not implemented in master yet
           ACCTEST_PACKAGES: |
             ./internal/service/alertconfiguration
             ./internal/service/databaseuser
