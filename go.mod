@@ -24,7 +24,7 @@ require (
 	github.com/huandu/xstrings v1.5.0
 	github.com/jarcoal/httpmock v1.4.1
 	github.com/mongodb-forks/digest v1.1.0
-	github.com/mongodb/atlas-sdk-go v1.0.1-0.20250915083841-6f42ac117506
+	github.com/mongodb/atlas-sdk-go v1.0.1-0.20251001083825-79e17a5e87e0
 	github.com/pb33f/libopenapi v0.27.2
 	github.com/sebdah/goldie/v2 v2.7.1
 	github.com/spf13/cast v1.10.0
@@ -163,7 +163,7 @@ require (
 	golang.org/x/crypto v0.42.0 // indirect
 	golang.org/x/mod v0.27.0 // indirect
 	golang.org/x/net v0.43.0 // indirect
-	golang.org/x/oauth2 v0.30.0 // indirect
+	golang.org/x/oauth2 v0.31.0 // indirect
 	golang.org/x/sync v0.17.0 // indirect
 	golang.org/x/sys v0.36.0 // indirect
 	golang.org/x/text v0.29.0 // indirect
