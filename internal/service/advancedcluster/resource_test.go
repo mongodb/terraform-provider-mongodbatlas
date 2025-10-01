@@ -2905,7 +2905,7 @@ func TestAccAdvancedCluster_updateDeleteTimeoutFlex(t *testing.T) {
 			},
 			{
 				Config:      acc.ConfigEmpty(), // triggers delete and because delete timeout is 1s, it times out
-				ExpectError: regexp.MustCompile("timeout while waiting for state to become 'DELETED'"),
+				ExpectError: regexp.MustCompile("Error in flex delete"),
 			},
 			{
 				// deletion of the flex cluster has been triggered, but has timed out in previous step, so this is needed in order to avoid "Error running post-test destroy, there may be dangling resource [...] Cluster already requested to be deleted"
