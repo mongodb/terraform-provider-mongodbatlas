@@ -2,7 +2,7 @@ name: Generate Changelog
 on:
   pull_request:
     types: [closed]
-    branches: [master]
+    branches: [master, master-v1]
     paths:
       - .changelog/**
   workflow_dispatch:
