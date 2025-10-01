@@ -243,3 +243,4 @@ jobs:
                   remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
                   gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
                   passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}
+                  branch: master-v1
