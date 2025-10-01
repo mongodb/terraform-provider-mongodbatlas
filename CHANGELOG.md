@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 1.41.1 (October 01, 2025)
+
 BUG FIXES:
 
 * resource/mongodbatlas_advanced_cluster: Allows upgrade from tenant and flex cluster to dedicated NVMe with backup enabled ([#3725](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3725))
