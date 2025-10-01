@@ -29,8 +29,12 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 
 	resourceConfigsToIterate := configModel.Resources
 	if resourceName != nil { // only generate a specific resource
+		resource, ok := configModel.Resources[*resourceName]
+		if !ok {
+			return nil, fmt.Errorf("resource %s not found in config file", *resourceName)
+		}
 		resourceConfigsToIterate = map[string]config.Resource{
-			*resourceName: configModel.Resources[*resourceName],
+			*resourceName: resource,
 		}
 	}
 
@@ -111,8 +115,11 @@ func getOperationsFromConfig(resourceConfig *config.Resource) APIOperations {
 	}
 }
 
-func operationConfigToModel(opConfig *config.APIOperation) APIOperation {
-	return APIOperation{
+func operationConfigToModel(opConfig *config.APIOperation) *APIOperation {
+	if opConfig == nil {
+		return nil
+	}
+	return &APIOperation{
 		HTTPMethod:        opConfig.Method,
 		Path:              opConfig.Path,
 		Wait:              waitConfigToModel(opConfig.Wait),

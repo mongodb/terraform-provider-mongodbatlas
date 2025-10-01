@@ -25,10 +25,10 @@ type Resource struct {
 }
 
 type APIOperations struct {
-	Create        APIOperation
-	Read          APIOperation
-	Update        APIOperation
-	Delete        APIOperation
+	Create        *APIOperation
+	Read          *APIOperation
+	Update        *APIOperation
+	Delete        *APIOperation
 	VersionHeader string
 }
 
