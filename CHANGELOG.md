@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 2.0.1 (October 01, 2025)
+
 ENHANCEMENTS:
 
 * resource/mongodbatlas_advanced_cluster: Improves documentation about `known after apply` markers in update plans ([#3701](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3701))
