@@ -11,6 +11,7 @@ import (
 
 var stringAttr = codespec.Attribute{
 	Name:                     "string_attr",
+	PascalCaseName:           "StringAttr",
 	String:                   &codespec.StringAttribute{},
 	Description:              admin.PtrString("string attribute"),
 	ComputedOptionalRequired: codespec.Optional,
@@ -18,6 +19,7 @@ var stringAttr = codespec.Attribute{
 
 var intAttr = codespec.Attribute{
 	Name:                     "int_attr",
+	PascalCaseName:           "IntAttr",
 	Int64:                    &codespec.Int64Attribute{},
 	Description:              admin.PtrString("int attribute"),
 	ComputedOptionalRequired: codespec.Required,
@@ -25,6 +27,7 @@ var intAttr = codespec.Attribute{
 
 var doubleNestedListAttr = codespec.Attribute{
 	Name:                     "double_nested_list_attr",
+	PascalCaseName:           "DoubleNestedListAttr",
 	Description:              admin.PtrString("double nested list attribute"),
 	ComputedOptionalRequired: codespec.Optional,
 	ListNested: &codespec.ListNestedAttribute{
@@ -51,36 +54,42 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 					Attributes: []codespec.Attribute{
 						{
 							Name:                     "string_attr",
+							PascalCaseName:           "StringAttr",
 							String:                   &codespec.StringAttribute{},
 							Description:              admin.PtrString("string description"),
 							ComputedOptionalRequired: codespec.Required,
 						},
 						{
 							Name:                     "bool_attr",
+							PascalCaseName:           "BoolAttr",
 							Bool:                     &codespec.BoolAttribute{},
 							Description:              admin.PtrString("bool description"),
 							ComputedOptionalRequired: codespec.Optional,
 						},
 						{
 							Name:                     "int_attr",
+							PascalCaseName:           "IntAttr",
 							Int64:                    &codespec.Int64Attribute{},
 							Description:              admin.PtrString("int description"),
 							ComputedOptionalRequired: codespec.ComputedOptional,
 						},
 						{
 							Name:                     "float_attr",
+							PascalCaseName:           "FloatAttr",
 							Float64:                  &codespec.Float64Attribute{},
 							Description:              admin.PtrString("float description"),
 							ComputedOptionalRequired: codespec.Optional,
 						},
 						{
 							Name:                     "number_attr",
+							PascalCaseName:           "NumberAttr",
 							Number:                   &codespec.NumberAttribute{},
 							Description:              admin.PtrString("number description"),
 							ComputedOptionalRequired: codespec.Optional,
 						},
 						{
-							Name: "simple_list_attr",
+							Name:           "simple_list_attr",
+							PascalCaseName: "SimpleListAttr",
 							List: &codespec.ListAttribute{
 								ElementType: codespec.String,
 							},
@@ -88,7 +97,8 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							ComputedOptionalRequired: codespec.Optional,
 						},
 						{
-							Name: "simple_set_attr",
+							Name:           "simple_set_attr",
+							PascalCaseName: "SimpleSetAttr",
 							Set: &codespec.SetAttribute{
 								ElementType: codespec.Float64,
 							},
@@ -96,7 +106,8 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							ComputedOptionalRequired: codespec.Optional,
 						},
 						{
-							Name: "simple_map_attr",
+							Name:           "simple_map_attr",
+							PascalCaseName: "SimpleMapAttr",
 							Map: &codespec.MapAttribute{
 								ElementType: codespec.Bool,
 							},
@@ -105,6 +116,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 						},
 						{
 							Name:                     "attr_not_included_in_req_bodies",
+							PascalCaseName:           "AttrNotIncludedInReqBodies",
 							String:                   &codespec.StringAttribute{},
 							Description:              admin.PtrString("string description"),
 							ComputedOptionalRequired: codespec.Required,
@@ -112,6 +124,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 						},
 						{
 							Name:                     "attr_only_in_post_req_bodies",
+							PascalCaseName:           "AttrOnlyInPostReqBodies",
 							String:                   &codespec.StringAttribute{},
 							Description:              admin.PtrString("string description"),
 							ComputedOptionalRequired: codespec.Required,
@@ -119,6 +132,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 						},
 						{
 							Name:                     "json_attr",
+							PascalCaseName:           "JsonAttr",
 							String:                   &codespec.StringAttribute{},
 							CustomType:               &codespec.CustomTypeJSONVar,
 							Description:              admin.PtrString("json description"),
@@ -137,6 +151,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 					Attributes: []codespec.Attribute{
 						{
 							Name:                     "nested_single_attr",
+							PascalCaseName:           "NestedSingleAttr",
 							Description:              admin.PtrString("nested single attribute"),
 							ComputedOptionalRequired: codespec.Required,
 							SingleNested: &codespec.SingleNestedAttribute{
@@ -146,6 +161,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 										intAttr,
 										{
 											Name:                     "attr_not_included_in_req_bodies",
+											PascalCaseName:           "AttrNotIncludedInReqBodies",
 											String:                   &codespec.StringAttribute{},
 											Description:              admin.PtrString("string description"),
 											ComputedOptionalRequired: codespec.Computed,
@@ -157,6 +173,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 						},
 						{
 							Name:                     "nested_list_attr",
+							PascalCaseName:           "NestedListAttr",
 							Description:              admin.PtrString("nested list attribute"),
 							ComputedOptionalRequired: codespec.Optional,
 							ListNested: &codespec.ListNestedAttribute{
@@ -167,6 +184,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 						},
 						{
 							Name:                     "set_nested_attribute",
+							PascalCaseName:           "SetNestedAttribute",
 							Description:              admin.PtrString("set nested attribute"),
 							ComputedOptionalRequired: codespec.ComputedOptional,
 							SetNested: &codespec.SetNestedAttribute{
@@ -177,6 +195,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 						},
 						{
 							Name:                     "map_nested_attribute",
+							PascalCaseName:           "MapNestedAttribute",
 							Description:              admin.PtrString("map nested attribute"),
 							ComputedOptionalRequired: codespec.ComputedOptional,
 							MapNested: &codespec.MapNestedAttribute{
@@ -198,12 +217,14 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 					Attributes: []codespec.Attribute{
 						{
 							Name:                     "string_attr",
+							PascalCaseName:           "StringAttr",
 							String:                   &codespec.StringAttribute{},
 							Description:              admin.PtrString("string description"),
 							ComputedOptionalRequired: codespec.Required,
 						},
 						{
-							Name: "timeouts",
+							Name:           "timeouts",
+							PascalCaseName: "Timeouts",
 							Timeouts: &codespec.TimeoutsAttribute{
 								ConfigurableTimeouts: []codespec.Operation{codespec.Create, codespec.Update, codespec.Delete},
 							},
@@ -221,6 +242,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 					Attributes: []codespec.Attribute{
 						{
 							Name:                     "nested_list_attr",
+							PascalCaseName:           "NestedListAttr",
 							Description:              admin.PtrString("nested list attribute"),
 							ComputedOptionalRequired: codespec.Optional,
 							ListNested: &codespec.ListNestedAttribute{
@@ -242,6 +264,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 					Attributes: []codespec.Attribute{
 						{
 							Name:                     "first_nested_attr",
+							PascalCaseName:           "FirstNestedAttr",
 							Description:              admin.PtrString("first nested attribute"),
 							ComputedOptionalRequired: codespec.Optional,
 							ListNested: &codespec.ListNestedAttribute{
@@ -252,6 +275,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 						},
 						{
 							Name:                     "second_nested_attr",
+							PascalCaseName:           "SecondNestedAttr",
 							Description:              admin.PtrString("second nested attribute"),
 							ComputedOptionalRequired: codespec.Optional,
 							ListNested: &codespec.ListNestedAttribute{

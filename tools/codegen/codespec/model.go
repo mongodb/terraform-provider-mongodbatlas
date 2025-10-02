@@ -1,6 +1,8 @@
 package codespec
 
-import "github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
+import (
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
+)
 
 type ElemType int
 
@@ -78,6 +80,7 @@ type Attribute struct {
 	CustomType               *CustomType
 	ComputedOptionalRequired ComputedOptionalRequired
 	Name                     stringcase.SnakeCaseString
+	PascalCaseName           string
 	ReqBodyUsage             AttributeReqBodyUsage
 	Sensitive                bool
 }

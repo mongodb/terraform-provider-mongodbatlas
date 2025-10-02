@@ -211,6 +211,10 @@ resources:
           computability:
             optional: true
             computed: true
+        mongo_dbmajor_version:
+          computability:
+            optional: true
+            computed: true
 
   custom_db_role_api:
     read:
@@ -273,6 +277,9 @@ resources:
         auto_defer_once_enabled: # optional but when not configured, Atlas returns a default value.
           computability:
             optional: true
+            computed: true
+        start_asap: # "This flag resets to false after MongoDB Cloud completes maintenance."
+          computability:
             computed: true
 
   # Singleton resource in project.

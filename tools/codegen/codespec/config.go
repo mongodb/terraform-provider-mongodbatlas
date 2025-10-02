@@ -5,8 +5,8 @@ import (
 	"log"
 	"strings"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
 )
 
 func applyConfigSchemaOptions(resourceConfig *config.Resource, resource *Resource) {

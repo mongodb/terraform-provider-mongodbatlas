@@ -3,9 +3,9 @@ package resource_test
 import (
 	"testing"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/resource"
-	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
 	"github.com/sebdah/goldie/v2"
 )
 

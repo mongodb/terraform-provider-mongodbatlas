@@ -38,17 +38,20 @@ func TestConvertToProviderSpec(t *testing.T) {
 					Attributes: codespec.Attributes{
 						{
 							Name:                     "bool_default_attr",
+							PascalCaseName:           "BoolDefaultAttr",
 							ComputedOptionalRequired: codespec.ComputedOptional,
 							Bool:                     &codespec.BoolAttribute{Default: conversion.Pointer(false)},
 						},
 						{
 							Name:                     "count",
+							PascalCaseName:           "Count",
 							ComputedOptionalRequired: codespec.Optional,
 							Int64:                    &codespec.Int64Attribute{},
 							Description:              conversion.StringPtr(testFieldDesc),
 						},
 						{
 							Name:                     "create_date",
+							PascalCaseName:           "CreateDate",
 							String:                   &codespec.StringAttribute{},
 							ComputedOptionalRequired: codespec.Computed,
 							Description:              conversion.StringPtr(testFieldDesc),
@@ -56,6 +59,7 @@ func TestConvertToProviderSpec(t *testing.T) {
 						},
 						{
 							Name:                     "group_id",
+							PascalCaseName:           "GroupId",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
@@ -63,11 +67,13 @@ func TestConvertToProviderSpec(t *testing.T) {
 						},
 						{
 							Name:                     "num_double_default_attr",
+							PascalCaseName:           "NumDoubleDefaultAttr",
 							Float64:                  &codespec.Float64Attribute{Default: conversion.Pointer(2.0)},
 							ComputedOptionalRequired: codespec.ComputedOptional,
 						},
 						{
 							Name:                     "str_computed_attr",
+							PascalCaseName:           "StrComputedAttr",
 							ComputedOptionalRequired: codespec.Computed,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testFieldDesc),
@@ -75,18 +81,21 @@ func TestConvertToProviderSpec(t *testing.T) {
 						},
 						{
 							Name:                     "str_req_attr1",
+							PascalCaseName:           "StrReqAttr1",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testFieldDesc),
 						},
 						{
 							Name:                     "str_req_attr2",
+							PascalCaseName:           "StrReqAttr2",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testFieldDesc),
 						},
 						{
 							Name:                     "str_req_attr3",
+							PascalCaseName:           "StrReqAttr3",
 							String:                   &codespec.StringAttribute{},
 							ComputedOptionalRequired: codespec.Required,
 							Description:              conversion.StringPtr(testFieldDesc),
@@ -132,12 +141,14 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 					Attributes: codespec.Attributes{
 						{
 							Name:                     "attr_always_in_updates",
+							PascalCaseName:           "AttrAlwaysInUpdates",
 							ComputedOptionalRequired: codespec.Optional,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr("Always in updates"),
 						},
 						{
 							Name:                     "cluster_name",
+							PascalCaseName:           "ClusterName",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
@@ -145,6 +156,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 						},
 						{
 							Name:                     "group_id",
+							PascalCaseName:           "GroupId",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
@@ -152,6 +164,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 						},
 						{
 							Name:                     "list_primitive_string_attr",
+							PascalCaseName:           "ListPrimitiveStringAttr",
 							ComputedOptionalRequired: codespec.Computed,
 							List: &codespec.ListAttribute{
 								ElementType: codespec.String,
@@ -161,18 +174,21 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 						},
 						{
 							Name:                     "nested_list_array_attr",
+							PascalCaseName:           "NestedListArrayAttr",
 							ComputedOptionalRequired: codespec.Required,
 							ListNested: &codespec.ListNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
 										{
 											Name:                     "inner_num_attr",
+											PascalCaseName:           "InnerNumAttr",
 											ComputedOptionalRequired: codespec.Required,
 											Int64:                    &codespec.Int64Attribute{},
 											Description:              conversion.StringPtr(testFieldDesc),
 										},
 										{
 											Name:                     "list_primitive_string_attr",
+											PascalCaseName:           "ListPrimitiveStringAttr",
 											ComputedOptionalRequired: codespec.Optional,
 											List: &codespec.ListAttribute{
 												ElementType: codespec.String,
@@ -181,6 +197,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 										},
 										{
 											Name:                     "list_primitive_string_computed_attr",
+											PascalCaseName:           "ListPrimitiveStringComputedAttr",
 											ComputedOptionalRequired: codespec.Computed,
 											List: &codespec.ListAttribute{
 												ElementType: codespec.String,
@@ -195,12 +212,14 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 						},
 						{
 							Name:                     "nested_map_object_attr",
+							PascalCaseName:           "NestedMapObjectAttr",
 							ComputedOptionalRequired: codespec.Computed,
 							MapNested: &codespec.MapNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
 										{
 											Name:                     "attr",
+											PascalCaseName:           "Attr",
 											ComputedOptionalRequired: codespec.Computed,
 											String:                   &codespec.StringAttribute{},
 											ReqBodyUsage:             codespec.OmitAlways,
@@ -212,12 +231,14 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 						},
 						{
 							Name:                     "nested_set_array_attr",
+							PascalCaseName:           "NestedSetArrayAttr",
 							ComputedOptionalRequired: codespec.Computed,
 							SetNested: &codespec.SetNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
 										{
 											Name:                     "inner_num_attr",
+											PascalCaseName:           "InnerNumAttr",
 											ComputedOptionalRequired: codespec.Computed,
 											Int64:                    &codespec.Int64Attribute{},
 											Description:              conversion.StringPtr(testFieldDesc),
@@ -225,6 +246,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 										},
 										{
 											Name:                     "list_primitive_string_attr",
+											PascalCaseName:           "ListPrimitiveStringAttr",
 											ComputedOptionalRequired: codespec.Computed,
 											List: &codespec.ListAttribute{
 												ElementType: codespec.String,
@@ -240,12 +262,14 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 						},
 						{
 							Name:                     "optional_string_attr",
+							PascalCaseName:           "OptionalStringAttr",
 							ComputedOptionalRequired: codespec.Optional,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr("Optional string"),
 						},
 						{
 							Name:                     "set_primitive_string_attr",
+							PascalCaseName:           "SetPrimitiveStringAttr",
 							ComputedOptionalRequired: codespec.Computed,
 							Set: &codespec.SetAttribute{
 								ElementType: codespec.String,
@@ -255,12 +279,14 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 						},
 						{
 							Name:                     "single_nested_attr",
+							PascalCaseName:           "SingleNestedAttr",
 							ComputedOptionalRequired: codespec.Computed,
 							SingleNested: &codespec.SingleNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
 										{
 											Name:                     "inner_int_attr",
+											PascalCaseName:           "InnerIntAttr",
 											ComputedOptionalRequired: codespec.Computed,
 											Int64:                    &codespec.Int64Attribute{},
 											Description:              conversion.StringPtr(testFieldDesc),
@@ -268,6 +294,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 										},
 										{
 											Name:                     "inner_str_attr",
+											PascalCaseName:           "InnerStrAttr",
 											ComputedOptionalRequired: codespec.Computed,
 											String:                   &codespec.StringAttribute{},
 											Description:              conversion.StringPtr(testFieldDesc),
@@ -281,12 +308,14 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 						},
 						{
 							Name:                     "single_nested_attr_with_nested_maps",
+							PascalCaseName:           "SingleNestedAttrWithNestedMaps",
 							ComputedOptionalRequired: codespec.Computed,
 							SingleNested: &codespec.SingleNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
 										{
 											Name:                     "map_attr1",
+											PascalCaseName:           "MapAttr1",
 											ComputedOptionalRequired: codespec.Computed,
 											Map: &codespec.MapAttribute{
 												ElementType: codespec.String,
@@ -295,6 +324,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 										},
 										{
 											Name:                     "map_attr2",
+											PascalCaseName:           "MapAttr2",
 											ComputedOptionalRequired: codespec.Computed,
 											Map: &codespec.MapAttribute{
 												ElementType: codespec.String,
@@ -348,6 +378,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 					Attributes: codespec.Attributes{
 						{
 							Name:                     "attr_always_in_updates",
+							PascalCaseName:           "AttrAlwaysInUpdates",
 							ComputedOptionalRequired: codespec.Optional,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr("Always in updates"),
@@ -355,6 +386,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 						},
 						{
 							Name:                     "project_id",
+							PascalCaseName:           "GroupId",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
@@ -362,18 +394,21 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 						},
 						{
 							Name:                     "nested_list_array_attr",
+							PascalCaseName:           "NestedListArrayAttr",
 							ComputedOptionalRequired: codespec.Required,
 							ListNested: &codespec.ListNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
 										{
 											Name:                     "inner_num_attr_alias",
+											PascalCaseName:           "InnerNumAttr",
 											ComputedOptionalRequired: codespec.Required,
 											Int64:                    &codespec.Int64Attribute{},
 											Description:              conversion.StringPtr("Overridden inner_num_attr_alias description"),
 										},
 										{
 											Name:                     "list_primitive_string_computed_attr",
+											PascalCaseName:           "ListPrimitiveStringComputedAttr",
 											ComputedOptionalRequired: codespec.Computed,
 											List: &codespec.ListAttribute{
 												ElementType: codespec.String,
@@ -388,12 +423,14 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 						},
 						{
 							Name:                     "optional_string_attr",
+							PascalCaseName:           "OptionalStringAttr",
 							ComputedOptionalRequired: codespec.ComputedOptional,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr("Optional string that has config override to optional/computed"),
 						},
 						{
 							Name:                     "outer_object",
+							PascalCaseName:           "OuterObject",
 							ComputedOptionalRequired: codespec.Computed,
 							ReqBodyUsage:             codespec.OmitAlways,
 							SingleNested: &codespec.SingleNestedAttribute{
@@ -401,6 +438,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 									Attributes: codespec.Attributes{
 										{
 											Name:                     "nested_level1",
+											PascalCaseName:           "NestedLevel1",
 											ComputedOptionalRequired: codespec.Computed,
 											ReqBodyUsage:             codespec.OmitAlways,
 											SingleNested: &codespec.SingleNestedAttribute{
@@ -408,6 +446,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 													Attributes: codespec.Attributes{
 														{
 															Name:                     "level_field1_alias",
+															PascalCaseName:           "LevelField1",
 															ComputedOptionalRequired: codespec.Computed,
 															ReqBodyUsage:             codespec.OmitAlways,
 															String:                   &codespec.StringAttribute{},
@@ -470,6 +509,7 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 					Attributes: codespec.Attributes{
 						{
 							Name:                     "group_id",
+							PascalCaseName:           "GroupId",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
@@ -477,6 +517,7 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 						},
 						{
 							Name:                     "special_param",
+							PascalCaseName:           "SpecialParam",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							ReqBodyUsage:             codespec.OmitInUpdateBody,
@@ -484,6 +525,7 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 						},
 						{
 							Name:                     "str_req_attr1",
+							PascalCaseName:           "StrReqAttr1",
 							ComputedOptionalRequired: codespec.Optional,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testFieldDesc),
@@ -530,11 +572,13 @@ func TestConvertToProviderSpec_singletonResourceNoDeleteOperation(t *testing.T) 
 					Attributes: codespec.Attributes{
 						{
 							Name:                     "flag",
+							PascalCaseName:           "Flag",
 							ComputedOptionalRequired: codespec.Optional,
 							Bool:                     &codespec.BoolAttribute{},
 						},
 						{
 							Name:                     "group_id",
+							PascalCaseName:           "GroupId",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),

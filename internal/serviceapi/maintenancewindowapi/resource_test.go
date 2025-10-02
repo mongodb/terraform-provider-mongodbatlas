@@ -49,7 +49,7 @@ func TestAccMaintenanceWindowAPI_basic(t *testing.T) {
 				ImportStateVerify:                    true,
 				ImportStateVerifyIdentifierAttribute: "group_id",
 				// Patch doesn't return a response body, but these attributes are changed when Get is called.
-				ImportStateVerifyIgnore: []string{"auto_defer_once_enabled", "number_of_deferrals", "time_zone_id"},
+				ImportStateVerifyIgnore: []string{"auto_defer_once_enabled", "number_of_deferrals", "time_zone_id", "start_asap"},
 			},
 		},
 	})

@@ -62,7 +62,7 @@ func getNestedModel(attribute *codespec.Attribute, ancestorsName string, withObj
 	if nested == nil {
 		return nil
 	}
-	res := generateTypedModels(nested.Attributes, ancestorsName+attribute.Name.PascalCase(), true, withObjTypes)
+	res := generateTypedModels(nested.Attributes, ancestorsName+attribute.PascalCaseName, true, withObjTypes)
 	return &res
 }
 
@@ -82,7 +82,7 @@ func generateStructOfTypedModel(attributes codespec.Attributes, name string) Cod
 
 func typedModelProperty(attr *codespec.Attribute) string {
 	var (
-		namePascalCase = attr.Name.PascalCase()
+		namePascalCase = attr.PascalCaseName
 		propType       = attrModelType(attr)
 		autogenTag     string
 	)
