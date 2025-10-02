@@ -29,9 +29,17 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 
 	resourceConfigsToIterate := configModel.Resources
 	if resourceName != nil { // only generate a specific resource
-		resourceConfigsToIterate = map[string]config.Resource{
-			*resourceName: configModel.Resources[*resourceName],
+		resource, ok := configModel.Resources[*resourceName]
+		if !ok {
+			return nil, fmt.Errorf("resource %s not found in config file", *resourceName)
 		}
+		resourceConfigsToIterate = map[string]config.Resource{
+			*resourceName: resource,
+		}
+	}
+
+	if err := validateRequiredOperations(resourceConfigsToIterate); err != nil {
+		return nil, err
 	}
 
 	var results []Resource
@@ -47,6 +55,25 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 	}
 
 	return &Model{Resources: results}, nil
+}
+
+func validateRequiredOperations(resourceConfigs map[string]config.Resource) error {
+	var validationErrors []error
+	for name, resourceConfig := range resourceConfigs {
+		if resourceConfig.Create == nil {
+			validationErrors = append(validationErrors, fmt.Errorf("resource %s missing Create operation in config file", name))
+		}
+		if resourceConfig.Read == nil {
+			validationErrors = append(validationErrors, fmt.Errorf("resource %s missing Read operation in config file", name))
+		}
+		if resourceConfig.Update == nil {
+			validationErrors = append(validationErrors, fmt.Errorf("resource %s missing Update operation in config file", name))
+		}
+	}
+	if len(validationErrors) > 0 {
+		return errors.Join(validationErrors...)
+	}
+	return nil
 }
 
 func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig *config.Resource, name stringcase.SnakeCaseString) *Resource {
@@ -103,16 +130,19 @@ func getLatestVersionFromAPISpec(readOp *high.Operation) string {
 
 func getOperationsFromConfig(resourceConfig *config.Resource) APIOperations {
 	return APIOperations{
-		Create:        operationConfigToModel(resourceConfig.Create),
-		Read:          operationConfigToModel(resourceConfig.Read),
-		Update:        operationConfigToModel(resourceConfig.Update),
+		Create:        *operationConfigToModel(resourceConfig.Create),
+		Read:          *operationConfigToModel(resourceConfig.Read),
+		Update:        *operationConfigToModel(resourceConfig.Update),
 		Delete:        operationConfigToModel(resourceConfig.Delete),
 		VersionHeader: resourceConfig.VersionHeader,
 	}
 }
 
-func operationConfigToModel(opConfig *config.APIOperation) APIOperation {
-	return APIOperation{
+func operationConfigToModel(opConfig *config.APIOperation) *APIOperation {
+	if opConfig == nil {
+		return nil
+	}
+	return &APIOperation{
 		HTTPMethod:        opConfig.Method,
 		Path:              opConfig.Path,
 		Wait:              waitConfigToModel(opConfig.Wait),
