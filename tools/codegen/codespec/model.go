@@ -80,6 +80,7 @@ type Attribute struct {
 	Name                     stringcase.SnakeCaseString
 	ReqBodyUsage             AttributeReqBodyUsage
 	Sensitive                bool
+	CreateOnly               bool // leveraged for defining plan modifier which avoids updates on this attribute
 }
 
 type AttributeReqBodyUsage int
@@ -164,4 +165,9 @@ type CustomType struct {
 var CustomTypeJSONVar = CustomType{
 	Model:  "jsontypes.Normalized",
 	Schema: "jsontypes.NormalizedType{}",
+}
+
+type PlanModifier struct {
+	PlanStatement string
+	Import        string
 }

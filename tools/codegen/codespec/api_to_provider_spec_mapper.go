@@ -85,6 +85,7 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 	}
 
 	applyConfigSchemaOptions(resourceConfig, resource)
+	setCreateOnlyInAttrs(resource.Schema.Attributes)
 
 	return resource
 }
