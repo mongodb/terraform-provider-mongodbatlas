@@ -22,14 +22,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"project_id": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
-					customplanmodifier.CreateOnlyAttributePlanModifier(),
+					customplanmodifier.CreateOnly(),
 				},
 				MarkdownDescription: "Unique 24-hexadecimal character string that identifies the project.",
 			},
 			"name": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
-					customplanmodifier.CreateOnlyAttributePlanModifier(),
+					customplanmodifier.CreateOnly(),
 				},
 				MarkdownDescription: "Human-readable label that identifies the instance.",
 			},
@@ -38,7 +38,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"backing_provider_name": schema.StringAttribute{
 						Required: true,
 						PlanModifiers: []planmodifier.String{
-							customplanmodifier.CreateOnlyAttributePlanModifier(),
+							customplanmodifier.CreateOnly(),
 						},
 						MarkdownDescription: "Cloud service provider on which MongoDB Cloud provisioned the flex cluster.",
 					},
@@ -59,7 +59,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"region_name": schema.StringAttribute{
 						Required: true,
 						PlanModifiers: []planmodifier.String{
-							customplanmodifier.CreateOnlyAttributePlanModifier(),
+							customplanmodifier.CreateOnly(),
 						},
 						MarkdownDescription: "Human-readable label that identifies the geographic location of your MongoDB flex cluster. The region you choose can affect network latency for clients accessing your databases. For a complete list of region names, see [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/#std-label-amazon-aws), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), and [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).",
 					},
@@ -149,7 +149,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Optional: true,
 				PlanModifiers: []planmodifier.Bool{
-					customplanmodifier.CreateOnlyAttributePlanModifier(),
+					customplanmodifier.CreateOnly(),
 				},
 				MarkdownDescription: "Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.",
 			},

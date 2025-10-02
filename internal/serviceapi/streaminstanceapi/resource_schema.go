@@ -185,7 +185,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"data_process_region": schema.SingleNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "Information about the cloud provider region in which MongoDB Cloud processes the stream.",
-				PlanModifiers:       []planmodifier.Object{customplanmodifier.CreateOnlyAttributePlanModifier()},
+				PlanModifiers:       []planmodifier.Object{customplanmodifier.CreateOnly()},
 				Attributes: map[string]schema.Attribute{
 					"cloud_provider": schema.StringAttribute{
 						Required:            true,
@@ -200,7 +200,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"group_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
-				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnlyAttributePlanModifier()},
+				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"hostnames": schema.ListAttribute{
 				Computed:            true,
@@ -210,12 +210,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"name": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "Human-readable label that identifies the stream instance.",
-				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnlyAttributePlanModifier()},
+				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"sample_connections": schema.SingleNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "Sample connections to add to SPI.",
-				PlanModifiers:       []planmodifier.Object{customplanmodifier.CreateOnlyAttributePlanModifier()},
+				PlanModifiers:       []planmodifier.Object{customplanmodifier.CreateOnly()},
 				Attributes: map[string]schema.Attribute{
 					"solar": schema.BoolAttribute{
 						Computed:            true,
@@ -227,7 +227,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"stream_config": schema.SingleNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "Configuration options for an Atlas Stream Processing Instance.",
-				PlanModifiers:       []planmodifier.Object{customplanmodifier.CreateOnlyAttributePlanModifier()},
+				PlanModifiers:       []planmodifier.Object{customplanmodifier.CreateOnly()},
 				Attributes: map[string]schema.Attribute{
 					"tier": schema.StringAttribute{
 						Optional:            true,

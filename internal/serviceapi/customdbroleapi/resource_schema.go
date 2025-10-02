@@ -49,7 +49,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"group_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
-				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnlyAttributePlanModifier()},
+				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"inherited_roles": schema.SetNestedAttribute{
 				Optional:            true,
@@ -70,7 +70,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"role_name": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Human-readable label that identifies the role for the request. This name must be unique for this custom role in this project.",
-				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnlyAttributePlanModifier()},
+				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 		},
 	}

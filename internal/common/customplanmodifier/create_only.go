@@ -10,12 +10,12 @@ import (
 	planmodifier "github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 )
 
-// CreateOnlyAttributePlanModifier returns a plan modifier that ensures that update operations fails when the attribute is changed.
+// CreateOnly returns a plan modifier that ensures that update operations fails when the attribute is changed.
 // This is useful for attributes only supported in create and not in update.
 // It shows a helpful error message helping the user to update their config to match the state.
 // Never use a schema.Default for create only attributes, instead use WithXXXDefault, the default will lead to plan changes that are not expected after import.
 // Implement CopyFromPlan if the attribute is not in the API Response.
-func CreateOnlyAttributePlanModifier() CreateOnlyModifier {
+func CreateOnly() CreateOnlyModifier {
 	return &createOnlyAttributePlanModifier{}
 }
 
