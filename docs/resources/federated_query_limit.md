@@ -23,7 +23,7 @@ resource "mongodbatlas_federated_query_limit" "test" {
 ```
 
 ### Further Examples
-- [Federated Query Limit](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.41.1/examples/mongodbatlas_federated_query_limit)
+- [Federated Query Limit](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_federated_query_limit)
 
 ## Argument Reference
 
