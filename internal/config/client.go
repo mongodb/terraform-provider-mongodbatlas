@@ -42,10 +42,10 @@ const (
 type AuthMethod int
 
 const (
-	ServiceAccount AuthMethod = iota
-	Digest
+	Unknown AuthMethod = iota
 	AccessToken
-	Unknown
+	ServiceAccount
+	Digest
 )
 
 // CredentialProvider interface for types that can provide MongoDB Atlas credentials
@@ -148,14 +148,60 @@ type SecretData struct {
 	PrivateKey string `json:"private_key"`
 }
 
-type UAMetadata struct {
-	Name  string
-	Value string
+func NewClient(ctx context.Context, c *Credentials, terraformVersion string) (*MongoDBClient, error) {
+	userAgent := userAgent(terraformVersion)
+	client, err := getHTTPClient(ctx, c)
+	if err != nil {
+		return nil, err
+	}
+
+	// Initialize the old SDK
+	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent)}
+	if c.BaseURL != "" {
+		optsAtlas = append(optsAtlas, matlasClient.SetBaseURL(c.BaseURL))
+	}
+	atlasClient, err := matlasClient.New(client, optsAtlas...)
+	if err != nil {
+		return nil, err
+	}
+
+	// Initialize the new SDK for different versions
+	sdkV2Client, err := newSDKV2Client(client, c.BaseURL, userAgent)
+	if err != nil {
+		return nil, err
+	}
+	sdkPreviewClient, err := newSDKPreviewClient(client, c.BaseURL, userAgent)
+	if err != nil {
+		return nil, err
+	}
+	sdkV220240530Client, err := newSDKV220240530Client(client, c.BaseURL, userAgent)
+	if err != nil {
+		return nil, err
+	}
+	sdkV220240805Client, err := newSDKV220240805Client(client, c.BaseURL, userAgent)
+	if err != nil {
+		return nil, err
+	}
+	sdkV220241113Client, err := newSDKV220241113Client(client, c.BaseURL, userAgent)
+	if err != nil {
+		return nil, err
+	}
+
+	clients := &MongoDBClient{
+		Atlas:           atlasClient,
+		AtlasV2:         sdkV2Client,
+		AtlasPreview:    sdkPreviewClient,
+		AtlasV220240530: sdkV220240530Client,
+		AtlasV220240805: sdkV220240805Client,
+		AtlasV220241113: sdkV220241113Client,
+		// TODO: Config:          c,
+	}
+	return clients, nil
 }
 
-func (c *Config) NewClient(ctx context.Context) (any, error) {
+func getHTTPClient(ctx context.Context, c *Credentials) (*http.Client, error) {
 	transport := networkLoggingBaseTransport()
-	switch ResolveAuthMethod(c) {
+	switch c.AuthMethod() {
 	case AccessToken:
 		tokenSource := oauth2.StaticTokenSource(&oauth2.Token{
 			AccessToken: c.AccessToken,
@@ -166,7 +212,7 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 			Base:   networkLoggingBaseTransport(),
 		}
 	case ServiceAccount:
-		tokenSource, err := getTokenSource(c, networkLoggingBaseTransport())
+		tokenSource, err := getTokenSource(c.ClientID, c.ClientSecret, c.BaseURL, networkLoggingBaseTransport())
 		if err != nil {
 			return nil, err
 		}
@@ -178,128 +224,64 @@ func (c *Config) NewClient(ctx context.Context) (any, error) {
 		transport = digest.NewTransportWithHTTPRoundTripper(c.PublicKey, c.PrivateKey, networkLoggingBaseTransport())
 	case Unknown:
 	}
-	client := &http.Client{Transport: tfLoggingInterceptor(transport)}
-
-	// Initialize the old SDK
-	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
-	if c.BaseURL != "" {
-		optsAtlas = append(optsAtlas, matlasClient.SetBaseURL(c.BaseURL))
-	}
-	atlasClient, err := matlasClient.New(client, optsAtlas...)
-	if err != nil {
-		return nil, err
-	}
-
-	// Initialize the new SDK for different versions
-	sdkV2Client, err := c.newSDKV2Client(client)
-	if err != nil {
-		return nil, err
-	}
-	sdkPreviewClient, err := c.newSDKPreviewClient(client)
-	if err != nil {
-		return nil, err
-	}
-	sdkV220240530Client, err := c.newSDKV220240530Client(client)
-	if err != nil {
-		return nil, err
-	}
-	sdkV220240805Client, err := c.newSDKV220240805Client(client)
-	if err != nil {
-		return nil, err
-	}
-	sdkV220241113Client, err := c.newSDKV220241113Client(client)
-	if err != nil {
-		return nil, err
-	}
-	clients := &MongoDBClient{
-		Atlas:           atlasClient,
-		AtlasV2:         sdkV2Client,
-		AtlasPreview:    sdkPreviewClient,
-		AtlasV220240530: sdkV220240530Client,
-		AtlasV220240805: sdkV220240805Client,
-		AtlasV220241113: sdkV220241113Client,
-		Config:          c,
-	}
-	return clients, nil
+	return &http.Client{Transport: tfLoggingInterceptor(transport)}, nil
 }
 
-func (c *Config) newSDKV2Client(client *http.Client) (*admin.APIClient, error) {
-	opts := []admin.ClientModifier{
+func newSDKV2Client(client *http.Client, baseURL, userAgent string) (*admin.APIClient, error) {
+	return admin.NewClient(
 		admin.UseHTTPClient(client),
-		admin.UseUserAgent(userAgent(c)),
-		admin.UseBaseURL(c.BaseURL),
-		admin.UseDebug(false)}
-
-	sdk, err := admin.NewClient(opts...)
-	if err != nil {
-		return nil, err
-	}
-	return sdk, nil
+		admin.UseUserAgent(userAgent),
+		admin.UseBaseURL(baseURL),
+		admin.UseDebug(false),
+	)
 }
 
-func (c *Config) newSDKPreviewClient(client *http.Client) (*adminpreview.APIClient, error) {
-	opts := []adminpreview.ClientModifier{
+func newSDKPreviewClient(client *http.Client, baseURL, userAgent string) (*adminpreview.APIClient, error) {
+	return adminpreview.NewClient(
 		adminpreview.UseHTTPClient(client),
-		adminpreview.UseUserAgent(userAgent(c)),
-		adminpreview.UseBaseURL(c.BaseURL),
-		adminpreview.UseDebug(false)}
-
-	sdk, err := adminpreview.NewClient(opts...)
-	if err != nil {
-		return nil, err
-	}
-	return sdk, nil
+		adminpreview.UseUserAgent(userAgent),
+		adminpreview.UseBaseURL(baseURL),
+		adminpreview.UseDebug(false),
+	)
 }
 
-func (c *Config) newSDKV220240530Client(client *http.Client) (*admin20240530.APIClient, error) {
-	opts := []admin20240530.ClientModifier{
+func newSDKV220240530Client(client *http.Client, baseURL, userAgent string) (*admin20240530.APIClient, error) {
+	return admin20240530.NewClient(
 		admin20240530.UseHTTPClient(client),
-		admin20240530.UseUserAgent(userAgent(c)),
-		admin20240530.UseBaseURL(c.BaseURL),
-		admin20240530.UseDebug(false)}
-
-	sdk, err := admin20240530.NewClient(opts...)
-	if err != nil {
-		return nil, err
-	}
-	return sdk, nil
+		admin20240530.UseUserAgent(userAgent),
+		admin20240530.UseBaseURL(baseURL),
+		admin20240530.UseDebug(false),
+	)
 }
 
-func (c *Config) newSDKV220240805Client(client *http.Client) (*admin20240805.APIClient, error) {
-	opts := []admin20240805.ClientModifier{
+func newSDKV220240805Client(client *http.Client, baseURL, userAgent string) (*admin20240805.APIClient, error) {
+	return admin20240805.NewClient(
 		admin20240805.UseHTTPClient(client),
-		admin20240805.UseUserAgent(userAgent(c)),
-		admin20240805.UseBaseURL(c.BaseURL),
-		admin20240805.UseDebug(false)}
-
-	sdk, err := admin20240805.NewClient(opts...)
-	if err != nil {
-		return nil, err
-	}
-	return sdk, nil
+		admin20240805.UseUserAgent(userAgent),
+		admin20240805.UseBaseURL(baseURL),
+		admin20240805.UseDebug(false),
+	)
 }
 
-func (c *Config) newSDKV220241113Client(client *http.Client) (*admin20241113.APIClient, error) {
-	opts := []admin20241113.ClientModifier{
+func newSDKV220241113Client(client *http.Client, baseURL, userAgent string) (*admin20241113.APIClient, error) {
+	return admin20241113.NewClient(
 		admin20241113.UseHTTPClient(client),
-		admin20241113.UseUserAgent(userAgent(c)),
-		admin20241113.UseBaseURL(c.BaseURL),
-		admin20241113.UseDebug(false)}
-
-	sdk, err := admin20241113.NewClient(opts...)
-	if err != nil {
-		return nil, err
-	}
-	return sdk, nil
+		admin20241113.UseUserAgent(userAgent),
+		admin20241113.UseBaseURL(baseURL),
+		admin20241113.UseDebug(false),
+	)
 }
 
+// TODO: lazy because it needs connection
 func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, error) {
 	// Realm
 	if c.Config.PublicKey == "" && c.Config.PrivateKey == "" {
 		return nil, errors.New("please set `public_key` and `private_key` in order to use the realm client")
 	}
 
-	optsRealm := []realm.ClientOpt{realm.SetUserAgent(userAgent(c.Config))}
+	optsRealm := []realm.ClientOpt{
+		realm.SetUserAgent(userAgent(c.Config.TerraformVersion)),
+	}
 
 	authConfig := realmAuth.NewConfig(nil)
 	if c.Config.BaseURL != "" && c.Config.RealmBaseURL != "" {
@@ -372,20 +354,6 @@ func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParam
 	return apiResp, err
 }
 
-func userAgent(c *Config) string {
-	metadata := []UAMetadata{
-		{toolName, version.ProviderVersion},
-		{terraformPlatformName, c.TerraformVersion},
-	}
-	var parts []string
-	for _, info := range metadata {
-		part := fmt.Sprintf("%s/%s", info.Name, info.Value)
-		parts = append(parts, part)
-	}
-
-	return strings.Join(parts, " ")
-}
-
 // ResolveAuthMethod determines the authentication method from any credential provider
 func ResolveAuthMethod(cg CredentialProvider) AuthMethod {
 	if IsAccessTokenAuthPresent(cg) {
@@ -398,4 +366,23 @@ func ResolveAuthMethod(cg CredentialProvider) AuthMethod {
 		return Digest
 	}
 	return Unknown
+}
+
+func userAgent(terraformVersion string) string {
+	metadata := []struct {
+		Name  string
+		Value string
+	}{
+		{toolName, version.ProviderVersion},
+		{terraformPlatformName, terraformVersion},
+	}
+	var parts []string
+	for _, info := range metadata {
+		if info.Value == "" {
+			continue
+		}
+		part := fmt.Sprintf("%s/%s", info.Name, info.Value)
+		parts = append(parts, part)
+	}
+	return strings.Join(parts, " ")
 }

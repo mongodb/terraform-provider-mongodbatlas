@@ -330,7 +330,16 @@ func providerConfigure(provider *schema.Provider) func(ctx context.Context, d *s
 			}
 		}
 
-		client, err := cfg.NewClient(ctx)
+		c := &config.Credentials{
+			AccessToken:  cfg.AccessToken,
+			ClientID:     cfg.ClientID,
+			ClientSecret: cfg.ClientSecret,
+			PublicKey:    cfg.PublicKey,
+			PrivateKey:   cfg.PrivateKey,
+			BaseURL:      cfg.BaseURL,
+			RealmBaseURL: cfg.RealmBaseURL,
+		}
+		client, err := config.NewClient(ctx, c, cfg.TerraformVersion)
 		if err != nil {
 			return nil, append(diagnostics, diag.FromErr(err)...)
 		}

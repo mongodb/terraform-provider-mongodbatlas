@@ -294,17 +294,21 @@ func ValidateAPIKeyIsOrgOwner(roles []string) error {
 // getAtlasV2Connection uses the created credentials for the organization if they exist.
 // Otherwise, it uses the provider credentials, e.g. if the resource was imported.
 func getAtlasV2Connection(ctx context.Context, d *schema.ResourceData, meta any) *admin.APIClient {
+	currentClient := meta.(*config.MongoDBClient)
 	publicKey := d.Get("public_key").(string)
 	privateKey := d.Get("private_key").(string)
 	if publicKey == "" || privateKey == "" {
-		return meta.(*config.MongoDBClient).AtlasV2
+		return currentClient.AtlasV2
 	}
-	cfg := config.Config{
-		PublicKey:        publicKey,
-		PrivateKey:       privateKey,
-		BaseURL:          meta.(*config.MongoDBClient).Config.BaseURL,
-		TerraformVersion: meta.(*config.MongoDBClient).Config.TerraformVersion,
+	c := &config.Credentials{
+		PublicKey:  publicKey,
+		PrivateKey: privateKey,
+		BaseURL:    currentClient.Config.BaseURL,
 	}
-	clients, _ := cfg.NewClient(ctx)
-	return clients.(*config.MongoDBClient).AtlasV2
+	terraformVersion := currentClient.Config.TerraformVersion
+	newClient, err := config.NewClient(ctx, c, terraformVersion)
+	if err != nil {
+		return currentClient.AtlasV2
+	}
+	return newClient.AtlasV2
 }
