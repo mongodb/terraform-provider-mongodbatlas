@@ -6,7 +6,9 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -31,11 +33,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"org_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the MongoDB Cloud organization to which the project belongs.",
+				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnlyAttributePlanModifier()},
 			},
 			"region_usage_restrictions": schema.StringAttribute{
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Applies to Atlas for Government only.\n\nIn Commercial Atlas, this field will be rejected in requests and missing in responses.\n\nThis field sets restrictions on available regions in the project.\n\n`COMMERCIAL_FEDRAMP_REGIONS_ONLY`: Only allows deployments in FedRAMP Moderate regions.\n\n`GOV_REGIONS_ONLY`: Only allows deployments in GovCloud regions.",
+				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnlyAttributePlanModifier()},
 			},
 			"tags": schema.ListNestedAttribute{
 				Optional:            true,
@@ -57,6 +61,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether to create the project with default alert settings. This setting cannot be updated after project creation.",
+				PlanModifiers:       []planmodifier.Bool{customplanmodifier.CreateOnlyAttributePlanModifier()},
 			},
 		},
 	}
