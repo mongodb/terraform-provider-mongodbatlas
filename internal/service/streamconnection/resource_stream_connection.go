@@ -117,8 +117,8 @@ func (r *streamConnectionRS) Schema(ctx context.Context, req resource.SchemaRequ
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
-// getEffectiveWorkspaceName returns the workspace name from workspace_name or instance_name field
-func getEffectiveWorkspaceName(model *TFStreamConnectionModel) string {
+// getWorkspaceOrInstanceName returns the workspace name from workspace_name or instance_name field
+func getWorkspaceOrInstanceName(model *TFStreamConnectionModel) string {
 	if !model.WorkspaceName.IsNull() && !model.WorkspaceName.IsUnknown() {
 		return model.WorkspaceName.ValueString()
 	}
@@ -137,8 +137,8 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 
 	connV2 := r.Client.AtlasV2
 	projectID := streamConnectionPlan.ProjectID.ValueString()
-	effectiveWorkspaceName := getEffectiveWorkspaceName(&streamConnectionPlan)
-	if effectiveWorkspaceName == "" {
+	workspaceOrInstanceName := getWorkspaceOrInstanceName(&streamConnectionPlan)
+	if workspaceOrInstanceName == "" {
 		resp.Diagnostics.AddError("validation error", "workspace_name must be provided")
 		return
 	}
@@ -148,7 +148,7 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	apiResp, _, err := connV2.StreamsApi.CreateStreamConnection(ctx, projectID, effectiveWorkspaceName, streamConnectionReq).Execute()
+	apiResp, _, err := connV2.StreamsApi.CreateStreamConnection(ctx, projectID, workspaceOrInstanceName, streamConnectionReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error creating resource", err.Error())
 		return
@@ -174,13 +174,13 @@ func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest,
 
 	connV2 := r.Client.AtlasV2
 	projectID := streamConnectionState.ProjectID.ValueString()
-	effectiveWorkspaceName := getEffectiveWorkspaceName(&streamConnectionState)
-	if effectiveWorkspaceName == "" {
+	workspaceOrInstanceName := getWorkspaceOrInstanceName(&streamConnectionState)
+	if workspaceOrInstanceName == "" {
 		resp.Diagnostics.AddError("validation error", "workspace_name must be provided")
 		return
 	}
 	connectionName := streamConnectionState.ConnectionName.ValueString()
-	apiResp, getResp, err := connV2.StreamsApi.GetStreamConnection(ctx, projectID, effectiveWorkspaceName, connectionName).Execute()
+	apiResp, getResp, err := connV2.StreamsApi.GetStreamConnection(ctx, projectID, workspaceOrInstanceName, connectionName).Execute()
 	if err != nil {
 		if validate.StatusNotFound(getResp) {
 			resp.State.RemoveResource(ctx)
@@ -209,8 +209,8 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 
 	connV2 := r.Client.AtlasV2
 	projectID := streamConnectionPlan.ProjectID.ValueString()
-	effectiveWorkspaceName := getEffectiveWorkspaceName(&streamConnectionPlan)
-	if effectiveWorkspaceName == "" {
+	workspaceOrInstanceName := getWorkspaceOrInstanceName(&streamConnectionPlan)
+	if workspaceOrInstanceName == "" {
 		resp.Diagnostics.AddError("validation error", "workspace_name must be provided")
 		return
 	}
@@ -220,7 +220,7 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	apiResp, _, err := connV2.StreamsApi.UpdateStreamConnection(ctx, projectID, effectiveWorkspaceName, connectionName, streamConnectionReq).Execute()
+	apiResp, _, err := connV2.StreamsApi.UpdateStreamConnection(ctx, projectID, workspaceOrInstanceName, connectionName, streamConnectionReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error updating resource", err.Error())
 		return
@@ -245,7 +245,7 @@ func (r *streamConnectionRS) Delete(ctx context.Context, req resource.DeleteRequ
 
 	connV2 := r.Client.AtlasV2
 	projectID := streamConnectionState.ProjectID.ValueString()
-	instanceName := getEffectiveWorkspaceName(streamConnectionState)
+	instanceName := getWorkspaceOrInstanceName(streamConnectionState)
 	if instanceName == "" {
 		resp.Diagnostics.AddError("validation error", "workspace_name must be provided")
 		return

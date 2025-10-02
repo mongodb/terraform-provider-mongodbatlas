@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20250312007/admin"
@@ -43,6 +44,7 @@ func (d *streamConnectionsDS) Schema(ctx context.Context, req datasource.SchemaR
 						path.MatchRelative().AtParent().AtName("workspace_name"),
 					}...),
 				},
+				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamWithReplacement, "workspace_name"),
 			},
 			"workspace_name": dsschema.StringAttribute{
 				Optional:            true,
@@ -57,8 +59,8 @@ func (d *streamConnectionsDS) Schema(ctx context.Context, req datasource.SchemaR
 	})
 }
 
-// getEffectiveWorkspaceNameForDS returns the workspace name from either instance_name or workspace_name field for datasource model
-func getEffectiveWorkspaceNameForDS(model *TFStreamConnectionsDSModel) string {
+// getWorkspaceOrInstanceNameForDS returns the workspace name from either instance_name or workspace_name field for datasource model
+func getWorkspaceOrInstanceNameForDS(model *TFStreamConnectionsDSModel) string {
 	if !model.WorkspaceName.IsNull() && !model.WorkspaceName.IsUnknown() {
 		return model.WorkspaceName.ValueString()
 	}
@@ -77,7 +79,7 @@ func (d *streamConnectionsDS) Read(ctx context.Context, req datasource.ReadReque
 
 	connV2 := d.Client.AtlasV2
 	projectID := streamConnectionsConfig.ProjectID.ValueString()
-	workspaceName := getEffectiveWorkspaceNameForDS(&streamConnectionsConfig)
+	workspaceName := getWorkspaceOrInstanceNameForDS(&streamConnectionsConfig)
 	if workspaceName == "" {
 		resp.Diagnostics.AddError("validation error", "workspace_name must be provided")
 		return

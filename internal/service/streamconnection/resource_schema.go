@@ -2,6 +2,7 @@ package streamconnection
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -11,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -38,6 +40,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						path.MatchRelative().AtParent().AtName("workspace_name"),
 					}...),
 				},
+				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamWithReplacement, "workspace_name"),
 			},
 			"workspace_name": schema.StringAttribute{
 				Optional: true,

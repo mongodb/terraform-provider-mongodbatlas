@@ -364,7 +364,7 @@ func TestAccStreamRSStreamConnection_AWSLambda(t *testing.T) {
 func TestAccStreamRSStreamConnection_workspaceName(t *testing.T) {
 	var (
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		connectionName          = "workspace-name-test"
+		connectionName          = acc.RandomName()
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -601,7 +601,7 @@ func configureHTTPS(projectID, instanceName, url, headers string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_connection" "test" {
 			project_id = %[1]q
-			instance_name = %[2]q
+			workspace_name = %[2]q
 			connection_name = "ConnectionNameHttps"
 			type = "Https"
 			url = %[3]q
@@ -610,7 +610,7 @@ func configureHTTPS(projectID, instanceName, url, headers string) string {
 
 		data "mongodbatlas_stream_connection" "test" {
 			project_id = %[1]q
-			instance_name = %[2]q
+			workspace_name = %[2]q
 			connection_name = mongodbatlas_stream_connection.test.connection_name
 		}
 	`, projectID, instanceName, url, headers)

@@ -1,22 +1,11 @@
 ```release-note:note
-resource/mongodbatlas_stream_connection: Deprecates the `instance_name` field in favor of `workspace_name`.
+resource/mongodbatlas_stream_connection: Deprecates the `instance_name` attribute `workspace_name`. All configurations using `instance_name` should be updated to use the new `workspace_name` attribute instead
+
 ```
 ```release-note:note
-data-source/mongodbatlas_stream_connection: Deprecates the `instance_name` field in favor of `workspace_name`.
+data-source/mongodbatlas_stream_connection: Deprecates the `instance_name` attribute `workspace_name`. All configurations using `instance_name` should be updated to use the new `workspace_name` attribute instead
 ```
 
 ```release-note:note
-data-source/mongodbatlas_stream_connections: Deprecates the `instance_name` field in favor of `workspace_name`.
-```
-
-```release-note:enhancement
-resource/mongodbatlas_stream_connection: Adds `workspace_name` field as alias for `instance_name`.
-```
-
-```release-note:enhancement
-data-source/mongodbatlas_stream_connection: Adds `workspace_name` field as alias for `instance_name`.
-```
-
-```release-note:enhancement
-data-source/mongodbatlas_stream_connections: Adds `workspace_name` field as alias for `instance_name`.
+data-source/mongodbatlas_stream_connections: Deprecates the `instance_name` attribute `workspace_name`. All configurations using `instance_name` should be updated to use the new `workspace_name` attribute instead
 ```
