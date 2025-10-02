@@ -412,25 +412,6 @@ func TestAccStreamRSStreamConnection_conflictingFields(t *testing.T) {
 	})
 }
 
-func getKafkaAuthenticationConfig(mechanism, username, password, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtensions, httpsCaPem string) string {
-	if mechanism == "PLAIN" {
-		return fmt.Sprintf(`authentication = {
-			mechanism = %[1]q
-			username = %[2]q
-			password = %[3]q
-		}`, mechanism, username, password)
-	}
-	return fmt.Sprintf(`authentication = {
-			mechanism = %[1]q
-			token_endpoint_url = %[2]q
-			client_id = %[3]q
-			client_secret = %[4]q
-			scope = %[5]q
-			sasl_oauthbearer_extensions = %[6]q
-			https_ca_pem = %[7]q
-		}`, mechanism, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtensions, httpsCaPem)
-}
-
 func configureKafka(projectRef, instanceName, connectionName, username, password, bootstrapServers, configValue, networkingConfig string, useSSL bool) string {
 	securityConfig := `
 		security = {

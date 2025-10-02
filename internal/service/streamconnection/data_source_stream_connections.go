@@ -39,20 +39,16 @@ func (d *streamConnectionsDS) Schema(ctx context.Context, req datasource.SchemaR
 			"instance_name": dsschema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "Human-readable label that identifies the stream instance. Conflicts with `workspace_name`.",
+				DeprecationMessage:  fmt.Sprintf(constant.DeprecationParamWithReplacement, "workspace_name"),
 				Validators: []validator.String{
-					stringvalidator.ConflictsWith(path.Expressions{
-						path.MatchRelative().AtParent().AtName("workspace_name"),
-					}...),
+					stringvalidator.ConflictsWith(path.MatchRoot("workspace_name")),
 				},
-				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamWithReplacement, "workspace_name"),
 			},
 			"workspace_name": dsschema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "Human-readable label that identifies the stream instance. This is an alias for `instance_name`. Conflicts with `instance_name`.",
 				Validators: []validator.String{
-					stringvalidator.ConflictsWith(path.Expressions{
-						path.MatchRelative().AtParent().AtName("instance_name"),
-					}...),
+					stringvalidator.ConflictsWith(path.MatchRoot("instance_name")),
 				},
 			},
 		},

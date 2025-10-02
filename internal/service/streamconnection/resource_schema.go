@@ -36,9 +36,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
-					stringvalidator.ConflictsWith(path.Expressions{
-						path.MatchRelative().AtParent().AtName("workspace_name"),
-					}...),
+					stringvalidator.ConflictsWith(path.MatchRoot("workspace_name")),
 				},
 				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamWithReplacement, "workspace_name"),
 			},
@@ -48,9 +46,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					stringplanmodifier.RequiresReplace(),
 				},
 				Validators: []validator.String{
-					stringvalidator.ConflictsWith(path.Expressions{
-						path.MatchRelative().AtParent().AtName("instance_name"),
-					}...),
+					stringvalidator.ConflictsWith(path.MatchRoot("instance_name")),
 				},
 			},
 			"connection_name": schema.StringAttribute{
