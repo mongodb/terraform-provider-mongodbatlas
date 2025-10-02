@@ -28,6 +28,7 @@ type CreateOnlyModifier interface {
 	planmodifier.List
 	planmodifier.Map
 	planmodifier.Set
+	planmodifier.Object
 }
 
 // Plan modifier that implements create-only behavior for multiple attribute types
@@ -70,6 +71,10 @@ func (d *createOnlyAttributePlanModifier) PlanModifyMap(ctx context.Context, req
 }
 
 func (d *createOnlyAttributePlanModifier) PlanModifySet(ctx context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+	validateCreateOnly(req.PlanValue, req.StateValue, req.Path, &resp.Diagnostics)
+}
+
+func (d *createOnlyAttributePlanModifier) PlanModifyObject(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
 	validateCreateOnly(req.PlanValue, req.StateValue, req.Path, &resp.Diagnostics)
 }
 
