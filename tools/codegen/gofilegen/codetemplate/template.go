@@ -27,11 +27,11 @@ type ResourceFileInputs struct {
 }
 
 type APIOperations struct {
-	Create        *Operation
-	Read          *Operation
-	Update        *Operation
 	Delete        *Operation
 	VersionHeader string
+	Create        Operation
+	Read          Operation
+	Update        Operation
 }
 
 type Operation struct {

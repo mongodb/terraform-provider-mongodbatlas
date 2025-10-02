@@ -19,16 +19,16 @@ type Model struct {
 }
 
 type Resource struct {
+	Operations APIOperations
 	Schema     *Schema
 	Name       stringcase.SnakeCaseString
-	Operations APIOperations
 }
 
 type APIOperations struct {
-	Create        *APIOperation
-	Read          *APIOperation
-	Update        *APIOperation
 	Delete        *APIOperation
+	Create        APIOperation
+	Read          APIOperation
+	Update        APIOperation
 	VersionHeader string
 }
 

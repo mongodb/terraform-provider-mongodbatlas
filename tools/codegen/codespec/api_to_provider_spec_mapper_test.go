@@ -95,15 +95,15 @@ func TestConvertToProviderSpec(t *testing.T) {
 				},
 				Name: "test_resource_no_schema_opts",
 				Operations: codespec.APIOperations{
-					Create: &codespec.APIOperation{
+					Create: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/testResource",
 						HTTPMethod: "POST",
 					},
-					Read: &codespec.APIOperation{
+					Read: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/testResource",
 						HTTPMethod: "GET",
 					},
-					Update: &codespec.APIOperation{
+					Update: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/testResource",
 						HTTPMethod: "PATCH",
 					},
@@ -311,15 +311,15 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 				},
 				Name: "test_resource_with_nested_attr",
 				Operations: codespec.APIOperations{
-					Create: &codespec.APIOperation{
+					Create: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
 						HTTPMethod: "POST",
 					},
-					Read: &codespec.APIOperation{
+					Read: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
 						HTTPMethod: "GET",
 					},
-					Update: &codespec.APIOperation{
+					Update: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
 						HTTPMethod: "PATCH",
 					},
@@ -432,15 +432,15 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 				},
 				Name: "test_resource_with_nested_attr_overrides",
 				Operations: codespec.APIOperations{
-					Create: &codespec.APIOperation{
+					Create: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/nestedTestResource",
 						HTTPMethod: "POST",
 					},
-					Read: &codespec.APIOperation{
+					Read: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/nestedTestResource",
 						HTTPMethod: "GET",
 					},
-					Update: &codespec.APIOperation{
+					Update: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/nestedTestResource",
 						HTTPMethod: "PATCH",
 					},
@@ -492,11 +492,11 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 				},
 				Name: "test_resource_path_param_in_post_req",
 				Operations: codespec.APIOperations{
-					Create: &codespec.APIOperation{
+					Create: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/pathparaminpostreq",
 						HTTPMethod: "POST",
 					},
-					Read: &codespec.APIOperation{
+					Read: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}",
 						HTTPMethod: "GET",
 					},
@@ -504,7 +504,7 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 						Path:       "/api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}",
 						HTTPMethod: "DELETE",
 					},
-					Update: &codespec.APIOperation{
+					Update: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}",
 						HTTPMethod: "PATCH",
 					},
@@ -544,15 +544,15 @@ func TestConvertToProviderSpec_singletonResourceNoDeleteOperation(t *testing.T) 
 				},
 				Name: "test_singleton_resource_no_delete_op",
 				Operations: codespec.APIOperations{
-					Create: &codespec.APIOperation{
+					Create: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/testSingletonResource",
 						HTTPMethod: "PATCH",
 					},
-					Read: &codespec.APIOperation{
+					Read: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/testSingletonResource",
 						HTTPMethod: "GET",
 					},
-					Update: &codespec.APIOperation{
+					Update: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/testSingletonResource",
 						HTTPMethod: "PATCH",
 					},

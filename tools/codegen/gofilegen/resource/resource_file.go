@@ -15,9 +15,9 @@ func GenerateGoCode(input *codespec.Resource) string {
 		ResourceName: input.Name.SnakeCase(),
 		APIOperations: codetemplate.APIOperations{
 			VersionHeader: input.Operations.VersionHeader,
-			Create:        toCodeTemplateOpModel(input.Operations.Create),
-			Update:        toCodeTemplateOpModel(input.Operations.Update),
-			Read:          toCodeTemplateOpModel(input.Operations.Read),
+			Create:        *toCodeTemplateOpModel(&input.Operations.Create),
+			Update:        *toCodeTemplateOpModel(&input.Operations.Update),
+			Read:          *toCodeTemplateOpModel(&input.Operations.Read),
 			Delete:        toCodeTemplateOpModel(input.Operations.Delete),
 		},
 		ImportIDAttributes: getIDAttributes(input.Operations.Read.Path),

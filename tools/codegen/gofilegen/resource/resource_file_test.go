@@ -19,18 +19,16 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 		"Defining different operation URLs with different path params": {
 			inputModel: codespec.Resource{
 				Name: stringcase.SnakeCaseString("test_name"),
-
 				Operations: codespec.APIOperations{
-
-					Create: &codespec.APIOperation{
+					Create: codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Update: &codespec.APIOperation{
+					Update: codespec.APIOperation{
 						HTTPMethod: "PATCH",
 						Path:       "/api/v1/testname/{projectId}/{roleName}",
 					},
-					Read: &codespec.APIOperation{
+					Read: codespec.APIOperation{
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}/{roleName}",
 					},
@@ -46,18 +44,16 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 		"Update operation using PUT": {
 			inputModel: codespec.Resource{
 				Name: stringcase.SnakeCaseString("test_name"),
-
 				Operations: codespec.APIOperations{
-
-					Create: &codespec.APIOperation{
+					Create: codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Update: &codespec.APIOperation{
+					Update: codespec.APIOperation{
 						HTTPMethod: "PUT",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Read: &codespec.APIOperation{
+					Read: codespec.APIOperation{
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -74,7 +70,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 			inputModel: codespec.Resource{
 				Name: stringcase.SnakeCaseString("test_name"),
 				Operations: codespec.APIOperations{
-					Create: &codespec.APIOperation{
+					Create: codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 						Wait: &codespec.Wait{
@@ -86,7 +82,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 							DelaySeconds:      10,
 						},
 					},
-					Update: &codespec.APIOperation{
+					Update: codespec.APIOperation{
 						HTTPMethod: "PUT",
 						Path:       "/api/v1/testname/{projectId}",
 						Wait: &codespec.Wait{
@@ -98,7 +94,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 							DelaySeconds:      10,
 						},
 					},
-					Read: &codespec.APIOperation{
+					Read: codespec.APIOperation{
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -123,15 +119,15 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 			inputModel: codespec.Resource{
 				Name: stringcase.SnakeCaseString("test_name"),
 				Operations: codespec.APIOperations{
-					Create: &codespec.APIOperation{
+					Create: codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Update: &codespec.APIOperation{
+					Update: codespec.APIOperation{
 						HTTPMethod: "PATCH",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Read: &codespec.APIOperation{
+					Read: codespec.APIOperation{
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -149,15 +145,15 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 			inputModel: codespec.Resource{
 				Name: stringcase.SnakeCaseString("test_name"),
 				Operations: codespec.APIOperations{
-					Create: &codespec.APIOperation{
+					Create: codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Update: &codespec.APIOperation{
+					Update: codespec.APIOperation{
 						HTTPMethod: "PATCH",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Read: &codespec.APIOperation{
+					Read: codespec.APIOperation{
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}",
 					},
