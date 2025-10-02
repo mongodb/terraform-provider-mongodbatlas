@@ -120,18 +120,18 @@ func TestAccStreamRSStreamConnection_kafkaOAuthBearer(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourcesConfig + configureKafka(projectID, instanceName, connectionName, getKafkaAuthenticationConfig("OAUTHBEARER", "", "", tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtentions, httpsCaPem), "localhost:9092,localhost:9092", "earliest", "", false),
+				Config: dataSourcesConfig + configureKafka(projectID, instanceName, connectionName, getKafkaAuthenticationConfig("OAUTHBEARER", "", "", tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtentions, method), "localhost:9092,localhost:9092", "earliest", "", false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkKafkaOAuthAttributes(resourceName, instanceName, connectionName, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtentions, httpsCaPem, "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, true),
-					checkKafkaOAuthAttributes(dataSourceName, instanceName, connectionName, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtentions, httpsCaPem, "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, false),
+					checkKafkaOAuthAttributes(resourceName, instanceName, connectionName, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtentions, method, "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, true),
+					checkKafkaOAuthAttributes(dataSourceName, instanceName, connectionName, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtentions, method, "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, false),
 					streamConnectionsAttributeChecks(pluralDataSourceName, nil, nil),
 				),
 			},
 			{
-				Config: dataSourcesWithPagination + configureKafka(projectID, instanceName, connectionName, getKafkaAuthenticationConfig("OAUTHBEARER", "", "", tokenEndpointURL, "clientId2", "clientSecret", scope, saslOauthbearerExtentions, httpsCaPem), "localhost:9093", "latest", kafkaNetworkingPublic, false),
+				Config: dataSourcesWithPagination + configureKafka(projectID, instanceName, connectionName, getKafkaAuthenticationConfig("OAUTHBEARER", "", "", tokenEndpointURL, "clientId2", "clientSecret", scope, saslOauthbearerExtentions, method), "localhost:9093", "latest", kafkaNetworkingPublic, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkKafkaOAuthAttributes(resourceName, instanceName, connectionName, tokenEndpointURL, "clientId2", "clientSecret", scope, saslOauthbearerExtentions, httpsCaPem, "localhost:9093", "latest", networkingTypePublic, false, true),
-					checkKafkaOAuthAttributes(dataSourceName, instanceName, connectionName, tokenEndpointURL, "clientId2", "clientSecret", scope, saslOauthbearerExtentions, httpsCaPem, "localhost:9093", "latest", networkingTypePublic, false, false),
+					checkKafkaOAuthAttributes(resourceName, instanceName, connectionName, tokenEndpointURL, "clientId2", "clientSecret", scope, saslOauthbearerExtentions, method, "localhost:9093", "latest", networkingTypePublic, false, true),
+					checkKafkaOAuthAttributes(dataSourceName, instanceName, connectionName, tokenEndpointURL, "clientId2", "clientSecret", scope, saslOauthbearerExtentions, method, "localhost:9093", "latest", networkingTypePublic, false, false),
 					streamConnectionsAttributeChecks(pluralDataSourceName, conversion.Pointer(2), conversion.Pointer(1)),
 				),
 			},
@@ -400,7 +400,7 @@ func TestAccStreamRSStreamConnection_AWSLambda(t *testing.T) {
 	})
 }
 
-func getKafkaAuthenticationConfig(mechanism, username, password, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtensions, httpsCaPem string) string {
+func getKafkaAuthenticationConfig(mechanism, username, password, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtensions, method string) string {
 	if mechanism == "PLAIN" {
 		return fmt.Sprintf(`authentication = {
 			mechanism = %[1]q
@@ -410,13 +410,13 @@ func getKafkaAuthenticationConfig(mechanism, username, password, tokenEndpointUR
 	}
 	return fmt.Sprintf(`authentication = {
 			mechanism = %[1]q
-			token_endpoint_url = %[2]q
-			client_id = %[3]q
-			client_secret = %[4]q
-			scope = %[5]q
-			sasl_oauthbearer_extensions = %[6]q
-			https_ca_pem = %[7]q
-		}`, mechanism, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtensions, httpsCaPem)
+			method = %[2]q
+			token_endpoint_url = %[3]q
+			client_id = %[4]q
+			client_secret = %[5]q
+			scope = %[6]q
+			sasl_oauthbearer_extensions = %[7]q
+		}`, mechanism, method, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtensions)
 }
 
 func configureKafka(projectID, instanceName, connectionName, authenticationConfig, bootstrapServers, configValue, networkingConfig string, useSSL bool) string {
@@ -519,7 +519,7 @@ func checkKafkaAttributes(
 }
 
 func checkKafkaOAuthAttributes(
-	resourceName, instanceName, connectionName, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtensions, httpsCaPem, bootstrapServers, configValue, networkingType string, usesSSL, checkClientSecret bool) resource.TestCheckFunc {
+	resourceName, instanceName, connectionName, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtensions, method, bootstrapServers, configValue, networkingType string, usesSSL, checkClientSecret bool) resource.TestCheckFunc {
 	resourceChecks := []resource.TestCheckFunc{
 		checkStreamConnectionExists(),
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
@@ -527,11 +527,11 @@ func checkKafkaOAuthAttributes(
 		resource.TestCheckResourceAttr(resourceName, "type", "Kafka"),
 		resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
 		resource.TestCheckResourceAttr(resourceName, "authentication.mechanism", "OAUTHBEARER"),
+		resource.TestCheckResourceAttr(resourceName, "authentication.method", method),
 		resource.TestCheckResourceAttr(resourceName, "authentication.token_endpoint_url", tokenEndpointURL),
 		resource.TestCheckResourceAttr(resourceName, "authentication.client_id", clientID),
 		resource.TestCheckResourceAttr(resourceName, "authentication.scope", scope),
 		resource.TestCheckResourceAttr(resourceName, "authentication.sasl_oauthbearer_extensions", saslOauthbearerExtensions),
-		resource.TestCheckResourceAttr(resourceName, "authentication.https_ca_pem", httpsCaPem),
 		resource.TestCheckResourceAttr(resourceName, "bootstrap_servers", bootstrapServers),
 		resource.TestCheckResourceAttr(resourceName, "config.auto.offset.reset", configValue),
 	}

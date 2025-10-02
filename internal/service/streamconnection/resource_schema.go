@@ -75,6 +75,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"mechanism": schema.StringAttribute{
 						Optional: true,
 					},
+					"method": schema.StringAttribute{
+						Optional: true,
+					},
 					"password": schema.StringAttribute{
 						Optional:  true,
 						Sensitive: true,
@@ -96,9 +99,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						Optional: true,
 					},
 					"sasl_oauthbearer_extensions": schema.StringAttribute{
-						Optional: true,
-					},
-					"https_ca_pem": schema.StringAttribute{
 						Optional: true,
 					},
 				},
