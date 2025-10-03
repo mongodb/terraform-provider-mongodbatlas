@@ -21,7 +21,7 @@ func applySchemaOptions(schemaOptions config.SchemaOptions, attributes *Attribut
 
 	for i := range *attributes {
 		attr := &(*attributes)[i]
-		attrPathName := getAttributePathName(string(attr.Name), parentName)
+		attrPathName := getAttributePathName(string(attr.TFSchemaName), parentName)
 
 		if shouldIgnoreAttribute(attrPathName, ignoredAttrs) {
 			continue
@@ -73,7 +73,7 @@ func applyAliasToAttribute(attr *Attribute, attrPathName *string, schemaOptions 
 			parts[i] = newName
 
 			if i == len(parts)-1 {
-				attr.Name = stringcase.SnakeCaseString(newName)
+				attr.TFSchemaName = stringcase.SnakeCaseString(newName)
 			}
 		}
 	}
@@ -155,7 +155,7 @@ func applyTimeoutConfig(options config.SchemaOptions) *Attribute {
 	}
 	if result != nil {
 		return &Attribute{
-			Name:         "timeouts",
+			TFSchemaName: "timeouts",
 			Timeouts:     &TimeoutsAttribute{ConfigurableTimeouts: result},
 			ReqBodyUsage: OmitAlways,
 		}

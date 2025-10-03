@@ -79,8 +79,8 @@ type Attribute struct {
 	DeprecationMessage       *string
 	CustomType               *CustomType
 	ComputedOptionalRequired ComputedOptionalRequired
-	Name                     stringcase.SnakeCaseString
-	PascalCaseName           string
+	TFSchemaName             stringcase.SnakeCaseString
+	TFModelName              string
 	ReqBodyUsage             AttributeReqBodyUsage
 	Sensitive                bool
 }

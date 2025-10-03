@@ -220,6 +220,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"mongo_dbmajor_version": schema.StringAttribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "MongoDB major version of the cluster. Set to the binary major version. \n\nOn creation: Choose from the available versions of MongoDB, or leave unspecified for the current recommended default in the MongoDB Cloud platform. The recommended version is a recent Long Term Support version. The default is not guaranteed to be the most recently released version throughout the entire release cycle. For versions available in a specific project, see the linked documentation or use the API endpoint for [project LTS versions endpoint](#tag/Projects/operation/getProjectLtsVersions).\n\n On update: Increase version only by 1 major version at a time. If the cluster is pinned to a MongoDB feature compatibility version exactly one major version below the current MongoDB version, the MongoDB version can be downgraded to the previous major version.",
 			},
@@ -611,7 +612,7 @@ type TFModel struct {
 	Tags                                          types.List   `tfsdk:"tags"`
 	ReplicationSpecs                              types.List   `tfsdk:"replication_specs"`
 	InternalClusterRole                           types.String `tfsdk:"internal_cluster_role" autogen:"omitjson"`
-	MongoDbmajorVersion                           types.String `tfsdk:"mongo_dbmajor_version"`
+	MongoDBMajorVersion                           types.String `tfsdk:"mongo_dbmajor_version"`
 	ConfigServerManagementMode                    types.String `tfsdk:"config_server_management_mode"`
 	ConfigServerType                              types.String `tfsdk:"config_server_type" autogen:"omitjson"`
 	ConnectionStrings                             types.Object `tfsdk:"connection_strings" autogen:"omitjson"`
@@ -627,10 +628,10 @@ type TFModel struct {
 	ClusterType                                   types.String `tfsdk:"cluster_type"`
 	AdvancedConfiguration                         types.Object `tfsdk:"advanced_configuration"`
 	ReplicaSetScalingStrategy                     types.String `tfsdk:"replica_set_scaling_strategy"`
-	MongoDbversion                                types.String `tfsdk:"mongo_dbversion" autogen:"omitjson"`
+	MongoDBVersion                                types.String `tfsdk:"mongo_dbversion" autogen:"omitjson"`
 	Name                                          types.String `tfsdk:"name"`
 	StateName                                     types.String `tfsdk:"state_name" autogen:"omitjson"`
-	MongoDbemployeeAccessGrant                    types.Object `tfsdk:"mongo_dbemployee_access_grant"`
+	MongoDBEmployeeAccessGrant                    types.Object `tfsdk:"mongo_dbemployee_access_grant"`
 	RootCertType                                  types.String `tfsdk:"root_cert_type"`
 	BiConnector                                   types.Object `tfsdk:"bi_connector"`
 	BackupEnabled                                 types.Bool   `tfsdk:"backup_enabled"`
@@ -675,7 +676,7 @@ type TFLabelsModel struct {
 	Key   types.String `tfsdk:"key"`
 	Value types.String `tfsdk:"value"`
 }
-type TFMongoDbemployeeAccessGrantModel struct {
+type TFMongoDBEmployeeAccessGrantModel struct {
 	ExpirationTime types.String `tfsdk:"expiration_time"`
 	GrantType      types.String `tfsdk:"grant_type"`
 }
@@ -701,7 +702,7 @@ type TFReplicationSpecsRegionConfigsModel struct {
 }
 type TFReplicationSpecsRegionConfigsAnalyticsAutoScalingModel struct {
 	Compute types.Object `tfsdk:"compute"`
-	DiskGb  types.Object `tfsdk:"disk_gb"`
+	DiskGB  types.Object `tfsdk:"disk_gb"`
 }
 type TFReplicationSpecsRegionConfigsAnalyticsAutoScalingComputeModel struct {
 	MaxInstanceSize   types.String `tfsdk:"max_instance_size" autogen:"omitjson"`
@@ -710,19 +711,19 @@ type TFReplicationSpecsRegionConfigsAnalyticsAutoScalingComputeModel struct {
 	PredictiveEnabled types.Bool   `tfsdk:"predictive_enabled"`
 	ScaleDownEnabled  types.Bool   `tfsdk:"scale_down_enabled"`
 }
-type TFReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGbModel struct {
+type TFReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGBModel struct {
 	Enabled types.Bool `tfsdk:"enabled"`
 }
 type TFReplicationSpecsRegionConfigsAnalyticsSpecsModel struct {
-	DiskSizeGb    types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
+	DiskSizeGB    types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
 	EbsVolumeType types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
 	InstanceSize  types.String  `tfsdk:"instance_size" autogen:"omitjson"`
-	DiskIops      types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
+	DiskIOPS      types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
 	NodeCount     types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
 }
 type TFReplicationSpecsRegionConfigsAutoScalingModel struct {
 	Compute types.Object `tfsdk:"compute"`
-	DiskGb  types.Object `tfsdk:"disk_gb"`
+	DiskGB  types.Object `tfsdk:"disk_gb"`
 }
 type TFReplicationSpecsRegionConfigsAutoScalingComputeModel struct {
 	MaxInstanceSize   types.String `tfsdk:"max_instance_size" autogen:"omitjson"`
@@ -731,43 +732,43 @@ type TFReplicationSpecsRegionConfigsAutoScalingComputeModel struct {
 	PredictiveEnabled types.Bool   `tfsdk:"predictive_enabled"`
 	ScaleDownEnabled  types.Bool   `tfsdk:"scale_down_enabled"`
 }
-type TFReplicationSpecsRegionConfigsAutoScalingDiskGbModel struct {
+type TFReplicationSpecsRegionConfigsAutoScalingDiskGBModel struct {
 	Enabled types.Bool `tfsdk:"enabled"`
 }
 type TFReplicationSpecsRegionConfigsEffectiveAnalyticsSpecsModel struct {
-	DiskSizeGb    types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
+	DiskSizeGB    types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
 	EbsVolumeType types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
 	InstanceSize  types.String  `tfsdk:"instance_size" autogen:"omitjson"`
-	DiskIops      types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
+	DiskIOPS      types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
 	NodeCount     types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
 }
 type TFReplicationSpecsRegionConfigsEffectiveElectableSpecsModel struct {
-	DiskSizeGb    types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
+	DiskSizeGB    types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
 	EbsVolumeType types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
 	InstanceSize  types.String  `tfsdk:"instance_size" autogen:"omitjson"`
-	DiskIops      types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
+	DiskIOPS      types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
 	NodeCount     types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
 }
 type TFReplicationSpecsRegionConfigsEffectiveReadOnlySpecsModel struct {
-	DiskSizeGb    types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
+	DiskSizeGB    types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
 	EbsVolumeType types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
 	InstanceSize  types.String  `tfsdk:"instance_size" autogen:"omitjson"`
-	DiskIops      types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
+	DiskIOPS      types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
 	NodeCount     types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
 }
 type TFReplicationSpecsRegionConfigsElectableSpecsModel struct {
-	DiskSizeGb            types.Float64 `tfsdk:"disk_size_gb"`
+	DiskSizeGB            types.Float64 `tfsdk:"disk_size_gb"`
 	EbsVolumeType         types.String  `tfsdk:"ebs_volume_type"`
 	EffectiveInstanceSize types.String  `tfsdk:"effective_instance_size" autogen:"omitjson"`
 	InstanceSize          types.String  `tfsdk:"instance_size"`
-	DiskIops              types.Int64   `tfsdk:"disk_iops"`
+	DiskIOPS              types.Int64   `tfsdk:"disk_iops"`
 	NodeCount             types.Int64   `tfsdk:"node_count"`
 }
 type TFReplicationSpecsRegionConfigsReadOnlySpecsModel struct {
-	DiskSizeGb    types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
+	DiskSizeGB    types.Float64 `tfsdk:"disk_size_gb" autogen:"omitjson"`
 	EbsVolumeType types.String  `tfsdk:"ebs_volume_type" autogen:"omitjson"`
 	InstanceSize  types.String  `tfsdk:"instance_size" autogen:"omitjson"`
-	DiskIops      types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
+	DiskIOPS      types.Int64   `tfsdk:"disk_iops" autogen:"omitjson"`
 	NodeCount     types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
 }
 type TFTagsModel struct {
