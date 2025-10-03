@@ -44,7 +44,7 @@ func configureCredentialsSTS(cfg *config.Config, secret, region, awsAccessKeyID,
 		EndpointResolver: endpoints.ResolverFunc(stsCustResolverFn),
 	}))
 
-	creds := stscreds.NewCredentials(sess, cfg.AssumeRole.RoleARN)
+	creds := stscreds.NewCredentials(sess, cfg.AssumeRoleARN)
 
 	_, err := sess.Config.Credentials.Get()
 	if err != nil {

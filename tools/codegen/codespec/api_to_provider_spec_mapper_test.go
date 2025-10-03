@@ -108,7 +108,7 @@ func TestConvertToProviderSpec(t *testing.T) {
 						Path:       "/api/atlas/v2/groups/{groupId}/testResource",
 						HTTPMethod: "PATCH",
 					},
-					Delete: codespec.APIOperation{
+					Delete: &codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/testResource",
 						HTTPMethod: "DELETE",
 					},
@@ -326,7 +326,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 						Path:       "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
 						HTTPMethod: "PATCH",
 					},
-					Delete: codespec.APIOperation{
+					Delete: &codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
 						HTTPMethod: "DELETE",
 					},
@@ -448,7 +448,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 						Path:       "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/nestedTestResource",
 						HTTPMethod: "PATCH",
 					},
-					Delete: codespec.APIOperation{
+					Delete: &codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/nestedTestResource",
 						HTTPMethod: "DELETE",
 					},
@@ -506,7 +506,7 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 						Path:       "/api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}",
 						HTTPMethod: "GET",
 					},
-					Delete: codespec.APIOperation{
+					Delete: &codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}",
 						HTTPMethod: "DELETE",
 					},
@@ -518,6 +518,54 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 				},
 			},
 			},
+		},
+	}
+	runTestCase(t, tc)
+}
+
+func TestConvertToProviderSpec_singletonResourceNoDeleteOperation(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      testDataConfigPath,
+		inputResourceName:    "test_singleton_resource_no_delete_op",
+
+		expectedResult: &codespec.Model{
+			Resources: []codespec.Resource{{
+				Schema: &codespec.Schema{
+					Description: conversion.StringPtr("PATCH API description"),
+					Attributes: codespec.Attributes{
+						{
+							Name:                     "flag",
+							ComputedOptionalRequired: codespec.Optional,
+							Bool:                     &codespec.BoolAttribute{},
+						},
+						{
+							Name:                     "group_id",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr(testPathParamDesc),
+							ReqBodyUsage:             codespec.OmitAlways,
+						},
+					},
+				},
+				Name: "test_singleton_resource_no_delete_op",
+				Operations: codespec.APIOperations{
+					Create: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testSingletonResource",
+						HTTPMethod: "PATCH",
+					},
+					Read: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testSingletonResource",
+						HTTPMethod: "GET",
+					},
+					Update: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testSingletonResource",
+						HTTPMethod: "PATCH",
+					},
+					Delete:        nil,
+					VersionHeader: "application/vnd.atlas.2023-01-01+json",
+				},
+			}},
 		},
 	}
 	runTestCase(t, tc)

@@ -29,8 +29,11 @@ on:
         description: 'If run only minimum tests for advanced_cluster, e.g. in PRs'
         type: boolean
         required: false
-        default: false
-        
+        default: false    
+      use_sa:
+        description: "Run tests using Service Account instead of API Keys"
+        type: boolean
+        required: false
       mongodb_atlas_org_id:
         type: string
         required: true
@@ -156,6 +159,10 @@ on:
         required: true
       mongodb_atlas_rp_public_key:
         required: true
+      mongodb_atlas_client_id:
+        required: true
+      mongodb_atlas_client_secret:
+        required: true
       azure_directory_id:
         required: true
       azure_resource_group_name:
@@ -195,15 +202,16 @@ env:
   MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
   MONGODB_REALM_BASE_URL: ${{ inputs.mongodb_realm_base_url }}
   MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-  MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_public_key }}
-  MONGODB_ATLAS_PRIVATE_KEY: ${{ secrets.mongodb_atlas_private_key }}
+  MONGODB_ATLAS_PUBLIC_KEY: ${{ inputs.use_sa == false && secrets.mongodb_atlas_public_key || '' }}
+  MONGODB_ATLAS_PRIVATE_KEY: ${{ inputs.use_sa == false && secrets.mongodb_atlas_private_key || '' }}
+  MONGODB_ATLAS_CLIENT_ID: ${{ inputs.use_sa  && secrets.mongodb_atlas_client_id || '' }}
+  MONGODB_ATLAS_CLIENT_SECRET: ${{ inputs.use_sa && secrets.mongodb_atlas_client_secret || '' }}
   MONGODB_ATLAS_PUBLIC_KEY_READ_ONLY: ${{ secrets.mongodb_atlas_public_key_read_only }}
   MONGODB_ATLAS_PRIVATE_KEY_READ_ONLY: ${{ secrets.mongodb_atlas_private_key_read_only }}
   MONGODB_ATLAS_GOV_PUBLIC_KEY: ${{ secrets.mongodb_atlas_gov_public_key }}
   MONGODB_ATLAS_GOV_PRIVATE_KEY: ${{ secrets.mongodb_atlas_gov_private_key }}
   MONGODB_ATLAS_GOV_BASE_URL:  ${{ inputs.mongodb_atlas_gov_base_url }}
   MONGODB_ATLAS_GOV_ORG_ID:  ${{ inputs.mongodb_atlas_gov_org_id }}
-
 
 jobs:  
 
@@ -231,6 +239,7 @@ jobs:
     outputs: # ensure resources are sorted alphabetically
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
       assume_role: ${{ steps.filter.outputs.assume_role == 'true' || env.mustTrigger == 'true' }}
+      authentication: ${{ steps.filter.outputs.authentication == 'true' || env.mustTrigger == 'true' }}
       autogen: ${{ steps.filter.outputs.autogen == 'true' || env.mustTrigger == 'true' }}
       backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
       control_plane_ip_addresses: ${{ steps.filter.outputs.control_plane_ip_addresses == 'true' || env.mustTrigger == 'true' }}
@@ -264,6 +273,10 @@ jobs:
           advanced_cluster:
             - 'internal/service/advancedcluster/*.go'
           assume_role:
+            - 'internal/config/*.go'
+            - 'internal/provider/*.go'
+          authentication:
+            - 'internal/config/*.go'
             - 'internal/provider/*.go'
           autogen:
             - 'internal/common/autogen/*.go'
@@ -388,13 +401,13 @@ jobs:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           HTTP_MOCKER_CAPTURE: 'true'
           ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
-          ACCTEST_PACKAGES: |
-            ./internal/service/advancedcluster
+          ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
  
   advanced_cluster_tpf_mig_from_sdkv2:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ inputs.reduced_tests == false && (needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster') }}
+    # Previous advanced_cluster versions don't support SA.
+    if: ${{ inputs.reduced_tests == false && inputs.use_sa == false && (needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster') }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -414,13 +427,13 @@ jobs:
           MONGODB_ATLAS_LAST_1X_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
           MONGODB_ATLAS_TEST_SDKV2_TO_TPF: 'true'
           ACCTEST_REGEX_RUN: '^TestV1xMig'
-          ACCTEST_PACKAGES: |
-            ./internal/service/advancedcluster
+          ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
 
   advanced_cluster_tpf_mig_from_tpf_preview:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ inputs.reduced_tests == false && (needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster') }}
+    # Previous advanced_cluster versions don't support SA.
+    if: ${{ inputs.reduced_tests == false && inputs.use_sa == false && (needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster') }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -441,8 +454,7 @@ jobs:
           MONGODB_ATLAS_LAST_1X_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
           MONGODB_ATLAS_TEST_SDKV2_TO_TPF: 'false'
           ACCTEST_REGEX_RUN: '^TestV1xMig'
-          ACCTEST_PACKAGES: |
-            ./internal/service/advancedcluster
+          ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
 
   assume_role:
@@ -503,8 +515,49 @@ jobs:
           ACCTEST_REGEX_RUN: ^TestAccSTSAssumeRole_basic$
         run: make testacc
 
-  autogen:
+  authentication:
     needs: [ change-detection, get-provider-version ]
+    if: ${{ needs.change-detection.outputs.authentication == 'true' || inputs.test_group == 'authentication' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false    
+      - name: Acceptance Tests (Service Account)
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ""
+          MONGODB_ATLAS_PRIVATE_KEY: ""
+          MONGODB_ATLAS_CLIENT_ID: ${{ secrets.mongodb_atlas_client_id }}
+          MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          ACCTEST_REGEX_RUN: '^TestUnexisting' # TODO: SA not implemented in master yet
+          # ACCTEST_REGEX_RUN: '^TestAccServiceAccount'
+          ACCTEST_PACKAGES: ./internal/provider
+        run: make testacc
+      - name: Acceptance Tests (Service Account smoke tests) # small selection of fast tests to run with SA
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ""
+          MONGODB_ATLAS_PRIVATE_KEY: ""
+          MONGODB_ATLAS_CLIENT_ID: ${{ secrets.mongodb_atlas_client_id }}
+          MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          ACCTEST_REGEX_RUN: '^TestUnexisting' # TODO: SA not implemented in master yet
+          ACCTEST_PACKAGES: |
+            ./internal/service/alertconfiguration
+            ./internal/service/databaseuser
+            ./internal/service/maintenancewindow
+        run: make testacc
+
+  autogen:
+    needs: [change-detection, get-provider-version]
     if: ${{ needs.change-detection.outputs.autogen == 'true' || inputs.test_group == 'autogen' }}
     runs-on: ubuntu-latest
     permissions: {}
@@ -766,8 +819,9 @@ jobs:
         run: make testacc
 
   event_trigger:
-    needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.event_trigger == 'true' || inputs.test_group == 'event_trigger' }}
+    needs: [change-detection, get-provider-version]
+    # Realm SDK doesn't support SA.
+    if: ${{ inputs.use_sa == false && (needs.change-detection.outputs.event_trigger == 'true' || inputs.test_group == 'event_trigger') }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:

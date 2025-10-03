@@ -48,7 +48,7 @@ func ConnV2UsingGov() *admin.APIClient {
 		BaseURL:    os.Getenv("MONGODB_ATLAS_GOV_BASE_URL"),
 	}
 	client, _ := cfg.NewClient(context.Background())
-	return client.(*config.MongoDBClient).AtlasV2
+	return client.AtlasV2
 }
 
 func init() {
@@ -63,6 +63,5 @@ func init() {
 		BaseURL:      os.Getenv("MONGODB_ATLAS_BASE_URL"),
 		RealmBaseURL: os.Getenv("MONGODB_REALM_BASE_URL"),
 	}
-	client, _ := cfg.NewClient(context.Background())
-	MongoDBClient = client.(*config.MongoDBClient)
+	MongoDBClient, _ = cfg.NewClient(context.Background())
 }

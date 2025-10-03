@@ -22,9 +22,9 @@ resource "mongodbatlas_organization" "test" {
 ```
 
 ### Further Examples
-- [Organization setup - step 1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.41.1/examples/mongodbatlas_organization/organization-step-1)
-- [Organization setup - step 2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.41.1/examples/mongodbatlas_organization/organization-step-2)
-- [Organization import](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.41.1/examples/mongodbatlas_organization/organization-import)
+- [Organization setup - step 1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_organization/organization-step-1)
+- [Organization setup - step 2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_organization/organization-step-2)
+- [Organization import](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_organization/organization-import)
 
 ## Argument Reference
 

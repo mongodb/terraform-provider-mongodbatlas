@@ -19,9 +19,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 		"Defining different operation URLs with different path params": {
 			inputModel: codespec.Resource{
 				Name: stringcase.SnakeCaseString("test_name"),
-
 				Operations: codespec.APIOperations{
-
 					Create: codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
@@ -34,7 +32,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}/{roleName}",
 					},
-					Delete: codespec.APIOperation{
+					Delete: &codespec.APIOperation{
 						HTTPMethod: "DELETE",
 						Path:       "/api/v1/testname/{projectId}/{roleName}",
 					},
@@ -46,9 +44,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 		"Update operation using PUT": {
 			inputModel: codespec.Resource{
 				Name: stringcase.SnakeCaseString("test_name"),
-
 				Operations: codespec.APIOperations{
-
 					Create: codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
@@ -61,7 +57,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Delete: codespec.APIOperation{
+					Delete: &codespec.APIOperation{
 						HTTPMethod: "DELETE",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -102,7 +98,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Delete: codespec.APIOperation{
+					Delete: &codespec.APIOperation{
 						HTTPMethod: "DELETE",
 						Path:       "/api/v1/testname/{projectId}",
 						Wait: &codespec.Wait{
@@ -135,7 +131,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Delete: codespec.APIOperation{
+					Delete: &codespec.APIOperation{
 						HTTPMethod:        "PATCH",
 						Path:              "/api/v1/testname/{projectId}",
 						StaticRequestBody: `{"enabled": false}`,
@@ -144,6 +140,28 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 				},
 			},
 			goldenFileName: "static-request-body-delete",
+		},
+		"Defining a resource with no DELETE operation": {
+			inputModel: codespec.Resource{
+				Name: stringcase.SnakeCaseString("test_name"),
+				Operations: codespec.APIOperations{
+					Create: codespec.APIOperation{
+						HTTPMethod: "POST",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Update: codespec.APIOperation{
+						HTTPMethod: "PATCH",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Read: codespec.APIOperation{
+						HTTPMethod: "GET",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Delete:        nil,
+					VersionHeader: "application/vnd.atlas.2024-05-30+json",
+				},
+			},
+			goldenFileName: "no-op-delete-operation",
 		},
 	}
 
