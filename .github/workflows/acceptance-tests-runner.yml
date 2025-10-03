@@ -281,30 +281,7 @@ jobs:
             - 'internal/provider/*.go'
           authentication:
             - 'internal/config/*.go'
-            - 'internal/provider/*.go'
-          autogen_generic:
-            - 'internal/common/autogen/*.go'
-            - 'internal/serviceapi/auditingapi/*.go'
-            - 'internal/serviceapi/customdbroleapi/*.go'
-            - 'internal/serviceapi/databaseuserapi/*.go'
-            - 'internal/serviceapi/maintenancewindowapi/*.go'
-            - 'internal/serviceapi/orgserviceaccountapi/*.go'
-            - 'internal/serviceapi/projectapi/*.go'
-            - 'internal/serviceapi/projectsettingsapi/*.go'
-            - 'internal/serviceapi/resourcepolicyapi/*.go'
-          autogen_cluster:
-            - 'internal/common/autogen/*.go'
-            - 'internal/serviceapi/clusterapi/*.go'
-          autogen_push_based_log_export:
-            - 'internal/common/autogen/*.go'
-            - 'internal/serviceapi/pushbasedlogexportapi/*.go'
-          autogen_stream:
-            - 'internal/common/autogen/*.go'
-            - 'internal/serviceapi/streaminstanceapi/*.go'
-            - 'internal/serviceapi/streamprocessorapi/*.go'
-          autogen_search_deployment:
-            - 'internal/common/autogen/*.go'
-            - 'internal/serviceapi/searchdeploymentapi/*.go'
+            - 'internal/provider/*.go' 
           backup:
             - 'internal/service/cloudbackupschedule/*.go'
             - 'internal/service/cloudbackupsnapshot/*.go'
@@ -393,6 +370,29 @@ jobs:
             - 'internal/service/streaminstance/*.go'
             - 'internal/service/streamprocessor/*.go'
             - 'internal/service/streamprivatelinkendpoint/*.go'
+          autogen_generic:
+            - 'internal/common/autogen/*.go'
+            - 'internal/serviceapi/auditingapi/*.go'
+            - 'internal/serviceapi/customdbroleapi/*.go'
+            - 'internal/serviceapi/databaseuserapi/*.go'
+            - 'internal/serviceapi/maintenancewindowapi/*.go'
+            - 'internal/serviceapi/orgserviceaccountapi/*.go'
+            - 'internal/serviceapi/projectapi/*.go'
+            - 'internal/serviceapi/projectsettingsapi/*.go'
+            - 'internal/serviceapi/resourcepolicyapi/*.go'
+          autogen_cluster:
+            - 'internal/common/autogen/*.go'
+            - 'internal/serviceapi/clusterapi/*.go'
+          autogen_push_based_log_export:
+            - 'internal/common/autogen/*.go'
+            - 'internal/serviceapi/pushbasedlogexportapi/*.go'
+          autogen_stream:
+            - 'internal/common/autogen/*.go'
+            - 'internal/serviceapi/streaminstanceapi/*.go'
+            - 'internal/serviceapi/streamprocessorapi/*.go'
+          autogen_search_deployment:
+            - 'internal/common/autogen/*.go'
+            - 'internal/serviceapi/searchdeploymentapi/*.go'
 
 
   advanced_cluster:
