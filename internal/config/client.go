@@ -17,14 +17,13 @@ import (
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
+	"golang.org/x/oauth2"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"github.com/mongodb-forks/digest"
 	adminpreview "github.com/mongodb/atlas-sdk-go/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
-
-	"golang.org/x/oauth2"
 )
 
 const (
@@ -113,7 +112,7 @@ type MongoDBClient struct {
 
 // Config contains the configurations needed to use SDKs
 type Config struct {
-	AssumeRole       *AssumeRole
+	AssumeRoleARN    string
 	PublicKey        string
 	PrivateKey       string
 	BaseURL          string
@@ -131,18 +130,6 @@ func (c *Config) GetClientID() string     { return c.ClientID }
 func (c *Config) GetClientSecret() string { return c.ClientSecret }
 func (c *Config) GetAccessToken() string  { return c.AccessToken }
 
-type AssumeRole struct {
-	Tags              map[string]string
-	RoleARN           string
-	ExternalID        string
-	Policy            string
-	SessionName       string
-	SourceIdentity    string
-	PolicyARNs        []string
-	TransitiveTagKeys []string
-	Duration          time.Duration
-}
-
 type SecretData struct {
 	PublicKey  string `json:"public_key"`
 	PrivateKey string `json:"private_key"`
@@ -153,7 +140,7 @@ type UAMetadata struct {
 	Value string
 }
 
-func (c *Config) NewClient(ctx context.Context) (any, error) {
+func (c *Config) NewClient(ctx context.Context) (*MongoDBClient, error) {
 	transport := networkLoggingBaseTransport()
 	switch ResolveAuthMethod(c) {
 	case AccessToken:

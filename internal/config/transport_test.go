@@ -166,10 +166,8 @@ func TestAccNetworkLogging(t *testing.T) {
 		ClientSecret: os.Getenv("MONGODB_ATLAS_CLIENT_SECRET"),
 		BaseURL:      os.Getenv("MONGODB_ATLAS_BASE_URL"),
 	}
-	clientInterface, err := cfg.NewClient(t.Context())
+	client, err := cfg.NewClient(t.Context())
 	require.NoError(t, err)
-	client, ok := clientInterface.(*config.MongoDBClient)
-	require.True(t, ok)
 
 	// Make a simple API call that should trigger our enhanced logging
 	_, _, err = client.AtlasV2.OrganizationsApi.ListOrgs(t.Context()).Execute()

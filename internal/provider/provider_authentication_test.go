@@ -85,10 +85,14 @@ func TestAccAccessToken_basic(t *testing.T) {
 }
 
 func configProject(orgID, projectName string) string {
+	// Use project in TPF and organization in SDKv2 so both providers are tested.
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			org_id 			 = %[1]q
 			name  			 = %[2]q
+		}
+		data "mongodbatlas_organization" "test" {
+			org_id = %[1]q
 		}
 	`, orgID, projectName)
 }

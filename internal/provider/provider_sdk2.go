@@ -2,13 +2,9 @@ package provider
 
 import (
 	"context"
-	"fmt"
-	"regexp"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -316,7 +312,7 @@ func providerConfigure(provider *schema.Provider) func(ctx context.Context, d *s
 		assumeRoleValue, ok := d.GetOk("assume_role")
 		awsRoleDefined := ok && len(assumeRoleValue.([]any)) > 0 && assumeRoleValue.([]any)[0] != nil
 		if awsRoleDefined {
-			cfg.AssumeRole = expandAssumeRole(assumeRoleValue.([]any)[0].(map[string]any))
+			cfg.AssumeRoleARN = getAssumeRoleARN(assumeRoleValue.([]any)[0].(map[string]any))
 			secret := d.Get("secret_name").(string)
 			region := conversion.MongoDBRegionToAWSRegion(d.Get("region").(string))
 			awsAccessKeyID := d.Get("aws_access_key_id").(string)
@@ -489,137 +485,24 @@ func assumeRoleSchema() *schema.Schema {
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"duration": {
-					Type:         schema.TypeString,
-					Optional:     true,
-					Description:  "The duration, between 15 minutes and 12 hours, of the role session. Valid time units are ns, us (or µs), ms, s, h, or m.",
-					ValidateFunc: validAssumeRoleDuration,
-				},
-				"external_id": {
-					Type:        schema.TypeString,
-					Optional:    true,
-					Description: "A unique identifier that might be required when you assume a role in another account.",
-					ValidateFunc: validation.All(
-						validation.StringLenBetween(2, 1224),
-						validation.StringMatch(regexp.MustCompile(`[\w+=,.@:/\-]*`), ""),
-					),
-				},
-				"policy": {
-					Type:         schema.TypeString,
-					Optional:     true,
-					Description:  "IAM Policy JSON describing further restricting permissions for the IAM Role being assumed.",
-					ValidateFunc: validation.StringIsJSON,
-				},
-				"policy_arns": {
-					Type:        schema.TypeSet,
-					Optional:    true,
-					Description: "Amazon Resource Names (ARNs) of IAM Policies describing further restricting permissions for the IAM Role being assumed.",
-					Elem: &schema.Schema{
-						Type: schema.TypeString,
-					},
-				},
 				"role_arn": {
 					Type:        schema.TypeString,
 					Optional:    true,
 					Description: "Amazon Resource Name (ARN) of an IAM Role to assume prior to making API calls.",
-				},
-				"session_name": {
-					Type:         schema.TypeString,
-					Optional:     true,
-					Description:  "An identifier for the assumed role session.",
-					ValidateFunc: validAssumeRoleSessionName,
-				},
-				"source_identity": {
-					Type:         schema.TypeString,
-					Optional:     true,
-					Description:  "Source identity specified by the principal assuming the role.",
-					ValidateFunc: validAssumeRoleSourceIdentity,
-				},
-				"tags": {
-					Type:        schema.TypeMap,
-					Optional:    true,
-					Description: "Assume role session tags.",
-					Elem:        &schema.Schema{Type: schema.TypeString},
-				},
-				"transitive_tag_keys": {
-					Type:        schema.TypeSet,
-					Optional:    true,
-					Description: "Assume role session tag keys to pass to any subsequent sessions.",
-					Elem:        &schema.Schema{Type: schema.TypeString},
 				},
 			},
 		},
 	}
 }
 
-var validAssumeRoleSessionName = validation.All(
-	validation.StringLenBetween(2, 64),
-	validation.StringMatch(regexp.MustCompile(`[\w+=,.@\-]*`), ""),
-)
-
-var validAssumeRoleSourceIdentity = validation.All(
-	validation.StringLenBetween(2, 64),
-	validation.StringMatch(regexp.MustCompile(`[\w+=,.@\-]*`), ""),
-)
-
-// validAssumeRoleDuration validates a string can be parsed as a valid time.Duration
-// and is within a minimum of 15 minutes and maximum of 12 hours
-func validAssumeRoleDuration(v any, k string) (ws []string, errorResults []error) {
-	duration, err := time.ParseDuration(v.(string))
-
-	if err != nil {
-		errorResults = append(errorResults, fmt.Errorf("%q cannot be parsed as a duration: %w", k, err))
-		return
-	}
-
-	if duration.Minutes() < 15 || duration.Hours() > 12 {
-		errorResults = append(errorResults, fmt.Errorf("duration %q must be between 15 minutes (15m) and 12 hours (12h), inclusive", k))
-	}
-
-	return
-}
-
-func expandAssumeRole(tfMap map[string]any) *config.AssumeRole {
+func getAssumeRoleARN(tfMap map[string]any) string {
 	if tfMap == nil {
-		return nil
+		return ""
 	}
-
-	assumeRole := config.AssumeRole{}
-
-	if v, ok := tfMap["duration"].(string); ok && v != "" {
-		duration, _ := time.ParseDuration(v)
-		assumeRole.Duration = duration
-	}
-
-	if v, ok := tfMap["external_id"].(string); ok && v != "" {
-		assumeRole.ExternalID = v
-	}
-
-	if v, ok := tfMap["policy"].(string); ok && v != "" {
-		assumeRole.Policy = v
-	}
-
-	if v, ok := tfMap["policy_arns"].(*schema.Set); ok && v.Len() > 0 {
-		assumeRole.PolicyARNs = conversion.ExpandStringList(v.List())
-	}
-
 	if v, ok := tfMap["role_arn"].(string); ok && v != "" {
-		assumeRole.RoleARN = v
+		return v
 	}
-
-	if v, ok := tfMap["session_name"].(string); ok && v != "" {
-		assumeRole.SessionName = v
-	}
-
-	if v, ok := tfMap["source_identity"].(string); ok && v != "" {
-		assumeRole.SourceIdentity = v
-	}
-
-	if v, ok := tfMap["transitive_tag_keys"].(*schema.Set); ok && v.Len() > 0 {
-		assumeRole.TransitiveTagKeys = conversion.ExpandStringList(v.List())
-	}
-
-	return &assumeRole
+	return ""
 }
 
 func isGovBaseURLConfiguredForSDK2Provider(d *schema.ResourceData) bool {
