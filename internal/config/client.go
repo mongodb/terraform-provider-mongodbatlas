@@ -96,7 +96,7 @@ type UAMetadata struct {
 	Value string
 }
 
-func (c *Config) NewClient(ctx context.Context) (any, error) {
+func (c *Config) NewClient(ctx context.Context) (*MongoDBClient, error) {
 	// Network Logging transport is before Digest transport so it can log the first Digest requests with 401 Unauthorized.
 	// Terraform logging transport is after Digest transport so the Unauthorized request bodies are not logged.
 	networkLoggingTransport := NewTransportWithNetworkLogging(baseTransport, logging.IsDebugOrHigher())

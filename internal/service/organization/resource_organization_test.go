@@ -437,10 +437,8 @@ func getTestClientWithNewOrgCreds(rs *terraform.ResourceState) (*admin.APIClient
 		PrivateKey: rs.Primary.Attributes["private_key"],
 		BaseURL:    acc.MongoDBClient.Config.BaseURL,
 	}
-
-	ctx := context.Background()
-	clients, _ := cfg.NewClient(ctx)
-	return clients.(*config.MongoDBClient).AtlasV2, nil
+	clients, _ := cfg.NewClient(context.Background())
+	return clients.AtlasV2, nil
 }
 
 func TestValidateAPIKeyIsOrgOwner(t *testing.T) {
