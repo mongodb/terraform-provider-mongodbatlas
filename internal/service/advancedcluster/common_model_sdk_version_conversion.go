@@ -3,7 +3,7 @@ package advancedcluster
 import (
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312007/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 )
 
 // Conversions from one SDK model version to another are used to avoid duplicating our flatten/expand conversion functions.
