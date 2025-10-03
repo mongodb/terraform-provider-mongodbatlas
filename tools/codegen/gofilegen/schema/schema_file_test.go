@@ -266,6 +266,123 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 			withObjType:    true,
 			goldenFileName: "multiple-nested-models-same-parent-attr-name",
 		},
+		"Plan modifiers using create only": {
+			inputModel: codespec.Resource{
+				Name: "test_name",
+				Schema: &codespec.Schema{
+					Attributes: []codespec.Attribute{
+						{
+							Name:                     "string_attr",
+							String:                   &codespec.StringAttribute{},
+							Description:              admin.PtrString("string description"),
+							ComputedOptionalRequired: codespec.Required,
+							CreateOnly:               true,
+						},
+						{
+							Name:                     "bool_attr",
+							Bool:                     &codespec.BoolAttribute{},
+							Description:              admin.PtrString("bool description"),
+							ComputedOptionalRequired: codespec.Optional,
+							CreateOnly:               true,
+						},
+						{
+							Name:                     "int_attr",
+							Int64:                    &codespec.Int64Attribute{},
+							Description:              admin.PtrString("int description"),
+							ComputedOptionalRequired: codespec.ComputedOptional,
+							CreateOnly:               true,
+						},
+						{
+							Name:                     "float_attr",
+							Float64:                  &codespec.Float64Attribute{},
+							Description:              admin.PtrString("float description"),
+							ComputedOptionalRequired: codespec.Optional,
+							CreateOnly:               true,
+						},
+						{
+							Name:                     "number_attr",
+							Number:                   &codespec.NumberAttribute{},
+							Description:              admin.PtrString("number description"),
+							ComputedOptionalRequired: codespec.Optional,
+							CreateOnly:               true,
+						},
+						{
+							Name: "simple_list_attr",
+							List: &codespec.ListAttribute{
+								ElementType: codespec.String,
+							},
+							Description:              admin.PtrString("simple arr description"),
+							ComputedOptionalRequired: codespec.Optional,
+							CreateOnly:               true,
+						},
+						{
+							Name: "simple_set_attr",
+							Set: &codespec.SetAttribute{
+								ElementType: codespec.Float64,
+							},
+							Description:              admin.PtrString("simple set description"),
+							ComputedOptionalRequired: codespec.Optional,
+							CreateOnly:               true,
+						},
+						{
+							Name: "simple_map_attr",
+							Map: &codespec.MapAttribute{
+								ElementType: codespec.Bool,
+							},
+							Description:              admin.PtrString("simple map description"),
+							ComputedOptionalRequired: codespec.Optional,
+							CreateOnly:               true,
+						},
+						{
+							Name:                     "nested_single_attr",
+							Description:              admin.PtrString("nested single attribute"),
+							ComputedOptionalRequired: codespec.Required,
+							SingleNested: &codespec.SingleNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: []codespec.Attribute{intAttr},
+								},
+							},
+							CreateOnly: true,
+						},
+						{
+							Name:                     "nested_list_attr",
+							Description:              admin.PtrString("nested list attribute"),
+							ComputedOptionalRequired: codespec.Optional,
+							ListNested: &codespec.ListNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: []codespec.Attribute{intAttr},
+								},
+							},
+							CreateOnly: true,
+						},
+						{
+							Name:                     "set_nested_attribute",
+							Description:              admin.PtrString("set nested attribute"),
+							ComputedOptionalRequired: codespec.ComputedOptional,
+							SetNested: &codespec.SetNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: []codespec.Attribute{intAttr},
+								},
+							},
+							CreateOnly: true,
+						},
+						{
+							Name:                     "map_nested_attribute",
+							Description:              admin.PtrString("map nested attribute"),
+							ComputedOptionalRequired: codespec.ComputedOptional,
+							MapNested: &codespec.MapNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: []codespec.Attribute{intAttr},
+								},
+							},
+							CreateOnly: true,
+						},
+					},
+				},
+			},
+			withObjType:    false,
+			goldenFileName: "plan-modifiers-create-only",
+		},
 	}
 
 	for testName, tc := range testCases {

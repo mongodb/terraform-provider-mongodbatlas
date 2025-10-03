@@ -105,7 +105,7 @@ func generator(attr *codespec.Attribute) attributeGenerator {
 }
 
 // generation of conventional attribute types which have common properties like MarkdownDescription, Computed/Optional/Required, Sensitive
-func commonAttrStructure(attr *codespec.Attribute, attrTypeDef, planModifierType string, specificProperties []CodeStatement) CodeStatement {
+func commonAttrStructure(attr *codespec.Attribute, attrDefType, planModifierType string, specificProperties []CodeStatement) CodeStatement {
 	properties := commonProperties(attr, planModifierType)
 	properties = append(properties, specificProperties...)
 
@@ -115,7 +115,7 @@ func commonAttrStructure(attr *codespec.Attribute, attrTypeDef, planModifierType
 	})
 	code := fmt.Sprintf(`"%s": %s{
 		%s
-	}`, name, attrTypeDef, result.Code)
+	}`, name, attrDefType, result.Code)
 	return CodeStatement{
 		Code:    code,
 		Imports: result.Imports,
@@ -145,7 +145,7 @@ func commonProperties(attr *codespec.Attribute, planModifierType string) []CodeS
 			Imports: []string{"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"},
 		})
 	}
-	if attr.CreateOnly {
+	if attr.CreateOnly { // as of now this is the only property which implies defining plan modifiers
 		result = append(result, CodeStatement{
 			Code: fmt.Sprintf("PlanModifiers: []%s{customplanmodifier.CreateOnlyAttributePlanModifier()}", planModifierType),
 			Imports: []string{
