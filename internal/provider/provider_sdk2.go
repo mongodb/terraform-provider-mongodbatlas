@@ -312,7 +312,7 @@ func providerConfigure(provider *schema.Provider) func(ctx context.Context, d *s
 		assumeRoleValue, ok := d.GetOk("assume_role")
 		awsRoleDefined := ok && len(assumeRoleValue.([]any)) > 0 && assumeRoleValue.([]any)[0] != nil
 		if awsRoleDefined {
-			cfg.AssumeRoleARN = expandAssumeRole(assumeRoleValue.([]any)[0].(map[string]any))
+			cfg.AssumeRoleARN = getAssumeRoleARN(assumeRoleValue.([]any)[0].(map[string]any))
 			secret := d.Get("secret_name").(string)
 			region := conversion.MongoDBRegionToAWSRegion(d.Get("region").(string))
 			awsAccessKeyID := d.Get("aws_access_key_id").(string)
@@ -458,8 +458,8 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 	}
 
 	if err := setValueFromConfigOrEnv(d, "access_token", []string{
-		"MONGODB_ATLAS_ACCESS_TOKEN",
-		"TF_VAR_ACCESS_TOKEN",
+		"MONGODB_ATLAS_OAUTH_TOKEN",
+		"TF_VAR_OAUTH_TOKEN",
 	}); err != nil {
 		return append(diagnostics, diag.FromErr(err)...)
 	}
@@ -504,7 +504,7 @@ func assumeRoleSchema() *schema.Schema {
 	}
 }
 
-func expandAssumeRole(tfMap map[string]any) string {
+func getAssumeRoleARN(tfMap map[string]any) string {
 	if tfMap == nil {
 		return ""
 	}

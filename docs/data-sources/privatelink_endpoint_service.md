@@ -78,7 +78,7 @@ data "mongodbatlas_privatelink_endpoint_service" "test" {
 ```
 
 ### Available complete examples
-- [Setup private connection to a MongoDB Atlas Cluster with AWS VPC](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.41.1/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
+- [Setup private connection to a MongoDB Atlas Cluster with AWS VPC](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
 
 ## Argument Reference
 

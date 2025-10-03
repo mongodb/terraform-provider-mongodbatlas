@@ -21,8 +21,8 @@ resource "mongodbatlas_team" "test" {
 ```
 
 ### Further Examples
-- [Team and user assignment (module maintainer) v1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.41.1/examples/migrate_user_team_assignment/module_maintainer/v1)
-- [Team and user assignment (module maintainer) v2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.41.1/examples/migrate_user_team_assignment/module_maintainer/v2)
+- [Team and user assignment (module maintainer) v1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/migrate_user_team_assignment/module_maintainer/v1)
+- [Team and user assignment (module maintainer) v2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/migrate_user_team_assignment/module_maintainer/v2)
 
 ## Argument Reference
 
