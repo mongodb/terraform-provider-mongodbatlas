@@ -1,6 +1,7 @@
 package config
 
 type Credentials struct {
+	Method       string
 	AccessToken  string
 	ClientID     string
 	ClientSecret string

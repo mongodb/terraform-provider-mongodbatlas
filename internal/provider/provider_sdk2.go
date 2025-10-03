@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -298,49 +299,47 @@ func providerConfigure(provider *schema.Provider) func(ctx context.Context, d *s
 			return nil, diagnostics
 		}
 
-		cfg := config.Config{
-			PublicKey:        d.Get("public_key").(string),
-			PrivateKey:       d.Get("private_key").(string),
-			BaseURL:          d.Get("base_url").(string),
-			RealmBaseURL:     d.Get("realm_base_url").(string),
-			TerraformVersion: provider.TerraformVersion,
-			ClientID:         d.Get("client_id").(string),
-			ClientSecret:     d.Get("client_secret").(string),
-			AccessToken:      d.Get("access_token").(string),
-		}
-
-		assumeRoleValue, ok := d.GetOk("assume_role")
-		awsRoleDefined := ok && len(assumeRoleValue.([]any)) > 0 && assumeRoleValue.([]any)[0] != nil
-		if awsRoleDefined {
-			cfg.AssumeRoleARN = getAssumeRoleARN(assumeRoleValue.([]any)[0].(map[string]any))
-			secret := d.Get("secret_name").(string)
-			region := conversion.MongoDBRegionToAWSRegion(d.Get("region").(string))
-			awsAccessKeyID := d.Get("aws_access_key_id").(string)
-			awsSecretAccessKey := d.Get("aws_secret_access_key").(string)
-			awsSessionToken := d.Get("aws_session_token").(string)
-			endpoint := d.Get("sts_endpoint").(string)
-			var err error
-			cfg, err = configureCredentialsSTS(&cfg, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
-			if err != nil {
-				return nil, append(diagnostics, diag.FromErr(err)...)
-			}
-		}
-
-		c := &config.Credentials{
-			AccessToken:  cfg.AccessToken,
-			ClientID:     cfg.ClientID,
-			ClientSecret: cfg.ClientSecret,
-			PublicKey:    cfg.PublicKey,
-			PrivateKey:   cfg.PrivateKey,
-			BaseURL:      cfg.BaseURL,
-			RealmBaseURL: cfg.RealmBaseURL,
-		}
-		client, err := config.NewClient(c, cfg.TerraformVersion)
+		awsCredentials, err := getSDKv2AWSCredentials(d)
 		if err != nil {
+			// TODO: error message
+			return nil, append(diagnostics, diag.FromErr(fmt.Errorf("failed to get AWS credentials: %w", err))...)
+		}
+
+		// TODO: chooose the credentials between AWS, SA or PAK
+		client, err := config.NewClient(awsCredentials, provider.TerraformVersion)
+		if err != nil {
+			// TODO: error message
 			return nil, append(diagnostics, diag.FromErr(err)...)
 		}
 		return client, diagnostics
 	}
+}
+
+func getSDKv2AWSCredentials(d *schema.ResourceData) (*config.Credentials, error) {
+	c := &config.Credentials{
+		Method: "AWS Secrets Manager",
+	}
+	assumeRoleVal, ok := d.GetOk("assume_role")
+	if !ok {
+		return c, nil
+	}
+	assumeRoles := assumeRoleVal.([]any)
+	if len(assumeRoles) == 0 {
+		return c, nil
+	}
+	assumeRoleARN := getAssumeRoleARN(assumeRoles[0].(map[string]any))
+	secret := d.Get("secret_name").(string)
+	region := conversion.MongoDBRegionToAWSRegion(d.Get("region").(string))
+	awsAccessKeyID := d.Get("aws_access_key_id").(string)
+	awsSecretAccessKey := d.Get("aws_secret_access_key").(string)
+	awsSessionToken := d.Get("aws_session_token").(string)
+	endpoint := d.Get("sts_endpoint").(string)
+	// TODO: read from env vars if not here, and req object to configure
+	err := configureCredentialsSTS(c, assumeRoleARN, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
+	if err != nil {
+		return nil, fmt.Errorf("failed to configure STS credentials: %w", err)
+	}
+	return c, nil
 }
 
 func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {

@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 
@@ -201,61 +202,31 @@ var fwAssumeRoleSchema = schema.ListNestedBlock{
 
 func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	var data tfMongodbAtlasProviderModel
-
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	data = setDefaultValuesWithValidations(ctx, &data, resp)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	cfg := config.Config{
-		PublicKey:        data.PublicKey.ValueString(),
-		PrivateKey:       data.PrivateKey.ValueString(),
-		BaseURL:          data.BaseURL.ValueString(),
-		RealmBaseURL:     data.RealmBaseURL.ValueString(),
-		TerraformVersion: req.TerraformVersion,
-		ClientID:         data.ClientID.ValueString(),
-		ClientSecret:     data.ClientSecret.ValueString(),
-		AccessToken:      data.AccessToken.ValueString(),
-	}
-
-	var assumeRoles []tfAssumeRoleModel
-	data.AssumeRole.ElementsAs(ctx, &assumeRoles, true)
-	awsRoleDefined := len(assumeRoles) > 0
-	if awsRoleDefined {
-		cfg.AssumeRoleARN = assumeRoles[0].RoleARN.ValueString()
-		secret := data.SecretName.ValueString()
-		region := conversion.MongoDBRegionToAWSRegion(data.Region.ValueString())
-		awsAccessKeyID := data.AwsAccessKeyID.ValueString()
-		awsSecretAccessKey := data.AwsSecretAccessKeyID.ValueString()
-		awsSessionToken := data.AwsSessionToken.ValueString()
-		endpoint := data.StsEndpoint.ValueString()
-		var err error
-		cfg, err = configureCredentialsSTS(&cfg, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
-		if err != nil {
-			resp.Diagnostics.AddError("failed to configure credentials STS", err.Error())
-			return
-		}
-	}
-
-	c := &config.Credentials{
-		AccessToken:  cfg.AccessToken,
-		ClientID:     cfg.ClientID,
-		ClientSecret: cfg.ClientSecret,
-		PublicKey:    cfg.PublicKey,
-		PrivateKey:   cfg.PrivateKey,
-		BaseURL:      cfg.BaseURL,
-		RealmBaseURL: cfg.RealmBaseURL,
-	}
-	client, err := config.NewClient(c, cfg.TerraformVersion)
-
+	awsCredentials, err := getTPFAWSCredentials(ctx, &data)
 	if err != nil {
+		// TODO: error message
 		resp.Diagnostics.AddError(
-			"failed to initialize a new client",
+			"failed to get AWS credentials",
+			err.Error(),
+		)
+		return
+	}
+
+	// TODO: chooose the credentials between AWS, SA or PAK
+	client, err := config.NewClient(awsCredentials, req.TerraformVersion)
+	if err != nil {
+		// TODO: error message
+		resp.Diagnostics.AddError(
+			"TODO FAIL AWS SECRETS MANAGER",
 			err.Error(),
 		)
 		return
@@ -263,6 +234,30 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 
 	resp.DataSourceData = client
 	resp.ResourceData = client
+}
+
+func getTPFAWSCredentials(ctx context.Context, data *tfMongodbAtlasProviderModel) (*config.Credentials, error) {
+	c := &config.Credentials{
+		Method: "AWS Secrets Manager",
+	}
+	var assumeRoles []tfAssumeRoleModel
+	data.AssumeRole.ElementsAs(ctx, &assumeRoles, true)
+	if len(assumeRoles) == 0 {
+		return c, nil
+	}
+	assumeRoleARN := assumeRoles[0].RoleARN.ValueString()
+	secret := data.SecretName.ValueString()
+	region := conversion.MongoDBRegionToAWSRegion(data.Region.ValueString())
+	awsAccessKeyID := data.AwsAccessKeyID.ValueString()
+	awsSecretAccessKey := data.AwsSecretAccessKeyID.ValueString()
+	awsSessionToken := data.AwsSessionToken.ValueString()
+	endpoint := data.StsEndpoint.ValueString()
+	// TODO: read from env vars if not here, and req object to configure
+	err := configureCredentialsSTS(c, assumeRoleARN, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
+	if err != nil {
+		return nil, fmt.Errorf("failed to configure STS credentials: %w", err)
+	}
+	return c, nil
 }
 
 func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasProviderModel, resp *provider.ConfigureResponse) tfMongodbAtlasProviderModel {
