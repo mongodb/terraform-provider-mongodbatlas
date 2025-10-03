@@ -111,7 +111,7 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 		Operations: operations,
 	}
 
-	applyConfigSchemaOptions(resourceConfig, resource)
+	applyTransformationsWithConfigOpts(resourceConfig, resource)
 
 	return resource
 }
