@@ -55,6 +55,12 @@ func IsDataUpdate() bool {
 
 func CaptureOrMockTestCaseAndRun(t *testing.T, config MockHTTPDataConfig, testCase *resource.TestCase) { //nolint: gocritic // Want each test run to have its own config (hugeParam: config is heavy (112 bytes); consider passing it by pointer)
 	t.Helper()
+	if acc.InUnitTest() { // Dummy credentials for mocked unit tests
+		t.Setenv("MONGODB_ATLAS_PUBLIC_KEY", "dummy")
+		t.Setenv("MONGODB_ATLAS_PRIVATE_KEY", "dummy")
+		t.Setenv("MONGODB_ATLAS_CLIENT_ID", "")
+		t.Setenv("MONGODB_ATLAS_CLIENT_SECRET", "")
+	}
 	var err error
 	noneSet := !IsCapture() && !IsReplay()
 	bothSet := IsCapture() && IsReplay()
