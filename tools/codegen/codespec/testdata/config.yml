@@ -42,3 +42,14 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}
       method: DELETE
+
+  test_singleton_resource_no_delete_op:
+    create:
+      path: /api/atlas/v2/groups/{groupId}/testSingletonResource
+      method: PATCH
+    read:
+      path: /api/atlas/v2/groups/{groupId}/testSingletonResource
+      method: GET
+    update:
+      path: /api/atlas/v2/groups/{groupId}/testSingletonResource
+      method: PATCH

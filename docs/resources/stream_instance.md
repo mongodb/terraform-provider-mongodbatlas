@@ -20,7 +20,7 @@ resource "mongodbatlas_stream_instance" "test" {
 ```
 
 ### Further Examples
-- [Atlas Stream Instance](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.41.1/examples/mongodbatlas_stream_instance)
+- [Atlas Stream Instance](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_stream_instance)
 
 ## Argument Reference
 

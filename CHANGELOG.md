@@ -1,10 +1,14 @@
 ## (Unreleased)
 
+BUG FIXES:
+
+* resource/mongodbatlas_advanced_cluster: Allows upgrade from tenant and flex cluster to dedicated NVMe with backup enabled ([#3725](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3725))
+
 ## 1.41.1 (October 01, 2025)
 
 BUG FIXES:
 
-* resource/mongodbatlas_advanced_cluster: Allows upgrade from tenant and flex cluster to dedicated NVMe with backup enabled ([#3725](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3725))
+* provider: Fixes STS region resolution when using cross-region authentication ([#3718](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3718))
 
 ## 2.0.1 (October 01, 2025)
 
