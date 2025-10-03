@@ -70,6 +70,5 @@ func init() {
 		BaseURL:      os.Getenv("MONGODB_ATLAS_BASE_URL"),
 		RealmBaseURL: os.Getenv("MONGODB_REALM_BASE_URL"),
 	}
-	client, _ := config.NewClient(c, "")
-	MongoDBClient = client
+	MongoDBClient, _ = config.NewClient(c, "")
 }

@@ -28,6 +28,7 @@ func getTokenSource(clientID, clientSecret, baseURL string, tokenRenewalBase htt
 	saInfo.mu.Lock()
 	defer saInfo.mu.Unlock()
 
+	baseURL = strings.TrimRight(baseURL, "/")
 	if saInfo.tokenSource != nil { // Token source in cache.
 		if saInfo.clientID != clientID || saInfo.clientSecret != clientSecret || saInfo.baseURL != baseURL {
 			return nil, fmt.Errorf("service account credentials changed")
@@ -37,7 +38,6 @@ func getTokenSource(clientID, clientSecret, baseURL string, tokenRenewalBase htt
 
 	conf := clientcredentials.NewConfig(clientID, clientSecret)
 	if baseURL != "" {
-		baseURL = strings.TrimRight(baseURL, "/")
 		conf.TokenURL = baseURL + clientcredentials.TokenAPIPath
 		conf.RevokeURL = baseURL + clientcredentials.RevokeAPIPath
 	}
