@@ -278,6 +278,7 @@ func NewTFStreamConnections(ctx context.Context,
 	return &TFStreamConnectionsDSModel{
 		ID:            types.StringValue(id.UniqueId()),
 		ProjectID:     streamConnectionsConfig.ProjectID,
+		InstanceName:  streamConnectionsConfig.InstanceName,
 		WorkspaceName: streamConnectionsConfig.WorkspaceName,
 		Results:       results,
 		PageNum:       streamConnectionsConfig.PageNum,
