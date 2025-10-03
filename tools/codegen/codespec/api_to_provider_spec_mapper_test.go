@@ -545,6 +545,7 @@ func TestConvertToProviderSpec_singletonResourceNoDeleteOperation(t *testing.T) 
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
 						},
 					},
 				},
