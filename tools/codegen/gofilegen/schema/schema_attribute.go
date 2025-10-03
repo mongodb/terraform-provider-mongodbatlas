@@ -147,7 +147,7 @@ func commonProperties(attr *codespec.Attribute, planModifierType string) []CodeS
 	}
 	if attr.CreateOnly { // as of now this is the only property which implies defining plan modifiers
 		result = append(result, CodeStatement{
-			Code: fmt.Sprintf("PlanModifiers: []%s{customplanmodifier.CreateOnlyAttributePlanModifier()}", planModifierType),
+			Code: fmt.Sprintf("PlanModifiers: []%s{customplanmodifier.CreateOnly()}", planModifierType),
 			Imports: []string{
 				"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier",
 				"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier",
