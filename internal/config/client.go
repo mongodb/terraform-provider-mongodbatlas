@@ -113,7 +113,7 @@ type MongoDBClient struct {
 
 // Config contains the configurations needed to use SDKs
 type Config struct {
-	AssumeRole       *AssumeRole
+	AssumeRoleARN    string
 	PublicKey        string
 	PrivateKey       string
 	BaseURL          string
@@ -130,18 +130,6 @@ func (c *Config) GetPrivateKey() string   { return c.PrivateKey }
 func (c *Config) GetClientID() string     { return c.ClientID }
 func (c *Config) GetClientSecret() string { return c.ClientSecret }
 func (c *Config) GetAccessToken() string  { return c.AccessToken }
-
-type AssumeRole struct {
-	Tags              map[string]string
-	RoleARN           string
-	ExternalID        string
-	Policy            string
-	SessionName       string
-	SourceIdentity    string
-	PolicyARNs        []string
-	TransitiveTagKeys []string
-	Duration          time.Duration
-}
 
 type SecretData struct {
 	PublicKey  string `json:"public_key"`

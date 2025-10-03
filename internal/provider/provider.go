@@ -4,11 +4,8 @@ import (
 	"context"
 	"log"
 	"os"
-	"regexp"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -24,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
@@ -92,27 +88,11 @@ type tfMongodbAtlasProviderModel struct {
 }
 
 type tfAssumeRoleModel struct {
-	PolicyARNs        types.Set    `tfsdk:"policy_arns"`
-	TransitiveTagKeys types.Set    `tfsdk:"transitive_tag_keys"`
-	Tags              types.Map    `tfsdk:"tags"`
-	Duration          types.String `tfsdk:"duration"`
-	ExternalID        types.String `tfsdk:"external_id"`
-	Policy            types.String `tfsdk:"policy"`
-	RoleARN           types.String `tfsdk:"role_arn"`
-	SessionName       types.String `tfsdk:"session_name"`
-	SourceIdentity    types.String `tfsdk:"source_identity"`
+	RoleARN types.String `tfsdk:"role_arn"`
 }
 
 var AssumeRoleType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"policy_arns":         types.SetType{ElemType: types.StringType},
-	"transitive_tag_keys": types.SetType{ElemType: types.StringType},
-	"tags":                types.MapType{ElemType: types.StringType},
-	"duration":            types.StringType,
-	"external_id":         types.StringType,
-	"policy":              types.StringType,
-	"role_arn":            types.StringType,
-	"session_name":        types.StringType,
-	"source_identity":     types.StringType,
+	"role_arn": types.StringType,
 }}
 
 func (p *MongodbtlasProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -211,62 +191,9 @@ var fwAssumeRoleSchema = schema.ListNestedBlock{
 	Validators: []validator.List{listvalidator.SizeAtMost(1)},
 	NestedObject: schema.NestedBlockObject{
 		Attributes: map[string]schema.Attribute{
-			"duration": schema.StringAttribute{
-				Optional:    true,
-				Description: "The duration, between 15 minutes and 12 hours, of the role session. Valid time units are ns, us (or µs), ms, s, h, or m.",
-				Validators: []validator.String{
-					validate.ValidDurationBetween(15, 12*60),
-				},
-			},
-			"external_id": schema.StringAttribute{
-				Optional:    true,
-				Description: "A unique identifier that might be required when you assume a role in another account.",
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(2, 1224),
-					stringvalidator.RegexMatches(regexp.MustCompile(`[\w+=,.@:/\-]*`), ""),
-				},
-			},
-			"policy": schema.StringAttribute{
-				Optional:    true,
-				Description: "IAM Policy JSON describing further restricting permissions for the IAM Role being assumed.",
-				Validators: []validator.String{
-					validate.StringIsJSON(),
-				},
-			},
-			"policy_arns": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-				Description: "Amazon Resource Names (ARNs) of IAM Policies describing further restricting permissions for the IAM Role being assumed.",
-			},
 			"role_arn": schema.StringAttribute{
 				Optional:    true,
 				Description: "Amazon Resource Name (ARN) of an IAM Role to assume prior to making API calls.",
-			},
-			"session_name": schema.StringAttribute{
-				Optional:    true,
-				Description: "An identifier for the assumed role session.",
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(2, 64),
-					stringvalidator.RegexMatches(regexp.MustCompile(`[\w+=,.@\-]*`), ""),
-				},
-			},
-			"source_identity": schema.StringAttribute{
-				Optional:    true,
-				Description: "Source identity specified by the principal assuming the role.",
-				Validators: []validator.String{
-					stringvalidator.LengthBetween(2, 64),
-					stringvalidator.RegexMatches(regexp.MustCompile(`[\w+=,.@\-]*`), ""),
-				},
-			},
-			"tags": schema.MapAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-				Description: "Assume role session tags.",
-			},
-			"transitive_tag_keys": schema.SetAttribute{
-				ElementType: types.StringType,
-				Optional:    true,
-				Description: "Assume role session tag keys to pass to any subsequent sessions.",
 			},
 		},
 	},
@@ -300,7 +227,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 	data.AssumeRole.ElementsAs(ctx, &assumeRoles, true)
 	awsRoleDefined := len(assumeRoles) > 0
 	if awsRoleDefined {
-		cfg.AssumeRole = parseTfModel(ctx, &assumeRoles[0])
+		cfg.AssumeRoleARN = assumeRoles[0].RoleARN.ValueString()
 		secret := data.SecretName.ValueString()
 		region := conversion.MongoDBRegionToAWSRegion(data.Region.ValueString())
 		awsAccessKeyID := data.AwsAccessKeyID.ValueString()
@@ -338,37 +265,6 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 	resp.ResourceData = client
 }
 
-// parseTfModel extracts the values from tfAssumeRoleModel creating a new instance of our internal model AssumeRole used in Config
-func parseTfModel(ctx context.Context, tfAssumeRoleModel *tfAssumeRoleModel) *config.AssumeRole {
-	assumeRole := config.AssumeRole{}
-
-	if !tfAssumeRoleModel.Duration.IsNull() {
-		duration, _ := time.ParseDuration(tfAssumeRoleModel.Duration.ValueString())
-		assumeRole.Duration = duration
-	}
-
-	assumeRole.ExternalID = tfAssumeRoleModel.ExternalID.ValueString()
-	assumeRole.Policy = tfAssumeRoleModel.Policy.ValueString()
-
-	if !tfAssumeRoleModel.PolicyARNs.IsNull() {
-		var policiesARNs []string
-		tfAssumeRoleModel.PolicyARNs.ElementsAs(ctx, &policiesARNs, true)
-		assumeRole.PolicyARNs = policiesARNs
-	}
-
-	assumeRole.RoleARN = tfAssumeRoleModel.RoleARN.ValueString()
-	assumeRole.SessionName = tfAssumeRoleModel.SessionName.ValueString()
-	assumeRole.SourceIdentity = tfAssumeRoleModel.SourceIdentity.ValueString()
-
-	if !tfAssumeRoleModel.TransitiveTagKeys.IsNull() {
-		var transitiveTagKeys []string
-		tfAssumeRoleModel.TransitiveTagKeys.ElementsAs(ctx, &transitiveTagKeys, true)
-		assumeRole.TransitiveTagKeys = transitiveTagKeys
-	}
-
-	return &assumeRole
-}
-
 func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasProviderModel, resp *provider.ConfigureResponse) tfMongodbAtlasProviderModel {
 	if mongodbgovCloud := data.IsMongodbGovCloud.ValueBool(); mongodbgovCloud {
 		if !isGovBaseURLConfiguredForProvider(data) {
@@ -393,10 +289,7 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 			var diags diag.Diagnostics
 			data.AssumeRole, diags = types.ListValueFrom(ctx, AssumeRoleType, []tfAssumeRoleModel{
 				{
-					Tags:              types.MapNull(types.StringType),
-					PolicyARNs:        types.SetNull(types.StringType),
-					TransitiveTagKeys: types.SetNull(types.StringType),
-					RoleARN:           types.StringValue(assumeRoleArn),
+					RoleARN: types.StringValue(assumeRoleArn),
 				},
 			})
 			if diags.HasError() {
