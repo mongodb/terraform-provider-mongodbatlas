@@ -1,7 +1,6 @@
 package acc
 
 import (
-	"context"
 	"os"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -47,7 +46,7 @@ func ConnV2UsingGov() *admin.APIClient {
 		PrivateKey: os.Getenv("MONGODB_ATLAS_GOV_PRIVATE_KEY"),
 		BaseURL:    os.Getenv("MONGODB_ATLAS_GOV_BASE_URL"),
 	}
-	client, _ := config.NewClient(context.Background(), c, "")
+	client, _ := config.NewClient(c, "")
 	return client.AtlasV2
 }
 
@@ -71,6 +70,6 @@ func init() {
 		BaseURL:      os.Getenv("MONGODB_ATLAS_BASE_URL"),
 		RealmBaseURL: os.Getenv("MONGODB_REALM_BASE_URL"),
 	}
-	client, _ := config.NewClient(context.Background(), c, "")
+	client, _ := config.NewClient(c, "")
 	MongoDBClient = client
 }

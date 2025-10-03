@@ -339,7 +339,7 @@ func providerConfigure(provider *schema.Provider) func(ctx context.Context, d *s
 			BaseURL:      cfg.BaseURL,
 			RealmBaseURL: cfg.RealmBaseURL,
 		}
-		client, err := config.NewClient(ctx, c, cfg.TerraformVersion)
+		client, err := config.NewClient(c, cfg.TerraformVersion)
 		if err != nil {
 			return nil, append(diagnostics, diag.FromErr(err)...)
 		}

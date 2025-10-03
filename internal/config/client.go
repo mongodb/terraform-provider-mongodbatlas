@@ -148,9 +148,9 @@ type SecretData struct {
 	PrivateKey string `json:"private_key"`
 }
 
-func NewClient(ctx context.Context, c *Credentials, terraformVersion string) (*MongoDBClient, error) {
+func NewClient(c *Credentials, terraformVersion string) (*MongoDBClient, error) {
 	userAgent := userAgent(terraformVersion)
-	client, err := getHTTPClient(ctx, c)
+	client, err := getHTTPClient(c)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +199,7 @@ func NewClient(ctx context.Context, c *Credentials, terraformVersion string) (*M
 	return clients, nil
 }
 
-func getHTTPClient(ctx context.Context, c *Credentials) (*http.Client, error) {
+func getHTTPClient(c *Credentials) (*http.Client, error) {
 	transport := networkLoggingBaseTransport()
 	switch c.AuthMethod() {
 	case AccessToken:

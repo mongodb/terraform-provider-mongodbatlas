@@ -324,7 +324,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		BaseURL:      cfg.BaseURL,
 		RealmBaseURL: cfg.RealmBaseURL,
 	}
-	client, err := config.NewClient(ctx, c, cfg.TerraformVersion)
+	client, err := config.NewClient(c, cfg.TerraformVersion)
 
 	if err != nil {
 		resp.Diagnostics.AddError(

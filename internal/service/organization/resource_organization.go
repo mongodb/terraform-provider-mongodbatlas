@@ -306,7 +306,7 @@ func getAtlasV2Connection(ctx context.Context, d *schema.ResourceData, meta any)
 		BaseURL:    currentClient.Config.BaseURL,
 	}
 	terraformVersion := currentClient.Config.TerraformVersion
-	newClient, err := config.NewClient(ctx, c, terraformVersion)
+	newClient, err := config.NewClient(c, terraformVersion)
 	if err != nil {
 		return currentClient.AtlasV2
 	}
