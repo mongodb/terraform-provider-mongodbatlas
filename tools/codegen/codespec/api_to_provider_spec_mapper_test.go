@@ -37,56 +37,65 @@ func TestConvertToProviderSpec(t *testing.T) {
 					Description: conversion.StringPtr(testResourceDesc),
 					Attributes: codespec.Attributes{
 						{
-							Name:                     "bool_default_attr",
+							TFSchemaName:             "bool_default_attr",
+							TFModelName:              "BoolDefaultAttr",
 							ComputedOptionalRequired: codespec.ComputedOptional,
 							Bool:                     &codespec.BoolAttribute{Default: conversion.Pointer(false)},
 						},
 						{
-							Name:                     "count",
+							TFSchemaName:             "count",
+							TFModelName:              "Count",
 							ComputedOptionalRequired: codespec.Optional,
 							Int64:                    &codespec.Int64Attribute{},
 							Description:              conversion.StringPtr(testFieldDesc),
 						},
 						{
-							Name:                     "create_date",
+							TFSchemaName:             "create_date",
+							TFModelName:              "CreateDate",
 							String:                   &codespec.StringAttribute{},
 							ComputedOptionalRequired: codespec.Computed,
 							Description:              conversion.StringPtr(testFieldDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
 						},
 						{
-							Name:                     "group_id",
+							TFSchemaName:             "group_id",
+							TFModelName:              "GroupId",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
 						},
 						{
-							Name:                     "num_double_default_attr",
+							TFSchemaName:             "num_double_default_attr",
+							TFModelName:              "NumDoubleDefaultAttr",
 							Float64:                  &codespec.Float64Attribute{Default: conversion.Pointer(2.0)},
 							ComputedOptionalRequired: codespec.ComputedOptional,
 						},
 						{
-							Name:                     "str_computed_attr",
+							TFSchemaName:             "str_computed_attr",
+							TFModelName:              "StrComputedAttr",
 							ComputedOptionalRequired: codespec.Computed,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testFieldDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
 						},
 						{
-							Name:                     "str_req_attr1",
+							TFSchemaName:             "str_req_attr1",
+							TFModelName:              "StrReqAttr1",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testFieldDesc),
 						},
 						{
-							Name:                     "str_req_attr2",
+							TFSchemaName:             "str_req_attr2",
+							TFModelName:              "StrReqAttr2",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testFieldDesc),
 						},
 						{
-							Name:                     "str_req_attr3",
+							TFSchemaName:             "str_req_attr3",
+							TFModelName:              "StrReqAttr3",
 							String:                   &codespec.StringAttribute{},
 							ComputedOptionalRequired: codespec.Required,
 							Description:              conversion.StringPtr(testFieldDesc),
@@ -131,27 +140,31 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 					Description: conversion.StringPtr(testResourceDesc),
 					Attributes: codespec.Attributes{
 						{
-							Name:                     "attr_always_in_updates",
+							TFSchemaName:             "attr_always_in_updates",
+							TFModelName:              "AttrAlwaysInUpdates",
 							ComputedOptionalRequired: codespec.Optional,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr("Always in updates"),
 						},
 						{
-							Name:                     "cluster_name",
+							TFSchemaName:             "cluster_name",
+							TFModelName:              "ClusterName",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
 						},
 						{
-							Name:                     "group_id",
+							TFSchemaName:             "group_id",
+							TFModelName:              "GroupId",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
 						},
 						{
-							Name:                     "list_primitive_string_attr",
+							TFSchemaName:             "list_primitive_string_attr",
+							TFModelName:              "ListPrimitiveStringAttr",
 							ComputedOptionalRequired: codespec.Computed,
 							List: &codespec.ListAttribute{
 								ElementType: codespec.String,
@@ -160,19 +173,22 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							ReqBodyUsage: codespec.OmitAlways,
 						},
 						{
-							Name:                     "nested_list_array_attr",
+							TFSchemaName:             "nested_list_array_attr",
+							TFModelName:              "NestedListArrayAttr",
 							ComputedOptionalRequired: codespec.Required,
 							ListNested: &codespec.ListNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
 										{
-											Name:                     "inner_num_attr",
+											TFSchemaName:             "inner_num_attr",
+											TFModelName:              "InnerNumAttr",
 											ComputedOptionalRequired: codespec.Required,
 											Int64:                    &codespec.Int64Attribute{},
 											Description:              conversion.StringPtr(testFieldDesc),
 										},
 										{
-											Name:                     "list_primitive_string_attr",
+											TFSchemaName:             "list_primitive_string_attr",
+											TFModelName:              "ListPrimitiveStringAttr",
 											ComputedOptionalRequired: codespec.Optional,
 											List: &codespec.ListAttribute{
 												ElementType: codespec.String,
@@ -180,7 +196,8 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 											Description: conversion.StringPtr(testFieldDesc),
 										},
 										{
-											Name:                     "list_primitive_string_computed_attr",
+											TFSchemaName:             "list_primitive_string_computed_attr",
+											TFModelName:              "ListPrimitiveStringComputedAttr",
 											ComputedOptionalRequired: codespec.Computed,
 											List: &codespec.ListAttribute{
 												ElementType: codespec.String,
@@ -194,13 +211,15 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							Description: conversion.StringPtr(testFieldDesc),
 						},
 						{
-							Name:                     "nested_map_object_attr",
+							TFSchemaName:             "nested_map_object_attr",
+							TFModelName:              "NestedMapObjectAttr",
 							ComputedOptionalRequired: codespec.Computed,
 							MapNested: &codespec.MapNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
 										{
-											Name:                     "attr",
+											TFSchemaName:             "attr",
+											TFModelName:              "Attr",
 											ComputedOptionalRequired: codespec.Computed,
 											String:                   &codespec.StringAttribute{},
 											ReqBodyUsage:             codespec.OmitAlways,
@@ -211,20 +230,23 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							ReqBodyUsage: codespec.OmitAlways,
 						},
 						{
-							Name:                     "nested_set_array_attr",
+							TFSchemaName:             "nested_set_array_attr",
+							TFModelName:              "NestedSetArrayAttr",
 							ComputedOptionalRequired: codespec.Computed,
 							SetNested: &codespec.SetNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
 										{
-											Name:                     "inner_num_attr",
+											TFSchemaName:             "inner_num_attr",
+											TFModelName:              "InnerNumAttr",
 											ComputedOptionalRequired: codespec.Computed,
 											Int64:                    &codespec.Int64Attribute{},
 											Description:              conversion.StringPtr(testFieldDesc),
 											ReqBodyUsage:             codespec.OmitAlways,
 										},
 										{
-											Name:                     "list_primitive_string_attr",
+											TFSchemaName:             "list_primitive_string_attr",
+											TFModelName:              "ListPrimitiveStringAttr",
 											ComputedOptionalRequired: codespec.Computed,
 											List: &codespec.ListAttribute{
 												ElementType: codespec.String,
@@ -239,13 +261,15 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							Description:  conversion.StringPtr(testFieldDesc),
 						},
 						{
-							Name:                     "optional_string_attr",
+							TFSchemaName:             "optional_string_attr",
+							TFModelName:              "OptionalStringAttr",
 							ComputedOptionalRequired: codespec.Optional,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr("Optional string"),
 						},
 						{
-							Name:                     "set_primitive_string_attr",
+							TFSchemaName:             "set_primitive_string_attr",
+							TFModelName:              "SetPrimitiveStringAttr",
 							ComputedOptionalRequired: codespec.Computed,
 							Set: &codespec.SetAttribute{
 								ElementType: codespec.String,
@@ -254,20 +278,23 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							Description:  conversion.StringPtr(testFieldDesc),
 						},
 						{
-							Name:                     "single_nested_attr",
+							TFSchemaName:             "single_nested_attr",
+							TFModelName:              "SingleNestedAttr",
 							ComputedOptionalRequired: codespec.Computed,
 							SingleNested: &codespec.SingleNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
 										{
-											Name:                     "inner_int_attr",
+											TFSchemaName:             "inner_int_attr",
+											TFModelName:              "InnerIntAttr",
 											ComputedOptionalRequired: codespec.Computed,
 											Int64:                    &codespec.Int64Attribute{},
 											Description:              conversion.StringPtr(testFieldDesc),
 											ReqBodyUsage:             codespec.OmitAlways,
 										},
 										{
-											Name:                     "inner_str_attr",
+											TFSchemaName:             "inner_str_attr",
+											TFModelName:              "InnerStrAttr",
 											ComputedOptionalRequired: codespec.Computed,
 											String:                   &codespec.StringAttribute{},
 											Description:              conversion.StringPtr(testFieldDesc),
@@ -280,13 +307,15 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							Description:  conversion.StringPtr(testFieldDesc),
 						},
 						{
-							Name:                     "single_nested_attr_with_nested_maps",
+							TFSchemaName:             "single_nested_attr_with_nested_maps",
+							TFModelName:              "SingleNestedAttrWithNestedMaps",
 							ComputedOptionalRequired: codespec.Computed,
 							SingleNested: &codespec.SingleNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
 										{
-											Name:                     "map_attr1",
+											TFSchemaName:             "map_attr1",
+											TFModelName:              "MapAttr1",
 											ComputedOptionalRequired: codespec.Computed,
 											Map: &codespec.MapAttribute{
 												ElementType: codespec.String,
@@ -294,7 +323,8 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 											ReqBodyUsage: codespec.OmitAlways,
 										},
 										{
-											Name:                     "map_attr2",
+											TFSchemaName:             "map_attr2",
+											TFModelName:              "MapAttr2",
 											ComputedOptionalRequired: codespec.Computed,
 											Map: &codespec.MapAttribute{
 												ElementType: codespec.String,
@@ -347,33 +377,38 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 					Description: conversion.StringPtr(testResourceDesc),
 					Attributes: codespec.Attributes{
 						{
-							Name:                     "attr_always_in_updates",
+							TFSchemaName:             "attr_always_in_updates",
+							TFModelName:              "AttrAlwaysInUpdates",
 							ComputedOptionalRequired: codespec.Optional,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr("Always in updates"),
 							ReqBodyUsage:             codespec.IncludeNullOnUpdate,
 						},
 						{
-							Name:                     "project_id",
+							TFSchemaName:             "project_id",
+							TFModelName:              "GroupId",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
 						},
 						{
-							Name:                     "nested_list_array_attr",
+							TFSchemaName:             "nested_list_array_attr",
+							TFModelName:              "NestedListArrayAttr",
 							ComputedOptionalRequired: codespec.Required,
 							ListNested: &codespec.ListNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
 										{
-											Name:                     "inner_num_attr_alias",
+											TFSchemaName:             "inner_num_attr_alias",
+											TFModelName:              "InnerNumAttr",
 											ComputedOptionalRequired: codespec.Required,
 											Int64:                    &codespec.Int64Attribute{},
 											Description:              conversion.StringPtr("Overridden inner_num_attr_alias description"),
 										},
 										{
-											Name:                     "list_primitive_string_computed_attr",
+											TFSchemaName:             "list_primitive_string_computed_attr",
+											TFModelName:              "ListPrimitiveStringComputedAttr",
 											ComputedOptionalRequired: codespec.Computed,
 											List: &codespec.ListAttribute{
 												ElementType: codespec.String,
@@ -387,27 +422,31 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 							Description: conversion.StringPtr(testFieldDesc),
 						},
 						{
-							Name:                     "optional_string_attr",
+							TFSchemaName:             "optional_string_attr",
+							TFModelName:              "OptionalStringAttr",
 							ComputedOptionalRequired: codespec.ComputedOptional,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr("Optional string that has config override to optional/computed"),
 						},
 						{
-							Name:                     "outer_object",
+							TFSchemaName:             "outer_object",
+							TFModelName:              "OuterObject",
 							ComputedOptionalRequired: codespec.Computed,
 							ReqBodyUsage:             codespec.OmitAlways,
 							SingleNested: &codespec.SingleNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
 										{
-											Name:                     "nested_level1",
+											TFSchemaName:             "nested_level1",
+											TFModelName:              "NestedLevel1",
 											ComputedOptionalRequired: codespec.Computed,
 											ReqBodyUsage:             codespec.OmitAlways,
 											SingleNested: &codespec.SingleNestedAttribute{
 												NestedObject: codespec.NestedAttributeObject{
 													Attributes: codespec.Attributes{
 														{
-															Name:                     "level_field1_alias",
+															TFSchemaName:             "level_field1_alias",
+															TFModelName:              "LevelField1",
 															ComputedOptionalRequired: codespec.Computed,
 															ReqBodyUsage:             codespec.OmitAlways,
 															String:                   &codespec.StringAttribute{},
@@ -422,7 +461,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 							},
 						},
 						{
-							Name: "timeouts",
+							TFSchemaName: "timeouts",
 							Timeouts: &codespec.TimeoutsAttribute{
 								ConfigurableTimeouts: []codespec.Operation{codespec.Create, codespec.Read, codespec.Update, codespec.Delete},
 							},
@@ -469,21 +508,24 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 					Description: conversion.StringPtr(testResourceDesc),
 					Attributes: codespec.Attributes{
 						{
-							Name:                     "group_id",
+							TFSchemaName:             "group_id",
+							TFModelName:              "GroupId",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
 						},
 						{
-							Name:                     "special_param",
+							TFSchemaName:             "special_param",
+							TFModelName:              "SpecialParam",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							ReqBodyUsage:             codespec.OmitInUpdateBody,
 							Description:              conversion.StringPtr(testPathParamDesc),
 						},
 						{
-							Name:                     "str_req_attr1",
+							TFSchemaName:             "str_req_attr1",
+							TFModelName:              "StrReqAttr1",
 							ComputedOptionalRequired: codespec.Optional,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testFieldDesc),
@@ -529,12 +571,14 @@ func TestConvertToProviderSpec_singletonResourceNoDeleteOperation(t *testing.T) 
 					Description: conversion.StringPtr("PATCH API description"),
 					Attributes: codespec.Attributes{
 						{
-							Name:                     "flag",
+							TFSchemaName:             "flag",
+							TFModelName:              "Flag",
 							ComputedOptionalRequired: codespec.Optional,
 							Bool:                     &codespec.BoolAttribute{},
 						},
 						{
-							Name:                     "group_id",
+							TFSchemaName:             "group_id",
+							TFModelName:              "GroupId",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 )
 
 const (
@@ -62,7 +63,7 @@ func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error)
 }
 
 func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[string]any, isUpdate, includeNullOnUpdate bool) error {
-	attrNameJSON := toJSONName(attrNameModel)
+	attrNameJSON := stringcase.Uncapitalize(attrNameModel)
 	obj, ok := attrValModel.Interface().(attr.Value)
 	if !ok {
 		panic("marshal expects only Terraform types in the model")
@@ -141,9 +142,9 @@ func getMapAttr(elms map[string]attr.Value, keepKeyCase bool) (any, error) {
 			return nil, err
 		}
 		if valChild != nil {
-			nameJSON := toJSONName(name)
-			if keepKeyCase {
-				nameJSON = name
+			nameJSON := name
+			if !keepKeyCase {
+				nameJSON = stringcase.ToCamelCase(name)
 			}
 			objJSON[nameJSON] = valChild
 		}

@@ -63,8 +63,8 @@ type TFModel struct {
 	GroupId                                         types.String `tfsdk:"group_id" autogen:"omitjson"`
 	IsCollectDatabaseSpecificsStatisticsEnabled     types.Bool   `tfsdk:"is_collect_database_specifics_statistics_enabled"`
 	IsDataExplorerEnabled                           types.Bool   `tfsdk:"is_data_explorer_enabled"`
-	IsDataExplorerGenAiFeaturesEnabled              types.Bool   `tfsdk:"is_data_explorer_gen_ai_features_enabled"`
-	IsDataExplorerGenAiSampleDocumentPassingEnabled types.Bool   `tfsdk:"is_data_explorer_gen_ai_sample_document_passing_enabled"`
+	IsDataExplorerGenAIFeaturesEnabled              types.Bool   `tfsdk:"is_data_explorer_gen_ai_features_enabled"`
+	IsDataExplorerGenAISampleDocumentPassingEnabled types.Bool   `tfsdk:"is_data_explorer_gen_ai_sample_document_passing_enabled"`
 	IsExtendedStorageSizesEnabled                   types.Bool   `tfsdk:"is_extended_storage_sizes_enabled"`
 	IsPerformanceAdvisorEnabled                     types.Bool   `tfsdk:"is_performance_advisor_enabled"`
 	IsRealtimePerformancePanelEnabled               types.Bool   `tfsdk:"is_realtime_performance_panel_enabled"`

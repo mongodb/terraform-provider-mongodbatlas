@@ -514,7 +514,7 @@ components:
           $ref: "#/components/schemas/SingleNestedAttr"
         nestedMapObjectAttr:
           $ref: "#/components/schemas/NestedMapObjectAttr"
-        optional_string_attr:
+        optionalStringAttr:
           type: string
           description: Optional string
         attrAlwaysInUpdates:
@@ -577,7 +577,7 @@ components:
             $ref: "#/components/schemas/NestedObjectAttr"
           maxItems: 1
           minItems: 1
-        optional_string_attr:
+        optionalStringAttr:
           type: string
           description: Optional string
         attrAlwaysInUpdates:

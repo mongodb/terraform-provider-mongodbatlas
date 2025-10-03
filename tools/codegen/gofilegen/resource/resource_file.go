@@ -4,9 +4,9 @@ import (
 	"go/format"
 	"regexp"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/codetemplate"
-	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
 )
 
 func GenerateGoCode(input *codespec.Resource) string {
@@ -70,7 +70,7 @@ func getPathParams(s string) []codetemplate.Param {
 		paramName := match[1]
 		params = append(params, codetemplate.Param{
 			CamelCaseName:  paramName,
-			PascalCaseName: stringcase.FromCamelCase(paramName).PascalCase(),
+			PascalCaseName: stringcase.Capitalize(paramName),
 		})
 	}
 	return params

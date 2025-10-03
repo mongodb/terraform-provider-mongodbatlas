@@ -118,7 +118,7 @@ func commonAttrStructure(attr *codespec.Attribute, typeDef string, specificPrope
 		imports = append(imports, specificProperties[i].Imports...)
 	}
 
-	name := attr.Name
+	name := attr.TFSchemaName
 	propsResultString := strings.Join(properties, ",\n") + ","
 	code := fmt.Sprintf(`"%s": %s{
 		%s
