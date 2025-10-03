@@ -493,7 +493,7 @@ func TestStreamConnectionsSDKToTFModelError(t *testing.T) {
 				WorkspaceName: types.StringValue(instanceName),
 				InstanceName:  types.StringValue(instanceName),
 			},
-			expectedErrorString: "Attribute \"instance_name\" cannot be specified when \"workspace_name\" is specified",
+			expectedErrorString: "Attribute \"workspace_name\" cannot be specified when \"instance_name\" is specified",
 		},
 	}
 

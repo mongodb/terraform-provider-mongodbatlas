@@ -136,7 +136,7 @@ func NewTFStreamConnectionWithInstanceName(ctx context.Context, projID, instance
 	}
 
 	if workspaceName != "" && instanceName != "" {
-		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Attribute \"instance_name\" cannot be specified when \"workspace_name\" is specified", "")}
+		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Attribute \"workspace_name\" cannot be specified when \"instance_name\" is specified", "")}
 	}
 	// Set the appropriate field based on the original model
 	if workspaceName != "" {
@@ -263,7 +263,7 @@ func NewTFStreamConnections(ctx context.Context,
 	workspaceName := streamConnectionsConfig.WorkspaceName.ValueString()
 	instanceName := streamConnectionsConfig.InstanceName.ValueString()
 	if workspaceName != "" && instanceName != "" {
-		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Attribute \"instance_name\" cannot be specified when \"workspace_name\" is specified", "")}
+		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Attribute \"workspace_name\" cannot be specified when \"instance_name\" is specified", "")}
 	}
 
 	for i := range input {
@@ -278,7 +278,6 @@ func NewTFStreamConnections(ctx context.Context,
 	return &TFStreamConnectionsDSModel{
 		ID:            types.StringValue(id.UniqueId()),
 		ProjectID:     streamConnectionsConfig.ProjectID,
-		InstanceName:  streamConnectionsConfig.InstanceName,
 		WorkspaceName: streamConnectionsConfig.WorkspaceName,
 		Results:       results,
 		PageNum:       streamConnectionsConfig.PageNum,

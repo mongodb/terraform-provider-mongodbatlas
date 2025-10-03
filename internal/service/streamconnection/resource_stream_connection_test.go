@@ -406,7 +406,7 @@ func TestAccStreamRSStreamConnection_conflictingFields(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      configureKafkaWithInstanceAndWorkspaceName(projectID, instanceName, connectionName, "user", "password", "localhost:9092"),
-				ExpectError: regexp.MustCompile("Attribute \"instance_name\" cannot be specified when \"workspace_name\" is specified"),
+				ExpectError: regexp.MustCompile("Attribute \"workspace_name\" cannot be specified when \"instance_name\" is specified"),
 			},
 		},
 	})
