@@ -65,7 +65,7 @@ type MongoDBClient struct {
 
 // Config contains the configurations needed to use SDKs
 type Config struct {
-	AssumeRole                      *AssumeRole
+	AssumeRoleARN                   string
 	PublicKey                       string
 	PrivateKey                      string
 	BaseURL                         string
@@ -73,19 +73,6 @@ type Config struct {
 	TerraformVersion                string
 	PreviewV2AdvancedClusterEnabled bool
 }
-
-type AssumeRole struct {
-	Tags              map[string]string
-	RoleARN           string
-	ExternalID        string
-	Policy            string
-	SessionName       string
-	SourceIdentity    string
-	PolicyARNs        []string
-	TransitiveTagKeys []string
-	Duration          time.Duration
-}
-
 type SecretData struct {
 	PublicKey  string `json:"public_key"`
 	PrivateKey string `json:"private_key"`
@@ -96,7 +83,7 @@ type UAMetadata struct {
 	Value string
 }
 
-func (c *Config) NewClient(ctx context.Context) (any, error) {
+func (c *Config) NewClient(ctx context.Context) (*MongoDBClient, error) {
 	// Network Logging transport is before Digest transport so it can log the first Digest requests with 401 Unauthorized.
 	// Terraform logging transport is after Digest transport so the Unauthorized request bodies are not logged.
 	networkLoggingTransport := NewTransportWithNetworkLogging(baseTransport, logging.IsDebugOrHigher())
