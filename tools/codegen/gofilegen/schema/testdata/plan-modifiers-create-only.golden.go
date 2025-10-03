@@ -17,51 +17,51 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"string_attr": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "string description",
-				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnlyAttributePlanModifier()},
+				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"bool_attr": schema.BoolAttribute{
 				Optional:            true,
 				MarkdownDescription: "bool description",
-				PlanModifiers:       []planmodifier.Bool{customplanmodifier.CreateOnlyAttributePlanModifier()},
+				PlanModifiers:       []planmodifier.Bool{customplanmodifier.CreateOnly()},
 			},
 			"int_attr": schema.Int64Attribute{
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "int description",
-				PlanModifiers:       []planmodifier.Int64{customplanmodifier.CreateOnlyAttributePlanModifier()},
+				PlanModifiers:       []planmodifier.Int64{customplanmodifier.CreateOnly()},
 			},
 			"float_attr": schema.Float64Attribute{
 				Optional:            true,
 				MarkdownDescription: "float description",
-				PlanModifiers:       []planmodifier.Float64{customplanmodifier.CreateOnlyAttributePlanModifier()},
+				PlanModifiers:       []planmodifier.Float64{customplanmodifier.CreateOnly()},
 			},
 			"number_attr": schema.NumberAttribute{
 				Optional:            true,
 				MarkdownDescription: "number description",
-				PlanModifiers:       []planmodifier.Number{customplanmodifier.CreateOnlyAttributePlanModifier()},
+				PlanModifiers:       []planmodifier.Number{customplanmodifier.CreateOnly()},
 			},
 			"simple_list_attr": schema.ListAttribute{
 				Optional:            true,
 				MarkdownDescription: "simple arr description",
-				PlanModifiers:       []planmodifier.List{customplanmodifier.CreateOnlyAttributePlanModifier()},
+				PlanModifiers:       []planmodifier.List{customplanmodifier.CreateOnly()},
 				ElementType:         types.StringType,
 			},
 			"simple_set_attr": schema.SetAttribute{
 				Optional:            true,
 				MarkdownDescription: "simple set description",
-				PlanModifiers:       []planmodifier.Set{customplanmodifier.CreateOnlyAttributePlanModifier()},
+				PlanModifiers:       []planmodifier.Set{customplanmodifier.CreateOnly()},
 				ElementType:         types.Float64Type,
 			},
 			"simple_map_attr": schema.MapAttribute{
 				Optional:            true,
 				MarkdownDescription: "simple map description",
-				PlanModifiers:       []planmodifier.Map{customplanmodifier.CreateOnlyAttributePlanModifier()},
+				PlanModifiers:       []planmodifier.Map{customplanmodifier.CreateOnly()},
 				ElementType:         types.BoolType,
 			},
 			"nested_single_attr": schema.SingleNestedAttribute{
 				Required:            true,
 				MarkdownDescription: "nested single attribute",
-				PlanModifiers:       []planmodifier.Object{customplanmodifier.CreateOnlyAttributePlanModifier()},
+				PlanModifiers:       []planmodifier.Object{customplanmodifier.CreateOnly()},
 				Attributes: map[string]schema.Attribute{
 					"int_attr": schema.Int64Attribute{
 						Required:            true,
@@ -72,7 +72,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"nested_list_attr": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "nested list attribute",
-				PlanModifiers:       []planmodifier.List{customplanmodifier.CreateOnlyAttributePlanModifier()},
+				PlanModifiers:       []planmodifier.List{customplanmodifier.CreateOnly()},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"int_attr": schema.Int64Attribute{
@@ -86,7 +86,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "set nested attribute",
-				PlanModifiers:       []planmodifier.Set{customplanmodifier.CreateOnlyAttributePlanModifier()},
+				PlanModifiers:       []planmodifier.Set{customplanmodifier.CreateOnly()},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"int_attr": schema.Int64Attribute{
@@ -100,7 +100,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "map nested attribute",
-				PlanModifiers:       []planmodifier.Map{customplanmodifier.CreateOnlyAttributePlanModifier()},
+				PlanModifiers:       []planmodifier.Map{customplanmodifier.CreateOnly()},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"int_attr": schema.Int64Attribute{
