@@ -453,7 +453,7 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 	}
 
 	if err := setValueFromConfigOrEnv(d, "access_token", []string{
-		"MONGODB_ATLAS_OAUTH_TOKEN",
+		"MONGODB_ATLAS_ACCESS_TOKEN",
 		"TF_VAR_OAUTH_TOKEN",
 	}); err != nil {
 		return append(diagnostics, diag.FromErr(err)...)

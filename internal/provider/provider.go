@@ -478,7 +478,7 @@ func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasPr
 
 	if data.AccessToken.ValueString() == "" {
 		data.AccessToken = types.StringValue(MultiEnvDefaultFunc([]string{
-			"MONGODB_ATLAS_OAUTH_TOKEN",
+			"MONGODB_ATLAS_ACCESS_TOKEN",
 			"TF_VAR_OAUTH_TOKEN",
 		}, "").(string))
 	}
