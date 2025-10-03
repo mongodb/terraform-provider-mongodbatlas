@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/unit"
 )
 
@@ -34,7 +35,8 @@ func specInstanceSizeNodeCount(instanceSize string, nodeCount int) knownvalue.Ch
 	})
 }
 
-func TestPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
+func TestAccPlanChecksClusterTwoRepSpecsWithAutoScalingAndSpecs(t *testing.T) {
+	acc.SkipInUnitTest(t)
 	var (
 		baseConfig         = unit.NewMockPlanChecksConfig(t, &mockConfig, unit.ImportNameClusterTwoRepSpecsWithAutoScalingAndSpecs)
 		resourceName       = baseConfig.ResourceName
