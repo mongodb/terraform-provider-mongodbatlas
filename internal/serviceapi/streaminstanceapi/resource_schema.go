@@ -30,13 +30,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									MarkdownDescription: "OIDC client secret for authentication to the Kafka cluster.",
 									Sensitive:           true,
 								},
-								"https_ca_pem": schema.StringAttribute{
-									Computed:            true,
-									MarkdownDescription: "HTTPS CA certificate in PEM format for SSL/TLS verification.",
-								},
 								"mechanism": schema.StringAttribute{
 									Computed:            true,
 									MarkdownDescription: "Style of authentication. Can be one of PLAIN, SCRAM-256, SCRAM-512, or OAUTHBEARER.",
+								},
+								"method": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "SASL OAUTHBEARER authentication method. Can only be OIDC currently.",
 								},
 								"password": schema.StringAttribute{
 									Computed:            true,
@@ -222,6 +222,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Configuration options for an Atlas Stream Processing Instance.",
 				Attributes: map[string]schema.Attribute{
+					"max_tier_size": schema.StringAttribute{
+						Optional:            true,
+						MarkdownDescription: "Max tier size for the Stream Instance. Configures Memory / VCPU allowances. This field is not supported yet.",
+					},
 					"tier": schema.StringAttribute{
 						Optional:            true,
 						MarkdownDescription: "Selected tier for the Stream Instance. Configures Memory / VCPU allowances.",
@@ -259,8 +263,8 @@ type TFConnectionsModel struct {
 type TFConnectionsAuthenticationModel struct {
 	ClientId                  types.String `tfsdk:"client_id" autogen:"omitjson"`
 	ClientSecret              types.String `tfsdk:"client_secret" autogen:"omitjson"`
-	HttpsCaPem                types.String `tfsdk:"https_ca_pem" autogen:"omitjson"`
 	Mechanism                 types.String `tfsdk:"mechanism" autogen:"omitjson"`
+	Method                    types.String `tfsdk:"method" autogen:"omitjson"`
 	Password                  types.String `tfsdk:"password" autogen:"omitjson"`
 	SaslOauthbearerExtensions types.String `tfsdk:"sasl_oauthbearer_extensions" autogen:"omitjson"`
 	Scope                     types.String `tfsdk:"scope" autogen:"omitjson"`
@@ -299,5 +303,6 @@ type TFSampleConnectionsModel struct {
 	Solar types.Bool `tfsdk:"solar"`
 }
 type TFStreamConfigModel struct {
-	Tier types.String `tfsdk:"tier"`
+	MaxTierSize types.String `tfsdk:"max_tier_size"`
+	Tier        types.String `tfsdk:"tier"`
 }
