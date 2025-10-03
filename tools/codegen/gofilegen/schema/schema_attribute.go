@@ -109,7 +109,7 @@ func commonAttrStructure(attr *codespec.Attribute, attrDefType, planModifierType
 	properties := commonProperties(attr, planModifierType)
 	properties = append(properties, specificProperties...)
 
-	name := attr.Name
+	name := attr.TFSchemaName
 	result := GroupCodeStatements(properties, func(properties []string) string {
 		return strings.Join(properties, ",\n") + ","
 	})

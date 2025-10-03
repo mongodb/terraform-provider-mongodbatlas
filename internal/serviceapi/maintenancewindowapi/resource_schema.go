@@ -51,7 +51,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"start_asap": schema.BoolAttribute{
-				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Flag that indicates whether MongoDB Cloud starts the maintenance window immediately upon receiving this request. To start the maintenance window immediately for your project, MongoDB Cloud must have maintenance scheduled and you must set a maintenance window. This flag resets to `false` after MongoDB Cloud completes maintenance.",
 			},
 			"time_zone_id": schema.StringAttribute{
@@ -70,7 +70,7 @@ type TFModel struct {
 	HourOfDay            types.Int64  `tfsdk:"hour_of_day"`
 	NumberOfDeferrals    types.Int64  `tfsdk:"number_of_deferrals" autogen:"omitjson"`
 	AutoDeferOnceEnabled types.Bool   `tfsdk:"auto_defer_once_enabled"`
-	StartAsap            types.Bool   `tfsdk:"start_asap"`
+	StartASAP            types.Bool   `tfsdk:"start_asap"`
 }
 type TFProtectedHoursModel struct {
 	EndHourOfDay   types.Int64 `tfsdk:"end_hour_of_day"`

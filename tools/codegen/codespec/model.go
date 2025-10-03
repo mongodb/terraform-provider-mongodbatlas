@@ -1,6 +1,8 @@
 package codespec
 
-import "github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
+import (
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
+)
 
 type ElemType int
 
@@ -77,7 +79,8 @@ type Attribute struct {
 	DeprecationMessage       *string
 	CustomType               *CustomType
 	ComputedOptionalRequired ComputedOptionalRequired
-	Name                     stringcase.SnakeCaseString
+	TFSchemaName             stringcase.SnakeCaseString
+	TFModelName              string
 	ReqBodyUsage             AttributeReqBodyUsage
 	Sensitive                bool
 	CreateOnly               bool // leveraged for defining plan modifier which avoids updates on this attribute

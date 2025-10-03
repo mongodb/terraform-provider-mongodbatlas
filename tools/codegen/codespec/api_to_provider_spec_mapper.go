@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 	high "github.com/pb33f/libopenapi/datamodel/high/v3"
 	low "github.com/pb33f/libopenapi/datamodel/low/v3"
 	"github.com/pb33f/libopenapi/orderedmap"
@@ -13,7 +14,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
-	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
 )
 
 func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName *string) (*Model, error) {
