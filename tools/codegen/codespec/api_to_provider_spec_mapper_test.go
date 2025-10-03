@@ -60,6 +60,7 @@ func TestConvertToProviderSpec(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
 						},
 						{
 							Name:                     "num_double_default_attr",
@@ -142,6 +143,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
 						},
 						{
 							Name:                     "group_id",
@@ -149,6 +151,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
 						},
 						{
 							Name:                     "list_primitive_string_attr",
@@ -359,6 +362,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
 						},
 						{
 							Name:                     "nested_list_array_attr",
@@ -474,6 +478,7 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
 						},
 						{
 							Name:                     "special_param",
@@ -481,6 +486,7 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							ReqBodyUsage:             codespec.OmitInUpdateBody,
 							Description:              conversion.StringPtr(testPathParamDesc),
+							CreateOnly:               true,
 						},
 						{
 							Name:                     "str_req_attr1",
