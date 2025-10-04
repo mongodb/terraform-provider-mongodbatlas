@@ -25,47 +25,57 @@ const (
 	minSegmentsForSTSRegionalHost = 4
 )
 
-// TODO: req object
-func configureCredentialsSTS(c *config.Credentials, assumeRoleARN, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) error {
+func getAWSCredentials(c *config.AWSVars) (*config.Credentials, error) {
 	defaultResolver := endpoints.DefaultResolver()
 	stsCustResolverFn := func(service, _ string, optFns ...func(*endpoints.Options)) (endpoints.ResolvedEndpoint, error) {
 		if service == sts.EndpointsID {
-			resolved, err := ResolveSTSEndpoint(endpoint, region)
+			resolved, err := ResolveSTSEndpoint(c.Endpoint, c.Region)
 			if err != nil {
 				return endpoints.ResolvedEndpoint{}, err
 			}
 			return resolved, nil
 		}
-		return defaultResolver.EndpointFor(service, region, optFns...)
+		return defaultResolver.EndpointFor(service, c.Region, optFns...)
 	}
 	sess := session.Must(session.NewSession(&aws.Config{
-		Region:           aws.String(region),
-		Credentials:      credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, awsSessionToken),
+		Region:           aws.String(c.Region),
+		Credentials:      credentials.NewStaticCredentials(c.AccessKeyID, c.SecretAccessKey, c.SessionToken),
 		EndpointResolver: endpoints.ResolverFunc(stsCustResolverFn),
 	}))
-	creds := stscreds.NewCredentials(sess, assumeRoleARN)
+	creds := stscreds.NewCredentials(sess, c.AssumeRoleARN)
 	if _, err := sess.Config.Credentials.Get(); err != nil {
-		return err
+		return nil, err
 	}
 	if _, err := creds.Get(); err != nil {
-		return err
+		return nil, err
 	}
-	secretString, err := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
+	secretString, err := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(c.Region)}, c.SecretName)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	var secretData SecretData
-	err = json.Unmarshal([]byte(secretString), &secretData)
+	// TODO could credentials be reused removing Method?
+	var secret struct {
+		AccessToken  string `json:"access_token"`
+		ClientID     string `json:"client_id"`
+		ClientSecret string `json:"client_secret"`
+		PublicKey    string `json:"public_key"`
+		PrivateKey   string `json:"private_key"`
+	}
+	err = json.Unmarshal([]byte(secretString), &secret)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	// TODO: how to read URLs in AWS Secrets Manager?
-	c.AccessToken = secretData.AccessToken
-	c.ClientID = secretData.ClientID
-	c.ClientSecret = secretData.ClientSecret
-	c.PublicKey = secretData.PublicKey
-	c.PrivateKey = secretData.PrivateKey
-	return nil
+	return &config.Credentials{
+		Method:       "AWS Secrets Manager",
+		AccessToken:  secret.AccessToken,
+		ClientID:     secret.ClientID,
+		ClientSecret: secret.ClientSecret,
+		PublicKey:    secret.PublicKey,
+		PrivateKey:   secret.PrivateKey,
+		BaseURL:      "", // TODO: how to read
+		RealmBaseURL: "", // TODO: how to read
+	}, nil
 }
 
 func DeriveSTSRegionFromEndpoint(ep string) string {

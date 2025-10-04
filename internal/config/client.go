@@ -95,18 +95,6 @@ type Config struct {
 	AccessToken      string
 }
 
-// CredentialProvider implementation for Config
-func (c *Config) GetPublicKey() string    { return c.PublicKey }
-func (c *Config) GetPrivateKey() string   { return c.PrivateKey }
-func (c *Config) GetClientID() string     { return c.ClientID }
-func (c *Config) GetClientSecret() string { return c.ClientSecret }
-func (c *Config) GetAccessToken() string  { return c.AccessToken }
-
-type SecretData struct {
-	PublicKey  string `json:"public_key"`
-	PrivateKey string `json:"private_key"`
-}
-
 func NewClient(c *Credentials, terraformVersion string) (*MongoDBClient, error) {
 	userAgent := userAgent(terraformVersion)
 	client, err := getHTTPClient(c)

@@ -2,12 +2,9 @@ package provider
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"os"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
@@ -20,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
@@ -69,31 +65,27 @@ const (
 type MongodbtlasProvider struct {
 }
 
-type tfMongodbAtlasProviderModel struct {
-	AssumeRole           types.List   `tfsdk:"assume_role"`
-	Region               types.String `tfsdk:"region"`
-	PrivateKey           types.String `tfsdk:"private_key"`
-	BaseURL              types.String `tfsdk:"base_url"`
-	RealmBaseURL         types.String `tfsdk:"realm_base_url"`
-	SecretName           types.String `tfsdk:"secret_name"`
-	PublicKey            types.String `tfsdk:"public_key"`
-	StsEndpoint          types.String `tfsdk:"sts_endpoint"`
-	AwsAccessKeyID       types.String `tfsdk:"aws_access_key_id"`
-	AwsSecretAccessKeyID types.String `tfsdk:"aws_secret_access_key"`
-	AwsSessionToken      types.String `tfsdk:"aws_session_token"`
-	ClientID             types.String `tfsdk:"client_id"`
-	ClientSecret         types.String `tfsdk:"client_secret"`
-	AccessToken          types.String `tfsdk:"access_token"`
-	IsMongodbGovCloud    types.Bool   `tfsdk:"is_mongodbgov_cloud"`
+type tfModel struct {
+	Region               types.String        `tfsdk:"region"`
+	PrivateKey           types.String        `tfsdk:"private_key"`
+	BaseURL              types.String        `tfsdk:"base_url"`
+	RealmBaseURL         types.String        `tfsdk:"realm_base_url"`
+	SecretName           types.String        `tfsdk:"secret_name"`
+	PublicKey            types.String        `tfsdk:"public_key"`
+	StsEndpoint          types.String        `tfsdk:"sts_endpoint"`
+	AwsAccessKeyID       types.String        `tfsdk:"aws_access_key_id"`
+	AwsSecretAccessKeyID types.String        `tfsdk:"aws_secret_access_key"`
+	AwsSessionToken      types.String        `tfsdk:"aws_session_token"`
+	ClientID             types.String        `tfsdk:"client_id"`
+	ClientSecret         types.String        `tfsdk:"client_secret"`
+	AccessToken          types.String        `tfsdk:"access_token"`
+	AssumeRole           []tfAssumeRoleModel `tfsdk:"assume_role"`
+	IsMongodbGovCloud    types.Bool          `tfsdk:"is_mongodbgov_cloud"`
 }
 
 type tfAssumeRoleModel struct {
 	RoleARN types.String `tfsdk:"role_arn"`
 }
-
-var AssumeRoleType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"role_arn": types.StringType,
-}}
 
 func (p *MongodbtlasProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "mongodbatlas"
@@ -200,79 +192,64 @@ var fwAssumeRoleSchema = schema.ListNestedBlock{
 }
 
 func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	var data tfMongodbAtlasProviderModel
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	providerVars := getProviderVars(ctx, req, resp)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// TODO: refactor, it's similar to the other provider
 
 	envVars := config.NewEnvVars()
 
-	awsCredentials, err := getTPFAWSCredentials(ctx, &data)
+	// decide what to do if AWS is not chosen from provider and env vars
+	awsCredentials, err := getAWSCredentials(envVars.GetAWS())
 	if err != nil {
-		// TODO: error message
-		resp.Diagnostics.AddError(
-			"failed to get AWS credentials",
-			err.Error(),
-		)
+		resp.Diagnostics.AddError("Error getting AWS credentials", err.Error())
 		return
 	}
 
-	providerCredentials := getTPFProviderCredentials(&data, resp)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	_, _ = providerCredentials, awsCredentials
+	_, _ = providerVars, awsCredentials
 
 	// TODO: chooose the credentials between AWS, SA or PAK
 	client, err := config.NewClient(envVars.GetCredentials(), req.TerraformVersion)
 	if err != nil {
-		// TODO: error message
-		resp.Diagnostics.AddError(
-			"TODO FAIL AWS SECRETS MANAGER",
-			err.Error(),
-		)
+		resp.Diagnostics.AddError("Error initializing provider", err.Error())
 		return
 	}
+
+	// TODO gov look former code
 
 	resp.DataSourceData = client
 	resp.ResourceData = client
 }
 
-func getTPFAWSCredentials(ctx context.Context, data *tfMongodbAtlasProviderModel) (*config.Credentials, error) {
-	c := &config.Credentials{
-		Method: "AWS Secrets Manager",
+// TODO: see Gov
+func getProviderVars(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) *config.Vars {
+	var data tfModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return nil
 	}
-	var assumeRoles []tfAssumeRoleModel
-	data.AssumeRole.ElementsAs(ctx, &assumeRoles, true)
-	if len(assumeRoles) == 0 {
-		return c, nil
+	assumeRoleARN := ""
+	if len(data.AssumeRole) > 0 {
+		assumeRoleARN = data.AssumeRole[0].RoleARN.ValueString()
 	}
-	assumeRoleARN := assumeRoles[0].RoleARN.ValueString()
-	secret := data.SecretName.ValueString()
-	region := conversion.MongoDBRegionToAWSRegion(data.Region.ValueString())
-	awsAccessKeyID := data.AwsAccessKeyID.ValueString()
-	awsSecretAccessKey := data.AwsSecretAccessKeyID.ValueString()
-	awsSessionToken := data.AwsSessionToken.ValueString()
-	endpoint := data.StsEndpoint.ValueString()
-	// TODO: read from env vars if not here, and req object to configure
-	err := configureCredentialsSTS(c, assumeRoleARN, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
-	if err != nil {
-		return nil, fmt.Errorf("failed to configure STS credentials: %w", err)
+	return &config.Vars{
+		AccessToken:        data.AccessToken.ValueString(),
+		ClientID:           data.ClientID.ValueString(),
+		ClientSecret:       data.ClientSecret.ValueString(),
+		PublicKey:          data.PublicKey.ValueString(),
+		PrivateKey:         data.PrivateKey.ValueString(),
+		BaseURL:            data.BaseURL.ValueString(),
+		RealmBaseURL:       data.RealmBaseURL.ValueString(),
+		AWSAssumeRoleARN:   assumeRoleARN,
+		AWSSecretName:      data.SecretName.ValueString(),
+		AWSRegion:          data.Region.ValueString(),
+		AWSAccessKeyID:     data.AwsAccessKeyID.ValueString(),
+		AWSSecretAccessKey: data.AwsSecretAccessKeyID.ValueString(),
+		AWSSessionToken:    data.AwsSessionToken.ValueString(),
+		AWSEndpoint:        data.StsEndpoint.ValueString(),
 	}
-	return c, nil
-}
-
-// TODO: implement and return Vars, see Gov, see if return diagnostics
-func getTPFProviderCredentials(data *tfMongodbAtlasProviderModel, resp *provider.ConfigureResponse) tfMongodbAtlasProviderModel {
-	if mongodbgovCloud := data.IsMongodbGovCloud.ValueBool(); mongodbgovCloud {
-		if !isGovBaseURLConfiguredForProvider(data) {
-			data.BaseURL = types.StringValue(MongodbGovCloudURL)
-		}
-	}
-
-	return *data
 }
 
 func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.DataSource {
@@ -370,27 +347,4 @@ func MuxProviderFactory() func() tfprotov6.ProviderServer {
 		log.Fatal(err)
 	}
 	return muxServer.ProviderServer
-}
-
-func multiEnvDefaultFunc(ks []string, def any) any {
-	for _, k := range ks {
-		if v := os.Getenv(k); v != "" {
-			return v
-		}
-	}
-	return def
-}
-
-func isGovBaseURLConfigured(baseURL string) bool {
-	if baseURL == "" {
-		baseURL = multiEnvDefaultFunc([]string{
-			"MONGODB_ATLAS_BASE_URL",
-			"MCLI_OPS_MANAGER_URL",
-		}, "").(string)
-	}
-	return baseURL == MongodbGovCloudDevURL || baseURL == MongodbGovCloudQAURL
-}
-
-func isGovBaseURLConfiguredForProvider(data *tfMongodbAtlasProviderModel) bool {
-	return isGovBaseURLConfigured(data.BaseURL.ValueString())
 }

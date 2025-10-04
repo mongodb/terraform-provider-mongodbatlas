@@ -1,6 +1,10 @@
 package config
 
-import "os"
+import (
+	"os"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+)
 
 type Credentials struct {
 	Method       string
@@ -72,6 +76,29 @@ func (e *Vars) GetCredentials() *Credentials {
 		PrivateKey:   e.PrivateKey,
 		BaseURL:      e.BaseURL,
 		RealmBaseURL: e.RealmBaseURL,
+	}
+}
+
+type AWSVars struct {
+	AssumeRoleARN   string
+	SecretName      string
+	Region          string
+	AccessKeyID     string
+	SecretAccessKey string
+	SessionToken    string
+	Endpoint        string
+}
+
+// GetAWS returns variables in the format AWS expects, e.g. region in lowercase.
+func (e *Vars) GetAWS() *AWSVars {
+	return &AWSVars{
+		AssumeRoleARN:   e.AWSAssumeRoleARN,
+		SecretName:      e.AWSSecretName,
+		Region:          conversion.MongoDBRegionToAWSRegion(e.AWSRegion),
+		AccessKeyID:     e.AWSAccessKeyID,
+		SecretAccessKey: e.AWSSecretAccessKey,
+		SessionToken:    e.AWSSessionToken,
+		Endpoint:        e.AWSEndpoint,
 	}
 }
 

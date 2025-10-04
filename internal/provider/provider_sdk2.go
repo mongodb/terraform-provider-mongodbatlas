@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/accesslistapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/apikey"
@@ -52,21 +51,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/thirdpartyintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/x509authenticationdatabaseuser"
 )
-
-type SecretData struct {
-	PublicKey    string `json:"public_key"`
-	PrivateKey   string `json:"private_key"`
-	ClientID     string `json:"client_id"`
-	ClientSecret string `json:"client_secret"`
-	AccessToken  string `json:"access_token"`
-}
-
-// CredentialProvider implementation for SecretData
-func (s *SecretData) GetPublicKey() string    { return s.PublicKey }
-func (s *SecretData) GetPrivateKey() string   { return s.PrivateKey }
-func (s *SecretData) GetClientID() string     { return s.ClientID }
-func (s *SecretData) GetClientSecret() string { return s.ClientSecret }
-func (s *SecretData) GetAccessToken() string  { return s.AccessToken }
 
 // NewSdkV2Provider returns the provider to be use by the code.
 func NewSdkV2Provider() *schema.Provider {
@@ -168,6 +152,23 @@ func NewSdkV2Provider() *schema.Provider {
 		},
 	}
 	return provider
+}
+
+func assumeRoleSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"role_arn": {
+					Type:        schema.TypeString,
+					Optional:    true,
+					Description: "Amazon Resource Name (ARN) of an IAM Role to assume prior to making API calls.",
+				},
+			},
+		},
+	}
 }
 
 func getDataSourcesMap() map[string]*schema.Resource {
@@ -294,102 +295,53 @@ func getResourcesMap() map[string]*schema.Resource {
 
 func providerConfigure(provider *schema.Provider) func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 	return func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
-		diagnostics := []diag.Diagnostic{}
+		diagnostics := diag.Diagnostics{}
+
+		providerVars := getSDKv2ProviderVars(d)
+
+		// TODO: refactor, it's similar to the other provider
 
 		envVars := config.NewEnvVars()
 
-		awsCredentials, err := getSDKv2AWSCredentials(d)
+		awsCredentials, err := getAWSCredentials(envVars.GetAWS())
 		if err != nil {
-			// TODO: error message
-			return nil, append(diagnostics, diag.FromErr(fmt.Errorf("failed to get AWS credentials: %w", err))...)
+			return nil, diag.FromErr(fmt.Errorf("error getting AWS credentials: %w", err))
 		}
 
-		diags := getSDKv2ProviderCredentials(d)
-		if diags.HasError() {
-			return nil, append(diagnostics, diags...)
-		}
-
-		_ = awsCredentials
+		_, _ = providerVars, awsCredentials
 
 		// TODO: chooose the credentials between AWS, SA or PAK
 		client, err := config.NewClient(envVars.GetCredentials(), provider.TerraformVersion)
 		if err != nil {
-			// TODO: error message
-			return nil, append(diagnostics, diag.FromErr(err)...)
+			return nil, diag.FromErr(fmt.Errorf("error initializing provider: %w", err))
 		}
 		return client, diagnostics
 	}
+
+	// TODO gov look former code
 }
 
-func getSDKv2AWSCredentials(d *schema.ResourceData) (*config.Credentials, error) {
-	c := &config.Credentials{
-		Method: "AWS Secrets Manager",
+// TODO: implement this
+func getSDKv2ProviderVars(d *schema.ResourceData) *config.Vars {
+	assumeRoleARN := ""
+	assumeRoles := d.Get("assume_role").([]any)
+	if len(assumeRoles) > 0 {
+		assumeRoleARN = assumeRoles[0].(map[string]any)["role_arn"].(string)
 	}
-	assumeRoleVal, ok := d.GetOk("assume_role")
-	if !ok {
-		return c, nil
+	return &config.Vars{
+		AccessToken:        d.Get("access_token").(string),
+		ClientID:           d.Get("client_id").(string),
+		ClientSecret:       d.Get("client_secret").(string),
+		PublicKey:          d.Get("public_key").(string),
+		PrivateKey:         d.Get("private_key").(string),
+		BaseURL:            d.Get("base_url").(string),
+		RealmBaseURL:       d.Get("realm_base_url").(string),
+		AWSAssumeRoleARN:   assumeRoleARN,
+		AWSSecretName:      d.Get("secret_name").(string),
+		AWSRegion:          d.Get("region").(string),
+		AWSAccessKeyID:     d.Get("aws_access_key_id").(string),
+		AWSSecretAccessKey: d.Get("aws_secret_access_key").(string),
+		AWSSessionToken:    d.Get("aws_session_token").(string),
+		AWSEndpoint:        d.Get("sts_endpoint").(string),
 	}
-	assumeRoles := assumeRoleVal.([]any)
-	if len(assumeRoles) == 0 {
-		return c, nil
-	}
-	assumeRoleARN := getAssumeRoleARN(assumeRoles[0].(map[string]any))
-	secret := d.Get("secret_name").(string)
-	region := conversion.MongoDBRegionToAWSRegion(d.Get("region").(string))
-	awsAccessKeyID := d.Get("aws_access_key_id").(string)
-	awsSecretAccessKey := d.Get("aws_secret_access_key").(string)
-	awsSessionToken := d.Get("aws_session_token").(string)
-	endpoint := d.Get("sts_endpoint").(string)
-	// TODO: read from env vars if not here, and req object to configure
-	err := configureCredentialsSTS(c, assumeRoleARN, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
-	if err != nil {
-		return nil, fmt.Errorf("failed to configure STS credentials: %w", err)
-	}
-	return c, nil
-}
-
-func getSDKv2ProviderCredentials(d *schema.ResourceData) diag.Diagnostics {
-	diagnostics := []diag.Diagnostic{}
-
-	mongodbgovCloud := conversion.Pointer(d.Get("is_mongodbgov_cloud").(bool))
-	if *mongodbgovCloud {
-		if !isGovBaseURLConfiguredForSDK2Provider(d) {
-			if err := d.Set("base_url", MongodbGovCloudURL); err != nil {
-				return append(diagnostics, diag.FromErr(err)...)
-			}
-		}
-	}
-	return diagnostics
-}
-
-// assumeRoleSchema From aws provider.go
-func assumeRoleSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"role_arn": {
-					Type:        schema.TypeString,
-					Optional:    true,
-					Description: "Amazon Resource Name (ARN) of an IAM Role to assume prior to making API calls.",
-				},
-			},
-		},
-	}
-}
-
-func getAssumeRoleARN(tfMap map[string]any) string {
-	if tfMap == nil {
-		return ""
-	}
-	if v, ok := tfMap["role_arn"].(string); ok && v != "" {
-		return v
-	}
-	return ""
-}
-
-func isGovBaseURLConfiguredForSDK2Provider(d *schema.ResourceData) bool {
-	return isGovBaseURLConfigured(d.Get("base_url").(string))
 }
