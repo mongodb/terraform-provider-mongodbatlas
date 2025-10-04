@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"log"
+	"slices"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -49,8 +50,7 @@ import (
 )
 
 const (
-	MongodbGovCloudURL             = "https://cloud.mongodbgov.com"
-	MongodbGovCloudQAURL           = "https://cloud-qa.mongodbgov.com"
+	govURL                         = "https://cloud.mongodbgov.com"
 	MongodbGovCloudDevURL          = "https://cloud-dev.mongodbgov.com"
 	ProviderConfigError            = "error in configuring the provider."
 	MissingAuthAttrError           = "either AWS Secrets Manager, Service Accounts or Atlas Programmatic API Keys attributes must be set"
@@ -60,6 +60,13 @@ const (
 	ProviderMetaModuleNameDesc     = "The name of the module using the provider"
 	ProviderMetaModuleVersion      = "module_version"
 	ProviderMetaModuleVersionDesc  = "The version of the module using the provider"
+)
+
+var (
+	govAdditionalURLs = []string{
+		"https://cloud-dev.mongodbgov.com",
+		"https://cloud-qa.mongodbgov.com",
+	}
 )
 
 type MongodbtlasProvider struct {
@@ -234,13 +241,18 @@ func getProviderVars(ctx context.Context, req provider.ConfigureRequest, resp *p
 	if len(data.AssumeRole) > 0 {
 		assumeRoleARN = data.AssumeRole[0].RoleARN.ValueString()
 	}
+	baseURL := data.BaseURL.ValueString()
+	// TODO: check that is_mongodbgov_cloud works for undefined, true, false
+	if data.IsMongodbGovCloud.ValueBool() && !slices.Contains(govAdditionalURLs, baseURL) {
+		baseURL = govURL
+	}
 	return &config.Vars{
 		AccessToken:        data.AccessToken.ValueString(),
 		ClientID:           data.ClientID.ValueString(),
 		ClientSecret:       data.ClientSecret.ValueString(),
 		PublicKey:          data.PublicKey.ValueString(),
 		PrivateKey:         data.PrivateKey.ValueString(),
-		BaseURL:            data.BaseURL.ValueString(),
+		BaseURL:            baseURL,
 		RealmBaseURL:       data.RealmBaseURL.ValueString(),
 		AWSAssumeRoleARN:   assumeRoleARN,
 		AWSSecretName:      data.SecretName.ValueString(),

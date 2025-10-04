@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -328,13 +329,18 @@ func getSDKv2ProviderVars(d *schema.ResourceData) *config.Vars {
 	if len(assumeRoles) > 0 {
 		assumeRoleARN = assumeRoles[0].(map[string]any)["role_arn"].(string)
 	}
+	baseURL := d.Get("base_url").(string)
+	// TODO: check that is_mongodbgov_cloud works for undefined, true, false
+	if d.Get("is_mongodbgov_cloud").(bool) && !slices.Contains(govAdditionalURLs, baseURL) {
+		baseURL = govURL
+	}
 	return &config.Vars{
 		AccessToken:        d.Get("access_token").(string),
 		ClientID:           d.Get("client_id").(string),
 		ClientSecret:       d.Get("client_secret").(string),
 		PublicKey:          d.Get("public_key").(string),
 		PrivateKey:         d.Get("private_key").(string),
-		BaseURL:            d.Get("base_url").(string),
+		BaseURL:            baseURL,
 		RealmBaseURL:       d.Get("realm_base_url").(string),
 		AWSAssumeRoleARN:   assumeRoleARN,
 		AWSSecretName:      d.Get("secret_name").(string),
