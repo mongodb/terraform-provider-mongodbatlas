@@ -48,35 +48,6 @@ const (
 	Digest
 )
 
-// CredentialProvider interface for types that can provide MongoDB Atlas credentials
-type CredentialProvider interface {
-	GetPublicKey() string
-	GetPrivateKey() string
-	GetClientID() string
-	GetClientSecret() string
-	GetAccessToken() string
-}
-
-// IsDigestAuth checks if public/private key credentials are present
-func IsDigestAuthPresent(cp CredentialProvider) bool {
-	return cp.GetPublicKey() != "" && cp.GetPrivateKey() != ""
-}
-
-// IsServiceAccountAuth checks if client ID/secret credentials are present
-func IsServiceAccountAuthPresent(cp CredentialProvider) bool {
-	return cp.GetClientID() != "" && cp.GetClientSecret() != ""
-}
-
-// IsAccessTokenAuth checks if access token credentials are present
-func IsAccessTokenAuthPresent(cp CredentialProvider) bool {
-	return cp.GetAccessToken() != ""
-}
-
-// HasValidAuthCredentials checks if any valid authentication method is provided
-func HasValidAuthCredentials(cp CredentialProvider) bool {
-	return IsDigestAuthPresent(cp) || IsServiceAccountAuthPresent(cp) || IsAccessTokenAuthPresent(cp)
-}
-
 var baseTransport = &http.Transport{
 	DialContext: (&net.Dialer{
 		Timeout:   timeout,
@@ -340,20 +311,6 @@ func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParam
 	}
 
 	return apiResp, err
-}
-
-// ResolveAuthMethod determines the authentication method from any credential provider
-func ResolveAuthMethod(cg CredentialProvider) AuthMethod {
-	if IsAccessTokenAuthPresent(cg) {
-		return AccessToken
-	}
-	if IsServiceAccountAuthPresent(cg) {
-		return ServiceAccount
-	}
-	if IsDigestAuthPresent(cg) {
-		return Digest
-	}
-	return Unknown
 }
 
 func userAgent(terraformVersion string) string {
