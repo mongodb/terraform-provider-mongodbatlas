@@ -25,63 +25,57 @@ const (
 	minSegmentsForSTSRegionalHost = 4
 )
 
-func configureCredentialsSTS(cfg *config.Config, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint string) (config.Config, error) {
+func getAWSCredentials(c *config.AWSVars) (*config.Credentials, error) {
 	defaultResolver := endpoints.DefaultResolver()
 	stsCustResolverFn := func(service, _ string, optFns ...func(*endpoints.Options)) (endpoints.ResolvedEndpoint, error) {
 		if service == sts.EndpointsID {
-			resolved, err := ResolveSTSEndpoint(endpoint, region)
+			resolved, err := ResolveSTSEndpoint(c.Endpoint, c.Region)
 			if err != nil {
 				return endpoints.ResolvedEndpoint{}, err
 			}
 			return resolved, nil
 		}
-		return defaultResolver.EndpointFor(service, region, optFns...)
+		return defaultResolver.EndpointFor(service, c.Region, optFns...)
 	}
-
 	sess := session.Must(session.NewSession(&aws.Config{
-		Region:           aws.String(region),
-		Credentials:      credentials.NewStaticCredentials(awsAccessKeyID, awsSecretAccessKey, awsSessionToken),
+		Region:           aws.String(c.Region),
+		Credentials:      credentials.NewStaticCredentials(c.AccessKeyID, c.SecretAccessKey, c.SessionToken),
 		EndpointResolver: endpoints.ResolverFunc(stsCustResolverFn),
 	}))
-
-	creds := stscreds.NewCredentials(sess, cfg.AssumeRoleARN)
-
-	_, err := sess.Config.Credentials.Get()
+	creds := stscreds.NewCredentials(sess, c.AssumeRoleARN)
+	if _, err := sess.Config.Credentials.Get(); err != nil {
+		return nil, err
+	}
+	if _, err := creds.Get(); err != nil {
+		return nil, err
+	}
+	secretString, err := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(c.Region)}, c.SecretName)
 	if err != nil {
-		log.Printf("Session get credentials error: %s", err)
-		return *cfg, err
+		return nil, err
 	}
-	_, err = creds.Get()
+	// TODO could credentials be reused removing Method?
+	var secret struct {
+		AccessToken  string `json:"access_token"`
+		ClientID     string `json:"client_id"`
+		ClientSecret string `json:"client_secret"`
+		PublicKey    string `json:"public_key"`
+		PrivateKey   string `json:"private_key"`
+	}
+	err = json.Unmarshal([]byte(secretString), &secret)
 	if err != nil {
-		log.Printf("STS get credentials error: %s", err)
-		return *cfg, err
+		return nil, err
 	}
-	secretString, err := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(region)}, secret)
-	if err != nil {
-		log.Printf("Get Secrets error: %s", err)
-		return *cfg, err
-	}
-
-	var secretData SecretData
-	err = json.Unmarshal([]byte(secretString), &secretData)
-	if err != nil {
-		return *cfg, err
-	}
-
-	switch config.ResolveAuthMethod(&secretData) {
-	case config.AccessToken:
-		cfg.AccessToken = secretData.AccessToken
-	case config.Digest:
-		cfg.PublicKey = secretData.PublicKey
-		cfg.PrivateKey = secretData.PrivateKey
-	case config.ServiceAccount:
-		cfg.ClientID = secretData.ClientID
-		cfg.ClientSecret = secretData.ClientSecret
-	case config.Unknown:
-		return *cfg, fmt.Errorf("secret missing value for supported credentials: PrivateKey/PublicKey, ClientID/ClientSecret or AccessToken")
-	}
-
-	return *cfg, nil
+	// TODO: how to read URLs in AWS Secrets Manager?
+	return &config.Credentials{
+		Method:       "AWS Secrets Manager",
+		AccessToken:  secret.AccessToken,
+		ClientID:     secret.ClientID,
+		ClientSecret: secret.ClientSecret,
+		PublicKey:    secret.PublicKey,
+		PrivateKey:   secret.PrivateKey,
+		BaseURL:      "", // TODO: how to read
+		RealmBaseURL: "", // TODO: how to read
+	}, nil
 }
 
 func DeriveSTSRegionFromEndpoint(ep string) string {
