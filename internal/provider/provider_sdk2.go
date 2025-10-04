@@ -296,30 +296,13 @@ func getResourcesMap() map[string]*schema.Resource {
 
 func providerConfigure(provider *schema.Provider) func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 	return func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
-		diagnostics := diag.Diagnostics{}
-
 		providerVars := getSDKv2ProviderVars(d)
-
-		// TODO: refactor, it's similar to the other provider
-
-		envVars := config.NewEnvVars()
-
-		awsCredentials, err := getAWSCredentials(envVars.GetAWS())
-		if err != nil {
-			return nil, diag.FromErr(fmt.Errorf("error getting AWS credentials: %w", err))
-		}
-
-		_, _ = providerVars, awsCredentials
-
-		// TODO: chooose the credentials between AWS, SA or PAK
-		client, err := config.NewClient(envVars.GetCredentials(), provider.TerraformVersion)
+		client, err := configClient(providerVars, provider.TerraformVersion)
 		if err != nil {
 			return nil, diag.FromErr(fmt.Errorf("error initializing provider: %w", err))
 		}
-		return client, diagnostics
+		return client, nil
 	}
-
-	// TODO gov look former code
 }
 
 // TODO: implement this

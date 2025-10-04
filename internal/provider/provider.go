@@ -203,34 +203,34 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	client, err := configClient(providerVars, req.TerraformVersion)
+	if err != nil {
+		resp.Diagnostics.AddError("Error initializing provider", err.Error())
+		return
+	}
+	resp.DataSourceData = client
+	resp.ResourceData = client
+}
 
-	// TODO: refactor, it's similar to the other provider
-
+func configClient(providerVars *config.Vars, terraformVersion string) (*config.MongoDBClient, error) {
 	envVars := config.NewEnvVars()
 
 	// decide what to do if AWS is not chosen from provider and env vars
 	awsCredentials, err := getAWSCredentials(envVars.GetAWS())
 	if err != nil {
-		resp.Diagnostics.AddError("Error getting AWS credentials", err.Error())
-		return
+		return nil, err
 	}
 
 	_, _ = providerVars, awsCredentials
 
 	// TODO: chooose the credentials between AWS, SA or PAK
-	client, err := config.NewClient(envVars.GetCredentials(), req.TerraformVersion)
+	client, err := config.NewClient(envVars.GetCredentials(), terraformVersion)
 	if err != nil {
-		resp.Diagnostics.AddError("Error initializing provider", err.Error())
-		return
+		return nil, err
 	}
-
-	// TODO gov look former code
-
-	resp.DataSourceData = client
-	resp.ResourceData = client
+	return client, nil
 }
 
-// TODO: see Gov
 func getProviderVars(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) *config.Vars {
 	var data tfModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
