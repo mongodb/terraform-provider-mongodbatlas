@@ -294,10 +294,9 @@ func getResourcesMap() map[string]*schema.Resource {
 
 func providerConfigure(provider *schema.Provider) func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 	return func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
-		diagnostics := setDefaultsAndValidations(d)
-		if diagnostics.HasError() {
-			return nil, diagnostics
-		}
+		diagnostics := []diag.Diagnostic{}
+
+		envVars := config.NewEnvVars()
 
 		awsCredentials, err := getSDKv2AWSCredentials(d)
 		if err != nil {
@@ -305,8 +304,15 @@ func providerConfigure(provider *schema.Provider) func(ctx context.Context, d *s
 			return nil, append(diagnostics, diag.FromErr(fmt.Errorf("failed to get AWS credentials: %w", err))...)
 		}
 
+		diags := getSDKv2ProviderCredentials(d)
+		if diags.HasError() {
+			return nil, append(diagnostics, diags...)
+		}
+
+		_ = awsCredentials
+
 		// TODO: chooose the credentials between AWS, SA or PAK
-		client, err := config.NewClient(awsCredentials, provider.TerraformVersion)
+		client, err := config.NewClient(envVars.GetCredentials(), provider.TerraformVersion)
 		if err != nil {
 			// TODO: error message
 			return nil, append(diagnostics, diag.FromErr(err)...)
@@ -342,7 +348,7 @@ func getSDKv2AWSCredentials(d *schema.ResourceData) (*config.Credentials, error)
 	return c, nil
 }
 
-func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
+func getSDKv2ProviderCredentials(d *schema.ResourceData) diag.Diagnostics {
 	diagnostics := []diag.Diagnostic{}
 
 	mongodbgovCloud := conversion.Pointer(d.Get("is_mongodbgov_cloud").(bool))
@@ -353,136 +359,7 @@ func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
 			}
 		}
 	}
-
-	if err := setValueFromConfigOrEnv(d, "base_url", []string{
-		"MONGODB_ATLAS_BASE_URL",
-		"MCLI_OPS_MANAGER_URL",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	awsRoleDefined := false
-	assumeRoles := d.Get("assume_role").([]any)
-	if len(assumeRoles) == 0 {
-		roleArn := MultiEnvDefaultFunc([]string{
-			"ASSUME_ROLE_ARN",
-			"TF_VAR_ASSUME_ROLE_ARN",
-		}, "").(string)
-		if roleArn != "" {
-			awsRoleDefined = true
-			if err := d.Set("assume_role", []map[string]any{{"role_arn": roleArn}}); err != nil {
-				return append(diagnostics, diag.FromErr(err)...)
-			}
-		}
-	} else {
-		awsRoleDefined = true
-	}
-
-	if err := setValueFromConfigOrEnv(d, "public_key", []string{
-		"MONGODB_ATLAS_PUBLIC_API_KEY",
-		"MONGODB_ATLAS_PUBLIC_KEY",
-		"MCLI_PUBLIC_API_KEY",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if err := setValueFromConfigOrEnv(d, "private_key", []string{
-		"MONGODB_ATLAS_PRIVATE_API_KEY",
-		"MONGODB_ATLAS_PRIVATE_KEY",
-		"MCLI_PRIVATE_API_KEY",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if err := setValueFromConfigOrEnv(d, "realm_base_url", []string{
-		"MONGODB_REALM_BASE_URL",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if err := setValueFromConfigOrEnv(d, "region", []string{
-		"AWS_REGION",
-		"TF_VAR_AWS_REGION",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if err := setValueFromConfigOrEnv(d, "sts_endpoint", []string{
-		"STS_ENDPOINT",
-		"TF_VAR_STS_ENDPOINT",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if err := setValueFromConfigOrEnv(d, "aws_access_key_id", []string{
-		"AWS_ACCESS_KEY_ID",
-		"TF_VAR_AWS_ACCESS_KEY_ID",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if err := setValueFromConfigOrEnv(d, "aws_secret_access_key", []string{
-		"AWS_SECRET_ACCESS_KEY",
-		"TF_VAR_AWS_SECRET_ACCESS_KEY",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if err := setValueFromConfigOrEnv(d, "secret_name", []string{
-		"SECRET_NAME",
-		"TF_VAR_SECRET_NAME",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if err := setValueFromConfigOrEnv(d, "aws_session_token", []string{
-		"AWS_SESSION_TOKEN",
-		"TF_VAR_AWS_SESSION_TOKEN",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if err := setValueFromConfigOrEnv(d, "client_id", []string{
-		"MONGODB_ATLAS_CLIENT_ID",
-		"TF_VAR_CLIENT_ID",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if err := setValueFromConfigOrEnv(d, "client_secret", []string{
-		"MONGODB_ATLAS_CLIENT_SECRET",
-		"TF_VAR_CLIENT_SECRET",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if err := setValueFromConfigOrEnv(d, "access_token", []string{
-		"MONGODB_ATLAS_OAUTH_TOKEN",
-		"TF_VAR_OAUTH_TOKEN",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	// Check if any valid authentication method is provided
-	if !config.HasValidAuthCredentials(&config.Config{
-		PublicKey:    d.Get("public_key").(string),
-		PrivateKey:   d.Get("private_key").(string),
-		ClientID:     d.Get("client_id").(string),
-		ClientSecret: d.Get("client_secret").(string),
-		AccessToken:  d.Get("access_token").(string),
-	}) && !awsRoleDefined {
-		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Error, Summary: MissingAuthAttrError})
-	}
-
 	return diagnostics
-}
-
-func setValueFromConfigOrEnv(d *schema.ResourceData, attrName string, envVars []string) error {
-	var val = d.Get(attrName).(string)
-	if val == "" {
-		val = MultiEnvDefaultFunc(envVars, "").(string)
-	}
-	return d.Set(attrName, val)
 }
 
 // assumeRoleSchema From aws provider.go

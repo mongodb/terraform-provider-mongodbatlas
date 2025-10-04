@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -206,10 +205,8 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	data = setDefaultValuesWithValidations(ctx, &data, resp)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+
+	envVars := config.NewEnvVars()
 
 	awsCredentials, err := getTPFAWSCredentials(ctx, &data)
 	if err != nil {
@@ -221,8 +218,15 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		return
 	}
 
+	providerCredentials := getTPFProviderCredentials(&data, resp)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	_, _ = providerCredentials, awsCredentials
+
 	// TODO: chooose the credentials between AWS, SA or PAK
-	client, err := config.NewClient(awsCredentials, req.TerraformVersion)
+	client, err := config.NewClient(envVars.GetCredentials(), req.TerraformVersion)
 	if err != nil {
 		// TODO: error message
 		resp.Diagnostics.AddError(
@@ -260,135 +264,12 @@ func getTPFAWSCredentials(ctx context.Context, data *tfMongodbAtlasProviderModel
 	return c, nil
 }
 
-func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasProviderModel, resp *provider.ConfigureResponse) tfMongodbAtlasProviderModel {
+// TODO: implement and return Vars, see Gov, see if return diagnostics
+func getTPFProviderCredentials(data *tfMongodbAtlasProviderModel, resp *provider.ConfigureResponse) tfMongodbAtlasProviderModel {
 	if mongodbgovCloud := data.IsMongodbGovCloud.ValueBool(); mongodbgovCloud {
 		if !isGovBaseURLConfiguredForProvider(data) {
 			data.BaseURL = types.StringValue(MongodbGovCloudURL)
 		}
-	}
-	if data.BaseURL.ValueString() == "" {
-		data.BaseURL = types.StringValue(MultiEnvDefaultFunc([]string{
-			"MONGODB_ATLAS_BASE_URL",
-			"MCLI_OPS_MANAGER_URL",
-		}, "").(string))
-	}
-
-	awsRoleDefined := false
-	if len(data.AssumeRole.Elements()) == 0 {
-		assumeRoleArn := MultiEnvDefaultFunc([]string{
-			"ASSUME_ROLE_ARN",
-			"TF_VAR_ASSUME_ROLE_ARN",
-		}, "").(string)
-		if assumeRoleArn != "" {
-			awsRoleDefined = true
-			var diags diag.Diagnostics
-			data.AssumeRole, diags = types.ListValueFrom(ctx, AssumeRoleType, []tfAssumeRoleModel{
-				{
-					RoleARN: types.StringValue(assumeRoleArn),
-				},
-			})
-			if diags.HasError() {
-				resp.Diagnostics.Append(diags...)
-			}
-		}
-	} else {
-		awsRoleDefined = true
-	}
-
-	if data.PublicKey.ValueString() == "" {
-		data.PublicKey = types.StringValue(MultiEnvDefaultFunc([]string{
-			"MONGODB_ATLAS_PUBLIC_API_KEY",
-			"MONGODB_ATLAS_PUBLIC_KEY",
-			"MCLI_PUBLIC_API_KEY",
-		}, "").(string))
-	}
-
-	if data.PrivateKey.ValueString() == "" {
-		data.PrivateKey = types.StringValue(MultiEnvDefaultFunc([]string{
-			"MONGODB_ATLAS_PRIVATE_API_KEY",
-			"MONGODB_ATLAS_PRIVATE_KEY",
-			"MCLI_PRIVATE_API_KEY",
-		}, "").(string))
-	}
-
-	if data.RealmBaseURL.ValueString() == "" {
-		data.RealmBaseURL = types.StringValue(MultiEnvDefaultFunc([]string{
-			"MONGODB_REALM_BASE_URL",
-		}, "").(string))
-	}
-
-	if data.Region.ValueString() == "" {
-		data.Region = types.StringValue(MultiEnvDefaultFunc([]string{
-			"AWS_REGION",
-			"TF_VAR_AWS_REGION",
-		}, "").(string))
-	}
-
-	if data.StsEndpoint.ValueString() == "" {
-		data.StsEndpoint = types.StringValue(MultiEnvDefaultFunc([]string{
-			"STS_ENDPOINT",
-			"TF_VAR_STS_ENDPOINT",
-		}, "").(string))
-	}
-
-	if data.AwsAccessKeyID.ValueString() == "" {
-		data.AwsAccessKeyID = types.StringValue(MultiEnvDefaultFunc([]string{
-			"AWS_ACCESS_KEY_ID",
-			"TF_VAR_AWS_ACCESS_KEY_ID",
-		}, "").(string))
-	}
-
-	if data.AwsSecretAccessKeyID.ValueString() == "" {
-		data.AwsSecretAccessKeyID = types.StringValue(MultiEnvDefaultFunc([]string{
-			"AWS_SECRET_ACCESS_KEY",
-			"TF_VAR_AWS_SECRET_ACCESS_KEY",
-		}, "").(string))
-	}
-
-	if data.AwsSessionToken.ValueString() == "" {
-		data.AwsSessionToken = types.StringValue(MultiEnvDefaultFunc([]string{
-			"AWS_SESSION_TOKEN",
-			"TF_VAR_AWS_SESSION_TOKEN",
-		}, "").(string))
-	}
-
-	if data.SecretName.ValueString() == "" {
-		data.SecretName = types.StringValue(MultiEnvDefaultFunc([]string{
-			"SECRET_NAME",
-			"TF_VAR_SECRET_NAME",
-		}, "").(string))
-	}
-
-	if data.ClientID.ValueString() == "" {
-		data.ClientID = types.StringValue(MultiEnvDefaultFunc([]string{
-			"MONGODB_ATLAS_CLIENT_ID",
-			"TF_VAR_CLIENT_ID",
-		}, "").(string))
-	}
-
-	if data.ClientSecret.ValueString() == "" {
-		data.ClientSecret = types.StringValue(MultiEnvDefaultFunc([]string{
-			"MONGODB_ATLAS_CLIENT_SECRET",
-			"TF_VAR_CLIENT_SECRET",
-		}, "").(string))
-	}
-
-	if data.AccessToken.ValueString() == "" {
-		data.AccessToken = types.StringValue(MultiEnvDefaultFunc([]string{
-			"MONGODB_ATLAS_ACCESS_TOKEN",
-			"TF_VAR_ACCESS_TOKEN",
-		}, "").(string))
-	}
-
-	// Check if any valid authentication method is provided
-	if !config.HasValidAuthCredentials(&config.Config{
-		PublicKey:    data.PublicKey.ValueString(),
-		PrivateKey:   data.PrivateKey.ValueString(),
-		ClientID:     data.ClientID.ValueString(),
-		ClientSecret: data.ClientSecret.ValueString(),
-		AccessToken:  data.AccessToken.ValueString(),
-	}) && !awsRoleDefined {
-		resp.Diagnostics.AddError(ProviderConfigError, MissingAuthAttrError)
 	}
 
 	return *data
@@ -491,7 +372,7 @@ func MuxProviderFactory() func() tfprotov6.ProviderServer {
 	return muxServer.ProviderServer
 }
 
-func MultiEnvDefaultFunc(ks []string, def any) any {
+func multiEnvDefaultFunc(ks []string, def any) any {
 	for _, k := range ks {
 		if v := os.Getenv(k); v != "" {
 			return v
@@ -502,7 +383,7 @@ func MultiEnvDefaultFunc(ks []string, def any) any {
 
 func isGovBaseURLConfigured(baseURL string) bool {
 	if baseURL == "" {
-		baseURL = MultiEnvDefaultFunc([]string{
+		baseURL = multiEnvDefaultFunc([]string{
 			"MONGODB_ATLAS_BASE_URL",
 			"MCLI_OPS_MANAGER_URL",
 		}, "").(string)
