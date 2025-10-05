@@ -53,29 +53,12 @@ func getAWSCredentials(c *config.AWSVars) (*config.Credentials, error) {
 	if err != nil {
 		return nil, err
 	}
-	// TODO could credentials be reused removing Method?
-	var secret struct {
-		AccessToken  string `json:"access_token"`
-		ClientID     string `json:"client_id"`
-		ClientSecret string `json:"client_secret"`
-		PublicKey    string `json:"public_key"`
-		PrivateKey   string `json:"private_key"`
-	}
+	var secret config.Credentials
 	err = json.Unmarshal([]byte(secretString), &secret)
 	if err != nil {
 		return nil, err
 	}
-	// TODO: how to read URLs in AWS Secrets Manager?
-	return &config.Credentials{
-		Method:       "AWS Secrets Manager",
-		AccessToken:  secret.AccessToken,
-		ClientID:     secret.ClientID,
-		ClientSecret: secret.ClientSecret,
-		PublicKey:    secret.PublicKey,
-		PrivateKey:   secret.PrivateKey,
-		BaseURL:      "", // TODO: how to read
-		RealmBaseURL: "", // TODO: how to read
-	}, nil
+	return &secret, nil
 }
 
 func DeriveSTSRegionFromEndpoint(ep string) string {

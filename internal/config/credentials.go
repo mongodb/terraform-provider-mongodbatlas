@@ -6,15 +6,15 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
+// Credentials has all the authentication fields, it also coincides with fields that can be stored in AWS Secrets Manager.
 type Credentials struct {
-	Method       string
-	AccessToken  string
-	ClientID     string
-	ClientSecret string
-	PublicKey    string
-	PrivateKey   string
-	BaseURL      string
-	RealmBaseURL string
+	AccessToken  string `json:"access_token"`
+	ClientID     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+	PublicKey    string `json:"public_key"`
+	PrivateKey   string `json:"private_key"`
+	BaseURL      string `json:"base_url"`
+	RealmBaseURL string `json:"realm_base_url"`
 }
 
 func (c *Credentials) AuthMethod() AuthMethod {
@@ -68,7 +68,6 @@ func NewEnvVars() *Vars {
 
 func (e *Vars) GetCredentials() *Credentials {
 	return &Credentials{
-		Method:       "Environment Variables",
 		AccessToken:  e.AccessToken,
 		ClientID:     e.ClientID,
 		ClientSecret: e.ClientSecret,
