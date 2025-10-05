@@ -30,6 +30,10 @@ func (c *Credentials) AuthMethod() AuthMethod {
 	return Unknown
 }
 
+func (c *Credentials) IsPresent() bool {
+	return c.AuthMethod() != Unknown
+}
+
 type Vars struct {
 	AccessToken        string
 	ClientID           string
@@ -88,6 +92,10 @@ type AWSVars struct {
 	Endpoint        string
 }
 
+func (a *AWSVars) IsPresent() bool {
+	return a.AssumeRoleARN != ""
+}
+
 // GetAWS returns variables in the format AWS expects, e.g. region in lowercase.
 func (e *Vars) GetAWS() *AWSVars {
 	return &AWSVars{
@@ -110,12 +118,20 @@ func getEnv(key ...string) string {
 	return ""
 }
 
-// TODO lowercase when used
-func Coalesce(str ...string) string {
-	for _, s := range str {
-		if s != "" {
-			return s
+func CoalesceAWSVars(awsVars ...*AWSVars) *AWSVars {
+	for _, awsVar := range awsVars {
+		if awsVar.IsPresent() {
+			return awsVar
 		}
 	}
-	return ""
+	return nil
+}
+
+func CoalesceCredentials(credentials ...*Credentials) *Credentials {
+	for _, credential := range credentials {
+		if credential.IsPresent() {
+			return credential
+		}
+	}
+	return nil
 }

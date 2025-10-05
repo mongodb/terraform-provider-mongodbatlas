@@ -215,20 +215,22 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 func configClient(providerVars *config.Vars, terraformVersion string) (*config.MongoDBClient, error) {
 	envVars := config.NewEnvVars()
 
-	// decide what to do if AWS is not chosen from provider and env vars
-	awsCredentials, err := getAWSCredentials(envVars.GetAWS())
-	if err != nil {
-		return nil, err
+	// TODO: warnings if multiple credentials are set, inside NewClient? or better in Credentials.
+
+	if awsVars := config.CoalesceAWSVars(providerVars.GetAWS(), envVars.GetAWS()); awsVars != nil {
+		awsCredentials, err := getAWSCredentials(awsVars)
+		if err != nil {
+			return nil, err
+		}
+		return config.NewClient(awsCredentials, terraformVersion)
 	}
 
-	_, _ = providerVars, awsCredentials
-
-	// TODO: chooose the credentials between AWS, SA or PAK
-	client, err := config.NewClient(envVars.GetCredentials(), terraformVersion)
-	if err != nil {
-		return nil, err
+	if c := config.CoalesceCredentials(providerVars.GetCredentials(), envVars.GetCredentials()); c != nil {
+		return config.NewClient(c, terraformVersion)
 	}
-	return client, nil
+
+	// TODO: warning if not credentials are set, maybe inside Credentials.
+	return config.NewClient(&config.Credentials{}, terraformVersion)
 }
 
 func getProviderVars(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) *config.Vars {
