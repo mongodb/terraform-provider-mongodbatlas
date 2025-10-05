@@ -203,34 +203,18 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	client, err := configClient(providerVars, req.TerraformVersion)
+	c, err := config.GetCredentials(providerVars, config.NewEnvVars(), getAWSCredentials)
+	if err != nil {
+		resp.Diagnostics.AddError("Error getting credentials for provider", err.Error())
+		return
+	}
+	client, err := config.NewClient(c, req.TerraformVersion)
 	if err != nil {
 		resp.Diagnostics.AddError("Error initializing provider", err.Error())
 		return
 	}
 	resp.DataSourceData = client
 	resp.ResourceData = client
-}
-
-func configClient(providerVars *config.Vars, terraformVersion string) (*config.MongoDBClient, error) {
-	envVars := config.NewEnvVars()
-
-	// TODO: warnings if multiple credentials are set, inside NewClient? or better in Credentials.
-
-	if awsVars := config.CoalesceAWSVars(providerVars.GetAWS(), envVars.GetAWS()); awsVars != nil {
-		awsCredentials, err := getAWSCredentials(awsVars)
-		if err != nil {
-			return nil, err
-		}
-		return config.NewClient(awsCredentials, terraformVersion)
-	}
-
-	if c := config.CoalesceCredentials(providerVars.GetCredentials(), envVars.GetCredentials()); c != nil {
-		return config.NewClient(c, terraformVersion)
-	}
-
-	// TODO: warning if not credentials are set, maybe inside Credentials.
-	return config.NewClient(&config.Credentials{}, terraformVersion)
 }
 
 func getProviderVars(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) *config.Vars {

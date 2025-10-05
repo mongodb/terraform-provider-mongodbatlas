@@ -17,6 +17,26 @@ type Credentials struct {
 	RealmBaseURL string `json:"realm_base_url"`
 }
 
+// GetCredentials follows the order of AWS Secrets Manager, provider vars and env vars.
+func GetCredentials(providerVars, envVars *Vars, getAWSCredentials func(*AWSVars) (*Credentials, error)) (*Credentials, error) {
+	// TODO: warnings if multiple credentials are set, inside NewClient? or better in Credentials.
+
+	if awsVars := CoalesceAWSVars(providerVars.GetAWS(), envVars.GetAWS()); awsVars != nil {
+		awsCredentials, err := getAWSCredentials(awsVars)
+		if err != nil {
+			return nil, err
+		}
+		return awsCredentials, nil
+	}
+
+	if c := CoalesceCredentials(providerVars.GetCredentials(), envVars.GetCredentials()); c != nil {
+		return c, nil
+	}
+
+	// TODO: warning if not credentials are set, maybe inside Credentials.
+	return &Credentials{}, nil
+}
+
 func (c *Credentials) AuthMethod() AuthMethod {
 	if c.AccessToken != "" {
 		return AccessToken
@@ -32,6 +52,20 @@ func (c *Credentials) AuthMethod() AuthMethod {
 
 func (c *Credentials) IsPresent() bool {
 	return c.AuthMethod() != Unknown
+}
+
+type AWSVars struct {
+	AssumeRoleARN   string
+	SecretName      string
+	Region          string
+	AccessKeyID     string
+	SecretAccessKey string
+	SessionToken    string
+	Endpoint        string
+}
+
+func (a *AWSVars) IsPresent() bool {
+	return a.AssumeRoleARN != ""
 }
 
 type Vars struct {
@@ -80,20 +114,6 @@ func (e *Vars) GetCredentials() *Credentials {
 		BaseURL:      e.BaseURL,
 		RealmBaseURL: e.RealmBaseURL,
 	}
-}
-
-type AWSVars struct {
-	AssumeRoleARN   string
-	SecretName      string
-	Region          string
-	AccessKeyID     string
-	SecretAccessKey string
-	SessionToken    string
-	Endpoint        string
-}
-
-func (a *AWSVars) IsPresent() bool {
-	return a.AssumeRoleARN != ""
 }
 
 // GetAWS returns variables in the format AWS expects, e.g. region in lowercase.

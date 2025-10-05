@@ -149,6 +149,7 @@ func NewClient(c *Credentials, terraformVersion string) (*MongoDBClient, error) 
 	return clients, nil
 }
 
+// getHTTPClient follows the order of token, SA and PAK.
 func getHTTPClient(c *Credentials) (*http.Client, error) {
 	transport := networkLoggingBaseTransport()
 	switch c.AuthMethod() {
