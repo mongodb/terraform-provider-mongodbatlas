@@ -33,6 +33,7 @@ require (
 	github.com/zclconf/go-cty v1.17.0
 	go.mongodb.org/atlas v0.38.0
 	go.mongodb.org/atlas-sdk/v20240530005 v20240530005.0.0
+	go.mongodb.org/atlas-sdk/v20240805005 v20240805005.0.1-0.20250402112219-2468c5354718 // uses api-bot-update-v20240805-backport-cluster to support AdvancedConfiguration in create/updateCluster APIs
 	go.mongodb.org/atlas-sdk/v20241113005 v20241113005.0.0
 	go.mongodb.org/realm v0.1.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -42,7 +43,6 @@ require (
 	github.com/hashicorp/terraform-json v0.27.2
 	github.com/hashicorp/terraform-plugin-framework-jsontypes v0.2.0
 	go.mongodb.org/atlas-sdk/v20250312007 v20250312007.0.0
-	golang.org/x/oauth2 v0.31.0
 )
 
 require (
@@ -163,6 +163,7 @@ require (
 	golang.org/x/crypto v0.42.0 // indirect
 	golang.org/x/mod v0.27.0 // indirect
 	golang.org/x/net v0.43.0 // indirect
+	golang.org/x/oauth2 v0.31.0 // indirect
 	golang.org/x/sync v0.17.0 // indirect
 	golang.org/x/sys v0.36.0 // indirect
 	golang.org/x/text v0.29.0 // indirect

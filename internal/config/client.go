@@ -11,6 +11,7 @@ import (
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
 	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
@@ -75,6 +76,7 @@ type MongoDBClient struct {
 	Atlas            *matlasClient.Client
 	AtlasV2          *admin.APIClient
 	AtlasPreview     *adminpreview.APIClient
+	AtlasV220240805  *admin20240805.APIClient // used in advanced_cluster to avoid adopting 2024-10-23 release with ISS autoscaling
 	AtlasV220240530  *admin20240530.APIClient // used in advanced_cluster and cloud_backup_schedule for avoiding breaking changes (supporting deprecated replication_specs.id)
 	AtlasV220241113  *admin20241113.APIClient // used in teams and atlas_users to avoiding breaking changes
 	Realm            *RealmClient
@@ -119,6 +121,10 @@ func NewClient(c *Credentials, terraformVersion string) (*MongoDBClient, error) 
 	if err != nil {
 		return nil, err
 	}
+	sdkV220240805Client, err := newSDKV220240805Client(client, c.BaseURL, userAgent)
+	if err != nil {
+		return nil, err
+	}
 	sdkV220241113Client, err := newSDKV220241113Client(client, c.BaseURL, userAgent)
 	if err != nil {
 		return nil, err
@@ -129,6 +135,7 @@ func NewClient(c *Credentials, terraformVersion string) (*MongoDBClient, error) 
 		AtlasV2:          sdkV2Client,
 		AtlasPreview:     sdkPreviewClient,
 		AtlasV220240530:  sdkV220240530Client,
+		AtlasV220240805:  sdkV220240805Client,
 		AtlasV220241113:  sdkV220241113Client,
 		BaseURL:          c.BaseURL,
 		TerraformVersion: terraformVersion,
@@ -194,6 +201,15 @@ func newSDKV220240530Client(client *http.Client, baseURL, userAgent string) (*ad
 		admin20240530.UseUserAgent(userAgent),
 		admin20240530.UseBaseURL(baseURL),
 		admin20240530.UseDebug(false),
+	)
+}
+
+func newSDKV220240805Client(client *http.Client, baseURL, userAgent string) (*admin20240805.APIClient, error) {
+	return admin20240805.NewClient(
+		admin20240805.UseHTTPClient(client),
+		admin20240805.UseUserAgent(userAgent),
+		admin20240805.UseBaseURL(baseURL),
+		admin20240805.UseDebug(false),
 	)
 }
 
