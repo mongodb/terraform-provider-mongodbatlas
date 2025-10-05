@@ -439,8 +439,8 @@ func TestCoalesceAWSVars(t *testing.T) {
 	awsVarsEmpty := &config.AWSVars{}
 
 	testCases := map[string]struct {
-		awsVars []*config.AWSVars
 		want    *config.AWSVars
+		awsVars []*config.AWSVars
 	}{
 		"First present AWS vars": {
 			awsVars: []*config.AWSVars{awsVars1, awsVars2},
