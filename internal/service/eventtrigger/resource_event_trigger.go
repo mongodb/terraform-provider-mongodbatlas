@@ -210,7 +210,7 @@ func Resource() *schema.Resource {
 }
 
 func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn, err := meta.(*config.MongoDBClient).GetRealmClient(ctx)
+	conn, err := meta.(*config.MongoDBClient).Realm.Get(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -312,7 +312,7 @@ func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.Reso
 }
 
 func resourceMongoDBAtlasEventTriggersRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn, err := meta.(*config.MongoDBClient).GetRealmClient(ctx)
+	conn, err := meta.(*config.MongoDBClient).Realm.Get(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -402,7 +402,7 @@ func resourceMongoDBAtlasEventTriggersRead(ctx context.Context, d *schema.Resour
 }
 
 func resourceMongoDBAtlasEventTriggersUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn, err := meta.(*config.MongoDBClient).GetRealmClient(ctx)
+	conn, err := meta.(*config.MongoDBClient).Realm.Get(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -453,8 +453,7 @@ func resourceMongoDBAtlasEventTriggersUpdate(ctx context.Context, d *schema.Reso
 }
 
 func resourceMongoDBAtlasEventTriggersDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	// Get the client connection.
-	conn, err := meta.(*config.MongoDBClient).GetRealmClient(ctx)
+	conn, err := meta.(*config.MongoDBClient).Realm.Get(ctx)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -515,7 +514,7 @@ func flattenTriggerEventProcessorAWSEventBridge(eventProcessor map[string]any) [
 }
 
 func resourceMongoDBAtlasEventTriggerImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn, err := meta.(*config.MongoDBClient).GetRealmClient(ctx)
+	conn, err := meta.(*config.MongoDBClient).Realm.Get(ctx)
 	if err != nil {
 		return nil, err
 	}

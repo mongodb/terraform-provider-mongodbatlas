@@ -146,7 +146,7 @@ func PluralDataSource() *schema.Resource {
 func dataSourceMongoDBAtlasEventTriggersRead(d *schema.ResourceData, meta any) error {
 	// Get client connection.
 	ctx := context.Background()
-	conn, err := meta.(*config.MongoDBClient).GetRealmClient(ctx)
+	conn, err := meta.(*config.MongoDBClient).Realm.Get(ctx)
 	if err != nil {
 		return err
 	}

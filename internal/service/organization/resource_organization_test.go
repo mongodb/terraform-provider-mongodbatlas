@@ -433,9 +433,9 @@ func getTestClientWithNewOrgCreds(rs *terraform.ResourceState) (*admin.APIClient
 	c := &config.Credentials{
 		PublicKey:  rs.Primary.Attributes["public_key"],
 		PrivateKey: rs.Primary.Attributes["private_key"],
-		BaseURL:    acc.MongoDBClient.Config.BaseURL,
+		BaseURL:    acc.MongoDBClient.BaseURL,
 	}
-	client, _ := config.NewClient(c, "")
+	client, _ := config.NewClient(c, acc.MongoDBClient.TerraformVersion)
 	return client.AtlasV2, nil
 }
 

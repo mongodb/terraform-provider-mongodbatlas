@@ -305,7 +305,6 @@ func providerConfigure(provider *schema.Provider) func(ctx context.Context, d *s
 	}
 }
 
-// TODO: implement this
 func getSDKv2ProviderVars(d *schema.ResourceData) *config.Vars {
 	assumeRoleARN := ""
 	assumeRoles := d.Get("assume_role").([]any)

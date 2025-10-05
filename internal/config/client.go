@@ -73,26 +73,22 @@ func tfLoggingInterceptor(base http.RoundTripper) http.RoundTripper {
 
 // MongoDBClient contains the mongodbatlas clients and configurations
 type MongoDBClient struct {
-	Atlas           *matlasClient.Client
-	AtlasV2         *admin.APIClient
-	AtlasPreview    *adminpreview.APIClient
-	AtlasV220240805 *admin20240805.APIClient // used in advanced_cluster to avoid adopting 2024-10-23 release with ISS autoscaling
-	AtlasV220240530 *admin20240530.APIClient // used in advanced_cluster and cloud_backup_schedule for avoiding breaking changes (supporting deprecated replication_specs.id)
-	AtlasV220241113 *admin20241113.APIClient // used in teams and atlas_users to avoiding breaking changes
-	Config          *Config
+	Atlas            *matlasClient.Client
+	AtlasV2          *admin.APIClient
+	AtlasPreview     *adminpreview.APIClient
+	AtlasV220240805  *admin20240805.APIClient // used in advanced_cluster to avoid adopting 2024-10-23 release with ISS autoscaling
+	AtlasV220240530  *admin20240530.APIClient // used in advanced_cluster and cloud_backup_schedule for avoiding breaking changes (supporting deprecated replication_specs.id)
+	AtlasV220241113  *admin20241113.APIClient // used in teams and atlas_users to avoiding breaking changes
+	Realm            *RealmClient
+	BaseURL          string // neeeded by organization resource
+	TerraformVersion string // neeeded by organization resource
 }
 
-// Config contains the configurations needed to use SDKs
-type Config struct {
-	AssumeRoleARN    string
-	PublicKey        string
-	PrivateKey       string
-	BaseURL          string
-	RealmBaseURL     string
-	TerraformVersion string
-	ClientID         string
-	ClientSecret     string
-	AccessToken      string
+type RealmClient struct {
+	publicKey        string
+	privateKey       string
+	realmBaseURL     string
+	terraformVersion string
 }
 
 func NewClient(c *Credentials, terraformVersion string) (*MongoDBClient, error) {
@@ -135,13 +131,20 @@ func NewClient(c *Credentials, terraformVersion string) (*MongoDBClient, error) 
 	}
 
 	clients := &MongoDBClient{
-		Atlas:           atlasClient,
-		AtlasV2:         sdkV2Client,
-		AtlasPreview:    sdkPreviewClient,
-		AtlasV220240530: sdkV220240530Client,
-		AtlasV220240805: sdkV220240805Client,
-		AtlasV220241113: sdkV220241113Client,
-		// TODO: Config:          c,
+		Atlas:            atlasClient,
+		AtlasV2:          sdkV2Client,
+		AtlasPreview:     sdkPreviewClient,
+		AtlasV220240530:  sdkV220240530Client,
+		AtlasV220240805:  sdkV220240805Client,
+		AtlasV220241113:  sdkV220241113Client,
+		BaseURL:          c.BaseURL,
+		TerraformVersion: terraformVersion,
+		Realm: &RealmClient{
+			publicKey:        c.PublicKey,
+			privateKey:       c.PrivateKey,
+			realmBaseURL:     c.RealmBaseURL,
+			terraformVersion: terraformVersion,
+		},
 	}
 	return clients, nil
 }
@@ -219,25 +222,24 @@ func newSDKV220241113Client(client *http.Client, baseURL, userAgent string) (*ad
 	)
 }
 
-// TODO: lazy because it needs connection
-func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, error) {
-	// Realm
-	if c.Config.PublicKey == "" && c.Config.PrivateKey == "" {
+// Get in RealmClient is a method instead of Atlas fields so it's lazy initialized as it needs a roundtrip to authenticate.
+func (r *RealmClient) Get(ctx context.Context) (*realm.Client, error) {
+	if r.publicKey == "" && r.privateKey == "" {
 		return nil, errors.New("please set `public_key` and `private_key` in order to use the realm client")
 	}
 
 	optsRealm := []realm.ClientOpt{
-		realm.SetUserAgent(userAgent(c.Config.TerraformVersion)),
+		realm.SetUserAgent(userAgent(r.terraformVersion)),
 	}
 
 	authConfig := realmAuth.NewConfig(nil)
-	if c.Config.BaseURL != "" && c.Config.RealmBaseURL != "" {
-		adminURL := c.Config.RealmBaseURL + "api/admin/v3.0/"
+	if r.realmBaseURL != "" {
+		adminURL := r.realmBaseURL + "api/admin/v3.0/"
 		optsRealm = append(optsRealm, realm.SetBaseURL(adminURL))
 		authConfig.AuthURL, _ = url.Parse(adminURL + "auth/providers/mongodb-cloud/login")
 	}
 
-	token, err := authConfig.NewTokenFromCredentials(ctx, c.Config.PublicKey, c.Config.PrivateKey)
+	token, err := authConfig.NewTokenFromCredentials(ctx, r.publicKey, r.privateKey)
 	if err != nil {
 		return nil, err
 	}

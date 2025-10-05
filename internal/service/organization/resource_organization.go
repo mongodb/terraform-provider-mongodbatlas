@@ -303,10 +303,9 @@ func getAtlasV2Connection(ctx context.Context, d *schema.ResourceData, meta any)
 	c := &config.Credentials{
 		PublicKey:  publicKey,
 		PrivateKey: privateKey,
-		BaseURL:    currentClient.Config.BaseURL,
+		BaseURL:    currentClient.BaseURL,
 	}
-	terraformVersion := currentClient.Config.TerraformVersion
-	newClient, err := config.NewClient(c, terraformVersion)
+	newClient, err := config.NewClient(c, currentClient.TerraformVersion)
 	if err != nil {
 		return currentClient.AtlasV2
 	}
