@@ -19,8 +19,6 @@ type Credentials struct {
 
 // GetCredentials follows the order of AWS Secrets Manager, provider vars and env vars.
 func GetCredentials(providerVars, envVars *Vars, getAWSCredentials func(*AWSVars) (*Credentials, error)) (*Credentials, error) {
-	// TODO: warnings if multiple credentials are set, inside NewClient? or better in Credentials.
-
 	if awsVars := CoalesceAWSVars(providerVars.GetAWS(), envVars.GetAWS()); awsVars != nil {
 		awsCredentials, err := getAWSCredentials(awsVars)
 		if err != nil {
@@ -28,30 +26,60 @@ func GetCredentials(providerVars, envVars *Vars, getAWSCredentials func(*AWSVars
 		}
 		return awsCredentials, nil
 	}
-
 	if c := CoalesceCredentials(providerVars.GetCredentials(), envVars.GetCredentials()); c != nil {
 		return c, nil
 	}
-
-	// TODO: warning if not credentials are set, maybe inside Credentials.
 	return &Credentials{}, nil
 }
 
+// AuthMethod follows the order of token, SA and PAK.
 func (c *Credentials) AuthMethod() AuthMethod {
-	if c.AccessToken != "" {
+	switch {
+	case c.HasAccessToken():
 		return AccessToken
-	}
-	if c.ClientID != "" || c.ClientSecret != "" {
+	case c.HasServiceAccount():
 		return ServiceAccount
-	}
-	if c.PublicKey != "" || c.PrivateKey != "" {
+	case c.HasDigest():
 		return Digest
+	default:
+		return Unknown
 	}
-	return Unknown
+}
+
+func (c *Credentials) HasAccessToken() bool {
+	return c.AccessToken != ""
+}
+
+func (c *Credentials) HasServiceAccount() bool {
+	return c.ClientID != "" || c.ClientSecret != ""
+}
+
+func (c *Credentials) HasDigest() bool {
+	return c.PublicKey != "" || c.PrivateKey != ""
 }
 
 func (c *Credentials) IsPresent() bool {
 	return c.AuthMethod() != Unknown
+}
+
+func (c *Credentials) Warnings() string {
+	if !c.IsPresent() {
+		return "No credentials set"
+	}
+	// Prefer specific checks over generaric code as there are few combinations and code is clearer.
+	if c.HasAccessToken() && c.HasServiceAccount() && c.HasDigest() {
+		return "Access Token will be used although Service Account and API Keys are also set"
+	}
+	if c.HasAccessToken() && c.HasServiceAccount() {
+		return "Access Token will be used although Service Account is also set"
+	}
+	if c.HasAccessToken() && c.HasDigest() {
+		return "Access Token will be used although API Keys is also set"
+	}
+	if c.HasServiceAccount() && c.HasDigest() {
+		return "Service Account will be used although API Keys is also set"
+	}
+	return ""
 }
 
 type AWSVars struct {

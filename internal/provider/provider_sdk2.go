@@ -296,14 +296,21 @@ func getResourcesMap() map[string]*schema.Resource {
 
 func providerConfigure(provider *schema.Provider) func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 	return func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
+		var diags diag.Diagnostics
 		providerVars := getSDKv2ProviderVars(d)
 		c, err := config.GetCredentials(providerVars, config.NewEnvVars(), getAWSCredentials)
 		if err != nil {
-			return nil, diag.FromErr(fmt.Errorf("error getting credentials for provider: %w", err))
+			return nil, append(diags, diag.FromErr(fmt.Errorf("error getting credentials for provider: %w", err))...)
+		}
+		if c.Warnings() != "" {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Warning,
+				Summary:  "warning getting credentials for provider: " + c.Warnings(),
+			})
 		}
 		client, err := config.NewClient(c, provider.TerraformVersion)
 		if err != nil {
-			return nil, diag.FromErr(fmt.Errorf("error initializing provider: %w", err))
+			return nil, append(diags, diag.FromErr(fmt.Errorf("error initializing provider: %w", err))...)
 		}
 		return client, nil
 	}
