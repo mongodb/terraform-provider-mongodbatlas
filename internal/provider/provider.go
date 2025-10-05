@@ -208,7 +208,7 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		resp.Diagnostics.AddError("Error getting credentials for provider", err.Error())
 		return
 	}
-	for c.Warnings() != "" {
+	if c.Warnings() != "" {
 		resp.Diagnostics.AddWarning("Warning getting credentials for provider", c.Warnings())
 	}
 	client, err := config.NewClient(c, req.TerraformVersion)
