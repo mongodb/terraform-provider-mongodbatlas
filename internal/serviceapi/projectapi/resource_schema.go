@@ -39,7 +39,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Applies to Atlas for Government only.\n\nIn Commercial Atlas, this field will be rejected in requests and missing in responses.\n\nThis field sets restrictions on available regions in the project.\n\n`COMMERCIAL_FEDRAMP_REGIONS_ONLY`: Only allows deployments in FedRAMP Moderate regions.\n\n`GOV_REGIONS_ONLY`: Only allows deployments in GovCloud regions.",
-				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"tags": schema.ListNestedAttribute{
 				Optional:            true,
@@ -61,7 +60,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether to create the project with default alert settings. This setting cannot be updated after project creation.",
-				PlanModifiers:       []planmodifier.Bool{customplanmodifier.CreateOnly()},
 			},
 		},
 	}

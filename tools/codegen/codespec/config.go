@@ -185,7 +185,8 @@ func applyTimeoutConfig(options config.SchemaOptions) *Attribute {
 }
 
 func setCreateOnlyValue(attr *Attribute) {
-	if attr.ComputedOptionalRequired == Computed {
+	// CreateOnly plan modifier will not be applied for computed attributes
+	if attr.ComputedOptionalRequired == Computed || attr.ComputedOptionalRequired == ComputedOptional {
 		return
 	}
 

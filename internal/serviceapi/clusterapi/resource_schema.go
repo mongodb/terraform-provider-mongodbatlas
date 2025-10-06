@@ -315,19 +315,16 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										Computed:            true,
 										Optional:            true,
 										MarkdownDescription: "The current hardware specifications for read only nodes in the region.",
-										PlanModifiers:       []planmodifier.Object{customplanmodifier.CreateOnly()},
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
 												Optional:            true,
 												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"Azure\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\" : \"M40\"` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected **.instanceSize** and **.diskSizeGB**.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
-												PlanModifiers:       []planmodifier.Int64{customplanmodifier.CreateOnly()},
 											},
 											"disk_size_gb": schema.Float64Attribute{
 												Computed:            true,
 												Optional:            true,
 												MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
-												PlanModifiers:       []planmodifier.Float64{customplanmodifier.CreateOnly()},
 											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
@@ -337,13 +334,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 												Computed:            true,
 												Optional:            true,
 												MarkdownDescription: "Hardware specification for the instance sizes in this region in this shard. Each instance size has a default storage and memory capacity. Electable nodes and read-only nodes (known as \"base nodes\") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.",
-												PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 											},
 											"node_count": schema.Int64Attribute{
 												Computed:            true,
 												Optional:            true,
 												MarkdownDescription: "Number of nodes of the given type for MongoDB Cloud to deploy to the region.",
-												PlanModifiers:       []planmodifier.Int64{customplanmodifier.CreateOnly()},
 											},
 										},
 									},
@@ -366,13 +361,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 														Computed:            true,
 														Optional:            true,
 														MarkdownDescription: "Instance size boundary to which your cluster can automatically scale.",
-														PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 													},
 													"min_instance_size": schema.StringAttribute{
 														Computed:            true,
 														Optional:            true,
 														MarkdownDescription: "Instance size boundary to which your cluster can automatically scale.",
-														PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 													},
 													"predictive_enabled": schema.BoolAttribute{
 														Computed:            true,
@@ -527,19 +520,16 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										Computed:            true,
 										Optional:            true,
 										MarkdownDescription: "The current hardware specifications for read only nodes in the region.",
-										PlanModifiers:       []planmodifier.Object{customplanmodifier.CreateOnly()},
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
 												Optional:            true,
 												MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"Azure\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\" : \"M40\"` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected **.instanceSize** and **.diskSizeGB**.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
-												PlanModifiers:       []planmodifier.Int64{customplanmodifier.CreateOnly()},
 											},
 											"disk_size_gb": schema.Float64Attribute{
 												Computed:            true,
 												Optional:            true,
 												MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
-												PlanModifiers:       []planmodifier.Float64{customplanmodifier.CreateOnly()},
 											},
 											"ebs_volume_type": schema.StringAttribute{
 												Computed:            true,
@@ -549,13 +539,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 												Computed:            true,
 												Optional:            true,
 												MarkdownDescription: "Hardware specification for the instance sizes in this region in this shard. Each instance size has a default storage and memory capacity. Electable nodes and read-only nodes (known as \"base nodes\") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.",
-												PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 											},
 											"node_count": schema.Int64Attribute{
 												Computed:            true,
 												Optional:            true,
 												MarkdownDescription: "Number of nodes of the given type for MongoDB Cloud to deploy to the region.",
-												PlanModifiers:       []planmodifier.Int64{customplanmodifier.CreateOnly()},
 											},
 										},
 									},
