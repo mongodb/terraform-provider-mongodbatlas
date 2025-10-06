@@ -66,7 +66,7 @@ func (c *Credentials) Warnings() string {
 	if !c.IsPresent() {
 		return "No credentials set"
 	}
-	// Prefer specific checks over generaric code as there are few combinations and code is clearer.
+	// Prefer specific checks over generic code as there are few combinations and code is clearer.
 	if c.HasAccessToken() && c.HasServiceAccount() && c.HasDigest() {
 		return "Access Token will be used although Service Account and API Keys are also set"
 	}
