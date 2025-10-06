@@ -333,8 +333,8 @@ func NewFrameworkProvider() provider.Provider {
 }
 
 func MuxProviderFactory() func() tfprotov6.ProviderServer {
-	v2Provider := NewSdkV2Provider()
 	newProvider := NewFrameworkProvider()
+	v2Provider := NewSdkV2Provider()
 	ctx := context.Background()
 	upgradedSdkProvider, err := tf5to6server.UpgradeServer(ctx, v2Provider.GRPCProvider)
 	if err != nil {

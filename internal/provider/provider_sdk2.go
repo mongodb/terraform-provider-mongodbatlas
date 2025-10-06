@@ -302,12 +302,7 @@ func providerConfigure(provider *schema.Provider) func(ctx context.Context, d *s
 		if err != nil {
 			return nil, append(diags, diag.FromErr(fmt.Errorf("error getting credentials for provider: %w", err))...)
 		}
-		if c.Warnings() != "" {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "warning getting credentials for provider: " + c.Warnings(),
-			})
-		}
+		// Don't log possible warnings as they will be logged by the TPF provider.
 		client, err := config.NewClient(c, provider.TerraformVersion)
 		if err != nil {
 			return nil, append(diags, diag.FromErr(fmt.Errorf("error initializing provider: %w", err))...)

@@ -6,7 +6,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
-// Credentials has all the authentication fields, it also coincides with fields that can be stored in AWS Secrets Manager.
+// Credentials has all the authentication fields, it also matches with fields that can be stored in AWS Secrets Manager.
 type Credentials struct {
 	AccessToken  string `json:"access_token"`
 	ClientID     string `json:"client_id"`
