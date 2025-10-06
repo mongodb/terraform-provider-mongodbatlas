@@ -113,7 +113,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err := ValidateAPIKeyIsOrgOwner(conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List())); err != nil {
 		return diag.FromErr(err)
 	}
-	conn := getAtlasV2Connection(ctx, d, meta) // Using provider credentials.
+	conn := getAtlasV2Connection(d, meta) // Using provider credentials.
 	organization, resp, err := conn.OrganizationsApi.CreateOrg(ctx, newCreateOrganizationRequest(d)).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) && !strings.Contains(err.Error(), "USER_NOT_FOUND") {
@@ -128,7 +128,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err := d.Set("public_key", organization.ApiKey.GetPublicKey()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
 	}
-	conn = getAtlasV2Connection(ctx, d, meta) // Using new credentials from the created organization.
+	conn = getAtlasV2Connection(d, meta) // Using new credentials from the created organization.
 	orgID := organization.Organization.GetId()
 	_, _, errUpdate := conn.OrganizationsApi.UpdateOrgSettings(ctx, orgID, newOrganizationSettings(d)).Execute()
 	if errUpdate != nil {
@@ -146,7 +146,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := getAtlasV2Connection(ctx, d, meta)
+	conn := getAtlasV2Connection(d, meta)
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
@@ -194,7 +194,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := getAtlasV2Connection(ctx, d, meta)
+	conn := getAtlasV2Connection(d, meta)
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	for _, attr := range attrsCreateOnly {
@@ -227,7 +227,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := getAtlasV2Connection(ctx, d, meta)
+	conn := getAtlasV2Connection(d, meta)
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
@@ -293,7 +293,7 @@ func ValidateAPIKeyIsOrgOwner(roles []string) error {
 
 // getAtlasV2Connection uses the created credentials for the organization if they exist.
 // Otherwise, it uses the provider credentials, e.g. if the resource was imported.
-func getAtlasV2Connection(ctx context.Context, d *schema.ResourceData, meta any) *admin.APIClient {
+func getAtlasV2Connection(d *schema.ResourceData, meta any) *admin.APIClient {
 	currentClient := meta.(*config.MongoDBClient)
 	publicKey := d.Get("public_key").(string)
 	privateKey := d.Get("private_key").(string)
