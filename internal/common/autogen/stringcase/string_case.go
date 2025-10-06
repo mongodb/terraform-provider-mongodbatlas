@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/huandu/xstrings"
 )
@@ -45,4 +47,40 @@ func FromCamelCase(input string) SnakeCaseString {
 	})
 
 	return SnakeCaseString(strings.ToLower(insertedUnderscores))
+}
+
+func ToCamelCase(str string) string {
+	return xstrings.ToCamelCase(str)
+}
+
+func ToSnakeCase(str string) string {
+	return xstrings.ToSnakeCase(str)
+}
+
+func Capitalize(str string) string {
+	return capitalization(str, true)
+}
+
+func Uncapitalize(str string) string {
+	return capitalization(str, false)
+}
+
+func capitalization(str string, capitalize bool) string {
+	if str == "" {
+		return str
+	}
+
+	first, size := utf8.DecodeRuneInString(str)
+	if first == utf8.RuneError {
+		return str
+	}
+
+	builder := &strings.Builder{}
+	if capitalize {
+		builder.WriteRune(unicode.ToUpper(first))
+	} else {
+		builder.WriteRune(unicode.ToLower(first))
+	}
+	builder.WriteString(str[size:])
+	return builder.String()
 }
