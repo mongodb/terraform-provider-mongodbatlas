@@ -19,6 +19,7 @@ func CreateOnly() CreateOnlyModifier {
 	return &createOnlyAttributePlanModifier{}
 }
 
+// Single interface allows customplanmodifier.CreateOnly() to be used by all attribute types, simplifying code generation of auto-generated resources
 type CreateOnlyModifier interface {
 	planmodifier.String
 	planmodifier.Bool

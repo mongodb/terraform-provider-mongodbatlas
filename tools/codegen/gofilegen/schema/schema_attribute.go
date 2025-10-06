@@ -110,15 +110,15 @@ func commonAttrStructure(attr *codespec.Attribute, attrDefType, planModifierType
 	properties = append(properties, specificProperties...)
 
 	name := attr.TFSchemaName
-	result := GroupCodeStatements(properties, func(properties []string) string {
+	propsStmts := GroupCodeStatements(properties, func(properties []string) string {
 		return strings.Join(properties, ",\n") + ","
 	})
 	code := fmt.Sprintf(`"%s": %s{
 		%s
-	}`, name, attrDefType, result.Code)
+	}`, name, attrDefType, propsStmts.Code)
 	return CodeStatement{
 		Code:    code,
-		Imports: result.Imports,
+		Imports: propsStmts.Imports,
 	}
 }
 

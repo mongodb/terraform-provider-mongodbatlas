@@ -169,8 +169,3 @@ var CustomTypeJSONVar = CustomType{
 	Model:  "jsontypes.Normalized",
 	Schema: "jsontypes.NormalizedType{}",
 }
-
-type PlanModifier struct {
-	PlanStatement string
-	Import        string
-}
