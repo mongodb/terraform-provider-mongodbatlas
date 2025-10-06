@@ -135,7 +135,7 @@ func NewClient(c *Credentials, terraformVersion string) (*MongoDBClient, error) 
 		Realm: &RealmClient{
 			publicKey:        c.PublicKey,
 			privateKey:       c.PrivateKey,
-			realmBaseURL:     c.RealmBaseURL,
+			realmBaseURL:     NormalizeBaseURL(c.RealmBaseURL),
 			terraformVersion: terraformVersion,
 		},
 	}
@@ -218,9 +218,9 @@ func (r *RealmClient) Get(ctx context.Context) (*realm.Client, error) {
 
 	authConfig := realmAuth.NewConfig(nil)
 	if r.realmBaseURL != "" {
-		adminURL := r.realmBaseURL + "api/admin/v3.0/"
+		adminURL := r.realmBaseURL + "/api/admin/v3.0/"
 		optsRealm = append(optsRealm, realm.SetBaseURL(adminURL))
-		authConfig.AuthURL, _ = url.Parse(adminURL + "auth/providers/mongodb-cloud/login")
+		authConfig.AuthURL, _ = url.Parse(adminURL + "/auth/providers/mongodb-cloud/login")
 	}
 
 	token, err := authConfig.NewTokenFromCredentials(ctx, r.publicKey, r.privateKey)
