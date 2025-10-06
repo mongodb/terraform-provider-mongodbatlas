@@ -315,7 +315,9 @@ func getSDKv2ProviderVars(d *schema.ResourceData) *config.Vars {
 	assumeRoleARN := ""
 	assumeRoles := d.Get("assume_role").([]any)
 	if len(assumeRoles) > 0 {
-		assumeRoleARN = assumeRoles[0].(map[string]any)["role_arn"].(string)
+		if assumeRole, ok := assumeRoles[0].(map[string]any); ok {
+			assumeRoleARN = assumeRole["role_arn"].(string)
+		}
 	}
 	baseURL := d.Get("base_url").(string)
 	if d.Get("is_mongodbgov_cloud").(bool) && !slices.Contains(govAdditionalURLs, baseURL) {
