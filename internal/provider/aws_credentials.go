@@ -43,12 +43,6 @@ func getAWSCredentials(c *config.AWSVars) (*config.Credentials, error) {
 		EndpointResolver: endpoints.ResolverFunc(stsCustResolverFn),
 	}))
 	creds := stscreds.NewCredentials(sess, c.AssumeRoleARN)
-	if _, err := sess.Config.Credentials.Get(); err != nil {
-		return nil, err
-	}
-	if _, err := creds.Get(); err != nil {
-		return nil, err
-	}
 	secretString, err := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(c.Region)}, c.SecretName)
 	if err != nil {
 		return nil, err
