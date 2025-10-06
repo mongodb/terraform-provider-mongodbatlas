@@ -83,6 +83,7 @@ type Attribute struct {
 	TFModelName              string
 	ReqBodyUsage             AttributeReqBodyUsage
 	Sensitive                bool
+	CreateOnly               bool // leveraged for defining plan modifier which avoids updates on this attribute
 }
 
 type AttributeReqBodyUsage int

@@ -64,6 +64,7 @@ func TestConvertToProviderSpec(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
 						},
 						{
 							TFSchemaName:             "num_double_default_attr",
@@ -153,6 +154,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
 						},
 						{
 							TFSchemaName:             "group_id",
@@ -161,6 +163,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
 						},
 						{
 							TFSchemaName:             "list_primitive_string_attr",
@@ -391,6 +394,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
 						},
 						{
 							TFSchemaName:             "nested_list_array_attr",
@@ -514,6 +518,7 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
 						},
 						{
 							TFSchemaName:             "special_param",
@@ -522,6 +527,7 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 							String:                   &codespec.StringAttribute{},
 							ReqBodyUsage:             codespec.OmitInUpdateBody,
 							Description:              conversion.StringPtr(testPathParamDesc),
+							CreateOnly:               true,
 						},
 						{
 							TFSchemaName:             "str_req_attr1",
@@ -583,6 +589,7 @@ func TestConvertToProviderSpec_singletonResourceNoDeleteOperation(t *testing.T) 
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
 						},
 					},
 				},
