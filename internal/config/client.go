@@ -70,16 +70,16 @@ func tfLoggingInterceptor(base http.RoundTripper) http.RoundTripper {
 	return logging.NewTransport("Atlas", base)
 }
 
-// MongoDBClient contains the mongodbatlas clients and configurations
+// MongoDBClient contains the mongodbatlas clients and configurations.
 type MongoDBClient struct {
 	Atlas            *matlasClient.Client
 	AtlasV2          *admin.APIClient
 	AtlasPreview     *adminpreview.APIClient
-	AtlasV220240530  *admin20240530.APIClient // used in advanced_cluster and cloud_backup_schedule for avoiding breaking changes (supporting deprecated replication_specs.id)
-	AtlasV220241113  *admin20241113.APIClient // used in teams and atlas_users to avoiding breaking changes
+	AtlasV220240530  *admin20240530.APIClient // Used in cluster to support deprecated attributes default_read_concern and fail_index_key_too_long in advanced_configuration.
+	AtlasV220241113  *admin20241113.APIClient // Used in teams and atlas_users to avoiding breaking changes.
 	Realm            *RealmClient
-	BaseURL          string // needed by organization resource
-	TerraformVersion string // needed by organization resource
+	BaseURL          string // Needed by organization resource.
+	TerraformVersion string // Needed by organization resource.
 }
 
 type RealmClient struct {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -31,7 +31,7 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configNoPolicies(&clusterInfo, &admin20240530.DiskBackupSnapshotSchedule{
+				Config: configNoPolicies(&clusterInfo, &admin.DiskBackupSnapshotSchedule20240805{
 					ReferenceHourOfDay:    conversion.Pointer(3),
 					ReferenceMinuteOfHour: conversion.Pointer(45),
 					RestoreWindowDays:     conversion.Pointer(4),
@@ -59,7 +59,7 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: configNewPolicies(&clusterInfo, &admin20240530.DiskBackupSnapshotSchedule{
+				Config: configNewPolicies(&clusterInfo, &admin.DiskBackupSnapshotSchedule20240805{
 					ReferenceHourOfDay:    conversion.Pointer(0),
 					ReferenceMinuteOfHour: conversion.Pointer(0),
 					RestoreWindowDays:     conversion.Pointer(7),
@@ -102,7 +102,7 @@ func TestAccBackupRSCloudBackupSchedule_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: configAdvancedPolicies(&clusterInfo, &admin20240530.DiskBackupSnapshotSchedule{
+				Config: configAdvancedPolicies(&clusterInfo, &admin.DiskBackupSnapshotSchedule20240805{
 					ReferenceHourOfDay:    conversion.Pointer(0),
 					ReferenceMinuteOfHour: conversion.Pointer(0),
 					RestoreWindowDays:     conversion.Pointer(7),
@@ -203,7 +203,7 @@ func TestAccBackupRSCloudBackupSchedule_onePolicy(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configDefault(&clusterInfo, &admin20240530.DiskBackupSnapshotSchedule{
+				Config: configDefault(&clusterInfo, &admin.DiskBackupSnapshotSchedule20240805{
 					ReferenceHourOfDay:    conversion.Pointer(3),
 					ReferenceMinuteOfHour: conversion.Pointer(45),
 					RestoreWindowDays:     conversion.Pointer(4),
@@ -237,7 +237,7 @@ func TestAccBackupRSCloudBackupSchedule_onePolicy(t *testing.T) {
 				),
 			},
 			{
-				Config: configOnePolicy(&clusterInfo, &admin20240530.DiskBackupSnapshotSchedule{
+				Config: configOnePolicy(&clusterInfo, &admin.DiskBackupSnapshotSchedule20240805{
 					ReferenceHourOfDay:    conversion.Pointer(0),
 					ReferenceMinuteOfHour: conversion.Pointer(0),
 					RestoreWindowDays:     conversion.Pointer(7),
@@ -328,7 +328,7 @@ func TestAccBackupRSCloudBackupSchedule_copySettings_zoneId(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configCopySettings(terraformStr, projectID, clusterResourceName, false, false, &admin20240530.DiskBackupSnapshotSchedule{
+				Config: configCopySettings(terraformStr, projectID, clusterResourceName, false, false, &admin.DiskBackupSnapshotSchedule20240805{
 					ReferenceHourOfDay:    conversion.Pointer(3),
 					ReferenceMinuteOfHour: conversion.Pointer(45),
 					RestoreWindowDays:     conversion.Pointer(1),
@@ -336,7 +336,7 @@ func TestAccBackupRSCloudBackupSchedule_copySettings_zoneId(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(checksCreateAll...),
 			},
 			{
-				Config: configCopySettings(terraformStr, projectID, clusterResourceName, true, false, &admin20240530.DiskBackupSnapshotSchedule{
+				Config: configCopySettings(terraformStr, projectID, clusterResourceName, true, false, &admin.DiskBackupSnapshotSchedule20240805{
 					ReferenceHourOfDay:    conversion.Pointer(3),
 					ReferenceMinuteOfHour: conversion.Pointer(45),
 					RestoreWindowDays:     conversion.Pointer(1),
@@ -358,7 +358,7 @@ func TestAccBackupRSCloudBackupScheduleImport_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configDefault(&clusterInfo, &admin20240530.DiskBackupSnapshotSchedule{
+				Config: configDefault(&clusterInfo, &admin.DiskBackupSnapshotSchedule20240805{
 					ReferenceHourOfDay:    conversion.Pointer(3),
 					ReferenceMinuteOfHour: conversion.Pointer(45),
 					RestoreWindowDays:     conversion.Pointer(4),
@@ -413,7 +413,7 @@ func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configAzure(&clusterInfo, &admin20240530.DiskBackupApiPolicyItem{
+				Config: configAzure(&clusterInfo, &admin.BackupComplianceOnDemandPolicyItem{
 					FrequencyInterval: 1,
 					RetentionUnit:     "days",
 					RetentionValue:    1,
@@ -426,7 +426,7 @@ func TestAccBackupRSCloudBackupSchedule_azure(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "policy_item_hourly.0.retention_value", "1")),
 			},
 			{
-				Config: configAzure(&clusterInfo, &admin20240530.DiskBackupApiPolicyItem{
+				Config: configAzure(&clusterInfo, &admin.BackupComplianceOnDemandPolicyItem{
 					FrequencyInterval: 2,
 					RetentionUnit:     "days",
 					RetentionValue:    3,
@@ -492,7 +492,7 @@ func checkDestroy(s *terraform.State) error {
 	return nil
 }
 
-func configNoPolicies(info *acc.ClusterInfo, p *admin20240530.DiskBackupSnapshotSchedule) string {
+func configNoPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule20240805) string {
 	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
@@ -510,7 +510,7 @@ func configNoPolicies(info *acc.ClusterInfo, p *admin20240530.DiskBackupSnapshot
 	`, info.TerraformNameRef, info.ProjectID, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
-func configDefault(info *acc.ClusterInfo, p *admin20240530.DiskBackupSnapshotSchedule) string {
+func configDefault(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule20240805) string {
 	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
@@ -554,7 +554,7 @@ func configDefault(info *acc.ClusterInfo, p *admin20240530.DiskBackupSnapshotSch
 	`, info.TerraformNameRef, info.ProjectID, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
-func configCopySettings(terraformStr, projectID, clusterResourceName string, emptyCopySettings, useRepSpecID bool, p *admin20240530.DiskBackupSnapshotSchedule) string {
+func configCopySettings(terraformStr, projectID, clusterResourceName string, emptyCopySettings, useRepSpecID bool, p *admin.DiskBackupSnapshotSchedule20240805) string {
 	var copySettings string
 	var dataSourceConfig string
 
@@ -641,7 +641,7 @@ func configCopySettings(terraformStr, projectID, clusterResourceName string, emp
 	`, terraformStr, projectID, clusterResourceName, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays(), copySettings, dataSourceConfig)
 }
 
-func configOnePolicy(info *acc.ClusterInfo, p *admin20240530.DiskBackupSnapshotSchedule) string {
+func configOnePolicy(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule20240805) string {
 	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
@@ -660,7 +660,7 @@ func configOnePolicy(info *acc.ClusterInfo, p *admin20240530.DiskBackupSnapshotS
 	`, info.TerraformNameRef, info.ProjectID, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays())
 }
 
-func configNewPolicies(info *acc.ClusterInfo, p *admin20240530.DiskBackupSnapshotSchedule, useYearly bool) string {
+func configNewPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule20240805, useYearly bool) string {
 	var strYearly string
 	if useYearly {
 		strYearly = `
@@ -711,7 +711,7 @@ func configNewPolicies(info *acc.ClusterInfo, p *admin20240530.DiskBackupSnapsho
 	`, info.TerraformNameRef, info.ProjectID, p.GetReferenceHourOfDay(), p.GetReferenceMinuteOfHour(), p.GetRestoreWindowDays(), strYearly)
 }
 
-func configAzure(info *acc.ClusterInfo, policy *admin20240530.DiskBackupApiPolicyItem) string {
+func configAzure(info *acc.ClusterInfo, policy *admin.BackupComplianceOnDemandPolicyItem) string {
 	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
@@ -731,7 +731,7 @@ func configAzure(info *acc.ClusterInfo, policy *admin20240530.DiskBackupApiPolic
 	`, info.TerraformNameRef, info.ProjectID, policy.GetFrequencyInterval(), policy.GetRetentionUnit(), policy.GetRetentionValue())
 }
 
-func configAdvancedPolicies(info *acc.ClusterInfo, p *admin20240530.DiskBackupSnapshotSchedule) string {
+func configAdvancedPolicies(info *acc.ClusterInfo, p *admin.DiskBackupSnapshotSchedule20240805) string {
 	return info.TerraformStr + fmt.Sprintf(`
 		resource "mongodbatlas_cloud_backup_schedule" "schedule_test" {
 			cluster_name     = %[1]s
