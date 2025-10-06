@@ -241,11 +241,8 @@ jobs:
       advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
       assume_role: ${{ steps.filter.outputs.assume_role == 'true' || env.mustTrigger == 'true' }}
       authentication: ${{ steps.filter.outputs.authentication == 'true' || env.mustTrigger == 'true' }}
-      autogen_cluster: ${{ steps.filter.outputs.autogen_cluster == 'true' || env.mustTrigger == 'true' }}
-      autogen_generic: ${{ steps.filter.outputs.autogen_generic == 'true' || env.mustTrigger == 'true' }}
-      autogen_push_based_log_export: ${{ steps.filter.outputs.autogen_push_based_log_export == 'true' || env.mustTrigger == 'true' }}
-      autogen_search_deployment: ${{ steps.filter.outputs.autogen_search_deployment == 'true' || env.mustTrigger == 'true' }}
-      autogen_stream: ${{ steps.filter.outputs.autogen_stream == 'true' || env.mustTrigger == 'true' }}
+      autogen_fast: ${{ steps.filter.outputs.autogen_fast == 'true' || env.mustTrigger == 'true' }}
+      autogen_slow: ${{ steps.filter.outputs.autogen_slow == 'true' || env.mustTrigger == 'true' }}
       backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
       control_plane_ip_addresses: ${{ steps.filter.outputs.control_plane_ip_addresses == 'true' || env.mustTrigger == 'true' }}
       cloud_user: ${{ steps.filter.outputs.cloud_user == 'true' || env.mustTrigger == 'true' }}
@@ -283,10 +280,7 @@ jobs:
           authentication:
             - 'internal/config/*.go'
             - 'internal/provider/*.go' 
-          autogen_cluster:
-            - 'internal/common/autogen/*.go'
-            - 'internal/serviceapi/clusterapi/*.go'
-          autogen_generic:
+          autogen_fast:
             - 'internal/common/autogen/*.go'
             - 'internal/serviceapi/auditingapi/*.go'
             - 'internal/serviceapi/customdbroleapi/*.go'
@@ -296,14 +290,11 @@ jobs:
             - 'internal/serviceapi/projectapi/*.go'
             - 'internal/serviceapi/projectsettingsapi/*.go'
             - 'internal/serviceapi/resourcepolicyapi/*.go'
-          autogen_push_based_log_export:
+          autogen_slow:
             - 'internal/common/autogen/*.go'
+            - 'internal/serviceapi/clusterapi/*.go'
             - 'internal/serviceapi/pushbasedlogexportapi/*.go'
-          autogen_search_deployment:
-            - 'internal/common/autogen/*.go'
             - 'internal/serviceapi/searchdeploymentapi/*.go'
-          autogen_stream:
-            - 'internal/common/autogen/*.go'
             - 'internal/serviceapi/streaminstanceapi/*.go'
             - 'internal/serviceapi/streamprocessorapi/*.go'
           backup:
@@ -571,33 +562,9 @@ jobs:
             ./internal/service/maintenancewindow
         run: make testacc
 
-  autogen_cluster:
+  autogen_fast:
     needs: [change-detection, get-provider-version]
-    if: ${{ needs.change-detection.outputs.autogen_cluster == 'true' || inputs.test_group == 'autogen' || inputs.test_group == 'autogen_cluster' }}
-    runs-on: ubuntu-latest
-    permissions: {}
-    steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false
-      - name: Enable autogen
-        run: make tools enable-autogen
-      - name: Acceptance Tests
-        env:
-          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_PACKAGES: ./internal/serviceapi/clusterapi
-        run: make testacc
-
-  autogen_generic:
-    needs: [change-detection, get-provider-version]
-    if: ${{ needs.change-detection.outputs.autogen_generic == 'true' || inputs.test_group == 'autogen' || inputs.test_group == 'autogen_generic' }}
+    if: ${{ needs.change-detection.outputs.autogen_fast == 'true' || inputs.test_group == 'autogen' || inputs.test_group == 'autogen_fast' }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -630,62 +597,11 @@ jobs:
             ./internal/serviceapi/resourcepolicyapi
         run: make testacc
 
-  autogen_push_based_log_export:
+  autogen_slow:
     needs: [change-detection, get-provider-version]
-    if: ${{ needs.change-detection.outputs.autogen_push_based_log_export == 'true' || inputs.test_group == 'autogen' || inputs.test_group == 'autogen_push_based_log_export' }}
+    if: ${{ needs.change-detection.outputs.autogen_slow == 'true' || inputs.test_group == 'autogen' || inputs.test_group == 'autogen_slow' }}
     runs-on: ubuntu-latest
     permissions: {}
-    steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false
-      - name: Enable autogen
-        run: make tools enable-autogen
-      - name: Acceptance Tests
-        env:
-          AWS_REGION: ${{ vars.AWS_REGION_LOWERCASE }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
-          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_PACKAGES: ./internal/serviceapi/pushbasedlogexportapi
-        run: make testacc
-
-  autogen_search_deployment:
-    needs: [change-detection, get-provider-version]
-    if: ${{ needs.change-detection.outputs.autogen_search_deployment == 'true' || inputs.test_group == 'autogen' || inputs.test_group == 'autogen_search_deployment' }}
-    runs-on: ubuntu-latest
-    permissions: {}
-    steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
-        with:
-          ref: ${{ inputs.ref || github.ref }}
-      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
-        with:
-          go-version-file: 'go.mod'
-      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
-          terraform_wrapper: false
-      - name: Enable autogen
-        run: make tools enable-autogen
-      - name: Acceptance Tests
-        env:
-          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_PACKAGES: ./internal/serviceapi/searchdeploymentapi
-        run: make testacc
-
-  autogen_stream:
-    needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.autogen_stream == 'true' || inputs.test_group == 'autogen' || inputs.test_group == 'autogen_stream' }}
-    runs-on: ubuntu-latest
-    permissions: { }
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:
@@ -706,6 +622,9 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
+            ./internal/serviceapi/clusterapi
+            ./internal/serviceapi/pushbasedlogexportapi
+            ./internal/serviceapi/searchdeploymentapi
             ./internal/serviceapi/streaminstanceapi
             ./internal/serviceapi/streamprocessorapi
         run: make testacc
