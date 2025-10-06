@@ -24,20 +24,20 @@ var saInfo = struct {
 	mu           sync.Mutex
 }{}
 
-func getTokenSource(c *Config, tokenRenewalBase http.RoundTripper) (auth.TokenSource, error) {
+func getTokenSource(clientID, clientSecret, baseURL string, tokenRenewalBase http.RoundTripper) (auth.TokenSource, error) {
 	saInfo.mu.Lock()
 	defer saInfo.mu.Unlock()
 
+	baseURL = strings.TrimRight(baseURL, "/")
 	if saInfo.tokenSource != nil { // Token source in cache.
-		if saInfo.clientID != c.ClientID || saInfo.clientSecret != c.ClientSecret || saInfo.baseURL != c.BaseURL {
+		if saInfo.clientID != clientID || saInfo.clientSecret != clientSecret || saInfo.baseURL != baseURL {
 			return nil, fmt.Errorf("service account credentials changed")
 		}
 		return saInfo.tokenSource, nil
 	}
 
-	conf := clientcredentials.NewConfig(c.ClientID, c.ClientSecret)
-	if c.BaseURL != "" {
-		baseURL := strings.TrimRight(c.BaseURL, "/")
+	conf := clientcredentials.NewConfig(clientID, clientSecret)
+	if baseURL != "" {
 		conf.TokenURL = baseURL + clientcredentials.TokenAPIPath
 		conf.RevokeURL = baseURL + clientcredentials.RevokeAPIPath
 	}
@@ -47,9 +47,9 @@ func getTokenSource(c *Config, tokenRenewalBase http.RoundTripper) (auth.TokenSo
 	if _, err := tokenSource.Token(); err != nil { // Retrieve token to fail-fast if credentials are invalid.
 		return nil, err
 	}
-	saInfo.clientID = c.ClientID
-	saInfo.clientSecret = c.ClientSecret
-	saInfo.baseURL = c.BaseURL
+	saInfo.clientID = clientID
+	saInfo.clientSecret = clientSecret
+	saInfo.baseURL = baseURL
 	saInfo.tokenSource = tokenSource
 	return saInfo.tokenSource, nil
 }

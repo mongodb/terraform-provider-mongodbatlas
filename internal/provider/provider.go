@@ -3,12 +3,10 @@ package provider
 import (
 	"context"
 	"log"
-	"os"
+	"slices"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/metaschema"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -20,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
 	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/alertconfiguration"
@@ -53,8 +50,7 @@ import (
 )
 
 const (
-	MongodbGovCloudURL             = "https://cloud.mongodbgov.com"
-	MongodbGovCloudQAURL           = "https://cloud-qa.mongodbgov.com"
+	govURL                         = "https://cloud.mongodbgov.com"
 	MongodbGovCloudDevURL          = "https://cloud-dev.mongodbgov.com"
 	ProviderConfigError            = "error in configuring the provider."
 	MissingAuthAttrError           = "either AWS Secrets Manager, Service Accounts or Atlas Programmatic API Keys attributes must be set"
@@ -66,34 +62,37 @@ const (
 	ProviderMetaModuleVersionDesc  = "The version of the module using the provider"
 )
 
+var (
+	govAdditionalURLs = []string{
+		"https://cloud-dev.mongodbgov.com",
+		"https://cloud-qa.mongodbgov.com",
+	}
+)
+
 type MongodbtlasProvider struct {
 }
 
-type tfMongodbAtlasProviderModel struct {
-	AssumeRole           types.List   `tfsdk:"assume_role"`
-	Region               types.String `tfsdk:"region"`
-	PrivateKey           types.String `tfsdk:"private_key"`
-	BaseURL              types.String `tfsdk:"base_url"`
-	RealmBaseURL         types.String `tfsdk:"realm_base_url"`
-	SecretName           types.String `tfsdk:"secret_name"`
-	PublicKey            types.String `tfsdk:"public_key"`
-	StsEndpoint          types.String `tfsdk:"sts_endpoint"`
-	AwsAccessKeyID       types.String `tfsdk:"aws_access_key_id"`
-	AwsSecretAccessKeyID types.String `tfsdk:"aws_secret_access_key"`
-	AwsSessionToken      types.String `tfsdk:"aws_session_token"`
-	ClientID             types.String `tfsdk:"client_id"`
-	ClientSecret         types.String `tfsdk:"client_secret"`
-	AccessToken          types.String `tfsdk:"access_token"`
-	IsMongodbGovCloud    types.Bool   `tfsdk:"is_mongodbgov_cloud"`
+type tfModel struct {
+	Region               types.String        `tfsdk:"region"`
+	PrivateKey           types.String        `tfsdk:"private_key"`
+	BaseURL              types.String        `tfsdk:"base_url"`
+	RealmBaseURL         types.String        `tfsdk:"realm_base_url"`
+	SecretName           types.String        `tfsdk:"secret_name"`
+	PublicKey            types.String        `tfsdk:"public_key"`
+	StsEndpoint          types.String        `tfsdk:"sts_endpoint"`
+	AwsAccessKeyID       types.String        `tfsdk:"aws_access_key_id"`
+	AwsSecretAccessKeyID types.String        `tfsdk:"aws_secret_access_key"`
+	AwsSessionToken      types.String        `tfsdk:"aws_session_token"`
+	ClientID             types.String        `tfsdk:"client_id"`
+	ClientSecret         types.String        `tfsdk:"client_secret"`
+	AccessToken          types.String        `tfsdk:"access_token"`
+	AssumeRole           []tfAssumeRoleModel `tfsdk:"assume_role"`
+	IsMongodbGovCloud    types.Bool          `tfsdk:"is_mongodbgov_cloud"`
 }
 
 type tfAssumeRoleModel struct {
 	RoleARN types.String `tfsdk:"role_arn"`
 }
-
-var AssumeRoleType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"role_arn": types.StringType,
-}}
 
 func (p *MongodbtlasProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "mongodbatlas"
@@ -200,194 +199,57 @@ var fwAssumeRoleSchema = schema.ListNestedBlock{
 }
 
 func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	var data tfMongodbAtlasProviderModel
-
-	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	providerVars := getProviderVars(ctx, req, resp)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	data = setDefaultValuesWithValidations(ctx, &data, resp)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	cfg := config.Config{
-		PublicKey:        data.PublicKey.ValueString(),
-		PrivateKey:       data.PrivateKey.ValueString(),
-		BaseURL:          data.BaseURL.ValueString(),
-		RealmBaseURL:     data.RealmBaseURL.ValueString(),
-		TerraformVersion: req.TerraformVersion,
-		ClientID:         data.ClientID.ValueString(),
-		ClientSecret:     data.ClientSecret.ValueString(),
-		AccessToken:      data.AccessToken.ValueString(),
-	}
-
-	var assumeRoles []tfAssumeRoleModel
-	data.AssumeRole.ElementsAs(ctx, &assumeRoles, true)
-	awsRoleDefined := len(assumeRoles) > 0
-	if awsRoleDefined {
-		cfg.AssumeRoleARN = assumeRoles[0].RoleARN.ValueString()
-		secret := data.SecretName.ValueString()
-		region := conversion.MongoDBRegionToAWSRegion(data.Region.ValueString())
-		awsAccessKeyID := data.AwsAccessKeyID.ValueString()
-		awsSecretAccessKey := data.AwsSecretAccessKeyID.ValueString()
-		awsSessionToken := data.AwsSessionToken.ValueString()
-		endpoint := data.StsEndpoint.ValueString()
-		var err error
-		cfg, err = configureCredentialsSTS(&cfg, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
-		if err != nil {
-			resp.Diagnostics.AddError("failed to configure credentials STS", err.Error())
-			return
-		}
-	}
-
-	client, err := cfg.NewClient(ctx)
-
+	c, err := config.GetCredentials(providerVars, config.NewEnvVars(), getAWSCredentials)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"failed to initialize a new client",
-			err.Error(),
-		)
+		resp.Diagnostics.AddError("Error getting credentials for provider", err.Error())
 		return
 	}
-
+	if c.Warnings() != "" {
+		resp.Diagnostics.AddWarning("Warning getting credentials for provider", c.Warnings())
+	}
+	client, err := config.NewClient(c, req.TerraformVersion)
+	if err != nil {
+		resp.Diagnostics.AddError("Error initializing provider", err.Error())
+		return
+	}
 	resp.DataSourceData = client
 	resp.ResourceData = client
 }
 
-func setDefaultValuesWithValidations(ctx context.Context, data *tfMongodbAtlasProviderModel, resp *provider.ConfigureResponse) tfMongodbAtlasProviderModel {
-	if mongodbgovCloud := data.IsMongodbGovCloud.ValueBool(); mongodbgovCloud {
-		if !isGovBaseURLConfiguredForProvider(data) {
-			data.BaseURL = types.StringValue(MongodbGovCloudURL)
-		}
+func getProviderVars(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) *config.Vars {
+	var data tfModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return nil
 	}
-	if data.BaseURL.ValueString() == "" {
-		data.BaseURL = types.StringValue(MultiEnvDefaultFunc([]string{
-			"MONGODB_ATLAS_BASE_URL",
-			"MCLI_OPS_MANAGER_URL",
-		}, "").(string))
+	assumeRoleARN := ""
+	if len(data.AssumeRole) > 0 {
+		assumeRoleARN = data.AssumeRole[0].RoleARN.ValueString()
 	}
-
-	awsRoleDefined := false
-	if len(data.AssumeRole.Elements()) == 0 {
-		assumeRoleArn := MultiEnvDefaultFunc([]string{
-			"ASSUME_ROLE_ARN",
-			"TF_VAR_ASSUME_ROLE_ARN",
-		}, "").(string)
-		if assumeRoleArn != "" {
-			awsRoleDefined = true
-			var diags diag.Diagnostics
-			data.AssumeRole, diags = types.ListValueFrom(ctx, AssumeRoleType, []tfAssumeRoleModel{
-				{
-					RoleARN: types.StringValue(assumeRoleArn),
-				},
-			})
-			if diags.HasError() {
-				resp.Diagnostics.Append(diags...)
-			}
-		}
-	} else {
-		awsRoleDefined = true
+	baseURL := data.BaseURL.ValueString()
+	if data.IsMongodbGovCloud.ValueBool() && !slices.Contains(govAdditionalURLs, baseURL) {
+		baseURL = govURL
 	}
-
-	if data.PublicKey.ValueString() == "" {
-		data.PublicKey = types.StringValue(MultiEnvDefaultFunc([]string{
-			"MONGODB_ATLAS_PUBLIC_API_KEY",
-			"MONGODB_ATLAS_PUBLIC_KEY",
-			"MCLI_PUBLIC_API_KEY",
-		}, "").(string))
+	return &config.Vars{
+		AccessToken:        data.AccessToken.ValueString(),
+		ClientID:           data.ClientID.ValueString(),
+		ClientSecret:       data.ClientSecret.ValueString(),
+		PublicKey:          data.PublicKey.ValueString(),
+		PrivateKey:         data.PrivateKey.ValueString(),
+		BaseURL:            baseURL,
+		RealmBaseURL:       data.RealmBaseURL.ValueString(),
+		AWSAssumeRoleARN:   assumeRoleARN,
+		AWSSecretName:      data.SecretName.ValueString(),
+		AWSRegion:          data.Region.ValueString(),
+		AWSAccessKeyID:     data.AwsAccessKeyID.ValueString(),
+		AWSSecretAccessKey: data.AwsSecretAccessKeyID.ValueString(),
+		AWSSessionToken:    data.AwsSessionToken.ValueString(),
+		AWSEndpoint:        data.StsEndpoint.ValueString(),
 	}
-
-	if data.PrivateKey.ValueString() == "" {
-		data.PrivateKey = types.StringValue(MultiEnvDefaultFunc([]string{
-			"MONGODB_ATLAS_PRIVATE_API_KEY",
-			"MONGODB_ATLAS_PRIVATE_KEY",
-			"MCLI_PRIVATE_API_KEY",
-		}, "").(string))
-	}
-
-	if data.RealmBaseURL.ValueString() == "" {
-		data.RealmBaseURL = types.StringValue(MultiEnvDefaultFunc([]string{
-			"MONGODB_REALM_BASE_URL",
-		}, "").(string))
-	}
-
-	if data.Region.ValueString() == "" {
-		data.Region = types.StringValue(MultiEnvDefaultFunc([]string{
-			"AWS_REGION",
-			"TF_VAR_AWS_REGION",
-		}, "").(string))
-	}
-
-	if data.StsEndpoint.ValueString() == "" {
-		data.StsEndpoint = types.StringValue(MultiEnvDefaultFunc([]string{
-			"STS_ENDPOINT",
-			"TF_VAR_STS_ENDPOINT",
-		}, "").(string))
-	}
-
-	if data.AwsAccessKeyID.ValueString() == "" {
-		data.AwsAccessKeyID = types.StringValue(MultiEnvDefaultFunc([]string{
-			"AWS_ACCESS_KEY_ID",
-			"TF_VAR_AWS_ACCESS_KEY_ID",
-		}, "").(string))
-	}
-
-	if data.AwsSecretAccessKeyID.ValueString() == "" {
-		data.AwsSecretAccessKeyID = types.StringValue(MultiEnvDefaultFunc([]string{
-			"AWS_SECRET_ACCESS_KEY",
-			"TF_VAR_AWS_SECRET_ACCESS_KEY",
-		}, "").(string))
-	}
-
-	if data.AwsSessionToken.ValueString() == "" {
-		data.AwsSessionToken = types.StringValue(MultiEnvDefaultFunc([]string{
-			"AWS_SESSION_TOKEN",
-			"TF_VAR_AWS_SESSION_TOKEN",
-		}, "").(string))
-	}
-
-	if data.SecretName.ValueString() == "" {
-		data.SecretName = types.StringValue(MultiEnvDefaultFunc([]string{
-			"SECRET_NAME",
-			"TF_VAR_SECRET_NAME",
-		}, "").(string))
-	}
-
-	if data.ClientID.ValueString() == "" {
-		data.ClientID = types.StringValue(MultiEnvDefaultFunc([]string{
-			"MONGODB_ATLAS_CLIENT_ID",
-			"TF_VAR_CLIENT_ID",
-		}, "").(string))
-	}
-
-	if data.ClientSecret.ValueString() == "" {
-		data.ClientSecret = types.StringValue(MultiEnvDefaultFunc([]string{
-			"MONGODB_ATLAS_CLIENT_SECRET",
-			"TF_VAR_CLIENT_SECRET",
-		}, "").(string))
-	}
-
-	if data.AccessToken.ValueString() == "" {
-		data.AccessToken = types.StringValue(MultiEnvDefaultFunc([]string{
-			"MONGODB_ATLAS_OAUTH_TOKEN",
-			"TF_VAR_OAUTH_TOKEN",
-		}, "").(string))
-	}
-
-	// Check if any valid authentication method is provided
-	if !config.HasValidAuthCredentials(&config.Config{
-		PublicKey:    data.PublicKey.ValueString(),
-		PrivateKey:   data.PrivateKey.ValueString(),
-		ClientID:     data.ClientID.ValueString(),
-		ClientSecret: data.ClientSecret.ValueString(),
-		AccessToken:  data.AccessToken.ValueString(),
-	}) && !awsRoleDefined {
-		resp.Diagnostics.AddError(ProviderConfigError, MissingAuthAttrError)
-	}
-
-	return *data
 }
 
 func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.DataSource {
@@ -485,27 +347,4 @@ func MuxProviderFactory() func() tfprotov6.ProviderServer {
 		log.Fatal(err)
 	}
 	return muxServer.ProviderServer
-}
-
-func MultiEnvDefaultFunc(ks []string, def any) any {
-	for _, k := range ks {
-		if v := os.Getenv(k); v != "" {
-			return v
-		}
-	}
-	return def
-}
-
-func isGovBaseURLConfigured(baseURL string) bool {
-	if baseURL == "" {
-		baseURL = MultiEnvDefaultFunc([]string{
-			"MONGODB_ATLAS_BASE_URL",
-			"MCLI_OPS_MANAGER_URL",
-		}, "").(string)
-	}
-	return baseURL == MongodbGovCloudDevURL || baseURL == MongodbGovCloudQAURL
-}
-
-func isGovBaseURLConfiguredForProvider(data *tfMongodbAtlasProviderModel) bool {
-	return isGovBaseURLConfigured(data.BaseURL.ValueString())
 }

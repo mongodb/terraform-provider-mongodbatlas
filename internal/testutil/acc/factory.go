@@ -1,7 +1,6 @@
 package acc
 
 import (
-	"context"
 	"os"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -42,12 +41,12 @@ func ConnV220241113() *admin20241113.APIClient {
 }
 
 func ConnV2UsingGov() *admin.APIClient {
-	cfg := config.Config{
+	c := &config.Credentials{
 		PublicKey:  os.Getenv("MONGODB_ATLAS_GOV_PUBLIC_KEY"),
 		PrivateKey: os.Getenv("MONGODB_ATLAS_GOV_PRIVATE_KEY"),
 		BaseURL:    os.Getenv("MONGODB_ATLAS_GOV_BASE_URL"),
 	}
-	client, _ := cfg.NewClient(context.Background())
+	client, _ := config.NewClient(c, "")
 	return client.AtlasV2
 }
 
@@ -57,7 +56,7 @@ func init() {
 			return provider.MuxProviderFactory()(), nil
 		},
 	}
-	cfg := config.Config{
+	c := &config.Credentials{
 		PublicKey:    os.Getenv("MONGODB_ATLAS_PUBLIC_KEY"),
 		PrivateKey:   os.Getenv("MONGODB_ATLAS_PRIVATE_KEY"),
 		ClientID:     os.Getenv("MONGODB_ATLAS_CLIENT_ID"),
@@ -65,5 +64,5 @@ func init() {
 		BaseURL:      os.Getenv("MONGODB_ATLAS_BASE_URL"),
 		RealmBaseURL: os.Getenv("MONGODB_REALM_BASE_URL"),
 	}
-	MongoDBClient, _ = cfg.NewClient(context.Background())
+	MongoDBClient, _ = config.NewClient(c, "")
 }

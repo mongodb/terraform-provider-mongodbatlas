@@ -159,17 +159,17 @@ func TestAccNetworkLogging(t *testing.T) {
 	var logOutput bytes.Buffer
 	log.SetOutput(&logOutput)
 	defer log.SetOutput(os.Stderr)
-	cfg := &config.Config{
+	c := &config.Credentials{
 		PublicKey:    os.Getenv("MONGODB_ATLAS_PUBLIC_KEY"),
 		PrivateKey:   os.Getenv("MONGODB_ATLAS_PRIVATE_KEY"),
 		ClientID:     os.Getenv("MONGODB_ATLAS_CLIENT_ID"),
 		ClientSecret: os.Getenv("MONGODB_ATLAS_CLIENT_SECRET"),
 		BaseURL:      os.Getenv("MONGODB_ATLAS_BASE_URL"),
 	}
-	client, err := cfg.NewClient(t.Context())
+	client, err := config.NewClient(c, "")
 	require.NoError(t, err)
 
-	// Make a simple API call that should trigger our enhanced logging
+	// Make a simple API call that should trigger our enhanced logging.
 	_, _, err = client.AtlasV2.OrganizationsApi.ListOrgs(t.Context()).Execute()
 	require.NoError(t, err)
 	logStr := logOutput.String()
