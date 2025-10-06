@@ -231,7 +231,6 @@ func getProviderVars(ctx context.Context, req provider.ConfigureRequest, resp *p
 		assumeRoleARN = data.AssumeRole[0].RoleARN.ValueString()
 	}
 	baseURL := data.BaseURL.ValueString()
-	// TODO: check that is_mongodbgov_cloud works for undefined, true, false
 	if data.IsMongodbGovCloud.ValueBool() && !slices.Contains(govAdditionalURLs, baseURL) {
 		baseURL = govURL
 	}
@@ -333,8 +332,8 @@ func NewFrameworkProvider() provider.Provider {
 }
 
 func MuxProviderFactory() func() tfprotov6.ProviderServer {
-	newProvider := NewFrameworkProvider()
 	v2Provider := NewSdkV2Provider()
+	newProvider := NewFrameworkProvider()
 	ctx := context.Background()
 	upgradedSdkProvider, err := tf5to6server.UpgradeServer(ctx, v2Provider.GRPCProvider)
 	if err != nil {
