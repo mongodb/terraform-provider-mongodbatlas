@@ -3,6 +3,7 @@ package projectsettingsapi_test
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -27,6 +28,10 @@ func TestAccProjectSettingsAPI_basic(t *testing.T) {
 			},
 			{
 				Config: config(projectID, true),
+				Check:  check(projectID, true),
+			},
+			{
+				Config: emptyConfig(projectID),
 				Check:  check(projectID, true),
 			},
 			{
@@ -60,23 +65,30 @@ func config(projectID string, enabled bool) string {
 	`, projectID, enabled)
 }
 
+func emptyConfig(projectID string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_project_settings_api" "test" {
+			group_id = %[1]q
+		}
+	`, projectID)
+}
+
 func check(projectID string, enabled bool) resource.TestCheckFunc {
-	expected := fmt.Sprintf("%t", enabled)
-
-	check := resource.ComposeAggregateTestCheckFunc(
-		checkExists(resourceName),
-		resource.TestCheckResourceAttr(resourceName, "group_id", projectID),
-		resource.TestCheckResourceAttr(resourceName, "is_collect_database_specifics_statistics_enabled", expected),
-		resource.TestCheckResourceAttr(resourceName, "is_data_explorer_enabled", expected),
-		resource.TestCheckResourceAttr(resourceName, "is_data_explorer_gen_ai_features_enabled", expected),
-		resource.TestCheckResourceAttr(resourceName, "is_data_explorer_gen_ai_sample_document_passing_enabled", expected),
-		resource.TestCheckResourceAttr(resourceName, "is_extended_storage_sizes_enabled", expected),
-		resource.TestCheckResourceAttr(resourceName, "is_performance_advisor_enabled", expected),
-		resource.TestCheckResourceAttr(resourceName, "is_realtime_performance_panel_enabled", expected),
-		resource.TestCheckResourceAttr(resourceName, "is_schema_advisor_enabled", expected),
-	)
-
-	return check
+	expected := strconv.FormatBool(enabled)
+	attrChecks := map[string]string{
+		"group_id": projectID,
+		"is_collect_database_specifics_statistics_enabled":        expected,
+		"is_data_explorer_enabled":                                expected,
+		"is_data_explorer_gen_ai_features_enabled":                expected,
+		"is_data_explorer_gen_ai_sample_document_passing_enabled": expected,
+		"is_extended_storage_sizes_enabled":                       expected,
+		"is_performance_advisor_enabled":                          expected,
+		"is_realtime_performance_panel_enabled":                   expected,
+		"is_schema_advisor_enabled":                               expected,
+	}
+	checks := acc.AddAttrChecks(resourceName, nil, attrChecks)
+	checks = append(checks, checkExists(resourceName))
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
