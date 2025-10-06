@@ -80,8 +80,8 @@ type MongoDBClient struct {
 	AtlasV220240530  *admin20240530.APIClient // used in advanced_cluster and cloud_backup_schedule for avoiding breaking changes (supporting deprecated replication_specs.id)
 	AtlasV220241113  *admin20241113.APIClient // used in teams and atlas_users to avoiding breaking changes
 	Realm            *RealmClient
-	BaseURL          string // neeeded by organization resource
-	TerraformVersion string // neeeded by organization resource
+	BaseURL          string // needed by organization resource
+	TerraformVersion string // needed by organization resource
 }
 
 type RealmClient struct {
