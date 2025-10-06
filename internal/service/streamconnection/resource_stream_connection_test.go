@@ -428,7 +428,7 @@ func configureKafka(projectRef, instanceName, connectionName, username, password
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_connection" "test" {
 		    project_id = %[1]s
-			instance_name = %[2]q
+			workspace_name = %[2]q
 		 	connection_name = %[3]q
 		 	type = "Kafka"
 		 	authentication = {
@@ -454,7 +454,7 @@ func configureSampleStream(projectID, instanceName, sampleName string) string {
 		
 		resource "mongodbatlas_stream_connection" "test" {
 		    project_id = mongodbatlas_stream_instance.test.project_id
-			instance_name = mongodbatlas_stream_instance.test.instance_name
+			workspace_name = mongodbatlas_stream_instance.test.instance_name
 		 	connection_name = %[2]q
 		 	type = "Sample"
 		}
@@ -513,7 +513,7 @@ func checkSampleStreamAttributes(
 	resourceChecks := []resource.TestCheckFunc{
 		checkStreamConnectionExists(),
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-		resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
+		resource.TestCheckResourceAttr(resourceName, "workspace_name", instanceName),
 		resource.TestCheckResourceAttr(resourceName, "connection_name", sampleName),
 		resource.TestCheckResourceAttr(resourceName, "type", "Sample"),
 	}
@@ -523,7 +523,7 @@ func checkSampleStreamAttributes(
 func checkHTTPSAttributes(instanceName, url string) resource.TestCheckFunc {
 	setChecks := []string{"project_id"}
 	mapChecks := map[string]string{
-		"instance_name":   instanceName,
+		"workspace_name":  instanceName,
 		"connection_name": "ConnectionNameHttps",
 		"type":            "Https",
 		"url":             url,
@@ -539,7 +539,7 @@ func checkKafkaAttributes(
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 		resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
 		resource.TestCheckResourceAttr(resourceName, "type", "Kafka"),
-		resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
+		resource.TestCheckResourceAttr(resourceName, "workspace_name", instanceName),
 		resource.TestCheckResourceAttr(resourceName, "authentication.mechanism", "PLAIN"),
 		resource.TestCheckResourceAttr(resourceName, "authentication.username", username),
 		resource.TestCheckResourceAttr(resourceName, "bootstrap_servers", bootstrapServers),
@@ -566,7 +566,7 @@ func configureCluster(projectID, instanceName, connectionName, clusterName strin
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_connection" "test" {
 		    project_id = %[1]q
-			instance_name = %[2]q
+			workspace_name = %[2]q
 		 	connection_name = %[3]q
 		 	type = "Cluster"
 		 	cluster_name = %[4]q
@@ -601,7 +601,7 @@ func checkClusterAttributes(resourceName, clusterName string) resource.TestCheck
 	resourceChecks := []resource.TestCheckFunc{
 		checkStreamConnectionExists(),
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-		resource.TestCheckResourceAttrSet(resourceName, "instance_name"),
+		resource.TestCheckResourceAttrSet(resourceName, "workspace_name"),
 		resource.TestCheckResourceAttrSet(resourceName, "connection_name"),
 		resource.TestCheckResourceAttr(resourceName, "type", "Cluster"),
 		resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
@@ -617,7 +617,7 @@ func checkStreamConnectionImportStateIDFunc(resourceName string) resource.Import
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		return fmt.Sprintf("%s-%s-%s", rs.Primary.Attributes["instance_name"], rs.Primary.Attributes["project_id"], rs.Primary.Attributes["connection_name"]), nil
+		return fmt.Sprintf("%s-%s-%s", rs.Primary.Attributes["workspace_name"], rs.Primary.Attributes["project_id"], rs.Primary.Attributes["connection_name"]), nil
 	}
 }
 
@@ -628,7 +628,7 @@ func checkStreamConnectionExists() resource.TestCheckFunc {
 				continue
 			}
 			projectID := rs.Primary.Attributes["project_id"]
-			instanceName := rs.Primary.Attributes["instance_name"]
+			instanceName := rs.Primary.Attributes["workspace_name"]
 			connectionName := rs.Primary.Attributes["connection_name"]
 			_, _, err := acc.ConnV2().StreamsApi.GetStreamConnection(context.Background(), projectID, instanceName, connectionName).Execute()
 			if err != nil {
@@ -648,7 +648,7 @@ func CheckDestroyStreamConnection(state *terraform.State) error {
 			continue
 		}
 		projectID := rs.Primary.Attributes["project_id"]
-		instanceName := rs.Primary.Attributes["instance_name"]
+		instanceName := rs.Primary.Attributes["workspace_name"]
 		connectionName := rs.Primary.Attributes["connection_name"]
 		_, _, err := acc.ConnV2().StreamsApi.GetStreamConnection(context.Background(), projectID, instanceName, connectionName).Execute()
 		if err == nil {
@@ -719,7 +719,7 @@ func configureAWSLambda(projectID, instanceName, connectionName, awsIamRoleName 
 
 		resource "mongodbatlas_stream_connection" "test" {
 		    project_id = %[1]q
-			instance_name = %[2]q
+			workspace_name = %[2]q
 		 	connection_name = %[3]q
 		 	type = "AWSLambda"
             aws = {
@@ -734,7 +734,7 @@ func checkAWSLambdaAttributes(resourceName, instanceName, connectionName string)
 	resourceChecks := []resource.TestCheckFunc{
 		checkStreamConnectionExists(),
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-		resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
+		resource.TestCheckResourceAttr(resourceName, "workspace_name", instanceName),
 		resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
 		resource.TestCheckResourceAttr(resourceName, "type", "AWSLambda"),
 		resource.TestCheckResourceAttrSet(resourceName, "aws.role_arn"),
@@ -745,7 +745,7 @@ func checkAWSLambdaAttributes(resourceName, instanceName, connectionName string)
 func streamConnectionsAttributeChecks(resourceName string, pageNum, itemsPerPage *int) resource.TestCheckFunc {
 	resourceChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-		resource.TestCheckResourceAttrSet(resourceName, "instance_name"),
+		resource.TestCheckResourceAttrSet(resourceName, "workspace_name"),
 		resource.TestCheckResourceAttrSet(resourceName, "total_count"),
 		resource.TestCheckResourceAttrSet(resourceName, "results.#"),
 	}

@@ -123,7 +123,17 @@ func NewTFStreamConnection(ctx context.Context, projID, workspaceName string, cu
 
 // determines if the original model was created with instance_name or workspace_name and sets the appropriate field
 func NewTFStreamConnectionWithInstanceName(ctx context.Context, projID, instanceName, workspaceName string, currAuthConfig *types.Object, apiResp *admin.StreamsConnection) (*TFStreamConnectionModel, diag.Diagnostics) {
-	rID := fmt.Sprintf("%s-%s-%s", instanceName, projID, conversion.SafeString(apiResp.Name))
+	if workspaceName != "" && instanceName != "" {
+		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Attribute \"workspace_name\" cannot be specified when \"instance_name\" is specified", "")}
+	}
+
+	// Determine the effective instance/workspace name for the ID
+	workspaceOrInstanceName := workspaceName
+	if workspaceOrInstanceName == "" {
+		workspaceOrInstanceName = instanceName
+	}
+
+	rID := fmt.Sprintf("%s-%s-%s", workspaceOrInstanceName, projID, conversion.SafeString(apiResp.Name))
 	connectionModel := TFStreamConnectionModel{
 		ID:               types.StringValue(rID),
 		ProjectID:        types.StringValue(projID),
@@ -135,9 +145,6 @@ func NewTFStreamConnectionWithInstanceName(ctx context.Context, projID, instance
 		URL:              types.StringPointerValue(apiResp.Url),
 	}
 
-	if workspaceName != "" && instanceName != "" {
-		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Attribute \"workspace_name\" cannot be specified when \"instance_name\" is specified", "")}
-	}
 	// Set the appropriate field based on the original model
 	if workspaceName != "" {
 		connectionModel.WorkspaceName = types.StringValue(workspaceName)
