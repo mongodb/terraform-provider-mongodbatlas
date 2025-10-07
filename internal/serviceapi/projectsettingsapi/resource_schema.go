@@ -30,6 +30,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Flag that indicates whether to enable the Data Explorer for the specified project.",
 			},
 			"is_data_explorer_gen_ai_features_enabled": schema.BoolAttribute{
+				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Flag that indicates whether to enable the use of generative AI features which make requests to 3rd party services in Data Explorer for the specified project.",
 			},
