@@ -4,8 +4,8 @@ page_title: "Migration Guide: Service Accounts Authentication"
 
 # Migration Guide: Service Accounts Authentication
 
-This guide helps you migrate from Programmatic Access Key (PAK) authentication to Service
-Accounts (SA) authentication and viceversa without impacting your deployment. 
+This guide helps to you migrate from Programmatic Access Key (PAK) authentication to Service
+Accounts (SA) authentication without impacting your deployment. 
 
 **Note:** For more information on SA, see [Service Accounts Overview](https://www.mongodb.com/docs/atlas/api/service-accounts-overview/)
 in the MongoDB documentation.
@@ -44,7 +44,7 @@ in the MongoDB documentation.
 
    **IMPORTANT:**  Currently, the MongoDB Terraform provider does not support additional Token OAuth features.
 
-   **NOTE:** You can not use ``mongodbatlas_event_trigger`` with Service Accounts as the authentication method.
+   **NOTE:** You can't use ``mongodbatlas_event_trigger`` with Service Accounts as the authentication method.
 
 
 
