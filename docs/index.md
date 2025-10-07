@@ -12,10 +12,9 @@ See [CHANGELOG](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/
 ```terraform
 # Configure the MongoDB Atlas Provider 
 provider "mongodbatlas" {
-  public_key = var.mongodbatlas_public_key
-  private_key  = var.mongodbatlas_private_key
+client_id = var.mongodbatlas_client_id
+client_secret = var.mongodbatlas_client_secret
 }
-# Create the resources
 ```
 
 ### Provider and terraform version constraints
@@ -49,6 +48,32 @@ Also see [`Atlas for Government Considerations`](https://www.mongodb.com/docs/at
 
 The MongoDB Atlas provider offers a flexible means of providing credentials for authentication.
 You can use any the following methods:
+
+### Service Accounts
+
+Service Accounts (SA) is the preferred authentication method for the MongoDB Atlas provider.
+The [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/configure-api-access/#grant-programmatic-access-to-an-organization) contains the most up-to-date instructions for creating your organization's SA and granting the required access.
+
+To set up SA authentication, provide your credentials as in the following example:
+
+```terraform
+provider "mongodbatlas" {
+client_id = var.mongodbatlas_client_id
+client_secret = var.mongodbatlas_client_secret
+}
+```
+
+Alternatively, you use an access token (valid for only one hour) as in the following example:
+
+```terraform
+provider "mongodbatlas" { 
+access_token = var.mongodbatlas_access_token
+[is_mongodbgov_cloud = true // optional]
+}
+```
+
+See [Migration Guide: Service Accounts Authentication](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/migrate-to-service-accounts-authentication-guide) for more
+details on setting up SA authentication.
 
 ### Environment Variables
 

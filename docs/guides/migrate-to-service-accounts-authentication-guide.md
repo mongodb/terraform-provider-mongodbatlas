@@ -51,13 +51,10 @@ access_token = var.mongodbatlas_access_token
 }
 ```
 
-The JWT token is only valid during its set duration time. See [Generate Service Account Token](https://www.mongodb.com/docs/atlas/api/service-accounts/generate-oauth2-token/#std-label-generate-oauth2-token-atlas) for more details on creating an SA token.
+Consider that the access token is **valid for one hour only**.
+
+See [Generate Service Account Token](https://www.mongodb.com/docs/atlas/api/service-accounts/generate-oauth2-token/#std-label-generate-oauth2-token-atlas) for more details on creating an SA token. 
 
 **IMPORTANT:**  Currently, the MongoDB Terraform provider does not support additional Token OAuth features.
 
 **NOTE:** You can't use ``mongodbatlas_event_trigger`` with Service Accounts as the authentication method.
-
-
-
-
-
