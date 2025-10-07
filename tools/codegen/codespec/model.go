@@ -38,7 +38,7 @@ type APIOperation struct {
 	Wait              *Wait  `yaml:"wait,omitempty"`
 	HTTPMethod        string `yaml:"http_method"`
 	Path              string `yaml:"path"`
-	StaticRequestBody string `yaml:"static_request_body"`
+	StaticRequestBody string `yaml:"static_request_body,omitempty"`
 }
 
 type Wait struct {
@@ -86,13 +86,22 @@ type Attribute struct {
 	CreateOnly               bool                       `yaml:"create_only"` // leveraged for defining plan modifier which avoids updates on this attribute
 }
 
-type AttributeReqBodyUsage int
+type ComputedOptionalRequired string
 
 const (
-	AllRequestBodies = iota // by default attribute is sent in request bodies
-	OmitInUpdateBody
-	IncludeNullOnUpdate // attributes that always must be sent in update request body even if null
-	OmitAlways          // this covers computed-only attributes and attributes which are only used for path/query params
+	Computed         ComputedOptionalRequired = "computed"
+	ComputedOptional ComputedOptionalRequired = "computed_optional"
+	Optional         ComputedOptionalRequired = "optional"
+	Required         ComputedOptionalRequired = "required"
+)
+
+type AttributeReqBodyUsage string
+
+const (
+	AllRequestBodies    AttributeReqBodyUsage = "all_request_bodies" // by default attribute is sent in request bodies
+	OmitInUpdateBody    AttributeReqBodyUsage = "omit_in_update_body"
+	IncludeNullOnUpdate AttributeReqBodyUsage = "include_null_on_update" // attributes that always must be sent in update request body even if null
+	OmitAlways          AttributeReqBodyUsage = "omit_always"            // this covers computed-only attributes and attributes which are only used for path/query params
 )
 
 type BoolAttribute struct {

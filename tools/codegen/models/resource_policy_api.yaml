@@ -9,7 +9,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: id
                       tf_model_name: Id
-                      req_body_usage: 3
+                      req_body_usage: omit_always
                       sensitive: false
                       create_only: false
                     - string: {}
@@ -17,14 +17,14 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: name
                       tf_model_name: Name
-                      req_body_usage: 3
+                      req_body_usage: omit_always
                       sensitive: false
                       create_only: false
           description: The user that last updated the atlas resource policy.
           computed_optional_required: computed
           tf_schema_name: created_by_user
           tf_model_name: CreatedByUser
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
         - string: {}
@@ -32,7 +32,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: created_date
           tf_model_name: CreatedDate
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
         - string: {}
@@ -40,7 +40,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: description
           tf_model_name: Description
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string: {}
@@ -48,7 +48,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: id
           tf_model_name: Id
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
         - single_nested:
@@ -59,7 +59,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: id
                       tf_model_name: Id
-                      req_body_usage: 3
+                      req_body_usage: omit_always
                       sensitive: false
                       create_only: false
                     - string: {}
@@ -67,14 +67,14 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: name
                       tf_model_name: Name
-                      req_body_usage: 3
+                      req_body_usage: omit_always
                       sensitive: false
                       create_only: false
           description: The user that last updated the atlas resource policy.
           computed_optional_required: computed
           tf_schema_name: last_updated_by_user
           tf_model_name: LastUpdatedByUser
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
         - string: {}
@@ -82,7 +82,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: last_updated_date
           tf_model_name: LastUpdatedDate
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
         - string: {}
@@ -90,7 +90,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: name
           tf_model_name: Name
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string: {}
@@ -98,7 +98,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: org_id
           tf_model_name: OrgId
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: true
         - list_nested:
@@ -109,7 +109,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: body
                       tf_model_name: Body
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
                     - string: {}
@@ -117,14 +117,14 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: id
                       tf_model_name: Id
-                      req_body_usage: 3
+                      req_body_usage: omit_always
                       sensitive: false
                       create_only: false
           description: List of policies that make up the atlas resource policy.
           computed_optional_required: required
           tf_schema_name: policies
           tf_model_name: Policies
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string: {}
@@ -132,25 +132,21 @@ schema:
           computed_optional_required: computed
           tf_schema_name: version
           tf_model_name: Version
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
 operations:
     delete:
         http_method: DELETE
         path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{id}
-        static_request_body: ""
     create:
         http_method: POST
         path: /api/atlas/v2/orgs/{orgId}/resourcePolicies
-        static_request_body: ""
     read:
         http_method: GET
         path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{id}
-        static_request_body: ""
     update:
         http_method: PATCH
         path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{id}
-        static_request_body: ""
     version_header: application/vnd.atlas.2024-08-05+json
 name: resource_policy_api

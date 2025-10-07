@@ -6,7 +6,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: bucket_name
           tf_model_name: BucketName
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string: {}
@@ -14,7 +14,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: create_date
           tf_model_name: CreateDate
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
         - string: {}
@@ -25,7 +25,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: group_id
           tf_model_name: GroupId
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: true
         - string: {}
@@ -33,7 +33,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: iam_role_id
           tf_model_name: IamRoleId
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string: {}
@@ -41,7 +41,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: prefix_path
           tf_model_name: PrefixPath
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string: {}
@@ -49,7 +49,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: state
           tf_model_name: State
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
 operations:
@@ -68,7 +68,6 @@ operations:
             delay_seconds: 10
         http_method: DELETE
         path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
-        static_request_body: ""
     create:
         wait:
             state_property: state
@@ -82,11 +81,9 @@ operations:
             delay_seconds: 10
         http_method: POST
         path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
-        static_request_body: ""
     read:
         http_method: GET
         path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
-        static_request_body: ""
     update:
         wait:
             state_property: state
@@ -100,6 +97,5 @@ operations:
             delay_seconds: 10
         http_method: PATCH
         path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
-        static_request_body: ""
     version_header: application/vnd.atlas.2023-01-01+json
 name: push_based_log_export_api

@@ -9,7 +9,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: group_id
           tf_model_name: GroupId
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: true
         - string: {}
@@ -17,7 +17,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: name
           tf_model_name: Name
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - single_nested:
@@ -31,7 +31,7 @@ schema:
                                   computed_optional_required: optional
                                   tf_schema_name: coll
                                   tf_model_name: Coll
-                                  req_body_usage: 0
+                                  req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
                                 - string: {}
@@ -39,7 +39,7 @@ schema:
                                   computed_optional_required: optional
                                   tf_schema_name: connection_name
                                   tf_model_name: ConnectionName
-                                  req_body_usage: 0
+                                  req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
                                 - string: {}
@@ -47,14 +47,14 @@ schema:
                                   computed_optional_required: optional
                                   tf_schema_name: db
                                   tf_model_name: Db
-                                  req_body_usage: 0
+                                  req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
                       description: Dead letter queue for the stream processor.
                       computed_optional_required: optional
                       tf_schema_name: dlq
                       tf_model_name: Dlq
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
                     - bool: {}
@@ -62,14 +62,14 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: resume_from_checkpoint
                       tf_model_name: ResumeFromCheckpoint
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
           description: Optional configuration for the stream processor.
           computed_optional_required: computed_optional
           tf_schema_name: options
           tf_model_name: Options
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - list:
@@ -78,7 +78,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: pipeline
           tf_model_name: Pipeline
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string: {}
@@ -86,7 +86,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: state
           tf_model_name: State
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
         - string: {}
@@ -97,7 +97,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: stats
           tf_model_name: Stats
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
         - string: {}
@@ -105,7 +105,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: tenant_name
           tf_model_name: TenantName
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: true
 operations:
@@ -125,7 +125,6 @@ operations:
             delay_seconds: 10
         http_method: DELETE
         path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{name}
-        static_request_body: ""
     create:
         wait:
             state_property: state
@@ -139,11 +138,9 @@ operations:
             delay_seconds: 10
         http_method: POST
         path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor
-        static_request_body: ""
     read:
         http_method: GET
         path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{name}
-        static_request_body: ""
     update:
         wait:
             state_property: state
@@ -157,6 +154,5 @@ operations:
             delay_seconds: 10
         http_method: PATCH
         path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{name}
-        static_request_body: ""
     version_header: application/vnd.atlas.2024-05-30+json
 name: stream_processor_api

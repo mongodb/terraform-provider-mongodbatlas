@@ -9,7 +9,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: accept_data_risks_and_force_replica_set_reconfig
           tf_model_name: AcceptDataRisksAndForceReplicaSetReconfig
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - single_nested:
@@ -21,7 +21,7 @@ schema:
                       computed_optional_required: computed_optional
                       tf_schema_name: custom_openssl_cipher_config_tls12
                       tf_model_name: CustomOpensslCipherConfigTls12
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
                     - string: {}
@@ -29,7 +29,7 @@ schema:
                       computed_optional_required: computed_optional
                       tf_schema_name: minimum_enabled_tls_protocol
                       tf_model_name: MinimumEnabledTlsProtocol
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
                     - string: {}
@@ -37,14 +37,14 @@ schema:
                       computed_optional_required: computed_optional
                       tf_schema_name: tls_cipher_config_mode
                       tf_model_name: TlsCipherConfigMode
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
           description: Group of settings that configures a subset of the advanced configuration details.
           computed_optional_required: computed_optional
           tf_schema_name: advanced_configuration
           tf_model_name: AdvancedConfiguration
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - bool:
@@ -53,7 +53,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: backup_enabled
           tf_model_name: BackupEnabled
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - single_nested:
@@ -64,7 +64,7 @@ schema:
                       computed_optional_required: computed_optional
                       tf_schema_name: enabled
                       tf_model_name: Enabled
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
                     - string: {}
@@ -72,14 +72,14 @@ schema:
                       computed_optional_required: computed_optional
                       tf_schema_name: read_preference
                       tf_model_name: ReadPreference
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
           description: Settings needed to configure the MongoDB Connector for Business Intelligence for this cluster.
           computed_optional_required: computed_optional
           tf_schema_name: bi_connector
           tf_model_name: BiConnector
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string: {}
@@ -87,7 +87,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: cluster_type
           tf_model_name: ClusterType
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string:
@@ -101,7 +101,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: config_server_management_mode
           tf_model_name: ConfigServerManagementMode
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string: {}
@@ -109,7 +109,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: config_server_type
           tf_model_name: ConfigServerType
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
         - single_nested:
@@ -121,7 +121,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: aws_private_link
                       tf_model_name: AwsPrivateLink
-                      req_body_usage: 3
+                      req_body_usage: omit_always
                       sensitive: false
                       create_only: false
                     - map:
@@ -130,7 +130,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: aws_private_link_srv
                       tf_model_name: AwsPrivateLinkSrv
-                      req_body_usage: 3
+                      req_body_usage: omit_always
                       sensitive: false
                       create_only: false
                     - string: {}
@@ -138,7 +138,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: private
                       tf_model_name: Private
-                      req_body_usage: 3
+                      req_body_usage: omit_always
                       sensitive: false
                       create_only: false
                     - list_nested:
@@ -149,7 +149,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: connection_string
                                   tf_model_name: ConnectionString
-                                  req_body_usage: 3
+                                  req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
                                 - list_nested:
@@ -160,7 +160,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: endpoint_id
                                               tf_model_name: EndpointId
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                             - string: {}
@@ -168,7 +168,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: provider_name
                                               tf_model_name: ProviderName
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                             - string: {}
@@ -176,14 +176,14 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: region
                                               tf_model_name: Region
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                   description: List that contains the private endpoints through which you connect to MongoDB Cloud when you use **connectionStrings.privateEndpoint[n].connectionString** or **connectionStrings.privateEndpoint[n].srvConnectionString**.
                                   computed_optional_required: computed
                                   tf_schema_name: endpoints
                                   tf_model_name: Endpoints
-                                  req_body_usage: 3
+                                  req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
                                 - string: {}
@@ -191,7 +191,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: srv_connection_string
                                   tf_model_name: SrvConnectionString
-                                  req_body_usage: 3
+                                  req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
                                 - string: {}
@@ -199,7 +199,7 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: srv_shard_optimized_connection_string
                                   tf_model_name: SrvShardOptimizedConnectionString
-                                  req_body_usage: 3
+                                  req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
                                 - string: {}
@@ -207,14 +207,14 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: type
                                   tf_model_name: Type
-                                  req_body_usage: 3
+                                  req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
                       description: List of private endpoint-aware connection strings that you can use to connect to this cluster through a private endpoint. This parameter returns only if you deployed a private endpoint to all regions to which you deployed this clusters' nodes.
                       computed_optional_required: computed
                       tf_schema_name: private_endpoint
                       tf_model_name: PrivateEndpoint
-                      req_body_usage: 3
+                      req_body_usage: omit_always
                       sensitive: false
                       create_only: false
                     - string: {}
@@ -222,7 +222,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: private_srv
                       tf_model_name: PrivateSrv
-                      req_body_usage: 3
+                      req_body_usage: omit_always
                       sensitive: false
                       create_only: false
                     - string: {}
@@ -230,7 +230,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: standard
                       tf_model_name: Standard
-                      req_body_usage: 3
+                      req_body_usage: omit_always
                       sensitive: false
                       create_only: false
                     - string: {}
@@ -238,14 +238,14 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: standard_srv
                       tf_model_name: StandardSrv
-                      req_body_usage: 3
+                      req_body_usage: omit_always
                       sensitive: false
                       create_only: false
           description: Collection of Uniform Resource Locators that point to the MongoDB database.
           computed_optional_required: computed
           tf_schema_name: connection_strings
           tf_model_name: ConnectionStrings
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
         - string: {}
@@ -253,7 +253,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: create_date
           tf_model_name: CreateDate
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
         - string:
@@ -262,7 +262,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: disk_warming_mode
           tf_model_name: DiskWarmingMode
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string: {}
@@ -270,7 +270,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: encryption_at_rest_provider
           tf_model_name: EncryptionAtRestProvider
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string: {}
@@ -278,7 +278,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: feature_compatibility_version
           tf_model_name: FeatureCompatibilityVersion
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
         - string: {}
@@ -286,7 +286,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: feature_compatibility_version_expiration_date
           tf_model_name: FeatureCompatibilityVersionExpirationDate
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
         - bool: {}
@@ -301,7 +301,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: global_cluster_self_managed_sharding
           tf_model_name: GlobalClusterSelfManagedSharding
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string: {}
@@ -312,7 +312,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: group_id
           tf_model_name: GroupId
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: true
         - string: {}
@@ -320,7 +320,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: id
           tf_model_name: Id
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
         - string: {}
@@ -328,7 +328,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: internal_cluster_role
           tf_model_name: InternalClusterRole
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
         - list_nested:
@@ -339,7 +339,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: key
                       tf_model_name: Key
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
                     - string: {}
@@ -347,7 +347,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: value
                       tf_model_name: Value
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
           description: |-
@@ -358,7 +358,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: labels
           tf_model_name: Labels
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - single_nested:
@@ -369,7 +369,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: expiration_time
                       tf_model_name: ExpirationTime
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
                     - string: {}
@@ -377,14 +377,14 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: grant_type
                       tf_model_name: GrantType
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
           description: MongoDB employee granted access level and expiration for a cluster.
           computed_optional_required: optional
           tf_schema_name: mongo_dbemployee_access_grant
           tf_model_name: MongoDBEmployeeAccessGrant
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string: {}
@@ -392,7 +392,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: mongo_dbmajor_version
           tf_model_name: MongoDBMajorVersion
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string: {}
@@ -400,7 +400,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: mongo_dbversion
           tf_model_name: MongoDBVersion
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
         - string: {}
@@ -408,7 +408,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: name
           tf_model_name: Name
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - bool: {}
@@ -416,7 +416,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: paused
           tf_model_name: Paused
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - bool: {}
@@ -424,7 +424,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: pit_enabled
           tf_model_name: PitEnabled
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - bool: {}
@@ -439,7 +439,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: redact_client_log_data
           tf_model_name: RedactClientLogData
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string:
@@ -455,7 +455,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: replica_set_scaling_strategy
           tf_model_name: ReplicaSetScalingStrategy
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - list_nested:
@@ -466,7 +466,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: id
                       tf_model_name: Id
-                      req_body_usage: 3
+                      req_body_usage: omit_always
                       sensitive: false
                       create_only: false
                     - list_nested:
@@ -487,7 +487,7 @@ schema:
                                                           computed_optional_required: optional
                                                           tf_schema_name: enabled
                                                           tf_model_name: Enabled
-                                                          req_body_usage: 0
+                                                          req_body_usage: all_request_bodies
                                                           sensitive: false
                                                           create_only: false
                                                         - string: {}
@@ -495,7 +495,7 @@ schema:
                                                           computed_optional_required: computed
                                                           tf_schema_name: max_instance_size
                                                           tf_model_name: MaxInstanceSize
-                                                          req_body_usage: 3
+                                                          req_body_usage: omit_always
                                                           sensitive: false
                                                           create_only: false
                                                         - string: {}
@@ -503,7 +503,7 @@ schema:
                                                           computed_optional_required: computed
                                                           tf_schema_name: min_instance_size
                                                           tf_model_name: MinInstanceSize
-                                                          req_body_usage: 3
+                                                          req_body_usage: omit_always
                                                           sensitive: false
                                                           create_only: false
                                                         - bool: {}
@@ -515,7 +515,7 @@ schema:
                                                           computed_optional_required: optional
                                                           tf_schema_name: predictive_enabled
                                                           tf_model_name: PredictiveEnabled
-                                                          req_body_usage: 0
+                                                          req_body_usage: all_request_bodies
                                                           sensitive: false
                                                           create_only: false
                                                         - bool: {}
@@ -523,14 +523,14 @@ schema:
                                                           computed_optional_required: optional
                                                           tf_schema_name: scale_down_enabled
                                                           tf_model_name: ScaleDownEnabled
-                                                          req_body_usage: 0
+                                                          req_body_usage: all_request_bodies
                                                           sensitive: false
                                                           create_only: false
                                               description: Options that determine how this cluster handles CPU scaling.
                                               computed_optional_required: optional
                                               tf_schema_name: compute
                                               tf_model_name: Compute
-                                              req_body_usage: 0
+                                              req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
                                             - single_nested:
@@ -541,21 +541,21 @@ schema:
                                                           computed_optional_required: optional
                                                           tf_schema_name: enabled
                                                           tf_model_name: Enabled
-                                                          req_body_usage: 0
+                                                          req_body_usage: all_request_bodies
                                                           sensitive: false
                                                           create_only: false
                                               description: Setting that enables disk auto-scaling.
                                               computed_optional_required: optional
                                               tf_schema_name: disk_gb
                                               tf_model_name: DiskGB
-                                              req_body_usage: 0
+                                              req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
                                   description: Options that determine how this cluster handles resource scaling.
                                   computed_optional_required: optional
                                   tf_schema_name: analytics_auto_scaling
                                   tf_model_name: AnalyticsAutoScaling
-                                  req_body_usage: 0
+                                  req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
                                 - single_nested:
@@ -574,7 +574,7 @@ schema:
                                               computed_optional_required: computed_optional
                                               tf_schema_name: disk_iops
                                               tf_model_name: DiskIOPS
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                             - float64: {}
@@ -582,7 +582,7 @@ schema:
                                               computed_optional_required: computed_optional
                                               tf_schema_name: disk_size_gb
                                               tf_model_name: DiskSizeGB
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                             - string:
@@ -591,7 +591,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: ebs_volume_type
                                               tf_model_name: EbsVolumeType
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                             - string: {}
@@ -599,7 +599,7 @@ schema:
                                               computed_optional_required: computed_optional
                                               tf_schema_name: instance_size
                                               tf_model_name: InstanceSize
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                             - int64: {}
@@ -607,14 +607,14 @@ schema:
                                               computed_optional_required: computed_optional
                                               tf_schema_name: node_count
                                               tf_model_name: NodeCount
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                   description: The current hardware specifications for read only nodes in the region.
                                   computed_optional_required: computed_optional
                                   tf_schema_name: analytics_specs
                                   tf_model_name: AnalyticsSpecs
-                                  req_body_usage: 3
+                                  req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
                                 - single_nested:
@@ -632,7 +632,7 @@ schema:
                                                           computed_optional_required: computed_optional
                                                           tf_schema_name: enabled
                                                           tf_model_name: Enabled
-                                                          req_body_usage: 0
+                                                          req_body_usage: all_request_bodies
                                                           sensitive: false
                                                           create_only: false
                                                         - string: {}
@@ -640,7 +640,7 @@ schema:
                                                           computed_optional_required: computed_optional
                                                           tf_schema_name: max_instance_size
                                                           tf_model_name: MaxInstanceSize
-                                                          req_body_usage: 3
+                                                          req_body_usage: omit_always
                                                           sensitive: false
                                                           create_only: false
                                                         - string: {}
@@ -648,7 +648,7 @@ schema:
                                                           computed_optional_required: computed_optional
                                                           tf_schema_name: min_instance_size
                                                           tf_model_name: MinInstanceSize
-                                                          req_body_usage: 3
+                                                          req_body_usage: omit_always
                                                           sensitive: false
                                                           create_only: false
                                                         - bool: {}
@@ -660,7 +660,7 @@ schema:
                                                           computed_optional_required: computed_optional
                                                           tf_schema_name: predictive_enabled
                                                           tf_model_name: PredictiveEnabled
-                                                          req_body_usage: 0
+                                                          req_body_usage: all_request_bodies
                                                           sensitive: false
                                                           create_only: false
                                                         - bool: {}
@@ -668,14 +668,14 @@ schema:
                                                           computed_optional_required: computed_optional
                                                           tf_schema_name: scale_down_enabled
                                                           tf_model_name: ScaleDownEnabled
-                                                          req_body_usage: 0
+                                                          req_body_usage: all_request_bodies
                                                           sensitive: false
                                                           create_only: false
                                               description: Options that determine how this cluster handles CPU scaling.
                                               computed_optional_required: computed_optional
                                               tf_schema_name: compute
                                               tf_model_name: Compute
-                                              req_body_usage: 0
+                                              req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
                                             - single_nested:
@@ -686,21 +686,21 @@ schema:
                                                           computed_optional_required: computed_optional
                                                           tf_schema_name: enabled
                                                           tf_model_name: Enabled
-                                                          req_body_usage: 0
+                                                          req_body_usage: all_request_bodies
                                                           sensitive: false
                                                           create_only: false
                                               description: Setting that enables disk auto-scaling.
                                               computed_optional_required: computed_optional
                                               tf_schema_name: disk_gb
                                               tf_model_name: DiskGB
-                                              req_body_usage: 0
+                                              req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
                                   description: Options that determine how this cluster handles resource scaling.
                                   computed_optional_required: computed_optional
                                   tf_schema_name: auto_scaling
                                   tf_model_name: AutoScaling
-                                  req_body_usage: 0
+                                  req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
                                 - string: {}
@@ -708,7 +708,7 @@ schema:
                                   computed_optional_required: optional
                                   tf_schema_name: backing_provider_name
                                   tf_model_name: BackingProviderName
-                                  req_body_usage: 0
+                                  req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
                                 - single_nested:
@@ -727,7 +727,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: disk_iops
                                               tf_model_name: DiskIOPS
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                             - float64: {}
@@ -735,7 +735,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: disk_size_gb
                                               tf_model_name: DiskSizeGB
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                             - string:
@@ -744,7 +744,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: ebs_volume_type
                                               tf_model_name: EbsVolumeType
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                             - string: {}
@@ -752,7 +752,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: instance_size
                                               tf_model_name: InstanceSize
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                             - int64: {}
@@ -760,14 +760,14 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: node_count
                                               tf_model_name: NodeCount
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                   description: The current hardware specifications for read only nodes in the region.
                                   computed_optional_required: computed
                                   tf_schema_name: effective_analytics_specs
                                   tf_model_name: EffectiveAnalyticsSpecs
-                                  req_body_usage: 3
+                                  req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
                                 - single_nested:
@@ -786,7 +786,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: disk_iops
                                               tf_model_name: DiskIOPS
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                             - float64: {}
@@ -794,7 +794,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: disk_size_gb
                                               tf_model_name: DiskSizeGB
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                             - string:
@@ -803,7 +803,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: ebs_volume_type
                                               tf_model_name: EbsVolumeType
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                             - string: {}
@@ -811,7 +811,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: instance_size
                                               tf_model_name: InstanceSize
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                             - int64: {}
@@ -819,14 +819,14 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: node_count
                                               tf_model_name: NodeCount
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                   description: The current hardware specifications for read only nodes in the region.
                                   computed_optional_required: computed
                                   tf_schema_name: effective_electable_specs
                                   tf_model_name: EffectiveElectableSpecs
-                                  req_body_usage: 3
+                                  req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
                                 - single_nested:
@@ -845,7 +845,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: disk_iops
                                               tf_model_name: DiskIOPS
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                             - float64: {}
@@ -853,7 +853,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: disk_size_gb
                                               tf_model_name: DiskSizeGB
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                             - string:
@@ -862,7 +862,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: ebs_volume_type
                                               tf_model_name: EbsVolumeType
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                             - string: {}
@@ -870,7 +870,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: instance_size
                                               tf_model_name: InstanceSize
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                             - int64: {}
@@ -878,14 +878,14 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: node_count
                                               tf_model_name: NodeCount
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                   description: The current hardware specifications for read only nodes in the region.
                                   computed_optional_required: computed
                                   tf_schema_name: effective_read_only_specs
                                   tf_model_name: EffectiveReadOnlySpecs
-                                  req_body_usage: 3
+                                  req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
                                 - single_nested:
@@ -904,7 +904,7 @@ schema:
                                               computed_optional_required: computed_optional
                                               tf_schema_name: disk_iops
                                               tf_model_name: DiskIOPS
-                                              req_body_usage: 0
+                                              req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
                                             - float64: {}
@@ -912,7 +912,7 @@ schema:
                                               computed_optional_required: computed_optional
                                               tf_schema_name: disk_size_gb
                                               tf_model_name: DiskSizeGB
-                                              req_body_usage: 0
+                                              req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
                                             - string:
@@ -921,7 +921,7 @@ schema:
                                               computed_optional_required: computed_optional
                                               tf_schema_name: ebs_volume_type
                                               tf_model_name: EbsVolumeType
-                                              req_body_usage: 0
+                                              req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
                                             - string: {}
@@ -929,7 +929,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: effective_instance_size
                                               tf_model_name: EffectiveInstanceSize
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                             - string: {}
@@ -937,7 +937,7 @@ schema:
                                               computed_optional_required: optional
                                               tf_schema_name: instance_size
                                               tf_model_name: InstanceSize
-                                              req_body_usage: 0
+                                              req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
                                             - int64: {}
@@ -945,14 +945,14 @@ schema:
                                               computed_optional_required: optional
                                               tf_schema_name: node_count
                                               tf_model_name: NodeCount
-                                              req_body_usage: 0
+                                              req_body_usage: all_request_bodies
                                               sensitive: false
                                               create_only: false
                                   description: Hardware specifications for all electable nodes deployed in the region. Electable nodes can become the primary and can enable local reads. If you don't specify this option, MongoDB Cloud deploys no electable nodes to the region.
                                   computed_optional_required: optional
                                   tf_schema_name: electable_specs
                                   tf_model_name: ElectableSpecs
-                                  req_body_usage: 0
+                                  req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
                                 - int64: {}
@@ -963,7 +963,7 @@ schema:
                                   computed_optional_required: optional
                                   tf_schema_name: priority
                                   tf_model_name: Priority
-                                  req_body_usage: 0
+                                  req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
                                 - string: {}
@@ -971,7 +971,7 @@ schema:
                                   computed_optional_required: optional
                                   tf_schema_name: provider_name
                                   tf_model_name: ProviderName
-                                  req_body_usage: 0
+                                  req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
                                 - single_nested:
@@ -990,7 +990,7 @@ schema:
                                               computed_optional_required: computed_optional
                                               tf_schema_name: disk_iops
                                               tf_model_name: DiskIOPS
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                             - float64: {}
@@ -998,7 +998,7 @@ schema:
                                               computed_optional_required: computed_optional
                                               tf_schema_name: disk_size_gb
                                               tf_model_name: DiskSizeGB
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                             - string:
@@ -1007,7 +1007,7 @@ schema:
                                               computed_optional_required: computed
                                               tf_schema_name: ebs_volume_type
                                               tf_model_name: EbsVolumeType
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                             - string: {}
@@ -1015,7 +1015,7 @@ schema:
                                               computed_optional_required: computed_optional
                                               tf_schema_name: instance_size
                                               tf_model_name: InstanceSize
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                             - int64: {}
@@ -1023,14 +1023,14 @@ schema:
                                               computed_optional_required: computed_optional
                                               tf_schema_name: node_count
                                               tf_model_name: NodeCount
-                                              req_body_usage: 3
+                                              req_body_usage: omit_always
                                               sensitive: false
                                               create_only: false
                                   description: The current hardware specifications for read only nodes in the region.
                                   computed_optional_required: computed_optional
                                   tf_schema_name: read_only_specs
                                   tf_model_name: ReadOnlySpecs
-                                  req_body_usage: 3
+                                  req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
                                 - string: {}
@@ -1038,7 +1038,7 @@ schema:
                                   computed_optional_required: optional
                                   tf_schema_name: region_name
                                   tf_model_name: RegionName
-                                  req_body_usage: 0
+                                  req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
                       description: |-
@@ -1050,7 +1050,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: region_configs
                       tf_model_name: RegionConfigs
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
                     - string: {}
@@ -1058,7 +1058,7 @@ schema:
                       computed_optional_required: computed
                       tf_schema_name: zone_id
                       tf_model_name: ZoneId
-                      req_body_usage: 3
+                      req_body_usage: omit_always
                       sensitive: false
                       create_only: false
                     - string: {}
@@ -1066,14 +1066,14 @@ schema:
                       computed_optional_required: computed_optional
                       tf_schema_name: zone_name
                       tf_model_name: ZoneName
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
           description: List of settings that configure your cluster regions. This array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations.
           computed_optional_required: optional
           tf_schema_name: replication_specs
           tf_model_name: ReplicationSpecs
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string:
@@ -1082,7 +1082,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: root_cert_type
           tf_model_name: RootCertType
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string: {}
@@ -1097,7 +1097,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: state_name
           tf_model_name: StateName
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
         - list_nested:
@@ -1108,7 +1108,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: key
                       tf_model_name: Key
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
                     - string: {}
@@ -1116,14 +1116,14 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: value
                       tf_model_name: Value
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
           description: List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.
           computed_optional_required: optional
           tf_schema_name: tags
           tf_model_name: Tags
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - bool:
@@ -1132,7 +1132,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: termination_protection_enabled
           tf_model_name: TerminationProtectionEnabled
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - bool:
@@ -1141,7 +1141,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: use_aws_time_based_snapshot_copy_for_fast_initial_sync
           tf_model_name: UseAwsTimeBasedSnapshotCopyForFastInitialSync
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string:
@@ -1150,7 +1150,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: version_release_system
           tf_model_name: VersionReleaseSystem
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
 operations:
@@ -1172,7 +1172,6 @@ operations:
             delay_seconds: 30
         http_method: DELETE
         path: /api/atlas/v2/groups/{groupId}/clusters/{name}
-        static_request_body: ""
     create:
         wait:
             state_property: stateName
@@ -1190,11 +1189,9 @@ operations:
             delay_seconds: 30
         http_method: POST
         path: /api/atlas/v2/groups/{groupId}/clusters
-        static_request_body: ""
     read:
         http_method: GET
         path: /api/atlas/v2/groups/{groupId}/clusters/{name}
-        static_request_body: ""
     update:
         wait:
             state_property: stateName
@@ -1212,6 +1209,5 @@ operations:
             delay_seconds: 30
         http_method: PATCH
         path: /api/atlas/v2/groups/{groupId}/clusters/{name}
-        static_request_body: ""
     version_header: application/vnd.atlas.2024-08-05+json
 name: cluster_api

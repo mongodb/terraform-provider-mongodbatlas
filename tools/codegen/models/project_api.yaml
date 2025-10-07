@@ -6,7 +6,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: cluster_count
           tf_model_name: ClusterCount
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
         - string: {}
@@ -14,7 +14,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: created
           tf_model_name: Created
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
         - string: {}
@@ -22,7 +22,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: id
           tf_model_name: Id
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
         - string: {}
@@ -30,7 +30,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: name
           tf_model_name: Name
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string: {}
@@ -38,7 +38,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: org_id
           tf_model_name: OrgId
-          req_body_usage: 1
+          req_body_usage: omit_in_update_body
           sensitive: false
           create_only: true
         - string:
@@ -56,7 +56,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: region_usage_restrictions
           tf_model_name: RegionUsageRestrictions
-          req_body_usage: 1
+          req_body_usage: omit_in_update_body
           sensitive: false
           create_only: false
         - list_nested:
@@ -67,7 +67,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: key
                       tf_model_name: Key
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
                     - string: {}
@@ -75,14 +75,14 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: value
                       tf_model_name: Value
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
           description: List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the project.
           computed_optional_required: optional
           tf_schema_name: tags
           tf_model_name: Tags
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - bool:
@@ -91,25 +91,21 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: with_default_alerts_settings
           tf_model_name: WithDefaultAlertsSettings
-          req_body_usage: 1
+          req_body_usage: omit_in_update_body
           sensitive: false
           create_only: false
 operations:
     delete:
         http_method: DELETE
         path: /api/atlas/v2/groups/{id}
-        static_request_body: ""
     create:
         http_method: POST
         path: /api/atlas/v2/groups
-        static_request_body: ""
     read:
         http_method: GET
         path: /api/atlas/v2/groups/{id}
-        static_request_body: ""
     update:
         http_method: PATCH
         path: /api/atlas/v2/groups/{id}
-        static_request_body: ""
     version_header: application/vnd.atlas.2023-01-01+json
 name: project_api

@@ -7,7 +7,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: aws_iamtype
           tf_model_name: AwsIAMType
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string:
@@ -16,7 +16,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: database_name
           tf_model_name: DatabaseName
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string: {}
@@ -24,7 +24,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: delete_after_date
           tf_model_name: DeleteAfterDate
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string: {}
@@ -32,7 +32,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: description
           tf_model_name: Description
-          req_body_usage: 2
+          req_body_usage: include_null_on_update
           sensitive: false
           create_only: false
         - string: {}
@@ -43,7 +43,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: group_id
           tf_model_name: GroupId
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - list_nested:
@@ -54,7 +54,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: key
                       tf_model_name: Key
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
                     - string: {}
@@ -62,14 +62,14 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: value
                       tf_model_name: Value
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
           description: List that contains the key-value pairs for tagging and categorizing the MongoDB database user. The labels that you define do not appear in the console.
           computed_optional_required: optional
           tf_schema_name: labels
           tf_model_name: Labels
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string:
@@ -78,7 +78,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: ldap_auth_type
           tf_model_name: LdapAuthType
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string:
@@ -87,7 +87,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: oidc_auth_type
           tf_model_name: OidcAuthType
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string: {}
@@ -95,7 +95,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: password
           tf_model_name: Password
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: true
           create_only: false
         - list_nested:
@@ -106,7 +106,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: collection_name
                       tf_model_name: CollectionName
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
                     - string: {}
@@ -114,7 +114,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: database_name
                       tf_model_name: DatabaseName
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
                     - string: {}
@@ -122,14 +122,14 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: role_name
                       tf_model_name: RoleName
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
           description: List that provides the pairings of one role with one applicable database.
           computed_optional_required: optional
           tf_schema_name: roles
           tf_model_name: Roles
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - list_nested:
@@ -140,7 +140,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: name
                       tf_model_name: Name
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
                     - string: {}
@@ -148,14 +148,14 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: type
                       tf_model_name: Type
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
           description: List that contains clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Instances that this database user can access. If omitted, MongoDB Cloud grants the database user access to all the clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Instances in the project.
           computed_optional_required: optional
           tf_schema_name: scopes
           tf_model_name: Scopes
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string: {}
@@ -176,7 +176,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: username
           tf_model_name: Username
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string:
@@ -191,25 +191,21 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: x509type
           tf_model_name: X509Type
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
 operations:
     delete:
         http_method: DELETE
         path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
-        static_request_body: ""
     create:
         http_method: POST
         path: /api/atlas/v2/groups/{groupId}/databaseUsers
-        static_request_body: ""
     read:
         http_method: GET
         path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
-        static_request_body: ""
     update:
         http_method: PATCH
         path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
-        static_request_body: ""
     version_header: application/vnd.atlas.2023-01-01+json
 name: database_user_api

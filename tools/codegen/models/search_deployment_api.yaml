@@ -6,7 +6,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: cluster_name
           tf_model_name: ClusterName
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: true
         - string: {}
@@ -14,7 +14,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: encryption_at_rest_provider
           tf_model_name: EncryptionAtRestProvider
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
         - string: {}
@@ -25,7 +25,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: group_id
           tf_model_name: GroupId
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: true
         - string: {}
@@ -33,7 +33,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: id
           tf_model_name: Id
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
         - list_nested:
@@ -44,7 +44,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: instance_size
                       tf_model_name: InstanceSize
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
                     - int64: {}
@@ -52,7 +52,7 @@ schema:
                       computed_optional_required: required
                       tf_schema_name: node_count
                       tf_model_name: NodeCount
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
           description: |-
@@ -62,7 +62,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: specs
           tf_model_name: Specs
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string: {}
@@ -70,7 +70,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: state_name
           tf_model_name: StateName
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
 operations:
@@ -88,7 +88,6 @@ operations:
             delay_seconds: 60
         http_method: DELETE
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
-        static_request_body: ""
     create:
         wait:
             state_property: stateName
@@ -102,11 +101,9 @@ operations:
             delay_seconds: 60
         http_method: POST
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
-        static_request_body: ""
     read:
         http_method: GET
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
-        static_request_body: ""
     update:
         wait:
             state_property: stateName
@@ -120,6 +117,5 @@ operations:
             delay_seconds: 60
         http_method: PATCH
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
-        static_request_body: ""
     version_header: application/vnd.atlas.2025-03-12+json
 name: search_deployment_api

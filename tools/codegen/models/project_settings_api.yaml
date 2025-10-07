@@ -9,7 +9,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: group_id
           tf_model_name: GroupId
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: true
         - bool: {}
@@ -17,7 +17,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: is_collect_database_specifics_statistics_enabled
           tf_model_name: IsCollectDatabaseSpecificsStatisticsEnabled
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - bool: {}
@@ -25,7 +25,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: is_data_explorer_enabled
           tf_model_name: IsDataExplorerEnabled
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - bool: {}
@@ -33,7 +33,7 @@ schema:
           computed_optional_required: optional
           tf_schema_name: is_data_explorer_gen_ai_features_enabled
           tf_model_name: IsDataExplorerGenAIFeaturesEnabled
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - bool:
@@ -42,7 +42,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: is_data_explorer_gen_ai_sample_document_passing_enabled
           tf_model_name: IsDataExplorerGenAISampleDocumentPassingEnabled
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - bool: {}
@@ -50,7 +50,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: is_extended_storage_sizes_enabled
           tf_model_name: IsExtendedStorageSizesEnabled
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - bool: {}
@@ -58,7 +58,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: is_performance_advisor_enabled
           tf_model_name: IsPerformanceAdvisorEnabled
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - bool: {}
@@ -66,7 +66,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: is_realtime_performance_panel_enabled
           tf_model_name: IsRealtimePerformancePanelEnabled
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - bool: {}
@@ -74,21 +74,18 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: is_schema_advisor_enabled
           tf_model_name: IsSchemaAdvisorEnabled
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
 operations:
     create:
         http_method: PATCH
         path: /api/atlas/v2/groups/{groupId}/settings
-        static_request_body: ""
     read:
         http_method: GET
         path: /api/atlas/v2/groups/{groupId}/settings
-        static_request_body: ""
     update:
         http_method: PATCH
         path: /api/atlas/v2/groups/{groupId}/settings
-        static_request_body: ""
     version_header: application/vnd.atlas.2023-01-01+json
 name: project_settings_api

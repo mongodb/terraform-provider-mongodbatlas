@@ -87,6 +87,8 @@ func typedModelProperty(attr *codespec.Attribute) string {
 		autogenTag     string
 	)
 	switch attr.ReqBodyUsage {
+	case codespec.AllRequestBodies:
+		autogenTag = ""
 	case codespec.OmitAlways:
 		autogenTag = ` autogen:"omitjson"`
 	case codespec.OmitInUpdateBody:

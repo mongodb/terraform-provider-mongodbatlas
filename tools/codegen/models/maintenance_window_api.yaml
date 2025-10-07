@@ -6,7 +6,7 @@ schema:
           computed_optional_required: computed_optional
           tf_schema_name: auto_defer_once_enabled
           tf_model_name: AutoDeferOnceEnabled
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - int64: {}
@@ -23,7 +23,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: day_of_week
           tf_model_name: DayOfWeek
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string: {}
@@ -34,7 +34,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: group_id
           tf_model_name: GroupId
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: true
         - int64: {}
@@ -42,7 +42,7 @@ schema:
           computed_optional_required: required
           tf_schema_name: hour_of_day
           tf_model_name: HourOfDay
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - int64: {}
@@ -50,7 +50,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: number_of_deferrals
           tf_model_name: NumberOfDeferrals
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
         - single_nested:
@@ -61,7 +61,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: end_hour_of_day
                       tf_model_name: EndHourOfDay
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
                     - int64: {}
@@ -69,14 +69,14 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: start_hour_of_day
                       tf_model_name: StartHourOfDay
-                      req_body_usage: 0
+                      req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
           description: Defines the a window where maintenance will not begin within.
           computed_optional_required: optional
           tf_schema_name: protected_hours
           tf_model_name: ProtectedHours
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - bool: {}
@@ -84,7 +84,7 @@ schema:
           computed_optional_required: computed
           tf_schema_name: start_asap
           tf_model_name: StartASAP
-          req_body_usage: 0
+          req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string: {}
@@ -92,25 +92,21 @@ schema:
           computed_optional_required: computed
           tf_schema_name: time_zone_id
           tf_model_name: TimeZoneId
-          req_body_usage: 3
+          req_body_usage: omit_always
           sensitive: false
           create_only: false
 operations:
     delete:
         http_method: DELETE
         path: /api/atlas/v2/groups/{groupId}/maintenanceWindow
-        static_request_body: ""
     create:
         http_method: PATCH
         path: /api/atlas/v2/groups/{groupId}/maintenanceWindow
-        static_request_body: ""
     read:
         http_method: GET
         path: /api/atlas/v2/groups/{groupId}/maintenanceWindow
-        static_request_body: ""
     update:
         http_method: PATCH
         path: /api/atlas/v2/groups/{groupId}/maintenanceWindow
-        static_request_body: ""
     version_header: application/vnd.atlas.2023-01-01+json
 name: maintenance_window_api
