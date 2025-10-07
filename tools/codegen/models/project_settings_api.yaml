@@ -30,7 +30,7 @@ schema:
           create_only: false
         - bool: {}
           description: Flag that indicates whether to enable the use of generative AI features which make requests to 3rd party services in Data Explorer for the specified project.
-          computed_optional_required: optional
+          computed_optional_required: computed_optional
           tf_schema_name: is_data_explorer_gen_ai_features_enabled
           tf_model_name: IsDataExplorerGenAIFeaturesEnabled
           req_body_usage: all_request_bodies
