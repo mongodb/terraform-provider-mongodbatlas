@@ -1,0 +1,119 @@
+schema:
+    description: Creates one custom role in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Owner role, Project Stream Processing Owner role, or the Project Database Access Admin role.
+    attributes:
+        - list_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Human-readable label that identifies the privilege action.
+                      computed_optional_required: required
+                      tf_schema_name: action
+                      tf_model_name: Action
+                      req_body_usage: 0
+                      sensitive: false
+                      create_only: false
+                    - list_nested:
+                        nested_object:
+                            attributes:
+                                - bool: {}
+                                  description: Flag that indicates whether to grant the action on the cluster resource. If `true`, MongoDB Cloud ignores the **actions.resources.collection** and **actions.resources.db** parameters.
+                                  computed_optional_required: required
+                                  tf_schema_name: cluster
+                                  tf_model_name: Cluster
+                                  req_body_usage: 0
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: 'Human-readable label that identifies the collection on which you grant the action to one MongoDB user. If you don''t set this parameter, you grant the action to all collections in the database specified in the **actions.resources.db** parameter. If you set `"actions.resources.cluster" : true`, MongoDB Cloud ignores this parameter.'
+                                  computed_optional_required: required
+                                  tf_schema_name: collection
+                                  tf_model_name: Collection
+                                  req_body_usage: 0
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: 'Human-readable label that identifies the database on which you grant the action to one MongoDB user. If you set `"actions.resources.cluster" : true`, MongoDB Cloud ignores this parameter.'
+                                  computed_optional_required: required
+                                  tf_schema_name: db
+                                  tf_model_name: Db
+                                  req_body_usage: 0
+                                  sensitive: false
+                                  create_only: false
+                      description: List of resources on which you grant the action.
+                      computed_optional_required: optional
+                      tf_schema_name: resources
+                      tf_model_name: Resources
+                      req_body_usage: 0
+                      sensitive: false
+                      create_only: false
+          description: List of the individual privilege actions that the role grants.
+          computed_optional_required: optional
+          tf_schema_name: actions
+          tf_model_name: Actions
+          req_body_usage: 0
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: |-
+            Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
+
+            **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+          computed_optional_required: required
+          tf_schema_name: group_id
+          tf_model_name: GroupId
+          req_body_usage: 3
+          sensitive: false
+          create_only: true
+        - set_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Human-readable label that identifies the database on which someone grants the action to one MongoDB user.
+                      computed_optional_required: required
+                      tf_schema_name: db
+                      tf_model_name: Db
+                      req_body_usage: 0
+                      sensitive: false
+                      create_only: false
+                    - string: {}
+                      description: Human-readable label that identifies the role inherited. Set this value to `admin` for every role except `read` or `readWrite`.
+                      computed_optional_required: required
+                      tf_schema_name: role
+                      tf_model_name: Role
+                      req_body_usage: 0
+                      sensitive: false
+                      create_only: false
+          description: List of the built-in roles that this custom role inherits.
+          computed_optional_required: optional
+          tf_schema_name: inherited_roles
+          tf_model_name: InheritedRoles
+          req_body_usage: 0
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: Human-readable label that identifies the role for the request. This name must be unique for this custom role in this project.
+          computed_optional_required: required
+          tf_schema_name: role_name
+          tf_model_name: RoleName
+          req_body_usage: 1
+          sensitive: false
+          create_only: true
+operations:
+    delete:
+        http_method: DELETE
+        path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
+        static_request_body: ""
+    create:
+        http_method: POST
+        path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles
+        static_request_body: ""
+    read:
+        http_method: GET
+        path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
+        static_request_body: ""
+    update:
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
+        static_request_body: ""
+    version_header: application/vnd.atlas.2023-01-01+json
+name: custom_db_role_api

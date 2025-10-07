@@ -1,0 +1,115 @@
+schema:
+    description: Creates one project. Projects group clusters into logical collections that support an application environment, workload, or both. Each project can have its own users, teams, security, tags, and alert settings. To use this resource, the requesting Service Account or API Key must have the Read Write role.
+    attributes:
+        - int64: {}
+          description: Quantity of MongoDB Cloud clusters deployed in this project.
+          computed_optional_required: computed
+          tf_schema_name: cluster_count
+          tf_model_name: ClusterCount
+          req_body_usage: 3
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: Date and time when MongoDB Cloud created this project. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+          computed_optional_required: computed
+          tf_schema_name: created
+          tf_model_name: Created
+          req_body_usage: 3
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies the MongoDB Cloud project.
+          computed_optional_required: computed
+          tf_schema_name: id
+          tf_model_name: Id
+          req_body_usage: 3
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: Human-readable label that identifies the project included in the MongoDB Cloud organization.
+          computed_optional_required: required
+          tf_schema_name: name
+          tf_model_name: Name
+          req_body_usage: 0
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies the MongoDB Cloud organization to which the project belongs.
+          computed_optional_required: required
+          tf_schema_name: org_id
+          tf_model_name: OrgId
+          req_body_usage: 1
+          sensitive: false
+          create_only: true
+        - string:
+            default: COMMERCIAL_FEDRAMP_REGIONS_ONLY
+          description: |-
+            Applies to Atlas for Government only.
+
+            In Commercial Atlas, this field will be rejected in requests and missing in responses.
+
+            This field sets restrictions on available regions in the project.
+
+            `COMMERCIAL_FEDRAMP_REGIONS_ONLY`: Only allows deployments in FedRAMP Moderate regions.
+
+            `GOV_REGIONS_ONLY`: Only allows deployments in GovCloud regions.
+          computed_optional_required: computed_optional
+          tf_schema_name: region_usage_restrictions
+          tf_model_name: RegionUsageRestrictions
+          req_body_usage: 1
+          sensitive: false
+          create_only: false
+        - list_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: 'Constant that defines the set of the tag. For example, `environment` in the `environment : production` tag.'
+                      computed_optional_required: required
+                      tf_schema_name: key
+                      tf_model_name: Key
+                      req_body_usage: 0
+                      sensitive: false
+                      create_only: false
+                    - string: {}
+                      description: 'Variable that belongs to the set of the tag. For example, `production` in the `environment : production` tag.'
+                      computed_optional_required: required
+                      tf_schema_name: value
+                      tf_model_name: Value
+                      req_body_usage: 0
+                      sensitive: false
+                      create_only: false
+          description: List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the project.
+          computed_optional_required: optional
+          tf_schema_name: tags
+          tf_model_name: Tags
+          req_body_usage: 0
+          sensitive: false
+          create_only: false
+        - bool:
+            default: true
+          description: Flag that indicates whether to create the project with default alert settings. This setting cannot be updated after project creation.
+          computed_optional_required: computed_optional
+          tf_schema_name: with_default_alerts_settings
+          tf_model_name: WithDefaultAlertsSettings
+          req_body_usage: 1
+          sensitive: false
+          create_only: false
+operations:
+    delete:
+        http_method: DELETE
+        path: /api/atlas/v2/groups/{id}
+        static_request_body: ""
+    create:
+        http_method: POST
+        path: /api/atlas/v2/groups
+        static_request_body: ""
+    read:
+        http_method: GET
+        path: /api/atlas/v2/groups/{id}
+        static_request_body: ""
+    update:
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{id}
+        static_request_body: ""
+    version_header: application/vnd.atlas.2023-01-01+json
+name: project_api

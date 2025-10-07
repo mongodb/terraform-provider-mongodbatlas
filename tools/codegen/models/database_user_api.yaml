@@ -1,0 +1,215 @@
+schema:
+    description: Creates one database user in the specified project. This MongoDB Cloud supports a maximum of 100 database users per project. If you require more than 100 database users on a project, contact Support. To use this resource, the requesting Service Account or API Key must have the Project Owner role, the Project Charts Admin role, Project Stream Processing Owner role, or the Project Database Access Admin role.
+    attributes:
+        - string:
+            default: NONE
+          description: Human-readable label that indicates whether the new database user authenticates with the Amazon Web Services (AWS) Identity and Access Management (IAM) credentials associated with the user or the user's role.
+          computed_optional_required: computed_optional
+          tf_schema_name: aws_iamtype
+          tf_model_name: AwsIAMType
+          req_body_usage: 0
+          sensitive: false
+          create_only: false
+        - string:
+            default: admin
+          description: The database against which the database user authenticates. Database users must provide both a username and authentication database to log into MongoDB. If the user authenticates with AWS IAM, x.509, LDAP, or OIDC Workload this value should be `$external`. If the user authenticates with SCRAM-SHA or OIDC Workforce, this value should be `admin`.
+          computed_optional_required: computed_optional
+          tf_schema_name: database_name
+          tf_model_name: DatabaseName
+          req_body_usage: 0
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: Date and time when MongoDB Cloud deletes the user. This parameter expresses its value in the ISO 8601 timestamp format in UTC and can include the time zone designation. You must specify a future date that falls within one week of making the Application Programming Interface (API) request.
+          computed_optional_required: optional
+          tf_schema_name: delete_after_date
+          tf_model_name: DeleteAfterDate
+          req_body_usage: 0
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: Description of this database user.
+          computed_optional_required: optional
+          tf_schema_name: description
+          tf_model_name: Description
+          req_body_usage: 2
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: |-
+            Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
+
+            **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+          computed_optional_required: required
+          tf_schema_name: group_id
+          tf_model_name: GroupId
+          req_body_usage: 0
+          sensitive: false
+          create_only: false
+        - list_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Key applied to tag and categorize this component.
+                      computed_optional_required: optional
+                      tf_schema_name: key
+                      tf_model_name: Key
+                      req_body_usage: 0
+                      sensitive: false
+                      create_only: false
+                    - string: {}
+                      description: Value set to the Key applied to tag and categorize this component.
+                      computed_optional_required: optional
+                      tf_schema_name: value
+                      tf_model_name: Value
+                      req_body_usage: 0
+                      sensitive: false
+                      create_only: false
+          description: List that contains the key-value pairs for tagging and categorizing the MongoDB database user. The labels that you define do not appear in the console.
+          computed_optional_required: optional
+          tf_schema_name: labels
+          tf_model_name: Labels
+          req_body_usage: 0
+          sensitive: false
+          create_only: false
+        - string:
+            default: NONE
+          description: Part of the Lightweight Directory Access Protocol (LDAP) record that the database uses to authenticate this database user on the LDAP host.
+          computed_optional_required: computed_optional
+          tf_schema_name: ldap_auth_type
+          tf_model_name: LdapAuthType
+          req_body_usage: 0
+          sensitive: false
+          create_only: false
+        - string:
+            default: NONE
+          description: Human-readable label that indicates whether the new database user or group authenticates with OIDC federated authentication. To create a federated authentication user, specify the value of USER in this field. To create a federated authentication group, specify the value of IDP_GROUP in this field.
+          computed_optional_required: computed_optional
+          tf_schema_name: oidc_auth_type
+          tf_model_name: OidcAuthType
+          req_body_usage: 0
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: Alphanumeric string that authenticates this database user against the database specified in `databaseName`. To authenticate with SCRAM-SHA, you must specify this parameter. This parameter doesn't appear in this response.
+          computed_optional_required: optional
+          tf_schema_name: password
+          tf_model_name: Password
+          req_body_usage: 0
+          sensitive: true
+          create_only: false
+        - list_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Collection on which this role applies.
+                      computed_optional_required: optional
+                      tf_schema_name: collection_name
+                      tf_model_name: CollectionName
+                      req_body_usage: 0
+                      sensitive: false
+                      create_only: false
+                    - string: {}
+                      description: Database to which the user is granted access privileges.
+                      computed_optional_required: required
+                      tf_schema_name: database_name
+                      tf_model_name: DatabaseName
+                      req_body_usage: 0
+                      sensitive: false
+                      create_only: false
+                    - string: {}
+                      description: Human-readable label that identifies a group of privileges assigned to a database user. This value can either be a built-in role or a custom role.
+                      computed_optional_required: required
+                      tf_schema_name: role_name
+                      tf_model_name: RoleName
+                      req_body_usage: 0
+                      sensitive: false
+                      create_only: false
+          description: List that provides the pairings of one role with one applicable database.
+          computed_optional_required: optional
+          tf_schema_name: roles
+          tf_model_name: Roles
+          req_body_usage: 0
+          sensitive: false
+          create_only: false
+        - list_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Human-readable label that identifies the cluster or MongoDB Atlas Data Lake that this database user can access.
+                      computed_optional_required: required
+                      tf_schema_name: name
+                      tf_model_name: Name
+                      req_body_usage: 0
+                      sensitive: false
+                      create_only: false
+                    - string: {}
+                      description: Category of resource that this database user can access.
+                      computed_optional_required: required
+                      tf_schema_name: type
+                      tf_model_name: Type
+                      req_body_usage: 0
+                      sensitive: false
+                      create_only: false
+          description: List that contains clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Instances that this database user can access. If omitted, MongoDB Cloud grants the database user access to all the clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Instances in the project.
+          computed_optional_required: optional
+          tf_schema_name: scopes
+          tf_model_name: Scopes
+          req_body_usage: 0
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: |
+            Human-readable label that represents the user that authenticates to MongoDB. The format of this label depends on the method of authentication:
+
+            | Authentication Method | Parameter Needed | Parameter Value | username Format |
+            |---|---|---|---|
+            | AWS IAM | awsIAMType | ROLE | <abbr title="Amazon Resource Name">ARN</abbr> |
+            | AWS IAM | awsIAMType | USER | <abbr title="Amazon Resource Name">ARN</abbr> |
+            | x.509 | x509Type | CUSTOMER | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
+            | x.509 | x509Type | MANAGED | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
+            | LDAP | ldapAuthType | USER | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
+            | LDAP | ldapAuthType | GROUP | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
+            | OIDC Workforce | oidcAuthType | IDP_GROUP | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP group name |
+            | OIDC Workload | oidcAuthType | USER | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP user name |
+            | SCRAM-SHA | awsIAMType, x509Type, ldapAuthType, oidcAuthType | NONE | Alphanumeric string |
+          computed_optional_required: required
+          tf_schema_name: username
+          tf_model_name: Username
+          req_body_usage: 0
+          sensitive: false
+          create_only: false
+        - string:
+            default: NONE
+          description: |-
+            X.509 method that MongoDB Cloud uses to authenticate the database user.
+
+            - For application-managed X.509, specify `MANAGED`.
+            - For self-managed X.509, specify `CUSTOMER`.
+
+            Users created with the `CUSTOMER` method require a Common Name (CN) in the **username** parameter. You must create externally authenticated users on the `$external` database.
+          computed_optional_required: computed_optional
+          tf_schema_name: x509type
+          tf_model_name: X509Type
+          req_body_usage: 0
+          sensitive: false
+          create_only: false
+operations:
+    delete:
+        http_method: DELETE
+        path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
+        static_request_body: ""
+    create:
+        http_method: POST
+        path: /api/atlas/v2/groups/{groupId}/databaseUsers
+        static_request_body: ""
+    read:
+        http_method: GET
+        path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
+        static_request_body: ""
+    update:
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
+        static_request_body: ""
+    version_header: application/vnd.atlas.2023-01-01+json
+name: database_user_api
