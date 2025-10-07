@@ -5,7 +5,7 @@ page_title: "Migration Guide: Service Accounts Authentication"
 # Migration Guide: Service Accounts Authentication
 
 This guide helps you migrate from Programmatic Access Key (PAK) authentication to Service
-Accounts (SA) authentication and viceversa without impacting your deployment. 
+Accounts (SA) authentication and viceversa without impacting your deployment.
 
 **Note:** For more information on SA, see [Service Accounts Overview](https://www.mongodb.com/docs/atlas/api/service-accounts-overview/)
 in the MongoDB documentation.
@@ -27,7 +27,7 @@ The following example shows the variables for PAK authentication:
 ```terraform
 provider "mongodbatlas" {
 public_key = var.mongodbatlas_public_key
-private_key  = var.mongodbatlas_private_key
+private_key = var.mongodbatlas_private_key
 }
 ```
 
@@ -36,7 +36,7 @@ To change to SA, declare the `client_id` and `client_secret` variables as in the
 ```terraform
 provider "mongodbatlas" {
 client_id = var.mongodbatlas_client_id
-client_secret  = var.mongodbatlas_client_secret
+client_secret = var.mongodbatlas_client_secret
 }
 ```
 
