@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cloudbackupsnapshot"
-	"go.mongodb.org/atlas-sdk/v20250312007/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 )
 
 func TestSplitSnapshotImportID(t *testing.T) {
