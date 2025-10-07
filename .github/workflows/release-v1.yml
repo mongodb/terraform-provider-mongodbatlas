@@ -209,7 +209,7 @@ jobs:
                   KONDUKTO_REPO: ${{ vars.KONDUKTO_REPO }}
                   KONDUKTO_BRANCH_PREFIX: ${{ vars.KONDUKTO_BRANCH_PREFIX }}
             - name: Upload SBOM as release artifact
-              uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e28b836
+              uses: softprops/action-gh-release@aec2ec56f94eb8180ceec724245f64ef008b89f5
               with:
                   files: compliance/sbom.json
                   tag_name: ${{ inputs.version_number }}
