@@ -14,7 +14,7 @@ in the MongoDB documentation.
 
 1. Change your provider declaration variables.
 
-    The following example declares PAK authentication:
+    For example, consider the following sample PAK authentication variables:
 
     ```terraform
     provider "mongodbatlas" {
@@ -22,7 +22,7 @@ in the MongoDB documentation.
     private_key  = var.mongodbatlas_private_key
     ```
 
-    To change to SA, declare the variables as in the following example:
+    To change to SA, modify the variables to use your SA client_id and client_secret:
 
     ```terraform
     provider "mongodbatlas" {
