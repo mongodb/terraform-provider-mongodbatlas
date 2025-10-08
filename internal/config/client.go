@@ -220,7 +220,7 @@ func (r *RealmClient) Get(ctx context.Context) (*realm.Client, error) {
 	if r.realmBaseURL != "" {
 		adminURL := r.realmBaseURL + "/api/admin/v3.0/"
 		optsRealm = append(optsRealm, realm.SetBaseURL(adminURL))
-		authConfig.AuthURL, _ = url.Parse(adminURL + "/auth/providers/mongodb-cloud/login")
+		authConfig.AuthURL, _ = url.Parse(adminURL + "auth/providers/mongodb-cloud/login")
 	}
 
 	token, err := authConfig.NewTokenFromCredentials(ctx, r.publicKey, r.privateKey)
