@@ -1,10 +1,6 @@
-# MongoDB Atlas Provider -- Global Cluster (Preview for MongoDB Atlas Provider 2.0.0)
+# MongoDB Atlas Provider -- Global Cluster
 
 This example creates a project and a Sharded Cluster with 4 independent shards with varying cluster tiers.
-
-It uses the **Preview for MongoDB Atlas Provider 2.0.0** of `mongodbatlas_advanced_cluster`. In order to enable the Preview, you must set the enviroment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`, otherwise the current version will be used.
-
-You can find more information in the [resource documentation page](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster%2520%2528preview%2520provider%25202.0.0%2529).
 
 ## Dependencies
 
@@ -63,4 +59,3 @@ Once you are finished your testing, ensure you destroy the resources to avoid un
 ``` bash
 $ terraform destroy
 ```
-
