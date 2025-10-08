@@ -94,6 +94,8 @@ client_secret = var.mongodbatlas_client_secret
 }
 ```
 
+**NOTE:** Using `client_id` and `client_secret` is limited to 10 tokens per minute.
+
 **NOTE:** The ``is_mongodbgov_cloud`` attribute is only present when using provider attributes, and
 it is equivalent to setting the ``base_url`` attribute to <https://cloud.mongodbgov.com>. See
 [Configure Atlas for Government](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs#configure-mongodb-atlas-for-government) for more information.
