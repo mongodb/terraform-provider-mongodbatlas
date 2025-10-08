@@ -1,6 +1,7 @@
 package rolesorgid_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -10,6 +11,7 @@ import (
 func TestAccConfigDSOrgID_basic(t *testing.T) {
 	var (
 		dataSourceName = "data.mongodbatlas_roles_org_id.test"
+		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -18,7 +20,7 @@ func TestAccConfigDSOrgID_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configDS(),
-				Check:  resource.TestCheckResourceAttrSet(dataSourceName, "org_id"),
+				Check:  resource.TestCheckResourceAttr(dataSourceName, "org_id", orgID),
 			},
 		},
 	})
