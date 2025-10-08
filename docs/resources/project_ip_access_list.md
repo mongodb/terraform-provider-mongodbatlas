@@ -1,5 +1,5 @@
 ---
-subcategory: "Project IP Access List"
+subcategory: "Projects"
 ---
 
 # Resource: mongodbatlas_project_ip_access_list
@@ -64,7 +64,7 @@ resource "mongodbatlas_project_ip_access_list" "test" {
 
 
 ### Further Examples
-- [Project IP Access List](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_project_ip_access_list)
+- [Project IP Access List](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_project_ip_access_list)
 
 
 ## Argument Reference

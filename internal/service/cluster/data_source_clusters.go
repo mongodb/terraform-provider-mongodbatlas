@@ -16,7 +16,6 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -37,7 +36,7 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"advanced_configuration": advancedcluster.SchemaAdvancedConfigDS(),
+						"advanced_configuration": schemaAdvancedConfigDS(),
 						"auto_scaling_disk_gb_enabled": {
 							Type:     schema.TypeBool,
 							Computed: true,
@@ -310,7 +309,7 @@ func PluralDataSource() *schema.Resource {
 								},
 							},
 						},
-						"tags":                   &advancedcluster.DSTagsSchema,
+						"tags":                   &DSTagsSchema,
 						"snapshot_backup_policy": computedCloudProviderSnapshotBackupPolicySchema(),
 						"container_id": {
 							Type:     schema.TypeString,
@@ -375,7 +374,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	}
 
 	if err := d.Set("results", flattenClusters(ctx, d, conn, connV2, connV220240530, clusters, latestClusterModels)); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "results", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "results", d.Id(), err))
 	}
 
 	return nil
@@ -455,7 +454,7 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 			"version_release_system":                          clusters[i].VersionReleaseSystem,
 			"container_id":                                    containerID,
 			"redact_client_log_data":                          latestClusterModels[clusters[i].Name].GetRedactClientLogData(),
-			"pinned_fcv":                                      advancedcluster.FlattenPinnedFCV(latestClusterModels[clusters[i].Name]),
+			"pinned_fcv":                                      flattenPinnedFCV(latestClusterModels[clusters[i].Name]),
 		}
 		results = append(results, result)
 	}

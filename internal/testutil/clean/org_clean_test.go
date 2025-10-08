@@ -190,10 +190,6 @@ func removeProjectResources(ctx context.Context, t *testing.T, dryRun bool, clie
 	if peeringsRemoved > 0 {
 		changes = append(changes, fmt.Sprintf("removed %d peerings", peeringsRemoved))
 	}
-	datalakesRemoved := removeDataLakePipelines(ctx, t, dryRun, client, projectID)
-	if datalakesRemoved > 0 {
-		changes = append(changes, fmt.Sprintf("removed %d datalake pipelines", datalakesRemoved))
-	}
 	federatedEndpointsRemoved := removeFederatedDatabasePrivateEndpoints(ctx, t, dryRun, client, projectID)
 	if federatedEndpointsRemoved > 0 {
 		changes = append(changes, fmt.Sprintf("removed %d federated private endpoints", federatedEndpointsRemoved))
@@ -317,21 +313,6 @@ func removeNetworkPeering(ctx context.Context, t *testing.T, dryRun bool, client
 		}
 	}
 	return len(peeringIDs)
-}
-
-func removeDataLakePipelines(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {
-	t.Helper()
-	datalakeResults, _, err := client.DataLakePipelinesApi.ListPipelines(ctx, projectID).Execute()
-	require.NoError(t, err)
-	for _, p := range datalakeResults {
-		pipelineID := p.GetId()
-		t.Logf("delete pipeline %s", pipelineID)
-		if !dryRun {
-			_, err = client.DataLakePipelinesApi.DeletePipeline(ctx, projectID, pipelineID).Execute()
-			require.NoError(t, err)
-		}
-	}
-	return len(datalakeResults)
 }
 
 func removeStreamInstances(ctx context.Context, t *testing.T, dryRun bool, client *admin.APIClient, projectID string) int {

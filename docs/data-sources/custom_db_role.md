@@ -1,5 +1,5 @@
 ---
-subcategory: "Custom Database Roles"
+subcategory: "Database Users"
 ---
 
 # Data Source: mongodbatlas_custom_db_role

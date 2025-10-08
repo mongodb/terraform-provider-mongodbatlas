@@ -5,10 +5,9 @@ on:
     inputs:
       branches:
         description: 'Dev branch names to update from master'
-        default: '["CLOUDP-320243-dev-2.0.0"]'
+        default: '["CLOUDP-334161-service-accounts-dev"]'
   schedule:
-    - cron: "0 5 * * 3" # workflow runs every Wednesday at 5 AM UTC
-
+    - cron: "0 5 * * 1,4" # workflow runs every Monday and Thursday at 5 AM UTC
 concurrency:
   group: '${{ github.workflow }}'
   cancel-in-progress: false
@@ -19,7 +18,7 @@ jobs:
       max-parallel: 10
       fail-fast: false
       matrix:
-        branch: ${{ fromJSON(inputs.branches || '["CLOUDP-320243-dev-2.0.0"]') }} # scheduled branches go here
+        branch: ${{ fromJSON(inputs.branches || '["CLOUDP-334161-service-accounts-dev"]') }} # scheduled branches go here
     name: ${{ matrix.branch }}
     runs-on: ubuntu-latest
     permissions:
@@ -32,7 +31,7 @@ jobs:
         fetch-depth: 0
         token: ${{ secrets.APIX_BOT_PAT }}
     - name: Install Go
-      uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
+      uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
       with:
         go-version-file: 'go.mod'
     - name: Config Git

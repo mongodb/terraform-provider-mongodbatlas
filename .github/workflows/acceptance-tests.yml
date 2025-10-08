@@ -1,5 +1,5 @@
 name: 'Acceptance Tests'
-run-name: 'Acceptance Tests ${{ inputs.atlas_cloud_env }} ${{ inputs.test_group }}'
+run-name: "Acceptance Tests ${{ inputs.atlas_cloud_env }} ${{ inputs.test_group }} ${{ inputs.use_sa && 'sa' || 'pak'}}"
 
 # Used for running acceptance tests, either triggered manually or called by other workflows. 
 on:
@@ -29,6 +29,11 @@ on:
         description: 'The branch, tag or SHA where tests will run, e.g. v1.14.0, empty for default branch'
         type: string
         required: false  
+      use_sa:
+        description: "Run tests using Service Account instead of API Keys"
+        type: boolean
+        required: false
+
   workflow_call: # workflow runs after Test Suite or code-health
     inputs:
       terraform_version:
@@ -51,7 +56,11 @@ on:
         description: 'If run only minimum tests for advanced_cluster, e.g. in PRs'
         type: boolean
         required: false
-  
+      use_sa:
+        description: "Run tests using Service Account instead of API Keys"
+        type: boolean
+        required: false
+
 jobs:
   tests:
     name: tests-${{ inputs.terraform_version || 'latest' }}-${{ inputs.provider_version || 'latest' }}-${{ inputs.atlas_cloud_env || 'dev' }}
@@ -65,6 +74,8 @@ jobs:
       mongodb_atlas_gov_private_key: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_GOV_PRIVATE_KEY_QA || secrets.MONGODB_ATLAS_GOV_PRIVATE_KEY_DEV }}
       mongodb_atlas_rp_public_key: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_RP_PUBLIC_KEY_QA || secrets.MONGODB_ATLAS_RP_PUBLIC_KEY_DEV }}
       mongodb_atlas_rp_private_key: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_RP_PRIVATE_KEY_QA || secrets.MONGODB_ATLAS_RP_PRIVATE_KEY_DEV }}
+      mongodb_atlas_client_id: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_CLIENT_ID_QA || secrets.MONGODB_ATLAS_CLIENT_ID_DEV }}
+      mongodb_atlas_client_secret: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_CLIENT_SECRET_QA || secrets.MONGODB_ATLAS_CLIENT_SECRET_DEV }}
       ca_cert: ${{ secrets.CA_CERT }}
       aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
       aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -95,7 +106,6 @@ jobs:
       confluent_cloud_api_secret: ${{ secrets.CONFLUENT_CLOUD_API_SECRET }}
       aws_customer_master_key_id: ${{ secrets.AWS_CUSTOMER_MASTER_KEY_ID }}
 
-
     with:
       terraform_version: ${{ inputs.terraform_version || '1.13.x' }}
       provider_version: ${{ inputs.provider_version }}
@@ -103,11 +113,13 @@ jobs:
       test_group: ${{ inputs.test_group }}
       test_name: ${{ inputs.test_name }}
       reduced_tests: ${{ inputs.reduced_tests || false }}
+      use_sa: ${{ inputs.use_sa || false }}
       aws_region_federation: ${{ vars.AWS_REGION_FEDERATION }}
       mongodb_atlas_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_ORG_ID_CLOUD_QA || vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
       mongodb_atlas_base_url: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_BASE_URL_QA || vars.MONGODB_ATLAS_BASE_URL }}
       mongodb_realm_base_url: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_REALM_BASE_URL_QA || vars.MONGODB_REALM_BASE_URL }}
       mongodb_atlas_project_owner_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_PROJECT_OWNER_ID_QA || vars.MONGODB_ATLAS_PROJECT_OWNER_ID }}
+      mongodb_atlas_cloud_user_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_CLOUD_USER_ID_QA || vars.MONGODB_ATLAS_CLOUD_USER_ID }}
       mongodb_atlas_teams_ids: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_TEAMS_IDS_QA || vars.MONGODB_ATLAS_TEAMS_IDS }}
       azure_atlas_app_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.AZURE_ATLAS_APP_ID_QA || vars.AZURE_ATLAS_APP_ID }}
       azure_service_principal_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.AZURE_SERVICE_PRINCIPAL_ID_QA || vars.AZURE_SERVICE_PRINCIPAL_ID }}
@@ -123,13 +135,8 @@ jobs:
       mongodb_atlas_gov_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_GOV_ORG_ID_QA || vars.MONGODB_ATLAS_GOV_ORG_ID_DEV }}
       mongodb_atlas_gov_project_owner_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_GOV_PROJECT_OWNER_ID_QA || vars.MONGODB_ATLAS_GOV_PROJECT_OWNER_ID_DEV }}
       mongodb_atlas_federated_settings_associated_domain: ${{ vars.MONGODB_ATLAS_FEDERATED_SETTINGS_ASSOCIATED_DOMAIN }}
-      mongodb_atlas_project_ear_pe_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_PROJECT_EAR_PE_ID_QA || vars.MONGODB_ATLAS_PROJECT_EAR_PE_ID_DEV }}
-      mongodb_atlas_project_ear_pe_aws_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID_QA || vars.MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID_DEV }}
-      aws_ear_role_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.AWS_EAR_ROLE_ID_QA || vars.AWS_EAR_ROLE_ID_DEV }}
       azure_private_endpoint_region: ${{ vars.AZURE_PRIVATE_ENDPOINT_REGION }}
       mongodb_atlas_rp_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_RP_ORG_ID_QA || vars.MONGODB_ATLAS_RP_ORG_ID_DEV }}
       confluent_cloud_network_id: ${{ vars.CONFLUENT_CLOUD_NETWORK_ID }} 
       confluent_cloud_privatelink_access_id: ${{ vars.CONFLUENT_CLOUD_PRIVATELINK_ACCESS_ID }}
-      mongodb_atlas_asp_project_ear_pe_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_ASP_PROJECT_EAR_PE_ID_QA || vars.MONGODB_ATLAS_ASP_PROJECT_EAR_PE_ID_DEV }}
-      mongodb_atlas_asp_project_aws_role_arn: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_ASP_PROJECT_AWS_ROLE_ARN_QA || vars.MONGODB_ATLAS_ASP_PROJECT_AWS_ROLE_ARN_DEV }}
       mongodb_atlas_last_1x_version: ${{ vars.MONGODB_ATLAS_LAST_1X_VERSION }}

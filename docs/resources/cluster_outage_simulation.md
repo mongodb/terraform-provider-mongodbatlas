@@ -1,5 +1,5 @@
 ---
-subcategory: "Cluster Outage Simulation"
+subcategory: "Clusters"
 ---
 
 # Resource: mongodbatlas_cluster_outage_simulation
@@ -38,7 +38,7 @@ resource "mongodbatlas_cluster_outage_simulation" "outage_simulation" {
 ```
 
 ### Further Examples
-- [Cluster Outage Simulation](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cluster_outage_simulation)
+- [Cluster Outage Simulation](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_cluster_outage_simulation)
 
 ## Argument Reference
 

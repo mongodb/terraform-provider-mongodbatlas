@@ -14,7 +14,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"go.mongodb.org/atlas-sdk/v20250312007/admin"
 )
 
@@ -133,15 +133,14 @@ func Resource() *schema.Resource {
 }
 
 const (
-	oneMinute = 1 * time.Minute
+	timeout = 1 * time.Minute
 )
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	groupID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
-
-	stateConf := advancedcluster.CreateStateChangeConfig(ctx, connV2, groupID, clusterName, 15*time.Minute)
+	stateConf := cluster.CreateStateChangeConfig(ctx, connV2, groupID, clusterName, 15*time.Minute)
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return diag.FromErr(err)
 	}
@@ -165,9 +164,9 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Pending:    []string{"queued", "inProgress"},
 		Target:     []string{"completed", "failed"},
 		Refresh:    resourceRefreshFunc(ctx, requestParams, connV2),
-		Timeout:    d.Timeout(schema.TimeoutCreate) - time.Minute,
-		MinTimeout: oneMinute,
-		Delay:      oneMinute,
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+		MinTimeout: timeout,
+		Delay:      timeout,
 	}
 	_, errWait := stateConf.WaitForStateContext(ctx)
 	deleteOnCreateTimeout := true // default value when not set

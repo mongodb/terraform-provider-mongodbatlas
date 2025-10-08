@@ -6,11 +6,11 @@ subcategory: "Clusters"
 
 `mongodbatlas_advanced_cluster` provides an Advanced Cluster resource. The resource lets you create, edit and delete advanced clusters.
 
-
 ~> **IMPORTANT:** If upgrading from our provider versions 1.x.x to 2.0.0 or later, you will be required to update your `mongodbatlas_advanced_cluster` resource configuration. Please refer [this guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/migrate-to-advanced-cluster-2.0) for details. This new implementation uses the recommended Terraform Plugin Framework, which, in addition to providing a better user experience and other features, adds support for the `moved` block between different resource types.
 
-
 ~> **IMPORTANT:** We recommend all new MongoDB Atlas Terraform users start with the [`mongodbatlas_advanced_cluster`](advanced_cluster) resource.  Key differences between [`mongodbatlas_cluster`](cluster) and [`mongodbatlas_advanced_cluster`](advanced_cluster) include support for [Multi-Cloud Clusters](https://www.mongodb.com/blog/post/introducing-multicloud-clusters-on-mongodb-atlas), [Asymmetric Sharding](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema), and [Independent Scaling of Analytics Node Tiers](https://www.mongodb.com/blog/post/introducing-ability-independently-scale-atlas-analytics-node-tiers). For existing [`mongodbatlas_cluster`](cluster) resource users see our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
+
+~> **IMPORTANT:** When modifying cluster configurations, you may see `(known after apply)` markers for many attributes, even those you haven't changed. This is expected behavior. See the ["known after apply" verbosity](#known-after-apply-verbosity) section below for details.
 
 -> **NOTE:** If Backup Compliance Policy is enabled for the project for which this backup schedule is defined, you cannot modify the backup schedule for an individual cluster below the minimum requirements set in the Backup Compliance Policy.  See [Backup Compliance Policy Prohibited Actions and Considerations](https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#configure-a-backup-compliance-policy).
 
@@ -449,20 +449,20 @@ output "endpoint_service_connection_string" {
 # Example return string: connection_string = "mongodb+srv://cluster-atlas-pl-0.ygo1m.mongodb.net"
 ```
 Refer to the following for full privatelink endpoint connection string examples:
-* [GCP Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/gcp)
-* [Azure Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/azure)
-* [AWS, Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
-* [AWS, Regionalized Private Endpoints](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/aws/cluster-geosharded)
+* [GCP Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_privatelink_endpoint/gcp)
+* [Azure Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_privatelink_endpoint/azure)
+* [AWS, Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
+* [AWS, Regionalized Private Endpoints](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_privatelink_endpoint/aws/cluster-geosharded)
 
 
 ### Further Examples
-- [Asymmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/asymmetric-sharded-cluster)
-- [Auto-Scaling Per Shard](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/auto-scaling-per-shard)
-- [Global Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/global-cluster)
-- [Multi-Cloud](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/multi-cloud)
-- [Tenant Upgrade](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/tenant-upgrade)
-- [Version Upgrade with Pinned FCV](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/version-upgrade-with-pinned-fcv)
-- [Migrate Cluster to Advanced Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/migrate_cluster_to_advanced_cluster/basic)
+- [Asymmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_advanced_cluster/asymmetric-sharded-cluster)
+- [Auto-Scaling Per Shard](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_advanced_cluster/auto-scaling-per-shard)
+- [Global Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_advanced_cluster/global-cluster)
+- [Multi-Cloud](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_advanced_cluster/multi-cloud)
+- [Tenant Upgrade](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_advanced_cluster/tenant-upgrade)
+- [Version Upgrade with Pinned FCV](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_advanced_cluster/version-upgrade-with-pinned-fcv)
+- [Migrate Cluster to Advanced Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/migrate_cluster_to_advanced_cluster/basic)
 
 ## Argument Reference
 
@@ -822,9 +822,65 @@ More information about moving resources can be found in our [Migration Guide](ht
 
 ### "known after apply" verbosity
 
-When making changes to your cluster, it is expected that your Terraform plan might show `known after apply` entries in attributes that have not been modified and does not have any side effects. The reason why this is happening is because some of the changes you make can affect other values of the cluster, hence the provider plugin will show the inability to know the future value until MongoDB Atlas provides those value in the response. As an example, a change in `instance_size` can affect `disk_iops`. This behaviour is related to how [Terraform Plugin Framework](https://developer.hashicorp.com/terraform/plugin/framework) behaves when the resource schema makes use of computed attributes.
+When modifying cluster configurations, you may see `(known after apply)` markers in your Terraform plan output, even for attributes you haven't modified. This is expected behavior, for example:
+```
+# mongodbatlas_advanced_cluster.this will be updated in-place
+! resource "mongodbatlas_advanced_cluster" "this" {
+!       connection_strings                   = {
++           private          = (known after apply)
+!           private_endpoint = [
+-               {
+-                   connection_string                     = "<REDACTED>" -> null
+-                   endpoints                             = [
+-                       {
+-                           endpoint_id   = "<REDACTED>" -> null
+-                           provider_name = "AWS" -> null
+-                           region        = "EU_EAST_1" -> null
+                        },
+                    ] -> null
+                    # (1 unchanged attribute hidden)
+                },
+            ] -> (known after apply)
++          
+...
+!                       electable_specs        = {
+!                           disk_iops       = 3000 -> (known after apply)
+!                           disk_size_gb    = 60 -> 80  # CHANGE DONE IN THE CONFIGURATION FILE
+!                           ebs_volume_type = "STANDARD" -> (known after apply)
+                            # (2 unchanged attributes hidden)
+                        }
+...
+    }
+```
 
-If you want to reduce the `known after apply` verbosity in Terraform plan output, explicitly declare expected values for those attributes in your configuration where possible. This approach gives Terraform more information upfront, resulting in clearer, more predictable plan output.
+The provider v2.x uses the Terraform [Plugin Framework (TPF)](https://developer.hashicorp.com/terraform/plugin/framework), which is more strict and verbose with computed values than the legacy [SDKv2 framework](https://developer.hashicorp.com/terraform/plugin/sdkv2) used in v1.x. For more information, see [this discussion](https://discuss.hashicorp.com/t/best-practices-for-handling-known-after-apply-plan-verbosity-in-tpf-resources/73806). Key points:
+
+- "(known after apply)" doesn't mean the value will change - It indicates a computed value that [can't be known in advance](https://developer.hashicorp.com/terraform/language/expressions/references#values-not-yet-known), even if the value remains the same.
+- All attributes which are marked as "known after apply", including their nested attributes, can be safely ignored.
+- Dependent attributes may change - Some changes can affect related attributes (e.g., change to `zone_name` may update `zone_id`, `region_name` may update `container_id`, `instance_size` may update `disk_iops`, or `provider_name` may update `ebs_volume_type`).
+- Optional/Computed attributes show as "known after apply" when not explicitly set, but only attributes modified in the Terraform configuration files will change along with their dependent attributes.
+
+To reduce the number of `(known after apply)` entries in your plan output, explicitly declare known values in your configuration where possible:
+   ```terraform
+   replication_specs = [
+     {
+       region_configs = [
+         {
+           electable_specs = {
+             instance_size   = "M30"
+             node_count      = 3
+             disk_size_gb    = 100  # Explicitly set if known
+             disk_iops       = 3000 # Explicitly set if known
+             ebs_volume_type = "STANDARD" # Explicitly set even if it's the default
+           }
+           # ... other configuration
+         }
+       ]
+     }
+   ]
+   ```
+
+The MongoDB team is working to reduce plan verbosity, though no timeline is available yet.
 
 ### Remove or disable functionality
 

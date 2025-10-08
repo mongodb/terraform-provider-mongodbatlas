@@ -1,5 +1,29 @@
 ## (Unreleased)
 
+BUG FIXES:
+
+* resource/mongodbatlas_advanced_cluster: Allows upgrade from tenant and flex cluster to dedicated NVMe with backup enabled ([#3725](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3725))
+
+## 1.41.1 (October 01, 2025)
+
+BUG FIXES:
+
+* provider: Fixes STS region resolution when using cross-region authentication ([#3718](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3718))
+
+## 2.0.1 (October 01, 2025)
+
+ENHANCEMENTS:
+
+* resource/mongodbatlas_advanced_cluster: Improves documentation about `known after apply` markers in update plans ([#3701](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3701))
+* resource/mongodbatlas_cloud_provider_access_authorization: Splits `cloud_provider_access` documentation page into `mongodbatlas_cloud_provider_access_setup` and `mongodbatlas_cloud_provider_access_authorization` ([#3703](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3703))
+* resource/mongodbatlas_cloud_provider_access_setup: Splits `cloud_provider_access` documentation page into `mongodbatlas_cloud_provider_access_setup` and `mongodbatlas_cloud_provider_access_authorization` ([#3703](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3703))
+
+BUG FIXES:
+
+* provider: Fixes STS region resolution when using cross-region authentication ([#3718](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3718))
+
+## 2.0.0 (September 15, 2025)
+
 BREAKING CHANGES:
 
 * data-source/mongodbatlas_advanced_cluster: Disables legacy SDKv2 implementation of this datasource and removes the MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER feature flag ([#3547](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3547))
@@ -9,6 +33,10 @@ BREAKING CHANGES:
 * data-source/mongodbatlas_advanced_clusters: Removes deprecated attributes `results.#.advanced_configuration.default_read_concern` and `results.#.advanced_configuration.fail_index_key_too_long` ([#3635](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3635))
 * data-source/mongodbatlas_advanced_clusters: Removes deprecated attributes `use_replication_spec_per_shard`, `results.#.id`, `results.#.disk_size_gb`, `results.#.replication_specs.#.id`,  `results.#.replication_specs.#.num_shards` ([#3635](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3635))
 * data-source/mongodbatlas_cloud_backup_schedule: Removes the deprecated `copy_settings.#.replication_spec_id` and `use_zone_id_for_copy_settings` attribute in favor of `zone_id` ([#3560](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3560))
+* data-source/mongodbatlas_data_lake_pipeline: Removes the data source ([#3671](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3671))
+* data-source/mongodbatlas_data_lake_pipeline_run: Removes the data source ([#3671](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3671))
+* data-source/mongodbatlas_data_lake_pipeline_runs: Removes the data source ([#3671](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3671))
+* data-source/mongodbatlas_data_lake_pipelines: Removes the data source ([#3671](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3671))
 * data-source/mongodbatlas_global_cluster_config: Removes the deprecated `custom_zone_mapping` attribute in favor of `custom_zone_mapping_zone_id` ([#3562](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3562))
 * data-source/mongodbatlas_privatelink_endpoint_serverless: Removes data source ([#3615](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3615))
 * data-source/mongodbatlas_privatelink_endpoint_serverless: Removes data source ([#3615](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3615))
@@ -20,6 +48,7 @@ BREAKING CHANGES:
 * resource/mongodbatlas_cloud_backup_schedule: Changes `export` and `auto_export_enabled` to Optional only ([#3500](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3500))
 * resource/mongodbatlas_cloud_backup_schedule: Removes the deprecated `copy_settings.#.replication_spec_id` attribute in favor of `zone_id` ([#3560](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3560))
 * resource/mongodbatlas_custom_db_role: Changes actions attribute to not be sensitive to order ([#3508](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3508))
+* resource/mongodbatlas_data_lake_pipeline: Removes the resource ([#3671](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3671))
 * resource/mongodbatlas_global_cluster_config: Removes the deprecated `custom_zone_mapping` attribute in favor of `custom_zone_mapping_zone_id` ([#3562](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3562))
 * resource/mongodbatlas_maintenance_window: Changes `hour_of_day` to Required ([#3499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3499))
 * resource/mongodbatlas_maintenance_window: Changes `start_asap` to Computed only ([#3499](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3499))

@@ -11,10 +11,14 @@ import (
 
 func PreCheckBasic(tb testing.TB) {
 	tb.Helper()
-	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") == "" ||
-		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
-		os.Getenv("MONGODB_ATLAS_ORG_ID") == "" {
-		tb.Fatal("`MONGODB_ATLAS_PUBLIC_KEY`, `MONGODB_ATLAS_PRIVATE_KEY`, and `MONGODB_ATLAS_ORG_ID` must be set for acceptance testing")
+	if os.Getenv("MONGODB_ATLAS_ORG_ID") == "" {
+		tb.Fatal("`MONGODB_ATLAS_ORG_ID` must be set for acceptance testing")
+	}
+	if HasPAKCreds() && HasSACreds() {
+		tb.Fatal("PAK and SA credentials are defined in this test but only one should be set.")
+	}
+	if !HasPAKCreds() && !HasSACreds() {
+		tb.Fatal("No credentials are defined in this test, PAK or SA credentials should be set.")
 	}
 }
 
@@ -38,31 +42,17 @@ func PreCheckBasicSleep(tb testing.TB, clusterInfo *ClusterInfo, projectID, clus
 // Use PreCheckBasic instead.
 func PreCheck(tb testing.TB) {
 	tb.Helper()
-	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") == "" ||
-		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
-		os.Getenv("MONGODB_ATLAS_PROJECT_ID") == "" ||
-		os.Getenv("MONGODB_ATLAS_ORG_ID") == "" {
-		tb.Fatal("`MONGODB_ATLAS_PUBLIC_KEY`, `MONGODB_ATLAS_PRIVATE_KEY`, `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_ORG_ID` must be set for acceptance testing")
-	}
-}
-
-func PreCheckEncryptionAtRestPrivateEndpoint(tb testing.TB) {
-	tb.Helper()
-	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") == "" ||
-		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
-		os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_ID") == "" ||
-		os.Getenv("MONGODB_ATLAS_ORG_ID") == "" {
-		tb.Fatal("`MONGODB_ATLAS_PUBLIC_KEY`, `MONGODB_ATLAS_PRIVATE_KEY`, `MONGODB_ATLAS_PROJECT_EAR_PE_ID` and `MONGODB_ATLAS_ORG_ID` must be set for acceptance testing")
+	PreCheckBasic(tb)
+	if os.Getenv("MONGODB_ATLAS_PROJECT_ID") == "" {
+		tb.Fatal("`MONGODB_ATLAS_PROJECT_ID` must be set for acceptance testing")
 	}
 }
 
 func PreCheckCert(tb testing.TB) {
 	tb.Helper()
-	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") == "" ||
-		os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") == "" ||
-		os.Getenv("MONGODB_ATLAS_ORG_ID") == "" ||
-		os.Getenv("CA_CERT") == "" {
-		tb.Fatal("`CA_CERT, MONGODB_ATLAS_PUBLIC_KEY`, `MONGODB_ATLAS_PRIVATE_KEY`, and `MONGODB_ATLAS_ORG_ID` must be set for acceptance testing")
+	PreCheckBasic(tb)
+	if os.Getenv("CA_CERT") == "" {
+		tb.Fatal("`CA_CERT` must be set for acceptance testing")
 	}
 }
 
@@ -81,6 +71,14 @@ func PreCheckBasicOwnerID(tb testing.TB) {
 	PreCheckBasic(tb)
 	if os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID") == "" {
 		tb.Fatal("`MONGODB_ATLAS_PROJECT_OWNER_ID` must be set ")
+	}
+}
+
+func PreCheckCloudUserID(tb testing.TB) {
+	tb.Helper()
+	PreCheckBasic(tb)
+	if os.Getenv("MONGODB_ATLAS_CLOUD_USER_ID") == "" {
+		tb.Fatal("`MONGODB_ATLAS_CLOUD_USER_ID` must be set ")
 	}
 }
 
@@ -238,9 +236,8 @@ func PreCheckEncryptionAtRestEnvAWS(tb testing.TB) {
 	if os.Getenv("AWS_ACCESS_KEY_ID") == "" ||
 		os.Getenv("AWS_SECRET_ACCESS_KEY") == "" ||
 		os.Getenv("AWS_CUSTOMER_MASTER_KEY_ID") == "" ||
-		os.Getenv("MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID") == "" ||
 		os.Getenv("AWS_REGION") == "" {
-		tb.Fatal("`AWS_ACCESS_KEY_ID`, `AWS_VPC_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_CUSTOMER_MASTER_KEY_ID`, `AWS_REGION` and `MONGODB_ATLAS_PROJECT_EAR_PE_AWS_ID` must be set for acceptance testing")
+		tb.Fatal("`AWS_ACCESS_KEY_ID`, `AWS_VPC_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_CUSTOMER_MASTER_KEY_ID` and `AWS_REGION` must be set for acceptance testing")
 	}
 }
 
@@ -261,52 +258,14 @@ func PreCheckAwsEnvPrivateLinkEndpointService(tb testing.TB) {
 	}
 }
 
-func PreCheckRegularCredsAreEmpty(tb testing.TB) {
-	tb.Helper()
-	if os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") != "" || os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") != "" {
-		tb.Fatal(`"MONGODB_ATLAS_PUBLIC_KEY" and "MONGODB_ATLAS_PRIVATE_KEY" are defined in this test and they should not.`)
-	}
-}
-
 func PreCheckSTSAssumeRole(tb testing.TB) {
 	tb.Helper()
-	if os.Getenv("AWS_REGION") == "" {
-		tb.Fatal(`'AWS_REGION' must be set for acceptance testing with STS Assume Role.`)
+	envVars := []string{"AWS_REGION", "STS_ENDPOINT", "ASSUME_ROLE_ARN", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_SESSION_TOKEN", "SECRET_NAME"}
+	for _, envVar := range envVars {
+		if os.Getenv(envVar) == "" {
+			tb.Fatalf("`%s` must be set for acceptance testing with STS Assume Role.", envVar)
+		}
 	}
-	if os.Getenv("STS_ENDPOINT") == "" {
-		tb.Fatal(`'STS_ENDPOINT' must be set for acceptance testing with STS Assume Role.`)
-	}
-	if os.Getenv("ASSUME_ROLE_ARN") == "" {
-		tb.Fatal(`'ASSUME_ROLE_ARN' must be set for acceptance testing with STS Assume Role.`)
-	}
-	if os.Getenv("AWS_ACCESS_KEY_ID") == "" {
-		tb.Fatal(`'AWS_ACCESS_KEY_ID' must be set for acceptance testing with STS Assume Role.`)
-	}
-	if os.Getenv("AWS_SECRET_ACCESS_KEY") == "" {
-		tb.Fatal(`'AWS_SECRET_ACCESS_KEY' must be set for acceptance testing with STS Assume Role.`)
-	}
-	if os.Getenv("AWS_SESSION_TOKEN") == "" {
-		tb.Fatal(`'AWS_SESSION_TOKEN' must be set for acceptance testing with STS Assume Role.`)
-	}
-	if os.Getenv("SECRET_NAME") == "" {
-		tb.Fatal(`'SECRET_NAME' must be set for acceptance testing with STS Assume Role.`)
-	}
-}
-
-func PreCheckDataLakePipelineRun(tb testing.TB) {
-	tb.Helper()
-	if os.Getenv("MONGODB_ATLAS_DATA_LAKE_PIPELINE_RUN_ID") == "" {
-		tb.Fatal("`MONGODB_ATLAS_DATA_LAKE_PIPELINE_RUN_ID` must be set for Projects acceptance testing")
-	}
-	PreCheckDataLakePipelineRuns(tb)
-}
-
-func PreCheckDataLakePipelineRuns(tb testing.TB) {
-	tb.Helper()
-	if os.Getenv("MONGODB_ATLAS_DATA_LAKE_PIPELINE_NAME") == "" {
-		tb.Fatal("`MONGODB_ATLAS_DATA_LAKE_PIPELINE_NAME` must be set for Projects acceptance testing")
-	}
-	PreCheck(tb)
 }
 
 func PreCheckLDAP(tb testing.TB) {
@@ -383,5 +342,12 @@ func PreCheckAwsMsk(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("AWS_MSK_ARN") == "" {
 		tb.Fatal("`AWS_MSK_ARN` must be set for AWS MSK acceptance testing")
+	}
+}
+
+func PreCheckAccessToken(tb testing.TB) {
+	tb.Helper()
+	if os.Getenv("MONGODB_ATLAS_OAUTH_TOKEN") == "" {
+		tb.Fatal("`MONGODB_ATLAS_OAUTH_TOKEN` must be set for Atlas Access Token acceptance testing")
 	}
 }

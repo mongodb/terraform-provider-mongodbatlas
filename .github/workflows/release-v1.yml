@@ -1,0 +1,246 @@
+name: "New Release (v1 Backport)"
+run-name: "Release ${{ inputs.version_number }} from master-v1 (skip tests: ${{ inputs.skip_tests }}, use existing tag: ${{ inputs.use_existing_tag}})"
+
+# Used for creating a new release from the master-v1 branch. This workflow will run qa acceptance tests, create a new tag, and generate the release with GoReleaser.
+# Note: After a v1.x release, CHANGELOG.md changes from master-v1 branch should be manually merged to master branch.
+on:
+    workflow_dispatch:
+        inputs:
+            version_number:
+                description: "Version number (e.g., v1.0.0, v1.0.0-pre, v1.0.0-pre1)"
+                required: true
+            skip_tests:
+                description: "Set value to `true` to skip QA acceptance tests, default is `false`"
+                default: "false"
+            use_existing_tag:
+                description: "Set value to `true` to use an existing tag for the release process, default is `false`"
+                default: "false"
+
+jobs:
+    release-config:
+        runs-on: ubuntu-latest
+        permissions: {}
+        outputs:
+            creates_new_tag: ${{ steps.evaluate_inputs.outputs.creates_new_tag }}
+            is_official_release: ${{ steps.evaluate_inputs.outputs.is_official_release }}
+            runs_tests: ${{ steps.evaluate_inputs.outputs.runs_tests }}
+        steps:
+            - id: evaluate_inputs
+              run: |
+                  {
+                    echo "creates_new_tag=$(if [ '${{ inputs.use_existing_tag }}' = 'true' ]; then echo 'false'; else echo 'true'; fi)"
+                    echo "is_official_release=$(if echo '${{ inputs.version_number }}' | grep -q 'pre'; then echo 'false'; else echo 'true'; fi)"
+                    echo "runs_tests=$(if [ '${{ inputs.skip_tests }}' = 'true' ]; then echo 'false'; else echo 'true'; fi)"
+                  } >> "$GITHUB_OUTPUT"
+
+    validate-inputs:
+        runs-on: ubuntu-latest
+        permissions: {}
+        steps:
+            - name: Validation of version format
+              run: |
+                  echo "${{ inputs.version_number }}" | grep -P '^v1\.\d+\.\d+(-pre[A-Za-z0-9-]*)?$'
+            - name: Checkout
+              uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+              with:
+                  ref: ${{ inputs.use_existing_tag == 'true' && inputs.version_number || 'master-v1' }}
+            - name: Check for Upgrade Guide
+              run: "./scripts/check-upgrade-guide-exists.sh ${{inputs.version_number}}"
+
+    update-examples-reference-in-docs:
+        needs: [release-config, validate-inputs]
+        if: >-
+            !cancelled()
+            && !contains(needs.*.result, 'failure')
+            && needs.release-config.outputs.creates_new_tag == 'true'
+            && needs.release-config.outputs.is_official_release == 'true'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+              with:
+                  ref: master-v1
+            - uses: ./.github/templates/run-script-and-commit
+              with:
+                  script_call: "./scripts/update-examples-reference-in-docs.sh ${{inputs.version_number}}"
+                  file_to_commit: "docs/* templates/*" # only docs files are updated
+                  commit_message: "chore: Update example links in registry docs for ${{ github.event.inputs.version_number }} release"
+                  apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
+                  remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
+                  gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
+                  passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}
+                  branch: master-v1
+
+    update-changelog-header:
+        needs:
+            [release-config, validate-inputs, update-examples-reference-in-docs]
+        if: >-
+            !cancelled()
+            && !contains(needs.*.result, 'failure')
+            && needs.release-config.outputs.creates_new_tag == 'true'
+            && needs.release-config.outputs.is_official_release == 'true'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+              with:
+                  ref: master-v1
+            - uses: ./.github/templates/run-script-and-commit
+              with:
+                  script_call: "./scripts/update-changelog-header-for-release.sh ${{inputs.version_number}}"
+                  file_to_commit: "CHANGELOG.md"
+                  commit_message: "chore: Updates CHANGELOG.md header for ${{ github.event.inputs.version_number }} release"
+                  apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
+                  remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
+                  gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
+                  passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}
+                  branch: master-v1
+
+    create-tag:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        needs:
+            [
+                release-config,
+                validate-inputs,
+                update-examples-reference-in-docs,
+                update-changelog-header,
+            ]
+        if: >-
+            !cancelled()
+            && !contains(needs.*.result, 'failure') 
+            && needs.release-config.outputs.creates_new_tag == 'true'
+        steps:
+            - name: Checkout
+              uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+              with:
+                  ref: "master-v1"
+            - name: Get the latest commit SHA
+              id: get-sha
+              run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+            - name: Create release tag
+              uses: rickstaa/action-create-tag@a1c7777fcb2fee4f19b0f283ba888afa11678b72
+              with:
+                  tag: ${{ inputs.version_number }}
+                  commit_sha: ${{ steps.get-sha.outputs.sha }}
+                  gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+                  gpg_passphrase: ${{ secrets.PASSPHRASE }}
+
+    run-qa-acceptance-tests:
+        needs:
+            [
+                release-config,
+                validate-inputs,
+                update-examples-reference-in-docs,
+                update-changelog-header,
+                create-tag,
+            ]
+        if: >-
+            !cancelled()
+            && !contains(needs.*.result, 'failure')
+            && needs.release-config.outputs.runs_tests == 'true'
+        secrets: inherit
+        uses: ./.github/workflows/acceptance-tests.yml
+        with:
+            atlas_cloud_env: "qa"
+            ref: ${{ inputs.version_number }}
+
+    release:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        needs:
+            [
+                validate-inputs,
+                update-examples-reference-in-docs,
+                update-changelog-header,
+                create-tag,
+                run-qa-acceptance-tests,
+            ]
+        # Release is skipped if there are failures in previous steps
+        if: >-
+            !cancelled()
+            && !contains(needs.*.result, 'failure')
+        steps:
+            - name: Checkout
+              uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+              with:
+                  ref: ${{ inputs.version_number }}
+            - name: Set up Go
+              uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
+              with:
+                  go-version-file: "go.mod"
+            - name: Import GPG key
+              id: import_gpg
+              uses: crazy-max/ghaction-import-gpg@e89d40939c28e39f97cf32126055eeae86ba74ec
+              with:
+                  gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+                  passphrase: ${{ secrets.PASSPHRASE }}
+            - name: Run GoReleaser
+              uses: goreleaser/goreleaser-action@e435ccd777264be153ace6237001ef4d979d3a7a
+              with:
+                  version: "~> v2"
+                  args: release --clean
+              env:
+                  GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    compliance:
+        runs-on: ubuntu-latest
+        needs: [release-config, release]
+        if: >-
+            !cancelled()
+            && needs.release.result == 'success'
+            && needs.release-config.outputs.is_official_release == 'true'
+        env:
+            SILKBOMB_IMG: ${{ vars.SILKBOMB_IMG }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+              with:
+                  ref: ${{ inputs.version_number }}
+            - name: Generate SBOM
+              run: make gen-purls generate-sbom
+            - name: Upload SBOM to Kondukto
+              run: make upload-sbom
+              env:
+                  KONDUKTO_TOKEN: ${{ secrets.KONDUKTO_TOKEN }}
+                  KONDUKTO_REPO: ${{ vars.KONDUKTO_REPO }}
+                  KONDUKTO_BRANCH_PREFIX: ${{ vars.KONDUKTO_BRANCH_PREFIX }}
+            - name: Upload SBOM as release artifact
+              uses: softprops/action-gh-release@aec2ec56f94eb8180ceec724245f64ef008b89f5
+              with:
+                  files: compliance/sbom.json
+                  tag_name: ${{ inputs.version_number }}
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    generate-ssdlc-report:
+        needs: [release-config, release, compliance]
+        if: >-
+            !cancelled()
+            && needs.release.result == 'success'
+            && needs.release-config.outputs.is_official_release == 'true'
+            && needs.compliance.result == 'success'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+              with:
+                  ref: master-v1
+            - uses: ./.github/templates/run-script-and-commit
+              with:
+                  script_call: |
+                      TAG="${{ inputs.version_number }}"
+                      VERSION="${TAG#v}"
+                      AUTHOR="${{ github.actor }}"
+                      export AUTHOR VERSION
+                      ./scripts/compliance/gen-ssdlc-report.sh
+                  file_to_commit: "compliance/v*/ssdlc-compliance-*.md"
+                  commit_message: "chore: Update SSDLC report for ${{ inputs.version_number }}"
+                  apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
+                  remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
+                  gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
+                  passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}
+                  branch: master-v1

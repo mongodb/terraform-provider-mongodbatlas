@@ -48,7 +48,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Optional: true,
 				PlanModifiers: []planmodifier.Bool{
-					customplanmodifier.CreateOnlyBool(),
+					customplanmodifier.CreateOnly(),
 				},
 				MarkdownDescription: "Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.",
 			},

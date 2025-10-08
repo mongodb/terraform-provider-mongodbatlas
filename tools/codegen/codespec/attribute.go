@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 	"github.com/pb33f/libopenapi/orderedmap"
 )
 
@@ -63,7 +63,8 @@ func (s *APISpecSchema) buildResourceAttr(name string, computability ComputedOpt
 
 func (s *APISpecSchema) buildStringAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	result := &Attribute{
-		Name:                     stringcase.FromCamelCase(name),
+		TFSchemaName:             stringcase.FromCamelCase(name),
+		TFModelName:              stringcase.Capitalize(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -85,7 +86,8 @@ func (s *APISpecSchema) buildStringAttr(name string, computability ComputedOptio
 
 func (s *APISpecSchema) buildIntegerAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	result := &Attribute{
-		Name:                     stringcase.FromCamelCase(name),
+		TFSchemaName:             stringcase.FromCamelCase(name),
+		TFModelName:              stringcase.Capitalize(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -107,7 +109,8 @@ func (s *APISpecSchema) buildIntegerAttr(name string, computability ComputedOpti
 func (s *APISpecSchema) buildNumberAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	if s.Schema.Format == OASFormatDouble || s.Schema.Format == OASFormatFloat {
 		result := &Attribute{
-			Name:                     stringcase.FromCamelCase(name),
+			TFSchemaName:             stringcase.FromCamelCase(name),
+			TFModelName:              stringcase.Capitalize(name),
 			ComputedOptionalRequired: computability,
 			DeprecationMessage:       s.GetDeprecationMessage(),
 			Description:              s.GetDescription(),
@@ -127,7 +130,8 @@ func (s *APISpecSchema) buildNumberAttr(name string, computability ComputedOptio
 	}
 
 	return &Attribute{
-		Name:                     stringcase.FromCamelCase(name),
+		TFSchemaName:             stringcase.FromCamelCase(name),
+		TFModelName:              stringcase.Capitalize(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -137,7 +141,8 @@ func (s *APISpecSchema) buildNumberAttr(name string, computability ComputedOptio
 
 func (s *APISpecSchema) buildBoolAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	result := &Attribute{
-		Name:                     stringcase.FromCamelCase(name),
+		TFSchemaName:             stringcase.FromCamelCase(name),
+		TFModelName:              stringcase.Capitalize(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -170,7 +175,8 @@ func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOption
 	createAttribute := func(nestedObject *NestedAttributeObject, elemType ElemType) *Attribute {
 		var (
 			attr = &Attribute{
-				Name:                     stringcase.FromCamelCase(name),
+				TFSchemaName:             stringcase.FromCamelCase(name),
+				TFModelName:              stringcase.Capitalize(name),
 				ComputedOptionalRequired: computability,
 				DeprecationMessage:       s.GetDeprecationMessage(),
 				Description:              s.GetDescription(),
@@ -235,7 +241,8 @@ func (s *APISpecSchema) buildMapAttr(name string, computability ComputedOptional
 	}
 
 	result := &Attribute{
-		Name:                     stringcase.FromCamelCase(name),
+		TFSchemaName:             stringcase.FromCamelCase(name),
+		TFModelName:              stringcase.Capitalize(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -268,7 +275,8 @@ func (s *APISpecSchema) buildMapAttr(name string, computability ComputedOptional
 
 func (s *APISpecSchema) buildSingleNestedAttr(name string, computability ComputedOptionalRequired, isFromRequest bool) (*Attribute, error) {
 	attr := &Attribute{
-		Name:                     stringcase.FromCamelCase(name),
+		TFSchemaName:             stringcase.FromCamelCase(name),
+		TFModelName:              stringcase.Capitalize(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),

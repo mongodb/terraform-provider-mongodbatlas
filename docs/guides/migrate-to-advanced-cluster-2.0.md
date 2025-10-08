@@ -16,12 +16,12 @@ This guide helps you migrate from the legacy schema of `mongodbatlas_advanced_cl
 In this section you can find the configuration changes between the legacy `mongodbatlas_advanced_cluster` and the new one released in v2.0.0.
 
 1. Below deprecated attributes have been removed:
-- `id`
-- `disk_size_gb`
-- `replication_specs.#.num_shards`
-- `replication_specs.#.id`
-- `advanced_configuration.default_read_concern`
-- `advanced_configuration.fail_index_key_too_long`
+  - `id`
+  - `disk_size_gb`
+  - `replication_specs.#.num_shards`
+  - `replication_specs.#.id`
+  - `advanced_configuration.default_read_concern`
+  - `advanced_configuration.fail_index_key_too_long`
 
 2. Elements `replication_specs` and `region_configs` are now list attributes instead of blocks so they are an array of objects. If there is only one object, it still needs to be in an array. For example,
 ```terraform
@@ -154,6 +154,8 @@ tags = {
 ## How to migrate
 
 If you currently use `mongodbatlas_cluster`, see our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
+
+If you currently use `mongodbatlas_advanced_cluster` with the preview of the new schema [released in version 1.29.0](https://registry.terraform.io/providers/mongodb/mongodbatlas/1.29.0/docs/resources/advanced_cluster%2520%2528preview%2520provider%25202.0.0%2529) **and you are not using deprecated attributes**, you would not be required to make any additional changes except removing the `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` environment variable, which is no longer required.
 
 If you currently use `mongodbatlas_advanced_cluster` from v1.x.x of our provider, we recommend that you do the following steps:
 

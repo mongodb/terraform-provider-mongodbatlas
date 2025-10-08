@@ -68,7 +68,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			name: "Fail to get project's teams assigned ",
 			teamRoleReponse: TeamRoleResponse{
 				TeamRole:     nil,
-				HTTPResponse: &http.Response{StatusCode: 503},
+				HTTPResponse: &http.Response{StatusCode: http.StatusServiceUnavailable},
 				Err:          errors.New("Service Unavailable"),
 			},
 			expectedError: true,
@@ -78,7 +78,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			teamRoleReponse: successfulTeamRoleResponse,
 			limitResponse: LimitsResponse{
 				Limits:       nil,
-				HTTPResponse: &http.Response{StatusCode: 503},
+				HTTPResponse: &http.Response{StatusCode: http.StatusServiceUnavailable},
 				Err:          errors.New("Service Unavailable"),
 			},
 			expectedError: true,
@@ -89,7 +89,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			limitResponse:   successfulLimitsResponse,
 			groupResponse: GroupSettingsResponse{
 				GroupSettings: nil,
-				HTTPResponse:  &http.Response{StatusCode: 503},
+				HTTPResponse:  &http.Response{StatusCode: http.StatusServiceUnavailable},
 				Err:           errors.New("Service Unavailable"),
 			},
 			expectedError: true,
@@ -101,7 +101,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			groupResponse:   successfulGroupSettingsResponse,
 			ipAddressesResponse: IPAddressesResponse{
 				IPAddresses:  nil,
-				HTTPResponse: &http.Response{StatusCode: 503},
+				HTTPResponse: &http.Response{StatusCode: http.StatusServiceUnavailable},
 				Err:          errors.New("Service Unavailable"),
 			},
 			expectedError: true,
@@ -227,7 +227,7 @@ func TestUpdateProject(t *testing.T) {
 			projectPlan:  projectStateNameDiff,
 			mockResponses: ProjectResponse{
 				Project:      nil,
-				HTTPResponse: &http.Response{StatusCode: 503},
+				HTTPResponse: &http.Response{StatusCode: http.StatusServiceUnavailable},
 				Err:          errors.New("Service Unavailable"),
 			},
 			expectedError: true,
@@ -638,6 +638,7 @@ func TestAccProject_basic(t *testing.T) {
 }
 
 func TestAccGovProject_withProjectOwner(t *testing.T) {
+	acc.SkipInSA(t, "SA not supported in Gov tests yet")
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_GOV_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_GOV_PROJECT_OWNER_ID")
@@ -1033,6 +1034,7 @@ func TestAccProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 }
 
 func TestAccProject_withTags(t *testing.T) {
+	t.Skip("skipping until CLOUDP-342944 is implemented")
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acc.RandomProjectName()

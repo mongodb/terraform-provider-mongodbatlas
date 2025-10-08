@@ -115,17 +115,17 @@ The following steps resolve the configuration drift in Terraform without affecti
         name         = "freeClusterName"
         cluster_type = "REPLICASET"
 
-        replication_specs = [{
-            region_configs = [{
-            electable_specs = {
+        replication_specs {
+            region_configs {
+            electable_specs {
                 instance_size = "M0"
             }
             provider_name         = "TENANT"
             backing_provider_name = "AWS"
             region_name           = "US_EAST_1"
             priority              = 7
-            }]
-        }]
+            }
+        }
     }
     ```
 2.  Run `terraform apply` to create the new resource.

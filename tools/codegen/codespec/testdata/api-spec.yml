@@ -323,6 +323,49 @@ paths:
       summary: Update the Test Resource feature for a project
       tags:
         - Test Resource
+  "/api/atlas/v2/groups/{groupId}/testSingletonResource":
+    get:
+      description: GET API description
+      operationId: getTestSingletonResourceConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              schema:
+                $ref: "#/components/schemas/TestSingletonResource"
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: [ ]
+      summary: Get the Test Singleton Resource configuration for a project
+      tags:
+        - Test Resource
+    patch:
+      description: PATCH API description
+      operationId: updateTestSingletonResourceConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              $ref: "#/components/schemas/TestSingletonResource"
+            x-xgen-version: 2023-01-01
+        description: Patch request description
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: [ ]
+      summary: Update the Test Singleton Resource feature for a project
+      tags:
+        - Test Singleton Resource
 components:
   parameters:
     groupId:
@@ -471,7 +514,7 @@ components:
           $ref: "#/components/schemas/SingleNestedAttr"
         nestedMapObjectAttr:
           $ref: "#/components/schemas/NestedMapObjectAttr"
-        optional_string_attr:
+        optionalStringAttr:
           type: string
           description: Optional string
         attrAlwaysInUpdates:
@@ -534,7 +577,7 @@ components:
             $ref: "#/components/schemas/NestedObjectAttr"
           maxItems: 1
           minItems: 1
-        optional_string_attr:
+        optionalStringAttr:
           type: string
           description: Optional string
         attrAlwaysInUpdates:
@@ -565,3 +608,8 @@ components:
       properties:
         levelField1:
           type: string
+    TestSingletonResource:
+      type: object
+      properties:
+        flag:
+          type: boolean

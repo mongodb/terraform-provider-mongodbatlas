@@ -219,7 +219,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 
 
 ### Further Examples
-- [Cloud Backup Schedule](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_cloud_backup_schedule)
+- [Cloud Backup Schedule](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_cloud_backup_schedule)
 
 ## Argument Reference
 
@@ -242,7 +242,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
  	* false - Disables automatic export of cloud backup snapshots to the Export Bucket. (default)
 * `use_org_and_group_names_in_export_prefix` - Specify true to use organization and project names instead of organization and project UUIDs in the path for the metadata files that Atlas uploads to your bucket after it finishes exporting the snapshots. To learn more about the metadata files that Atlas uploads, see [Export Cloud Backup Snapshot](https://www.mongodb.com/docs/atlas/backup/cloud-backup/export/#std-label-cloud-provider-snapshot-export).
 * `copy_settings` - List that contains a document for each copy setting item in the desired backup policy. See [below](#copy_settings)
-* `export` - Policy for automatically exporting Cloud Backup Snapshots. See [below](#export)
+* `export` - (Optional) Policy for automatically exporting Cloud Backup Snapshots. See [below](#export)
 ### export
 * `export_bucket_id` - Unique identifier of the mongodbatlas_cloud_backup_snapshot_export_bucket export_bucket_id value.
 * `frequency_type` - Frequency associated with the export snapshot item: `weekly`, `monthly`, `yearly`, `daily` (requires reaching out to Customer Support)

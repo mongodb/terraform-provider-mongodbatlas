@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"hash/crc32"
 	"log"
 	"net/http"
 	"reflect"
@@ -26,20 +27,58 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedclustertpf"
 )
 
 const (
+	ErrorClusterSetting           = "error setting `%s` for MongoDB Cluster (%s): %s"
 	errorClusterCreate            = "error creating MongoDB Cluster: %s"
 	errorClusterRead              = "error reading MongoDB Cluster (%s): %s"
 	errorClusterDelete            = "error deleting MongoDB Cluster (%s): %s"
 	errorClusterUpdate            = "error updating MongoDB Cluster (%s): %s"
 	errorAdvancedConfUpdate       = "error updating Advanced Configuration Option %s for MongoDB Cluster (%s): %s"
+	errorAdvancedConfRead         = "error reading Advanced Configuration Option %s for MongoDB Cluster (%s): %s"
 	ErrorSnapshotBackupPolicyRead = "error getting a Cloud Provider Snapshot Backup Policy for the cluster(%s): %s"
 	clusterToAdvancedClusterGuide = "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide"
+	deprecationOldSchemaAction    = "Please refer to our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide"
+	v20240530                     = "(v20240530)"
 )
 
-var defaultLabel = matlas.Label{Key: advancedclustertpf.LegacyIgnoredLabelKey, Value: "MongoDB Atlas Terraform Provider"}
+var (
+	deprecationMsgOldSchema = fmt.Sprintf("%s %s", constant.DeprecationParam, deprecationOldSchemaAction)
+	defaultLabel            = matlas.Label{Key: advancedcluster.LegacyIgnoredLabelKey, Value: "MongoDB Atlas Terraform Provider"}
+	DSTagsSchema            = schema.Schema{
+		Type:     schema.TypeSet,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"key": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"value": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+	RSTagsSchema = schema.Schema{
+		Type:     schema.TypeSet,
+		Optional: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"key": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+				"value": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+			},
+		},
+	}
+)
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
@@ -120,7 +159,7 @@ func Resource() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-			"connection_strings": advancedcluster.SchemaConnectionStrings(),
+			"connection_strings": schemaConnectionStrings(),
 			"disk_size_gb": {
 				Type:     schema.TypeFloat,
 				Optional: true,
@@ -140,7 +179,7 @@ func Resource() *schema.Resource {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Computed:  true,
-				StateFunc: advancedcluster.FormatMongoDBMajorVersion,
+				StateFunc: formatMongoDBMajorVersion,
 			},
 			"num_shards": {
 				Type:     schema.TypeInt,
@@ -282,7 +321,7 @@ func Resource() *schema.Resource {
 					buf.WriteString(fmt.Sprintf("%d", m["num_shards"].(int)))
 					buf.WriteString(m["zone_name"].(string))
 					buf.WriteString(fmt.Sprintf("%+v", m["regions_config"].(*schema.Set)))
-					return advancedcluster.HashCodeString(buf.String())
+					return hashCodeString(buf.String())
 				},
 			},
 			"mongo_db_version": {
@@ -314,11 +353,11 @@ func Resource() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"advanced_configuration": advancedcluster.SchemaAdvancedConfig(),
+			"advanced_configuration": schemaAdvancedConfig(),
 			"labels": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				Set:      advancedcluster.HashFunctionForKeyValuePair,
+				Set:      hashFunctionForKeyValuePair,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
@@ -332,7 +371,7 @@ func Resource() *schema.Resource {
 					},
 				},
 			},
-			"tags":                   &advancedcluster.RSTagsSchema,
+			"tags":                   &RSTagsSchema,
 			"snapshot_backup_policy": computedCloudProviderSnapshotBackupPolicySchema(),
 			"termination_protection_enabled": {
 				Type:     schema.TypeBool,
@@ -383,6 +422,167 @@ func Resource() *schema.Resource {
 			Create: schema.DefaultTimeout(3 * time.Hour),
 			Update: schema.DefaultTimeout(3 * time.Hour),
 			Delete: schema.DefaultTimeout(3 * time.Hour),
+		},
+	}
+}
+
+func schemaAdvancedConfig() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"default_read_concern": {
+					Type:       schema.TypeString,
+					Optional:   true,
+					Computed:   true,
+					Deprecated: deprecationMsgOldSchema,
+				},
+				"default_write_concern": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+				"fail_index_key_too_long": {
+					Type:       schema.TypeBool,
+					Optional:   true,
+					Computed:   true,
+					Deprecated: deprecationMsgOldSchema,
+				},
+				"javascript_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
+				"minimum_enabled_tls_protocol": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+				"no_table_scan": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
+				"oplog_size_mb": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+				"oplog_min_retention_hours": {
+					Type:     schema.TypeFloat,
+					Optional: true,
+				},
+				"sample_size_bi_connector": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+				"sample_refresh_interval_bi_connector": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+				"transaction_lifetime_limit_seconds": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+				"change_stream_options_pre_and_post_images_expire_after_seconds": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Default:  -1,
+				},
+				"default_max_time_ms": {
+					Type:     schema.TypeInt,
+					Optional: true,
+				},
+				"custom_openssl_cipher_config_tls12": {
+					Type:     schema.TypeSet,
+					Optional: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+				"tls_cipher_config_mode": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+func schemaConnectionStrings() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"standard": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"standard_srv": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"private": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"private_srv": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"private_endpoint": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"connection_string": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"endpoints": {
+								Type:     schema.TypeList,
+								Computed: true,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"endpoint_id": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+										"provider_name": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+										"region": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+									},
+								},
+							},
+							"srv_connection_string": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"srv_shard_optimized_connection_string": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"type": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -526,7 +726,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if containsLabelOrKey(expandLabelSliceFromSetSchema(d), defaultLabel) {
-		return diag.FromErr(advancedclustertpf.ErrLegacyIgnoreLabel)
+		return diag.FromErr(advancedcluster.ErrLegacyIgnoreLabel)
 	}
 
 	clusterRequest.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
@@ -543,7 +743,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		clusterRequest.DiskSizeGB = tenantDisksize
 	}
 	if v, ok := d.GetOk("mongo_db_major_version"); ok {
-		clusterRequest.MongoDBMajorVersion = advancedcluster.FormatMongoDBMajorVersion(v.(string))
+		clusterRequest.MongoDBMajorVersion = formatMongoDBMajorVersion(v.(string))
 	}
 
 	if r, ok := d.GetOk("replication_factor"); ok {
@@ -568,7 +768,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	timeout := d.Timeout(schema.TimeoutCreate)
-	stateConf := advancedcluster.CreateStateChangeConfig(ctx, connV2, projectID, clusterName, timeout)
+	stateConf := CreateStateChangeConfig(ctx, connV2, projectID, clusterName, timeout)
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterCreate, err))
 	}
@@ -584,7 +784,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if ok {
 			_, _, err = connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, cluster.Name, &params20240530).Execute()
 			if err != nil {
-				return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, advancedcluster.V20240530, cluster.Name, err))
+				return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, v20240530, cluster.Name, err))
 			}
 			_, _, err = connV2.ClustersApi.UpdateProcessArgs(ctx, projectID, cluster.Name, &params).Execute()
 			if err != nil {
@@ -613,10 +813,10 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any); len(pinnedFCVBlock) > 0 {
 		nestedObj := pinnedFCVBlock[0].(map[string]any)
 		expDateStr := cast.ToString(nestedObj["expiration_date"])
-		if err := advancedclustertpf.PinFCV(ctx, connV2.ClustersApi, projectID, clusterName, expDateStr); err != nil {
+		if err := advancedcluster.PinFCV(ctx, connV2.ClustersApi, projectID, clusterName, expDateStr); err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
-		stateConf := advancedcluster.CreateStateChangeConfig(ctx, connV2, projectID, clusterName, timeout)
+		stateConf := CreateStateChangeConfig(ctx, connV2, projectID, clusterName, timeout)
 		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 			return diag.FromErr(fmt.Errorf(errorClusterUpdate, clusterName, err))
 		}
@@ -654,124 +854,124 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	log.Printf("[DEBUG] GET Cluster %+v", cluster)
 
 	if err := d.Set("cluster_id", cluster.ID); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "cluster_id", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "cluster_id", clusterName, err))
 	}
 
 	if err := d.Set("auto_scaling_compute_enabled", cluster.AutoScaling.Compute.Enabled); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "auto_scaling_compute_enabled", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "auto_scaling_compute_enabled", clusterName, err))
 	}
 
 	if err := d.Set("auto_scaling_compute_scale_down_enabled", cluster.AutoScaling.Compute.ScaleDownEnabled); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "auto_scaling_compute_scale_down_enabled", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "auto_scaling_compute_scale_down_enabled", clusterName, err))
 	}
 
 	if err := d.Set("provider_auto_scaling_compute_min_instance_size", cluster.ProviderSettings.AutoScaling.Compute.MinInstanceSize); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "provider_auto_scaling_compute_min_instance_size", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "provider_auto_scaling_compute_min_instance_size", clusterName, err))
 	}
 
 	if err := d.Set("provider_auto_scaling_compute_max_instance_size", cluster.ProviderSettings.AutoScaling.Compute.MaxInstanceSize); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "provider_auto_scaling_compute_max_instance_size", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "provider_auto_scaling_compute_max_instance_size", clusterName, err))
 	}
 
 	if err := d.Set("backup_enabled", cluster.BackupEnabled); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "backup_enabled", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "backup_enabled", clusterName, err))
 	}
 
 	if _, ok := d.GetOk("cloud_backup"); ok {
 		if err := d.Set("cloud_backup", cluster.ProviderBackupEnabled); err != nil {
-			return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "cloud_backup", clusterName, err))
+			return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "cloud_backup", clusterName, err))
 		}
 	}
 
 	if err := d.Set("cluster_type", cluster.ClusterType); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "cluster_type", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "cluster_type", clusterName, err))
 	}
 
 	if err := d.Set("connection_strings", flattenConnectionStrings(cluster.ConnectionStrings)); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "connection_strings", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "connection_strings", clusterName, err))
 	}
 
 	if err := d.Set("disk_size_gb", cluster.DiskSizeGB); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "disk_size_gb", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "disk_size_gb", clusterName, err))
 	}
 
 	if err := d.Set("encryption_at_rest_provider", cluster.EncryptionAtRestProvider); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "encryption_at_rest_provider", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "encryption_at_rest_provider", clusterName, err))
 	}
 
 	// Avoid Global Cluster issues. (NumShards is not present in Global Clusters)
 	if cluster.NumShards != nil {
 		if err := d.Set("num_shards", cluster.NumShards); err != nil {
-			return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "num_shards", clusterName, err))
+			return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "num_shards", clusterName, err))
 		}
 	}
 
 	if err := d.Set("mongo_db_version", cluster.MongoDBVersion); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "mongo_db_version", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "mongo_db_version", clusterName, err))
 	}
 
 	if err := d.Set("mongo_uri", cluster.MongoURI); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "mongo_uri", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "mongo_uri", clusterName, err))
 	}
 
 	if err := d.Set("mongo_uri_updated", cluster.MongoURIUpdated); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "mongo_uri_updated", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "mongo_uri_updated", clusterName, err))
 	}
 
 	if err := d.Set("mongo_uri_with_options", cluster.MongoURIWithOptions); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "mongo_uri_with_options", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "mongo_uri_with_options", clusterName, err))
 	}
 
 	if err := d.Set("pit_enabled", cluster.PitEnabled); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "pit_enabled", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "pit_enabled", clusterName, err))
 	}
 
 	if err := d.Set("paused", cluster.Paused); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "paused", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "paused", clusterName, err))
 	}
 
 	if err := d.Set("srv_address", cluster.SrvAddress); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "srv_address", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "srv_address", clusterName, err))
 	}
 
 	if err := d.Set("state_name", cluster.StateName); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "state_name", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "state_name", clusterName, err))
 	}
 
 	if err := d.Set("termination_protection_enabled", cluster.TerminationProtectionEnabled); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "termination_protection_enabled", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "termination_protection_enabled", clusterName, err))
 	}
 
 	if err := d.Set("bi_connector_config", flattenBiConnectorConfig(cluster.BiConnector)); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "bi_connector_config", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "bi_connector_config", clusterName, err))
 	}
 
 	if cluster.ProviderSettings != nil {
-		flattenProviderSettings(d, cluster.ProviderSettings, clusterName)
+		flattenProviderSettings(d, cluster.ProviderSettings)
 	}
 
 	if err := d.Set("replication_specs", flattenReplicationSpecs(cluster.ReplicationSpecs)); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "replication_specs", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "replication_specs", clusterName, err))
 	}
 
 	if err := d.Set("replication_factor", cluster.ReplicationFactor); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "replication_factor", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "replication_factor", clusterName, err))
 	}
 
 	if err := d.Set("labels", flattenLabels(removeLabel(cluster.Labels, defaultLabel))); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "labels", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "labels", clusterName, err))
 	}
 
 	if err := d.Set("tags", flattenTags(cluster.Tags)); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "tags", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "tags", clusterName, err))
 	}
 
 	if err := d.Set("version_release_system", cluster.VersionReleaseSystem); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "version_release_system", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "version_release_system", clusterName, err))
 	}
 
 	if err := d.Set("accept_data_risks_and_force_replica_set_reconfig", cluster.AcceptDataRisksAndForceReplicaSetReconfig); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "accept_data_risks_and_force_replica_set_reconfig", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "accept_data_risks_and_force_replica_set_reconfig", clusterName, err))
 	}
 
 	if providerName != "TENANT" {
@@ -782,11 +982,11 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		}
 
 		if err := d.Set("container_id", getContainerID(containers, cluster)); err != nil {
-			return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "container_id", clusterName, err))
+			return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "container_id", clusterName, err))
 		}
 
 		if err := d.Set("auto_scaling_disk_gb_enabled", cluster.AutoScaling.DiskGBEnabled); err != nil {
-			return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "auto_scaling_disk_gb_enabled", clusterName, err))
+			return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "auto_scaling_disk_gb_enabled", clusterName, err))
 		}
 	}
 
@@ -795,11 +995,11 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	*/
 	processArgs20240530, _, err := connV220240530.ClustersApi.GetClusterAdvancedConfiguration(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, advancedcluster.V20240530, clusterName, err))
+		return diag.FromErr(fmt.Errorf(errorAdvancedConfRead, v20240530, clusterName, err))
 	}
 	processArgs, _, err := connV2.ClustersApi.GetProcessArgs(ctx, projectID, clusterName).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorAdvancedConfRead, "", clusterName, err))
+		return diag.FromErr(fmt.Errorf(errorAdvancedConfRead, "", clusterName, err))
 	}
 
 	p := &ProcessArgs{
@@ -809,7 +1009,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	}
 
 	if err := d.Set("advanced_configuration", flattenProcessArgs(p)); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "advanced_configuration", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "advanced_configuration", clusterName, err))
 	}
 
 	// Get the snapshot policy and set the data
@@ -827,17 +1027,17 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf(errorClusterRead, clusterName, err))
 	}
 	if err := d.Set("redact_client_log_data", latestClusterModel.GetRedactClientLogData()); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "redact_client_log_data", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "redact_client_log_data", clusterName, err))
 	}
 
 	if err := d.Set("mongo_db_major_version", latestClusterModel.MongoDBMajorVersion); err != nil { // uses 2024-08-05 or above as it has fix for correct value when FCV is active
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "mongo_db_major_version", clusterName, err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "mongo_db_major_version", clusterName, err))
 	}
 
-	warning := advancedcluster.WarningIfFCVExpiredOrUnpinnedExternally(d, latestClusterModel) // has to be called before pinned_fcv value is updated in ResourceData to know prior state value
+	warning := warningIfFCVExpiredOrUnpinnedExternally(d, latestClusterModel) // has to be called before pinned_fcv value is updated in ResourceData to know prior state value
 
-	if err := d.Set("pinned_fcv", advancedcluster.FlattenPinnedFCV(latestClusterModel)); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "pinned_fcv", clusterName, err))
+	if err := d.Set("pinned_fcv", flattenPinnedFCV(latestClusterModel)); err != nil {
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "pinned_fcv", clusterName, err))
 	}
 
 	return warning
@@ -861,7 +1061,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	)
 
 	// FCV update is intentionally handled before other cluster updates, and will wait for cluster to reach IDLE state before continuing
-	if diags := advancedcluster.HandlePinnedFCVUpdate(ctx, connV2, projectID, clusterName, d, timeout); diags != nil {
+	if diags := handlePinnedFCVUpdate(ctx, connV2, projectID, clusterName, d, timeout); diags != nil {
 		return diags
 	}
 
@@ -928,7 +1128,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 
 	if d.HasChange("mongo_db_major_version") {
-		cluster.MongoDBMajorVersion = advancedcluster.FormatMongoDBMajorVersion(d.Get("mongo_db_major_version"))
+		cluster.MongoDBMajorVersion = formatMongoDBMajorVersion(d.Get("mongo_db_major_version"))
 	}
 
 	if d.HasChange("cluster_type") {
@@ -973,7 +1173,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if d.HasChange("labels") {
 		if containsLabelOrKey(expandLabelSliceFromSetSchema(d), defaultLabel) {
-			return diag.FromErr(advancedclustertpf.ErrLegacyIgnoreLabel)
+			return diag.FromErr(advancedcluster.ErrLegacyIgnoreLabel)
 		}
 
 		cluster.Labels = append(expandLabelSliceFromSetSchema(d), defaultLabel)
@@ -1010,7 +1210,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			if !reflect.DeepEqual(params20240530, admin20240530.ClusterDescriptionProcessArgs{}) {
 				_, _, err := connV220240530.ClustersApi.UpdateClusterAdvancedConfiguration(ctx, projectID, clusterName, &params20240530).Execute()
 				if err != nil {
-					return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, advancedcluster.V20240530, clusterName, err))
+					return diag.FromErr(fmt.Errorf(errorAdvancedConfUpdate, v20240530, clusterName, err))
 				}
 			}
 			if !reflect.DeepEqual(params, admin.ClusterDescriptionProcessArgs20240805{}) {
@@ -1063,7 +1263,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	if d.Get("paused").(bool) && !advancedcluster.IsSharedTier(d.Get("provider_instance_size_name").(string)) {
+	if d.Get("paused").(bool) && !isSharedTier(d.Get("provider_instance_size_name").(string)) {
 		clusterRequest := &matlas.Cluster{
 			Paused: conversion.Pointer(true),
 		}
@@ -1134,7 +1334,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.FromErr(fmt.Errorf(errorClusterDelete, clusterName, err))
 	}
 
-	stateConf := advancedcluster.DeleteStateChangeConfig(ctx, connV2, projectID, clusterName, d.Timeout(schema.TimeoutDelete))
+	stateConf := DeleteStateChangeConfig(ctx, connV2, projectID, clusterName, d.Timeout(schema.TimeoutDelete))
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return diag.FromErr(fmt.Errorf(errorClusterDelete, clusterName, err))
 	}
@@ -1156,11 +1356,11 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	}
 
 	if err := d.Set("project_id", u.GroupID); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "project_id", u.ID, err)
+		log.Printf(ErrorClusterSetting, "project_id", u.ID, err)
 	}
 
 	if err := d.Set("name", u.Name); err != nil {
-		log.Printf(advancedcluster.ErrorClusterSetting, "name", u.ID, err)
+		log.Printf(ErrorClusterSetting, "name", u.ID, err)
 	}
 
 	if err := d.Set("cloud_backup", u.ProviderBackupEnabled); err != nil {
@@ -1202,7 +1402,7 @@ func getInstanceSizeToInt(instanceSize string) int {
 func isUpgradeRequired(d *schema.ResourceData) bool {
 	currentSize, updatedSize := d.GetChange("provider_instance_size_name")
 
-	return currentSize != updatedSize && advancedcluster.IsSharedTier(currentSize.(string))
+	return currentSize != updatedSize && isSharedTier(currentSize.(string))
 }
 
 func resourceClusterCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, meta any) error {
@@ -1271,7 +1471,7 @@ func updateCluster(ctx context.Context, conn *matlas.Client, connV2 *admin.APICl
 		return nil, nil, err
 	}
 
-	stateConf := advancedcluster.CreateStateChangeConfig(ctx, connV2, projectID, name, timeout)
+	stateConf := CreateStateChangeConfig(ctx, connV2, projectID, name, timeout)
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return nil, nil, err
 	}
@@ -1366,10 +1566,60 @@ func upgradeCluster(ctx context.Context, conn *matlas.Client, connV2 *admin.APIC
 		return nil, nil, err
 	}
 
-	stateConf := advancedcluster.CreateStateChangeConfig(ctx, connV2, projectID, name, timeout)
+	stateConf := CreateStateChangeConfig(ctx, connV2, projectID, name, timeout)
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return nil, nil, err
 	}
 
 	return cluster, resp, nil
+}
+
+func formatMongoDBMajorVersion(val any) string {
+	return advancedcluster.FormatMongoDBMajorVersion(val.(string))
+}
+
+func flattenPinnedFCV(cluster *admin.ClusterDescription20240805) []map[string]string {
+	if cluster.FeatureCompatibilityVersionExpirationDate == nil { // pinned_fcv is defined in state only if featureCompatibilityVersionExpirationDate is present in cluster response
+		return nil
+	}
+	nestedObj := map[string]string{}
+	nestedObj["version"] = cluster.GetFeatureCompatibilityVersion()
+	nestedObj["expiration_date"] = conversion.TimeToString(cluster.GetFeatureCompatibilityVersionExpirationDate())
+	return []map[string]string{nestedObj}
+}
+
+func warningIfFCVExpiredOrUnpinnedExternally(d *schema.ResourceData, cluster *admin.ClusterDescription20240805) diag.Diagnostics {
+	pinnedFCVBlock, _ := d.Get("pinned_fcv").([]any)
+	fcvPresentInState := len(pinnedFCVBlock) > 0
+	diagsTpf := advancedcluster.GenerateFCVPinningWarningForRead(fcvPresentInState, cluster.FeatureCompatibilityVersionExpirationDate)
+	return conversion.FromTPFDiagsToSDKV2Diags(diagsTpf)
+}
+
+func isSharedTier(instanceSize string) bool {
+	return instanceSize == "M0" || instanceSize == "M2" || instanceSize == "M5"
+}
+
+func hashFunctionForKeyValuePair(v any) int {
+	var buf bytes.Buffer
+	m := v.(map[string]any)
+	buf.WriteString(m["key"].(string))
+	buf.WriteString(m["value"].(string))
+	return hashCodeString(buf.String())
+}
+
+// HashCodeString hashes a string to a unique hashcode.
+//
+// crc32 returns a uint32, but for our use we need
+// and non negative integer. Here we cast to an integer
+// and invert it if the result is negative.
+func hashCodeString(s string) int {
+	v := int(crc32.ChecksumIEEE([]byte(s)))
+	if v >= 0 {
+		return v
+	}
+	if -v >= 0 {
+		return -v
+	}
+	// v == MinInt
+	return 0
 }

@@ -1,5 +1,5 @@
 ---
-subcategory: "LDAP Configuration"
+subcategory: "Projects"
 ---
 
 # Resource: mongodbatlas_ldap_verify

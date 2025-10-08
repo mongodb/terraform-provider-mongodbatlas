@@ -1,5 +1,5 @@
 ---
-subcategory: "Flex Clusters"
+subcategory: "Clusters"
 ---
 
 # Data Source: mongodbatlas_flex_cluster

@@ -1,5 +1,5 @@
 ---
-subcategory: "X.509 Authentication"
+subcategory: "Database Users"
 ---
 
 # Resource: mongodbatlas_x509_authentication_database_user

@@ -34,7 +34,7 @@ func TestNetworkLoggingTransport_Success(t *testing.T) {
 	log.SetOutput(&logOutput)
 	defer log.SetOutput(os.Stderr)
 	mockResp := &http.Response{
-		StatusCode: 200,
+		StatusCode: http.StatusOK,
 		Header:     make(http.Header),
 	}
 	mockTransport := &mockTransport{
@@ -42,7 +42,7 @@ func TestNetworkLoggingTransport_Success(t *testing.T) {
 		err:      nil,
 	}
 	transport := config.NewTransportWithNetworkLogging(mockTransport, true)
-	req := httptest.NewRequest("GET", "https://api.example.com/test", http.NoBody)
+	req := httptest.NewRequest(http.MethodGet, "https://api.example.com/test", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 	require.NoError(t, err)
 	require.Equal(t, 200, resp.StatusCode)
@@ -58,7 +58,7 @@ func TestNetworkLoggingTransport_HTTPError(t *testing.T) {
 	log.SetOutput(&logOutput)
 	defer log.SetOutput(os.Stderr)
 	mockResp := &http.Response{
-		StatusCode: 500,
+		StatusCode: http.StatusInternalServerError,
 		Header:     make(http.Header),
 	}
 	mockTransport := &mockTransport{
@@ -66,10 +66,10 @@ func TestNetworkLoggingTransport_HTTPError(t *testing.T) {
 		err:      nil,
 	}
 	transport := config.NewTransportWithNetworkLogging(mockTransport, true)
-	req := httptest.NewRequest("POST", "https://api.example.com/test", http.NoBody)
+	req := httptest.NewRequest(http.MethodPost, "https://api.example.com/test", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 	require.NoError(t, err)
-	require.Equal(t, 500, resp.StatusCode)
+	require.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 
 	logStr := logOutput.String()
 	assert.Contains(t, logStr, "Network Request Start")
@@ -88,7 +88,7 @@ func TestNetworkLoggingTransport_NetworkError(t *testing.T) {
 		err:      networkErr,
 	}
 	transport := config.NewTransportWithNetworkLogging(mockTransport, true)
-	req := httptest.NewRequest("GET", "https://api.example.com/test", http.NoBody)
+	req := httptest.NewRequest(http.MethodGet, "https://api.example.com/test", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 	require.Error(t, err)
 	require.Equal(t, networkErr, err)
@@ -105,7 +105,7 @@ func TestNetworkLoggingTransport_DigestAuthChallenge(t *testing.T) {
 	log.SetOutput(&logOutput)
 	defer log.SetOutput(os.Stderr)
 	mockResp := &http.Response{
-		StatusCode: 401,
+		StatusCode: http.StatusUnauthorized,
 		Header:     make(http.Header),
 	}
 	mockResp.Header.Set("WWW-Authenticate", "Digest realm=\"MongoDB Atlas\", nonce=\"abc123\"")
@@ -114,7 +114,7 @@ func TestNetworkLoggingTransport_DigestAuthChallenge(t *testing.T) {
 		err:      nil,
 	}
 	transport := config.NewTransportWithNetworkLogging(mockTransport, true)
-	req := httptest.NewRequest("GET", "https://cloud.mongodb.com/api/atlas/v2/groups", http.NoBody)
+	req := httptest.NewRequest(http.MethodGet, "https://cloud.mongodb.com/api/atlas/v2/groups", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 	require.NoError(t, err)
 	require.Equal(t, 401, resp.StatusCode)
@@ -134,7 +134,7 @@ func TestNetworkLoggingTransport_Disabled(t *testing.T) {
 	log.SetOutput(&logOutput)
 	defer log.SetOutput(os.Stderr)
 	mockResp := &http.Response{
-		StatusCode: 200,
+		StatusCode: http.StatusOK,
 		Header:     make(http.Header),
 	}
 	mockTransport := &mockTransport{
@@ -142,10 +142,10 @@ func TestNetworkLoggingTransport_Disabled(t *testing.T) {
 		err:      nil,
 	}
 	transport := config.NewTransportWithNetworkLogging(mockTransport, false)
-	req := httptest.NewRequest("GET", "https://api.example.com/test", http.NoBody)
+	req := httptest.NewRequest(http.MethodGet, "https://api.example.com/test", http.NoBody)
 	resp, err := transport.RoundTrip(req)
 	require.NoError(t, err)
-	require.Equal(t, 200, resp.StatusCode)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	logStr := logOutput.String()
 	assert.Empty(t, logStr, "Expected no logs when network logging is disabled")
@@ -164,10 +164,8 @@ func TestAccNetworkLogging(t *testing.T) {
 		PrivateKey: os.Getenv("MONGODB_ATLAS_PRIVATE_KEY"),
 		BaseURL:    os.Getenv("MONGODB_ATLAS_BASE_URL"),
 	}
-	clientInterface, err := cfg.NewClient(t.Context())
+	client, err := cfg.NewClient(t.Context())
 	require.NoError(t, err)
-	client, ok := clientInterface.(*config.MongoDBClient)
-	require.True(t, ok)
 
 	// Make a simple API call that should trigger our enhanced logging
 	_, _, err = client.AtlasV2.OrganizationsApi.ListOrgs(t.Context()).Execute()
