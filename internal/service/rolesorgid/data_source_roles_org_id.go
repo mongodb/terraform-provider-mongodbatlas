@@ -36,7 +36,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	return nil
 }
 
-// GetCurrentOrgID returns the current organization ID for the SA or Programmatic API key (PAK) from the authenticated user.
+// GetCurrentOrgID returns the current organization ID for the SA or Programmatic API key (PAK) of the authenticated user.
 func GetCurrentOrgID(ctx context.Context, connV2 *admin.APIClient) (string, error) {
 	resp, _, err := connV2.OrganizationsApi.ListOrgs(ctx).Execute()
 	if err != nil {
