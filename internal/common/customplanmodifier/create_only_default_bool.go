@@ -18,11 +18,11 @@ import (
 // Always use Optional+Computed when using a default value.
 // If the attribute is not in the API Response implement CopyFromPlan behavior when converting API Model to TF Model.
 func CreateOnlyBoolWithDefault(b bool) planmodifier.Bool {
-	return &createOnlyBoolPlanModifier{defaultBool: &b}
+	return &createOnlyBoolPlanModifier{defaultBool: b}
 }
 
 type createOnlyBoolPlanModifier struct {
-	defaultBool *bool
+	defaultBool bool
 }
 
 func (d *createOnlyBoolPlanModifier) Description(ctx context.Context) string {
@@ -38,14 +38,10 @@ func isCreate(t *tfsdk.State) bool {
 	return t.Raw.IsNull()
 }
 
-func (d *createOnlyBoolPlanModifier) UseDefault() bool {
-	return d.defaultBool != nil
-}
-
 func (d *createOnlyBoolPlanModifier) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
 	if isCreate(&req.State) {
-		if !IsKnown(req.PlanValue) && d.UseDefault() {
-			resp.PlanValue = types.BoolPointerValue(d.defaultBool)
+		if !IsKnown(req.PlanValue) {
+			resp.PlanValue = types.BoolPointerValue(&d.defaultBool)
 		}
 		return
 	}
