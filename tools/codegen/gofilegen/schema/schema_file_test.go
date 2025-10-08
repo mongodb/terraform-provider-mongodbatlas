@@ -425,7 +425,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			result := schema.GenerateGoCode(&tc.inputModel, tc.withObjType)
 			g := goldie.New(t, goldie.WithNameSuffix(".golden.go"))
-			g.Assert(t, tc.goldenFileName, []byte(result))
+			g.Assert(t, tc.goldenFileName, result)
 		})
 	}
 }

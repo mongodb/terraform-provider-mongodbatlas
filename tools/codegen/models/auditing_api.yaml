@@ -1,0 +1,64 @@
+schema:
+    description: Updates the auditing configuration for the specified project. The auditing configuration defines the events that MongoDB Cloud records in the audit log. To use this resource, the requesting Service Account or API Key must have the Project Owner role. This feature isn't available for `M0`, `M2`, `M5`, or serverless clusters.
+    attributes:
+        - bool:
+            default: false
+          description: 'Flag that indicates whether someone set auditing to track successful authentications. This only applies to the `"atype" : "authCheck"` audit filter. Setting this parameter to `true` degrades cluster performance.'
+          computed_optional_required: computed_optional
+          tf_schema_name: audit_authorization_success
+          tf_model_name: AuditAuthorizationSuccess
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: JSON document that specifies which events to record. Escape any characters that may prevent parsing, such as single or double quotes, using a backslash (`\`).
+          computed_optional_required: optional
+          tf_schema_name: audit_filter
+          tf_model_name: AuditFilter
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: Human-readable label that displays how to configure the audit filter.
+          computed_optional_required: computed
+          tf_schema_name: configuration_type
+          tf_model_name: ConfigurationType
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+        - bool:
+            default: false
+          description: Flag that indicates whether someone enabled database auditing for the specified project.
+          computed_optional_required: computed_optional
+          tf_schema_name: enabled
+          tf_model_name: Enabled
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: |-
+            Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
+
+            **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+          computed_optional_required: required
+          tf_schema_name: group_id
+          tf_model_name: GroupId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+operations:
+    delete:
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{groupId}/auditLog
+        static_request_body: '{"enabled": "false"}'
+    create:
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{groupId}/auditLog
+    read:
+        http_method: GET
+        path: /api/atlas/v2/groups/{groupId}/auditLog
+    update:
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{groupId}/auditLog
+    version_header: application/vnd.atlas.2023-01-01+json
+name: auditing_api

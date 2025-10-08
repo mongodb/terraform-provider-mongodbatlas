@@ -21,40 +21,40 @@ type Model struct {
 }
 
 type Resource struct {
-	Operations APIOperations
-	Schema     *Schema
-	Name       stringcase.SnakeCaseString
+	Schema     *Schema                    `yaml:"schema,omitempty"`
+	Operations APIOperations              `yaml:"operations"`
+	Name       stringcase.SnakeCaseString `yaml:"name"`
 }
 
 type APIOperations struct {
-	Delete        *APIOperation
-	Create        APIOperation
-	Read          APIOperation
-	Update        APIOperation
-	VersionHeader string
+	Delete        *APIOperation `yaml:"delete,omitempty"`
+	Create        APIOperation  `yaml:"create"`
+	Read          APIOperation  `yaml:"read"`
+	Update        APIOperation  `yaml:"update"`
+	VersionHeader string        `yaml:"version_header"`
 }
 
 type APIOperation struct {
-	Wait              *Wait
-	HTTPMethod        string
-	Path              string
-	StaticRequestBody string
+	Wait              *Wait  `yaml:"wait,omitempty"`
+	HTTPMethod        string `yaml:"http_method"`
+	Path              string `yaml:"path"`
+	StaticRequestBody string `yaml:"static_request_body,omitempty"`
 }
 
 type Wait struct {
-	StateProperty     string
-	PendingStates     []string
-	TargetStates      []string
-	TimeoutSeconds    int
-	MinTimeoutSeconds int
-	DelaySeconds      int
+	StateProperty     string   `yaml:"state_property"`
+	PendingStates     []string `yaml:"pending_states"`
+	TargetStates      []string `yaml:"target_states"`
+	TimeoutSeconds    int      `yaml:"timeout_seconds"`
+	MinTimeoutSeconds int      `yaml:"min_timeout_seconds"`
+	DelaySeconds      int      `yaml:"delay_seconds"`
 }
 
 type Schema struct {
-	Description        *string
-	DeprecationMessage *string
+	Description        *string `yaml:"description,omitempty"`
+	DeprecationMessage *string `yaml:"deprecation_message,omitempty"`
 
-	Attributes Attributes
+	Attributes Attributes `yaml:"attributes"`
 }
 
 type Attributes []Attribute
@@ -62,88 +62,97 @@ type Attributes []Attribute
 // Add this field to the Attribute struct
 // Usage AttributeUsage
 type Attribute struct {
-	Set                      *SetAttribute
-	String                   *StringAttribute
-	Float64                  *Float64Attribute
-	List                     *ListAttribute
-	Bool                     *BoolAttribute
-	ListNested               *ListNestedAttribute
-	Map                      *MapAttribute
-	MapNested                *MapNestedAttribute
-	Number                   *NumberAttribute
-	Int64                    *Int64Attribute
-	Timeouts                 *TimeoutsAttribute
-	SingleNested             *SingleNestedAttribute
-	SetNested                *SetNestedAttribute
-	Description              *string
-	DeprecationMessage       *string
-	CustomType               *CustomType
-	ComputedOptionalRequired ComputedOptionalRequired
-	TFSchemaName             stringcase.SnakeCaseString
-	TFModelName              string
-	ReqBodyUsage             AttributeReqBodyUsage
-	Sensitive                bool
-	CreateOnly               bool // leveraged for defining plan modifier which avoids updates on this attribute
+	Set                      *SetAttribute              `yaml:"set,omitempty"`
+	String                   *StringAttribute           `yaml:"string,omitempty"`
+	Float64                  *Float64Attribute          `yaml:"float64,omitempty"`
+	List                     *ListAttribute             `yaml:"list,omitempty"`
+	Bool                     *BoolAttribute             `yaml:"bool,omitempty"`
+	ListNested               *ListNestedAttribute       `yaml:"list_nested,omitempty"`
+	Map                      *MapAttribute              `yaml:"map,omitempty"`
+	MapNested                *MapNestedAttribute        `yaml:"map_nested,omitempty"`
+	Number                   *NumberAttribute           `yaml:"number,omitempty"`
+	Int64                    *Int64Attribute            `yaml:"int64,omitempty"`
+	Timeouts                 *TimeoutsAttribute         `yaml:"timeouts,omitempty"`
+	SingleNested             *SingleNestedAttribute     `yaml:"single_nested,omitempty"`
+	SetNested                *SetNestedAttribute        `yaml:"set_nested,omitempty"`
+	Description              *string                    `yaml:"description,omitempty"`
+	DeprecationMessage       *string                    `yaml:"deprecation_message,omitempty"`
+	CustomType               *CustomType                `yaml:"custom_type,omitempty"`
+	ComputedOptionalRequired ComputedOptionalRequired   `yaml:"computed_optional_required"`
+	TFSchemaName             stringcase.SnakeCaseString `yaml:"tf_schema_name"`
+	TFModelName              string                     `yaml:"tf_model_name"`
+	ReqBodyUsage             AttributeReqBodyUsage      `yaml:"req_body_usage"`
+	Sensitive                bool                       `yaml:"sensitive"`
+	CreateOnly               bool                       `yaml:"create_only"` // leveraged for defining plan modifier which avoids updates on this attribute
 }
 
-type AttributeReqBodyUsage int
+type ComputedOptionalRequired string
 
 const (
-	AllRequestBodies = iota // by default attribute is sent in request bodies
-	OmitInUpdateBody
-	IncludeNullOnUpdate // attributes that always must be sent in update request body even if null
-	OmitAlways          // this covers computed-only attributes and attributes which are only used for path/query params
+	Computed         ComputedOptionalRequired = "computed"
+	ComputedOptional ComputedOptionalRequired = "computed_optional"
+	Optional         ComputedOptionalRequired = "optional"
+	Required         ComputedOptionalRequired = "required"
+)
+
+type AttributeReqBodyUsage string
+
+const (
+	AllRequestBodies    AttributeReqBodyUsage = "all_request_bodies" // by default attribute is sent in request bodies
+	OmitInUpdateBody    AttributeReqBodyUsage = "omit_in_update_body"
+	IncludeNullOnUpdate AttributeReqBodyUsage = "include_null_on_update" // attributes that always must be sent in update request body even if null
+	OmitAlways          AttributeReqBodyUsage = "omit_always"            // this covers computed-only attributes and attributes which are only used for path/query params
 )
 
 type BoolAttribute struct {
-	Default *bool
+	Default *bool `yaml:"default,omitempty"`
 }
 type Float64Attribute struct {
-	Default *float64
+	Default *float64 `yaml:"default,omitempty"`
 }
 type Int64Attribute struct {
-	Default *int64
+	Default *int64 `yaml:"default,omitempty"`
 }
 type MapAttribute struct {
-	Default     *CustomDefault
-	ElementType ElemType
+	Default     *CustomDefault `yaml:"default,omitempty"`
+	ElementType ElemType       `yaml:"element_type"`
 }
 type MapNestedAttribute struct {
-	Default      *CustomDefault
-	NestedObject NestedAttributeObject
+	Default      *CustomDefault        `yaml:"default,omitempty"`
+	NestedObject NestedAttributeObject `yaml:"nested_object"`
 }
 type NumberAttribute struct {
-	Default *CustomDefault
+	Default *CustomDefault `yaml:"default,omitempty"`
 }
 type SetAttribute struct {
-	Default     *CustomDefault
-	ElementType ElemType
+	Default     *CustomDefault `yaml:"default,omitempty"`
+	ElementType ElemType       `yaml:"element_type"`
 }
 type SetNestedAttribute struct {
-	Default      *CustomDefault
-	NestedObject NestedAttributeObject
+	Default      *CustomDefault        `yaml:"default,omitempty"`
+	NestedObject NestedAttributeObject `yaml:"nested_object"`
 }
 type SingleNestedAttribute struct {
-	Default      *CustomDefault
-	NestedObject NestedAttributeObject
+	Default      *CustomDefault        `yaml:"default,omitempty"`
+	NestedObject NestedAttributeObject `yaml:"nested_object"`
 }
 type StringAttribute struct {
-	Default *string
+	Default *string `yaml:"default,omitempty"`
 }
 type ListAttribute struct {
-	Default     *CustomDefault
-	ElementType ElemType
+	Default     *CustomDefault `yaml:"default,omitempty"`
+	ElementType ElemType       `yaml:"element_type"`
 }
 type ListNestedAttribute struct {
-	Default      *CustomDefault
-	NestedObject NestedAttributeObject
+	Default      *CustomDefault        `yaml:"default,omitempty"`
+	NestedObject NestedAttributeObject `yaml:"nested_object"`
 }
 type NestedAttributeObject struct {
-	Attributes Attributes
+	Attributes Attributes `yaml:"attributes"`
 }
 
 type TimeoutsAttribute struct {
-	ConfigurableTimeouts []Operation
+	ConfigurableTimeouts []Operation `yaml:"configurable_timeouts"`
 }
 
 type Operation int
@@ -156,13 +165,13 @@ const (
 )
 
 type CustomDefault struct {
-	Definition string
-	Imports    []string
+	Definition string   `yaml:"definition"`
+	Imports    []string `yaml:"imports"`
 }
 
 type CustomType struct {
-	Model  string
-	Schema string
+	Model  string `yaml:"model"`
+	Schema string `yaml:"schema"`
 }
 
 var CustomTypeJSONVar = CustomType{

@@ -31,7 +31,8 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 	if resourceName != nil { // only generate a specific resource
 		resource, ok := configModel.Resources[*resourceName]
 		if !ok {
-			return nil, fmt.Errorf("resource %s not found in config file", *resourceName)
+			log.Printf("Resource %s not found in config file, skipping model generation", *resourceName)
+			return &Model{}, nil
 		}
 		resourceConfigsToIterate = map[string]config.Resource{
 			*resourceName: resource,
@@ -44,7 +45,7 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 
 	var results []Resource
 	for name, resourceConfig := range resourceConfigsToIterate {
-		log.Printf("Generating resource: %s", name)
+		log.Printf("Generating resource model: %s", name)
 		// find resource operations, schemas, etc from OAS
 		oasResource, err := getAPISpecResource(&apiSpec.Model, &resourceConfig, stringcase.SnakeCaseString(name))
 		if err != nil {

@@ -1,0 +1,429 @@
+schema:
+    description: Creates one stream instance in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Data Access Admin role, Project Owner role or Project Stream Processing Owner role.
+    attributes:
+        - list_nested:
+            nested_object:
+                attributes:
+                    - single_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: OIDC client identifier for authentication to the Kafka cluster.
+                                  computed_optional_required: computed
+                                  tf_schema_name: client_id
+                                  tf_model_name: ClientId
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: OIDC client secret for authentication to the Kafka cluster.
+                                  computed_optional_required: computed
+                                  tf_schema_name: client_secret
+                                  tf_model_name: ClientSecret
+                                  req_body_usage: omit_always
+                                  sensitive: true
+                                  create_only: false
+                                - string: {}
+                                  description: Style of authentication. Can be one of PLAIN, SCRAM-256, SCRAM-512, or OAUTHBEARER.
+                                  computed_optional_required: computed
+                                  tf_schema_name: mechanism
+                                  tf_model_name: Mechanism
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: SASL OAUTHBEARER authentication method. Can only be OIDC currently.
+                                  computed_optional_required: computed
+                                  tf_schema_name: method
+                                  tf_model_name: Method
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: Password of the account to connect to the Kafka cluster.
+                                  computed_optional_required: computed
+                                  tf_schema_name: password
+                                  tf_model_name: Password
+                                  req_body_usage: omit_always
+                                  sensitive: true
+                                  create_only: false
+                                - string: {}
+                                  description: SASL OAUTHBEARER extensions parameter for additional OAuth2 configuration.
+                                  computed_optional_required: computed
+                                  tf_schema_name: sasl_oauthbearer_extensions
+                                  tf_model_name: SaslOauthbearerExtensions
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: OIDC scope parameter defining the access permissions requested.
+                                  computed_optional_required: computed
+                                  tf_schema_name: scope
+                                  tf_model_name: Scope
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: SSL certificate for client authentication to Kafka.
+                                  computed_optional_required: computed
+                                  tf_schema_name: ssl_certificate
+                                  tf_model_name: SslCertificate
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: SSL key for client authentication to Kafka.
+                                  computed_optional_required: computed
+                                  tf_schema_name: ssl_key
+                                  tf_model_name: SslKey
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: Password for the SSL key, if it is password protected.
+                                  computed_optional_required: computed
+                                  tf_schema_name: ssl_key_password
+                                  tf_model_name: SslKeyPassword
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: OIDC token endpoint URL for obtaining access tokens.
+                                  computed_optional_required: computed
+                                  tf_schema_name: token_endpoint_url
+                                  tf_model_name: TokenEndpointUrl
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: Username of the account to connect to the Kafka cluster.
+                                  computed_optional_required: computed
+                                  tf_schema_name: username
+                                  tf_model_name: Username
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                      description: User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode.
+                      computed_optional_required: computed
+                      tf_schema_name: authentication
+                      tf_model_name: Authentication
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - single_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: Amazon Resource Name (ARN) that identifies the Amazon Web Services (AWS) Identity and Access Management (IAM) role that MongoDB Cloud assumes when it accesses resources in your AWS account.
+                                  computed_optional_required: computed
+                                  tf_schema_name: role_arn
+                                  tf_model_name: RoleArn
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: The name of an S3 bucket used to check authorization of the passed-in IAM role ARN.
+                                  computed_optional_required: computed
+                                  tf_schema_name: test_bucket
+                                  tf_model_name: TestBucket
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                      description: AWS configurations for AWS-based connection types.
+                      computed_optional_required: computed
+                      tf_schema_name: aws
+                      tf_model_name: Aws
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - string: {}
+                      description: Comma separated list of server addresses.
+                      computed_optional_required: computed
+                      tf_schema_name: bootstrap_servers
+                      tf_model_name: BootstrapServers
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - string: {}
+                      description: The id of the group that the cluster belongs to.
+                      computed_optional_required: computed
+                      tf_schema_name: cluster_group_id
+                      tf_model_name: ClusterGroupId
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - string: {}
+                      description: Name of the cluster configured for this connection.
+                      computed_optional_required: computed
+                      tf_schema_name: cluster_name
+                      tf_model_name: ClusterName
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - map:
+                        element_type: 4
+                      description: A map of Kafka key-value pairs for optional configuration. This is a flat object, and keys can have '.' characters.
+                      computed_optional_required: computed
+                      tf_schema_name: config
+                      tf_model_name: Config
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - single_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: The name of the role to use. Can be a built in role or a custom role.
+                                  computed_optional_required: computed
+                                  tf_schema_name: role
+                                  tf_model_name: Role
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: Type of the DB role. Can be either BuiltIn or Custom.
+                                  computed_optional_required: computed
+                                  tf_schema_name: type
+                                  tf_model_name: Type
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                      description: The name of a Built in or Custom DB Role to connect to an Atlas Cluster.
+                      computed_optional_required: computed
+                      tf_schema_name: db_role_to_execute
+                      tf_model_name: DbRoleToExecute
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - map:
+                        element_type: 4
+                      description: A map of key-value pairs that will be passed as headers for the request.
+                      computed_optional_required: computed
+                      tf_schema_name: headers
+                      tf_model_name: Headers
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - string: {}
+                      description: Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
+                      computed_optional_required: computed
+                      tf_schema_name: name
+                      tf_model_name: Name
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - single_nested:
+                        nested_object:
+                            attributes:
+                                - single_nested:
+                                    nested_object:
+                                        attributes:
+                                            - string: {}
+                                              description: Reserved. Will be used by PRIVATE_LINK connection type.
+                                              computed_optional_required: computed
+                                              tf_schema_name: connection_id
+                                              tf_model_name: ConnectionId
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                            - string: {}
+                                              description: Reserved. Will be used by PRIVATE_LINK connection type.
+                                              computed_optional_required: computed
+                                              tf_schema_name: name
+                                              tf_model_name: Name
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                            - string: {}
+                                              description: Reserved. Will be used by TRANSIT_GATEWAY connection type.
+                                              computed_optional_required: computed
+                                              tf_schema_name: tgw_route_id
+                                              tf_model_name: TgwRouteId
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                            - string: {}
+                                              description: Selected networking type. Either PUBLIC, VPC, PRIVATE_LINK, or TRANSIT_GATEWAY. Defaults to PUBLIC. For VPC, ensure that VPC peering exists and connectivity has been established between Atlas VPC and the VPC where Kafka cluster is hosted for the connection to function properly. TRANSIT_GATEWAY support is coming soon.
+                                              computed_optional_required: computed
+                                              tf_schema_name: type
+                                              tf_model_name: Type
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                  description: Information about networking access.
+                                  computed_optional_required: computed
+                                  tf_schema_name: access
+                                  tf_model_name: Access
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                      description: Networking configuration for Streams connections.
+                      computed_optional_required: computed
+                      tf_schema_name: networking
+                      tf_model_name: Networking
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - single_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: A trusted, public x509 certificate for connecting to Kafka over SSL.
+                                  computed_optional_required: computed
+                                  tf_schema_name: broker_public_certificate
+                                  tf_model_name: BrokerPublicCertificate
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: Describes the transport type. Can be either SASL_PLAINTEXT, SASL_SSL, or SSL.
+                                  computed_optional_required: computed
+                                  tf_schema_name: protocol
+                                  tf_model_name: Protocol
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                      description: Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use.
+                      computed_optional_required: computed
+                      tf_schema_name: security
+                      tf_model_name: Security
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - string: {}
+                      description: Type of the connection.
+                      computed_optional_required: computed
+                      tf_schema_name: type
+                      tf_model_name: Type
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - string: {}
+                      description: The url to be used for the request.
+                      computed_optional_required: computed
+                      tf_schema_name: url
+                      tf_model_name: Url
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+          description: List of connections configured in the stream instance.
+          computed_optional_required: computed
+          tf_schema_name: connections
+          tf_model_name: Connections
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Label that identifies the cloud service provider where MongoDB Cloud performs stream processing. Currently, this parameter only supports AWS and AZURE.
+                      computed_optional_required: required
+                      tf_schema_name: cloud_provider
+                      tf_model_name: CloudProvider
+                      req_body_usage: ""
+                      sensitive: false
+                      create_only: false
+                    - string: {}
+                      description: Name of the cloud provider region hosting Atlas Stream Processing.
+                      computed_optional_required: required
+                      tf_schema_name: region
+                      tf_model_name: Region
+                      req_body_usage: ""
+                      sensitive: false
+                      create_only: false
+          description: Information about the cloud provider region in which MongoDB Cloud processes the stream.
+          computed_optional_required: optional
+          tf_schema_name: data_process_region
+          tf_model_name: DataProcessRegion
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: true
+        - string: {}
+          description: |-
+            Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
+
+            **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+          computed_optional_required: required
+          tf_schema_name: group_id
+          tf_model_name: GroupId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+        - list:
+            element_type: 4
+          description: List that contains the hostnames assigned to the stream instance.
+          computed_optional_required: computed
+          tf_schema_name: hostnames
+          tf_model_name: Hostnames
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: Human-readable label that identifies the stream instance.
+          computed_optional_required: optional
+          tf_schema_name: name
+          tf_model_name: Name
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: true
+        - single_nested:
+            nested_object:
+                attributes:
+                    - bool:
+                        default: false
+                      description: Flag that indicates whether to add a 'sample_stream_solar' connection.
+                      computed_optional_required: computed_optional
+                      tf_schema_name: solar
+                      tf_model_name: Solar
+                      req_body_usage: ""
+                      sensitive: false
+                      create_only: false
+          description: Sample connections to add to SPI.
+          computed_optional_required: optional
+          tf_schema_name: sample_connections
+          tf_model_name: SampleConnections
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: true
+        - single_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Max tier size for the Stream Instance. Configures Memory / VCPU allowances. This field is not supported yet.
+                      computed_optional_required: optional
+                      tf_schema_name: max_tier_size
+                      tf_model_name: MaxTierSize
+                      req_body_usage: ""
+                      sensitive: false
+                      create_only: false
+                    - string: {}
+                      description: Selected tier for the Stream Instance. Configures Memory / VCPU allowances.
+                      computed_optional_required: optional
+                      tf_schema_name: tier
+                      tf_model_name: Tier
+                      req_body_usage: ""
+                      sensitive: false
+                      create_only: false
+          description: Configuration options for an Atlas Stream Processing Instance.
+          computed_optional_required: optional
+          tf_schema_name: stream_config
+          tf_model_name: StreamConfig
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: true
+operations:
+    delete:
+        http_method: DELETE
+        path: /api/atlas/v2/groups/{groupId}/streams/{name}
+    create:
+        http_method: POST
+        path: /api/atlas/v2/groups/{groupId}/streams
+    read:
+        http_method: GET
+        path: /api/atlas/v2/groups/{groupId}/streams/{name}
+    update:
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{groupId}/streams/{name}
+    version_header: application/vnd.atlas.2023-02-01+json
+name: stream_instance_api
