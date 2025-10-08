@@ -12,15 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// CreateOnlyBool creates a plan modifier that prevents updates to boolean attributes.
-// This is useful for attributes only supported in create and not in update.
-// It shows a helpful error message helping the user to update their config to match the state.
-// Never use a schema.Default for create only attributes, instead use `WithDefault`, the default will lead to plan changes that are not expected after import.
-// If the attribute is not in the API Response implement CopyFromPlan behavior when converting API Model to TF Model.
-func CreateOnlyBool() planmodifier.Bool {
-	return &createOnlyBoolPlanModifier{}
-}
-
 // CreateOnlyBoolWithDefault sets a default value on create operation that will show in the plan.
 // This avoids any custom logic in the resource "Create" handler.
 // On update the default has no impact and the UseStateForUnknown behavior is observed instead.
