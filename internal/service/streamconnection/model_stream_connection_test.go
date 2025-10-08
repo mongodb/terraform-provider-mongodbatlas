@@ -181,7 +181,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				InstanceName:     types.StringValue(instanceName),
 				ConnectionName:   types.StringValue(connectionName),
 				Type:             types.StringValue("Kafka"),
-				Authentication:   tfAuthenticationObjectForOAuth(t, authMechanismOAuth, clientID, clientSecret, tokenEndpointURL, scope, saslOauthbearerExtentions, httpsCaPem), // password value is obtained from config, not api resp.
+				Authentication:   tfAuthenticationObjectForOAuth(t, authMechanism, clientID, clientSecret, tokenEndpointURL, scope, saslOauthbearerExtentions, method), // password value is obtained from config, not api resp.
 				BootstrapServers: types.StringValue(bootstrapServers),
 				Config:           tfConfigMap(t, configMap),
 				Security:         tfSecurityObject(t, DummyCACert, securityProtocol),
