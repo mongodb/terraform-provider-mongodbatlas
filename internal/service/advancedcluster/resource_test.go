@@ -1895,31 +1895,25 @@ func checkSingleProviderPaused(name string, paused bool) resource.TestCheckFunc 
 
 func configAdvanced(t *testing.T, projectID, clusterName, mongoDBMajorVersion string, p *admin.ClusterDescriptionProcessArgs20240805) string {
 	t.Helper()
-	changeStreamOptionsStr := ""
-	defaultMaxTimeStr := ""
-	tlsCipherConfigModeStr := ""
-	customOpensslCipherConfigTLS12Str := ""
-	mongoDBMajorVersionStr := ""
+	additionalConfig := ""
 
-	if p != nil {
-		if p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != nil && p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != conversion.IntPtr(-1) {
-			changeStreamOptionsStr = fmt.Sprintf(`change_stream_options_pre_and_post_images_expire_after_seconds = %[1]d`, *p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds)
-		}
-		if p.DefaultMaxTimeMS != nil {
-			defaultMaxTimeStr = fmt.Sprintf(`default_max_time_ms = %[1]d`, *p.DefaultMaxTimeMS)
-		}
-		if p.TlsCipherConfigMode != nil {
-			tlsCipherConfigModeStr = fmt.Sprintf(`tls_cipher_config_mode = %[1]q`, *p.TlsCipherConfigMode)
-			if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
-				customOpensslCipherConfigTLS12Str = fmt.Sprintf(
-					`custom_openssl_cipher_config_tls12 = [%s]`,
-					acc.JoinQuotedStrings(*p.CustomOpensslCipherConfigTls12),
-				)
-			}
+	if p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != nil && p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != conversion.IntPtr(-1) {
+		additionalConfig += fmt.Sprintf("change_stream_options_pre_and_post_images_expire_after_seconds = %[1]d\n", *p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds)
+	}
+	if p.DefaultMaxTimeMS != nil {
+		additionalConfig += fmt.Sprintf("default_max_time_ms = %[1]d\n", *p.DefaultMaxTimeMS)
+	}
+	if p.TlsCipherConfigMode != nil {
+		additionalConfig += fmt.Sprintf("tls_cipher_config_mode = %[1]q\n", *p.TlsCipherConfigMode)
+		if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
+			additionalConfig += fmt.Sprintf("custom_openssl_cipher_config_tls12 = [%s]\n", acc.JoinQuotedStrings(*p.CustomOpensslCipherConfigTls12))
 		}
 	}
 	if mongoDBMajorVersion != "" {
-		mongoDBMajorVersionStr = fmt.Sprintf(`mongo_db_major_version = %[1]q`, mongoDBMajorVersion)
+		additionalConfig += fmt.Sprintf("mongo_db_major_version = %[1]q\n", mongoDBMajorVersion)
+	}
+	if p.MinimumEnabledTlsProtocol != nil {
+		additionalConfig += fmt.Sprintf("minimum_enabled_tls_protocol = %[1]q\n", *p.MinimumEnabledTlsProtocol)
 	}
 
 	return fmt.Sprintf(`
@@ -1927,8 +1921,6 @@ func configAdvanced(t *testing.T, projectID, clusterName, mongoDBMajorVersion st
 			project_id             = %[1]q
 			name                   = %[2]q
 			cluster_type           = "REPLICASET"
-			%[12]s
-
 			replication_specs = [{
 				region_configs = [{
 					electable_specs = {
@@ -1947,21 +1939,16 @@ func configAdvanced(t *testing.T, projectID, clusterName, mongoDBMajorVersion st
 
 			advanced_configuration  = {
 				javascript_enabled                   = %[3]t
-				minimum_enabled_tls_protocol         = %[4]q
-				no_table_scan                        = %[5]t
-				oplog_size_mb                        = %[6]d
-				sample_size_bi_connector			 = %[7]d
-				sample_refresh_interval_bi_connector = %[8]d
-			    transaction_lifetime_limit_seconds   = %[9]d
-			    %[10]s
-				%[11]s
-				%[13]s
-				%[14]s
+				no_table_scan                        = %[4]t
+				oplog_size_mb                        = %[5]d
+				sample_size_bi_connector			 = %[6]d
+				sample_refresh_interval_bi_connector = %[7]d
+				transaction_lifetime_limit_seconds   = %[8]d
+				%[9]s
 			}
 		}
-	`, projectID, clusterName, p.GetJavascriptEnabled(), p.GetMinimumEnabledTlsProtocol(), p.GetNoTableScan(),
-		p.GetOplogSizeMB(), p.GetSampleSizeBIConnector(), p.GetSampleRefreshIntervalBIConnector(), p.GetTransactionLifetimeLimitSeconds(),
-		changeStreamOptionsStr, defaultMaxTimeStr, mongoDBMajorVersionStr, tlsCipherConfigModeStr, customOpensslCipherConfigTLS12Str) + dataSourcesConfig
+	`, projectID, clusterName, p.GetJavascriptEnabled(), p.GetNoTableScan(), p.GetOplogSizeMB(), p.GetSampleSizeBIConnector(),
+		p.GetSampleRefreshIntervalBIConnector(), p.GetTransactionLifetimeLimitSeconds(), additionalConfig) + dataSourcesConfig
 }
 
 func checkAdvanced(name, tls string, processArgs *admin.ClusterDescriptionProcessArgs20240805) resource.TestCheckFunc {
