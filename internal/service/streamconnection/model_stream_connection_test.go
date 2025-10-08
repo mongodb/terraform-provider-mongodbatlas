@@ -11,15 +11,16 @@ import (
 )
 
 const (
-	connectionName            = "Connection"
-	typeValue                 = ""
-	clusterName               = "Cluster0"
-	dummyProjectID            = "111111111111111111111111"
-	instanceName              = "InstanceName"
-	authMechanism             = "PLAIN"
-	authUsername              = "user1"
-	clientID                  = "auth0Client"
-	clientSecret              = "secret"
+	connectionName = "Connection"
+	typeValue      = ""
+	clusterName    = "Cluster0"
+	dummyProjectID = "111111111111111111111111"
+	instanceName   = "InstanceName"
+	authMechanism  = "PLAIN"
+	authUsername   = "user1"
+	clientID       = "auth0Client"
+	clientSecret   = "secret"
+	// #nosec G101
 	tokenEndpointURL          = "https://your-domain.com/"
 	scope                     = "read:messages write:messages"
 	saslOauthbearerExtentions = "logicalCluster=cluster-kmo17m,identityPoolId=pool-l7Arl"
