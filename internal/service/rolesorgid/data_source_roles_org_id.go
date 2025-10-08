@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20250312007/admin"
@@ -31,7 +32,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err := d.Set("org_id", orgID); err != nil {
 		return diag.Errorf("error setting `org_id`: %v", err)
 	}
-	d.SetId(orgID)
+	d.SetId(id.UniqueId())
 	return nil
 }
 
