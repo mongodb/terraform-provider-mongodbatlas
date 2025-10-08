@@ -20,7 +20,7 @@ const (
 	authUsername              = "user1"
 	clientID                  = "auth0Client"
 	clientSecret              = "secret"
-	tokenEndpointURL          = "https://your-domain.com/oauth2/token"
+	tokenEndpointURL          = "https://your-domain.com/"
 	scope                     = "read:messages write:messages"
 	saslOauthbearerExtentions = "logicalCluster=cluster-kmo17m,identityPoolId=pool-l7Arl"
 	method                    = "OIDC"
