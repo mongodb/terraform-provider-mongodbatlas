@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"slices"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -319,10 +318,7 @@ func getSDKv2ProviderVars(d *schema.ResourceData) *config.Vars {
 			assumeRoleARN = assumeRole["role_arn"].(string)
 		}
 	}
-	baseURL := d.Get("base_url").(string)
-	if d.Get("is_mongodbgov_cloud").(bool) && !slices.Contains(govAdditionalURLs, baseURL) {
-		baseURL = govURL
-	}
+	baseURL := applyGovBaseURLIfNeeded(d.Get("base_url").(string), d.Get("is_mongodbgov_cloud").(bool))
 	return &config.Vars{
 		AccessToken:        d.Get("access_token").(string),
 		ClientID:           d.Get("client_id").(string),
