@@ -1895,25 +1895,42 @@ func checkSingleProviderPaused(name string, paused bool) resource.TestCheckFunc 
 
 func configAdvanced(t *testing.T, projectID, clusterName, mongoDBMajorVersion string, p *admin.ClusterDescriptionProcessArgs20240805) string {
 	t.Helper()
-	additionalConfig := ""
-
+	advancedConfig := ""
+	if p.JavascriptEnabled != nil {
+		advancedConfig += fmt.Sprintf("javascript_enabled = %[1]t\n", *p.JavascriptEnabled)
+	}
+	if p.NoTableScan != nil {
+		advancedConfig += fmt.Sprintf("no_table_scan = %[1]t\n", *p.NoTableScan)
+	}
+	if p.OplogSizeMB != nil {
+		advancedConfig += fmt.Sprintf("oplog_size_mb = %[1]d\n", *p.OplogSizeMB)
+	}
+	if p.SampleRefreshIntervalBIConnector != nil {
+		advancedConfig += fmt.Sprintf("sample_refresh_interval_bi_connector = %[1]d\n", *p.SampleRefreshIntervalBIConnector)
+	}
+	if p.SampleSizeBIConnector != nil {
+		advancedConfig += fmt.Sprintf("sample_size_bi_connector = %[1]d\n", *p.SampleSizeBIConnector)
+	}
+	if p.TransactionLifetimeLimitSeconds != nil {
+		advancedConfig += fmt.Sprintf("transaction_lifetime_limit_seconds = %[1]d\n", *p.TransactionLifetimeLimitSeconds)
+	}
 	if p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != nil && p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != conversion.IntPtr(-1) {
-		additionalConfig += fmt.Sprintf("change_stream_options_pre_and_post_images_expire_after_seconds = %[1]d\n", *p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds)
+		advancedConfig += fmt.Sprintf("change_stream_options_pre_and_post_images_expire_after_seconds = %[1]d\n", *p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds)
 	}
 	if p.DefaultMaxTimeMS != nil {
-		additionalConfig += fmt.Sprintf("default_max_time_ms = %[1]d\n", *p.DefaultMaxTimeMS)
+		advancedConfig += fmt.Sprintf("default_max_time_ms = %[1]d\n", *p.DefaultMaxTimeMS)
 	}
 	if p.TlsCipherConfigMode != nil {
-		additionalConfig += fmt.Sprintf("tls_cipher_config_mode = %[1]q\n", *p.TlsCipherConfigMode)
+		advancedConfig += fmt.Sprintf("tls_cipher_config_mode = %[1]q\n", *p.TlsCipherConfigMode)
 		if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
-			additionalConfig += fmt.Sprintf("custom_openssl_cipher_config_tls12 = [%s]\n", acc.JoinQuotedStrings(*p.CustomOpensslCipherConfigTls12))
+			advancedConfig += fmt.Sprintf("custom_openssl_cipher_config_tls12 = [%s]\n", acc.JoinQuotedStrings(*p.CustomOpensslCipherConfigTls12))
 		}
 	}
 	if mongoDBMajorVersion != "" {
-		additionalConfig += fmt.Sprintf("mongo_db_major_version = %[1]q\n", mongoDBMajorVersion)
+		advancedConfig += fmt.Sprintf("mongo_db_major_version = %[1]q\n", mongoDBMajorVersion)
 	}
 	if p.MinimumEnabledTlsProtocol != nil {
-		additionalConfig += fmt.Sprintf("minimum_enabled_tls_protocol = %[1]q\n", *p.MinimumEnabledTlsProtocol)
+		advancedConfig += fmt.Sprintf("minimum_enabled_tls_protocol = %[1]q\n", *p.MinimumEnabledTlsProtocol)
 	}
 
 	return fmt.Sprintf(`
@@ -1938,17 +1955,10 @@ func configAdvanced(t *testing.T, projectID, clusterName, mongoDBMajorVersion st
 			}]
 
 			advanced_configuration  = {
-				javascript_enabled                   = %[3]t
-				no_table_scan                        = %[4]t
-				oplog_size_mb                        = %[5]d
-				sample_size_bi_connector			 = %[6]d
-				sample_refresh_interval_bi_connector = %[7]d
-				transaction_lifetime_limit_seconds   = %[8]d
-				%[9]s
+				%[3]s
 			}
 		}
-	`, projectID, clusterName, p.GetJavascriptEnabled(), p.GetNoTableScan(), p.GetOplogSizeMB(), p.GetSampleSizeBIConnector(),
-		p.GetSampleRefreshIntervalBIConnector(), p.GetTransactionLifetimeLimitSeconds(), additionalConfig) + dataSourcesConfig
+	`, projectID, clusterName, advancedConfig) + dataSourcesConfig
 }
 
 func checkAdvanced(name, tls string, processArgs *admin.ClusterDescriptionProcessArgs20240805) resource.TestCheckFunc {
@@ -2676,13 +2686,13 @@ func configPriority(t *testing.T, projectID, clusterName string, swapPriorities 
 
 func configBiConnectorConfig(t *testing.T, projectID, name string, enabled bool) string {
 	t.Helper()
-	additionalConfig := `
+	advancedConfig := `
 		bi_connector_config = {
 			enabled = false
 		}	
 	`
 	if enabled {
-		additionalConfig = `
+		advancedConfig = `
 			bi_connector_config = {
 				enabled         = true
 				read_preference = "secondary"
@@ -2714,7 +2724,7 @@ func configBiConnectorConfig(t *testing.T, projectID, name string, enabled bool)
 
 			%[3]s
 		}
-	`, projectID, name, additionalConfig) + dataSourcesConfig
+	`, projectID, name, advancedConfig) + dataSourcesConfig
 }
 
 func checkTenantBiConnectorConfig(projectID, name string, enabled bool) resource.TestCheckFunc {
