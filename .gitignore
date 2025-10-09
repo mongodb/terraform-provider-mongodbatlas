@@ -21,4 +21,4 @@ terraform.tfvars
 
 #used for schema code generation but is not commited to avoid constant updates
 tools/codegen/open-api-spec.yml
-vendor/
+vendor
