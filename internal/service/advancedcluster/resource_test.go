@@ -287,9 +287,7 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
-		processArgs            = &admin.ClusterDescriptionProcessArgs20240805{
-			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(-1), // this will not be set in the TF configuration
-			DefaultMaxTimeMS:                 conversion.IntPtr(65),
+		processArgsCommon      = &admin.ClusterDescriptionProcessArgs20240805{
 			DefaultWriteConcern:              conversion.StringPtr("1"),
 			JavascriptEnabled:                conversion.Pointer(true),
 			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
@@ -299,11 +297,13 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 			SampleSizeBIConnector:            conversion.Pointer(110),
 			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 		}
-		processArgsCipherConfig = &admin.ClusterDescriptionProcessArgs20240805{
-			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
-			CustomOpensslCipherConfigTls12: &[]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"},
-		}
 	)
+	processArgs := *processArgsCommon
+	processArgs.DefaultMaxTimeMS = conversion.IntPtr(65)
+
+	processArgsCipherConfig := *processArgsCommon
+	processArgsCipherConfig.TlsCipherConfigMode = conversion.StringPtr("CUSTOM")
+	processArgsCipherConfig.CustomOpensslCipherConfigTls12 = &[]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
@@ -311,12 +311,12 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:      configAdvanced(t, projectID, clusterName, "7.0", processArgs),
+				Config:      configAdvanced(t, projectID, clusterName, "7.0", &processArgs),
 				ExpectError: regexp.MustCompile(errDefaultMaxTimeMinVersion),
 			},
 			{
-				Config: configAdvanced(t, projectID, clusterName, "7.0", processArgsCipherConfig),
-				Check:  checkAdvanced(clusterName, "TLS1_2", processArgsCipherConfig),
+				Config: configAdvanced(t, projectID, clusterName, "7.0", &processArgsCipherConfig),
+				Check:  checkAdvanced(clusterName, "TLS1_2", &processArgsCipherConfig),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -1914,7 +1914,7 @@ func configAdvanced(t *testing.T, projectID, clusterName, mongoDBMajorVersion st
 	if p.TransactionLifetimeLimitSeconds != nil {
 		advancedConfig += fmt.Sprintf("transaction_lifetime_limit_seconds = %[1]d\n", *p.TransactionLifetimeLimitSeconds)
 	}
-	if p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != nil && p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != conversion.IntPtr(-1) {
+	if p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != nil && *p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != -1 {
 		advancedConfig += fmt.Sprintf("change_stream_options_pre_and_post_images_expire_after_seconds = %[1]d\n", *p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds)
 	}
 	if p.DefaultMaxTimeMS != nil {

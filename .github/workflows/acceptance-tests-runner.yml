@@ -1150,7 +1150,7 @@ jobs:
 
   resource_policy:
     needs: [ change-detection, get-provider-version ]
-    # skip in SA as it uses a different org and credentials.
+    # Skip in SA as it uses a different org and credentials.
     if: ${{ inputs.use_sa == false && (needs.change-detection.outputs.resource_policy == 'true' || inputs.test_group == 'resource_policy') }}
     runs-on: ubuntu-latest
     permissions: {}
