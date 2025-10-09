@@ -64,7 +64,7 @@ The SA-supported credential hierarchy is the following:
 | 4. Any of AccessToken, ClientID, ClientSecret, PublicKey, PrivateKey in environment variables are set | Environment variables |
 | 5. Else | No authentication |
 
-See [Migration Guide: Service Accounts Authentication](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/migrate-to-service-accounts-authentication-guide) for more
+See [Migration Guide: Service Accounts Authentication](guides/migrate-to-service-accounts) for more
 details on setting up SA authentication.
 
 ### AWS Secrets Manager

@@ -2,7 +2,7 @@
 page_title: "Migration Guide: Service Accounts"
 ---
 
-# Migration Guide: Service Accounts Authentication
+# Migration Guide: Service Accounts
 
 This guide helps you migrate from Programmatic Access Key (PAK) authentication to Service
 Accounts (SA) authentication without impacting your deployment. SA simplifies
