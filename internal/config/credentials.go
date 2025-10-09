@@ -115,9 +115,9 @@ type Vars struct {
 
 func NewEnvVars() *Vars {
 	return &Vars{
-		AccessToken:        getEnv("MONGODB_ATLAS_ACCESS_TOKEN", "TF_VAR_ACCESS_TOKEN"),
-		ClientID:           getEnv("MONGODB_ATLAS_CLIENT_ID", "TF_VAR_CLIENT_ID"),
-		ClientSecret:       getEnv("MONGODB_ATLAS_CLIENT_SECRET", "TF_VAR_CLIENT_SECRET"),
+		AccessToken:        getEnv("MONGODB_ATLAS_ACCESS_TOKEN"),
+		ClientID:           getEnv("MONGODB_ATLAS_CLIENT_ID"),
+		ClientSecret:       getEnv("MONGODB_ATLAS_CLIENT_SECRET"),
 		PublicKey:          getEnv("MONGODB_ATLAS_PUBLIC_API_KEY", "MONGODB_ATLAS_PUBLIC_KEY", "MCLI_PUBLIC_API_KEY"),
 		PrivateKey:         getEnv("MONGODB_ATLAS_PRIVATE_API_KEY", "MONGODB_ATLAS_PRIVATE_KEY", "MCLI_PRIVATE_API_KEY"),
 		BaseURL:            getEnv("MONGODB_ATLAS_BASE_URL", "MCLI_OPS_MANAGER_URL"),
