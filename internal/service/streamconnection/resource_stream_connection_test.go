@@ -435,7 +435,7 @@ func configureKafka(projectRef, instanceName, connectionName, authenticationConf
 	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_connection" "test" {
-		    project_id = %[1]s
+		    project_id = %[1]q
 			instance_name = %[2]q
 		 	connection_name = %[3]q
 		 	type = "Kafka"
