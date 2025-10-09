@@ -1,0 +1,29 @@
+name: 'Generate resources'
+
+# Auto-generates resources and creates a pull request if there are any changes. Runs once per week and can be triggered manually.
+on:
+  schedule:
+    - cron: "30 8 * * WED" # Every Wednesday at 8:30 AM
+  workflow_dispatch:
+
+jobs:
+  generate-resources:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
+        with:
+          go-version-file: 'go.mod'
+      - name: Generate resources
+        run: make tools generate-resource-code
+      - name: Create PR
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e
+        with:
+          token: ${{ secrets.APIX_BOT_PAT }}
+          title: "chore: Update auto-generated resources"
+          commit-message: "chore: Update auto-generated resources"
+          delete-branch: true
+          branch: auto-generated-resources-update
+          body: Automatic update of auto-generated resources.
