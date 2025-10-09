@@ -1150,7 +1150,8 @@ jobs:
 
   resource_policy:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.resource_policy == 'true' || inputs.test_group == 'resource_policy' }}
+    # skip in SA as it uses a different org and credentials.
+    if: ${{ inputs.use_sa == false && (needs.change-detection.outputs.resource_policy == 'true' || inputs.test_group == 'resource_policy') }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -1170,8 +1171,7 @@ jobs:
           MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_rp_public_key }}
           MONGODB_ATLAS_PRIVATE_KEY:  ${{ secrets.mongodb_atlas_rp_private_key }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_PACKAGES: |
-            ./internal/service/resourcepolicy
+          ACCTEST_PACKAGES: ./internal/service/resourcepolicy
         run: make testacc
   
   search_deployment:
