@@ -12,38 +12,36 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// CreateOnlyAttributePlanModifierWithBoolDefault sets a default value on create operation that will show in the plan.
+// CreateOnlyBoolWithDefault sets a default value on create operation that will show in the plan.
 // This avoids any custom logic in the resource "Create" handler.
 // On update the default has no impact and the UseStateForUnknown behavior is observed instead.
 // Always use Optional+Computed when using a default value.
-func CreateOnlyAttributePlanModifierWithBoolDefault(b bool) planmodifier.Bool {
-	return &createOnlyAttributePlanModifierWithBoolDefault{defaultBool: &b}
+// If the attribute is not in the API Response implement CopyFromPlan behavior when converting API Model to TF Model.
+func CreateOnlyBoolWithDefault(b bool) planmodifier.Bool {
+	return &createOnlyBoolPlanModifier{defaultBool: b}
 }
 
-type createOnlyAttributePlanModifierWithBoolDefault struct {
-	defaultBool *bool
+type createOnlyBoolPlanModifier struct {
+	defaultBool bool
 }
 
-func (d *createOnlyAttributePlanModifierWithBoolDefault) Description(ctx context.Context) string {
+func (d *createOnlyBoolPlanModifier) Description(ctx context.Context) string {
 	return d.MarkdownDescription(ctx)
 }
 
-func (d *createOnlyAttributePlanModifierWithBoolDefault) MarkdownDescription(ctx context.Context) string {
-	return "Ensures the update operation fails when updating an attribute. If the read after import don't equal the configuration value it will also raise an error."
+func (d *createOnlyBoolPlanModifier) MarkdownDescription(ctx context.Context) string {
+	return "Ensures the update operation fails when updating an attribute. If the read after import doesn't equal the configuration value it will also raise an error."
 }
 
+// isCreate uses the full state to check if this is a create operation
 func isCreate(t *tfsdk.State) bool {
 	return t.Raw.IsNull()
 }
 
-func (d *createOnlyAttributePlanModifierWithBoolDefault) UseDefault() bool {
-	return d.defaultBool != nil
-}
-
-func (d *createOnlyAttributePlanModifierWithBoolDefault) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
+func (d *createOnlyBoolPlanModifier) PlanModifyBool(ctx context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
 	if isCreate(&req.State) {
-		if !IsKnown(req.PlanValue) && d.UseDefault() {
-			resp.PlanValue = types.BoolPointerValue(d.defaultBool)
+		if !IsKnown(req.PlanValue) {
+			resp.PlanValue = types.BoolPointerValue(&d.defaultBool)
 		}
 		return
 	}
@@ -55,6 +53,10 @@ func (d *createOnlyAttributePlanModifierWithBoolDefault) PlanModifyBool(ctx cont
 	}
 }
 
+// isUpdated checks if the attribute was updated.
+// Special case when the attribute is removed/set to null in the plan:
+// Computed Attribute: returns false (unknown in the plan)
+// Optional Attribute: returns true if the state has a value
 func isUpdated(state, plan attr.Value) bool {
 	if !IsKnown(plan) {
 		return false
@@ -62,7 +64,7 @@ func isUpdated(state, plan attr.Value) bool {
 	return !state.Equal(plan)
 }
 
-func (d *createOnlyAttributePlanModifierWithBoolDefault) addDiags(diags *diag.Diagnostics, attrPath path.Path, stateValue attr.Value) {
+func (d *createOnlyBoolPlanModifier) addDiags(diags *diag.Diagnostics, attrPath path.Path, stateValue attr.Value) {
 	message := fmt.Sprintf("%s cannot be updated or set after import, remove it from the configuration or use the state value (see below).", attrPath)
 	detail := fmt.Sprintf("The current state value is %s", stateValue)
 	diags.AddError(message, detail)
