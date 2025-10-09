@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -258,27 +259,37 @@ func (r *streamConnectionRS) Delete(ctx context.Context, req resource.DeleteRequ
 }
 
 func (r *streamConnectionRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	instanceName, projectID, connectionName, err := splitStreamConnectionImportID(req.ID)
+	workspaceName, instanceName, projectID, connectionName, err := splitStreamConnectionImportID(req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError("error splitting stream connection import ID", err.Error())
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("instance_name"), instanceName)...)
+	// Set the appropriate field based on which one was provided
+	if workspaceName != "" {
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("workspace_name"), workspaceName)...)
+	} else {
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("instance_name"), instanceName)...)
+	}
+
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("connection_name"), connectionName)...)
 }
 
-func splitStreamConnectionImportID(id string) (instanceName, projectID, connectionName string, err error) {
+func splitStreamConnectionImportID(id string) (workspaceName, instanceName, projectID, connectionName string, err error) {
 	var re = regexp.MustCompile(`^(.*)-([0-9a-fA-F]{24})-(.*)$`)
 	parts := re.FindStringSubmatch(id)
 
 	if len(parts) != 4 {
-		err = errors.New("use the format {instance_name}-{project_id}-{connection_name}")
+		err = errors.New("use the format workspace:{workspace_name}-{project_id}-{connection_name} or {instance_name}-{project_id}-{connection_name}")
 		return
 	}
 
-	instanceName = parts[1]
+	if suffix, found := strings.CutPrefix(parts[1], "workspace:"); found {
+		workspaceName = suffix
+	} else {
+		instanceName = parts[1]
+	}
 	projectID = parts[2]
 	connectionName = parts[3]
 	return

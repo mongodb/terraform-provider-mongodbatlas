@@ -19,7 +19,7 @@ const (
 	dataSourceConfig = `
 data "mongodbatlas_stream_connection" "test" {
 		project_id = mongodbatlas_stream_connection.test.project_id
-		workspace_name = mongodbatlas_stream_connection.test.workspace_name
+		workspace_name = mongodbatlas_stream_instance.test.instance_name
 		connection_name = mongodbatlas_stream_connection.test.connection_name
 }
 `
@@ -27,7 +27,7 @@ data "mongodbatlas_stream_connection" "test" {
 	dataSourcePluralConfig = `
 data "mongodbatlas_stream_connections" "test" {
 		project_id = mongodbatlas_stream_connection.test.project_id
-		workspace_name = mongodbatlas_stream_connection.test.workspace_name
+		workspace_name = mongodbatlas_stream_instance.test.instance_name
 }
 `
 	dataSourcePluralConfigWithPage = `
@@ -617,7 +617,7 @@ func checkStreamConnectionImportStateIDFunc(resourceName string) resource.Import
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		return fmt.Sprintf("%s-%s-%s", rs.Primary.Attributes["workspace_name"], rs.Primary.Attributes["project_id"], rs.Primary.Attributes["connection_name"]), nil
+		return rs.Primary.ID, nil
 	}
 }
 

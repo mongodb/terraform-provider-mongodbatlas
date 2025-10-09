@@ -127,13 +127,15 @@ func NewTFStreamConnectionWithInstanceName(ctx context.Context, projID, instance
 		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Attribute \"workspace_name\" cannot be specified when \"instance_name\" is specified", "")}
 	}
 
-	// Determine the effective instance/workspace name for the ID
-	workspaceOrInstanceName := workspaceName
-	if workspaceOrInstanceName == "" {
-		workspaceOrInstanceName = instanceName
+	// Generate ID with workspace prefix only for workspace_name to distinguish from instance_name
+	// Keep original format for instance_name to maintain backward compatibility
+	var rID string
+	if workspaceName != "" {
+		rID = fmt.Sprintf("workspace:%s-%s-%s", workspaceName, projID, conversion.SafeString(apiResp.Name))
+	} else {
+		// Keep original format for instance_name (backward compatibility)
+		rID = fmt.Sprintf("%s-%s-%s", instanceName, projID, conversion.SafeString(apiResp.Name))
 	}
-
-	rID := fmt.Sprintf("%s-%s-%s", workspaceOrInstanceName, projID, conversion.SafeString(apiResp.Name))
 	connectionModel := TFStreamConnectionModel{
 		ID:               types.StringValue(rID),
 		ProjectID:        types.StringValue(projID),
