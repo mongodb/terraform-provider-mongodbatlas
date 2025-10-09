@@ -1896,6 +1896,10 @@ func checkSingleProviderPaused(name string, paused bool) resource.TestCheckFunc 
 func configAdvanced(t *testing.T, projectID, clusterName, mongoDBMajorVersion string, p *admin.ClusterDescriptionProcessArgs20240805) string {
 	t.Helper()
 	advancedConfig := ""
+	mongoDBMajorVersionStr := ""
+	if mongoDBMajorVersion != "" {
+		mongoDBMajorVersionStr = fmt.Sprintf("mongo_db_major_version = %[1]q\n", mongoDBMajorVersion)
+	}
 	if p.JavascriptEnabled != nil {
 		advancedConfig += fmt.Sprintf("javascript_enabled = %[1]t\n", *p.JavascriptEnabled)
 	}
@@ -1926,9 +1930,6 @@ func configAdvanced(t *testing.T, projectID, clusterName, mongoDBMajorVersion st
 			advancedConfig += fmt.Sprintf("custom_openssl_cipher_config_tls12 = [%s]\n", acc.JoinQuotedStrings(*p.CustomOpensslCipherConfigTls12))
 		}
 	}
-	if mongoDBMajorVersion != "" {
-		advancedConfig += fmt.Sprintf("mongo_db_major_version = %[1]q\n", mongoDBMajorVersion)
-	}
 	if p.MinimumEnabledTlsProtocol != nil {
 		advancedConfig += fmt.Sprintf("minimum_enabled_tls_protocol = %[1]q\n", *p.MinimumEnabledTlsProtocol)
 	}
@@ -1938,6 +1939,7 @@ func configAdvanced(t *testing.T, projectID, clusterName, mongoDBMajorVersion st
 			project_id             = %[1]q
 			name                   = %[2]q
 			cluster_type           = "REPLICASET"
+			%[3]s
 			replication_specs = [{
 				region_configs = [{
 					electable_specs = {
@@ -1955,10 +1957,10 @@ func configAdvanced(t *testing.T, projectID, clusterName, mongoDBMajorVersion st
 			}]
 
 			advanced_configuration  = {
-				%[3]s
+				%[4]s
 			}
 		}
-	`, projectID, clusterName, advancedConfig) + dataSourcesConfig
+	`, projectID, clusterName, mongoDBMajorVersionStr, advancedConfig) + dataSourcesConfig
 }
 
 func checkAdvanced(name, tls string, processArgs *admin.ClusterDescriptionProcessArgs20240805) resource.TestCheckFunc {
