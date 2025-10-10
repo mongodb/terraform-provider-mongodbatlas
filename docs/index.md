@@ -15,12 +15,13 @@ For Terraform version, we recommend that you use the latest [HashiCorp Terraform
 
 ## Authenticate the Provider
 
-The MongoDB Atlas provider offers Service Accounts (SA) and Programmatic Access Key (PAK) authentication mechanisms.
+The MongoDB Atlas provider offers Service Account (SA) and Programmatic Access Key (PAK) authentication mechanisms.
 
-Credentials can be stored in these sources: AWS Secrets Manager, provider attributes or environment. The first source in this order to have credentials will be used.
+Credentials can be stored in these sources: AWS Secrets Manager, provider attributes or environment variables. The first source in this order to have credentials will be used.
 The following table contains the credential attribute names to use:
 
 | Attribute | AWS Secrets Manager | Provider attribute | Environment variable |
+|---|---|---|---|
 | SA Client ID | `client_id` | `client_id` | `MONGODB_ATLAS_CLIENT_ID` |
 | SA Client Secret | `client_secret` | `client_secret` | `MONGODB_ATLAS_CLIENT_SECRET` |
 | Access Token | `access_token` | `access_token` | `MONGODB_ATLAS_ACCESS_TOKEN` |
@@ -30,14 +31,14 @@ The following table contains the credential attribute names to use:
 ~> *IMPORTANT* Hard-coding your MongoDB Atlas SA or PAK key pair into the MongoDB Atlas Provider configuration is not recommended.
 Consider the risks, especially the inadvertent submission of a configuration file containing secrets to a public repository.
 
-### Service Accounts
+### Service Account
 
 Service Accounts (SA) is the preferred authentication method for the MongoDB Atlas provider.
 The [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/configure-api-access/#grant-programmatic-access-to-an-organization) contains the most up-to-date instructions for creating your organization's SA and granting the required access.
 These are the [MongoDB Atlas Service Account Limits](https://www.mongodb.com/docs/manual/reference/limits/#mongodb-atlas-service-account-limits).
 
 
-See [Migration Guide: Service Accounts Authentication](guides/migrate-to-service-accounts) if you are currently using Programmatic Access Key and want to move to Service Accounts.
+See [Migration Guide: Service Accounts](guides/migrate-to-service-accounts) if you are currently using Programmatic Access Key and want to move to Service Accounts.
 
 An example using provider attributes is:
 
@@ -61,10 +62,30 @@ See below for AWS Secret Manager examples.
 
 **NOTE:** Service Accounts can't be used with `mongodbatlas_event_trigger` resources as its API doesn't support it yet.
 
+### Service Account Token
+
+Instead of using your Client ID and Client Secret, you can alternatively generate the SA Token yourself, see [Generate Service Account Token](https://www.mongodb.com/docs/atlas/api/service-accounts/generate-oauth2-token/#std-label-generate-oauth2-token-atlas) for more details on creating an SA token. Note that tokens has an expiration time.
+
+An example using provider attributes is:
+
+```terraform
+provider "mongodbatlas" {
+  access_token = var.mongodbatlas_access_token
+}
+```
+
+An example using environment variables is:
+
+```shell
+$ export MONGODB_ATLAS_ACCESS_TOKEN="<ATLAS_ACCESS_TOKEN>"
+```
+
+**IMPORTANT:**  Currently, the MongoDB Terraform provider does not support additional Token OAuth features like scopes.
+
 ### Programmatic Access Key
 
 You have to generate a Programmatic Access Key (PAK) with the appropriate [role](https://docs.atlas.mongodb.com/reference/user-roles/).
-The [MongoDB Atlas documentation](https://docs.atlas.mongodb.com/tutorial/manage-programmatic-access/index.html) contains the most up-to-date instructions for creating and managing your key(s), setting the appropriate role, and optionally configuring IP access.
+The [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/configure-api-access-org/) contains the most up-to-date instructions for creating and managing your key(s), setting the appropriate role, and optionally configuring IP access.
 
 **Role**: If unsure of which role level to grant your key, we suggest creating an organization API Key with an Organization Owner role. This ensures that you have sufficient access for all actions.
 
@@ -87,7 +108,7 @@ $ export MONGODB_ATLAS_PRIVATE_API_KEY="<ATLAS_PRIVATE_API_KEY>"
 **NOTE:** We recommend that you use `MONGODB_ATLAS_PUBLIC_API_KEY` and `MONGODB_ATLAS_PRIVATE_API_KEY` because they are compatible with other MongoDB tools, such as Atlas CLI. You can still use `MONGODB_ATLAS_PUBLIC_KEY` and `MONGODB_ATLAS_PRIVATE_KEY` as alternative keys in your local environment. However, these environment variables are not guaranteed to work across all tools in the MongoDB ecosystem.
 
 See below for AWS Secret Manager examples.
-
+ 
 ### AWS Secrets Manager
 
 AWS Secrets Manager (AWS SM) helps to manage, retrieve, and rotate SAs, PAKs, database credentials, and other secrets throughout their lifecycles. See [product page](https://aws.amazon.com/secrets-manager/) and [documentation](https://docs.aws.amazon.com/systems-manager/latest/userguide/what-is-systems-manager.html) for more details.
@@ -95,6 +116,7 @@ AWS Secrets Manager (AWS SM) helps to manage, retrieve, and rotate SAs, PAKs, da
 You can configure AWS credentials to access AWS Secrets Manager using environment variables or provider attributes:
 
 | Attribute | Provider attribute | Environment variable |
+|---|---|---|
 | Assume Role ARN | `assume_role.role_arn` | `ASSUME_ROLE_ARN` |
 | Secret Name | `secret_name` | `SECRET_NAME` |
 | AWS Region | `region` | `AWS_REGION` |
