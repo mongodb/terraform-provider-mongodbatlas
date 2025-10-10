@@ -88,17 +88,12 @@ The following example shows how to set up SA using the `client_id` and `client_s
 
 ```terraform
 provider "mongodbatlas" {
-client_id = var.mongodbatlas_client_id
-client_secret = var.mongodbatlas_client_secret
-[is_mongodbgov_cloud = true // optional]
+  client_id = var.mongodbatlas_client_id
+  client_secret = var.mongodbatlas_client_secret
 }
 ```
 
 **NOTE:** Using `client_id` and `client_secret` is limited to 10 tokens per minute.
-
-**NOTE:** The ``is_mongodbgov_cloud`` attribute is only present when using provider attributes, and
-it is equivalent to setting the ``base_url`` attribute to <https://cloud.mongodbgov.com>. See
-[Configure Atlas for Government](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs#configure-mongodb-atlas-for-government) for more information.
 
 #### Provide a Valid Access Token (Provider)
 
@@ -106,8 +101,7 @@ The following example shows how to set up SA with a ``access_token`` attribute:
 
 ```terraform
 provider "mongodbatlas" { 
-access_token = var.mongodbatlas_access_token
-[is_mongodbgov_cloud = true // optional]
+  access_token = var.mongodbatlas_access_token
 }
 ```
 
