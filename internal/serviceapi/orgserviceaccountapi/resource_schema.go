@@ -35,7 +35,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
-			"roles": schema.ListAttribute{
+			"roles": schema.SetAttribute{
 				Required:            true,
 				MarkdownDescription: "A list of organization-level roles for the Service Account.",
 				ElementType:         types.StringType,
@@ -83,7 +83,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	Roles                   types.List   `tfsdk:"roles"`
+	Roles                   types.Set    `tfsdk:"roles"`
 	Secrets                 types.Set    `tfsdk:"secrets" autogen:"omitjson"`
 	ClientId                types.String `tfsdk:"client_id" autogen:"omitjson"`
 	CreatedAt               types.String `tfsdk:"created_at" autogen:"omitjson"`
