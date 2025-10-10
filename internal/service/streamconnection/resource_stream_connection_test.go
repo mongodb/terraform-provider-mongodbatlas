@@ -19,7 +19,7 @@ const (
 	dataSourceConfig = `
 data "mongodbatlas_stream_connection" "test" {
 		project_id = mongodbatlas_stream_connection.test.project_id
-		instance_name = mongodbatlas_stream_connection.test.instance_name
+		workspace_name = mongodbatlas_stream_connection.test.workspace_name
 		connection_name = mongodbatlas_stream_connection.test.connection_name
 }
 `
@@ -27,13 +27,13 @@ data "mongodbatlas_stream_connection" "test" {
 	dataSourcePluralConfig = `
 data "mongodbatlas_stream_connections" "test" {
 		project_id = mongodbatlas_stream_connection.test.project_id
-		instance_name = mongodbatlas_stream_connection.test.instance_name
+		workspace_name = mongodbatlas_stream_connection.test.workspace_name
 }
 `
 	dataSourcePluralConfigWithPage = `
 data "mongodbatlas_stream_connections" "test" {
 		project_id = mongodbatlas_stream_connection.test.project_id
-		instance_name = mongodbatlas_stream_connection.test.instance_name
+		workspace_name = mongodbatlas_stream_connection.test.workspace_name
 		page_num = 2 # no specific reason for 2, just to test pagination
 		items_per_page = 1
 	}
@@ -361,6 +361,57 @@ func TestAccStreamRSStreamConnection_AWSLambda(t *testing.T) {
 	})
 }
 
+func TestAccStreamRSStreamConnection_instanceName(t *testing.T) {
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		connectionName          = acc.RandomName()
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: configureKafkaWithInstanceName(projectID, instanceName, connectionName, "user", "password", "localhost:9092"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkStreamConnectionExists(),
+					resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
+					resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
+					resource.TestCheckResourceAttr(resourceName, "type", "Kafka"),
+					resource.TestCheckNoResourceAttr(resourceName, "workspace_name"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"authentication.password"},
+			},
+		},
+	})
+}
+
+func TestAccStreamRSStreamConnection_conflictingFields(t *testing.T) {
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		connectionName          = "conflict-test"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config:      configureKafkaWithInstanceAndWorkspaceName(projectID, instanceName, connectionName, "user", "password", "localhost:9092"),
+				ExpectError: regexp.MustCompile("Attribute \"workspace_name\" cannot be specified when \"instance_name\" is\n.*specified"),
+			},
+		},
+	})
+}
+
 func configureKafka(projectRef, instanceName, connectionName, username, password, bootstrapServers, configValue, networkingConfig string, useSSL bool) string {
 	securityConfig := `
 		security = {
@@ -377,7 +428,7 @@ func configureKafka(projectRef, instanceName, connectionName, username, password
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_connection" "test" {
 		    project_id = %[1]s
-			instance_name = %[2]q
+			workspace_name = %[2]q
 		 	connection_name = %[3]q
 		 	type = "Kafka"
 		 	authentication = {
@@ -403,11 +454,59 @@ func configureSampleStream(projectID, instanceName, sampleName string) string {
 		
 		resource "mongodbatlas_stream_connection" "test" {
 		    project_id = mongodbatlas_stream_instance.test.project_id
-			instance_name = mongodbatlas_stream_instance.test.instance_name
+			workspace_name = mongodbatlas_stream_instance.test.instance_name
 		 	connection_name = %[2]q
 		 	type = "Sample"
 		}
 	`, streamInstanceConfig, sampleName)
+}
+
+// configureKafkaWithInstanceName tests that the deprecated isntance_name field is still functional
+func configureKafkaWithInstanceName(projectID, instanceName, connectionName, username, password, bootstrapServers string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_stream_connection" "test" {
+		    project_id = %[1]q
+			instance_name = %[2]q
+		 	connection_name = %[3]q
+		 	type = "Kafka"
+		 	authentication = {
+		    	mechanism = "PLAIN"
+		    	username = %[4]q
+		    	password = %[5]q
+		    }
+		    bootstrap_servers = %[6]q
+		    config = {
+		    	"auto.offset.reset": "earliest"
+		    }
+		    security = {
+				protocol = "SASL_PLAINTEXT"
+			}
+		}
+	`, projectID, instanceName, connectionName, username, password, bootstrapServers)
+}
+
+func configureKafkaWithInstanceAndWorkspaceName(projectID, instanceName, connectionName, username, password, bootstrapServers string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_stream_connection" "test" {
+		    project_id = %[1]q
+			instance_name = %[2]q
+			workspace_name = %[2]q
+		 	connection_name = %[3]q
+		 	type = "Kafka"
+		 	authentication = {
+		    	mechanism = "PLAIN"
+		    	username = %[4]q
+		    	password = %[5]q
+		    }
+		    bootstrap_servers = %[6]q
+		    config = {
+		    	"auto.offset.reset": "earliest"
+		    }
+		    security = {
+				protocol = "SASL_PLAINTEXT"
+			}
+		}
+	`, projectID, instanceName, connectionName, username, password, bootstrapServers)
 }
 
 func checkSampleStreamAttributes(
@@ -415,7 +514,7 @@ func checkSampleStreamAttributes(
 	resourceChecks := []resource.TestCheckFunc{
 		checkStreamConnectionExists(),
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-		resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
+		resource.TestCheckResourceAttr(resourceName, "workspace_name", instanceName),
 		resource.TestCheckResourceAttr(resourceName, "connection_name", sampleName),
 		resource.TestCheckResourceAttr(resourceName, "type", "Sample"),
 	}
@@ -425,7 +524,7 @@ func checkSampleStreamAttributes(
 func checkHTTPSAttributes(instanceName, url string) resource.TestCheckFunc {
 	setChecks := []string{"project_id"}
 	mapChecks := map[string]string{
-		"instance_name":   instanceName,
+		"workspace_name":  instanceName,
 		"connection_name": "ConnectionNameHttps",
 		"type":            "Https",
 		"url":             url,
@@ -441,7 +540,7 @@ func checkKafkaAttributes(
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 		resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
 		resource.TestCheckResourceAttr(resourceName, "type", "Kafka"),
-		resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
+		resource.TestCheckResourceAttr(resourceName, "workspace_name", instanceName),
 		resource.TestCheckResourceAttr(resourceName, "authentication.mechanism", "PLAIN"),
 		resource.TestCheckResourceAttr(resourceName, "authentication.username", username),
 		resource.TestCheckResourceAttr(resourceName, "bootstrap_servers", bootstrapServers),
@@ -468,7 +567,7 @@ func configureCluster(projectID, instanceName, connectionName, clusterName strin
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_connection" "test" {
 		    project_id = %[1]q
-			instance_name = %[2]q
+			workspace_name = %[2]q
 		 	connection_name = %[3]q
 		 	type = "Cluster"
 		 	cluster_name = %[4]q
@@ -484,7 +583,7 @@ func configureHTTPS(projectID, instanceName, url, headers string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_connection" "test" {
 			project_id = %[1]q
-			instance_name = %[2]q
+			workspace_name = %[2]q
 			connection_name = "ConnectionNameHttps"
 			type = "Https"
 			url = %[3]q
@@ -493,7 +592,7 @@ func configureHTTPS(projectID, instanceName, url, headers string) string {
 
 		data "mongodbatlas_stream_connection" "test" {
 			project_id = %[1]q
-			instance_name = %[2]q
+			workspace_name = %[2]q
 			connection_name = mongodbatlas_stream_connection.test.connection_name
 		}
 	`, projectID, instanceName, url, headers)
@@ -503,7 +602,7 @@ func checkClusterAttributes(resourceName, clusterName string) resource.TestCheck
 	resourceChecks := []resource.TestCheckFunc{
 		checkStreamConnectionExists(),
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-		resource.TestCheckResourceAttrSet(resourceName, "instance_name"),
+		resource.TestCheckResourceAttrSet(resourceName, "workspace_name"),
 		resource.TestCheckResourceAttrSet(resourceName, "connection_name"),
 		resource.TestCheckResourceAttr(resourceName, "type", "Cluster"),
 		resource.TestCheckResourceAttr(resourceName, "cluster_name", clusterName),
@@ -519,7 +618,7 @@ func checkStreamConnectionImportStateIDFunc(resourceName string) resource.Import
 		if !ok {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
-		return fmt.Sprintf("%s-%s-%s", rs.Primary.Attributes["instance_name"], rs.Primary.Attributes["project_id"], rs.Primary.Attributes["connection_name"]), nil
+		return rs.Primary.ID, nil
 	}
 }
 
@@ -530,7 +629,10 @@ func checkStreamConnectionExists() resource.TestCheckFunc {
 				continue
 			}
 			projectID := rs.Primary.Attributes["project_id"]
-			instanceName := rs.Primary.Attributes["instance_name"]
+			instanceName := rs.Primary.Attributes["workspace_name"]
+			if instanceName == "" {
+				instanceName = rs.Primary.Attributes["instance_name"]
+			}
 			connectionName := rs.Primary.Attributes["connection_name"]
 			_, _, err := acc.ConnV2().StreamsApi.GetStreamConnection(context.Background(), projectID, instanceName, connectionName).Execute()
 			if err != nil {
@@ -550,7 +652,10 @@ func CheckDestroyStreamConnection(state *terraform.State) error {
 			continue
 		}
 		projectID := rs.Primary.Attributes["project_id"]
-		instanceName := rs.Primary.Attributes["instance_name"]
+		instanceName := rs.Primary.Attributes["workspace_name"]
+		if instanceName == "" {
+			instanceName = rs.Primary.Attributes["instance_name"]
+		}
 		connectionName := rs.Primary.Attributes["connection_name"]
 		_, _, err := acc.ConnV2().StreamsApi.GetStreamConnection(context.Background(), projectID, instanceName, connectionName).Execute()
 		if err == nil {
@@ -621,7 +726,7 @@ func configureAWSLambda(projectID, instanceName, connectionName, awsIamRoleName 
 
 		resource "mongodbatlas_stream_connection" "test" {
 		    project_id = %[1]q
-			instance_name = %[2]q
+			workspace_name = %[2]q
 		 	connection_name = %[3]q
 		 	type = "AWSLambda"
             aws = {
@@ -636,7 +741,7 @@ func checkAWSLambdaAttributes(resourceName, instanceName, connectionName string)
 	resourceChecks := []resource.TestCheckFunc{
 		checkStreamConnectionExists(),
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-		resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
+		resource.TestCheckResourceAttr(resourceName, "workspace_name", instanceName),
 		resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
 		resource.TestCheckResourceAttr(resourceName, "type", "AWSLambda"),
 		resource.TestCheckResourceAttrSet(resourceName, "aws.role_arn"),
@@ -647,7 +752,7 @@ func checkAWSLambdaAttributes(resourceName, instanceName, connectionName string)
 func streamConnectionsAttributeChecks(resourceName string, pageNum, itemsPerPage *int) resource.TestCheckFunc {
 	resourceChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-		resource.TestCheckResourceAttrSet(resourceName, "instance_name"),
+		resource.TestCheckResourceAttrSet(resourceName, "workspace_name"),
 		resource.TestCheckResourceAttrSet(resourceName, "total_count"),
 		resource.TestCheckResourceAttrSet(resourceName, "results.#"),
 	}
