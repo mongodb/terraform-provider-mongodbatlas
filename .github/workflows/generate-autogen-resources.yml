@@ -1,4 +1,4 @@
-name: 'Generate resources'
+name: 'Generate auto-generated resources'
 
 # Auto-generates resources and creates a pull request if there are any changes. Runs once per week and can be triggered manually.
 on:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  generate-resources:
+  generate-autogen-resources:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
