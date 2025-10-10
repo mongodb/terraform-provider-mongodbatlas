@@ -7,83 +7,152 @@ Use the navigation to the left to read about the available provider resources an
 
 See [CHANGELOG](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/CHANGELOG.md) for current version information.  
 
-## Example Usage
+## Provider and Terraform Version Constraints
 
-```terraform
-# Configure the MongoDB Atlas Provider 
-provider "mongodbatlas" {
-  public_key = var.mongodbatlas_public_key
-  private_key  = var.mongodbatlas_private_key
-}
-# Create the resources
-```
-
-### Provider and terraform version constraints
-
-We recommend that you pin your Atlas [provider version](https://developer.hashicorp.com/terraform/language/providers/requirements#version) to at least the [major version](#versioning-strategy) (e.g. `~> 2.0`) to avoid accidental upgrades to incompatible new versions. Starting on `2.0.0`, the [MongoDB Atlas Provider Versioning Policy](#mongodb-atlas-provider-versioning-policy) ensures that minor and patch versions do not include [Breaking Changes](#definition-of-breaking-changes). 
+We recommend that you pin your Atlas [provider version](https://developer.hashicorp.com/terraform/language/providers/requirements#version) to at least the [major version](#versioning-strategy) (e.g. `~> 2.0`) to avoid accidental upgrades to incompatible new versions. Starting on `2.0.0`, the [MongoDB Atlas Provider Versioning Policy](#mongodb-atlas-provider-versioning-policy) ensures that minor and patch versions do not include [Breaking Changes](#definition-of-breaking-changes).
 
 For Terraform version, we recommend that you use the latest [HashiCorp Terraform Core Version](https://github.com/hashicorp/terraform). For more details see [HashiCorp Terraform Version Compatibility Matrix](#hashicorp-terraform-version-compatibility-matrix).
 
-## Configure Atlas Programmatic Access
-
-In order to set up authentication with the MongoDB Atlas provider, you must generate a programmatic API key for MongoDB Atlas with the appropriate [role](https://docs.atlas.mongodb.com/reference/user-roles/).
-The [MongoDB Atlas documentation](https://docs.atlas.mongodb.com/tutorial/manage-programmatic-access/index.html) contains the most up-to-date instructions for creating and managing your key(s), setting the appropriate role, and optionally configuring IP access.
-
-**Role**: If unsure of which role level to grant your key, we suggest creating an organization API Key with an Organization Owner role. This ensures that you have sufficient access for all actions.
-
-## Configure MongoDB Atlas for Government
-
-In order to enable the Terraform MongoDB Atlas Provider for use with MongoDB Atlas for Government add is_mongodbgov_cloud = true to your provider configuration:
-```terraform
-# Configure the MongoDB Atlas Provider for MongoDB Atlas for Government
-provider "mongodbatlas" {
-  public_key = var.mongodbatlas_public_key
-  private_key  = var.mongodbatlas_private_key
-  is_mongodbgov_cloud = true
-}
-# Create the resources
-```
-Also see [`Atlas for Government Considerations`](https://www.mongodb.com/docs/atlas/government/api/#atlas-for-government-considerations).  
-
 ## Authenticate the Provider
 
-The MongoDB Atlas provider offers a flexible means of providing credentials for authentication.
-You can use any the following methods:
+The MongoDB Atlas provider offers Service Account (SA) and Programmatic Access Key (PAK) authentication mechanisms.
 
-### Environment Variables
+Credentials can be stored in these sources: AWS Secrets Manager, provider attributes, or environment variables. The first source in this order to have credentials will be used.
+The following table contains the credential attribute names to use:
 
-You can also provide your credentials via the environment variables, 
-`MONGODB_ATLAS_PUBLIC_API_KEY` and `MONGODB_ATLAS_PRIVATE_API_KEY`,
-for your public and private MongoDB Atlas programmatic API key pair respectively:
+| Attribute | AWS Secrets Manager | Provider attribute | Environment variable |
+|---|---|---|---|
+| SA Client ID | `client_id` | `client_id` | `MONGODB_ATLAS_CLIENT_ID` |
+| SA Client Secret | `client_secret` | `client_secret` | `MONGODB_ATLAS_CLIENT_SECRET` |
+| Access Token | `access_token` | `access_token` | `MONGODB_ATLAS_ACCESS_TOKEN` |
+| PAK Public Key | `public_key` | `public_key` | `MONGODB_ATLAS_PUBLIC_API_KEY`, `MONGODB_ATLAS_PUBLIC_KEY` |
+| PAK Private Key | `private_key` | `private_key` | `MONGODB_ATLAS_PRIVATE_API_KEY`, `MONGODB_ATLAS_PRIVATE_KEY` |
+
+If you provide multiple credentials in the selected source, a warning will be displayed and the first method from this ordered list will be used:
+
+  1. Service Account Token
+  2. Service Account
+  3. Programmatic Access Key
+
+~> **IMPORTANT:** Hard-coding your MongoDB Atlas SA or PAK key pair into the MongoDB Atlas Provider configuration is not recommended. Consider the risks, especially the inadvertent submission of a configuration file containing secrets to a public repository.
+
+### Service Account
+
+Service Accounts (SA) is the preferred authentication method for the MongoDB Atlas provider.
+The [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/configure-api-access/#grant-programmatic-access-to-an-organization) contains the most up-to-date instructions for creating your organization's SA and granting the required access.
+These are the [MongoDB Atlas Service Account Limits](https://www.mongodb.com/docs/manual/reference/limits/#mongodb-atlas-service-account-limits).
+
+See [Migration Guide: Service Accounts](guides/migrate-to-service-accounts) if you are currently using PAK and want to move to SA.
+
+An example using provider attributes is:
 
 ```terraform
-provider "mongodbatlas" {}
+provider "mongodbatlas" {
+  client_id = var.mongodbatlas_client_id
+  client_secret = var.mongodbatlas_client_secret
+}
 ```
 
-Usage (prefix the export commands with a space to avoid the keys being recorded in OS history):
+An example using environment variables is:
 
 ```shell
-$  export MONGODB_ATLAS_PUBLIC_API_KEY="<ATLAS_PUBLIC_KEY>"
-$  export MONGODB_ATLAS_PRIVATE_API_KEY="<ATLAS_PRIVATE_KEY>"
-$ terraform plan
+$ export MONGODB_ATLAS_CLIENT_ID="<ATLAS_CLIENT_ID>"
+$ export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 ```
 
-We recommend that you use the `MONGODB_ATLAS_PUBLIC_API_KEY` and `MONGODB_ATLAS_PRIVATE_API_KEY` environment variables because they are compatible with other MongoDB tools, such as Atlas CLI.
-You can still use `MONGODB_ATLAS_PUBLIC_KEY` and `MONGODB_ATLAS_PRIVATE_KEY` as alternative keys in your local environment. However, these environment variables are not guaranteed to work across all tools in the MongoDB ecosystem.
+See below for AWS Secret Manager examples.
+
+**IMPORTANT:**  Currently, the MongoDB Terraform provider does not support additional Token OAuth features like scopes.
+
+**NOTE:** Service Accounts can't be used with `mongodbatlas_event_trigger` resources as its API doesn't support it yet.
+
+### Service Account Token
+
+Instead of using your Client ID and Client Secret, you can alternatively generate the SA Token yourself, see [Generate Service Account Token](https://www.mongodb.com/docs/atlas/api/service-accounts/generate-oauth2-token/#std-label-generate-oauth2-token-atlas) for more details on creating an SA token. Note that tokens have an expiration time.
+
+An example using provider attributes is:
+
+```terraform
+provider "mongodbatlas" {
+  access_token = var.mongodbatlas_access_token
+}
+```
+
+An example using environment variables is:
+
+```shell
+$ export MONGODB_ATLAS_ACCESS_TOKEN="<ATLAS_ACCESS_TOKEN>"
+```
+
+**IMPORTANT:**  Currently, the MongoDB Terraform provider does not support additional Token OAuth features like scopes.
+
+### Programmatic Access Key
+
+You have to generate a Programmatic Access Key (PAK) with the appropriate [role](https://docs.atlas.mongodb.com/reference/user-roles/).
+The [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/configure-api-access-org/) contains the most up-to-date instructions for creating and managing your key(s), setting the appropriate role, and optionally configuring IP access.
+
+**Role**: If unsure of which role level to grant your key, we suggest creating an organization API Key with an `Organization Owner` role. This ensures that you have sufficient access for all actions.
+
+An example using provider attributes is:
+
+```terraform
+provider "mongodbatlas" {
+  public_key = var.mongodbatlas_public_key
+  private_key = var.mongodbatlas_private_key
+}
+```
+
+An example using environment variables is:
+
+```shell
+$ export MONGODB_ATLAS_PUBLIC_API_KEY="<ATLAS_PUBLIC_API_KEY>"
+$ export MONGODB_ATLAS_PRIVATE_API_KEY="<ATLAS_PRIVATE_API_KEY>"
+```
+
+**NOTE:** We recommend that you use `MONGODB_ATLAS_PUBLIC_API_KEY` and `MONGODB_ATLAS_PRIVATE_API_KEY` because they are compatible with other MongoDB tools, such as Atlas CLI. You can still use `MONGODB_ATLAS_PUBLIC_KEY` and `MONGODB_ATLAS_PRIVATE_KEY` as alternative keys in your local environment. However, these environment variables are not guaranteed to work across all tools in the MongoDB ecosystem.
+
+See below for AWS Secret Manager examples for both PAK and SA.
 
 ### AWS Secrets Manager
-AWS Secrets Manager (AWS SM) helps to manage, retrieve, and rotate database credentials, API keys, and other secrets throughout their lifecycles. See [product page](https://aws.amazon.com/secrets-manager/) and [documentation](https://docs.aws.amazon.com/systems-manager/latest/userguide/what-is-systems-manager.html) for more details.
 
-In order to enable the Terraform MongoDB Atlas Provider with AWS SM, please follow the below steps: 
+AWS Secrets Manager (AWS SM) helps to manage, retrieve, and rotate SAs, PAKs, database credentials, and other secrets throughout their lifecycles. See [product page](https://aws.amazon.com/secrets-manager/) and [documentation](https://docs.aws.amazon.com/systems-manager/latest/userguide/what-is-systems-manager.html) for more details.
 
-1. Create Atlas API Keys and add them as one secret to AWS SM with a raw value. Take note of which AWS Region secret is being stored in. Public Key and Private Key each need to be entered as their own key value pair. See below example:  
+You can configure AWS credentials to access AWS Secrets Manager using environment variables or provider attributes:
+
+| Attribute | Provider attribute | Environment variable |
+|---|---|---|
+| Assume Role ARN | `assume_role.role_arn` | `ASSUME_ROLE_ARN` |
+| Secret Name | `secret_name` | `SECRET_NAME` |
+| AWS Region | `region` | `AWS_REGION` |
+| Access Key ID | `aws_access_key_id` | `AWS_ACCESS_KEY_ID` |
+| Secret Access Key | `aws_secret_access_key` |  `AWS_SECRET_ACCESS_KEY` |
+| Session Token | `aws_session_token` | `AWS_SESSION_TOKEN` |
+| STS Endpoint | `sts_endpoint` | `STS_ENDPOINT` |
+
+In order to enable the Terraform MongoDB Atlas Provider with AWS SM, follow the below steps:
+
+1. Create a SA or PAK and add them as one secret to AWS SM with a raw value. Take note of which AWS Region secret is being stored in. Each attribute needs to be entered as their own key value pair.
+
+This is an example for SA:
+
 ``` 
-     {
-      "public_key": "secret1",
-      "private_key":"secret2"
-     }
+{
+  "client_id": "secret1",
+  "client_secret":"secret2"
+}
 ```
-2. Create an AWS IAM Role to attach to the AWS STS (Security Token Service) generated short lived API keys. This is required since STS generated API Keys by default have restricted permissions and need to have their permissions elevated in order to authenticate with Terraform. Take note of Role ARN and ensure IAM Role has permission for “sts:AssumeRole”. For example: 
+
+And this is an example for PAK:
+
+``` 
+{
+  "public_key": "secret3",
+  "private_key":"secret4"
+}
+```
+
+2. Create an AWS IAM Role to attach to the AWS STS (Security Token Service) generated short lived API keys. This is required since STS generated API Keys by default have restricted permissions and need to have their permissions elevated in order to authenticate with Terraform. Take note of Role ARN and ensure IAM Role has permission for “sts:AssumeRole”. For example:
+
 ```
 {
     "Version": "2012-10-17",
@@ -99,27 +168,32 @@ In order to enable the Terraform MongoDB Atlas Provider with AWS SM, please foll
     ]
 }
 ```
+
 In addition, you are required to also attach the AWS Managed policy of `SecretsManagerReadWrite` to this IAM role.
 
 Note: this policy may be overly broad for many use cases, feel free to adjust accordingly to your organization's needs.
 
-3. In terminal, store as environmental variables AWS API Keys (while you can also hardcode in config files these will then be stored as plain text in .tfstate file and should be avoided if possible). For example:
+3. In the terminal, store as environmental variables AWS API Keys (while you can also hardcode in config files these will then be stored as plain text in .tfstate file and should be avoided if possible). For example:
+
 ``` 
 export AWS_ACCESS_KEY_ID='<AWS_ACCESS_KEY_ID>'
 export AWS_SECRET_ACCESS_KEY='<AWS_SECRET_ACCESS_KEY>'
 ```
-4. In terminal, use the AWS CLI command: `aws sts assume-role --role-arn ROLE_ARN_FROM_ABOVE --role-session-name newSession` 
 
-Note: AWS STS secrets are short lived by default, use the ` --duration-seconds` flag to specify longer duration as needed 
+4. In terminal, use the AWS CLI command: `aws sts assume-role --role-arn ROLE_ARN_FROM_ABOVE --role-session-name newSession`
 
-5. Store each of the 3 new created secrets from AWS STS as environment variables (hardcoding secrets into config file with additional risk is also supported). For example: 
+Note: AWS STS secrets are short lived by default, use the `--duration-seconds` flag to specify longer duration as needed.
+
+5. Store each of the three new created secrets from AWS STS as environment variables (hardcoding secrets into config file with additional risk is also supported). For example:
+
 ```
 export AWS_ACCESS_KEY_ID='<AWS_ACCESS_KEY_ID>'
 export AWS_SECRET_ACCESS_KEY='<AWS_SECRET_ACCESS_KEY>'
 export AWS_SESSION_TOKEN="<AWS_SESSION_TOKEN>"
 ```
 
-6. Add assume_role block with `role_arn`, `secret_name`, and AWS `region` where secret is stored as part of AWS SM. Each of these 3 fields are REQUIRED. For example:
+6. Add `assume_role` block with `role_arn`, `secret_name`, and AWS `region` where the secret is stored as part of AWS SM. Each of these three fields are REQUIRED. For example:
+
 ```terraform
 # Configure the MongoDB Atlas Provider to Authenticate with AWS Secrets Manager 
 provider "mongodbatlas" {
@@ -136,6 +210,7 @@ provider "mongodbatlas" {
   sts_endpoint          = "https://sts.us-east-2.amazonaws.com/"
 }
 ```
+
 Note: `aws_access_key_id`, `aws_secret_access_key`, and `aws_session_token` can also be passed in using environment variables i.e. aws_access_key_id will accept AWS_ACCESS_KEY_ID and TF_VAR_AWS_ACCESS_KEY_ID as a default value in place of value in a terraform file variable. 
 
 Note: Fully qualified `secret_name` ARN as input is REQUIRED for cross-AWS account secrets. For more detatils see:
@@ -144,37 +219,23 @@ Note: Fully qualified `secret_name` ARN as input is REQUIRED for cross-AWS accou
 
 Note: `sts_endpoint` parameter is REQUIRED for cross-AWS region or cross-AWS account secrets. 
 
-7. In terminal, `terraform init` 
+7. In terminal, `terraform init`
 
-### Static Credentials
+## Configure MongoDB Atlas for Government
 
-Static credentials can be provided by adding the following attributes in-line in the MongoDB Atlas provider block, 
-either directly or via input variable/local value:
+To enable the Terraform MongoDB Atlas Provider for use with MongoDB Atlas for Government, add `is_mongodbgov_cloud = true` to your provider configuration:
 
 ```terraform
+# Configure the MongoDB Atlas Provider for MongoDB Atlas for Government
 provider "mongodbatlas" {
-  public_key = "atlas_public_api_key" #required
-  private_key  = "atlas_private_api_key" #required
+  public_key = var.mongodbatlas_public_key
+  private_key  = var.mongodbatlas_private_key
+  is_mongodbgov_cloud = true
 }
+# Create the resources
 ```
 
-~> *IMPORTANT* Hard-coding your MongoDB Atlas programmatic API key pair into a Terraform configuration is not recommended.
-Consider the risks, especially the inadvertent submission of a configuration file containing secrets to a public repository.
-
-## Argument Reference
-
-In addition to [generic `provider` arguments](https://www.terraform.io/docs/configuration/providers.html)
-(e.g. `alias` and `version`), the MongoDB Atlas `provider` supports the following arguments:
-
-* `public_key` - (Optional) This is the public key of your MongoDB Atlas API key pair. It must be
-  provided, but it can also be sourced from the `MONGODB_ATLAS_PUBLIC_KEY` or `MCLI_PUBLIC_API_KEY`
-  environment variable.
-
-* `private_key` - (Optional) This is the private key of your MongoDB Atlas key pair. It must be
-  provided, but it can also be sourced from the `MONGODB_ATLAS_PRIVATE_KEY` or `MCLI_PRIVATE_API_KEY`
-  environment variable.
-
-For more information on configuring and managing programmatic API Keys see the [MongoDB Atlas Documentation](https://docs.atlas.mongodb.com/tutorial/manage-programmatic-access/index.html).
+Also see [`Atlas for Government Considerations`](https://www.mongodb.com/docs/atlas/government/api/#atlas-for-government-considerations).  
 
 ## MongoDB Atlas Provider Versioning Policy
 
