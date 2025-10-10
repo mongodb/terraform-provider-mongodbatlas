@@ -22,65 +22,43 @@ resource "mongodbatlas_project" "test" {
 }
 
 # Create a cluster
-resource "mongodbatlas_cluster" "test" {
+resource "mongodbatlas_advanced_cluster" "test" {
   project_id = mongodbatlas_project.test.id
   name       = "test-cluster"
-
-  # Minimum tier for a dedicated cluster
   cluster_type = "REPLICASET"
 
   replication_specs {
-    num_shards = 1
-    regions_config {
+    region_configs {
       region_name     = "US_EAST_1"
-      electable_nodes = 3
       priority        = 7
-      read_only_nodes = 0
+      provider_name   = "AWS"
+      electable_specs {
+        instance_size = "M10"
+        node_count    = 3
+      }
     }
   }
-
-  cloud_backup = true
-  auto_scaling_disk_gb_enabled = true
-
-  # Provider settings
-  provider_name               = "AWS"
-  provider_instance_size_name = "M10"
 }
 ```
 
 ## Authentication
 
-The MongoDB Atlas provider uses Service Accounts as the recommended authentication method. You need to create a Service Account in your MongoDB Atlas organization and grant it appropriate permissions.
+The MongoDB Atlas provider uses Service Accounts (SA) as the recommended authentication method. Create a Service Account in your [MongoDB Atlas organization](https://www.mongodb.com/docs/atlas/configure-api-access/#grant-programmatic-access-to-an-organization) and set the credentials as environment variables:
 
-### Setting up authentication:
-
-1. Create a Service Account following the [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/configure-api-access/#grant-programmatic-access-to-an-organization)
-2. Configure the provider with your credentials:
-
-**Using environment variables (recommended):**
 ```shell
 export MONGODB_ATLAS_CLIENT_ID="your-client-id"
 export MONGODB_ATLAS_CLIENT_SECRET="your-client-secret"
 ```
 
-Then in your Terraform configuration:
 ```terraform
 provider "mongodbatlas" {
   # Credentials are read from environment variables
 }
 ```
 
-**Using provider attributes:**
-```terraform
-provider "mongodbatlas" {
-  client_id     = var.mongodbatlas_client_id
-  client_secret = var.mongodbatlas_client_secret
-}
-```
+If you're currently using Programmatic Access Keys (PAK), see the [migration guide](guides/provider-configuration#migration-from-pak-to-service-account) to switch to Service Accounts.
 
-If you need to use MongoDB Atlas for Government, see the [Provider Configuration Guide](guides/provider-configuration#mongodb-atlas-for-government) for setup instructions.
-
-For detailed information about all authentication methods, including Programmatic Access Keys, AWS Secrets Manager integration, and migration guides, see the [Provider Configuration Guide](guides/provider-configuration).
+For additional authentication methods, MongoDB Atlas for Government, and AWS Secrets Manager integration, see the [Provider Configuration Guide](guides/provider-configuration).
 
 ## Provider Configuration
 

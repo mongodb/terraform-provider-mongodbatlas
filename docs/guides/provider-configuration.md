@@ -25,9 +25,7 @@ The provider will use the first available credentials source in the order listed
 
 Service Accounts simplify authentication by eliminating the need to create new Atlas-specific user identities and permission credentials. See [Service Accounts Overview](https://www.mongodb.com/docs/atlas/api/service-accounts-overview/) and [MongoDB Atlas Service Account Limits](https://www.mongodb.com/docs/manual/reference/limits/#mongodb-atlas-service-account-limits) for more information.
 
-#### Configuration
-
-**Using provider attributes:**
+Using provider attributes:
 ```terraform
 provider "mongodbatlas" {
   client_id     = var.mongodbatlas_client_id
@@ -35,7 +33,7 @@ provider "mongodbatlas" {
 }
 ```
 
-**Using environment variables:**
+Using environment variables:
 ```shell
 export MONGODB_ATLAS_CLIENT_ID="<ATLAS_CLIENT_ID>"
 export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
@@ -47,16 +45,14 @@ export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 
 Instead of using Client ID and Client Secret, you can generate and use an SA Token directly. See [Generate Service Account Token](https://www.mongodb.com/docs/atlas/api/service-accounts/generate-oauth2-token/#std-label-generate-oauth2-token-atlas) for details. Note that tokens have an expiration time.
 
-#### Configuration
-
-**Using provider attributes:**
+Using provider attributes:
 ```terraform
 provider "mongodbatlas" {
   access_token = var.mongodbatlas_access_token
 }
 ```
 
-**Using environment variables:**
+Using environment variables:
 ```shell
 export MONGODB_ATLAS_ACCESS_TOKEN="<ATLAS_ACCESS_TOKEN>"
 ```
@@ -69,9 +65,7 @@ PAK is the legacy authentication method. You need to generate a Programmatic Acc
 
 **Role recommendation:** If unsure of which role level to grant your key, we suggest creating an organization API Key with an Organization Owner role to ensure sufficient access for all actions.
 
-#### Configuration
-
-**Using provider attributes:**
+Using provider attributes:
 ```terraform
 provider "mongodbatlas" {
   public_key  = var.mongodbatlas_public_key
@@ -79,7 +73,7 @@ provider "mongodbatlas" {
 }
 ```
 
-**Using environment variables:**
+Using environment variables:
 ```shell
 export MONGODB_ATLAS_PUBLIC_API_KEY="<ATLAS_PUBLIC_API_KEY>"
 export MONGODB_ATLAS_PRIVATE_API_KEY="<ATLAS_PRIVATE_API_KEY>"
