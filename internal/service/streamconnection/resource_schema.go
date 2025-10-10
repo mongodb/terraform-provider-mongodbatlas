@@ -32,7 +32,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"instance_name": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -43,7 +42,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"workspace_name": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},

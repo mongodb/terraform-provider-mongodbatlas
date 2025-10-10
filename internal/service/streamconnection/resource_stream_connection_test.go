@@ -19,7 +19,7 @@ const (
 	dataSourceConfig = `
 data "mongodbatlas_stream_connection" "test" {
 		project_id = mongodbatlas_stream_connection.test.project_id
-		workspace_name = mongodbatlas_stream_instance.test.instance_name
+		workspace_name = mongodbatlas_stream_connection.test.workspace_name
 		connection_name = mongodbatlas_stream_connection.test.connection_name
 }
 `
@@ -27,7 +27,7 @@ data "mongodbatlas_stream_connection" "test" {
 	dataSourcePluralConfig = `
 data "mongodbatlas_stream_connections" "test" {
 		project_id = mongodbatlas_stream_connection.test.project_id
-		workspace_name = mongodbatlas_stream_instance.test.instance_name
+		workspace_name = mongodbatlas_stream_connection.test.workspace_name
 }
 `
 	dataSourcePluralConfigWithPage = `
@@ -361,7 +361,7 @@ func TestAccStreamRSStreamConnection_AWSLambda(t *testing.T) {
 	})
 }
 
-func TestAccStreamRSStreamConnection_workspaceName(t *testing.T) {
+func TestAccStreamRSStreamConnection_instanceName(t *testing.T) {
 	var (
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		connectionName          = acc.RandomName()
@@ -373,13 +373,13 @@ func TestAccStreamRSStreamConnection_workspaceName(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: configureKafkaWithWorkspaceName(projectID, instanceName, connectionName, "user", "password", "localhost:9092"),
+				Config: configureKafkaWithInstanceName(projectID, instanceName, connectionName, "user", "password", "localhost:9092"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkStreamConnectionExists(),
-					resource.TestCheckResourceAttr(resourceName, "workspace_name", instanceName),
+					resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
 					resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
 					resource.TestCheckResourceAttr(resourceName, "type", "Kafka"),
-					resource.TestCheckNoResourceAttr(resourceName, "instance_name"),
+					resource.TestCheckNoResourceAttr(resourceName, "workspace_name"),
 				),
 			},
 			{
@@ -406,7 +406,7 @@ func TestAccStreamRSStreamConnection_conflictingFields(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      configureKafkaWithInstanceAndWorkspaceName(projectID, instanceName, connectionName, "user", "password", "localhost:9092"),
-				ExpectError: regexp.MustCompile("Attribute \"workspace_name\" cannot be specified when \"instance_name\" is specified"),
+				ExpectError: regexp.MustCompile("Attribute \"workspace_name\" cannot be specified when \"instance_name\" is\n.*specified"),
 			},
 		},
 	})
@@ -461,11 +461,12 @@ func configureSampleStream(projectID, instanceName, sampleName string) string {
 	`, streamInstanceConfig, sampleName)
 }
 
-func configureKafkaWithWorkspaceName(projectID, instanceName, connectionName, username, password, bootstrapServers string) string {
+// configureKafkaWithInstanceName tests that the deprecated isntance_name field is still functional
+func configureKafkaWithInstanceName(projectID, instanceName, connectionName, username, password, bootstrapServers string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_connection" "test" {
 		    project_id = %[1]q
-			workspace_name = %[2]q
+			instance_name = %[2]q
 		 	connection_name = %[3]q
 		 	type = "Kafka"
 		 	authentication = {
@@ -629,6 +630,9 @@ func checkStreamConnectionExists() resource.TestCheckFunc {
 			}
 			projectID := rs.Primary.Attributes["project_id"]
 			instanceName := rs.Primary.Attributes["workspace_name"]
+			if instanceName == "" {
+				instanceName = rs.Primary.Attributes["instance_name"]
+			}
 			connectionName := rs.Primary.Attributes["connection_name"]
 			_, _, err := acc.ConnV2().StreamsApi.GetStreamConnection(context.Background(), projectID, instanceName, connectionName).Execute()
 			if err != nil {
@@ -649,6 +653,9 @@ func CheckDestroyStreamConnection(state *terraform.State) error {
 		}
 		projectID := rs.Primary.Attributes["project_id"]
 		instanceName := rs.Primary.Attributes["workspace_name"]
+		if instanceName == "" {
+			instanceName = rs.Primary.Attributes["instance_name"]
+		}
 		connectionName := rs.Primary.Attributes["connection_name"]
 		_, _, err := acc.ConnV2().StreamsApi.GetStreamConnection(context.Background(), projectID, instanceName, connectionName).Execute()
 		if err == nil {
