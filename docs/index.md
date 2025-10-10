@@ -1,12 +1,10 @@
 # MongoDB Atlas Provider
 
-Use the MongoDB Atlas provider to interact with the resources supported by [MongoDB Atlas](https://www.mongodb.com/cloud/atlas). The provider needs to be configured with proper credentials before it can be used.
+The MongoDB Atlas provider is used to interact with the resources supported by [MongoDB Atlas](https://www.mongodb.com/cloud/atlas). The provider needs to be configured with proper credentials before it can be used.
 
-Use the navigation to the left to read about the available provider resources and data sources.
+## Example Usage
 
-## Quick Start
-
-This example shows how to set up the MongoDB Atlas provider and create your first cluster:
+This example shows how to set up the MongoDB Atlas provider and create a cluster:
 
 ```terraform
 # Configure the MongoDB Atlas Provider
