@@ -28,6 +28,7 @@ The following table contains the credential attribute names to use:
 | PAK Public Key | `public_key` | `public_key` | `MONGODB_ATLAS_PUBLIC_API_KEY`, `MONGODB_ATLAS_PUBLIC_KEY` |
 | PAK Private Key | `private_key` | `private_key` | `MONGODB_ATLAS_PRIVATE_API_KEY`, `MONGODB_ATLAS_PRIVATE_KEY` |
 
+If you provide multiple credentials in the selected source, a warning will be displayed and the first method from this ordered list will be used: Service Account Token, Service Account, Programmatic Access Key.
 
 ~> *IMPORTANT* Hard-coding your MongoDB Atlas SA or PAK key pair into the MongoDB Atlas Provider configuration is not recommended.
 Consider the risks, especially the inadvertent submission of a configuration file containing secrets to a public repository.
