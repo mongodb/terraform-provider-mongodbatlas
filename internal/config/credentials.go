@@ -86,17 +86,17 @@ func (c *Credentials) Errors() string {
 	switch c.AuthMethod() {
 	case ServiceAccount:
 		if c.ClientID == "" {
-			return "Service Account is being used but Client ID is required"
+			return "Service Account will be used but Client ID is required"
 		}
 		if c.ClientSecret == "" {
-			return "Service Account is being used but Client Secret is required"
+			return "Service Account will be used but Client Secret is required"
 		}
 	case Digest:
 		if c.PublicKey == "" {
-			return "API Key is being used but Public Key is required"
+			return "API Key will be used but Public Key is required"
 		}
 		if c.PrivateKey == "" {
-			return "API Key is being used but Private Key is required"
+			return "API Key will be used but Private Key is required"
 		}
 	case Unknown, AccessToken:
 	}

@@ -306,13 +306,13 @@ func TestCredentials_Errors(t *testing.T) {
 			credentials: config.Credentials{
 				ClientSecret: "secret",
 			},
-			want: "Service Account is being used but Client ID is required",
+			want: "Service Account will be used but Client ID is required",
 		},
 		"Service account missing ClientSecret": {
 			credentials: config.Credentials{
 				ClientID: "id",
 			},
-			want: "Service Account is being used but Client Secret is required",
+			want: "Service Account will be used but Client Secret is required",
 		},
 		"Service account with both - no error": {
 			credentials: config.Credentials{
@@ -325,13 +325,13 @@ func TestCredentials_Errors(t *testing.T) {
 			credentials: config.Credentials{
 				PrivateKey: "private",
 			},
-			want: "API Key is being used but Public Key is required",
+			want: "API Key will be used but Public Key is required",
 		},
 		"Digest missing PrivateKey": {
 			credentials: config.Credentials{
 				PublicKey: "public",
 			},
-			want: "API Key is being used but Private Key is required",
+			want: "API Key will be used but Private Key is required",
 		},
 		"Digest with both - no error": {
 			credentials: config.Credentials{
@@ -372,7 +372,7 @@ func TestCredentials_Errors(t *testing.T) {
 				PublicKey:  "public",
 				PrivateKey: "private",
 			},
-			want: "Service Account is being used but Client Secret is required",
+			want: "Service Account will be used but Client Secret is required",
 		},
 		"All credentials present - no error": {
 			credentials: config.Credentials{
