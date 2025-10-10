@@ -48,7 +48,7 @@ export MONGODB_ATLAS_CLIENT_ID="your-client-id"
 export MONGODB_ATLAS_CLIENT_SECRET="your-client-secret"
 ```
 
-If you're currently using Programmatic Access Keys (PAK) and want to use SA, see the [migration guide](guides/provider-configuration#migration-from-pak-to-service-account) to switch to Service Accounts.
+If you're currently using Programmatic Access Keys (PAK) and want to migrate to Service Accounts, see the [migration guide](guides/provider-configuration#migration-from-pak-to-service-account).
 
 For additional authentication methods, AWS Secrets Manager integration, and all provider configuration options, see the [Provider Configuration Guide](guides/provider-configuration). Users of MongoDB Atlas for Government should refer to the [government configuration section](guides/provider-configuration#mongodb-atlas-for-government).
 
@@ -77,27 +77,24 @@ We recommend using the latest [HashiCorp Terraform Core Version](https://github.
 
 ## MongoDB Atlas Provider Versioning Policy
 
-### Versioning Strategy
-
 We follow [semantic versioning](https://semver.org/):
 - **Major (X.0.0):** Introduces breaking changes
 - **Minor (X.Y.0):** Adds non-breaking changes and deprecations
 - **Patch (X.Y.Z):** Bug fixes and documentation updates
 
-### Release Cadence
-
+Release Cadence:
 - **Minor and patch** versions: Biweekly releases
 - **Major** versions: Once per year (maximum two per calendar year)
 - **Off-cycle releases** may occur for critical security flaws or regressions
 
-### Breaking Changes and Deprecation
+Breaking Changes and Deprecation:
 
 - Breaking changes are announced as deprecations in minor versions
 - Deprecated functionality is removed in the next 1-2 major versions
 - Each release includes a [changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/releases)
 - Major versions include migration guides
 
-For the full versioning policy details, see [MongoDB Atlas Provider Versioning Policy](#mongodb-atlas-provider-versioning-policy) section below.
+For complete details including breaking changes policy and deprecation guidelines, see the [full versioning policy](#mongodb-atlas-provider-versioning-policy-full-details) below.
 
 ## HashiCorp Terraform Version Compatibility Matrix
 
