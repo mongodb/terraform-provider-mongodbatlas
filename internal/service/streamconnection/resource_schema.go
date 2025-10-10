@@ -75,11 +75,30 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"mechanism": schema.StringAttribute{
 						Optional: true,
 					},
+					"method": schema.StringAttribute{
+						Optional: true,
+					},
 					"password": schema.StringAttribute{
 						Optional:  true,
 						Sensitive: true,
 					},
 					"username": schema.StringAttribute{
+						Optional: true,
+					},
+					"token_endpoint_url": schema.StringAttribute{
+						Optional: true,
+					},
+					"client_id": schema.StringAttribute{
+						Optional: true,
+					},
+					"client_secret": schema.StringAttribute{
+						Optional:  true,
+						Sensitive: true,
+					},
+					"scope": schema.StringAttribute{
+						Optional: true,
+					},
+					"sasl_oauthbearer_extensions": schema.StringAttribute{
 						Optional: true,
 					},
 				},
