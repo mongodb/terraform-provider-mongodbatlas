@@ -57,8 +57,8 @@ Nothing else is required, you can run `terraform plan` to check that everything 
 
 ## PAK in AWS Secrets Manager
 
-If the PAK credentials are stored in a secret in AWS Secrets Manager, you have to remove the raw values for `public_key` and `private_key`, and add the raw values for `client_id` and `client_secret`. See the [AWS Secrets Manager](../index/#aws-secrets-manager) section in the provider's main page for more information.
+If the PAK credentials are stored in a secret in AWS Secrets Manager, you have to remove the raw values for `public_key` and `private_key`, and add the raw values for `client_id` and `client_secret`. See the [AWS Secrets Manager](docs/index/#aws-secrets-manager) section in the provider's main page for more information.
 
 ## Service Account Token
 
-Instead of using your Client ID and Client Secret, you can alternatively generate the SA Token yourself. See the [Service Account Token](../index/#service-account-token) section in the provider's main page for more information.
+Instead of using your Client ID and Client Secret, you can alternatively generate the SA Token yourself. See the [Service Account Token](docs/index/#service-account-token) section in the provider's main page for more information.
