@@ -28,6 +28,7 @@ The following table contains the credential attribute names to use:
 | PAK Public Key | `public_key` | `public_key` | `MONGODB_ATLAS_PUBLIC_API_KEY`, `MONGODB_ATLAS_PUBLIC_KEY` |
 | PAK Private Key | `private_key` | `private_key` | `MONGODB_ATLAS_PRIVATE_API_KEY`, `MONGODB_ATLAS_PRIVATE_KEY` |
 
+
 ~> *IMPORTANT* Hard-coding your MongoDB Atlas SA or PAK key pair into the MongoDB Atlas Provider configuration is not recommended.
 Consider the risks, especially the inadvertent submission of a configuration file containing secrets to a public repository.
 
@@ -64,7 +65,7 @@ See below for AWS Secret Manager examples.
 
 ### Service Account Token
 
-Instead of using your Client ID and Client Secret, you can alternatively generate the SA Token yourself, see [Generate Service Account Token](https://www.mongodb.com/docs/atlas/api/service-accounts/generate-oauth2-token/#std-label-generate-oauth2-token-atlas) for more details on creating an SA token. Note that tokens has an expiration time.
+Instead of using your Client ID and Client Secret, you can alternatively generate the SA Token yourself, see [Generate Service Account Token](https://www.mongodb.com/docs/atlas/api/service-accounts/generate-oauth2-token/#std-label-generate-oauth2-token-atlas) for more details on creating an SA token. Note that tokens have an expiration time.
 
 An example using provider attributes is:
 
