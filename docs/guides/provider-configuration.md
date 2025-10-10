@@ -232,6 +232,24 @@ After making these changes, run `terraform plan` to verify everything is working
 
 ## Provider Configuration Reference
 
+### Provider Arguments
+
+* `client_id` - (Optional) Service Account Client ID. Can also be set with the `MONGODB_ATLAS_CLIENT_ID` environment variable.
+* `client_secret` - (Optional) Service Account Client Secret. Can also be set with the `MONGODB_ATLAS_CLIENT_SECRET` environment variable.
+* `access_token` - (Optional) Service Account Access Token. Can also be set with the `MONGODB_ATLAS_ACCESS_TOKEN` environment variable. Note: tokens have expiration times.
+* `public_key` - (Optional) MongoDB Atlas Programmatic Access Key Public Key. Can also be set with the `MONGODB_ATLAS_PUBLIC_API_KEY` environment variable.
+* `private_key` - (Optional) MongoDB Atlas Programmatic Access Key Private Key. Can also be set with the `MONGODB_ATLAS_PRIVATE_API_KEY` environment variable.
+* `base_url` - (Optional) MongoDB Atlas Base URL. Can also be set with the `MONGODB_ATLAS_BASE_URL` environment variable.
+* `realm_base_url` - (Optional) MongoDB Realm Base URL. Can also be set with the `MONGODB_REALM_BASE_URL` environment variable.
+* `is_mongodbgov_cloud` - (Optional) Set to true to use MongoDB Atlas for Government.
+* `assume_role` - (Optional) AWS IAM role configuration for accessing secrets in AWS Secrets Manager. See [AWS Secrets Manager](#aws-secrets-manager) section for details.
+* `secret_name` - (Optional) Name of the secret in AWS Secrets Manager.
+* `region` - (Optional) AWS region where the secret is stored.
+* `aws_access_key_id` - (Optional) AWS Access Key ID. Can also be set with the `AWS_ACCESS_KEY_ID` environment variable.
+* `aws_secret_access_key` - (Optional) AWS Secret Access Key. Can also be set with the `AWS_SECRET_ACCESS_KEY` environment variable.
+* `aws_session_token` - (Optional) AWS Session Token. Can also be set with the `AWS_SESSION_TOKEN` environment variable.
+* `sts_endpoint` - (Optional) AWS STS endpoint. Can also be set with the `STS_ENDPOINT` environment variable.
+
 ### Complete Provider Configuration Example
 
 ```terraform

@@ -9,11 +9,11 @@ Use the navigation to the left to read about the available provider resources an
 This example shows how to set up the MongoDB Atlas provider and create your first cluster:
 
 ```terraform
-# Configure the MongoDB Atlas Provider with Service Account credentials
-provider "mongodbatlas" {
-  client_id     = var.mongodbatlas_client_id
-  client_secret = var.mongodbatlas_client_secret
-}
+# Configure the MongoDB Atlas Provider
+# Service Account credentials are read from environment variables:
+# - MONGODB_ATLAS_CLIENT_ID
+# - MONGODB_ATLAS_CLIENT_SECRET
+provider "mongodbatlas" {}
 
 # Create a project
 resource "mongodbatlas_project" "test" {
@@ -50,35 +50,9 @@ export MONGODB_ATLAS_CLIENT_ID="your-client-id"
 export MONGODB_ATLAS_CLIENT_SECRET="your-client-secret"
 ```
 
-```terraform
-provider "mongodbatlas" {
-  # Credentials are read from environment variables
-}
-```
+If you're currently using Programmatic Access Keys (PAK) and want to use SA, see the [migration guide](guides/provider-configuration#migration-from-pak-to-service-account) to switch to Service Accounts.
 
-If you're currently using Programmatic Access Keys (PAK), see the [migration guide](guides/provider-configuration#migration-from-pak-to-service-account) to switch to Service Accounts.
-
-For additional authentication methods, MongoDB Atlas for Government, and AWS Secrets Manager integration, see the [Provider Configuration Guide](guides/provider-configuration).
-
-## Provider Configuration
-
-### Arguments
-
-* `client_id` - (Optional) Service Account Client ID. Can also be set with the `MONGODB_ATLAS_CLIENT_ID` environment variable.
-* `client_secret` - (Optional) Service Account Client Secret. Can also be set with the `MONGODB_ATLAS_CLIENT_SECRET` environment variable.
-* `access_token` - (Optional) Service Account Access Token. Can also be set with the `MONGODB_ATLAS_ACCESS_TOKEN` environment variable. Note: tokens have expiration times.
-* `public_key` - (Optional) MongoDB Atlas Programmatic Access Key Public Key. Can also be set with the `MONGODB_ATLAS_PUBLIC_API_KEY` environment variable.
-* `private_key` - (Optional) MongoDB Atlas Programmatic Access Key Private Key. Can also be set with the `MONGODB_ATLAS_PRIVATE_API_KEY` environment variable.
-* `base_url` - (Optional) MongoDB Atlas Base URL. Can also be set with the `MONGODB_ATLAS_BASE_URL` environment variable.
-* `realm_base_url` - (Optional) MongoDB Realm Base URL. Can also be set with the `MONGODB_REALM_BASE_URL` environment variable.
-* `is_mongodbgov_cloud` - (Optional) Set to true to use MongoDB Atlas for Government.
-* `assume_role` - (Optional) AWS IAM role configuration for accessing secrets in AWS Secrets Manager. See [Provider Configuration Guide](guides/provider-configuration#aws-secrets-manager) for details.
-* `secret_name` - (Optional) Name of the secret in AWS Secrets Manager.
-* `region` - (Optional) AWS region where the secret is stored.
-* `aws_access_key_id` - (Optional) AWS Access Key ID. Can also be set with the `AWS_ACCESS_KEY_ID` environment variable.
-* `aws_secret_access_key` - (Optional) AWS Secret Access Key. Can also be set with the `AWS_SECRET_ACCESS_KEY` environment variable.
-* `aws_session_token` - (Optional) AWS Session Token. Can also be set with the `AWS_SESSION_TOKEN` environment variable.
-* `sts_endpoint` - (Optional) AWS STS endpoint. Can also be set with the `STS_ENDPOINT` environment variable.
+For additional authentication methods, AWS Secrets Manager integration, and all provider configuration options, see the [Provider Configuration Guide](guides/provider-configuration). Users of MongoDB Atlas for Government should refer to the [government configuration section](guides/provider-configuration#mongodb-atlas-for-government).
 
 ## Version Requirements
 
