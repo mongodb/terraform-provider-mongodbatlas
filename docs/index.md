@@ -12,8 +12,8 @@ See [CHANGELOG](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/
 ```terraform
 # Configure the MongoDB Atlas Provider 
 provider "mongodbatlas" {
-client_id = var.mongodbatlas_client_id
-client_secret = var.mongodbatlas_client_secret
+  client_id = var.mongodbatlas_client_id
+  client_secret = var.mongodbatlas_client_secret
 }
 ```
 
@@ -22,27 +22,6 @@ client_secret = var.mongodbatlas_client_secret
 We recommend that you pin your Atlas [provider version](https://developer.hashicorp.com/terraform/language/providers/requirements#version) to at least the [major version](#versioning-strategy) (e.g. `~> 2.0`) to avoid accidental upgrades to incompatible new versions. Starting on `2.0.0`, the [MongoDB Atlas Provider Versioning Policy](#mongodb-atlas-provider-versioning-policy) ensures that minor and patch versions do not include [Breaking Changes](#definition-of-breaking-changes). 
 
 For Terraform version, we recommend that you use the latest [HashiCorp Terraform Core Version](https://github.com/hashicorp/terraform). For more details see [HashiCorp Terraform Version Compatibility Matrix](#hashicorp-terraform-version-compatibility-matrix).
-
-## Configure Atlas Programmatic Access
-
-In order to set up authentication with the MongoDB Atlas provider, you must generate a programmatic API key for MongoDB Atlas with the appropriate [role](https://docs.atlas.mongodb.com/reference/user-roles/).
-The [MongoDB Atlas documentation](https://docs.atlas.mongodb.com/tutorial/manage-programmatic-access/index.html) contains the most up-to-date instructions for creating and managing your key(s), setting the appropriate role, and optionally configuring IP access.
-
-**Role**: If unsure of which role level to grant your key, we suggest creating an organization API Key with an Organization Owner role. This ensures that you have sufficient access for all actions.
-
-## Configure MongoDB Atlas for Government
-
-In order to enable the Terraform MongoDB Atlas Provider for use with MongoDB Atlas for Government add is_mongodbgov_cloud = true to your provider configuration:
-```terraform
-# Configure the MongoDB Atlas Provider for MongoDB Atlas for Government
-provider "mongodbatlas" {
-  public_key = var.mongodbatlas_public_key
-  private_key  = var.mongodbatlas_private_key
-  is_mongodbgov_cloud = true
-}
-# Create the resources
-```
-Also see [`Atlas for Government Considerations`](https://www.mongodb.com/docs/atlas/government/api/#atlas-for-government-considerations).  
 
 ## Authenticate the Provider
 
@@ -54,18 +33,16 @@ You can use any the following methods:
 Service Accounts (SA) is the preferred authentication method for the MongoDB Atlas provider.
 The [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/configure-api-access/#grant-programmatic-access-to-an-organization) contains the most up-to-date instructions for creating your organization's SA and granting the required access.
 
-The SA-supported credential hierarchy is the following: 
-
-| Criteria (in order) | Source |
-|---|---|
-| 1. AWSAssumeRoleARN is set in provider | AWS Secrets Manager (getting AWS credentials from provider) |
-| 2. AWSAssumeRoleARN is set in environment variable | AWS Secrets Manager (getting AWS credentials from environment variables) |
-| 3. Any of AccessToken, ClientID, ClientSecret, PublicKey, PrivateKey in provider are set | Provider |
-| 4. Any of AccessToken, ClientID, ClientSecret, PublicKey, PrivateKey in environment variables are set | Environment variables |
-| 5. Else | No authentication |
 
 See [Migration Guide: Service Accounts Authentication](guides/migrate-to-service-accounts) for more
 details on setting up SA authentication.
+
+### Configure Atlas Programmatic Access
+
+In order to set up authentication with the MongoDB Atlas provider, you must generate a programmatic API key for MongoDB Atlas with the appropriate [role](https://docs.atlas.mongodb.com/reference/user-roles/).
+The [MongoDB Atlas documentation](https://docs.atlas.mongodb.com/tutorial/manage-programmatic-access/index.html) contains the most up-to-date instructions for creating and managing your key(s), setting the appropriate role, and optionally configuring IP access.
+
+**Role**: If unsure of which role level to grant your key, we suggest creating an organization API Key with an Organization Owner role. This ensures that you have sufficient access for all actions.
 
 ### AWS Secrets Manager
 
@@ -178,6 +155,20 @@ provider "mongodbatlas" {
 
 ~> *IMPORTANT* Hard-coding your MongoDB Atlas programmatic API key pair into a Terraform configuration is not recommended.
 Consider the risks, especially the inadvertent submission of a configuration file containing secrets to a public repository.
+
+## Configure MongoDB Atlas for Government
+
+In order to enable the Terraform MongoDB Atlas Provider for use with MongoDB Atlas for Government add is_mongodbgov_cloud = true to your provider configuration:
+```terraform
+# Configure the MongoDB Atlas Provider for MongoDB Atlas for Government
+provider "mongodbatlas" {
+  public_key = var.mongodbatlas_public_key
+  private_key  = var.mongodbatlas_private_key
+  is_mongodbgov_cloud = true
+}
+# Create the resources
+```
+Also see [`Atlas for Government Considerations`](https://www.mongodb.com/docs/atlas/government/api/#atlas-for-government-considerations).  
 
 ## Argument Reference
 
