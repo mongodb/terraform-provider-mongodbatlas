@@ -74,10 +74,31 @@ func (c *Credentials) Warnings() string {
 		return "Access Token will be used although Service Account is also set"
 	}
 	if c.HasAccessToken() && c.HasDigest() {
-		return "Access Token will be used although API Keys is also set"
+		return "Access Token will be used although API Key is also set"
 	}
 	if c.HasServiceAccount() && c.HasDigest() {
-		return "Service Account will be used although API Keys is also set"
+		return "Service Account will be used although API Key is also set"
+	}
+	return ""
+}
+
+func (c *Credentials) Errors() string {
+	switch c.AuthMethod() {
+	case ServiceAccount:
+		if c.ClientID == "" {
+			return "Service Account is being used but Client ID is required"
+		}
+		if c.ClientSecret == "" {
+			return "Service Account is being used but Client Secret is required"
+		}
+	case Digest:
+		if c.PublicKey == "" {
+			return "API Key is being used but Public Key is required"
+		}
+		if c.PrivateKey == "" {
+			return "API Key is being used but Private Key is required"
+		}
+	case Unknown, AccessToken:
 	}
 	return ""
 }

@@ -199,6 +199,10 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		resp.Diagnostics.AddError("Error getting credentials for provider", err.Error())
 		return
 	}
+	if c.Errors() != "" {
+		resp.Diagnostics.AddError("Error getting credentials for provider", c.Errors())
+		return
+	}
 	if c.Warnings() != "" {
 		resp.Diagnostics.AddWarning("Warning getting credentials for provider", c.Warnings())
 	}
