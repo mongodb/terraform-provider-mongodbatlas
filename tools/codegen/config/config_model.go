@@ -40,6 +40,7 @@ type Override struct {
 	Computability       *Computability `yaml:"computability,omitempty"`
 	Sensitive           *bool          `yaml:"sensitive"`
 	IncludeNullOnUpdate *bool          `yaml:"include_null_on_update"`
+	Type                *Type          `yaml:"type"`
 	Description         string         `yaml:"description"`
 	PlanModifiers       []PlanModifier `yaml:"plan_modifiers"`
 	Validators          []Validator    `yaml:"validators"`
@@ -60,3 +61,10 @@ type Computability struct {
 	Computed bool `yaml:"computed"`
 	Required bool `yaml:"required"`
 }
+
+type Type string
+
+const (
+	List Type = "list"
+	Set  Type = "set"
+)

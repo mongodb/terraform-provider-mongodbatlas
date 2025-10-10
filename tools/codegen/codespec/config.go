@@ -142,7 +142,31 @@ func applyOverrides(attr *Attribute, attrPathName string, schemaOptions config.S
 		if override.IncludeNullOnUpdate != nil && *override.IncludeNullOnUpdate {
 			attr.ReqBodyUsage = IncludeNullOnUpdate
 		}
+		if override.Type != nil {
+			applyTypeOverride(&override, attr)
+		}
 	}
+}
+
+func applyTypeOverride(override *config.Override, attr *Attribute) {
+	switch *override.Type {
+	case config.Set:
+		if attr.List != nil {
+			attr.Set = &SetAttribute{ElementType: attr.List.ElementType}
+			attr.List = nil
+			return
+		}
+	case config.List:
+		if attr.Set != nil {
+			attr.List = &ListAttribute{ElementType: attr.Set.ElementType}
+			attr.Set = nil
+			return
+		}
+	default:
+		log.Printf("[WARN] %s - Unsupported type override defined in configuration: %s", attr.TFSchemaName, *override.Type)
+		return
+	}
+	log.Printf("[WARN] %s - Unsupported override from original type to: %s", attr.TFSchemaName, *override.Type)
 }
 
 func getComputabilityFromConfig(computability config.Computability) ComputedOptionalRequired {

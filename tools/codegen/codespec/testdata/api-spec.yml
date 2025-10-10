@@ -366,6 +366,89 @@ paths:
       summary: Update the Test Singleton Resource feature for a project
       tags:
         - Test Singleton Resource
+  "/api/atlas/v2/groups/{groupId}/testResourceWithCollections":
+    delete:
+      description: DELETE API description
+      operationId: deleteTestResourceConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Disable the Test Resource feature for a project.
+      tags:
+        - Test Resource
+    get:
+      description: GET API description
+      operationId: getTestResourceConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              schema:
+                $ref: "#/components/schemas/TestResourceWithCollections"
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Get the Test Resource configuration for a project
+      tags:
+        - Test Resource
+    patch:
+      description: PATCH API description
+      operationId: updateTestResourceConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              $ref: "#/components/schemas/TestResourceWithCollections"
+            x-xgen-version: 2023-01-01
+        description: Patch request description
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Update the Test Resource feature for a project
+      tags:
+        - Test Resource
+    post:
+      description: POST API description
+      operationId: createTestResourceConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              $ref: "#/components/schemas/TestResourceWithCollections"
+            x-xgen-version: 2023-01-01
+        description: Create request description
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: []
+      summary: Enable the Test Resource feature for a project
+      tags:
+        - Test Resource
 components:
   parameters:
     groupId:
@@ -613,3 +696,21 @@ components:
       properties:
         flag:
           type: boolean
+    TestResourceWithCollections:
+      type: object
+      properties:
+        flag:
+          type: boolean
+        listString:
+          type: array
+          items:
+            type: string
+        setString:
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+      required:
+        - flag
+        - listString
+        - setString
