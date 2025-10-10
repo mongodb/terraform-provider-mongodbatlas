@@ -30,7 +30,7 @@ The following table contains the credential attribute names to use:
 
 If you provide multiple credentials in the selected source, a warning will be displayed and the first method from this ordered list will be used: Service Account Token, Service Account, Programmatic Access Key.
 
-~> *IMPORTANT* Hard-coding your MongoDB Atlas SA or PAK key pair into the MongoDB Atlas Provider configuration is not recommended.
+~> **IMPORTANT:** Hard-coding your MongoDB Atlas SA or PAK key pair into the MongoDB Atlas Provider configuration is not recommended.
 Consider the risks, especially the inadvertent submission of a configuration file containing secrets to a public repository.
 
 ### Service Account
