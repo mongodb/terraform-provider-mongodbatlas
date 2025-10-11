@@ -295,6 +295,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							TFSchemaName:             "single_nested_attr",
 							TFModelName:              "SingleNestedAttr",
 							ComputedOptionalRequired: codespec.Computed,
+							CustomType:               codespec.NewCustomObjectType("SingleNestedAttr"),
 							SingleNested: &codespec.SingleNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
@@ -324,6 +325,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							TFSchemaName:             "single_nested_attr_with_nested_maps",
 							TFModelName:              "SingleNestedAttrWithNestedMaps",
 							ComputedOptionalRequired: codespec.Computed,
+							CustomType:               codespec.NewCustomObjectType("SingleNestedAttrWithNestedMaps"),
 							SingleNested: &codespec.SingleNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
@@ -451,6 +453,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 							TFModelName:              "OuterObject",
 							ComputedOptionalRequired: codespec.Computed,
 							ReqBodyUsage:             codespec.OmitAlways,
+							CustomType:               codespec.NewCustomObjectType("OuterObject"),
 							SingleNested: &codespec.SingleNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
@@ -459,6 +462,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 											TFModelName:              "NestedLevel1",
 											ComputedOptionalRequired: codespec.Computed,
 											ReqBodyUsage:             codespec.OmitAlways,
+											CustomType:               codespec.NewCustomObjectType("OuterObjectNestedLevel1"),
 											SingleNested: &codespec.SingleNestedAttribute{
 												NestedObject: codespec.NestedAttributeObject{
 													Attributes: codespec.Attributes{

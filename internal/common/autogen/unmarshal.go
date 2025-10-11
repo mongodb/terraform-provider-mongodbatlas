@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customtype"
 )
 
 // Unmarshal gets a JSON (e.g. from an Atlas response) and unmarshals it into a Terraform model.
@@ -133,6 +134,21 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 				return nil, err
 			}
 			return mapNew, nil
+		}
+		if obj, ok := oldVal.(customtype.ObjectValueInterface); ok {
+			ctx := context.Background()
+			valuePtr, diags := obj.ValuePtrAsAny(ctx)
+			if diags.HasError() {
+				return nil, fmt.Errorf("unmarshal failed to convert object: %v", diags)
+			}
+
+			err := unmarshalAttrs(v, valuePtr)
+			if err != nil {
+				return nil, err
+			}
+
+			objNew := obj.NewObjectValue(ctx, valuePtr)
+			return objNew, nil
 		}
 		return nil, errUnmarshal(value, valueType, "Object", nameErr)
 	case []any:

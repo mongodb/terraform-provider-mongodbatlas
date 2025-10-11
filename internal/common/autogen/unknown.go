@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customtype"
 )
 
 // ResolveUnknowns converts unknown attributes to null.
@@ -40,9 +41,30 @@ func prepareAttr(value attr.Value) (attr.Value, error) {
 		return value, nil
 	}
 	ctx := context.Background()
+
+	if v, ok := value.(customtype.ObjectValueInterface); ok {
+		if v.IsUnknown() {
+			return v.NewObjectValueNull(ctx), nil
+		}
+
+		valuePtr, diags := v.ValuePtrAsAny(ctx)
+		if diags.HasError() {
+			return nil, fmt.Errorf("unmarshal failed to convert object: %v", diags)
+		}
+
+		err := ResolveUnknowns(valuePtr)
+		if err != nil {
+			return nil, err
+		}
+
+		objNew := v.NewObjectValue(ctx, valuePtr)
+		return objNew, nil
+	}
+
 	if value.IsUnknown() { // unknown values are converted to null
 		return getNullAttr(value.Type(ctx))
 	}
+
 	switch v := value.(type) {
 	case types.Object:
 		mapAttrs := make(map[string]attr.Value)

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customtype"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -28,10 +29,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Optional configuration for the stream processor.",
+				CustomType:          customtype.NewObjectType[TFOptionsModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"dlq": schema.SingleNestedAttribute{
 						Optional:            true,
 						MarkdownDescription: "Dead letter queue for the stream processor.",
+						CustomType:          customtype.NewObjectType[TFOptionsDlqModel](ctx),
 						Attributes: map[string]schema.Attribute{
 							"coll": schema.StringAttribute{
 								Optional:            true,
@@ -77,17 +80,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	GroupId    types.String         `tfsdk:"group_id" autogen:"omitjson"`
-	Name       types.String         `tfsdk:"name"`
-	Options    types.Object         `tfsdk:"options"`
-	Pipeline   types.List           `tfsdk:"pipeline"`
-	State      types.String         `tfsdk:"state" autogen:"omitjson"`
-	Stats      jsontypes.Normalized `tfsdk:"stats" autogen:"omitjson"`
-	TenantName types.String         `tfsdk:"tenant_name" autogen:"omitjson"`
+	GroupId    types.String                           `tfsdk:"group_id" autogen:"omitjson"`
+	Name       types.String                           `tfsdk:"name"`
+	Options    customtype.ObjectValue[TFOptionsModel] `tfsdk:"options"`
+	Pipeline   types.List                             `tfsdk:"pipeline"`
+	State      types.String                           `tfsdk:"state" autogen:"omitjson"`
+	Stats      jsontypes.Normalized                   `tfsdk:"stats" autogen:"omitjson"`
+	TenantName types.String                           `tfsdk:"tenant_name" autogen:"omitjson"`
 }
 type TFOptionsModel struct {
-	Dlq                  types.Object `tfsdk:"dlq"`
-	ResumeFromCheckpoint types.Bool   `tfsdk:"resume_from_checkpoint"`
+	Dlq                  customtype.ObjectValue[TFOptionsDlqModel] `tfsdk:"dlq"`
+	ResumeFromCheckpoint types.Bool                                `tfsdk:"resume_from_checkpoint"`
 }
 type TFOptionsDlqModel struct {
 	Coll           types.String `tfsdk:"coll"`

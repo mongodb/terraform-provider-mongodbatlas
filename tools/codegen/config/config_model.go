@@ -30,10 +30,11 @@ type Wait struct {
 }
 
 type SchemaOptions struct {
-	Ignores   []string            `yaml:"ignores"`
-	Aliases   map[string]string   `yaml:"aliases"` // only supports modifying path param names, full alias support is not yet implemented in conversion logic for request/response bodies
-	Overrides map[string]Override `yaml:"overrides"`
-	Timeouts  []string            `yaml:"timeouts"`
+	UseCustomNestedTypes *bool               `yaml:"use_custom_nested_types"` // Tmp flag to disable custom nested types usage until typing is supported for all nested attributes. Defaults to true. - CLOUDP-349095
+	Ignores              []string            `yaml:"ignores"`
+	Aliases              map[string]string   `yaml:"aliases"` // only supports modifying path param names, full alias support is not yet implemented in conversion logic for request/response bodies
+	Overrides            map[string]Override `yaml:"overrides"`
+	Timeouts             []string            `yaml:"timeouts"`
 }
 
 type Override struct {

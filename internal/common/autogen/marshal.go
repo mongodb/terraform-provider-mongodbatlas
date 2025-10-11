@@ -1,6 +1,7 @@
 package autogen
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -9,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customtype"
 )
 
 const (
@@ -68,7 +70,7 @@ func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[s
 	if !ok {
 		panic("marshal expects only Terraform types in the model")
 	}
-	val, err := getModelAttr(obj)
+	val, err := getModelAttr(obj, isUpdate)
 	if err != nil {
 		return err
 	}
@@ -86,7 +88,7 @@ func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[s
 	return nil
 }
 
-func getModelAttr(val attr.Value) (any, error) {
+func getModelAttr(val attr.Value, isUpdate bool) (any, error) {
 	if val.IsNull() || val.IsUnknown() {
 		return nil, nil // skip null or unknown values
 	}
@@ -100,28 +102,36 @@ func getModelAttr(val attr.Value) (any, error) {
 	case types.Float64:
 		return v.ValueFloat64(), nil
 	case types.Object:
-		return getMapAttr(v.Attributes(), false)
+		return getMapAttr(v.Attributes(), false, isUpdate)
 	case types.Map:
-		return getMapAttr(v.Elements(), true)
+		return getMapAttr(v.Elements(), true, isUpdate)
 	case types.List:
-		return getListAttr(v.Elements())
+		return getListAttr(v.Elements(), isUpdate)
 	case types.Set:
-		return getListAttr(v.Elements())
+		return getListAttr(v.Elements(), isUpdate)
 	case jsontypes.Normalized:
 		var valueJSON any
 		if err := json.Unmarshal([]byte(v.ValueString()), &valueJSON); err != nil {
 			return nil, fmt.Errorf("marshal failed for JSON custom type: %v", err)
 		}
 		return valueJSON, nil
+	case customtype.ObjectValueInterface:
+		valuePtr, diags := v.ValuePtrAsAny(context.Background())
+		if diags.HasError() {
+			return nil, fmt.Errorf("marshal failed for type: %v", diags)
+		}
+
+		result, err := marshalAttrs(reflect.ValueOf(valuePtr).Elem(), isUpdate)
+		return result, err
 	default:
 		return nil, fmt.Errorf("marshal not supported yet for type %T", v)
 	}
 }
 
-func getListAttr(elms []attr.Value) (any, error) {
+func getListAttr(elms []attr.Value, isUpdate bool) (any, error) {
 	arr := make([]any, 0)
 	for _, attr := range elms {
-		valChild, err := getModelAttr(attr)
+		valChild, err := getModelAttr(attr, isUpdate)
 		if err != nil {
 			return nil, err
 		}
@@ -134,10 +144,10 @@ func getListAttr(elms []attr.Value) (any, error) {
 
 // getMapAttr gets a map of attributes and returns a map of JSON attributes.
 // keepKeyCase is used for types.Map to keep key case. However, we want to use JSON key case for types.Object
-func getMapAttr(elms map[string]attr.Value, keepKeyCase bool) (any, error) {
+func getMapAttr(elms map[string]attr.Value, keepKeyCase, isUpdate bool) (any, error) {
 	objJSON := make(map[string]any)
 	for name, attr := range elms {
-		valChild, err := getModelAttr(attr)
+		valChild, err := getModelAttr(attr, isUpdate)
 		if err != nil {
 			return nil, err
 		}

@@ -82,11 +82,14 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 	updateOp := oasResource.UpdateOp
 	readOp := oasResource.ReadOp
 
-	createPathParams := pathParamsToAttributes(createOp)
-	createRequestAttributes := opRequestToAttributes(createOp)
-	updateRequestAttributes := opRequestToAttributes(updateOp)
-	createResponseAttributes := opResponseToAttributes(createOp)
-	readResponseAttributes := opResponseToAttributes(readOp)
+	// TODO remove useCustomNestedTypes usage once typing is supported for all nested attributes: object, list, set & map - CLOUDP-349095
+	useCustomNestedTypes := resourceConfig.SchemaOptions.UseCustomNestedTypes == nil || *resourceConfig.SchemaOptions.UseCustomNestedTypes
+
+	createPathParams := pathParamsToAttributes(createOp, useCustomNestedTypes)
+	createRequestAttributes := opRequestToAttributes(createOp, useCustomNestedTypes)
+	updateRequestAttributes := opRequestToAttributes(updateOp, useCustomNestedTypes)
+	createResponseAttributes := opResponseToAttributes(createOp, useCustomNestedTypes)
+	readResponseAttributes := opResponseToAttributes(readOp, useCustomNestedTypes)
 
 	attributes := mergeAttributes(&attributeDefinitionSources{
 		createPathParams: createPathParams,
@@ -165,7 +168,7 @@ func waitConfigToModel(waitConfig *config.Wait) *Wait {
 	}
 }
 
-func pathParamsToAttributes(createOp *high.Operation) Attributes {
+func pathParamsToAttributes(createOp *high.Operation, useCustomNestedTypes bool) Attributes {
 	pathParams := createOp.Parameters
 
 	pathAttributes := Attributes{}
@@ -181,7 +184,7 @@ func pathParamsToAttributes(createOp *high.Operation) Attributes {
 
 		paramName := param.Name
 		s.Schema.Description = param.Description
-		parameterAttribute, err := s.buildResourceAttr(paramName, Required, false)
+		parameterAttribute, err := s.buildResourceAttr(paramName, "", Required, false, useCustomNestedTypes)
 		if err != nil {
 			log.Printf("[WARN] Path param %s could not be mapped: %s", paramName, err)
 			continue
@@ -191,7 +194,7 @@ func pathParamsToAttributes(createOp *high.Operation) Attributes {
 	return pathAttributes
 }
 
-func opRequestToAttributes(op *high.Operation) Attributes {
+func opRequestToAttributes(op *high.Operation, useCustomNestedTypes bool) Attributes {
 	var requestAttributes Attributes
 	requestSchema, err := buildSchemaFromRequest(op)
 	if err != nil {
@@ -199,7 +202,7 @@ func opRequestToAttributes(op *high.Operation) Attributes {
 		return nil
 	}
 
-	requestAttributes, err = buildResourceAttrs(requestSchema, true)
+	requestAttributes, err = buildResourceAttrs(requestSchema, "", true, useCustomNestedTypes)
 	if err != nil {
 		log.Printf("[WARN] Request attributes could not be mapped (OperationId: %s): %s", op.OperationId, err)
 		return nil
@@ -208,7 +211,7 @@ func opRequestToAttributes(op *high.Operation) Attributes {
 	return requestAttributes
 }
 
-func opResponseToAttributes(op *high.Operation) Attributes {
+func opResponseToAttributes(op *high.Operation, useCustomNestedTypes bool) Attributes {
 	var responseAttributes Attributes
 	responseSchema, err := buildSchemaFromResponse(op)
 	if err != nil {
@@ -218,7 +221,7 @@ func opResponseToAttributes(op *high.Operation) Attributes {
 			log.Printf("[WARN] Operation response body schema could not be mapped (OperationId: %s): %s", op.OperationId, err)
 		}
 	} else {
-		responseAttributes, err = buildResourceAttrs(responseSchema, false)
+		responseAttributes, err = buildResourceAttrs(responseSchema, "", false, useCustomNestedTypes)
 		if err != nil {
 			log.Printf("[WARN] Operation response body schema could not be mapped (OperationId: %s): %s", op.OperationId, err)
 		}
