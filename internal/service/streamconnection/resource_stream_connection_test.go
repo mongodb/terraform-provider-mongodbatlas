@@ -40,6 +40,31 @@ data "mongodbatlas_stream_connections" "test" {
 	`
 )
 
+const (
+	dataSourceConfigMigration = `
+data "mongodbatlas_stream_connection" "test" {
+		project_id = mongodbatlas_stream_connection.test.project_id
+		workspace_name = mongodbatlas_stream_connection.test.workspace_name
+		connection_name = mongodbatlas_stream_connection.test.connection_name
+}
+`
+
+	dataSourcePluralConfigMigration = `
+data "mongodbatlas_stream_connections" "test" {
+		project_id = mongodbatlas_stream_connection.test.project_id
+		workspace_name = mongodbatlas_stream_connection.test.workspace_name
+}
+`
+	dataSourcePluralConfigWithPageMigration = `
+data "mongodbatlas_stream_connections" "test" {
+		project_id = mongodbatlas_stream_connection.test.project_id
+		workspace_name = mongodbatlas_stream_connection.test.workspace_name
+		page_num = 2 # no specific reason for 2, just to test pagination
+		items_per_page = 1
+	}
+	`
+)
+
 var (
 	dataSourcesConfig         = dataSourceConfig + dataSourcePluralConfig
 	dataSourcesWithPagination = dataSourceConfig + dataSourcePluralConfigWithPage
@@ -65,15 +90,15 @@ var (
 )
 
 func TestAccStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
-	testCase := testCaseKafkaPlaintext(t, "")
+	testCase := testCaseKafkaPlaintext(t)
 	resource.ParallelTest(t, *testCase)
 }
 
-func testCaseKafkaPlaintext(t *testing.T, nameSuffix string) *resource.TestCase {
+func testCaseKafkaPlaintext(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		connectionName          = "kafka-conn-plaintext" + nameSuffix
+		connectionName          = "kafka-conn-plaintext"
 	)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -90,6 +115,45 @@ func testCaseKafkaPlaintext(t *testing.T, nameSuffix string) *resource.TestCase 
 			},
 			{
 				Config: dataSourcesWithPagination + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", kafkaNetworkingPublic, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkKafkaAttributes(resourceName, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, true),
+					checkKafkaAttributes(dataSourceName, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, false),
+					streamConnectionsAttributeChecks(pluralDataSourceName, conversion.Pointer(2), conversion.Pointer(1)),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"authentication.password"},
+			},
+		},
+	}
+}
+
+func testCaseKafkaPlaintextMigration(t *testing.T) *resource.TestCase {
+	t.Helper()
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		connectionName          = "kafka-conn-plaintext-mig"
+	)
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: dataSourcesConfig + configureKafkaMigration(fmt.Sprintf("%q", projectID), instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", "", false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkKafkaAttributes(resourceName, instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, true),
+					checkKafkaAttributes(dataSourceName, instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, false),
+					streamConnectionsAttributeChecks(pluralDataSourceName, nil, nil),
+				),
+			},
+			{
+				Config: dataSourcesWithPagination + configureKafkaMigration(fmt.Sprintf("%q", projectID), instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", kafkaNetworkingPublic, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkKafkaAttributes(resourceName, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, true),
 					checkKafkaAttributes(dataSourceName, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, false),
@@ -179,16 +243,16 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 }
 
 func TestAccStreamRSStreamConnection_cluster(t *testing.T) {
-	testCase := testCaseCluster(t, "")
+	testCase := testCaseCluster(t)
 	resource.ParallelTest(t, *testCase)
 }
 
-func testCaseCluster(t *testing.T, nameSuffix string) *resource.TestCase {
+func testCaseCluster(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
 		projectID, clusterName = acc.ClusterNameExecution(t, false)
 		_, instanceName        = acc.ProjectIDExecutionWithStreamInstance(t)
-		connectionName         = "conn-cluster" + nameSuffix
+		connectionName         = "conn-cluster"
 	)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
@@ -197,6 +261,35 @@ func testCaseCluster(t *testing.T, nameSuffix string) *resource.TestCase {
 		Steps: []resource.TestStep{
 			{
 				Config: dataSourcesConfig + configureCluster(projectID, instanceName, connectionName, clusterName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkClusterAttributes(resourceName, clusterName),
+					checkClusterAttributes(dataSourceName, clusterName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	}
+}
+
+func testCaseClusterMigration(t *testing.T) *resource.TestCase {
+	t.Helper()
+	var (
+		projectID, clusterName = acc.ClusterNameExecution(t, false)
+		_, instanceName        = acc.ProjectIDExecutionWithStreamInstance(t)
+		connectionName         = "conn-cluster-mig"
+	)
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: dataSourcesConfig + configureClusterMigration(projectID, instanceName, connectionName, clusterName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkClusterAttributes(resourceName, clusterName),
 					checkClusterAttributes(dataSourceName, clusterName),
@@ -446,6 +539,41 @@ func configureKafka(projectRef, instanceName, connectionName, username, password
 	`, projectRef, instanceName, connectionName, username, password, bootstrapServers, configValue, networkingConfig, securityConfig)
 }
 
+// configureKafkaForMigration uses instance_name for compatibility with older provider versions
+func configureKafkaMigration(projectRef, instanceName, connectionName, username, password, bootstrapServers, configValue, networkingConfig string, useSSL bool) string {
+	securityConfig := `
+		security = {
+			protocol = "SASL_PLAINTEXT"
+		}`
+
+	if useSSL {
+		securityConfig = fmt.Sprintf(`
+		security = {
+		    broker_public_certificate = %q
+		    protocol = "SASL_SSL"
+		}`, DummyCACert)
+	}
+	return fmt.Sprintf(`
+		resource "mongodbatlas_stream_connection" "test" {
+		    project_id = %[1]s
+			instance_name = %[2]q
+		 	connection_name = %[3]q
+		 	type = "Kafka"
+		 	authentication = {
+		    	mechanism = "PLAIN"
+		    	username = %[4]q
+		    	password = %[5]q
+		    }
+		    bootstrap_servers = %[6]q
+		    config = {
+		    	"auto.offset.reset": %[7]q
+		    }
+		    %[8]s
+			%[9]s
+		}
+	`, projectRef, instanceName, connectionName, username, password, bootstrapServers, configValue, networkingConfig, securityConfig)
+}
+
 func configureSampleStream(projectID, instanceName, sampleName string) string {
 	streamInstanceConfig := acc.StreamInstanceConfig(projectID, instanceName, "VIRGINIA_USA", "AWS")
 
@@ -568,6 +696,23 @@ func configureCluster(projectID, instanceName, connectionName, clusterName strin
 		resource "mongodbatlas_stream_connection" "test" {
 		    project_id = %[1]q
 			workspace_name = %[2]q
+		 	connection_name = %[3]q
+		 	type = "Cluster"
+		 	cluster_name = %[4]q
+			db_role_to_execute = {
+				role = "atlasAdmin"
+				type = "BUILT_IN"
+			}
+		}
+	`, projectID, instanceName, connectionName, clusterName)
+}
+
+// configureClusterMigration uses instance_name for compatibility with older provider versions
+func configureClusterMigration(projectID, instanceName, connectionName, clusterName string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_stream_connection" "test" {
+		    project_id = %[1]q
+			instance_name = %[2]q
 		 	connection_name = %[3]q
 		 	type = "Cluster"
 		 	cluster_name = %[4]q
