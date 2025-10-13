@@ -9,14 +9,26 @@ This guide helps you migrate from the legacy schema of `mongodbatlas_advanced_cl
 1. The recommended Terraform Plugin Framework, which, in addition to providing a better user experience and other features, adds support for the `moved` block between different resource types.
 2. New sharding configurations that supports scaling shards independently (see the [Migration Guide: Advanced Cluster New Sharding Configurations](advanced-cluster-new-sharding-schema#migration-sharded)).
 
-~> **IMPORTANT:** Preview of the new schema was already released in versions 1.29.0 and later which could be enabled by setting the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`. If you are already using the new schema preview with the new sharding configurations **and not using deprecated attributes**, you would not be required to make any additional changes except that the mentioned environment variable is no longer required.
 
-### Examples
-- [Symmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_advanced_cluster/symmetric-sharded-cluster/README.md#migrating-from-v1x-to-v200-or-later)
-- [Asymmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_advanced_cluster/asymmetric-sharded-cluster/README.md#migrating-from-v1x-to-v200-or-later)
-- [Auto-Scaling Per Shard](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_advanced_cluster/auto-scaling-per-shard/README.md#migrating-from-v1x-to-v200-or-later)
-- [Basic Replicaset](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_advanced_cluster/replicaset/README.md#migrating-from-v1x-to-v200-or-later)
+## Who should read this guide?
 
+This guide is intended for **customers on v1.x.x of our provider and using the `mongodbatlas_advanced_cluster` resource** who want to upgrade to our provider version **2.0.0 and later**.
+
+Use this guide if any of the following applies to you:
+
+- **You currently use the legacy schema** (your configuration uses `num_shards`, `disk_size_gb` at the root, or block-based `tags`, `advanced_configuration`, `replication_specs`, etc.):  
+  → Follow this guide to migrate your configuration to the latest v2.0.0 schema, which introduces list-based attributes, per-shard replication specs, and map-style tags.
+
+- **You currently use v1.x.x of the provider with the preview schema** (using the `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` environment variable, and you already define list attributes such as `replication_specs` and `advanced_configuration`):  
+  → Follow this guide to complete the migration to the final v2.0.0 schema, which aligns with the new stable release format.
+
+If you are still using the deprecated `mongodbatlas_cluster` resource:  
+→ See [Cluster → Advanced Cluster Migration Guide](./cluster-to-advanced-cluster-migration-guide).
+
+If you want to understand the new sharding configurations that enables independent shard scaling:  
+→ See [Advanced Cluster New Sharding Schema](./advanced-cluster-new-sharding-schema).
+
+---
 
 ## Configuration changes when upgrading from v1.x
 
@@ -180,6 +192,13 @@ After you upgrade to v2.0.0+ from v1.x.x, when you run `terraform plan`, syntax 
 ~> **IMPORTANT:** Don't apply until the plan is empty. If it shows other changes, you must update the `mongodbatlas_advanced_cluster` configuration until it matches the original configuration.
 
 - **Step #3:** Even though there are no plan changes shown at this point, run `terraform apply`. This will update the `mongodbatlas_advanced_cluster` state to support the new schema.
+
+### Examples
+- [Symmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/symmetric-sharded-cluster/README.md#migrating-from-v1x-to-v200-or-later)
+- [Asymmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/asymmetric-sharded-cluster/README.md#migrating-from-v1x-to-v200-or-later)
+- [Auto-Scaling Per Shard](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/auto-scaling-per-shard/README.md#migrating-from-v1x-to-v200-or-later)
+- [Basic Replicaset](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/replicaset/README.md#migrating-from-v1x-to-v200-or-later)
+
 
 ## Important notes
 

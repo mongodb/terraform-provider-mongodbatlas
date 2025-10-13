@@ -6,6 +6,24 @@ page_title: "Migration Guide: Cluster to Advanced Cluster"
 
 **Objective**: This guide explains how to replace the deprecated `mongodbatlas_cluster` resource with the `mongodbatlas_advanced_cluster` resource. For data source migrations, refer to the [output changes](#output-changes) section. If you're transitioning to independent sharding, additional guidance is available in the [Advanced Cluster New Sharding Configurations Migration Guide](advanced-cluster-new-sharding-schema#data-source-transition-for-asymmetric-clusters).
 
+
+## Who should read this guide?
+
+This guide is intended for **customers using the deprecated `mongodbatlas_cluster` resource** who want to migrate to the new `mongodbatlas_advanced_cluster` resource.
+
+If you are already using the `mongodbatlas_advanced_cluster` resource, determine which case applies to you:
+
+- **You currently use the legacy schema** (your configuration uses `num_shards`, `disk_size_gb` at the root, or block-based `tags`, `advanced_configuration`,`replication_specs` etc):  
+  → Follow [Migrate to Advanced Cluster 2.0](./migrate-to-advanced-cluster-2.0) with the latest schema updates to upgrade to our 2.0.0 and later versions.
+
+- **You currently use v1.x.x of our provider and want to upgrade to version 2.0.0 or later**:  
+  → Follow [Migrate to Advanced Cluster 2.0](./migrate-to-advanced-cluster-2.0) for the latest schema updates to upgrade to our 2.0.0 and later versions.
+
+- **You want to understand the new sharding model that allows you to scale shards independently** (how multiple `replication_specs` replace `num_shards`):  
+  → See [Advanced Cluster New Sharding Schema](./advanced-cluster-new-sharding-schema).
+
+---
+
 ## Why do we have both `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster` resources?
 
 Both `mongodbatlas_cluster` and `mongodbatlas_advanced_cluster` resources currently allow customers to manage MongoDB Atlas Clusters. Initially, only `mongodbatlas_cluster` existed. When MongoDB Atlas added support for important features such as multi-cloud deployments and the [MongoDB Atlas Admin API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/) introduced versioning support, it became impossible to update this resource without causing many breaking changes for our customers. As a result, we decided to keep the resource as-is and created the `mongodbatlas_advanced_cluster` resource. Despite its name, `mongodbatlas_advanced_cluster` is intended for everyone and encompasses all functionalities, including the basic ones offered by `mongodbatlas_cluster`.
