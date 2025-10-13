@@ -74,10 +74,31 @@ func (c *Credentials) Warnings() string {
 		return "Access Token will be used although Service Account is also set"
 	}
 	if c.HasAccessToken() && c.HasDigest() {
-		return "Access Token will be used although API Keys is also set"
+		return "Access Token will be used although API Key is also set"
 	}
 	if c.HasServiceAccount() && c.HasDigest() {
-		return "Service Account will be used although API Keys is also set"
+		return "Service Account will be used although API Key is also set"
+	}
+	return ""
+}
+
+func (c *Credentials) Errors() string {
+	switch c.AuthMethod() {
+	case ServiceAccount:
+		if c.ClientID == "" {
+			return "Service Account will be used but Client ID is required"
+		}
+		if c.ClientSecret == "" {
+			return "Service Account will be used but Client Secret is required"
+		}
+	case Digest:
+		if c.PublicKey == "" {
+			return "API Key will be used but Public Key is required"
+		}
+		if c.PrivateKey == "" {
+			return "API Key will be used but Private Key is required"
+		}
+	case Unknown, AccessToken:
 	}
 	return ""
 }
@@ -115,9 +136,9 @@ type Vars struct {
 
 func NewEnvVars() *Vars {
 	return &Vars{
-		AccessToken:        getEnv("MONGODB_ATLAS_ACCESS_TOKEN", "TF_VAR_ACCESS_TOKEN"),
-		ClientID:           getEnv("MONGODB_ATLAS_CLIENT_ID", "TF_VAR_CLIENT_ID"),
-		ClientSecret:       getEnv("MONGODB_ATLAS_CLIENT_SECRET", "TF_VAR_CLIENT_SECRET"),
+		AccessToken:        getEnv("MONGODB_ATLAS_ACCESS_TOKEN"),
+		ClientID:           getEnv("MONGODB_ATLAS_CLIENT_ID"),
+		ClientSecret:       getEnv("MONGODB_ATLAS_CLIENT_SECRET"),
 		PublicKey:          getEnv("MONGODB_ATLAS_PUBLIC_API_KEY", "MONGODB_ATLAS_PUBLIC_KEY", "MCLI_PUBLIC_API_KEY"),
 		PrivateKey:         getEnv("MONGODB_ATLAS_PRIVATE_API_KEY", "MONGODB_ATLAS_PRIVATE_KEY", "MCLI_PRIVATE_API_KEY"),
 		BaseURL:            getEnv("MONGODB_ATLAS_BASE_URL", "MCLI_OPS_MANAGER_URL"),

@@ -257,7 +257,7 @@ func TestCredentials_Warnings(t *testing.T) {
 				PublicKey:   "public",
 				PrivateKey:  "private",
 			},
-			want: "Access Token will be used although API Keys is also set",
+			want: "Access Token will be used although API Key is also set",
 		},
 		"Service account and digest": {
 			credentials: config.Credentials{
@@ -265,7 +265,7 @@ func TestCredentials_Warnings(t *testing.T) {
 				PublicKey:  "public",
 				PrivateKey: "private",
 			},
-			want: "Service Account will be used although API Keys is also set",
+			want: "Service Account will be used although API Key is also set",
 		},
 		"All three methods": {
 			credentials: config.Credentials{
@@ -282,6 +282,113 @@ func TestCredentials_Warnings(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			got := tc.credentials.Warnings()
+			assert.Equal(t, tc.want, got)
+		})
+	}
+}
+
+func TestCredentials_Errors(t *testing.T) {
+	testCases := map[string]struct {
+		credentials config.Credentials
+		want        string
+	}{
+		"No credentials - no error": {
+			credentials: config.Credentials{},
+			want:        "",
+		},
+		"Valid access token - no error": {
+			credentials: config.Credentials{
+				AccessToken: "token",
+			},
+			want: "",
+		},
+		"Service account missing ClientID": {
+			credentials: config.Credentials{
+				ClientSecret: "secret",
+			},
+			want: "Service Account will be used but Client ID is required",
+		},
+		"Service account missing ClientSecret": {
+			credentials: config.Credentials{
+				ClientID: "id",
+			},
+			want: "Service Account will be used but Client Secret is required",
+		},
+		"Service account with both - no error": {
+			credentials: config.Credentials{
+				ClientID:     "id",
+				ClientSecret: "secret",
+			},
+			want: "",
+		},
+		"Digest missing PublicKey": {
+			credentials: config.Credentials{
+				PrivateKey: "private",
+			},
+			want: "API Key will be used but Public Key is required",
+		},
+		"Digest missing PrivateKey": {
+			credentials: config.Credentials{
+				PublicKey: "public",
+			},
+			want: "API Key will be used but Private Key is required",
+		},
+		"Digest with both - no error": {
+			credentials: config.Credentials{
+				PublicKey:  "public",
+				PrivateKey: "private",
+			},
+			want: "",
+		},
+		"Access token takes priority - no error even with incomplete service account": {
+			credentials: config.Credentials{
+				AccessToken: "token",
+				ClientID:    "id",
+				// Missing ClientSecret, but should not error since AccessToken takes priority
+			},
+			want: "",
+		},
+		"Access token takes priority - no error even with incomplete digest": {
+			credentials: config.Credentials{
+				AccessToken: "token",
+				PublicKey:   "public",
+				// Missing PrivateKey, but should not error since AccessToken takes priority
+			},
+			want: "",
+		},
+		"Service account takes priority over incomplete digest": {
+			credentials: config.Credentials{
+				ClientID:     "id",
+				ClientSecret: "secret",
+				PublicKey:    "public",
+				// Missing PrivateKey, but should not error since ServiceAccount takes priority
+			},
+			want: "",
+		},
+		"Service account incomplete but takes priority over digest": {
+			credentials: config.Credentials{
+				ClientID: "id",
+				// Missing ClientSecret
+				PublicKey:  "public",
+				PrivateKey: "private",
+			},
+			want: "Service Account will be used but Client Secret is required",
+		},
+		"All credentials present - no error": {
+			credentials: config.Credentials{
+				AccessToken:  "token",
+				ClientID:     "id",
+				ClientSecret: "secret",
+				PublicKey:    "public",
+				PrivateKey:   "private",
+			},
+			want: "",
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			got := tc.credentials.Errors()
 			assert.Equal(t, tc.want, got)
 		})
 	}

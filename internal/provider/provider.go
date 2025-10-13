@@ -50,8 +50,6 @@ import (
 )
 
 const (
-	govURL                         = "https://cloud.mongodbgov.com"
-	MongodbGovCloudDevURL          = "https://cloud-dev.mongodbgov.com"
 	ProviderConfigError            = "error in configuring the provider."
 	MissingAuthAttrError           = "either AWS Secrets Manager, Service Accounts or Atlas Programmatic API Keys attributes must be set"
 	ProviderMetaUserAgentExtra     = "user_agent_extra"
@@ -60,13 +58,6 @@ const (
 	ProviderMetaModuleNameDesc     = "The name of the module using the provider"
 	ProviderMetaModuleVersion      = "module_version"
 	ProviderMetaModuleVersionDesc  = "The version of the module using the provider"
-)
-
-var (
-	govAdditionalURLs = []string{
-		"https://cloud-dev.mongodbgov.com",
-		"https://cloud-qa.mongodbgov.com",
-	}
 )
 
 type MongodbtlasProvider struct {
@@ -208,6 +199,10 @@ func (p *MongodbtlasProvider) Configure(ctx context.Context, req provider.Config
 		resp.Diagnostics.AddError("Error getting credentials for provider", err.Error())
 		return
 	}
+	if c.Errors() != "" {
+		resp.Diagnostics.AddError("Error getting credentials for provider", c.Errors())
+		return
+	}
 	if c.Warnings() != "" {
 		resp.Diagnostics.AddWarning("Warning getting credentials for provider", c.Warnings())
 	}
@@ -230,10 +225,7 @@ func getProviderVars(ctx context.Context, req provider.ConfigureRequest, resp *p
 	if len(data.AssumeRole) > 0 {
 		assumeRoleARN = data.AssumeRole[0].RoleARN.ValueString()
 	}
-	baseURL := data.BaseURL.ValueString()
-	if data.IsMongodbGovCloud.ValueBool() && !slices.Contains(govAdditionalURLs, baseURL) {
-		baseURL = govURL
-	}
+	baseURL := applyGovBaseURLIfNeeded(data.BaseURL.ValueString(), data.IsMongodbGovCloud.ValueBool())
 	return &config.Vars{
 		AccessToken:        data.AccessToken.ValueString(),
 		ClientID:           data.ClientID.ValueString(),
@@ -250,6 +242,18 @@ func getProviderVars(ctx context.Context, req provider.ConfigureRequest, resp *p
 		AWSSessionToken:    data.AwsSessionToken.ValueString(),
 		AWSEndpoint:        data.StsEndpoint.ValueString(),
 	}
+}
+
+func applyGovBaseURLIfNeeded(providerBaseURL string, providerIsMongodbGovCloud bool) string {
+	const govURL = "https://cloud.mongodbgov.com"
+	govAdditionalURLs := []string{
+		"https://cloud-dev.mongodbgov.com",
+		"https://cloud-qa.mongodbgov.com",
+	}
+	if providerIsMongodbGovCloud && !slices.Contains(govAdditionalURLs, config.NormalizeBaseURL(providerBaseURL)) {
+		return govURL
+	}
+	return providerBaseURL
 }
 
 func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.DataSource {

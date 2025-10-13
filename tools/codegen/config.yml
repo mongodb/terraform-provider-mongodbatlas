@@ -326,6 +326,10 @@ resources:
           computability:
             optional: true
             computed: true
+        is_data_explorer_gen_ai_features_enabled:
+          computability:
+            optional: true
+            computed: true
 
   project_api:
     read:

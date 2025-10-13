@@ -169,7 +169,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			result := resource.GenerateGoCode(&tc.inputModel)
 			g := goldie.New(t, goldie.WithNameSuffix(".golden.go"))
-			g.Assert(t, tc.goldenFileName, []byte(result))
+			g.Assert(t, tc.goldenFileName, result)
 		})
 	}
 }

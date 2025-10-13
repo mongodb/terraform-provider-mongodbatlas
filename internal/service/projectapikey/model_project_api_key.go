@@ -7,7 +7,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250312007/admin"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/rolesorgid"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 )
 
 func expandProjectAssignments(projectAssignments *schema.Set) map[string][]string {
@@ -67,16 +68,10 @@ func sameRoles(roles1, roles2 []string) bool {
 
 // getKeyDetails returns nil error and nil details if not found as it's not considered an error
 func getKeyDetails(ctx context.Context, connV2 *admin.APIClient, apiKeyID string) (*admin.ApiKeyUserDetails, string, error) {
-	resp, _, err := connV2.OrganizationsApi.ListOrgs(ctx).Execute()
+	orgID, err := rolesorgid.GetCurrentOrgID(ctx, connV2)
 	if err != nil {
 		return nil, "", err
 	}
-	orgIDs := resp.GetResults()
-	if len(orgIDs) == 0 {
-		return nil, "", fmt.Errorf("no organizations found")
-	}
-	// At present a PAK or SA belongs to exactly one organization. If this changes in the future, this logic will need to be updated.
-	orgID := orgIDs[0].GetId()
 	key, _, err := connV2.ProgrammaticAPIKeysApi.GetOrgApiKey(ctx, orgID, apiKeyID).Execute()
 	if err != nil {
 		if admin.IsErrorCode(err, "API_KEY_NOT_FOUND") {

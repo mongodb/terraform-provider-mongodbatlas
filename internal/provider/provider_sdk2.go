@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"slices"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -302,7 +301,10 @@ func providerConfigure(provider *schema.Provider) func(ctx context.Context, d *s
 		if err != nil {
 			return nil, append(diags, diag.FromErr(fmt.Errorf("error getting credentials for provider: %w", err))...)
 		}
-		// Don't log possible warnings as they will be logged by the TPF provider.
+		// Don't log possible warnings or errors as they will be logged by the TPF provider.
+		if c.Errors() != "" {
+			return nil, nil
+		}
 		client, err := config.NewClient(c, provider.TerraformVersion)
 		if err != nil {
 			return nil, append(diags, diag.FromErr(fmt.Errorf("error initializing provider: %w", err))...)
@@ -319,10 +321,7 @@ func getSDKv2ProviderVars(d *schema.ResourceData) *config.Vars {
 			assumeRoleARN = assumeRole["role_arn"].(string)
 		}
 	}
-	baseURL := d.Get("base_url").(string)
-	if d.Get("is_mongodbgov_cloud").(bool) && !slices.Contains(govAdditionalURLs, baseURL) {
-		baseURL = govURL
-	}
+	baseURL := applyGovBaseURLIfNeeded(d.Get("base_url").(string), d.Get("is_mongodbgov_cloud").(bool))
 	return &config.Vars{
 		AccessToken:        d.Get("access_token").(string),
 		ClientID:           d.Get("client_id").(string),

@@ -9,7 +9,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/codetemplate"
 )
 
-func GenerateGoCode(input *codespec.Resource) string {
+func GenerateGoCode(input *codespec.Resource) []byte {
 	tmplInputs := codetemplate.ResourceFileInputs{
 		PackageName:  input.Name.LowerCaseNoUnderscore(),
 		ResourceName: input.Name.SnakeCase(),
@@ -28,7 +28,7 @@ func GenerateGoCode(input *codespec.Resource) string {
 	if err != nil {
 		panic(err)
 	}
-	return string(formattedResult)
+	return formattedResult
 }
 
 func toCodeTemplateOpModel(op *codespec.APIOperation) *codetemplate.Operation {

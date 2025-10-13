@@ -11,9 +11,8 @@ import (
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312007/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
@@ -71,17 +70,16 @@ func tfLoggingInterceptor(base http.RoundTripper) http.RoundTripper {
 	return logging.NewTransport("Atlas", base)
 }
 
-// MongoDBClient contains the mongodbatlas clients and configurations
+// MongoDBClient contains the mongodbatlas clients and configurations.
 type MongoDBClient struct {
 	Atlas            *matlasClient.Client
 	AtlasV2          *admin.APIClient
 	AtlasPreview     *adminpreview.APIClient
-	AtlasV220240805  *admin20240805.APIClient // used in advanced_cluster to avoid adopting 2024-10-23 release with ISS autoscaling
-	AtlasV220240530  *admin20240530.APIClient // used in advanced_cluster and cloud_backup_schedule for avoiding breaking changes (supporting deprecated replication_specs.id)
-	AtlasV220241113  *admin20241113.APIClient // used in teams and atlas_users to avoiding breaking changes
+	AtlasV220240530  *admin20240530.APIClient // Used in cluster to support deprecated attributes default_read_concern and fail_index_key_too_long in advanced_configuration.
+	AtlasV220241113  *admin20241113.APIClient // Used in teams and atlas_users to avoiding breaking changes.
 	Realm            *RealmClient
-	BaseURL          string // needed by organization resource
-	TerraformVersion string // needed by organization resource
+	BaseURL          string // Needed by organization resource.
+	TerraformVersion string // Needed by organization resource.
 }
 
 type RealmClient struct {
@@ -121,10 +119,6 @@ func NewClient(c *Credentials, terraformVersion string) (*MongoDBClient, error) 
 	if err != nil {
 		return nil, err
 	}
-	sdkV220240805Client, err := newSDKV220240805Client(client, c.BaseURL, userAgent)
-	if err != nil {
-		return nil, err
-	}
 	sdkV220241113Client, err := newSDKV220241113Client(client, c.BaseURL, userAgent)
 	if err != nil {
 		return nil, err
@@ -135,14 +129,13 @@ func NewClient(c *Credentials, terraformVersion string) (*MongoDBClient, error) 
 		AtlasV2:          sdkV2Client,
 		AtlasPreview:     sdkPreviewClient,
 		AtlasV220240530:  sdkV220240530Client,
-		AtlasV220240805:  sdkV220240805Client,
 		AtlasV220241113:  sdkV220241113Client,
 		BaseURL:          c.BaseURL,
 		TerraformVersion: terraformVersion,
 		Realm: &RealmClient{
 			publicKey:        c.PublicKey,
 			privateKey:       c.PrivateKey,
-			realmBaseURL:     c.RealmBaseURL,
+			realmBaseURL:     NormalizeBaseURL(c.RealmBaseURL),
 			terraformVersion: terraformVersion,
 		},
 	}
@@ -204,15 +197,6 @@ func newSDKV220240530Client(client *http.Client, baseURL, userAgent string) (*ad
 	)
 }
 
-func newSDKV220240805Client(client *http.Client, baseURL, userAgent string) (*admin20240805.APIClient, error) {
-	return admin20240805.NewClient(
-		admin20240805.UseHTTPClient(client),
-		admin20240805.UseUserAgent(userAgent),
-		admin20240805.UseBaseURL(baseURL),
-		admin20240805.UseDebug(false),
-	)
-}
-
 func newSDKV220241113Client(client *http.Client, baseURL, userAgent string) (*admin20241113.APIClient, error) {
 	return admin20241113.NewClient(
 		admin20241113.UseHTTPClient(client),
@@ -234,7 +218,7 @@ func (r *RealmClient) Get(ctx context.Context) (*realm.Client, error) {
 
 	authConfig := realmAuth.NewConfig(nil)
 	if r.realmBaseURL != "" {
-		adminURL := r.realmBaseURL + "api/admin/v3.0/"
+		adminURL := r.realmBaseURL + "/api/admin/v3.0/"
 		optsRealm = append(optsRealm, realm.SetBaseURL(adminURL))
 		authConfig.AuthURL, _ = url.Parse(adminURL + "auth/providers/mongodb-cloud/login")
 	}
