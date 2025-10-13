@@ -41,16 +41,16 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 ## Authentication
 
-The MongoDB Atlas provider uses Service Accounts (SA) as the recommended authentication method. Create a Service Account in your [MongoDB Atlas organization](https://www.mongodb.com/docs/atlas/configure-api-access/#grant-programmatic-access-to-an-organization) and set the credentials as environment variables:
+The MongoDB Atlas provider uses Service Accounts (SA) as the recommended authentication method. Create an SA in your [MongoDB Atlas organization](https://www.mongodb.com/docs/atlas/configure-api-access/#grant-programmatic-access-to-an-organization) and set the credentials as environment variables:
 
 ```shell
 export MONGODB_ATLAS_CLIENT_ID="your-client-id"
 export MONGODB_ATLAS_CLIENT_SECRET="your-client-secret"
 ```
 
-If you're currently using Programmatic Access Keys (PAK) and want to migrate to Service Accounts, see the [migration guide](guides/provider-configuration#migration-from-pak-to-service-account).
+**Migrating from PAK to SA:** To migrate from PAK to SA, simply update your provider attributes or environment variables to use SA credentials instead of PAK credentials, then run `terraform plan` to verify everything works correctly.
 
-For additional authentication methods, AWS Secrets Manager integration, and all provider configuration options, see the [Provider Configuration Guide](guides/provider-configuration). Users of MongoDB Atlas for Government should refer to the [government configuration section](guides/provider-configuration#mongodb-atlas-for-government).
+For additional authentication methods including Programmatic Access Keys (PAK), AWS Secrets Manager integration, MongoDB Atlas for Government configuration, and all provider options, see the [Provider Configuration Guide](guides/provider-configuration).
 
 ## Version Requirements
 

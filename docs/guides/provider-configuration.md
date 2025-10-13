@@ -4,25 +4,25 @@ page_title: "Provider Configuration"
 
 # Provider Configuration
 
-This guide provides comprehensive information about configuring the MongoDB Atlas Provider, including authentication methods, environment configuration, and special deployment scenarios.
+This guide provides information about configuring the MongoDB Atlas Provider, including authentication methods, environment configuration, and special deployment scenarios.
 
 ## Authentication Methods
 
-The MongoDB Atlas provider supports the following authentication methods, listed in order of preference:
+The MongoDB Atlas provider supports the following authentication methods:
 
-1. **Service Account (SA)** - Recommended method
-2. **Programmatic Access Key (PAK)** - Legacy method
+1. **Service Account (SA)** - Recommended
+2. **Programmatic Access Key (PAK)**
 
-Credentials can be provided through:
-- AWS Secrets Manager (highest priority)
+Credentials can be provided through (in priority order):
+- AWS Secrets Manager
 - Provider attributes
 - Environment variables
 
-The provider will use the first available credentials source in the order listed above.
+The provider uses the first available credentials source.
 
 ### Service Account (Recommended)
 
-Service Accounts simplify authentication by eliminating the need to create new Atlas-specific user identities and permission credentials. See [Service Accounts Overview](https://www.mongodb.com/docs/atlas/api/service-accounts-overview/) and [MongoDB Atlas Service Account Limits](https://www.mongodb.com/docs/manual/reference/limits/#mongodb-atlas-service-account-limits) for more information.
+SAs simplify authentication by eliminating the need to create new Atlas-specific user identities and permission credentials. See [Service Accounts Overview](https://www.mongodb.com/docs/atlas/api/service-accounts-overview/) and [MongoDB Atlas Service Account Limits](https://www.mongodb.com/docs/manual/reference/limits/#mongodb-atlas-service-account-limits) for more information.
 
 ```terraform
 provider "mongodbatlas" {
@@ -31,13 +31,13 @@ provider "mongodbatlas" {
 }
 ```
 
-**Note:** Service Accounts can't be used with `mongodbatlas_event_trigger` resources as its API doesn't support it yet.
+**Note:** SAs can't be used with `mongodbatlas_event_trigger` resources as its API doesn't support it yet.
 
-### Programmatic Access Key (PAK)
+### Programmatic Access Key
 
-PAK is the legacy authentication method. You need to generate a Programmatic Access Key with the appropriate [role](https://docs.atlas.mongodb.com/reference/user-roles/). See [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/configure-api-access-org/) for instructions on creating and managing your keys.
+Generate a PAK with the appropriate [role](https://docs.atlas.mongodb.com/reference/user-roles/). See [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/configure-api-access-org/) for instructions.
 
-**Role recommendation:** If unsure of which role level to grant your key, we suggest creating an organization API Key with an Organization Owner role to ensure sufficient access for all actions.
+**Role recommendation:** If unsure which role to grant, use an organization API key with the Organization Owner role to ensure sufficient access.
 
 ```terraform
 provider "mongodbatlas" {
@@ -46,15 +46,17 @@ provider "mongodbatlas" {
 }
 ```
 
+**Migrating from PAK to SA:** To migrate from PAK to SA, simply update your provider attributes or environment variables to use SA credentials instead of PAK credentials, then run `terraform plan` to verify everything works correctly.
+
 ## AWS Secrets Manager
 
-AWS Secrets Manager helps manage, retrieve, and rotate credentials throughout their lifecycles. See [AWS Secrets Manager documentation](https://docs.aws.amazon.com/systems-manager/latest/userguide/what-is-systems-manager.html) for more details.
+AWS Secrets Manager helps manage, retrieve, and rotate credentials throughout their lifecycles. See [AWS Secrets Manager documentation](https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html) for more details.
 
 ### Setup Instructions
 
 1. **Create secrets in AWS Secrets Manager**
 
-   For Service Account:
+   For SA:
    ```json
    {
      "client_id": "your-client-id",
@@ -105,8 +107,7 @@ AWS Secrets Manager helps manage, retrieve, and rotate credentials throughout th
 
 ### Cross-Account and Cross-Region Access
 
-- For cross-account secrets, use fully qualified ARN for `secret_name`
-- For cross-region or cross-account access, `sts_endpoint` parameter is required
+For cross-account secrets, use the fully qualified ARN for `secret_name`. For cross-region or cross-account access, the `sts_endpoint` parameter is required.
 
 Example:
 ```terraform
@@ -124,11 +125,11 @@ provider "mongodbatlas" {
 
 ### Provider Arguments
 
-* `client_id` - (Optional) Service Account Client ID. Can also be set with the `MONGODB_ATLAS_CLIENT_ID` environment variable.
-* `client_secret` - (Optional) Service Account Client Secret. Can also be set with the `MONGODB_ATLAS_CLIENT_SECRET` environment variable.
-* `access_token` - (Optional) Service Account Access Token. Can also be set with the `MONGODB_ATLAS_ACCESS_TOKEN` environment variable. Note: tokens have expiration times.
-* `public_key` - (Optional) MongoDB Atlas Programmatic Access Key Public Key. Can also be set with the `MONGODB_ATLAS_PUBLIC_API_KEY` environment variable.
-* `private_key` - (Optional) MongoDB Atlas Programmatic Access Key Private Key. Can also be set with the `MONGODB_ATLAS_PRIVATE_API_KEY` environment variable.
+* `client_id` - (Optional) SA Client ID. Can also be set with the `MONGODB_ATLAS_CLIENT_ID` environment variable.
+* `client_secret` - (Optional) SA Client Secret. Can also be set with the `MONGODB_ATLAS_CLIENT_SECRET` environment variable.
+* `access_token` - (Optional) SA Access Token. Can also be set with the `MONGODB_ATLAS_ACCESS_TOKEN` environment variable. Note: tokens have expiration times.
+* `public_key` - (Optional) PAK Public Key. Can also be set with the `MONGODB_ATLAS_PUBLIC_API_KEY` environment variable.
+* `private_key` - (Optional) PAK Private Key. Can also be set with the `MONGODB_ATLAS_PRIVATE_API_KEY` environment variable.
 * `base_url` - (Optional) MongoDB Atlas Base URL. Can also be set with the `MONGODB_ATLAS_BASE_URL` environment variable. For advanced use cases, you can configure custom API endpoints:
   ```terraform
   provider "mongodbatlas" {
@@ -145,7 +146,7 @@ provider "mongodbatlas" {
     realm_base_url  = "https://custom-realm-api.example.com"
   }
   ```
-* `is_mongodbgov_cloud` - (Optional) Set to true to use MongoDB Atlas for Government. MongoDB Atlas for Government is a dedicated deployment option for government agencies and contractors requiring FedRAMP compliance. MongoDB Atlas for Government uses different API endpoints than standard MongoDB Atlas. Ensure your credentials are created in the MongoDB Atlas for Government environment. Not all features available in standard MongoDB Atlas may be available in the Government environment. See [Atlas for Government Considerations](https://www.mongodb.com/docs/atlas/government/api/#atlas-for-government-considerations) for detailed information about limitations and requirements.
+* `is_mongodbgov_cloud` - (Optional) Set to `true` to use MongoDB Atlas for Government, a dedicated deployment option for government agencies and contractors requiring FedRAMP compliance. When enabled, the provider uses government-specific API endpoints. Ensure credentials are created in the government environment. See [Atlas for Government Considerations](https://www.mongodb.com/docs/atlas/government/api/#atlas-for-government-considerations) for feature limitations and requirements.
   ```terraform
   provider "mongodbatlas" {
     client_id           = var.mongodbatlas_client_id
@@ -172,7 +173,7 @@ provider "mongodbatlas" {
   # OR use access token
   # access_token = var.mongodbatlas_access_token
 
-  # OR use PAK (legacy)
+  # OR use PAK
   # public_key  = var.mongodbatlas_public_key
   # private_key = var.mongodbatlas_private_key
 
@@ -194,9 +195,7 @@ provider "mongodbatlas" {
 
 ## Credential Priority and Warnings
 
-If multiple credentials are provided in the same source, the provider will:
-1. Display a warning about multiple credentials
-2. Use credentials in this priority order: Access Token → Service Account → PAK
+If multiple credentials are provided in the same source, the provider displays a warning and uses credentials in this priority order: Access Token → SA → PAK.
 
 Example warning messages:
 - "Access Token will be used although Service Account is also set"
@@ -204,13 +203,12 @@ Example warning messages:
 
 ## Security Best Practices
 
-- **Never hard-code credentials** in your Terraform configuration files
+- Never hard-code credentials in Terraform configuration files
 - Use environment variables or a secrets management system
-- Regularly rotate your credentials
-- Use the principle of least privilege when assigning roles
-- Consider the risks of inadvertently committing secrets to version control
+- Regularly rotate credentials
+- Apply the principle of least privilege when assigning roles
 - Use Terraform's `sensitive` attribute for credential variables
-- Consider using Terraform Cloud or Enterprise for secure variable storage
+- Consider Terraform Cloud or Enterprise for secure variable storage
 
 ## Troubleshooting
 
@@ -231,7 +229,7 @@ Example warning messages:
    ```
 
 3. **Verify permissions**
-   - Ensure your Service Account or PAK has appropriate organization/project roles
+   - Ensure your SA or PAK has appropriate organization/project roles
    - Check IP access list configuration if using PAK
 
 4. **Common error messages and solutions**
