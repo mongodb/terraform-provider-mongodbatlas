@@ -8,7 +8,7 @@ The following [knowledge hub article](https://kb.corp.mongodb.com/article/000021
 
 ## Dependencies
 
-* Terraform MongoDB Atlas Provider v1.29.0
+* Terraform MongoDB Atlas Provider v2.0.0 or later
 * A MongoDB Atlas account 
 
 ```

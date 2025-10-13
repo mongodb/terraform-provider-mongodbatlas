@@ -4,7 +4,7 @@ This example creates a project and a Multi Cloud Advanced Cluster with 2 shards.
 
 ## Dependencies
 
-* Terraform MongoDB Atlas Provider v1.29.0
+* Terraform MongoDB Atlas Provider v2.0.0 or later
 * A MongoDB Atlas account 
 
 ```

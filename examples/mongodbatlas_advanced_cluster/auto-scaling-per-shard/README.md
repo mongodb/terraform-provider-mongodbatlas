@@ -7,7 +7,7 @@ If you are migrating from v1.x of our provider to v2.0.0 or later, the `v1.x.x/`
 
 ## Dependencies
 
-* Terraform MongoDB Atlas Provider v1.29.0
+* Terraform MongoDB Atlas Provider v2.0.0 or later
 * A MongoDB Atlas account 
 
 ```
