@@ -1,4 +1,4 @@
-name: 'Generate resource checks'
+name: 'Check auto-generated resources'
 
 # Set of validations run on each pull request and merged commits to master.
 on:
@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  generate-resource-check:
+  check-autogen-resources:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
