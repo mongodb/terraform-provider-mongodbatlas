@@ -166,7 +166,7 @@ func TestAccStreamRSStreamConnection_kafkaNetworkingVPC(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: networkPeeringConfig + configureKafka("mongodbatlas_network_peering.test.project_id", instanceName, "kafka-conn-vpc", getKafkaAuthenticationConfig("PLAIN", "user2", "otherpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingVPC, true),
-				Check:  checkKafkaAttributes(resourceName, instanceName, "kafka-conn-vpc", "user", "rawpassword", "localhost:9092", "earliest", networkingTypeVPC, true, true),
+				Check:  checkKafkaAttributes(resourceName, instanceName, "kafka-conn-vpc", "user2", "otherpassword", "localhost:9092", "earliest", networkingTypeVPC, true, true),
 			},
 			{
 				ResourceName:            resourceName,
@@ -198,8 +198,8 @@ func TestAccStreamRSStreamConnection_kafkaSSL(t *testing.T) {
 			{
 				Config: fmt.Sprintf("%s\n%s", configureKafka(fmt.Sprintf("%q", projectID), instanceName, "kafka-conn-ssl", getKafkaAuthenticationConfig("PLAIN", "user2", "otherpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingPublic, true), dataSourceConfig),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkKafkaAttributes(resourceName, instanceName, "kafka-conn-ssl", "user", "rawpassword", "localhost:9092", "earliest", networkingTypePublic, true, true),
-					checkKafkaAttributes(dataSourceName, instanceName, "kafka-conn-ssl", "user", "rawpassword", "localhost:9092", "earliest", networkingTypePublic, true, false),
+					checkKafkaAttributes(resourceName, instanceName, "kafka-conn-ssl", "user2", "otherpassword", "localhost:9092", "earliest", networkingTypePublic, true, true),
+					checkKafkaAttributes(dataSourceName, instanceName, "kafka-conn-ssl", "user2", "otherpassword", "localhost:9092", "earliest", networkingTypePublic, true, false),
 				),
 			},
 			// cannot change networking access type once set
@@ -362,7 +362,7 @@ func TestAccStreamPrivatelinkEndpoint_streamConnection(t *testing.T) {
 					%[1]s
 					%[2]s
 				`, privatelinkConfig, configureKafka(fmt.Sprintf("%q", projectID), instanceName, "kafka-conn-privatelink", getKafkaAuthenticationConfig("PLAIN", "user2", "otherpassword", "", "", "", "", "", ""), "localhost:9092", "earliest", kafkaNetworkingPrivatelink, true)),
-				Check: checkKafkaAttributes(resourceName, instanceName, "kafka-conn-privatelink", "user", "rawpassword", "localhost:9092", "earliest", networkingTypePrivatelink, true, true),
+				Check: checkKafkaAttributes(resourceName, instanceName, "kafka-conn-privatelink", "user2", "otherpassword", "localhost:9092", "earliest", networkingTypePrivatelink, true, true),
 			},
 			{
 				ResourceName:            resourceName,
