@@ -151,7 +151,6 @@ The provider displays a warning when multiple credentials are detected.
 - Regularly rotate credentials
 - Apply the principle of least privilege when assigning roles
 - Use Terraform's `sensitive` attribute for credential variables
-- Consider Terraform Cloud or Enterprise for secure variable storage
 
 ## Supported OS and Architectures
 

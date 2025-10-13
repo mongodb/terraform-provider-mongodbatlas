@@ -14,28 +14,32 @@ This example shows how to set up the MongoDB Atlas provider and create a cluster
 provider "mongodbatlas" {}
 
 # Create a project
-resource "mongodbatlas_project" "test" {
-  name   = "test-project"
+resource "mongodbatlas_project" "this" {
+  name   = "my-project"
   org_id = var.org_id
 }
 
 # Create a cluster
-resource "mongodbatlas_advanced_cluster" "test" {
-  project_id = mongodbatlas_project.test.id
-  name       = "test-cluster"
+resource "mongodbatlas_advanced_cluster" "this" {
+  project_id   = mongodbatlas_project.this.id
+  name         = "my-cluster"
   cluster_type = "REPLICASET"
 
-  replication_specs {
-    region_configs {
-      region_name     = "US_EAST_1"
-      priority        = 7
-      provider_name   = "AWS"
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 3
-      }
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          region_name   = "US_EAST_1"
+          priority      = 7
+          provider_name = "AWS"
+          electable_specs = {
+            instance_size = "M10"
+            node_count    = 3
+          }
+        }
+      ]
     }
-  }
+  ]
 }
 ```
 
@@ -48,9 +52,7 @@ export MONGODB_ATLAS_CLIENT_ID="your-client-id"
 export MONGODB_ATLAS_CLIENT_SECRET="your-client-secret"
 ```
 
-**Migrating from PAK to SA:** To migrate from PAK to SA, simply update your provider attributes or environment variables to use SA credentials instead of PAK credentials, then run `terraform plan` to verify everything works correctly.
-
-For detailed authentication configuration including SA, PAK, AWS Secrets Manager integration, and MongoDB Atlas for Government, see the [Provider Configuration Guide](guides/provider-configuration).
+For detailed authentication configuration including Programmatic Access Key (PAK), AWS Secrets Manager integration, and MongoDB Atlas for Government, see the [Provider Configuration Guide](guides/provider-configuration).
 
 ## Version Requirements
 
@@ -96,7 +98,7 @@ Breaking Changes and Deprecation:
 
 For complete details including breaking changes policy and deprecation guidelines, see the [full versioning policy](#mongodb-atlas-provider-versioning-policy-full-details) below.
 
-## HashiCorp Terraform Version Compatibility Matrix
+## [HashiCorp Terraform Version](https://www.terraform.io/downloads.html) Compatibility Matrix
 
 <!-- DO NOT remove below placeholder comments as this table is auto-generated -->
 <!-- MATRIX_PLACEHOLDER_START -->
