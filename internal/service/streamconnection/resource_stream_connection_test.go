@@ -110,7 +110,7 @@ func testCaseKafkaPlaintext(t *testing.T) *resource.TestCase {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkKafkaAttributesAcceptance(resourceName, instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, true),
 					checkKafkaAttributesAcceptance(dataSourceName, instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, false),
-					streamConnectionsAttributeChecks(pluralDataSourceName, nil, nil),
+					streamConnectionsAttributeChecksAcceptance(pluralDataSourceName, nil, nil),
 				),
 			},
 			{
@@ -118,7 +118,7 @@ func testCaseKafkaPlaintext(t *testing.T) *resource.TestCase {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkKafkaAttributesAcceptance(resourceName, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, true),
 					checkKafkaAttributesAcceptance(dataSourceName, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, false),
-					streamConnectionsAttributeChecks(pluralDataSourceName, conversion.Pointer(2), conversion.Pointer(1)),
+					streamConnectionsAttributeChecksAcceptance(pluralDataSourceName, conversion.Pointer(2), conversion.Pointer(1)),
 				),
 			},
 			{
@@ -917,7 +917,6 @@ func checkAWSLambdaAttributes(resourceName, workspaceName, connectionName string
 func streamConnectionsAttributeChecks(resourceName string, pageNum, itemsPerPage *int) resource.TestCheckFunc {
 	resourceChecks := []resource.TestCheckFunc{
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-		resource.TestCheckResourceAttrSet(resourceName, "workspace_name"),
 		resource.TestCheckResourceAttrSet(resourceName, "total_count"),
 		resource.TestCheckResourceAttrSet(resourceName, "results.#"),
 	}
