@@ -4,7 +4,7 @@ page_title: "Provider Configuration"
 
 # Provider Configuration
 
-This guide provides information about configuring the MongoDB Atlas Provider, including authentication methods, environment configuration, and special deployment scenarios.
+This guide covers authentication and configuration options for the MongoDB Atlas Provider.
 
 ## Authentication Methods
 
@@ -46,11 +46,11 @@ provider "mongodbatlas" {
 }
 ```
 
-**Migrating from PAK to SA:** To migrate from PAK to SA, simply update your provider attributes or environment variables to use SA credentials instead of PAK credentials, then run `terraform plan` to verify everything works correctly.
+~> **Migrating from PAK to SA:** Update your provider attributes or environment variables to use SA credentials instead of PAK credentials, then run `terraform plan` to verify everything works correctly.
 
 ## AWS Secrets Manager
 
-AWS Secrets Manager helps manage, retrieve, and rotate credentials throughout their lifecycles. See [AWS Secrets Manager documentation](https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html) for more details.
+The provider supports retrieving credentials from AWS Secrets Manager. See [AWS Secrets Manager documentation](https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html) for more details.
 
 ### Setup Instructions
 
@@ -125,12 +125,12 @@ provider "mongodbatlas" {
 
 ### Provider Arguments
 
-* `client_id` - (Optional) SA Client ID. Can also be set with the `MONGODB_ATLAS_CLIENT_ID` environment variable.
-* `client_secret` - (Optional) SA Client Secret. Can also be set with the `MONGODB_ATLAS_CLIENT_SECRET` environment variable.
-* `access_token` - (Optional) SA Access Token. Can also be set with the `MONGODB_ATLAS_ACCESS_TOKEN` environment variable. Note: tokens have expiration times.
-* `public_key` - (Optional) PAK Public Key. Can also be set with the `MONGODB_ATLAS_PUBLIC_API_KEY` environment variable.
-* `private_key` - (Optional) PAK Private Key. Can also be set with the `MONGODB_ATLAS_PRIVATE_API_KEY` environment variable.
-* `base_url` - (Optional) MongoDB Atlas Base URL. Can also be set with the `MONGODB_ATLAS_BASE_URL` environment variable. For advanced use cases, you can configure custom API endpoints:
+* `client_id` - (Optional) SA Client ID (env: `MONGODB_ATLAS_CLIENT_ID`).
+* `client_secret` - (Optional) SA Client Secret (env: `MONGODB_ATLAS_CLIENT_SECRET`).
+* `access_token` - (Optional) SA Access Token (env: `MONGODB_ATLAS_ACCESS_TOKEN`). Instead of using Client ID and Client Secret, you can generate and use an SA token directly. See [Generate Service Account Token](https://www.mongodb.com/docs/atlas/api/service-accounts/generate-oauth2-token/#std-label-generate-oauth2-token-atlas) for details. Note: tokens have expiration times.
+* `public_key` - (Optional) PAK Public Key (env: `MONGODB_ATLAS_PUBLIC_API_KEY`).
+* `private_key` - (Optional) PAK Private Key (env: `MONGODB_ATLAS_PRIVATE_API_KEY`).
+* `base_url` - (Optional) MongoDB Atlas Base URL (env: `MONGODB_ATLAS_BASE_URL`). For advanced use cases, you can configure custom API endpoints:
   ```terraform
   provider "mongodbatlas" {
     client_id     = var.mongodbatlas_client_id
@@ -138,7 +138,7 @@ provider "mongodbatlas" {
     base_url      = "https://custom-atlas-api.example.com"
   }
   ```
-* `realm_base_url` - (Optional) MongoDB Realm Base URL. Can also be set with the `MONGODB_REALM_BASE_URL` environment variable. For advanced use cases, you can configure custom Realm API endpoints:
+* `realm_base_url` - (Optional) MongoDB Realm Base URL (env: `MONGODB_REALM_BASE_URL`). For advanced use cases, you can configure custom Realm API endpoints:
   ```terraform
   provider "mongodbatlas" {
     client_id       = var.mongodbatlas_client_id
@@ -154,52 +154,23 @@ provider "mongodbatlas" {
     is_mongodbgov_cloud = true
   }
   ```
-* `assume_role` - (Optional) AWS IAM role configuration for accessing secrets in AWS Secrets Manager. See [AWS Secrets Manager](#aws-secrets-manager) section for details.
-* `secret_name` - (Optional) Name of the secret in AWS Secrets Manager.
-* `region` - (Optional) AWS region where the secret is stored.
-* `aws_access_key_id` - (Optional) AWS Access Key ID. Can also be set with the `AWS_ACCESS_KEY_ID` environment variable.
-* `aws_secret_access_key` - (Optional) AWS Secret Access Key. Can also be set with the `AWS_SECRET_ACCESS_KEY` environment variable.
-* `aws_session_token` - (Optional) AWS Session Token. Can also be set with the `AWS_SESSION_TOKEN` environment variable.
-* `sts_endpoint` - (Optional) AWS STS endpoint. Can also be set with the `STS_ENDPOINT` environment variable.
+* `assume_role` - (Optional) AWS IAM role configuration for accessing secrets in AWS Secrets Manager. Role ARN env: `ASSUME_ROLE_ARN`. See [AWS Secrets Manager](#aws-secrets-manager) section for details.
+* `secret_name` - (Optional) Name of the secret in AWS Secrets Manager (env: `SECRET_NAME`).
+* `region` - (Optional) AWS region where the secret is stored (env: `AWS_REGION`).
+* `aws_access_key_id` - (Optional) AWS Access Key ID (env: `AWS_ACCESS_KEY_ID`).
+* `aws_secret_access_key` - (Optional) AWS Secret Access Key (env: `AWS_SECRET_ACCESS_KEY`).
+* `aws_session_token` - (Optional) AWS Session Token (env: `AWS_SESSION_TOKEN`).
+* `sts_endpoint` - (Optional) AWS STS endpoint (env: `STS_ENDPOINT`).
 
-### Complete Provider Configuration Example
+## Credential Priority
 
-```terraform
-provider "mongodbatlas" {
-  # Authentication (choose one method)
-  client_id     = var.mongodbatlas_client_id
-  client_secret = var.mongodbatlas_client_secret
+When multiple credentials are provided in the same source, the provider uses this priority order:
 
-  # OR use access token
-  # access_token = var.mongodbatlas_access_token
+1. Access Token
+2. Service Account (SA)
+3. Programmatic Access Key (PAK)
 
-  # OR use PAK
-  # public_key  = var.mongodbatlas_public_key
-  # private_key = var.mongodbatlas_private_key
-
-  # Optional: MongoDB Atlas for Government
-  # is_mongodbgov_cloud = true
-
-  # Optional: Custom endpoints
-  # base_url      = "https://custom-atlas-api.example.com"
-  # realm_base_url = "https://custom-realm-api.example.com"
-
-  # Optional: AWS Secrets Manager configuration
-  # assume_role {
-  #   role_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/mdbsts"
-  # }
-  # secret_name = "mongodbsecret"
-  # region      = "us-east-2"
-}
-```
-
-## Credential Priority and Warnings
-
-If multiple credentials are provided in the same source, the provider displays a warning and uses credentials in this priority order: Access Token → SA → PAK.
-
-Example warning messages:
-- "Access Token will be used although Service Account is also set"
-- "Service Account will be used although API Key is also set"
+The provider displays a warning when multiple credentials are detected.
 
 ## Security Best Practices
 
@@ -209,39 +180,6 @@ Example warning messages:
 - Apply the principle of least privilege when assigning roles
 - Use Terraform's `sensitive` attribute for credential variables
 - Consider Terraform Cloud or Enterprise for secure variable storage
-
-## Troubleshooting
-
-### Authentication Issues
-
-1. **Verify credentials are correctly set**
-   ```shell
-   # Check environment variables
-   echo $MONGODB_ATLAS_CLIENT_ID
-   echo $MONGODB_ATLAS_CLIENT_SECRET
-   ```
-
-2. **Check provider configuration**
-   ```shell
-   # Enable debug logging
-   export TF_LOG=DEBUG
-   terraform plan
-   ```
-
-3. **Verify permissions**
-   - Ensure your SA or PAK has appropriate organization/project roles
-   - Check IP access list configuration if using PAK
-
-4. **Common error messages and solutions**
-   - `401 Unauthorized`: Check credentials are correct and not expired
-   - `403 Forbidden`: Verify account has necessary permissions
-   - `IP not on access list`: Add your IP to the API access list (PAK only)
-
-### MongoDB Atlas for Government Issues
-
-- Ensure `is_mongodbgov_cloud = true` is set in provider configuration
-- Verify credentials are from the Government environment, not commercial Atlas
-- Check that requested resources are available in Atlas for Government
 
 ## Supported OS and Architectures
 

@@ -50,7 +50,7 @@ export MONGODB_ATLAS_CLIENT_SECRET="your-client-secret"
 
 **Migrating from PAK to SA:** To migrate from PAK to SA, simply update your provider attributes or environment variables to use SA credentials instead of PAK credentials, then run `terraform plan` to verify everything works correctly.
 
-For additional authentication methods including Programmatic Access Keys (PAK), AWS Secrets Manager integration, MongoDB Atlas for Government configuration, and all provider options, see the [Provider Configuration Guide](guides/provider-configuration).
+For detailed authentication configuration including SA, PAK, AWS Secrets Manager integration, and MongoDB Atlas for Government, see the [Provider Configuration Guide](guides/provider-configuration).
 
 ## Version Requirements
 
