@@ -335,10 +335,10 @@ func TestAccStreamRSStreamConnection_sample(t *testing.T) {
 
 func TestAccStreamStreamConnection_https(t *testing.T) {
 	var (
-		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		url                     = "https://example.com"
-		updatedURL              = "https://example2.com"
-		headerStr               = `headers = {
+		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		url                      = "https://example.com"
+		updatedURL               = "https://example2.com"
+		headerStr                = `headers = {
 			Authorization = "Bearer token"
 			key1 = "value1"
 		}`
@@ -353,26 +353,26 @@ func TestAccStreamStreamConnection_https(t *testing.T) {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: configureHTTPS(projectID, instanceName, url, headerStr),
+				Config: configureHTTPS(projectID, workspaceName, url, headerStr),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkHTTPSAttributes(instanceName, url),
+					checkHTTPSAttributes(workspaceName, url),
 					resource.TestCheckResourceAttr(resourceName, "headers.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "headers.Authorization", "Bearer token"),
 					resource.TestCheckResourceAttr(resourceName, "headers.key1", "value1"),
 				),
 			},
 			{
-				Config: configureHTTPS(projectID, instanceName, updatedURL, updatedHeaderStr),
+				Config: configureHTTPS(projectID, workspaceName, updatedURL, updatedHeaderStr),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkHTTPSAttributes(instanceName, updatedURL),
+					checkHTTPSAttributes(workspaceName, updatedURL),
 					resource.TestCheckResourceAttr(resourceName, "headers.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "headers.updatedKey", "updatedValue"),
 				),
 			},
 			{
-				Config: configureHTTPS(projectID, instanceName, updatedURL, emptyHeaders),
+				Config: configureHTTPS(projectID, workspaceName, updatedURL, emptyHeaders),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkHTTPSAttributes(instanceName, updatedURL),
+					checkHTTPSAttributes(workspaceName, updatedURL),
 					resource.TestCheckResourceAttr(resourceName, "headers.%", "0"),
 				),
 			},
@@ -702,7 +702,7 @@ func checkKafkaAttributesAcceptance(
 	return resource.ComposeAggregateTestCheckFunc(commonTests, resource.TestCheckResourceAttr(resourceName, "workspace_name", workspaceName))
 }
 
-func configureCluster(projectID, s, connectionName, clusterName string) string {
+func configureCluster(projectID, workspaceName, connectionName, clusterName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_connection" "test" {
 		    project_id = %[1]q
@@ -715,7 +715,7 @@ func configureCluster(projectID, s, connectionName, clusterName string) string {
 				type = "BUILT_IN"
 			}
 		}
-	`, projectID, instanceName, connectionName, clusterName)
+	`, projectID, workspaceName, connectionName, clusterName)
 }
 
 // configureClusterMigration uses instance_name for compatibility with older provider versions
@@ -735,7 +735,7 @@ func configureClusterMigration(projectID, instanceName, connectionName, clusterN
 	`, projectID, instanceName, connectionName, clusterName)
 }
 
-func configureHTTPS(projectID, instanceName, url, headers string) string {
+func configureHTTPS(projectID, workspaceName, url, headers string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_connection" "test" {
 			project_id = %[1]q
@@ -751,7 +751,7 @@ func configureHTTPS(projectID, instanceName, url, headers string) string {
 			workspace_name = %[2]q
 			connection_name = mongodbatlas_stream_connection.test.connection_name
 		}
-	`, projectID, instanceName, url, headers)
+	`, projectID, workspaceName, url, headers)
 }
 
 func checkClusterAttributes(resourceName, clusterName string) resource.TestCheckFunc {
