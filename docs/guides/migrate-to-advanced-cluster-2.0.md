@@ -176,4 +176,4 @@ After you upgrade to v2.0.0+ from v1.x.x, when you run `terraform plan`, syntax 
 
 ## Important notes
 
-Please refer to our [Considerations and Best Practices](#considerations-and-best-practices) section for additional guidance on this resource.
+Please refer to our [Considerations and Best Practices](../resources/advanced_cluster.md#considerations-and-best-practices) section for additional guidance on this resource.

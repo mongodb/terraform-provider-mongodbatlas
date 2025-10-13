@@ -2,7 +2,7 @@
 
 This example creates a project and a Sharded Cluster with 4 independent shards with varying cluster tiers. 
 
-_**NOTE:** If you are migrating from v1.x of our provider, the `v1.x.x/` sub-directory shows how your current configuration might look like (with added inline comments to demonstrate what has changed in v2.0.0+ for migration reference)._
+_**NOTE:** If you are migrating from v1.x of our provider, the `v1.x.x/` sub-directory shows how your current configuration might look like (with added inline comments to demonstrate what has changed for migration reference)._
 
 ## Dependencies
 
