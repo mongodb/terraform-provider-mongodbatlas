@@ -56,21 +56,13 @@ The provider supports retrieving credentials from AWS Secrets Manager. See [AWS 
 
 1. **Create secrets in AWS Secrets Manager**
 
-   For SA:
-   ```json
-   {
-     "client_id": "your-client-id",
-     "client_secret": "your-client-secret"
-   }
-   ```
+   For SA, create a secret with the following key-value pairs:
+   - `client_id`: your-client-id
+   - `client_secret`: your-client-secret
 
-   For PAK:
-   ```json
-   {
-     "public_key": "your-public-key",
-     "private_key": "your-private-key"
-   }
-   ```
+   For PAK, create a secret with the following key-value pairs:
+   - `public_key`: your-public-key
+   - `private_key`: your-private-key
 
 2. **Create an IAM Role** with:
    - Permission for `sts:AssumeRole`
@@ -91,34 +83,28 @@ The provider supports retrieving credentials from AWS Secrets Manager. See [AWS 
    ```shell
    export AWS_ACCESS_KEY_ID='<STS_ACCESS_KEY_ID>'
    export AWS_SECRET_ACCESS_KEY='<STS_SECRET_ACCESS_KEY>'
-   export AWS_SESSION_TOKEN="<STS_SESSION_TOKEN>"
+   export AWS_SESSION_TOKEN='<STS_SESSION_TOKEN>'
    ```
 
-6. **Configure the provider**
-   ```terraform
-   provider "mongodbatlas" {
-     assume_role {
-       role_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/mdbsts"
-     }
-     secret_name = "mongodbsecret"
-     region      = "us-east-2"
-   }
+6. **Set provider configuration via environment variables**
+   ```shell
+   export ASSUME_ROLE_ARN='arn:aws:iam::<AWS_ACCOUNT_ID>:role/mdbsts'
+   export SECRET_NAME='mongodbsecret'
+   export AWS_REGION='us-east-2'
    ```
+
+Alternatively, you can configure these settings using provider attributes instead of environment variables.
 
 ### Cross-Account and Cross-Region Access
 
 For cross-account secrets, use the fully qualified ARN for `secret_name`. For cross-region or cross-account access, the `sts_endpoint` parameter is required.
 
-Example:
-```terraform
-provider "mongodbatlas" {
-  assume_role {
-    role_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/mdbsts"
-  }
-  secret_name  = "arn:aws:secretsmanager:us-east-1:<AWS_ACCOUNT_ID>:secret:test789-TO06Hy"
-  region       = "us-east-2"
-  sts_endpoint = "https://sts.us-east-2.amazonaws.com/"
-}
+Example with environment variables:
+```shell
+export ASSUME_ROLE_ARN='arn:aws:iam::<AWS_ACCOUNT_ID>:role/mdbsts'
+export SECRET_NAME='arn:aws:secretsmanager:us-east-1:<AWS_ACCOUNT_ID>:secret:test789-TO06Hy'
+export AWS_REGION='us-east-2'
+export STS_ENDPOINT='https://sts.us-east-2.amazonaws.com/'
 ```
 
 ## Provider Configuration Reference
