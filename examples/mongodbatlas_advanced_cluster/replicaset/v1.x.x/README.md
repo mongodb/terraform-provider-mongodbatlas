@@ -1,33 +1,14 @@
-# MongoDB Atlas Provider -- Advanced Cluster Tenant Upgrade
+# Upgrade `mongodbatlas_advanced_cluster` v1.x → v2.0.0 (Replicaset)
 
-This example creates a project and cluster. It is intended to show how to upgrade from shared, aka tenant, to dedicated tier.
+This directory contains the deprecated v1.x schema version of the Replica Set example for migration reference.
+Refer the `main.tf` in the parent directory (`../`) that shows what the corresponding configuration should look like after upgrading to provider v2.0.0+.
 
-Variables Required:
-- `atlas_org_id`: ID of the Atlas organization
-- `public_key`: Atlas public key
-- `private_key`: Atlas  private key
-- `provider_name`: Name of provider to use for cluster (TENANT, AWS, GCP)
-- `backing_provider_name`: If provider_name is tenant, the backing provider (AWS, GCP)
-- `provider_instance_size_name`: Size of the cluster (Free: M0, Dedicated: M10+.)
+**For details & to learn how to migrate, review the complete [Migration Guide: Advanced Cluster (v1.x → v2.0.0)](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/migrate-to-advanced-cluster-2.0#how-to-migrate)**
 
-For this example, first we'll start out on the shared tier, then upgrade to a dedicated tier.
-
-Utilize the following to execute a working example, replacing the org id, public and private key with your values:
-
-Apply with the following `terraform.tfvars` to first create a shared tier cluster:
-```
-atlas_org_id                = <ATLAS_ORG_ID>
-public_key                  = <ATLAS_PUBLIC_KEY>
-private_key                 = <ATLAS_PRIVATE_KEY>
-provider_name               = "TENANT"
-backing_provider_name       = "AWS"
-provider_instance_size_name = "M0"
-```
-
-Apply with the following `terraform.tfvars` to upgrade the shared tier cluster you just created to dedicated tier:
-```
-atlas_org_id                = <ATLAS_ORG_ID>
-public_key                  = <ATLAS_PUBLIC_KEY>
-private_key                 = <ATLAS_PRIVATE_KEY>
-provider_name               = "AWS"
-provider_instance_size_name = "M10"
+## Key changes in v2.0.0
+- `replication_specs` becomes a list of objects (was a block in v1.x).
+- `region_configs` becomes a list of objects (was a block in v1.x).
+- `electable_specs` becomes an attribute (was a nested block in v1.x).
+- `tags` becomes a map attribute (was a block in v1.x).
+- **If previously using** `num_shards`, it has been removed in v2.0.0; sharded layouts use multiple `replication_specs` entries instead.
+- Some references may drop `[0]` or `.0` indexing because nested objects are no longer lists.

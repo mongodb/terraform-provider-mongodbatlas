@@ -1,6 +1,8 @@
-# MongoDB Atlas Provider -- Sharded Cluster with Independent Shard Auto-scaling
+# MongoDB Atlas Provider — Sharded Cluster with Independent Shard Auto-scaling
 
 This example creates a Sharded Cluster with 2 shards defining electable and analytics nodes. Compute auto-scaling is enabled for both `electable_specs` and `analytics_specs`, while also leveraging the [New Sharding Configuration](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema) by defining each shard with its individual `replication_specs`. This enables scaling of each shard to be independent. Please reference the [Use Auto-Scaling Per Shard](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema#use-auto-scaling-per-shard) section for more details.
+
+_NOTE: If you are migrating from v1.x of our provider, the `v1.x.x/` sub-directory shows how your current configuration might look like (with added inline comments to demonstrate what has changed in v2.0.0+ for migration reference)._ 
 
 ## Dependencies
 

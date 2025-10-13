@@ -12,5 +12,5 @@ Refer the `main.tf` in the parent directory (`../`) that shows what the correspo
  - `advanced_configuration` becomes an attribute (was a block in v1.x).
  - `tags` becomes an attribute (was a block in v1.x).
  - Per-shard configuration remains explicit and can vary (e.g., different `instance_size` per shard).
-- `disk_size_gb` moves into the inner specs (for example, `electable_specs.disk_size_gb`).
-- Some references drop `[0]` or `.0` indexing because objects are no longer lists but singular attributes (e.g., `replication_specs[0].region_configs[0].electable_specs.disk_size_gb`).
+ - `disk_size_gb` moves into the inner specs (for example, `electable_specs.disk_size_gb`).
+ - Some references drop `[0]` or `.0` indexing because objects are no longer lists but singular attributes (e.g., `replication_specs[0].region_configs[0].electable_specs.disk_size_gb`).

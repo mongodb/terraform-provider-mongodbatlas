@@ -13,8 +13,9 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   disk_size_gb   = 10 # removed in v2.0.0+, this can now be set per shard for inner specs
 
   # replication_specs are updated to a list of objects instead of blocks in v2.0.0+
-  replication_specs { # shard 1 - M30 instance size
+  replication_specs {
 
+    # this cluster has 2 M30 shards
     # num_shards has been removed in v2.0.0+, upgrading to v2.0.0+ will require adding a new identical `replication_specs` element for each shard
     # refer https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema for details.
     num_shards = 2
@@ -29,23 +30,8 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
       priority      = 7
       region_name   = "EU_WEST_1"
     }
+    zone_name = "zone n1"
   }
-
-  replication_specs { # shard 3 - M40 instance size
-    num_shards = 2
-
-    region_configs {
-      electable_specs {
-        instance_size = "M40"
-        disk_iops     = 3000
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }
-  }
-
   advanced_configuration { # advanced_configuration are updated to an attribute instead of a block in v2.0.0+
     javascript_enabled                   = true
     oplog_size_mb                        = 999
@@ -59,6 +45,6 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 }
 
 resource "mongodbatlas_project" "project" {
-  name   = "Asymmetric Sharded Cluster"
+  name   = "Symmetric Geosharded Cluster"
   org_id = var.atlas_org_id
 }
