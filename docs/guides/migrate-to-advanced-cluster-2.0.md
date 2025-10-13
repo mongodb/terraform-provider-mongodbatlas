@@ -23,10 +23,10 @@ Use this guide if any of the following applies to you:
   → Follow this guide to complete the migration to the final v2.0.0 schema, which aligns with the new stable release format.
 
 If you are still using the deprecated `mongodbatlas_cluster` resource:  
-→ See [Cluster → Advanced Cluster Migration Guide](./cluster-to-advanced-cluster-migration-guide).
+→ See [Cluster → Advanced Cluster Migration Guide](cluster-to-advanced-cluster-migration-guide).
 
 If you want to understand the new sharding configurations that enables independent shard scaling:  
-→ See [Advanced Cluster New Sharding Schema](./advanced-cluster-new-sharding-schema).
+→ See [Advanced Cluster New Sharding Schema](advanced-cluster-new-sharding-schema).
 
 ---
 

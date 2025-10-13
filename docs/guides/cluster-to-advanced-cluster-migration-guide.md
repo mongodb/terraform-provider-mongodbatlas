@@ -14,13 +14,13 @@ This guide is intended for **customers using the deprecated `mongodbatlas_cluste
 If you are already using the `mongodbatlas_advanced_cluster` resource, determine which case applies to you:
 
 - **You currently use the legacy schema** (your configuration uses `num_shards`, `disk_size_gb` at the root, or block-based `tags`, `advanced_configuration`,`replication_specs` etc):  
-  → Follow [Migrate to Advanced Cluster 2.0](./migrate-to-advanced-cluster-2.0) with the latest schema updates to upgrade to our 2.0.0 and later versions.
+  → Follow [Migrate to Advanced Cluster 2.0](migrate-to-advanced-cluster-2.0) with the latest schema updates to upgrade to our 2.0.0 and later versions.
 
 - **You currently use v1.x.x of our provider and want to upgrade to version 2.0.0 or later**:  
-  → Follow [Migrate to Advanced Cluster 2.0](./migrate-to-advanced-cluster-2.0) for the latest schema updates to upgrade to our 2.0.0 and later versions.
+  → Follow [Migrate to Advanced Cluster 2.0](migrate-to-advanced-cluster-2.0) for the latest schema updates to upgrade to our 2.0.0 and later versions.
 
 - **You want to understand the new sharding model that allows you to scale shards independently** (how multiple `replication_specs` replace `num_shards`):  
-  → See [Advanced Cluster New Sharding Schema](./advanced-cluster-new-sharding-schema).
+  → See [Advanced Cluster New Sharding Schema](advanced-cluster-new-sharding-schema).
 
 ---
 
