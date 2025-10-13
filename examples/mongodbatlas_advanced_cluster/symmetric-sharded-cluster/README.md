@@ -12,7 +12,7 @@ If you are migrating from v1.x of our provider to v2.0.0 or later, the `v1.x.x/`
 
 ```
 Terraform >= 0.13
-+ provider registry.terraform.io/terraform-providers/mongodbatlas v1.29.0
++ provider registry.terraform.io/terraform-providers/mongodbatlas v2.0.0
 ```
 
 

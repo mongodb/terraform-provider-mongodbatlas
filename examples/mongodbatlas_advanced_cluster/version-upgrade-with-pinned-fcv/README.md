@@ -13,7 +13,7 @@ The following [knowledge hub article](https://kb.corp.mongodb.com/article/000021
 
 ```
 Terraform >= 0.13
-+ provider registry.terraform.io/terraform-providers/mongodbatlas v1.29.0
++ provider registry.terraform.io/terraform-providers/mongodbatlas v2.0.0
 ```
 
 

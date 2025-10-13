@@ -9,7 +9,7 @@ This example creates a project and a Global Cluster with 2 zones where each zone
 
 ```
 Terraform >= 0.13
-+ provider registry.terraform.io/terraform-providers/mongodbatlas v1.29.0
++ provider registry.terraform.io/terraform-providers/mongodbatlas v2.0.0
 ```
 
 
