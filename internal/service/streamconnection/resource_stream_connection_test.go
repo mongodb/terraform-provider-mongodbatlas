@@ -491,56 +491,49 @@ func checkHTTPSAttributes(instanceName, url string) resource.TestCheckFunc {
 
 func checkKafkaAttributes(
 	resourceName, instanceName, connectionName, username, password, bootstrapServers, configValue, networkingType string, usesSSL, checkPassword bool) resource.TestCheckFunc {
-	resourceChecks := []resource.TestCheckFunc{
-		checkStreamConnectionExists(),
-		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
-		resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
-		resource.TestCheckResourceAttr(resourceName, "type", "Kafka"),
-		resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
-		resource.TestCheckResourceAttr(resourceName, "authentication.mechanism", "PLAIN"),
-		resource.TestCheckResourceAttr(resourceName, "authentication.username", username),
-		resource.TestCheckResourceAttr(resourceName, "bootstrap_servers", bootstrapServers),
-		resource.TestCheckResourceAttr(resourceName, "config.auto.offset.reset", configValue),
-	}
-	if mig.IsProviderVersionAtLeast("1.25.0") {
-		resourceChecks = append(resourceChecks, resource.TestCheckResourceAttr(resourceName, "networking.access.type", networkingType))
+	authAttrs := map[string]string{
+		"mechanism": "PLAIN",
+		"username":  username,
 	}
 	if checkPassword {
-		resourceChecks = append(resourceChecks, resource.TestCheckResourceAttr(resourceName, "authentication.password", password))
+		authAttrs["password"] = password
 	}
-	if !usesSSL {
-		resourceChecks = append(resourceChecks, resource.TestCheckResourceAttr(resourceName, "security.protocol", "SASL_PLAINTEXT"))
-	} else {
-		resourceChecks = append(resourceChecks,
-			resource.TestCheckResourceAttr(resourceName, "security.protocol", "SASL_SSL"),
-			resource.TestCheckResourceAttrSet(resourceName, "security.broker_public_certificate"),
-		)
-	}
-	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
+	return checkKafkaConnectionAttributes(resourceName, instanceName, connectionName, bootstrapServers, configValue, networkingType, usesSSL, authAttrs)
 }
 
 func checkKafkaOAuthAttributes(
 	resourceName, instanceName, connectionName, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtensions, method, bootstrapServers, configValue, networkingType string, usesSSL, checkClientSecret bool) resource.TestCheckFunc {
+	authAttrs := map[string]string{
+		"mechanism":                   "OAUTHBEARER",
+		"method":                      method,
+		"token_endpoint_url":          tokenEndpointURL,
+		"client_id":                   clientID,
+		"scope":                       scope,
+		"sasl_oauthbearer_extensions": saslOauthbearerExtensions,
+	}
+	if checkClientSecret {
+		authAttrs["client_secret"] = clientSecret
+	}
+	return checkKafkaConnectionAttributes(resourceName, instanceName, connectionName, bootstrapServers, configValue, networkingType, usesSSL, authAttrs)
+}
+
+func checkKafkaConnectionAttributes(resourceName, instanceName, connectionName, bootstrapServers, configValue, networkingType string, usesSSL bool, authAttrs map[string]string) resource.TestCheckFunc {
 	resourceChecks := []resource.TestCheckFunc{
 		checkStreamConnectionExists(),
 		resource.TestCheckResourceAttrSet(resourceName, "project_id"),
 		resource.TestCheckResourceAttr(resourceName, "connection_name", connectionName),
 		resource.TestCheckResourceAttr(resourceName, "type", "Kafka"),
 		resource.TestCheckResourceAttr(resourceName, "instance_name", instanceName),
-		resource.TestCheckResourceAttr(resourceName, "authentication.mechanism", "OAUTHBEARER"),
-		resource.TestCheckResourceAttr(resourceName, "authentication.method", method),
-		resource.TestCheckResourceAttr(resourceName, "authentication.token_endpoint_url", tokenEndpointURL),
-		resource.TestCheckResourceAttr(resourceName, "authentication.client_id", clientID),
-		resource.TestCheckResourceAttr(resourceName, "authentication.scope", scope),
-		resource.TestCheckResourceAttr(resourceName, "authentication.sasl_oauthbearer_extensions", saslOauthbearerExtensions),
 		resource.TestCheckResourceAttr(resourceName, "bootstrap_servers", bootstrapServers),
 		resource.TestCheckResourceAttr(resourceName, "config.auto.offset.reset", configValue),
 	}
+
+	for key, value := range authAttrs {
+		resourceChecks = append(resourceChecks, resource.TestCheckResourceAttr(resourceName, "authentication."+key, value))
+	}
+
 	if mig.IsProviderVersionAtLeast("1.25.0") {
 		resourceChecks = append(resourceChecks, resource.TestCheckResourceAttr(resourceName, "networking.access.type", networkingType))
-	}
-	if checkClientSecret {
-		resourceChecks = append(resourceChecks, resource.TestCheckResourceAttr(resourceName, "authentication.client_secret", clientSecret))
 	}
 	if !usesSSL {
 		resourceChecks = append(resourceChecks, resource.TestCheckResourceAttr(resourceName, "security.protocol", "SASL_PLAINTEXT"))
