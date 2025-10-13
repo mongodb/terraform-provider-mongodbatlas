@@ -44,7 +44,7 @@ const (
 	dataSourceConfigMigration = `
 data "mongodbatlas_stream_connection" "test" {
 		project_id = mongodbatlas_stream_connection.test.project_id
-		workspace_name = mongodbatlas_stream_connection.test.workspace_name
+		instance_name = mongodbatlas_stream_connection.test.instance_name
 		connection_name = mongodbatlas_stream_connection.test.connection_name
 }
 `
@@ -52,13 +52,13 @@ data "mongodbatlas_stream_connection" "test" {
 	dataSourcePluralConfigMigration = `
 data "mongodbatlas_stream_connections" "test" {
 		project_id = mongodbatlas_stream_connection.test.project_id
-		workspace_name = mongodbatlas_stream_connection.test.workspace_name
+		instance_name = mongodbatlas_stream_connection.test.instance_name
 }
 `
 	dataSourcePluralConfigWithPageMigration = `
 data "mongodbatlas_stream_connections" "test" {
 		project_id = mongodbatlas_stream_connection.test.project_id
-		workspace_name = mongodbatlas_stream_connection.test.workspace_name
+		instance_name = mongodbatlas_stream_connection.test.instance_name
 		page_num = 2 # no specific reason for 2, just to test pagination
 		items_per_page = 1
 	}
