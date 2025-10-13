@@ -98,7 +98,7 @@ Breaking Changes and Deprecation:
 
 For complete details including breaking changes policy and deprecation guidelines, see the [full versioning policy](#mongodb-atlas-provider-versioning-policy-full-details) below.
 
-## [HashiCorp Terraform Version](https://www.terraform.io/downloads.html) Compatibility Matrix
+## HashiCorp Terraform Version Compatibility Matrix
 
 <!-- DO NOT remove below placeholder comments as this table is auto-generated -->
 <!-- MATRIX_PLACEHOLDER_START -->
