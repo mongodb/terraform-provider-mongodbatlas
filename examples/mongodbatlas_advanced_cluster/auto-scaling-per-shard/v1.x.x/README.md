@@ -12,8 +12,3 @@ Refer the `main.tf` in the parent directory (`../`) that shows what the correspo
 - `electable_specs` becomes an attribute (was a nested block in v1.x).
 - **If previously using** `disk_size_gb` at resource root level, it has been removed in v2.0.0 and now can be specified into the inner specs (for example, `electable_specs.disk_size_gb`).
 - Some references drop `[0]` or `.0` indexing because nested objects are no longer lists.
-
-## Steps
-1. (Optional) Use this v1.x example to reproduce a legacy state.
-2. Compare with the v2 example in the parent directory and update your configuration accordingly.
-3. Validate and apply once configuration matches your existing state.

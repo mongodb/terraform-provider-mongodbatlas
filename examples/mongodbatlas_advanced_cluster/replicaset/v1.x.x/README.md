@@ -10,5 +10,5 @@ Refer the `main.tf` in the parent directory (`../`) that shows what the correspo
 - `region_configs` becomes a list of objects (was a block in v1.x).
 - `electable_specs` becomes an attribute (was a nested block in v1.x).
 - `tags` becomes a map attribute (was a block in v1.x).
-- **If previously using** `num_shards`, it has been removed in v2.0.0; sharded layouts use multiple `replication_specs` entries instead.
+- **If previously using** `num_shards`, it has been removed in v2.0.0; sharded layouts use multiple `replication_specs` entries instead and REPLICASET clusters don't require this attribute.
 - Some references may drop `[0]` or `.0` indexing because nested objects are no longer lists.

@@ -11,11 +11,6 @@ Refer the `main.tf` in the parent directory (`../`) that shows what the correspo
  - `electable_specs` becomes an attribute (was a nested block in v1.x).
  - `advanced_configuration` becomes an attribute (was a block in v1.x).
  - `tags` becomes an attribute (was a block in v1.x).
- - **If previously using** `disk_size_gb` at resource root level, it has been removed in v2.0.0 and now can be specified into the inner specs (for example, `electable_specs.disk_size_gb`).
+ - **If previously using** `num_shards`, it has been removed in v2.0.0; sharded layouts use multiple `replication_specs` entries instead and REPLICASET clusters don't require this attribute.
  - **If previously using** `disk_size_gb` at resource root level, it has been removed in v2.0.0 and now can be specified into the inner specs (for example, `electable_specs.disk_size_gb`).
  - Some references drop `[0]` or `.0` indexing because objects are no longer lists but singular attributes (e.g., `replication_specs[0].region_configs[0].electable_specs.disk_size_gb`).
-
-## Steps
-1. (Optional) Use this v1.x example to reproduce a legacy state.
-2. Compare with the v2 example in the parent directory and update your configuration accordingly.
-3. Validate and apply once configuration matches your existing state.

@@ -2,7 +2,8 @@
 
 This example creates a SHARDED cluster with 2 shards configured symmetrically.
 
-_**NOTE:** If you are migrating from v1.x of our provider, the `v1.x.x/` sub-directory shows how your current configuration might look like (with added inline comments to demonstrate what has changed for migration reference)._ 
+### Migrating from v1.x to v2.0.0 or later
+If you are migrating from v1.x of our provider to v2.0.0 or later, the `v1.x.x/` sub-directory shows how your current configuration might look like (with added inline comments to demonstrate what has changed for migration reference).
 
 ## Dependencies
 

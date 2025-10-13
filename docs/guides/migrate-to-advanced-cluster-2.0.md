@@ -11,6 +11,13 @@ This guide helps you migrate from the legacy schema of `mongodbatlas_advanced_cl
 
 ~> **IMPORTANT:** Preview of the new schema was already released in versions 1.29.0 and later which could be enabled by setting the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`. If you are already using the new schema preview with the new sharding configurations **and not using deprecated attributes**, you would not be required to make any additional changes except that the mentioned environment variable is no longer required.
 
+### Examples
+- [Symmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_advanced_cluster/symmetric-sharded-cluster)
+- [Asymmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_advanced_cluster/asymmetric-sharded-cluster)
+- [Auto-Scaling Per Shard](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_advanced_cluster/auto-scaling-per-shard)
+- [Basic Replicaset](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_advanced_cluster/replicaset)
+
+
 ## Configuration changes when upgrading from v1.x
 
 In this section you can find the configuration changes between the legacy `mongodbatlas_advanced_cluster` and the new one released in v2.0.0.
