@@ -254,7 +254,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := streamconnection.NewTFStreamConnection(t.Context(), tc.providedProjID, tc.providedInstanceName, tc.providedAuthConfig, tc.SDKResp)
+			resultModel, diags := streamconnection.NewTFStreamConnection(t.Context(), tc.providedProjID, "", tc.providedInstanceName, tc.providedAuthConfig, tc.SDKResp)
 			if diags.HasError() {
 				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}

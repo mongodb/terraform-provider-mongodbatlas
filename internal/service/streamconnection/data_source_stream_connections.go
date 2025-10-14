@@ -75,8 +75,8 @@ func (d *streamConnectionsDS) Read(ctx context.Context, req datasource.ReadReque
 
 	connV2 := d.Client.AtlasV2
 	projectID := streamConnectionsConfig.ProjectID.ValueString()
-	workspaceName := getWorkspaceOrInstanceNameForDS(&streamConnectionsConfig)
-	if workspaceName == "" {
+	workspaceOrInstanceName := getWorkspaceOrInstanceNameForDS(&streamConnectionsConfig)
+	if workspaceOrInstanceName == "" {
 		resp.Diagnostics.AddError("validation error", "workspace_name must be provided")
 		return
 	}
@@ -85,7 +85,7 @@ func (d *streamConnectionsDS) Read(ctx context.Context, req datasource.ReadReque
 
 	apiResp, _, err := connV2.StreamsApi.ListStreamConnectionsWithParams(ctx, &admin.ListStreamConnectionsApiParams{
 		GroupId:      projectID,
-		TenantName:   workspaceName,
+		TenantName:   workspaceOrInstanceName,
 		ItemsPerPage: conversion.Int64PtrToIntPtr(itemsPerPage),
 		PageNum:      conversion.Int64PtrToIntPtr(pageNum),
 	}).Execute()

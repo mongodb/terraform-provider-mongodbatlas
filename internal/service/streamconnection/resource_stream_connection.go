@@ -158,7 +158,7 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 	instanceName := streamConnectionPlan.InstanceName.ValueString()
 	workspaceName := streamConnectionPlan.WorkspaceName.ValueString()
 
-	newStreamConnectionModel, diags := NewTFStreamConnectionWithInstanceName(ctx, projectID, instanceName, workspaceName, &streamConnectionPlan.Authentication, apiResp)
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, &streamConnectionPlan.Authentication, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -193,7 +193,7 @@ func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest,
 
 	instanceName := streamConnectionState.InstanceName.ValueString()
 	workspaceName := streamConnectionState.WorkspaceName.ValueString()
-	newStreamConnectionModel, diags := NewTFStreamConnectionWithInstanceName(ctx, projectID, instanceName, workspaceName, &streamConnectionState.Authentication, apiResp)
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, &streamConnectionState.Authentication, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -229,7 +229,7 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 
 	instanceName := streamConnectionPlan.InstanceName.ValueString()
 	workspaceName := streamConnectionPlan.WorkspaceName.ValueString()
-	newStreamConnectionModel, diags := NewTFStreamConnectionWithInstanceName(ctx, projectID, instanceName, workspaceName, &streamConnectionPlan.Authentication, apiResp)
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, &streamConnectionPlan.Authentication, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return

@@ -117,12 +117,8 @@ func NewStreamConnectionUpdateReq(ctx context.Context, plan *TFStreamConnectionM
 	return streamConnection, nil
 }
 
-func NewTFStreamConnection(ctx context.Context, projID, workspaceName string, currAuthConfig *types.Object, apiResp *admin.StreamsConnection) (*TFStreamConnectionModel, diag.Diagnostics) {
-	return NewTFStreamConnectionWithInstanceName(ctx, projID, "", workspaceName, currAuthConfig, apiResp)
-}
-
 // determines if the original model was created with instance_name or workspace_name and sets the appropriate field
-func NewTFStreamConnectionWithInstanceName(ctx context.Context, projID, instanceName, workspaceName string, currAuthConfig *types.Object, apiResp *admin.StreamsConnection) (*TFStreamConnectionModel, diag.Diagnostics) {
+func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceName string, currAuthConfig *types.Object, apiResp *admin.StreamsConnection) (*TFStreamConnectionModel, diag.Diagnostics) {
 	if workspaceName != "" && instanceName != "" {
 		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Attribute \"workspace_name\" cannot be specified when \"instance_name\" is specified", "")}
 	}
@@ -277,7 +273,7 @@ func NewTFStreamConnections(ctx context.Context,
 
 	for i := range input {
 		projectID := streamConnectionsConfig.ProjectID.ValueString()
-		connectionModel, diags := NewTFStreamConnectionWithInstanceName(ctx, projectID, instanceName, workspaceName, nil, &input[i])
+		connectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, nil, &input[i])
 		if diags.HasError() {
 			return nil, diags
 		}
