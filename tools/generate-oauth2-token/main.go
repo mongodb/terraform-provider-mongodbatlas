@@ -10,14 +10,13 @@ import (
 )
 
 func main() {
-	baseURL := os.Getenv("MONGODB_ATLAS_BASE_URL")
+	baseURL := strings.TrimRight(os.Getenv("MONGODB_ATLAS_BASE_URL"), "/")
 	clientID := os.Getenv("MONGODB_ATLAS_CLIENT_ID")
 	clientSecret := os.Getenv("MONGODB_ATLAS_CLIENT_SECRET")
 	if baseURL == "" || clientID == "" || clientSecret == "" {
 		fmt.Fprintln(os.Stderr, "Error: MONGODB_ATLAS_BASE_URL, MONGODB_ATLAS_CLIENT_ID, and MONGODB_ATLAS_CLIENT_SECRET environment variables are required")
 		os.Exit(1)
 	}
-	baseURL = strings.TrimRight(baseURL, "/")
 	conf := clientcredentials.NewConfig(clientID, clientSecret)
 	conf.TokenURL = baseURL + clientcredentials.TokenAPIPath
 	token, err := conf.Token(context.Background())

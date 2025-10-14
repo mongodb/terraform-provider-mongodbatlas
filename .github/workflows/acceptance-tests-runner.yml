@@ -556,9 +556,12 @@ jobs:
           MONGODB_ATLAS_CLIENT_ID: ${{ secrets.mongodb_atlas_client_id }}
           MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}
         run: |
-          ACCESS_TOKEN=$(make generate-oauth2-token)
-          if [ $? -ne 0 ] || [ -z "$ACCESS_TOKEN" ]; then
+          if ! ACCESS_TOKEN=$(make generate-oauth2-token); then
             echo "Error: Failed to generate access token"
+            exit 1
+          fi
+          if [ -z "$ACCESS_TOKEN" ]; then
+            echo "Error: Generated access token is empty"
             exit 1
           fi
           echo "access_token=$ACCESS_TOKEN" >> "$GITHUB_OUTPUT"
