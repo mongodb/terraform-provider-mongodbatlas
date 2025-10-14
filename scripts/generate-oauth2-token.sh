@@ -44,7 +44,7 @@ AUTH_HEADER=$(echo -n "$MONGODB_ATLAS_CLIENT_ID:$MONGODB_ATLAS_CLIENT_SECRET" | 
 BASE_URL="${MONGODB_ATLAS_BASE_URL%/}"
 TOKEN_ENDPOINT="${BASE_URL}/api/oauth/token"
 
-# Make the token request
+# Make the token request, more info in: https://www.mongodb.com/docs/atlas/api/service-accounts/generate-oauth2-token/#std-label-generate-oauth2-token-atlas
 RESPONSE=$(curl -s -w "\n%{http_code}" "$TOKEN_ENDPOINT" \
   -H "Accept: application/json" \
   -H "Authorization: Basic $AUTH_HEADER" \
