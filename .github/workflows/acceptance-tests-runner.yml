@@ -556,20 +556,7 @@ jobs:
           MONGODB_ATLAS_CLIENT_ID: ${{ secrets.mongodb_atlas_client_id }}
           MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}
         run: |
-          AUTH_HEADER=$(echo -n "$MONGODB_ATLAS_CLIENT_ID:$MONGODB_ATLAS_CLIENT_SECRET" | base64)          
-          RESPONSE=$(curl -sf "${MONGODB_ATLAS_BASE_URL%/}/api/oauth/token" \
-            -H "Accept: application/json" \
-            -H "Authorization: Basic $AUTH_HEADER" \
-            -H "Content-Type: application/x-www-form-urlencoded" \
-            -d "grant_type=client_credentials") || {
-            echo "Failed to generate OAuth2 token"
-            exit 1
-          }
-          ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r '.access_token')
-          if [ "$ACCESS_TOKEN" == "null" ] || [ -z "$ACCESS_TOKEN" ]; then
-            echo "Failed to extract access token from response: $RESPONSE"
-            exit 1
-          fi          
+          ACCESS_TOKEN=$(bash ./scripts/generate-oauth2-token.sh)
           echo "access_token=$ACCESS_TOKEN" >> "$GITHUB_OUTPUT"
       - name: Acceptance Tests (Access Token)
         env:
