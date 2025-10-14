@@ -7,11 +7,10 @@ The MongoDB Atlas provider is used to interact with the resources supported by [
 This example shows how to set up the MongoDB Atlas provider and create a cluster:
 
 ```terraform
-# Configure the MongoDB Atlas Provider
-# Service Account credentials are read from environment variables:
-# - MONGODB_ATLAS_CLIENT_ID
-# - MONGODB_ATLAS_CLIENT_SECRET
-provider "mongodbatlas" {}
+provider "mongodbatlas" {
+  client_id     = var.mongodbatlas_client_id
+  client_secret = var.mongodbatlas_client_secret
+}
 
 # Create a project
 resource "mongodbatlas_project" "this" {
@@ -45,14 +44,17 @@ resource "mongodbatlas_advanced_cluster" "this" {
 
 ## Authentication
 
-The MongoDB Atlas provider uses Service Accounts (SA) as the recommended authentication method. Create an SA in your [MongoDB Atlas organization](https://www.mongodb.com/docs/atlas/configure-api-access/#grant-programmatic-access-to-an-organization) and set the credentials as environment variables:
+The MongoDB Atlas provider uses Service Account (SA) as the recommended authentication method.
 
-```shell
-export MONGODB_ATLAS_CLIENT_ID="your-client-id"
-export MONGODB_ATLAS_CLIENT_SECRET="your-client-secret"
-```
+For detailed authentication configuration, see:
+- [Service Account (SA)](guides/provider-configuration#service-account-recommended)
+- [Programmatic Access Key (PAK)](guides/provider-configuration#programmatic-access-key)
+- [AWS Secrets Manager integration](guides/provider-configuration#aws-secrets-manager)
 
-For detailed authentication configuration including Programmatic Access Key (PAK), AWS Secrets Manager integration, and MongoDB Atlas for Government, see the [Provider Configuration Guide](guides/provider-configuration).
+## MongoDB Atlas for Government
+
+MongoDB Atlas for Government is a dedicated deployment option for government agencies and contractors requiring FedRAMP compliance. 
+For more details on configuration, see the [Provider Configuration Guide](guides/provider-configuration#provider-arguments).
 
 ## Version Requirements
 

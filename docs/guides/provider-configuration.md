@@ -1,5 +1,5 @@
 ---
-page_title: "Provider Configuration"
+page_title: "Guide: Provider Configuration"
 ---
 
 # Provider Configuration
@@ -23,6 +23,8 @@ The provider uses the first available credentials source.
 ### Service Account (Recommended)
 
 SAs simplify authentication by eliminating the need to create new Atlas-specific user identities and permission credentials. See [Service Accounts Overview](https://www.mongodb.com/docs/atlas/api/service-accounts-overview/) and [MongoDB Atlas Service Account Limits](https://www.mongodb.com/docs/manual/reference/limits/#mongodb-atlas-service-account-limits) for more information.
+
+Create an SA in your [MongoDB Atlas organization](https://www.mongodb.com/docs/atlas/configure-api-access/#grant-programmatic-access-to-an-organization) and set the credentials, for example:
 
 ```terraform
 provider "mongodbatlas" {
