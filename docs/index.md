@@ -79,24 +79,74 @@ We recommend using the latest [HashiCorp Terraform Core Version](https://github.
 
 ## MongoDB Atlas Provider Versioning Policy
 
-We follow [semantic versioning](https://semver.org/):
-- **Major (X.0.0):** Introduces breaking changes
-- **Minor (X.Y.0):** Adds non-breaking changes and deprecations
-- **Patch (X.Y.Z):** Bug fixes and documentation updates
+In order to promote stability, predictability, and transparency, the MongoDB Atlas Terraform Provider will implement **semantic versioning** with a **scheduled release cadence**. Our goal is to deliver regular improvements to the provider without overburdening users with frequent breaking changes.
 
-Release Cadence:
-- **Minor and patch** versions: Biweekly releases
-- **Major** versions: Once per year (maximum two per calendar year)
-- **Off-cycle releases** may occur for critical security flaws or regressions
+---
 
-Breaking Changes and Deprecation:
+### Definition of Breaking Changes
 
-- Breaking changes are announced as deprecations in minor versions
-- Deprecated functionality is removed in the next 1-2 major versions
-- Each release includes a [changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/releases)
-- Major versions include migration guides
+Our definition of breaking changes aligns with the impact updates have on the customer:
 
-For complete details including breaking changes policy and deprecation guidelines, see the [full versioning policy](#mongodb-atlas-provider-versioning-policy-full-details) below.
+Breaking changes are defined as any change that requires user intervention to address.
+This may include:
+
+- Modifying existing schema (e.g., removing or renaming fields, renaming resources)
+- Changes to business logic (e.g., implicit default values or server-side behavior)
+- Provider-level changes (e.g., changing retry behavior)
+
+Final confirmation of a breaking change — possibly leading to an exemption — is subject to:
+
+- MongoDB’s understanding of the adoption level of the feature
+- Timing of the next planned major release
+- The change's relation to a bug fix
+
+---
+
+### Versioning Strategy
+
+We follow [semantic versioning](https://semver.org/) for all updates:
+
+- **Major (X.0.0):** Introduces breaking changes (as defined by MongoDB)
+- **Minor (X.Y.0):** Adds non-breaking changes and announces deprecations
+- **Patch (X.Y.Z):** Includes bug fixes and documentation updates
+
+We do not utilize pre-release versioning at this time.
+
+---
+
+### Release Cadence
+
+To minimize unexpected changes, we follow a scheduled cadence:
+
+- **Minor and patch** versions follow a **biweekly** release pattern
+- **Major** versions are released **once per year**, with a maximum of **two per calendar year**
+- The provider team may adjust the schedule based on need
+
+**Off-cycle releases** may occur for critical security flaws or regressions.
+
+---
+
+### Deprecation Policy
+
+We use a structured deprecation window to notify customers in advance:
+
+- Breaking changes are **deprecated in a minor version** with:
+  - Warnings in migration guides, changelogs, and resource usage
+- Deprecated functionality is **removed in the next 1–2 major versions**, unless otherwise stated
+
+---
+
+### Customer Communication
+
+We are committed to clear and proactive communication:
+
+- **Each release** includes a [changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/releases) clearly labeling:
+  - `breaking`, `deprecated`, `bug-fix`, `feature`, and `enhancement` changes
+- **Major versions** include migration guides
+- **Minor and patch versions** generally do not include migration guides, but may if warranted
+- **GitHub tags** with `vX.Y.Z` format are provided for all releases
+
+---
 
 ## HashiCorp Terraform Version Compatibility Matrix
 
@@ -113,49 +163,35 @@ For complete details including breaking changes policy and deprecation guideline
 | 1.7.x | 2024-01-17 | 2026-01-31 | 2026-01-31 |
 | 1.6.x | 2023-10-04 | 2025-10-31 | 2025-10-31 |
 <!-- MATRIX_PLACEHOLDER_END -->
+For the safety of our users, we require only consuming versions of HashiCorp Terraform that are currently receiving Security / Maintenance Updates. For more details see [Support Period and End-of-Life (EOL) Policy](https://support.hashicorp.com/hc/en-us/articles/360021185113-Support-Period-and-End-of-Life-EOL-Policy).   
 
-For safety, we require only consuming versions of HashiCorp Terraform that are currently receiving Security/Maintenance updates. See [Support Period and End-of-Life Policy](https://support.hashicorp.com/hc/en-us/articles/360021185113-Support-Period-and-End-of-Life-EOL-Policy).
+HashiCorp Terraform versions that are not listed on this table are no longer supported by MongoDB Atlas. For latest HashiCorp Terraform versions see [here](https://endoflife.date/terraform ).
 
 ## Supported OS and Architectures
 
 The MongoDB Atlas Provider supports multiple operating systems and architectures. See the [Provider Configuration Guide](guides/provider-configuration#supported-os-and-architectures) for the complete list of supported platforms.
 
-## Resources
+## Helpful Links/Information
 
-### Documentation and Examples
-- [Example configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples) - Beginner and advanced examples
-- [Terraform Modules](https://registry.terraform.io/namespaces/terraform-mongodbatlas-modules) - Pre-built modules for common patterns
-- [MongoDB Atlas and Terraform Landing Page](https://www.mongodb.com/atlas/terraform)
-- [CHANGELOG](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/CHANGELOG.md) - Current version information
+[Upgrade Guide for Terraform MongoDB Atlas 0.4.0](https://www.mongodb.com/blog/post/upgrade-guide-for-terraform-mongodb-atlas-040)
 
-### Support
-- [Report bugs](https://github.com/mongodb/terraform-provider-mongodbatlas/issues)
-- [Request features](https://feedback.mongodb.com/forums/924145-atlas?category_id=370723)
-- [MongoDB Atlas support plans](https://docs.atlas.mongodb.com/support/) - Developer tier and above
+[MongoDB Atlas and Terraform Landing Page](https://www.mongodb.com/atlas/terraform)
 
-### Community
-Have a good example you've created? Submit a PR to add it to the `examples` directory in our [GitHub repo](https://github.com/mongodb/terraform-provider-mongodbatlas/).
+[Report bugs](https://github.com/mongodb/terraform-provider-mongodbatlas/issues)
 
----
+[Request Features](https://feedback.mongodb.com/forums/924145-atlas?category_id=370723)
 
-## MongoDB Atlas Provider Versioning Policy (Full Details)
+[Support covered by MongoDB Atlas support plans, Developer and above](https://docs.atlas.mongodb.com/support/) 
 
-### Definition of Breaking Changes
+## Examples from MongoDB and the Community
 
-Breaking changes are defined as any change that requires user intervention to address. This may include:
-- Modifying existing schema (e.g., removing or renaming fields, renaming resources)
-- Changes to business logic (e.g., implicit default values or server-side behavior)
-- Provider-level changes (e.g., changing retry behavior)
+<!-- NOTE: the below examples link is updated during the release process, when doing changes in the following sentence verify scripts/update-examples-reference-in-docs.sh is not impacted-->
+We have [example configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples)
+in our GitHub repo that will help both beginner and more advanced users.
 
-Final confirmation of a breaking change — possibly leading to an exemption — is subject to:
-- MongoDB's understanding of the adoption level of the feature
-- Timing of the next planned major release
-- The change's relation to a bug fix
+Have a good example you've created and want to share?
+Let us know the details via an [issue](https://github.com/mongodb/terraform-provider-mongodbatlas/issues)
+or submit a PR of your work to add it to the `examples` directory in our [GitHub repo](https://github.com/mongodb/terraform-provider-mongodbatlas/).
 
-### Customer Communication
-
-We are committed to clear and proactive communication:
-- **Each release** includes a [changelog](https://github.com/mongodb/terraform-provider-mongodbatlas/releases) clearly labeling: `breaking`, `deprecated`, `bug-fix`, `feature`, and `enhancement` changes
-- **Major versions** include migration guides
-- **Minor and patch versions** generally do not include migration guides, but may if warranted
-- **GitHub tags** with `vX.Y.Z` format are provided for all releases
+## Terraform MongoDB Atlas Modules
+You can now leverage our [Terraform Modules](https://registry.terraform.io/namespaces/terraform-mongodbatlas-modules) to easily get started with MongoDB Atlas and critical features like [Push-based log export](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/push-based-log-export/mongodbatlas/latest), [Private Endpoints](https://registry.terraform.io/modules/terraform-mongodbatlas-modules/private-endpoint/mongodbatlas/latest), etc.
