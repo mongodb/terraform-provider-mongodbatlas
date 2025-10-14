@@ -1,5 +1,5 @@
 ```release-note:enhancement
-resource/mongodbatlas_stream_connection: Adds new authentication mechanism (OIDC) to the Kafka connection
+resource/mongodbatlas_stream_connection: Adds new authentication mechanism (OIDC) to the Kafka connection.
 ```
 
 ```release-note:enhancement
