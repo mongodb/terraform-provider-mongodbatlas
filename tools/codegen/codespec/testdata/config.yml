@@ -71,7 +71,5 @@ resources:
       overrides:
         list_string:
           type: set
-          description: "List overridden to set"
         set_string:
           type: list
-          description: "Set overridden to list"

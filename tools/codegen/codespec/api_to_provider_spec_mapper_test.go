@@ -663,17 +663,17 @@ func TestConvertToProviderSpec_typeOverride(t *testing.T) {
 							TFSchemaName:             "list_string",
 							TFModelName:              "ListString",
 							ComputedOptionalRequired: codespec.Required,
-							Description:              conversion.StringPtr("List overridden to set"),
-							Set:                      &codespec.SetAttribute{ElementType: codespec.String},
-							ReqBodyUsage:             codespec.AllRequestBodies,
+							// List overridden to set
+							Set:          &codespec.SetAttribute{ElementType: codespec.String},
+							ReqBodyUsage: codespec.AllRequestBodies,
 						},
 						{
 							TFSchemaName:             "set_string",
 							TFModelName:              "SetString",
 							ComputedOptionalRequired: codespec.Required,
-							Description:              conversion.StringPtr("Set overridden to list"),
-							List:                     &codespec.ListAttribute{ElementType: codespec.String},
-							ReqBodyUsage:             codespec.AllRequestBodies,
+							// Set overridden to list
+							List:         &codespec.ListAttribute{ElementType: codespec.String},
+							ReqBodyUsage: codespec.AllRequestBodies,
 						},
 					},
 				},
