@@ -117,21 +117,15 @@ func NewStreamConnectionUpdateReq(ctx context.Context, plan *TFStreamConnectionM
 	return streamConnection, nil
 }
 
-// determines if the original model was created with instance_name or workspace_name and sets the appropriate field
+// NewTFStreamConnection determines if the original model was created with instance_name or workspace_name and sets the appropriate field
 func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceName string, currAuthConfig *types.Object, apiResp *admin.StreamsConnection) (*TFStreamConnectionModel, diag.Diagnostics) {
-	if workspaceName != "" && instanceName != "" {
-		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Attribute \"workspace_name\" cannot be specified when \"instance_name\" is specified", "")}
+	streamWorkspaceName := workspaceName
+	if instanceName != "" {
+		streamWorkspaceName = instanceName
 	}
 
-	// Generate ID with workspace prefix only for workspace_name to distinguish from instance_name
-	// Keep original format for instance_name to maintain backward compatibility
-	var rID string
-	if workspaceName != "" {
-		rID = fmt.Sprintf("workspace:%s-%s-%s", workspaceName, projID, conversion.SafeString(apiResp.Name))
-	} else {
-		// Keep original format for instance_name (backward compatibility)
-		rID = fmt.Sprintf("%s-%s-%s", instanceName, projID, conversion.SafeString(apiResp.Name))
-	}
+	rID := fmt.Sprintf("%s-%s-%s", streamWorkspaceName, projID, conversion.SafeString(apiResp.Name))
+
 	connectionModel := TFStreamConnectionModel{
 		ID:               types.StringValue(rID),
 		ProjectID:        types.StringValue(projID),
@@ -267,9 +261,6 @@ func NewTFStreamConnections(ctx context.Context,
 
 	workspaceName := streamConnectionsConfig.WorkspaceName.ValueString()
 	instanceName := streamConnectionsConfig.InstanceName.ValueString()
-	if workspaceName != "" && instanceName != "" {
-		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("Attribute \"workspace_name\" cannot be specified when \"instance_name\" is specified", "")}
-	}
 
 	for i := range input {
 		projectID := streamConnectionsConfig.ProjectID.ValueString()
