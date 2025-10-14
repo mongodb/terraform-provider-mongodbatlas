@@ -203,7 +203,7 @@ jira-release-version: ## Update Jira version in a release
 
 .PHONY: generate-oauth2-token
 generate-oauth2-token: ## Generate OAuth2 access token from Service Account credentials
-	go run ./tools/generate-oauth2-token/*.go
+	@go run ./tools/generate-oauth2-token/*.go
 
 .PHONY: enable-autogen
 enable-autogen: ## Enable use of autogen resources in the provider
