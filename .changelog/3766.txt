@@ -3,9 +3,9 @@ resource/mongodbatlas_stream_connection: Adds new authentication mechanism (OIDC
 ```
 
 ```release-note:enhancement
-data-source/mongodbatlas_stream_connection: Adds new authentication mechanism (OIDC) to the Kafka connection
+data-source/mongodbatlas_stream_connection: Adds new authentication mechanism (OIDC) to the Kafka connection.
 ```
 
 ```release-note:enhancement
-data-source/mongodbatlas_stream_connections: Adds new authentication mechanism (OIDC) to the Kafka connection
+data-source/mongodbatlas_stream_connections: Adds new authentication mechanism (OIDC) to the Kafka connection.
 ```
