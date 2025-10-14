@@ -492,11 +492,11 @@ func checkHTTPSAttributes(instanceName, url string) resource.TestCheckFunc {
 func checkKafkaAttributes(
 	resourceName, instanceName, connectionName, username, password, bootstrapServers, configValue, networkingType string, usesSSL, checkPassword bool) resource.TestCheckFunc {
 	authAttrs := map[string]string{
-		"mechanism": "PLAIN",
-		"username":  username,
+		"authentication.mechanism": "PLAIN",
+		"authentication.username":  username,
 	}
 	if checkPassword {
-		authAttrs["password"] = password
+		authAttrs["authentication.password"] = password
 	}
 	return checkKafkaConnectionAttributes(resourceName, instanceName, connectionName, bootstrapServers, configValue, networkingType, usesSSL, authAttrs)
 }
@@ -504,15 +504,15 @@ func checkKafkaAttributes(
 func checkKafkaOAuthAttributes(
 	resourceName, instanceName, connectionName, tokenEndpointURL, clientID, clientSecret, scope, saslOauthbearerExtensions, method, bootstrapServers, configValue, networkingType string, usesSSL, checkClientSecret bool) resource.TestCheckFunc {
 	authAttrs := map[string]string{
-		"mechanism":                   "OAUTHBEARER",
-		"method":                      method,
-		"token_endpoint_url":          tokenEndpointURL,
-		"client_id":                   clientID,
-		"scope":                       scope,
-		"sasl_oauthbearer_extensions": saslOauthbearerExtensions,
+		"authentication.mechanism":                   "OAUTHBEARER",
+		"authentication.method":                      method,
+		"authentication.token_endpoint_url":          tokenEndpointURL,
+		"authentication.client_id":                   clientID,
+		"authentication.scope":                       scope,
+		"authentication.sasl_oauthbearer_extensions": saslOauthbearerExtensions,
 	}
 	if checkClientSecret {
-		authAttrs["client_secret"] = clientSecret
+		authAttrs["authentication.client_secret"] = clientSecret
 	}
 	return checkKafkaConnectionAttributes(resourceName, instanceName, connectionName, bootstrapServers, configValue, networkingType, usesSSL, authAttrs)
 }
@@ -528,9 +528,7 @@ func checkKafkaConnectionAttributes(resourceName, instanceName, connectionName, 
 		resource.TestCheckResourceAttr(resourceName, "config.auto.offset.reset", configValue),
 	}
 
-	for key, value := range authAttrs {
-		resourceChecks = append(resourceChecks, resource.TestCheckResourceAttr(resourceName, "authentication."+key, value))
-	}
+	resourceChecks = acc.AddAttrChecks(resourceName, resourceChecks, authAttrs)
 
 	if mig.IsProviderVersionAtLeast("1.25.0") {
 		resourceChecks = append(resourceChecks, resource.TestCheckResourceAttr(resourceName, "networking.access.type", networkingType))
