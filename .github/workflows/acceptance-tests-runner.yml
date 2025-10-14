@@ -556,17 +556,20 @@ jobs:
           MONGODB_ATLAS_CLIENT_ID: ${{ secrets.mongodb_atlas_client_id }}
           MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}
         run: |
-          TOKEN_RESPONSE=$(curl -X POST "$MONGODB_ATLAS_BASE_URL/api/oauth/token" \
-            --header "Content-Type: application/x-www-form-urlencoded" \
-            --data-urlencode "grant_type=client_credentials" \
-            --data-urlencode "client_id=$MONGODB_ATLAS_CLIENT_ID" \
-            --data-urlencode "client_secret=$MONGODB_ATLAS_CLIENT_SECRET")
-          ACCESS_TOKEN=$(echo "$TOKEN_RESPONSE" | jq -r '.access_token')
-          if [ "$ACCESS_TOKEN" == "null" ] || [ -z "$ACCESS_TOKEN" ]; then
-            echo "Failed to generate access token"
-            echo "$TOKEN_RESPONSE"
+          AUTH_HEADER=$(echo -n "$MONGODB_ATLAS_CLIENT_ID:$MONGODB_ATLAS_CLIENT_SECRET" | base64)          
+          RESPONSE=$(curl -sf "${MONGODB_ATLAS_BASE_URL%/}/api/oauth/token" \
+            -H "Accept: application/json" \
+            -H "Authorization: Basic $AUTH_HEADER" \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -d "grant_type=client_credentials") || {
+            echo "Failed to generate OAuth2 token"
             exit 1
-          fi
+          }
+          ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r '.access_token')
+          if [ "$ACCESS_TOKEN" == "null" ] || [ -z "$ACCESS_TOKEN" ]; then
+            echo "Failed to extract access token from response: $RESPONSE"
+            exit 1
+          fi          
           echo "access_token=$ACCESS_TOKEN" >> "$GITHUB_OUTPUT"
       - name: Acceptance Tests (Access Token)
         env:
