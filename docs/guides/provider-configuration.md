@@ -70,43 +70,42 @@ The provider supports retrieving credentials from AWS Secrets Manager. See [AWS 
    - Permission for `sts:AssumeRole`
    - Attached AWS managed policy `SecretsManagerReadWrite`
 
-3. **Configure AWS credentials**
-   ```shell
-   export AWS_ACCESS_KEY_ID='<AWS_ACCESS_KEY_ID>'
-   export AWS_SECRET_ACCESS_KEY='<AWS_SECRET_ACCESS_KEY>'
-   ```
+3. **Configure AWS credentials** (using AWS CLI or environment variables)
 
-4. **Assume the role**
+4. **Assume the role** to obtain STS credentials
    ```shell
    aws sts assume-role --role-arn <ROLE_ARN> --role-session-name newSession
    ```
 
-5. **Store STS credentials**
-   ```shell
-   export AWS_ACCESS_KEY_ID='<STS_ACCESS_KEY_ID>'
-   export AWS_SECRET_ACCESS_KEY='<STS_SECRET_ACCESS_KEY>'
-   export AWS_SESSION_TOKEN='<STS_SESSION_TOKEN>'
+5. **Configure provider with AWS Secrets Manager**
+
+   Using provider attributes:
+   ```terraform
+   provider "mongodbatlas" {
+      aws_access_key_id     = var.aws_access_key_id
+      aws_secret_access_key = var.aws_secret_access_key
+      aws_session_token     = var.aws_session_token
+      assume_role           = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/mdbsts"
+      secret_name           = "mongodbsecret"
+      region                = "us-east-2"
+   }
    ```
 
-6. **Set provider configuration via environment variables**
-   ```shell
-   export ASSUME_ROLE_ARN='arn:aws:iam::<AWS_ACCOUNT_ID>:role/mdbsts'
-   export SECRET_NAME='mongodbsecret'
-   export AWS_REGION='us-east-2'
-   ```
-
-Alternatively, you can configure these settings using provider attributes instead of environment variables.
+   Alternatively, you can use environment variables (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`, `ASSUME_ROLE_ARN`, `SECRET_NAME`, `AWS_REGION`).
 
 ### Cross-Account and Cross-Region Access
 
-For cross-account secrets, use the fully qualified ARN for `secret_name`. For cross-region or cross-account access, the `sts_endpoint` parameter is required.
-
-Example with environment variables:
-```shell
-export ASSUME_ROLE_ARN='arn:aws:iam::<AWS_ACCOUNT_ID>:role/mdbsts'
-export SECRET_NAME='arn:aws:secretsmanager:us-east-1:<AWS_ACCOUNT_ID>:secret:test789-TO06Hy'
-export AWS_REGION='us-east-2'
-export STS_ENDPOINT='https://sts.us-east-2.amazonaws.com/'
+For cross-account secrets, use the fully qualified ARN for `secret_name`. For cross-region or cross-account access, the `sts_endpoint` parameter is required, for example:
+```terraform
+provider "mongodbatlas" {
+   aws_access_key_id     = var.aws_access_key_id
+   aws_secret_access_key = var.aws_secret_access_key
+   aws_session_token     = var.aws_session_token
+   assume_role    = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/mdbsts"
+   secret_name    = "arn:aws:secretsmanager:us-east-1:<AWS_ACCOUNT_ID>:secret:test789-TO06Hy"
+   region         = "us-east-2"
+   sts_endpoint   = "https://sts.us-east-2.amazonaws.com/"
+}
 ```
 
 ## Provider Configuration Reference
