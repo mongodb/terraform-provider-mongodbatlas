@@ -564,7 +564,11 @@ jobs:
             echo "Error: Generated access token is empty"
             exit 1
           fi
-          echo "access_token=$ACCESS_TOKEN" >> "$GITHUB_OUTPUT"
+          {
+            echo "access_token<<EOF"
+            echo "$ACCESS_TOKEN"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
       - name: Acceptance Tests (Access Token)
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ""
