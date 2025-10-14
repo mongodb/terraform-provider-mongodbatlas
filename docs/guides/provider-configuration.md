@@ -10,10 +10,11 @@ This guide covers authentication and configuration options for the MongoDB Atlas
 
 The MongoDB Atlas provider supports the following authentication methods:
 
-1. **Service Account (SA)** - Recommended
-2. **Programmatic Access Key (PAK)**
+1. [**Service Account (SA)** - Recommended](#service-account-recommended)
+2. [**Programmatic Access Key (PAK)**](#programmatic-access-key)
 
 Credentials can be provided through (in priority order):
+
 - AWS Secrets Manager
 - Provider attributes
 - Environment variables
@@ -24,7 +25,7 @@ The provider uses the first available credentials source.
 
 SAs simplify authentication by eliminating the need to create new Atlas-specific user identities and permission credentials. See [Service Accounts Overview](https://www.mongodb.com/docs/atlas/api/service-accounts-overview/) and [MongoDB Atlas Service Account Limits](https://www.mongodb.com/docs/manual/reference/limits/#mongodb-atlas-service-account-limits) for more information.
 
-Create an SA in your [MongoDB Atlas organization](https://www.mongodb.com/docs/atlas/configure-api-access/#grant-programmatic-access-to-an-organization) and set the credentials, for example:
+To use SA authentication, create an SA in your [MongoDB Atlas organization](https://www.mongodb.com/docs/atlas/configure-api-access/#grant-programmatic-access-to-an-organization) and set the credentials, for example:
 
 ```terraform
 provider "mongodbatlas" {
@@ -33,13 +34,13 @@ provider "mongodbatlas" {
 }
 ```
 
-**Note:** SAs can't be used with `mongodbatlas_event_trigger` resources as its API doesn't support it yet.
+**Note:** SAs can't be used with `mongodbatlas_event_trigger` resources because its API doesn't support it yet.
 
 ### Programmatic Access Key
 
-Generate a PAK with the appropriate [role](https://docs.atlas.mongodb.com/reference/user-roles/). See [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/configure-api-access-org/) for instructions.
+Generate a PAK with the appropriate [role](https://docs.atlas.mongodb.com/reference/user-roles/). See the [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/configure-api-access-org/) for detailed instructions.
 
-**Role recommendation:** If unsure which role to grant, use an organization API key with the Organization Owner role to ensure sufficient access.
+**Role recommendation:** If unsure which role to grant, use an organization API key with the Organization Owner role to ensure sufficient access as in the following example:
 
 ```terraform
 provider "mongodbatlas" {
@@ -73,6 +74,7 @@ The provider supports retrieving credentials from AWS Secrets Manager. See [AWS 
 3. **Configure AWS credentials** (using AWS CLI or environment variables)
 
 4. **Assume the role** to obtain STS credentials
+
    ```shell
    aws sts assume-role --role-arn <ROLE_ARN> --role-session-name newSession
    ```
@@ -80,6 +82,7 @@ The provider supports retrieving credentials from AWS Secrets Manager. See [AWS 
 5. **Configure provider with AWS Secrets Manager**
 
    Using provider attributes:
+
    ```terraform
    provider "mongodbatlas" {
       aws_access_key_id     = var.aws_access_key_id
@@ -96,6 +99,7 @@ The provider supports retrieving credentials from AWS Secrets Manager. See [AWS 
 ### Cross-Account and Cross-Region Access
 
 For cross-account secrets, use the fully qualified ARN for `secret_name`. For cross-region or cross-account access, the `sts_endpoint` parameter is required, for example:
+
 ```terraform
 provider "mongodbatlas" {
    aws_access_key_id     = var.aws_access_key_id
@@ -157,6 +161,7 @@ As per [HashiCorp's recommendations](https://developer.hashicorp.com/terraform/r
 - Windows / AMD64
 
 We ship binaries but do not prioritize fixes for the following operating system / architecture combinations:
+
 - Linux / 386
 - Windows / 386
 - FreeBSD / 386
