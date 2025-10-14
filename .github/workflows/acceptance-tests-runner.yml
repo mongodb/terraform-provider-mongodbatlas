@@ -162,7 +162,7 @@ on:
       mongodb_atlas_rp_client_id:
         required: true
       mongodb_atlas_rp_client_secret:
-        required: true      
+        required: true
       mongodb_atlas_client_id:
         required: true
       mongodb_atlas_client_secret:
