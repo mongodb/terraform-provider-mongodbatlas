@@ -146,14 +146,6 @@ When multiple credentials are provided in the same source, the provider uses thi
 
 The provider displays a warning when multiple credentials are detected.
 
-## Security Best Practices
-
-- Never hard-code credentials in Terraform configuration files
-- Use environment variables or a secrets management system
-- Regularly rotate credentials
-- Apply the principle of least privilege when assigning roles
-- Use Terraform's `sensitive` attribute for credential variables
-
 ## Supported OS and Architectures
 
 As per [HashiCorp's recommendations](https://developer.hashicorp.com/terraform/registry/providers/os-arch), the MongoDB Atlas Provider fully supports the following operating system / architecture combinations:
