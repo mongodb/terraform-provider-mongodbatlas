@@ -1251,6 +1251,7 @@ jobs:
           ACCTEST_PACKAGES: |
             ./internal/service/serverlessinstance
         run: make testacc
+
   stream:
       needs: [ change-detection, get-provider-version ]
       if: ${{ needs.change-detection.outputs.stream == 'true' || inputs.test_group == 'stream' }}
