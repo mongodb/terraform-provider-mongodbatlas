@@ -1,14 +1,14 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_stream_connection: Adds new authentication mechanism (OIDC) to the Kafka connection ([#3766](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3766))
+* data-source/mongodbatlas_stream_connections: Adds new authentication mechanism (OIDC) to the Kafka connection ([#3766](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3766))
+* resource/mongodbatlas_stream_connection: Adds new authentication mechanism (OIDC) to the Kafka connection ([#3766](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3766))
+
 BUG FIXES:
 
 * resource/mongodbatlas_advanced_cluster: Allows upgrade from tenant and flex cluster to dedicated NVMe with backup enabled ([#3725](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3725))
-
-## 1.41.1 (October 01, 2025)
-
-BUG FIXES:
-
-* provider: Fixes STS region resolution when using cross-region authentication ([#3718](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3718))
 
 ## 2.0.1 (October 01, 2025)
 
