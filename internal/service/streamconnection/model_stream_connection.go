@@ -117,7 +117,7 @@ func NewStreamConnectionUpdateReq(ctx context.Context, plan *TFStreamConnectionM
 	return streamConnection, nil
 }
 
-// NewTFStreamConnection determines if the original model was created with instance_name or workspace_name and sets the appropriate field
+// NewTFStreamConnection determines if the original model was created with instance_name or workspace_name and sets the appropriate field.
 func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceName string, currAuthConfig *types.Object, apiResp *admin.StreamsConnection) (*TFStreamConnectionModel, diag.Diagnostics) {
 	streamWorkspaceName := workspaceName
 	if instanceName != "" {
