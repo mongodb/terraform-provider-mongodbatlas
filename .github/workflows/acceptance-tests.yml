@@ -33,6 +33,10 @@ on:
         description: "Run tests using Service Account instead of API Keys"
         type: boolean
         required: false
+      send_notification:
+        description: 'Send a Slack notification if tests fail.'
+        type: boolean
+        required: false
 
   workflow_call: # workflow runs after Test Suite or code-health
     inputs:
@@ -58,6 +62,10 @@ on:
         required: false
       use_sa:
         description: "Run tests using Service Account instead of API Keys"
+        type: boolean
+        required: false
+      send_notification:
+        description: 'Send a Slack notification if tests fail.'
         type: boolean
         required: false
 

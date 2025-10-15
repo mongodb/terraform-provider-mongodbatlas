@@ -34,6 +34,10 @@ on:
         description: "Run tests using Service Account instead of API Keys"
         type: boolean
         required: false
+      send_notification:
+        description: 'Send a Slack notification if stream tests fail.'
+        type: boolean
+        required: false
       mongodb_atlas_org_id:
         type: string
         required: true
@@ -191,7 +195,9 @@ on:
         required: true
       aws_customer_master_key_id:
         required: true
-          
+      slack_webhook_url_test:
+        required: false
+
 env:
   TF_ACC: 1
   TF_LOG: ${{ vars.LOG_LEVEL }}
@@ -1279,3 +1285,29 @@ jobs:
               ./internal/service/streamprocessor
               ./internal/service/streamprivatelinkendpoint
           run: make testacc
+
+  slack-notification:
+    needs: [stream]
+    if: ${{ !cancelled() && needs.stream.result == 'failure' && inputs.send_notification == true }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Send Slack message
+        id: slack
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "Terraform Stream Acceptance Tests Failed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "❌ *Terraform Stream Acceptance Tests Failed* ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Failed Action>"
+                  }
+                }
+              ]
+            }
