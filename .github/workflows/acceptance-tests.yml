@@ -113,6 +113,8 @@ jobs:
       confluent_cloud_api_key: ${{ secrets.CONFLUENT_CLOUD_API_KEY }}
       confluent_cloud_api_secret: ${{ secrets.CONFLUENT_CLOUD_API_SECRET }}
       aws_customer_master_key_id: ${{ secrets.AWS_CUSTOMER_MASTER_KEY_ID }}
+      slack_oncall_tag: ${{ secrets.SLACK_ONCALL_TAG }}
+      slack_webhook_url_stream: ${{ secrets.SLACK_WEBHOOK_URL_TEST }} # TODO: update URL before merging
 
     with:
       terraform_version: ${{ inputs.terraform_version || '1.13.x' }}
@@ -122,6 +124,7 @@ jobs:
       test_name: ${{ inputs.test_name }}
       reduced_tests: ${{ inputs.reduced_tests || false }}
       use_sa: ${{ inputs.use_sa || false }}
+      send_notification: ${{ inputs.send_notification || false }}
       aws_region_federation: ${{ vars.AWS_REGION_FEDERATION }}
       mongodb_atlas_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_ORG_ID_CLOUD_QA || vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
       mongodb_atlas_base_url: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_BASE_URL_QA || vars.MONGODB_ATLAS_BASE_URL }}

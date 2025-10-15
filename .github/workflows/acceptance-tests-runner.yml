@@ -195,8 +195,10 @@ on:
         required: true
       aws_customer_master_key_id:
         required: true
-      slack_webhook_url_test:
-        required: false
+      slack_oncall_tag:
+        required: true
+      slack_webhook_url_stream:
+        required: true
 
 env:
   TF_ACC: 1
@@ -1296,7 +1298,7 @@ jobs:
         id: slack
         uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
         with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST }}
+          webhook: ${{ secrets.slack_webhook_url_stream }}
           webhook-type: incoming-webhook
           payload: |
             {
@@ -1306,7 +1308,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "❌ *Terraform Stream Acceptance Tests Failed* ${{ secrets.SLACK_ONCALL_TAG }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Failed Action>"
+                    "text": "❌ *Terraform Stream Acceptance Tests Failed* ${{ secrets.slack_oncall_tag }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Failed Action>"
                   }
                 }
               ]
