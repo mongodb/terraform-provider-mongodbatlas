@@ -148,7 +148,7 @@ func testCaseKafkaPlaintextMigration(t *testing.T) *resource.TestCase {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkKafkaAttributesMigration(resourceName, instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, true),
 					checkKafkaAttributesMigration(dataSourceName, instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, false),
-					streamConnectionsAttributeChecksAcceptance(pluralDataSourceName, nil, nil),
+					streamConnectionsAttributeChecksMigration(pluralDataSourceName, nil, nil),
 				),
 			},
 			{
@@ -156,7 +156,7 @@ func testCaseKafkaPlaintextMigration(t *testing.T) *resource.TestCase {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkKafkaAttributesMigration(resourceName, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, true),
 					checkKafkaAttributesMigration(dataSourceName, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, false),
-					streamConnectionsAttributeChecksAcceptance(pluralDataSourceName, conversion.Pointer(2), conversion.Pointer(1)),
+					streamConnectionsAttributeChecksMigration(pluralDataSourceName, conversion.Pointer(2), conversion.Pointer(1)),
 				),
 			},
 			{
