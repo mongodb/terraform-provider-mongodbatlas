@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312005/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -68,7 +68,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			name: "Fail to get project's teams assigned ",
 			teamRoleReponse: TeamRoleResponse{
 				TeamRole:     nil,
-				HTTPResponse: &http.Response{StatusCode: 503},
+				HTTPResponse: &http.Response{StatusCode: http.StatusServiceUnavailable},
 				Err:          errors.New("Service Unavailable"),
 			},
 			expectedError: true,
@@ -78,7 +78,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			teamRoleReponse: successfulTeamRoleResponse,
 			limitResponse: LimitsResponse{
 				Limits:       nil,
-				HTTPResponse: &http.Response{StatusCode: 503},
+				HTTPResponse: &http.Response{StatusCode: http.StatusServiceUnavailable},
 				Err:          errors.New("Service Unavailable"),
 			},
 			expectedError: true,
@@ -89,7 +89,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			limitResponse:   successfulLimitsResponse,
 			groupResponse: GroupSettingsResponse{
 				GroupSettings: nil,
-				HTTPResponse:  &http.Response{StatusCode: 503},
+				HTTPResponse:  &http.Response{StatusCode: http.StatusServiceUnavailable},
 				Err:           errors.New("Service Unavailable"),
 			},
 			expectedError: true,
@@ -101,7 +101,7 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			groupResponse:   successfulGroupSettingsResponse,
 			ipAddressesResponse: IPAddressesResponse{
 				IPAddresses:  nil,
-				HTTPResponse: &http.Response{StatusCode: 503},
+				HTTPResponse: &http.Response{StatusCode: http.StatusServiceUnavailable},
 				Err:          errors.New("Service Unavailable"),
 			},
 			expectedError: true,
@@ -113,23 +113,33 @@ func TestGetProjectPropsFromAPI(t *testing.T) {
 			teamsMock := mockadmin.NewTeamsApi(t)
 			projectsMock := mockadmin.NewProjectsApi(t)
 			perfMock := mockadmin.NewPerformanceAdvisorApi(t)
+			cloudUsersMock := mockadmin.NewMongoDBCloudUsersApi(t)
 
-			teamsMock.EXPECT().ListProjectTeams(mock.Anything, mock.Anything).Return(admin.ListProjectTeamsApiRequest{ApiService: teamsMock})
-			teamsMock.EXPECT().ListProjectTeamsExecute(mock.Anything).Return(tc.teamRoleReponse.TeamRole, tc.teamRoleReponse.HTTPResponse, tc.teamRoleReponse.Err)
+			teamsMock.EXPECT().ListGroupTeams(mock.Anything, mock.Anything).Return(admin.ListGroupTeamsApiRequest{ApiService: teamsMock})
+			teamsMock.EXPECT().ListGroupTeamsExecute(mock.Anything).Return(tc.teamRoleReponse.TeamRole, tc.teamRoleReponse.HTTPResponse, tc.teamRoleReponse.Err)
 
-			projectsMock.EXPECT().ListProjectLimits(mock.Anything, mock.Anything).Return(admin.ListProjectLimitsApiRequest{ApiService: projectsMock}).Maybe()
-			projectsMock.EXPECT().ListProjectLimitsExecute(mock.Anything).Return(tc.limitResponse.Limits, tc.limitResponse.HTTPResponse, tc.limitResponse.Err).Maybe()
+			projectsMock.EXPECT().ListGroupLimits(mock.Anything, mock.Anything).Return(admin.ListGroupLimitsApiRequest{ApiService: projectsMock}).Maybe()
+			projectsMock.EXPECT().ListGroupLimitsExecute(mock.Anything).Return(tc.limitResponse.Limits, tc.limitResponse.HTTPResponse, tc.limitResponse.Err).Maybe()
 
-			projectsMock.EXPECT().GetProjectSettings(mock.Anything, mock.Anything).Return(admin.GetProjectSettingsApiRequest{ApiService: projectsMock}).Maybe()
-			projectsMock.EXPECT().GetProjectSettingsExecute(mock.Anything).Return(tc.groupResponse.GroupSettings, tc.groupResponse.HTTPResponse, tc.groupResponse.Err).Maybe()
+			projectsMock.EXPECT().GetGroupSettings(mock.Anything, mock.Anything).Return(admin.GetGroupSettingsApiRequest{ApiService: projectsMock}).Maybe()
+			projectsMock.EXPECT().GetGroupSettingsExecute(mock.Anything).Return(tc.groupResponse.GroupSettings, tc.groupResponse.HTTPResponse, tc.groupResponse.Err).Maybe()
 
-			projectsMock.EXPECT().ReturnAllIpAddresses(mock.Anything, mock.Anything).Return(admin.ReturnAllIpAddressesApiRequest{ApiService: projectsMock}).Maybe()
-			projectsMock.EXPECT().ReturnAllIpAddressesExecute(mock.Anything).Return(tc.ipAddressesResponse.IPAddresses, tc.ipAddressesResponse.HTTPResponse, tc.ipAddressesResponse.Err).Maybe()
+			projectsMock.EXPECT().GetGroupIpAddresses(mock.Anything, mock.Anything).Return(admin.GetGroupIpAddressesApiRequest{ApiService: projectsMock}).Maybe()
+			projectsMock.EXPECT().GetGroupIpAddressesExecute(mock.Anything).Return(tc.ipAddressesResponse.IPAddresses, tc.ipAddressesResponse.HTTPResponse, tc.ipAddressesResponse.Err).Maybe()
 
 			perfMock.EXPECT().GetManagedSlowMs(mock.Anything, mock.Anything).Return(admin.GetManagedSlowMsApiRequest{ApiService: perfMock}).Maybe()
 			perfMock.EXPECT().GetManagedSlowMsExecute(mock.Anything).Return(true, nil, nil).Maybe()
 
-			_, err := project.GetProjectPropsFromAPI(t.Context(), projectsMock, teamsMock, perfMock, dummyProjectID, nil)
+			projectPropsParams := &project.PropsParams{
+				ProjectID:             dummyProjectID,
+				IsDataSource:          false,
+				ProjectsAPI:           projectsMock,
+				TeamsAPI:              teamsMock,
+				PerformanceAdvisorAPI: perfMock,
+				MongoDBCloudUsersAPI:  cloudUsersMock,
+			}
+
+			_, err := project.GetProjectPropsFromAPI(t.Context(), projectPropsParams, nil)
 
 			if (err != nil) != tc.expectedError {
 				t.Errorf("Case %s: Received unexpected error: %v", tc.name, err)
@@ -217,7 +227,7 @@ func TestUpdateProject(t *testing.T) {
 			projectPlan:  projectStateNameDiff,
 			mockResponses: ProjectResponse{
 				Project:      nil,
-				HTTPResponse: &http.Response{StatusCode: 503},
+				HTTPResponse: &http.Response{StatusCode: http.StatusServiceUnavailable},
 				Err:          errors.New("Service Unavailable"),
 			},
 			expectedError: true,
@@ -227,9 +237,9 @@ func TestUpdateProject(t *testing.T) {
 	for i, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			svc := mockadmin.NewProjectsApi(t)
-			svc.EXPECT().UpdateProject(mock.Anything, mock.Anything, mock.Anything).Return(admin.UpdateProjectApiRequest{ApiService: svc}).Maybe()
+			svc.EXPECT().UpdateGroup(mock.Anything, mock.Anything, mock.Anything).Return(admin.UpdateGroupApiRequest{ApiService: svc}).Maybe()
 
-			svc.EXPECT().UpdateProjectExecute(mock.Anything).Return(tc.mockResponses.Project, tc.mockResponses.HTTPResponse, tc.mockResponses.Err).Maybe()
+			svc.EXPECT().UpdateGroupExecute(mock.Anything).Return(tc.mockResponses.Project, tc.mockResponses.HTTPResponse, tc.mockResponses.Err).Maybe()
 
 			err := project.UpdateProject(t.Context(), svc, &testCases[i].projectState, &testCases[i].projectPlan)
 
@@ -334,11 +344,11 @@ func TestUpdateProjectLimits(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			svc := mockadmin.NewProjectsApi(t)
 
-			svc.EXPECT().DeleteProjectLimit(mock.Anything, mock.Anything, mock.Anything).Return(admin.DeleteProjectLimitApiRequest{ApiService: svc}).Maybe()
-			svc.EXPECT().DeleteProjectLimitExecute(mock.Anything).Return(tc.mockResponses.HTTPResponse, tc.mockResponses.Err).Maybe()
+			svc.EXPECT().DeleteGroupLimit(mock.Anything, mock.Anything, mock.Anything).Return(admin.DeleteGroupLimitApiRequest{ApiService: svc}).Maybe()
+			svc.EXPECT().DeleteGroupLimitExecute(mock.Anything).Return(tc.mockResponses.HTTPResponse, tc.mockResponses.Err).Maybe()
 
-			svc.EXPECT().SetProjectLimit(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(admin.SetProjectLimitApiRequest{ApiService: svc}).Maybe()
-			svc.EXPECT().SetProjectLimitExecute(mock.Anything).Return(nil, nil, nil).Maybe()
+			svc.EXPECT().SetGroupLimit(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(admin.SetGroupLimitApiRequest{ApiService: svc}).Maybe()
+			svc.EXPECT().SetGroupLimitExecute(mock.Anything).Return(nil, nil, nil).Maybe()
 
 			err := project.UpdateProjectLimits(t.Context(), svc, &testCases[i].projectState, &testCases[i].projectPlan)
 
@@ -427,14 +437,14 @@ func TestUpdateProjectTeams(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			svc := mockadmin.NewTeamsApi(t)
 
-			svc.EXPECT().AddAllTeamsToProject(mock.Anything, mock.Anything, mock.Anything).Return(admin.AddAllTeamsToProjectApiRequest{ApiService: svc}).Maybe()
-			svc.EXPECT().AddAllTeamsToProjectExecute(mock.Anything).Return(nil, nil, nil).Maybe()
+			svc.EXPECT().AddGroupTeams(mock.Anything, mock.Anything, mock.Anything).Return(admin.AddGroupTeamsApiRequest{ApiService: svc}).Maybe()
+			svc.EXPECT().AddGroupTeamsExecute(mock.Anything).Return(nil, nil, nil).Maybe()
 
-			svc.EXPECT().RemoveProjectTeam(mock.Anything, mock.Anything, mock.Anything).Return(admin.RemoveProjectTeamApiRequest{ApiService: svc}).Maybe()
-			svc.EXPECT().RemoveProjectTeamExecute(mock.Anything).Return(nil, nil).Maybe()
+			svc.EXPECT().RemoveGroupTeam(mock.Anything, mock.Anything, mock.Anything).Return(admin.RemoveGroupTeamApiRequest{ApiService: svc}).Maybe()
+			svc.EXPECT().RemoveGroupTeamExecute(mock.Anything).Return(nil, nil).Maybe()
 
-			svc.EXPECT().UpdateTeamRoles(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(admin.UpdateTeamRolesApiRequest{ApiService: svc}).Maybe()
-			svc.EXPECT().UpdateTeamRolesExecute(mock.Anything).Return(nil, nil, nil).Maybe()
+			svc.EXPECT().UpdateGroupTeam(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(admin.UpdateGroupTeamApiRequest{ApiService: svc}).Maybe()
+			svc.EXPECT().UpdateGroupTeamExecute(mock.Anything).Return(nil, nil, nil).Maybe()
 
 			err := project.UpdateProjectTeams(t.Context(), svc, &testCases[i].projectState, &testCases[i].projectPlan)
 
@@ -528,14 +538,22 @@ func TestAccProject_basic(t *testing.T) {
 		"is_realtime_performance_panel_enabled",
 		"is_schema_advisor_enabled",
 	}
+
+	dataSourceChecks := map[string]string{
+		"users.#": "1",
+	}
+
 	checks := acc.AddAttrChecks(resourceName, nil, commonChecks)
 	checks = acc.AddAttrChecks(dataSourceNameByID, checks, commonChecks)
 	checks = acc.AddAttrChecks(dataSourceNameByName, checks, commonChecks)
+	checks = acc.AddAttrChecks(dataSourceNameByID, checks, dataSourceChecks)
+	checks = acc.AddAttrChecks(dataSourceNameByName, checks, dataSourceChecks)
 	checks = acc.AddAttrSetChecks(resourceName, checks, commonSetChecks...)
 	checks = acc.AddAttrSetChecks(dataSourceNameByID, checks, commonSetChecks...)
 	checks = acc.AddAttrSetChecks(dataSourceNameByName, checks, commonSetChecks...)
 	checks = append(checks, checkExists(resourceName), checkExists(dataSourceNameByID), checkExists(dataSourceNameByName))
 	checks = acc.AddAttrSetChecks(dataSourcePluralName, checks, "total_count", "results.#", "results.0.is_slow_operation_thresholding_enabled")
+	checks = append(checks, resource.TestCheckResourceAttrWith(dataSourcePluralName, "results.0.users.#", acc.IntGreatThan(0)))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t); acc.PreCheckProjectTeamsIDsWithMinCount(t, 3) },
@@ -620,6 +638,7 @@ func TestAccProject_basic(t *testing.T) {
 }
 
 func TestAccGovProject_withProjectOwner(t *testing.T) {
+	acc.SkipInSA(t, "SA not supported in Gov tests yet")
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_GOV_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_GOV_PROJECT_OWNER_ID")
@@ -647,9 +666,21 @@ func TestAccGovProject_withProjectOwner(t *testing.T) {
 
 func TestAccProject_withFalseDefaultSettings(t *testing.T) {
 	var (
-		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
-		projectName    = acc.RandomProjectName()
+		orgID               = os.Getenv("MONGODB_ATLAS_ORG_ID")
+		projectOwnerID      = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
+		projectName         = acc.RandomProjectName()
+		importResourceName  = resourceName + "2"
+		alertSettingsFalse  = configWithDefaultAlertSettings(orgID, projectName, projectOwnerID, false)
+		alertSettingsTrue   = configWithDefaultAlertSettings(orgID, projectName, projectOwnerID, true)
+		alertSettingsAbsent = configBasic(orgID, projectName, "", false, nil, nil)
+		// To test plan behavior after import it is necessary to use a different resource name, otherwise we get:
+		// Terraform is already managing a remote object for mongodbatlas_project.test. To import to this address you must first remove the existing object from the state.
+		// This happens because `ImportStatePersist` uses the previous WorkingDirectory where the state from previous steps are saved
+		// resource "mongodbatlas_project" "test"  --> resource "mongodbatlas_project" "test2"
+		alertSettingsFalseImport = strings.Replace(alertSettingsFalse, "test", "test2", 1)
+		// Need BOTH  mongodbatlas_project.test and mongodbatlas_project.test2, otherwise we get:
+		// expected empty plan, but mongodbatlas_project.test has planned action(s): [delete]
+		alertSettingsAbsentImport = alertSettingsFalse + strings.Replace(alertSettingsAbsent, "test", "test2", 1)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -658,13 +689,25 @@ func TestAccProject_withFalseDefaultSettings(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithFalseDefaultSettings(orgID, projectName, projectOwnerID),
+				Config: alertSettingsFalse,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 				),
 			},
+			{
+				Config:      alertSettingsTrue,
+				ExpectError: regexp.MustCompile("with_default_alerts_settings cannot be updated or set after import, remove it from the configuration or use the state value"),
+			},
+			{
+				Config:             alertSettingsFalseImport,
+				ResourceName:       importResourceName,
+				ImportStateIdFunc:  acc.ImportStateProjectIDFunc(resourceName),
+				ImportState:        true,
+				ImportStatePersist: true, // save the state to use it in the next plan
+			},
+			acc.TestStepCheckEmptyPlan(alertSettingsAbsentImport),
 		},
 	})
 }
@@ -688,7 +731,7 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "name", projectName),
 					resource.TestCheckResourceAttr(resourceName, "org_id", orgID),
 					resource.TestCheckResourceAttr(resourceName, "project_owner_id", projectOwnerID),
-					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "false"),
+					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "true"), // uses default value
 					resource.TestCheckResourceAttr(resourceName, "is_collect_database_specifics_statistics_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_data_explorer_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_extended_storage_sizes_enabled", "false"),
@@ -701,7 +744,7 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "true"),
+					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "true"), // uses default value
 					resource.TestCheckResourceAttr(resourceName, "is_collect_database_specifics_statistics_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "is_data_explorer_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "is_extended_storage_sizes_enabled", "true"),
@@ -714,7 +757,7 @@ func TestAccProject_withUpdatedSettings(t *testing.T) {
 				Config: acc.ConfigProjectWithSettings(projectName, orgID, projectOwnerID, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "false"),
+					resource.TestCheckResourceAttr(resourceName, "with_default_alerts_settings", "true"), // uses default value
 					resource.TestCheckResourceAttr(resourceName, "is_collect_database_specifics_statistics_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_data_explorer_enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "is_extended_storage_sizes_enabled", "false"),
@@ -1108,13 +1151,13 @@ func TestAccProject_slowOperationReadOnly(t *testing.T) {
 
 func changeRoles(t *testing.T, orgID, projectName, roleName string) {
 	t.Helper()
-	respProject, _, _ := acc.ConnV2().ProjectsApi.GetProjectByName(t.Context(), projectName).Execute()
+	respProject, _, _ := acc.ConnV2().ProjectsApi.GetGroupByName(t.Context(), projectName).Execute()
 	projectID := respProject.GetId()
 	if projectID == "" {
 		t.Errorf("PreConfig: error finding project %s", projectName)
 	}
 	api := acc.ConnV2().ProgrammaticAPIKeysApi
-	respList, _, _ := api.ListApiKeys(t.Context(), orgID).Execute()
+	respList, _, _ := api.ListOrgApiKeys(t.Context(), orgID).Execute()
 	publicKey := os.Getenv("MONGODB_ATLAS_PUBLIC_KEY_READ_ONLY")
 	keys := respList.GetResults()
 	for _, result := range keys {
@@ -1168,7 +1211,7 @@ func checkExistsWithConn(resourceName string, conn *admin.APIClient) resource.Te
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		if _, _, err := conn.ProjectsApi.GetProjectByName(context.Background(), rs.Primary.Attributes["name"]).Execute(); err == nil {
+		if _, _, err := conn.ProjectsApi.GetGroupByName(context.Background(), rs.Primary.Attributes["name"]).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("project (%s) does not exist", rs.Primary.ID)
@@ -1186,8 +1229,7 @@ func configBasic(orgID, projectName, projectOwnerID string, includeDataSource bo
 			data "mongodbatlas_project" "test2" {
 				name = mongodbatlas_project.test.name
 			}
-
-			data "mongodbatlas_projects" "test" {
+			 data "mongodbatlas_projects" "test" {
 			}
 		`
 	}
@@ -1232,15 +1274,15 @@ func configGovWithOwner(orgID, projectName, projectOwnerID string) string {
 	`, orgID, projectName, projectOwnerID)
 }
 
-func configWithFalseDefaultSettings(orgID, projectName, projectOwnerID string) string {
+func configWithDefaultAlertSettings(orgID, projectName, projectOwnerID string, withDefaultAlertsSettings bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_project" "test" {
 			org_id 			 = %[1]q
 			name   			 = %[2]q
 			project_owner_id = %[3]q
-			with_default_alerts_settings = false
+			with_default_alerts_settings = %[4]t
 		}
-	`, orgID, projectName, projectOwnerID)
+	`, orgID, projectName, projectOwnerID, withDefaultAlertsSettings)
 }
 
 func configWithLimits(orgID, projectName string, limits []*admin.DataFederationLimit) string {

@@ -115,7 +115,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	AwsIamtype      types.String `tfsdk:"aws_iamtype"`
+	AwsIAMType      types.String `tfsdk:"aws_iamtype"`
 	DatabaseName    types.String `tfsdk:"database_name"`
 	DeleteAfterDate types.String `tfsdk:"delete_after_date"`
 	Description     types.String `tfsdk:"description" autogen:"includenullonupdate"`
@@ -127,7 +127,7 @@ type TFModel struct {
 	Roles           types.List   `tfsdk:"roles"`
 	Scopes          types.List   `tfsdk:"scopes"`
 	Username        types.String `tfsdk:"username"`
-	X509type        types.String `tfsdk:"x509type"`
+	X509Type        types.String `tfsdk:"x509type"`
 }
 type TFLabelsModel struct {
 	Key   types.String `tfsdk:"key"`

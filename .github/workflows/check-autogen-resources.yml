@@ -1,0 +1,37 @@
+name: 'Check auto-generated resources'
+
+# Set of validations run on each pull request and merged commits to master.
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - tools/codegen/**
+      - internal/serviceapi/**
+  pull_request:
+    paths:
+      - tools/codegen/**
+      - internal/serviceapi/**
+  workflow_dispatch:
+
+jobs:
+  check-autogen-resources:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
+        with:
+          go-version-file: 'go.mod'
+      - run: make tools generate-resource-code
+      - name: Find mutations
+        id: self_mutation
+        run: |-
+          git add .
+          git diff --staged --patch --exit-code > resource.repo.patch || echo "self_mutation_happened=true" >> "${GITHUB_OUTPUT}"
+      - name: Fail build on mutation
+        if: steps.self_mutation.outputs.self_mutation_happened
+        run: |-
+          echo "::error::Files were changed during build (see build log). If this was triggered from a fork, you will need to update your branch."
+          cat resource.repo.patch
+          exit 1

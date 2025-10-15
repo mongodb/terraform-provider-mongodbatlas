@@ -1,3 +1,7 @@
+---
+subcategory: "Cloud Backups"
+---
+
 # Data Source: mongodbatlas_flex_restore_job
 
 `mongodbatlas_flex_restore_job` describes a flex restore job.

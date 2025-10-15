@@ -1,3 +1,7 @@
+---
+subcategory: "Clusters"
+---
+
 # Resource: mongodbatlas_global_cluster_config
 
 `mongodbatlas_global_cluster_config` provides a Global Cluster Configuration resource.
@@ -19,33 +23,32 @@ resource "mongodbatlas_advanced_cluster" "test" {
   cluster_type   = "GEOSHARDED"
   backup_enabled = true
 
-  replication_specs {
+  replication_specs = [{
     zone_name = "Zone 1"
 
-    region_configs {
-      electable_specs {
+    region_configs = [{
+      electable_specs = {
         instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "EU_CENTRAL_1"
-    }
-  }
-
-  replication_specs {
+    }]
+  },
+  {
     zone_name = "Zone 2"
 
-    region_configs {
-      electable_specs {
+    region_configs = [{
+      electable_specs = {
         instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "US_EAST_2"
-    }
-  }
+    }]
+  }]
 }
 
 resource "mongodbatlas_global_cluster_config" "config" {
@@ -93,7 +96,6 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Terraform's unique identifier used internally for state management.
 * `custom_zone_mapping_zone_id` - A map of all custom zone mappings defined for the Global Cluster to `replication_specs.*.zone_id`. Atlas automatically maps each location code to the closest geographical zone. Custom zone mappings allow administrators to override these automatic mappings. If your Global Cluster does not have any custom zone mappings, this document is empty.
-* `custom_zone_mapping` - (Deprecated) A map of all custom zone mappings defined for the Global Cluster to `replication_specs.*.id`. This attribute is deprecated, use `custom_zone_mapping_zone_id` instead. This attribute is not set when a cluster uses independent shard scaling. To learn more, see the [Sharding Configuration guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
 
 ## Import
 

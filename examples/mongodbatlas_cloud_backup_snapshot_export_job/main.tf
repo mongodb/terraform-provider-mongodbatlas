@@ -28,24 +28,28 @@ resource "mongodbatlas_advanced_cluster" "my_cluster" {
   cluster_type   = "REPLICASET"
   backup_enabled = true
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AWS"
       region_name   = "US_EAST_1"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 resource "mongodbatlas_cloud_backup_snapshot" "test" {
-  project_id        = var.project_id
-  cluster_name      = mongodbatlas_advanced_cluster.my_cluster.name
-  description       = "myDescription"
-  retention_in_days = 1
+  project_id               = var.project_id
+  cluster_name             = mongodbatlas_advanced_cluster.my_cluster.name
+  description              = "myDescription"
+  retention_in_days        = 1
+  delete_on_create_timeout = true
+  timeouts {
+    create = "10m"
+  }
 }
 
 resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {

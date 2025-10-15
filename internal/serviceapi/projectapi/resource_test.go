@@ -89,7 +89,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if groupID == "" {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
-		if _, _, err := acc.ConnV2().ProjectsApi.GetProject(context.Background(), groupID).Execute(); err == nil {
+		if _, _, err := acc.ConnV2().ProjectsApi.GetGroup(context.Background(), groupID).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("project(%s) does not exist", groupID)
@@ -105,7 +105,7 @@ func checkDestroy(s *terraform.State) error {
 		if groupID == "" {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
-		_, _, err := acc.ConnV2().ProjectsApi.GetProject(context.Background(), groupID).Execute()
+		_, _, err := acc.ConnV2().ProjectsApi.GetGroup(context.Background(), groupID).Execute()
 		if err == nil {
 			return fmt.Errorf("project (%s) still exists", groupID)
 		}

@@ -16,7 +16,7 @@ GITTAG=$(shell git describe --always --tags)
 VERSION=$(GITTAG:v%=%)
 LINKER_FLAGS=-s -w -X 'github.com/mongodb/terraform-provider-mongodbatlas/version.ProviderVersion=${VERSION}'
 
-GOLANGCI_VERSION=v2.1.6 # Also update golangci-lint GH action in code-health.yml when updating this version
+GOLANGCI_VERSION=v2.4.0 # Also update golangci-lint GH action in code-health.yml when updating this version
 
 export PATH := $(shell go env GOPATH)/bin:$(PATH)
 export SHELL := env PATH=$(PATH) /bin/bash
@@ -53,7 +53,6 @@ testmact: ## Run MacT tests (mocked acc tests)
 	@$(eval export MONGODB_ATLAS_ORG_ID?=111111111111111111111111)
 	@$(eval export MONGODB_ATLAS_PROJECT_ID?=111111111111111111111111)
 	@$(eval export MONGODB_ATLAS_CLUSTER_NAME?=mocked-cluster)
-	@$(eval export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER?=true)
 	@if [ "$(ACCTEST_PACKAGES)" = "./..." ]; then \
 		echo "Error: ACCTEST_PACKAGES must be explicitly set for testmact target, './...' is not allowed"; \
 		exit 1; \
@@ -120,9 +119,10 @@ tools:  ## Install the dev tools (dependencies)
 docs: ## Give URL to test Terraform documentation
 	@echo "Use this site to preview markdown rendering: https://registry.terraform.io/tools/doc-preview"
 
+
 .PHONY: tflint
-tflint: fmtcheck ## Linter for Terraform files in examples/ dir (avoid `internal/**/testdata/main*.tf`)
-	tflint --chdir=examples/ -f compact --recursive --minimum-failure-severity=warning
+tflint: fmtcheck ## Linter for Terraform files in examples/ dir (avoid `internal/**/testdata/main*.tf`), disable terraform_required_providers rule as we intentionally omit the provider version
+	tflint --chdir=examples/ -f compact --recursive --minimum-failure-severity=warning --disable-rule=terraform_required_providers
 
 .PHONY: tf-validate
 tf-validate: fmtcheck ## Validate Terraform files

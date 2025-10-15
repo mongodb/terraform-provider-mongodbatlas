@@ -3,8 +3,9 @@ package project_test
 import (
 	"context"
 	"testing"
+	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -26,6 +27,10 @@ const (
 	projectClusterCount     = int64(1)
 	clusterCount            = 1
 	regionUsageRestrictions = "GOV_REGIONS_ONLY"
+	userOrgMembershipStatus = "ACTIVE"
+	country                 = "US"
+	inviterUsername         = ""
+	mobileNumber            = ""
 )
 
 var (
@@ -74,6 +79,72 @@ var (
 	limitsTFSet, _ = types.SetValueFrom(context.Background(), project.TfLimitObjectType, []project.TFLimitModel{
 		*limitsTF[0],
 	})
+
+	usersSDK = []admin.GroupUserResponse{
+		{
+			Id:                  "user-id-1",
+			Username:            "user1@example.com",
+			FirstName:           admin.PtrString("FirstName1"),
+			LastName:            admin.PtrString("LastName1"),
+			Roles:               roles,
+			InvitationCreatedAt: nil,
+			InvitationExpiresAt: nil,
+			InviterUsername:     admin.PtrString(inviterUsername),
+			OrgMembershipStatus: userOrgMembershipStatus,
+			Country:             admin.PtrString("US"),
+			CreatedAt:           admin.PtrTime(time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)),
+			LastAuth:            admin.PtrTime(time.Date(2025, 1, 2, 0, 0, 0, 0, time.UTC)),
+			MobileNumber:        admin.PtrString(mobileNumber),
+		},
+		{
+			Id:                  "user-id-2",
+			Username:            "user2@example.com",
+			FirstName:           admin.PtrString("FirstName2"),
+			LastName:            admin.PtrString("LastName2"),
+			Roles:               roles,
+			InvitationCreatedAt: nil,
+			InvitationExpiresAt: nil,
+			InviterUsername:     admin.PtrString(inviterUsername),
+			OrgMembershipStatus: userOrgMembershipStatus,
+			Country:             admin.PtrString(country),
+			CreatedAt:           admin.PtrTime(time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)),
+			LastAuth:            admin.PtrTime(time.Date(2025, 1, 2, 0, 0, 0, 0, time.UTC)),
+			MobileNumber:        admin.PtrString(mobileNumber),
+		},
+	}
+	usersTF = []*project.TFCloudUsersDSModel{
+		{
+			ID:                  types.StringValue("user-id-1"),
+			Username:            types.StringValue("user1@example.com"),
+			FirstName:           types.StringValue("FirstName1"),
+			LastName:            types.StringValue("LastName1"),
+			Roles:               roleSet,
+			InvitationCreatedAt: types.StringNull(),
+			InvitationExpiresAt: types.StringNull(),
+			InviterUsername:     types.StringValue(inviterUsername),
+			OrgMembershipStatus: types.StringValue(userOrgMembershipStatus),
+			Country:             types.StringValue(country),
+			CreatedAt:           types.StringValue("2025-01-01T00:00:00Z"),
+			LastAuth:            types.StringValue("2025-01-02T00:00:00Z"),
+			MobileNumber:        types.StringValue(mobileNumber),
+		},
+		{
+			ID:                  types.StringValue("user-id-2"),
+			Username:            types.StringValue("user2@example.com"),
+			FirstName:           types.StringValue("FirstName2"),
+			LastName:            types.StringValue("LastName2"),
+			Roles:               roleSet,
+			InvitationCreatedAt: types.StringNull(),
+			InvitationExpiresAt: types.StringNull(),
+			InviterUsername:     types.StringValue(inviterUsername),
+			OrgMembershipStatus: types.StringValue(userOrgMembershipStatus),
+			Country:             types.StringValue(country),
+			CreatedAt:           types.StringValue("2025-01-01T00:00:00Z"),
+			LastAuth:            types.StringValue("2025-01-02T00:00:00Z"),
+			MobileNumber:        types.StringValue(mobileNumber),
+		},
+	}
+
 	ipAddressesTF, _ = types.ObjectValueFrom(context.Background(), project.IPAddressesObjectType.AttrTypes, project.TFIPAddressesModel{
 		Services: project.TFServicesModel{
 			Clusters: []project.TFClusterIPsModel{
@@ -199,6 +270,36 @@ func TestLimitsDataSourceSDKToTFModel(t *testing.T) {
 	}
 }
 
+func TestUsersDataSourceSDKToDataSourceTFModel(t *testing.T) {
+	testCases := []struct {
+		name            string
+		users           []admin.GroupUserResponse
+		expectedTFModel []*project.TFCloudUsersDSModel
+	}{
+		{
+			name:            "Users",
+			users:           usersSDK,
+			expectedTFModel: usersTF,
+		},
+		{
+			name:            "Empty Users",
+			users:           []admin.GroupUserResponse{},
+			expectedTFModel: []*project.TFCloudUsersDSModel{},
+		},
+		{
+			name:            "Nil Users",
+			users:           nil,
+			expectedTFModel: []*project.TFCloudUsersDSModel{},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			resultModel := project.NewTFCloudUsersDataSourceModel(t.Context(), tc.users)
+			assert.Equal(t, tc.expectedTFModel, resultModel)
+		})
+	}
+}
+
 func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 	testCases := []struct {
 		name            string
@@ -217,6 +318,7 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 				Settings:    &projectSettingsSDK,
 				IPAddresses: &IPAddressesSDK,
 				Limits:      limitsSDK,
+				Users:       usersSDK,
 			},
 			expectedTFModel: project.TFProjectDSModel{
 
@@ -234,6 +336,7 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 				IsSlowOperationThresholdingEnabled:          types.BoolValue(false),
 				Teams:                                       teamsDSTF,
 				Limits:                                      limitsTF,
+				Users:                                       usersTF,
 				IPAddresses:                                 ipAddressesTF,
 				Created:                                     types.StringValue("0001-01-01T00:00:00Z"),
 				Tags:                                        types.MapValueMust(types.StringType, map[string]attr.Value{}),
@@ -250,6 +353,7 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 				Settings:                           &projectSettingsSDK,
 				IPAddresses:                        &IPAddressesSDK,
 				Limits:                             limitsSDK,
+				Users:                              usersSDK,
 				IsSlowOperationThresholdingEnabled: true,
 			},
 			expectedTFModel: project.TFProjectDSModel{
@@ -269,6 +373,7 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 				IsSlowOperationThresholdingEnabled:          types.BoolValue(true),
 				Teams:                                       teamsDSTF,
 				Limits:                                      limitsTF,
+				Users:                                       usersTF,
 				IPAddresses:                                 ipAddressesTF,
 				Created:                                     types.StringValue("0001-01-01T00:00:00Z"),
 				Tags:                                        types.MapValueMust(types.StringType, map[string]attr.Value{}),
@@ -278,7 +383,7 @@ func TestProjectDataSourceSDKToDataSourceTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := project.NewTFProjectDataSourceModel(t.Context(), tc.project, tc.projectProps)
+			resultModel, diags := project.NewTFProjectDataSourceModel(t.Context(), tc.project, &tc.projectProps)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -363,7 +468,7 @@ func TestProjectDataSourceSDKToResourceTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := project.NewTFProjectResourceModel(t.Context(), tc.project, tc.projectProps)
+			resultModel, diags := project.NewTFProjectResourceModel(t.Context(), tc.project, &tc.projectProps)
 			if diags.HasError() {
 				t.Errorf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}

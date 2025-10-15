@@ -1,3 +1,7 @@
+---
+subcategory: "Encryption at Rest using Customer Key Management"
+---
+
 # Data Source: mongodbatlas_encryption_at_rest
 
 `mongodbatlas_encryption_at_rest` describes encryption at rest configuration for an Atlas project with one of the following providers:
@@ -52,17 +56,17 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   backup_enabled              = true
   encryption_at_rest_provider = "AWS"
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AWS"
       region_name   = "US_EAST_1"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 data "mongodbatlas_encryption_at_rest" "test" {
@@ -106,6 +110,8 @@ output "is_azure_encryption_at_rest_valid" {
 -> **NOTE:** It is possible to configure Atlas Encryption at Rest to communicate with Customer Managed Keys (Azure Key Vault or AWS KMS) over private network interfaces (Azure Private Link or AWS PrivateLink). This requires enabling the `azure_key_vault_config.require_private_networking` or the `aws_kms_config.require_private_networking` attribute, together with the configuration of the `mongodbatlas_encryption_at_rest_private_endpoint` resource. Please review the `mongodbatlas_encryption_at_rest_private_endpoint` resource for details.
 
 ### Configuring encryption at rest using customer key management in GCP
+For authentication, you must provide either serviceAccountKey (static credentials) or roleId (service-account–based authentication). Once roleId is configured, serviceAccountKey is no longer supported.
+
 ```terraform
 resource "mongodbatlas_encryption_at_rest" "test" {
   project_id = var.atlas_project_id
@@ -181,6 +187,7 @@ Read-Only:
 
 - `enabled` (Boolean) Flag that indicates whether someone enabled encryption at rest for the specified  project. To disable encryption at rest using customer key management and remove the configuration details, pass only this parameter with a value of `false`.
 - `key_version_resource_id` (String, Sensitive) Resource path that displays the key version resource ID for your Google Cloud KMS.
+- `role_id` (String) Unique 24-hexadecimal digit string that identifies the Google Cloud Provider Access Role that MongoDB Cloud uses to access the Google Cloud KMS.
 - `service_account_key` (String, Sensitive) JavaScript Object Notation (JSON) object that contains the Google Cloud Key Management Service (KMS). Format the JSON as a string and not as an object.
 - `valid` (Boolean) Flag that indicates whether the Google Cloud Key Management Service (KMS) encryption key can encrypt and decrypt data.
 

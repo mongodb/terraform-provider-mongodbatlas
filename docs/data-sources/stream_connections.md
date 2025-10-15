@@ -1,3 +1,7 @@
+---
+subcategory: "Streams"
+---
+
 # Data Source: mongodbatlas_stream_connections
 
 `mongodbatlas_stream_connections` describes all connections of a stream instance for the specified project.
@@ -54,9 +58,15 @@ If `type` is of value `Https` the following additional attributes are defined:
 
 ### Authentication
 
-* `mechanism` - Style of authentication. Can be one of `PLAIN`, `SCRAM-256`, or `SCRAM-512`.
+* `mechanism` - Method of authentication. Value can be `PLAIN`, `SCRAM-256`, `SCRAM-512`, or `OAUTHBEARER`.
+* `method` - SASL OAUTHBEARER authentication method. Value must be OIDC.
 * `username` - Username of the account to connect to the Kafka cluster.
 * `password` - Password of the account to connect to the Kafka cluster.
+* `token_endpoint_url` -  OAUTH issuer (IdP provider) token endpoint HTTP(S) URI used to retrieve the token.
+* `client_id` - Public identifier for the Kafka client.
+* `client_secret` - Secret known only to the Kafka client and the authorization server.
+* `scope` - Scope of the access request to the broker specified by the Kafka clients.
+* `sasl_oauthbearer_extensions` - Additional information to provide to the Kafka broker.
 
 ### Security
 

@@ -1,0 +1,37 @@
+---
+subcategory: "MongoDB Cloud Users"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` provides a Cloud User Project Assignment resource. It lets you manage the association between a cloud user and a project, enabling you to import, assign, remove, or update the user's membership.
+
+Depending on the user's current membership status in the project's organization, MongoDB Cloud handles invitations and access in different ways:
+- If the user has a pending invitation to join the project's organization, MongoDB Cloud modifies it and grants project access.
+- If the user doesn't have an invitation to join the organization, MongoDB Cloud sends a new invitation that grants the user organization and project access.
+- If the user is already active in the project's organization, MongoDB Cloud grants access to the project.
+
+-> **NOTE:** Users with pending invitations created using the deprecated `mongodbatlas_project_invitation` resource or via the deprecated [Invite One MongoDB Cloud User to One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getorganizationuser#tag/Projects/operation/createProjectInvitation)
+endpoint cannot be managed with this resource. See [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getprojectteam) for details.
+To manage such users with this resource, refer to our [Project Invitation to Cloud User Project Assignment Migration Guide](../guides/atlas-user-management).
+
+## Example Usages
+
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+### Further Examples
+- [Cloud User Project Assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_cloud_user_project_assignment)
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Cloud User Project Assignment resource can be imported using the Project ID & Username OR Project ID & User ID, in the format `PROJECT_ID/USERNAME` OR `PROJECT_ID/USER_ID`.
+
+```
+$ terraform import mongodbatlas_cloud_user_project_assignment.test 9f3a7c2e54b8d1a0e6f4b3c2/test-user@example.com
+OR
+$ terraform import mongodbatlas_cloud_user_project_assignment.test 9f3a7c2e54b8d1a0e6f4b3c2/5f18367ccb7a503a2b481b7a
+```
+
+For more information, see: [MongoDB Atlas API - Cloud Users](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-addprojectuser) Documentation.

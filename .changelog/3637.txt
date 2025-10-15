@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/mongodbatlas_cloud_provider_access_setup: Adds support for GCP as a Cloud Provider.
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_cloud_provider_access_setup: Adds support for GCP as a Cloud Provider.
+```

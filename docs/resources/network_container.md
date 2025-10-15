@@ -1,3 +1,7 @@
+---
+subcategory: "Network Peering"
+---
+
 # Resource: mongodbatlas_network_container
 
 `mongodbatlas_network_container` provides a Network Peering Container resource. The resource lets you create, edit and delete network peering containers. You must delete network peering containers before creating clusters in your project. You can't delete a network peering container if your project contains clusters. The resource requires your Project ID.  Each cloud provider requires slightly different attributes so read the argument reference carefully.
@@ -46,6 +50,9 @@ resource "mongodbatlas_network_container" "test" {
   region           = "US_EAST_2"
 }
 ```
+
+### Further Examples
+- [GCP and MongoDB Atlas VPC Peering](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_network_peering/gcp)
 
 ## Argument Reference
 

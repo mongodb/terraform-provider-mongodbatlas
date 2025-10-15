@@ -1,3 +1,7 @@
+---
+subcategory: "Database Users"
+---
+
 # Resource: mongodbatlas_custom_db_role
 
 `mongodbatlas_custom_db_role` provides a Custom DB Role resource. The customDBRoles resource lets you retrieve, create and modify the custom MongoDB roles in your cluster. Use custom MongoDB roles to specify custom sets of actions which cannot be described by the built-in Atlas database user privileges.

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -54,7 +54,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	projectID := tfModel.ProjectId.ValueString()
 	apiKeyID := tfModel.ApiKeyId.ValueString()
 	connV2 := r.Client.AtlasV2
-	_, err := connV2.ProgrammaticAPIKeysApi.AddProjectApiKey(ctx, projectID, apiKeyID, assignmentReq).Execute()
+	_, err := connV2.ProgrammaticAPIKeysApi.AddGroupApiKey(ctx, projectID, apiKeyID, assignmentReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error creating resource", err.Error())
 		return
@@ -151,7 +151,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 
 	projectID := assignmentState.ProjectId.ValueString()
 	apiKeyID := assignmentState.ApiKeyId.ValueString()
-	if _, err := connV2.ProgrammaticAPIKeysApi.RemoveProjectApiKey(ctx, projectID, apiKeyID).Execute(); err != nil {
+	if _, err := connV2.ProgrammaticAPIKeysApi.RemoveGroupApiKey(ctx, projectID, apiKeyID).Execute(); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}
@@ -159,7 +159,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 
 func ListAllProjectAPIKeys(ctx context.Context, connV2 *admin.APIClient, projectID string) ([]admin.ApiKeyUserDetails, error) {
 	apiKeys, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.ApiKeyUserDetails], *http.Response, error) {
-		request := connV2.ProgrammaticAPIKeysApi.ListProjectApiKeysWithParams(ctx, &admin.ListProjectApiKeysApiParams{
+		request := connV2.ProgrammaticAPIKeysApi.ListGroupApiKeysWithParams(ctx, &admin.ListGroupApiKeysApiParams{
 			GroupId: projectID,
 		})
 		request = request.PageNum(pageNum)

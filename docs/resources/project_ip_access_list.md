@@ -1,3 +1,7 @@
+---
+subcategory: "Projects"
+---
+
 # Resource: mongodbatlas_project_ip_access_list
 
 `mongodbatlas_project_ip_access_list` provides an IP Access List entry resource. The access list grants access from IPs, CIDRs or AWS Security Groups (if VPC Peering is enabled) to clusters within the Project.
@@ -57,6 +61,11 @@ resource "mongodbatlas_project_ip_access_list" "test" {
 ```
 
 ~> **IMPORTANT:** In order to use AWS Security Group(s) VPC Peering must be enabled like above example.
+
+
+### Further Examples
+- [Project IP Access List](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_project_ip_access_list)
+
 
 ## Argument Reference
 

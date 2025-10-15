@@ -12,7 +12,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 )
 
 /*
@@ -31,10 +31,12 @@ func ResourceAuthorization() *schema.Resource {
 			"project_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"role_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"aws": {
 				Type:     schema.TypeList,
@@ -66,6 +68,18 @@ func ResourceAuthorization() *schema.Resource {
 						"tenant_id": {
 							Type:     schema.TypeString,
 							Required: true,
+						},
+					},
+				},
+			},
+			"gcp": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"service_account_for_atlas": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -111,13 +125,13 @@ func resourceCloudProviderAccessAuthorizationRead(ctx context.Context, d *schema
 	}
 
 	if targetRole == nil {
-		return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, "cloud provider access role not found in mongodbatlas, please create it first"))
+		return diag.FromErr(fmt.Errorf(ErrorGetRead, "cloud provider access role not found in mongodbatlas, please create it first"))
 	}
 
 	roleSchema := roleToSchemaAuthorization(targetRole)
 	for key, val := range roleSchema {
 		if err := d.Set(key, val); err != nil {
-			return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, err))
+			return diag.FromErr(fmt.Errorf(ErrorGetRead, err))
 		}
 	}
 
@@ -144,7 +158,7 @@ func resourceCloudProviderAccessAuthorizationCreate(ctx context.Context, d *sche
 	}
 
 	if targetRole == nil {
-		return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, "cloud provider access role not found in mongodbatlas, please create it first"))
+		return diag.FromErr(fmt.Errorf(ErrorGetRead, "cloud provider access role not found in mongodbatlas, please create it first"))
 	}
 
 	return authorizeRole(ctx, conn, d, projectID, targetRole)
@@ -164,10 +178,14 @@ func resourceCloudProviderAccessAuthorizationUpdate(ctx context.Context, d *sche
 	}
 
 	if targetRole == nil {
-		return diag.FromErr(fmt.Errorf(ErrorCloudProviderGetRead, "cloud provider access role not found in mongodbatlas, please create it first"))
+		return diag.FromErr(fmt.Errorf(ErrorGetRead, "cloud provider access role not found in mongodbatlas, please create it first"))
 	}
 
 	if d.HasChange("aws") || d.HasChange("azure") {
+		// Re-authorize the role with updated AWS or Azure configuration.
+		// GCP authorization only requires a role ID and has no additional configuration to update.
+		// Therefore, "updating" a GCP role would effectively be creating a new authorization,
+		// which should be handled by creating a new resource rather than updating an existing one.
 		return authorizeRole(ctx, conn, d, projectID, targetRole)
 	}
 
@@ -186,6 +204,7 @@ func roleToSchemaAuthorization(role *admin.CloudProviderAccessRole) map[string]a
 			"iam_assumed_role_arn": role.GetIamAssumedRoleArn(),
 		}},
 		"authorized_date": conversion.TimeToString(role.GetAuthorizedDate()),
+		"gcp":             []any{map[string]any{}},
 	}
 
 	if role.ProviderName == "AZURE" {
@@ -197,6 +216,15 @@ func roleToSchemaAuthorization(role *admin.CloudProviderAccessRole) map[string]a
 				"tenant_id":            role.GetTenantId(),
 			}},
 			"authorized_date": conversion.TimeToString(role.GetAuthorizedDate()),
+			"gcp":             []any{map[string]any{}},
+		}
+	}
+	if role.ProviderName == "GCP" {
+		out = map[string]any{
+			"role_id": role.GetRoleId(),
+			"gcp": []any{map[string]any{
+				"service_account_for_atlas": role.GetGcpServiceAccountForAtlas(),
+			}},
 		}
 	}
 
@@ -210,9 +238,9 @@ func roleToSchemaAuthorization(role *admin.CloudProviderAccessRole) map[string]a
 }
 
 func FindRole(ctx context.Context, conn *admin.APIClient, projectID, roleID string) (*admin.CloudProviderAccessRole, error) {
-	role, _, err := conn.CloudProviderAccessApi.GetCloudProviderAccessRole(ctx, projectID, roleID).Execute()
+	role, _, err := conn.CloudProviderAccessApi.GetCloudProviderAccess(ctx, projectID, roleID).Execute()
 	if err != nil {
-		return nil, fmt.Errorf(ErrorCloudProviderGetRead, err)
+		return nil, fmt.Errorf(ErrorGetRead, err)
 	}
 
 	return role, nil
@@ -281,12 +309,13 @@ func authorizeRole(ctx context.Context, client *admin.APIClient, d *schema.Resou
 		req.SetServicePrincipalId(targetRole.GetServicePrincipalId())
 		roleID = targetRole.GetId()
 	}
+	// No specific GCP config is needed, only providerName and roleID are needed
 
 	var role *admin.CloudProviderAccessRole
 	var err error
 
 	for range 3 {
-		role, _, err = client.CloudProviderAccessApi.AuthorizeCloudProviderAccessRole(ctx, projectID, roleID, req).Execute()
+		role, _, err = client.CloudProviderAccessApi.AuthorizeProviderAccessRole(ctx, projectID, roleID, req).Execute()
 		if err != nil && strings.Contains(err.Error(), "CANNOT_ASSUME_ROLE") { // aws takes time to update , in case of single path
 			log.Printf("warning issue performing authorize: %s \n", err.Error())
 			log.Println("retrying")
@@ -316,7 +345,7 @@ func authorizeRole(ctx context.Context, client *admin.APIClient, d *schema.Resou
 
 	for key, val := range authSchema {
 		if err := d.Set(key, val); err != nil {
-			return diag.FromErr(fmt.Errorf(errorCloudProviderAccessCreate, err))
+			return diag.FromErr(fmt.Errorf(errorCreate, err))
 		}
 	}
 

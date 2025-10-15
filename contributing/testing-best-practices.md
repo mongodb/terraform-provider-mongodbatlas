@@ -72,7 +72,6 @@ Acceptance and migration tests can reuse projects and clusters in order to be mo
 **Experimental** framework for hooking into the HTTP Client used by the Terraform provider and capture/replay traffic.
 - Works by mutating a `terraform-plugin-testing/helper/resource.TestCase`
 - Limited to `TestAccMockable*` tests in [`resource_advanced_cluster_test.go`](../internal/service/advancedcluster/resource_advanced_cluster_test.go):
-  - Remember to run `export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` for the TPF implementation to be used and the tests to work.
 - Enabled test cases should always be named with `TestAccMockable` prefix, e.g.: `TestAccMockableAdvancedCluster_tenantUpgrade`
 - To create a new `TestAccMockable` you would need to (see [example commit](https://github.com/mongodb/terraform-provider-mongodbatlas/commit/939244fcab95eca9c4c93993fc1b5118ab8bfddb#diff-f9c590f9ffc351d041a26ff474f91404ff394cbfb83f1e135b415998476ca62aR128))
   - (1) Write the normal acceptance test
@@ -137,10 +136,7 @@ It is advised to only run a **single** test at a time when a plural data source 
 1. Import state with a fixed `.tf` file
 2. Run terraform plan with an updated `*.tf` file and perform plan checks, for example check for known/unknown values in the plan. The actual update is not performed. See [Hashicorp docs](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-testing@v1.12.0/plancheck#PlanCheck) for plan check options.
 
-For a full example see [plan_modifier_test.go](../internal/service/advancedclustertpf/plan_modifier_test.go).
-
-### File generation
-For a full example of generation see [`http_mocker_plan_checks_test.go`](../internal/testutil/unit/http_mocker_plan_checks_test.go)
+For a full example see [plan_modifier_test.go](../internal/service/advancedcluster/plan_modifier_test.go).
 
 1. Stores the last `GET` response from an existing [MacT](#mact---mocked-acceptance-tests) test case step. For example the last GET of `/api/atlas/v2/groups/{groupId}/clusters/{clusterName}`
    1. ImportName: `ClusterTwoRepSpecsWithAutoScalingAndSpecs`
@@ -151,5 +147,3 @@ For a full example of generation see [`http_mocker_plan_checks_test.go`](../inte
 ### Maintenance and tips
 - `plan_step_name` is meant to be created manually (usually by copy-pasting `main.tf` and making changes)
 - Use `testCases := map[string][]plancheck.PlanCheck{}` to test many different plan configs for the same import
-
-

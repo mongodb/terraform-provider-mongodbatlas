@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 )
 
 const (
@@ -87,7 +87,7 @@ func createOrUpdate(ctx context.Context, meta any, d *schema.ResourceData, error
 		Value:         int64(d.Get("value").(int)),
 	}
 
-	federatedDatabaseQueryLimit, _, err := conn.DataFederationApi.CreateOneDataFederationQueryLimit(ctx, projectID, tenantName, limitName, requestBody).Execute()
+	federatedDatabaseQueryLimit, _, err := conn.DataFederationApi.SetDataFederationLimit(ctx, projectID, tenantName, limitName, requestBody).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorTemplate, limitName, err))
 	}
@@ -107,7 +107,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	tenantName := ids["tenant_name"]
 	limitName := ids["limit_name"]
 
-	queryLimit, resp, err := conn.DataFederationApi.ReturnFederatedDatabaseQueryLimit(ctx, projectID, tenantName, limitName).Execute()
+	queryLimit, resp, err := conn.DataFederationApi.GetDataFederationLimit(ctx, projectID, tenantName, limitName).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -141,7 +141,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	tenantName := ids["tenant_name"]
 	limitName := ids["limit_name"]
 
-	if _, err := conn.DataFederationApi.DeleteOneDataFederationInstanceQueryLimit(ctx, projectID, tenantName, limitName).Execute(); err != nil {
+	if _, err := conn.DataFederationApi.DeleteDataFederationLimit(ctx, projectID, tenantName, limitName).Execute(); err != nil {
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseQueryLimitDelete, limitName, err))
 	}
 
@@ -159,7 +159,7 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 	}
 	projectID, tenantName, limitName = parts[0], parts[1], parts[2]
 
-	queryLimit, _, err := conn.DataFederationApi.ReturnFederatedDatabaseQueryLimit(ctx, projectID, tenantName, limitName).Execute()
+	queryLimit, _, err := conn.DataFederationApi.GetDataFederationLimit(ctx, projectID, tenantName, limitName).Execute()
 
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import federated database query limit(%s) for project (%s), tenant (%s), error: %s", limitName, projectID, tenantName, err)

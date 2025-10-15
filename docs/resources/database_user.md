@@ -1,3 +1,7 @@
+---
+subcategory: "Database Users"
+---
+
 # Resource: mongodbatlas_database_user
 
 `mongodbatlas_database_user` provides a Database User resource. This represents a database user which will be applied to all clusters within the project.
@@ -113,6 +117,10 @@ resource "mongodbatlas_database_user" "test" {
 `username` format: Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP group name
 
 Note: OIDC support is only avalible starting in [MongoDB 7.0](https://www.mongodb.com/evolved#mdbsevenzero) or later. To learn more, see the [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/security-oidc/).
+
+
+### Further Examples
+- [Database User](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_database_user)
 
 
 ## Argument Reference

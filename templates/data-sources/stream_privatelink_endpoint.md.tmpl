@@ -1,3 +1,7 @@
+---
+subcategory: "Streams"
+---
+
 # {{.Type}}: {{.Name}}
 
 `{{.Name}}` describes a Privatelink Endpoint for Streams.
@@ -9,6 +13,9 @@
 
 ### AWS MSK Privatelink
 {{ tffile (printf "examples/%s/aws_msk_cluster/main.tf" .Name )}}
+
+### AWS S3 Privatelink
+{{ tffile (printf "examples/%s/s3/main.tf" .Name )}}
 
 {{ .SchemaMarkdown | trimspace }}
 

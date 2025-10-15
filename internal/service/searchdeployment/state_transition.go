@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 )
 
 const SearchDeploymentDoesNotExistsError = "ATLAS_SEARCH_DEPLOYMENT_DOES_NOT_EXIST"
@@ -52,7 +52,7 @@ func WaitSearchNodeDelete(ctx context.Context, projectID, clusterName string, cl
 
 func searchDeploymentRefreshFunc(ctx context.Context, projectID, clusterName string, client admin.AtlasSearchApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		deploymentResp, resp, err := client.GetAtlasSearchDeployment(ctx, projectID, clusterName).Execute()
+		deploymentResp, resp, err := client.GetClusterSearchDeployment(ctx, projectID, clusterName).Execute()
 		if err != nil && deploymentResp == nil && resp == nil {
 			return nil, "", err
 		}

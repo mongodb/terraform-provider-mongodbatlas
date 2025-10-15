@@ -1,3 +1,7 @@
+---
+subcategory: "Projects"
+---
+
 # Resource: mongodbatlas_third_party_integration
 
 `mongodbatlas_third_party_integration` Provides a Third-Party Integration Settings for the given type.
@@ -23,6 +27,9 @@ resource "mongodbatlas_third_party_integration" "test_datadog" {
 }
 
 ```
+
+### Further Examples
+- [Third-Party Integration Examples](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_third_party_integration)
 
 ## Argument Reference
 

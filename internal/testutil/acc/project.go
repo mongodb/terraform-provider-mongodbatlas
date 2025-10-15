@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 )
 
 func CheckDestroyProject(s *terraform.State) error {
@@ -22,7 +22,7 @@ func checkDestroyProject(conn *admin.APIClient, s *terraform.State) error {
 		if rs.Type != "mongodbatlas_project" {
 			continue
 		}
-		projectRes, _, _ := conn.ProjectsApi.GetProjectByName(context.Background(), rs.Primary.ID).Execute()
+		projectRes, _, _ := conn.ProjectsApi.GetGroupByName(context.Background(), rs.Primary.ID).Execute()
 		if projectRes != nil {
 			return fmt.Errorf("project (%s) still exists", rs.Primary.ID)
 		}
@@ -36,7 +36,6 @@ func ConfigProjectWithSettings(projectName, orgID, projectOwnerID string, value 
 			name   			 = %[1]q
 			org_id 			 = %[2]q
 			project_owner_id = %[3]q
-			with_default_alerts_settings = %[4]t
 			is_collect_database_specifics_statistics_enabled = %[4]t
 			is_data_explorer_enabled = %[4]t
 			is_extended_storage_sizes_enabled = %[4]t

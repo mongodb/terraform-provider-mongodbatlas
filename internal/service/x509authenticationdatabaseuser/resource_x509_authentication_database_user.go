@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 )
 
 const (
@@ -108,7 +108,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		params := &admin.UserCert{
 			MonthsUntilExpiration: &months,
 		}
-		certStr, _, err := connV2.X509AuthenticationApi.CreateDatabaseUserCertificate(ctx, projectID, username, params).Execute()
+		certStr, _, err := connV2.X509AuthenticationApi.CreateDatabaseUserCert(ctx, projectID, username, params).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersCreate, username, projectID, err))
 		}
@@ -120,7 +120,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		userReq := &admin.UserSecurity{
 			CustomerX509: &admin.DBUserTLSX509Settings{Cas: &customerX509Cas},
 		}
-		_, _, err := connV2.LDAPConfigurationApi.SaveLdapConfiguration(ctx, projectID, userReq).Execute()
+		_, _, err := connV2.LDAPConfigurationApi.UpdateUserSecurity(ctx, projectID, userReq).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorCustomerX509AuthDBUsersCreate, projectID, err))
 		}
@@ -146,7 +146,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	)
 
 	if username != "" {
-		resp, _, err := connV2.X509AuthenticationApi.ListDatabaseUserCertificates(ctx, projectID, username).Execute()
+		resp, _, err := connV2.X509AuthenticationApi.ListDatabaseUserCerts(ctx, projectID, username).Execute()
 		if err != nil {
 			// new resource missing
 			reset := strings.Contains(err.Error(), "404") && !d.IsNewResource()
@@ -196,7 +196,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	projectID := parts[0]
 
 	if username != "" {
-		_, _, err := connV2.X509AuthenticationApi.ListDatabaseUserCertificates(ctx, projectID, username).Execute()
+		_, _, err := connV2.X509AuthenticationApi.ListDatabaseUserCerts(ctx, projectID, username).Execute()
 		if err != nil {
 			return nil, fmt.Errorf(errorX509AuthDBUsersRead, username, projectID, err)
 		}
@@ -206,7 +206,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 		}
 	}
 
-	resp, _, err := connV2.LDAPConfigurationApi.GetLdapConfiguration(ctx, projectID).Execute()
+	resp, _, err := connV2.LDAPConfigurationApi.GetUserSecurity(ctx, projectID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf(errorCustomerX509AuthDBUsersRead, projectID, err)
 	}

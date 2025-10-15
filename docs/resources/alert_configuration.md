@@ -1,3 +1,7 @@
+---
+subcategory: "Alert Configurations"
+---
+
 # Resource: mongodbatlas_alert_configuration
 
 `mongodbatlas_alert_configuration` provides an Alert Configuration resource to define the conditions that trigger an alert and the methods of notification within a MongoDB Atlas project.
@@ -131,6 +135,10 @@ resource "mongodbatlas_alert_configuration" "test" {
   }
 }
 ```
+
+### Further Examples
+- [Alert Configuration](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_alert_configuration)
+
 
 ## Argument Reference
 

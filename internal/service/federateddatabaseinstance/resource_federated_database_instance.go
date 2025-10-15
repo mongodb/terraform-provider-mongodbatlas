@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -340,7 +340,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 	name := d.Get("name").(string)
 
-	if _, _, err := connV2.DataFederationApi.CreateFederatedDatabase(ctx, projectID, &admin.DataLakeTenant{
+	if _, _, err := connV2.DataFederationApi.CreateDataFederation(ctx, projectID, &admin.DataLakeTenant{
 		Name:                conversion.StringPtr(name),
 		CloudProviderConfig: newCloudProviderConfig(d),
 		DataProcessRegion:   newDataProcessRegion(d),
@@ -363,7 +363,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	projectID := ids["project_id"]
 	name := ids["name"]
 
-	dataFederationInstance, resp, err := connV2.DataFederationApi.GetFederatedDatabase(ctx, projectID, name).Execute()
+	dataFederationInstance, resp, err := connV2.DataFederationApi.GetDataFederation(ctx, projectID, name).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -419,7 +419,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Storage:             newDataFederationStorage(d),
 	}
 
-	if _, _, err := connV2.DataFederationApi.UpdateFederatedDatabaseWithParams(ctx, &admin.UpdateFederatedDatabaseApiParams{
+	if _, _, err := connV2.DataFederationApi.UpdateDataFederationWithParams(ctx, &admin.UpdateDataFederationApiParams{
 		GroupId:            projectID,
 		TenantName:         name,
 		SkipRoleValidation: admin.PtrBool(false),
@@ -438,7 +438,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := ids["project_id"]
 	name := ids["name"]
 
-	if _, err := connV2.DataFederationApi.DeleteFederatedDatabase(ctx, projectID, name).Execute(); err != nil {
+	if _, err := connV2.DataFederationApi.DeleteDataFederation(ctx, projectID, name).Execute(); err != nil {
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceDelete, name, err))
 	}
 
@@ -469,7 +469,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 		}
 	}
 
-	dataFederationInstance, _, err := connV2.DataFederationApi.GetFederatedDatabase(ctx, projectID, name).Execute()
+	dataFederationInstance, _, err := connV2.DataFederationApi.GetDataFederation(ctx, projectID, name).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import data federated instance (%s) for project (%s), error: %s", name, projectID, err)
 	}

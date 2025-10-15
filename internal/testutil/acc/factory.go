@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
 	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 )
 
 const (
@@ -48,7 +48,7 @@ func ConnV2UsingGov() *admin.APIClient {
 		BaseURL:    os.Getenv("MONGODB_ATLAS_GOV_BASE_URL"),
 	}
 	client, _ := cfg.NewClient(context.Background())
-	return client.(*config.MongoDBClient).AtlasV2
+	return client.AtlasV2
 }
 
 func init() {
@@ -63,6 +63,5 @@ func init() {
 		BaseURL:      os.Getenv("MONGODB_ATLAS_BASE_URL"),
 		RealmBaseURL: os.Getenv("MONGODB_REALM_BASE_URL"),
 	}
-	client, _ := cfg.NewClient(context.Background())
-	MongoDBClient = client.(*config.MongoDBClient)
+	MongoDBClient, _ = cfg.NewClient(context.Background())
 }

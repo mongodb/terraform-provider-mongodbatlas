@@ -3,16 +3,13 @@ package cloudbackupschedule
 import (
 	"context"
 
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
-)
-
-const (
-	AsymmetricShardsUnsupportedActionDS = "Ensure you use copy_settings.#.zone_id instead of copy_settings.#.replication_spec_id for asymmetric sharded clusters by setting `use_zone_id_for_copy_settings = true`. To learn more, see our examples, documentation, and 1.18.0 migration guide at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide"
 )
 
 func DataSource() *schema.Resource {
@@ -26,10 +23,6 @@ func DataSource() *schema.Resource {
 			"cluster_name": {
 				Type:     schema.TypeString,
 				Required: true,
-			},
-			"use_zone_id_for_copy_settings": {
-				Type:     schema.TypeBool,
-				Optional: true,
 			},
 			"cluster_id": {
 				Type:     schema.TypeString,
@@ -54,11 +47,6 @@ func DataSource() *schema.Resource {
 						"region_name": {
 							Type:     schema.TypeString,
 							Computed: true,
-						},
-						"replication_spec_id": {
-							Type:       schema.TypeString,
-							Computed:   true,
-							Deprecated: DeprecationMsgOldSchema,
 						},
 						"zone_id": {
 							Type:     schema.TypeString,
@@ -260,42 +248,22 @@ func DataSource() *schema.Resource {
 }
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
 	projectID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
-	useZoneIDForCopySettings := false
 
 	var backupSchedule *admin.DiskBackupSnapshotSchedule20240805
-	var backupScheduleOldSDK *admin20240530.DiskBackupSnapshotSchedule
 	var copySettings []map[string]any
 	var err error
 
-	if v, ok := d.GetOk("use_zone_id_for_copy_settings"); ok {
-		useZoneIDForCopySettings = v.(bool)
+	backupSchedule, _, err = connV2.CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
+	if err != nil {
+		return diag.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
 	}
+	copySettings = FlattenCopySettings(backupSchedule.GetCopySettings())
 
-	if !useZoneIDForCopySettings {
-		backupScheduleOldSDK, _, err = connV220240530.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
-		if err != nil {
-			if apiError, ok := admin20240530.AsError(err); ok && apiError.GetErrorCode() == AsymmetricShardsUnsupportedAPIError {
-				return diag.Errorf("%s : %s : %s", errorSnapshotBackupScheduleRead, ErrorOperationNotPermitted, AsymmetricShardsUnsupportedActionDS)
-			}
-			return diag.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
-		}
-
-		copySettings = flattenCopySettingsOldSDK(backupScheduleOldSDK.GetCopySettings())
-		backupSchedule = convertBackupScheduleToLatestExcludeCopySettings(backupScheduleOldSDK)
-	} else {
-		backupSchedule, _, err = connV2.CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
-		if err != nil {
-			return diag.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
-		}
-		copySettings = FlattenCopySettings(backupSchedule.GetCopySettings())
-	}
-
-	diags := setSchemaFieldsExceptCopySettings(d, backupSchedule)
+	diags := setSchemaFields(d, backupSchedule)
 	if diags.HasError() {
 		return diags
 	}

@@ -7,7 +7,7 @@ import (
 	"net"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -104,7 +104,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		},
 	}
 
-	_, resp, err := connV2.ProgrammaticAPIKeysApi.CreateApiKeyAccessList(ctx, orgID, apiKeyID, accessList).Execute()
+	_, resp, err := connV2.ProgrammaticAPIKeysApi.CreateOrgAccessEntry(ctx, orgID, apiKeyID, accessList).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -129,7 +129,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	apiKeyID := ids["api_key_id"]
 	ipAddress := ids["entry"]
 
-	apiKey, resp, err := connV2.ProgrammaticAPIKeysApi.GetApiKeyAccessList(ctx, orgID, ipAddress, apiKeyID).Execute()
+	apiKey, resp, err := connV2.ProgrammaticAPIKeysApi.GetOrgAccessEntry(ctx, orgID, ipAddress, apiKeyID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) || validate.StatusBadRequest(resp) {
 			d.SetId("")
@@ -170,7 +170,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	apiKeyID := ids["api_key_id"]
 	ipAddress := ids["entry"]
 
-	_, err := connV2.ProgrammaticAPIKeysApi.DeleteApiKeyAccessListEntry(ctx, orgID, apiKeyID, ipAddress).Execute()
+	_, err := connV2.ProgrammaticAPIKeysApi.DeleteAccessEntry(ctx, orgID, apiKeyID, ipAddress).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting API Key: %s", err))
 	}
@@ -189,7 +189,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	apiKeyID := parts[1]
 	ipAddress := parts[2]
 
-	r, _, err := connV2.ProgrammaticAPIKeysApi.GetApiKeyAccessList(ctx, orgID, ipAddress, apiKeyID).Execute()
+	r, _, err := connV2.ProgrammaticAPIKeysApi.GetOrgAccessEntry(ctx, orgID, ipAddress, apiKeyID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import api key %s in project %s, error: %s", orgID, apiKeyID, err)
 	}

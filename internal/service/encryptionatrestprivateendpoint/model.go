@@ -1,7 +1,7 @@
 package encryptionatrestprivateendpoint
 
 import (
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -31,14 +31,27 @@ func NewEarPrivateEndpointReq(tfPlan *TFEarPrivateEndpointModel) *admin.EARPriva
 }
 
 func NewTFEarPrivateEndpoints(projectID, cloudProvider string, sdkResults []admin.EARPrivateEndpoint) *TFEncryptionAtRestPrivateEndpointsDSModel {
-	results := make([]TFEarPrivateEndpointModel, len(sdkResults))
+	results := make([]TFEarPrivateEndpointModelDS, len(sdkResults))
 	for i := range sdkResults {
-		result := NewTFEarPrivateEndpoint(sdkResults[i], projectID)
+		result := NewTFEarPrivateEndpointDS(sdkResults[i], projectID)
 		results[i] = result
 	}
 	return &TFEncryptionAtRestPrivateEndpointsDSModel{
 		ProjectID:     types.StringValue(projectID),
 		CloudProvider: types.StringValue(cloudProvider),
 		Results:       results,
+	}
+}
+
+// NewTFEarPrivateEndpointDS creates a new data source model without timeout fields
+func NewTFEarPrivateEndpointDS(apiResp admin.EARPrivateEndpoint, projectID string) TFEarPrivateEndpointModelDS {
+	return TFEarPrivateEndpointModelDS{
+		ProjectID:                     types.StringValue(projectID),
+		CloudProvider:                 conversion.StringNullIfEmpty(apiResp.GetCloudProvider()),
+		ErrorMessage:                  conversion.StringNullIfEmpty(apiResp.GetErrorMessage()),
+		ID:                            conversion.StringNullIfEmpty(apiResp.GetId()),
+		RegionName:                    conversion.StringNullIfEmpty(apiResp.GetRegionName()),
+		Status:                        conversion.StringNullIfEmpty(apiResp.GetStatus()),
+		PrivateEndpointConnectionName: conversion.StringNullIfEmpty(apiResp.GetPrivateEndpointConnectionName()),
 	}
 }

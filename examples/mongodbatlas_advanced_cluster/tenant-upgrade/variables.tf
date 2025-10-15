@@ -17,6 +17,7 @@ variable "provider_name" {
 }
 variable "backing_provider_name" {
   description = "Atlas cluster backing provider name"
+  default     = null # so it's not set when upgrading
   type        = string
 }
 variable "provider_instance_size_name" {

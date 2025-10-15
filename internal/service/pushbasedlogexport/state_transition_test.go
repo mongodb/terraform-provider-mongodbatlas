@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312005/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/mockadmin"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -75,11 +75,11 @@ func TestPushBasedLogExportStateTransition(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			m := mockadmin.NewPushBasedLogExportApi(t)
-			m.EXPECT().GetPushBasedLogConfiguration(mock.Anything, mock.Anything).Return(admin.GetPushBasedLogConfigurationApiRequest{ApiService: m})
+			m.EXPECT().GetLogExport(mock.Anything, mock.Anything).Return(admin.GetLogExportApiRequest{ApiService: m})
 
 			for _, resp := range tc.mockResponses {
 				modelResp, httpResp, err := resp.get()
-				m.EXPECT().GetPushBasedLogConfigurationExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
+				m.EXPECT().GetLogExportExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
 			resp, err := pushbasedlogexport.WaitStateTransition(t.Context(), testProjectID, m, testTimeoutConfig)
 			assert.Equal(t, tc.expectedError, err != nil)
@@ -125,11 +125,11 @@ func TestPushBasedLogExportStateTransitionForDelete(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			m := mockadmin.NewPushBasedLogExportApi(t)
-			m.EXPECT().GetPushBasedLogConfiguration(mock.Anything, mock.Anything).Return(admin.GetPushBasedLogConfigurationApiRequest{ApiService: m})
+			m.EXPECT().GetLogExport(mock.Anything, mock.Anything).Return(admin.GetLogExportApiRequest{ApiService: m})
 
 			for _, resp := range tc.mockResponses {
 				modelResp, httpResp, err := resp.get()
-				m.EXPECT().GetPushBasedLogConfigurationExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
+				m.EXPECT().GetLogExportExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
 			err := pushbasedlogexport.WaitResourceDelete(t.Context(), testProjectID, m, testTimeoutConfig)
 			assert.Equal(t, tc.expectedError, err != nil)

@@ -189,7 +189,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.ConnV2().ProjectIPAccessListApi.GetProjectIpList(context.Background(), ids["project_id"], ids["entry"]).Execute()
+		_, _, err := acc.ConnV2().ProjectIPAccessListApi.GetAccessListEntry(context.Background(), ids["project_id"], ids["entry"]).Execute()
 		if err != nil {
 			return fmt.Errorf("project ip access list entry (%s) does not exist", ids["entry"])
 		}
@@ -203,7 +203,7 @@ func checkDestroy(s *terraform.State) error {
 			continue
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.ConnV2().ProjectIPAccessListApi.GetProjectIpList(context.Background(), ids["project_id"], ids["entry"]).Execute()
+		_, _, err := acc.ConnV2().ProjectIPAccessListApi.GetAccessListEntry(context.Background(), ids["project_id"], ids["entry"]).Execute()
 		if err == nil {
 			return fmt.Errorf("project ip access list entry (%s) still exists", ids["entry"])
 		}

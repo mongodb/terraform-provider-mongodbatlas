@@ -130,7 +130,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.GetApiKeyAccessList(context.Background(), ids["org_id"], ids["entry"], ids["api_key_id"]).Execute()
+		_, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.GetOrgAccessEntry(context.Background(), ids["org_id"], ids["entry"], ids["api_key_id"]).Execute()
 
 		if err != nil {
 			return fmt.Errorf("access list API Key (%s) does not exist", ids["api_key_id"])
@@ -146,7 +146,7 @@ func checkDestroy(s *terraform.State) error {
 			continue
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.GetApiKeyAccessList(context.Background(), ids["org_id"], ids["entry"], ids["api_key_id"]).Execute()
+		_, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.GetOrgAccessEntry(context.Background(), ids["org_id"], ids["entry"], ids["api_key_id"]).Execute()
 		if err == nil {
 			return fmt.Errorf("access list API Key (%s) still exists", ids["api_key_id"])
 		}

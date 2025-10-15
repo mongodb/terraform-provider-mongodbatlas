@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 )
 
-func PatchPayloadTpf[TFModel any, SDKRequest any](ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, converter func(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *SDKRequest) *SDKRequest {
+func PatchPayloadCluster[TFModel any, SDKRequest any](ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, converter func(ctx context.Context, input *TFModel, diags *diag.Diagnostics) *SDKRequest) *SDKRequest {
 	stateReq := converter(ctx, state, diags)
 	planReq := converter(ctx, plan, diags)
 	if diags.HasError() {

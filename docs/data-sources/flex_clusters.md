@@ -1,3 +1,7 @@
+---
+subcategory: "Clusters"
+---
+
 # Data Source: mongodbatlas_flex_clusters
 
 `mongodbatlas_flex_clusters` returns all flex clusters in a project.

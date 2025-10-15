@@ -40,7 +40,7 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	apiResp, _, err := d.Client.AtlasV2.FlexRestoreJobsApi.GetFlexBackupRestoreJob(ctx, tfModel.ProjectID.ValueString(), tfModel.Name.ValueString(), tfModel.RestoreJobID.ValueString()).Execute()
+	apiResp, _, err := d.Client.AtlasV2.FlexRestoreJobsApi.GetFlexRestoreJob(ctx, tfModel.ProjectID.ValueString(), tfModel.Name.ValueString(), tfModel.RestoreJobID.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(errorRead, err.Error())
 		return

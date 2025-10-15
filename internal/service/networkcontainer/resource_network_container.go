@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -139,7 +139,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	container, _, err := connV2.NetworkPeeringApi.CreatePeeringContainer(ctx, projectID, containerRequest).Execute()
+	container, _, err := connV2.NetworkPeeringApi.CreateGroupContainer(ctx, projectID, containerRequest).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorContainterCreate, err))
 	}
@@ -158,7 +158,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	projectID := ids["project_id"]
 	containerID := ids["container_id"]
 
-	container, resp, err := connV2.NetworkPeeringApi.GetPeeringContainer(ctx, projectID, containerID).Execute()
+	container, resp, err := connV2.NetworkPeeringApi.GetGroupContainer(ctx, projectID, containerID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -249,7 +249,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			}
 		}
 	}
-	_, _, err := connV2.NetworkPeeringApi.UpdatePeeringContainer(ctx, projectID, containerID, params).Execute()
+	_, _, err := connV2.NetworkPeeringApi.UpdateGroupContainer(ctx, projectID, containerID, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorContainerUpdate, containerID, err))
 	}
@@ -287,7 +287,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	projectID := parts[0]
 	containerID := parts[1]
 
-	networkContainer, _, err := connV2.NetworkPeeringApi.GetPeeringContainer(ctx, projectID, containerID).Execute()
+	networkContainer, _, err := connV2.NetworkPeeringApi.GetGroupContainer(ctx, projectID, containerID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import container %s in project %s, error: %s", containerID, projectID, err)
 	}
@@ -323,7 +323,7 @@ func resourceRefreshFunc(ctx context.Context, d *schema.ResourceData, client *ad
 		containerID := ids["container_id"]
 
 		var err error
-		container, res, err := client.NetworkPeeringApi.GetPeeringContainer(ctx, projectID, containerID).Execute()
+		container, res, err := client.NetworkPeeringApi.GetGroupContainer(ctx, projectID, containerID).Execute()
 		if err != nil {
 			if validate.StatusNotFound(res) {
 				return "", "deleted", nil
@@ -337,7 +337,7 @@ func resourceRefreshFunc(ctx context.Context, d *schema.ResourceData, client *ad
 		}
 
 		// Atlas Delete is called inside refresh to retry when error: HTTP 409 Conflict (Error code: "CONTAINERS_IN_USE").
-		_, err = client.NetworkPeeringApi.DeletePeeringContainer(ctx, projectID, containerID).Execute()
+		_, err = client.NetworkPeeringApi.DeleteGroupContainer(ctx, projectID, containerID).Execute()
 		if err != nil {
 			return nil, "provisioned_container", nil
 		}

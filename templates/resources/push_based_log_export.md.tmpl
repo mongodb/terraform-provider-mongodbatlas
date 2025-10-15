@@ -1,3 +1,7 @@
+---
+subcategory: "Push-Based Log Export"
+---
+
 # {{.Type}}: {{.Name}}
 
 `{{.Name}}` provides a resource for push-based log export feature. The resource lets you configure, enable & disable the project level settings for the push-based log export feature. Using this resource you 
@@ -9,6 +13,9 @@ The [push based log export Terraform module](https://registry.terraform.io/modul
 ## Example Usages
 
 {{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+### Further Examples
+- [Push-Based Log Export](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_push_based_log_export)
 
 {{ .SchemaMarkdown | trimspace }}
 

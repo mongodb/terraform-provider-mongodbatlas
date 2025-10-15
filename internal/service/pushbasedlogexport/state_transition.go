@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -62,7 +62,7 @@ func WaitResourceDelete(ctx context.Context, projectID string, client admin.Push
 
 func refreshFunc(ctx context.Context, projectID string, client admin.PushBasedLogExportApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		logConfig, resp, err := client.GetPushBasedLogConfiguration(ctx, projectID).Execute()
+		logConfig, resp, err := client.GetLogExport(ctx, projectID).Execute()
 		if err != nil && logConfig == nil && resp == nil {
 			return nil, "", err
 		}

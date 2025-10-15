@@ -1,3 +1,7 @@
+---
+subcategory: "Cloud Backups"
+---
+
 # Resource: mongodbatlas_cloud_backup_snapshot_export_job
 
 `mongodbatlas_cloud_backup_snapshot_export_job` allows you to create a cloud backup snapshot export job for the specified project. 
@@ -80,6 +84,9 @@ resource "mongodbatlas_cloud_backup_schedule" "backup" {
   } 
 }
 ```
+
+### Further Examples
+- [Cloud Backup Snapshot Export Job](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_cloud_backup_snapshot_export_job)
 
 ## Argument Reference
 

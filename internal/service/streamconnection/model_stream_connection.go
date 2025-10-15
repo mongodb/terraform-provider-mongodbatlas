@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 )
 
 func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) (*admin.StreamsConnection, diag.Diagnostics) {
@@ -27,9 +27,15 @@ func NewStreamConnectionReq(ctx context.Context, plan *TFStreamConnectionModel) 
 			return nil, diags
 		}
 		streamConnection.Authentication = &admin.StreamsKafkaAuthentication{
-			Mechanism: authenticationModel.Mechanism.ValueStringPointer(),
-			Password:  authenticationModel.Password.ValueStringPointer(),
-			Username:  authenticationModel.Username.ValueStringPointer(),
+			Mechanism:                 authenticationModel.Mechanism.ValueStringPointer(),
+			Method:                    authenticationModel.Method.ValueStringPointer(),
+			Password:                  authenticationModel.Password.ValueStringPointer(),
+			Username:                  authenticationModel.Username.ValueStringPointer(),
+			TokenEndpointUrl:          authenticationModel.TokenEndpointURL.ValueStringPointer(),
+			ClientId:                  authenticationModel.ClientID.ValueStringPointer(),
+			ClientSecret:              authenticationModel.ClientSecret.ValueStringPointer(),
+			Scope:                     authenticationModel.Scope.ValueStringPointer(),
+			SaslOauthbearerExtensions: authenticationModel.SaslOauthbearerExtensions.ValueStringPointer(),
 		}
 	}
 	if !plan.Security.IsNull() {
@@ -215,8 +221,13 @@ func NewTFStreamConnection(ctx context.Context, projID, instanceName string, cur
 func newTFConnectionAuthenticationModel(ctx context.Context, currAuthConfig *types.Object, authResp *admin.StreamsKafkaAuthentication) (*types.Object, diag.Diagnostics) {
 	if authResp != nil {
 		resultAuthModel := TFConnectionAuthenticationModel{
-			Mechanism: types.StringPointerValue(authResp.Mechanism),
-			Username:  types.StringPointerValue(authResp.Username),
+			Mechanism:                 types.StringPointerValue(authResp.Mechanism),
+			Method:                    types.StringPointerValue(authResp.Method),
+			Username:                  types.StringPointerValue(authResp.Username),
+			TokenEndpointURL:          types.StringPointerValue(authResp.TokenEndpointUrl),
+			ClientID:                  types.StringPointerValue(authResp.ClientId),
+			Scope:                     types.StringPointerValue(authResp.Scope),
+			SaslOauthbearerExtensions: types.StringPointerValue(authResp.SaslOauthbearerExtensions),
 		}
 
 		if currAuthConfig != nil && !currAuthConfig.IsNull() { // if config is available (create & update of resource) password value is set in new state
@@ -225,6 +236,7 @@ func newTFConnectionAuthenticationModel(ctx context.Context, currAuthConfig *typ
 				return nil, diags
 			}
 			resultAuthModel.Password = configAuthModel.Password
+			resultAuthModel.ClientSecret = configAuthModel.ClientSecret
 		}
 
 		resultObject, diags := types.ObjectValueFrom(ctx, ConnectionAuthenticationObjectType.AttrTypes, resultAuthModel)

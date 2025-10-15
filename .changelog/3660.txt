@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/mongodbatlas_cloud_provider_access_setup: Adds `timeouts` attribute for create operation
+```
+
+```release-note:enhancement
+resource/mongodbatlas_cloud_provider_access_setup: Adds `delete_on_create_timeout` attribute to indicate whether to delete the resource if its creation times out
+```

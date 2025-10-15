@@ -5,8 +5,7 @@ terraform {
       version = "~> 3.0"
     }
     mongodbatlas = {
-      source  = "mongodb/mongodbatlas"
-      version = "~> 1.0"
+      source = "mongodb/mongodbatlas"
     }
 
     google = {

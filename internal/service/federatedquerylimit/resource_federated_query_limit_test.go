@@ -246,7 +246,7 @@ func checkDestroy(s *terraform.State) error {
 			continue
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.ConnV2().DataFederationApi.ReturnFederatedDatabaseQueryLimit(context.Background(), ids["project_id"], ids["tenant_name"], ids["limit_name"]).Execute()
+		_, _, err := acc.ConnV2().DataFederationApi.GetDataFederationLimit(context.Background(), ids["project_id"], ids["tenant_name"], ids["limit_name"]).Execute()
 		if err == nil {
 			return fmt.Errorf("federated database query limit (%s) for project (%s) and tenant (%s)still exists", ids["project_id"], ids["tenant_name"], ids["limit_name"])
 		}

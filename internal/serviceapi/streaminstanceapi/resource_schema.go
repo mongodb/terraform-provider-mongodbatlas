@@ -6,7 +6,9 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -21,14 +23,35 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							Computed:            true,
 							MarkdownDescription: "User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode.",
 							Attributes: map[string]schema.Attribute{
+								"client_id": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "OIDC client identifier for authentication to the Kafka cluster.",
+								},
+								"client_secret": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "OIDC client secret for authentication to the Kafka cluster.",
+									Sensitive:           true,
+								},
 								"mechanism": schema.StringAttribute{
 									Computed:            true,
-									MarkdownDescription: "Style of authentication. Can be one of PLAIN, SCRAM-256, or SCRAM-512.",
+									MarkdownDescription: "Style of authentication. Can be one of PLAIN, SCRAM-256, SCRAM-512, or OAUTHBEARER.",
+								},
+								"method": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "SASL OAUTHBEARER authentication method. Can only be OIDC currently.",
 								},
 								"password": schema.StringAttribute{
 									Computed:            true,
 									MarkdownDescription: "Password of the account to connect to the Kafka cluster.",
 									Sensitive:           true,
+								},
+								"sasl_oauthbearer_extensions": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "SASL OAUTHBEARER extensions parameter for additional OAuth2 configuration.",
+								},
+								"scope": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "OIDC scope parameter defining the access permissions requested.",
 								},
 								"ssl_certificate": schema.StringAttribute{
 									Computed:            true,
@@ -41,6 +64,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								"ssl_key_password": schema.StringAttribute{
 									Computed:            true,
 									MarkdownDescription: "Password for the SSL key, if it is password protected.",
+								},
+								"token_endpoint_url": schema.StringAttribute{
+									Computed:            true,
+									MarkdownDescription: "OIDC token endpoint URL for obtaining access tokens.",
 								},
 								"username": schema.StringAttribute{
 									Computed:            true,
@@ -118,10 +145,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											Computed:            true,
 											MarkdownDescription: "Reserved. Will be used by PRIVATE_LINK connection type.",
 										},
-										"tgw_id": schema.StringAttribute{
-											Computed:            true,
-											MarkdownDescription: "Reserved. Will be used by TRANSIT_GATEWAY connection type.",
-										},
 										"tgw_route_id": schema.StringAttribute{
 											Computed:            true,
 											MarkdownDescription: "Reserved. Will be used by TRANSIT_GATEWAY connection type.",
@@ -129,10 +152,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										"type": schema.StringAttribute{
 											Computed:            true,
 											MarkdownDescription: "Selected networking type. Either PUBLIC, VPC, PRIVATE_LINK, or TRANSIT_GATEWAY. Defaults to PUBLIC. For VPC, ensure that VPC peering exists and connectivity has been established between Atlas VPC and the VPC where Kafka cluster is hosted for the connection to function properly. TRANSIT_GATEWAY support is coming soon.",
-										},
-										"vpc_cidr": schema.StringAttribute{
-											Computed:            true,
-											MarkdownDescription: "Reserved. Will be used by TRANSIT_GATEWAY connection type.",
 										},
 									},
 								},
@@ -166,6 +185,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"data_process_region": schema.SingleNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "Information about the cloud provider region in which MongoDB Cloud processes the stream.",
+				PlanModifiers:       []planmodifier.Object{customplanmodifier.CreateOnly()},
 				Attributes: map[string]schema.Attribute{
 					"cloud_provider": schema.StringAttribute{
 						Required:            true,
@@ -180,6 +200,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"group_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
+				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"hostnames": schema.ListAttribute{
 				Computed:            true,
@@ -189,10 +210,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"name": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "Human-readable label that identifies the stream instance.",
+				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"sample_connections": schema.SingleNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "Sample connections to add to SPI.",
+				PlanModifiers:       []planmodifier.Object{customplanmodifier.CreateOnly()},
 				Attributes: map[string]schema.Attribute{
 					"solar": schema.BoolAttribute{
 						Computed:            true,
@@ -204,7 +227,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"stream_config": schema.SingleNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "Configuration options for an Atlas Stream Processing Instance.",
+				PlanModifiers:       []planmodifier.Object{customplanmodifier.CreateOnly()},
 				Attributes: map[string]schema.Attribute{
+					"max_tier_size": schema.StringAttribute{
+						Optional:            true,
+						MarkdownDescription: "Max tier size for the Stream Instance. Configures Memory / VCPU allowances. This field is not supported yet.",
+					},
 					"tier": schema.StringAttribute{
 						Optional:            true,
 						MarkdownDescription: "Selected tier for the Stream Instance. Configures Memory / VCPU allowances.",
@@ -240,12 +268,18 @@ type TFConnectionsModel struct {
 	Url              types.String `tfsdk:"url" autogen:"omitjson"`
 }
 type TFConnectionsAuthenticationModel struct {
-	Mechanism      types.String `tfsdk:"mechanism" autogen:"omitjson"`
-	Password       types.String `tfsdk:"password" autogen:"omitjson"`
-	SslCertificate types.String `tfsdk:"ssl_certificate" autogen:"omitjson"`
-	SslKey         types.String `tfsdk:"ssl_key" autogen:"omitjson"`
-	SslKeyPassword types.String `tfsdk:"ssl_key_password" autogen:"omitjson"`
-	Username       types.String `tfsdk:"username" autogen:"omitjson"`
+	ClientId                  types.String `tfsdk:"client_id" autogen:"omitjson"`
+	ClientSecret              types.String `tfsdk:"client_secret" autogen:"omitjson"`
+	Mechanism                 types.String `tfsdk:"mechanism" autogen:"omitjson"`
+	Method                    types.String `tfsdk:"method" autogen:"omitjson"`
+	Password                  types.String `tfsdk:"password" autogen:"omitjson"`
+	SaslOauthbearerExtensions types.String `tfsdk:"sasl_oauthbearer_extensions" autogen:"omitjson"`
+	Scope                     types.String `tfsdk:"scope" autogen:"omitjson"`
+	SslCertificate            types.String `tfsdk:"ssl_certificate" autogen:"omitjson"`
+	SslKey                    types.String `tfsdk:"ssl_key" autogen:"omitjson"`
+	SslKeyPassword            types.String `tfsdk:"ssl_key_password" autogen:"omitjson"`
+	TokenEndpointUrl          types.String `tfsdk:"token_endpoint_url" autogen:"omitjson"`
+	Username                  types.String `tfsdk:"username" autogen:"omitjson"`
 }
 type TFConnectionsAwsModel struct {
 	RoleArn    types.String `tfsdk:"role_arn" autogen:"omitjson"`
@@ -261,10 +295,8 @@ type TFConnectionsNetworkingModel struct {
 type TFConnectionsNetworkingAccessModel struct {
 	ConnectionId types.String `tfsdk:"connection_id" autogen:"omitjson"`
 	Name         types.String `tfsdk:"name" autogen:"omitjson"`
-	TgwId        types.String `tfsdk:"tgw_id" autogen:"omitjson"`
 	TgwRouteId   types.String `tfsdk:"tgw_route_id" autogen:"omitjson"`
 	Type         types.String `tfsdk:"type" autogen:"omitjson"`
-	VpcCidr      types.String `tfsdk:"vpc_cidr" autogen:"omitjson"`
 }
 type TFConnectionsSecurityModel struct {
 	BrokerPublicCertificate types.String `tfsdk:"broker_public_certificate" autogen:"omitjson"`
@@ -278,5 +310,6 @@ type TFSampleConnectionsModel struct {
 	Solar types.Bool `tfsdk:"solar"`
 }
 type TFStreamConfigModel struct {
-	Tier types.String `tfsdk:"tier"`
+	MaxTierSize types.String `tfsdk:"max_tier_size"`
+	Tier        types.String `tfsdk:"tier"`
 }

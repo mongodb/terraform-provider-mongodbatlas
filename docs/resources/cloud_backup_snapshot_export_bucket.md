@@ -1,3 +1,7 @@
+---
+subcategory: "Cloud Backups"
+---
+
 # Resource: mongodbatlas_cloud_backup_snapshot_export_bucket
 
 `mongodbatlas_cloud_backup_snapshot_export_bucket` allows you to create an export snapshot bucket for the specified project.
@@ -32,6 +36,10 @@ resource "mongodbatlas_cloud_backup_snapshot_export_bucket" "test" {
   cloud_provider = "AZURE"
 }
 ```
+
+### Further Examples
+- [AWS Cloud Backup Snapshot Export Bucket](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_cloud_backup_snapshot_export_bucket/aws)
+- [Azure Cloud Backup Snapshot Export Bucket](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_cloud_backup_snapshot_export_bucket/azure)
 
 ## Argument Reference
 

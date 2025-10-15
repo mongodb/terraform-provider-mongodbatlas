@@ -1,0 +1,112 @@
+schema:
+    description: Updates the maintenance window for the specified project. Urgent maintenance activities such as security patches can't wait for your chosen window. MongoDB Cloud starts those maintenance activities when needed. After you schedule maintenance for your cluster, you can't change your maintenance window until the current maintenance efforts complete. The maintenance procedure that MongoDB Cloud performs requires at least one replica set election during the maintenance window per replica set. Maintenance always begins as close to the scheduled hour as possible, but in-progress cluster updates or unexpected system issues could delay the start time. Updating the maintenance window will reset any maintenance deferrals for this project. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
+    attributes:
+        - bool: {}
+          description: Flag that indicates whether MongoDB Cloud should defer all maintenance windows for one week after you enable them.
+          computed_optional_required: computed_optional
+          tf_schema_name: auto_defer_once_enabled
+          tf_model_name: AutoDeferOnceEnabled
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+        - int64: {}
+          description: |-
+            One-based integer that represents the day of the week that the maintenance window starts.
+
+            - `1`: Sunday.
+            - `2`: Monday.
+            - `3`: Tuesday.
+            - `4`: Wednesday.
+            - `5`: Thursday.
+            - `6`: Friday.
+            - `7`: Saturday.
+          computed_optional_required: required
+          tf_schema_name: day_of_week
+          tf_model_name: DayOfWeek
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: |-
+            Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
+
+            **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+          computed_optional_required: required
+          tf_schema_name: group_id
+          tf_model_name: GroupId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+        - int64: {}
+          description: Zero-based integer that represents the hour of the of the day that the maintenance window starts according to a 24-hour clock. Use `0` for midnight and `12` for noon.
+          computed_optional_required: required
+          tf_schema_name: hour_of_day
+          tf_model_name: HourOfDay
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+        - int64: {}
+          description: Number of times the current maintenance event for this project has been deferred.
+          computed_optional_required: computed
+          tf_schema_name: number_of_deferrals
+          tf_model_name: NumberOfDeferrals
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - int64: {}
+                      description: Zero-based integer that represents the end hour of the of the day that the maintenance will not begin in.
+                      computed_optional_required: optional
+                      tf_schema_name: end_hour_of_day
+                      tf_model_name: EndHourOfDay
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                    - int64: {}
+                      description: Zero-based integer that represents the beginning hour of the of the day that the maintenance will not begin in.
+                      computed_optional_required: optional
+                      tf_schema_name: start_hour_of_day
+                      tf_model_name: StartHourOfDay
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+          description: Defines the a window where maintenance will not begin within.
+          computed_optional_required: optional
+          tf_schema_name: protected_hours
+          tf_model_name: ProtectedHours
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+        - bool: {}
+          description: Flag that indicates whether MongoDB Cloud starts the maintenance window immediately upon receiving this request. To start the maintenance window immediately for your project, MongoDB Cloud must have maintenance scheduled and you must set a maintenance window. This flag resets to `false` after MongoDB Cloud completes maintenance.
+          computed_optional_required: computed
+          tf_schema_name: start_asap
+          tf_model_name: StartASAP
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: Identifier for the current time zone of the maintenance window. This can only be updated via the Project Settings UI.
+          computed_optional_required: computed
+          tf_schema_name: time_zone_id
+          tf_model_name: TimeZoneId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+operations:
+    delete:
+        http_method: DELETE
+        path: /api/atlas/v2/groups/{groupId}/maintenanceWindow
+    create:
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{groupId}/maintenanceWindow
+    read:
+        http_method: GET
+        path: /api/atlas/v2/groups/{groupId}/maintenanceWindow
+    update:
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{groupId}/maintenanceWindow
+    version_header: application/vnd.atlas.2023-01-01+json
+name: maintenance_window_api

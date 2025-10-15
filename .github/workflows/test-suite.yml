@@ -1,7 +1,7 @@
 name: 'Test Suite'
 
 # Runs acceptance and migrations tests with a set of terraform versions and provider versions (used for migration tests). 
-# This worflow is scheduled daily and runs against dev every day except for Sunday when we run against QA, and Fridays when we run against 2.0.0 dev branch.
+# This worflow is scheduled daily and runs against dev every day except for Sunday when we run against QA.
 # It can also be run manually.
 # The 1st day of the month we run terraform-compatibility-matrix.yml and therefore, we skip the test-suite (see shedule->cron below).
 on:
@@ -9,7 +9,7 @@ on:
     inputs:
       terraform_matrix:
         description: 'Terraform version matrix (JSON array)'
-        default: '["1.12.x","1.11.x","1.10.x","1.9.x","1.8.x","1.7.x","1.6.x"]'
+        default: '["1.13.x","1.12.x","1.11.x","1.10.x","1.9.x","1.8.x","1.7.x","1.6.x"]'
       provider_matrix:
         description: 'Previous MongoDB Atlas Provider version matrix for migration tests (JSON array)'
         default: '[""]' # "" for latest version
@@ -17,6 +17,10 @@ on:
         description: 'Send the Slack notification if any of the tests fail.'
         type: boolean
         default: false
+      use_sa:
+        description: "Run tests using Service Account instead of API Keys"
+        type: boolean
+        required: false
   workflow_call:
     inputs:
       terraform_matrix:
@@ -34,9 +38,9 @@ on:
         description: 'Send the Slack notification if any of the tests fail.'
         type: boolean
         default: true
-
   schedule:
     - cron: "0 0 2-31 * *" # workflow runs every day at midnight UTC except on the first day of the month
+
 concurrency:
   group: '${{ github.workflow }}'
   cancel-in-progress: false
@@ -44,13 +48,12 @@ concurrency:
 jobs:
   variables:
     env:
-      schedule_terraform_matrix: '["1.12.x"]'
+      schedule_terraform_matrix: '["1.13.x"]'
       schedule_provider_matrix: '[""]' # "" for latest version    
     runs-on: ubuntu-latest
     outputs:
       terraform_matrix: ${{ inputs.terraform_matrix || env.schedule_terraform_matrix }}
       provider_matrix: ${{ inputs.provider_matrix || env.schedule_provider_matrix }}
-      is_fri: ${{ steps.set_day.outputs.DAY == 'Fri' }}
       is_sun: ${{ steps.set_day.outputs.DAY == 'Sun' }}
     steps:
       - name: set day
@@ -71,15 +74,14 @@ jobs:
       matrix:
         terraform_version: ${{ fromJSON(needs.variables.outputs.terraform_matrix) }}
         provider_version: ${{ fromJSON(needs.variables.outputs.provider_matrix) }}
-    name: ${{ matrix.terraform_version || 'latest' }}-${{ matrix.provider_version || 'latest' }}-${{ needs.variables.outputs.is_fri == 'true' && '2.0.0' || 'master' }}
+    name: ${{ matrix.terraform_version || 'latest' }}-${{ matrix.provider_version || 'latest' }}-${{ inputs.use_sa && 'sa' || 'pak' }}
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
     with:
       terraform_version: ${{ matrix.terraform_version }}
       provider_version: ${{ matrix.provider_version }}
       atlas_cloud_env: ${{ inputs.atlas_cloud_env || needs.variables.outputs.is_sun == 'true' && 'qa' || '' }} # Run against QA on Sundays
-      ref: ${{ needs.variables.outputs.is_fri == 'true' && 'CLOUDP-320243-dev-2.0.0' || '' }} # Run 2.0.0 dev branch on Fridays
-
+      use_sa: ${{ inputs.use_sa || false }}
   clean-after:
     needs: tests
     if: ${{ !cancelled() }}

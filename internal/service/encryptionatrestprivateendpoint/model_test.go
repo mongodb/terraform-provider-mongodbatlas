@@ -3,7 +3,7 @@ package encryptionatrestprivateendpoint_test
 import (
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
@@ -174,7 +174,7 @@ func TestEncryptionAtRestPrivateEndpointPluralDSSDKToTFModel(t *testing.T) {
 			expectedTFModel: &encryptionatrestprivateendpoint.TFEncryptionAtRestPrivateEndpointsDSModel{
 				CloudProvider: types.StringValue(testCloudProvider),
 				ProjectID:     types.StringValue(testProjectID),
-				Results: []encryptionatrestprivateendpoint.TFEarPrivateEndpointModel{
+				Results: []encryptionatrestprivateendpoint.TFEarPrivateEndpointModelDS{
 					{
 						CloudProvider:                 types.StringValue(testCloudProvider),
 						ErrorMessage:                  types.StringNull(),

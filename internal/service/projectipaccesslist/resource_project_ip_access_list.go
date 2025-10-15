@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -68,7 +68,7 @@ func (r *projectIPAccessListRS) Create(ctx context.Context, req resource.CreateR
 		Pending: []string{"pending"},
 		Target:  []string{"created", "failed"},
 		Refresh: func() (any, string, error) {
-			_, _, err := connV2.ProjectIPAccessListApi.CreateProjectIpAccessList(ctx, projectID, NewMongoDBProjectIPAccessList(projectIPAccessListModel)).Execute()
+			_, _, err := connV2.ProjectIPAccessListApi.CreateAccessListEntry(ctx, projectID, NewMongoDBProjectIPAccessList(projectIPAccessListModel)).Execute()
 			// Atlas Create is called inside refresh because this limitation: This endpoint doesn't support concurrent POST requests. You must submit multiple POST requests synchronously.
 			if err != nil {
 				if strings.Contains(err.Error(), "Unexpected error") ||
@@ -148,7 +148,7 @@ func (r *projectIPAccessListRS) Read(ctx context.Context, req resource.ReadReque
 
 	connV2 := r.Client.AtlasV2
 	err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-		accessList, httpResponse, err := connV2.ProjectIPAccessListApi.GetProjectIpList(ctx, decodedIDMap["project_id"], decodedIDMap["entry"]).Execute()
+		accessList, httpResponse, err := connV2.ProjectIPAccessListApi.GetAccessListEntry(ctx, decodedIDMap["project_id"], decodedIDMap["entry"]).Execute()
 		if err != nil {
 			// case 404
 			// deleted in the backend case
@@ -200,7 +200,7 @@ func (r *projectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 	}
 
 	err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-		httpResponse, err := connV2.ProjectIPAccessListApi.DeleteProjectIpAccessList(ctx, projectID, entry).Execute()
+		httpResponse, err := connV2.ProjectIPAccessListApi.DeleteAccessListEntry(ctx, projectID, entry).Execute()
 		if err != nil {
 			if validate.StatusInternalServerError(httpResponse) {
 				return retry.RetryableError(err)
@@ -214,7 +214,7 @@ func (r *projectIPAccessListRS) Delete(ctx context.Context, req resource.DeleteR
 			return retry.NonRetryableError(fmt.Errorf(errorAccessListDelete, err))
 		}
 
-		entry, httpResponse, err := connV2.ProjectIPAccessListApi.GetProjectIpList(ctx, projectID, entry).Execute()
+		entry, httpResponse, err := connV2.ProjectIPAccessListApi.GetAccessListEntry(ctx, projectID, entry).Execute()
 		if err != nil {
 			if validate.StatusNotFound(httpResponse) {
 				return nil
@@ -255,7 +255,7 @@ func (r *projectIPAccessListRS) ImportState(ctx context.Context, req resource.Im
 func isEntryInProjectAccessList(ctx context.Context, connV2 *admin.APIClient, projectID, entry string) (*admin.NetworkPermissionEntry, bool, error) {
 	var out admin.NetworkPermissionEntry
 	err := retry.RetryContext(ctx, timeoutRetryItem, func() *retry.RetryError {
-		accessList, httpResponse, err := connV2.ProjectIPAccessListApi.GetProjectIpList(ctx, projectID, entry).Execute()
+		accessList, httpResponse, err := connV2.ProjectIPAccessListApi.GetAccessListEntry(ctx, projectID, entry).Execute()
 		if err != nil {
 			switch {
 			case validate.StatusInternalServerError(httpResponse):

@@ -211,6 +211,10 @@ resources:
           computability:
             optional: true
             computed: true
+        mongo_dbmajor_version:
+          computability:
+            optional: true
+            computed: true
 
   custom_db_role_api:
     read:
@@ -271,6 +275,58 @@ resources:
           computability:
             required: true
         auto_defer_once_enabled: # optional but when not configured, Atlas returns a default value.
+          computability:
+            optional: true
+            computed: true
+        start_asap: # "This flag resets to false after MongoDB Cloud completes maintenance."
+          computability:
+            computed: true
+
+  # Singleton resource in project.
+  # Create uses PATCH.
+  project_settings_api:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/settings
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/settings
+      method: PATCH
+    update:
+      path: /api/atlas/v2/groups/{groupId}/settings
+      method: PATCH
+    version_header: application/vnd.atlas.2023-01-01+json
+    schema:
+      aliases:
+        # "AI" is all uppercase and does not play nice with camelCase to snake_case conversion.
+        is_data_explorer_gen_aifeatures_enabled: is_data_explorer_gen_ai_features_enabled
+        is_data_explorer_gen_aisample_document_passing_enabled: is_data_explorer_gen_ai_sample_document_passing_enabled
+      overrides:
+        # These attributes are optional but when not configured, Atlas returns a default value.
+        is_collect_database_specifics_statistics_enabled:
+          computability:
+            optional: true
+            computed: true
+        is_data_explorer_enabled:
+          computability:
+            optional: true
+            computed: true
+        is_extended_storage_sizes_enabled:
+          computability:
+            optional: true
+            computed: true
+        is_performance_advisor_enabled:
+          computability:
+            optional: true
+            computed: true
+        is_realtime_performance_panel_enabled:
+          computability:
+            optional: true
+            computed: true
+        is_schema_advisor_enabled:
+          computability:
+            optional: true
+            computed: true
+        is_data_explorer_gen_ai_features_enabled:
           computability:
             optional: true
             computed: true
@@ -444,3 +500,23 @@ resources:
           computability:
             optional: true
             computed: true
+
+  org_service_account_api:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts
+      method: POST
+    update:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
+      method: DELETE
+    schema:
+      overrides:
+        secrets.secret:
+          sensitive: true
+        roles:
+          type: set

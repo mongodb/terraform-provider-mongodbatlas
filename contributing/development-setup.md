@@ -21,12 +21,12 @@
 ### Building
 - Enter the provider directory
 - Run `make tools` to install the needed tools for the provider
-- Run `link-git-hooks` to install githooks 
+- Run `make link-git-hooks` to install githooks 
 - Run `make build` to build the binary in the `./bin` directory: 
 - Use the local provider binary in the `./bin` folder:
   - Create the following `dev.trfc` file inside your directory 
   ```terraform
-    provider_installation {
+  provider_installation {
 
     dev_overrides {
       "mongodb/mongodbatlas" = "/Users/<YourUser>/terraform-provider-mongodbatlas/bin" # path to the provider binary
@@ -39,7 +39,7 @@
   ```bash
   export TF_CLI_CONFIG_FILE=PATH/TO/dev.trfc
   ```
-- Run `terraform init` to inizialize terraform
+- Run `terraform init` to initialize terraform
 - Run `terraform apply` to use terraform with the local binary
 
 For more explained information about plugin override check [Development Overrides for Provider Developers](https://www.terraform.io/docs/cli/config/config-file.html#development-overrides-for-provider-developers)

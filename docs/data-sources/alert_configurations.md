@@ -1,3 +1,7 @@
+---
+subcategory: "Alert Configurations"
+---
+
 # Data Source: mongodbatlas_alert_configurations
 
 `mongodbatlas_alert_configurations` describes all Alert Configurations by the provided project_id. The data source requires your Project ID.
@@ -30,7 +34,7 @@ output "alert_output" {
 ```
 
 Refer to the following for a full example on using this data_source as a tool to import all resources:
-* [atlas-alert-configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/atlas-alert-configurations)
+* [atlas-alert-configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/atlas-alert-configurations)
 
 ## Argument Reference
 

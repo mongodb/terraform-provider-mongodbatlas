@@ -1,3 +1,7 @@
+---
+subcategory: "Clusters"
+---
+
 # Data Source: mongodbatlas_flex_cluster
 
 `mongodbatlas_flex_cluster` describes a flex cluster.

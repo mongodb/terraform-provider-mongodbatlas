@@ -7,7 +7,7 @@ import (
 	"log"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -67,7 +67,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		Roles: conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List()),
 	}
 
-	apiKey, resp, err := connV2.ProgrammaticAPIKeysApi.CreateApiKey(ctx, orgID, createRequest).Execute()
+	apiKey, resp, err := connV2.ProgrammaticAPIKeysApi.CreateOrgApiKey(ctx, orgID, createRequest).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -95,7 +95,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
 
-	apiKey, resp, err := connV2.ProgrammaticAPIKeysApi.GetApiKey(ctx, orgID, apiKeyID).Execute()
+	apiKey, resp, err := connV2.ProgrammaticAPIKeysApi.GetOrgApiKey(ctx, orgID, apiKeyID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) || validate.StatusBadRequest(resp) {
 			log.Printf("warning API key deleted will recreate: %s \n", err.Error())
@@ -137,7 +137,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if roles := conversion.ExpandStringListFromSetSchema(d.Get("role_names").(*schema.Set)); roles != nil {
 			updateRequest.Roles = &roles
 		}
-		_, _, err := connV2.ProgrammaticAPIKeysApi.UpdateApiKey(ctx, orgID, apiKeyID, updateRequest).Execute()
+		_, _, err := connV2.ProgrammaticAPIKeysApi.UpdateOrgApiKey(ctx, orgID, apiKeyID, updateRequest).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error updating API key: %s", err))
 		}
@@ -151,7 +151,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	orgID := ids["org_id"]
 	apiKeyID := ids["api_key_id"]
 
-	_, err := connV2.ProgrammaticAPIKeysApi.DeleteApiKey(ctx, orgID, apiKeyID).Execute()
+	_, err := connV2.ProgrammaticAPIKeysApi.DeleteOrgApiKey(ctx, orgID, apiKeyID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error API Key: %s", err))
 	}
@@ -168,7 +168,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	orgID := parts[0]
 	apiKeyID := parts[1]
 
-	r, _, err := connV2.ProgrammaticAPIKeysApi.GetApiKey(ctx, orgID, apiKeyID).Execute()
+	r, _, err := connV2.ProgrammaticAPIKeysApi.GetOrgApiKey(ctx, orgID, apiKeyID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import api key %s in project %s, error: %s", orgID, apiKeyID, err)
 	}

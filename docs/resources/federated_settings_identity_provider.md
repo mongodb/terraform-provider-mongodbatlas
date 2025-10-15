@@ -1,3 +1,7 @@
+---
+subcategory: "Federated Authentication"
+---
+
 # Resource: mongodbatlas_federated_settings_identity_provider
 
 `mongodbatlas_federated_settings_identity_provider` provides an Atlas federated settings identity provider resource provides a subset of settings to be maintained post import of the existing resource.
@@ -37,6 +41,8 @@ resource "mongodbatlas_federated_settings_identity_provider" "oidc" {
   user_claim = "sub"
 }
 ```
+### Further Examples
+- [Azure Federated Settings Identity Provider](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_federated_settings_identity_provider/azure)
 
 ## Argument Reference
 

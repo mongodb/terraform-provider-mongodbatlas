@@ -31,7 +31,7 @@ func (d *encryptionAtRestPrivateEndpointDS) Schema(ctx context.Context, req data
 }
 
 func (d *encryptionAtRestPrivateEndpointDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var earPrivateEndpointConfig TFEarPrivateEndpointModel
+	var earPrivateEndpointConfig TFEarPrivateEndpointModelDS
 	resp.Diagnostics.Append(req.Config.Get(ctx, &earPrivateEndpointConfig)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -42,11 +42,11 @@ func (d *encryptionAtRestPrivateEndpointDS) Read(ctx context.Context, req dataso
 	cloudProvider := earPrivateEndpointConfig.CloudProvider.ValueString()
 	endpointID := earPrivateEndpointConfig.ID.ValueString()
 
-	endpointModel, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRestPrivateEndpoint(ctx, projectID, cloudProvider, endpointID).Execute()
+	endpointModel, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetRestPrivateEndpoint(ctx, projectID, cloudProvider, endpointID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error fetching resource", err.Error())
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFEarPrivateEndpoint(*endpointModel, projectID))...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, NewTFEarPrivateEndpointDS(*endpointModel, projectID))...)
 }

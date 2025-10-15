@@ -1,6 +1,12 @@
+---
+subcategory: "Organizations"
+---
+
 # Resource: mongodbatlas_org_invitation
 
 `mongodbatlas_org_invitation` invites a user to join an Atlas organization.
+
+~> **DEPRECATION:** This resource is deprecated. Migrate to `mongodbatlas_cloud_user_org_assignment` for managing organization membership. See the [Org Invitation to Cloud User Org Assignment Migration Guide](../guides/atlas-user-management).
 
 Each invitation for an Atlas user includes roles that Atlas grants the user when they accept the invitation.
 
@@ -37,6 +43,9 @@ resource "mongodbatlas_org_invitation" "test1" {
   roles       = [ "ORG_MEMBER" ]
 }
 ```
+
+### Further Examples
+- [Migrate Org Invitation to Cloud User Org Assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/migrate_org_invitation_to_cloud_user_org_assignment)
 
 ## Argument Reference
 

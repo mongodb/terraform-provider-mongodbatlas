@@ -1,3 +1,7 @@
+---
+subcategory: "Clusters"
+---
+
 # {{.Type}}: {{.Name}}
 
 `{{.Name}}` provides a MongoDB Employee Access Grant resource. The resource lets you create, delete, update and import a MongoDB employee access grant.
@@ -5,6 +9,9 @@
 ## Example Usages
 
 {{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+### Further Examples
+- [Grant log access to MongoDB employees](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_mongodb_employee_access_grant)
 
 {{ .SchemaMarkdown | trimspace }}
 

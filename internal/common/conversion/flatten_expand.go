@@ -1,9 +1,11 @@
 package conversion
 
 import (
+	"time"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 )
 
 func FlattenLinks(links []admin.Link) []map[string]string {
@@ -24,6 +26,57 @@ func FlattenTags(tags []admin.ResourceTag) []map[string]string {
 			"key":   tag.GetKey(),
 			"value": tag.GetValue(),
 		}
+	}
+	return ret
+}
+
+func FlattenUsers(users []admin.OrgUserResponse) []map[string]any {
+	ret := make([]map[string]any, len(users))
+	for i := range users {
+		user := &users[i]
+		ret[i] = map[string]any{
+			"id":                    user.GetId(),
+			"org_membership_status": user.GetOrgMembershipStatus(),
+			"roles":                 flattenUserRoles(user.GetRoles()),
+			"team_ids":              user.GetTeamIds(),
+			"username":              user.GetUsername(),
+			"invitation_created_at": user.GetInvitationCreatedAt().Format(time.RFC3339),
+			"invitation_expires_at": user.GetInvitationExpiresAt().Format(time.RFC3339),
+			"inviter_username":      user.GetInviterUsername(),
+			"country":               user.GetCountry(),
+			"created_at":            user.GetCreatedAt().Format(time.RFC3339),
+			"first_name":            user.GetFirstName(),
+			"last_auth":             user.GetLastAuth().Format(time.RFC3339),
+			"last_name":             user.GetLastName(),
+			"mobile_number":         user.GetMobileNumber(),
+		}
+	}
+	return ret
+}
+
+func flattenUserRoles(roles admin.OrgUserRolesResponse) []map[string]any {
+	ret := make([]map[string]any, 0)
+	roleMap := map[string]any{
+		"org_roles":                []string{},
+		"project_role_assignments": []map[string]any{},
+	}
+	if roles.HasOrgRoles() {
+		roleMap["org_roles"] = roles.GetOrgRoles()
+	}
+	if roles.HasGroupRoleAssignments() {
+		roleMap["project_role_assignments"] = flattenProjectRolesAssignments(roles.GetGroupRoleAssignments())
+	}
+	ret = append(ret, roleMap)
+	return ret
+}
+
+func flattenProjectRolesAssignments(assignments []admin.GroupRoleAssignment) []map[string]any {
+	ret := make([]map[string]any, 0, len(assignments))
+	for _, assignment := range assignments {
+		ret = append(ret, map[string]any{
+			"project_id":    assignment.GetGroupId(),
+			"project_roles": assignment.GetGroupRoles(),
+		})
 	}
 	return ret
 }

@@ -3,25 +3,23 @@ package acc
 import (
 	"context"
 	"fmt"
-	"os"
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/clean"
 	"github.com/stretchr/testify/require"
 )
 
 const (
 	MaxClusterNodesPerProject = 30 // Choose to be conservative, 40 clusters per project is the limit before `CROSS_REGION_NETWORK_PERMISSIONS_LIMIT_EXCEEDED` error, see https://www.mongodb.com/docs/atlas/reference/atlas-limits/
+	MaxFreeTierClusterCount   = 1  // Project can have at most 1 free tier cluster
 )
 
 // SetupSharedResources must be called from TestMain test package in order to use ProjectIDExecution.
 // It returns the cleanup function that must be called at the end of TestMain.
 func SetupSharedResources() func() {
 	sharedInfo.init = true
-	setupTestsSDKv2ToTPF()
 	return cleanupSharedResources
 }
 
@@ -43,6 +41,14 @@ func cleanupSharedResources() {
 		if err != nil {
 			fmt.Printf("Failed to delete stream instances: for execution project %s, error: %s\n", projectID, err)
 		}
+	}
+	if sharedInfo.privateLinkEndpointID != "" {
+		projectID := sharedInfo.projectID
+		if projectID == "" {
+			projectID = projectIDLocal()
+		}
+		fmt.Printf("Deleting execution private link endpoint: %s, project id: %s, provider: %s\n", sharedInfo.privateLinkEndpointID, projectID, sharedInfo.privateLinkProviderName)
+		deletePrivateLinkEndpoint(projectID, sharedInfo.privateLinkProviderName, sharedInfo.privateLinkEndpointID)
 	}
 	if sharedInfo.projectID != "" {
 		fmt.Printf("Deleting execution project: %s, id: %s\n", sharedInfo.projectName, sharedInfo.projectID)
@@ -79,11 +85,8 @@ func ProjectIDExecution(tb testing.TB) string {
 	return sharedInfo.projectID
 }
 
-// ProjectIDExecutionWithCluster creates a project and reuses it for  `MaxClusterNodesPerProject ` nodes. The clusterName is always unique.
-// TotalNodeCount = sum(specs.node_count) * num_shards (1 if new schema)
-// This avoids the `CROSS_REGION_NETWORK_PERMISSIONS_LIMIT_EXCEEDED` error when creating too many clusters within the same project.
-// When `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_CLUSTER_NAME` are defined, they are used instead of creating a project and clusterName.
-func ProjectIDExecutionWithCluster(tb testing.TB, totalNodeCount int) (projectID, clusterName string) {
+// ProjectIDExecutionWithFreeCluster is identical to ProjectIDExecutionWithCluster but also contemplates the restriction of `MaxFreeTierClusterCount`
+func ProjectIDExecutionWithFreeCluster(tb testing.TB, totalNodeCount, freeTierClusterCount int) (projectID, clusterName string) {
 	tb.Helper()
 	if ExistingClusterUsed() {
 		return existingProjectIDClusterName()
@@ -91,9 +94,18 @@ func ProjectIDExecutionWithCluster(tb testing.TB, totalNodeCount int) (projectID
 	// Only skip after ExistingClusterUsed() to allow MacT (Mocked-Acceptance Tests) to return early instead of being skipped.
 	SkipInUnitTest(tb)
 	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
-	return NextProjectIDClusterName(totalNodeCount, func(projectName string) string {
+	return NextProjectIDClusterName(totalNodeCount, freeTierClusterCount, func(projectName string) string {
 		return createProject(tb, projectName)
 	})
+}
+
+// ProjectIDExecutionWithCluster creates a project and reuses it with other tests respecting `MaxClusterNodesPerProject` restrictions. The clusterName is always unique.
+// TotalNodeCount = sum(specs.node_count) * num_shards (1 if new schema)
+// This avoids `CROSS_REGION_NETWORK_PERMISSIONS_LIMIT_EXCEEDED` and `project has reached the limit for the number of free clusters` errors when creating too many clusters within the same project.
+// When `MONGODB_ATLAS_PROJECT_ID` and `MONGODB_ATLAS_CLUSTER_NAME` are defined, they are used instead of creating a project and clusterName.
+func ProjectIDExecutionWithCluster(tb testing.TB, totalNodeCount int) (projectID, clusterName string) {
+	tb.Helper()
+	return ProjectIDExecutionWithFreeCluster(tb, totalNodeCount, 0)
 }
 
 // ClusterNameExecution returns the name of a created cluster for the execution of the tests in the resource package.
@@ -170,31 +182,59 @@ func SerialSleep(tb testing.TB) {
 	time.Sleep(5 * time.Second)
 }
 
+// PrivateLinkEndpointIDExecution returns a private link endpoint id created for the execution of the tests.
+// The endpoint is created with provider "AWS" and region from environment variable.
+// When `MONGODB_ATLAS_PROJECT_ID` is defined, it is used instead of creating a project.
+func PrivateLinkEndpointIDExecution(tb testing.TB, providerName, region string) (projectID, privateLinkEndpointID string) {
+	tb.Helper()
+	SkipInUnitTest(tb)
+	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
+
+	projectID = ProjectIDExecution(tb) // ensure the execution project is created before endpoint creation
+
+	sharedInfo.mu.Lock()
+	defer sharedInfo.mu.Unlock()
+
+	// lazy creation so it's only done if really needed
+	if sharedInfo.privateLinkEndpointID == "" {
+		tb.Logf("Creating execution private link endpoint for provider: %s, region: %s\n", providerName, region)
+		sharedInfo.privateLinkEndpointID = createPrivateLinkEndpoint(tb, projectID, providerName, region)
+		sharedInfo.privateLinkProviderName = providerName
+	}
+
+	return projectID, sharedInfo.privateLinkEndpointID
+}
+
 type projectInfo struct {
-	id        string
-	name      string
-	nodeCount int
+	id                   string
+	name                 string
+	nodeCount            int
+	freeTierClusterCount int
 }
 
 var sharedInfo = struct {
-	projectID          string
-	projectName        string
-	clusterName        string
-	streamInstanceName string
-	projects           []projectInfo
-	mu                 sync.Mutex
-	muSleep            sync.Mutex
-	init               bool
+	projectName             string
+	clusterName             string
+	streamInstanceName      string
+	privateLinkEndpointID   string
+	privateLinkProviderName string
+	projectID               string
+	projects                []projectInfo
+	mu                      sync.Mutex
+	muSleep                 sync.Mutex
+	init                    bool
 }{
 	projects: []projectInfo{},
 }
 
-// NextProjectIDClusterName is an internal method used when we want to reuse a projectID `MaxClustersPerProject` times
-func NextProjectIDClusterName(totalNodeCount int, projectCreator func(string) string) (projectID, clusterName string) {
+// NextProjectIDClusterName is an internal method used when we want to reuse a projectID respecting `MaxClustersNodesPerProject` and `MaxFreeTierClusterCount`
+func NextProjectIDClusterName(totalNodeCount, freeTierClusterCount int, projectCreator func(string) string) (projectID, clusterName string) {
 	sharedInfo.mu.Lock()
 	defer sharedInfo.mu.Unlock()
 	var project projectInfo
-	if len(sharedInfo.projects) == 0 || sharedInfo.projects[len(sharedInfo.projects)-1].nodeCount+totalNodeCount > MaxClusterNodesPerProject {
+	if len(sharedInfo.projects) == 0 ||
+		sharedInfo.projects[len(sharedInfo.projects)-1].nodeCount+totalNodeCount > MaxClusterNodesPerProject ||
+		sharedInfo.projects[len(sharedInfo.projects)-1].freeTierClusterCount+freeTierClusterCount > MaxFreeTierClusterCount {
 		project = projectInfo{
 			name:      RandomProjectName(),
 			nodeCount: totalNodeCount,
@@ -204,14 +244,7 @@ func NextProjectIDClusterName(totalNodeCount int, projectCreator func(string) st
 	} else {
 		project = sharedInfo.projects[len(sharedInfo.projects)-1]
 		sharedInfo.projects[len(sharedInfo.projects)-1].nodeCount += totalNodeCount
+		sharedInfo.projects[len(sharedInfo.projects)-1].freeTierClusterCount += freeTierClusterCount
 	}
 	return project.id, RandomClusterName()
-}
-
-// setupTestsSDKv2ToTPF sets the Preview environment variable to false so the previous version in migration tests uses SDKv2.
-// However the current version will use TPF as the variable is only read once during import when it was true.
-func setupTestsSDKv2ToTPF() {
-	if IsTestSDKv2ToTPF() && config.PreviewProviderV2AdvancedCluster() {
-		os.Setenv(config.PreviewProviderV2AdvancedClusterEnvVar, "false")
-	}
 }

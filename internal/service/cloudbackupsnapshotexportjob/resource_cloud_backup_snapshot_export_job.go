@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312005/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 )
 
 func Resource() *schema.Resource {
@@ -140,7 +140,7 @@ func readExportJob(ctx context.Context, meta any, d *schema.ResourceData) (*admi
 		clusterName = ids["cluster_name"]
 		exportID = ids["export_job_id"]
 	}
-	exportJob, _, err := connV2.CloudBackupsApi.GetBackupExportJob(ctx, projectID, clusterName, exportID).Execute()
+	exportJob, _, err := connV2.CloudBackupsApi.GetBackupExport(ctx, projectID, clusterName, exportID).Execute()
 	if err == nil {
 		d.SetId(conversion.EncodeStateID(map[string]string{
 			"project_id":    projectID,
@@ -253,7 +253,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		CustomData:     expandExportJobCustomData(d),
 	}
 
-	jobResponse, _, err := connV2.CloudBackupsApi.CreateBackupExportJob(ctx, projectID, clusterName, request).Execute()
+	jobResponse, _, err := connV2.CloudBackupsApi.CreateBackupExport(ctx, projectID, clusterName, request).Execute()
 	if err != nil {
 		return diag.Errorf("error creating snapshot export job: %s", err)
 	}
@@ -291,7 +291,7 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 	clusterName := parts[1]
 	exportID := parts[2]
 
-	_, _, err := connV2.CloudBackupsApi.GetBackupExportJob(ctx, projectID, clusterName, exportID).Execute()
+	_, _, err := connV2.CloudBackupsApi.GetBackupExport(ctx, projectID, clusterName, exportID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import snapshot export job %s in project %s and cluster %s, error: %s", exportID, projectID, clusterName, err)
 	}

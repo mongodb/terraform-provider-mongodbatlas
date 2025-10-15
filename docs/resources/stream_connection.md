@@ -1,3 +1,7 @@
+---
+subcategory: "Streams"
+---
+
 # Resource: mongodbatlas_stream_connection
 
 `mongodbatlas_stream_connection` provides a Stream Connection resource. The resource lets you create, edit, and delete stream instance connections.
@@ -18,6 +22,9 @@ resource "mongodbatlas_stream_connection" "test" {
     cluster_name = "Cluster0"
 }
 ```
+
+### Further Examples
+- [Atlas Stream Connection](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_stream_connection)
 
 ### Example Cross Project Cluster Connection
 
@@ -53,6 +60,38 @@ resource "mongodbatlas_stream_connection" "test" {
     }
     bootstrap_servers = "localhost:9091,localhost:9092"
 }    
+```
+
+### Example Kafka SASL OAuthbearer Connection
+
+```terraform
+resource "mongodbatlas_stream_connection" "example-kafka-oauthbearer" {
+    project_id      = var.project_id
+    instance_name   = mongodbatlas_stream_instance.example.instance_name
+    connection_name = "KafkaOAuthbearerConnection"
+    type            = "Kafka"
+    authentication = {
+        mechanism = "OAUTHBEARER"
+        method = "OIDC"
+        token_endpoint_url = "https://example.com/oauth/token"
+        client_id  = "auth0Client"
+        client_secret  = var.kafka_client_secret
+        scope = "read:messages write:messages"
+        sasl_oauthbearer_extensions = "logicalCluster=lkc-kmom,identityPoolId=pool-lAr"
+    }
+    bootstrap_servers = "localhost:9092,localhost:9092"
+    config = {
+        "auto.offset.reset" : "earliest"
+    }
+    security = {
+        protocol = "SASL_PLAINTEXT"
+    }
+    networking = {
+        access = {
+        type = "PUBLIC"
+        }
+    }
+}
 ```
 
 ### Example Kafka SASL SSL Connection
@@ -138,9 +177,15 @@ If `type` is of value `Https` the following additional attributes are defined:
 
 ### Authentication
 
-* `mechanism` - Style of authentication. Can be one of `PLAIN`, `SCRAM-256`, or `SCRAM-512`.
+* `mechanism` - Method of authentication. Value can be `PLAIN`, `SCRAM-256`, or `SCRAM-512`.
+* `method` - SASL OAUTHBEARER authentication method. Value must be OIDC.
 * `username` - Username of the account to connect to the Kafka cluster.
 * `password` - Password of the account to connect to the Kafka cluster.
+* `token_endpoint_url` -  OAUTH issuer (IdP provider) token endpoint HTTP(S) URI used to retrieve the token.
+* `client_id` - Public identifier for the Kafka client.
+* `client_secret` - Secret known only to the Kafka client and the authorization server.
+* `scope` - Scope of the access request to the broker specified by the Kafka clients.
+* `sasl_oauthbearer_extensions` - Additional information to provide to the Kafka broker.
 
 ### Security
 

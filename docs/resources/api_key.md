@@ -1,3 +1,7 @@
+---
+subcategory: "Programmatic API Keys"
+---
+
 # Resource: mongodbatlas_api_key
 
 `mongodbatlas_api_key` provides a Organization API key resource. This allows an Organizational API key to be created.
@@ -13,6 +17,9 @@ resource "mongodbatlas_api_key" "test" {
   role_names = ["ORG_READ_ONLY"]
 }
 ```
+
+### Further Examples
+- [Create Programmatic API Key](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_api_key)
 
 ## Argument Reference
 
