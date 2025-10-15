@@ -1288,7 +1288,7 @@ jobs:
               ./internal/service/streamprivatelinkendpoint
           run: make testacc
 
-  slack-notification:
+  slack-notification-stream:
     needs: [stream]
     if: ${{ !cancelled() && needs.stream.result == 'failure' && inputs.send_notification == true }}
     runs-on: ubuntu-latest
