@@ -1294,6 +1294,20 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
+      - name: Get stream job URL
+        id: get_job_url
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run_id = context.runId;
+            const jobs = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: run_id,
+            });
+            const streamJob = jobs.data.jobs.find(job => job.name === 'stream');
+            return streamJob ? streamJob.html_url : `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${run_id}`;
+          result-encoding: string
       - name: Send Slack message
         id: slack
         uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
@@ -1308,7 +1322,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "❌ *Terraform Stream Acceptance Tests Failed* ${{ secrets.slack_oncall_tag }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View Failed Action>"
+                    "text": "❌ *Terraform Stream Acceptance Tests Failed* ${{ secrets.slack_oncall_tag }} <${{ steps.get_job_url.outputs.result }}|View Failed Job>"
                   }
                 }
               ]
