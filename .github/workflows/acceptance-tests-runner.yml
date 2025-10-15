@@ -1284,7 +1284,11 @@ jobs:
             AWS_VPC_CIDR_BLOCK: ${{ vars.AWS_VPC_CIDR_BLOCK }}
             AWS_VPC_ID: ${{ vars.AWS_VPC_ID }}
             ACCTEST_PACKAGES: |
+              ./internal/service/streamaccountdetails
               ./internal/service/streamconnection
+              ./internal/service/streaminstance
+              ./internal/service/streamprocessor
+              ./internal/service/streamprivatelinkendpoint
           run: make testacc
 
   slack-notification-stream:
