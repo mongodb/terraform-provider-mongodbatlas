@@ -115,7 +115,7 @@ jobs:
       aws_customer_master_key_id: ${{ secrets.AWS_CUSTOMER_MASTER_KEY_ID }}
       slack_oncall_tag: ${{ secrets.SLACK_ONCALL_TAG }}
       slack_oncall_tag_stream: ${{ secrets.SLACK_ONCALL_TAG_STREAM }}
-      slack_webhook_url_stream: ${{ secrets.SLACK_WEBHOOK_URL_STREAM }}
+      slack_webhook_url_stream: ${{ secrets.SLACK_WEBHOOK_URL_TEST }}
 
     with:
       terraform_version: ${{ inputs.terraform_version || '1.13.x' }}
