@@ -417,7 +417,7 @@ jobs:
           ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
           ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
-  
+
   advanced_cluster_tpf_mig_from_sdkv2:
     needs: [ change-detection, get-provider-version ]
     # Previous advanced_cluster versions don't support SA.
@@ -1296,7 +1296,6 @@ jobs:
     permissions: {}
     steps:
       - name: Send Slack message
-        id: slack
         uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
         with:
           webhook: ${{ secrets.slack_webhook_url_stream }}
