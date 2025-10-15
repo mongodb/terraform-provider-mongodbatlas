@@ -548,6 +548,38 @@ jobs:
           ACCTEST_REGEX_RUN: '^TestAccServiceAccount'
           ACCTEST_PACKAGES: ./internal/provider
         run: make testacc
+      - name: Generate OAuth2 Token
+        id: generate-token
+        shell: bash
+        env:
+          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
+          MONGODB_ATLAS_CLIENT_ID: ${{ secrets.mongodb_atlas_client_id }}
+          MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}
+        run: |
+          if ! ACCESS_TOKEN=$(make generate-oauth2-token); then
+            echo "Error: Failed to generate access token"
+            exit 1
+          fi
+          if [ -z "$ACCESS_TOKEN" ]; then
+            echo "Error: Generated access token is empty"
+            exit 1
+          fi
+          {
+            echo "access_token<<EOF"
+            echo "$ACCESS_TOKEN"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+      - name: Acceptance Tests (Access Token)
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ""
+          MONGODB_ATLAS_PRIVATE_KEY: ""
+          MONGODB_ATLAS_CLIENT_ID: ""
+          MONGODB_ATLAS_CLIENT_SECRET: ""
+          MONGODB_ATLAS_ACCESS_TOKEN: ${{ steps.generate-token.outputs.access_token }}
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          ACCTEST_REGEX_RUN: '^TestAccAccessToken'
+          ACCTEST_PACKAGES: ./internal/provider
+        run: make testacc
       - name: Acceptance Tests (Service Account smoke tests) # small selection of fast tests to run with SA
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ""

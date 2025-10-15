@@ -63,7 +63,6 @@ func TestAccServiceAccount_basic(t *testing.T) {
 }
 
 func TestAccAccessToken_basic(t *testing.T) {
-	acc.SkipTestForCI(t) // access token has a validity period of 1 hour, so it cannot be used in CI reliably
 	acc.SkipInPAK(t, "skipping as this test is for Token credentials only")
 	acc.SkipInSA(t, "skipping as this test is for Token credentials only")
 	var (
