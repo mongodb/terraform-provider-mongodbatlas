@@ -6,7 +6,9 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -31,8 +33,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"org_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.",
+				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
-			"roles": schema.ListAttribute{
+			"roles": schema.SetAttribute{
 				Required:            true,
 				MarkdownDescription: "A list of organization-level roles for the Service Account.",
 				ElementType:         types.StringType,
@@ -40,6 +43,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"secret_expires_after_hours": schema.Int64Attribute{
 				Required:            true,
 				MarkdownDescription: "The expiration time of the new Service Account secret, provided in hours. The minimum and maximum allowed expiration times are subject to change and are controlled by the organization's settings.",
+				PlanModifiers:       []planmodifier.Int64{customplanmodifier.CreateOnly()},
 			},
 			"secrets": schema.SetNestedAttribute{
 				Computed:            true,
@@ -79,7 +83,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	Roles                   types.List   `tfsdk:"roles"`
+	Roles                   types.Set    `tfsdk:"roles"`
 	Secrets                 types.Set    `tfsdk:"secrets" autogen:"omitjson"`
 	ClientId                types.String `tfsdk:"client_id" autogen:"omitjson"`
 	CreatedAt               types.String `tfsdk:"created_at" autogen:"omitjson"`

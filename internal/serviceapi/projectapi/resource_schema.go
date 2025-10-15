@@ -6,7 +6,9 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -31,6 +33,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"org_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the MongoDB Cloud organization to which the project belongs.",
+				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"region_usage_restrictions": schema.StringAttribute{
 				Computed:            true,

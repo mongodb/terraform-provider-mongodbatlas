@@ -32,7 +32,7 @@ resource "mongodbatlas_federated_settings_org_role_mapping" "org_group_role_mapp
 ```
 
 ### Further Examples
-- [Okta and MongoDB Atlas Federated Settings Configuration](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.41.1/examples/mongodbatlas_federated_settings_org_role_mapping)
+- [Okta and MongoDB Atlas Federated Settings Configuration](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_federated_settings_org_role_mapping)
 
 ## Argument Reference
 

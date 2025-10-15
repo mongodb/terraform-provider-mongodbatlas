@@ -1,6 +1,10 @@
 ## (Unreleased)
 
-## 1.41.1 (October 01, 2025)
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_stream_connection: Adds new authentication mechanism (OIDC) to the Kafka connection ([#3766](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3766))
+* data-source/mongodbatlas_stream_connections: Adds new authentication mechanism (OIDC) to the Kafka connection ([#3766](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3766))
+* resource/mongodbatlas_stream_connection: Adds new authentication mechanism (OIDC) to the Kafka connection ([#3766](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3766))
 
 BUG FIXES:
 

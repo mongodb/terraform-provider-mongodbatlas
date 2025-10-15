@@ -1,0 +1,91 @@
+schema:
+    description: Updates the settings of the specified project. You can update any of the options available. MongoDB cloud only updates the options provided in the request. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
+    attributes:
+        - string: {}
+          description: |-
+            Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
+
+            **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+          computed_optional_required: required
+          tf_schema_name: group_id
+          tf_model_name: GroupId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+        - bool: {}
+          description: Flag that indicates whether to collect database-specific metrics for the specified project.
+          computed_optional_required: computed_optional
+          tf_schema_name: is_collect_database_specifics_statistics_enabled
+          tf_model_name: IsCollectDatabaseSpecificsStatisticsEnabled
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+        - bool: {}
+          description: Flag that indicates whether to enable the Data Explorer for the specified project.
+          computed_optional_required: computed_optional
+          tf_schema_name: is_data_explorer_enabled
+          tf_model_name: IsDataExplorerEnabled
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+        - bool: {}
+          description: Flag that indicates whether to enable the use of generative AI features which make requests to 3rd party services in Data Explorer for the specified project.
+          computed_optional_required: computed_optional
+          tf_schema_name: is_data_explorer_gen_ai_features_enabled
+          tf_model_name: IsDataExplorerGenAIFeaturesEnabled
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+        - bool:
+            default: false
+          description: Flag that indicates whether to enable the passing of sample field values with the use of generative AI features in the Data Explorer for the specified project.
+          computed_optional_required: computed_optional
+          tf_schema_name: is_data_explorer_gen_ai_sample_document_passing_enabled
+          tf_model_name: IsDataExplorerGenAISampleDocumentPassingEnabled
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+        - bool: {}
+          description: Flag that indicates whether to enable extended storage sizes for the specified project.
+          computed_optional_required: computed_optional
+          tf_schema_name: is_extended_storage_sizes_enabled
+          tf_model_name: IsExtendedStorageSizesEnabled
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+        - bool: {}
+          description: Flag that indicates whether to enable the Performance Advisor and Profiler for the specified project.
+          computed_optional_required: computed_optional
+          tf_schema_name: is_performance_advisor_enabled
+          tf_model_name: IsPerformanceAdvisorEnabled
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+        - bool: {}
+          description: Flag that indicates whether to enable the Real Time Performance Panel for the specified project.
+          computed_optional_required: computed_optional
+          tf_schema_name: is_realtime_performance_panel_enabled
+          tf_model_name: IsRealtimePerformancePanelEnabled
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+        - bool: {}
+          description: Flag that indicates whether to enable the Schema Advisor for the specified project.
+          computed_optional_required: computed_optional
+          tf_schema_name: is_schema_advisor_enabled
+          tf_model_name: IsSchemaAdvisorEnabled
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+operations:
+    create:
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{groupId}/settings
+    read:
+        http_method: GET
+        path: /api/atlas/v2/groups/{groupId}/settings
+    update:
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{groupId}/settings
+    version_header: application/vnd.atlas.2023-01-01+json
+name: project_settings_api

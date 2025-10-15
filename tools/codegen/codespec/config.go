@@ -5,34 +5,54 @@ import (
 	"log"
 	"strings"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
 )
 
-func applyConfigSchemaOptions(resourceConfig *config.Resource, resource *Resource) {
-	applySchemaOptions(resourceConfig.SchemaOptions, &resource.Schema.Attributes, "")
+func applyTransformationsWithConfigOpts(resourceConfig *config.Resource, resource *Resource) {
+	applyAttributeTransformations(resourceConfig.SchemaOptions, &resource.Schema.Attributes, "")
+
 	applyAliasToPathParams(resource, resourceConfig.SchemaOptions.Aliases)
 }
 
-func applySchemaOptions(schemaOptions config.SchemaOptions, attributes *Attributes, parentName string) {
+// AttributeTransformation represents a operation applied to an attribute during traversal.
+// Implementations may mutate the attribute in-place.
+type AttributeTransformation func(attr *Attribute, attrPathName *string, schemaOptions config.SchemaOptions)
+
+var transformations = []AttributeTransformation{
+	aliasTransformation,
+	overridesTransformation,
+	createOnlyTransformation,
+}
+
+func applyAttributeTransformations(schemaOptions config.SchemaOptions, attributes *Attributes, parentName string) {
 	ignoredAttrs := getIgnoredAttributesMap(schemaOptions.Ignores)
 
 	var finalAttributes Attributes
 
 	for i := range *attributes {
 		attr := &(*attributes)[i]
-		attrPathName := getAttributePathName(string(attr.Name), parentName)
+		attrPathName := getAttributePathName(string(attr.TFSchemaName), parentName)
 
 		if shouldIgnoreAttribute(attrPathName, ignoredAttrs) {
 			continue
 		}
 
-		// the config is expected to use alias name for defining any subsequent overrides (description, etc)
-		applyAliasToAttribute(attr, &attrPathName, schemaOptions)
+		for _, t := range transformations {
+			t(attr, &attrPathName, schemaOptions)
+		}
 
-		applyOverrides(attr, attrPathName, schemaOptions)
-
-		processNestedAttributes(attr, schemaOptions, attrPathName)
+		// apply transformations to nested attributes
+		switch {
+		case attr.ListNested != nil:
+			applyAttributeTransformations(schemaOptions, &attr.ListNested.NestedObject.Attributes, attrPathName)
+		case attr.SingleNested != nil:
+			applyAttributeTransformations(schemaOptions, &attr.SingleNested.NestedObject.Attributes, attrPathName)
+		case attr.SetNested != nil:
+			applyAttributeTransformations(schemaOptions, &attr.SetNested.NestedObject.Attributes, attrPathName)
+		case attr.MapNested != nil:
+			applyAttributeTransformations(schemaOptions, &attr.MapNested.NestedObject.Attributes, attrPathName)
+		}
 
 		finalAttributes = append(finalAttributes, *attr)
 	}
@@ -73,7 +93,7 @@ func applyAliasToAttribute(attr *Attribute, attrPathName *string, schemaOptions 
 			parts[i] = newName
 
 			if i == len(parts)-1 {
-				attr.Name = stringcase.SnakeCaseString(newName)
+				attr.TFSchemaName = stringcase.SnakeCaseString(newName)
 			}
 		}
 	}
@@ -88,8 +108,24 @@ func applyAliasToPathParams(resource *Resource, aliases map[string]string) {
 		resource.Operations.Create.Path = strings.ReplaceAll(resource.Operations.Create.Path, fmt.Sprintf("{%s}", originalCamel), fmt.Sprintf("{%s}", aliasCamel))
 		resource.Operations.Read.Path = strings.ReplaceAll(resource.Operations.Read.Path, fmt.Sprintf("{%s}", originalCamel), fmt.Sprintf("{%s}", aliasCamel))
 		resource.Operations.Update.Path = strings.ReplaceAll(resource.Operations.Update.Path, fmt.Sprintf("{%s}", originalCamel), fmt.Sprintf("{%s}", aliasCamel))
-		resource.Operations.Delete.Path = strings.ReplaceAll(resource.Operations.Delete.Path, fmt.Sprintf("{%s}", originalCamel), fmt.Sprintf("{%s}", aliasCamel))
+		if resource.Operations.Delete != nil {
+			resource.Operations.Delete.Path = strings.ReplaceAll(resource.Operations.Delete.Path, fmt.Sprintf("{%s}", originalCamel), fmt.Sprintf("{%s}", aliasCamel))
+		}
 	}
+}
+
+// Transformations
+func aliasTransformation(attr *Attribute, attrPathName *string, schemaOptions config.SchemaOptions) {
+	// the config is expected to use alias name for defining any subsequent overrides (description, etc)
+	applyAliasToAttribute(attr, attrPathName, schemaOptions)
+}
+
+func overridesTransformation(attr *Attribute, attrPathName *string, schemaOptions config.SchemaOptions) {
+	applyOverrides(attr, *attrPathName, schemaOptions)
+}
+
+func createOnlyTransformation(attr *Attribute, _ *string, _ config.SchemaOptions) {
+	setCreateOnlyValue(attr)
 }
 
 func applyOverrides(attr *Attribute, attrPathName string, schemaOptions config.SchemaOptions) {
@@ -106,7 +142,31 @@ func applyOverrides(attr *Attribute, attrPathName string, schemaOptions config.S
 		if override.IncludeNullOnUpdate != nil && *override.IncludeNullOnUpdate {
 			attr.ReqBodyUsage = IncludeNullOnUpdate
 		}
+		if override.Type != nil {
+			applyTypeOverride(&override, attr)
+		}
 	}
+}
+
+func applyTypeOverride(override *config.Override, attr *Attribute) {
+	switch *override.Type {
+	case config.Set:
+		if attr.List != nil {
+			attr.Set = &SetAttribute{ElementType: attr.List.ElementType}
+			attr.List = nil
+			return
+		}
+	case config.List:
+		if attr.Set != nil {
+			attr.List = &ListAttribute{ElementType: attr.Set.ElementType}
+			attr.Set = nil
+			return
+		}
+	default:
+		log.Printf("[WARN] %s - Unsupported type override defined in configuration: %s", attr.TFSchemaName, *override.Type)
+		return
+	}
+	log.Printf("[WARN] %s - Unsupported override from original type to: %s", attr.TFSchemaName, *override.Type)
 }
 
 func getComputabilityFromConfig(computability config.Computability) ComputedOptionalRequired {
@@ -120,19 +180,6 @@ func getComputabilityFromConfig(computability config.Computability) ComputedOpti
 		return Optional
 	}
 	return Required
-}
-
-func processNestedAttributes(attr *Attribute, schemaOptions config.SchemaOptions, attrPathName string) {
-	switch {
-	case attr.ListNested != nil:
-		applySchemaOptions(schemaOptions, &attr.ListNested.NestedObject.Attributes, attrPathName)
-	case attr.SingleNested != nil:
-		applySchemaOptions(schemaOptions, &attr.SingleNested.NestedObject.Attributes, attrPathName)
-	case attr.SetNested != nil:
-		applySchemaOptions(schemaOptions, &attr.SetNested.NestedObject.Attributes, attrPathName)
-	case attr.MapNested != nil:
-		applySchemaOptions(schemaOptions, &attr.MapNested.NestedObject.Attributes, attrPathName)
-	}
 }
 
 func applyTimeoutConfig(options config.SchemaOptions) *Attribute {
@@ -153,10 +200,22 @@ func applyTimeoutConfig(options config.SchemaOptions) *Attribute {
 	}
 	if result != nil {
 		return &Attribute{
-			Name:         "timeouts",
+			TFSchemaName: "timeouts",
 			Timeouts:     &TimeoutsAttribute{ConfigurableTimeouts: result},
 			ReqBodyUsage: OmitAlways,
 		}
 	}
 	return nil
+}
+
+func setCreateOnlyValue(attr *Attribute) {
+	// CreateOnly plan modifier will not be applied for computed attributes
+	if attr.ComputedOptionalRequired == Computed || attr.ComputedOptionalRequired == ComputedOptional {
+		return
+	}
+
+	// captures case of path param attributes (no present in request body) and properties which are only present in post request
+	if attr.ReqBodyUsage == OmitAlways || attr.ReqBodyUsage == OmitInUpdateBody {
+		attr.CreateOnly = true
+	}
 }

@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
 	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312007/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 )
 
 const (
@@ -48,16 +48,10 @@ func ConnV2UsingGov() *admin.APIClient {
 		BaseURL:    os.Getenv("MONGODB_ATLAS_GOV_BASE_URL"),
 	}
 	client, _ := cfg.NewClient(context.Background())
-	return client.(*config.MongoDBClient).AtlasV2
+	return client.AtlasV2
 }
 
 func init() {
-	if InUnitTest() { // Dummy credentials for unit tests
-		os.Setenv("MONGODB_ATLAS_PUBLIC_KEY", "dummy")
-		os.Setenv("MONGODB_ATLAS_PRIVATE_KEY", "dummy")
-		os.Unsetenv("MONGODB_ATLAS_CLIENT_ID")
-		os.Unsetenv("MONGODB_ATLAS_CLIENT_SECRET")
-	}
 	TestAccProviderV6Factories = map[string]func() (tfprotov6.ProviderServer, error){
 		ProviderNameMongoDBAtlas: func() (tfprotov6.ProviderServer, error) {
 			return provider.MuxProviderFactory()(), nil
@@ -69,6 +63,5 @@ func init() {
 		BaseURL:      os.Getenv("MONGODB_ATLAS_BASE_URL"),
 		RealmBaseURL: os.Getenv("MONGODB_REALM_BASE_URL"),
 	}
-	client, _ := cfg.NewClient(context.Background())
-	MongoDBClient = client.(*config.MongoDBClient)
+	MongoDBClient, _ = cfg.NewClient(context.Background())
 }

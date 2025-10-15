@@ -33,7 +33,7 @@ func generateModelObjType(attrs codespec.Attributes, name string) CodeStatement 
 	for i := range attrs {
 		propType := attrModelType(&attrs[i])
 		comment := limitationComment(&attrs[i])
-		prop := fmt.Sprintf(`%q: %sType,%s`, attrs[i].Name.SnakeCase(), propType, comment)
+		prop := fmt.Sprintf(`%q: %sType,%s`, attrs[i].TFSchemaName.SnakeCase(), propType, comment)
 		structProperties = append(structProperties, prop)
 	}
 	structPropsCode := strings.Join(structProperties, "\n")
@@ -62,7 +62,7 @@ func getNestedModel(attribute *codespec.Attribute, ancestorsName string, withObj
 	if nested == nil {
 		return nil
 	}
-	res := generateTypedModels(nested.Attributes, ancestorsName+attribute.Name.PascalCase(), true, withObjTypes)
+	res := generateTypedModels(nested.Attributes, ancestorsName+attribute.TFModelName, true, withObjTypes)
 	return &res
 }
 
@@ -82,11 +82,13 @@ func generateStructOfTypedModel(attributes codespec.Attributes, name string) Cod
 
 func typedModelProperty(attr *codespec.Attribute) string {
 	var (
-		namePascalCase = attr.Name.PascalCase()
+		namePascalCase = attr.TFModelName
 		propType       = attrModelType(attr)
 		autogenTag     string
 	)
 	switch attr.ReqBodyUsage {
+	case codespec.AllRequestBodies:
+		autogenTag = ""
 	case codespec.OmitAlways:
 		autogenTag = ` autogen:"omitjson"`
 	case codespec.OmitInUpdateBody:
@@ -94,7 +96,7 @@ func typedModelProperty(attr *codespec.Attribute) string {
 	case codespec.IncludeNullOnUpdate:
 		autogenTag = ` autogen:"includenullonupdate"`
 	}
-	return fmt.Sprintf("%s %s", namePascalCase, propType) + " `" + fmt.Sprintf("tfsdk:%q", attr.Name.SnakeCase()) + autogenTag + "`"
+	return fmt.Sprintf("%s %s", namePascalCase, propType) + " `" + fmt.Sprintf("tfsdk:%q", attr.TFSchemaName.SnakeCase()) + autogenTag + "`"
 }
 
 func attrModelType(attr *codespec.Attribute) string {

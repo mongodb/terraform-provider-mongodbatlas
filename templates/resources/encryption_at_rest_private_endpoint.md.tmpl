@@ -17,19 +17,19 @@ subcategory: "Encryption at Rest using Customer Key Management"
 ### Configuring Atlas Encryption at Rest using Azure Key Vault with Azure Private Link
 To learn more about existing limitations, see [Manage Customer Keys with Azure Key Vault Over Private Endpoints](https://www.mongodb.com/docs/atlas/security/azure-kms-over-private-endpoint/#manage-customer-keys-with-azure-key-vault-over-private-endpoints).
 
-Make sure to reference the [complete example section](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.41.1/examples/mongodbatlas_encryption_at_rest_private_endpoint/azure) for detailed steps and considerations.
+Make sure to reference the [complete example section](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_encryption_at_rest_private_endpoint/azure) for detailed steps and considerations.
 
 {{ tffile (printf "examples/%s/azure/main.tf" .Name )}}
 
 ### Configuring Atlas Encryption at Rest using AWS KMS with AWS PrivateLink
 
-Make sure to reference the [complete example section](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.41.1/examples/mongodbatlas_encryption_at_rest_private_endpoint/aws) for detailed steps and considerations.
+Make sure to reference the [complete example section](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_encryption_at_rest_private_endpoint/aws) for detailed steps and considerations.
 
 {{ tffile (printf "examples/%s/aws/main.tf" .Name )}}
 
 ### Further Examples
-- [AWS KMS Encryption at Rest Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.41.1/examples/mongodbatlas_encryption_at_rest_private_endpoint/aws)
-- [Azure Key Vault Encryption at Rest Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v1.41.1/examples/mongodbatlas_encryption_at_rest_private_endpoint/azure)
+- [AWS KMS Encryption at Rest Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_encryption_at_rest_private_endpoint/aws)
+- [Azure Key Vault Encryption at Rest Private Endpoint](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_encryption_at_rest_private_endpoint/azure)
 
 {{ .SchemaMarkdown | trimspace }}
 

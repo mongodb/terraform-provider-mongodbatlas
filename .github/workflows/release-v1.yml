@@ -69,6 +69,7 @@ jobs:
                   remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
                   gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
                   passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}
+                  branch: master-v1
 
     update-changelog-header:
         needs:
@@ -93,6 +94,7 @@ jobs:
                   remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
                   gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
                   passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}
+                  branch: master-v1
 
     create-tag:
         runs-on: ubuntu-latest
@@ -207,7 +209,7 @@ jobs:
                   KONDUKTO_REPO: ${{ vars.KONDUKTO_REPO }}
                   KONDUKTO_BRANCH_PREFIX: ${{ vars.KONDUKTO_BRANCH_PREFIX }}
             - name: Upload SBOM as release artifact
-              uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e28b836
+              uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090
               with:
                   files: compliance/sbom.json
                   tag_name: ${{ inputs.version_number }}
@@ -241,3 +243,4 @@ jobs:
                   remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}
                   gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
                   passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}
+                  branch: master-v1

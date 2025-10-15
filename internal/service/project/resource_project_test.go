@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312007/admin"
-	"go.mongodb.org/atlas-sdk/v20250312007/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -1034,7 +1034,6 @@ func TestAccProject_withInvalidLimitNameOnUpdate(t *testing.T) {
 }
 
 func TestAccProject_withTags(t *testing.T) {
-	t.Skip("skipping until CLOUDP-342944 is implemented")
 	var (
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName  = acc.RandomProjectName()

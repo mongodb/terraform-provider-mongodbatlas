@@ -104,10 +104,11 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 				Check:  checksFlexCluster(projectID, clusterName, false, true),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportStateIdFunc: acc.ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       acc.ImportStateIDFuncProjectIDClusterName(resourceName, "project_id", "name"),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"delete_on_create_timeout"},
 			},
 		},
 	}

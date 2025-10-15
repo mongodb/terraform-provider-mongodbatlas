@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312007/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -437,10 +437,8 @@ func getTestClientWithNewOrgCreds(rs *terraform.ResourceState) (*admin.APIClient
 		PrivateKey: rs.Primary.Attributes["private_key"],
 		BaseURL:    acc.MongoDBClient.Config.BaseURL,
 	}
-
-	ctx := context.Background()
-	clients, _ := cfg.NewClient(ctx)
-	return clients.(*config.MongoDBClient).AtlasV2, nil
+	clients, _ := cfg.NewClient(context.Background())
+	return clients.AtlasV2, nil
 }
 
 func TestValidateAPIKeyIsOrgOwner(t *testing.T) {

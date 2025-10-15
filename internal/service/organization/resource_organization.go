@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312007/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -306,5 +306,5 @@ func getAtlasV2Connection(ctx context.Context, d *schema.ResourceData, meta any)
 		TerraformVersion: meta.(*config.MongoDBClient).Config.TerraformVersion,
 	}
 	clients, _ := cfg.NewClient(ctx)
-	return clients.(*config.MongoDBClient).AtlasV2
+	return clients.AtlasV2
 }

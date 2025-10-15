@@ -6,7 +6,9 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -24,6 +26,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"group_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.\n\n**NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.",
+				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"hour_of_day": schema.Int64Attribute{
 				Required:            true,
@@ -48,7 +51,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"start_asap": schema.BoolAttribute{
-				Optional:            true,
+				Computed:            true,
 				MarkdownDescription: "Flag that indicates whether MongoDB Cloud starts the maintenance window immediately upon receiving this request. To start the maintenance window immediately for your project, MongoDB Cloud must have maintenance scheduled and you must set a maintenance window. This flag resets to `false` after MongoDB Cloud completes maintenance.",
 			},
 			"time_zone_id": schema.StringAttribute{
@@ -67,7 +70,7 @@ type TFModel struct {
 	HourOfDay            types.Int64  `tfsdk:"hour_of_day"`
 	NumberOfDeferrals    types.Int64  `tfsdk:"number_of_deferrals" autogen:"omitjson"`
 	AutoDeferOnceEnabled types.Bool   `tfsdk:"auto_defer_once_enabled"`
-	StartAsap            types.Bool   `tfsdk:"start_asap"`
+	StartASAP            types.Bool   `tfsdk:"start_asap"`
 }
 type TFProtectedHoursModel struct {
 	EndHourOfDay   types.Int64 `tfsdk:"end_hour_of_day"`
