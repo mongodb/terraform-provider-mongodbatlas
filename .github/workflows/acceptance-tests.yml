@@ -114,6 +114,7 @@ jobs:
       confluent_cloud_api_secret: ${{ secrets.CONFLUENT_CLOUD_API_SECRET }}
       aws_customer_master_key_id: ${{ secrets.AWS_CUSTOMER_MASTER_KEY_ID }}
       slack_oncall_tag: ${{ secrets.SLACK_ONCALL_TAG }}
+      slack_oncall_tag_stream: ${{ secrets.SLACK_ONCALL_TAG_STREAM }}
       slack_webhook_url_stream: ${{ secrets.SLACK_WEBHOOK_URL_STREAM }}
 
     with:
