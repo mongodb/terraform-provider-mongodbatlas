@@ -518,3 +518,5 @@ resources:
       overrides:
         secrets.secret:
           sensitive: true
+        roles:
+          type: set
