@@ -159,6 +159,10 @@ on:
         required: true
       mongodb_atlas_rp_public_key:
         required: true
+      mongodb_atlas_rp_client_id:
+        required: true
+      mongodb_atlas_rp_client_secret:
+        required: true
       mongodb_atlas_client_id:
         required: true
       mongodb_atlas_client_secret:
@@ -1182,8 +1186,7 @@ jobs:
 
   resource_policy:
     needs: [ change-detection, get-provider-version ]
-    # Skip in SA as it uses a different org and credentials.
-    if: ${{ inputs.use_sa == false && (needs.change-detection.outputs.resource_policy == 'true' || inputs.test_group == 'resource_policy') }}
+    if: ${{ needs.change-detection.outputs.resource_policy == 'true' || inputs.test_group == 'resource_policy' }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -1199,9 +1202,11 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ inputs.use_sa == false && secrets.mongodb_atlas_rp_public_key || '' }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ inputs.use_sa == false && secrets.mongodb_atlas_rp_private_key || '' }}
+          MONGODB_ATLAS_CLIENT_ID: ${{ inputs.use_sa  && secrets.mongodb_atlas_rp_client_id || '' }}
+          MONGODB_ATLAS_CLIENT_SECRET: ${{ inputs.use_sa && secrets.mongodb_atlas_rp_client_secret || '' }}
           MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_rp_org_id }}
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ secrets.mongodb_atlas_rp_public_key }}
-          MONGODB_ATLAS_PRIVATE_KEY:  ${{ secrets.mongodb_atlas_rp_private_key }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: ./internal/service/resourcepolicy
         run: make testacc
