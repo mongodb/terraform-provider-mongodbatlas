@@ -34,6 +34,10 @@ on:
         description: "Run tests using Service Account instead of API Keys"
         type: boolean
         required: false
+      send_notification:
+        description: 'Send a Slack notification if stream tests fail.'
+        type: boolean
+        required: false
       mongodb_atlas_org_id:
         type: string
         required: true
@@ -191,7 +195,13 @@ on:
         required: true
       aws_customer_master_key_id:
         required: true
-          
+      slack_oncall_tag:
+        required: true
+      slack_oncall_tag_stream:
+        required: true
+      slack_webhook_url_stream:
+        required: true
+
 env:
   TF_ACC: 1
   TF_LOG: ${{ vars.LOG_LEVEL }}
@@ -409,7 +419,7 @@ jobs:
           ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
           ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
- 
+
   advanced_cluster_tpf_mig_from_sdkv2:
     needs: [ change-detection, get-provider-version ]
     # Previous advanced_cluster versions don't support SA.
@@ -764,7 +774,7 @@ jobs:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: ./internal/service/clusteroutagesimulation
         run: make testacc
-      
+
   config:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.config == 'true' || inputs.test_group == 'config' }}
@@ -836,8 +846,8 @@ jobs:
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: |
-           ./internal/service/encryptionatrest
-           ./internal/service/encryptionatrestprivateendpoint
+            ./internal/service/encryptionatrest
+            ./internal/service/encryptionatrestprivateendpoint
           AZURE_PRIVATE_ENDPOINT_REGION: ${{ inputs.azure_private_endpoint_region }}
           AZURE_CLIENT_ID: ${{ secrets.azure_client_id }}
           AZURE_RESOURCE_GROUP_NAME: ${{ secrets.azure_resource_group_name }}
@@ -1243,6 +1253,7 @@ jobs:
           ACCTEST_PACKAGES: |
             ./internal/service/serverlessinstance
         run: make testacc
+
   stream:
       needs: [ change-detection, get-provider-version ]
       if: ${{ needs.change-detection.outputs.stream == 'true' || inputs.test_group == 'stream' }}
@@ -1279,3 +1290,28 @@ jobs:
               ./internal/service/streamprocessor
               ./internal/service/streamprivatelinkendpoint
           run: make testacc
+
+  slack-notification-stream:
+    needs: [stream]
+    if: ${{ !cancelled() && needs.stream.result == 'failure' && inputs.send_notification == true }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Send Slack message
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
+        with:
+          webhook: ${{ secrets.slack_webhook_url_stream }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "Terraform Stream Tests Failed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "❌ *TF Stream Failed* ${{ secrets.slack_oncall_tag }} ${{ secrets.slack_oncall_tag_stream }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View>"
+                  }
+                }
+              ]
+            }

@@ -14,7 +14,7 @@ on:
         description: 'Previous MongoDB Atlas Provider version matrix for migration tests (JSON array)'
         default: '[""]' # "" for latest version
       send_notification:
-        description: 'Send the Slack notification if any of the tests fail.'
+        description: 'Send a Slack notification if some tests fail.'
         type: boolean
         default: false
       use_sa:
@@ -82,6 +82,7 @@ jobs:
       provider_version: ${{ matrix.provider_version }}
       atlas_cloud_env: ${{ inputs.atlas_cloud_env || needs.variables.outputs.is_sun == 'true' && 'qa' || '' }} # Run against QA on Sundays
       use_sa: ${{ inputs.use_sa || false }}
+      send_notification: ${{ inputs.send_notification || false }}
   clean-after:
     needs: tests
     if: ${{ !cancelled() }}
@@ -95,7 +96,6 @@ jobs:
     permissions: {}
     steps:
       - name: Send Slack message
-        id: slack
         uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
