@@ -144,7 +144,7 @@ func testCaseKafkaPlaintextMigration(t *testing.T) *resource.TestCase {
 		CheckDestroy:             CheckDestroyStreamConnection,
 		Steps: []resource.TestStep{
 			{
-				Config: dataSourcesConfig + configureKafkaMigration(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092,localhost:9092", "earliest", "", false),
+				Config: dataSourceConfigMigration + dataSourcePluralConfigMigration + configureKafkaMigration(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092,localhost:9092", "earliest", "", false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkKafkaAttributesMigration(resourceName, instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, true),
 					checkKafkaAttributesMigration(dataSourceName, instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, false),
@@ -152,7 +152,7 @@ func testCaseKafkaPlaintextMigration(t *testing.T) *resource.TestCase {
 				),
 			},
 			{
-				Config: dataSourcesWithPagination + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user2", "otherpassword", "", "", "", "", "", ""), "localhost:9093", "latest", kafkaNetworkingPublic, false),
+				Config: dataSourceConfigMigration + dataSourcePluralConfigWithPageMigration + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user2", "otherpassword", "", "", "", "", "", ""), "localhost:9093", "latest", kafkaNetworkingPublic, false),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkKafkaAttributesMigration(resourceName, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, true),
 					checkKafkaAttributesMigration(dataSourceName, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, false),
@@ -515,11 +515,12 @@ func TestAccStreamRSStreamConnection_instanceName(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       checkStreamConnectionImportStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"authentication.password"},
+				ResourceName:      resourceName,
+				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:       true,
+				ImportStateVerify: true,
+				// When the new resource is imported, it will contain workspace_name instead of instance_name. This is expected so we will ignore it
+				ImportStateVerifyIgnore: []string{"authentication.password", "instance_name", "workspace_name"},
 			},
 		},
 	})
