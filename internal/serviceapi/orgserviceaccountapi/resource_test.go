@@ -50,7 +50,6 @@ func TestAccOrgServiceAccountAPI_basic(t *testing.T) {
 }
 
 func TestAccOrgServiceAccountAPI_rolesOrdering(t *testing.T) {
-	t.Skip("Roles is currently incorrectly defined as a List leading to inconsistent result after apply, to be addressed in CLOUDP-349935")
 	var (
 		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		name  = acc.RandomName()
@@ -99,7 +98,7 @@ func TestAccOrgServiceAccountAPI_createOnlyAttributes(t *testing.T) {
 }
 
 func configBasic(orgID, name, description string, roles []string, secretExpiresAfterHours int) string {
-	rolesStr := fmt.Sprintf(`%q`, strings.Join(roles, `", "`))
+	rolesStr := `"` + strings.Join(roles, `", "`) + `"`
 	rolesHCL := fmt.Sprintf("[%s]", rolesStr)
 	return fmt.Sprintf(`
 		resource "mongodbatlas_org_service_account_api" "test" {

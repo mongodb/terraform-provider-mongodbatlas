@@ -53,3 +53,23 @@ resources:
     update:
       path: /api/atlas/v2/groups/{groupId}/testSingletonResource
       method: PATCH
+
+  test_resource_with_overridden_collection_types:
+    create:
+      path: /api/atlas/v2/groups/{groupId}/testResourceWithCollections
+      method: POST
+    read:
+      path: /api/atlas/v2/groups/{groupId}/testResourceWithCollections
+      method: GET
+    update:
+      path: /api/atlas/v2/groups/{groupId}/testResourceWithCollections
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/testResourceWithCollections
+      method: DELETE
+    schema:
+      overrides:
+        list_string:
+          type: set
+        set_string:
+          type: list

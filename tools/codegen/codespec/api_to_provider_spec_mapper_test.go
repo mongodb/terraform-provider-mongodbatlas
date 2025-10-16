@@ -632,6 +632,77 @@ func TestConvertToProviderSpec_singletonResourceNoDeleteOperation(t *testing.T) 
 	runTestCase(t, tc)
 }
 
+func TestConvertToProviderSpec_typeOverride(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      testDataConfigPath,
+		inputResourceName:    "test_resource_with_overridden_collection_types",
+
+		expectedResult: &codespec.Model{
+			Resources: []codespec.Resource{{
+				Schema: &codespec.Schema{
+					Description: conversion.StringPtr(testResourceDesc),
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "flag",
+							TFModelName:              "Flag",
+							ComputedOptionalRequired: codespec.Required,
+							Bool:                     &codespec.BoolAttribute{},
+							ReqBodyUsage:             codespec.AllRequestBodies,
+						},
+						{
+							TFSchemaName:             "group_id",
+							TFModelName:              "GroupId",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr(testPathParamDesc),
+							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
+						},
+						{
+							TFSchemaName:             "list_string",
+							TFModelName:              "ListString",
+							ComputedOptionalRequired: codespec.Required,
+							// List overridden to set
+							Set:          &codespec.SetAttribute{ElementType: codespec.String},
+							ReqBodyUsage: codespec.AllRequestBodies,
+						},
+						{
+							TFSchemaName:             "set_string",
+							TFModelName:              "SetString",
+							ComputedOptionalRequired: codespec.Required,
+							// Set overridden to list
+							List:         &codespec.ListAttribute{ElementType: codespec.String},
+							ReqBodyUsage: codespec.AllRequestBodies,
+						},
+					},
+				},
+				Name: "test_resource_with_overridden_collection_types",
+				Operations: codespec.APIOperations{
+					Create: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResourceWithCollections",
+						HTTPMethod: "POST",
+					},
+					Read: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResourceWithCollections",
+						HTTPMethod: "GET",
+					},
+					Update: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResourceWithCollections",
+						HTTPMethod: "PATCH",
+					},
+					Delete: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResourceWithCollections",
+						HTTPMethod: "DELETE",
+					},
+					VersionHeader: "application/vnd.atlas.2023-01-01+json",
+				},
+			}},
+		},
+	}
+	runTestCase(t, tc)
+}
+
 func runTestCase(t *testing.T, tc convertToSpecTestCase) {
 	t.Helper()
 	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)

@@ -4,7 +4,7 @@ subcategory: "Event Trigger"
 
 # Resource: mongodbatlas_event_trigger
 
-`mongodbatlas_event_trigger` provides a Event Trigger resource. 
+`mongodbatlas_event_trigger` provides a Event Trigger resource.
 
 Note: If the `app_id` changes in the mongodbatlas_event_trigger resource, it will force a replacement and delete itself from the old Atlas App Services app. If it still exists, then it creates itself in the new  Atlas App Services app. See [Atlas Triggers](https://www.mongodb.com/docs/atlas/atlas-ui/triggers/aws-eventbridge/) to learn more.   
 
@@ -41,6 +41,8 @@ EOF
   }
 }
 ```
+
+Note: Terraform allows creating [database triggers,](https://www.mongodb.com/docs/atlas/app-services/triggers/database-triggers/#:~:text=Database%20triggers%20use%20MongoDB%20change,trigger%20created%20in%20a%20collection.) but not Atlas Functions. See [Define a Function](https://www.mongodb.com/docs/atlas/atlas-ui/triggers/functions/#define-a-function) in the Atlas documentation for more details on creating functions in Atlas.
 
 ### Example Usage: Database Trigger with EventBridge
 ```terraform
