@@ -136,7 +136,7 @@ func testCaseKafkaPlaintextMigration(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		connectionName          = "kafka-conn-plaintext"
+		connectionName          = "kafka-conn-plaintext-mig"
 	)
 	return &resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
