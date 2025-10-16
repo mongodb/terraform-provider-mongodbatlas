@@ -1,9 +1,13 @@
 name: 'Test Suite'
 
-# Runs acceptance and migrations tests with a set of terraform versions and provider versions (used for migration tests). 
-# This worflow is scheduled daily and runs against dev every day except for Sunday when we run against QA.
+# Runs acceptance and migrations tests with a set of terraform versions and provider versions (used for migration tests).
+# This workflow is scheduled daily with different authentication methods based on the day:
+#   - Sunday: PAK against QA environment
+#   - Monday, Wednesday, Friday: PAK against Dev environment
+#   - Tuesday, Thursday, Saturday: SA against Dev environment
+# Note: PAK refers to Programmatic API Key authentication (use_sa: false), SA refers to Service Account authentication (use_sa: true)
 # It can also be run manually.
-# The 1st day of the month we run terraform-compatibility-matrix.yml and therefore, we skip the test-suite (see shedule->cron below).
+# The 1st day of the month we run terraform-compatibility-matrix.yml and therefore, we skip the test-suite (see schedule->cron below).
 on:
   workflow_dispatch:
     inputs:
@@ -55,6 +59,7 @@ jobs:
       terraform_matrix: ${{ inputs.terraform_matrix || env.schedule_terraform_matrix }}
       provider_matrix: ${{ inputs.provider_matrix || env.schedule_provider_matrix }}
       is_sun: ${{ steps.set_day.outputs.DAY == 'Sun' }}
+      use_sa: ${{ inputs.use_sa != null && inputs.use_sa || steps.set_day.outputs.DAY == 'Tue' || steps.set_day.outputs.DAY == 'Thu' || steps.set_day.outputs.DAY == 'Sat' }}
     steps:
       - name: set day
         id: set_day
@@ -74,14 +79,14 @@ jobs:
       matrix:
         terraform_version: ${{ fromJSON(needs.variables.outputs.terraform_matrix) }}
         provider_version: ${{ fromJSON(needs.variables.outputs.provider_matrix) }}
-    name: ${{ matrix.terraform_version || 'latest' }}-${{ matrix.provider_version || 'latest' }}-${{ inputs.use_sa && 'sa' || 'pak' }}
+    name: ${{ matrix.terraform_version || 'latest' }}-${{ matrix.provider_version || 'latest' }}-${{ needs.variables.outputs.use_sa == 'true' && 'sa' || 'pak' }}
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
     with:
       terraform_version: ${{ matrix.terraform_version }}
       provider_version: ${{ matrix.provider_version }}
       atlas_cloud_env: ${{ inputs.atlas_cloud_env || needs.variables.outputs.is_sun == 'true' && 'qa' || '' }} # Run against QA on Sundays
-      use_sa: ${{ inputs.use_sa || false }}
+      use_sa: ${{ needs.variables.outputs.use_sa == 'true' }}
       send_notification: ${{ inputs.send_notification || false }}
   clean-after:
     needs: tests
