@@ -123,18 +123,34 @@ func NewStreamConnectionUpdateReq(ctx context.Context, plan *TFStreamConnectionM
 	return streamConnection, nil
 }
 
-func NewTFStreamConnection(ctx context.Context, projID, instanceName string, currAuthConfig *types.Object, apiResp *admin.StreamsConnection) (*TFStreamConnectionModel, diag.Diagnostics) {
-	rID := fmt.Sprintf("%s-%s-%s", instanceName, projID, conversion.SafeString(apiResp.Name))
+// NewTFStreamConnection determines if the original model was created with instance_name or workspace_name and sets the appropriate field.
+func NewTFStreamConnection(ctx context.Context, projID, instanceName, workspaceName string, currAuthConfig *types.Object, apiResp *admin.StreamsConnection) (*TFStreamConnectionModel, diag.Diagnostics) {
+	streamWorkspaceName := workspaceName
+	if instanceName != "" {
+		streamWorkspaceName = instanceName
+	}
+
+	rID := fmt.Sprintf("%s-%s-%s", streamWorkspaceName, projID, conversion.SafeString(apiResp.Name))
+
 	connectionModel := TFStreamConnectionModel{
 		ID:               types.StringValue(rID),
 		ProjectID:        types.StringValue(projID),
-		InstanceName:     types.StringValue(instanceName),
 		ConnectionName:   types.StringPointerValue(apiResp.Name),
 		Type:             types.StringPointerValue(apiResp.Type),
 		ClusterName:      types.StringPointerValue(apiResp.ClusterName),
 		ClusterProjectID: types.StringPointerValue(apiResp.ClusterGroupId),
 		BootstrapServers: types.StringPointerValue(apiResp.BootstrapServers),
 		URL:              types.StringPointerValue(apiResp.Url),
+	}
+
+	// Set the appropriate field based on the original model
+	if workspaceName != "" {
+		connectionModel.WorkspaceName = types.StringValue(workspaceName)
+		connectionModel.InstanceName = types.StringNull()
+	} else {
+		// Default to instance_name for backward compatibility
+		connectionModel.InstanceName = types.StringValue(instanceName)
+		connectionModel.WorkspaceName = types.StringNull()
 	}
 
 	authModel, diags := newTFConnectionAuthenticationModel(ctx, currAuthConfig, apiResp.Authentication)
@@ -254,22 +270,27 @@ func NewTFStreamConnections(ctx context.Context,
 	paginatedResult *admin.PaginatedApiStreamsConnection) (*TFStreamConnectionsDSModel, diag.Diagnostics) {
 	input := paginatedResult.GetResults()
 	results := make([]TFStreamConnectionModel, len(input))
+
+	workspaceName := streamConnectionsConfig.WorkspaceName.ValueString()
+	instanceName := streamConnectionsConfig.InstanceName.ValueString()
+
 	for i := range input {
 		projectID := streamConnectionsConfig.ProjectID.ValueString()
-		instanceName := streamConnectionsConfig.InstanceName.ValueString()
-		connectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, nil, &input[i])
+		connectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, nil, &input[i])
 		if diags.HasError() {
 			return nil, diags
 		}
 		results[i] = *connectionModel
 	}
+
 	return &TFStreamConnectionsDSModel{
-		ID:           types.StringValue(id.UniqueId()),
-		ProjectID:    streamConnectionsConfig.ProjectID,
-		InstanceName: streamConnectionsConfig.InstanceName,
-		Results:      results,
-		PageNum:      streamConnectionsConfig.PageNum,
-		ItemsPerPage: streamConnectionsConfig.ItemsPerPage,
-		TotalCount:   types.Int64PointerValue(conversion.IntPtrToInt64Ptr(paginatedResult.TotalCount)),
+		ID:            types.StringValue(id.UniqueId()),
+		ProjectID:     streamConnectionsConfig.ProjectID,
+		InstanceName:  streamConnectionsConfig.InstanceName,
+		WorkspaceName: streamConnectionsConfig.WorkspaceName,
+		Results:       results,
+		PageNum:       streamConnectionsConfig.PageNum,
+		ItemsPerPage:  streamConnectionsConfig.ItemsPerPage,
+		TotalCount:    types.Int64PointerValue(conversion.IntPtrToInt64Ptr(paginatedResult.TotalCount)),
 	}, nil
 }
