@@ -51,9 +51,6 @@ Atlas enforces rate limiting for each combination of IP address and SA client, s
 - Create separate Service Accounts for different environments or CI/CD pipelines, as each SA client has its own rate limit quota.
 - Distribute Terraform executions across different IP addresses, since rate limits apply per IP and SA client combination.
 - Add retry logic to your automation workflows to handle temporary rate limit errors gracefully.
-- Create separate Service Accounts for different environments or CI/CD pipelines, as each SA client has its own rate limit quota
-- Distribute Terraform executions across different IP addresses, since rate limits apply per IP and SA client combination
-- Add retry logic to your automation workflows to handle temporary rate limit errors gracefully
 
 ### Programmatic Access Key
 
