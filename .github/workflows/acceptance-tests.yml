@@ -82,6 +82,8 @@ jobs:
       mongodb_atlas_gov_private_key: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_GOV_PRIVATE_KEY_QA || secrets.MONGODB_ATLAS_GOV_PRIVATE_KEY_DEV }}
       mongodb_atlas_rp_public_key: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_RP_PUBLIC_KEY_QA || secrets.MONGODB_ATLAS_RP_PUBLIC_KEY_DEV }}
       mongodb_atlas_rp_private_key: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_RP_PRIVATE_KEY_QA || secrets.MONGODB_ATLAS_RP_PRIVATE_KEY_DEV }}
+      mongodb_atlas_rp_client_id: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_RP_CLIENT_ID_QA || secrets.MONGODB_ATLAS_RP_CLIENT_ID_DEV }}
+      mongodb_atlas_rp_client_secret: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_RP_CLIENT_SECRET_QA || secrets.MONGODB_ATLAS_RP_CLIENT_SECRET_DEV }}
       mongodb_atlas_client_id: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_CLIENT_ID_QA || secrets.MONGODB_ATLAS_CLIENT_ID_DEV }}
       mongodb_atlas_client_secret: ${{ inputs.atlas_cloud_env == 'qa' && secrets.MONGODB_ATLAS_CLIENT_SECRET_QA || secrets.MONGODB_ATLAS_CLIENT_SECRET_DEV }}
       ca_cert: ${{ secrets.CA_CERT }}

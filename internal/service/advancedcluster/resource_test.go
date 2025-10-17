@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -288,8 +287,7 @@ func TestAccClusterAdvancedCluster_pausedToUnpaused(t *testing.T) {
 func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
-
-		processArgs20240530 = &admin20240530.ClusterDescriptionProcessArgs{
+		processArgsCommon      = &admin.ClusterDescriptionProcessArgs20240805{
 			DefaultWriteConcern:              conversion.StringPtr("1"),
 			JavascriptEnabled:                conversion.Pointer(true),
 			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
@@ -299,16 +297,13 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 			SampleSizeBIConnector:            conversion.Pointer(110),
 			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
 		}
-		processArgs = &admin.ClusterDescriptionProcessArgs20240805{
-			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(-1), // this will not be set in the TF configuration
-			DefaultMaxTimeMS: conversion.IntPtr(65),
-		}
-
-		processArgsCipherConfig = &admin.ClusterDescriptionProcessArgs20240805{
-			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
-			CustomOpensslCipherConfigTls12: &[]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"},
-		}
 	)
+	processArgs := *processArgsCommon
+	processArgs.DefaultMaxTimeMS = conversion.IntPtr(65)
+
+	processArgsCipherConfig := *processArgsCommon
+	processArgsCipherConfig.TlsCipherConfigMode = conversion.StringPtr("CUSTOM")
+	processArgsCipherConfig.CustomOpensslCipherConfigTls12 = &[]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 acc.PreCheckBasicSleep(t, nil, projectID, clusterName),
@@ -316,12 +311,12 @@ func TestAccClusterAdvancedCluster_advancedConfig_oldMongoDBVersion(t *testing.T
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config:      configAdvanced(t, projectID, clusterName, "7.0", processArgs20240530, processArgs),
+				Config:      configAdvanced(t, projectID, clusterName, "7.0", &processArgs),
 				ExpectError: regexp.MustCompile(errDefaultMaxTimeMinVersion),
 			},
 			{
-				Config: configAdvanced(t, projectID, clusterName, "7.0", processArgs20240530, processArgsCipherConfig),
-				Check:  checkAdvanced(clusterName, "TLS1_2", processArgsCipherConfig),
+				Config: configAdvanced(t, projectID, clusterName, "7.0", &processArgsCipherConfig),
+				Check:  checkAdvanced(clusterName, "TLS1_2", &processArgsCipherConfig),
 			},
 			acc.TestStepImportCluster(resourceName),
 		},
@@ -332,7 +327,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
 		clusterNameUpdated     = acc.RandomClusterName()
-		processArgs20240530    = &admin20240530.ClusterDescriptionProcessArgs{
+		processArgs            = &admin.ClusterDescriptionProcessArgs20240805{
 			DefaultWriteConcern:              conversion.StringPtr("1"),
 			JavascriptEnabled:                conversion.Pointer(true),
 			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
@@ -341,13 +336,10 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
 			SampleSizeBIConnector:            conversion.Pointer(110),
 			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
-		}
-		processArgs = &admin.ClusterDescriptionProcessArgs20240805{
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(-1), // this will not be set in the TF configuration
 			TlsCipherConfigMode: conversion.StringPtr("DEFAULT"),
 		}
-
-		processArgs20240530Updated = &admin20240530.ClusterDescriptionProcessArgs{
+		processArgsUpdated = &admin.ClusterDescriptionProcessArgs20240805{
 			DefaultWriteConcern:              conversion.StringPtr("0"),
 			JavascriptEnabled:                conversion.Pointer(true),
 			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
@@ -356,9 +348,7 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
 			SampleSizeBIConnector:            conversion.Pointer(110),
 			TransactionLifetimeLimitSeconds:  conversion.Pointer[int64](300),
-		}
-		processArgsUpdated = &admin.ClusterDescriptionProcessArgs20240805{
-			DefaultMaxTimeMS: conversion.IntPtr(65),
+			DefaultMaxTimeMS:                 conversion.IntPtr(65),
 			ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds: conversion.IntPtr(100),
 			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
 			CustomOpensslCipherConfigTls12: &[]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"},
@@ -376,15 +366,15 @@ func TestAccClusterAdvancedCluster_advancedConfig(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
-				Config: configAdvanced(t, projectID, clusterName, "", processArgs20240530, processArgs),
+				Config: configAdvanced(t, projectID, clusterName, "", processArgs),
 				Check:  checkAdvanced(clusterName, "TLS1_2", processArgs),
 			},
 			{
-				Config: configAdvanced(t, projectID, clusterNameUpdated, "", processArgs20240530Updated, processArgsUpdated),
+				Config: configAdvanced(t, projectID, clusterNameUpdated, "", processArgsUpdated),
 				Check:  checkAdvanced(clusterNameUpdated, "TLS1_2", processArgsUpdated),
 			},
 			{
-				Config: configAdvanced(t, projectID, clusterNameUpdated, "", processArgs20240530Updated, processArgsUpdatedCipherConfig),
+				Config: configAdvanced(t, projectID, clusterNameUpdated, "", processArgsUpdatedCipherConfig),
 				Check:  checkAdvanced(clusterNameUpdated, "TLS1_2", processArgsUpdatedCipherConfig),
 			},
 			acc.TestStepImportCluster(resourceName),
@@ -396,7 +386,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
 		clusterNameUpdated     = acc.RandomClusterName()
-		processArgs            = &admin20240530.ClusterDescriptionProcessArgs{
+		processArgs            = &admin.ClusterDescriptionProcessArgs20240805{
 			DefaultWriteConcern:              conversion.StringPtr("1"),
 			JavascriptEnabled:                conversion.Pointer(true),
 			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
@@ -405,7 +395,7 @@ func TestAccClusterAdvancedCluster_defaultWrite(t *testing.T) {
 			SampleRefreshIntervalBIConnector: conversion.Pointer(310),
 			SampleSizeBIConnector:            conversion.Pointer(110),
 		}
-		processArgsUpdated = &admin20240530.ClusterDescriptionProcessArgs{
+		processArgsUpdated = &admin.ClusterDescriptionProcessArgs20240805{
 			DefaultWriteConcern:              conversion.StringPtr("majority"),
 			JavascriptEnabled:                conversion.Pointer(true),
 			MinimumEnabledTlsProtocol:        conversion.StringPtr("TLS1_2"),
@@ -1118,7 +1108,7 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateReplicaset(t *testing
 				Timeout:     60 * time.Second,
 				IsDelete:    true,
 			}, "waiting for cluster to be deleted after cleanup in create timeout", diags)
-			time.Sleep(1 * time.Minute) // decrease the chance of `CONTAINER_WAITING_FOR_FAST_RECORD_CLEAN_UP`: "A transient error occurred. Please try again in a minute or use a different name"
+			time.Sleep(2 * time.Minute) // decrease the chance of `CONTAINER_WAITING_FOR_FAST_RECORD_CLEAN_UP`: "A transient error occurred. Please try again in a minute or use a different name"
 		}
 	)
 	resource.ParallelTest(t, *createCleanupTest(t, configCall, waitOnClusterDeleteDone, true))
@@ -1903,33 +1893,45 @@ func checkSingleProviderPaused(name string, paused bool) resource.TestCheckFunc 
 			"paused": strconv.FormatBool(paused)})
 }
 
-func configAdvanced(t *testing.T, projectID, clusterName, mongoDBMajorVersion string, p20240530 *admin20240530.ClusterDescriptionProcessArgs, p *admin.ClusterDescriptionProcessArgs20240805) string {
+func configAdvanced(t *testing.T, projectID, clusterName, mongoDBMajorVersion string, p *admin.ClusterDescriptionProcessArgs20240805) string {
 	t.Helper()
-	changeStreamOptionsStr := ""
-	defaultMaxTimeStr := ""
-	tlsCipherConfigModeStr := ""
-	customOpensslCipherConfigTLS12Str := ""
+	advancedConfig := ""
 	mongoDBMajorVersionStr := ""
-
-	if p != nil {
-		if p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != nil && p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != conversion.IntPtr(-1) {
-			changeStreamOptionsStr = fmt.Sprintf(`change_stream_options_pre_and_post_images_expire_after_seconds = %[1]d`, *p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds)
-		}
-		if p.DefaultMaxTimeMS != nil {
-			defaultMaxTimeStr = fmt.Sprintf(`default_max_time_ms = %[1]d`, *p.DefaultMaxTimeMS)
-		}
-		if p.TlsCipherConfigMode != nil {
-			tlsCipherConfigModeStr = fmt.Sprintf(`tls_cipher_config_mode = %[1]q`, *p.TlsCipherConfigMode)
-			if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
-				customOpensslCipherConfigTLS12Str = fmt.Sprintf(
-					`custom_openssl_cipher_config_tls12 = [%s]`,
-					acc.JoinQuotedStrings(*p.CustomOpensslCipherConfigTls12),
-				)
-			}
+	if mongoDBMajorVersion != "" {
+		mongoDBMajorVersionStr = fmt.Sprintf("mongo_db_major_version = %[1]q\n", mongoDBMajorVersion)
+	}
+	if p.JavascriptEnabled != nil {
+		advancedConfig += fmt.Sprintf("javascript_enabled = %[1]t\n", *p.JavascriptEnabled)
+	}
+	if p.NoTableScan != nil {
+		advancedConfig += fmt.Sprintf("no_table_scan = %[1]t\n", *p.NoTableScan)
+	}
+	if p.OplogSizeMB != nil {
+		advancedConfig += fmt.Sprintf("oplog_size_mb = %[1]d\n", *p.OplogSizeMB)
+	}
+	if p.SampleRefreshIntervalBIConnector != nil {
+		advancedConfig += fmt.Sprintf("sample_refresh_interval_bi_connector = %[1]d\n", *p.SampleRefreshIntervalBIConnector)
+	}
+	if p.SampleSizeBIConnector != nil {
+		advancedConfig += fmt.Sprintf("sample_size_bi_connector = %[1]d\n", *p.SampleSizeBIConnector)
+	}
+	if p.TransactionLifetimeLimitSeconds != nil {
+		advancedConfig += fmt.Sprintf("transaction_lifetime_limit_seconds = %[1]d\n", *p.TransactionLifetimeLimitSeconds)
+	}
+	if p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != nil && *p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds != -1 {
+		advancedConfig += fmt.Sprintf("change_stream_options_pre_and_post_images_expire_after_seconds = %[1]d\n", *p.ChangeStreamOptionsPreAndPostImagesExpireAfterSeconds)
+	}
+	if p.DefaultMaxTimeMS != nil {
+		advancedConfig += fmt.Sprintf("default_max_time_ms = %[1]d\n", *p.DefaultMaxTimeMS)
+	}
+	if p.TlsCipherConfigMode != nil {
+		advancedConfig += fmt.Sprintf("tls_cipher_config_mode = %[1]q\n", *p.TlsCipherConfigMode)
+		if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
+			advancedConfig += fmt.Sprintf("custom_openssl_cipher_config_tls12 = [%s]\n", acc.JoinQuotedStrings(*p.CustomOpensslCipherConfigTls12))
 		}
 	}
-	if mongoDBMajorVersion != "" {
-		mongoDBMajorVersionStr = fmt.Sprintf(`mongo_db_major_version = %[1]q`, mongoDBMajorVersion)
+	if p.MinimumEnabledTlsProtocol != nil {
+		advancedConfig += fmt.Sprintf("minimum_enabled_tls_protocol = %[1]q\n", *p.MinimumEnabledTlsProtocol)
 	}
 
 	return fmt.Sprintf(`
@@ -1937,8 +1939,7 @@ func configAdvanced(t *testing.T, projectID, clusterName, mongoDBMajorVersion st
 			project_id             = %[1]q
 			name                   = %[2]q
 			cluster_type           = "REPLICASET"
-			%[12]s
-
+			%[3]s
 			replication_specs = [{
 				region_configs = [{
 					electable_specs = {
@@ -1956,22 +1957,10 @@ func configAdvanced(t *testing.T, projectID, clusterName, mongoDBMajorVersion st
 			}]
 
 			advanced_configuration  = {
-				javascript_enabled                   = %[3]t
-				minimum_enabled_tls_protocol         = %[4]q
-				no_table_scan                        = %[5]t
-				oplog_size_mb                        = %[6]d
-				sample_size_bi_connector			 = %[7]d
-				sample_refresh_interval_bi_connector = %[8]d
-			    transaction_lifetime_limit_seconds   = %[9]d
-			    %[10]s
-				%[11]s
-				%[13]s
-				%[14]s
+				%[4]s
 			}
 		}
-	`, projectID, clusterName, p20240530.GetJavascriptEnabled(), p20240530.GetMinimumEnabledTlsProtocol(), p20240530.GetNoTableScan(),
-		p20240530.GetOplogSizeMB(), p20240530.GetSampleSizeBIConnector(), p20240530.GetSampleRefreshIntervalBIConnector(), p20240530.GetTransactionLifetimeLimitSeconds(),
-		changeStreamOptionsStr, defaultMaxTimeStr, mongoDBMajorVersionStr, tlsCipherConfigModeStr, customOpensslCipherConfigTLS12Str) + dataSourcesConfig
+	`, projectID, clusterName, mongoDBMajorVersionStr, advancedConfig) + dataSourcesConfig
 }
 
 func checkAdvanced(name, tls string, processArgs *admin.ClusterDescriptionProcessArgs20240805) resource.TestCheckFunc {
@@ -2013,7 +2002,7 @@ func checkAdvanced(name, tls string, processArgs *admin.ClusterDescriptionProces
 	)
 }
 
-func configAdvancedDefaultWrite(t *testing.T, projectID, clusterName string, p *admin20240530.ClusterDescriptionProcessArgs) string {
+func configAdvancedDefaultWrite(t *testing.T, projectID, clusterName string, p *admin.ClusterDescriptionProcessArgs20240805) string {
 	t.Helper()
 	return fmt.Sprintf(`
 		resource "mongodbatlas_advanced_cluster" "test" {
@@ -2699,13 +2688,13 @@ func configPriority(t *testing.T, projectID, clusterName string, swapPriorities 
 
 func configBiConnectorConfig(t *testing.T, projectID, name string, enabled bool) string {
 	t.Helper()
-	additionalConfig := `
+	advancedConfig := `
 		bi_connector_config = {
 			enabled = false
 		}	
 	`
 	if enabled {
-		additionalConfig = `
+		advancedConfig = `
 			bi_connector_config = {
 				enabled         = true
 				read_preference = "secondary"
@@ -2737,7 +2726,7 @@ func configBiConnectorConfig(t *testing.T, projectID, name string, enabled bool)
 
 			%[3]s
 		}
-	`, projectID, name, additionalConfig) + dataSourcesConfig
+	`, projectID, name, advancedConfig) + dataSourcesConfig
 }
 
 func checkTenantBiConnectorConfig(projectID, name string, enabled bool) resource.TestCheckFunc {

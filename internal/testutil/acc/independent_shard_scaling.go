@@ -7,11 +7,12 @@ import (
 	"os"
 
 	"github.com/mongodb-forks/digest"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func GetIndependentShardScalingMode(ctx context.Context, projectID, clusterName string) (*string, *http.Response, error) {
-	baseURL := os.Getenv("MONGODB_ATLAS_BASE_URL")
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, baseURL+"test/utils/auth/groups/"+projectID+"/clusters/"+clusterName+"/independentShardScalingMode", http.NoBody)
+	baseURL := config.NormalizeBaseURL(os.Getenv("MONGODB_ATLAS_BASE_URL"))
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, baseURL+"/test/utils/auth/groups/"+projectID+"/clusters/"+clusterName+"/independentShardScalingMode", http.NoBody)
 	if err != nil {
 		return nil, nil, err
 	}

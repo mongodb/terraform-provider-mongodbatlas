@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
 	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -27,7 +26,6 @@ var (
 )
 
 type ProcessArgs struct {
-	ArgsLegacy            *admin20240530.ClusterDescriptionProcessArgs
 	ArgsDefault           *admin.ClusterDescriptionProcessArgs20240805
 	ClusterAdvancedConfig *admin.ApiAtlasClusterAdvancedConfiguration
 }

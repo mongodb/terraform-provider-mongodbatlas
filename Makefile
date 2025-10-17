@@ -43,11 +43,16 @@ test: fmtcheck ## Run unit tests
 	@$(eval export MONGODB_ATLAS_ORG_ID?=111111111111111111111111)
 	@$(eval export MONGODB_ATLAS_PROJECT_ID?=111111111111111111111111)
 	@$(eval export MONGODB_ATLAS_CLUSTER_NAME?=mocked-cluster)
+	@$(eval export MONGODB_ATLAS_PUBLIC_KEY=)
+	@$(eval export MONGODB_ATLAS_PRIVATE_KEY=)
+	@$(eval export MONGODB_ATLAS_CLIENT_ID=)
+	@$(eval export MONGODB_ATLAS_CLIENT_SECRET=)
+	@$(eval export MONGODB_ATLAS_ACCESS_TOKEN=)
 	go test ./... -timeout=120s -parallel=$(PARALLEL_GO_TEST) -race
 
 .PHONY: testmact
 testmact: ## Run MacT tests (mocked acc tests)
-	@$(eval ACCTEST_REGEX_RUN?=^TestAccMockable)
+	@$(eval export ACCTEST_REGEX_RUN?=^TestAccMockable)
 	@$(eval export HTTP_MOCKER_REPLAY?=true)
 	@$(eval export HTTP_MOCKER_CAPTURE?=false)
 	@$(eval export MONGODB_ATLAS_ORG_ID?=111111111111111111111111)
@@ -72,7 +77,7 @@ testmact-capture: ## Capture HTTP traffic for MacT tests
 
 .PHONY: testacc
 testacc: fmtcheck ## Run acc & mig tests (acceptance & migration tests)
-	@$(eval ACCTEST_REGEX_RUN?=^TestAcc)
+	@$(eval export ACCTEST_REGEX_RUN?=^TestAcc)
 	TF_ACC=1 go test $(ACCTEST_PACKAGES) -run '$(ACCTEST_REGEX_RUN)' -v -parallel $(PARALLEL_GO_TEST) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
 
 .PHONY: testaccgov
@@ -195,6 +200,10 @@ check-changelog-entry-file: ## Check a changelog entry file in a PR
 .PHONY: jira-release-version
 jira-release-version: ## Update Jira version in a release
 	go run ./tools/jira-release-version/*.go
+
+.PHONY: generate-oauth2-token
+generate-oauth2-token: ## Generate OAuth2 access token from Service Account credentials
+	@go run ./tools/generate-oauth2-token/*.go
 
 .PHONY: enable-autogen
 enable-autogen: ## Enable use of autogen resources in the provider

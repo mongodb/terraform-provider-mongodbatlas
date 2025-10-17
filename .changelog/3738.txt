@@ -1,0 +1,3 @@
+```release-note:bug
+provider: Enforces strict hierarchy when selecting the credential source such as AWS Secrets Manager, provider attributes, or environment variables to prevent combining with values from different sources
+```
