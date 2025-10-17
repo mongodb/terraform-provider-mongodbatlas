@@ -45,7 +45,7 @@ If you encounter a rate limit error when using Service Accounts, you might see:
 │ Response: {"detail":"Resource /api/oauth/token is limited to 10 requests every 1 minutes.","error":429,"errorCode":"RATE_LIMITED","parameters":["/api/oauth/token",10,1],"reason":"Too Many Requests"}
 ```
 
-Atlas enforces rate limiting for each combination of IP address and SA client, see [MongoDB Atlas Service Account Limits](https://www.mongodb.com/docs/manual/reference/limits/#mongodb-atlas-service-account-limits) for more information. Each Terraform operation generates a new token that is used for the duration of that operation. These limits work well for individual development environments. For CI pipelines or enterprise environments with shared infrastructure, consider optimizing your configuration using one of these approaches:
+Atlas enforces rate limiting for each combination of IP address and SA client. See [MongoDB Atlas Service Account Limits](https://www.mongodb.com/docs/manual/reference/limits/#mongodb-atlas-service-account-limits) for more information. Each Terraform operation generates a new token that is used for the duration of that operation. These limits work well for individual development environments. For CI pipelines or enterprise environments with shared infrastructure, consider optimizing your configuration using one of these approaches:
 
 - Contact [MongoDB Support](https://support.mongodb.com/) to request a rate limit increase for your organization.
 - Create separate Service Accounts for different environments or CI/CD pipelines, as each SA client has its own rate limit quota.
