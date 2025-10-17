@@ -1,4 +1,4 @@
-# MongoDB Atlas Provider -- Cluster with pinned FCV (Preview for MongoDB Atlas Provider 2.0.0)
+# MongoDB Atlas Provider -- Cluster with pinned FCV
 
 Example shows how to pin the FCV of a cluster making use of `pinned_fcv` block. This enables direct control to pin cluster’s FCV before performing an upgrade on the `mongo_db_major_version`. Users can then downgrade to the previous MongoDB version with minimal risk if desired, as the FCV is maintained.
 
@@ -6,18 +6,14 @@ The unpin operation can be performed by removing the `pinned_fcv` block. **Note*
 
 The following [knowledge hub article](https://kb.corp.mongodb.com/article/000021785/) and [FCV documentation](https://www.mongodb.com/docs/atlas/tutorial/major-version-change/#manage-feature-compatibility--fcv--during-upgrades) can be referenced for more details.
 
-It uses the **Preview for MongoDB Atlas Provider 2.0.0** of `mongodbatlas_advanced_cluster`. In order to enable the Preview, you must set the enviroment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`, otherwise the current version will be used.
-
-You can find more information in the [resource documentation page](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster%2520%2528preview%2520provider%25202.0.0%2529).
-
 ## Dependencies
 
-* Terraform MongoDB Atlas Provider v1.29.0
+* Terraform MongoDB Atlas Provider v2.0.0 or later
 * A MongoDB Atlas account 
 
 ```
 Terraform >= 0.13
-+ provider registry.terraform.io/terraform-providers/mongodbatlas v1.29.0
++ provider registry.terraform.io/terraform-providers/mongodbatlas v2.0.0
 ```
 
 
@@ -58,4 +54,3 @@ Once you finished your testing, ensure you destroy the resources to avoid unnece
 ``` bash
 $ terraform destroy
 ```
-

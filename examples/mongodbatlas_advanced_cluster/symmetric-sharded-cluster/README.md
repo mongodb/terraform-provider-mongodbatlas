@@ -1,6 +1,9 @@
-# MongoDB Atlas Provider -- Multi-Cloud Advanced Cluster
+# MongoDB Atlas Provider — Symmetric Sharded Cluster
 
-This example creates a project and a Multi Cloud Advanced Cluster with 2 shards.
+This example creates a SHARDED cluster with 2 shards configured symmetrically.
+
+### Migrating from v1.x to v2.0.0 or later
+If you are migrating from v1.x of our provider to v2.0.0 or later, the `v1.x.x/` sub-directory shows how your current configuration might look like (with added inline comments to demonstrate what has changed for migration reference).
 
 ## Dependencies
 
@@ -30,7 +33,7 @@ private_key          = "<MONGODB_ATLAS_PRIVATE_KEY>"
 atlas_org_id         = "<MONGODB_ATLAS_ORG_ID>"
 ```
 
-... or use [AWS Secrets Manager](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/master/docs/index.md#aws-secrets-manager)
+... or use [AWS Secrets Manager](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs#aws-secrets-manager)
 
 **2\. Review the Terraform plan.**
 
@@ -42,7 +45,7 @@ $ terraform plan
 This project currently supports the below deployments:
 
 - An Atlas Project
-- A Multi-Cloud Cluster
+- A Sharded Cluster with independent shards with varying cluster tiers
 
 **3\. Execute the Terraform apply.**
 

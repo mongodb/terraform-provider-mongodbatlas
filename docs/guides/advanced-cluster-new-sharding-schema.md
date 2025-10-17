@@ -6,7 +6,29 @@ page_title: "Migration Guide: Advanced Cluster New Sharding Configurations"
 
 **Objective**: Use this guide to migrate your existing `mongodbatlas_advanced_cluster` resources that may be using the legacy sharding schema _(i.e. using `num_shards` which was deprecated in v1.18.0 and removed in 2.0.0)_ to support the new sharding configurations instead. The new sharding configurations allow you to scale shards independently. Additionally, compute auto-scaling supports scaling instance sizes independently for each shard when using the new sharding configuration.
 
-Note: Once applied, the `mongodbatlas_advanced_cluster` resource making use of the new sharding configuration will not be able to transition back to the old sharding configuration.
+Note: Once applied, the `mongodbatlas_advanced_cluster` resource that uses the new sharding configuration will not be able to transition back to the old sharding configuration.
+
+## Who should read this guide?
+
+This guide is intended for **customers using or migrating to the `mongodbatlas_advanced_cluster` resource** who want to understand the **new sharding model that allows you to scale shards independently**.
+
+Use this guide if any of the following applies to you:
+
+- **You currently use the legacy schema** (your configuration defines `num_shards` and a single `replication_specs` block):  
+  → Follow this guide to understand how multiple `replication_specs` blocks now represent shards individually, allowing you to scale or modify each shard independently.  
+  → As mentioned in the [Prerequisites](#prerequisites), once you understand the new model, proceed to the [Migrate to Advanced Cluster 2.0](migrate-to-advanced-cluster-2.0) guide to update your configuration to the latest schema first in order to upgrade to provider version 2.0.0 or later.
+
+- **You currently use v1.x.x of the provider with the preview schema** (using the `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true` environment variable and list-style attributes):    
+  → Use this guide to verify how your configuration aligns with the independent sharding model and ensure your syntax matches the latest attribute-based format described in the [Prerequisites](#prerequisites).
+
+If you currently use v1.x.x of our provider and want to upgrade to version 2.0.0 or later:<br/>
+→ See [Migrate to Advanced Cluster 2.0](migrate-to-advanced-cluster-2.0).
+
+If you are still using the deprecated `mongodbatlas_cluster` resource:<br/>
+→ See [Cluster → Advanced Cluster Migration Guide](cluster-to-advanced-cluster-migration-guide).
+
+---
+
 
 - [Prerequisites](#prerequisites)
 - [Migration Guide: Advanced Cluster New Sharding Configurations](#migration-guide-advanced-cluster-new-sharding-schema)
