@@ -38,7 +38,7 @@ provider "mongodbatlas" {
 
 **Troubleshooting Service Accounts**
 
-If you encounter a rate limit error when using Service Accounts, you may see:
+If you encounter a rate limit error when using Service Accounts, you might see:
 
 ```
 │ Error: error initializing provider: oauth2: cannot fetch token: 429 Too Many Requests
