@@ -9,7 +9,7 @@ resource "mongodbatlas_stream_instance" "example" {
 
 resource "mongodbatlas_stream_connection" "example-cluster" {
   project_id      = var.project_id
-  instance_name   = mongodbatlas_stream_instance.example.instance_name
+  workspace_name  = mongodbatlas_stream_instance.example.instance_name
   connection_name = "ClusterConnection"
   type            = "Cluster"
   cluster_name    = var.cluster_name
@@ -21,7 +21,7 @@ resource "mongodbatlas_stream_connection" "example-cluster" {
 
 resource "mongodbatlas_stream_connection" "example-cross-project-cluster" {
   project_id         = var.project_id
-  instance_name      = mongodbatlas_stream_instance.example.instance_name
+  workspace_name     = mongodbatlas_stream_instance.example.instance_name
   connection_name    = "ClusterCrossProjectConnection"
   type               = "Cluster"
   cluster_name       = var.other_cluster
@@ -34,7 +34,7 @@ resource "mongodbatlas_stream_connection" "example-cross-project-cluster" {
 
 resource "mongodbatlas_stream_connection" "example-kafka-plaintext" {
   project_id      = var.project_id
-  instance_name   = mongodbatlas_stream_instance.example.instance_name
+  workspace_name  = mongodbatlas_stream_instance.example.instance_name
   connection_name = "KafkaPlaintextConnection"
   type            = "Kafka"
   authentication = {
@@ -86,7 +86,7 @@ resource "mongodbatlas_stream_connection" "example-kafka-oauthbearer" {
 
 resource "mongodbatlas_stream_connection" "example-kafka-ssl" {
   project_id      = var.project_id
-  instance_name   = mongodbatlas_stream_instance.example.instance_name
+  workspace_name  = mongodbatlas_stream_instance.example.instance_name
   connection_name = "KafkaSSLConnection"
   type            = "Kafka"
   authentication = {
@@ -106,14 +106,14 @@ resource "mongodbatlas_stream_connection" "example-kafka-ssl" {
 
 resource "mongodbatlas_stream_connection" "example-sample" {
   project_id      = var.project_id
-  instance_name   = mongodbatlas_stream_instance.example.instance_name
+  workspace_name  = mongodbatlas_stream_instance.example.instance_name
   connection_name = "sample_stream_solar"
   type            = "Sample"
 }
 
 resource "mongodbatlas_stream_connection" "example-aws-lambda" {
   project_id      = var.project_id
-  instance_name   = mongodbatlas_stream_instance.example.instance_name
+  workspace_name  = mongodbatlas_stream_instance.example.instance_name
   connection_name = "AWSLambdaConnection"
   type            = "AWSLambda"
   aws = {
@@ -135,7 +135,7 @@ resource "mongodbatlas_stream_connection" "example-https" {
 
 data "mongodbatlas_stream_connection" "example-kafka-ssl" {
   project_id      = var.project_id
-  instance_name   = mongodbatlas_stream_instance.example.instance_name
+  workspace_name  = mongodbatlas_stream_instance.example.instance_name
   connection_name = mongodbatlas_stream_connection.example-kafka-ssl.connection_name
 }
 

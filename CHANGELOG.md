@@ -1,13 +1,22 @@
 ## (Unreleased)
 
+NOTES:
+
+* data-source/mongodbatlas_stream_connection: Deprecates the `instance_name` attribute. All configurations using `instance_name` should be updated to use the new `workspace_name` attribute instead ([#3610](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3610))
+* data-source/mongodbatlas_stream_connections: Deprecates the `instance_name` attribute. All configurations using `instance_name` should be updated to use the new `workspace_name` attribute instead ([#3610](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3610))
+* resource/mongodbatlas_stream_connection: Deprecates the `instance_name` attribute. All configurations using `instance_name` should be updated to use the new `workspace_name` attribute instead ([#3610](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3610))
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_stream_connection: Adds new authentication mechanism (OIDC) to the Kafka connection ([#3766](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3766))
 * data-source/mongodbatlas_stream_connections: Adds new authentication mechanism (OIDC) to the Kafka connection ([#3766](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3766))
+* provider: Supports Service Account JWT Token as credentials to authenticate the provider ([#3716](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3716))
+* provider: Supports Service Account as credentials to authenticate the provider ([#3700](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3700))
 * resource/mongodbatlas_stream_connection: Adds new authentication mechanism (OIDC) to the Kafka connection ([#3766](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3766))
 
 BUG FIXES:
 
+* provider: Enforces strict hierarchy when selecting the credential source such as AWS Secrets Manager, provider attributes, or environment variables to prevent combining with values from different sources ([#3738](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3738))
 * resource/mongodbatlas_advanced_cluster: Allows upgrade from tenant and flex cluster to dedicated NVMe with backup enabled ([#3725](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3725))
 
 ## 2.0.1 (October 01, 2025)
