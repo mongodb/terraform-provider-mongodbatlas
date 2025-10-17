@@ -211,9 +211,8 @@ env:
   TF_LOG: ${{ vars.LOG_LEVEL }}
   ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
   # If the name (regex) of the test is set, only that test is run.
-  # Don't run migration tests if using Service Accounts because previous provider versions don't support SA yet.
   # Only Migration tests are run when a specific previous provider version is set.
-  ACCTEST_REGEX_RUN: ${{ inputs.test_name || inputs.use_sa && '^TestAcc' || inputs.provider_version == '' && '^Test(Acc|Mig)' || '^TestMig' }}
+  ACCTEST_REGEX_RUN: ${{ inputs.test_name || inputs.provider_version == '' && '^Test(Acc|Mig)' || '^TestMig' }}
   MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
   MONGODB_REALM_BASE_URL: ${{ inputs.mongodb_realm_base_url }}
   MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
@@ -427,7 +426,7 @@ jobs:
 
   advanced_cluster_tpf_mig_from_sdkv2:
     needs: [ change-detection, get-provider-version ]
-    # Previous advanced_cluster versions don't support SA.
+    # advanced_cluster v1.x versions don't support SA.
     if: ${{ inputs.reduced_tests == false && inputs.use_sa == false && (needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster') }}
     runs-on: ubuntu-latest
     permissions: {}
@@ -453,7 +452,7 @@ jobs:
 
   advanced_cluster_tpf_mig_from_tpf_preview:
     needs: [ change-detection, get-provider-version ]
-    # Previous advanced_cluster versions don't support SA.
+    # advanced_cluster v1.x versions don't support SA.
     if: ${{ inputs.reduced_tests == false && inputs.use_sa == false && (needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster') }}
     runs-on: ubuntu-latest
     permissions: {}
@@ -601,7 +600,6 @@ jobs:
           MONGODB_ATLAS_CLIENT_ID: ${{ secrets.mongodb_atlas_client_id }}
           MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_REGEX_RUN: '^TestAcc' # Don't run migration tests because previous provider versions don't support SA.
           ACCTEST_PACKAGES: |
             ./internal/service/alertconfiguration
             ./internal/service/databaseuser
