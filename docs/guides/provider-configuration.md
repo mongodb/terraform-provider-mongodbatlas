@@ -42,7 +42,7 @@ If you encounter a rate limit error when using Service Accounts, you might see:
 
 ```
 │ Error: error initializing provider: oauth2: cannot fetch token: 429 Too Many Requests
-│ Response: {"detail":"Resource /api/oauth/token is limited to 10 requests every 1 minutes.","error":429,"errorCode":"RATE_LIMITED","parameters":["/api/oauth/token",10,1],"reason":"Too Many Requests"}
+│ Response: {"detail":"Resource /api/oauth/token is limited to 50 requests every 1 minutes.","error":429,"errorCode":"RATE_LIMITED","parameters":["/api/oauth/token",50,1],"reason":"Too Many Requests"}
 ```
 
 Atlas enforces rate limiting for each combination of IP address and SA client. See [MongoDB Atlas Service Account Limits](https://www.mongodb.com/docs/manual/reference/limits/#mongodb-atlas-service-account-limits) for more information. Each Terraform operation generates a new token that is used for the duration of that operation. These limits work well for individual development environments. For CI pipelines or enterprise environments with shared infrastructure, consider optimizing your configuration using one of these approaches:
