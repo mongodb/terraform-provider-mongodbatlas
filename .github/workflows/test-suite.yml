@@ -83,7 +83,8 @@ jobs:
       provider_version: ${{ matrix.provider_version }}
       atlas_cloud_env: ${{ inputs.atlas_cloud_env || needs.variables.outputs.is_sun == 'true' && 'qa' || '' }} # Run against QA on Sundays
       use_sa: ${{ needs.variables.outputs.use_sa == 'true' }}
-      send_notification: ${{ inputs.send_notification || false }}
+      send_notification: ${{ !contains(github.event.inputs.send_notification, 'false') }}
+
   clean-after:
     needs: tests
     if: ${{ !cancelled() }}
