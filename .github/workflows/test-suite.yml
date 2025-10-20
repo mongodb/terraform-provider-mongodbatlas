@@ -87,7 +87,7 @@ jobs:
       provider_version: ${{ matrix.provider_version }}
       atlas_cloud_env: ${{ inputs.atlas_cloud_env || needs.variables.outputs.is_sun == 'true' && 'qa' || '' }} # Run against QA on Sundays
       use_sa: ${{ needs.variables.outputs.use_sa == 'true' }}
-      send_notification: ${{ inputs.send_notification || false }}
+      send_notification: ${{ inputs.send_notification != false }} # Scheduled workflow doesn't set send_notification input so it's enabled if not set or set to true
   clean-after:
     needs: tests
     if: ${{ !cancelled() }}
@@ -96,7 +96,7 @@ jobs:
   
   slack-notification:
     needs: [tests, clean-after]
-    if: ${{ !cancelled() && needs.tests.result == 'failure' && !contains(github.event.inputs.send_notification, 'false') }}
+    if: ${{ !cancelled() && needs.tests.result == 'failure' && inputs.send_notification != false }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
