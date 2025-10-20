@@ -46,6 +46,39 @@ func TestAccStreamProcessor_basic(t *testing.T) {
 func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
+		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		randomSuffix             = acctest.RandString(5)
+		processorName            = "new-processor" + randomSuffix
+	)
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroyStreamProcessor,
+		Steps: []resource.TestStep{
+			{
+				Config:            config(t, projectID, workspaceName, processorName, "", randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil),
+				Check:             composeStreamProcessorChecks(projectID, workspaceName, processorName, streamprocessor.CreatedState, false, false),
+				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.CreatedState, workspaceName, false, false),
+			},
+			{
+				Config:            config(t, projectID, workspaceName, processorName, streamprocessor.StartedState, randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil),
+				Check:             composeStreamProcessorChecks(projectID, workspaceName, processorName, streamprocessor.StartedState, true, false),
+				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.StartedState, workspaceName, true, false),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       importStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"stats"},
+			},
+		}}
+}
+
+func basicTestCaseMigration(t *testing.T) *resource.TestCase {
+	t.Helper()
+	var (
 		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
 		randomSuffix            = acctest.RandString(5)
 		processorName           = "new-processor" + randomSuffix
@@ -57,14 +90,14 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config:            config(t, projectID, instanceName, processorName, "", randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil),
-				Check:             composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
-				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.CreatedState, instanceName, false, false),
+				Config:            configMigration(t, projectID, instanceName, processorName, "", randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil),
+				Check:             composeStreamProcessorChecksMigration(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
+				ConfigStateChecks: pluralConfigStateChecksMigration(processorName, streamprocessor.CreatedState, instanceName, false, false),
 			},
 			{
-				Config:            config(t, projectID, instanceName, processorName, streamprocessor.StartedState, randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil),
-				Check:             composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StartedState, true, false),
-				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.StartedState, instanceName, true, false),
+				Config:            configMigration(t, projectID, instanceName, processorName, streamprocessor.StartedState, randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil),
+				Check:             composeStreamProcessorChecksMigration(projectID, instanceName, processorName, streamprocessor.StartedState, true, false),
+				ConfigStateChecks: pluralConfigStateChecksMigration(processorName, streamprocessor.StartedState, instanceName, true, false),
 			},
 			{
 				ResourceName:            resourceName,
@@ -78,7 +111,7 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 
 func TestAccStreamProcessor_JSONWhiteSpaceFormat(t *testing.T) {
 	var (
-		projectID, instanceName    = acc.ProjectIDExecutionWithStreamInstance(t)
+		projectID, workspaceName   = acc.ProjectIDExecutionWithStreamInstance(t)
 		randomSuffix               = acctest.RandString(5)
 		processorName              = "new-processor-json-unchanged"
 		sampleSrcConfigExtraSpaces = connectionConfig{connectionType: connTypeSample, pipelineStepIsSource: true, extraWhitespace: true}
@@ -89,21 +122,21 @@ func TestAccStreamProcessor_JSONWhiteSpaceFormat(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config:            config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, randomSuffix, sampleSrcConfigExtraSpaces, testLogDestConfig, "", nil),
-				Check:             composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, false),
-				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.CreatedState, instanceName, false, false),
+				Config:            config(t, projectID, workspaceName, processorName, streamprocessor.CreatedState, randomSuffix, sampleSrcConfigExtraSpaces, testLogDestConfig, "", nil),
+				Check:             composeStreamProcessorChecks(projectID, workspaceName, processorName, streamprocessor.CreatedState, false, false),
+				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.CreatedState, workspaceName, false, false),
 			},
 		}})
 }
 
 func TestAccStreamProcessor_withOptions(t *testing.T) {
 	var (
-		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		_, clusterName          = acc.ClusterNameExecution(t, false)
-		src                     = connectionConfig{connectionType: connTypeCluster, clusterName: clusterName, pipelineStepIsSource: true, useAsDLQ: true}
-		dest                    = connectionConfig{connectionType: connTypeKafka, pipelineStepIsSource: false}
-		randomSuffix            = acctest.RandString(5)
-		processorName           = "new-processor" + randomSuffix
+		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		_, clusterName           = acc.ClusterNameExecution(t, false)
+		src                      = connectionConfig{connectionType: connTypeCluster, clusterName: clusterName, pipelineStepIsSource: true, useAsDLQ: true}
+		dest                     = connectionConfig{connectionType: connTypeKafka, pipelineStepIsSource: false}
+		randomSuffix             = acctest.RandString(5)
+		processorName            = "new-processor" + randomSuffix
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -112,9 +145,9 @@ func TestAccStreamProcessor_withOptions(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config:            config(t, projectID, instanceName, processorName, streamprocessor.CreatedState, randomSuffix, src, dest, "", nil),
-				Check:             composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.CreatedState, false, true),
-				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.CreatedState, instanceName, false, true),
+				Config:            config(t, projectID, workspaceName, processorName, streamprocessor.CreatedState, randomSuffix, src, dest, "", nil),
+				Check:             composeStreamProcessorChecks(projectID, workspaceName, processorName, streamprocessor.CreatedState, false, true),
+				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.CreatedState, workspaceName, false, true),
 			},
 			{
 				ResourceName:            resourceName,
@@ -127,46 +160,39 @@ func TestAccStreamProcessor_withOptions(t *testing.T) {
 }
 
 func TestAccStreamProcessor_StateTransitionsUpdates(t *testing.T) {
-	transitions := []struct {
-		name         string
+	transitions := map[string]struct {
 		setupState   string // Optional: Initial setup state (needed for STOPPED tests since we can't create in a STOPPED state)
 		initialState string // State to create or transition to after setup
 		targetState  string // Final state to transition to
 		description  string // Description of what the test validates
 	}{
-		{
-			name:         "CreatedToCreated",
+		"CreatedToCreated": {
 			initialState: CreatedState,
 			targetState:  CreatedState,
 			description:  "Verifies a processor in CREATED state can be updated while remaining in CREATED state",
 		},
-		{
-			name:         "CreatedToStarted",
+		"CreatedToStarted": {
 			initialState: CreatedState,
 			targetState:  StartedState,
 			description:  "Verifies a processor can transition from CREATED to STARTED state",
 		},
-		{
-			name:         "StartedToStopped",
+		"StartedToStopped": {
 			initialState: StartedState,
 			targetState:  StoppedState,
 			description:  "Verifies a processor can transition from STARTED to STOPPED state",
 		},
-		{
-			name:         "StartedToStarted",
+		"StartedToStarted": {
 			initialState: StartedState,
 			targetState:  StartedState,
 			description:  "Verifies a processor in STARTED state can be updated while remaining in STARTED state",
 		},
-		{
-			name:         "StoppedToStarted",
+		"StoppedToStarted": {
 			setupState:   StartedState, // Must first get to STARTED before we can test STOPPED→STARTED
 			initialState: StoppedState,
 			targetState:  StartedState,
 			description:  "Verifies a processor can transition from STOPPED to STARTED state",
 		},
-		{
-			name:         "StoppedToStopped",
+		"StoppedToStopped": {
 			setupState:   StartedState, // Must first get to STARTED before we can test STOPPED→STOPPED
 			initialState: StoppedState,
 			targetState:  StoppedState,
@@ -174,8 +200,8 @@ func TestAccStreamProcessor_StateTransitionsUpdates(t *testing.T) {
 		},
 	}
 
-	for _, tc := range transitions {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range transitions {
+		t.Run(name, func(t *testing.T) {
 			t.Logf("Testing: %s", tc.description)
 			testAccStreamProcessorStateTransitionForUpdates(t, tc.setupState, tc.initialState, tc.targetState, "")
 		})
@@ -184,27 +210,23 @@ func TestAccStreamProcessor_StateTransitionsUpdates(t *testing.T) {
 
 // when an empty state is provided in a stream processor update, it should use the existing current state
 func TestAccStreamProcessor_EmptyStateUpdates(t *testing.T) {
-	transitions := []struct {
-		name         string
+	transitions := map[string]struct {
 		setupState   string // Optional: Initial setup state (needed for STOPPED tests since we can't create in a STOPPED state)
 		initialState string // State to create or transition to after setup
 		targetState  string // Final state to transition to
 		description  string // Description of what the test validates
 	}{
-		{
-			name:         "CreatedToEmptyState",
+		"CreatedToEmptyState": {
 			initialState: CreatedState,
 			targetState:  "",
 			description:  "Verifies that a processor in CREATED state can be updated while remaining in a derived CREATED state from empty state",
 		},
-		{
-			name:         "StartedToEmptyState",
+		"StartedToEmptyState": {
 			initialState: StartedState,
 			targetState:  "",
 			description:  "Verifies that a processor in STARTED state can be updated while remaining in a derived STARTED state from empty state",
 		},
-		{
-			name:         "StoppedToEmptyState",
+		"StoppedToEmptyState": {
 			setupState:   StartedState, // Must first get to STARTED before we can test STOPPED→EMPTY
 			initialState: StoppedState,
 			targetState:  "",
@@ -212,8 +234,8 @@ func TestAccStreamProcessor_EmptyStateUpdates(t *testing.T) {
 		},
 	}
 
-	for _, tc := range transitions {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range transitions {
+		t.Run(name, func(t *testing.T) {
 			t.Logf("Testing: %s", tc.description)
 			testAccStreamProcessorStateTransitionForUpdates(t, tc.setupState, tc.initialState, tc.targetState, "")
 		})
@@ -221,31 +243,27 @@ func TestAccStreamProcessor_EmptyStateUpdates(t *testing.T) {
 }
 
 func TestAccStreamProcessor_InvalidStateTransitionUpdates(t *testing.T) {
-	transitions := []struct {
-		name          string
+	transitions := map[string]struct {
 		setupState    string // Optional: Initial setup state (needed for STOPPED tests)
 		initialState  string // State to create or transition to after setup
 		targetState   string // Final state to transition to
 		expectedError string
 		description   string // Description of what the test validates
 	}{
-		{
-			name:          "CreatedToStopped",
+		"CreatedToStopped": {
 			initialState:  CreatedState,
 			targetState:   StoppedState,
 			expectedError: fmt.Sprintf(streamprocessor.ErrorUpdateStateTransition, StartedState, StoppedState),
 			description:   "Verifies a processor cannot transition from CREATED to STOPPED state",
 		},
-		{
-			name:          "StoppedToCreated",
+		"StoppedToCreated": {
 			setupState:    StartedState, // Must first get to STARTED before we can test STOPPED→CREATED
 			initialState:  StoppedState,
 			targetState:   CreatedState,
 			expectedError: fmt.Sprintf(streamprocessor.ErrorUpdateToCreatedState, StoppedState),
 			description:   "Verifies a processor cannot transition from STOPPED to CREATED state",
 		},
-		{
-			name:          "StartedToCreated",
+		"StartedToCreated": {
 			initialState:  StartedState,
 			targetState:   CreatedState,
 			expectedError: fmt.Sprintf(streamprocessor.ErrorUpdateToCreatedState, StartedState),
@@ -253,8 +271,8 @@ func TestAccStreamProcessor_InvalidStateTransitionUpdates(t *testing.T) {
 		},
 	}
 
-	for _, tc := range transitions {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range transitions {
+		t.Run(name, func(t *testing.T) {
 			t.Logf("Testing: %s", tc.description)
 			testAccStreamProcessorStateTransitionForUpdates(t, tc.setupState, tc.initialState, tc.targetState, tc.expectedError)
 		})
@@ -263,11 +281,11 @@ func TestAccStreamProcessor_InvalidStateTransitionUpdates(t *testing.T) {
 
 func TestAccStreamProcessor_clusterType(t *testing.T) {
 	var (
-		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		_, clusterName          = acc.ClusterNameExecution(t, false)
-		randomSuffix            = acctest.RandString(5)
-		processorName           = "new-processor" + randomSuffix
-		srcConfig               = connectionConfig{connectionType: connTypeCluster, clusterName: clusterName, pipelineStepIsSource: true}
+		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		_, clusterName           = acc.ClusterNameExecution(t, false)
+		randomSuffix             = acctest.RandString(5)
+		processorName            = "new-processor" + randomSuffix
+		srcConfig                = connectionConfig{connectionType: connTypeCluster, clusterName: clusterName, pipelineStepIsSource: true}
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -276,19 +294,19 @@ func TestAccStreamProcessor_clusterType(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config:            config(t, projectID, instanceName, processorName, streamprocessor.StartedState, randomSuffix, srcConfig, testLogDestConfig, "", nil),
-				Check:             composeStreamProcessorChecks(projectID, instanceName, processorName, streamprocessor.StartedState, true, false),
-				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.StartedState, instanceName, true, false),
+				Config:            config(t, projectID, workspaceName, processorName, streamprocessor.StartedState, randomSuffix, srcConfig, testLogDestConfig, "", nil),
+				Check:             composeStreamProcessorChecks(projectID, workspaceName, processorName, streamprocessor.StartedState, true, false),
+				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.StartedState, workspaceName, true, false),
 			},
 		}})
 }
 
 func TestAccStreamProcessor_createErrors(t *testing.T) {
 	var (
-		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		processorName           = "new-processor"
-		invalidJSONConfig       = connectionConfig{connectionType: connTypeSample, pipelineStepIsSource: true, invalidJSON: true}
-		randomSuffix            = acctest.RandString(5)
+		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		processorName            = "new-processor"
+		invalidJSONConfig        = connectionConfig{connectionType: connTypeSample, pipelineStepIsSource: true, invalidJSON: true}
+		randomSuffix             = acctest.RandString(5)
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -297,11 +315,11 @@ func TestAccStreamProcessor_createErrors(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StoppedState, randomSuffix, invalidJSONConfig, testLogDestConfig, "", nil),
+				Config:      config(t, projectID, workspaceName, processorName, streamprocessor.StoppedState, randomSuffix, invalidJSONConfig, testLogDestConfig, "", nil),
 				ExpectError: regexp.MustCompile("Invalid JSON String Value"),
 			},
 			{
-				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StoppedState, randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil),
+				Config:      config(t, projectID, workspaceName, processorName, streamprocessor.StoppedState, randomSuffix, sampleSrcConfig, testLogDestConfig, "", nil),
 				ExpectError: regexp.MustCompile("When creating a stream processor, the only valid states are CREATED and STARTED"),
 			},
 		}})
@@ -310,11 +328,11 @@ func TestAccStreamProcessor_createErrors(t *testing.T) {
 func TestAccStreamProcessor_createTimeoutWithDeleteOnCreate(t *testing.T) {
 	acc.SkipTestForCI(t) // Creation of stream processor for testing is too fast to force the creation timeout
 	var (
-		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		processorName           = "new-processor"
-		randomSuffix            = acctest.RandString(5)
-		createTimeout           = "1s"
-		deleteOnCreateTimeout   = true
+		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		processorName            = "new-processor"
+		randomSuffix             = acctest.RandString(5)
+		createTimeout            = "1s"
+		deleteOnCreateTimeout    = true
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -323,7 +341,7 @@ func TestAccStreamProcessor_createTimeoutWithDeleteOnCreate(t *testing.T) {
 		CheckDestroy:             checkDestroyStreamProcessor,
 		Steps: []resource.TestStep{
 			{
-				Config:      config(t, projectID, instanceName, processorName, streamprocessor.StartedState, randomSuffix, sampleSrcConfig, testLogDestConfig, acc.TimeoutConfig(&createTimeout, nil, nil), &deleteOnCreateTimeout),
+				Config:      config(t, projectID, workspaceName, processorName, streamprocessor.StartedState, randomSuffix, sampleSrcConfig, testLogDestConfig, acc.TimeoutConfig(&createTimeout, nil, nil), &deleteOnCreateTimeout),
 				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
 			},
 		}})
@@ -336,9 +354,9 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 		projectID := rs.Primary.Attributes["project_id"]
-		instanceName := rs.Primary.Attributes["instance_name"]
+		workspaceName := rs.Primary.Attributes["workspace_name"]
 		processorName := rs.Primary.Attributes["processor_name"]
-		_, _, err := acc.ConnV2().StreamsApi.GetStreamProcessor(context.Background(), projectID, instanceName, processorName).Execute()
+		_, _, err := acc.ConnV2().StreamsApi.GetStreamProcessor(context.Background(), projectID, workspaceName, processorName).Execute()
 
 		if err != nil {
 			return fmt.Errorf("Stream processor (%s) does not exist", processorName)
@@ -354,9 +372,9 @@ func checkDestroyStreamProcessor(s *terraform.State) error {
 			continue
 		}
 		projectID := rs.Primary.Attributes["project_id"]
-		instanceName := rs.Primary.Attributes["instance_name"]
+		workspaceName := rs.Primary.Attributes["workspace_name"]
 		processorName := rs.Primary.Attributes["processor_name"]
-		_, _, err := acc.ConnV2().StreamsApi.GetStreamProcessor(context.Background(), projectID, instanceName, processorName).Execute()
+		_, _, err := acc.ConnV2().StreamsApi.GetStreamProcessor(context.Background(), projectID, workspaceName, processorName).Execute()
 		if err == nil {
 			return fmt.Errorf("Stream processor (%s) still exists", processorName)
 		}
@@ -372,7 +390,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 			return "", fmt.Errorf("not found: %s", resourceName)
 		}
 
-		return fmt.Sprintf("%s-%s-%s", rs.Primary.Attributes["instance_name"], rs.Primary.Attributes["project_id"], rs.Primary.Attributes["processor_name"]), nil
+		return fmt.Sprintf("%s-%s-%s", rs.Primary.Attributes["workspace_name"], rs.Primary.Attributes["project_id"], rs.Primary.Attributes["processor_name"]), nil
 	}
 }
 
@@ -381,8 +399,8 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 func testAccStreamProcessorStateTransitionForUpdates(t *testing.T, setupState, initialState, targetState, errorPattern string) {
 	t.Helper()
 	var (
-		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
-		processorName           = fmt.Sprintf("processor-%s-to-%s", strings.ToLower(initialState), strings.ToLower(targetState))
+		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		processorName            = fmt.Sprintf("processor-%s-to-%s", strings.ToLower(initialState), strings.ToLower(targetState))
 	)
 
 	initialPipeline := `[
@@ -433,8 +451,8 @@ func testAccStreamProcessorStateTransitionForUpdates(t *testing.T, setupState, i
 	if setupState != "" {
 		setupStateConfig := fmt.Sprintf(`state = %q`, setupState)
 		steps = append(steps, resource.TestStep{
-			Config: configToUpdateStreamProcessor(projectID, instanceName, processorName, setupStateConfig, initialPipeline),
-			Check:  checkAttributesFromBasicUpdateFlow(projectID, instanceName, processorName, setupState, initialPipeline),
+			Config: configToUpdateStreamProcessor(projectID, workspaceName, processorName, setupStateConfig, initialPipeline),
+			Check:  checkAttributesFromBasicUpdateFlow(projectID, workspaceName, processorName, setupState, initialPipeline),
 		})
 	}
 
@@ -443,8 +461,8 @@ func testAccStreamProcessorStateTransitionForUpdates(t *testing.T, setupState, i
 		initialStateConfig = fmt.Sprintf(`state = %q`, initialState)
 	}
 	steps = append(steps, resource.TestStep{
-		Config: configToUpdateStreamProcessor(projectID, instanceName, processorName, initialStateConfig, initialPipeline),
-		Check:  checkAttributesFromBasicUpdateFlow(projectID, instanceName, processorName, initialState, initialPipeline),
+		Config: configToUpdateStreamProcessor(projectID, workspaceName, processorName, initialStateConfig, initialPipeline),
+		Check:  checkAttributesFromBasicUpdateFlow(projectID, workspaceName, processorName, initialState, initialPipeline),
 	})
 
 	var targetStateConfig string
@@ -453,7 +471,7 @@ func testAccStreamProcessorStateTransitionForUpdates(t *testing.T, setupState, i
 	}
 	// Add target state step, with error checking if applicable
 	finalStep := resource.TestStep{
-		Config: configToUpdateStreamProcessor(projectID, instanceName, processorName, targetStateConfig, updatedPipelineWithTumblingWindow),
+		Config: configToUpdateStreamProcessor(projectID, workspaceName, processorName, targetStateConfig, updatedPipelineWithTumblingWindow),
 	}
 
 	// Configure the step based on whether we expect success or failure
@@ -465,7 +483,7 @@ func testAccStreamProcessorStateTransitionForUpdates(t *testing.T, setupState, i
 		if targetState == "" {
 			targetState = initialState
 		}
-		finalStep.Check = checkAttributesFromBasicUpdateFlow(projectID, instanceName, processorName, targetState, updatedPipelineWithTumblingWindow)
+		finalStep.Check = checkAttributesFromBasicUpdateFlow(projectID, workspaceName, processorName, targetState, updatedPipelineWithTumblingWindow)
 	}
 	steps = append(steps, finalStep)
 
@@ -479,23 +497,23 @@ func testAccStreamProcessorStateTransitionForUpdates(t *testing.T, setupState, i
 
 // configToUpdateStreamProcessor generates Terraform configuration for Stream Processor state transition tests.
 // It creates a minimal test environment with a stream instance, sample source connection and pipelines that can be updated
-func configToUpdateStreamProcessor(projectID, instanceName, processorName, state, pipeline string) string {
+func configToUpdateStreamProcessor(projectID, workspaceName, processorName, state, pipeline string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_stream_processor" "processor" {
 			project_id     = %[1]q
-			instance_name  = %[2]q
+			workspace_name  = %[2]q
 			processor_name = %[3]q
 			pipeline       = %[4]q
 			%[5]s
 		}
-		`, projectID, instanceName, processorName, pipeline, state)
+		`, projectID, workspaceName, processorName, pipeline, state)
 }
 
-func checkAttributesFromBasicUpdateFlow(projectID, instanceName, processorName, state, expectedPipelineStr string) resource.TestCheckFunc {
+func checkAttributesFromBasicUpdateFlow(projectID, workspaceName, processorName, state, expectedPipelineStr string) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{checkExists(resourceName)}
 	attributes := map[string]string{
 		"project_id":     projectID,
-		"instance_name":  instanceName,
+		"workspace_name": workspaceName,
 		"processor_name": processorName,
 		"state":          state,
 		"pipeline":       expectedPipelineStr,
@@ -506,17 +524,17 @@ func checkAttributesFromBasicUpdateFlow(projectID, instanceName, processorName, 
 }
 
 // pluralConfigStateChecks allows checking one of the results returned by the plural data source
-func pluralConfigStateChecks(processorName, state, instanceName string, includeStats, includeOptions bool) []statecheck.StateCheck {
+func pluralConfigStateChecks(processorName, state, workspaceName string, includeStats, includeOptions bool) []statecheck.StateCheck {
 	return []statecheck.StateCheck{
-		acc.PluralResultCheck(pluralDataSourceName, "processor_name", knownvalue.StringExact(processorName), pluralValueChecks(processorName, state, instanceName, includeStats, includeOptions)),
+		acc.PluralResultCheck(pluralDataSourceName, "processor_name", knownvalue.StringExact(processorName), pluralValueChecks(processorName, state, workspaceName, includeStats, includeOptions)),
 	}
 }
 
-func pluralValueChecks(processorName, state, instanceName string, includeStats, includeOptions bool) map[string]knownvalue.Check {
+func pluralValueChecks(processorName, state, workspaceName string, includeStats, includeOptions bool) map[string]knownvalue.Check {
 	checks := map[string]knownvalue.Check{
 		"processor_name": knownvalue.StringExact(processorName),
 		"state":          knownvalue.StringExact(state),
-		"instance_name":  knownvalue.StringExact(instanceName),
+		"workspace_name": knownvalue.StringExact(workspaceName),
 	}
 	if includeStats {
 		checks["stats"] = knownvalue.NotNull()
@@ -527,7 +545,46 @@ func pluralValueChecks(processorName, state, instanceName string, includeStats, 
 	return checks
 }
 
-func composeStreamProcessorChecks(projectID, instanceName, processorName, state string, includeStats, includeOptions bool) resource.TestCheckFunc {
+func pluralConfigStateChecksMigration(processorName, state, instanceName string, includeStats, includeOptions bool) []statecheck.StateCheck {
+	checks := map[string]knownvalue.Check{
+		"processor_name": knownvalue.StringExact(processorName),
+		"state":          knownvalue.StringExact(state),
+		"workspace_name": knownvalue.StringExact(instanceName),
+	}
+	if includeStats {
+		checks["stats"] = knownvalue.NotNull()
+	}
+	if includeOptions {
+		checks["options"] = knownvalue.NotNull()
+	}
+
+	return []statecheck.StateCheck{
+		acc.PluralResultCheck(pluralDataSourceName, "processor_name", knownvalue.StringExact(processorName), checks),
+	}
+}
+
+func composeStreamProcessorChecks(projectID, workspaceName, processorName, state string, includeStats, includeOptions bool) resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{checkExists(resourceName)}
+	attributes := map[string]string{
+		"project_id":     projectID,
+		"workspace_name": workspaceName,
+		"processor_name": processorName,
+		"state":          state,
+	}
+	checks = acc.AddAttrChecks(resourceName, checks, attributes)
+	checks = acc.AddAttrChecks(dataSourceName, checks, attributes)
+	if includeStats {
+		checks = acc.AddAttrSetChecks(resourceName, checks, "stats", "pipeline")
+		checks = acc.AddAttrSetChecks(dataSourceName, checks, "stats", "pipeline")
+	}
+	if includeOptions {
+		checks = acc.AddAttrSetChecks(resourceName, checks, "options.dlq.db", "options.dlq.coll", "options.dlq.connection_name")
+		checks = acc.AddAttrSetChecks(dataSourceName, checks, "options.dlq.db", "options.dlq.coll", "options.dlq.connection_name")
+	}
+	return resource.ComposeAggregateTestCheckFunc(checks...)
+}
+
+func composeStreamProcessorChecksMigration(projectID, instanceName, processorName, state string, includeStats, includeOptions bool) resource.TestCheckFunc {
 	checks := []resource.TestCheckFunc{checkExists(resourceName)}
 	attributes := map[string]string{
 		"project_id":     projectID,
@@ -548,7 +605,73 @@ func composeStreamProcessorChecks(projectID, instanceName, processorName, state 
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-func config(t *testing.T, projectID, instanceName, processorName, state, nameSuffix string, src, dest connectionConfig, timeoutConfig string, deleteOnCreateTimeout *bool) string {
+func config(t *testing.T, projectID, workspaceName, processorName, state, nameSuffix string, src, dest connectionConfig, timeoutConfig string, deleteOnCreateTimeout *bool) string {
+	t.Helper()
+	stateConfig := ""
+	if state != "" {
+		stateConfig = fmt.Sprintf(`state = %[1]q`, state)
+	}
+	deleteOnCreateTimeoutConfig := ""
+	if deleteOnCreateTimeout != nil {
+		deleteOnCreateTimeoutConfig = fmt.Sprintf(`delete_on_create_timeout = %[1]t`, *deleteOnCreateTimeout)
+	}
+
+	connectionConfigSrc, connectionIDSrc, pipelineStepSrc := configConnection(t, projectID, workspaceName, src, nameSuffix)
+	connectionConfigDest, connectionIDDest, pipelineStepDest := configConnection(t, projectID, workspaceName, dest, nameSuffix)
+	dependsOn := []string{}
+	if connectionIDSrc != "" && !strings.HasPrefix(connectionIDSrc, "data.") {
+		dependsOn = append(dependsOn, connectionIDSrc)
+	}
+	if connectionIDDest != "" && !strings.HasPrefix(connectionIDDest, "data.") {
+		dependsOn = append(dependsOn, connectionIDDest)
+	}
+	dependsOnStr := strings.Join(dependsOn, ", ")
+	pipeline := fmt.Sprintf("[{\"$source\":%1s},{\"$emit\":%2s}]", pipelineStepSrc, pipelineStepDest)
+	optionsStr := ""
+	if src.useAsDLQ {
+		assert.Equal(t, connTypeCluster, src.connectionType)
+		optionsStr = fmt.Sprintf(`
+			options = {
+				dlq = {
+					coll = "dlq_coll"
+					connection_name = %[1]s.connection_name
+					db = "dlq_db"
+				}
+			}`, connectionIDSrc)
+	}
+
+	dataSource := fmt.Sprintf(`
+	data "mongodbatlas_stream_processor" "test" {
+		project_id = %[1]q
+		workspace_name = %[2]q
+		processor_name = %[3]q
+		depends_on = [%4s]
+	}`, projectID, workspaceName, processorName, resourceName)
+	dataSourcePlural := fmt.Sprintf(`
+	data "mongodbatlas_stream_processors" "test" {
+		project_id = %[1]q
+		workspace_name = %[2]q
+		depends_on = [%3s]
+	}`, projectID, workspaceName, resourceName)
+	otherConfig := connectionConfigSrc + connectionConfigDest + dataSource + dataSourcePlural
+
+	return fmt.Sprintf(`
+	resource "mongodbatlas_stream_processor" "processor" {
+		project_id     = %[1]q
+		workspace_name  = %[2]q
+		processor_name = %[3]q
+		pipeline       = %[4]q
+		%[5]s
+		%[6]s
+		depends_on = [%[7]s]
+		%[8]s
+		%[9]s
+		}
+		
+	`, projectID, workspaceName, processorName, pipeline, stateConfig, optionsStr, dependsOnStr, timeoutConfig, deleteOnCreateTimeoutConfig) + otherConfig
+}
+
+func configMigration(t *testing.T, projectID, instanceName, processorName, state, nameSuffix string, src, dest connectionConfig, timeoutConfig string, deleteOnCreateTimeout *bool) string {
 	t.Helper()
 	stateConfig := ""
 	if state != "" {
@@ -614,7 +737,7 @@ func config(t *testing.T, projectID, instanceName, processorName, state, nameSuf
 	`, projectID, instanceName, processorName, pipeline, stateConfig, optionsStr, dependsOnStr, timeoutConfig, deleteOnCreateTimeoutConfig) + otherConfig
 }
 
-func configConnection(t *testing.T, projectID, instanceName string, config connectionConfig, nameSuffix string) (connectionConfig, resourceID, pipelineStep string) {
+func configConnection(t *testing.T, projectID, workspaceName string, config connectionConfig, nameSuffix string) (connectionConfig, resourceID, pipelineStep string) {
 	t.Helper()
 	assert.False(t, config.extraWhitespace && config.connectionType != connTypeSample, "extraWhitespace is only supported for Sample connection")
 	assert.False(t, config.invalidJSON && config.connectionType != connTypeSample, "invalidJson is only supported for Sample connection")
@@ -636,7 +759,7 @@ func configConnection(t *testing.T, projectID, instanceName string, config conne
             resource "mongodbatlas_stream_connection" %[4]q {
                 project_id      = %[1]q
                 cluster_name    = %[2]q
-                instance_name   = %[5]q
+                workspace_name   = %[5]q
                 connection_name = %[3]q
                 type            = "Cluster"
                 db_role_to_execute = {
@@ -644,7 +767,7 @@ func configConnection(t *testing.T, projectID, instanceName string, config conne
                     type = "BUILT_IN"
                 }
             }
-        `, projectID, clusterName, connectionName, resourceName, instanceName)
+        `, projectID, clusterName, connectionName, resourceName, workspaceName)
 		resourceID = fmt.Sprintf("mongodbatlas_stream_connection.%s", resourceName)
 		pipelineStep = fmt.Sprintf("{\"connectionName\":%q}", connectionName)
 		return connectionConfig, resourceID, pipelineStep
@@ -662,7 +785,7 @@ func configConnection(t *testing.T, projectID, instanceName string, config conne
 		connectionConfig = fmt.Sprintf(`
             resource "mongodbatlas_stream_connection" %[3]q{
                 project_id      = %[1]q
-                instance_name   = %[4]q
+                workspace_name   = %[4]q
                 connection_name = %[2]q
                 type            = "Kafka"
                 authentication = {
@@ -678,7 +801,7 @@ func configConnection(t *testing.T, projectID, instanceName string, config conne
                     protocol = "SASL_PLAINTEXT"
                 }
             }
-        `, projectID, connectionName, resourceName, instanceName)
+        `, projectID, connectionName, resourceName, workspaceName)
 		resourceID = fmt.Sprintf("mongodbatlas_stream_connection.%s", resourceName)
 		return connectionConfig, resourceID, pipelineStep
 	case "Sample":
@@ -688,10 +811,10 @@ func configConnection(t *testing.T, projectID, instanceName string, config conne
 		connectionConfig = fmt.Sprintf(`
             data "mongodbatlas_stream_connection" "sample" {
                 project_id      = %[1]q
-                instance_name   = %[2]q
+                workspace_name   = %[2]q
                 connection_name = "sample_stream_solar"
             }
-        `, projectID, instanceName)
+        `, projectID, workspaceName)
 		resourceID = "data.mongodbatlas_stream_connection.sample"
 		if config.extraWhitespace {
 			pipelineStep = "{\"connectionName\": \"sample_stream_solar\"}"
