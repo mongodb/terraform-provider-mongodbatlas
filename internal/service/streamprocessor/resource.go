@@ -44,6 +44,17 @@ func (r *streamProcessorRS) Schema(ctx context.Context, req resource.SchemaReque
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
+// getWorkspaceOrInstanceName returns the workspace name from workspace_name or instance_name field
+func getWorkspaceOrInstanceName(model *TFStreamProcessorRSModel) string {
+	if !model.WorkspaceName.IsNull() && !model.WorkspaceName.IsUnknown() {
+		return model.WorkspaceName.ValueString()
+	}
+	if !model.InstanceName.IsNull() && !model.InstanceName.IsUnknown() {
+		return model.InstanceName.ValueString()
+	}
+	return ""
+}
+
 func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan TFStreamProcessorRSModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -72,9 +83,14 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 
 	connV2 := r.Client.AtlasV2
 	projectID := plan.ProjectID.ValueString()
-	instanceName := plan.InstanceName.ValueString()
+	workspaceOrInstanceName := getWorkspaceOrInstanceName(&plan)
+	if workspaceOrInstanceName == "" {
+		resp.Diagnostics.AddError("validation error", "workspace_name must be provided")
+		return
+	}
+
 	processorName := plan.ProcessorName.ValueString()
-	_, _, err := connV2.StreamsApi.CreateStreamProcessor(ctx, projectID, instanceName, streamProcessorReq).Execute()
+	_, _, err := connV2.StreamsApi.CreateStreamProcessor(ctx, projectID, workspaceOrInstanceName, streamProcessorReq).Execute()
 
 	if err != nil {
 		resp.Diagnostics.AddError("error creating resource", err.Error())
@@ -83,7 +99,7 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 
 	streamProcessorParams := &admin.GetStreamProcessorApiParams{
 		GroupId:       projectID,
-		TenantName:    instanceName,
+		TenantName:    workspaceOrInstanceName,
 		ProcessorName: processorName,
 	}
 
@@ -94,7 +110,7 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 
 	streamProcessorResp, err := WaitStateTransitionWithTimeout(ctx, streamProcessorParams, connV2.StreamsApi, []string{InitiatingState, CreatingState}, []string{CreatedState}, createTimeout)
 	err = cleanup.HandleCreateTimeout(cleanup.ResolveDeleteOnCreateTimeout(plan.DeleteOnCreateTimeout), err, func(ctxCleanup context.Context) error {
-		_, err := connV2.StreamsApi.DeleteStreamProcessor(ctxCleanup, projectID, instanceName, processorName).Execute()
+		_, err := connV2.StreamsApi.DeleteStreamProcessor(ctxCleanup, projectID, workspaceOrInstanceName, processorName).Execute()
 		if err != nil {
 			return err
 		}
@@ -109,7 +125,7 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 		_, err := connV2.StreamsApi.StartStreamProcessorWithParams(ctx,
 			&admin.StartStreamProcessorApiParams{
 				GroupId:       projectID,
-				TenantName:    instanceName,
+				TenantName:    workspaceOrInstanceName,
 				ProcessorName: processorName,
 			},
 		).Execute()
@@ -124,7 +140,9 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 		}
 	}
 
-	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessorResp, &plan.Timeouts, &plan.DeleteOnCreateTimeout)
+	instanceName := plan.InstanceName.ValueString()
+	workspaceName := plan.WorkspaceName.ValueString()
+	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, workspaceName, streamProcessorResp, &plan.Timeouts, &plan.DeleteOnCreateTimeout)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -142,8 +160,13 @@ func (r *streamProcessorRS) Read(ctx context.Context, req resource.ReadRequest, 
 	connV2 := r.Client.AtlasV2
 
 	projectID := state.ProjectID.ValueString()
-	instanceName := state.InstanceName.ValueString()
-	streamProcessor, apiResp, err := connV2.StreamsApi.GetStreamProcessor(ctx, projectID, instanceName, state.ProcessorName.ValueString()).Execute()
+	workspaceOrInstanceName := getWorkspaceOrInstanceName(&state)
+	if workspaceOrInstanceName == "" {
+		resp.Diagnostics.AddError("validation error", "workspace_name must be provided")
+		return
+	}
+
+	streamProcessor, apiResp, err := connV2.StreamsApi.GetStreamProcessor(ctx, projectID, workspaceOrInstanceName, state.ProcessorName.ValueString()).Execute()
 	if err != nil {
 		if validate.StatusNotFound(apiResp) {
 			resp.State.RemoveResource(ctx)
@@ -153,7 +176,9 @@ func (r *streamProcessorRS) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessor, &state.Timeouts, &state.DeleteOnCreateTimeout)
+	instanceName := state.InstanceName.ValueString()
+	workspaceName := state.WorkspaceName.ValueString()
+	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, workspaceName, streamProcessor, &state.Timeouts, &state.DeleteOnCreateTimeout)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -177,7 +202,11 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 	}
 
 	projectID := plan.ProjectID.ValueString()
-	instanceName := plan.InstanceName.ValueString()
+	workspaceOrInstanceName := getWorkspaceOrInstanceName(&plan)
+	if workspaceOrInstanceName == "" {
+		resp.Diagnostics.AddError("validation error", "workspace_name must be provided")
+		return
+	}
 	processorName := plan.ProcessorName.ValueString()
 	currentState := state.State.ValueString()
 	connV2 := r.Client.AtlasV2
@@ -186,7 +215,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 	// requestParams are needed for the state transition via the GET API
 	requestParams := &admin.GetStreamProcessorApiParams{
 		GroupId:       projectID,
-		TenantName:    instanceName,
+		TenantName:    workspaceOrInstanceName,
 		ProcessorName: processorName,
 	}
 
@@ -200,7 +229,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		_, err := connV2.StreamsApi.StopStreamProcessorWithParams(ctx,
 			&admin.StopStreamProcessorApiParams{
 				GroupId:       plan.ProjectID.ValueString(),
-				TenantName:    plan.InstanceName.ValueString(),
+				TenantName:    workspaceOrInstanceName,
 				ProcessorName: plan.ProcessorName.ValueString(),
 			},
 		).Execute()
@@ -234,7 +263,7 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		_, err := r.Client.AtlasV2.StreamsApi.StartStreamProcessorWithParams(ctx,
 			&admin.StartStreamProcessorApiParams{
 				GroupId:       projectID,
-				TenantName:    instanceName,
+				TenantName:    workspaceOrInstanceName,
 				ProcessorName: processorName,
 			},
 		).Execute()
@@ -251,7 +280,9 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 		}
 	}
 
-	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, streamProcessorResp, &plan.Timeouts, &plan.DeleteOnCreateTimeout)
+	instanceName := plan.InstanceName.ValueString()
+	workspaceName := plan.WorkspaceName.ValueString()
+	newStreamProcessorModel, diags := NewStreamProcessorWithStats(ctx, projectID, instanceName, workspaceName, streamProcessorResp, &plan.Timeouts, &plan.DeleteOnCreateTimeout)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -267,25 +298,31 @@ func (r *streamProcessorRS) Delete(ctx context.Context, req resource.DeleteReque
 	}
 
 	connV2 := r.Client.AtlasV2
-	if _, err := connV2.StreamsApi.DeleteStreamProcessor(ctx, streamProcessorState.ProjectID.ValueString(), streamProcessorState.InstanceName.ValueString(), streamProcessorState.ProcessorName.ValueString()).Execute(); err != nil {
+	workspaceOrInstanceName := getWorkspaceOrInstanceName(streamProcessorState)
+	if workspaceOrInstanceName == "" {
+		resp.Diagnostics.AddError("validation error", "workspace_name must be provided")
+		return
+	}
+	if _, err := connV2.StreamsApi.DeleteStreamProcessor(ctx, streamProcessorState.ProjectID.ValueString(), workspaceOrInstanceName, streamProcessorState.ProcessorName.ValueString()).Execute(); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
 		return
 	}
 }
 
 func (r *streamProcessorRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	projectID, instanceName, processorName, err := splitImportID(req.ID)
+	projectID, workspaceName, processorName, err := splitImportID(req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError("error splitting import ID", err.Error())
 		return
 	}
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("instance_name"), instanceName)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("instance_name"), workspaceName)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("workspace_name"), workspaceName)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("processor_name"), processorName)...)
 }
 
-func splitImportID(id string) (projectID, instanceName, processorName *string, err error) {
+func splitImportID(id string) (projectID, workspaceName, processorName *string, err error) {
 	var re = regexp.MustCompile(`^(.*)-([0-9a-fA-F]{24})-(.*)$`)
 	parts := re.FindStringSubmatch(id)
 
@@ -294,7 +331,7 @@ func splitImportID(id string) (projectID, instanceName, processorName *string, e
 		return
 	}
 
-	instanceName = &parts[1]
+	workspaceName = &parts[1]
 	projectID = &parts[2]
 	processorName = &parts[3]
 
