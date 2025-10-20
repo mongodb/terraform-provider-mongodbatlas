@@ -21,10 +21,6 @@ on:
         description: "Run tests using Service Account instead of API Keys"
         type: boolean
         required: false
-      send_notification:
-        description: 'Send a Slack notification if some tests fail.'
-        type: boolean
-        required: false
   workflow_call:
     inputs:
       terraform_matrix:
@@ -44,6 +40,10 @@ on:
         default: true
   schedule:
     - cron: "0 0 2-31 * *" # workflow runs every day at midnight UTC except on the first day of the month
+
+concurrency:
+  group: '${{ github.workflow }}'
+  cancel-in-progress: false
    
 jobs:
   variables:
@@ -62,9 +62,12 @@ jobs:
         run: |
           echo "DAY=$(date +'%a')"
           echo "DAY=$(date +'%a')" >> "$GITHUB_OUTPUT"
+  clean-before:
+    secrets: inherit
+    uses: ./.github/workflows/cleanup-test-env.yml
 
   tests:
-    needs: [variables]
+    needs: [clean-before, variables]
     if: ${{ !cancelled() }}
     strategy:
       max-parallel: 1
@@ -82,8 +85,14 @@ jobs:
       use_sa: ${{ needs.variables.outputs.use_sa == 'true' }}
       send_notification: ${{ !contains(github.event.inputs.send_notification, 'false') }}
 
+  clean-after:
+    needs: tests
+    if: ${{ !cancelled() }}
+    secrets: inherit
+    uses: ./.github/workflows/cleanup-test-env.yml
+  
   slack-notification:
-    needs: [tests]
+    needs: [tests, clean-after]
     if: ${{ !cancelled() && needs.tests.result == 'failure' && !contains(github.event.inputs.send_notification, 'false') }}
     runs-on: ubuntu-latest
     permissions: {}
