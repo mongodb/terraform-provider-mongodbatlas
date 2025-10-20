@@ -17,10 +17,6 @@ on:
       provider_matrix:
         description: 'Previous MongoDB Atlas Provider version matrix for migration tests (JSON array)'
         default: '[""]' # "" for latest version
-      send_notification:
-        description: 'Send a Slack notification if some tests fail.'
-        type: boolean
-        default: false
       use_sa:
         description: "Run tests using Service Account instead of API Keys"
         type: boolean
@@ -103,7 +99,7 @@ jobs:
       - name: Send Slack message
         uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
         with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST }}
           webhook-type: incoming-webhook
           payload: |
             {
