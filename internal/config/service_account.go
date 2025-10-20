@@ -3,7 +3,6 @@ package config
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"sync"
@@ -53,7 +52,6 @@ func getTokenSource(clientID, clientSecret, baseURL string, tokenRenewalBase htt
 	saInfo.clientSecret = clientSecret
 	saInfo.baseURL = baseURL
 	saInfo.tokenSource = tokenSource
-	log.Println("Service Account: Token source created")
 	return saInfo.tokenSource, nil
 }
 
@@ -84,12 +82,9 @@ func CloseTokenSource() {
 	saInfo.clientSecret = ""
 	saInfo.baseURL = ""
 	if err != nil {
-		log.Printf("Service Account: Error retrieving token to revoke: %v\n", err)
 		return
 	}
 	if err := conf.RevokeToken(context.Background(), token); err != nil {
-		log.Printf("Service Account: Error revoking token: %v\n", err)
 		return
 	}
-	log.Println("Service Account: Token revoked successfully")
 }
