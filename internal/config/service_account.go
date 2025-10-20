@@ -73,6 +73,9 @@ func getConfig(clientID, clientSecret, baseURL string) *clientcredentials.Config
 func CloseTokenSource() {
 	saInfo.mu.Lock()
 	defer saInfo.mu.Unlock()
+	if saInfo.closed {
+		return
+	}
 	saInfo.closed = true
 	if saInfo.tokenSource == nil { // No need to do anything if SA was not initialized.
 		return
