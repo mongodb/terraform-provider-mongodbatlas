@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/clean"
 	"github.com/stretchr/testify/require"
 )
@@ -58,6 +59,7 @@ func cleanupSharedResources() {
 		fmt.Printf("Deleting execution project (%d): %s, id: %s\n", i+1, project.name, project.id)
 		deleteProject(project.id)
 	}
+	config.CloseTokenSource()
 }
 
 // ProjectIDExecution returns a project id created for the execution of the tests in the resource package.
