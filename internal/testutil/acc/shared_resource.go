@@ -59,7 +59,7 @@ func cleanupSharedResources() {
 		fmt.Printf("Deleting execution project (%d): %s, id: %s\n", i+1, project.name, project.id)
 		deleteProject(project.id)
 	}
-	config.CloseTokenSource()
+	config.CloseTokenSource() // Revoke SA token when acceptance tests finish.
 }
 
 // ProjectIDExecution returns a project id created for the execution of the tests in the resource package.

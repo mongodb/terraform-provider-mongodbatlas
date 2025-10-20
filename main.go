@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	defer config.CloseTokenSource() // Revoke SA token when the plugin is stopped because the Terraform command finishes.
+	defer config.CloseTokenSource() // Revoke SA token when the plugin is exiting because Terraform command finished.
 
 	var debugMode bool
 	flag.BoolVar(&debugMode, "debug", false, "set to true to run the provider with support for debuggers like delve")
