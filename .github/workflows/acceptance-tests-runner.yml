@@ -1330,7 +1330,7 @@ jobs:
 
   slack-notification-stream:
     needs: [stream]
-    if: ${{ !cancelled() && needs.stream.result == 'failure' && inputs.send_notification == true }}
+    if: ${{ !cancelled() && needs.stream.result == 'failure' && !contains(github.event.inputs.send_notification, 'false') }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:

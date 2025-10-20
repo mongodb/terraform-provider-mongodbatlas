@@ -127,7 +127,7 @@ jobs:
       test_name: ${{ inputs.test_name }}
       reduced_tests: ${{ inputs.reduced_tests || false }}
       use_sa: ${{ inputs.use_sa || false }}
-      send_notification: ${{ inputs.send_notification || false }}
+      send_notification: ${{ !contains(github.event.inputs.send_notification, 'false') }}
       aws_region_federation: ${{ vars.AWS_REGION_FEDERATION }}
       mongodb_atlas_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_ORG_ID_CLOUD_QA || vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
       mongodb_atlas_base_url: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_BASE_URL_QA || vars.MONGODB_ATLAS_BASE_URL }}
