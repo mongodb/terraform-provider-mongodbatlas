@@ -90,7 +90,46 @@ var (
 )
 
 func TestAccStreamRSStreamConnection_kafkaPlaintext(t *testing.T) {
-	t.FailNow()
+	testCase := testCaseKafkaPlaintext(t)
+	resource.ParallelTest(t, *testCase)
+}
+
+func testCaseKafkaPlaintext(t *testing.T) *resource.TestCase {
+	t.Helper()
+	var (
+		projectID, instanceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		connectionName          = "kafka-conn-plaintext"
+	)
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             CheckDestroyStreamConnection,
+		Steps: []resource.TestStep{
+			{
+				Config: dataSourcesConfig + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user", "rawpassword", "", "", "", "", "", ""), "localhost:9092,localhost:9092", "earliest", "", false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkKafkaAttributesAcceptance(resourceName, instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, true),
+					checkKafkaAttributesAcceptance(dataSourceName, instanceName, connectionName, "user", "rawpassword", "localhost:9092,localhost:9092", "earliest", networkingTypePublic, false, false),
+					streamConnectionsAttributeChecksAcceptance(pluralDataSourceName, nil, nil),
+				),
+			},
+			{
+				Config: dataSourcesWithPagination + configureKafka(fmt.Sprintf("%q", projectID), instanceName, connectionName, getKafkaAuthenticationConfig("PLAIN", "user2", "otherpassword", "", "", "", "", "", ""), "localhost:9093", "latest", kafkaNetworkingPublic, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkKafkaAttributesAcceptance(resourceName, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, true),
+					checkKafkaAttributesAcceptance(dataSourceName, instanceName, connectionName, "user2", "otherpassword", "localhost:9093", "latest", networkingTypePublic, false, false),
+					streamConnectionsAttributeChecksAcceptance(pluralDataSourceName, conversion.Pointer(2), conversion.Pointer(1)),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportStateIdFunc:       checkStreamConnectionImportStateIDFunc(resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"authentication.password"},
+			},
+		},
+	}
 }
 
 func testCaseKafkaPlaintextMigration(t *testing.T) *resource.TestCase {
@@ -964,6 +1003,11 @@ func streamConnectionsAttributeChecks(resourceName string, pageNum, itemsPerPage
 		resourceChecks = append(resourceChecks, resource.TestCheckResourceAttr(resourceName, "items_per_page", fmt.Sprint(*itemsPerPage)))
 	}
 	return resource.ComposeAggregateTestCheckFunc(resourceChecks...)
+}
+
+func streamConnectionsAttributeChecksAcceptance(resourceName string, pageNum, itemsPerPage *int) resource.TestCheckFunc {
+	commonTests := streamConnectionsAttributeChecks(resourceName, pageNum, itemsPerPage)
+	return resource.ComposeAggregateTestCheckFunc(commonTests, resource.TestCheckResourceAttrSet(resourceName, "workspace_name"))
 }
 
 func streamConnectionsAttributeChecksMigration(resourceName string, pageNum, itemsPerPage *int) resource.TestCheckFunc {
