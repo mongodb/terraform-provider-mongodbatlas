@@ -33,6 +33,7 @@ type TFAlertConfigurationDSModel struct {
 	Notification          []TfNotificationModel             `tfsdk:"notification"`
 	Output                []TfAlertConfigurationOutputModel `tfsdk:"output"`
 	Enabled               types.Bool                        `tfsdk:"enabled"`
+	SeverityOverride      types.String                      `tfsdk:"severity_override"`
 }
 
 type TfAlertConfigurationOutputModel struct {
@@ -242,6 +243,9 @@ var alertConfigDSSchemaAttributes = map[string]schema.Attribute{
 			},
 		},
 	},
+	"severity_override": schema.StringAttribute{
+		Optional: true,
+	},
 }
 
 func (d *alertConfigurationDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
@@ -337,6 +341,10 @@ func outputAlertConfigurationResourceHcl(label string, alert *admin.GroupAlertsC
 	notifications := alert.GetNotifications()
 	for i := range len(notifications) {
 		appendBlockWithCtyValues(resource, "notification", []string{}, convertNotificationToCtyValues(&notifications[i]))
+	}
+
+	if alert.SeverityOverride != nil {
+		resource.SetAttributeValue("severity_override", cty.StringVal(*alert.SeverityOverride))
 	}
 
 	return string(f.Bytes())

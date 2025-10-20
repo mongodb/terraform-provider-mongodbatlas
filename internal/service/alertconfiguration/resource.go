@@ -64,6 +64,7 @@ type TfAlertConfigurationRSModel struct {
 	ThresholdConfig       []TfThresholdConfigModel       `tfsdk:"threshold_config"`
 	Notification          []TfNotificationModel          `tfsdk:"notification"`
 	Enabled               types.Bool                     `tfsdk:"enabled"`
+	SeverityOverride      types.String                   `tfsdk:"severity_override"`
 }
 
 type TfMatcherModel struct {
@@ -153,6 +154,9 @@ func (r *alertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.UseStateForUnknown(),
 				},
+			},
+			"severity_override": schema.StringAttribute{
+				Optional: true,
 			},
 		},
 		Blocks: map[string]schema.Block{
@@ -381,11 +385,12 @@ func (r *alertConfigurationRS) Create(ctx context.Context, req resource.CreateRe
 	projectID := alertConfigPlan.ProjectID.ValueString()
 
 	apiReq := &admin.GroupAlertsConfig{
-		EventTypeName:   alertConfigPlan.EventType.ValueStringPointer(),
-		Enabled:         alertConfigPlan.Enabled.ValueBoolPointer(),
-		Matchers:        NewMatcherList(alertConfigPlan.Matcher),
-		MetricThreshold: NewMetricThreshold(alertConfigPlan.MetricThresholdConfig),
-		Threshold:       NewThreshold(alertConfigPlan.ThresholdConfig),
+		EventTypeName:    alertConfigPlan.EventType.ValueStringPointer(),
+		Enabled:          alertConfigPlan.Enabled.ValueBoolPointer(),
+		Matchers:         NewMatcherList(alertConfigPlan.Matcher),
+		MetricThreshold:  NewMetricThreshold(alertConfigPlan.MetricThresholdConfig),
+		Threshold:        NewThreshold(alertConfigPlan.ThresholdConfig),
+		SeverityOverride: alertConfigPlan.SeverityOverride.ValueStringPointer(),
 	}
 
 	notifications, err := NewNotificationList(alertConfigPlan.Notification)
@@ -486,6 +491,10 @@ func (r *alertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 
 	if !reflect.DeepEqual(alertConfigPlan.Matcher, alertConfigState.Matcher) {
 		apiReq.Matchers = NewMatcherList(alertConfigPlan.Matcher)
+	}
+
+	if !alertConfigPlan.SeverityOverride.Equal(alertConfigState.SeverityOverride) {
+		apiReq.SeverityOverride = alertConfigPlan.SeverityOverride.ValueStringPointer()
 	}
 
 	// Always refresh structure to handle service keys being obfuscated coming back from read API call

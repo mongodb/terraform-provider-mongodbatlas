@@ -248,6 +248,40 @@ func TestAlertConfigurationSDKToTFModel(t *testing.T) {
 				Enabled:               types.BoolValue(true),
 			},
 		},
+		{
+			name: "Complete SKD response with SeverityOverride",
+			SDKResp: &admin.GroupAlertsConfig{
+				Enabled:          admin.PtrBool(true),
+				EventTypeName:    admin.PtrString("EventType"),
+				GroupId:          admin.PtrString("projectId"),
+				Id:               admin.PtrString("alertConfigurationId"),
+				SeverityOverride: admin.PtrString("WARNING"),
+			},
+			currentStateAlertConfiguration: &alertconfiguration.TfAlertConfigurationRSModel{
+				ID:                    types.StringValue("id"),
+				ProjectID:             types.StringValue("projectId"),
+				AlertConfigurationID:  types.StringValue("alertConfigurationId"),
+				EventType:             types.StringValue("EventType"),
+				Matcher:               []alertconfiguration.TfMatcherModel{},
+				MetricThresholdConfig: []alertconfiguration.TfMetricThresholdConfigModel{},
+				ThresholdConfig:       []alertconfiguration.TfThresholdConfigModel{},
+				Notification:          []alertconfiguration.TfNotificationModel{},
+				Enabled:               types.BoolValue(true),
+				SeverityOverride:      types.StringValue("WARNING"),
+			},
+			expectedTFModel: alertconfiguration.TfAlertConfigurationRSModel{
+				ID:                    types.StringValue("id"),
+				ProjectID:             types.StringValue("projectId"),
+				AlertConfigurationID:  types.StringValue("alertConfigurationId"),
+				EventType:             types.StringValue("EventType"),
+				Matcher:               []alertconfiguration.TfMatcherModel{},
+				MetricThresholdConfig: []alertconfiguration.TfMetricThresholdConfigModel{},
+				ThresholdConfig:       []alertconfiguration.TfThresholdConfigModel{},
+				Notification:          []alertconfiguration.TfNotificationModel{},
+				Enabled:               types.BoolValue(true),
+				SeverityOverride:      types.StringValue("WARNING"),
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -493,6 +527,44 @@ func TestAlertConfigurationSdkToDSModelList(t *testing.T) {
 							Value: types.StringValue("resource \"mongodbatlas_alert_configuration\" \"EventType_0\" {\n  project_id = \"projectId\"\n  event_type = \"EventType\"\n  enabled    = true\n}\n"),
 						},
 					},
+				},
+			},
+		},
+		{
+			name: "Complete SDK model with SeverityOverride",
+			alerts: []admin.GroupAlertsConfig{
+				{
+					Enabled:          admin.PtrBool(true),
+					EventTypeName:    admin.PtrString("EventType"),
+					GroupId:          admin.PtrString("projectId"),
+					Id:               admin.PtrString("alertConfigurationId"),
+					SeverityOverride: admin.PtrString("WARNING"),
+				},
+			},
+			projectID:      "projectId",
+			definedOutputs: []string{"resource_hcl"},
+			expectedTfModel: []alertconfiguration.TFAlertConfigurationDSModel{
+				{
+					ID: types.StringValue(conversion.EncodeStateID(map[string]string{
+						"id":         "alertConfigurationId",
+						"project_id": "projectId",
+					})),
+					ProjectID:             types.StringValue("projectId"),
+					AlertConfigurationID:  types.StringValue("alertConfigurationId"),
+					EventType:             types.StringValue("EventType"),
+					Enabled:               types.BoolValue(true),
+					Matcher:               []alertconfiguration.TfMatcherModel{},
+					MetricThresholdConfig: []alertconfiguration.TfMetricThresholdConfigModel{},
+					ThresholdConfig:       []alertconfiguration.TfThresholdConfigModel{},
+					Notification:          []alertconfiguration.TfNotificationModel{},
+					Output: []alertconfiguration.TfAlertConfigurationOutputModel{
+						{
+							Type:  types.StringValue("resource_hcl"),
+							Label: types.StringValue("EventType_0"),
+							Value: types.StringValue("resource \"mongodbatlas_alert_configuration\" \"EventType_0\" {\n  project_id = \"projectId\"\n  event_type = \"EventType\"\n  enabled    = true\n}\n"),
+						},
+					},
+					SeverityOverride: types.StringValue("WARNING"),
 				},
 			},
 		},
