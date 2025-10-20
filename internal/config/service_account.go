@@ -68,23 +68,17 @@ func getConfig(clientID, clientSecret, baseURL string) *clientcredentials.Config
 	return config
 }
 
+// CloseTokenSource is called just before the provider finishes, it does a best-effort try to revoke the Service Access token.
+// It sets saInfo.closed = true to avoid future calls to getTokenSource, that should't happen as the provider is exiting.
 func CloseTokenSource() {
 	saInfo.mu.Lock()
 	defer saInfo.mu.Unlock()
-	if saInfo.tokenSource == nil {
-		return
-	}
-	conf := getConfig(saInfo.clientID, saInfo.clientSecret, saInfo.baseURL)
-	token, err := saInfo.tokenSource.Token()
 	saInfo.closed = true
-	saInfo.tokenSource = nil
-	saInfo.clientID = ""
-	saInfo.clientSecret = ""
-	saInfo.baseURL = ""
-	if err != nil {
+	if saInfo.tokenSource == nil { // No need to do anything if SA was not initialized.
 		return
 	}
-	if err := conf.RevokeToken(context.Background(), token); err != nil {
-		return
+	if token, err := saInfo.tokenSource.Token(); err == nil {
+		conf := getConfig(saInfo.clientID, saInfo.clientSecret, saInfo.baseURL)
+		_ = conf.RevokeToken(context.Background(), token) // Best-effort, no need to do anything if it fails.
 	}
 }
