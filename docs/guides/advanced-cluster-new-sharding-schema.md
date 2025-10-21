@@ -1,5 +1,5 @@
 ---
-page_title: "Advanced Cluster New Sharding Configurations"
+page_title: "Guide: Advanced Cluster New Sharding Configurations"
 ---
 
 
