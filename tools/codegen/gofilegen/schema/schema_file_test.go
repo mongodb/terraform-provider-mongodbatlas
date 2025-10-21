@@ -209,7 +209,7 @@ var schemaGenFromCodeSpecTestCases = map[string]schemaGenerationTestCase{
 		withObjType:    true,
 		goldenFileName: "nested-attributes",
 	},
-	"Timeout attribute": {
+	"Timeouts from wait - Create only": {
 		inputModel: codespec.Resource{
 			Name: "test_name",
 			Schema: &codespec.Schema{
@@ -221,18 +221,43 @@ var schemaGenFromCodeSpecTestCases = map[string]schemaGenerationTestCase{
 						Description:              admin.PtrString("string description"),
 						ComputedOptionalRequired: codespec.Required,
 					},
-					{
-						TFSchemaName: "timeouts",
-						TFModelName:  "Timeouts",
-						Timeouts: &codespec.TimeoutsAttribute{
-							ConfigurableTimeouts: []codespec.Operation{codespec.Create, codespec.Update, codespec.Delete},
-						},
-						ReqBodyUsage: codespec.OmitAlways,
-					},
+				},
+			},
+			Operations: codespec.APIOperations{
+				Create: codespec.APIOperation{
+					Wait: &codespec.Wait{},
 				},
 			},
 		},
-		goldenFileName: "timeouts",
+		goldenFileName: "timeouts-create",
+	},
+	"Timeouts from wait - Create Update Delete": {
+		inputModel: codespec.Resource{
+			Name: "test_name",
+			Schema: &codespec.Schema{
+				Attributes: []codespec.Attribute{
+					{
+						TFSchemaName:             "string_attr",
+						TFModelName:              "StringAttr",
+						String:                   &codespec.StringAttribute{},
+						Description:              admin.PtrString("string description"),
+						ComputedOptionalRequired: codespec.Required,
+					},
+				},
+			},
+			Operations: codespec.APIOperations{
+				Create: codespec.APIOperation{
+					Wait: &codespec.Wait{},
+				},
+				Update: codespec.APIOperation{
+					Wait: &codespec.Wait{},
+				},
+				Delete: &codespec.APIOperation{
+					Wait: &codespec.Wait{},
+				},
+			},
+		},
+		goldenFileName: "timeouts-create-update-delete",
 	},
 	"Avoid generation of ObjType definitions": {
 		inputModel: codespec.Resource{
