@@ -14,17 +14,18 @@ func GenerateSchemaAttributes(resource *codespec.Resource) CodeStatement {
 
 // generateTimeoutAttributes adds timeouts attribute based on wait blocks.
 func generateTimeoutAttributes(resource *codespec.Resource) {
+	ops := &resource.Operations
 	var result []codespec.Operation
-	if resource.Operations.Create.Wait != nil {
+	if ops.Create.Wait != nil {
 		result = append(result, codespec.Create)
 	}
-	if resource.Operations.Update.Wait != nil {
+	if ops.Update.Wait != nil {
 		result = append(result, codespec.Update)
 	}
-	if resource.Operations.Read.Wait != nil {
+	if ops.Read.Wait != nil {
 		result = append(result, codespec.Read)
 	}
-	if resource.Operations.Delete != nil && resource.Operations.Delete.Wait != nil {
+	if ops.Delete != nil && ops.Delete.Wait != nil {
 		result = append(result, codespec.Delete)
 	}
 	if len(result) > 0 {
