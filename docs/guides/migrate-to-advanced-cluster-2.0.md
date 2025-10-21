@@ -15,7 +15,7 @@ page_title: "Migration Guide: Moving to Advanced Cluster v2.0.0"
 
 ## Identify your current setup
 
-| Case &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | You are currently using `mongodbatlas_advanced_cluster` | What this means |
+| Case &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | You are currently using `mongodbatlas_advanced_cluster`.. | What this means |
 |------|--------------------------|-----------------|
 | &nbsp; | &nbsp; | &nbsp; |
 | [1(a)](#case-1a-currently-using-mongodbatlas_advanced_cluster-with-num_shards--older-blocks-syntax) | ..with `num_shards` | You are using the [older blocks syntax](#attribute-vs-block-syntax) and legacy sharding configuration. |
