@@ -13,7 +13,7 @@ import (
 )
 
 // GetWorkspaceOrInstanceName returns the workspace name from workspace_name or instance_name field. Assumes exactly one of the two is set.
-func GetWorkspaceOrInstanceName(workspaceName types.String, instanceName types.String) string {
+func GetWorkspaceOrInstanceName(workspaceName, instanceName types.String) string {
 	if !workspaceName.IsNull() && !workspaceName.IsUnknown() {
 		return workspaceName.ValueString()
 	}
