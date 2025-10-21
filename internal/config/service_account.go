@@ -22,11 +22,16 @@ var saInfo = struct {
 	clientSecret string
 	baseURL      string
 	mu           sync.Mutex
+	closed       bool
 }{}
 
 func getTokenSource(clientID, clientSecret, baseURL string, tokenRenewalBase http.RoundTripper) (auth.TokenSource, error) {
 	saInfo.mu.Lock()
 	defer saInfo.mu.Unlock()
+
+	if saInfo.closed {
+		return nil, fmt.Errorf("service account token source already closed")
+	}
 
 	baseURL = NormalizeBaseURL(baseURL)
 	if saInfo.tokenSource != nil { // Token source in cache.
@@ -36,13 +41,9 @@ func getTokenSource(clientID, clientSecret, baseURL string, tokenRenewalBase htt
 		return saInfo.tokenSource, nil
 	}
 
-	conf := clientcredentials.NewConfig(clientID, clientSecret)
-	if baseURL != "" {
-		conf.TokenURL = baseURL + clientcredentials.TokenAPIPath
-		conf.RevokeURL = baseURL + clientcredentials.RevokeAPIPath
-	}
 	// Use a new context to avoid "context canceled" errors as the token source is reused and can outlast the callee context.
 	ctx := context.WithValue(context.Background(), auth.HTTPClient, &http.Client{Transport: tokenRenewalBase})
+	conf := getConfig(clientID, clientSecret, baseURL)
 	tokenSource := oauth2.ReuseTokenSourceWithExpiry(nil, conf.TokenSource(ctx), saTokenExpiryBuffer)
 	if _, err := tokenSource.Token(); err != nil { // Retrieve token to fail-fast if credentials are invalid.
 		return nil, err
@@ -56,4 +57,31 @@ func getTokenSource(clientID, clientSecret, baseURL string, tokenRenewalBase htt
 
 func NormalizeBaseURL(baseURL string) string {
 	return strings.TrimRight(baseURL, "/")
+}
+
+func getConfig(clientID, clientSecret, baseURL string) *clientcredentials.Config {
+	config := clientcredentials.NewConfig(clientID, clientSecret)
+	if baseURL != "" {
+		config.TokenURL = baseURL + clientcredentials.TokenAPIPath
+		config.RevokeURL = baseURL + clientcredentials.RevokeAPIPath
+	}
+	return config
+}
+
+// CloseTokenSource is called just before the provider finishes, it does a best-effort try to revoke the Service Access token.
+// It sets saInfo.closed = true to avoid future calls to getTokenSource, that should't happen as the provider is exiting.
+func CloseTokenSource() {
+	saInfo.mu.Lock()
+	defer saInfo.mu.Unlock()
+	if saInfo.closed {
+		return
+	}
+	saInfo.closed = true
+	if saInfo.tokenSource == nil { // No need to do anything if SA was not initialized.
+		return
+	}
+	if token, err := saInfo.tokenSource.Token(); err == nil {
+		conf := getConfig(saInfo.clientID, saInfo.clientSecret, saInfo.baseURL)
+		_ = conf.RevokeToken(context.Background(), token) // Best-effort, no need to do anything if it fails.
+	}
 }

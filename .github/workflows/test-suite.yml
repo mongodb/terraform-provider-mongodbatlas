@@ -87,7 +87,9 @@ jobs:
       provider_version: ${{ matrix.provider_version }}
       atlas_cloud_env: ${{ inputs.atlas_cloud_env || needs.variables.outputs.is_sun == 'true' && 'qa' || '' }} # Run against QA on Sundays
       use_sa: ${{ needs.variables.outputs.use_sa == 'true' }}
-      send_notification: ${{ inputs.send_notification || false }}
+      # This expression is true if unset (scheduled workflow) and works with boolean and string (GHA params are passed as strings)
+      send_notification: ${{ !contains(github.event.inputs.send_notification, 'false') }}
+
   clean-after:
     needs: tests
     if: ${{ !cancelled() }}

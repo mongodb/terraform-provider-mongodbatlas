@@ -23,7 +23,7 @@ The provider uses the first available credentials source.
 
 ### Service Account (Recommended)
 
-SAs simplify authentication by eliminating the need to create new Atlas-specific user identities and permission credentials. See [Service Accounts Overview](https://www.mongodb.com/docs/atlas/api/service-accounts-overview/) and [MongoDB Atlas Service Account Limits](https://www.mongodb.com/docs/manual/reference/limits/#mongodb-atlas-service-account-limits) for more information.
+SAs simplify authentication by eliminating the need to create new Atlas-specific user identities and permission credentials. See [Service Accounts Overview](https://www.mongodb.com/docs/atlas/api/service-accounts-overview/) for more information.
 
 To use SA authentication, create an SA in your [MongoDB Atlas organization](https://www.mongodb.com/docs/atlas/configure-api-access/#grant-programmatic-access-to-an-organization) and set the credentials, for example:
 
@@ -35,6 +35,22 @@ provider "mongodbatlas" {
 ```
 
 **Note:** SAs can't be used with `mongodbatlas_event_trigger` resources because its API doesn't support it yet.
+
+**Troubleshooting Service Accounts**
+
+If you encounter a rate limit error when using Service Accounts, you might see:
+
+```
+│ Error: error initializing provider: oauth2: cannot fetch token: 429 Too Many Requests
+│ Response: {"detail":"Resource /api/oauth/token is limited to 50 requests every 1 minutes.","error":429,"errorCode":"RATE_LIMITED","parameters":["/api/oauth/token",50,1],"reason":"Too Many Requests"}
+```
+
+Atlas enforces rate limiting for each combination of IP address and SA client. See [MongoDB Atlas Service Account Limits](https://www.mongodb.com/docs/manual/reference/limits/#mongodb-atlas-service-account-limits) for more information. Each Terraform operation generates a new token that is used for the duration of that operation. These limits work well for individual development environments. For CI pipelines or enterprise environments with shared infrastructure, consider optimizing your configuration using one of these approaches:
+
+- Contact [MongoDB Support](https://support.mongodb.com/) to request a rate limit increase for your organization.
+- Create separate Service Accounts for different environments or CI/CD pipelines, as each SA client has its own rate limit quota.
+- Distribute Terraform executions across different IP addresses, since rate limits apply per IP and SA client combination.
+- Add retry logic to your automation workflows to handle temporary rate limit errors gracefully.
 
 ### Programmatic Access Key
 
