@@ -7,7 +7,7 @@ page_title: "Guide: Advanced Cluster New Sharding Configurations"
 Additionally, compute auto-scaling supports scaling instance sizes independently for each shard when using the new sharding configuration.
 
 **You may find this guide useful if:**
-- You are considering upgrading from v1.x of our provider to v2.0.0 or later which ONLY support this new configuration.
+- You are considering upgrading from v1.x of our provider to v2.0.0 or later which ONLY supports this new configuration.
 - You currently use the legacy sharding schema (i.e. using `num_shards` which was deprecated in v1.18.0 and removed in 2.0.0).
 - You want to understand the new sharding configuration and how a `replication_specs` element now represents each shard individually, allowing you to scale or modify each shard independently. 
 - You are considering upgrading to a sharded cluster and you want to understand the new sharding configuration.
