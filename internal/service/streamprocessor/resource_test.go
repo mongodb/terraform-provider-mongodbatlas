@@ -870,7 +870,7 @@ func configConnectionMigration(t *testing.T, projectID, instanceName string, con
                     type = "BUILT_IN"
                 }
             }
-        `, projectID, clusterName, connectionName, resourceName, workspaceName)
+        `, projectID, clusterName, connectionName, resourceName, instanceName)
 		resourceID = fmt.Sprintf("mongodbatlas_stream_connection.%s", resourceName)
 		pipelineStep = fmt.Sprintf("{\"connectionName\":%q}", connectionName)
 		return connectionConfig, resourceID, pipelineStep
@@ -904,7 +904,7 @@ func configConnectionMigration(t *testing.T, projectID, instanceName string, con
                     protocol = "SASL_PLAINTEXT"
                 }
             }
-        `, projectID, connectionName, resourceName, workspaceName)
+        `, projectID, connectionName, resourceName, instanceName)
 		resourceID = fmt.Sprintf("mongodbatlas_stream_connection.%s", resourceName)
 		return connectionConfig, resourceID, pipelineStep
 	case "Sample":
@@ -917,7 +917,7 @@ func configConnectionMigration(t *testing.T, projectID, instanceName string, con
                 instance_name   = %[2]q
                 connection_name = "sample_stream_solar"
             }
-        `, projectID, workspaceName)
+        `, projectID, instanceName)
 		resourceID = "data.mongodbatlas_stream_connection.sample"
 		if config.extraWhitespace {
 			pipelineStep = "{\"connectionName\": \"sample_stream_solar\"}"
