@@ -30,10 +30,9 @@ type Wait struct {
 }
 
 type SchemaOptions struct {
-	Ignores   []string            `yaml:"ignores"`
-	Aliases   map[string]string   `yaml:"aliases"` // only supports modifying path param names, full alias support is not yet implemented in conversion logic for request/response bodies
 	Overrides map[string]Override `yaml:"overrides"`
-	Timeouts  []string            `yaml:"timeouts"`
+	Aliases   map[string]string   `yaml:"aliases"` // only supports modifying path param names, full alias support is not yet implemented in conversion logic for request/response bodies
+	Ignores   []string            `yaml:"ignores"`
 }
 
 type Override struct {
