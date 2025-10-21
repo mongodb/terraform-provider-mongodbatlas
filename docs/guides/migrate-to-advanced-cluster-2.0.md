@@ -741,10 +741,10 @@ resource "mongodbatlas_advanced_cluster" "this" {
   cluster_type   = "SHARDED"
   disk_size_gb = 15 # remove this and set per shard for inner specs
 
-  replication_specs = [{   # notice the list of objects and the "=" sign
-    num_shards = 2
+  replication_specs = [{  
+    num_shards = 2  # remove this & add another replication_spec element for the second shard
     region_configs = [{
-      analytics_specs = {   # notice the "=" sign
+      analytics_specs = { 
         instance_size = "M10"
         node_count    = 1
       }
@@ -753,7 +753,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
         compute_max_instance_size = "M20"
         disk_gb_enabled           = true
       }
-      electable_specs = {   # notice the "=" sign
+      electable_specs = {  
         instance_size = "M10"
         node_count    = 3
       }
@@ -773,8 +773,8 @@ resource "mongodbatlas_advanced_cluster" "this" {
   backup_enabled = false
   cluster_type   = "SHARDED"
 
-  replication_specs = [{   # notice the list of objects and the "=" sign
-    region_configs = [{   # notice the list of objects and the "=" sign
+  replication_specs = [{ 
+    region_configs = [{   
       analytics_specs = {
         instance_size = "M10"
         node_count    = 1
@@ -785,7 +785,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
         compute_max_instance_size = "M20"
         disk_gb_enabled           = true
       }
-      electable_specs = {   # notice the "=" sign
+      electable_specs = {   
         instance_size = "M10"
         node_count    = 3
         disk_size_gb = 15 # this is now set at spec level
@@ -806,7 +806,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
         compute_max_instance_size = "M20"
         disk_gb_enabled           = true
       }
-      electable_specs = {   # notice the "=" sign
+      electable_specs = {  
         instance_size = "M10"
         node_count    = 3
         disk_size_gb = 15 # this is now set at spec level
@@ -829,7 +829,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
   cluster_type   = "GEOSHARDED"
   disk_size_gb = 15 # remove this and set per shard for inner specs
 
-  replication_specs = [{   # notice the list of objects and the "=" sign
+  replication_specs = [{  
     num_shards = 2  # remove this & add another replication_spec element for the second shard
     region_configs = [{
       analytics_specs = {
@@ -903,10 +903,10 @@ resource "mongodbatlas_advanced_cluster" "this" {
   name           = var.cluster_name
   cluster_type           = "REPLICASET"
   retain_backups_enabled = "true"
-  disk_size_gb  = 60
+  disk_size_gb  = 60  # remove this and set per shard for inner specs
 
   replication_specs = [{
-    num_shards = 1
+    num_shards = 1  # remove this
     region_configs = [{
       electable_specs = {
         instance_size = "M10"
@@ -972,7 +972,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
   name           = var.cluster_name
   backup_enabled = false
   cluster_type   = "SHARDED"
-  disk_size_gb = 15
+  disk_size_gb = 15 # remove this and set per shard for inner specs
 
   replication_specs = [{
     region_configs = [{
@@ -1058,7 +1058,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
   name           = var.cluster_name
   backup_enabled = false
   cluster_type   = "GEOSHARDED"
-  disk_size_gb = 15
+  disk_size_gb = 15   # remove this and set per shard for inner specs
 
   replication_specs = [{
     region_configs = [{
@@ -1137,12 +1137,12 @@ resource "mongodbatlas_advanced_cluster" "this" {
       analytics_specs = {
         instance_size = "M10"
         node_count    = 1
-        disk_size_gb = 15
+        disk_size_gb = 15   # this is now set at spec level
       }
       electable_specs = {
         instance_size = "M10"
         node_count    = 3
-        disk_size_gb = 15
+        disk_size_gb = 15   # this is now set at spec level
       }
       priority      = 7
       provider_name = "AWS"
@@ -1154,12 +1154,12 @@ resource "mongodbatlas_advanced_cluster" "this" {
       analytics_specs = {
         instance_size = "M10"
         node_count    = 1
-        disk_size_gb = 15
+        disk_size_gb = 15   # this is now set at spec level
       }
       electable_specs = {
         instance_size = "M10"
         node_count    = 3
-        disk_size_gb = 15
+        disk_size_gb = 15   # this is now set at spec level
       }
       priority      = 7
       provider_name = "AWS"
@@ -1171,12 +1171,12 @@ resource "mongodbatlas_advanced_cluster" "this" {
       analytics_specs = {
         instance_size = "M10"
         node_count    = 1
-        disk_size_gb = 15
+        disk_size_gb = 15   # this is now set at spec level
       }
       electable_specs = {
         instance_size = "M10"
         node_count    = 3
-        disk_size_gb = 15
+        disk_size_gb = 15   # this is now set at spec level
       }
       priority      = 7
       provider_name = "AWS"
@@ -1188,12 +1188,12 @@ resource "mongodbatlas_advanced_cluster" "this" {
       analytics_specs = {
         instance_size = "M10"
         node_count    = 1
-        disk_size_gb = 15
+        disk_size_gb = 15   # this is now set at spec level
       }
       electable_specs = {
         instance_size = "M10"
         node_count    = 3
-        disk_size_gb = 15
+        disk_size_gb = 15   # this is now set at spec level
       }
       priority      = 7
       provider_name = "AWS"
@@ -1212,7 +1212,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
   name           = var.cluster_name
   cluster_type           = "REPLICASET"
   retain_backups_enabled = "true"
-  disk_size_gb  = 60
+  disk_size_gb  = 60    # remove this and set per shard for inner specs
 
   replication_specs = [{
     region_configs = [{
@@ -1245,12 +1245,12 @@ resource "mongodbatlas_advanced_cluster" "this" {
       electable_specs = {
         instance_size = "M10"
         node_count    = 3
-        disk_size_gb  = 60
+        disk_size_gb  = 60   # this is now set at spec level
       }
       analytics_specs = {
         instance_size = "M10"
         node_count    = 1
-        disk_size_gb  = 60
+        disk_size_gb  = 60   # this is now set at spec level
       }
       priority      = 7
       provider_name = "AWS"
@@ -1262,7 +1262,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
 
 
 ### Attribute vs Block Syntax
-In older versions, some attributes (like `replication_specs` and `region_configs`) were written as nested **blocks**, for example:
+- In older versions, some list attributes (like `replication_specs` and `region_configs`) were written as nested **blocks**, for example:
 
 ```terraform
 replication_specs {
@@ -1277,13 +1277,10 @@ replication_specs {
     region_name   = "US_EAST_2"
   }
 }
-
-advanced_configuration {
-  default_write_concern = "majority"
-}  
+ 
 ```
 
-Newer Terraform plugin implementations, requires these to be expressed as **attributes** (with an `=` sign) instead using a list or map syntax:
+Newer Terraform plugin implementations, requires these to be expressed as **attributes** (with an `=` sign) instead, using a list or map syntax:
 
 ```terraform
 replication_specs = [{
@@ -1298,9 +1295,38 @@ replication_specs = [{
     region_name   = "US_EAST_1"
   }]
 }]
+```
 
+- Similarly, elements such as `connection_strings`, `timeouts`, `advanced_configuration`, `bi_connector_config`, `pinned_fcv`, `electable_specs`, `read_only_specs`, `analytics_specs`, `auto_scaling` and `analytics_auto_scaling` are now **single attributes** instead of blocks so they are an object. For example,
+
+```terraform 
+advanced_configuration {
+  default_write_concern = "majority"
+}  
+```
+becomes:
+
+```terraform
 advanced_configuration = {
   default_write_concern = "majority"
-} 
+}  
 ```
-For single attributes such as `advanced_configuration` above, if you have references to them, the index such as`[0]` or `.0` will need to be dropped.
+If there are references to them, `[0]` or `.0` are dropped. For example,
+```terraform
+output "standard" {
+  value = mongodbatlas_advanced_cluster.cluster.connection_strings[0].standard
+}
+output "default_write_concern" {
+  value = mongodbatlas_advanced_cluster.cluster.advanced_configuration.0.default_write_concern
+}
+```
+becomes:
+
+```terraform
+output "standard" {
+  value = mongodbatlas_advanced_cluster.cluster.connection_strings.standard
+}
+output "default_write_concern" {
+  value = mongodbatlas_advanced_cluster.cluster.advanced_configuration.default_write_concern
+}
+```
