@@ -175,7 +175,7 @@ func TestAccProjectAPIKey_recreateWhenDeletedExternally(t *testing.T) {
 					if err := deleteAPIKeyManually(orgID, descriptionPrefix); err != nil {
 						t.Fatalf("failed to manually delete API key resource: %s", err)
 					}
-					time.Sleep(5 * time.Second) // avoid flaky test
+					time.Sleep(5 * time.Second) // Avoid flaky empty plan error by ensuring the deletion is registered.
 				},
 				Config:             config,
 				PlanOnly:           true,
