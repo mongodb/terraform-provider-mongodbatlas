@@ -1,12 +1,14 @@
 package autogen_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtype"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -280,6 +282,91 @@ func TestMarshalUpdateNull(t *testing.T) {
 		}
 	`
 	assert.JSONEq(t, expectedJSONCreate, string(rawCreate))
+}
+
+func TestMarshalCustomTypeObject(t *testing.T) {
+	ctx := context.Background()
+
+	type modelEmptyTest struct{}
+
+	type modelCustomTypeTest struct {
+		AttrPrimitiveOmit    types.String                           `tfsdk:"attr_primitive_omit" autogen:"omitjson"`
+		AttrObjectOmit       customtype.ObjectValue[modelEmptyTest] `tfsdk:"attr_object_omit" autogen:"omitjson"`
+		AttrObjectOmitUpdate customtype.ObjectValue[modelEmptyTest] `tfsdk:"attr_object_omit_update" autogen:"omitjsonupdate"`
+		AttrNull             customtype.ObjectValue[modelEmptyTest] `tfsdk:"attr_null" autogen:"includenullonupdate"`
+		AttrInt              types.Int64                            `tfsdk:"attr_int"`
+	}
+
+	type modelCustomTypeParentTest struct {
+		AttrString types.String                                `tfsdk:"attr_string"`
+		AttrObject customtype.ObjectValue[modelCustomTypeTest] `tfsdk:"attr_object"`
+	}
+
+	nullObject := customtype.NewObjectValueNull[modelEmptyTest](ctx)
+	emptyObject := customtype.NewObjectValue[modelEmptyTest](ctx, modelEmptyTest{})
+
+	model := struct {
+		AttrObjectBasic  customtype.ObjectValue[modelCustomTypeTest]       `tfsdk:"attr_object_basic"`
+		AttrObjectNull   customtype.ObjectValue[modelCustomTypeTest]       `tfsdk:"attr_object_null"`
+		AttrObjectNested customtype.ObjectValue[modelCustomTypeParentTest] `tfsdk:"attr_object_nested"`
+	}{
+		AttrObjectBasic: customtype.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
+			AttrInt:              types.Int64Value(1),
+			AttrPrimitiveOmit:    types.StringValue("omitted"),
+			AttrObjectOmit:       emptyObject,
+			AttrObjectOmitUpdate: emptyObject,
+			AttrNull:             nullObject,
+		}),
+		AttrObjectNull: customtype.NewObjectValueNull[modelCustomTypeTest](ctx),
+		AttrObjectNested: customtype.NewObjectValue[modelCustomTypeParentTest](ctx, modelCustomTypeParentTest{
+			AttrString: types.StringValue("parent"),
+			AttrObject: customtype.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
+				AttrInt:              types.Int64Value(2),
+				AttrPrimitiveOmit:    types.StringValue("omitted"),
+				AttrObjectOmit:       emptyObject,
+				AttrObjectOmitUpdate: emptyObject,
+				AttrNull:             nullObject,
+			}),
+		}),
+	}
+
+	const expectedCreateJSON = `
+		{
+			"attrObjectBasic": {
+				"attrInt": 1,
+				"attrObjectOmitUpdate": {}
+			},
+			"attrObjectNested": {
+				"attrObject": {
+					"attrInt": 2,
+					"attrObjectOmitUpdate": {}
+				},
+				"attrString": "parent"
+			}
+		}
+	`
+	rawCreate, err := autogen.Marshal(&model, false)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedCreateJSON, string(rawCreate))
+
+	const expectedUpdateJSON = `
+		{
+			"attrObjectBasic": {
+				"attrInt": 1,
+				"attrNull": null
+			},
+			"attrObjectNested": {
+				"attrObject": {
+					"attrInt": 2,
+					"attrNull": null
+				},
+				"attrString": "parent"
+			}
+		}
+	`
+	rawUpdate, err := autogen.Marshal(&model, true)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedUpdateJSON, string(rawUpdate))
 }
 
 func TestMarshalUnsupported(t *testing.T) {

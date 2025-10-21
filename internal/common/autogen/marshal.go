@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtype"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customtype"
 )
 
 const (
@@ -45,7 +45,7 @@ func Marshal(model any, isUpdate bool) ([]byte, error) {
 
 func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error) {
 	objJSON := make(map[string]any)
-	for i := 0; i < valModel.NumField(); i++ {
+	for i := range valModel.NumField() {
 		attrTypeModel := valModel.Type().Field(i)
 		tag := attrTypeModel.Tag.Get(tagKey)
 		if tag == tagValOmitJSON {

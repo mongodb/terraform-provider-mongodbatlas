@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customtype"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtype"
 )
 
 // ResolveUnknowns converts unknown attributes to null.
@@ -21,7 +21,7 @@ func ResolveUnknowns(model any) error {
 	if valModel.Kind() != reflect.Struct {
 		panic("model must be pointer to struct")
 	}
-	for i := 0; i < valModel.NumField(); i++ {
+	for i := range valModel.NumField() {
 		field := valModel.Field(i)
 		value, ok := field.Interface().(attr.Value)
 		if !ok || !field.CanSet() {

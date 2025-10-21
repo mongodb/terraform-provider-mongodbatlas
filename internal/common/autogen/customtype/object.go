@@ -11,7 +11,31 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-// Custom types: https://developer.hashicorp.com/terraform/plugin/framework/handling-data/types/custom
+/*
+	Custom Object type used in auto-generated code to enable the generic marshal/unmarshal operations to access nested attribute struct tags during conversion.
+	Custom types docs: https://developer.hashicorp.com/terraform/plugin/framework/handling-data/types/custom
+
+	Usage:
+		- Schema definition:
+			"sample_nested_object": schema.SingleNestedAttribute{
+				...
+				CustomType: customtype.NewObjectType[TFStreamConfigModel](ctx),
+				Attributes: map[string]schema.Attribute{
+					"string_attribute": schema.StringAttribute{...},
+				},
+			}
+
+		- TF Models:
+			type TFModel struct {
+				SampleNestedObject customtype.ObjectValue[TFSampleNestedObjectModel] `tfsdk:"sample_nested_object"`
+				...
+			}
+
+			type TFSampleNestedObjectModel struct {
+				StringAttribute types.String `tfsdk:"string_attribute"`
+				...
+			}
+*/
 
 var (
 	_ basetypes.ObjectTypable  = ObjectType[struct{}]{}
@@ -50,11 +74,11 @@ func (ObjectType[T]) String() string {
 
 func (t ObjectType[T]) ValueFromObject(ctx context.Context, in basetypes.ObjectValue) (basetypes.ObjectValuable, diag.Diagnostics) {
 	if in.IsNull() {
-		return newObjectValueNull[T](ctx), nil
+		return NewObjectValueNull[T](ctx), nil
 	}
 
 	if in.IsUnknown() {
-		return newObjectValueUnknown[T](ctx), nil
+		return NewObjectValueUnknown[T](ctx), nil
 	}
 
 	attrTypes, diags := getAttributeTypes[T](ctx)
@@ -106,6 +130,10 @@ type ObjectValueInterface interface {
 }
 
 func (v ObjectValue[T]) NewObjectValue(ctx context.Context, value any) ObjectValueInterface {
+	return NewObjectValue[T](ctx, value)
+}
+
+func NewObjectValue[T any](ctx context.Context, value any) ObjectValue[T] {
 	attrTypes, diags := getAttributeTypes[T](ctx)
 	if diags.HasError() {
 		panic(fmt.Errorf("error creating ObjectValue: %v", diags))
@@ -113,17 +141,17 @@ func (v ObjectValue[T]) NewObjectValue(ctx context.Context, value any) ObjectVal
 
 	newValue, diags := basetypes.NewObjectValueFrom(ctx, attrTypes, value)
 	if diags.HasError() {
-		return newObjectValueUnknown[T](ctx)
+		return NewObjectValueUnknown[T](ctx)
 	}
 
 	return ObjectValue[T]{ObjectValue: newValue}
 }
 
 func (v ObjectValue[T]) NewObjectValueNull(ctx context.Context) ObjectValueInterface {
-	return newObjectValueNull[T](ctx)
+	return NewObjectValueNull[T](ctx)
 }
 
-func newObjectValueNull[T any](ctx context.Context) ObjectValue[T] {
+func NewObjectValueNull[T any](ctx context.Context) ObjectValue[T] {
 	attrTypes, diags := getAttributeTypes[T](ctx)
 	if diags.HasError() {
 		panic(fmt.Errorf("error creating null ObjectValue: %v", diags))
@@ -131,7 +159,7 @@ func newObjectValueNull[T any](ctx context.Context) ObjectValue[T] {
 	return ObjectValue[T]{ObjectValue: basetypes.NewObjectNull(attrTypes)}
 }
 
-func newObjectValueUnknown[T any](ctx context.Context) ObjectValue[T] {
+func NewObjectValueUnknown[T any](ctx context.Context) ObjectValue[T] {
 	attrTypes, diags := getAttributeTypes[T](ctx)
 	if diags.HasError() {
 		panic(fmt.Errorf("error creating unknown ObjectValue: %v", diags))
@@ -182,7 +210,7 @@ func valueToAttributeTypes(ctx context.Context, value reflect.Value) (map[string
 	}
 
 	attributeTypes := make(map[string]attr.Type)
-	for i := 0; i < valueType.NumField(); i++ {
+	for i := range valueType.NumField() {
 		typeField := valueType.Field(i)
 		valueField := value.Field(i)
 

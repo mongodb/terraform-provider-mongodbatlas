@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtype"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customtype"
 )
 
 // Unmarshal gets a JSON (e.g. from an Atlas response) and unmarshals it into a Terraform model.
