@@ -125,7 +125,9 @@ jobs:
     with:
       atlas_cloud_env: "qa"
       ref: ${{ inputs.version_number }}
-  
+      use_sa: false
+      send_notification: false
+
   release:
     runs-on: ubuntu-latest
     permissions: 

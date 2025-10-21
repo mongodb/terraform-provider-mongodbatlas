@@ -93,3 +93,5 @@ jobs:
     uses: ./.github/workflows/acceptance-tests.yml
     with:
         reduced_tests: true
+        use_sa: false
+        send_notification: false
