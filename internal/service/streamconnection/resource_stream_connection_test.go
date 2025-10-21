@@ -519,7 +519,7 @@ func TestAccStreamRSStreamConnection_instanceName(t *testing.T) {
 				ImportStateIdFunc: checkStreamConnectionImportStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
-				// When the new resource is imported, it will contain workspace_name instead of instance_name. This is expected so we will ignore it
+				// When the new resource is imported, it will contain workspace_name instead of instance_name. This is expected so we will ignore it.
 				ImportStateVerifyIgnore: []string{"authentication.password", "instance_name", "workspace_name"},
 			},
 		},
