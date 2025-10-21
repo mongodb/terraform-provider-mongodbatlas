@@ -646,13 +646,13 @@ func config(t *testing.T, projectID, workspaceName, processorName, state, nameSu
 		project_id = %[1]q
 		workspace_name = %[2]q
 		processor_name = %[3]q
-		depends_on = [%4s]
+		depends_on = [%[4]s]
 	}`, projectID, workspaceName, processorName, resourceName)
 	dataSourcePlural := fmt.Sprintf(`
 	data "mongodbatlas_stream_processors" "test" {
 		project_id = %[1]q
 		workspace_name = %[2]q
-		depends_on = [%3s]
+		depends_on = [%[3]s]
 	}`, projectID, workspaceName, resourceName)
 	otherConfig := connectionConfigSrc + connectionConfigDest + dataSource + dataSourcePlural
 
@@ -712,13 +712,13 @@ func configMigration(t *testing.T, projectID, instanceName, processorName, state
 		project_id = %[1]q
 		instance_name = %[2]q
 		processor_name = %[3]q
-		depends_on = [%4s]
+		depends_on = [%[4]s]
 	}`, projectID, instanceName, processorName, resourceName)
 	dataSourcePlural := fmt.Sprintf(`
 	data "mongodbatlas_stream_processors" "test" {
 		project_id = %[1]q
 		instance_name = %[2]q
-		depends_on = [%3s]
+		depends_on = [%[3]s]
 	}`, projectID, instanceName, resourceName)
 	otherConfig := connectionConfigSrc + connectionConfigDest + dataSource + dataSourcePlural
 
@@ -888,7 +888,7 @@ func configConnectionMigration(t *testing.T, projectID, instanceName string, con
 		connectionConfig = fmt.Sprintf(`
             resource "mongodbatlas_stream_connection" %[3]q{
                 project_id      = %[1]q
-                instanceName   = %[4]q
+                instance_name   = %[4]q
                 connection_name = %[2]q
                 type            = "Kafka"
                 authentication = {
