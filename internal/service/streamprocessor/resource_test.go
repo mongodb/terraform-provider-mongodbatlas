@@ -76,6 +76,7 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 		}}
 }
 
+// basicTestCaseMigration is the same as basicTestCase but uses instance_name instead of workspace_name to test compatibility of the deprecated instance_name
 func basicTestCaseMigration(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
@@ -549,7 +550,7 @@ func pluralConfigStateChecksMigration(processorName, state, instanceName string,
 	checks := map[string]knownvalue.Check{
 		"processor_name": knownvalue.StringExact(processorName),
 		"state":          knownvalue.StringExact(state),
-		"workspace_name": knownvalue.StringExact(instanceName),
+		"instance_name":  knownvalue.StringExact(instanceName),
 	}
 	if includeStats {
 		checks["stats"] = knownvalue.NotNull()
@@ -682,8 +683,8 @@ func configMigration(t *testing.T, projectID, instanceName, processorName, state
 		deleteOnCreateTimeoutConfig = fmt.Sprintf(`delete_on_create_timeout = %[1]t`, *deleteOnCreateTimeout)
 	}
 
-	connectionConfigSrc, connectionIDSrc, pipelineStepSrc := configConnection(t, projectID, instanceName, src, nameSuffix)
-	connectionConfigDest, connectionIDDest, pipelineStepDest := configConnection(t, projectID, instanceName, dest, nameSuffix)
+	connectionConfigSrc, connectionIDSrc, pipelineStepSrc := configConnectionMigration(t, projectID, instanceName, src, nameSuffix)
+	connectionConfigDest, connectionIDDest, pipelineStepDest := configConnectionMigration(t, projectID, instanceName, dest, nameSuffix)
 	dependsOn := []string{}
 	if connectionIDSrc != "" && !strings.HasPrefix(connectionIDSrc, "data.") {
 		dependsOn = append(dependsOn, connectionIDSrc)
@@ -812,6 +813,108 @@ func configConnection(t *testing.T, projectID, workspaceName string, config conn
             data "mongodbatlas_stream_connection" "sample" {
                 project_id      = %[1]q
                 workspace_name   = %[2]q
+                connection_name = "sample_stream_solar"
+            }
+        `, projectID, workspaceName)
+		resourceID = "data.mongodbatlas_stream_connection.sample"
+		if config.extraWhitespace {
+			pipelineStep = "{\"connectionName\": \"sample_stream_solar\"}"
+		} else {
+			pipelineStep = "{\"connectionName\":\"sample_stream_solar\"}"
+		}
+		if config.invalidJSON {
+			pipelineStep = "{\"connectionName\": \"sample_stream_solar\"" // missing closing bracket
+		}
+		return connectionConfig, resourceID, pipelineStep
+
+	case "TestLog":
+		if pipelineStepIsSource {
+			t.Fatal("TestLog connection must be used as a destination")
+		}
+		connectionConfig = ""
+		resourceID = ""
+		pipelineStep = "{\"connectionName\":\"__testLog\"}"
+		return connectionConfig, resourceID, pipelineStep
+	}
+	t.Fatalf("Unknown connection type: %s", connectionType)
+	return connectionConfig, resourceID, pipelineStep
+}
+
+func configConnectionMigration(t *testing.T, projectID, instanceName string, config connectionConfig, nameSuffix string) (connectionConfig, resourceID, pipelineStep string) {
+	t.Helper()
+	assert.False(t, config.extraWhitespace && config.connectionType != connTypeSample, "extraWhitespace is only supported for Sample connection")
+	assert.False(t, config.invalidJSON && config.connectionType != connTypeSample, "invalidJson is only supported for Sample connection")
+	connectionType := config.connectionType
+	pipelineStepIsSource := config.pipelineStepIsSource
+	switch connectionType {
+	case "Cluster":
+		var connectionName, resourceName string
+		clusterName := config.clusterName
+		assert.NotEmpty(t, clusterName)
+		if pipelineStepIsSource {
+			connectionName = "ClusterConnectionSrc" + nameSuffix
+			resourceName = "cluster_src"
+		} else {
+			connectionName = "ClusterConnectionDest" + nameSuffix
+			resourceName = "cluster_dest"
+		}
+		connectionConfig = fmt.Sprintf(`
+            resource "mongodbatlas_stream_connection" %[4]q {
+                project_id      = %[1]q
+                cluster_name    = %[2]q
+                workspace_name   = %[5]q
+                connection_name = %[3]q
+                type            = "Cluster"
+                db_role_to_execute = {
+                    role = "atlasAdmin"
+                    type = "BUILT_IN"
+                }
+            }
+        `, projectID, clusterName, connectionName, resourceName, workspaceName)
+		resourceID = fmt.Sprintf("mongodbatlas_stream_connection.%s", resourceName)
+		pipelineStep = fmt.Sprintf("{\"connectionName\":%q}", connectionName)
+		return connectionConfig, resourceID, pipelineStep
+	case "Kafka":
+		var connectionName, resourceName, pipelineStep string
+		if pipelineStepIsSource {
+			connectionName = "KafkaConnectionSrc" + nameSuffix
+			resourceName = "kafka_src"
+			pipelineStep = fmt.Sprintf("{\"connectionName\":%q}", connectionName)
+		} else {
+			connectionName = "KafkaConnectionDest" + nameSuffix
+			resourceName = "kafka_dest"
+			pipelineStep = fmt.Sprintf("{\"connectionName\":%q,\"topic\":\"random_topic\"}", connectionName)
+		}
+		connectionConfig = fmt.Sprintf(`
+            resource "mongodbatlas_stream_connection" %[3]q{
+                project_id      = %[1]q
+                instanceName   = %[4]q
+                connection_name = %[2]q
+                type            = "Kafka"
+                authentication = {
+                    mechanism = "PLAIN"
+                    username  = "user"
+                    password  = "rawpassword"
+                }
+                bootstrap_servers = "localhost:9092,localhost:9092"
+                config = {
+                    "auto.offset.reset" : "earliest"
+                }
+                security = {
+                    protocol = "SASL_PLAINTEXT"
+                }
+            }
+        `, projectID, connectionName, resourceName, workspaceName)
+		resourceID = fmt.Sprintf("mongodbatlas_stream_connection.%s", resourceName)
+		return connectionConfig, resourceID, pipelineStep
+	case "Sample":
+		if !pipelineStepIsSource {
+			t.Fatal("Sample connection must be used as a source")
+		}
+		connectionConfig = fmt.Sprintf(`
+            data "mongodbatlas_stream_connection" "sample" {
+                project_id      = %[1]q
+                instanceName   = %[2]q
                 connection_name = "sample_stream_solar"
             }
         `, projectID, workspaceName)

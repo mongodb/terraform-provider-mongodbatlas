@@ -35,32 +35,21 @@ func (d *StreamProccesorDS) Schema(ctx context.Context, req datasource.SchemaReq
 		OverridenFields: map[string]dsschema.Attribute{
 			"instance_name": dsschema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Human-readable label that identifies the stream instance.",
+				MarkdownDescription: "Label that identifies the stream processing workspace.",
 				DeprecationMessage:  fmt.Sprintf(constant.DeprecationParamWithReplacement, "workspace_name"),
 				Validators: []validator.String{
-					stringvalidator.ConflictsWith(path.MatchRoot("workspace_name")),
+					stringvalidator.ExactlyOneOf(path.MatchRoot("workspace_name")),
 				},
 			},
 			"workspace_name": dsschema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Human-readable label that identifies the stream instance. Conflicts with `instance_name`.",
+				MarkdownDescription: "Label that identifies the stream processing workspace. Conflicts with `instance_name`.",
 				Validators: []validator.String{
-					stringvalidator.ConflictsWith(path.MatchRoot("instance_name")),
+					stringvalidator.ExactlyOneOf(path.MatchRoot("instance_name")),
 				},
 			},
 		},
 	})
-}
-
-// getWorkspaceOrInstanceNameForDS returns the workspace name from workspace_name or instance_name field for datasource model
-func getWorkspaceOrInstanceNameForDS(model *TFStreamProcessorDSModel) string {
-	if !model.WorkspaceName.IsNull() && !model.WorkspaceName.IsUnknown() {
-		return model.WorkspaceName.ValueString()
-	}
-	if !model.InstanceName.IsNull() && !model.InstanceName.IsUnknown() {
-		return model.InstanceName.ValueString()
-	}
-	return ""
 }
 
 func (d *StreamProccesorDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -72,11 +61,7 @@ func (d *StreamProccesorDS) Read(ctx context.Context, req datasource.ReadRequest
 
 	connV2 := d.Client.AtlasV2
 	projectID := streamProccesorConfig.ProjectID.ValueString()
-	workspaceOrInstanceName := getWorkspaceOrInstanceNameForDS(&streamProccesorConfig)
-	if workspaceOrInstanceName == "" {
-		resp.Diagnostics.AddError("validation error", "workspace_name must be provided")
-		return
-	}
+	workspaceOrInstanceName := GetWorkspaceOrInstanceName(streamProccesorConfig.WorkspaceName, streamProccesorConfig.InstanceName)
 
 	processorName := streamProccesorConfig.ProcessorName.ValueString()
 	apiResp, _, err := connV2.StreamsApi.GetStreamProcessor(ctx, projectID, workspaceOrInstanceName, processorName).Execute()

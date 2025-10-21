@@ -12,15 +12,12 @@ import (
 	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 )
 
-// getWorkspaceOrInstanceNameFromModel returns the workspace name from workspace_name or instance_name field
-func getWorkspaceOrInstanceNameFromModel(model *TFStreamProcessorRSModel) string {
-	if !model.WorkspaceName.IsNull() && !model.WorkspaceName.IsUnknown() {
-		return model.WorkspaceName.ValueString()
+// GetWorkspaceOrInstanceName returns the workspace name from workspace_name or instance_name field. Assumes exactly one of the two is set.
+func GetWorkspaceOrInstanceName(workspaceName types.String, instanceName types.String) string {
+	if !workspaceName.IsNull() && !workspaceName.IsUnknown() {
+		return workspaceName.ValueString()
 	}
-	if !model.InstanceName.IsNull() && !model.InstanceName.IsUnknown() {
-		return model.InstanceName.ValueString()
-	}
-	return ""
+	return instanceName.ValueString()
 }
 
 func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.StreamsProcessor, diag.Diagnostics) {
@@ -60,7 +57,7 @@ func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSM
 		return nil, diags
 	}
 
-	workspaceOrInstanceName := getWorkspaceOrInstanceNameFromModel(plan)
+	workspaceOrInstanceName := GetWorkspaceOrInstanceName(plan.WorkspaceName, plan.InstanceName)
 
 	streamProcessorAPIParams := &admin.UpdateStreamProcessorApiParams{
 		GroupId:       plan.ProjectID.ValueString(),

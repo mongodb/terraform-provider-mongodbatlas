@@ -42,29 +42,18 @@ func (d *streamProcessorsDS) Schema(ctx context.Context, req datasource.SchemaRe
 				MarkdownDescription: "Human-readable label that identifies the stream instance.",
 				DeprecationMessage:  fmt.Sprintf(constant.DeprecationParamWithReplacement, "workspace_name"),
 				Validators: []validator.String{
-					stringvalidator.ConflictsWith(path.MatchRoot("workspace_name")),
+					stringvalidator.ExactlyOneOf(path.MatchRoot("workspace_name")),
 				},
 			},
 			"workspace_name": dsschemaattr.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "Human-readable label that identifies the stream instance. Conflicts with `instance_name`.",
 				Validators: []validator.String{
-					stringvalidator.ConflictsWith(path.MatchRoot("instance_name")),
+					stringvalidator.ExactlyOneOf(path.MatchRoot("instance_name")),
 				},
 			},
 		},
 	})
-}
-
-// getWorkspaceOrInstanceNameForPluralDS returns the workspace name from workspace_name or instance_name field for plural datasource model
-func getWorkspaceOrInstanceNameForPluralDS(model *TFStreamProcessorsDSModel) string {
-	if !model.WorkspaceName.IsNull() && !model.WorkspaceName.IsUnknown() {
-		return model.WorkspaceName.ValueString()
-	}
-	if !model.InstanceName.IsNull() && !model.InstanceName.IsUnknown() {
-		return model.InstanceName.ValueString()
-	}
-	return ""
 }
 
 func (d *streamProcessorsDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -76,11 +65,7 @@ func (d *streamProcessorsDS) Read(ctx context.Context, req datasource.ReadReques
 
 	connV2 := d.Client.AtlasV2
 	projectID := streamConnectionsConfig.ProjectID.ValueString()
-	workspaceOrInstanceName := getWorkspaceOrInstanceNameForPluralDS(&streamConnectionsConfig)
-	if workspaceOrInstanceName == "" {
-		resp.Diagnostics.AddError("validation error", "workspace_name must be provided")
-		return
-	}
+	workspaceOrInstanceName := GetWorkspaceOrInstanceName(streamConnectionsConfig.WorkspaceName, streamConnectionsConfig.InstanceName)
 
 	params := admin.GetStreamProcessorsApiParams{
 		GroupId:    projectID,

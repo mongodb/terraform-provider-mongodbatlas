@@ -398,7 +398,7 @@ func TestPluralDSSDKToTFModelWithInstanceName(t *testing.T) {
 	}
 }
 
-func TestGetWorkspaceOrInstanceNameFromModel(t *testing.T) {
+func TestNewStreamProcessorUpdateReq(t *testing.T) {
 	validPipeline := jsontypes.NewNormalizedValue("[{\"$source\":{\"connectionName\":\"sample_stream_solar\"}},{\"$emit\":{\"connectionName\":\"__testLog\"}}]")
 
 	testCases := map[string]struct {
@@ -461,6 +461,49 @@ func TestGetWorkspaceOrInstanceNameFromModel(t *testing.T) {
 					t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
 				}
 				assert.Equal(t, tc.expectedResult, updateReq.TenantName)
+			}
+		})
+	}
+}
+
+func TestGetWorkspaceOrInstanceName(t *testing.T) {
+	testCases := map[string]struct {
+		workspaceName types.String
+		instanceName  types.String
+		expected      string
+	}{
+		"workspace_name provided": {
+			workspaceName: types.StringValue(workspaceName),
+			instanceName:  types.StringNull(),
+			expected:      workspaceName,
+		},
+		"instance_name provided": {
+			workspaceName: types.StringNull(),
+			instanceName:  types.StringValue(instanceName),
+			expected:      instanceName,
+		},
+		"both provided": {
+			workspaceName: types.StringValue(workspaceName),
+			instanceName:  types.StringValue(instanceName),
+			expected:      workspaceName,
+		},
+		"workspace_name empty_string": {
+			workspaceName: types.StringValue(""),
+			instanceName:  types.StringNull(),
+			expected:      "",
+		},
+		"instance_namee empty_string": {
+			workspaceName: types.StringNull(),
+			instanceName:  types.StringValue(""),
+			expected:      "",
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			result := streamprocessor.GetWorkspaceOrInstanceName(tc.workspaceName, tc.instanceName)
+			if result != tc.expected {
+				t.Errorf("Expected %s, got %s", tc.expected, result)
 			}
 		})
 	}
