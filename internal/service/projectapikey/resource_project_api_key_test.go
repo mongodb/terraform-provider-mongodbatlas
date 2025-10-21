@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -174,6 +175,7 @@ func TestAccProjectAPIKey_recreateWhenDeletedExternally(t *testing.T) {
 					if err := deleteAPIKeyManually(orgID, descriptionPrefix); err != nil {
 						t.Fatalf("failed to manually delete API key resource: %s", err)
 					}
+					time.Sleep(5 * time.Second) // avoid flaky test
 				},
 				Config:             config,
 				PlanOnly:           true,
