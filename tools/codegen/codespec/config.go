@@ -57,10 +57,6 @@ func applyAttributeTransformations(schemaOptions config.SchemaOptions, attribute
 		finalAttributes = append(finalAttributes, *attr)
 	}
 
-	if timeoutAttr := applyTimeoutConfig(schemaOptions); parentName == "" && timeoutAttr != nil { // will not run for nested attributes
-		finalAttributes = append(finalAttributes, *timeoutAttr)
-	}
-
 	*attributes = finalAttributes
 }
 
@@ -180,32 +176,6 @@ func getComputabilityFromConfig(computability config.Computability) ComputedOpti
 		return Optional
 	}
 	return Required
-}
-
-func applyTimeoutConfig(options config.SchemaOptions) *Attribute {
-	var result []Operation
-	for _, op := range options.Timeouts {
-		switch op {
-		case "create":
-			result = append(result, Create)
-		case "read":
-			result = append(result, Read)
-		case "delete":
-			result = append(result, Delete)
-		case "update":
-			result = append(result, Update)
-		default:
-			log.Printf("[WARN] Unknown operation type defined in timeout configuration: %s", op)
-		}
-	}
-	if result != nil {
-		return &Attribute{
-			TFSchemaName: "timeouts",
-			Timeouts:     &TimeoutsAttribute{ConfigurableTimeouts: result},
-			ReqBodyUsage: OmitAlways,
-		}
-	}
-	return nil
 }
 
 func setCreateOnlyValue(attr *Attribute) {

@@ -8,7 +8,7 @@ import (
 )
 
 func GenerateGoCode(input *codespec.Resource, withObjTypes bool) []byte {
-	schemaAttrs := GenerateSchemaAttributes(input.Schema.Attributes)
+	schemaAttrs := GenerateSchemaAttributes(input)
 	models := GenerateTypedModels(input.Schema.Attributes, withObjTypes)
 
 	imports := []string{"github.com/hashicorp/terraform-plugin-framework/resource/schema"}
