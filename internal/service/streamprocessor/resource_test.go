@@ -646,13 +646,13 @@ func config(t *testing.T, projectID, workspaceName, processorName, state, nameSu
 		project_id = %[1]q
 		workspace_name = %[2]q
 		processor_name = %[3]q
-		depends_on = [%[4]s]
+		depends_on = [%4s]
 	}`, projectID, workspaceName, processorName, resourceName)
 	dataSourcePlural := fmt.Sprintf(`
 	data "mongodbatlas_stream_processors" "test" {
 		project_id = %[1]q
 		workspace_name = %[2]q
-		depends_on = [%[3]s]
+		depends_on = [%3s]
 	}`, projectID, workspaceName, resourceName)
 	otherConfig := connectionConfigSrc + connectionConfigDest + dataSource + dataSourcePlural
 
@@ -712,13 +712,13 @@ func configMigration(t *testing.T, projectID, instanceName, processorName, state
 		project_id = %[1]q
 		instance_name = %[2]q
 		processor_name = %[3]q
-		depends_on = [%[4]s]
+		depends_on = [%4s]
 	}`, projectID, instanceName, processorName, resourceName)
 	dataSourcePlural := fmt.Sprintf(`
 	data "mongodbatlas_stream_processors" "test" {
 		project_id = %[1]q
 		instance_name = %[2]q
-		depends_on = [%[3]s]
+		depends_on = [%3s]
 	}`, projectID, instanceName, resourceName)
 	otherConfig := connectionConfigSrc + connectionConfigDest + dataSource + dataSourcePlural
 
