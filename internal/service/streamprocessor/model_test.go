@@ -10,6 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 )
 
@@ -93,9 +94,7 @@ func streamProcessorWithStats(t *testing.T, options *admin.StreamsOptions) *admi
 	)
 	var stats any
 	err := json.Unmarshal([]byte(statsExample), &stats)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	processor.SetStats(stats)
 	if options != nil {
 		processor.SetOptions(*options)
@@ -134,9 +133,7 @@ func streamProcessorDSTFModelWithInstanceName(t *testing.T, state, stats string,
 func optionsToTFModel(t *testing.T, options *admin.StreamsOptions) types.Object {
 	t.Helper()
 	result, diags := streamprocessor.ConvertOptionsToTF(t.Context(), options)
-	if diags.HasError() {
-		t.Fatal(diags)
-	}
+	assert.False(t, diags.HasError())
 	assert.NotNil(t, result)
 	return *result
 }
@@ -166,17 +163,13 @@ func TestDSSDKToTFModel(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			sdkModel := tc.sdkModel
 			resultModel, diags := streamprocessor.NewTFStreamprocessorDSModel(t.Context(), projectID, "", workspaceName, sdkModel)
-			if diags.HasError() {
-				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
-			}
+			assert.False(t, diags.HasError())
 			assert.Equal(t, tc.expectedTFModel.Options, resultModel.Options)
 			if sdkModel.Stats != nil {
 				assert.True(t, schemafunc.EqualJSON(resultModel.Pipeline.String(), tc.expectedTFModel.Pipeline.String(), "test stream processor schema"))
 				var statsResult any
 				err := json.Unmarshal([]byte(resultModel.Stats.ValueString()), &statsResult)
-				if err != nil {
-					t.Fatal(err)
-				}
+				require.NoError(t, err)
 				assert.Len(t, sdkModel.Stats, 15)
 				assert.Len(t, statsResult, 15)
 			} else {
@@ -212,17 +205,13 @@ func TestDSSDKToTFModelInstanceName(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			sdkModel := tc.sdkModel
 			resultModel, diags := streamprocessor.NewTFStreamprocessorDSModel(t.Context(), projectID, instanceName, "", sdkModel)
-			if diags.HasError() {
-				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
-			}
+			assert.False(t, diags.HasError())
 			assert.Equal(t, tc.expectedTFModel.Options, resultModel.Options)
 			if sdkModel.Stats != nil {
 				assert.True(t, schemafunc.EqualJSON(resultModel.Pipeline.String(), tc.expectedTFModel.Pipeline.String(), "test stream processor schema"))
 				var statsResult any
 				err := json.Unmarshal([]byte(resultModel.Stats.ValueString()), &statsResult)
-				if err != nil {
-					t.Fatal(err)
-				}
+				require.NoError(t, err)
 				assert.Len(t, sdkModel.Stats, 15)
 				assert.Len(t, statsResult, 15)
 			} else {
@@ -284,17 +273,13 @@ func TestSDKToTFModel(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			sdkModel := tc.sdkModel
 			resultModel, diags := streamprocessor.NewStreamProcessorWithStats(t.Context(), projectID, workspaceName, "", sdkModel, nil, nil)
-			if diags.HasError() {
-				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
-			}
+			assert.False(t, diags.HasError())
 			assert.Equal(t, tc.expectedTFModel.Options, resultModel.Options)
 			if sdkModel.Stats != nil {
 				assert.True(t, schemafunc.EqualJSON(resultModel.Pipeline.String(), tc.expectedTFModel.Pipeline.String(), "test stream processor schema"))
 				var statsResult any
 				err := json.Unmarshal([]byte(resultModel.Stats.ValueString()), &statsResult)
-				if err != nil {
-					t.Fatal(err)
-				}
+				require.NoError(t, err)
 				assert.Len(t, sdkModel.Stats, 15)
 				assert.Len(t, statsResult, 15)
 			} else {
@@ -346,9 +331,7 @@ func TestPluralDSSDKToTFModel(t *testing.T) {
 				WorkspaceName: types.StringValue(workspaceName),
 			}
 			resultModel, diags := streamprocessor.NewTFStreamProcessors(t.Context(), existingConfig, sdkModel.GetResults())
-			if diags.HasError() {
-				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
-			}
+			assert.False(t, diags.HasError())
 			assert.Equal(t, tc.expectedTFModel, resultModel)
 		})
 	}
@@ -390,9 +373,7 @@ func TestPluralDSSDKToTFModelWithInstanceName(t *testing.T) {
 				InstanceName: types.StringValue(instanceName),
 			}
 			resultModel, diags := streamprocessor.NewTFStreamProcessors(t.Context(), existingConfig, sdkModel.GetResults())
-			if diags.HasError() {
-				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
-			}
+			assert.False(t, diags.HasError())
 			assert.Equal(t, tc.expectedTFModel, resultModel)
 		})
 	}
@@ -451,15 +432,10 @@ func TestNewStreamProcessorUpdateReq(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			updateReq, diags := streamprocessor.NewStreamProcessorUpdateReq(t.Context(), tc.model)
 			if tc.expectedResult == "" {
-				// When no name is provided, we expect an error or empty tenant name
-				if diags.HasError() {
-					return
-				}
+				assert.False(t, diags.HasError())
 				assert.Empty(t, updateReq.TenantName)
 			} else {
-				if diags.HasError() {
-					t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
-				}
+				assert.False(t, diags.HasError())
 				assert.Equal(t, tc.expectedResult, updateReq.TenantName)
 			}
 		})

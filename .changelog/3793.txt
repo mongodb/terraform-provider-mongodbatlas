@@ -1,11 +1,11 @@
 ```release-note:note
-resource/mongodbatlas_stream_processor: Deprecates the `instance_name` attribute. Update all configurations using `instance_name` to use the new `workspace_name` attribute instead.
+resource/mongodbatlas_stream_processor: Deprecates the `instance_name` attribute, use `workspace_name` instead
 
 ```
 ```release-note:note
-data-source/mongodbatlas_stream_processor: Deprecates the `instance_name` attribute. Update all configurations using `instance_name` to use the new `workspace_name` attribute instead.
+data-source/mongodbatlas_stream_processor: Deprecates the `instance_name` attribute, use `workspace_name` instead
 ```
 
 ```release-note:note
-data-source/mongodbatlas_stream_processors: Deprecates the `instance_name` attribute. Update all configurations using `instance_name` to use the new `workspace_name` attribute instead.
+data-source/mongodbatlas_stream_processors: Deprecates the `instance_name` attribute, use `workspace_name` instead
 ```

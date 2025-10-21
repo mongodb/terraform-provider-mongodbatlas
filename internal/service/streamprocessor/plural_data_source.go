@@ -5,12 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	dsschemaattr "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -34,25 +29,9 @@ type streamProcessorsDS struct {
 
 func (d *streamProcessorsDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
-		RequiredFields:     []string{"project_id"},
-		OverrideResultsDoc: "Returns all Stream Processors within the specified stream instance.\n\nTo use this resource, the requesting API Key must have the Project Owner\n\nrole or Project Stream Processing Owner role.",
-		OverridenRootFields: map[string]dsschemaattr.Attribute{
-			"instance_name": dsschemaattr.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Label that identifies the stream processing workspace.",
-				DeprecationMessage:  fmt.Sprintf(constant.DeprecationParamWithReplacement, "workspace_name"),
-				Validators: []validator.String{
-					stringvalidator.ExactlyOneOf(path.MatchRoot("workspace_name")),
-				},
-			},
-			"workspace_name": dsschemaattr.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Label that identifies the stream processing workspace. Conflicts with `instance_name`.",
-				Validators: []validator.String{
-					stringvalidator.ExactlyOneOf(path.MatchRoot("instance_name")),
-				},
-			},
-		},
+		RequiredFields:      []string{"project_id"},
+		OverrideResultsDoc:  "Returns all Stream Processors within the specified stream instance.\n\nTo use this resource, the requesting API Key must have the Project Owner\n\nrole or Project Stream Processing Owner role.",
+		OverridenRootFields: dataSourceOverridenFields(),
 	})
 }
 

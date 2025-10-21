@@ -914,7 +914,7 @@ func configConnectionMigration(t *testing.T, projectID, instanceName string, con
 		connectionConfig = fmt.Sprintf(`
             data "mongodbatlas_stream_connection" "sample" {
                 project_id      = %[1]q
-                instanceName   = %[2]q
+                instance_name   = %[2]q
                 connection_name = "sample_stream_solar"
             }
         `, projectID, workspaceName)

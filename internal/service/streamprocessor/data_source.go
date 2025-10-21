@@ -31,25 +31,29 @@ type StreamProccesorDS struct {
 
 func (d *StreamProccesorDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = conversion.DataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.DataSourceSchemaRequest{
-		RequiredFields: []string{"project_id", "processor_name"},
-		OverridenFields: map[string]dsschema.Attribute{
-			"instance_name": dsschema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Label that identifies the stream processing workspace.",
-				DeprecationMessage:  fmt.Sprintf(constant.DeprecationParamWithReplacement, "workspace_name"),
-				Validators: []validator.String{
-					stringvalidator.ExactlyOneOf(path.MatchRoot("workspace_name")),
-				},
-			},
-			"workspace_name": dsschema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "Label that identifies the stream processing workspace. Conflicts with `instance_name`.",
-				Validators: []validator.String{
-					stringvalidator.ExactlyOneOf(path.MatchRoot("instance_name")),
-				},
+		RequiredFields:  []string{"project_id", "processor_name"},
+		OverridenFields: dataSourceOverridenFields(),
+	})
+}
+
+func dataSourceOverridenFields() map[string]dsschema.Attribute {
+	return map[string]dsschema.Attribute{
+		"instance_name": dsschema.StringAttribute{
+			Optional:            true,
+			MarkdownDescription: "Label that identifies the stream processing workspace.",
+			DeprecationMessage:  fmt.Sprintf(constant.DeprecationParamWithReplacement, "workspace_name"),
+			Validators: []validator.String{
+				stringvalidator.ExactlyOneOf(path.MatchRoot("workspace_name")),
 			},
 		},
-	})
+		"workspace_name": dsschema.StringAttribute{
+			Optional:            true,
+			MarkdownDescription: "Label that identifies the stream processing workspace. Conflicts with `instance_name`.",
+			Validators: []validator.String{
+				stringvalidator.ExactlyOneOf(path.MatchRoot("instance_name")),
+			},
+		},
+	}
 }
 
 func (d *StreamProccesorDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
