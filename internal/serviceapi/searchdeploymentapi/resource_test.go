@@ -76,6 +76,11 @@ func configBasic(orgID, projectName, clusterName, instanceSize string, searchNod
 					node_count = %[3]d
 				}
 			]
+			timeouts = {     // TODO: timeouts are in the schema but are not used yet.
+				create = "1h"
+				update = "30m"
+				delete = "10m"
+			}
 		}
 	`, clusterConfig, instanceSize, searchNodeCount)
 }
