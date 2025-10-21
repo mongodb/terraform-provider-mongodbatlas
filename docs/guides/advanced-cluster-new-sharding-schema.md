@@ -15,7 +15,8 @@ Additionally, compute auto-scaling supports scaling instance sizes independently
 
 If you are still using the deprecated `mongodbatlas_cluster` resource, use [Migration Guide: Cluster → Advanced Cluster instead](./cluster-to-advanced-cluster-migration-guide.md).
 
-
+If you are already using `mongodbatlas_advanced_cluster` and want to upgrade to our Terraform Provider v2.0.0 or later from v1.x, also review [Migration Guide: Moving to Advanced Cluster v2.0.0](./migrate-to-advanced-cluster-2.0.md)
+---
 
 - [Changes Overview](#changes-overview)
     - [Migrate advanced\_cluster type `SHARDED`](#migrate-advanced_cluster-type-sharded)
