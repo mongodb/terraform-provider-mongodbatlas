@@ -121,7 +121,7 @@ This may include:
 
 ### Example for migrating a `SHARDED` cluster using `num_shards` (see [complete example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/symmetric-sharded-cluster/v1.x.x/README.md)):
 - Before:
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "cluster" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
@@ -145,7 +145,6 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
     zone_name = "zone n1"
   }
   advanced_configuration { # update syntax to an attribute instead of a block
-    javascript_enabled                   = true
     oplog_size_mb                        = 999
     sample_refresh_interval_bi_connector = 300
   }
@@ -157,7 +156,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 }
 ```
 - After:
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "cluster" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
@@ -179,11 +178,11 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
     },
     {
       region_configs = [{
-        electable_specs = {
+      electable_specs = {
           instance_size = "M30"
           disk_iops     = 3000
           node_count    = 3
-          disk_size_gb  = 10
+        disk_size_gb  = 10 # this is now set at spec level
         }
         provider_name = "AWS"
         priority      = 7
@@ -192,7 +191,6 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   }]
 
   advanced_configuration = {    # notice the "=" sign
-    javascript_enabled                   = true
     oplog_size_mb                        = 999
     sample_refresh_interval_bi_connector = 300
   }
@@ -206,7 +204,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
 ### Example for migrating a `REPLICASET` cluster using `num_shards = 1` (see [complete example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/replicaset/v1.x.x/README.md)):
 - Before:
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "cluster" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
@@ -235,7 +233,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 ```
 
 - After:
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "cluster" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
@@ -265,22 +263,22 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
 ### Example for migrating a `GEOSHARDED` cluster using `num_shards`:
 - Before:
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "test" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
   backup_enabled = false
   cluster_type   = "GEOSHARDED"
-  disk_size_gb = 15
+  disk_size_gb = 15 # remove this and set per shard for inner specs
 
-  replication_specs {
+  replication_specs {   # update syntax to a list attribute of objects instead of blocks
     num_shards = 2  # remove this & add another replication_spec element for the second shard
-    region_configs {
-      electable_specs {
+    region_configs {    # update syntax to a list attribute of objects instead of blocks
+      electable_specs { # update syntax to an attribute instead of a block
         instance_size = "M10"
         node_count    = 3
       }
-      analytics_specs {
+      analytics_specs { # update syntax to an attribute instead of a block
         instance_size = "M10"
         node_count    = 1
       }
@@ -312,22 +310,24 @@ resource "mongodbatlas_advanced_cluster" "test" {
 ```
 
 - After:
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "test" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
   backup_enabled = false
   cluster_type   = "GEOSHARDED"
 
-  replication_specs = [{
+  replication_specs = [{ # notice the list of objects and the "=" sign
     region_configs = [{
       analytics_specs = {
         instance_size = "M10"
         node_count    = 1
+        disk_size_gb = 15 # this is now set at spec level
       }
       electable_specs = {
         instance_size = "M10"
         node_count    = 3
+        disk_size_gb = 15 # this is now set at spec level
       }
       priority      = 7
       provider_name = "AWS"
@@ -339,10 +339,12 @@ resource "mongodbatlas_advanced_cluster" "test" {
       analytics_specs = {
         instance_size = "M10"
         node_count    = 1
+        disk_size_gb = 15 # this is now set at spec level
       }
       electable_specs = {
         instance_size = "M10"
         node_count    = 3
+        disk_size_gb = 15 # this is now set at spec level
       }
       priority      = 7
       provider_name = "AWS"
@@ -354,10 +356,12 @@ resource "mongodbatlas_advanced_cluster" "test" {
       analytics_specs = {
         instance_size = "M10"
         node_count    = 1
+        disk_size_gb = 15 # this is now set at spec level
       }
       electable_specs = {
         instance_size = "M10"
         node_count    = 3
+        disk_size_gb = 15 # this is now set at spec level
       }
       priority      = 7
       provider_name = "AWS"
@@ -369,10 +373,12 @@ resource "mongodbatlas_advanced_cluster" "test" {
       analytics_specs = {
         instance_size = "M10"
         node_count    = 1
+        disk_size_gb = 15 # this is now set at spec level
       }
       electable_specs = {
         instance_size = "M10"
         node_count    = 3
+        disk_size_gb = 15 # this is now set at spec level
       }
       priority      = 7
       provider_name = "AWS"
@@ -401,7 +407,7 @@ At this point, you need to update the configuration by following all of below st
 
 ### Example for migrating a `SHARDED` cluster using new sharding configuration (see [complete example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/asymmetric-sharded-cluster/main.tf)):
 - Before:
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "cluster" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
@@ -436,7 +442,6 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   }
 
   advanced_configuration { # update syntax to an attribute instead of a block
-    javascript_enabled                   = true
     oplog_size_mb                        = 999
     sample_refresh_interval_bi_connector = 300
   }
@@ -449,7 +454,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 ```
 
 - After:
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "this" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
@@ -490,7 +495,6 @@ resource "mongodbatlas_advanced_cluster" "this" {
   ]
 
   advanced_configuration = {    # notice the "=" sign
-    javascript_enabled                   = true
     oplog_size_mb                        = 999
     sample_refresh_interval_bi_connector = 300
   }
@@ -503,20 +507,20 @@ resource "mongodbatlas_advanced_cluster" "this" {
 
 ### Example for migrating a `GEOSHARDED` cluster using new sharding configuration:
 - Before:
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "this" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
   backup_enabled = false
   cluster_type   = "GEOSHARDED"
 
-  replication_specs {
-    region_configs {
-      electable_specs {
+  replication_specs {   # update syntax to a list attribute of objects instead of blocks
+    region_configs {    # update syntax to a list attribute of objects instead of blocks
+      electable_specs { # update syntax to an attribute instead of a block
         instance_size = "M10"
         node_count    = 3
       }
-      analytics_specs {
+      analytics_specs { # update syntax to an attribute instead of a block
         instance_size = "M10"
         node_count    = 1
       }
@@ -527,13 +531,13 @@ resource "mongodbatlas_advanced_cluster" "this" {
     zone_name = "zone 1"
   }
 
-  replication_specs {
-    region_configs {
-      electable_specs {
+  replication_specs {   # update syntax to a list attribute of objects instead of blocks
+    region_configs {    # update syntax to a list attribute of objects instead of blocks
+      electable_specs { # update syntax to an attribute instead of a block
         instance_size = "M10"
         node_count    = 3
       }
-      analytics_specs {
+      analytics_specs { # update syntax to an attribute instead of a block
         instance_size = "M10"
         node_count    = 1
       }
@@ -581,20 +585,20 @@ resource "mongodbatlas_advanced_cluster" "this" {
 ```
 
 - After:
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "this" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
   backup_enabled = false
   cluster_type   = "GEOSHARDED"
 
-  replication_specs = [{
+  replication_specs = [{    # notice the list of objects and the "=" sign
     region_configs = [{
-      analytics_specs = {
+      analytics_specs = {   # notice the "=" sign
         instance_size = "M10"
         node_count    = 1
       }
-      electable_specs = {
+      electable_specs = {   # notice the "=" sign
         instance_size = "M10"
         node_count    = 3
       }
@@ -604,7 +608,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
     }]
     zone_name = "zone 1"
     }, {
-    region_configs = [{
+    region_configs = [{   # notice the list of objects and the "=" sign
       analytics_specs = {
         instance_size = "M10"
         node_count    = 1
@@ -654,7 +658,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
 
 ### Example for migrating a `REPLICASET` cluster:
 - Before:
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "this" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
@@ -681,24 +685,24 @@ resource "mongodbatlas_advanced_cluster" "this" {
 ```
 
 - After:
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "this" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
   cluster_type           = "REPLICASET"
   retain_backups_enabled = "true"
 
-  replication_specs = [{
+  replication_specs = [{   # notice the list of objects and the "=" sign
     region_configs = [{
       electable_specs = {
         instance_size = "M10"
         node_count    = 3
-        disk_size_gb  = 60
+        disk_size_gb  = 60 # this is now set at spec level
       }
-      analytics_specs = {
+      analytics_specs = {   # notice the "=" sign
         instance_size = "M10"
         node_count    = 1
-        disk_size_gb  = 60
+        disk_size_gb  = 60 # this is now set at spec level
       }
       priority      = 7
       provider_name = "AWS"
@@ -708,15 +712,11 @@ resource "mongodbatlas_advanced_cluster" "this" {
 }
 ```
 
-
-
-
-
-
-
 ## Case 2(a): Currently using `mongodbatlas_advanced_cluster` **preview** for v2.0.0 (using environment flag) with `num_shards`
 
-In this case, your configuration is already using the [new attributes syntax](#attribute-vs-block-syntax). Next, you need to remove `num_shards` and restructure the `replication_specs` list to represent one element per shard. Additionally, remove references of the other attributes that have been removed in v2.0.0.
+In this case, after you upgrade to v2.0.0+ from v1.x.x and run `terraform plan`, you should not run into any errors **unless you are using any of the deprecated attributes** mentioned [here](#overview-of-configuration-changes-when-upgrading-from-1x) as your configuration is already using the [new attribute](#attribute-vs-block-syntax) syntax. 
+You may encounter unexpected plan changes as you may have `num_shards` > 1. To address this, you need to remove `num_shards` and restructure the `replication_specs` list as mentioned in below steps. 
+Additionally, remove references of the other attributes that have been removed in v2.0.0.
 
 - **Step #1:** Remove the `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER` environment variable, as it is no longer required.
 
@@ -733,18 +733,18 @@ This may include:
 
 ### Example for migrating a `SHARDED` cluster using `num_shards` & legacy sharding configuration:
 - Before:
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "this" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
   backup_enabled = false
   cluster_type   = "SHARDED"
-  disk_size_gb = 15
+  disk_size_gb = 15 # remove this and set per shard for inner specs
 
-  replication_specs = [{
+  replication_specs = [{   # notice the list of objects and the "=" sign
     num_shards = 2
     region_configs = [{
-      analytics_specs = {
+      analytics_specs = {   # notice the "=" sign
         instance_size = "M10"
         node_count    = 1
       }
@@ -753,7 +753,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
         compute_max_instance_size = "M20"
         disk_gb_enabled           = true
       }
-      electable_specs = {
+      electable_specs = {   # notice the "=" sign
         instance_size = "M10"
         node_count    = 3
       }
@@ -766,27 +766,29 @@ resource "mongodbatlas_advanced_cluster" "this" {
 ```
 
 - After:
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "this" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
   backup_enabled = false
   cluster_type   = "SHARDED"
 
-  replication_specs = [{
-    region_configs = [{
+  replication_specs = [{   # notice the list of objects and the "=" sign
+    region_configs = [{   # notice the list of objects and the "=" sign
       analytics_specs = {
         instance_size = "M10"
         node_count    = 1
+        disk_size_gb = 15
       }
       auto_scaling = {
         compute_enabled           = true
         compute_max_instance_size = "M20"
         disk_gb_enabled           = true
       }
-      electable_specs = {
+      electable_specs = {   # notice the "=" sign
         instance_size = "M10"
         node_count    = 3
+        disk_size_gb = 15 # this is now set at spec level
       }
       priority      = 7
       provider_name = "AWS"
@@ -797,15 +799,17 @@ resource "mongodbatlas_advanced_cluster" "this" {
       analytics_specs = {
         instance_size = "M10"
         node_count    = 1
+        disk_size_gb = 15
       }
       auto_scaling = {
         compute_enabled           = true
         compute_max_instance_size = "M20"
         disk_gb_enabled           = true
       }
-      electable_specs = {
+      electable_specs = {   # notice the "=" sign
         instance_size = "M10"
         node_count    = 3
+        disk_size_gb = 15 # this is now set at spec level
       }
       priority      = 7
       provider_name = "AWS"
@@ -817,16 +821,16 @@ resource "mongodbatlas_advanced_cluster" "this" {
 
 ### Example for migrating a `GEOSHARDED` cluster using `num_shards` & legacy sharding configuration:
 - Before:
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "this" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
   backup_enabled = false
   cluster_type   = "GEOSHARDED"
-  disk_size_gb = 15
+  disk_size_gb = 15 # remove this and set per shard for inner specs
 
-  replication_specs = [{
-    num_shards = 2
+  replication_specs = [{   # notice the list of objects and the "=" sign
+    num_shards = 2  # remove this & add another replication_spec element for the second shard
     region_configs = [{
       analytics_specs = {
         instance_size = "M10"
@@ -846,7 +850,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
 ```
 
 - After:
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "this" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
@@ -858,10 +862,12 @@ resource "mongodbatlas_advanced_cluster" "this" {
       analytics_specs = {
         instance_size = "M10"
         node_count    = 1
+        disk_size_gb = 15 # this is now set at spec level
       }
       electable_specs = {
         instance_size = "M10"
         node_count    = 3
+        disk_size_gb = 15 # this is now set at spec level
       }
       priority      = 7
       provider_name = "AWS"
@@ -873,10 +879,12 @@ resource "mongodbatlas_advanced_cluster" "this" {
       analytics_specs = {
         instance_size = "M10"
         node_count    = 1
+        disk_size_gb = 15 # this is now set at spec level
       }
       electable_specs = {
         instance_size = "M10"
         node_count    = 3
+        disk_size_gb = 15 # this is now set at spec level
       }
       priority      = 7
       provider_name = "AWS"
@@ -889,7 +897,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
 
 ### Example for migrating a `REPLICASET` cluster using `num_shards`:
 - Before:
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "this" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
@@ -917,23 +925,24 @@ resource "mongodbatlas_advanced_cluster" "this" {
 ```
 
 - After:
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "this" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
   cluster_type           = "REPLICASET"
   retain_backups_enabled = "true"
-  disk_size_gb  = 60
 
   replication_specs = [{
     region_configs = [{
       electable_specs = {
         instance_size = "M10"
         node_count    = 3
+        disk_size_gb  = 60 # this is now set at spec level
       }
       analytics_specs = {
         instance_size = "M10"
         node_count    = 1
+        disk_size_gb  = 60 # this is now set at spec level
       }
       priority      = 7
       provider_name = "AWS"
@@ -957,7 +966,7 @@ In this case, after you upgrade to v2.0.0+ from v1.x.x and run `terraform plan`,
 
 ### Example for migrating a `SHARDED` cluster using new sharding configuration:
 - Before:
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "this" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
@@ -998,7 +1007,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
 ```
 
 - After:
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "this" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
@@ -1010,12 +1019,12 @@ resource "mongodbatlas_advanced_cluster" "this" {
       analytics_specs = {
         instance_size = "M10"
         node_count    = 1
-        disk_size_gb = 15
+        disk_size_gb = 15 # this is now set at spec level
       }
       electable_specs = {
         instance_size = "M10"
         node_count    = 3
-        disk_size_gb = 15
+        disk_size_gb = 15 # this is now set at spec level
       }
       priority      = 7
       provider_name = "AWS"
@@ -1026,10 +1035,12 @@ resource "mongodbatlas_advanced_cluster" "this" {
       analytics_specs = {
         instance_size = "M10"
         node_count    = 1
+        disk_size_gb = 15 # this is now set at spec level
       }
       electable_specs = {
         instance_size = "M10"
         node_count    = 3
+        disk_size_gb = 15 # this is now set at spec level
       }
       priority      = 7
       provider_name = "AWS"
@@ -1041,7 +1052,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
 
 ### Example for migrating a `GEOSHARDED` cluster using new sharding configuration:
 - Before:
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "this" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
@@ -1114,7 +1125,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
 ```
 
 - After:
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "this" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
@@ -1195,7 +1206,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
 
 ### Example for migrating a `REPLICASET` cluster using new sharding configuration:
 - Before:
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "this" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
@@ -1222,7 +1233,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
 ```
 
 - After:
-```hcl
+```terraform
 resource "mongodbatlas_advanced_cluster" "this" {
   project_id     = mongodbatlas_project.project.id
   name           = var.cluster_name
@@ -1253,7 +1264,7 @@ resource "mongodbatlas_advanced_cluster" "this" {
 ### Attribute vs Block Syntax
 In older versions, some attributes (like `replication_specs` and `region_configs`) were written as nested **blocks**, for example:
 
-```hcl
+```terraform
 replication_specs {
   region_configs {
     provider_name = "AWS"
@@ -1269,13 +1280,12 @@ replication_specs {
 
 advanced_configuration {
   default_write_concern = "majority"
-  javascript_enabled    = true
 }  
 ```
 
 Newer Terraform plugin implementations, requires these to be expressed as **attributes** (with an `=` sign) instead using a list or map syntax:
 
-```hcl
+```terraform
 replication_specs = [{
   region_configs = [{
     provider_name = "AWS"
@@ -1291,7 +1301,6 @@ replication_specs = [{
 
 advanced_configuration = {
   default_write_concern = "majority"
-  javascript_enabled    = true
 } 
 ```
 For single attributes such as `advanced_configuration` above, if you have references to them, the index such as`[0]` or `.0` will need to be dropped.
