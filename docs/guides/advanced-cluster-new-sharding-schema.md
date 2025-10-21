@@ -16,7 +16,18 @@ Additionally, compute auto-scaling supports scaling instance sizes independently
 If you are still using the deprecated `mongodbatlas_cluster` resource, use [Migration Guide: Cluster → Advanced Cluster instead](./cluster-to-advanced-cluster-migration-guide.md).
 
 
-## Using Independent Shard Scaling
+
+- [Changes Overview](#changes-overview)
+    - [Migrate advanced\_cluster type `SHARDED`](#migrate-advanced_cluster-type-sharded)
+    - [Migrate advanced\_cluster type `GEOSHARDED`](#migrate-advanced_cluster-type-geosharded)
+    - [Upgrade type `REPLICASET` to `SHARDED`](#migrate-advanced_cluster-type-replicaset)
+- [Use Independent Shard Scaling](#use-independent-shard-scaling)
+- [Use Auto-Scaling Per Shard](#use-auto-scaling-per-shard)
+- [Resources and Data Sources Impacted by Independent Shard Scaling](#resources-and-data-sources-impacted-by-independent-shard-scaling)
+  - [Data Source Transition for Asymmetric Clusters](#data-source-transition-for-asymmetric-clusters)
+
+
+## Changes Overview
 
 `replication_specs` attribute now represents each individual cluster's shard with a unique replication spec element.
 When you use the new sharding configurations, it will no longer use the deprecated attribute `num_shards` _(this attribute has been removed in v2.0.0)_, and instead the number of shards are defined by the number of `replication_specs` elements.
