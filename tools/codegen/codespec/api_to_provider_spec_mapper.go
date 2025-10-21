@@ -82,7 +82,7 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 	updateOp := oasResource.UpdateOp
 	readOp := oasResource.ReadOp
 
-	// TODO remove useCustomNestedTypes usage once typing is supported for all nested attributes: object, list, set & map - CLOUDP-349095
+	// TODO remove useCustomNestedTypes usage once typing is supported for all nested attributes: object, list, set & map - CLOUDP-352973
 	useCustomNestedTypes := resourceConfig.SchemaOptions.UseCustomNestedTypes == nil || *resourceConfig.SchemaOptions.UseCustomNestedTypes
 
 	createPathParams := pathParamsToAttributes(createOp, useCustomNestedTypes)
