@@ -403,7 +403,6 @@ jobs:
 
   advanced_cluster:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster' }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -769,7 +768,6 @@ jobs:
 
   cluster:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.cluster == 'true' || inputs.test_group == 'cluster' }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
