@@ -30,19 +30,19 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"instance_name": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Human-readable label that identifies the stream instance.",
+				MarkdownDescription: "Label that identifies the stream processing workspace.",
 				DeprecationMessage:  fmt.Sprintf(constant.DeprecationParamWithReplacement, "workspace_name"),
 				Validators: []validator.String{
-					stringvalidator.ConflictsWith(path.Expressions{
+					stringvalidator.ExactlyOneOf(path.Expressions{
 						path.MatchRelative().AtParent().AtName("workspace_name"),
 					}...),
 				},
 			},
 			"workspace_name": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Human-readable label that identifies the stream instance.",
+				MarkdownDescription: "Label that identifies the stream processing workspace.",
 				Validators: []validator.String{
-					stringvalidator.ConflictsWith(path.Expressions{
+					stringvalidator.ExactlyOneOf(path.Expressions{
 						path.MatchRelative().AtParent().AtName("instance_name"),
 					}...),
 				},
@@ -55,7 +55,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"processor_name": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Human-readable label that identifies the stream processor.",
+				MarkdownDescription: "Label that identifies the stream processor.",
 			},
 			"project_id": schema.StringAttribute{
 				Required:            true,

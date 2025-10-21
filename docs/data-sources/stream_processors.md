@@ -127,8 +127,8 @@ output "stream_processors_results" {
 
 ### Optional
 
-- `instance_name` (String, Deprecated) Human-readable label that identifies the stream instance.
-- `workspace_name` (String) Human-readable label that identifies the stream instance. Conflicts with `instance_name`.
+- `instance_name` (String, Deprecated) Label that identifies the stream processing workspace.
+- `workspace_name` (String) Label that identifies the stream processing workspace. Conflicts with `instance_name`.
 
 ### Read-Only
 
@@ -144,10 +144,10 @@ role or Project Stream Processing Owner role. (see [below for nested schema](#ne
 Read-Only:
 
 - `id` (String) Unique 24-hexadecimal character string that identifies the stream processor.
-- `instance_name` (String, Deprecated) Human-readable label that identifies the stream instance.
+- `instance_name` (String, Deprecated) Label that identifies the stream processing workspace.
 - `options` (Attributes) Optional configuration for the stream processor. (see [below for nested schema](#nestedatt--results--options))
 - `pipeline` (String) Stream aggregation pipeline you want to apply to your streaming data. [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/#std-label-stream-aggregation) contain more information. Using [jsonencode](https://developer.hashicorp.com/terraform/language/functions/jsonencode) is recommended when setting this attribute. For more details see the [Aggregation Pipelines Documentation](https://www.mongodb.com/docs/atlas/atlas-stream-processing/stream-aggregation/)
-- `processor_name` (String) Human-readable label that identifies the stream processor.
+- `processor_name` (String) Label that identifies the stream processor.
 - `project_id` (String) Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
 
 **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
@@ -155,7 +155,7 @@ Read-Only:
 
 **NOTE** When a Stream Processor is updated without specifying the state, it is stopped and then restored to previous state upon update completion.
 - `stats` (String) The stats associated with the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/manage-stream-processor/#view-statistics-of-a-stream-processor) for more information.
-- `workspace_name` (String) Human-readable label that identifies the stream instance.
+- `workspace_name` (String) Label that identifies the stream processing workspace.
 
 <a id="nestedatt--results--options"></a>
 ### Nested Schema for `results.options`

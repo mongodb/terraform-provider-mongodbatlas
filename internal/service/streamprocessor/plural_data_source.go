@@ -39,7 +39,7 @@ func (d *streamProcessorsDS) Schema(ctx context.Context, req datasource.SchemaRe
 		OverridenRootFields: map[string]dsschemaattr.Attribute{
 			"instance_name": dsschemaattr.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Human-readable label that identifies the stream instance.",
+				MarkdownDescription: "Label that identifies the stream processing workspace.",
 				DeprecationMessage:  fmt.Sprintf(constant.DeprecationParamWithReplacement, "workspace_name"),
 				Validators: []validator.String{
 					stringvalidator.ExactlyOneOf(path.MatchRoot("workspace_name")),
@@ -47,7 +47,7 @@ func (d *streamProcessorsDS) Schema(ctx context.Context, req datasource.SchemaRe
 			},
 			"workspace_name": dsschemaattr.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Human-readable label that identifies the stream instance. Conflicts with `instance_name`.",
+				MarkdownDescription: "Label that identifies the stream processing workspace. Conflicts with `instance_name`.",
 				Validators: []validator.String{
 					stringvalidator.ExactlyOneOf(path.MatchRoot("instance_name")),
 				},
