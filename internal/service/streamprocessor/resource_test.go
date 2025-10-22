@@ -862,7 +862,7 @@ func configConnectionMigration(t *testing.T, projectID, instanceName string, con
             resource "mongodbatlas_stream_connection" %[4]q {
                 project_id      = %[1]q
                 cluster_name    = %[2]q
-                workspace_name   = %[5]q
+                instance_name   = %[5]q
                 connection_name = %[3]q
                 type            = "Cluster"
                 db_role_to_execute = {
