@@ -356,6 +356,9 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		}
 		projectID := rs.Primary.Attributes["project_id"]
 		workspaceName := rs.Primary.Attributes["workspace_name"]
+		if workspaceName == "" {
+			workspaceName = rs.Primary.Attributes["instance_name"]
+		}
 		processorName := rs.Primary.Attributes["processor_name"]
 		_, _, err := acc.ConnV2().StreamsApi.GetStreamProcessor(context.Background(), projectID, workspaceName, processorName).Execute()
 
