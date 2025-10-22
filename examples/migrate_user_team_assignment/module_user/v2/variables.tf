@@ -1,11 +1,11 @@
 variable "org_id" {
-  type        = string
   description = "MongoDB Atlas Organization ID"
+  type        = string
 }
 
 variable "team_name" {
-  type        = string
   description = "Name of the Atlas team"
+  type        = string
 }
 
 variable "atlas_client_id" {
@@ -16,6 +16,7 @@ variable "atlas_client_id" {
 variable "atlas_client_secret" {
   description = "MongoDB Atlas Service Account Client Secret"
   type        = string
+  sensitive   = true
   default     = ""
 }
 

@@ -1,12 +1,15 @@
 # Atlas API credentials
 variable "atlas_client_id" {
-  type        = string
   description = "MongoDB Atlas Service Account Client ID"
+  type        = string
+  default     = ""
 }
 
 variable "atlas_client_secret" {
-  type        = string
   description = "MongoDB Atlas Service Account Client Secret"
+  type        = string
+  sensitive   = true
+  default     = ""
 }
 
 # Organization configuration

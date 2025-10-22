@@ -17,5 +17,6 @@ variable "atlas_client_id" {
 variable "atlas_client_secret" {
   description = "MongoDB Atlas Service Account Client Secret"
   type        = string
+  sensitive   = true
   default     = ""
 }
