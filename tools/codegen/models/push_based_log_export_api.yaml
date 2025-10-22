@@ -52,6 +52,17 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
+        - timeouts:
+            configurable_timeouts:
+                - create
+                - update
+                - delete
+          computed_optional_required: ""
+          tf_schema_name: timeouts
+          tf_model_name: Timeouts
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
 operations:
     delete:
         wait:

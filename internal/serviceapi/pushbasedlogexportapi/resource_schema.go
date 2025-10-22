@@ -5,6 +5,7 @@ package pushbasedlogexportapi
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -39,15 +40,21 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Describes whether or not the feature is enabled and what status it is in.",
 			},
+			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
+				Create: true,
+				Update: true,
+				Delete: true,
+			}),
 		},
 	}
 }
 
 type TFModel struct {
-	BucketName types.String `tfsdk:"bucket_name"`
-	CreateDate types.String `tfsdk:"create_date" autogen:"omitjson"`
-	GroupId    types.String `tfsdk:"group_id" autogen:"omitjson"`
-	IamRoleId  types.String `tfsdk:"iam_role_id"`
-	PrefixPath types.String `tfsdk:"prefix_path"`
-	State      types.String `tfsdk:"state" autogen:"omitjson"`
+	BucketName types.String   `tfsdk:"bucket_name"`
+	CreateDate types.String   `tfsdk:"create_date" autogen:"omitjson"`
+	GroupId    types.String   `tfsdk:"group_id" autogen:"omitjson"`
+	IamRoleId  types.String   `tfsdk:"iam_role_id"`
+	PrefixPath types.String   `tfsdk:"prefix_path"`
+	State      types.String   `tfsdk:"state" autogen:"omitjson"`
+	Timeouts   timeouts.Value `tfsdk:"timeouts" autogen:"omitjson"`
 }

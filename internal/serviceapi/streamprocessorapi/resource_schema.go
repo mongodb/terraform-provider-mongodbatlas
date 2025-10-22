@@ -6,6 +6,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -75,6 +76,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Human-readable label that identifies the stream instance.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
+			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
+				Create: true,
+				Update: true,
+				Delete: true,
+			}),
 		},
 	}
 }
@@ -87,6 +93,7 @@ type TFModel struct {
 	State      types.String                           `tfsdk:"state" autogen:"omitjson"`
 	Stats      jsontypes.Normalized                   `tfsdk:"stats" autogen:"omitjson"`
 	TenantName types.String                           `tfsdk:"tenant_name" autogen:"omitjson"`
+	Timeouts   timeouts.Value                         `tfsdk:"timeouts" autogen:"omitjson"`
 }
 type TFOptionsModel struct {
 	Dlq                  customtype.ObjectValue[TFOptionsDlqModel] `tfsdk:"dlq"`

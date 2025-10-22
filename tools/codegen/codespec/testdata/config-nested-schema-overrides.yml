@@ -43,4 +43,3 @@ resources:
           description: "Optional string that has config override to optional/computed"
         attr_always_in_updates:
           include_null_on_update: true
-      timeouts: ["create", "read", "update", "delete"]
