@@ -25,6 +25,7 @@ func generateTimeoutAttributes(resource *codespec.Resource) {
 	if ops.Read.Wait != nil {
 		result = append(result, codespec.Read)
 	}
+	// Delete operation is optional.
 	if ops.Delete != nil && ops.Delete.Wait != nil {
 		result = append(result, codespec.Delete)
 	}
