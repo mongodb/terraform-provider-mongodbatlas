@@ -20,6 +20,7 @@ func TestResolveUnknowns(t *testing.T) {
 	type modelCustomTypeTest struct {
 		AttrKnownString   types.String                           `tfsdk:"attr_known_string"`
 		AttrUnknownObject customtype.ObjectValue[modelEmptyTest] `tfsdk:"attr_unknown_object"`
+		AttrMANYUpper     types.Int64                            `tfsdk:"attr_many_upper"`
 	}
 
 	type modelst struct {
@@ -83,6 +84,7 @@ func TestResolveUnknowns(t *testing.T) {
 		AttrCustomObject: customtype.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
 			AttrKnownString:   types.StringValue("val1"),
 			AttrUnknownObject: customtype.NewObjectValueUnknown[modelEmptyTest](ctx),
+			AttrMANYUpper:     types.Int64Unknown(),
 		}),
 	}
 	modelExpected := modelst{
@@ -133,6 +135,7 @@ func TestResolveUnknowns(t *testing.T) {
 		AttrCustomObject: customtype.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
 			AttrKnownString:   types.StringValue("val1"),
 			AttrUnknownObject: customtype.NewObjectValueNull[modelEmptyTest](ctx),
+			AttrMANYUpper:     types.Int64Null(),
 		}),
 	}
 	require.NoError(t, autogen.ResolveUnknowns(&model))

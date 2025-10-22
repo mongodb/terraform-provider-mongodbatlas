@@ -24,6 +24,7 @@ func TestUnmarshalBasic(t *testing.T) {
 		AttrIntWithFloat types.Int64          `tfsdk:"attr_int_with_float"`
 		AttrTrue         types.Bool           `tfsdk:"attr_true"`
 		AttrFalse        types.Bool           `tfsdk:"attr_false"`
+		AttrMANYUpper    types.Int64          `tfsdk:"attr_many_upper"`
 	}
 	const (
 		// attribute_not_in_model is ignored because it is not in the model, no error is thrown.
@@ -39,7 +40,8 @@ func TestUnmarshalBasic(t *testing.T) {
 				"attrFloatWithInt": 13,
 				"attrNotInModel": "val",
 				"attrNull": null,
-				"attrJSON": {"hello": "there"}
+				"attrJSON": {"hello": "there"},
+				"attrMANYUpper": 1
 			}
 		`
 	)
@@ -52,6 +54,7 @@ func TestUnmarshalBasic(t *testing.T) {
 	assert.InEpsilon(t, float64(456.1), model.AttrFloat.ValueFloat64(), epsilon)
 	assert.InEpsilon(t, float64(13), model.AttrFloatWithInt.ValueFloat64(), epsilon)
 	assert.True(t, model.AttrNotInJSON.IsNull()) // attributes not in JSON response are not changed, so null is kept.
+	assert.Equal(t, int64(1), model.AttrMANYUpper.ValueInt64())
 	assert.JSONEq(t, "{\"hello\":\"there\"}", model.AttrJSON.ValueString())
 }
 
@@ -62,11 +65,12 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 	type modelEmptyTest struct{}
 
 	type modelCustomTypeTest struct {
-		AttrFloat  types.Float64                          `tfsdk:"attr_float"`
-		AttrString types.String                           `tfsdk:"attr_string"`
-		AttrNested customtype.ObjectValue[modelEmptyTest] `tfsdk:"attr_nested"`
-		AttrInt    types.Int64                            `tfsdk:"attr_int"`
-		AttrBool   types.Bool                             `tfsdk:"attr_bool"`
+		AttrFloat     types.Float64                          `tfsdk:"attr_float"`
+		AttrString    types.String                           `tfsdk:"attr_string"`
+		AttrNested    customtype.ObjectValue[modelEmptyTest] `tfsdk:"attr_nested"`
+		AttrInt       types.Int64                            `tfsdk:"attr_int"`
+		AttrBool      types.Bool                             `tfsdk:"attr_bool"`
+		AttrMANYUpper types.Int64                            `tfsdk:"attr_many_upper"`
 	}
 
 	type modelst struct {
@@ -109,11 +113,12 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrObjParent:         types.ObjectNull(objTypeParentTest.AttrTypes),
 		AttrCustomObj: customtype.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
 			// these attribute values are irrelevant, they will be overwritten with JSON values
-			AttrString: types.StringValue("different_string"),
-			AttrInt:    types.Int64Value(999),
-			AttrFloat:  types.Float64Unknown(), // can even be unknown
-			AttrBool:   types.BoolUnknown(),    // can even be unknown
-			AttrNested: customtype.NewObjectValueUnknown[modelEmptyTest](ctx),
+			AttrString:    types.StringValue("different_string"),
+			AttrInt:       types.Int64Value(999),
+			AttrFloat:     types.Float64Unknown(), // can even be unknown
+			AttrBool:      types.BoolUnknown(),    // can even be unknown
+			AttrNested:    customtype.NewObjectValueUnknown[modelEmptyTest](ctx),
+			AttrMANYUpper: types.Int64Value(999),
 		}),
 		AttrCustomObjNullNotSent:    customtype.NewObjectValueNull[modelCustomTypeTest](ctx),
 		AttrCustomObjNullSent:       customtype.NewObjectValueNull[modelCustomTypeTest](ctx),
@@ -172,7 +177,8 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 					"attrInt": 123,
 					"attrFloat": 1.1,
 					"attrBool": true,
-					"attrNested": {}
+					"attrNested": {},
+					"attrMANYUpper": 456
 				},
 				"attrCustomObjNullSent": {
 					"attrString": "null_obj",
@@ -325,34 +331,38 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 			}),
 		}),
 		AttrCustomObj: customtype.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
-			AttrString: types.StringValue("value_string"),
-			AttrInt:    types.Int64Value(123),
-			AttrFloat:  types.Float64Value(1.1),
-			AttrBool:   types.BoolValue(true),
-			AttrNested: customtype.NewObjectValue[modelEmptyTest](ctx, modelEmptyTest{}),
+			AttrString:    types.StringValue("value_string"),
+			AttrInt:       types.Int64Value(123),
+			AttrFloat:     types.Float64Value(1.1),
+			AttrBool:      types.BoolValue(true),
+			AttrNested:    customtype.NewObjectValue[modelEmptyTest](ctx, modelEmptyTest{}),
+			AttrMANYUpper: types.Int64Value(456),
 		}),
 		AttrCustomObjNullNotSent: customtype.NewObjectValueNull[modelCustomTypeTest](ctx),
 		AttrCustomObjNullSent: customtype.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
-			AttrString: types.StringValue("null_obj"),
-			AttrInt:    types.Int64Value(1),
-			AttrFloat:  types.Float64Null(),
-			AttrBool:   types.BoolNull(),
-			AttrNested: customtype.NewObjectValueNull[modelEmptyTest](ctx),
+			AttrString:    types.StringValue("null_obj"),
+			AttrInt:       types.Int64Value(1),
+			AttrFloat:     types.Float64Null(),
+			AttrBool:      types.BoolNull(),
+			AttrNested:    customtype.NewObjectValueNull[modelEmptyTest](ctx),
+			AttrMANYUpper: types.Int64Null(),
 		}),
 		AttrCustomObjUnknownNotSent: customtype.NewObjectValueUnknown[modelCustomTypeTest](ctx),
 		AttrCustomObjUnknownSent: customtype.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
-			AttrString: types.StringValue("unknown_obj"),
-			AttrInt:    types.Int64Null(),
-			AttrFloat:  types.Float64Null(),
-			AttrBool:   types.BoolNull(),
-			AttrNested: customtype.NewObjectValueNull[modelEmptyTest](ctx),
+			AttrString:    types.StringValue("unknown_obj"),
+			AttrInt:       types.Int64Null(),
+			AttrFloat:     types.Float64Null(),
+			AttrBool:      types.BoolNull(),
+			AttrNested:    customtype.NewObjectValueNull[modelEmptyTest](ctx),
+			AttrMANYUpper: types.Int64Null(),
 		}),
 		AttrCustomObjParent: customtype.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
-			AttrString: types.StringValue("parent string"),
-			AttrInt:    types.Int64Null(),
-			AttrFloat:  types.Float64Null(),
-			AttrBool:   types.BoolNull(),
-			AttrNested: customtype.NewObjectValue[modelEmptyTest](ctx, modelEmptyTest{}),
+			AttrString:    types.StringValue("parent string"),
+			AttrInt:       types.Int64Null(),
+			AttrFloat:     types.Float64Null(),
+			AttrBool:      types.BoolNull(),
+			AttrNested:    customtype.NewObjectValue[modelEmptyTest](ctx, modelEmptyTest{}),
+			AttrMANYUpper: types.Int64Null(),
 		}),
 		AttrListString: types.ListValueMust(types.StringType, []attr.Value{
 			types.StringValue("list1"),

@@ -56,6 +56,7 @@ func TestMarshalBasic(t *testing.T) {
 		AttrBoolTrue        types.Bool           `tfsdk:"attr_bool_true"`
 		AttrBoolFalse       types.Bool           `tfsdk:"attr_bool_false"`
 		AttrBoolNull        types.Bool           `tfsdk:"attr_bool_null"`
+		AttrMANYUpper       types.Int64          `tfsdk:"attr_many_upper"`
 	}{
 		AttrFloat:           types.Float64Value(1.234),
 		AttrString:          types.StringValue("hello"),
@@ -68,8 +69,19 @@ func TestMarshalBasic(t *testing.T) {
 		AttrBoolFalse:       types.BoolValue(false),
 		AttrBoolNull:        types.BoolNull(), // null values are not marshaled
 		AttrJSON:            jsontypes.NewNormalizedValue("{\"hello\": \"there\"}"),
+		AttrMANYUpper:       types.Int64Value(2),
 	}
-	const expectedJSON = `{ "attrString": "hello", "attrInt": 1, "attrFloat": 1.234, "attrBoolTrue": true, "attrBoolFalse": false, "attrJSON": {"hello": "there"} }`
+	const expectedJSON = `
+		{ 
+			"attrString": "hello", 
+			"attrInt": 1, 
+			"attrFloat": 1.234, 
+			"attrBoolTrue": true, 
+			"attrBoolFalse": false, 
+			"attrJSON": {"hello": "there"}, 
+			"attrMANYUpper": 2
+		}
+	`
 	raw, err := autogen.Marshal(&model, false)
 	require.NoError(t, err)
 	assert.JSONEq(t, expectedJSON, string(raw))
@@ -295,6 +307,7 @@ func TestMarshalCustomTypeObject(t *testing.T) {
 		AttrObjectOmitUpdate customtype.ObjectValue[modelEmptyTest] `tfsdk:"attr_object_omit_update" autogen:"omitjsonupdate"`
 		AttrNull             customtype.ObjectValue[modelEmptyTest] `tfsdk:"attr_null" autogen:"includenullonupdate"`
 		AttrInt              types.Int64                            `tfsdk:"attr_int"`
+		AttrMANYUpper        types.Int64                            `tfsdk:"attr_many_upper"`
 	}
 
 	type modelCustomTypeParentTest struct {
@@ -316,6 +329,7 @@ func TestMarshalCustomTypeObject(t *testing.T) {
 			AttrObjectOmit:       emptyObject,
 			AttrObjectOmitUpdate: emptyObject,
 			AttrNull:             nullObject,
+			AttrMANYUpper:        types.Int64Value(2),
 		}),
 		AttrObjectNull: customtype.NewObjectValueNull[modelCustomTypeTest](ctx),
 		AttrObjectNested: customtype.NewObjectValue[modelCustomTypeParentTest](ctx, modelCustomTypeParentTest{
@@ -326,6 +340,7 @@ func TestMarshalCustomTypeObject(t *testing.T) {
 				AttrObjectOmit:       emptyObject,
 				AttrObjectOmitUpdate: emptyObject,
 				AttrNull:             nullObject,
+				AttrMANYUpper:        types.Int64Value(3),
 			}),
 		}),
 	}
@@ -334,12 +349,14 @@ func TestMarshalCustomTypeObject(t *testing.T) {
 		{
 			"attrObjectBasic": {
 				"attrInt": 1,
-				"attrObjectOmitUpdate": {}
+				"attrObjectOmitUpdate": {},
+				"attrMANYUpper": 2
 			},
 			"attrObjectNested": {
 				"attrObject": {
 					"attrInt": 2,
-					"attrObjectOmitUpdate": {}
+					"attrObjectOmitUpdate": {},
+					"attrMANYUpper": 3
 				},
 				"attrString": "parent"
 			}
@@ -353,12 +370,14 @@ func TestMarshalCustomTypeObject(t *testing.T) {
 		{
 			"attrObjectBasic": {
 				"attrInt": 1,
-				"attrNull": null
+				"attrNull": null,
+				"attrMANYUpper": 2
 			},
 			"attrObjectNested": {
 				"attrObject": {
 					"attrInt": 2,
-					"attrNull": null
+					"attrNull": null,
+					"attrMANYUpper": 3
 				},
 				"attrString": "parent"
 			}
