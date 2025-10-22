@@ -20,23 +20,37 @@ set -Eeou pipefail
 find ./examples -type d -name ".terraform" -exec rm -rf {} +
 find ./examples -type f -name ".terraform.lock.hcl" -exec rm -f {} +
 
-export TF_CLI_CONFIG_FILE="$PWD/bin-examples/tf-validate.tfrc"
-
 # Use local provider to validate examples
 go build -o bin-examples/terraform-provider-mongodbatlas .
 
-cat << EOF > "$TF_CLI_CONFIG_FILE"
-provider_installation { 
+# Two TF CLI configs: one with local override, one without
+TF_CLI_CONFIG_FILE_WITH="$PWD/bin-examples/tf-validate.local.tfrc"
+TF_CLI_CONFIG_FILE_NO="$PWD/bin-examples/tf-validate.remote.tfrc"
+
+cat << EOF > "$TF_CLI_CONFIG_FILE_WITH"
+provider_installation {
   dev_overrides {
     "mongodb/mongodbatlas" = "$PWD/bin-examples"
   }
-  direct {} 
+  direct {}
+}
+EOF
+
+cat << EOF > "$TF_CLI_CONFIG_FILE_NO"
+provider_installation {
+  direct {}
 }
 EOF
 
 for DIR in $(find ./examples -type f -name '*.tf' -exec dirname {} \; | sort -u); do
   [ ! -d "$DIR" ] && continue
   pushd "$DIR"
+  # For directories named like v1.x.x, do NOT use local override
+  if [[ "$(basename "$DIR")" == "v1.x.x" ]]; then
+    export TF_CLI_CONFIG_FILE="$TF_CLI_CONFIG_FILE_NO"
+  else
+    export TF_CLI_CONFIG_FILE="$TF_CLI_CONFIG_FILE_WITH"
+  fi
   echo; echo -e "\e[1;35m===> Example: $DIR <===\e[0m"; echo
   terraform init > /dev/null # suppress output as it's very verbose
   terraform fmt -check -recursive

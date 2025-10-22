@@ -14,12 +14,11 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
         {
           electable_specs = {
             instance_size = var.provider_instance_size_name
-            node_count    = var.node_count
+            node_count    = 3
           }
-          provider_name         = var.provider_name
-          backing_provider_name = var.backing_provider_name
-          region_name           = "US_EAST_1"
-          priority              = 7
+          provider_name = var.provider_name
+          region_name   = "US_EAST_1"
+          priority      = 7
         }
       ]
     }
@@ -31,6 +30,6 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 }
 
 resource "mongodbatlas_project" "project" {
-  name   = "ClusterUpgradeTest"
+  name   = "TenantUpgradeTest"
   org_id = var.atlas_org_id
 }

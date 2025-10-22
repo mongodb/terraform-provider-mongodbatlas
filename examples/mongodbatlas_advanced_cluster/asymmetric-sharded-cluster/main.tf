@@ -17,6 +17,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
             instance_size = "M30"
             disk_iops     = 3000
             node_count    = 3
+            disk_size_gb  = 10
           }
           provider_name = "AWS"
           priority      = 7
@@ -32,6 +33,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
             instance_size = "M30"
             disk_iops     = 3000
             node_count    = 3
+            disk_size_gb  = 10
           }
           provider_name = "AWS"
           priority      = 7
@@ -47,6 +49,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
             instance_size = "M40"
             disk_iops     = 3000
             node_count    = 3
+            disk_size_gb  = 10
           }
           provider_name = "AWS"
           priority      = 7
@@ -62,6 +65,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
             instance_size = "M40"
             disk_iops     = 3000
             node_count    = 3
+            disk_size_gb  = 10
           }
           provider_name = "AWS"
           priority      = 7
