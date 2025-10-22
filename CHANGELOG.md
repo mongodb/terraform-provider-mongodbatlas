@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 2.1.0 (October 22, 2025)
+
 NOTES:
 
 * data-source/mongodbatlas_stream_connection: Deprecates the `instance_name` attribute. All configurations using `instance_name` should be updated to use the new `workspace_name` attribute instead ([#3610](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3610))
