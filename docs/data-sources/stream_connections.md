@@ -18,8 +18,8 @@ data "mongodbatlas_stream_connections" "test" {
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
-* `instance_name` - (Deprecated) Human-readable label that identifies the stream instance. Attribute is deprecated and will be removed in following major versions in favor of `workspace_name`.
-* `workspace_name` - (Optional) Human-readable label that identifies the stream instance. Conflicts with `instance_name`.
+* `instance_name` - (Deprecated) Label that identifies the stream processing workspace. Attribute is deprecated and will be removed in following major versions in favor of `workspace_name`.
+* `workspace_name` - (Optional) Label that identifies the stream processing workspace. Conflicts with `instance_name`.
 
 ~> **NOTE:** Either `workspace_name` or `instance_name` must be provided, but not both. These fields are functionally identical and `workspace_name` is an alias for `instance_name`. `workspace_name` should be used instead of `instance_name`.
 
@@ -37,8 +37,8 @@ In addition to all arguments above, it also exports the following attributes:
 ### Stream Connection
 
 * `project_id` - Unique 24-hexadecimal digit string that identifies your project.
-* `workspace_name` - Human-readable label that identifies the stream instance.
-* `connection_name` - Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
+* `workspace_name` - Label that identifies the stream processing workspace.
+* `connection_name` - Label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
 * `type` - Type of connection. `AWSLambda`, `Cluster`, `Https`, `Kafka` or `Sample`.
 
 If `type` is of value `Cluster` the following additional attributes are defined:
