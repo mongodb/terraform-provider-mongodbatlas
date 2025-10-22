@@ -157,13 +157,13 @@ type TimeoutsAttribute struct {
 	ConfigurableTimeouts []Operation `yaml:"configurable_timeouts"`
 }
 
-type Operation int
+type Operation string
 
 const (
-	Create Operation = iota
-	Update
-	Read
-	Delete
+	Create Operation = "create"
+	Update Operation = "update"
+	Read   Operation = "read"
+	Delete Operation = "delete"
 )
 
 type CustomDefault struct {

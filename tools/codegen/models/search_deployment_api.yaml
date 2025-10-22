@@ -75,9 +75,9 @@ schema:
           create_only: false
         - timeouts:
             configurable_timeouts:
-                - 0
-                - 1
-                - 3
+                - create
+                - update
+                - delete
           computed_optional_required: ""
           tf_schema_name: timeouts
           tf_model_name: Timeouts
