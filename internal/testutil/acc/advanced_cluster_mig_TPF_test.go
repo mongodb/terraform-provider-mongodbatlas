@@ -129,7 +129,7 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 					value = "labelvalue"
   			}
 
-				tags {
+				tags {  
 					key   = "tag"
 					value = "tagvalue"
   			}

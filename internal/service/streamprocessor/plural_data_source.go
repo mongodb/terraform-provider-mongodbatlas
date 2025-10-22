@@ -29,8 +29,9 @@ type streamProcessorsDS struct {
 
 func (d *streamProcessorsDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = conversion.PluralDataSourceSchemaFromResource(ResourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
-		RequiredFields:     []string{"project_id", "instance_name"},
-		OverrideResultsDoc: "Returns all Stream Processors within the specified stream instance.\n\nTo use this resource, the requesting API Key must have the Project Owner\n\nrole or Project Stream Processing Owner role.",
+		RequiredFields:      []string{"project_id"},
+		OverrideResultsDoc:  "Returns all Stream Processors within the specified stream instance.\n\nTo use this resource, the requesting API Key must have the Project Owner\n\nrole or Project Stream Processing Owner role.",
+		OverridenRootFields: dataSourceOverridenFields(),
 	})
 }
 
@@ -43,11 +44,11 @@ func (d *streamProcessorsDS) Read(ctx context.Context, req datasource.ReadReques
 
 	connV2 := d.Client.AtlasV2
 	projectID := streamConnectionsConfig.ProjectID.ValueString()
-	instanceName := streamConnectionsConfig.InstanceName.ValueString()
+	workspaceOrInstanceName := GetWorkspaceOrInstanceName(streamConnectionsConfig.WorkspaceName, streamConnectionsConfig.InstanceName)
 
 	params := admin.GetStreamProcessorsApiParams{
 		GroupId:    projectID,
-		TenantName: instanceName,
+		TenantName: workspaceOrInstanceName,
 	}
 	sdkProcessors, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.StreamsProcessorWithStats], *http.Response, error) {
 		request := connV2.StreamsApi.GetStreamProcessorsWithParams(ctx, &params)

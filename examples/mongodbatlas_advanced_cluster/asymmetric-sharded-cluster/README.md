@@ -1,19 +1,18 @@
-# MongoDB Atlas Provider -- Global Cluster (Preview for MongoDB Atlas Provider 2.0.0)
+# MongoDB Atlas Provider — Asymmetric Sharded Cluster
 
-This example creates a project and a Sharded Cluster with 4 independent shards with varying cluster tiers.
+This example creates a project and a Sharded Cluster with 4 independent shards with varying cluster tiers. 
 
-It uses the **Preview for MongoDB Atlas Provider 2.0.0** of `mongodbatlas_advanced_cluster`. In order to enable the Preview, you must set the enviroment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`, otherwise the current version will be used.
-
-You can find more information in the [resource documentation page](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster%2520%2528preview%2520provider%25202.0.0%2529).
+### Migrating from v1.x to v2.0.0 or later
+If you are migrating from v1.x of our provider to v2.0.0 or later, the `v1.x.x/` sub-directory shows how your current configuration might look like (with added inline comments to demonstrate what has changed in v2.0.0+ for migration reference).
 
 ## Dependencies
 
-* Terraform MongoDB Atlas Provider v1.29.0
+* Terraform MongoDB Atlas Provider v2.0.0 or later
 * A MongoDB Atlas account 
 
 ```
 Terraform >= 0.13
-+ provider registry.terraform.io/terraform-providers/mongodbatlas v1.29.0
++ provider registry.terraform.io/terraform-providers/mongodbatlas v2.0.0
 ```
 
 
@@ -23,14 +22,14 @@ Terraform >= 0.13
 This can be done using environment variables:
 
 ```bash
-export MONGODB_ATLAS_PUBLIC_KEY="<ATLAS_PUBLIC_KEY>"
-export MONGODB_ATLAS_PRIVATE_KEY="<ATLAS_PRIVATE_KEY>"
+export MONGODB_ATLAS_CLIENT_ID="<ATLAS_CLIENT_ID>"
+export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 ```
 
 ... or follow as in the `variables.tf` file and create **terraform.tfvars** file with all the variable values, ex:
 ```
-public_key           = "<MONGODB_ATLAS_PUBLIC_KEY>"
-private_key          = "<MONGODB_ATLAS_PRIVATE_KEY>"
+client_id     = "<ATLAS_CLIENT_ID>"
+client_secret = "<ATLAS_CLIENT_SECRET>"
 atlas_org_id         = "<MONGODB_ATLAS_ORG_ID>"
 ```
 
@@ -63,4 +62,3 @@ Once you are finished your testing, ensure you destroy the resources to avoid un
 ``` bash
 $ terraform destroy
 ```
-

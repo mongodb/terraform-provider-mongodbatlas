@@ -1,0 +1,64 @@
+# MongoDB Atlas Provider — Symmetric Sharded Cluster
+
+This example creates a SHARDED cluster with 2 shards configured symmetrically.
+
+### Migrating from v1.x to v2.0.0 or later
+If you are migrating from v1.x of our provider to v2.0.0 or later, the `v1.x.x/` sub-directory shows how your current configuration might look like (with added inline comments to demonstrate what has changed for migration reference).
+
+## Dependencies
+
+* Terraform MongoDB Atlas Provider v2.0.0 or later
+* A MongoDB Atlas account 
+
+```
+Terraform >= 0.13
++ provider registry.terraform.io/terraform-providers/mongodbatlas v2.0.0
+```
+
+
+## Usage
+**1\. Ensure your MongoDB Atlas credentials are set up.**
+
+This can be done using environment variables:
+
+```bash
+export MONGODB_ATLAS_CLIENT_ID="<ATLAS_CLIENT_ID>"
+export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
+```
+
+... or follow as in the `variables.tf` file and create **terraform.tfvars** file with all the variable values, ex:
+```
+client_id     = "<ATLAS_CLIENT_ID>"
+client_secret = "<ATLAS_CLIENT_SECRET>"
+atlas_org_id         = "<MONGODB_ATLAS_ORG_ID>"
+```
+
+... or use [AWS Secrets Manager](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs#aws-secrets-manager)
+
+**2\. Review the Terraform plan.**
+
+Execute the below command and ensure you are happy with the plan.
+
+``` bash
+$ terraform plan
+```
+This project currently supports the below deployments:
+
+- An Atlas Project
+- A Sharded Cluster with independent shards with varying cluster tiers
+
+**3\. Execute the Terraform apply.**
+
+Now execute the plan to provision the Atlas Project and Cluster resources.
+
+``` bash
+$ terraform apply
+```
+
+**4\. Destroy the resources.**
+
+Once you are finished your testing, ensure you destroy the resources to avoid unnecessary Atlas charges.
+
+``` bash
+$ terraform destroy
+```
