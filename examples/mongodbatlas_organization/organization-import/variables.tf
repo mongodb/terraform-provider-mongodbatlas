@@ -1,12 +1,15 @@
 # Atlas API credentials
-variable "public_key" {
+variable "atlas_client_id" {
+  description = "MongoDB Atlas Service Account Client ID"
   type        = string
-  description = "Public Programmatic API key to authenticate to Atlas"
+  default     = ""
 }
 
-variable "private_key" {
+variable "atlas_client_secret" {
+  description = "MongoDB Atlas Service Account Client Secret"
   type        = string
-  description = "Private Programmatic API key to authenticate to Atlas"
+  sensitive   = true
+  default     = ""
 }
 
 # Organization configuration

@@ -13,14 +13,15 @@ variable "user_id" {
   type        = string
 }
 
-variable "public_key" {
-  description = "Atlas API public key"
+variable "atlas_client_id" {
+  description = "MongoDB Atlas Service Account Client ID"
   type        = string
   default     = ""
 }
 
-variable "private_key" {
-  description = "Atlas API private key"
+variable "atlas_client_secret" {
+  description = "MongoDB Atlas Service Account Client Secret"
   type        = string
+  sensitive   = true
   default     = ""
 }

@@ -39,8 +39,8 @@ Clean final configuration using only `mongodbatlas_cloud_user_project_assignment
 Set these variables for all versions:
 
 ```terraform
-public_key  = "your-mongodb-atlas-public-key"   # Optional, can use env vars
-private_key = "your-mongodb-atlas-private-key"  # Optional, can use env vars
+client_id     = "your-service-account-client-id"   # Optional, can use env vars
+client_secret = "your-service-account-client-secret"  # Optional, can use env vars
 project_id  = "your-project-id"
 username    = "user@example.com"                # User with pending invitation
 roles       = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_ONLY"]
@@ -48,6 +48,6 @@ roles       = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_ONLY"]
 
 Alternatively, set environment variables:
 ```bash
-export MONGODB_ATLAS_PUBLIC_KEY="your-public-key"
-export MONGODB_ATLAS_PRIVATE_KEY="your-private-key"
+export MONGODB_ATLAS_CLIENT_ID="<ATLAS_CLIENT_ID>"
+export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 ```

@@ -6,8 +6,8 @@ This example demonstrates how to use the `mongodbatlas_cloud_user_team_assignmen
   
 ```hcl  
 provider "mongodbatlas" {  
-  public_key  = var.public_key  
-  private_key = var.private_key  
+  client_id     = var.atlas_client_id  
+  client_secret = var.atlas_client_secret  
 }  
   
 resource "mongodbatlas_cloud_user_team_assignment" "example" {  
@@ -18,8 +18,8 @@ resource "mongodbatlas_cloud_user_team_assignment" "example" {
 ```  
 
 You must set the following variables:  
-- `public_key`: Your MongoDB Atlas API public key.  
-- `private_key`: Your MongoDB Atlas API private key.  
+- `atlas_client_id`: Your MongoDB Atlas Service Account Client ID.  
+- `atlas_client_secret`: Your MongoDB Atlas Service Account Client Secret.  
 - `org_id`: The ID of the MongoDB Atlas organization.  
 - `team_id`: The ID of the team to assign the user to.  
 - `user_id`: The ID of the user to assign to the team.  

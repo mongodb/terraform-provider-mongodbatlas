@@ -51,6 +51,10 @@ schema:
                                   sensitive: false
                                   create_only: false
                       description: Dead letter queue for the stream processor.
+                      custom_type:
+                        package: customtype
+                        model: customtype.ObjectValue[TFOptionsDlqModel]
+                        schema: customtype.NewObjectType[TFOptionsDlqModel](ctx)
                       computed_optional_required: optional
                       tf_schema_name: dlq
                       tf_model_name: Dlq
@@ -66,6 +70,10 @@ schema:
                       sensitive: false
                       create_only: false
           description: Optional configuration for the stream processor.
+          custom_type:
+            package: customtype
+            model: customtype.ObjectValue[TFOptionsModel]
+            schema: customtype.NewObjectType[TFOptionsModel](ctx)
           computed_optional_required: computed_optional
           tf_schema_name: options
           tf_model_name: Options
@@ -92,6 +100,7 @@ schema:
         - string: {}
           description: The stats associated with the stream processor.
           custom_type:
+            package: jsontypes
             model: jsontypes.Normalized
             schema: jsontypes.NormalizedType{}
           computed_optional_required: computed

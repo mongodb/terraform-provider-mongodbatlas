@@ -4,8 +4,8 @@ This example shows how to use Azure PrivateLink Endpoints with EventHub for Atla
 
 You must set the following variables for Atlas in main.tf:
 
-- `public_key`: Public API key to authenticate to Atlas
-- `private_key`: Private API key to authenticate to Atlas
+- `atlas_client_id`: MongoDB Atlas Service Account Client ID
+- `atlas_client_secret`: MongoDB Atlas Service Account Client Secret
 - `project_id`: Unique 24-hexadecimal digit string that identifies your atlas project
 - `atlas_region`: Atlas region where you want to create the Streams PrivateLink resources. To learn more, see `Atlas Region` column in https://www.mongodb.com/docs/atlas/reference/microsoft-azure/#stream-processing-instances. 
 
@@ -32,10 +32,10 @@ The following setup is for Azure PrivateLink with EventHub example in azure.tf. 
 2. Run the command `az login` and authenticate using the default browser.
 3. Once authenticated, Azure returns the following user details:
 
-**2\. Set up your MongoDB Atlas API keys.**
+**2\. Set up your MongoDB MongoDB Atlas Service Account credentials.**
 1. Log in to your MongoDB Atlas account.
 2. Navigate to the "Project Access" section of your project.
-3. Create a new API key with the necessary permissions (Project Owner or similar).
+3. Create a new Service Account with the necessary permissions (Project Owner or similar).
 4. Copy the Public and Private keys to use with the Terraform configuration.
 
 **3\. Create a terraform.tfvars file.**

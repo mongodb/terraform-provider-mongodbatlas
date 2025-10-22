@@ -1,26 +1,41 @@
 package autogen_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtype"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestResolveUnknowns(t *testing.T) {
-	type modelst struct {
-		AttrStringUnknown types.String `tfsdk:"attr_string_unknown"`
-		AttrObjectUnknown types.Object `tfsdk:"attr_object_unknown"`
-		AttrListUnknown   types.List   `tfsdk:"attr_list_unknown"`
-		AttrObject        types.Object `tfsdk:"attr_object"`
-		AttrListString    types.List   `tfsdk:"attr_list_string"`
-		AttrSetString     types.Set    `tfsdk:"attr_set_string"`
-		AttrListObjObj    types.List   `tfsdk:"attr_list_obj_obj"`
-		AttrMapUnknown    types.Map    `tfsdk:"attr_map_unknown"`
+	ctx := context.Background()
+
+	type modelEmptyTest struct{}
+
+	type modelCustomTypeTest struct {
+		AttrKnownString   types.String                           `tfsdk:"attr_known_string"`
+		AttrUnknownObject customtype.ObjectValue[modelEmptyTest] `tfsdk:"attr_unknown_object"`
+		AttrMANYUpper     types.Int64                            `tfsdk:"attr_many_upper"`
 	}
+
+	type modelst struct {
+		AttrStringUnknown       types.String                                `tfsdk:"attr_string_unknown"`
+		AttrObjectUnknown       types.Object                                `tfsdk:"attr_object_unknown"`
+		AttrListUnknown         types.List                                  `tfsdk:"attr_list_unknown"`
+		AttrObject              types.Object                                `tfsdk:"attr_object"`
+		AttrListString          types.List                                  `tfsdk:"attr_list_string"`
+		AttrSetString           types.Set                                   `tfsdk:"attr_set_string"`
+		AttrListObjObj          types.List                                  `tfsdk:"attr_list_obj_obj"`
+		AttrMapUnknown          types.Map                                   `tfsdk:"attr_map_unknown"`
+		AttrCustomObjectUnknown customtype.ObjectValue[modelEmptyTest]      `tfsdk:"attr_custom_object_unknown"`
+		AttrCustomObject        customtype.ObjectValue[modelCustomTypeTest] `tfsdk:"attr_custom_object"`
+	}
+
 	model := modelst{
 		AttrStringUnknown: types.StringUnknown(),
 		AttrObjectUnknown: types.ObjectUnknown(objTypeTest.AttributeTypes()),
@@ -64,7 +79,13 @@ func TestResolveUnknowns(t *testing.T) {
 			}),
 			types.ObjectUnknown(objTypeParentTest.AttributeTypes()),
 		}),
-		AttrMapUnknown: types.MapUnknown(types.StringType),
+		AttrMapUnknown:          types.MapUnknown(types.StringType),
+		AttrCustomObjectUnknown: customtype.NewObjectValueUnknown[modelEmptyTest](ctx),
+		AttrCustomObject: customtype.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
+			AttrKnownString:   types.StringValue("val1"),
+			AttrUnknownObject: customtype.NewObjectValueUnknown[modelEmptyTest](ctx),
+			AttrMANYUpper:     types.Int64Unknown(),
+		}),
 	}
 	modelExpected := modelst{
 		AttrStringUnknown: types.StringNull(),
@@ -109,7 +130,13 @@ func TestResolveUnknowns(t *testing.T) {
 			}),
 			types.ObjectNull(objTypeParentTest.AttributeTypes()),
 		}),
-		AttrMapUnknown: types.MapNull(types.StringType),
+		AttrMapUnknown:          types.MapNull(types.StringType),
+		AttrCustomObjectUnknown: customtype.NewObjectValueNull[modelEmptyTest](ctx),
+		AttrCustomObject: customtype.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
+			AttrKnownString:   types.StringValue("val1"),
+			AttrUnknownObject: customtype.NewObjectValueNull[modelEmptyTest](ctx),
+			AttrMANYUpper:     types.Int64Null(),
+		}),
 	}
 	require.NoError(t, autogen.ResolveUnknowns(&model))
 	assert.Equal(t, modelExpected, model)

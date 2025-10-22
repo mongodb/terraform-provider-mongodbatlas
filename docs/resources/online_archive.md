@@ -107,7 +107,7 @@ resource "mongodbatlas_online_archive" "test" {
 }
 ```
 ### Further Examples
-- [Online Archive Example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_online_archive)
+- [Online Archive Example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_online_archive)
 
 ## Argument Reference
 * `project_id` - (Required) The unique ID for the project

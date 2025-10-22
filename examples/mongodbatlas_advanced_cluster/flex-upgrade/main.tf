@@ -1,6 +1,6 @@
 provider "mongodbatlas" {
-  public_key  = var.public_key
-  private_key = var.private_key
+  client_id     = var.atlas_client_id
+  client_secret = var.atlas_client_secret
 }
 
 resource "mongodbatlas_advanced_cluster" "cluster" {
@@ -26,8 +26,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   ]
 
   tags = {
-    key   = "environment"
-    value = "dev"
+    environment = "dev"
   }
 }
 

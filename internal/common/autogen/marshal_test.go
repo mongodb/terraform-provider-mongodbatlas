@@ -1,12 +1,14 @@
 package autogen_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtype"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -54,6 +56,7 @@ func TestMarshalBasic(t *testing.T) {
 		AttrBoolTrue        types.Bool           `tfsdk:"attr_bool_true"`
 		AttrBoolFalse       types.Bool           `tfsdk:"attr_bool_false"`
 		AttrBoolNull        types.Bool           `tfsdk:"attr_bool_null"`
+		AttrMANYUpper       types.Int64          `tfsdk:"attr_many_upper"`
 	}{
 		AttrFloat:           types.Float64Value(1.234),
 		AttrString:          types.StringValue("hello"),
@@ -66,8 +69,19 @@ func TestMarshalBasic(t *testing.T) {
 		AttrBoolFalse:       types.BoolValue(false),
 		AttrBoolNull:        types.BoolNull(), // null values are not marshaled
 		AttrJSON:            jsontypes.NewNormalizedValue("{\"hello\": \"there\"}"),
+		AttrMANYUpper:       types.Int64Value(2),
 	}
-	const expectedJSON = `{ "attrString": "hello", "attrInt": 1, "attrFloat": 1.234, "attrBoolTrue": true, "attrBoolFalse": false, "attrJSON": {"hello": "there"} }`
+	const expectedJSON = `
+		{ 
+			"attrString": "hello", 
+			"attrInt": 1, 
+			"attrFloat": 1.234, 
+			"attrBoolTrue": true, 
+			"attrBoolFalse": false, 
+			"attrJSON": {"hello": "there"}, 
+			"attrMANYUpper": 2
+		}
+	`
 	raw, err := autogen.Marshal(&model, false)
 	require.NoError(t, err)
 	assert.JSONEq(t, expectedJSON, string(raw))
@@ -280,6 +294,98 @@ func TestMarshalUpdateNull(t *testing.T) {
 		}
 	`
 	assert.JSONEq(t, expectedJSONCreate, string(rawCreate))
+}
+
+func TestMarshalCustomTypeObject(t *testing.T) {
+	ctx := context.Background()
+
+	type modelEmptyTest struct{}
+
+	type modelCustomTypeTest struct {
+		AttrPrimitiveOmit    types.String                           `tfsdk:"attr_primitive_omit" autogen:"omitjson"`
+		AttrObjectOmit       customtype.ObjectValue[modelEmptyTest] `tfsdk:"attr_object_omit" autogen:"omitjson"`
+		AttrObjectOmitUpdate customtype.ObjectValue[modelEmptyTest] `tfsdk:"attr_object_omit_update" autogen:"omitjsonupdate"`
+		AttrNull             customtype.ObjectValue[modelEmptyTest] `tfsdk:"attr_null" autogen:"includenullonupdate"`
+		AttrInt              types.Int64                            `tfsdk:"attr_int"`
+		AttrMANYUpper        types.Int64                            `tfsdk:"attr_many_upper"`
+	}
+
+	type modelCustomTypeParentTest struct {
+		AttrString types.String                                `tfsdk:"attr_string"`
+		AttrObject customtype.ObjectValue[modelCustomTypeTest] `tfsdk:"attr_object"`
+	}
+
+	nullObject := customtype.NewObjectValueNull[modelEmptyTest](ctx)
+	emptyObject := customtype.NewObjectValue[modelEmptyTest](ctx, modelEmptyTest{})
+
+	model := struct {
+		AttrObjectBasic  customtype.ObjectValue[modelCustomTypeTest]       `tfsdk:"attr_object_basic"`
+		AttrObjectNull   customtype.ObjectValue[modelCustomTypeTest]       `tfsdk:"attr_object_null"`
+		AttrObjectNested customtype.ObjectValue[modelCustomTypeParentTest] `tfsdk:"attr_object_nested"`
+	}{
+		AttrObjectBasic: customtype.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
+			AttrInt:              types.Int64Value(1),
+			AttrPrimitiveOmit:    types.StringValue("omitted"),
+			AttrObjectOmit:       emptyObject,
+			AttrObjectOmitUpdate: emptyObject,
+			AttrNull:             nullObject,
+			AttrMANYUpper:        types.Int64Value(2),
+		}),
+		AttrObjectNull: customtype.NewObjectValueNull[modelCustomTypeTest](ctx),
+		AttrObjectNested: customtype.NewObjectValue[modelCustomTypeParentTest](ctx, modelCustomTypeParentTest{
+			AttrString: types.StringValue("parent"),
+			AttrObject: customtype.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
+				AttrInt:              types.Int64Value(2),
+				AttrPrimitiveOmit:    types.StringValue("omitted"),
+				AttrObjectOmit:       emptyObject,
+				AttrObjectOmitUpdate: emptyObject,
+				AttrNull:             nullObject,
+				AttrMANYUpper:        types.Int64Value(3),
+			}),
+		}),
+	}
+
+	const expectedCreateJSON = `
+		{
+			"attrObjectBasic": {
+				"attrInt": 1,
+				"attrObjectOmitUpdate": {},
+				"attrMANYUpper": 2
+			},
+			"attrObjectNested": {
+				"attrObject": {
+					"attrInt": 2,
+					"attrObjectOmitUpdate": {},
+					"attrMANYUpper": 3
+				},
+				"attrString": "parent"
+			}
+		}
+	`
+	rawCreate, err := autogen.Marshal(&model, false)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedCreateJSON, string(rawCreate))
+
+	const expectedUpdateJSON = `
+		{
+			"attrObjectBasic": {
+				"attrInt": 1,
+				"attrNull": null,
+				"attrMANYUpper": 2
+			},
+			"attrObjectNested": {
+				"attrObject": {
+					"attrInt": 2,
+					"attrNull": null,
+					"attrMANYUpper": 3
+				},
+				"attrString": "parent"
+			}
+		}
+	`
+	rawUpdate, err := autogen.Marshal(&model, true)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedUpdateJSON, string(rawUpdate))
 }
 
 func TestMarshalUnsupported(t *testing.T) {

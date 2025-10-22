@@ -1,6 +1,8 @@
 package codespec
 
 import (
+	"fmt"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 )
 
@@ -169,12 +171,29 @@ type CustomDefault struct {
 	Imports    []string `yaml:"imports"`
 }
 
+type CustomTypePackage string
+
+const (
+	JSONTypesPkg  CustomTypePackage = "jsontypes"
+	CustomTypePkg CustomTypePackage = "customtype"
+)
+
 type CustomType struct {
-	Model  string `yaml:"model"`
-	Schema string `yaml:"schema"`
+	Package CustomTypePackage `yaml:"package"`
+	Model   string            `yaml:"model"`
+	Schema  string            `yaml:"schema"`
 }
 
 var CustomTypeJSONVar = CustomType{
-	Model:  "jsontypes.Normalized",
-	Schema: "jsontypes.NormalizedType{}",
+	Package: JSONTypesPkg,
+	Model:   "jsontypes.Normalized",
+	Schema:  "jsontypes.NormalizedType{}",
+}
+
+func NewCustomObjectType(name string) *CustomType {
+	return &CustomType{
+		Package: CustomTypePkg,
+		Model:   fmt.Sprintf("customtype.ObjectValue[TF%sModel]", name),
+		Schema:  fmt.Sprintf("customtype.NewObjectType[TF%sModel](ctx)", name),
+	}
 }

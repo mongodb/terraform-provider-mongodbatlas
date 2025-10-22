@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6/tf6server"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
 )
 
@@ -22,6 +23,7 @@ func main() {
 		provider.MuxProviderFactory(),
 		serveOpts...,
 	)
+	config.CloseTokenSource() // Revoke SA token when the plugin is exiting because Terraform command finished.
 	if err != nil {
 		log.Fatal(err)
 	}

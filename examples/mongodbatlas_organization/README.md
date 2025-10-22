@@ -25,14 +25,14 @@ This project provides examples for both creating new MongoDB Atlas Organizations
 This can be done using environment variables:
 
 ```bash
-export MONGODB_ATLAS_PUBLIC_KEY="<ATLAS_PUBLIC_KEY>"
-export MONGODB_ATLAS_PRIVATE_KEY="<ATLAS_PRIVATE_KEY>"
+export MONGODB_ATLAS_CLIENT_ID="<ATLAS_CLIENT_ID>"
+export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 ```
 
 ... or utilize the `variables.tf` file and create **terraform.tfvars** file with all the variable values and make sure **not to commit it**.
 
 
-> **IMPORTANT** Hard-coding your MongoDB Atlas programmatic API key pair into a Terraform configuration is not recommended. Consider the risks, especially the inadvertent submission of a configuration file containing secrets to a public repository.
+> **IMPORTANT** Hard-coding your MongoDB Atlas Service Account credentials into a Terraform configuration is not recommended. Consider the risks, especially the inadvertent submission of a configuration file containing secrets to a public repository.
 
 
 **3\. Review the Terraform plan.**

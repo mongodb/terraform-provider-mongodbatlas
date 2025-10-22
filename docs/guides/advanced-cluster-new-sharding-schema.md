@@ -1,27 +1,31 @@
 ---
-page_title: "Migration Guide: Advanced Cluster New Sharding Configurations"
+page_title: "Guide: Advanced Cluster New Sharding Configurations"
 ---
 
-# Migration Guide: Advanced Cluster New Sharding Configurations
 
-**Objective**: Use this guide to migrate your existing `mongodbatlas_advanced_cluster` resources that may be using the legacy sharding schema _(i.e. using `num_shards` which was deprecated in v1.18.0 and removed in 2.0.0)_ to support the new sharding configurations instead. The new sharding configurations allow you to scale shards independently. Additionally, compute auto-scaling supports scaling instance sizes independently for each shard when using the new sharding configuration.
+**Objective**: This guide explains the new sharding configuration for `mongodbatlas_advanced_cluster` that allows you to scale shards independently, hence, you may also come across the term "Independent shard scaling configuration" in our documentation. 
+Additionally, compute auto-scaling supports scaling instance sizes independently for each shard when using the new sharding configuration.
 
-Note: Once applied, the `mongodbatlas_advanced_cluster` resource making use of the new sharding configuration will not be able to transition back to the old sharding configuration.
+**You may find this guide useful if:**
+- You are considering upgrading from v1.x of our provider to v2.0.0 or later which ONLY supports this new configuration.
+- You currently use the legacy sharding schema (i.e. using `num_shards` which was deprecated in v1.18.0 and removed in 2.0.0).
+- You want to understand the new sharding configuration and how a `replication_specs` element now represents each shard individually, allowing you to scale or modify each shard independently. 
+- You are considering upgrading to a sharded cluster and you want to understand the new sharding configuration.
 
-- [Prerequisites](#prerequisites)
-- [Migration Guide: Advanced Cluster New Sharding Configurations](#migration-guide-advanced-cluster-new-sharding-schema)
-  - [Changes Overview](#changes-overview)
+
+If you are still using the deprecated `mongodbatlas_cluster` resource, use [Migration Guide: Cluster → Advanced Cluster instead](./cluster-to-advanced-cluster-migration-guide.md).
+
+If you are already using `mongodbatlas_advanced_cluster` and want to upgrade to our Terraform Provider v2.0.0 or later from v1.x, also review [Migration Guide: Moving to Advanced Cluster v2.0.0](./migrate-to-advanced-cluster-2.0.md)
+---
+
+- [Changes Overview](#changes-overview)
     - [Migrate advanced\_cluster type `SHARDED`](#migrate-advanced_cluster-type-sharded)
     - [Migrate advanced\_cluster type `GEOSHARDED`](#migrate-advanced_cluster-type-geosharded)
-    - [Migrate advanced\_cluster type `REPLICASET`](#migrate-advanced_cluster-type-replicaset)
+    - [Upgrade type `REPLICASET` to `SHARDED`](#migrate-advanced_cluster-type-replicaset)
 - [Use Independent Shard Scaling](#use-independent-shard-scaling)
 - [Use Auto-Scaling Per Shard](#use-auto-scaling-per-shard)
 - [Resources and Data Sources Impacted by Independent Shard Scaling](#resources-and-data-sources-impacted-by-independent-shard-scaling)
   - [Data Source Transition for Asymmetric Clusters](#data-source-transition-for-asymmetric-clusters)
-
-## Prerequisites
-- Upgrade to MongoDB Atlas Terraform Provider 2.0.0 or later
-- Ensure `mongodbatlas_advanced_cluster` resources configuration is updated to use the latest syntax changes as per **Step 1 & 2** of [Migration Guide: Advanced Cluster (v1.x → v2.0.0)](migrate-to-advanced-cluster-2.0.md#how-to-migrate). **Note:** Syntax changes in [Migration Guide: Advanced Cluster (v1.x → v2.0.0)](migrate-to-advanced-cluster-2.0.md#how-to-migrate) and the changes in this guide should be applied together in one go **once the plan is empty** i.e. you should not make these updates separately. 
 
 
 ## Changes Overview
@@ -189,7 +193,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
 }
 ```
 
-### Migrate advanced_cluster type `REPLICASET`
+### Upgrade type `REPLICASET` to `SHARDED`
 
 To learn more, see the documentation on [transitioning from a replica set to a sharded cluster](https://www.mongodb.com/docs/atlas/scale-cluster/#scale-your-replica-set-to-a-sharded-cluster).
 
@@ -423,6 +427,7 @@ While the example initially defines 2 symmetric shards, auto-scaling of `electab
 <br/><br/>In these cases, you must update the cluster configuration to activate the auto-scaling per shard feature. This can be done by temporarily modifying a value like `compute_min_instance_size`.
 
 -> **NOTE:** See the table [below](#resources-and-data-sources-impacted-by-independent-shard-scaling) for other impacted resources when a cluster transitions to independently scaled shards.
+
 
 ## Resources and Data Sources Impacted by Independent Shard Scaling
 

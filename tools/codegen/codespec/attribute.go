@@ -8,7 +8,7 @@ import (
 	"github.com/pb33f/libopenapi/orderedmap"
 )
 
-func buildResourceAttrs(s *APISpecSchema, isFromRequest bool) (Attributes, error) {
+func buildResourceAttrs(s *APISpecSchema, ancestorsName string, isFromRequest, useCustomNestedTypes bool) (Attributes, error) {
 	objectAttributes := Attributes{}
 
 	sortedProperties := orderedmap.SortAlpha(s.Schema.Properties)
@@ -26,7 +26,7 @@ func buildResourceAttrs(s *APISpecSchema, isFromRequest bool) (Attributes, error
 			continue
 		}
 
-		attribute, err := schema.buildResourceAttr(name, s.GetComputability(name), isFromRequest)
+		attribute, err := schema.buildResourceAttr(name, ancestorsName, s.GetComputability(name), isFromRequest, useCustomNestedTypes)
 		if err != nil {
 			return nil, err
 		}
@@ -39,7 +39,7 @@ func buildResourceAttrs(s *APISpecSchema, isFromRequest bool) (Attributes, error
 	return objectAttributes, nil
 }
 
-func (s *APISpecSchema) buildResourceAttr(name string, computability ComputedOptionalRequired, isFromRequest bool) (*Attribute, error) {
+func (s *APISpecSchema) buildResourceAttr(name, ancestorsName string, computability ComputedOptionalRequired, isFromRequest, useCustomNestedTypes bool) (*Attribute, error) {
 	switch s.Type {
 	case OASTypeString:
 		return s.buildStringAttr(name, computability)
@@ -50,12 +50,12 @@ func (s *APISpecSchema) buildResourceAttr(name string, computability ComputedOpt
 	case OASTypeBoolean:
 		return s.buildBoolAttr(name, computability)
 	case OASTypeArray:
-		return s.buildArrayAttr(name, computability, isFromRequest)
+		return s.buildArrayAttr(name, ancestorsName, computability, isFromRequest, useCustomNestedTypes)
 	case OASTypeObject:
 		if s.Schema.AdditionalProperties != nil && s.Schema.AdditionalProperties.IsA() {
-			return s.buildMapAttr(name, computability, isFromRequest)
+			return s.buildMapAttr(name, ancestorsName, computability, isFromRequest, useCustomNestedTypes)
 		}
-		return s.buildSingleNestedAttr(name, computability, isFromRequest)
+		return s.buildSingleNestedAttr(name, ancestorsName, computability, isFromRequest, useCustomNestedTypes)
 	default:
 		return nil, fmt.Errorf("invalid schema type '%s'", s.Type)
 	}
@@ -160,7 +160,7 @@ func (s *APISpecSchema) buildBoolAttr(name string, computability ComputedOptiona
 	return result, nil
 }
 
-func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOptionalRequired, isFromRequest bool) (*Attribute, error) {
+func (s *APISpecSchema) buildArrayAttr(name, ancestorsName string, computability ComputedOptionalRequired, isFromRequest, useCustomNestedTypes bool) (*Attribute, error) {
 	if !s.Schema.Items.IsA() {
 		return nil, fmt.Errorf("invalid array items property, schema doesn't exist: %s", name)
 	}
@@ -172,11 +172,12 @@ func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOption
 
 	isSet := s.Schema.Format == OASFormatSet || (s.Schema.UniqueItems != nil && *s.Schema.UniqueItems)
 
+	tfModelName := stringcase.Capitalize(name)
 	createAttribute := func(nestedObject *NestedAttributeObject, elemType ElemType) *Attribute {
 		var (
 			attr = &Attribute{
 				TFSchemaName:             stringcase.FromCamelCase(name),
-				TFModelName:              stringcase.Capitalize(name),
+				TFModelName:              tfModelName,
 				ComputedOptionalRequired: computability,
 				DeprecationMessage:       s.GetDeprecationMessage(),
 				Description:              s.GetDescription(),
@@ -207,7 +208,7 @@ func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOption
 	}
 
 	if itemSchema.Type == OASTypeObject {
-		objectAttributes, err := buildResourceAttrs(itemSchema, isFromRequest)
+		objectAttributes, err := buildResourceAttrs(itemSchema, ancestorsName+tfModelName, isFromRequest, useCustomNestedTypes)
 		if err != nil {
 			return nil, fmt.Errorf("error while building nested schema: %s", name)
 		}
@@ -234,7 +235,7 @@ func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOption
 	return result, nil
 }
 
-func (s *APISpecSchema) buildMapAttr(name string, computability ComputedOptionalRequired, isFromRequest bool) (*Attribute, error) {
+func (s *APISpecSchema) buildMapAttr(name, ancestorsName string, computability ComputedOptionalRequired, isFromRequest, useCustomNestedTypes bool) (*Attribute, error) {
 	mapSchema, err := BuildSchema(s.Schema.AdditionalProperties.A)
 	if err != nil {
 		return nil, err
@@ -249,7 +250,7 @@ func (s *APISpecSchema) buildMapAttr(name string, computability ComputedOptional
 	}
 
 	if mapSchema.Type == OASTypeObject {
-		mapAttributes, err := buildResourceAttrs(mapSchema, isFromRequest)
+		mapAttributes, err := buildResourceAttrs(mapSchema, ancestorsName+result.TFModelName, isFromRequest, useCustomNestedTypes)
 		if err != nil {
 			return nil, err
 		}
@@ -273,7 +274,7 @@ func (s *APISpecSchema) buildMapAttr(name string, computability ComputedOptional
 	return result, nil
 }
 
-func (s *APISpecSchema) buildSingleNestedAttr(name string, computability ComputedOptionalRequired, isFromRequest bool) (*Attribute, error) {
+func (s *APISpecSchema) buildSingleNestedAttr(name, ancestorsName string, computability ComputedOptionalRequired, isFromRequest, useCustomNestedTypes bool) (*Attribute, error) {
 	attr := &Attribute{
 		TFSchemaName:             stringcase.FromCamelCase(name),
 		TFModelName:              stringcase.Capitalize(name),
@@ -281,11 +282,15 @@ func (s *APISpecSchema) buildSingleNestedAttr(name string, computability Compute
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
 	}
-	objectAttributes, err := buildResourceAttrs(s, isFromRequest)
+	fullName := ancestorsName + attr.TFModelName
+	objectAttributes, err := buildResourceAttrs(s, fullName, isFromRequest, useCustomNestedTypes)
 	if err != nil {
 		return nil, err
 	}
 	if len(objectAttributes) > 0 {
+		if useCustomNestedTypes {
+			attr.CustomType = NewCustomObjectType(fullName)
+		}
 		attr.SingleNested = &SingleNestedAttribute{
 			NestedObject: NestedAttributeObject{
 				Attributes: objectAttributes,

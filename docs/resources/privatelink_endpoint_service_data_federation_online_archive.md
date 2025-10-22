@@ -40,7 +40,7 @@ resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archi
 The `service_name` value for the region in question can be found in the [MongoDB Atlas Administration](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createdatafederationprivateendpoint) documentation.
 
 ### Further Examples
-- [AWS PrivateLink for Data Federation and Online Archive](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_privatelink_endpoint/aws/data-federation-online-archive)
+- [AWS PrivateLink for Data Federation and Online Archive](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_privatelink_endpoint/aws/data-federation-online-archive)
 
 ## Argument Reference
 

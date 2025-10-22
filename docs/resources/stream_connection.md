@@ -24,7 +24,7 @@ resource "mongodbatlas_stream_connection" "test" {
 ```
 
 ### Further Examples
-- [Atlas Stream Connection](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_stream_connection)
+- [Atlas Stream Connection](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_stream_connection)
 
 ### Example Cross Project Cluster Connection
 
@@ -152,9 +152,9 @@ resource "mongodbatlas_stream_connection" "example-https" {
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
-* `instance_name` - (Deprecated) Human-readable label that identifies the stream instance. Attribute is deprecated and will be removed in following major versions in favor of `workspace_name`.
-* `workspace_name` - (Optional) Human-readable label that identifies the stream instance. Conflicts with `instance_name`.
-* `connection_name` - (Required) Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
+* `instance_name` - (Deprecated) Label that identifies the stream processing workspace. Attribute is deprecated and will be removed in following major versions in favor of `workspace_name`.
+* `workspace_name` - (Optional) Label that identifies the stream processing workspace. Conflicts with `instance_name`.
+* `connection_name` - (Required) Label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
 * `type` - (Required) Type of connection. Can be `AWSLambda`, `Cluster`, `Https`, `Kafka` or `Sample`.
 
 ~> **NOTE:** Either `workspace_name` or `instance_name` must be provided, but not both. These fields are functionally identical and `workspace_name` is an alias for `instance_name`. `workspace_name` should be used instead of `instance_name`.

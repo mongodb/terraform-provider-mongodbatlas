@@ -51,6 +51,7 @@ func (p *ProviderMocked) Configure(ctx context.Context, req fwProvider.Configure
 	originalClient := client.AtlasV2.GetConfig().HTTPClient
 	if originalClient == nil {
 		p.t.Fatal("HTTPClient is nil, mocking will fail")
+		return // Unnecessary return. Avoids staticcheck issue.
 	}
 
 	// Create a new HTTP client to avoid modifying the live one
@@ -97,6 +98,7 @@ func muxProviderFactory(t *testing.T, clientModifier HTTPClientModifier) func() 
 		originalClient := client.AtlasV2.GetConfig().HTTPClient
 		if originalClient == nil {
 			t.Fatalf("HTTPClient is nil, mocking will fail")
+			return nil, nil // Unnecessary return. Avoids staticcheck issue.
 		}
 
 		// Create a new HTTP client to avoid modifying the live one
