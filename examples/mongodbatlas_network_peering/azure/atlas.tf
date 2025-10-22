@@ -1,7 +1,7 @@
 # Configure the MongoDB Atlas Provider and connect via a key
 provider "mongodbatlas" {
-  public_key  = var.public_key
-  private_key = var.private_key
+  client_id     = var.atlas_client_id
+  client_secret = var.atlas_client_secret
 }
 
 # Create the mongodb atlas Azure cluster

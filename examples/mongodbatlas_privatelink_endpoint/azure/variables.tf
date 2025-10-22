@@ -7,12 +7,14 @@ variable "subscription_id" {
   default = "AZURE SUBSCRIPTION ID"
   type    = string
 }
-variable "client_id" {
+variable "atlas_client_id" {
   default = "AZURE CLIENT ID"
+  description = "MongoDB Atlas Service Account Client ID"
   type    = string
 }
-variable "client_secret" {
+variable "atlas_client_secret" {
   default = "AZURE CLIENT SECRET"
+  description = "MongoDB Atlas Service Account Client Secret"
   type    = string
 }
 variable "tenant_id" {

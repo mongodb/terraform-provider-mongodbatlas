@@ -1,8 +1,10 @@
-variable "public_key" {
+variable "atlas_client_id" {
   type = string
+  description = "MongoDB Atlas Service Account Client ID"
 }
-variable "private_key" {
+variable "atlas_client_secret" {
   type = string
+  description = "MongoDB Atlas Service Account Client Secret"
 }
 
 variable "project_id" {

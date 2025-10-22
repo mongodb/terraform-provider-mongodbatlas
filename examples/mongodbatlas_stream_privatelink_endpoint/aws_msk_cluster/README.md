@@ -4,8 +4,8 @@ This example shows how to use AWS Privatelink for Atlas Streams with an AWS MSK 
 
 You must set the following variables:
 
-- `public_key`: Public API key to authenticate to Atlas
-- `private_key`: Private API key to authenticate to Atlas
+- `atlas_client_id`: MongoDB Atlas Service Account Client ID
+- `atlas_client_secret`: MongoDB Atlas Service Account Client Secret
 - `project_id`: Unique 24-hexadecimal digit string that identifies your project
 - `aws_account_id`: The AWS Account ID (12 digits)
 - `msk_cluster_name`: The MSK cluster's desired name

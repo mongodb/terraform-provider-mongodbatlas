@@ -51,12 +51,12 @@ variable "atlas_region" {
   type        = string
 }
 
-variable "public_key" {
-  description = "MongoDB Atlas public API key."
+variable "atlas_client_id" {
+  description = "MongoDB Atlas Service Account Client ID"
   type        = string
 }
 
-variable "private_key" {
-  description = "MongoDB Atlas private API key."
+variable "atlas_client_secret" {
+  description = "MongoDB Atlas Service Account Client Secret"
   type        = string
 }

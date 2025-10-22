@@ -7,7 +7,7 @@ If you are migrating from v1.x of our provider to v2.0.0 or later, the `v1.x.x/`
 
 Variables Required:
 - `atlas_org_id`: ID of the Atlas organization
-- `public_key`: Atlas public key
-- `private_key`: Atlas  private key
+- `atlas_client_id`: MongoDB Atlas Service Account Client ID
+- `atlas_client_secret`: MongoDB Atlas Service Account Client Secret
 - `provider_name`: Name of provider to use for cluster (TENANT, AWS, GCP)
 - `provider_instance_size_name`: Size of the cluster (Free: M0, Dedicated: M10+.)

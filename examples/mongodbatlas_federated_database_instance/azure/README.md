@@ -49,15 +49,15 @@ XXXXX
 You can use environment variables to set up credentials for Atlas as follows:
 
 ```bash
-export MONGODB_ATLAS_PUBLIC_KEY="<ATLAS_PUBLIC_KEY>"
-export MONGODB_ATLAS_PRIVATE_KEY="<ATLAS_PRIVATE_KEY>"
+export MONGODB_ATLAS_CLIENT_ID="<ATLAS_CLIENT_ID>"
+export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 ```
 
 ... or create a **terraform.tfvars** file with all variable values:
 
 ```terraform
-public_key                 = "<MONGODB_ATLAS_PUBLIC_KEY>"
-private_key                = "<MONGODB_ATLAS_PRIVATE_KEY>"
+client_id     = "<ATLAS_CLIENT_ID>"
+client_secret = "<ATLAS_CLIENT_SECRET>"
 project_id                 = "<ATLAS_PROJECT_ID>"
 azure_atlas_app_id         = "<AZURE_ATLAS_APP_ID>"
 azure_service_principal_id = "<AZURE_SERVICE_PRINCIPAL_ID>"
