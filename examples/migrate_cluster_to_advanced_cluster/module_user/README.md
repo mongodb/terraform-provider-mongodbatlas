@@ -33,11 +33,11 @@ The rest of this example is a step by step guide on how to migrate from `mongodb
 - Terraform CLI >= 1.8
 - Terraform MongoDB Atlas Provider `>=v1.29.0`
 - A MongoDB Atlas account.
-- Configure the provider (can also be done by configuring `public_key` and `private_key` in a `provider.tfvars`).
+- Configure the provider (can also be done by configuring `atlas_client_id` and `atlas_client_secret` in a `provider.tfvars`).
 
 ```bash
-export MONGODB_ATLAS_PUBLIC_KEY="<ATLAS_PUBLIC_KEY>"
-export MONGODB_ATLAS_PRIVATE_KEY="<ATLAS_PRIVATE_KEY>"
+export MONGODB_ATLAS_CLIENT_ID="<ATLAS_CLIENT_ID>"
+export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 ```
 
 ## Step 1: Create the `mongodbatlas_cluster` with `v1` of the module

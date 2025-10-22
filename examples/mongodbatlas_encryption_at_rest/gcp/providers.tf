@@ -3,6 +3,6 @@ provider "google" {
 }
 
 provider "mongodbatlas" {
-  public_key  = var.atlas_public_key
-  private_key = var.atlas_private_key
+  client_id     = var.atlas_client_id
+  client_secret = var.atlas_client_secret
 }

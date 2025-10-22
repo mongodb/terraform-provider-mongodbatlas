@@ -39,8 +39,8 @@ Clean final configuration using only:
 Set these variables for all versions:
 
 ```terraform
-public_key = "your-mongodb-atlas-public-key"   # Optional, can use env vars
-private_key = "your-mongodb-atlas-private-key" # Optional, can use env vars
+client_id     = "<ATLAS_CLIENT_ID>"   # Optional, can use env vars
+client_secret = "<ATLAS_CLIENT_SECRET>" # Optional, can use env vars
 org_id     = "your-organization-id"
 project_id = "your-project-id"  
 team_id    = "your-team-id"
@@ -50,6 +50,6 @@ username   = "existing-user@example.com"
 
 Alternatively, set environment variables:
 ```bash
-export MONGODB_ATLAS_PUBLIC_KEY="your-public-key"
-export MONGODB_ATLAS_PRIVATE_KEY="your-private-key"
+export MONGODB_ATLAS_CLIENT_ID="<ATLAS_CLIENT_ID>"
+export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 ```

@@ -6,8 +6,8 @@ This example demonstrates how to use the `mongodbatlas_team_project_assignment` 
   
 ```hcl  
 provider "mongodbatlas" {  
-  public_key  = var.public_key  
-  private_key = var.private_key  
+  client_id     = var.atlas_client_id  
+  client_secret = var.atlas_client_secret  
 }  
   
 resource "mongodbatlas_team_project_assignment" "this" {  
@@ -24,8 +24,8 @@ data "mongodbatlas_team_project_assignment" "this" {
   
 You must set the following variables:  
   
-- `public_key`: Your MongoDB Atlas API public key.  
-- `private_key`: Your MongoDB Atlas API private key.  
+- `atlas_client_id`: Your MongoDB Atlas Service Account Client ID.  
+- `atlas_client_secret`: Your MongoDB Atlas Service Account Client Secret.  
 - `project_id`: The ID of the project to assign the team to.  
 - `team_id`: The ID of the team to assign to the project.  
   

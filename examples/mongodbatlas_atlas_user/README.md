@@ -3,8 +3,8 @@
 This project provides a straight-forward example for using the Atlas User Data Source.
 
 Variables Required to be set:
-- `public_key`: Atlas Programmatic API public key
-- `private_key`: Atlas Programmatic API private key
+- `atlas_client_id`: MongoDB Atlas Service Account Client ID
+- `atlas_client_secret`: MongoDB Atlas Service Account Client Secret
 - `user_id`: User ID of the Atlas User to return
 - `username`: Username of the Atlas User to return
 

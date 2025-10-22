@@ -1,21 +1,22 @@
 variable "org_id" {
-  type        = string
   description = "MongoDB Atlas Organization ID"
+  type        = string
 }
 
 variable "team_name" {
-  type        = string
   description = "Name of the Atlas team"
+  type        = string
 }
 
-variable "public_key" {
-  description = "Public API key to authenticate to Atlas"
+variable "atlas_client_id" {
+  description = "MongoDB Atlas Service Account Client ID"
   type        = string
   default     = ""
 }
-variable "private_key" {
-  description = "Private API key to authenticate to Atlas"
+variable "atlas_client_secret" {
+  description = "MongoDB Atlas Service Account Client Secret"
   type        = string
+  sensitive   = true
   default     = ""
 }
 

@@ -27,7 +27,7 @@ graph LR
 
 Before running this example, you need:
 
-1. **MongoDB Atlas Account**: With API keys that have project owner permissions
+1. **MongoDB Atlas Account**: With a Service Account that has project owner permissions
 2. **Google Cloud Platform Account**: With a project (no specific GCP permissions required for this setup)
 3. **Terraform**: Version 0.13 or later
 
@@ -38,8 +38,8 @@ Before running this example, you need:
 Create a `terraform.tfvars` file:
 
 ```hcl
-atlas_public_key  = "<ATLAS_PUBLIC_KEY>"
-atlas_private_key = "<ATLAS_PRIVATE_KEY>"
+atlas_client_id  = "<ATLAS_CLIENT_ID>"
+atlas_client_secret = "<ATLAS_CLIENT_SECRET>"
 atlas_project_id  = "<ATLAS_PROJECT_ID>"
 ```
 
@@ -74,8 +74,8 @@ After setting up cloud provider access, you can use the created service account 
 
 | Variable | Description | Type | Required |
 |----------|-------------|------|----------|
-| `atlas_public_key` | MongoDB Atlas public API key | string | Yes |
-| `atlas_private_key` | MongoDB Atlas private API key | string | Yes |
+| `atlas_client_id` | MongoDB Atlas Service Account Client ID | string | Yes |
+| `atlas_client_secret` | MongoDB Atlas Service Account Client Secret | string | Yes |
 | `atlas_project_id` | MongoDB Atlas project ID | string | Yes |
 
 ## Outputs
