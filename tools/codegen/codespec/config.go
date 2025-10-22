@@ -11,8 +11,8 @@ import (
 
 func applyTransformationsWithConfigOpts(resourceConfig *config.Resource, resource *Resource) {
 	applyAttributeTransformations(resourceConfig.SchemaOptions, &resource.Schema.Attributes, "")
-
 	applyAliasToPathParams(resource, resourceConfig.SchemaOptions.Aliases)
+	ApplyTimeoutTransformation(resource)
 }
 
 // AttributeTransformation represents a operation applied to an attribute during traversal.
@@ -187,5 +187,34 @@ func setCreateOnlyValue(attr *Attribute) {
 	// captures case of path param attributes (no present in request body) and properties which are only present in post request
 	if attr.ReqBodyUsage == OmitAlways || attr.ReqBodyUsage == OmitInUpdateBody {
 		attr.CreateOnly = true
+	}
+}
+
+// ApplyTimeoutTransformation adds a timeout attribute to the resource schema if any operation has wait blocks.
+func ApplyTimeoutTransformation(resource *Resource) {
+	ops := &resource.Operations
+	var configurableTimeouts []Operation
+
+	if ops.Create.Wait != nil {
+		configurableTimeouts = append(configurableTimeouts, Create)
+	}
+	if ops.Update.Wait != nil {
+		configurableTimeouts = append(configurableTimeouts, Update)
+	}
+	if ops.Read.Wait != nil {
+		configurableTimeouts = append(configurableTimeouts, Read)
+	}
+	// Delete operation is optional
+	if ops.Delete != nil && ops.Delete.Wait != nil {
+		configurableTimeouts = append(configurableTimeouts, Delete)
+	}
+
+	if len(configurableTimeouts) > 0 {
+		resource.Schema.Attributes = append(resource.Schema.Attributes, Attribute{
+			TFSchemaName: "timeouts",
+			TFModelName:  "Timeouts",
+			Timeouts:     &TimeoutsAttribute{ConfigurableTimeouts: configurableTimeouts},
+			ReqBodyUsage: OmitAlways,
+		})
 	}
 }

@@ -74,7 +74,7 @@ type Attribute struct {
 	MapNested                *MapNestedAttribute        `yaml:"map_nested,omitempty"`
 	Number                   *NumberAttribute           `yaml:"number,omitempty"`
 	Int64                    *Int64Attribute            `yaml:"int64,omitempty"`
-	Timeouts                 *TimeoutsAttribute         `yaml:"-"` // Can't be defined in the intermediate YAML model as it is automatically generated based on Wait operations.
+	Timeouts                 *TimeoutsAttribute         `yaml:"timeouts,omitempty"`
 	SingleNested             *SingleNestedAttribute     `yaml:"single_nested,omitempty"`
 	SetNested                *SetNestedAttribute        `yaml:"set_nested,omitempty"`
 	Description              *string                    `yaml:"description,omitempty"`

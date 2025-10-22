@@ -7,39 +7,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 )
 
-func GenerateSchemaAttributes(resource *codespec.Resource) CodeStatement {
-	generateTimeoutAttributes(resource)
-	return generateSchemaAttributesFromList(resource.Schema.Attributes)
-}
-
-// generateTimeoutAttributes adds timeouts attribute based on wait blocks.
-func generateTimeoutAttributes(resource *codespec.Resource) {
-	ops := &resource.Operations
-	var result []codespec.Operation
-	if ops.Create.Wait != nil {
-		result = append(result, codespec.Create)
-	}
-	if ops.Update.Wait != nil {
-		result = append(result, codespec.Update)
-	}
-	if ops.Read.Wait != nil {
-		result = append(result, codespec.Read)
-	}
-	// Delete operation is optional.
-	if ops.Delete != nil && ops.Delete.Wait != nil {
-		result = append(result, codespec.Delete)
-	}
-	if len(result) > 0 {
-		resource.Schema.Attributes = append(resource.Schema.Attributes, codespec.Attribute{
-			TFSchemaName: "timeouts",
-			TFModelName:  "Timeouts",
-			Timeouts:     &codespec.TimeoutsAttribute{ConfigurableTimeouts: result},
-			ReqBodyUsage: codespec.OmitAlways,
-		})
-	}
-}
-
-func generateSchemaAttributesFromList(attrs codespec.Attributes) CodeStatement {
+func GenerateSchemaAttributes(attrs codespec.Attributes) CodeStatement {
 	attrsCode := []string{}
 	imports := []string{}
 	for i := range attrs {

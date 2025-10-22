@@ -43,7 +43,7 @@ func (l *SingleNestedAttrGenerator) AttributeCode() CodeStatement {
 }
 
 func attributesProperty(nested codespec.NestedAttributeObject) CodeStatement {
-	attrs := generateSchemaAttributesFromList(nested.Attributes)
+	attrs := GenerateSchemaAttributes(nested.Attributes)
 	attributeProperty := fmt.Sprintf(`Attributes: map[string]schema.Attribute{
 		%s
 	}`, attrs.Code)
