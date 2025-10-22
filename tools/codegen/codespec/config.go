@@ -178,18 +178,6 @@ func getComputabilityFromConfig(computability config.Computability) ComputedOpti
 	return Required
 }
 
-func setCreateOnlyValue(attr *Attribute) {
-	// CreateOnly plan modifier will not be applied for computed attributes
-	if attr.ComputedOptionalRequired == Computed || attr.ComputedOptionalRequired == ComputedOptional {
-		return
-	}
-
-	// captures case of path param attributes (no present in request body) and properties which are only present in post request
-	if attr.ReqBodyUsage == OmitAlways || attr.ReqBodyUsage == OmitInUpdateBody {
-		attr.CreateOnly = true
-	}
-}
-
 // ApplyTimeoutTransformation adds a timeout attribute to the resource schema if any operation has wait blocks.
 func ApplyTimeoutTransformation(resource *Resource) {
 	ops := &resource.Operations
@@ -216,5 +204,17 @@ func ApplyTimeoutTransformation(resource *Resource) {
 			Timeouts:     &TimeoutsAttribute{ConfigurableTimeouts: configurableTimeouts},
 			ReqBodyUsage: OmitAlways,
 		})
+	}
+}
+
+func setCreateOnlyValue(attr *Attribute) {
+	// CreateOnly plan modifier will not be applied for computed attributes
+	if attr.ComputedOptionalRequired == Computed || attr.ComputedOptionalRequired == ComputedOptional {
+		return
+	}
+
+	// captures case of path param attributes (no present in request body) and properties which are only present in post request
+	if attr.ReqBodyUsage == OmitAlways || attr.ReqBodyUsage == OmitInUpdateBody {
+		attr.CreateOnly = true
 	}
 }
