@@ -19,7 +19,7 @@ import (
 		- Schema definition:
 			"sample_nested_object": schema.SingleNestedAttribute{
 				...
-				CustomType: customtype.NewObjectType[TFStreamConfigModel](ctx),
+				CustomType: customtype.NewObjectType[TFSampleNestedObjectModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"string_attribute": schema.StringAttribute{...},
 				},
