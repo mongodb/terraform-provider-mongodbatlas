@@ -27,8 +27,8 @@ data "mongodbatlas_federated_settings_org_configs" "org_configs_ds" {
 ```
 
 ### Further Examples
-- [Azure Federated Identity Provider with Org Config](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_federated_settings_identity_provider/azure)
-- [Federated Settings Org Role Mappings](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.0.1/examples/mongodbatlas_federated_settings_org_role_mapping)
+- [Azure Federated Identity Provider with Org Config](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_federated_settings_identity_provider/azure)
+- [Federated Settings Org Role Mappings](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_federated_settings_org_role_mapping)
 
 ## Argument Reference
 
