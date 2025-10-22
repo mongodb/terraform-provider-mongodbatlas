@@ -1,12 +1,12 @@
 variable "atlas_client_id" {
-  type    = string
   description = "MongoDB Atlas Service Account Client ID"
-  default = ""
+  type        = string
+  default     = ""
 }
 variable "atlas_client_secret" {
-  type    = string
   description = "MongoDB Atlas Service Account Client Secret"
-  default = ""
+  type        = string
+  default     = ""
 }
 
 variable "org_id" {

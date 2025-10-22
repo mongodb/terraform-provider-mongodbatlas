@@ -1,16 +1,16 @@
 variable "org_id" {
-  type        = string
   description = "MongoDB Atlas Organization ID"
+  type        = string
 }
 
 variable "team_name" {
-  type        = string
   description = "Name of the Atlas team"
+  type        = string
 }
 
 variable "usernames" {
-  type        = list(string)
   description = "List of user emails to assign to the team"
+  type        = list(string)
 }
 
 variable "atlas_client_id" {
