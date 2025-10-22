@@ -209,6 +209,44 @@ var schemaGenFromCodeSpecTestCases = map[string]schemaGenerationTestCase{
 		withObjType:    true,
 		goldenFileName: "nested-attributes",
 	},
+	"Custom types nested attributes": {
+		inputModel: codespec.Resource{
+			Name: "test_name",
+			Schema: &codespec.Schema{
+				Attributes: []codespec.Attribute{
+					{
+						TFSchemaName:             "nested_object_attr",
+						TFModelName:              "NestedObjectAttr",
+						Description:              admin.PtrString("nested object attribute"),
+						ComputedOptionalRequired: codespec.Required,
+						CustomType:               codespec.NewCustomObjectType("NestedObjectAttr"),
+						SingleNested: &codespec.SingleNestedAttribute{
+							NestedObject: codespec.NestedAttributeObject{
+								Attributes: []codespec.Attribute{
+									stringAttr,
+									{
+										TFSchemaName: "sub_nested_object_attr",
+										TFModelName:  "SubNestedObjectAttr",
+										CustomType:   codespec.NewCustomObjectType("NestedObjectAttrSubNestedObjectAttr"),
+										SingleNested: &codespec.SingleNestedAttribute{
+											NestedObject: codespec.NestedAttributeObject{
+												Attributes: []codespec.Attribute{
+													intAttr,
+												},
+											},
+										},
+										ComputedOptionalRequired: codespec.Required,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		withObjType:    false,
+		goldenFileName: "custom-types-nested-attributes",
+	},
 	"Timeout attribute": {
 		inputModel: codespec.Resource{
 			Name: "test_name",

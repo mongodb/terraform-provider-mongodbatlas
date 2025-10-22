@@ -140,9 +140,17 @@ func commonProperties(attr *codespec.Attribute, planModifierType string) []CodeS
 		result = append(result, CodeStatement{Code: "Sensitive: true"})
 	}
 	if attr.CustomType != nil {
+		var imports []string
+		switch attr.CustomType.Package {
+		case codespec.JSONTypesPkg:
+			imports = append(imports, "github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes")
+		case codespec.CustomTypePkg:
+			imports = append(imports, "github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtype")
+		}
+
 		result = append(result, CodeStatement{
 			Code:    fmt.Sprintf("CustomType: %s", attr.CustomType.Schema),
-			Imports: []string{"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"},
+			Imports: imports,
 		})
 	}
 	if attr.CreateOnly { // as of now this is the only property which implies defining plan modifiers

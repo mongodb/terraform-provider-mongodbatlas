@@ -21,6 +21,10 @@ schema:
                       sensitive: false
                       create_only: false
           description: The user that last updated the atlas resource policy.
+          custom_type:
+            package: customtype
+            model: customtype.ObjectValue[TFCreatedByUserModel]
+            schema: customtype.NewObjectType[TFCreatedByUserModel](ctx)
           computed_optional_required: computed
           tf_schema_name: created_by_user
           tf_model_name: CreatedByUser
@@ -71,6 +75,10 @@ schema:
                       sensitive: false
                       create_only: false
           description: The user that last updated the atlas resource policy.
+          custom_type:
+            package: customtype
+            model: customtype.ObjectValue[TFLastUpdatedByUserModel]
+            schema: customtype.NewObjectType[TFLastUpdatedByUserModel](ctx)
           computed_optional_required: computed
           tf_schema_name: last_updated_by_user
           tf_model_name: LastUpdatedByUser

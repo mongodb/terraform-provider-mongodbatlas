@@ -61,6 +61,7 @@ resources:
         target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
     version_header: application/vnd.atlas.2024-08-05+json
     schema:
+      use_custom_nested_types: false
       ignores: ["links", "mongo_dbemployee_access_grant.links"]
       aliases:
         cluster_name: name # path param name does not match the API request property
