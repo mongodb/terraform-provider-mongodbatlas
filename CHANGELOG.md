@@ -4,7 +4,10 @@ NOTES:
 
 * data-source/mongodbatlas_stream_connection: Deprecates the `instance_name` attribute. All configurations using `instance_name` should be updated to use the new `workspace_name` attribute instead ([#3610](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3610))
 * data-source/mongodbatlas_stream_connections: Deprecates the `instance_name` attribute. All configurations using `instance_name` should be updated to use the new `workspace_name` attribute instead ([#3610](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3610))
+* data-source/mongodbatlas_stream_processor: Deprecates the `instance_name` attribute, use `workspace_name` instead ([#3793](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3793))
+* data-source/mongodbatlas_stream_processors: Deprecates the `instance_name` attribute, use `workspace_name` instead ([#3793](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3793))
 * resource/mongodbatlas_stream_connection: Deprecates the `instance_name` attribute. All configurations using `instance_name` should be updated to use the new `workspace_name` attribute instead ([#3610](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3610))
+* resource/mongodbatlas_stream_processor: Deprecates the `instance_name` attribute, use `workspace_name` instead ([#3793](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3793))
 
 ENHANCEMENTS:
 
