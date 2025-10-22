@@ -57,8 +57,8 @@ Your user or service account needs the following IAM roles:
 Create a `terraform.tfvars` file:
 
 ```hcl
-atlas_client_id  = <ATLAS_PUBLIC_KEY>
-atlas_client_secret = <ATLAS_PRIVATE_KEY>
+atlas_client_id  = <ATLAS_CLIENT_ID>
+atlas_client_secret = <ATLAS_CLIENT_SECRET>
 atlas_project_id  = <ATLAS_PROJECT_ID>
 gcp_project_id    = <GCP_PROJECT_ID>
 
