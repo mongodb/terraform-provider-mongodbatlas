@@ -17,7 +17,7 @@ import (
 
 const (
 	dataSourceConfig = `
-data "mongodbatlas_WRONGstream_connection" "test" {
+data "mongodbatlas_stream_connection" "test" {
 		project_id = mongodbatlas_stream_connection.test.project_id
 		workspace_name = mongodbatlas_stream_connection.test.workspace_name
 		connection_name = mongodbatlas_stream_connection.test.connection_name
