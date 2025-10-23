@@ -101,19 +101,20 @@ jobs:
       matrix:
         terraform_version: ${{ fromJSON(needs.variables.outputs.terraform_matrix) }}
         provider_version: ${{ fromJSON(needs.variables.outputs.provider_matrix) }}
-    name: ${{ matrix.terraform_version || 'latest' }}-${{ matrix.provider_version || 'latest' }}-${{ needs.variables.outputs.use_sa == true && 'sa' || 'pak' }}
+    name: ${{ matrix.terraform_version || 'latest' }}-${{ matrix.provider_version || 'latest' }}-${{ needs.variables.outputs.use_sa && 'sa' || 'pak' }}
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
     with:
       terraform_version: ${{ matrix.terraform_version }}
       provider_version: ${{ matrix.provider_version }}
       atlas_cloud_env: ${{ inputs.atlas_cloud_env || needs.variables.outputs.is_sun && 'qa' || '' }} # Run against QA on Sundays
-      use_sa: ${{ needs.variables.outputs.use_sa == true }}
-      send_notification: ${{ needs.variables.outputs.send_notification == true }}
+      # Job output variables are always returned as strings.
+      use_sa: ${{ needs.variables.outputs.use_sa == 'true' }}
+      send_notification: ${{ needs.variables.outputs.send_notification == 'true' }}
 
   slack-notification:
     needs: [tests, variables]
-    if: ${{ !cancelled() && needs.tests.result == 'failure' && needs.variables.outputs.send_notification == true }}
+    if: ${{ !cancelled() && needs.tests.result == 'failure' && needs.variables.outputs.send_notification == 'true' }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
