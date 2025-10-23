@@ -107,13 +107,13 @@ func TestAccSearchDeployment_timeoutTest(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithTimeout(timeoutsStrLongFalse),
-				Check:  resource.TestCheckResourceAttr(resourceID, "delete_on_create_timeout", "false"),
+				Config:      configWithTimeout(timeoutsStrLongFalse),
+				ExpectError: regexp.MustCompile("delete_on_create_timeout cannot be updated or set after import .*"),
 			},
 			{
 				Config: configWithTimeout(""),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckNoResourceAttr(resourceID, "delete_on_create_timeout"),
+					resource.TestCheckResourceAttrSet(resourceID, "delete_on_create_timeout"), // Will keep value from state
 					resource.TestCheckNoResourceAttr(resourceID, "timeouts.create"),
 				),
 			},
