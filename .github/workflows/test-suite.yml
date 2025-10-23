@@ -63,7 +63,7 @@ jobs:
       terraform_matrix: ${{ inputs.terraform_matrix || env.schedule_terraform_matrix }}
       provider_matrix: ${{ inputs.provider_matrix || env.schedule_provider_matrix }}
       is_sun: ${{ steps.set_day.outputs.DAY == 'Sun' }}
-      use_sa: ${{ inputs.use_sa == true || (inputs.use_sa == null && (steps.set_day.outputs.DAY == 'Tue' || steps.set_day.outputs.DAY == 'Thu' || steps.set_day.outputs.DAY == 'Sat')) }}
+      use_sa: ${{ inputs.use_sa == true || (github.event_name == 'schedule' && (steps.set_day.outputs.DAY == 'Tue' || steps.set_day.outputs.DAY == 'Thu' || steps.set_day.outputs.DAY == 'Sat')) }}
       send_notification: ${{ github.event_name == 'schedule' || inputs.send_notification == true }}
     steps:
       - name: set day
