@@ -186,7 +186,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							TFSchemaName:             "nested_list_array_attr",
 							TFModelName:              "NestedListArrayAttr",
 							ComputedOptionalRequired: codespec.Required,
-							CustomType:               codespec.NewCustomListType("NestedListArrayAttr"),
+							CustomType:               codespec.NewCustomNestedListType("NestedListArrayAttr"),
 							ListNested: &codespec.ListNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
@@ -414,7 +414,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 							TFSchemaName:             "nested_list_array_attr",
 							TFModelName:              "NestedListArrayAttr",
 							ComputedOptionalRequired: codespec.Required,
-							CustomType:               codespec.NewCustomListType("NestedListArrayAttr"),
+							CustomType:               codespec.NewCustomNestedListType("NestedListArrayAttr"),
 							ListNested: &codespec.ListNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{

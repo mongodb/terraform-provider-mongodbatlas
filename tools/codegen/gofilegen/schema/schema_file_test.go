@@ -44,7 +44,7 @@ var doubleCustomNestedListAttr = codespec.Attribute{
 	TFModelName:              "DoubleNestedListAttr",
 	Description:              admin.PtrString("double nested list attribute"),
 	ComputedOptionalRequired: codespec.Optional,
-	CustomType:               codespec.NewCustomListType("DoubleNestedListAttr"),
+	CustomType:               codespec.NewCustomNestedListType("DoubleNestedListAttr"),
 	ListNested: &codespec.ListNestedAttribute{
 		NestedObject: codespec.NestedAttributeObject{
 			Attributes: []codespec.Attribute{
@@ -263,7 +263,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							TFModelName:              "NestedListAttr",
 							Description:              admin.PtrString("nested list attribute"),
 							ComputedOptionalRequired: codespec.Optional,
-							CustomType:               codespec.NewCustomListType("NestedListAttr"),
+							CustomType:               codespec.NewCustomNestedListType("NestedListAttr"),
 							ListNested: &codespec.ListNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: []codespec.Attribute{stringAttr, intAttr, doubleCustomNestedListAttr},
@@ -333,7 +333,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							TFModelName:              "FirstNestedAttr",
 							Description:              admin.PtrString("first nested attribute"),
 							ComputedOptionalRequired: codespec.Optional,
-							CustomType:               codespec.NewCustomListType("FirstNestedAttr"),
+							CustomType:               codespec.NewCustomNestedListType("FirstNestedAttr"),
 							ListNested: &codespec.ListNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: []codespec.Attribute{doubleCustomNestedListAttr},
@@ -345,7 +345,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							TFModelName:              "SecondNestedAttr",
 							Description:              admin.PtrString("second nested attribute"),
 							ComputedOptionalRequired: codespec.Optional,
-							CustomType:               codespec.NewCustomListType("SecondNestedAttr"),
+							CustomType:               codespec.NewCustomNestedListType("SecondNestedAttr"),
 							ListNested: &codespec.ListNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: []codespec.Attribute{doubleCustomNestedListAttr},

@@ -217,7 +217,7 @@ func (s *APISpecSchema) buildArrayAttr(name, ancestorsName string, computability
 
 		var customType *CustomType
 		if useCustomNestedTypes {
-			customType = NewCustomListType(fullName)
+			customType = NewCustomNestedListType(fullName)
 		}
 		nestedObject := &NestedAttributeObject{Attributes: objectAttributes}
 

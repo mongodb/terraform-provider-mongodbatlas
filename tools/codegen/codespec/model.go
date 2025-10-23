@@ -198,7 +198,7 @@ func NewCustomObjectType(name string) *CustomType {
 	}
 }
 
-func NewCustomListType(name string) *CustomType {
+func NewCustomNestedListType(name string) *CustomType {
 	return &CustomType{
 		Package: CustomTypePkg,
 		Model:   fmt.Sprintf("customtype.NestedListValue[TF%sModel]", name),
