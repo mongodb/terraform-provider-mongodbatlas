@@ -3,6 +3,7 @@ package cleanup
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -110,4 +111,19 @@ func ResolveDeleteOnCreateTimeout(deleteOnCreateTimeout types.Bool) bool {
 	}
 	// Otherwise use the explicit value
 	return deleteOnCreateTimeout.ValueBool()
+}
+
+type ResourceInterface interface {
+	GetOkExists(key string) (interface{}, bool)
+	HasChange(key string) bool
+}
+
+func DeleteOnCreateTimeoutInvalidUpdate(resource ResourceInterface) string {
+	if !resource.HasChange("delete_on_create_timeout") {
+		return ""
+	}
+	if _, exists := resource.GetOkExists("delete_on_create_timeout"); exists {
+		return fmt.Sprintf("%s cannot be updated or set after import, remove it from the configuration", "delete_on_create_timeout")
+	}
+	return ""
 }
