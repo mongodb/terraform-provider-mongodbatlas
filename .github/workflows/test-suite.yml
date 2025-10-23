@@ -7,7 +7,7 @@ name: 'Test Suite'
 #   - Tuesday, Thursday, Saturday: SA against Dev environment
 # Note: PAK refers to Programmatic API Key authentication (use_sa: false), SA refers to Service Account authentication (use_sa: true)
 # It can also be run manually.
-# The 1st day of the month we run terraform-compatibility-matrix.yml and therefore, we skip the test-suite (see schedule->cron below).
+# Pending change in CLOUDP-353513: The 1st day of the month we run terraform-compatibility-matrix.yml and therefore, we skip the test-suite (see schedule->cron below).
 on:
   workflow_dispatch:
     inputs:

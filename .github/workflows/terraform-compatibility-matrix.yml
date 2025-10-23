@@ -2,8 +2,9 @@ name: "HashiCorp Terraform Compatibility Matrix"
 run-name: 'HashiCorp Terraform Compatibility Matrix ${{ inputs.atlas_cloud_env }}'
 
 on:
-  schedule:
-    - cron: "0 0 1 * *" # runs first day of the month at midnight UTC
+  # Will be spread in multiple days in CLOUDP-353513, don't schedule at the moment.
+  # schedule:
+  #  - cron: "0 0 1 * *" # runs first day of the month at midnight UTC
   workflow_dispatch:
     inputs:
       atlas_cloud_env:
