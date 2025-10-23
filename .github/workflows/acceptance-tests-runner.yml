@@ -25,18 +25,20 @@ on:
         description: 'The branch, tag or SHA where tests will run, e.g. v1.14.0, empty for default branch'
         type: string
         required: true
+      # Boolean inputs are passed as null between workflows when false. For comparisons use my_input == true or my_input != true.
+      # Don't use my_input or my_input == false.
       reduced_tests:
         description: 'If run only minimum tests for advanced_cluster, e.g. in PRs'
         type: boolean
-        default: false
+        required: true
       use_sa:
         description: "Run tests using Service Account instead of API Keys"
         type: boolean
-        default: false
+        required: true
       send_notification:
         description: 'Send a Slack notification if stream tests fail.'
         type: boolean
-        default: false
+        required: true
       mongodb_atlas_org_id:
         type: string
         required: true
@@ -212,14 +214,14 @@ env:
   # If the name (regex) of the test is set, only that test is run.
   # Don't run migration tests if using Service Accounts because previous provider versions don't support SA yet.
   # Only Migration tests are run when a specific previous provider version is set.
-  ACCTEST_REGEX_RUN: ${{ inputs.test_name || inputs.use_sa && '^TestAcc' || inputs.provider_version == '' && '^Test(Acc|Mig)' || '^TestMig' }}
+  ACCTEST_REGEX_RUN: ${{ inputs.test_name || inputs.use_sa == true && '^TestAcc' || inputs.provider_version == '' && '^Test(Acc|Mig)' || '^TestMig' }}
   MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
   MONGODB_REALM_BASE_URL: ${{ inputs.mongodb_realm_base_url }}
   MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
-  MONGODB_ATLAS_PUBLIC_KEY: ${{ inputs.use_sa == false && secrets.mongodb_atlas_public_key || '' }}
-  MONGODB_ATLAS_PRIVATE_KEY: ${{ inputs.use_sa == false && secrets.mongodb_atlas_private_key || '' }}
-  MONGODB_ATLAS_CLIENT_ID: ${{ inputs.use_sa  && secrets.mongodb_atlas_client_id || '' }}
-  MONGODB_ATLAS_CLIENT_SECRET: ${{ inputs.use_sa && secrets.mongodb_atlas_client_secret || '' }}
+  MONGODB_ATLAS_PUBLIC_KEY: ${{ inputs.use_sa != true && secrets.mongodb_atlas_public_key || '' }}
+  MONGODB_ATLAS_PRIVATE_KEY: ${{ inputs.use_sa != true && secrets.mongodb_atlas_private_key || '' }}
+  MONGODB_ATLAS_CLIENT_ID: ${{ inputs.use_sa == true && secrets.mongodb_atlas_client_id || '' }}
+  MONGODB_ATLAS_CLIENT_SECRET: ${{ inputs.use_sa == true && secrets.mongodb_atlas_client_secret || '' }}
   MONGODB_ATLAS_PUBLIC_KEY_READ_ONLY: ${{ secrets.mongodb_atlas_public_key_read_only }}
   MONGODB_ATLAS_PRIVATE_KEY_READ_ONLY: ${{ secrets.mongodb_atlas_private_key_read_only }}
   MONGODB_ATLAS_GOV_PUBLIC_KEY: ${{ secrets.mongodb_atlas_gov_public_key }}
@@ -445,14 +447,14 @@ jobs:
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           HTTP_MOCKER_CAPTURE: 'true'
-          ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
+          ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests == true && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
           ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
 
   advanced_cluster_tpf_mig_from_sdkv2:
     needs: [ change-detection, get-provider-version ]
     # Previous advanced_cluster versions don't support SA.
-    if: ${{ inputs.reduced_tests == false && inputs.use_sa == false && (needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster') }}
+    if: ${{ inputs.reduced_tests != true && inputs.use_sa != true && (needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster') }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -478,7 +480,7 @@ jobs:
   advanced_cluster_tpf_mig_from_tpf_preview:
     needs: [ change-detection, get-provider-version ]
     # Previous advanced_cluster versions don't support SA.
-    if: ${{ inputs.reduced_tests == false && inputs.use_sa == false && (needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster') }}
+    if: ${{ inputs.reduced_tests != true && inputs.use_sa != true && (needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster') }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -927,7 +929,7 @@ jobs:
   event_trigger:
     needs: [change-detection, get-provider-version]
     # Realm SDK doesn't support SA.
-    if: ${{ inputs.use_sa == false && (needs.change-detection.outputs.event_trigger == 'true' || inputs.test_group == 'event_trigger') }}
+    if: ${{ inputs.use_sa != true && (needs.change-detection.outputs.event_trigger == 'true' || inputs.test_group == 'event_trigger') }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -1236,10 +1238,10 @@ jobs:
           terraform_wrapper: false  
       - name: Acceptance Tests
         env:
-          MONGODB_ATLAS_PUBLIC_KEY: ${{ inputs.use_sa == false && secrets.mongodb_atlas_rp_public_key || '' }}
-          MONGODB_ATLAS_PRIVATE_KEY: ${{ inputs.use_sa == false && secrets.mongodb_atlas_rp_private_key || '' }}
-          MONGODB_ATLAS_CLIENT_ID: ${{ inputs.use_sa  && secrets.mongodb_atlas_rp_client_id || '' }}
-          MONGODB_ATLAS_CLIENT_SECRET: ${{ inputs.use_sa && secrets.mongodb_atlas_rp_client_secret || '' }}
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ inputs.use_sa != true && secrets.mongodb_atlas_rp_public_key || '' }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ inputs.use_sa != true && secrets.mongodb_atlas_rp_private_key || '' }}
+          MONGODB_ATLAS_CLIENT_ID: ${{ inputs.use_sa == true && secrets.mongodb_atlas_rp_client_id || '' }}
+          MONGODB_ATLAS_CLIENT_SECRET: ${{ inputs.use_sa == true && secrets.mongodb_atlas_rp_client_secret || '' }}
           MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_rp_org_id }}
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: ./internal/service/resourcepolicy
@@ -1351,7 +1353,7 @@ jobs:
 
   slack-notification-stream:
     needs: [stream]
-    if: ${{ !cancelled() && needs.stream.result == 'failure' && inputs.send_notification }}
+    if: ${{ !cancelled() && needs.stream.result == 'failure' && inputs.send_notification == true }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
