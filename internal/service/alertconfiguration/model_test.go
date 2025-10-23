@@ -524,7 +524,12 @@ func TestAlertConfigurationSdkToDSModelList(t *testing.T) {
 						{
 							Type:  types.StringValue("resource_hcl"),
 							Label: types.StringValue("EventType_0"),
-							Value: types.StringValue("resource \"mongodbatlas_alert_configuration\" \"EventType_0\" {\n  project_id = \"projectId\"\n  event_type = \"EventType\"\n  enabled    = true\n}\n"),
+							Value: types.StringValue(`resource "mongodbatlas_alert_configuration" "EventType_0" {
+  project_id = "projectId"
+  event_type = "EventType"
+  enabled    = true
+}
+`),
 						},
 					},
 				},
@@ -561,7 +566,13 @@ func TestAlertConfigurationSdkToDSModelList(t *testing.T) {
 						{
 							Type:  types.StringValue("resource_hcl"),
 							Label: types.StringValue("EventType_0"),
-							Value: types.StringValue("resource \"mongodbatlas_alert_configuration\" \"EventType_0\" {\n  project_id = \"projectId\"\n  event_type = \"EventType\"\n  enabled    = true\n}\n"),
+							Value: types.StringValue(`resource "mongodbatlas_alert_configuration" "EventType_0" {
+  project_id        = "projectId"
+  event_type        = "EventType"
+  enabled           = true
+  severity_override = "WARNING"
+}
+`),
 						},
 					},
 					SeverityOverride: types.StringValue("WARNING"),
