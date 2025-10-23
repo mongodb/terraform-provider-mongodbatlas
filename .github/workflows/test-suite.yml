@@ -108,12 +108,12 @@ jobs:
       terraform_version: ${{ matrix.terraform_version }}
       provider_version: ${{ matrix.provider_version }}
       atlas_cloud_env: ${{ inputs.atlas_cloud_env || needs.variables.outputs.is_sun && 'qa' || '' }} # Run against QA on Sundays
-      use_sa: ${{ needs.variables.outputs.use_sa }}
-      send_notification: ${{ needs.variables.outputs.send_notification }}
+      use_sa: ${{ needs.variables.outputs.use_sa == true }}
+      send_notification: ${{ needs.variables.outputs.send_notification == true }}
 
   slack-notification:
     needs: [tests, variables]
-    if: ${{ !cancelled() && needs.tests.result == 'failure' && needs.variables.outputs.send_notification }}
+    if: ${{ !cancelled() && needs.tests.result == 'failure' && needs.variables.outputs.send_notification == true }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
