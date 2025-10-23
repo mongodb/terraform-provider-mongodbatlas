@@ -230,6 +230,31 @@ env:
 
 jobs:  
 
+  variables:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Show input variables
+        run: |
+          echo "send_notification: ${{ inputs.send_notification }}"
+          echo "send_notification null: ${{ inputs.send_notification == null }}"
+          echo "send_notification not null: ${{ inputs.send_notification != null }}"
+          echo "send_notification false: ${{ inputs.send_notification == false }}"
+          echo "send_notification true: ${{ inputs.send_notification == true }}"
+          echo "send_notification not false: ${{ inputs.send_notification != false }}"
+          echo "send_notification not true: ${{ inputs.send_notification != true }}"
+          echo "send_notification false string: ${{ inputs.send_notification == 'false' }}"
+          echo "send_notification true string: ${{ inputs.send_notification == 'true' }}"
+          echo "sa: ${{ inputs.use_sa }}"
+          echo "sa null: ${{ inputs.use_sa == null }}"
+          echo "sa not null: ${{ inputs.use_sa != null }}"
+          echo "sa false: ${{ inputs.use_sa == false }}"
+          echo "sa true: ${{ inputs.use_sa == true }}"
+          echo "sa not false: ${{ inputs.use_sa != false }}"
+          echo "sa not true: ${{ inputs.use_sa != true }}"
+          echo "sa false string: ${{ inputs.use_sa == 'false' }}"
+          echo "sa true string: ${{ inputs.use_sa == 'true' }}"
+
   get-provider-version:
     runs-on: ubuntu-latest
     permissions: {}
