@@ -101,7 +101,7 @@ jobs:
       matrix:
         terraform_version: ${{ fromJSON(needs.variables.outputs.terraform_matrix) }}
         provider_version: ${{ fromJSON(needs.variables.outputs.provider_matrix) }}
-    name: ${{ matrix.terraform_version || 'latest' }}-${{ matrix.provider_version || 'latest' }}-${{ needs.variables.outputs.use_sa && 'sa' || 'pak' }}
+    name: ${{ matrix.terraform_version || 'latest' }}-${{ matrix.provider_version || 'latest' }}-${{ needs.variables.outputs.use_sa == true && 'sa' || 'pak' }}
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
     with:
