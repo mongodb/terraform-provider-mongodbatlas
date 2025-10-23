@@ -33,11 +33,11 @@ on:
       use_sa:
         description: "Run tests using Service Account instead of API Keys"
         type: boolean
-        required: false
+        required: true
       send_notification:
         description: 'Send a Slack notification if stream tests fail.'
         type: boolean
-        required: false
+        required: true
       mongodb_atlas_org_id:
         type: string
         required: true
@@ -1327,7 +1327,7 @@ jobs:
 
   slack-notification-stream:
     needs: [stream]
-    if: ${{ !cancelled() && needs.stream.result == 'failure' && !contains(github.event.inputs.send_notification, 'false') }}
+    if: ${{ !cancelled() && needs.stream.result == 'failure' && inputs.send_notification }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
