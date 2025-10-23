@@ -90,8 +90,8 @@ func TestReplaceContextDeadlineExceededDiags(t *testing.T) {
 }
 
 type mockResource struct {
-	values  map[string]interface{}
-	changes map[string]bool
+	values    map[string]interface{}
+	isChanged bool
 }
 
 func (m *mockResource) GetOkExists(key string) (interface{}, bool) {
@@ -100,14 +100,14 @@ func (m *mockResource) GetOkExists(key string) (interface{}, bool) {
 }
 
 func (m *mockResource) HasChange(key string) bool {
-	return m.changes[key]
+	return m.isChanged
 }
 
 func TestDeleteOnCreateTimeoutInvalidUpdate(t *testing.T) {
 	t.Run("No change in delete_on_create_timeout returns empty string", func(t *testing.T) {
 		resource := &mockResource{
-			values:  map[string]interface{}{},
-			changes: map[string]bool{"delete_on_create_timeout": false},
+			values:    map[string]interface{}{},
+			isChanged: false,
 		}
 
 		result := cleanup.DeleteOnCreateTimeoutInvalidUpdate(resource)
@@ -116,8 +116,8 @@ func TestDeleteOnCreateTimeoutInvalidUpdate(t *testing.T) {
 
 	t.Run("Change detected but field doesn't exist returns empty string", func(t *testing.T) {
 		resource := &mockResource{
-			values:  map[string]interface{}{},
-			changes: map[string]bool{"delete_on_create_timeout": true},
+			values:    map[string]interface{}{},
+			isChanged: true,
 		}
 
 		result := cleanup.DeleteOnCreateTimeoutInvalidUpdate(resource)
@@ -126,8 +126,8 @@ func TestDeleteOnCreateTimeoutInvalidUpdate(t *testing.T) {
 
 	t.Run("Change detected and field exists returns error message", func(t *testing.T) {
 		resource := &mockResource{
-			values:  map[string]interface{}{"delete_on_create_timeout": true},
-			changes: map[string]bool{"delete_on_create_timeout": true},
+			values:    map[string]interface{}{"delete_on_create_timeout": true},
+			isChanged: true,
 		}
 
 		result := cleanup.DeleteOnCreateTimeoutInvalidUpdate(resource)
@@ -137,8 +137,8 @@ func TestDeleteOnCreateTimeoutInvalidUpdate(t *testing.T) {
 
 	t.Run("Change detected with false value still returns error message", func(t *testing.T) {
 		resource := &mockResource{
-			values:  map[string]interface{}{"delete_on_create_timeout": false},
-			changes: map[string]bool{"delete_on_create_timeout": true},
+			values:    map[string]interface{}{"delete_on_create_timeout": false},
+			isChanged: true,
 		}
 
 		result := cleanup.DeleteOnCreateTimeoutInvalidUpdate(resource)

@@ -113,12 +113,17 @@ func ResolveDeleteOnCreateTimeout(deleteOnCreateTimeout types.Bool) bool {
 	return deleteOnCreateTimeout.ValueBool()
 }
 
-type ResourceInterface interface {
-	GetOkExists(key string) (interface{}, bool)
+type resourceInterface interface {
+	GetOkExists(key string) (any, bool)
 	HasChange(key string) bool
 }
 
-func DeleteOnCreateTimeoutInvalidUpdate(resource ResourceInterface) string {
+// DeleteOnCreateTimeoutInvalidUpdate returns an error if the `delete_on_create_timeout` attribute has been updated to true/false
+// This use case differs slightly from the behavior of TPF customplanmodifier.CreateOnlyBoolWithDefault:
+// - from a given value (true/false) --> `null`.
+// This TPF implementation keeps the state value (UseStateForUnknown behavior).
+// This will set the state value to null (Optional-only attribute).
+func DeleteOnCreateTimeoutInvalidUpdate(resource resourceInterface) string {
 	if !resource.HasChange("delete_on_create_timeout") {
 		return ""
 	}
