@@ -24,7 +24,7 @@ on:
       use_sa:
         description: "Run tests using Service Account instead of API Keys"
         type: boolean
-        required: false
+        default: false
   workflow_call:
     inputs:
       terraform_matrix:
@@ -41,7 +41,11 @@ on:
       send_notification:
         description: 'Send the Slack notification if any of the tests fail.'
         type: boolean
-        default: true
+        default: false
+      use_sa:
+        description: "Run tests using Service Account instead of API Keys"
+        type: boolean
+        default: false  
   schedule:
     - cron: "0 0 2-31 * *" # workflow runs every day at midnight UTC except on the first day of the month
 
@@ -60,6 +64,7 @@ jobs:
       provider_matrix: ${{ inputs.provider_matrix || env.schedule_provider_matrix }}
       is_sun: ${{ steps.set_day.outputs.DAY == 'Sun' }}
       use_sa: ${{ (inputs.use_sa != null && inputs.use_sa) || (inputs.use_sa == null && (steps.set_day.outputs.DAY == 'Tue' || steps.set_day.outputs.DAY == 'Thu' || steps.set_day.outputs.DAY == 'Sat')) }}
+      send_notification: ${{ inputs.send_notification == null || inputs.send_notification }} # scheduled workflows (unset input) send notification
     steps:
       - name: set day
         id: set_day
@@ -76,20 +81,19 @@ jobs:
       matrix:
         terraform_version: ${{ fromJSON(needs.variables.outputs.terraform_matrix) }}
         provider_version: ${{ fromJSON(needs.variables.outputs.provider_matrix) }}
-    name: ${{ matrix.terraform_version || 'latest' }}-${{ matrix.provider_version || 'latest' }}-${{ needs.variables.outputs.use_sa == 'true' && 'sa' || 'pak' }}
+    name: ${{ matrix.terraform_version || 'latest' }}-${{ matrix.provider_version || 'latest' }}-${{ needs.variables.outputs.use_sa && 'sa' || 'pak' }}
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
     with:
       terraform_version: ${{ matrix.terraform_version }}
       provider_version: ${{ matrix.provider_version }}
-      atlas_cloud_env: ${{ inputs.atlas_cloud_env || needs.variables.outputs.is_sun == 'true' && 'qa' || '' }} # Run against QA on Sundays
-      use_sa: ${{ needs.variables.outputs.use_sa == 'true' }}
-      # This expression is true if unset (scheduled workflow) or explicitly set to true
-      send_notification: ${{ inputs.send_notification != false }}
+      atlas_cloud_env: ${{ inputs.atlas_cloud_env || needs.variables.outputs.is_sun && 'qa' || '' }} # Run against QA on Sundays
+      use_sa: ${{ needs.variables.outputs.use_sa  }}
+      send_notification: ${{ needs.variables.outputs.send_notification }}
 
   slack-notification:
-    needs: [tests]
-    if: ${{ !cancelled() && needs.tests.result == 'failure' && inputs.send_notification != false }}
+    needs: [tests, variables]
+    if: ${{ !cancelled() && needs.tests.result == 'failure' && needs.variables.outputs.send_notification }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
