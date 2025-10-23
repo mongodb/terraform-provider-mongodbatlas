@@ -48,6 +48,9 @@ func TestAccSearchDeployment_basic(t *testing.T) {
 				Config: updateStepNoWait,
 				Check:  updateStep.Check,
 			},
+			// skip_wait_on_update = false again, and wait for stable state_name
+			updateStep,
+
 			importStep(),
 		},
 	})
@@ -108,7 +111,7 @@ func TestAccSearchDeployment_timeoutTest(t *testing.T) {
 			},
 			{
 				Config:      configWithTimeout(timeoutsStrLongFalse),
-				ExpectError: regexp.MustCompile("delete_on_create_timeout cannot be updated or set after import .*"),
+				ExpectError: regexp.MustCompile("delete_on_create_timeout cannot be updated or set after import.*"),
 			},
 			{
 				Config: configWithTimeout(""),
