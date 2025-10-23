@@ -21,6 +21,7 @@ data "mongodbatlas_stream_connection" "test" {
 		project_id = mongodbatlas_stream_connection.test.project_id
 		workspace_name = mongodbatlas_stream_connection.test.workspace_name
 		connection_name = mongodbatlas_stream_connection.test.connection_name
+		depends_on = [mongodbatlas_stream_connection.test]
 }
 `
 
@@ -28,6 +29,7 @@ data "mongodbatlas_stream_connection" "test" {
 data "mongodbatlas_stream_connections" "test" {
 		project_id = mongodbatlas_stream_connection.test.project_id
 		workspace_name = mongodbatlas_stream_connection.test.workspace_name
+		depends_on = [mongodbatlas_stream_connection.test]
 }
 `
 	dataSourcePluralConfigWithPage = `
@@ -36,16 +38,16 @@ data "mongodbatlas_stream_connections" "test" {
 		workspace_name = mongodbatlas_stream_connection.test.workspace_name
 		page_num = 2 # no specific reason for 2, just to test pagination
 		items_per_page = 1
-	}
-	`
-)
+		depends_on = [mongodbatlas_stream_connection.test]
+}
+`
 
-const (
 	dataSourceConfigMigration = `
 data "mongodbatlas_stream_connection" "test" {
 		project_id = mongodbatlas_stream_connection.test.project_id
 		instance_name = mongodbatlas_stream_connection.test.instance_name
 		connection_name = mongodbatlas_stream_connection.test.connection_name
+		depends_on = [mongodbatlas_stream_connection.test]
 }
 `
 
@@ -53,16 +55,19 @@ data "mongodbatlas_stream_connection" "test" {
 data "mongodbatlas_stream_connections" "test" {
 		project_id = mongodbatlas_stream_connection.test.project_id
 		instance_name = mongodbatlas_stream_connection.test.instance_name
+		depends_on = [mongodbatlas_stream_connection.test]
 }
 `
+
 	dataSourcePluralConfigWithPageMigration = `
 data "mongodbatlas_stream_connections" "test" {
 		project_id = mongodbatlas_stream_connection.test.project_id
 		instance_name = mongodbatlas_stream_connection.test.instance_name
 		page_num = 2 # no specific reason for 2, just to test pagination
 		items_per_page = 1
-	}
-	`
+		depends_on = [mongodbatlas_stream_connection.test]
+}
+`
 )
 
 var (
