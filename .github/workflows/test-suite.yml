@@ -121,7 +121,7 @@ jobs:
       - name: Send Slack message
         uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
         with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_TEST }}
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST }}
           webhook-type: incoming-webhook
           payload: |
             {
