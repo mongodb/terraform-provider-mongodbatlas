@@ -90,7 +90,7 @@ jobs:
     with:
       terraform_version: ${{ matrix.terraform_version }}
       provider_version: ${{ matrix.provider_version }}
-      atlas_cloud_env: ${{ inputs.atlas_cloud_env || needs.variables.outputs.is_sun && 'qa' || '' }} # Run against QA on Sundays
+      atlas_cloud_env: ${{ inputs.atlas_cloud_env || needs.variables.outputs.is_sun == 'true' && 'qa' || '' }} # Run against QA on Sundays
       # Job output variables are always returned as strings.
       use_sa: ${{ needs.variables.outputs.use_sa == 'true' }}
       send_notification: ${{ needs.variables.outputs.send_notification == 'true' }}

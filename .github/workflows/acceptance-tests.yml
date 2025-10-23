@@ -1,5 +1,5 @@
 name: 'Acceptance Tests'
-run-name: "Acceptance Tests ${{ inputs.atlas_cloud_env }} ${{ inputs.test_group }} ${{ inputs.use_sa && 'sa' || 'pak'}} ${{ inputs.send_notification && 'notif' || ''}}"
+run-name: "Acceptance Tests ${{ inputs.atlas_cloud_env }} ${{ inputs.test_group }} ${{ inputs.use_sa == true && 'sa' || 'pak'}}"
 
 # Used for running acceptance tests, either triggered manually or called by other workflows. 
 on:
