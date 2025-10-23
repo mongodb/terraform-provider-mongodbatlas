@@ -28,15 +28,15 @@ on:
       reduced_tests:
         description: 'If run only minimum tests for advanced_cluster, e.g. in PRs'
         type: boolean
-        required: true
+        default: false
       use_sa:
         description: "Run tests using Service Account instead of API Keys"
         type: boolean
-        required: true
+        default: false
       send_notification:
         description: 'Send a Slack notification if stream tests fail.'
         type: boolean
-        required: true
+        default: false
       mongodb_atlas_org_id:
         type: string
         required: true
@@ -445,7 +445,7 @@ jobs:
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           HTTP_MOCKER_CAPTURE: 'true'
-          ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests == true && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
+          ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
           ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
 

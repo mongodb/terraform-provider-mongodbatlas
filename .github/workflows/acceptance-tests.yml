@@ -28,7 +28,11 @@ on:
       ref:
         description: 'The branch, tag or SHA where tests will run, e.g. v1.14.0, empty for default branch'
         type: string
-        required: false  
+        required: false
+      reduced_tests:
+        description: 'If run only minimum tests for advanced_cluster, e.g. in PRs'
+        type: boolean
+        default: false  
       use_sa:
         description: "Run tests using Service Account instead of API Keys"
         type: boolean
@@ -125,9 +129,9 @@ jobs:
       test_group: ${{ inputs.test_group }}
       test_name: ${{ inputs.test_name }}
       ref: ${{ inputs.ref }}
-      reduced_tests: ${{ inputs.reduced_tests == true }}
-      use_sa: ${{ inputs.use_sa == true }}
-      send_notification: ${{ inputs.send_notification == true }}
+      reduced_tests: ${{ inputs.reduced_tests }}
+      use_sa: ${{ inputs.use_sa }}
+      send_notification: ${{ inputs.send_notification }}
       mongodb_atlas_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_ORG_ID_CLOUD_QA || vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
       mongodb_atlas_base_url: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_BASE_URL_QA || vars.MONGODB_ATLAS_BASE_URL }}
       mongodb_realm_base_url: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_REALM_BASE_URL_QA || vars.MONGODB_REALM_BASE_URL }}
