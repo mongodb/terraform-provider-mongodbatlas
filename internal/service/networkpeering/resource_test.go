@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -221,8 +222,8 @@ func TestAccNetworkNetworkPeering_timeouts(t *testing.T) {
 	})
 }
 
-func basicAWSTestCase(tb testing.TB) *resource.TestCase {
-	tb.Helper()
+func basicAWSTestCase(t *testing.T) *resource.TestCase {
+	t.Helper()
 	var (
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		vpcID           = os.Getenv("AWS_VPC_ID")
@@ -232,17 +233,22 @@ func basicAWSTestCase(tb testing.TB) *resource.TestCase {
 		peerRegion      = conversion.MongoDBRegionToAWSRegion(containerRegion)
 		providerName    = "AWS"
 		projectName     = acc.RandomProjectName()
+		config          = configAWS(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion, false)
 	)
 	checks := commonChecksAWS(vpcID, providerName, awsAccountID, vpcCIDRBlock, peerRegion)
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckPeeringEnvAWS(tb) },
+		PreCheck:                 func() { acc.PreCheckPeeringEnvAWS(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyNetworkPeering,
 		Steps: []resource.TestStep{
 			{
-				Config: configAWS(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion, false),
+				Config: config,
 				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
+			},
+			{
+				Config:      acc.ConfigAddResourceStr(t, config, resourceName, "delete_on_create_timeout = true"),
+				ExpectError: regexp.MustCompile(cleanup.DeleteOnCreateTimeoutInvalidErrorMessage),
 			},
 			{
 				ResourceName:            resourceName,

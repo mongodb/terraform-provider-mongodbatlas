@@ -3,7 +3,6 @@ package cleanup
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
@@ -15,7 +14,8 @@ import (
 )
 
 const (
-	CleanupWarning = "Failed to create resource. Will run cleanup due to the operation timing out"
+	CleanupWarning                           = "Failed to create resource. Will run cleanup due to the operation timing out"
+	DeleteOnCreateTimeoutInvalidErrorMessage = "delete_on_create_timeout cannot be updated or set after import, remove it from the configuration"
 )
 
 // HandleCreateTimeout helps to implement Create in long-running operations.
@@ -128,7 +128,7 @@ func DeleteOnCreateTimeoutInvalidUpdate(resource resourceInterface) string {
 		return ""
 	}
 	if _, exists := resource.GetOkExists("delete_on_create_timeout"); exists {
-		return fmt.Sprintf("%s cannot be updated or set after import, remove it from the configuration", "delete_on_create_timeout")
+		return DeleteOnCreateTimeoutInvalidErrorMessage
 	}
 	return ""
 }

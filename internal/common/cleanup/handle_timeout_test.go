@@ -131,7 +131,7 @@ func TestDeleteOnCreateTimeoutInvalidUpdate(t *testing.T) {
 		}
 
 		result := cleanup.DeleteOnCreateTimeoutInvalidUpdate(resource)
-		expectedMessage := "delete_on_create_timeout cannot be updated or set after import, remove it from the configuration"
+		expectedMessage := cleanup.DeleteOnCreateTimeoutInvalidErrorMessage
 		assert.Equal(t, expectedMessage, result)
 	})
 
@@ -142,7 +142,7 @@ func TestDeleteOnCreateTimeoutInvalidUpdate(t *testing.T) {
 		}
 
 		result := cleanup.DeleteOnCreateTimeoutInvalidUpdate(resource)
-		expectedMessage := "delete_on_create_timeout cannot be updated or set after import, remove it from the configuration"
+		expectedMessage := cleanup.DeleteOnCreateTimeoutInvalidErrorMessage
 		assert.Equal(t, expectedMessage, result)
 	})
 }
