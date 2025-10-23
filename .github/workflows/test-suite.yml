@@ -63,8 +63,8 @@ jobs:
       terraform_matrix: ${{ inputs.terraform_matrix || env.schedule_terraform_matrix }}
       provider_matrix: ${{ inputs.provider_matrix || env.schedule_provider_matrix }}
       is_sun: ${{ steps.set_day.outputs.DAY == 'Sun' }}
-      use_sa: ${{ (inputs.use_sa != null && inputs.use_sa) || (inputs.use_sa == null && (steps.set_day.outputs.DAY == 'Tue' || steps.set_day.outputs.DAY == 'Thu' || steps.set_day.outputs.DAY == 'Sat')) }}
-      send_notification: ${{ inputs.send_notification == null || inputs.send_notification }} # scheduled workflows (unset input) send notification
+      use_sa: ${{ inputs.use_sa == true || (inputs.use_sa == null && (steps.set_day.outputs.DAY == 'Tue' || steps.set_day.outputs.DAY == 'Thu' || steps.set_day.outputs.DAY == 'Sat')) }}
+      send_notification: ${{ inputs.send_notification == null || inputs.send_notification == true }} # scheduled workflows (unset input) send notification
     steps:
       - name: set day
         id: set_day
@@ -108,7 +108,7 @@ jobs:
       terraform_version: ${{ matrix.terraform_version }}
       provider_version: ${{ matrix.provider_version }}
       atlas_cloud_env: ${{ inputs.atlas_cloud_env || needs.variables.outputs.is_sun && 'qa' || '' }} # Run against QA on Sundays
-      use_sa: ${{ needs.variables.outputs.use_sa  }}
+      use_sa: ${{ needs.variables.outputs.use_sa }}
       send_notification: ${{ needs.variables.outputs.send_notification }}
 
   slack-notification:
