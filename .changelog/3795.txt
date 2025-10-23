@@ -1,0 +1,7 @@
+```release-note:enhancement
+data-source/mongodbatlas_alert_configuration: Adds `severity_override` attribute
+```
+
+```release-note:enhancement
+resource/mongodbatlas_alert_configuration: Adds `severity_override` attribute
+```

@@ -1069,7 +1069,7 @@ func configWithEmptyOptionalBlocks(projectID string) string {
 	`, projectID)
 }
 
-func configWithSeverityOverride(projectID string, severity string) string {
+func configWithSeverityOverride(projectID, severity string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_alert_configuration" "test" {
 			project_id        = %[1]q

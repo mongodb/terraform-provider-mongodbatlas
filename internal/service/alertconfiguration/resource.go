@@ -59,12 +59,12 @@ type TfAlertConfigurationRSModel struct {
 	EventType             types.String                   `tfsdk:"event_type"`
 	Created               types.String                   `tfsdk:"created"`
 	Updated               types.String                   `tfsdk:"updated"`
+	SeverityOverride      types.String                   `tfsdk:"severity_override"`
 	Matcher               []TfMatcherModel               `tfsdk:"matcher"`
 	MetricThresholdConfig []TfMetricThresholdConfigModel `tfsdk:"metric_threshold_config"`
 	ThresholdConfig       []TfThresholdConfigModel       `tfsdk:"threshold_config"`
 	Notification          []TfNotificationModel          `tfsdk:"notification"`
 	Enabled               types.Bool                     `tfsdk:"enabled"`
-	SeverityOverride      types.String                   `tfsdk:"severity_override"`
 }
 
 type TfMatcherModel struct {
