@@ -252,33 +252,33 @@ jobs:
     env:
       mustTrigger: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.test_group == '' )  }}
     outputs: # ensure resources are sorted alphabetically
-      advanced_cluster: ${{ steps.filter.outputs.advanced_cluster == 'true' || env.mustTrigger == 'true' }}
-      assume_role: ${{ steps.filter.outputs.assume_role == 'true' || env.mustTrigger == 'true' }}
-      authentication: ${{ steps.filter.outputs.authentication == 'true' || env.mustTrigger == 'true' }}
-      autogen_fast: ${{ steps.filter.outputs.autogen_fast == 'true' || env.mustTrigger == 'true' }}
-      autogen_slow: ${{ steps.filter.outputs.autogen_slow == 'true' || env.mustTrigger == 'true' }}
-      backup: ${{ steps.filter.outputs.backup == 'true' || env.mustTrigger == 'true' }}
-      control_plane_ip_addresses: ${{ steps.filter.outputs.control_plane_ip_addresses == 'true' || env.mustTrigger == 'true' }}
-      cloud_user: ${{ steps.filter.outputs.cloud_user == 'true' || env.mustTrigger == 'true' }}
-      cluster: ${{ steps.filter.outputs.cluster == 'true' || env.mustTrigger == 'true' }}
-      cluster_outage_simulation: ${{ steps.filter.outputs.cluster_outage_simulation == 'true' || env.mustTrigger == 'true' }}
-      config: ${{ steps.filter.outputs.config == 'true' || env.mustTrigger == 'true' }}
-      encryption: ${{ steps.filter.outputs.encryption == 'true' || env.mustTrigger == 'true' }}
-      event_trigger: ${{ steps.filter.outputs.event_trigger == 'true' || env.mustTrigger == 'true' }}
-      federated: ${{ steps.filter.outputs.federated == 'true' || env.mustTrigger == 'true' }}
-      flex_cluster: ${{ steps.filter.outputs.flex_cluster == 'true' || env.mustTrigger == 'true' }}
-      generic: ${{ steps.filter.outputs.generic == 'true' || env.mustTrigger == 'true' }}
-      global_cluster_config: ${{ steps.filter.outputs.global_cluster_config == 'true' || env.mustTrigger == 'true' }}
-      ldap: ${{ steps.filter.outputs.ldap == 'true' || env.mustTrigger == 'true' }}
-      mongodb_employee_access_grant: ${{ steps.filter.outputs.mongodb_employee_access_grant == 'true' || env.mustTrigger == 'true' }}
-      network: ${{ steps.filter.outputs.network == 'true' || env.mustTrigger == 'true' }}
-      project: ${{ steps.filter.outputs.project == 'true' || env.mustTrigger == 'true' }}
-      push_based_log_export: ${{ steps.filter.outputs.push_based_log_export == 'true' || env.mustTrigger == 'true' }}
-      resource_policy: ${{ steps.filter.outputs.resource_policy == 'true' || env.mustTrigger == 'true' }}
-      search_deployment: ${{ steps.filter.outputs.search_deployment == 'true' || env.mustTrigger == 'true' }}
-      search_index: ${{ steps.filter.outputs.search_index == 'true' || env.mustTrigger == 'true' }}
-      serverless: ${{ steps.filter.outputs.serverless == 'true' || env.mustTrigger == 'true' }}
-      stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
+      advanced_cluster: "false"
+      assume_role: "false"
+      authentication: "false"
+      autogen_fast: "false"
+      autogen_slow: "false"
+      backup: "false"
+      control_plane_ip_addresses: "false"
+      cloud_user: "false"
+      cluster: "false"
+      cluster_outage_simulation: "false"
+      config: "false"
+      encryption: "false"
+      event_trigger: "false"
+      federated: "false"
+      flex_cluster: "false"
+      generic: "false"
+      global_cluster_config: "false"
+      ldap: "false"
+      mongodb_employee_access_grant: "false"
+      network: "false"
+      project: "false"
+      push_based_log_export: "false"
+      resource_policy: "false"
+      search_deployment: "false"
+      search_index: "false"
+      serverless: "false"
+      stream: "true"
     steps:
     - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
     - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
