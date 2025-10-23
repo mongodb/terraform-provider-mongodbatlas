@@ -1347,7 +1347,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "❌ *TF Stream Failed* ${{ secrets.slack_oncall_tag }} ${{ secrets.slack_oncall_tag_stream }} <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View>"
+                    "text": "❌ *TF Stream Failed* <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|View>"
                   }
                 }
               ]
