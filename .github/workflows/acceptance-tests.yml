@@ -32,11 +32,11 @@ on:
       use_sa:
         description: "Run tests using Service Account instead of API Keys"
         type: boolean
-        required: false
+        default: false
       send_notification:
         description: 'Send a Slack notification if tests fail.'
         type: boolean
-        required: false
+        default: false
 
   workflow_call: # workflow runs after Test Suite or code-health
     inputs:
@@ -122,13 +122,12 @@ jobs:
     with:
       terraform_version: ${{ inputs.terraform_version || '1.13.x' }}
       provider_version: ${{ inputs.provider_version }}
-      ref: ${{ inputs.ref }}
       test_group: ${{ inputs.test_group }}
       test_name: ${{ inputs.test_name }}
-      reduced_tests: ${{ inputs.reduced_tests || false }}
-      use_sa: ${{ inputs.use_sa || false }}
-      send_notification: ${{ inputs.send_notification || false }}
-      aws_region_federation: ${{ vars.AWS_REGION_FEDERATION }}
+      ref: ${{ inputs.ref }}
+      reduced_tests: ${{ inputs.reduced_tests == true }}
+      use_sa: ${{ inputs.use_sa == true }}
+      send_notification: ${{ inputs.send_notification == true }}
       mongodb_atlas_org_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_ORG_ID_CLOUD_QA || vars.MONGODB_ATLAS_ORG_ID_CLOUD_DEV }}
       mongodb_atlas_base_url: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_BASE_URL_QA || vars.MONGODB_ATLAS_BASE_URL }}
       mongodb_realm_base_url: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_REALM_BASE_URL_QA || vars.MONGODB_REALM_BASE_URL }}
@@ -139,6 +138,7 @@ jobs:
       azure_service_principal_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.AZURE_SERVICE_PRINCIPAL_ID_QA || vars.AZURE_SERVICE_PRINCIPAL_ID }}
       azure_tenant_id: ${{ vars.AZURE_TENANT_ID }}
       aws_secret_name: ${{ inputs.atlas_cloud_env == 'qa' && vars.AWS_SECRET_NAME_QA || vars.AWS_SECRET_NAME }}
+      aws_region_federation: ${{ vars.AWS_REGION_FEDERATION }}
       mongodb_atlas_federation_settings_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_FEDERATION_SETTINGS_ID_QA || vars.MONGODB_ATLAS_FEDERATION_SETTINGS_ID }}
       mongodb_atlas_federated_okta_idp_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_FEDERATED_OKTA_IDP_ID_QA || vars.MONGODB_ATLAS_FEDERATED_OKTA_IDP_ID }}
       mongodb_atlas_federated_idp_id: ${{ inputs.atlas_cloud_env == 'qa' && vars.MONGODB_ATLAS_FEDERATED_IDP_ID_QA || vars.MONGODB_ATLAS_FEDERATED_IDP_ID }}
