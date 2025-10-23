@@ -21,7 +21,10 @@ func TestAccConfigDSAtlasUsers_ByOrgID(t *testing.T) {
 		dataSourceName = "data.mongodbatlas_atlas_users.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 	)
-	resource.Test(t, resource.TestCase{ // does not run in parallel to avoid changes in fetched users during execution
+	// We can only ensure count > 0 because this test relies on all users in the organization to be stable during its test run.
+	// Our test suite is running multiple jobs in parallel, so that guarantee is not fulfilled.
+	// We should isolate these runs by using separate organizations.
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
@@ -37,10 +40,10 @@ func TestAccConfigDSAtlasUsers_ByOrgID(t *testing.T) {
 						dataSourceName,
 						tfjsonpath.New("total_count"),
 						knownvalue.Int64Func(func(v int64) error {
-							if v < 1 {
-								return fmt.Errorf("expected total_count to be > 0, got %d", v)
+							if v > 0 {
+								return nil
 							}
-							return nil
+							return fmt.Errorf("expected total_count to be > 0, got %d", v)
 						}),
 					),
 				},
