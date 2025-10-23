@@ -73,6 +73,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"policies": schema.ListNestedAttribute{
 				Required:            true,
 				MarkdownDescription: "List of policies that make up the atlas resource policy.",
+				CustomType:          customtype.NewNestedListType[TFPoliciesModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"body": schema.StringAttribute{
@@ -103,7 +104,7 @@ type TFModel struct {
 	LastUpdatedDate   types.String                                     `tfsdk:"last_updated_date" autogen:"omitjson"`
 	Name              types.String                                     `tfsdk:"name"`
 	OrgId             types.String                                     `tfsdk:"org_id" autogen:"omitjson"`
-	Policies          types.List                                       `tfsdk:"policies"`
+	Policies          customtype.NestedListValue[TFPoliciesModel]      `tfsdk:"policies"`
 	Version           types.String                                     `tfsdk:"version" autogen:"omitjson"`
 }
 type TFCreatedByUserModel struct {

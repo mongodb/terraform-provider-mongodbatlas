@@ -5,10 +5,10 @@ package searchdeploymentapi
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtype"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
@@ -36,6 +36,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"specs": schema.ListNestedAttribute{
 				Required:            true,
 				MarkdownDescription: "List of settings that configure the Search Nodes for your cluster.\n\n**NOTE**: We accept a single configuration for all nodes currently.",
+				CustomType:          customtype.NewNestedListType[TFSpecsModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"instance_size": schema.StringAttribute{
@@ -53,23 +54,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Human-readable label that indicates the current operating condition of this search deployment.",
 			},
-			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
-				Create: true,
-				Update: true,
-				Delete: true,
-			}),
 		},
 	}
 }
 
 type TFModel struct {
-	ClusterName              types.String   `tfsdk:"cluster_name" autogen:"omitjson"`
-	EncryptionAtRestProvider types.String   `tfsdk:"encryption_at_rest_provider" autogen:"omitjson"`
-	GroupId                  types.String   `tfsdk:"group_id" autogen:"omitjson"`
-	Id                       types.String   `tfsdk:"id" autogen:"omitjson"`
-	Specs                    types.List     `tfsdk:"specs"`
-	StateName                types.String   `tfsdk:"state_name" autogen:"omitjson"`
-	Timeouts                 timeouts.Value `tfsdk:"timeouts" autogen:"omitjson"`
+	ClusterName              types.String `tfsdk:"cluster_name" autogen:"omitjson"`
+	EncryptionAtRestProvider types.String `tfsdk:"encryption_at_rest_provider" autogen:"omitjson"`
+	GroupId                  types.String `tfsdk:"group_id" autogen:"omitjson"`
+	Id                       types.String `tfsdk:"id" autogen:"omitjson"`
+	Specs                    types.List   `tfsdk:"specs"`
+	StateName                types.String `tfsdk:"state_name" autogen:"omitjson"`
 }
 type TFSpecsModel struct {
 	InstanceSize types.String `tfsdk:"instance_size"`

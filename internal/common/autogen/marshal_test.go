@@ -388,6 +388,106 @@ func TestMarshalCustomTypeObject(t *testing.T) {
 	assert.JSONEq(t, expectedUpdateJSON, string(rawUpdate))
 }
 
+func TestMarshalCustomTypeNestedList(t *testing.T) {
+	ctx := context.Background()
+
+	type modelEmptyTest struct{}
+
+	type modelNestedObject struct {
+		AttrNestedInt types.Int64 `tfsdk:"attr_nested_int"`
+	}
+
+	type modelNestedListItem struct {
+		AttrOmit       customtype.NestedListValue[modelEmptyTest] `tfsdk:"attr_omit" autogen:"omitjson"`
+		AttrOmitUpdate customtype.NestedListValue[modelEmptyTest] `tfsdk:"attr_omit_update" autogen:"omitjsonupdate"`
+		AttrPrimitive  types.String                               `tfsdk:"attr_primitive"`
+		AttrObject     customtype.ObjectValue[modelNestedObject]  `tfsdk:"attr_object"`
+		AttrMANYUpper  types.Int64                                `tfsdk:"attr_many_upper"`
+	}
+
+	model := struct {
+		AttrNestedList      customtype.NestedListValue[modelNestedListItem] `tfsdk:"attr_nested_list"`
+		AttrNestedListNull  customtype.NestedListValue[modelNestedListItem] `tfsdk:"attr_nested_list_null"`
+		AttrNestedListEmpty customtype.NestedListValue[modelNestedListItem] `tfsdk:"attr_nested_list_empty"`
+	}{
+		AttrNestedList: customtype.NewNestedListValue[modelNestedListItem](ctx, []modelNestedListItem{
+			{
+				AttrPrimitive: types.StringValue("string1"),
+				AttrMANYUpper: types.Int64Value(1),
+				AttrObject: customtype.NewObjectValue[modelNestedObject](ctx, modelNestedObject{
+					AttrNestedInt: types.Int64Value(2),
+				}),
+				AttrOmit:       customtype.NewNestedListValue[modelEmptyTest](ctx, []modelEmptyTest{}),
+				AttrOmitUpdate: customtype.NewNestedListValue[modelEmptyTest](ctx, []modelEmptyTest{}),
+			},
+			{
+				AttrPrimitive: types.StringValue("string2"),
+				AttrMANYUpper: types.Int64Value(3),
+				AttrObject: customtype.NewObjectValue[modelNestedObject](ctx, modelNestedObject{
+					AttrNestedInt: types.Int64Value(4),
+				}),
+				AttrOmit:       customtype.NewNestedListValue[modelEmptyTest](ctx, []modelEmptyTest{}),
+				AttrOmitUpdate: customtype.NewNestedListValue[modelEmptyTest](ctx, []modelEmptyTest{}),
+			},
+		}),
+		AttrNestedListNull:  customtype.NewNestedListValueNull[modelNestedListItem](ctx),
+		AttrNestedListEmpty: customtype.NewNestedListValue[modelNestedListItem](ctx, []modelNestedListItem{}),
+	}
+
+	const expectedCreateJSON = `
+		{
+			"attrNestedList": [
+				{
+					"attrPrimitive": "string1",
+					"attrMANYUpper": 1,
+					"attrObject": {
+						"attrNestedInt": 2
+					},
+					"attrOmitUpdate": []
+				},
+				{
+					"attrPrimitive": "string2",
+					"attrMANYUpper": 3,
+					"attrObject": {
+						"attrNestedInt": 4
+					},
+					"attrOmitUpdate": []
+				}
+			],
+			"attrNestedListEmpty": []
+		}
+	`
+	rawCreate, err := autogen.Marshal(&model, false)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedCreateJSON, string(rawCreate))
+
+	const expectedUpdateJSON = `
+		{
+			"attrNestedList": [
+				{
+					"attrPrimitive": "string1",
+					"attrMANYUpper": 1,
+					"attrObject": {
+						"attrNestedInt": 2
+					}
+				},
+				{
+					"attrPrimitive": "string2",
+					"attrMANYUpper": 3,
+					"attrObject": {
+						"attrNestedInt": 4
+					}
+				}
+			],
+			"attrNestedListNull": [],
+			"attrNestedListEmpty": []
+		}
+	`
+	rawUpdate, err := autogen.Marshal(&model, true)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedUpdateJSON, string(rawUpdate))
+}
+
 func TestMarshalUnsupported(t *testing.T) {
 	testCases := map[string]any{
 		"Int32 not supported yet as it's not being used in any model": &struct {

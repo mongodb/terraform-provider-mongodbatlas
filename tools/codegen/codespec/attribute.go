@@ -173,7 +173,7 @@ func (s *APISpecSchema) buildArrayAttr(name, ancestorsName string, computability
 	isSet := s.Schema.Format == OASFormatSet || (s.Schema.UniqueItems != nil && *s.Schema.UniqueItems)
 
 	tfModelName := stringcase.Capitalize(name)
-	createAttribute := func(nestedObject *NestedAttributeObject, elemType ElemType) *Attribute {
+	createAttribute := func(nestedObject *NestedAttributeObject, customType *CustomType, elemType ElemType) *Attribute {
 		var (
 			attr = &Attribute{
 				TFSchemaName:             stringcase.FromCamelCase(name),
@@ -194,6 +194,7 @@ func (s *APISpecSchema) buildArrayAttr(name, ancestorsName string, computability
 			if isSet {
 				attr.SetNested = &SetNestedAttribute{NestedObject: *nestedObject}
 			} else {
+				attr.CustomType = customType
 				attr.ListNested = &ListNestedAttribute{NestedObject: *nestedObject}
 			}
 		} else {
@@ -208,13 +209,19 @@ func (s *APISpecSchema) buildArrayAttr(name, ancestorsName string, computability
 	}
 
 	if itemSchema.Type == OASTypeObject {
-		objectAttributes, err := buildResourceAttrs(itemSchema, ancestorsName+tfModelName, isFromRequest, useCustomNestedTypes)
+		fullName := ancestorsName + tfModelName
+		objectAttributes, err := buildResourceAttrs(itemSchema, fullName, isFromRequest, useCustomNestedTypes)
 		if err != nil {
 			return nil, fmt.Errorf("error while building nested schema: %s", name)
 		}
+
+		var customType *CustomType
+		if useCustomNestedTypes {
+			customType = NewCustomListType(fullName)
+		}
 		nestedObject := &NestedAttributeObject{Attributes: objectAttributes}
 
-		return createAttribute(nestedObject, Unknown), nil // Using Unknown ElemType as a placeholder for no ElemType
+		return createAttribute(nestedObject, customType, Unknown), nil // Using Unknown ElemType as a placeholder for no ElemType
 	}
 
 	elemType, err := itemSchema.buildElementType()
@@ -222,7 +229,7 @@ func (s *APISpecSchema) buildArrayAttr(name, ancestorsName string, computability
 		return nil, fmt.Errorf("error while building nested schema: %s", name)
 	}
 
-	result := createAttribute(nil, elemType)
+	result := createAttribute(nil, nil, elemType)
 
 	if s.Schema.Default != nil {
 		var staticDefault bool

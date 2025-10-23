@@ -129,6 +129,10 @@ schema:
                       sensitive: false
                       create_only: false
           description: List of policies that make up the atlas resource policy.
+          custom_type:
+            package: customtype
+            model: customtype.NestedListValue[TFPoliciesModel]
+            schema: customtype.NewNestedListType[TFPoliciesModel](ctx)
           computed_optional_required: required
           tf_schema_name: policies
           tf_model_name: Policies
