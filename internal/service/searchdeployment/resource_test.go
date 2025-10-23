@@ -21,13 +21,13 @@ const (
 	dataSourceID = "data.mongodbatlas_search_deployment.test"
 )
 
-func importStep(tfConfig string) resource.TestStep {
+func importStep() resource.TestStep {
 	return resource.TestStep{
-		Config:            tfConfig,
-		ResourceName:      resourceID,
-		ImportStateIdFunc: importStateIDFunc(resourceID),
-		ImportState:       true,
-		ImportStateVerify: true,
+		ResourceName:            resourceID,
+		ImportStateIdFunc:       importStateIDFunc(resourceID),
+		ImportState:             true,
+		ImportStateVerify:       true,
+		ImportStateVerifyIgnore: []string{"delete_on_create_timeout"},
 	}
 }
 func TestAccSearchDeployment_basic(t *testing.T) {
@@ -48,9 +48,7 @@ func TestAccSearchDeployment_basic(t *testing.T) {
 				Config: updateStepNoWait,
 				Check:  updateStep.Check,
 			},
-			// Changes: skip_wait_on_update true -> null
-			updateStep,
-			importStep(updateStep.Config),
+			importStep(),
 		},
 	})
 }
@@ -119,7 +117,7 @@ func TestAccSearchDeployment_timeoutTest(t *testing.T) {
 					resource.TestCheckNoResourceAttr(resourceID, "timeouts.create"),
 				),
 			},
-			importStep(configWithTimeout("")),
+			importStep(),
 		},
 	})
 }

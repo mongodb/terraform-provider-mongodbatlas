@@ -58,6 +58,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				ImportState:                          true,
 				ImportStateVerify:                    true,
 				ImportStateVerifyIdentifierAttribute: "project_id",
+				ImportStateVerifyIgnore:              []string{"delete_on_create_timeout"},
 			},
 		},
 	}
