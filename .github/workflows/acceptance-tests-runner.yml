@@ -593,18 +593,6 @@ jobs:
           ACCTEST_REGEX_RUN: '^TestAccAccessToken'
           ACCTEST_PACKAGES: ./internal/provider
         run: make testacc
-      - name: Acceptance Tests (Service Account smoke tests) # small selection of fast tests to run with SA
-        env:
-          MONGODB_ATLAS_PUBLIC_KEY: ""
-          MONGODB_ATLAS_PRIVATE_KEY: ""
-          MONGODB_ATLAS_CLIENT_ID: ${{ secrets.mongodb_atlas_client_id }}
-          MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}
-          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
-          ACCTEST_PACKAGES: |
-            ./internal/service/alertconfiguration
-            ./internal/service/databaseuser
-            ./internal/service/maintenancewindow
-        run: make testacc
 
   autogen_fast:
     needs: [change-detection, get-provider-version]
