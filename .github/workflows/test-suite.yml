@@ -102,7 +102,7 @@ jobs:
     uses: ./.github/workflows/cleanup-test-env.yml
   
   slack-notification:
-    needs: [tests, variables,clean-after]
+    needs: [tests, variables, clean-after]
     if: ${{ !cancelled() && needs.tests.result == 'failure' && needs.variables.outputs.send_notification == 'true' }}
     runs-on: ubuntu-latest
     permissions: {}
