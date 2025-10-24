@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtype"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 )
 
@@ -135,7 +135,7 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 			}
 			return mapNew, nil
 		}
-		if obj, ok := oldVal.(customtype.ObjectValueInterface); ok {
+		if obj, ok := oldVal.(customtypes.ObjectValueInterface); ok {
 			ctx := context.Background()
 			valuePtr, diags := obj.ValuePtrAsAny(ctx)
 			if diags.HasError() {
@@ -173,7 +173,7 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 			}
 			return setNew, nil
 		}
-		if list, ok := oldVal.(customtype.NestedListValueInterface); ok {
+		if list, ok := oldVal.(customtypes.NestedListValueInterface); ok {
 			if len(v) == 0 && list.Len() == 0 {
 				// Keep current list if both model and JSON lists are zero-len (empty or null) so config is preserved.
 				// It avoids inconsistent result after apply when user explicitly sets an empty list in config.

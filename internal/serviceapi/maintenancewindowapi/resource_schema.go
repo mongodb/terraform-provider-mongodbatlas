@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtype"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
@@ -40,7 +40,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"protected_hours": schema.SingleNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "Defines the a window where maintenance will not begin within.",
-				CustomType:          customtype.NewObjectType[TFProtectedHoursModel](ctx),
+				CustomType:          customtypes.NewObjectType[TFProtectedHoursModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"end_hour_of_day": schema.Int64Attribute{
 						Optional:            true,
@@ -65,14 +65,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	GroupId              types.String                                  `tfsdk:"group_id" autogen:"omitjson"`
-	ProtectedHours       customtype.ObjectValue[TFProtectedHoursModel] `tfsdk:"protected_hours"`
-	TimeZoneId           types.String                                  `tfsdk:"time_zone_id" autogen:"omitjson"`
-	DayOfWeek            types.Int64                                   `tfsdk:"day_of_week"`
-	HourOfDay            types.Int64                                   `tfsdk:"hour_of_day"`
-	NumberOfDeferrals    types.Int64                                   `tfsdk:"number_of_deferrals" autogen:"omitjson"`
-	AutoDeferOnceEnabled types.Bool                                    `tfsdk:"auto_defer_once_enabled"`
-	StartASAP            types.Bool                                    `tfsdk:"start_asap"`
+	GroupId              types.String                                   `tfsdk:"group_id" autogen:"omitjson"`
+	ProtectedHours       customtypes.ObjectValue[TFProtectedHoursModel] `tfsdk:"protected_hours"`
+	TimeZoneId           types.String                                   `tfsdk:"time_zone_id" autogen:"omitjson"`
+	DayOfWeek            types.Int64                                    `tfsdk:"day_of_week"`
+	HourOfDay            types.Int64                                    `tfsdk:"hour_of_day"`
+	NumberOfDeferrals    types.Int64                                    `tfsdk:"number_of_deferrals" autogen:"omitjson"`
+	AutoDeferOnceEnabled types.Bool                                     `tfsdk:"auto_defer_once_enabled"`
+	StartASAP            types.Bool                                     `tfsdk:"start_asap"`
 }
 type TFProtectedHoursModel struct {
 	EndHourOfDay   types.Int64 `tfsdk:"end_hour_of_day"`

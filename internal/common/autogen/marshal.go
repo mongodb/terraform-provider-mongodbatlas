@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtype"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 )
 
@@ -77,7 +77,7 @@ func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[s
 
 	if val == nil && isUpdate {
 		switch obj.(type) {
-		case types.List, types.Set, customtype.NestedListValueInterface:
+		case types.List, types.Set, customtypes.NestedListValueInterface:
 			val = []any{} // Send an empty array if it's a null root list or set
 		}
 	}
@@ -115,7 +115,7 @@ func getModelAttr(val attr.Value, isUpdate bool) (any, error) {
 			return nil, fmt.Errorf("marshal failed for JSON custom type: %v", err)
 		}
 		return valueJSON, nil
-	case customtype.ObjectValueInterface:
+	case customtypes.ObjectValueInterface:
 		valuePtr, diags := v.ValuePtrAsAny(context.Background())
 		if diags.HasError() {
 			return nil, fmt.Errorf("marshal failed for type: %v", diags)
@@ -123,7 +123,7 @@ func getModelAttr(val attr.Value, isUpdate bool) (any, error) {
 
 		result, err := marshalAttrs(reflect.ValueOf(valuePtr).Elem(), isUpdate)
 		return result, err
-	case customtype.NestedListValueInterface:
+	case customtypes.NestedListValueInterface:
 		slicePtr, diags := v.SlicePtrAsAny(context.Background())
 		if diags.HasError() {
 			return nil, fmt.Errorf("marshal failed for type: %v", diags)

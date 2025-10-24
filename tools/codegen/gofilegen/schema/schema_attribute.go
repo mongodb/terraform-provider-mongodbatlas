@@ -144,8 +144,8 @@ func commonProperties(attr *codespec.Attribute, planModifierType string) []CodeS
 		switch attr.CustomType.Package {
 		case codespec.JSONTypesPkg:
 			imports = append(imports, "github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes")
-		case codespec.CustomTypePkg:
-			imports = append(imports, "github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtype")
+		case codespec.CustomTypesPkg:
+			imports = append(imports, "github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes")
 		}
 
 		result = append(result, CodeStatement{

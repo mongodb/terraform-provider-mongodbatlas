@@ -74,9 +74,9 @@ schema:
                       create_only: false
           description: Defines the a window where maintenance will not begin within.
           custom_type:
-            package: customtype
-            model: customtype.ObjectValue[TFProtectedHoursModel]
-            schema: customtype.NewObjectType[TFProtectedHoursModel](ctx)
+            package: customtypes
+            model: customtypes.ObjectValue[TFProtectedHoursModel]
+            schema: customtypes.NewObjectType[TFProtectedHoursModel](ctx)
           computed_optional_required: optional
           tf_schema_name: protected_hours
           tf_model_name: ProtectedHours

@@ -1,4 +1,4 @@
-package customtype
+package customtypes
 
 import (
 	"context"
@@ -19,7 +19,7 @@ import (
 		- Schema definition:
 			"sample_nested_object": schema.SingleNestedAttribute{
 				...
-				CustomType: customtype.NewObjectType[TFSampleNestedObjectModel](ctx),
+				CustomType: customtypes.NewObjectType[TFSampleNestedObjectModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"string_attribute": schema.StringAttribute{...},
 				},
@@ -27,7 +27,7 @@ import (
 
 		- TF Models:
 			type TFModel struct {
-				SampleNestedObject customtype.ObjectValue[TFSampleNestedObjectModel] `tfsdk:"sample_nested_object"`
+				SampleNestedObject customtypes.ObjectValue[TFSampleNestedObjectModel] `tfsdk:"sample_nested_object"`
 				...
 			}
 
