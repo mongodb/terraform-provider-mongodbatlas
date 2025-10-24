@@ -104,10 +104,6 @@ schema:
                                   sensitive: false
                                   create_only: false
                       description: User credentials required to connect to a Kafka Cluster. Includes the authentication type, as well as the parameters for that authentication mode.
-                      custom_type:
-                        package: customtype
-                        model: customtype.ObjectValue[TFConnectionsAuthenticationModel]
-                        schema: customtype.NewObjectType[TFConnectionsAuthenticationModel](ctx)
                       computed_optional_required: computed
                       tf_schema_name: authentication
                       tf_model_name: Authentication
@@ -134,10 +130,6 @@ schema:
                                   sensitive: false
                                   create_only: false
                       description: AWS configurations for AWS-based connection types.
-                      custom_type:
-                        package: customtype
-                        model: customtype.ObjectValue[TFConnectionsAwsModel]
-                        schema: customtype.NewObjectType[TFConnectionsAwsModel](ctx)
                       computed_optional_required: computed
                       tf_schema_name: aws
                       tf_model_name: Aws
@@ -197,10 +189,6 @@ schema:
                                   sensitive: false
                                   create_only: false
                       description: The name of a Built in or Custom DB Role to connect to an Atlas Cluster.
-                      custom_type:
-                        package: customtype
-                        model: customtype.ObjectValue[TFConnectionsDbRoleToExecuteModel]
-                        schema: customtype.NewObjectType[TFConnectionsDbRoleToExecuteModel](ctx)
                       computed_optional_required: computed
                       tf_schema_name: db_role_to_execute
                       tf_model_name: DbRoleToExecute
@@ -263,10 +251,6 @@ schema:
                                               sensitive: false
                                               create_only: false
                                   description: Information about networking access.
-                                  custom_type:
-                                    package: customtype
-                                    model: customtype.ObjectValue[TFConnectionsNetworkingAccessModel]
-                                    schema: customtype.NewObjectType[TFConnectionsNetworkingAccessModel](ctx)
                                   computed_optional_required: computed
                                   tf_schema_name: access
                                   tf_model_name: Access
@@ -274,10 +258,6 @@ schema:
                                   sensitive: false
                                   create_only: false
                       description: Networking configuration for Streams connections.
-                      custom_type:
-                        package: customtype
-                        model: customtype.ObjectValue[TFConnectionsNetworkingModel]
-                        schema: customtype.NewObjectType[TFConnectionsNetworkingModel](ctx)
                       computed_optional_required: computed
                       tf_schema_name: networking
                       tf_model_name: Networking
@@ -304,10 +284,6 @@ schema:
                                   sensitive: false
                                   create_only: false
                       description: Properties for the secure transport connection to Kafka. For SSL, this can include the trusted certificate to use.
-                      custom_type:
-                        package: customtype
-                        model: customtype.ObjectValue[TFConnectionsSecurityModel]
-                        schema: customtype.NewObjectType[TFConnectionsSecurityModel](ctx)
                       computed_optional_required: computed
                       tf_schema_name: security
                       tf_model_name: Security
@@ -357,10 +333,6 @@ schema:
                       sensitive: false
                       create_only: false
           description: Information about the cloud provider region in which MongoDB Cloud processes the stream.
-          custom_type:
-            package: customtype
-            model: customtype.ObjectValue[TFDataProcessRegionModel]
-            schema: customtype.NewObjectType[TFDataProcessRegionModel](ctx)
           computed_optional_required: optional
           tf_schema_name: data_process_region
           tf_model_name: DataProcessRegion
@@ -408,10 +380,6 @@ schema:
                       sensitive: false
                       create_only: false
           description: Sample connections to add to SPI.
-          custom_type:
-            package: customtype
-            model: customtype.ObjectValue[TFSampleConnectionsModel]
-            schema: customtype.NewObjectType[TFSampleConnectionsModel](ctx)
           computed_optional_required: optional
           tf_schema_name: sample_connections
           tf_model_name: SampleConnections
@@ -438,10 +406,6 @@ schema:
                       sensitive: false
                       create_only: false
           description: Configuration options for an Atlas Stream Processing Instance.
-          custom_type:
-            package: customtype
-            model: customtype.ObjectValue[TFStreamConfigModel]
-            schema: customtype.NewObjectType[TFStreamConfigModel](ctx)
           computed_optional_required: optional
           tf_schema_name: stream_config
           tf_model_name: StreamConfig

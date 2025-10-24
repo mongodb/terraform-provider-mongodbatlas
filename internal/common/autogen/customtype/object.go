@@ -48,14 +48,14 @@ type ObjectType[T any] struct {
 }
 
 func NewObjectType[T any](ctx context.Context) ObjectType[T] {
-	result := ObjectType[T]{}
-
 	attrTypes, diags := getAttributeTypes[T](ctx)
 	if diags.HasError() {
 		panic(fmt.Errorf("error creating ObjectType: %v", diags))
 	}
 
-	result.ObjectType = basetypes.ObjectType{AttrTypes: attrTypes}
+	result := ObjectType[T]{
+		ObjectType: basetypes.ObjectType{AttrTypes: attrTypes},
+	}
 	return result
 }
 
@@ -124,9 +124,9 @@ type ObjectValue[T any] struct {
 
 type ObjectValueInterface interface {
 	basetypes.ObjectValuable
-	ValuePtrAsAny(ctx context.Context) (any, diag.Diagnostics)
 	NewObjectValue(ctx context.Context, value any) ObjectValueInterface
 	NewObjectValueNull(ctx context.Context) ObjectValueInterface
+	ValuePtrAsAny(ctx context.Context) (any, diag.Diagnostics)
 }
 
 func (v ObjectValue[T]) NewObjectValue(ctx context.Context, value any) ObjectValueInterface {

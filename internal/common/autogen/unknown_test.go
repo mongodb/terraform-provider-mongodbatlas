@@ -24,16 +24,17 @@ func TestResolveUnknowns(t *testing.T) {
 	}
 
 	type modelst struct {
-		AttrStringUnknown       types.String                                `tfsdk:"attr_string_unknown"`
-		AttrObjectUnknown       types.Object                                `tfsdk:"attr_object_unknown"`
-		AttrListUnknown         types.List                                  `tfsdk:"attr_list_unknown"`
-		AttrObject              types.Object                                `tfsdk:"attr_object"`
-		AttrListString          types.List                                  `tfsdk:"attr_list_string"`
-		AttrSetString           types.Set                                   `tfsdk:"attr_set_string"`
-		AttrListObjObj          types.List                                  `tfsdk:"attr_list_obj_obj"`
-		AttrMapUnknown          types.Map                                   `tfsdk:"attr_map_unknown"`
-		AttrCustomObjectUnknown customtype.ObjectValue[modelEmptyTest]      `tfsdk:"attr_custom_object_unknown"`
-		AttrCustomObject        customtype.ObjectValue[modelCustomTypeTest] `tfsdk:"attr_custom_object"`
+		AttrStringUnknown           types.String                                `tfsdk:"attr_string_unknown"`
+		AttrObjectUnknown           types.Object                                `tfsdk:"attr_object_unknown"`
+		AttrListUnknown             types.List                                  `tfsdk:"attr_list_unknown"`
+		AttrObject                  types.Object                                `tfsdk:"attr_object"`
+		AttrListString              types.List                                  `tfsdk:"attr_list_string"`
+		AttrSetString               types.Set                                   `tfsdk:"attr_set_string"`
+		AttrListObjObj              types.List                                  `tfsdk:"attr_list_obj_obj"`
+		AttrMapUnknown              types.Map                                   `tfsdk:"attr_map_unknown"`
+		AttrCustomObjectUnknown     customtype.ObjectValue[modelEmptyTest]      `tfsdk:"attr_custom_object_unknown"`
+		AttrCustomObject            customtype.ObjectValue[modelCustomTypeTest] `tfsdk:"attr_custom_object"`
+		AttrCustomNestedListUnknown customtype.NestedListValue[modelEmptyTest]  `tfsdk:"attr_custom_nested_list_unknown"`
 	}
 
 	model := modelst{
@@ -86,6 +87,7 @@ func TestResolveUnknowns(t *testing.T) {
 			AttrUnknownObject: customtype.NewObjectValueUnknown[modelEmptyTest](ctx),
 			AttrMANYUpper:     types.Int64Unknown(),
 		}),
+		AttrCustomNestedListUnknown: customtype.NewNestedListValueUnknown[modelEmptyTest](ctx),
 	}
 	modelExpected := modelst{
 		AttrStringUnknown: types.StringNull(),
@@ -137,6 +139,7 @@ func TestResolveUnknowns(t *testing.T) {
 			AttrUnknownObject: customtype.NewObjectValueNull[modelEmptyTest](ctx),
 			AttrMANYUpper:     types.Int64Null(),
 		}),
+		AttrCustomNestedListUnknown: customtype.NewNestedListValueNull[modelEmptyTest](ctx),
 	}
 	require.NoError(t, autogen.ResolveUnknowns(&model))
 	assert.Equal(t, modelExpected, model)
