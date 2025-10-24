@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtype"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -16,13 +16,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"first_nested_attr": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "first nested attribute",
-				CustomType:          customtype.NewNestedListType[TFFirstNestedAttrModel](ctx),
+				CustomType:          customtypes.NewNestedListType[TFFirstNestedAttrModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"double_nested_list_attr": schema.ListNestedAttribute{
 							Optional:            true,
 							MarkdownDescription: "double nested list attribute",
-							CustomType:          customtype.NewNestedListType[TFDoubleNestedListAttrModel](ctx),
+							CustomType:          customtypes.NewNestedListType[TFDoubleNestedListAttrModel](ctx),
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attr": schema.StringAttribute{
@@ -38,13 +38,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"second_nested_attr": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "second nested attribute",
-				CustomType:          customtype.NewNestedListType[TFSecondNestedAttrModel](ctx),
+				CustomType:          customtypes.NewNestedListType[TFSecondNestedAttrModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"double_nested_list_attr": schema.ListNestedAttribute{
 							Optional:            true,
 							MarkdownDescription: "double nested list attribute",
-							CustomType:          customtype.NewNestedListType[TFDoubleNestedListAttrModel](ctx),
+							CustomType:          customtypes.NewNestedListType[TFDoubleNestedListAttrModel](ctx),
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attr": schema.StringAttribute{
@@ -62,17 +62,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	FirstNestedAttr  customtype.NestedListValue[TFFirstNestedAttrModel]  `tfsdk:"first_nested_attr"`
-	SecondNestedAttr customtype.NestedListValue[TFSecondNestedAttrModel] `tfsdk:"second_nested_attr"`
+	FirstNestedAttr  customtypes.NestedListValue[TFFirstNestedAttrModel]  `tfsdk:"first_nested_attr"`
+	SecondNestedAttr customtypes.NestedListValue[TFSecondNestedAttrModel] `tfsdk:"second_nested_attr"`
 }
 type TFFirstNestedAttrModel struct {
-	DoubleNestedListAttr customtype.NestedListValue[TFDoubleNestedListAttrModel] `tfsdk:"double_nested_list_attr"`
+	DoubleNestedListAttr customtypes.NestedListValue[TFDoubleNestedListAttrModel] `tfsdk:"double_nested_list_attr"`
 }
 type TFFirstNestedAttrDoubleNestedListAttrModel struct {
 	StringAttr types.String `tfsdk:"string_attr"`
 }
 type TFSecondNestedAttrModel struct {
-	DoubleNestedListAttr customtype.NestedListValue[TFDoubleNestedListAttrModel] `tfsdk:"double_nested_list_attr"`
+	DoubleNestedListAttr customtypes.NestedListValue[TFDoubleNestedListAttrModel] `tfsdk:"double_nested_list_attr"`
 }
 type TFSecondNestedAttrDoubleNestedListAttrModel struct {
 	StringAttr types.String `tfsdk:"string_attr"`

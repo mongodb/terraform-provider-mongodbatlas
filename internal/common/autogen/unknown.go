@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtype"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 )
 
 // ResolveUnknowns converts unknown attributes to null.
@@ -43,7 +43,7 @@ func prepareAttr(value attr.Value) (attr.Value, error) {
 	ctx := context.Background()
 
 	switch v := value.(type) {
-	case customtype.ObjectValueInterface:
+	case customtypes.ObjectValueInterface:
 		if v.IsUnknown() {
 			return v.NewObjectValueNull(ctx), nil
 		}
@@ -60,7 +60,7 @@ func prepareAttr(value attr.Value) (attr.Value, error) {
 
 		objNew := v.NewObjectValue(ctx, valuePtr)
 		return objNew, nil
-	case customtype.NestedListValueInterface:
+	case customtypes.NestedListValueInterface:
 		if v.IsUnknown() {
 			return v.NewNestedListValueNull(ctx), nil
 		}
