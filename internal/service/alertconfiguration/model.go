@@ -107,6 +107,7 @@ func NewTFAlertConfigurationModel(apiRespConfig *admin.GroupAlertsConfig, currSt
 		ThresholdConfig:       NewTFThresholdConfigModel(apiRespConfig.Threshold, currState.ThresholdConfig),
 		Notification:          NewTFNotificationModelList(apiRespConfig.GetNotifications(), currState.Notification),
 		Matcher:               NewTFMatcherModelList(apiRespConfig.GetMatchers(), currState.Matcher),
+		SeverityOverride:      types.StringPointerValue(apiRespConfig.SeverityOverride),
 	}
 }
 
@@ -298,6 +299,7 @@ func NewTfAlertConfigurationDSModel(apiRespConfig *admin.GroupAlertsConfig, proj
 		ThresholdConfig:       NewTFThresholdConfigModel(apiRespConfig.Threshold, []TfThresholdConfigModel{}),
 		Notification:          NewTFNotificationModelList(apiRespConfig.GetNotifications(), []TfNotificationModel{}),
 		Matcher:               NewTFMatcherModelList(apiRespConfig.GetMatchers(), []TfMatcherModel{}),
+		SeverityOverride:      types.StringPointerValue(apiRespConfig.SeverityOverride),
 	}
 }
 
