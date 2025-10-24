@@ -39,6 +39,16 @@ var (
 	testLogDestConfig    = connectionConfig{connectionType: connTypeTestLog, pipelineStepIsSource: false}
 )
 
+func importStep() resource.TestStep {
+	return resource.TestStep{
+		ResourceName:            resourceName,
+		ImportStateIdFunc:       importStateIDFunc(resourceName),
+		ImportState:             true,
+		ImportStateVerify:       true,
+		ImportStateVerifyIgnore: []string{"delete_on_create_timeout", "stats"},
+	}
+}
+
 func TestAccStreamProcessor_basic(t *testing.T) {
 	resource.ParallelTest(t, *basicTestCase(t))
 }
@@ -66,13 +76,7 @@ func basicTestCase(t *testing.T) *resource.TestCase {
 				Check:             composeStreamProcessorChecks(projectID, workspaceName, processorName, streamprocessor.StartedState, true, false),
 				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.StartedState, workspaceName, true, false),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"stats"},
-			},
+			importStep(),
 		}}
 }
 
@@ -150,13 +154,7 @@ func TestAccStreamProcessor_withOptions(t *testing.T) {
 				Check:             composeStreamProcessorChecks(projectID, workspaceName, processorName, streamprocessor.CreatedState, false, true),
 				ConfigStateChecks: pluralConfigStateChecks(processorName, streamprocessor.CreatedState, workspaceName, false, true),
 			},
-			{
-				ResourceName:            resourceName,
-				ImportStateIdFunc:       importStateIDFunc(resourceName),
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"stats"},
-			},
+			importStep(),
 		}})
 }
 

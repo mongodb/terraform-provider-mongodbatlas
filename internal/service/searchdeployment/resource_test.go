@@ -21,13 +21,13 @@ const (
 	dataSourceID = "data.mongodbatlas_search_deployment.test"
 )
 
-func importStep(tfConfig string) resource.TestStep {
+func importStep() resource.TestStep {
 	return resource.TestStep{
-		Config:            tfConfig,
-		ResourceName:      resourceID,
-		ImportStateIdFunc: importStateIDFunc(resourceID),
-		ImportState:       true,
-		ImportStateVerify: true,
+		ResourceName:            resourceID,
+		ImportStateIdFunc:       importStateIDFunc(resourceID),
+		ImportState:             true,
+		ImportStateVerify:       true,
+		ImportStateVerifyIgnore: []string{"delete_on_create_timeout"},
 	}
 }
 func TestAccSearchDeployment_basic(t *testing.T) {
@@ -48,9 +48,10 @@ func TestAccSearchDeployment_basic(t *testing.T) {
 				Config: updateStepNoWait,
 				Check:  updateStep.Check,
 			},
-			// Changes: skip_wait_on_update true -> null
+			// skip_wait_on_update = false again, and wait for stable state_name
 			updateStep,
-			importStep(updateStep.Config),
+
+			importStep(),
 		},
 	})
 }
@@ -109,17 +110,17 @@ func TestAccSearchDeployment_timeoutTest(t *testing.T) {
 				),
 			},
 			{
-				Config: configWithTimeout(timeoutsStrLongFalse),
-				Check:  resource.TestCheckResourceAttr(resourceID, "delete_on_create_timeout", "false"),
+				Config:      configWithTimeout(timeoutsStrLongFalse),
+				ExpectError: regexp.MustCompile("delete_on_create_timeout cannot be updated or set after import.*"),
 			},
 			{
 				Config: configWithTimeout(""),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckNoResourceAttr(resourceID, "delete_on_create_timeout"),
+					resource.TestCheckResourceAttrSet(resourceID, "delete_on_create_timeout"), // Will keep value from state
 					resource.TestCheckNoResourceAttr(resourceID, "timeouts.create"),
 				),
 			},
-			importStep(configWithTimeout("")),
+			importStep(),
 		},
 	})
 }

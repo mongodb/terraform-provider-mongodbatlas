@@ -74,7 +74,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 
 	deploymentResp, err := WaitSearchNodeStateTransition(ctx, projectID, clusterName, connV2.AtlasSearchApi,
 		RetryTimeConfig(createTimeout, minTimeoutCreateUpdate))
-	err = cleanup.HandleCreateTimeout(cleanup.ResolveDeleteOnCreateTimeout(plan.DeleteOnCreateTimeout), err, func(ctxCleanup context.Context) error {
+	err = cleanup.HandleCreateTimeout(plan.DeleteOnCreateTimeout.ValueBool(), err, func(ctxCleanup context.Context) error {
 		_, err := connV2.AtlasSearchApi.DeleteClusterSearchDeployment(ctxCleanup, projectID, clusterName).Execute()
 		return err
 	})

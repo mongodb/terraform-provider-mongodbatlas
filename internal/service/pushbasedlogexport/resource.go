@@ -76,7 +76,7 @@ func (r *pushBasedLogExportRS) Create(ctx context.Context, req resource.CreateRe
 	logExportConfigResp, err := WaitStateTransition(ctx, projectID, connV2.PushBasedLogExportApi,
 		retryTimeConfig(timeout, minTimeoutCreateUpdate))
 
-	err = cleanup.HandleCreateTimeout(cleanup.ResolveDeleteOnCreateTimeout(tfPlan.DeleteOnCreateTimeout), err, func(ctx context.Context) error {
+	err = cleanup.HandleCreateTimeout(tfPlan.DeleteOnCreateTimeout.ValueBool(), err, func(ctx context.Context) error {
 		cleanResp, cleanErr := connV2.PushBasedLogExportApi.DeleteLogExport(ctx, projectID).Execute()
 		if validate.StatusNotFound(cleanResp) {
 			return nil

@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 )
@@ -99,15 +98,4 @@ func ResolveTimeout(ctx context.Context, t *timeouts.Value, operationName string
 		timeoutDuration = constant.DefaultTimeout
 	}
 	return timeoutDuration
-}
-
-// ResolveDeleteOnCreateTimeout returns true if delete_on_create_timeout should be enabled.
-// Default behavior is true when not explicitly set to false.
-func ResolveDeleteOnCreateTimeout(deleteOnCreateTimeout types.Bool) bool {
-	// If null or unknown, default to true
-	if deleteOnCreateTimeout.IsNull() || deleteOnCreateTimeout.IsUnknown() {
-		return true
-	}
-	// Otherwise use the explicit value
-	return deleteOnCreateTimeout.ValueBool()
 }
