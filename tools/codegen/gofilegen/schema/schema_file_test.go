@@ -39,19 +39,21 @@ var doubleNestedListAttr = codespec.Attribute{
 	},
 }
 
-var doubleCustomNestedListAttr = codespec.Attribute{
-	TFSchemaName:             "double_nested_list_attr",
-	TFModelName:              "DoubleNestedListAttr",
-	Description:              admin.PtrString("double nested list attribute"),
-	ComputedOptionalRequired: codespec.Optional,
-	CustomType:               codespec.NewCustomNestedListType("DoubleNestedListAttr"),
-	ListNested: &codespec.ListNestedAttribute{
-		NestedObject: codespec.NestedAttributeObject{
-			Attributes: []codespec.Attribute{
-				stringAttr,
+func doubleCustomNestedListAttr(ancestorName string) codespec.Attribute {
+	return codespec.Attribute{
+		TFSchemaName:             "double_nested_list_attr",
+		TFModelName:              "DoubleNestedListAttr",
+		Description:              admin.PtrString("double nested list attribute"),
+		ComputedOptionalRequired: codespec.Optional,
+		CustomType:               codespec.NewCustomNestedListType(ancestorName + "DoubleNestedListAttr"),
+		ListNested: &codespec.ListNestedAttribute{
+			NestedObject: codespec.NestedAttributeObject{
+				Attributes: []codespec.Attribute{
+					stringAttr,
+				},
 			},
 		},
-	},
+	}
 }
 
 type schemaGenerationTestCase struct {
@@ -259,6 +261,14 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							},
 						},
 						{
+							TFSchemaName:             "string_list_attr",
+							TFModelName:              "StringListAttr",
+							Description:              admin.PtrString("string list attribute"),
+							ComputedOptionalRequired: codespec.Optional,
+							CustomType:               codespec.NewCustomListType(codespec.String),
+							List:                     &codespec.ListAttribute{ElementType: codespec.String},
+						},
+						{
 							TFSchemaName:             "nested_list_attr",
 							TFModelName:              "NestedListAttr",
 							Description:              admin.PtrString("nested list attribute"),
@@ -266,7 +276,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							CustomType:               codespec.NewCustomNestedListType("NestedListAttr"),
 							ListNested: &codespec.ListNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
-									Attributes: []codespec.Attribute{stringAttr, intAttr, doubleCustomNestedListAttr},
+									Attributes: []codespec.Attribute{stringAttr, intAttr, doubleCustomNestedListAttr("NestedListAttr")},
 								},
 							},
 						},
@@ -274,7 +284,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 				},
 			},
 			withObjType:    false,
-			goldenFileName: "custom-types-nested-attributes",
+			goldenFileName: "custom-types-attributes",
 		},
 		"Timeout attribute": {
 			inputModel: codespec.Resource{
@@ -336,7 +346,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							CustomType:               codespec.NewCustomNestedListType("FirstNestedAttr"),
 							ListNested: &codespec.ListNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
-									Attributes: []codespec.Attribute{doubleCustomNestedListAttr},
+									Attributes: []codespec.Attribute{doubleCustomNestedListAttr("FirstNestedAttr")},
 								},
 							},
 						},
@@ -348,7 +358,7 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							CustomType:               codespec.NewCustomNestedListType("SecondNestedAttr"),
 							ListNested: &codespec.ListNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
-									Attributes: []codespec.Attribute{doubleCustomNestedListAttr},
+									Attributes: []codespec.Attribute{doubleCustomNestedListAttr("SecondNestedAttr")},
 								},
 							},
 						},

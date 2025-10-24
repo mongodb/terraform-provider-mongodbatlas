@@ -22,7 +22,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						"double_nested_list_attr": schema.ListNestedAttribute{
 							Optional:            true,
 							MarkdownDescription: "double nested list attribute",
-							CustomType:          customtypes.NewNestedListType[TFDoubleNestedListAttrModel](ctx),
+							CustomType:          customtypes.NewNestedListType[TFFirstNestedAttrDoubleNestedListAttrModel](ctx),
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attr": schema.StringAttribute{
@@ -44,7 +44,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						"double_nested_list_attr": schema.ListNestedAttribute{
 							Optional:            true,
 							MarkdownDescription: "double nested list attribute",
-							CustomType:          customtypes.NewNestedListType[TFDoubleNestedListAttrModel](ctx),
+							CustomType:          customtypes.NewNestedListType[TFSecondNestedAttrDoubleNestedListAttrModel](ctx),
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attr": schema.StringAttribute{
@@ -66,13 +66,13 @@ type TFModel struct {
 	SecondNestedAttr customtypes.NestedListValue[TFSecondNestedAttrModel] `tfsdk:"second_nested_attr"`
 }
 type TFFirstNestedAttrModel struct {
-	DoubleNestedListAttr customtypes.NestedListValue[TFDoubleNestedListAttrModel] `tfsdk:"double_nested_list_attr"`
+	DoubleNestedListAttr customtypes.NestedListValue[TFFirstNestedAttrDoubleNestedListAttrModel] `tfsdk:"double_nested_list_attr"`
 }
 type TFFirstNestedAttrDoubleNestedListAttrModel struct {
 	StringAttr types.String `tfsdk:"string_attr"`
 }
 type TFSecondNestedAttrModel struct {
-	DoubleNestedListAttr customtypes.NestedListValue[TFDoubleNestedListAttrModel] `tfsdk:"double_nested_list_attr"`
+	DoubleNestedListAttr customtypes.NestedListValue[TFSecondNestedAttrDoubleNestedListAttrModel] `tfsdk:"double_nested_list_attr"`
 }
 type TFSecondNestedAttrDoubleNestedListAttrModel struct {
 	StringAttr types.String `tfsdk:"string_attr"`

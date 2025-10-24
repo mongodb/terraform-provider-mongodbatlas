@@ -122,16 +122,18 @@ func TestMarshalNestedAllTypes(t *testing.T) {
 	})
 	assert.False(t, diags.HasError())
 	model := struct {
-		AttrString     types.String `tfsdk:"attr_string"`
-		AttrListSimple types.List   `tfsdk:"attr_list_simple"`
-		AttrListObj    types.List   `tfsdk:"attr_list_obj"`
-		AttrSetSimple  types.Set    `tfsdk:"attr_set_simple"`
-		AttrSetObj     types.Set    `tfsdk:"attr_set_obj"`
-		AttrMapSimple  types.Map    `tfsdk:"attr_map_simple"`
-		AttrMapObj     types.Map    `tfsdk:"attr_map_obj"`
+		AttrString     types.String                        `tfsdk:"attr_string"`
+		AttrListSimple types.List                          `tfsdk:"attr_list_simple"`
+		AttrCustomList customtypes.ListValue[types.String] `tfsdk:"attr_custom_list"`
+		AttrListObj    types.List                          `tfsdk:"attr_list_obj"`
+		AttrSetSimple  types.Set                           `tfsdk:"attr_set_simple"`
+		AttrSetObj     types.Set                           `tfsdk:"attr_set_obj"`
+		AttrMapSimple  types.Map                           `tfsdk:"attr_map_simple"`
+		AttrMapObj     types.Map                           `tfsdk:"attr_map_obj"`
 	}{
 		AttrString:     types.StringValue("val"),
 		AttrListSimple: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("val1"), types.StringValue("val2")}),
+		AttrCustomList: customtypes.NewListValue[types.String](t.Context(), []attr.Value{types.StringValue("val1"), types.StringValue("val2")}),
 		AttrListObj:    attrListObj,
 		AttrSetSimple:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("val11"), types.StringValue("val22")}),
 		AttrSetObj:     attrSetObj,
@@ -145,6 +147,7 @@ func TestMarshalNestedAllTypes(t *testing.T) {
 		{
 			"attrString": "val", 
 			"attrListSimple": ["val1", "val2"],
+			"attrCustomList": ["val1", "val2"],
 			"attrListObj": [
 				{ "attrString": "str1", "attrInt": 1 },
 				{ "attrString": "str2", "attrInt": 2 }
@@ -258,14 +261,16 @@ func TestMarshalOmitJSONUpdate(t *testing.T) {
 
 func TestMarshalUpdateNull(t *testing.T) {
 	model := struct {
-		AttrList          types.List   `tfsdk:"attr_list"`
-		AttrSet           types.Set    `tfsdk:"attr_set"`
-		AttrString        types.String `tfsdk:"attr_string"`
-		AttrObj           types.Object `tfsdk:"attr_obj"`
-		AttrIncludeString types.String `tfsdk:"attr_include_update" autogen:"includenullonupdate"`
-		AttrIncludeObj    types.Object `tfsdk:"attr_include_obj" autogen:"includenullonupdate"`
+		AttrList          types.List                          `tfsdk:"attr_list"`
+		AttrCustomList    customtypes.ListValue[types.String] `tfsdk:"attr_custom_list"`
+		AttrSet           types.Set                           `tfsdk:"attr_set"`
+		AttrString        types.String                        `tfsdk:"attr_string"`
+		AttrObj           types.Object                        `tfsdk:"attr_obj"`
+		AttrIncludeString types.String                        `tfsdk:"attr_include_update" autogen:"includenullonupdate"`
+		AttrIncludeObj    types.Object                        `tfsdk:"attr_include_obj" autogen:"includenullonupdate"`
 	}{
 		AttrList:          types.ListNull(types.StringType),
+		AttrCustomList:    customtypes.NewListValueNull[types.String](t.Context()),
 		AttrSet:           types.SetNull(types.StringType),
 		AttrString:        types.StringNull(),
 		AttrObj:           types.ObjectNull(objTypeTest.AttrTypes),
@@ -277,6 +282,7 @@ func TestMarshalUpdateNull(t *testing.T) {
 	const expectedJSON = `
 		{
 			"attrList": [],
+			"attrCustomList": [],
 			"attrSet": [],
 			"attrIncludeString": null,
 			"attrIncludeObj": null

@@ -173,7 +173,7 @@ func (s *APISpecSchema) buildArrayAttr(name, ancestorsName string, computability
 	isSet := s.Schema.Format == OASFormatSet || (s.Schema.UniqueItems != nil && *s.Schema.UniqueItems)
 
 	tfModelName := stringcase.Capitalize(name)
-	createAttribute := func(nestedObject *NestedAttributeObject, customType *CustomType, elemType ElemType) *Attribute {
+	createAttribute := func(nestedObject *NestedAttributeObject, nestedObjectName *string, elemType ElemType) *Attribute {
 		var (
 			attr = &Attribute{
 				TFSchemaName:             stringcase.FromCamelCase(name),
@@ -194,13 +194,18 @@ func (s *APISpecSchema) buildArrayAttr(name, ancestorsName string, computability
 			if isSet {
 				attr.SetNested = &SetNestedAttribute{NestedObject: *nestedObject}
 			} else {
-				attr.CustomType = customType
+				if useCustomNestedTypes {
+					attr.CustomType = NewCustomNestedListType(*nestedObjectName)
+				}
 				attr.ListNested = &ListNestedAttribute{NestedObject: *nestedObject}
 			}
 		} else {
 			if isSet {
 				attr.Set = &SetAttribute{ElementType: elemType}
 			} else {
+				if useCustomNestedTypes {
+					attr.CustomType = NewCustomListType(elemType)
+				}
 				attr.List = &ListAttribute{ElementType: elemType}
 			}
 		}
@@ -215,13 +220,8 @@ func (s *APISpecSchema) buildArrayAttr(name, ancestorsName string, computability
 			return nil, fmt.Errorf("error while building nested schema: %s", name)
 		}
 
-		var customType *CustomType
-		if useCustomNestedTypes {
-			customType = NewCustomNestedListType(fullName)
-		}
 		nestedObject := &NestedAttributeObject{Attributes: objectAttributes}
-
-		return createAttribute(nestedObject, customType, Unknown), nil // Using Unknown ElemType as a placeholder for no ElemType
+		return createAttribute(nestedObject, &fullName, Unknown), nil // Using Unknown ElemType as a placeholder for no ElemType
 	}
 
 	elemType, err := itemSchema.buildElementType()

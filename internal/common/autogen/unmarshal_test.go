@@ -87,6 +87,7 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrCustomObjUnknownSent           customtypes.ObjectValue[modelCustomTypeTest]     `tfsdk:"attr_custom_obj_unknown_sent"`
 		AttrCustomObjParent                customtypes.ObjectValue[modelCustomTypeTest]     `tfsdk:"attr_custom_obj_parent"`
 		AttrListString                     types.List                                       `tfsdk:"attr_list_string"`
+		AttrCustomListString               customtypes.ListValue[types.String]              `tfsdk:"attr_custom_list_string"`
 		AttrListObj                        types.List                                       `tfsdk:"attr_list_obj"`
 		AttrCustomNestedList               customtypes.NestedListValue[modelCustomTypeTest] `tfsdk:"attr_custom_nested_list"`
 		AttrCustomNestedListNullNotSent    customtypes.NestedListValue[modelCustomTypeTest] `tfsdk:"attr_custom_nested_list_null_not_sent"`
@@ -131,6 +132,7 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrCustomObjUnknownSent:    customtypes.NewObjectValueUnknown[modelCustomTypeTest](ctx),
 		AttrCustomObjParent:         customtypes.NewObjectValueNull[modelCustomTypeTest](ctx),
 		AttrListString:              types.ListUnknown(types.StringType),
+		AttrCustomListString:        customtypes.NewListValueUnknown[types.String](ctx),
 		AttrListObj:                 types.ListUnknown(objTypeTest),
 		AttrCustomNestedList: customtypes.NewNestedListValue[modelCustomTypeTest](ctx, []modelCustomTypeTest{
 			{
@@ -213,6 +215,10 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 					"attrNested": {}
 				},
 				"attrListString": [
+					"list1",
+					"list2"
+				],
+				"attrCustomListString": [
 					"list1",
 					"list2"
 				],
@@ -409,6 +415,10 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 			AttrMANYUpper: types.Int64Null(),
 		}),
 		AttrListString: types.ListValueMust(types.StringType, []attr.Value{
+			types.StringValue("list1"),
+			types.StringValue("list2"),
+		}),
+		AttrCustomListString: customtypes.NewListValue[types.String](ctx, []attr.Value{
 			types.StringValue("list1"),
 			types.StringValue("list2"),
 		}),
