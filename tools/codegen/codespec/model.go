@@ -18,6 +18,24 @@ const (
 	Unknown
 )
 
+var ElementTypeToSchemaString = map[ElemType]string{
+	Bool:           "types.BoolType",
+	Float64:        "types.Float64Type",
+	Int64:          "types.Int64Type",
+	Number:         "types.NumberType",
+	String:         "types.StringType",
+	CustomTypeJSON: CustomTypeJSONVar.Schema,
+}
+
+var ElementTypeToModelString = map[ElemType]string{
+	Bool:           "types.Bool",
+	Float64:        "types.Float64",
+	Int64:          "types.Int64",
+	Number:         "types.Number",
+	String:         "types.String",
+	CustomTypeJSON: CustomTypeJSONVar.Model,
+}
+
 type Model struct {
 	Resources []Resource
 }
@@ -195,6 +213,15 @@ func NewCustomObjectType(name string) *CustomType {
 		Package: CustomTypesPkg,
 		Model:   fmt.Sprintf("customtypes.ObjectValue[TF%sModel]", name),
 		Schema:  fmt.Sprintf("customtypes.NewObjectType[TF%sModel](ctx)", name),
+	}
+}
+
+func NewCustomListType(elemType ElemType) *CustomType {
+	elemTypeStr := ElementTypeToModelString[elemType]
+	return &CustomType{
+		Package: CustomTypesPkg,
+		Model:   fmt.Sprintf("customtypes.ListValue[%s]", elemTypeStr),
+		Schema:  fmt.Sprintf("customtypes.NewListType[%s](ctx)", elemTypeStr),
 	}
 }
 

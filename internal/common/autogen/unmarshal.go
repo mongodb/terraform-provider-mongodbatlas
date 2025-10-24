@@ -159,46 +159,18 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 			}
 			return jsontypes.NewNormalizedValue(string(jsonBytes)), nil
 		}
-		if list, ok := oldVal.(types.List); ok {
-			listNew, err := setListAttrModel(list, v, nameErr)
-			if err != nil {
-				return nil, err
-			}
-			return listNew, nil
-		}
-		if set, ok := oldVal.(types.Set); ok {
-			setNew, err := setSetAttrModel(set, v, nameErr)
-			if err != nil {
-				return nil, err
-			}
-			return setNew, nil
-		}
-		if list, ok := oldVal.(customtypes.NestedListValueInterface); ok {
-			if len(v) == 0 && list.Len() == 0 {
-				// Keep current list if both model and JSON lists are zero-len (empty or null) so config is preserved.
-				// It avoids inconsistent result after apply when user explicitly sets an empty list in config.
-				return list, nil
-			}
 
-			slicePtr := list.NewEmptySlicePtr()
-			sliceVal := reflect.ValueOf(slicePtr).Elem()
-			sliceVal.Set(reflect.MakeSlice(sliceVal.Type(), len(v), len(v)))
-
-			for i, item := range v {
-				elementPtr := sliceVal.Index(i).Addr().Interface()
-				objJSON, ok := item.(map[string]any)
-				if !ok {
-					return nil, fmt.Errorf("unmarshal of list item failed to convert object: %v", item)
-				}
-				err := unmarshalAttrs(objJSON, elementPtr)
-				if err != nil {
-					return nil, err
-				}
-			}
-
-			listNew := list.NewNestedListValue(context.Background(), slicePtr)
-			return listNew, nil
+		switch oldVal := oldVal.(type) {
+		case types.List:
+			return setListAttrModel(oldVal, v, nameErr)
+		case types.Set:
+			return setSetAttrModel(oldVal, v, nameErr)
+		case customtypes.ListValueInterface:
+			return getListValueTFAttr(context.Background(), v, oldVal, nameErr)
+		case customtypes.NestedListValueInterface:
+			return getNestedListValueTFAttr(context.Background(), v, oldVal)
 		}
+
 		return nil, errUnmarshal(value, valueType, "Array", nameErr)
 	case nil:
 		return nil, nil // skip nil values, no need to set anything
@@ -330,4 +302,52 @@ func getObjAttrsAndTypes(obj types.Object) (mapAttrs map[string]attr.Value, mapT
 		mapAttrs[attrName] = nullVal
 	}
 	return mapAttrs, mapTypes, nil
+}
+
+func getListValueTFAttr(ctx context.Context, arrayJSON []any, list customtypes.ListValueInterface, nameErr string) (attr.Value, error) {
+	if len(arrayJSON) == 0 && len(list.Elements()) == 0 {
+		// Keep current list if both model and JSON lists are zero-len (empty or null) so config is preserved.
+		// It avoids inconsistent result after apply when user explicitly sets an empty list in config.
+		return list, nil
+	}
+
+	elemType := list.ElementType(ctx)
+	slice := make([]attr.Value, len(arrayJSON))
+	for i, item := range arrayJSON {
+		newValue, err := getTfAttr(item, elemType, nil, nameErr)
+		if err != nil {
+			return nil, err
+		}
+		slice[i] = newValue
+	}
+
+	listNew := list.NewListValue(ctx, slice)
+	return listNew, nil
+}
+
+func getNestedListValueTFAttr(ctx context.Context, arrayJSON []any, list customtypes.NestedListValueInterface) (attr.Value, error) {
+	if len(arrayJSON) == 0 && list.Len() == 0 {
+		// Keep current list if both model and JSON lists are zero-len (empty or null) so config is preserved.
+		// It avoids inconsistent result after apply when user explicitly sets an empty list in config.
+		return list, nil
+	}
+
+	slicePtr := list.NewEmptySlicePtr()
+	sliceVal := reflect.ValueOf(slicePtr).Elem()
+	sliceVal.Set(reflect.MakeSlice(sliceVal.Type(), len(arrayJSON), len(arrayJSON)))
+
+	for i, item := range arrayJSON {
+		elementPtr := sliceVal.Index(i).Addr().Interface()
+		objJSON, ok := item.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("unmarshal of list item failed to convert object: %v", item)
+		}
+		err := unmarshalAttrs(objJSON, elementPtr)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	listNew := list.NewNestedListValue(ctx, slicePtr)
+	return listNew, nil
 }

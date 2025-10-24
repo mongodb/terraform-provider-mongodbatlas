@@ -60,6 +60,12 @@ func prepareAttr(value attr.Value) (attr.Value, error) {
 
 		objNew := v.NewObjectValue(ctx, valuePtr)
 		return objNew, nil
+	case customtypes.ListValueInterface:
+		if v.IsUnknown() {
+			return v.NewListValueNull(ctx), nil
+		}
+		// If known, no need to process each list item since unmarshal does not generate unknown attributes.
+		return v, nil
 	case customtypes.NestedListValueInterface:
 		if v.IsUnknown() {
 			return v.NewNestedListValueNull(ctx), nil
