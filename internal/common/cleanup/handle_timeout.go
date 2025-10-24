@@ -121,8 +121,8 @@ type resourceInterface interface {
 // DeleteOnCreateTimeoutInvalidUpdate returns an error if the `delete_on_create_timeout` attribute has been updated to true/false
 // This use case differs slightly from the behavior of TPF customplanmodifier.CreateOnlyBoolWithDefault:
 // - from a given value (true/false) --> `null`.
-// This TPF implementation keeps the state value (UseStateForUnknown behavior).
-// This will set the state value to null (Optional-only attribute).
+// While the TPF implementation keeps the state value (UseStateForUnknown behavior),
+// The SDKv2 implementation will set the state value to null (Optional-only attribute).
 func DeleteOnCreateTimeoutInvalidUpdate(resource resourceInterface) string {
 	if !resource.HasChange("delete_on_create_timeout") {
 		return ""
