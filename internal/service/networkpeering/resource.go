@@ -448,6 +448,9 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	peerID := ids["peer_id"]
+	if invalidUpdate := cleanup.DeleteOnCreateTimeoutInvalidUpdate(d); invalidUpdate != "" {
+		return diag.FromErr(errors.New(invalidUpdate))
+	}
 
 	peer := &admin.BaseNetworkPeeringConnectionSettings{
 		ProviderName: conversion.StringPtr(ids["provider_name"]),

@@ -88,3 +88,61 @@ func TestReplaceContextDeadlineExceededDiags(t *testing.T) {
 		assert.Equal(t, expectedDetails[i], diag.Detail(), "Detail at index %d should match", i)
 	}
 }
+
+type mockResource struct {
+	values    map[string]interface{}
+	isChanged bool
+}
+
+func (m *mockResource) GetOkExists(key string) (interface{}, bool) {
+	value, exists := m.values[key]
+	return value, exists
+}
+
+func (m *mockResource) HasChange(key string) bool {
+	return m.isChanged
+}
+
+func TestDeleteOnCreateTimeoutInvalidUpdate(t *testing.T) {
+	t.Run("No change in delete_on_create_timeout returns empty string", func(t *testing.T) {
+		resource := &mockResource{
+			values:    map[string]interface{}{},
+			isChanged: false,
+		}
+
+		result := cleanup.DeleteOnCreateTimeoutInvalidUpdate(resource)
+		assert.Empty(t, result)
+	})
+
+	t.Run("Change detected but field doesn't exist returns empty string", func(t *testing.T) {
+		resource := &mockResource{
+			values:    map[string]interface{}{},
+			isChanged: true,
+		}
+
+		result := cleanup.DeleteOnCreateTimeoutInvalidUpdate(resource)
+		assert.Empty(t, result)
+	})
+
+	t.Run("Change detected and field exists returns error message", func(t *testing.T) {
+		resource := &mockResource{
+			values:    map[string]interface{}{"delete_on_create_timeout": true},
+			isChanged: true,
+		}
+
+		result := cleanup.DeleteOnCreateTimeoutInvalidUpdate(resource)
+		expectedMessage := cleanup.DeleteOnCreateTimeoutInvalidErrorMessage
+		assert.Equal(t, expectedMessage, result)
+	})
+
+	t.Run("Change detected with false value still returns error message", func(t *testing.T) {
+		resource := &mockResource{
+			values:    map[string]interface{}{"delete_on_create_timeout": false},
+			isChanged: true,
+		}
+
+		result := cleanup.DeleteOnCreateTimeoutInvalidUpdate(resource)
+		expectedMessage := cleanup.DeleteOnCreateTimeoutInvalidErrorMessage
+		assert.Equal(t, expectedMessage, result)
+	})
+}
