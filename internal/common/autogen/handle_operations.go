@@ -34,7 +34,7 @@ type WaitReq struct {
 	StateProperty     string
 	PendingStates     []string
 	TargetStates      []string
-	TimeoutSeconds    int
+	Timeout           time.Duration
 	MinTimeoutSeconds int
 	DelaySeconds      int
 }
@@ -240,7 +240,7 @@ func waitForChanges(ctx context.Context, wait *WaitReq, client *config.MongoDBCl
 	stateConf := retry.StateChangeConf{
 		Target:     wait.TargetStates,
 		Pending:    wait.PendingStates,
-		Timeout:    time.Duration(wait.TimeoutSeconds) * time.Second,
+		Timeout:    wait.Timeout,
 		MinTimeout: time.Duration(wait.MinTimeoutSeconds) * time.Second,
 		Delay:      time.Duration(wait.DelaySeconds) * time.Second,
 		Refresh:    refreshFunc(ctx, wait, client),
