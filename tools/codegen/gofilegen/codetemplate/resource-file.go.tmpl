@@ -53,11 +53,8 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		Method: "{{ .APIOperations.Create.HTTPMethod }}",
 	}
 	{{with .APIOperations.Create.Wait -}}
-	timeout, diags := plan.Timeouts.Create(ctx, {{ .TimeoutSeconds }}*time.Second)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	timeout, localDiags := plan.Timeouts.Create(ctx, {{ .TimeoutSeconds }}*time.Second)
+	resp.Diagnostics.Append(localDiags...)
 	{{ end -}}
 	reqHandle := autogen.HandleCreateReq {
 		Resp: resp,
@@ -114,11 +111,8 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		Method: "{{ .APIOperations.Update.HTTPMethod }}",
 	}
 	{{with .APIOperations.Update.Wait -}}
-	timeout, diags := plan.Timeouts.Update(ctx, {{ .TimeoutSeconds }}*time.Second)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	timeout, localDiags := plan.Timeouts.Update(ctx, {{ .TimeoutSeconds }}*time.Second)
+	resp.Diagnostics.Append(localDiags...)
 	{{ end -}}
 	reqHandle := autogen.HandleUpdateReq {
 		Resp: resp,
@@ -158,11 +152,8 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		Method: "{{ .APIOperations.Delete.HTTPMethod }}",
 	}
 	{{with .APIOperations.Delete.Wait -}}
-	timeout, diags := state.Timeouts.Delete(ctx, {{ .TimeoutSeconds }}*time.Second)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	timeout, localDiags := state.Timeouts.Delete(ctx, {{ .TimeoutSeconds }}*time.Second)
+	resp.Diagnostics.Append(localDiags...)
 	{{ end -}}
 	reqHandle := autogen.HandleDeleteReq {
 		Resp: resp,

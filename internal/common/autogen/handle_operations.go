@@ -49,6 +49,9 @@ type HandleCreateReq struct {
 
 func HandleCreate(ctx context.Context, req HandleCreateReq) {
 	d := &req.Resp.Diagnostics
+	if d.HasError() {
+		return
+	}
 	bodyReq, err := Marshal(req.Plan, false)
 	if err != nil {
 		addError(d, opCreate, errBuildingAPIRequest, err)
@@ -117,6 +120,9 @@ type HandleUpdateReq struct {
 
 func HandleUpdate(ctx context.Context, req HandleUpdateReq) {
 	d := &req.Resp.Diagnostics
+	if d.HasError() {
+		return
+	}
 	bodyReq, err := Marshal(req.Plan, true)
 	if err != nil {
 		addError(d, opUpdate, errBuildingAPIRequest, err)
@@ -155,6 +161,9 @@ type HandleDeleteReq struct {
 
 func HandleDelete(ctx context.Context, req HandleDeleteReq) {
 	d := &req.Resp.Diagnostics
+	if d.HasError() {
+		return
+	}
 	var err error
 	if req.StaticRequestBody == "" {
 		_, _, err = callAPIWithoutBody(ctx, req.Client, req.CallParams)

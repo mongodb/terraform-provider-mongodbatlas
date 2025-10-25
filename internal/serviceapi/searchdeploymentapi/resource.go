@@ -50,11 +50,8 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		PathParams:    pathParams,
 		Method:        "POST",
 	}
-	timeout, diags := plan.Timeouts.Create(ctx, 10800*time.Second)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	timeout, localDiags := plan.Timeouts.Create(ctx, 10800*time.Second)
+	resp.Diagnostics.Append(localDiags...)
 	reqHandle := autogen.HandleCreateReq{
 		Resp:       resp,
 		Client:     r.Client,
@@ -107,11 +104,8 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		PathParams:    pathParams,
 		Method:        "PATCH",
 	}
-	timeout, diags := plan.Timeouts.Update(ctx, 10800*time.Second)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	timeout, localDiags := plan.Timeouts.Update(ctx, 10800*time.Second)
+	resp.Diagnostics.Append(localDiags...)
 	reqHandle := autogen.HandleUpdateReq{
 		Resp:       resp,
 		Client:     r.Client,
@@ -146,11 +140,8 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		PathParams:    pathParams,
 		Method:        "DELETE",
 	}
-	timeout, diags := state.Timeouts.Delete(ctx, 10800*time.Second)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	timeout, localDiags := state.Timeouts.Delete(ctx, 10800*time.Second)
+	resp.Diagnostics.Append(localDiags...)
 	reqHandle := autogen.HandleDeleteReq{
 		Resp:       resp,
 		Client:     r.Client,
