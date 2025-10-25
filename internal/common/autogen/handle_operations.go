@@ -34,7 +34,7 @@ type WaitReq struct {
 	StateProperty     string
 	PendingStates     []string
 	TargetStates      []string
-	TimeoutSeconds    int
+	Timeout           time.Duration
 	MinTimeoutSeconds int
 	DelaySeconds      int
 }
@@ -49,6 +49,9 @@ type HandleCreateReq struct {
 
 func HandleCreate(ctx context.Context, req HandleCreateReq) {
 	d := &req.Resp.Diagnostics
+	if d.HasError() {
+		return
+	}
 	bodyReq, err := Marshal(req.Plan, false)
 	if err != nil {
 		addError(d, opCreate, errBuildingAPIRequest, err)
@@ -85,6 +88,9 @@ type HandleReadReq struct {
 
 func HandleRead(ctx context.Context, req HandleReadReq) {
 	d := &req.Resp.Diagnostics
+	if d.HasError() {
+		return
+	}
 	bodyResp, apiResp, err := callAPIWithoutBody(ctx, req.Client, req.CallParams)
 	if notFound(bodyResp, apiResp) {
 		req.Resp.State.RemoveResource(ctx)
@@ -117,6 +123,9 @@ type HandleUpdateReq struct {
 
 func HandleUpdate(ctx context.Context, req HandleUpdateReq) {
 	d := &req.Resp.Diagnostics
+	if d.HasError() {
+		return
+	}
 	bodyReq, err := Marshal(req.Plan, true)
 	if err != nil {
 		addError(d, opUpdate, errBuildingAPIRequest, err)
@@ -155,6 +164,9 @@ type HandleDeleteReq struct {
 
 func HandleDelete(ctx context.Context, req HandleDeleteReq) {
 	d := &req.Resp.Diagnostics
+	if d.HasError() {
+		return
+	}
 	var err error
 	if req.StaticRequestBody == "" {
 		_, _, err = callAPIWithoutBody(ctx, req.Client, req.CallParams)
@@ -240,7 +252,7 @@ func waitForChanges(ctx context.Context, wait *WaitReq, client *config.MongoDBCl
 	stateConf := retry.StateChangeConf{
 		Target:     wait.TargetStates,
 		Pending:    wait.PendingStates,
-		Timeout:    time.Duration(wait.TimeoutSeconds) * time.Second,
+		Timeout:    wait.Timeout,
 		MinTimeout: time.Duration(wait.MinTimeoutSeconds) * time.Second,
 		Delay:      time.Duration(wait.DelaySeconds) * time.Second,
 		Refresh:    refreshFunc(ctx, wait, client),
