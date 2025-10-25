@@ -88,6 +88,9 @@ type HandleReadReq struct {
 
 func HandleRead(ctx context.Context, req HandleReadReq) {
 	d := &req.Resp.Diagnostics
+	if d.HasError() {
+		return
+	}
 	bodyResp, apiResp, err := callAPIWithoutBody(ctx, req.Client, req.CallParams)
 	if notFound(bodyResp, apiResp) {
 		req.Resp.State.RemoveResource(ctx)
