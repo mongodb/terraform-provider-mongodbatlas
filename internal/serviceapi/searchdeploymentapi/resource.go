@@ -4,6 +4,7 @@ package searchdeploymentapi
 
 import (
 	"context"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
@@ -49,6 +50,11 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		PathParams:    pathParams,
 		Method:        "POST",
 	}
+	timeout, diags := plan.Timeouts.Create(ctx, 10800*time.Second)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	reqHandle := autogen.HandleCreateReq{
 		Resp:       resp,
 		Client:     r.Client,
@@ -58,7 +64,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 			StateProperty:     "stateName",
 			PendingStates:     []string{"UPDATING", "PAUSED"},
 			TargetStates:      []string{"IDLE"},
-			TimeoutSeconds:    10800,
+			Timeout:           timeout,
 			MinTimeoutSeconds: 60,
 			DelaySeconds:      60,
 			CallParams:        readAPICallParams(&plan),
@@ -101,6 +107,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		PathParams:    pathParams,
 		Method:        "PATCH",
 	}
+	timeout, diags := plan.Timeouts.Update(ctx, 10800*time.Second)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	reqHandle := autogen.HandleUpdateReq{
 		Resp:       resp,
 		Client:     r.Client,
@@ -110,7 +121,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			StateProperty:     "stateName",
 			PendingStates:     []string{"UPDATING", "PAUSED"},
 			TargetStates:      []string{"IDLE"},
-			TimeoutSeconds:    10800,
+			Timeout:           timeout,
 			MinTimeoutSeconds: 60,
 			DelaySeconds:      60,
 			CallParams:        readAPICallParams(&state),
@@ -135,6 +146,11 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		PathParams:    pathParams,
 		Method:        "DELETE",
 	}
+	timeout, diags := state.Timeouts.Delete(ctx, 10800*time.Second)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	reqHandle := autogen.HandleDeleteReq{
 		Resp:       resp,
 		Client:     r.Client,
@@ -144,7 +160,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 			StateProperty:     "stateName",
 			PendingStates:     []string{"IDLE", "UPDATING", "PAUSED"},
 			TargetStates:      []string{"DELETED"},
-			TimeoutSeconds:    10800,
+			Timeout:           timeout,
 			MinTimeoutSeconds: 30,
 			DelaySeconds:      60,
 			CallParams:        readAPICallParams(&state),
