@@ -36,6 +36,9 @@ func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resou
 func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan TFModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	pathParams := map[string]string{
 		"projectId": plan.ProjectId.ValueString(),
 	}
@@ -57,6 +60,9 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state TFModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	reqHandle := autogen.HandleReadReq{
 		Resp:       resp,
 		Client:     r.Client,
@@ -71,6 +77,9 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	var state TFModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	// Path params are grabbed from state as they may be computed-only and not present in the plan
 	pathParams := map[string]string{
 		"projectId": state.ProjectId.ValueString(),
