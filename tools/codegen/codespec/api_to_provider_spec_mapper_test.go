@@ -250,6 +250,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							TFSchemaName:             "nested_set_array_attr",
 							TFModelName:              "NestedSetArrayAttr",
 							ComputedOptionalRequired: codespec.Computed,
+							CustomType:               codespec.NewCustomNestedSetType("NestedSetArrayAttr"),
 							SetNested: &codespec.SetNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{

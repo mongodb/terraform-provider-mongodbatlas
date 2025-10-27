@@ -192,6 +192,9 @@ func (s *APISpecSchema) buildArrayAttr(name, ancestorsName string, computability
 
 		if isNested && !isNestedEmpty {
 			if isSet {
+				if useCustomNestedTypes {
+					attr.CustomType = NewCustomNestedSetType(*nestedObjectName)
+				}
 				attr.SetNested = &SetNestedAttribute{NestedObject: *nestedObject}
 			} else {
 				if useCustomNestedTypes {

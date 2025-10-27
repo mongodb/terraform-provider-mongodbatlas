@@ -72,6 +72,12 @@ func prepareAttr(value attr.Value) (attr.Value, error) {
 		}
 		// If known, no need to process each list item since unmarshal does not generate unknown attributes.
 		return v, nil
+	case customtypes.NestedSetValueInterface:
+		if v.IsUnknown() {
+			return v.NewNestedSetValueNull(ctx), nil
+		}
+		// If known, no need to process each set item since unmarshal does not generate unknown attributes.
+		return v, nil
 	}
 
 	if value.IsUnknown() { // unknown values are converted to null

@@ -77,7 +77,7 @@ func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[s
 
 	if val == nil && isUpdate {
 		switch obj.(type) {
-		case types.List, types.Set, customtypes.ListValueInterface, customtypes.NestedListValueInterface:
+		case types.List, types.Set, customtypes.ListValueInterface, customtypes.NestedListValueInterface, customtypes.NestedSetValueInterface:
 			val = []any{} // Send an empty array if it's a null root list or set
 		}
 	}
@@ -131,24 +131,35 @@ func getModelAttr(val attr.Value, isUpdate bool) (any, error) {
 			return nil, fmt.Errorf("marshal failed for type: %v", diags)
 		}
 
-		sliceValue := reflect.ValueOf(slicePtr).Elem()
-		length := sliceValue.Len()
-
-		result := make([]any, 0, length)
-		for i := range length {
-			value, err := marshalAttrs(sliceValue.Index(i), isUpdate)
-			if err != nil {
-				return nil, err
-			}
-			if value != nil {
-				result = append(result, value)
-			}
+		return getNestedSliceAttr(slicePtr, isUpdate)
+	case customtypes.NestedSetValueInterface:
+		slicePtr, diags := v.SlicePtrAsAny(context.Background())
+		if diags.HasError() {
+			return nil, fmt.Errorf("marshal failed for type: %v", diags)
 		}
 
-		return result, nil
+		return getNestedSliceAttr(slicePtr, isUpdate)
 	default:
 		return nil, fmt.Errorf("marshal not supported yet for type %T", v)
 	}
+}
+
+func getNestedSliceAttr(slicePtr any, isUpdate bool) (any, error) {
+	sliceValue := reflect.ValueOf(slicePtr).Elem()
+	length := sliceValue.Len()
+
+	result := make([]any, 0, length)
+	for i := range length {
+		value, err := marshalAttrs(sliceValue.Index(i), isUpdate)
+		if err != nil {
+			return nil, err
+		}
+		if value != nil {
+			result = append(result, value)
+		}
+	}
+
+	return result, nil
 }
 
 func getListAttr(elms []attr.Value, isUpdate bool) (any, error) {
