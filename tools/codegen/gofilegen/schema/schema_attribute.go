@@ -153,7 +153,7 @@ func commonProperties(attr *codespec.Attribute, planModifierType string) []CodeS
 			Imports: imports,
 		})
 	}
-	if attr.CreateOnly {
+	if attr.CreateOnly { // As of now this is the only property which implies defining plan modifiers.
 		planModifierImports := []string{
 			"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier",
 			"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier",

@@ -73,7 +73,7 @@ func HandleCreate(ctx context.Context, req HandleCreateReq) {
 		return
 	}
 	errWait := handleWaitCreateUpdate(ctx, req.Wait, req.Client, req.Plan)
-	if errWait != nil && req.Wait != nil && req.DeleteCallParams != nil {
+	if errWait != nil && req.DeleteCallParams != nil {
 		// Handle timeout with cleanup if delete_on_create_timeout is enabled. Doesn't support Delete with StaticRequestBody.
 		errWait = cleanup.HandleCreateTimeout(req.DeleteOnCreateTimeout, errWait, func(ctxCleanup context.Context) error {
 			bodyResp, apiResp, err := callAPIWithoutBody(ctxCleanup, req.Client, req.DeleteCallParams)
