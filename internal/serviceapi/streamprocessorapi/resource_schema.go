@@ -77,6 +77,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Human-readable label that identifies the stream instance.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
+			"delete_on_create_timeout": schema.BoolAttribute{
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.",
+				PlanModifiers:       []planmodifier.Bool{customplanmodifier.CreateOnlyBoolWithDefault(true)},
+			},
 			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
 				Create: true,
 				Update: true,
@@ -87,14 +93,15 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	GroupId    types.String                                `tfsdk:"group_id" autogen:"omitjson"`
-	Name       types.String                                `tfsdk:"name"`
-	Options    customtypes.ObjectValue[TFOptionsModel]     `tfsdk:"options"`
-	Pipeline   customtypes.ListValue[jsontypes.Normalized] `tfsdk:"pipeline"`
-	State      types.String                                `tfsdk:"state" autogen:"omitjson"`
-	Stats      jsontypes.Normalized                        `tfsdk:"stats" autogen:"omitjson"`
-	TenantName types.String                                `tfsdk:"tenant_name" autogen:"omitjson"`
-	Timeouts   timeouts.Value                              `tfsdk:"timeouts" autogen:"omitjson"`
+	Pipeline              customtypes.ListValue[jsontypes.Normalized] `tfsdk:"pipeline"`
+	GroupId               types.String                                `tfsdk:"group_id" autogen:"omitjson"`
+	Name                  types.String                                `tfsdk:"name"`
+	Options               customtypes.ObjectValue[TFOptionsModel]     `tfsdk:"options"`
+	State                 types.String                                `tfsdk:"state" autogen:"omitjson"`
+	Stats                 jsontypes.Normalized                        `tfsdk:"stats" autogen:"omitjson"`
+	TenantName            types.String                                `tfsdk:"tenant_name" autogen:"omitjson"`
+	Timeouts              timeouts.Value                              `tfsdk:"timeouts" autogen:"omitjson"`
+	DeleteOnCreateTimeout types.Bool                                  `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
 }
 type TFOptionsModel struct {
 	Dlq                  customtypes.ObjectValue[TFOptionsDlqModel] `tfsdk:"dlq"`

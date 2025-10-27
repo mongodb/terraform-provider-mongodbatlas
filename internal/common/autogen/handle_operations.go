@@ -40,11 +40,12 @@ type WaitReq struct {
 }
 
 type HandleCreateReq struct {
-	Resp       *resource.CreateResponse
-	Client     *config.MongoDBClient
-	Plan       any
-	CallParams *config.APICallParams
-	Wait       *WaitReq
+	Resp                  *resource.CreateResponse
+	Client                *config.MongoDBClient
+	Plan                  any
+	CallParams            *config.APICallParams
+	Wait                  *WaitReq
+	DeleteOnCreateTimeout bool
 }
 
 func HandleCreate(ctx context.Context, req HandleCreateReq) {

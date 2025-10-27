@@ -64,7 +64,10 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		Client: r.Client,
 		Plan: &plan,
 		CallParams: &callParams,
-		{{with .APIOperations.Create.Wait -}}
+		{{- with .APIOperations.Create.Wait }}
+		{{- if $.APIOperations.Delete }}
+		DeleteOnCreateTimeout: plan.DeleteOnCreateTimeout.ValueBool(),
+		{{- end }}
 		Wait: &autogen.WaitReq{
 			StateProperty: "{{ .StateProperty }}",
 			PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
