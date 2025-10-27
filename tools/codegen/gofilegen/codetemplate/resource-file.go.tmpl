@@ -4,7 +4,10 @@ package {{ .PackageName }}
 
 import (
 	"context"
-	
+	{{- if or .APIOperations.Create.Wait .APIOperations.Update.Wait (and .APIOperations.Delete .APIOperations.Delete.Wait) }}
+	"time"
+	{{ end }}
+
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -49,6 +52,13 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		PathParams: pathParams,
 		Method: "{{ .APIOperations.Create.HTTPMethod }}",
 	}
+	{{with .APIOperations.Create.Wait -}}
+	timeout, localDiags := plan.Timeouts.Create(ctx, {{ .TimeoutSeconds }}*time.Second)
+	resp.Diagnostics.Append(localDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	{{ end -}}
 	reqHandle := autogen.HandleCreateReq {
 		Resp: resp,
 		Client: r.Client,
@@ -59,7 +69,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 			StateProperty: "{{ .StateProperty }}",
 			PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
 			TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
-			TimeoutSeconds: {{ .TimeoutSeconds }},
+			Timeout: timeout,
 			MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
 			DelaySeconds: {{ .DelaySeconds }},
 			CallParams: readAPICallParams(&plan),
@@ -103,6 +113,13 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		PathParams: pathParams,
 		Method: "{{ .APIOperations.Update.HTTPMethod }}",
 	}
+	{{with .APIOperations.Update.Wait -}}
+	timeout, localDiags := plan.Timeouts.Update(ctx, {{ .TimeoutSeconds }}*time.Second)
+	resp.Diagnostics.Append(localDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	{{ end -}}
 	reqHandle := autogen.HandleUpdateReq {
 		Resp: resp,
 		Client: r.Client,
@@ -113,7 +130,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			StateProperty: "{{ .StateProperty }}",
 			PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
 			TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
-			TimeoutSeconds: {{ .TimeoutSeconds }},
+			Timeout: timeout,
 			MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
 			DelaySeconds: {{ .DelaySeconds }},
 			CallParams: readAPICallParams(&state),
@@ -124,7 +141,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-    {{- if .APIOperations.Delete}}
+	{{- if .APIOperations.Delete}}
 	var state TFModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -140,6 +157,13 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		PathParams: pathParams,
 		Method: "{{ .APIOperations.Delete.HTTPMethod }}",
 	}
+	{{with .APIOperations.Delete.Wait -}}
+	timeout, localDiags := state.Timeouts.Delete(ctx, {{ .TimeoutSeconds }}*time.Second)
+	resp.Diagnostics.Append(localDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	{{ end -}}
 	reqHandle := autogen.HandleDeleteReq {
 		Resp: resp,
 		Client: r.Client,
@@ -153,7 +177,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 			StateProperty: "{{ .StateProperty }}",
 			PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
 			TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
-			TimeoutSeconds: {{ .TimeoutSeconds }},
+			Timeout: timeout,
 			MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
 			DelaySeconds: {{ .DelaySeconds }},
 			CallParams: readAPICallParams(&state),
