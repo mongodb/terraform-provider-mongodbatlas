@@ -52,13 +52,13 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		PathParams: pathParams,
 		Method: "{{ .APIOperations.Create.HTTPMethod }}",
 	}
-	{{with .APIOperations.Create.Wait -}}
+	{{- with .APIOperations.Create.Wait }}
 	timeout, localDiags := plan.Timeouts.Create(ctx, {{ .TimeoutSeconds }}*time.Second)
 	resp.Diagnostics.Append(localDiags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	{{ end -}}
+	{{- end }}
 	reqHandle := autogen.HandleCreateReq {
 		Resp: resp,
 		Client: r.Client,
@@ -66,6 +66,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		CallParams: &callParams,
 		{{- with .APIOperations.Create.Wait }}
 		{{- if $.APIOperations.Delete }}
+		DeleteCallParams: deleteAPICallParams(&plan),
 		DeleteOnCreateTimeout: plan.DeleteOnCreateTimeout.ValueBool(),
 		{{- end }}
 		Wait: &autogen.WaitReq{
@@ -150,16 +151,6 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	pathParams := map[string]string{ {{range .APIOperations.Delete.PathParams }}
-		"{{ .CamelCaseName }}": state.{{ .PascalCaseName }}.ValueString(),
-	{{- end }}
-	}
-	callParams := config.APICallParams{
-		VersionHeader: apiVersionHeader,
-		RelativePath: "{{ .APIOperations.Delete.Path }}",
-		PathParams: pathParams,
-		Method: "{{ .APIOperations.Delete.HTTPMethod }}",
-	}
 	{{with .APIOperations.Delete.Wait -}}
 	timeout, localDiags := state.Timeouts.Delete(ctx, {{ .TimeoutSeconds }}*time.Second)
 	resp.Diagnostics.Append(localDiags...)
@@ -171,7 +162,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		Resp: resp,
 		Client: r.Client,
 		State: &state,
-		CallParams: &callParams,
+		CallParams: deleteAPICallParams(&state),
 		{{- if ne .APIOperations.Delete.StaticRequestBody "" }}
 		StaticRequestBody: `{{ .APIOperations.Delete.StaticRequestBody }}`,
 		{{ end }}
@@ -196,15 +187,30 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	autogen.HandleImport(ctx, idAttributes, req, resp)
 }
 
-func readAPICallParams(state *TFModel) *config.APICallParams {
+func readAPICallParams(model *TFModel) *config.APICallParams {
 	pathParams := map[string]string{ {{range .APIOperations.Read.PathParams }}
-		"{{ .CamelCaseName }}": state.{{ .PascalCaseName }}.ValueString(),
+		"{{ .CamelCaseName }}": model.{{ .PascalCaseName }}.ValueString(),
 	{{- end }}
 	}
 	return &config.APICallParams{
 		VersionHeader: apiVersionHeader,
 		RelativePath: "{{ .APIOperations.Read.Path }}",
 		PathParams: pathParams,
-		Method: "{{ .APIOperations.Read.HTTPMethod }}",		
+		Method: "{{ .APIOperations.Read.HTTPMethod }}",
 	}
 }
+
+{{- with .APIOperations.Delete}}
+func deleteAPICallParams(model *TFModel) *config.APICallParams {
+	pathParams := map[string]string{ {{range .PathParams }}
+		"{{ .CamelCaseName }}": model.{{ .PascalCaseName }}.ValueString(),
+	{{- end }}
+	}
+	return &config.APICallParams{
+		VersionHeader: apiVersionHeader,
+		RelativePath: "{{ .Path }}",
+		PathParams: pathParams,
+		Method: "{{ .HTTPMethod }}",
+	}
+}
+{{- end}}

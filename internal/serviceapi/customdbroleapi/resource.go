@@ -106,21 +106,11 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	pathParams := map[string]string{
-		"groupId":  state.GroupId.ValueString(),
-		"roleName": state.RoleName.ValueString(),
-	}
-	callParams := config.APICallParams{
-		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}",
-		PathParams:    pathParams,
-		Method:        "DELETE",
-	}
 	reqHandle := autogen.HandleDeleteReq{
 		Resp:       resp,
 		Client:     r.Client,
 		State:      &state,
-		CallParams: &callParams,
+		CallParams: deleteAPICallParams(&state),
 	}
 	autogen.HandleDelete(ctx, reqHandle)
 }
@@ -130,15 +120,28 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	autogen.HandleImport(ctx, idAttributes, req, resp)
 }
 
-func readAPICallParams(state *TFModel) *config.APICallParams {
+func readAPICallParams(model *TFModel) *config.APICallParams {
 	pathParams := map[string]string{
-		"groupId":  state.GroupId.ValueString(),
-		"roleName": state.RoleName.ValueString(),
+		"groupId":  model.GroupId.ValueString(),
+		"roleName": model.RoleName.ValueString(),
 	}
 	return &config.APICallParams{
 		VersionHeader: apiVersionHeader,
 		RelativePath:  "/api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}",
 		PathParams:    pathParams,
 		Method:        "GET",
+	}
+}
+
+func deleteAPICallParams(model *TFModel) *config.APICallParams {
+	pathParams := map[string]string{
+		"groupId":  model.GroupId.ValueString(),
+		"roleName": model.RoleName.ValueString(),
+	}
+	return &config.APICallParams{
+		VersionHeader: apiVersionHeader,
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}",
+		PathParams:    pathParams,
+		Method:        "DELETE",
 	}
 }

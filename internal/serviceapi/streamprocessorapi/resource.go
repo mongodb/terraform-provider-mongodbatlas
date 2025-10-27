@@ -60,6 +60,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		Client:                r.Client,
 		Plan:                  &plan,
 		CallParams:            &callParams,
+		DeleteCallParams:      deleteAPICallParams(&plan),
 		DeleteOnCreateTimeout: plan.DeleteOnCreateTimeout.ValueBool(),
 		Wait: &autogen.WaitReq{
 			StateProperty:     "state",
@@ -138,17 +139,6 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	pathParams := map[string]string{
-		"groupId":    state.GroupId.ValueString(),
-		"tenantName": state.TenantName.ValueString(),
-		"name":       state.Name.ValueString(),
-	}
-	callParams := config.APICallParams{
-		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{name}",
-		PathParams:    pathParams,
-		Method:        "DELETE",
-	}
 	timeout, localDiags := state.Timeouts.Delete(ctx, 300*time.Second)
 	resp.Diagnostics.Append(localDiags...)
 	if resp.Diagnostics.HasError() {
@@ -158,7 +148,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		Resp:       resp,
 		Client:     r.Client,
 		State:      &state,
-		CallParams: &callParams,
+		CallParams: deleteAPICallParams(&state),
 		Wait: &autogen.WaitReq{
 			StateProperty:     "state",
 			PendingStates:     []string{"INIT", "CREATING", "CREATED", "STARTED", "STOPPED"},
@@ -177,16 +167,30 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	autogen.HandleImport(ctx, idAttributes, req, resp)
 }
 
-func readAPICallParams(state *TFModel) *config.APICallParams {
+func readAPICallParams(model *TFModel) *config.APICallParams {
 	pathParams := map[string]string{
-		"groupId":    state.GroupId.ValueString(),
-		"tenantName": state.TenantName.ValueString(),
-		"name":       state.Name.ValueString(),
+		"groupId":    model.GroupId.ValueString(),
+		"tenantName": model.TenantName.ValueString(),
+		"name":       model.Name.ValueString(),
 	}
 	return &config.APICallParams{
 		VersionHeader: apiVersionHeader,
 		RelativePath:  "/api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{name}",
 		PathParams:    pathParams,
 		Method:        "GET",
+	}
+}
+
+func deleteAPICallParams(model *TFModel) *config.APICallParams {
+	pathParams := map[string]string{
+		"groupId":    model.GroupId.ValueString(),
+		"tenantName": model.TenantName.ValueString(),
+		"name":       model.Name.ValueString(),
+	}
+	return &config.APICallParams{
+		VersionHeader: apiVersionHeader,
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{name}",
+		PathParams:    pathParams,
+		Method:        "DELETE",
 	}
 }

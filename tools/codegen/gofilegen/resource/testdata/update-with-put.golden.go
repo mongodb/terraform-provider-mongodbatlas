@@ -105,20 +105,11 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	pathParams := map[string]string{
-		"projectId": state.ProjectId.ValueString(),
-	}
-	callParams := config.APICallParams{
-		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/v1/testname/{projectId}",
-		PathParams:    pathParams,
-		Method:        "DELETE",
-	}
 	reqHandle := autogen.HandleDeleteReq{
 		Resp:       resp,
 		Client:     r.Client,
 		State:      &state,
-		CallParams: &callParams,
+		CallParams: deleteAPICallParams(&state),
 	}
 	autogen.HandleDelete(ctx, reqHandle)
 }
@@ -128,14 +119,25 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	autogen.HandleImport(ctx, idAttributes, req, resp)
 }
 
-func readAPICallParams(state *TFModel) *config.APICallParams {
+func readAPICallParams(model *TFModel) *config.APICallParams {
 	pathParams := map[string]string{
-		"projectId": state.ProjectId.ValueString(),
+		"projectId": model.ProjectId.ValueString(),
 	}
 	return &config.APICallParams{
 		VersionHeader: apiVersionHeader,
 		RelativePath:  "/api/v1/testname/{projectId}",
 		PathParams:    pathParams,
 		Method:        "GET",
+	}
+}
+func deleteAPICallParams(model *TFModel) *config.APICallParams {
+	pathParams := map[string]string{
+		"projectId": model.ProjectId.ValueString(),
+	}
+	return &config.APICallParams{
+		VersionHeader: apiVersionHeader,
+		RelativePath:  "/api/v1/testname/{projectId}",
+		PathParams:    pathParams,
+		Method:        "DELETE",
 	}
 }
