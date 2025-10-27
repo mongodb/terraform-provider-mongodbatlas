@@ -222,8 +222,8 @@ func TestAccNetworkNetworkPeering_timeouts(t *testing.T) {
 	})
 }
 
-func basicAWSTestCase(t *testing.T) *resource.TestCase {
-	t.Helper()
+func basicAWSTestCase(tb testing.TB) *resource.TestCase {
+	tb.Helper()
 	var (
 		orgID           = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		vpcID           = os.Getenv("AWS_VPC_ID")
@@ -238,7 +238,7 @@ func basicAWSTestCase(t *testing.T) *resource.TestCase {
 	checks := commonChecksAWS(vpcID, providerName, awsAccountID, vpcCIDRBlock, peerRegion)
 
 	return &resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckPeeringEnvAWS(t) },
+		PreCheck:                 func() { acc.PreCheckPeeringEnvAWS(tb) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyNetworkPeering,
 		Steps: []resource.TestStep{
@@ -247,7 +247,7 @@ func basicAWSTestCase(t *testing.T) *resource.TestCase {
 				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
 			},
 			{
-				Config:      acc.ConfigAddResourceStr(t, config, resourceName, "delete_on_create_timeout = true"),
+				Config:      acc.ConfigAddResourceStr(tb, config, resourceName, "delete_on_create_timeout = true"),
 				ExpectError: regexp.MustCompile(cleanup.DeleteOnCreateTimeoutInvalidErrorMessage),
 			},
 			{

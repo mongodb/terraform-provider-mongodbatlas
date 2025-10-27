@@ -16,21 +16,21 @@ import (
 )
 
 // ConfigAddResourceStr is useful when you need to add one or more attributes to a resource block.
-func ConfigAddResourceStr(t *testing.T, hclConfig, resourceID, extraResourceStr string) string {
-	t.Helper()
+func ConfigAddResourceStr(tb testing.TB, hclConfig, resourceID, extraResourceStr string) string {
+	tb.Helper()
 	resourceParts := strings.Split(resourceID, ".")
 	if len(resourceParts) != 2 {
-		t.Fatalf("resourceID must be in the format <type>.<name>, got %s", resourceID)
+		tb.Fatalf("resourceID must be in the format <type>.<name>, got %s", resourceID)
 	}
 	resourceType := resourceParts[0]
 	resourceName := resourceParts[1]
 	resourceBlockDef := fmt.Sprintf("resource %q %q {", resourceType, resourceName)
 	if !strings.Contains(hclConfig, resourceBlockDef) {
-		t.Fatalf("resource block %q not found in config: %s", resourceBlockDef, hclConfig)
+		tb.Fatalf("resource block %q not found in config: %s", resourceBlockDef, hclConfig)
 	}
 	resourceBlockDefWithExtraResourceStr := fmt.Sprintf("%s\n%s\n", resourceBlockDef, extraResourceStr)
 	hclConfigModified := strings.Replace(hclConfig, resourceBlockDef, resourceBlockDefWithExtraResourceStr, 1)
-	return localHcl.PrettyHCL(t, hclConfigModified)
+	return localHcl.PrettyHCL(tb, hclConfigModified)
 }
 
 func FormatToHCLMap(m map[string]string, indent, varName string) string {
