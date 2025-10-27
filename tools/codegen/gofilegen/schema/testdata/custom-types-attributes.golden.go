@@ -34,6 +34,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
+			"string_list_attr": schema.ListAttribute{
+				Optional:            true,
+				MarkdownDescription: "string list attribute",
+				CustomType:          customtypes.NewListType[types.String](ctx),
+				ElementType:         types.StringType,
+			},
 			"nested_list_attr": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "nested list attribute",
@@ -51,7 +57,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						"double_nested_list_attr": schema.ListNestedAttribute{
 							Optional:            true,
 							MarkdownDescription: "double nested list attribute",
-							CustomType:          customtypes.NewNestedListType[TFDoubleNestedListAttrModel](ctx),
+							CustomType:          customtypes.NewNestedListType[TFNestedListAttrDoubleNestedListAttrModel](ctx),
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"string_attr": schema.StringAttribute{
@@ -70,6 +76,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 type TFModel struct {
 	NestedObjectAttr customtypes.ObjectValue[TFNestedObjectAttrModel]   `tfsdk:"nested_object_attr"`
+	StringListAttr   customtypes.ListValue[types.String]                `tfsdk:"string_list_attr"`
 	NestedListAttr   customtypes.NestedListValue[TFNestedListAttrModel] `tfsdk:"nested_list_attr"`
 }
 type TFNestedObjectAttrModel struct {
@@ -80,9 +87,9 @@ type TFNestedObjectAttrSubNestedObjectAttrModel struct {
 	IntAttr types.Int64 `tfsdk:"int_attr"`
 }
 type TFNestedListAttrModel struct {
-	StringAttr           types.String                                             `tfsdk:"string_attr"`
-	IntAttr              types.Int64                                              `tfsdk:"int_attr"`
-	DoubleNestedListAttr customtypes.NestedListValue[TFDoubleNestedListAttrModel] `tfsdk:"double_nested_list_attr"`
+	StringAttr           types.String                                                           `tfsdk:"string_attr"`
+	IntAttr              types.Int64                                                            `tfsdk:"int_attr"`
+	DoubleNestedListAttr customtypes.NestedListValue[TFNestedListAttrDoubleNestedListAttrModel] `tfsdk:"double_nested_list_attr"`
 }
 type TFNestedListAttrDoubleNestedListAttrModel struct {
 	StringAttr types.String `tfsdk:"string_attr"`
