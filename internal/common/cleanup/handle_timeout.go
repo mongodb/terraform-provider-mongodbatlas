@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	CleanupWarning = "Failed to create resource. Will run cleanup due to the operation timing out"
+	CleanupWarning                           = "Failed to create resource. Will run cleanup due to the operation timing out"
+	DeleteOnCreateTimeoutInvalidErrorMessage = "delete_on_create_timeout cannot be updated or set after import, remove it from the configuration"
 )
 
 // HandleCreateTimeout helps to implement Create in long-running operations.
@@ -98,4 +99,24 @@ func ResolveTimeout(ctx context.Context, t *timeouts.Value, operationName string
 		timeoutDuration = constant.DefaultTimeout
 	}
 	return timeoutDuration
+}
+
+type resourceInterface interface {
+	GetOkExists(key string) (any, bool)
+	HasChange(key string) bool
+}
+
+// DeleteOnCreateTimeoutInvalidUpdate returns an error if the `delete_on_create_timeout` attribute has been updated to true/false
+// This use case differs slightly from the behavior of TPF customplanmodifier.CreateOnlyBoolWithDefault:
+// - from a given value (true/false) --> `null`.
+// While the TPF implementation keeps the state value (UseStateForUnknown behavior),
+// The SDKv2 implementation will set the state value to null (Optional-only attribute).
+func DeleteOnCreateTimeoutInvalidUpdate(resource resourceInterface) string {
+	if !resource.HasChange("delete_on_create_timeout") {
+		return ""
+	}
+	if _, exists := resource.GetOkExists("delete_on_create_timeout"); exists {
+		return DeleteOnCreateTimeoutInvalidErrorMessage
+	}
+	return ""
 }

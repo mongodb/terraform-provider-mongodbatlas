@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -232,6 +233,7 @@ func basicAWSTestCase(tb testing.TB) *resource.TestCase {
 		peerRegion      = conversion.MongoDBRegionToAWSRegion(containerRegion)
 		providerName    = "AWS"
 		projectName     = acc.RandomProjectName()
+		config          = configAWS(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion, false)
 	)
 	checks := commonChecksAWS(vpcID, providerName, awsAccountID, vpcCIDRBlock, peerRegion)
 
@@ -241,15 +243,19 @@ func basicAWSTestCase(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             acc.CheckDestroyNetworkPeering,
 		Steps: []resource.TestStep{
 			{
-				Config: configAWS(orgID, projectName, providerName, vpcID, awsAccountID, vpcCIDRBlock, containerRegion, peerRegion, false),
+				Config: config,
 				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
+			},
+			{
+				Config:      acc.ConfigAddResourceStr(tb, config, resourceName, "delete_on_create_timeout = true"),
+				ExpectError: regexp.MustCompile(cleanup.DeleteOnCreateTimeoutInvalidErrorMessage),
 			},
 			{
 				ResourceName:            resourceName,
 				ImportStateIdFunc:       importStateIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"accepter_region_name", "container_id"},
+				ImportStateVerifyIgnore: []string{"accepter_region_name", "container_id", "delete_on_create_timeout"},
 			},
 		},
 	}
