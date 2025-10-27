@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtype"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
@@ -18,7 +18,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"created_by_user": schema.SingleNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: "The user that last updated the atlas resource policy.",
-				CustomType:          customtype.NewObjectType[TFCreatedByUserModel](ctx),
+				CustomType:          customtypes.NewObjectType[TFCreatedByUserModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"id": schema.StringAttribute{
 						Computed:            true,
@@ -45,7 +45,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"last_updated_by_user": schema.SingleNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: "The user that last updated the atlas resource policy.",
-				CustomType:          customtype.NewObjectType[TFLastUpdatedByUserModel](ctx),
+				CustomType:          customtypes.NewObjectType[TFLastUpdatedByUserModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"id": schema.StringAttribute{
 						Computed:            true,
@@ -73,6 +73,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"policies": schema.ListNestedAttribute{
 				Required:            true,
 				MarkdownDescription: "List of policies that make up the atlas resource policy.",
+				CustomType:          customtypes.NewNestedListType[TFPoliciesModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"body": schema.StringAttribute{
@@ -95,16 +96,16 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	CreatedByUser     customtype.ObjectValue[TFCreatedByUserModel]     `tfsdk:"created_by_user" autogen:"omitjson"`
-	CreatedDate       types.String                                     `tfsdk:"created_date" autogen:"omitjson"`
-	Description       types.String                                     `tfsdk:"description"`
-	Id                types.String                                     `tfsdk:"id" autogen:"omitjson"`
-	LastUpdatedByUser customtype.ObjectValue[TFLastUpdatedByUserModel] `tfsdk:"last_updated_by_user" autogen:"omitjson"`
-	LastUpdatedDate   types.String                                     `tfsdk:"last_updated_date" autogen:"omitjson"`
-	Name              types.String                                     `tfsdk:"name"`
-	OrgId             types.String                                     `tfsdk:"org_id" autogen:"omitjson"`
-	Policies          types.List                                       `tfsdk:"policies"`
-	Version           types.String                                     `tfsdk:"version" autogen:"omitjson"`
+	CreatedByUser     customtypes.ObjectValue[TFCreatedByUserModel]     `tfsdk:"created_by_user" autogen:"omitjson"`
+	CreatedDate       types.String                                      `tfsdk:"created_date" autogen:"omitjson"`
+	Description       types.String                                      `tfsdk:"description"`
+	Id                types.String                                      `tfsdk:"id" autogen:"omitjson"`
+	LastUpdatedByUser customtypes.ObjectValue[TFLastUpdatedByUserModel] `tfsdk:"last_updated_by_user" autogen:"omitjson"`
+	LastUpdatedDate   types.String                                      `tfsdk:"last_updated_date" autogen:"omitjson"`
+	Name              types.String                                      `tfsdk:"name"`
+	OrgId             types.String                                      `tfsdk:"org_id" autogen:"omitjson"`
+	Policies          customtypes.NestedListValue[TFPoliciesModel]      `tfsdk:"policies"`
+	Version           types.String                                      `tfsdk:"version" autogen:"omitjson"`
 }
 type TFCreatedByUserModel struct {
 	Id   types.String `tfsdk:"id" autogen:"omitjson"`

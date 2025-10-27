@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -37,6 +38,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"labels": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "List that contains the key-value pairs for tagging and categorizing the MongoDB database user. The labels that you define do not appear in the console.",
+				CustomType:          customtypes.NewNestedListType[TFLabelsModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"key": schema.StringAttribute{
@@ -68,6 +70,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"roles": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "List that provides the pairings of one role with one applicable database.",
+				CustomType:          customtypes.NewNestedListType[TFRolesModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"collection_name": schema.StringAttribute{
@@ -88,6 +91,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"scopes": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "List that contains clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Instances that this database user can access. If omitted, MongoDB Cloud grants the database user access to all the clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Instances in the project.",
+				CustomType:          customtypes.NewNestedListType[TFScopesModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
@@ -115,19 +119,19 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	AwsIAMType      types.String `tfsdk:"aws_iamtype"`
-	DatabaseName    types.String `tfsdk:"database_name"`
-	DeleteAfterDate types.String `tfsdk:"delete_after_date"`
-	Description     types.String `tfsdk:"description" autogen:"includenullonupdate"`
-	GroupId         types.String `tfsdk:"group_id"`
-	Labels          types.List   `tfsdk:"labels"`
-	LdapAuthType    types.String `tfsdk:"ldap_auth_type"`
-	OidcAuthType    types.String `tfsdk:"oidc_auth_type"`
-	Password        types.String `tfsdk:"password"`
-	Roles           types.List   `tfsdk:"roles"`
-	Scopes          types.List   `tfsdk:"scopes"`
-	Username        types.String `tfsdk:"username"`
-	X509Type        types.String `tfsdk:"x509type"`
+	AwsIAMType      types.String                               `tfsdk:"aws_iamtype"`
+	DatabaseName    types.String                               `tfsdk:"database_name"`
+	DeleteAfterDate types.String                               `tfsdk:"delete_after_date"`
+	Description     types.String                               `tfsdk:"description" autogen:"includenullonupdate"`
+	GroupId         types.String                               `tfsdk:"group_id"`
+	Labels          customtypes.NestedListValue[TFLabelsModel] `tfsdk:"labels"`
+	LdapAuthType    types.String                               `tfsdk:"ldap_auth_type"`
+	OidcAuthType    types.String                               `tfsdk:"oidc_auth_type"`
+	Password        types.String                               `tfsdk:"password"`
+	Roles           customtypes.NestedListValue[TFRolesModel]  `tfsdk:"roles"`
+	Scopes          customtypes.NestedListValue[TFScopesModel] `tfsdk:"scopes"`
+	Username        types.String                               `tfsdk:"username"`
+	X509Type        types.String                               `tfsdk:"x509type"`
 }
 type TFLabelsModel struct {
 	Key   types.String `tfsdk:"key"`

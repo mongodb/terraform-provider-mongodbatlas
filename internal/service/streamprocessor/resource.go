@@ -94,7 +94,7 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	streamProcessorResp, err := WaitStateTransitionWithTimeout(ctx, streamProcessorParams, connV2.StreamsApi, []string{InitiatingState, CreatingState}, []string{CreatedState}, createTimeout)
-	err = cleanup.HandleCreateTimeout(cleanup.ResolveDeleteOnCreateTimeout(plan.DeleteOnCreateTimeout), err, func(ctxCleanup context.Context) error {
+	err = cleanup.HandleCreateTimeout(plan.DeleteOnCreateTimeout.ValueBool(), err, func(ctxCleanup context.Context) error {
 		_, err := connV2.StreamsApi.DeleteStreamProcessor(ctxCleanup, projectID, workspaceOrInstanceName, processorName).Execute()
 		if err != nil {
 			return err

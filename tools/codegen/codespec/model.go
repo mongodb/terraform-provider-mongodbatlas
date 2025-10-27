@@ -174,8 +174,8 @@ type CustomDefault struct {
 type CustomTypePackage string
 
 const (
-	JSONTypesPkg  CustomTypePackage = "jsontypes"
-	CustomTypePkg CustomTypePackage = "customtype"
+	JSONTypesPkg   CustomTypePackage = "jsontypes"
+	CustomTypesPkg CustomTypePackage = "customtypes"
 )
 
 type CustomType struct {
@@ -192,8 +192,16 @@ var CustomTypeJSONVar = CustomType{
 
 func NewCustomObjectType(name string) *CustomType {
 	return &CustomType{
-		Package: CustomTypePkg,
-		Model:   fmt.Sprintf("customtype.ObjectValue[TF%sModel]", name),
-		Schema:  fmt.Sprintf("customtype.NewObjectType[TF%sModel](ctx)", name),
+		Package: CustomTypesPkg,
+		Model:   fmt.Sprintf("customtypes.ObjectValue[TF%sModel]", name),
+		Schema:  fmt.Sprintf("customtypes.NewObjectType[TF%sModel](ctx)", name),
+	}
+}
+
+func NewCustomNestedListType(name string) *CustomType {
+	return &CustomType{
+		Package: CustomTypesPkg,
+		Model:   fmt.Sprintf("customtypes.NestedListValue[TF%sModel]", name),
+		Schema:  fmt.Sprintf("customtypes.NewNestedListType[TF%sModel](ctx)", name),
 	}
 }

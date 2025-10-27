@@ -1,4 +1,4 @@
-package customtype
+package customtypes
 
 import (
 	"context"
@@ -19,7 +19,7 @@ import (
 		- Schema definition:
 			"sample_nested_object": schema.SingleNestedAttribute{
 				...
-				CustomType: customtype.NewObjectType[TFSampleNestedObjectModel](ctx),
+				CustomType: customtypes.NewObjectType[TFSampleNestedObjectModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"string_attribute": schema.StringAttribute{...},
 				},
@@ -27,7 +27,7 @@ import (
 
 		- TF Models:
 			type TFModel struct {
-				SampleNestedObject customtype.ObjectValue[TFSampleNestedObjectModel] `tfsdk:"sample_nested_object"`
+				SampleNestedObject customtypes.ObjectValue[TFSampleNestedObjectModel] `tfsdk:"sample_nested_object"`
 				...
 			}
 
@@ -48,14 +48,14 @@ type ObjectType[T any] struct {
 }
 
 func NewObjectType[T any](ctx context.Context) ObjectType[T] {
-	result := ObjectType[T]{}
-
 	attrTypes, diags := getAttributeTypes[T](ctx)
 	if diags.HasError() {
 		panic(fmt.Errorf("error creating ObjectType: %v", diags))
 	}
 
-	result.ObjectType = basetypes.ObjectType{AttrTypes: attrTypes}
+	result := ObjectType[T]{
+		ObjectType: basetypes.ObjectType{AttrTypes: attrTypes},
+	}
 	return result
 }
 
@@ -124,9 +124,9 @@ type ObjectValue[T any] struct {
 
 type ObjectValueInterface interface {
 	basetypes.ObjectValuable
-	ValuePtrAsAny(ctx context.Context) (any, diag.Diagnostics)
 	NewObjectValue(ctx context.Context, value any) ObjectValueInterface
 	NewObjectValueNull(ctx context.Context) ObjectValueInterface
+	ValuePtrAsAny(ctx context.Context) (any, diag.Diagnostics)
 }
 
 func (v ObjectValue[T]) NewObjectValue(ctx context.Context, value any) ObjectValueInterface {

@@ -59,6 +59,10 @@ schema:
             List of settings that configure the Search Nodes for your cluster.
 
             **NOTE**: We accept a single configuration for all nodes currently.
+          custom_type:
+            package: customtypes
+            model: customtypes.NestedListValue[TFSpecsModel]
+            schema: customtypes.NewNestedListType[TFSpecsModel](ctx)
           computed_optional_required: required
           tf_schema_name: specs
           tf_model_name: Specs
