@@ -89,3 +89,95 @@ func TestApplyTimeoutTransformation(t *testing.T) {
 		})
 	}
 }
+
+func TestApplyDeleteOnCreateTimeoutTransformation(t *testing.T) {
+	defaultTrue := true
+
+	tests := map[string]struct {
+		inputOperations                codespec.APIOperations
+		shouldAddDeleteOnCreateTimeout bool
+	}{
+		"Create with wait and Delete operation - attribute added": {
+			inputOperations: codespec.APIOperations{
+				Create: codespec.APIOperation{
+					Wait: &codespec.Wait{},
+				},
+				Read:   codespec.APIOperation{},
+				Update: codespec.APIOperation{},
+				Delete: &codespec.APIOperation{},
+			},
+			shouldAddDeleteOnCreateTimeout: true,
+		},
+		"Create with wait but no Delete operation - attribute not added": {
+			inputOperations: codespec.APIOperations{
+				Create: codespec.APIOperation{
+					Wait: &codespec.Wait{},
+				},
+				Read:   codespec.APIOperation{},
+				Update: codespec.APIOperation{},
+			},
+			shouldAddDeleteOnCreateTimeout: false,
+		},
+		"Create without wait but with Delete operation - attribute not added": {
+			inputOperations: codespec.APIOperations{
+				Create: codespec.APIOperation{},
+				Read:   codespec.APIOperation{},
+				Update: codespec.APIOperation{},
+				Delete: &codespec.APIOperation{},
+			},
+			shouldAddDeleteOnCreateTimeout: false,
+		},
+		"No Create wait and no Delete operation - attribute not added": {
+			inputOperations: codespec.APIOperations{
+				Create: codespec.APIOperation{},
+				Read:   codespec.APIOperation{},
+				Update: codespec.APIOperation{},
+			},
+			shouldAddDeleteOnCreateTimeout: false,
+		},
+		"Create with wait, Update with wait, and Delete operation - attribute added": {
+			inputOperations: codespec.APIOperations{
+				Create: codespec.APIOperation{
+					Wait: &codespec.Wait{},
+				},
+				Read: codespec.APIOperation{},
+				Update: codespec.APIOperation{
+					Wait: &codespec.Wait{},
+				},
+				Delete: &codespec.APIOperation{
+					Wait: &codespec.Wait{},
+				},
+			},
+			shouldAddDeleteOnCreateTimeout: true,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			resource := &codespec.Resource{
+				Name: "test_resource",
+				Schema: &codespec.Schema{
+					Attributes: []codespec.Attribute{},
+				},
+				Operations: tc.inputOperations,
+			}
+			codespec.ApplyDeleteOnCreateTimeoutTransformation(resource)
+			if !tc.shouldAddDeleteOnCreateTimeout {
+				assert.Empty(t, resource.Schema.Attributes)
+			} else {
+				assert.Len(t, resource.Schema.Attributes, 1)
+				description := codespec.DeleteOnCreateTimeoutDescription
+				expectedAttr := codespec.Attribute{
+					TFSchemaName:             "delete_on_create_timeout",
+					TFModelName:              "DeleteOnCreateTimeout",
+					Bool:                     &codespec.BoolAttribute{Default: &defaultTrue},
+					Description:              &description,
+					ReqBodyUsage:             codespec.OmitAlways,
+					CreateOnly:               true,
+					ComputedOptionalRequired: codespec.ComputedOptional,
+				}
+				assert.Equal(t, expectedAttr, resource.Schema.Attributes[0])
+			}
+		})
+	}
+}

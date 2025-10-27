@@ -6,12 +6,19 @@ import (
 	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
 )
+
+const DeleteOnCreateTimeoutDescription = "Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. " +
+	"When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for " +
+	"deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a " +
+	"transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`."
 
 func applyTransformationsWithConfigOpts(resourceConfig *config.Resource, resource *Resource) {
 	applyAttributeTransformations(resourceConfig.SchemaOptions, &resource.Schema.Attributes, "")
 	applyAliasToPathParams(resource, resourceConfig.SchemaOptions.Aliases)
+	ApplyDeleteOnCreateTimeoutTransformation(resource)
 	ApplyTimeoutTransformation(resource)
 }
 
@@ -217,6 +224,23 @@ func ApplyTimeoutTransformation(resource *Resource) {
 			ReqBodyUsage: OmitAlways,
 		})
 	}
+}
+
+// ApplyDeleteOnCreateTimeoutTransformation adds a delete_on_create_timeout attribute to the resource schema
+// if the Create operation has a wait block and the Delete operation exists.
+func ApplyDeleteOnCreateTimeoutTransformation(resource *Resource) {
+	if ops := &resource.Operations; ops.Create.Wait == nil || ops.Delete == nil {
+		return
+	}
+	resource.Schema.Attributes = append(resource.Schema.Attributes, Attribute{
+		TFSchemaName:             "delete_on_create_timeout",
+		TFModelName:              "DeleteOnCreateTimeout",
+		Bool:                     &BoolAttribute{Default: conversion.Pointer(true)},
+		Description:              conversion.StringPtr(DeleteOnCreateTimeoutDescription),
+		ReqBodyUsage:             OmitAlways,
+		CreateOnly:               true,
+		ComputedOptionalRequired: ComputedOptional,
+	})
 }
 
 func setCreateOnlyValue(attr *Attribute) {
