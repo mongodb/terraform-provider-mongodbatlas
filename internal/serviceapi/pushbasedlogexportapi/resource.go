@@ -55,10 +55,11 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 	reqHandle := autogen.HandleCreateReq{
-		Resp:       resp,
-		Client:     r.Client,
-		Plan:       &plan,
-		CallParams: &callParams,
+		Resp:                  resp,
+		Client:                r.Client,
+		Plan:                  &plan,
+		CallParams:            &callParams,
+		DeleteOnCreateTimeout: plan.DeleteOnCreateTimeout.ValueBool(),
 		Wait: &autogen.WaitReq{
 			StateProperty:     "state",
 			PendingStates:     []string{"INITIATING", "BUCKET_VERIFIED"},
