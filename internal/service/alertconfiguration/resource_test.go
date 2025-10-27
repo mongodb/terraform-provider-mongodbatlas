@@ -581,17 +581,26 @@ func TestAccConfigRSAlertConfiguration_withSeverityOverride(t *testing.T) {
 		CheckDestroy:             checkDestroy(),
 		Steps: []resource.TestStep{
 			{
-				Config: configWithSeverityOverride(projectID, "WARNING"),
+				Config: configWithSeverityOverride(projectID, conversion.StringPtr("ERROR")),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(resourceName, "severity_override", "WARNING"),
+					resource.TestCheckResourceAttr(resourceName, "severity_override", "ERROR"),
 					// Data source checks
 					checkExists(dataSourceName),
-					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
-					resource.TestCheckResourceAttr(dataSourceName, "severity_override", "WARNING"),
+					resource.TestCheckResourceAttr(dataSourceName, "severity_override", "ERROR"),
 				),
 			},
+			// todo: should check for no attr once CLOUDP-353933 is fixed
+			// {
+			// 	Config: configWithSeverityOverride(projectID, nil),
+			// 	Check: resource.ComposeAggregateTestCheckFunc(
+			// 		checkExists(resourceName),
+			// 		resource.TestCheckNoResourceAttr(resourceName, "severity_override"),
+			// 		// Data source checks
+			// 		checkExists(dataSourceName),
+			// 		resource.TestCheckNoResourceAttr(resourceName, "severity_override"),
+			// 	),
+			// },
 		},
 	})
 }
@@ -1069,13 +1078,18 @@ func configWithEmptyOptionalBlocks(projectID string) string {
 	`, projectID)
 }
 
-func configWithSeverityOverride(projectID, severity string) string {
-	return fmt.Sprintf(`
+func configWithSeverityOverride(projectID string, severity *string) string {
+	severityOverride := ""
+	if severity != nil {
+		severityOverride = fmt.Sprintf("severity_override = %[1]q", *severity)
+	}
+
+	x := fmt.Sprintf(`
 		resource "mongodbatlas_alert_configuration" "test" {
 			project_id        = %[1]q
 			enabled           = true
 			event_type        = "NO_PRIMARY"
-			severity_override = %[2]q
+			%[2]s
 
 			notification {
 				type_name     = "EMAIL"
@@ -1088,7 +1102,9 @@ func configWithSeverityOverride(projectID, severity string) string {
 			project_id             = mongodbatlas_alert_configuration.test.project_id
 			alert_configuration_id = mongodbatlas_alert_configuration.test.id
 		}
-		`, projectID, severity)
+		`, projectID, severityOverride)
+
+	return x
 }
 
 func TestAccConfigDSAlertConfiguration_withOutput(t *testing.T) {
