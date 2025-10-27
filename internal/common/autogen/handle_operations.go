@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/retrystrategy"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -44,6 +45,7 @@ type HandleCreateReq struct {
 	Client                *config.MongoDBClient
 	Plan                  any
 	CallParams            *config.APICallParams
+	DeleteCallParams      *config.APICallParams
 	Wait                  *WaitReq
 	DeleteOnCreateTimeout bool
 }
@@ -70,8 +72,19 @@ func HandleCreate(ctx context.Context, req HandleCreateReq) {
 		addError(d, opCreate, errResolvingResponse, err)
 		return
 	}
-	if err := handleWaitCreateUpdate(ctx, req.Wait, req.Client, req.Plan); err != nil {
-		addError(d, opCreate, errWaitingForChanges, err)
+	errWait := handleWaitCreateUpdate(ctx, req.Wait, req.Client, req.Plan)
+	if errWait != nil && req.Wait != nil && req.DeleteCallParams != nil {
+		// Handle timeout with cleanup if delete_on_create_timeout is enabled. Doesn't support Delete with StaticRequestBody.
+		errWait = cleanup.HandleCreateTimeout(req.DeleteOnCreateTimeout, errWait, func(ctxCleanup context.Context) error {
+			bodyResp, apiResp, err := callAPIWithoutBody(ctxCleanup, req.Client, req.DeleteCallParams)
+			if notFound(bodyResp, apiResp) {
+				return nil
+			}
+			return err
+		})
+	}
+	if errWait != nil {
+		addError(d, opCreate, errWaitingForChanges, errWait)
 		return
 	}
 	req.Resp.Diagnostics.Append(req.Resp.State.Set(ctx, req.Plan)...)
