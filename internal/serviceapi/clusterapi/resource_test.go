@@ -3,6 +3,7 @@ package clusterapi_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -17,22 +18,21 @@ func TestAccClusterAPI_basic(t *testing.T) {
 		groupID     = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
 	)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(groupID, clusterName, "M10", false),
+				Config: configBasic(groupID, clusterName, "M10", false, false),
 				Check:  checkBasic(groupID, clusterName, "M10"),
 			},
 			{
-				Config: configBasic(groupID, clusterName, "M30", true),
+				Config: configBasic(groupID, clusterName, "M30", true, false),
 				Check:  checkBasic(groupID, clusterName, "M30"),
 			},
 			{
-				Config: configBasic(groupID, clusterName, "M30", false),
+				Config: configBasic(groupID, clusterName, "M30", false, false),
 				Check:  checkBasic(groupID, clusterName, "M30"),
 			},
 			{
@@ -52,10 +52,28 @@ func TestAccClusterAPI_basic(t *testing.T) {
 	})
 }
 
-func configBasic(groupID, clusterName, instanceSize string, withTagsAndLabels bool) string {
-	tagsAndLabels := ""
+func TestAccClusterAPI_deleteOnCreateTimeout(t *testing.T) {
+	var (
+		groupID     = acc.ProjectIDExecution(t)
+		clusterName = acc.RandomClusterName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      configBasic(groupID, clusterName, "M10", false, true),
+				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
+			},
+		},
+	})
+}
+
+func configBasic(groupID, clusterName, instanceSize string, withTagsAndLabels, shortTimeout bool) string {
+	addtionalConfigStr := ""
 	if withTagsAndLabels {
-		tagsAndLabels = `
+		addtionalConfigStr += `
 			tags = [
 				{
 					key   = "tagKey"
@@ -74,7 +92,13 @@ func configBasic(groupID, clusterName, instanceSize string, withTagsAndLabels bo
 			]
 		`
 	}
-
+	if shortTimeout {
+		addtionalConfigStr += `
+			timeouts = {
+				create = "10s"
+			}
+		`
+	}
 	return fmt.Sprintf(`
 		resource "mongodbatlas_cluster_api" "test" {
 			group_id     = %[1]q
@@ -93,7 +117,7 @@ func configBasic(groupID, clusterName, instanceSize string, withTagsAndLabels bo
 			}]
 			%[4]s
 		}
-	`, groupID, clusterName, instanceSize, tagsAndLabels)
+	`, groupID, clusterName, instanceSize, addtionalConfigStr)
 }
 
 func checkBasic(groupID, clusterName, instanceSize string) resource.TestCheckFunc {
