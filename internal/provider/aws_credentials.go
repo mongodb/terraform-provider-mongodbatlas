@@ -28,7 +28,6 @@ const (
 func getAWSCredentials(c *config.AWSVars) (*config.Credentials, error) {
 	ctx := context.TODO()
 
-	// Base config with static credentials
 	cfg, err := awsconfig.LoadDefaultConfig(ctx,
 		awsconfig.WithRegion(c.Region),
 		awsconfig.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(c.AccessKeyID, c.SecretAccessKey, c.SessionToken)),
@@ -38,19 +37,15 @@ func getAWSCredentials(c *config.AWSVars) (*config.Credentials, error) {
 	}
 	ep, signingRegion := ResolveSTSEndpoint(c.Endpoint, c.Region)
 
-	// STS client with custom endpoint and signing region when needed
 	stsClient := sts.NewFromConfig(cfg, func(o *sts.Options) {
-		// Always set region to derived signing region
 		o.Region = signingRegion
 		if ep != "" {
 			o.EndpointResolver = sts.EndpointResolverFromURL(ep)
 		}
 	})
 
-	// Assume role provider using STS client
 	assumeRoleProvider := stscreds.NewAssumeRoleProvider(stsClient, c.AssumeRoleARN)
 
-	// Secrets Manager client using the assumed role credentials
 	smCfg := cfg
 	smCfg.Credentials = aws.NewCredentialsCache(assumeRoleProvider)
 	smClient := secretsmanager.NewFromConfig(smCfg)
