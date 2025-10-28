@@ -8,6 +8,9 @@ import (
 	"time"
 	{{ end }}
 
+	{{if .APIOperations.Delete }}
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	{{ end -}}
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -52,19 +55,23 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		PathParams: pathParams,
 		Method: "{{ .APIOperations.Create.HTTPMethod }}",
 	}
-	{{with .APIOperations.Create.Wait -}}
+	{{- with .APIOperations.Create.Wait }}
 	timeout, localDiags := plan.Timeouts.Create(ctx, {{ .TimeoutSeconds }}*time.Second)
 	resp.Diagnostics.Append(localDiags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	{{ end -}}
+	{{- end }}
 	reqHandle := autogen.HandleCreateReq {
 		Resp: resp,
 		Client: r.Client,
 		Plan: &plan,
 		CallParams: &callParams,
-		{{with .APIOperations.Create.Wait -}}
+		{{- with .APIOperations.Create.Wait }}
+		{{- if $.APIOperations.Delete }}
+		DeleteReq: deleteRequest(r.Client, &plan, &resp.Diagnostics),
+		DeleteOnCreateTimeout: plan.DeleteOnCreateTimeout.ValueBool(),
+		{{- end }}
 		Wait: &autogen.WaitReq{
 			StateProperty: "{{ .StateProperty }}",
 			PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
@@ -147,44 +154,24 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	pathParams := map[string]string{ {{range .APIOperations.Delete.PathParams }}
-		"{{ .CamelCaseName }}": state.{{ .PascalCaseName }}.ValueString(),
-	{{- end }}
-	}
-	callParams := config.APICallParams{
-		VersionHeader: apiVersionHeader,
-		RelativePath: "{{ .APIOperations.Delete.Path }}",
-		PathParams: pathParams,
-		Method: "{{ .APIOperations.Delete.HTTPMethod }}",
-	}
-	{{with .APIOperations.Delete.Wait -}}
-	timeout, localDiags := state.Timeouts.Delete(ctx, {{ .TimeoutSeconds }}*time.Second)
-	resp.Diagnostics.Append(localDiags...)
+	reqHandle := deleteRequest(r.Client, &state, &resp.Diagnostics)
+	{{- with .APIOperations.Delete.Wait }}
+	timeout, diags := state.Timeouts.Delete(ctx, {{ .TimeoutSeconds }}*time.Second)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	{{ end -}}
-	reqHandle := autogen.HandleDeleteReq {
-		Resp: resp,
-		Client: r.Client,
-		State: &state,
-		CallParams: &callParams,
-		{{- if ne .APIOperations.Delete.StaticRequestBody "" }}
-		StaticRequestBody: `{{ .APIOperations.Delete.StaticRequestBody }}`,
-		{{ end }}
-		{{with .APIOperations.Delete.Wait -}}
-		Wait: &autogen.WaitReq{
-			StateProperty: "{{ .StateProperty }}",
-			PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
-			TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
-			Timeout: timeout,
-			MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
-			DelaySeconds: {{ .DelaySeconds }},
-			CallParams: readAPICallParams(&state),
-		},
-		{{ end }}
+	reqHandle.Wait = &autogen.WaitReq{
+		StateProperty: "{{ .StateProperty }}",
+		PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
+		TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
+		Timeout: timeout,
+		MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
+		DelaySeconds: {{ .DelaySeconds }},
+		CallParams: readAPICallParams(&state),
 	}
-	autogen.HandleDelete(ctx, reqHandle)
+	{{- end }}
+	autogen.HandleDelete(ctx, *reqHandle)
     {{- end }}
 }
 
@@ -193,15 +180,38 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	autogen.HandleImport(ctx, idAttributes, req, resp)
 }
 
-func readAPICallParams(state *TFModel) *config.APICallParams {
+func readAPICallParams(model *TFModel) *config.APICallParams {
 	pathParams := map[string]string{ {{range .APIOperations.Read.PathParams }}
-		"{{ .CamelCaseName }}": state.{{ .PascalCaseName }}.ValueString(),
+		"{{ .CamelCaseName }}": model.{{ .PascalCaseName }}.ValueString(),
 	{{- end }}
 	}
 	return &config.APICallParams{
 		VersionHeader: apiVersionHeader,
 		RelativePath: "{{ .APIOperations.Read.Path }}",
 		PathParams: pathParams,
-		Method: "{{ .APIOperations.Read.HTTPMethod }}",		
+		Method: "{{ .APIOperations.Read.HTTPMethod }}",
 	}
 }
+
+{{with .APIOperations.Delete}}
+func deleteRequest(client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
+	pathParams := map[string]string{ {{range .PathParams }}
+		"{{ .CamelCaseName }}": model.{{ .PascalCaseName }}.ValueString(),
+	{{- end }}
+	}
+	return &autogen.HandleDeleteReq{
+		Client: client,
+		State: model,
+		Diags: diags,
+		CallParams: &config.APICallParams{
+			VersionHeader: apiVersionHeader,
+			RelativePath: "{{ .Path }}",
+			PathParams: pathParams,
+			Method: "{{ .HTTPMethod }}",
+		},
+		{{- if ne .StaticRequestBody "" }}
+		StaticRequestBody: `{{ .StaticRequestBody }}`,
+		{{- end }}
+	}
+}
+{{end}}

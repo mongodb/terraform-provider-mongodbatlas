@@ -31,11 +31,12 @@ func TestAccSearchDeploymentAPI_basic(t *testing.T) {
 			newSearchNodeTestStep(resourceID, orgID, projectName, clusterName, "S20_HIGHCPU_NVME", 3),
 			newSearchNodeTestStep(resourceID, orgID, projectName, clusterName, "S30_HIGHCPU_NVME", 4),
 			{
-				Config:            configBasic(orgID, projectName, clusterName, "S30_HIGHCPU_NVME", 4),
-				ResourceName:      resourceID,
-				ImportStateIdFunc: importStateIDFunc(resourceID),
-				ImportState:       true,
-				ImportStateVerify: true,
+				Config:                  configBasic(orgID, projectName, clusterName, "S30_HIGHCPU_NVME", 4),
+				ResourceName:            resourceID,
+				ImportStateIdFunc:       importStateIDFunc(resourceID),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"delete_on_create_timeout"},
 			},
 		},
 	})
@@ -76,7 +77,7 @@ func configBasic(orgID, projectName, clusterName, instanceSize string, searchNod
 					node_count = %[3]d
 				}
 			]
-			timeouts = {     // TODO: timeouts are in the schema but are not used yet.
+			timeouts = {
 				create = "1h"
 				update = "30m"
 				delete = "10m"
