@@ -36,6 +36,7 @@ func TestResolveUnknowns(t *testing.T) {
 		AttrCustomObject            customtypes.ObjectValue[modelCustomTypeTest] `tfsdk:"attr_custom_object"`
 		AttrCustomListUnknown       customtypes.ListValue[types.String]          `tfsdk:"attr_custom_list_string"`
 		AttrCustomNestedListUnknown customtypes.NestedListValue[modelEmptyTest]  `tfsdk:"attr_custom_nested_list_unknown"`
+		AttrCustomNestedSetUnknown  customtypes.NestedSetValue[modelEmptyTest]   `tfsdk:"attr_custom_nested_set_unknown"`
 	}
 
 	model := modelst{
@@ -89,6 +90,7 @@ func TestResolveUnknowns(t *testing.T) {
 			AttrMANYUpper:     types.Int64Unknown(),
 		}),
 		AttrCustomNestedListUnknown: customtypes.NewNestedListValueUnknown[modelEmptyTest](ctx),
+		AttrCustomNestedSetUnknown:  customtypes.NewNestedSetValueUnknown[modelEmptyTest](ctx),
 		AttrCustomListUnknown:       customtypes.NewListValueUnknown[types.String](ctx),
 	}
 	modelExpected := modelst{
@@ -143,6 +145,7 @@ func TestResolveUnknowns(t *testing.T) {
 		}),
 		AttrCustomListUnknown:       customtypes.NewListValueNull[types.String](ctx),
 		AttrCustomNestedListUnknown: customtypes.NewNestedListValueNull[modelEmptyTest](ctx),
+		AttrCustomNestedSetUnknown:  customtypes.NewNestedSetValueNull[modelEmptyTest](ctx),
 	}
 	require.NoError(t, autogen.ResolveUnknowns(&model))
 	assert.Equal(t, modelExpected, model)

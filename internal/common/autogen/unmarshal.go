@@ -169,8 +169,9 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 			return getListValueTFAttr(context.Background(), v, oldVal, nameErr)
 		case customtypes.NestedListValueInterface:
 			return getNestedListValueTFAttr(context.Background(), v, oldVal)
+		case customtypes.NestedSetValueInterface:
+			return getNestedSetValueTFAttr(context.Background(), v, oldVal)
 		}
-
 		return nil, errUnmarshal(value, valueType, "Array", nameErr)
 	case nil:
 		return nil, nil // skip nil values, no need to set anything
@@ -333,6 +334,31 @@ func getNestedListValueTFAttr(ctx context.Context, arrayJSON []any, list customt
 	}
 
 	slicePtr := list.NewEmptySlicePtr()
+	err := unmarshalNestedSlice(arrayJSON, slicePtr)
+	if err != nil {
+		return nil, err
+	}
+
+	return list.NewNestedListValue(ctx, slicePtr), nil
+}
+
+func getNestedSetValueTFAttr(ctx context.Context, arrayJSON []any, set customtypes.NestedSetValueInterface) (attr.Value, error) {
+	if len(arrayJSON) == 0 && set.Len() == 0 {
+		// Keep current set if both model and JSON lists are zero-len (empty or null) so config is preserved.
+		// It avoids inconsistent result after apply when user explicitly sets an empty set in config.
+		return set, nil
+	}
+
+	slicePtr := set.NewEmptySlicePtr()
+	err := unmarshalNestedSlice(arrayJSON, slicePtr)
+	if err != nil {
+		return nil, err
+	}
+
+	return set.NewNestedSetValue(ctx, slicePtr), nil
+}
+
+func unmarshalNestedSlice(arrayJSON []any, slicePtr any) error {
 	sliceVal := reflect.ValueOf(slicePtr).Elem()
 	sliceVal.Set(reflect.MakeSlice(sliceVal.Type(), len(arrayJSON), len(arrayJSON)))
 
@@ -340,14 +366,13 @@ func getNestedListValueTFAttr(ctx context.Context, arrayJSON []any, list customt
 		elementPtr := sliceVal.Index(i).Addr().Interface()
 		objJSON, ok := item.(map[string]any)
 		if !ok {
-			return nil, fmt.Errorf("unmarshal of list item failed to convert object: %v", item)
+			return fmt.Errorf("unmarshal of array item failed to convert to object: %v", item)
 		}
 		err := unmarshalAttrs(objJSON, elementPtr)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	listNew := list.NewNestedListValue(ctx, slicePtr)
-	return listNew, nil
+	return nil
 }

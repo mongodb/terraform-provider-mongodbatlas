@@ -280,6 +280,18 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 								},
 							},
 						},
+						{
+							TFSchemaName:             "nested_set_attr",
+							TFModelName:              "NestedSetAttr",
+							Description:              admin.PtrString("nested set attribute"),
+							ComputedOptionalRequired: codespec.Optional,
+							CustomType:               codespec.NewCustomNestedSetType("NestedSetAttr"),
+							SetNested: &codespec.SetNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: []codespec.Attribute{intAttr},
+								},
+							},
+						},
 					},
 				},
 			},
