@@ -13,7 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
-	smtypes "github.com/aws/aws-sdk-go-v2/service/secretsmanager/types"
+	"github.com/aws/aws-sdk-go-v2/service/secretsmanager/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -105,15 +105,15 @@ func secretsManagerGetSecretValue(ctx context.Context, client *secretsmanager.Cl
 	result, err := client.GetSecretValue(ctx, input)
 	if err != nil {
 		switch e := err.(type) {
-		case *smtypes.ResourceNotFoundException:
+		case *types.ResourceNotFoundException:
 			log.Println("ResourceNotFoundException", e.Error())
-		case *smtypes.InvalidParameterException:
+		case *types.InvalidParameterException:
 			log.Println("InvalidParameterException", e.Error())
-		case *smtypes.InvalidRequestException:
+		case *types.InvalidRequestException:
 			log.Println("InvalidRequestException", e.Error())
-		case *smtypes.DecryptionFailure:
+		case *types.DecryptionFailure:
 			log.Println("DecryptionFailure", e.Error())
-		case *smtypes.InternalServiceError:
+		case *types.InternalServiceError:
 			log.Println("InternalServiceError", e.Error())
 		default:
 			log.Println(err.Error())
