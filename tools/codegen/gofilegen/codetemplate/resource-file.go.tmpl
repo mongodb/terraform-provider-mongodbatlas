@@ -200,7 +200,7 @@ func readAPICallParams(model *TFModel) *config.APICallParams {
 	}
 }
 
-{{- with .APIOperations.Delete}}
+{{with .APIOperations.Delete}}
 func deleteAPICallParams(model *TFModel) *config.APICallParams {
 	pathParams := map[string]string{ {{range .PathParams }}
 		"{{ .CamelCaseName }}": model.{{ .PascalCaseName }}.ValueString(),
@@ -213,4 +213,4 @@ func deleteAPICallParams(model *TFModel) *config.APICallParams {
 		Method: "{{ .HTTPMethod }}",
 	}
 }
-{{- end}}
+{{end}}

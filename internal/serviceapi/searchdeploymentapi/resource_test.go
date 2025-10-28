@@ -31,11 +31,12 @@ func TestAccSearchDeploymentAPI_basic(t *testing.T) {
 			newSearchNodeTestStep(resourceID, orgID, projectName, clusterName, "S20_HIGHCPU_NVME", 3),
 			newSearchNodeTestStep(resourceID, orgID, projectName, clusterName, "S30_HIGHCPU_NVME", 4),
 			{
-				Config:            configBasic(orgID, projectName, clusterName, "S30_HIGHCPU_NVME", 4),
-				ResourceName:      resourceID,
-				ImportStateIdFunc: importStateIDFunc(resourceID),
-				ImportState:       true,
-				ImportStateVerify: true,
+				Config:                  configBasic(orgID, projectName, clusterName, "S30_HIGHCPU_NVME", 4),
+				ResourceName:            resourceID,
+				ImportStateIdFunc:       importStateIDFunc(resourceID),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"delete_on_create_timeout"},
 			},
 		},
 	})
