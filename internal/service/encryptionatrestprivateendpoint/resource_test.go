@@ -28,6 +28,17 @@ const (
 	earResourceName      = "mongodbatlas_encryption_at_rest.test"
 )
 
+func importStep(config string) resource.TestStep {
+	return resource.TestStep{
+		Config:                  config,
+		ResourceName:            resourceName,
+		ImportStateIdFunc:       importStateIDFunc(resourceName),
+		ImportState:             true,
+		ImportStateVerify:       true,
+		ImportStateVerifyIgnore: []string{"delete_on_create_timeout"},
+	}
+}
+
 func TestAccEncryptionAtRestPrivateEndpoint_Azure_basic(t *testing.T) {
 	resource.Test(t, *basicTestCaseAzure(t))
 }
@@ -106,13 +117,7 @@ func basicTestCaseAzure(tb testing.TB) *resource.TestCase {
 				Config: configAzureBasic(projectID, azureKeyVault, region, false),
 				Check:  checkBasic(projectID, *azureKeyVault.AzureEnvironment, region, false),
 			},
-			{
-				Config:            configAzureBasic(projectID, azureKeyVault, region, false),
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			importStep(configAzureBasic(projectID, azureKeyVault, region, false)),
 		},
 	}
 }
@@ -209,13 +214,7 @@ func basicTestCaseAWS(tb testing.TB) *resource.TestCase {
 				Config: configAWSBasic(projectID, awsIAMRoleName, awsIAMRolePolicyName, &awsKmsPrivateNetworking),
 				Check:  checkBasic(projectID, "AWS", region, true),
 			},
-			{
-				Config:            configAWSBasic(projectID, awsIAMRoleName, awsIAMRolePolicyName, &awsKms),
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			importStep(configAWSBasic(projectID, awsIAMRoleName, awsIAMRolePolicyName, &awsKms)),
 		},
 	}
 }

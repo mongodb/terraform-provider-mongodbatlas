@@ -18,6 +18,24 @@ const (
 	Unknown
 )
 
+var ElementTypeToSchemaString = map[ElemType]string{
+	Bool:           "types.BoolType",
+	Float64:        "types.Float64Type",
+	Int64:          "types.Int64Type",
+	Number:         "types.NumberType",
+	String:         "types.StringType",
+	CustomTypeJSON: CustomTypeJSONVar.Schema,
+}
+
+var ElementTypeToModelString = map[ElemType]string{
+	Bool:           "types.Bool",
+	Float64:        "types.Float64",
+	Int64:          "types.Int64",
+	Number:         "types.Number",
+	String:         "types.String",
+	CustomTypeJSON: CustomTypeJSONVar.Model,
+}
+
 type Model struct {
 	Resources []Resource
 }
@@ -157,13 +175,13 @@ type TimeoutsAttribute struct {
 	ConfigurableTimeouts []Operation `yaml:"configurable_timeouts"`
 }
 
-type Operation int
+type Operation string
 
 const (
-	Create Operation = iota
-	Update
-	Read
-	Delete
+	Create Operation = "create"
+	Update Operation = "update"
+	Read   Operation = "read"
+	Delete Operation = "delete"
 )
 
 type CustomDefault struct {
@@ -174,8 +192,8 @@ type CustomDefault struct {
 type CustomTypePackage string
 
 const (
-	JSONTypesPkg  CustomTypePackage = "jsontypes"
-	CustomTypePkg CustomTypePackage = "customtype"
+	JSONTypesPkg   CustomTypePackage = "jsontypes"
+	CustomTypesPkg CustomTypePackage = "customtypes"
 )
 
 type CustomType struct {
@@ -192,8 +210,33 @@ var CustomTypeJSONVar = CustomType{
 
 func NewCustomObjectType(name string) *CustomType {
 	return &CustomType{
-		Package: CustomTypePkg,
-		Model:   fmt.Sprintf("customtype.ObjectValue[TF%sModel]", name),
-		Schema:  fmt.Sprintf("customtype.NewObjectType[TF%sModel](ctx)", name),
+		Package: CustomTypesPkg,
+		Model:   fmt.Sprintf("customtypes.ObjectValue[TF%sModel]", name),
+		Schema:  fmt.Sprintf("customtypes.NewObjectType[TF%sModel](ctx)", name),
+	}
+}
+
+func NewCustomListType(elemType ElemType) *CustomType {
+	elemTypeStr := ElementTypeToModelString[elemType]
+	return &CustomType{
+		Package: CustomTypesPkg,
+		Model:   fmt.Sprintf("customtypes.ListValue[%s]", elemTypeStr),
+		Schema:  fmt.Sprintf("customtypes.NewListType[%s](ctx)", elemTypeStr),
+	}
+}
+
+func NewCustomNestedListType(name string) *CustomType {
+	return &CustomType{
+		Package: CustomTypesPkg,
+		Model:   fmt.Sprintf("customtypes.NestedListValue[TF%sModel]", name),
+		Schema:  fmt.Sprintf("customtypes.NewNestedListType[TF%sModel](ctx)", name),
+	}
+}
+
+func NewCustomNestedSetType(name string) *CustomType {
+	return &CustomType{
+		Package: CustomTypesPkg,
+		Model:   fmt.Sprintf("customtypes.NestedSetValue[TF%sModel]", name),
+		Schema:  fmt.Sprintf("customtypes.NewNestedSetType[TF%sModel](ctx)", name),
 	}
 }

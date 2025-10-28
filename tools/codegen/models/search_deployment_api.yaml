@@ -59,6 +59,10 @@ schema:
             List of settings that configure the Search Nodes for your cluster.
 
             **NOTE**: We accept a single configuration for all nodes currently.
+          custom_type:
+            package: customtypes
+            model: customtypes.NestedListValue[TFSpecsModel]
+            schema: customtypes.NewNestedListType[TFSpecsModel](ctx)
           computed_optional_required: required
           tf_schema_name: specs
           tf_model_name: Specs
@@ -70,6 +74,26 @@ schema:
           computed_optional_required: computed
           tf_schema_name: state_name
           tf_model_name: StateName
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+        - bool:
+            default: true
+          description: Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
+          computed_optional_required: computed_optional
+          tf_schema_name: delete_on_create_timeout
+          tf_model_name: DeleteOnCreateTimeout
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+        - timeouts:
+            configurable_timeouts:
+                - create
+                - update
+                - delete
+          computed_optional_required: ""
+          tf_schema_name: timeouts
+          tf_model_name: Timeouts
           req_body_usage: omit_always
           sensitive: false
           create_only: false

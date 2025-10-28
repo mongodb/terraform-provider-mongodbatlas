@@ -144,8 +144,8 @@ func commonProperties(attr *codespec.Attribute, planModifierType string) []CodeS
 		switch attr.CustomType.Package {
 		case codespec.JSONTypesPkg:
 			imports = append(imports, "github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes")
-		case codespec.CustomTypePkg:
-			imports = append(imports, "github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtype")
+		case codespec.CustomTypesPkg:
+			imports = append(imports, "github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes")
 		}
 
 		result = append(result, CodeStatement{
@@ -153,13 +153,21 @@ func commonProperties(attr *codespec.Attribute, planModifierType string) []CodeS
 			Imports: imports,
 		})
 	}
-	if attr.CreateOnly { // as of now this is the only property which implies defining plan modifiers
+	if attr.CreateOnly { // As of now this is the only property which implies defining plan modifiers.
+		planModifierImports := []string{
+			"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier",
+			"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier",
+		}
+		code := fmt.Sprintf("PlanModifiers: []%s{customplanmodifier.CreateOnly()}", planModifierType)
+
+		// For bool attributes with create-only and default value, use CreateOnlyBoolWithDefault
+		if attr.Bool != nil && attr.Bool.Default != nil {
+			code = fmt.Sprintf("PlanModifiers: []%s{customplanmodifier.CreateOnlyBoolWithDefault(%t)}", planModifierType, *attr.Bool.Default)
+		}
+
 		result = append(result, CodeStatement{
-			Code: fmt.Sprintf("PlanModifiers: []%s{customplanmodifier.CreateOnly()}", planModifierType),
-			Imports: []string{
-				"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier",
-				"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier",
-			},
+			Code:    code,
+			Imports: planModifierImports,
 		})
 	}
 	return result

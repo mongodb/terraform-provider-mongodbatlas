@@ -5,6 +5,7 @@ package databaseuserapi
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -107,24 +108,8 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	pathParams := map[string]string{
-		"groupId":      state.GroupId.ValueString(),
-		"databaseName": state.DatabaseName.ValueString(),
-		"username":     state.Username.ValueString(),
-	}
-	callParams := config.APICallParams{
-		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}",
-		PathParams:    pathParams,
-		Method:        "DELETE",
-	}
-	reqHandle := autogen.HandleDeleteReq{
-		Resp:       resp,
-		Client:     r.Client,
-		State:      &state,
-		CallParams: &callParams,
-	}
-	autogen.HandleDelete(ctx, reqHandle)
+	reqHandle := deleteRequest(r.Client, &state, &resp.Diagnostics)
+	autogen.HandleDelete(ctx, *reqHandle)
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -132,16 +117,35 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	autogen.HandleImport(ctx, idAttributes, req, resp)
 }
 
-func readAPICallParams(state *TFModel) *config.APICallParams {
+func readAPICallParams(model *TFModel) *config.APICallParams {
 	pathParams := map[string]string{
-		"groupId":      state.GroupId.ValueString(),
-		"databaseName": state.DatabaseName.ValueString(),
-		"username":     state.Username.ValueString(),
+		"groupId":      model.GroupId.ValueString(),
+		"databaseName": model.DatabaseName.ValueString(),
+		"username":     model.Username.ValueString(),
 	}
 	return &config.APICallParams{
 		VersionHeader: apiVersionHeader,
 		RelativePath:  "/api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}",
 		PathParams:    pathParams,
 		Method:        "GET",
+	}
+}
+
+func deleteRequest(client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
+	pathParams := map[string]string{
+		"groupId":      model.GroupId.ValueString(),
+		"databaseName": model.DatabaseName.ValueString(),
+		"username":     model.Username.ValueString(),
+	}
+	return &autogen.HandleDeleteReq{
+		Client: client,
+		State:  model,
+		Diags:  diags,
+		CallParams: &config.APICallParams{
+			VersionHeader: apiVersionHeader,
+			RelativePath:  "/api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}",
+			PathParams:    pathParams,
+			Method:        "DELETE",
+		},
 	}
 }

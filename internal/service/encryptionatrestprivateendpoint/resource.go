@@ -70,7 +70,7 @@ func (r *encryptionAtRestPrivateEndpointRS) Create(ctx context.Context, req reso
 	}
 
 	finalResp, err := waitStateTransition(ctx, projectID, cloudProvider, createResp.GetId(), connV2.EncryptionAtRestUsingCustomerKeyManagementApi, createTimeout)
-	err = cleanup.HandleCreateTimeout(cleanup.ResolveDeleteOnCreateTimeout(earPrivateEndpointPlan.DeleteOnCreateTimeout), err, func(ctxCleanup context.Context) error {
+	err = cleanup.HandleCreateTimeout(earPrivateEndpointPlan.DeleteOnCreateTimeout.ValueBool(), err, func(ctxCleanup context.Context) error {
 		cleanResp, cleanErr := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.RequestPrivateEndpointDeletion(ctxCleanup, projectID, cloudProvider, createResp.GetId()).Execute()
 		if validate.StatusNotFound(cleanResp) {
 			return nil

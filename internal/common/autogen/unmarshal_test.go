@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtype"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -65,38 +65,49 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 	type modelEmptyTest struct{}
 
 	type modelCustomTypeTest struct {
-		AttrFloat     types.Float64                          `tfsdk:"attr_float"`
-		AttrString    types.String                           `tfsdk:"attr_string"`
-		AttrNested    customtype.ObjectValue[modelEmptyTest] `tfsdk:"attr_nested"`
-		AttrInt       types.Int64                            `tfsdk:"attr_int"`
-		AttrBool      types.Bool                             `tfsdk:"attr_bool"`
-		AttrMANYUpper types.Int64                            `tfsdk:"attr_many_upper"`
+		AttrFloat     types.Float64                           `tfsdk:"attr_float"`
+		AttrString    types.String                            `tfsdk:"attr_string"`
+		AttrNested    customtypes.ObjectValue[modelEmptyTest] `tfsdk:"attr_nested"`
+		AttrInt       types.Int64                             `tfsdk:"attr_int"`
+		AttrBool      types.Bool                              `tfsdk:"attr_bool"`
+		AttrMANYUpper types.Int64                             `tfsdk:"attr_many_upper"`
 	}
 
 	type modelst struct {
-		AttrObj                     types.Object                                `tfsdk:"attr_obj"`
-		AttrObjNullNotSent          types.Object                                `tfsdk:"attr_obj_null_not_sent"`
-		AttrObjNullSent             types.Object                                `tfsdk:"attr_obj_null_sent"`
-		AttrObjUnknownNotSent       types.Object                                `tfsdk:"attr_obj_unknown_not_sent"`
-		AttrObjUnknownSent          types.Object                                `tfsdk:"attr_obj_unknown_sent"`
-		AttrObjParent               types.Object                                `tfsdk:"attr_obj_parent"`
-		AttrCustomObj               customtype.ObjectValue[modelCustomTypeTest] `tfsdk:"attr_custom_obj"`
-		AttrCustomObjNullNotSent    customtype.ObjectValue[modelCustomTypeTest] `tfsdk:"attr_custom_obj_null_not_sent"`
-		AttrCustomObjNullSent       customtype.ObjectValue[modelCustomTypeTest] `tfsdk:"attr_custom_obj_null_sent"`
-		AttrCustomObjUnknownNotSent customtype.ObjectValue[modelCustomTypeTest] `tfsdk:"attr_custom_obj_unknown_not_sent"`
-		AttrCustomObjUnknownSent    customtype.ObjectValue[modelCustomTypeTest] `tfsdk:"attr_custom_obj_unknown_sent"`
-		AttrCustomObjParent         customtype.ObjectValue[modelCustomTypeTest] `tfsdk:"attr_custom_obj_parent"`
-		AttrListString              types.List                                  `tfsdk:"attr_list_string"`
-		AttrListObj                 types.List                                  `tfsdk:"attr_list_obj"`
-		AttrSetString               types.Set                                   `tfsdk:"attr_set_string"`
-		AttrSetObj                  types.Set                                   `tfsdk:"attr_set_obj"`
-		AttrListListString          types.List                                  `tfsdk:"attr_list_list_string"`
-		AttrSetListObj              types.Set                                   `tfsdk:"attr_set_list_obj"`
-		AttrListObjKnown            types.List                                  `tfsdk:"attr_list_obj_known"`
-		AttrMapSimple               types.Map                                   `tfsdk:"attr_map_simple"`
-		AttrMapSimpleExisting       types.Map                                   `tfsdk:"attr_map_simple_existing"`
-		AttrMapObj                  types.Map                                   `tfsdk:"attr_map_obj"`
-		AttrJSONList                types.List                                  `tfsdk:"attr_json_list"`
+		AttrObj                            types.Object                                     `tfsdk:"attr_obj"`
+		AttrObjNullNotSent                 types.Object                                     `tfsdk:"attr_obj_null_not_sent"`
+		AttrObjNullSent                    types.Object                                     `tfsdk:"attr_obj_null_sent"`
+		AttrObjUnknownNotSent              types.Object                                     `tfsdk:"attr_obj_unknown_not_sent"`
+		AttrObjUnknownSent                 types.Object                                     `tfsdk:"attr_obj_unknown_sent"`
+		AttrObjParent                      types.Object                                     `tfsdk:"attr_obj_parent"`
+		AttrCustomObj                      customtypes.ObjectValue[modelCustomTypeTest]     `tfsdk:"attr_custom_obj"`
+		AttrCustomObjNullNotSent           customtypes.ObjectValue[modelCustomTypeTest]     `tfsdk:"attr_custom_obj_null_not_sent"`
+		AttrCustomObjNullSent              customtypes.ObjectValue[modelCustomTypeTest]     `tfsdk:"attr_custom_obj_null_sent"`
+		AttrCustomObjUnknownNotSent        customtypes.ObjectValue[modelCustomTypeTest]     `tfsdk:"attr_custom_obj_unknown_not_sent"`
+		AttrCustomObjUnknownSent           customtypes.ObjectValue[modelCustomTypeTest]     `tfsdk:"attr_custom_obj_unknown_sent"`
+		AttrCustomObjParent                customtypes.ObjectValue[modelCustomTypeTest]     `tfsdk:"attr_custom_obj_parent"`
+		AttrListString                     types.List                                       `tfsdk:"attr_list_string"`
+		AttrCustomListString               customtypes.ListValue[types.String]              `tfsdk:"attr_custom_list_string"`
+		AttrListObj                        types.List                                       `tfsdk:"attr_list_obj"`
+		AttrCustomNestedList               customtypes.NestedListValue[modelCustomTypeTest] `tfsdk:"attr_custom_nested_list"`
+		AttrCustomNestedListNullNotSent    customtypes.NestedListValue[modelCustomTypeTest] `tfsdk:"attr_custom_nested_list_null_not_sent"`
+		AttrCustomNestedListNullSent       customtypes.NestedListValue[modelCustomTypeTest] `tfsdk:"attr_custom_nested_list_null_sent"`
+		AttrCustomNestedListUnknownNotSent customtypes.NestedListValue[modelCustomTypeTest] `tfsdk:"attr_custom_nested_list_unknown_not_sent"`
+		AttrCustomNestedListUnknownSent    customtypes.NestedListValue[modelCustomTypeTest] `tfsdk:"attr_custom_nested_list_unknown_sent"`
+		AttrSetString                      types.Set                                        `tfsdk:"attr_set_string"`
+		AttrSetObj                         types.Set                                        `tfsdk:"attr_set_obj"`
+		AttrCustomNestedSet                customtypes.NestedSetValue[modelCustomTypeTest]  `tfsdk:"attr_custom_nested_set"`
+		AttrCustomNestedSetNullNotSent     customtypes.NestedSetValue[modelCustomTypeTest]  `tfsdk:"attr_custom_nested_set_null_not_sent"`
+		AttrCustomNestedSetNullSent        customtypes.NestedSetValue[modelCustomTypeTest]  `tfsdk:"attr_custom_nested_set_null_sent"`
+		AttrCustomNestedSetUnknownNotSent  customtypes.NestedSetValue[modelCustomTypeTest]  `tfsdk:"attr_custom_nested_set_unknown_not_sent"`
+		AttrCustomNestedSetUnknownSent     customtypes.NestedSetValue[modelCustomTypeTest]  `tfsdk:"attr_custom_nested_set_unknown_sent"`
+		AttrListListString                 types.List                                       `tfsdk:"attr_list_list_string"`
+		AttrSetListObj                     types.Set                                        `tfsdk:"attr_set_list_obj"`
+		AttrListObjKnown                   types.List                                       `tfsdk:"attr_list_obj_known"`
+		AttrMapSimple                      types.Map                                        `tfsdk:"attr_map_simple"`
+		AttrMapSimpleExisting              types.Map                                        `tfsdk:"attr_map_simple_existing"`
+		AttrMapObj                         types.Map                                        `tfsdk:"attr_map_obj"`
+		AttrJSONList                       types.List                                       `tfsdk:"attr_json_list"`
 	}
 	model := modelst{
 		AttrObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
@@ -111,26 +122,57 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrObjUnknownNotSent: types.ObjectUnknown(objTypeTest.AttrTypes), // unknown values are changed to null
 		AttrObjUnknownSent:    types.ObjectUnknown(objTypeTest.AttrTypes),
 		AttrObjParent:         types.ObjectNull(objTypeParentTest.AttrTypes),
-		AttrCustomObj: customtype.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
+		AttrCustomObj: customtypes.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
 			// these attribute values are irrelevant, they will be overwritten with JSON values
 			AttrString:    types.StringValue("different_string"),
 			AttrInt:       types.Int64Value(999),
 			AttrFloat:     types.Float64Unknown(), // can even be unknown
 			AttrBool:      types.BoolUnknown(),    // can even be unknown
-			AttrNested:    customtype.NewObjectValueUnknown[modelEmptyTest](ctx),
+			AttrNested:    customtypes.NewObjectValueUnknown[modelEmptyTest](ctx),
 			AttrMANYUpper: types.Int64Value(999),
 		}),
-		AttrCustomObjNullNotSent:    customtype.NewObjectValueNull[modelCustomTypeTest](ctx),
-		AttrCustomObjNullSent:       customtype.NewObjectValueNull[modelCustomTypeTest](ctx),
-		AttrCustomObjUnknownNotSent: customtype.NewObjectValueUnknown[modelCustomTypeTest](ctx), // unknown values are changed to null
-		AttrCustomObjUnknownSent:    customtype.NewObjectValueUnknown[modelCustomTypeTest](ctx),
-		AttrCustomObjParent:         customtype.NewObjectValueNull[modelCustomTypeTest](ctx),
+		AttrCustomObjNullNotSent:    customtypes.NewObjectValueNull[modelCustomTypeTest](ctx),
+		AttrCustomObjNullSent:       customtypes.NewObjectValueNull[modelCustomTypeTest](ctx),
+		AttrCustomObjUnknownNotSent: customtypes.NewObjectValueUnknown[modelCustomTypeTest](ctx), // unknown values are changed to null
+		AttrCustomObjUnknownSent:    customtypes.NewObjectValueUnknown[modelCustomTypeTest](ctx),
+		AttrCustomObjParent:         customtypes.NewObjectValueNull[modelCustomTypeTest](ctx),
 		AttrListString:              types.ListUnknown(types.StringType),
+		AttrCustomListString:        customtypes.NewListValueUnknown[types.String](ctx),
 		AttrListObj:                 types.ListUnknown(objTypeTest),
-		AttrSetString:               types.SetUnknown(types.StringType),
-		AttrSetObj:                  types.SetUnknown(objTypeTest),
-		AttrListListString:          types.ListUnknown(types.ListType{ElemType: types.StringType}),
-		AttrSetListObj:              types.SetUnknown(types.ListType{ElemType: objTypeTest}),
+		AttrCustomNestedList: customtypes.NewNestedListValue[modelCustomTypeTest](ctx, []modelCustomTypeTest{
+			{
+				// these attribute values are irrelevant, they will be overwritten with JSON values
+				AttrString:    types.StringValue("different_string"),
+				AttrInt:       types.Int64Value(999),
+				AttrFloat:     types.Float64Unknown(),
+				AttrBool:      types.BoolUnknown(),
+				AttrNested:    customtypes.NewObjectValueUnknown[modelEmptyTest](ctx),
+				AttrMANYUpper: types.Int64Value(999),
+			},
+		}),
+		AttrCustomNestedListNullNotSent:    customtypes.NewNestedListValueNull[modelCustomTypeTest](ctx),
+		AttrCustomNestedListNullSent:       customtypes.NewNestedListValueNull[modelCustomTypeTest](ctx),
+		AttrCustomNestedListUnknownNotSent: customtypes.NewNestedListValueUnknown[modelCustomTypeTest](ctx),
+		AttrCustomNestedListUnknownSent:    customtypes.NewNestedListValueUnknown[modelCustomTypeTest](ctx),
+		AttrSetString:                      types.SetUnknown(types.StringType),
+		AttrSetObj:                         types.SetUnknown(objTypeTest),
+		AttrCustomNestedSet: customtypes.NewNestedSetValue[modelCustomTypeTest](ctx, []modelCustomTypeTest{
+			{
+				// these attribute values are irrelevant, they will be overwritten with JSON values
+				AttrString:    types.StringValue("different_string"),
+				AttrInt:       types.Int64Value(999),
+				AttrFloat:     types.Float64Unknown(),
+				AttrBool:      types.BoolUnknown(),
+				AttrNested:    customtypes.NewObjectValueUnknown[modelEmptyTest](ctx),
+				AttrMANYUpper: types.Int64Value(999),
+			},
+		}),
+		AttrCustomNestedSetNullNotSent:    customtypes.NewNestedSetValueNull[modelCustomTypeTest](ctx),
+		AttrCustomNestedSetNullSent:       customtypes.NewNestedSetValueNull[modelCustomTypeTest](ctx),
+		AttrCustomNestedSetUnknownNotSent: customtypes.NewNestedSetValueUnknown[modelCustomTypeTest](ctx),
+		AttrCustomNestedSetUnknownSent:    customtypes.NewNestedSetValueUnknown[modelCustomTypeTest](ctx),
+		AttrListListString:                types.ListUnknown(types.ListType{ElemType: types.StringType}),
+		AttrSetListObj:                    types.SetUnknown(types.ListType{ElemType: objTypeTest}),
 		AttrListObjKnown: types.ListValueMust(objTypeTest, []attr.Value{
 			types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
 				"attr_string": types.StringValue("val"),
@@ -196,6 +238,10 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 					"list1",
 					"list2"
 				],
+				"attrCustomListString": [
+					"list1",
+					"list2"
+				],
 				"attrListObj": [
 					{
 						"attrString": "list1",
@@ -208,6 +254,30 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 						"attrInt": 2,
 						"attrFloat": 2.2,
 						"attrBool": false
+					}
+				],
+				"attrCustomNestedList": [
+					{
+						"attrString": "nestedList1",
+						"attrInt": 1,
+						"attrFloat": 1.1,
+						"attrBool": true,
+						"attrNested": {},
+						"attrMANYUpper": 123
+					},
+					{
+						"attrString": "nestedList2",
+						"attrInt": 2,
+						"attrFloat": 2.2,
+						"attrBool": false,
+						"attrNested": {},
+						"attrMANYUpper": 456
+					}
+				],
+				"attrCustomNestedListNullSent": null,
+				"attrCustomNestedListUnknownSent": [
+					{
+						"attrString": "unknownSent"
 					}
 				],
 				"attrSetString": [
@@ -226,6 +296,30 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 						"attrInt": 22,
 						"attrFloat": 22.2,		
 						"attrBool": true		
+					}
+				],
+				"attrCustomNestedSet": [
+					{
+						"attrString": "nestedSet1",
+						"attrInt": 1,
+						"attrFloat": 1.1,
+						"attrBool": true,
+						"attrNested": {},
+						"attrMANYUpper": 123
+					},
+					{
+						"attrString": "nestedSet2",
+						"attrInt": 2,
+						"attrFloat": 2.2,
+						"attrBool": false,
+						"attrNested": {},
+						"attrMANYUpper": 456
+					}
+				],
+				"attrCustomNestedSetNullSent": null,
+				"attrCustomNestedSetUnknownSent": [
+					{
+						"attrString": "unknownSetSent"
 					}
 				],
 				"attrListListString": [
@@ -330,41 +424,45 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 				"attr_bool":   types.BoolNull(),
 			}),
 		}),
-		AttrCustomObj: customtype.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
+		AttrCustomObj: customtypes.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
 			AttrString:    types.StringValue("value_string"),
 			AttrInt:       types.Int64Value(123),
 			AttrFloat:     types.Float64Value(1.1),
 			AttrBool:      types.BoolValue(true),
-			AttrNested:    customtype.NewObjectValue[modelEmptyTest](ctx, modelEmptyTest{}),
+			AttrNested:    customtypes.NewObjectValue[modelEmptyTest](ctx, modelEmptyTest{}),
 			AttrMANYUpper: types.Int64Value(456),
 		}),
-		AttrCustomObjNullNotSent: customtype.NewObjectValueNull[modelCustomTypeTest](ctx),
-		AttrCustomObjNullSent: customtype.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
+		AttrCustomObjNullNotSent: customtypes.NewObjectValueNull[modelCustomTypeTest](ctx),
+		AttrCustomObjNullSent: customtypes.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
 			AttrString:    types.StringValue("null_obj"),
 			AttrInt:       types.Int64Value(1),
 			AttrFloat:     types.Float64Null(),
 			AttrBool:      types.BoolNull(),
-			AttrNested:    customtype.NewObjectValueNull[modelEmptyTest](ctx),
+			AttrNested:    customtypes.NewObjectValueNull[modelEmptyTest](ctx),
 			AttrMANYUpper: types.Int64Null(),
 		}),
-		AttrCustomObjUnknownNotSent: customtype.NewObjectValueUnknown[modelCustomTypeTest](ctx),
-		AttrCustomObjUnknownSent: customtype.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
+		AttrCustomObjUnknownNotSent: customtypes.NewObjectValueUnknown[modelCustomTypeTest](ctx),
+		AttrCustomObjUnknownSent: customtypes.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
 			AttrString:    types.StringValue("unknown_obj"),
 			AttrInt:       types.Int64Null(),
 			AttrFloat:     types.Float64Null(),
 			AttrBool:      types.BoolNull(),
-			AttrNested:    customtype.NewObjectValueNull[modelEmptyTest](ctx),
+			AttrNested:    customtypes.NewObjectValueNull[modelEmptyTest](ctx),
 			AttrMANYUpper: types.Int64Null(),
 		}),
-		AttrCustomObjParent: customtype.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
+		AttrCustomObjParent: customtypes.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
 			AttrString:    types.StringValue("parent string"),
 			AttrInt:       types.Int64Null(),
 			AttrFloat:     types.Float64Null(),
 			AttrBool:      types.BoolNull(),
-			AttrNested:    customtype.NewObjectValue[modelEmptyTest](ctx, modelEmptyTest{}),
+			AttrNested:    customtypes.NewObjectValue[modelEmptyTest](ctx, modelEmptyTest{}),
 			AttrMANYUpper: types.Int64Null(),
 		}),
 		AttrListString: types.ListValueMust(types.StringType, []attr.Value{
+			types.StringValue("list1"),
+			types.StringValue("list2"),
+		}),
+		AttrCustomListString: customtypes.NewListValue[types.String](ctx, []attr.Value{
 			types.StringValue("list1"),
 			types.StringValue("list2"),
 		}),
@@ -381,6 +479,37 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 				"attr_float":  types.Float64Value(2.2),
 				"attr_bool":   types.BoolValue(false),
 			}),
+		}),
+		AttrCustomNestedList: customtypes.NewNestedListValue[modelCustomTypeTest](ctx, []modelCustomTypeTest{
+			{
+				AttrString:    types.StringValue("nestedList1"),
+				AttrInt:       types.Int64Value(1),
+				AttrFloat:     types.Float64Value(1.1),
+				AttrBool:      types.BoolValue(true),
+				AttrNested:    customtypes.NewObjectValue[modelEmptyTest](ctx, modelEmptyTest{}),
+				AttrMANYUpper: types.Int64Value(123),
+			},
+			{
+				AttrString:    types.StringValue("nestedList2"),
+				AttrInt:       types.Int64Value(2),
+				AttrFloat:     types.Float64Value(2.2),
+				AttrBool:      types.BoolValue(false),
+				AttrNested:    customtypes.NewObjectValue[modelEmptyTest](ctx, modelEmptyTest{}),
+				AttrMANYUpper: types.Int64Value(456),
+			},
+		}),
+		AttrCustomNestedListNullNotSent:    customtypes.NewNestedListValueNull[modelCustomTypeTest](ctx),
+		AttrCustomNestedListNullSent:       customtypes.NewNestedListValueNull[modelCustomTypeTest](ctx),
+		AttrCustomNestedListUnknownNotSent: customtypes.NewNestedListValueUnknown[modelCustomTypeTest](ctx),
+		AttrCustomNestedListUnknownSent: customtypes.NewNestedListValue[modelCustomTypeTest](ctx, []modelCustomTypeTest{
+			{
+				AttrString:    types.StringValue("unknownSent"),
+				AttrInt:       types.Int64Null(),
+				AttrFloat:     types.Float64Null(),
+				AttrBool:      types.BoolNull(),
+				AttrNested:    customtypes.NewObjectValueNull[modelEmptyTest](ctx),
+				AttrMANYUpper: types.Int64Null(),
+			},
 		}),
 		AttrSetString: types.SetValueMust(types.StringType, []attr.Value{
 			types.StringValue("set1"),
@@ -399,6 +528,37 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 				"attr_float":  types.Float64Value(22.2),
 				"attr_bool":   types.BoolValue(true),
 			}),
+		}),
+		AttrCustomNestedSet: customtypes.NewNestedSetValue[modelCustomTypeTest](ctx, []modelCustomTypeTest{
+			{
+				AttrString:    types.StringValue("nestedSet1"),
+				AttrInt:       types.Int64Value(1),
+				AttrFloat:     types.Float64Value(1.1),
+				AttrBool:      types.BoolValue(true),
+				AttrNested:    customtypes.NewObjectValue[modelEmptyTest](ctx, modelEmptyTest{}),
+				AttrMANYUpper: types.Int64Value(123),
+			},
+			{
+				AttrString:    types.StringValue("nestedSet2"),
+				AttrInt:       types.Int64Value(2),
+				AttrFloat:     types.Float64Value(2.2),
+				AttrBool:      types.BoolValue(false),
+				AttrNested:    customtypes.NewObjectValue[modelEmptyTest](ctx, modelEmptyTest{}),
+				AttrMANYUpper: types.Int64Value(456),
+			},
+		}),
+		AttrCustomNestedSetNullNotSent:    customtypes.NewNestedSetValueNull[modelCustomTypeTest](ctx),
+		AttrCustomNestedSetNullSent:       customtypes.NewNestedSetValueNull[modelCustomTypeTest](ctx),
+		AttrCustomNestedSetUnknownNotSent: customtypes.NewNestedSetValueUnknown[modelCustomTypeTest](ctx),
+		AttrCustomNestedSetUnknownSent: customtypes.NewNestedSetValue[modelCustomTypeTest](ctx, []modelCustomTypeTest{
+			{
+				AttrString:    types.StringValue("unknownSetSent"),
+				AttrInt:       types.Int64Null(),
+				AttrFloat:     types.Float64Null(),
+				AttrBool:      types.BoolNull(),
+				AttrNested:    customtypes.NewObjectValueNull[modelEmptyTest](ctx),
+				AttrMANYUpper: types.Int64Null(),
+			},
 		}),
 		AttrListListString: types.ListValueMust(types.ListType{ElemType: types.StringType}, []attr.Value{
 			types.ListValueMust(types.StringType, []attr.Value{

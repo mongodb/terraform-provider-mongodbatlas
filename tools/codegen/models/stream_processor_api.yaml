@@ -52,9 +52,9 @@ schema:
                                   create_only: false
                       description: Dead letter queue for the stream processor.
                       custom_type:
-                        package: customtype
-                        model: customtype.ObjectValue[TFOptionsDlqModel]
-                        schema: customtype.NewObjectType[TFOptionsDlqModel](ctx)
+                        package: customtypes
+                        model: customtypes.ObjectValue[TFOptionsDlqModel]
+                        schema: customtypes.NewObjectType[TFOptionsDlqModel](ctx)
                       computed_optional_required: optional
                       tf_schema_name: dlq
                       tf_model_name: Dlq
@@ -71,9 +71,9 @@ schema:
                       create_only: false
           description: Optional configuration for the stream processor.
           custom_type:
-            package: customtype
-            model: customtype.ObjectValue[TFOptionsModel]
-            schema: customtype.NewObjectType[TFOptionsModel](ctx)
+            package: customtypes
+            model: customtypes.ObjectValue[TFOptionsModel]
+            schema: customtypes.NewObjectType[TFOptionsModel](ctx)
           computed_optional_required: computed_optional
           tf_schema_name: options
           tf_model_name: Options
@@ -83,6 +83,10 @@ schema:
         - list:
             element_type: 5
           description: Stream aggregation pipeline you want to apply to your streaming data.
+          custom_type:
+            package: customtypes
+            model: customtypes.ListValue[jsontypes.Normalized]
+            schema: customtypes.NewListType[jsontypes.Normalized](ctx)
           computed_optional_required: optional
           tf_schema_name: pipeline
           tf_model_name: Pipeline
@@ -117,6 +121,26 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: true
+        - bool:
+            default: true
+          description: Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
+          computed_optional_required: computed_optional
+          tf_schema_name: delete_on_create_timeout
+          tf_model_name: DeleteOnCreateTimeout
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+        - timeouts:
+            configurable_timeouts:
+                - create
+                - update
+                - delete
+          computed_optional_required: ""
+          tf_schema_name: timeouts
+          tf_model_name: Timeouts
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
 operations:
     delete:
         wait:

@@ -231,6 +231,8 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
       method: DELETE
     version_header: application/vnd.atlas.2023-01-01+json
+    schema:
+      use_custom_nested_types: false
 
   database_user_api:
     read:
@@ -443,6 +445,7 @@ resources:
       method: DELETE
     version_header: application/vnd.atlas.2023-02-01+json
     schema:
+      use_custom_nested_types: false
       # region and cloud_provider are incorrectly declared in PATCH as root attributes, _id can't be used in Terraform schema
       ignores:
         [
@@ -516,6 +519,7 @@ resources:
       path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
       method: DELETE
     schema:
+      use_custom_nested_types: false
       overrides:
         secrets.secret:
           sensitive: true

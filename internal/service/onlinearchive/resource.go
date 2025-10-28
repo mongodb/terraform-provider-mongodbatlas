@@ -439,6 +439,9 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	atlasID := ids["archive_id"]
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
+	if invalidUpdate := cleanup.DeleteOnCreateTimeoutInvalidUpdate(d); invalidUpdate != "" {
+		return diag.FromErr(errors.New(invalidUpdate))
+	}
 
 	if dataProcessRegionHasChange := d.HasChange("data_process_region"); dataProcessRegionHasChange {
 		return diag.FromErr(fmt.Errorf("error updating Mongo Online Archive id: %s, data_process_region can't be modified", atlasID))

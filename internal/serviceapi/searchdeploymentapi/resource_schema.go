@@ -5,9 +5,11 @@ package searchdeploymentapi
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
@@ -35,6 +37,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"specs": schema.ListNestedAttribute{
 				Required:            true,
 				MarkdownDescription: "List of settings that configure the Search Nodes for your cluster.\n\n**NOTE**: We accept a single configuration for all nodes currently.",
+				CustomType:          customtypes.NewNestedListType[TFSpecsModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"instance_size": schema.StringAttribute{
@@ -52,17 +55,30 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Human-readable label that indicates the current operating condition of this search deployment.",
 			},
+			"delete_on_create_timeout": schema.BoolAttribute{
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.",
+				PlanModifiers:       []planmodifier.Bool{customplanmodifier.CreateOnlyBoolWithDefault(true)},
+			},
+			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
+				Create: true,
+				Update: true,
+				Delete: true,
+			}),
 		},
 	}
 }
 
 type TFModel struct {
-	ClusterName              types.String `tfsdk:"cluster_name" autogen:"omitjson"`
-	EncryptionAtRestProvider types.String `tfsdk:"encryption_at_rest_provider" autogen:"omitjson"`
-	GroupId                  types.String `tfsdk:"group_id" autogen:"omitjson"`
-	Id                       types.String `tfsdk:"id" autogen:"omitjson"`
-	Specs                    types.List   `tfsdk:"specs"`
-	StateName                types.String `tfsdk:"state_name" autogen:"omitjson"`
+	Specs                    customtypes.NestedListValue[TFSpecsModel] `tfsdk:"specs"`
+	ClusterName              types.String                              `tfsdk:"cluster_name" autogen:"omitjson"`
+	EncryptionAtRestProvider types.String                              `tfsdk:"encryption_at_rest_provider" autogen:"omitjson"`
+	GroupId                  types.String                              `tfsdk:"group_id" autogen:"omitjson"`
+	Id                       types.String                              `tfsdk:"id" autogen:"omitjson"`
+	StateName                types.String                              `tfsdk:"state_name" autogen:"omitjson"`
+	Timeouts                 timeouts.Value                            `tfsdk:"timeouts" autogen:"omitjson"`
+	DeleteOnCreateTimeout    types.Bool                                `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
 }
 type TFSpecsModel struct {
 	InstanceSize types.String `tfsdk:"instance_size"`

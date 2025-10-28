@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
@@ -43,6 +44,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"tags": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the project.",
+				CustomType:          customtypes.NewNestedListType[TFTagsModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"key": schema.StringAttribute{
@@ -66,14 +68,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	Tags                      types.List   `tfsdk:"tags"`
-	Created                   types.String `tfsdk:"created" autogen:"omitjson"`
-	Id                        types.String `tfsdk:"id" autogen:"omitjson"`
-	Name                      types.String `tfsdk:"name"`
-	OrgId                     types.String `tfsdk:"org_id" autogen:"omitjsonupdate"`
-	RegionUsageRestrictions   types.String `tfsdk:"region_usage_restrictions" autogen:"omitjsonupdate"`
-	ClusterCount              types.Int64  `tfsdk:"cluster_count" autogen:"omitjson"`
-	WithDefaultAlertsSettings types.Bool   `tfsdk:"with_default_alerts_settings" autogen:"omitjsonupdate"`
+	Tags                      customtypes.NestedListValue[TFTagsModel] `tfsdk:"tags"`
+	Created                   types.String                             `tfsdk:"created" autogen:"omitjson"`
+	Id                        types.String                             `tfsdk:"id" autogen:"omitjson"`
+	Name                      types.String                             `tfsdk:"name"`
+	OrgId                     types.String                             `tfsdk:"org_id" autogen:"omitjsonupdate"`
+	RegionUsageRestrictions   types.String                             `tfsdk:"region_usage_restrictions" autogen:"omitjsonupdate"`
+	ClusterCount              types.Int64                              `tfsdk:"cluster_count" autogen:"omitjson"`
+	WithDefaultAlertsSettings types.Bool                               `tfsdk:"with_default_alerts_settings" autogen:"omitjsonupdate"`
 }
 type TFTagsModel struct {
 	Key   types.String `tfsdk:"key"`

@@ -176,6 +176,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							TFSchemaName:             "list_primitive_string_attr",
 							TFModelName:              "ListPrimitiveStringAttr",
 							ComputedOptionalRequired: codespec.Computed,
+							CustomType:               codespec.NewCustomListType(codespec.String),
 							List: &codespec.ListAttribute{
 								ElementType: codespec.String,
 							},
@@ -186,6 +187,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							TFSchemaName:             "nested_list_array_attr",
 							TFModelName:              "NestedListArrayAttr",
 							ComputedOptionalRequired: codespec.Required,
+							CustomType:               codespec.NewCustomNestedListType("NestedListArrayAttr"),
 							ListNested: &codespec.ListNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
@@ -201,6 +203,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 											TFSchemaName:             "list_primitive_string_attr",
 											TFModelName:              "ListPrimitiveStringAttr",
 											ComputedOptionalRequired: codespec.Optional,
+											CustomType:               codespec.NewCustomListType(codespec.String),
 											List: &codespec.ListAttribute{
 												ElementType: codespec.String,
 											},
@@ -211,6 +214,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 											TFSchemaName:             "list_primitive_string_computed_attr",
 											TFModelName:              "ListPrimitiveStringComputedAttr",
 											ComputedOptionalRequired: codespec.Computed,
+											CustomType:               codespec.NewCustomListType(codespec.String),
 											List: &codespec.ListAttribute{
 												ElementType: codespec.String,
 											},
@@ -246,6 +250,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							TFSchemaName:             "nested_set_array_attr",
 							TFModelName:              "NestedSetArrayAttr",
 							ComputedOptionalRequired: codespec.Computed,
+							CustomType:               codespec.NewCustomNestedSetType("NestedSetArrayAttr"),
 							SetNested: &codespec.SetNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
@@ -261,6 +266,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 											TFSchemaName:             "list_primitive_string_attr",
 											TFModelName:              "ListPrimitiveStringAttr",
 											ComputedOptionalRequired: codespec.Computed,
+											CustomType:               codespec.NewCustomListType(codespec.String),
 											List: &codespec.ListAttribute{
 												ElementType: codespec.String,
 											},
@@ -413,6 +419,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 							TFSchemaName:             "nested_list_array_attr",
 							TFModelName:              "NestedListArrayAttr",
 							ComputedOptionalRequired: codespec.Required,
+							CustomType:               codespec.NewCustomNestedListType("NestedListArrayAttr"),
 							ListNested: &codespec.ListNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
@@ -428,6 +435,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 											TFSchemaName:             "list_primitive_string_computed_attr",
 											TFModelName:              "ListPrimitiveStringComputedAttr",
 											ComputedOptionalRequired: codespec.Computed,
+											CustomType:               codespec.NewCustomListType(codespec.String),
 											List: &codespec.ListAttribute{
 												ElementType: codespec.String,
 											},
@@ -481,13 +489,6 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 									},
 								},
 							},
-						},
-						{
-							TFSchemaName: "timeouts",
-							Timeouts: &codespec.TimeoutsAttribute{
-								ConfigurableTimeouts: []codespec.Operation{codespec.Create, codespec.Read, codespec.Update, codespec.Delete},
-							},
-							ReqBodyUsage: codespec.OmitAlways,
 						},
 					},
 				},
@@ -668,6 +669,7 @@ func TestConvertToProviderSpec_typeOverride(t *testing.T) {
 							TFModelName:              "ListString",
 							ComputedOptionalRequired: codespec.Required,
 							// List overridden to set
+							// CustomType:   codespec.NewCustomSetType(codespec.String), // TODO uncomment once CustomSetType is supported - CLOUDP-353170
 							Set:          &codespec.SetAttribute{ElementType: codespec.String},
 							ReqBodyUsage: codespec.AllRequestBodies,
 						},
@@ -676,6 +678,7 @@ func TestConvertToProviderSpec_typeOverride(t *testing.T) {
 							TFModelName:              "SetString",
 							ComputedOptionalRequired: codespec.Required,
 							// Set overridden to list
+							// CustomType:   codespec.NewCustomListType(codespec.String), // TODO uncomment once CustomSetType is supported - CLOUDP-353170
 							List:         &codespec.ListAttribute{ElementType: codespec.String},
 							ReqBodyUsage: codespec.AllRequestBodies,
 						},

@@ -6,13 +6,20 @@ import (
 	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
 )
 
+const DeleteOnCreateTimeoutDescription = "Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. " +
+	"When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for " +
+	"deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a " +
+	"transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`."
+
 func applyTransformationsWithConfigOpts(resourceConfig *config.Resource, resource *Resource) {
 	applyAttributeTransformations(resourceConfig.SchemaOptions, &resource.Schema.Attributes, "")
-
 	applyAliasToPathParams(resource, resourceConfig.SchemaOptions.Aliases)
+	ApplyDeleteOnCreateTimeoutTransformation(resource)
+	ApplyTimeoutTransformation(resource)
 }
 
 // AttributeTransformation represents a operation applied to an attribute during traversal.
@@ -55,10 +62,6 @@ func applyAttributeTransformations(schemaOptions config.SchemaOptions, attribute
 		}
 
 		finalAttributes = append(finalAttributes, *attr)
-	}
-
-	if timeoutAttr := applyTimeoutConfig(schemaOptions); parentName == "" && timeoutAttr != nil { // will not run for nested attributes
-		finalAttributes = append(finalAttributes, *timeoutAttr)
 	}
 
 	*attributes = finalAttributes
@@ -152,12 +155,24 @@ func applyTypeOverride(override *config.Override, attr *Attribute) {
 	switch *override.Type {
 	case config.Set:
 		if attr.List != nil {
+			attr.CustomType = nil
+			/* TODO revisit once CustomSetType is supported - CLOUDP-353170
+			if attr.CustomType != nil {
+				attr.CustomType = NewCustomSetType(attr.List.ElementType)
+			}
+			*/
+
 			attr.Set = &SetAttribute{ElementType: attr.List.ElementType}
 			attr.List = nil
 			return
 		}
 	case config.List:
 		if attr.Set != nil {
+			/* TODO uncomment once CustomSetType is supported - CLOUDP-353170
+			if attr.CustomType != nil {
+				attr.CustomType = NewCustomListType(attr.Set.ElementType)
+			}
+			*/
 			attr.List = &ListAttribute{ElementType: attr.Set.ElementType}
 			attr.Set = nil
 			return
@@ -182,30 +197,50 @@ func getComputabilityFromConfig(computability config.Computability) ComputedOpti
 	return Required
 }
 
-func applyTimeoutConfig(options config.SchemaOptions) *Attribute {
-	var result []Operation
-	for _, op := range options.Timeouts {
-		switch op {
-		case "create":
-			result = append(result, Create)
-		case "read":
-			result = append(result, Read)
-		case "delete":
-			result = append(result, Delete)
-		case "update":
-			result = append(result, Update)
-		default:
-			log.Printf("[WARN] Unknown operation type defined in timeout configuration: %s", op)
-		}
+// ApplyTimeoutTransformation adds a timeout attribute to the resource schema if any operation has wait blocks.
+func ApplyTimeoutTransformation(resource *Resource) {
+	ops := &resource.Operations
+	var configurableTimeouts []Operation
+
+	if ops.Create.Wait != nil {
+		configurableTimeouts = append(configurableTimeouts, Create)
 	}
-	if result != nil {
-		return &Attribute{
+	if ops.Update.Wait != nil {
+		configurableTimeouts = append(configurableTimeouts, Update)
+	}
+	if ops.Read.Wait != nil {
+		configurableTimeouts = append(configurableTimeouts, Read)
+	}
+	// Delete operation is optional
+	if ops.Delete != nil && ops.Delete.Wait != nil {
+		configurableTimeouts = append(configurableTimeouts, Delete)
+	}
+
+	if len(configurableTimeouts) > 0 {
+		resource.Schema.Attributes = append(resource.Schema.Attributes, Attribute{
 			TFSchemaName: "timeouts",
-			Timeouts:     &TimeoutsAttribute{ConfigurableTimeouts: result},
+			TFModelName:  "Timeouts",
+			Timeouts:     &TimeoutsAttribute{ConfigurableTimeouts: configurableTimeouts},
 			ReqBodyUsage: OmitAlways,
-		}
+		})
 	}
-	return nil
+}
+
+// ApplyDeleteOnCreateTimeoutTransformation adds a delete_on_create_timeout attribute to the resource schema
+// if the Create operation has a wait block and the Delete operation exists.
+func ApplyDeleteOnCreateTimeoutTransformation(resource *Resource) {
+	if ops := &resource.Operations; ops.Create.Wait == nil || ops.Delete == nil {
+		return
+	}
+	resource.Schema.Attributes = append(resource.Schema.Attributes, Attribute{
+		TFSchemaName:             "delete_on_create_timeout",
+		TFModelName:              "DeleteOnCreateTimeout",
+		Bool:                     &BoolAttribute{Default: conversion.Pointer(true)},
+		Description:              conversion.StringPtr(DeleteOnCreateTimeoutDescription),
+		ReqBodyUsage:             OmitAlways,
+		CreateOnly:               true,
+		ComputedOptionalRequired: ComputedOptional,
+	})
 }
 
 func setCreateOnlyValue(attr *Attribute) {

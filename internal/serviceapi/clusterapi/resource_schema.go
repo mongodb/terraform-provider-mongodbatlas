@@ -5,6 +5,7 @@ package clusterapi
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -606,44 +607,57 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Method by which the cluster maintains the MongoDB versions. If value is `CONTINUOUS`, you must not specify **mongoDBMajorVersion**.",
 			},
+			"delete_on_create_timeout": schema.BoolAttribute{
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.",
+				PlanModifiers:       []planmodifier.Bool{customplanmodifier.CreateOnlyBoolWithDefault(true)},
+			},
+			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
+				Create: true,
+				Update: true,
+				Delete: true,
+			}),
 		},
 	}
 }
 
 type TFModel struct {
-	Labels                                        types.List   `tfsdk:"labels"`
-	Tags                                          types.List   `tfsdk:"tags"`
-	ReplicationSpecs                              types.List   `tfsdk:"replication_specs"`
-	InternalClusterRole                           types.String `tfsdk:"internal_cluster_role" autogen:"omitjson"`
-	MongoDBMajorVersion                           types.String `tfsdk:"mongo_dbmajor_version"`
-	ConfigServerManagementMode                    types.String `tfsdk:"config_server_management_mode"`
-	ConfigServerType                              types.String `tfsdk:"config_server_type" autogen:"omitjson"`
-	ConnectionStrings                             types.Object `tfsdk:"connection_strings" autogen:"omitjson"`
-	CreateDate                                    types.String `tfsdk:"create_date" autogen:"omitjson"`
-	DiskWarmingMode                               types.String `tfsdk:"disk_warming_mode"`
-	EncryptionAtRestProvider                      types.String `tfsdk:"encryption_at_rest_provider"`
-	FeatureCompatibilityVersion                   types.String `tfsdk:"feature_compatibility_version" autogen:"omitjson"`
-	FeatureCompatibilityVersionExpirationDate     types.String `tfsdk:"feature_compatibility_version_expiration_date" autogen:"omitjson"`
-	VersionReleaseSystem                          types.String `tfsdk:"version_release_system"`
-	GroupId                                       types.String `tfsdk:"group_id" autogen:"omitjson"`
-	Id                                            types.String `tfsdk:"id" autogen:"omitjson"`
-	AcceptDataRisksAndForceReplicaSetReconfig     types.String `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
-	ClusterType                                   types.String `tfsdk:"cluster_type"`
-	AdvancedConfiguration                         types.Object `tfsdk:"advanced_configuration"`
-	ReplicaSetScalingStrategy                     types.String `tfsdk:"replica_set_scaling_strategy"`
-	MongoDBVersion                                types.String `tfsdk:"mongo_dbversion" autogen:"omitjson"`
-	Name                                          types.String `tfsdk:"name"`
-	StateName                                     types.String `tfsdk:"state_name" autogen:"omitjson"`
-	MongoDBEmployeeAccessGrant                    types.Object `tfsdk:"mongo_dbemployee_access_grant"`
-	RootCertType                                  types.String `tfsdk:"root_cert_type"`
-	BiConnector                                   types.Object `tfsdk:"bi_connector"`
-	BackupEnabled                                 types.Bool   `tfsdk:"backup_enabled"`
-	RedactClientLogData                           types.Bool   `tfsdk:"redact_client_log_data"`
-	Paused                                        types.Bool   `tfsdk:"paused"`
-	PitEnabled                                    types.Bool   `tfsdk:"pit_enabled"`
-	TerminationProtectionEnabled                  types.Bool   `tfsdk:"termination_protection_enabled"`
-	UseAwsTimeBasedSnapshotCopyForFastInitialSync types.Bool   `tfsdk:"use_aws_time_based_snapshot_copy_for_fast_initial_sync"`
-	GlobalClusterSelfManagedSharding              types.Bool   `tfsdk:"global_cluster_self_managed_sharding"`
+	Labels                                        types.List     `tfsdk:"labels"`
+	Tags                                          types.List     `tfsdk:"tags"`
+	ReplicationSpecs                              types.List     `tfsdk:"replication_specs"`
+	InternalClusterRole                           types.String   `tfsdk:"internal_cluster_role" autogen:"omitjson"`
+	MongoDBVersion                                types.String   `tfsdk:"mongo_dbversion" autogen:"omitjson"`
+	ConfigServerManagementMode                    types.String   `tfsdk:"config_server_management_mode"`
+	ConfigServerType                              types.String   `tfsdk:"config_server_type" autogen:"omitjson"`
+	ConnectionStrings                             types.Object   `tfsdk:"connection_strings" autogen:"omitjson"`
+	CreateDate                                    types.String   `tfsdk:"create_date" autogen:"omitjson"`
+	DiskWarmingMode                               types.String   `tfsdk:"disk_warming_mode"`
+	EncryptionAtRestProvider                      types.String   `tfsdk:"encryption_at_rest_provider"`
+	MongoDBMajorVersion                           types.String   `tfsdk:"mongo_dbmajor_version"`
+	FeatureCompatibilityVersionExpirationDate     types.String   `tfsdk:"feature_compatibility_version_expiration_date" autogen:"omitjson"`
+	Timeouts                                      timeouts.Value `tfsdk:"timeouts" autogen:"omitjson"`
+	GroupId                                       types.String   `tfsdk:"group_id" autogen:"omitjson"`
+	Id                                            types.String   `tfsdk:"id" autogen:"omitjson"`
+	AcceptDataRisksAndForceReplicaSetReconfig     types.String   `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
+	ClusterType                                   types.String   `tfsdk:"cluster_type"`
+	BiConnector                                   types.Object   `tfsdk:"bi_connector"`
+	FeatureCompatibilityVersion                   types.String   `tfsdk:"feature_compatibility_version" autogen:"omitjson"`
+	MongoDBEmployeeAccessGrant                    types.Object   `tfsdk:"mongo_dbemployee_access_grant"`
+	Name                                          types.String   `tfsdk:"name"`
+	VersionReleaseSystem                          types.String   `tfsdk:"version_release_system"`
+	AdvancedConfiguration                         types.Object   `tfsdk:"advanced_configuration"`
+	StateName                                     types.String   `tfsdk:"state_name" autogen:"omitjson"`
+	ReplicaSetScalingStrategy                     types.String   `tfsdk:"replica_set_scaling_strategy"`
+	RootCertType                                  types.String   `tfsdk:"root_cert_type"`
+	BackupEnabled                                 types.Bool     `tfsdk:"backup_enabled"`
+	RedactClientLogData                           types.Bool     `tfsdk:"redact_client_log_data"`
+	PitEnabled                                    types.Bool     `tfsdk:"pit_enabled"`
+	TerminationProtectionEnabled                  types.Bool     `tfsdk:"termination_protection_enabled"`
+	UseAwsTimeBasedSnapshotCopyForFastInitialSync types.Bool     `tfsdk:"use_aws_time_based_snapshot_copy_for_fast_initial_sync"`
+	Paused                                        types.Bool     `tfsdk:"paused"`
+	DeleteOnCreateTimeout                         types.Bool     `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
+	GlobalClusterSelfManagedSharding              types.Bool     `tfsdk:"global_cluster_self_managed_sharding"`
 }
 type TFAdvancedConfigurationModel struct {
 	CustomOpensslCipherConfigTls12 types.List   `tfsdk:"custom_openssl_cipher_config_tls12"`

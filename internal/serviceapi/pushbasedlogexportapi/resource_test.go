@@ -56,6 +56,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				ImportState:                          true,
 				ImportStateVerify:                    true,
 				ImportStateVerifyIdentifierAttribute: "group_id",
+				ImportStateVerifyIgnore:              []string{"delete_on_create_timeout"},
 			},
 		},
 	}
