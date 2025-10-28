@@ -244,7 +244,7 @@ var alertConfigDSSchemaAttributes = map[string]schema.Attribute{
 		},
 	},
 	"severity_override": schema.StringAttribute{
-		Optional: true,
+		Computed: true,
 	},
 }
 

@@ -152,8 +152,6 @@ resource "mongodbatlas_alert_configuration" "test" {
   -> **NOTE:** If `event_type` is set to `OUTSIDE_METRIC_THRESHOLD` or `OUTSIDE_SERVERLESS_METRIC_THRESHOLD`, the `metric_threshold_config` field must also be configured.
 * `severity_override` - (Optional) Severity of the event. For the list of accepted values please read the [Create One Alert Configuration in One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-creategroupalertconfig) API documentation
 
-  -> **NOTE:** To reset the value of this attribute to default value, you must explicity set it to ERROR (default in MongoDB Atlas)
-
 ### Matchers
 Rules to apply when matching an object against this alert configuration. Only entities that match all these rules are checked for an alert condition. You can filter using the matchers array only when the eventTypeName specifies an event for a host, replica set, or sharded cluster.
 
