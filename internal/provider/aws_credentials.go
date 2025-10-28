@@ -1,20 +1,20 @@
 package provider
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/url"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
-	"github.com/aws/aws-sdk-go/aws/endpoints"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/secretsmanager"
-	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
+	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
+	smtypes "github.com/aws/aws-sdk-go-v2/service/secretsmanager/types"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
@@ -26,27 +26,39 @@ const (
 )
 
 func getAWSCredentials(c *config.AWSVars) (*config.Credentials, error) {
-	defaultResolver := endpoints.DefaultResolver()
-	stsCustResolverFn := func(service, _ string, optFns ...func(*endpoints.Options)) (endpoints.ResolvedEndpoint, error) {
-		if service == sts.EndpointsID {
-			resolved, err := ResolveSTSEndpoint(c.Endpoint, c.Region)
-			if err != nil {
-				return endpoints.ResolvedEndpoint{}, err
-			}
-			return resolved, nil
-		}
-		return defaultResolver.EndpointFor(service, c.Region, optFns...)
-	}
-	sess := session.Must(session.NewSession(&aws.Config{
-		Region:           aws.String(c.Region),
-		Credentials:      credentials.NewStaticCredentials(c.AccessKeyID, c.SecretAccessKey, c.SessionToken),
-		EndpointResolver: endpoints.ResolverFunc(stsCustResolverFn),
-	}))
-	creds := stscreds.NewCredentials(sess, c.AssumeRoleARN)
-	secretString, err := secretsManagerGetSecretValue(sess, &aws.Config{Credentials: creds, Region: aws.String(c.Region)}, c.SecretName)
+    ctx := context.TODO()
+
+    // Base config with static credentials
+    cfg, err := awsconfig.LoadDefaultConfig(ctx,
+        awsconfig.WithRegion(c.Region),
+        awsconfig.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(c.AccessKeyID, c.SecretAccessKey, c.SessionToken)),
+    )
 	if err != nil {
 		return nil, err
 	}
+    ep, signingRegion := ResolveSTSEndpoint(c.Endpoint, c.Region)
+
+    // STS client with custom endpoint and signing region when needed
+    stsClient := sts.NewFromConfig(cfg, func(o *sts.Options) {
+        // Always set region to derived signing region
+        o.Region = signingRegion
+        if ep != "" {
+            o.EndpointResolver = sts.EndpointResolverFromURL(ep)
+        }
+    })
+
+    // Assume role provider using STS client
+    assumeRoleProvider := stscreds.NewAssumeRoleProvider(stsClient, c.AssumeRoleARN)
+
+    // Secrets Manager client using the assumed role credentials
+    smCfg := cfg
+    smCfg.Credentials = aws.NewCredentialsCache(assumeRoleProvider)
+    smClient := secretsmanager.NewFromConfig(smCfg)
+
+    secretString, err := secretsManagerGetSecretValue(ctx, smClient, c.SecretName)
+    if err != nil {
+        return nil, err
+    }
 	var secret config.Credentials
 	err = json.Unmarshal([]byte(secretString), &secret)
 	if err != nil {
@@ -76,53 +88,46 @@ func DeriveSTSRegionFromEndpoint(ep string) string {
 	return DefaultRegionSTS
 }
 
-func ResolveSTSEndpoint(stsEndpoint, secretsRegion string) (endpoints.ResolvedEndpoint, error) {
-	ep := stsEndpoint
-	if ep == "" {
-		r := secretsRegion
-		if r == "" {
-			r = DefaultRegionSTS
-		}
-		ep = fmt.Sprintf("https://sts.%s.amazonaws.com/", r)
-	}
-
-	signingRegion := DeriveSTSRegionFromEndpoint(ep)
-
-	return endpoints.ResolvedEndpoint{
-		URL:           ep,
-		SigningRegion: signingRegion,
-	}, nil
+func ResolveSTSEndpoint(stsEndpoint, secretsRegion string) (string, string) {
+    ep := stsEndpoint
+    if ep == "" {
+        r := secretsRegion
+        if r == "" {
+            r = DefaultRegionSTS
+        }
+        ep = fmt.Sprintf("https://sts.%s.amazonaws.com/", r)
+    }
+    signingRegion := DeriveSTSRegionFromEndpoint(ep)
+    return ep, signingRegion
 }
 
-func secretsManagerGetSecretValue(sess *session.Session, creds *aws.Config, secret string) (string, error) {
-	svc := secretsmanager.New(sess, creds)
-	input := &secretsmanager.GetSecretValueInput{
-		SecretId:     aws.String(secret),
-		VersionStage: aws.String("AWSCURRENT"),
-	}
+func secretsManagerGetSecretValue(ctx context.Context, client *secretsmanager.Client, secret string) (string, error) {
+    input := &secretsmanager.GetSecretValueInput{
+        SecretId:     aws.String(secret),
+        VersionStage: aws.String("AWSCURRENT"),
+    }
 
-	result, err := svc.GetSecretValue(input)
-	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			switch aerr.Code() {
-			case secretsmanager.ErrCodeResourceNotFoundException:
-				log.Println(secretsmanager.ErrCodeResourceNotFoundException, aerr.Error())
-			case secretsmanager.ErrCodeInvalidParameterException:
-				log.Println(secretsmanager.ErrCodeInvalidParameterException, aerr.Error())
-			case secretsmanager.ErrCodeInvalidRequestException:
-				log.Println(secretsmanager.ErrCodeInvalidRequestException, aerr.Error())
-			case secretsmanager.ErrCodeDecryptionFailure:
-				log.Println(secretsmanager.ErrCodeDecryptionFailure, aerr.Error())
-			case secretsmanager.ErrCodeInternalServiceError:
-				log.Println(secretsmanager.ErrCodeInternalServiceError, aerr.Error())
-			default:
-				log.Println(aerr.Error())
-			}
-		} else {
-			log.Println(err.Error())
-		}
-		return "", err
-	}
+    result, err := client.GetSecretValue(ctx, input)
+    if err != nil {
+        switch e := err.(type) {
+        case *smtypes.ResourceNotFoundException:
+            log.Println("ResourceNotFoundException", e.Error())
+        case *smtypes.InvalidParameterException:
+            log.Println("InvalidParameterException", e.Error())
+        case *smtypes.InvalidRequestException:
+            log.Println("InvalidRequestException", e.Error())
+        case *smtypes.DecryptionFailure:
+            log.Println("DecryptionFailure", e.Error())
+        case *smtypes.InternalServiceError:
+            log.Println("InternalServiceError", e.Error())
+        default:
+            log.Println(err.Error())
+        }
+        return "", err
+    }
 
-	return *result.SecretString, err
+    if result.SecretString == nil {
+        return "", fmt.Errorf("secret string is nil for secret %s", secret)
+    }
+    return *result.SecretString, nil
 }
