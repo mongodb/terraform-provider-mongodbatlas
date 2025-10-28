@@ -88,8 +88,8 @@ func DeriveSTSRegionFromEndpoint(ep string) string {
 	return DefaultRegionSTS
 }
 
-func ResolveSTSEndpoint(stsEndpoint, secretsRegion string) (string, string) {
-	ep := stsEndpoint
+func ResolveSTSEndpoint(stsEndpoint, secretsRegion string) (ep, signingRegion string) {
+	ep = stsEndpoint
 	if ep == "" {
 		r := secretsRegion
 		if r == "" {
@@ -97,7 +97,7 @@ func ResolveSTSEndpoint(stsEndpoint, secretsRegion string) (string, string) {
 		}
 		ep = fmt.Sprintf("https://sts.%s.amazonaws.com/", r)
 	}
-	signingRegion := DeriveSTSRegionFromEndpoint(ep)
+	signingRegion = DeriveSTSRegionFromEndpoint(ep)
 	return ep, signingRegion
 }
 
