@@ -214,7 +214,7 @@ env:
   # If the name (regex) of the test is set, only that test is run.
   # Only Migration tests are run when a specific previous provider version is set.
   # Don't run migration tests if using Service Account because each migration test creates a new SA token in the test first step.
-  # The previous provider runs externally (equivalent to running a Terraform command), causing token creation limit issues.  ACCTEST_REGEX_RUN: ${{ inputs.test_name || inputs.use_sa == true && '^TestAcc' || inputs.provider_version == '' && '^Test(Acc|Mig)' || '^TestMig' }}
+  # The previous provider runs externally (equivalent to running a Terraform command), causing token creation limit issues.
   MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
   MONGODB_REALM_BASE_URL: ${{ inputs.mongodb_realm_base_url }}
   MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
