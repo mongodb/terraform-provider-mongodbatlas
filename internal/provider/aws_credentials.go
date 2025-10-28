@@ -25,9 +25,7 @@ const (
 	minSegmentsForSTSRegionalHost = 4
 )
 
-func getAWSCredentials(c *config.AWSVars) (*config.Credentials, error) {
-	ctx := context.TODO()
-
+func getAWSCredentials(ctx context.Context, c *config.AWSVars) (*config.Credentials, error) {
 	cfg, err := awsconfig.LoadDefaultConfig(ctx,
 		awsconfig.WithRegion(c.Region),
 		awsconfig.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(c.AccessKeyID, c.SecretAccessKey, c.SessionToken)),
