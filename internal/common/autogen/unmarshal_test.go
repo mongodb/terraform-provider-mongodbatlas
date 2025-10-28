@@ -73,6 +73,15 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrMANYUpper types.Int64                             `tfsdk:"attr_many_upper"`
 	}
 
+	modelCustomTypeBasic := modelCustomTypeTest{
+		AttrString:    types.StringValue("different_string"),
+		AttrInt:       types.Int64Value(999),
+		AttrFloat:     types.Float64Unknown(),
+		AttrBool:      types.BoolUnknown(),
+		AttrNested:    customtypes.NewObjectValueUnknown[modelEmptyTest](ctx),
+		AttrMANYUpper: types.Int64Value(999),
+	}
+
 	type modelst struct {
 		AttrObj                            types.Object                                     `tfsdk:"attr_obj"`
 		AttrObjNullNotSent                 types.Object                                     `tfsdk:"attr_obj_null_not_sent"`
@@ -117,20 +126,12 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 			"attr_float":  types.Float64Unknown(), // can even be null
 			"attr_bool":   types.BoolUnknown(),    // can even be unknown
 		}),
-		AttrObjNullNotSent:    types.ObjectNull(objTypeTest.AttrTypes),
-		AttrObjNullSent:       types.ObjectNull(objTypeTest.AttrTypes),
-		AttrObjUnknownNotSent: types.ObjectUnknown(objTypeTest.AttrTypes), // unknown values are changed to null
-		AttrObjUnknownSent:    types.ObjectUnknown(objTypeTest.AttrTypes),
-		AttrObjParent:         types.ObjectNull(objTypeParentTest.AttrTypes),
-		AttrCustomObj: customtypes.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
-			// these attribute values are irrelevant, they will be overwritten with JSON values
-			AttrString:    types.StringValue("different_string"),
-			AttrInt:       types.Int64Value(999),
-			AttrFloat:     types.Float64Unknown(), // can even be unknown
-			AttrBool:      types.BoolUnknown(),    // can even be unknown
-			AttrNested:    customtypes.NewObjectValueUnknown[modelEmptyTest](ctx),
-			AttrMANYUpper: types.Int64Value(999),
-		}),
+		AttrObjNullNotSent:          types.ObjectNull(objTypeTest.AttrTypes),
+		AttrObjNullSent:             types.ObjectNull(objTypeTest.AttrTypes),
+		AttrObjUnknownNotSent:       types.ObjectUnknown(objTypeTest.AttrTypes), // unknown values are changed to null
+		AttrObjUnknownSent:          types.ObjectUnknown(objTypeTest.AttrTypes),
+		AttrObjParent:               types.ObjectNull(objTypeParentTest.AttrTypes),
+		AttrCustomObj:               customtypes.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeBasic),
 		AttrCustomObjNullNotSent:    customtypes.NewObjectValueNull[modelCustomTypeTest](ctx),
 		AttrCustomObjNullSent:       customtypes.NewObjectValueNull[modelCustomTypeTest](ctx),
 		AttrCustomObjUnknownNotSent: customtypes.NewObjectValueUnknown[modelCustomTypeTest](ctx), // unknown values are changed to null
@@ -140,10 +141,10 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrCustomListString:        customtypes.NewListValueUnknown[types.String](ctx),
 		AttrListObj:                 types.ListUnknown(objTypeTest),
 		AttrCustomNestedList: customtypes.NewNestedListValue[modelCustomTypeTest](ctx, []modelCustomTypeTest{
+			modelCustomTypeBasic,
 			{
-				// these attribute values are irrelevant, they will be overwritten with JSON values
-				AttrString:    types.StringValue("different_string"),
-				AttrInt:       types.Int64Value(999),
+				AttrString:    types.StringValue("existing not overwritten"),
+				AttrInt:       types.Int64Unknown(),
 				AttrFloat:     types.Float64Unknown(),
 				AttrBool:      types.BoolUnknown(),
 				AttrNested:    customtypes.NewObjectValueUnknown[modelEmptyTest](ctx),
@@ -156,23 +157,13 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrCustomNestedListUnknownSent:    customtypes.NewNestedListValueUnknown[modelCustomTypeTest](ctx),
 		AttrSetString:                      types.SetUnknown(types.StringType),
 		AttrSetObj:                         types.SetUnknown(objTypeTest),
-		AttrCustomNestedSet: customtypes.NewNestedSetValue[modelCustomTypeTest](ctx, []modelCustomTypeTest{
-			{
-				// these attribute values are irrelevant, they will be overwritten with JSON values
-				AttrString:    types.StringValue("different_string"),
-				AttrInt:       types.Int64Value(999),
-				AttrFloat:     types.Float64Unknown(),
-				AttrBool:      types.BoolUnknown(),
-				AttrNested:    customtypes.NewObjectValueUnknown[modelEmptyTest](ctx),
-				AttrMANYUpper: types.Int64Value(999),
-			},
-		}),
-		AttrCustomNestedSetNullNotSent:    customtypes.NewNestedSetValueNull[modelCustomTypeTest](ctx),
-		AttrCustomNestedSetNullSent:       customtypes.NewNestedSetValueNull[modelCustomTypeTest](ctx),
-		AttrCustomNestedSetUnknownNotSent: customtypes.NewNestedSetValueUnknown[modelCustomTypeTest](ctx),
-		AttrCustomNestedSetUnknownSent:    customtypes.NewNestedSetValueUnknown[modelCustomTypeTest](ctx),
-		AttrListListString:                types.ListUnknown(types.ListType{ElemType: types.StringType}),
-		AttrSetListObj:                    types.SetUnknown(types.ListType{ElemType: objTypeTest}),
+		AttrCustomNestedSet:                customtypes.NewNestedSetValue[modelCustomTypeTest](ctx, []modelCustomTypeTest{modelCustomTypeBasic}),
+		AttrCustomNestedSetNullNotSent:     customtypes.NewNestedSetValueNull[modelCustomTypeTest](ctx),
+		AttrCustomNestedSetNullSent:        customtypes.NewNestedSetValueNull[modelCustomTypeTest](ctx),
+		AttrCustomNestedSetUnknownNotSent:  customtypes.NewNestedSetValueUnknown[modelCustomTypeTest](ctx),
+		AttrCustomNestedSetUnknownSent:     customtypes.NewNestedSetValueUnknown[modelCustomTypeTest](ctx),
+		AttrListListString:                 types.ListUnknown(types.ListType{ElemType: types.StringType}),
+		AttrSetListObj:                     types.SetUnknown(types.ListType{ElemType: objTypeTest}),
 		AttrListObjKnown: types.ListValueMust(objTypeTest, []attr.Value{
 			types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
 				"attr_string": types.StringValue("val"),
@@ -266,8 +257,6 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 						"attrMANYUpper": 123
 					},
 					{
-						"attrString": "nestedList2",
-						"attrInt": 2,
 						"attrFloat": 2.2,
 						"attrBool": false,
 						"attrNested": {},
@@ -490,8 +479,8 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 				AttrMANYUpper: types.Int64Value(123),
 			},
 			{
-				AttrString:    types.StringValue("nestedList2"),
-				AttrInt:       types.Int64Value(2),
+				AttrString:    types.StringValue("existing not overwritten"),
+				AttrInt:       types.Int64Unknown(),
 				AttrFloat:     types.Float64Value(2.2),
 				AttrBool:      types.BoolValue(false),
 				AttrNested:    customtypes.NewObjectValue[modelEmptyTest](ctx, modelEmptyTest{}),

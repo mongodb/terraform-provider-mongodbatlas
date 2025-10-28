@@ -327,16 +327,37 @@ func getListValueTFAttr(ctx context.Context, arrayJSON []any, list customtypes.L
 }
 
 func getNestedListValueTFAttr(ctx context.Context, arrayJSON []any, list customtypes.NestedListValueInterface) (attr.Value, error) {
-	if len(arrayJSON) == 0 && list.Len() == 0 {
+	oldSlicePtr, diags := list.SlicePtrAsAny(ctx)
+	if diags.HasError() {
+		return nil, fmt.Errorf("unmarshal failed to convert list: %v", diags)
+	}
+	oldSliceVal := reflect.ValueOf(oldSlicePtr).Elem()
+	oldSliceLen := oldSliceVal.Len()
+
+	if len(arrayJSON) == 0 && oldSliceLen == 0 {
 		// Keep current list if both model and JSON lists are zero-len (empty or null) so config is preserved.
 		// It avoids inconsistent result after apply when user explicitly sets an empty list in config.
 		return list, nil
 	}
 
 	slicePtr := list.NewEmptySlicePtr()
-	err := unmarshalNestedSlice(arrayJSON, slicePtr)
-	if err != nil {
-		return nil, err
+	sliceVal := reflect.ValueOf(slicePtr).Elem()
+	sliceVal.Set(reflect.MakeSlice(sliceVal.Type(), len(arrayJSON), len(arrayJSON)))
+
+	for i, item := range arrayJSON {
+		elementVal := sliceVal.Index(i)
+		if i < oldSliceLen {
+			elementVal.Set(oldSliceVal.Index(i))
+		}
+		elementPtr := elementVal.Addr().Interface()
+		objJSON, ok := item.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("unmarshal of array item failed to convert to object: %v", item)
+		}
+		err := unmarshalAttrs(objJSON, elementPtr)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return list.NewNestedListValue(ctx, slicePtr), nil
@@ -350,15 +371,6 @@ func getNestedSetValueTFAttr(ctx context.Context, arrayJSON []any, set customtyp
 	}
 
 	slicePtr := set.NewEmptySlicePtr()
-	err := unmarshalNestedSlice(arrayJSON, slicePtr)
-	if err != nil {
-		return nil, err
-	}
-
-	return set.NewNestedSetValue(ctx, slicePtr), nil
-}
-
-func unmarshalNestedSlice(arrayJSON []any, slicePtr any) error {
 	sliceVal := reflect.ValueOf(slicePtr).Elem()
 	sliceVal.Set(reflect.MakeSlice(sliceVal.Type(), len(arrayJSON), len(arrayJSON)))
 
@@ -366,13 +378,13 @@ func unmarshalNestedSlice(arrayJSON []any, slicePtr any) error {
 		elementPtr := sliceVal.Index(i).Addr().Interface()
 		objJSON, ok := item.(map[string]any)
 		if !ok {
-			return fmt.Errorf("unmarshal of array item failed to convert to object: %v", item)
+			return nil, fmt.Errorf("unmarshal of array item failed to convert to object: %v", item)
 		}
 		err := unmarshalAttrs(objJSON, elementPtr)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	return nil
+	return set.NewNestedSetValue(ctx, slicePtr), nil
 }
