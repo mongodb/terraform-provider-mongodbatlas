@@ -130,7 +130,7 @@ func deleteRequest(client *config.MongoDBClient, model *TFModel, resp *resource.
 	pathParams := map[string]string{
 		"projectId": model.ProjectId.ValueString(),
 	}
-	return &autogen.HandleDeleteReq{
+	req := &autogen.HandleDeleteReq{
 		Resp:   resp,
 		Client: client,
 		State:  model,
@@ -141,4 +141,5 @@ func deleteRequest(client *config.MongoDBClient, model *TFModel, resp *resource.
 			Method:        "DELETE",
 		},
 	}
+	return req
 }

@@ -59,7 +59,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		Client:                r.Client,
 		Plan:                  &plan,
 		CallParams:            &callParams,
-		DeleteReq:             deleteRequest(r.Client, &plan, nil),
+		DeleteReq:             deleteRequest(r.Client, &plan, nil, 0),
 		DeleteOnCreateTimeout: plan.DeleteOnCreateTimeout.ValueBool(),
 		Wait: &autogen.WaitReq{
 			StateProperty:     "state",
