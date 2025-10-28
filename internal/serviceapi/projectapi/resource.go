@@ -103,13 +103,8 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	reqHandle := autogen.HandleDeleteReq{
-		Resp:       resp,
-		Client:     r.Client,
-		State:      &state,
-		CallParams: deleteAPICallParams(&state),
-	}
-	autogen.HandleDelete(ctx, reqHandle)
+	reqHandle := deleteRequest(r.Client, &state, resp)
+	autogen.HandleDelete(ctx, *reqHandle)
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -129,14 +124,20 @@ func readAPICallParams(model *TFModel) *config.APICallParams {
 	}
 }
 
-func deleteAPICallParams(model *TFModel) *config.APICallParams {
+func deleteRequest(client *config.MongoDBClient, model *TFModel, resp *resource.DeleteResponse) *autogen.HandleDeleteReq {
 	pathParams := map[string]string{
 		"id": model.Id.ValueString(),
 	}
-	return &config.APICallParams{
-		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{id}",
-		PathParams:    pathParams,
-		Method:        "DELETE",
+	req := &autogen.HandleDeleteReq{
+		Resp:   resp,
+		Client: client,
+		State:  model,
+		CallParams: &config.APICallParams{
+			VersionHeader: apiVersionHeader,
+			RelativePath:  "/api/atlas/v2/groups/{id}",
+			PathParams:    pathParams,
+			Method:        "DELETE",
+		},
 	}
+	return req
 }

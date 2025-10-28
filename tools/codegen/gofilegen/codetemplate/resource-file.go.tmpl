@@ -66,7 +66,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		CallParams: &callParams,
 		{{- with .APIOperations.Create.Wait }}
 		{{- if $.APIOperations.Delete }}
-		DeleteCallParams: deleteAPICallParams(&plan),
+		DeleteReq: deleteRequest(r.Client, &plan, nil{{- with $.APIOperations.Delete.Wait }}, 0{{- end }}),
 		DeleteOnCreateTimeout: plan.DeleteOnCreateTimeout.ValueBool(),
 		{{- end }}
 		Wait: &autogen.WaitReq{
@@ -158,27 +158,8 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		return
 	}
 	{{ end -}}
-	reqHandle := autogen.HandleDeleteReq {
-		Resp: resp,
-		Client: r.Client,
-		State: &state,
-		CallParams: deleteAPICallParams(&state),
-		{{- if ne .APIOperations.Delete.StaticRequestBody "" }}
-		StaticRequestBody: `{{ .APIOperations.Delete.StaticRequestBody }}`,
-		{{ end }}
-		{{with .APIOperations.Delete.Wait -}}
-		Wait: &autogen.WaitReq{
-			StateProperty: "{{ .StateProperty }}",
-			PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
-			TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
-			Timeout: timeout,
-			MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
-			DelaySeconds: {{ .DelaySeconds }},
-			CallParams: readAPICallParams(&state),
-		},
-		{{ end }}
-	}
-	autogen.HandleDelete(ctx, reqHandle)
+	reqHandle := deleteRequest(r.Client, &state, resp{{- with .APIOperations.Delete.Wait }}, timeout{{- end }})
+	autogen.HandleDelete(ctx, *reqHandle)
     {{- end }}
 }
 
@@ -201,16 +182,38 @@ func readAPICallParams(model *TFModel) *config.APICallParams {
 }
 
 {{with .APIOperations.Delete}}
-func deleteAPICallParams(model *TFModel) *config.APICallParams {
+func deleteRequest(client *config.MongoDBClient, model *TFModel, resp *resource.DeleteResponse{{- with .Wait }}, timeout time.Duration{{- end }}) *autogen.HandleDeleteReq {
 	pathParams := map[string]string{ {{range .PathParams }}
 		"{{ .CamelCaseName }}": model.{{ .PascalCaseName }}.ValueString(),
 	{{- end }}
 	}
-	return &config.APICallParams{
-		VersionHeader: apiVersionHeader,
-		RelativePath: "{{ .Path }}",
-		PathParams: pathParams,
-		Method: "{{ .HTTPMethod }}",
+	req := &autogen.HandleDeleteReq{
+		Resp: resp,
+		Client: client,
+		State: model,
+		CallParams: &config.APICallParams{
+			VersionHeader: apiVersionHeader,
+			RelativePath: "{{ .Path }}",
+			PathParams: pathParams,
+			Method: "{{ .HTTPMethod }}",
+		},
+		{{- if ne .StaticRequestBody "" }}
+		StaticRequestBody: `{{ .StaticRequestBody }}`,
+		{{- end }}
 	}
+	{{- with .Wait }}
+	if timeout > 0 {
+		req.Wait = &autogen.WaitReq{
+			StateProperty: "{{ .StateProperty }}",
+			PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
+			TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
+			Timeout: timeout,
+			MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
+			DelaySeconds: {{ .DelaySeconds }},
+			CallParams: readAPICallParams(model),
+		}
+	}
+	{{- end }}
+	return req
 }
 {{end}}

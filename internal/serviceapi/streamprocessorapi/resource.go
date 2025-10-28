@@ -60,7 +60,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		Client:                r.Client,
 		Plan:                  &plan,
 		CallParams:            &callParams,
-		DeleteCallParams:      deleteAPICallParams(&plan),
+		DeleteReq:             deleteRequest(r.Client, &plan, nil, 0),
 		DeleteOnCreateTimeout: plan.DeleteOnCreateTimeout.ValueBool(),
 		Wait: &autogen.WaitReq{
 			StateProperty:     "state",
@@ -144,22 +144,8 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	reqHandle := autogen.HandleDeleteReq{
-		Resp:       resp,
-		Client:     r.Client,
-		State:      &state,
-		CallParams: deleteAPICallParams(&state),
-		Wait: &autogen.WaitReq{
-			StateProperty:     "state",
-			PendingStates:     []string{"INIT", "CREATING", "CREATED", "STARTED", "STOPPED"},
-			TargetStates:      []string{"DELETED"},
-			Timeout:           timeout,
-			MinTimeoutSeconds: 10,
-			DelaySeconds:      10,
-			CallParams:        readAPICallParams(&state),
-		},
-	}
-	autogen.HandleDelete(ctx, reqHandle)
+	reqHandle := deleteRequest(r.Client, &state, resp, timeout)
+	autogen.HandleDelete(ctx, *reqHandle)
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -181,16 +167,33 @@ func readAPICallParams(model *TFModel) *config.APICallParams {
 	}
 }
 
-func deleteAPICallParams(model *TFModel) *config.APICallParams {
+func deleteRequest(client *config.MongoDBClient, model *TFModel, resp *resource.DeleteResponse, timeout time.Duration) *autogen.HandleDeleteReq {
 	pathParams := map[string]string{
 		"groupId":    model.GroupId.ValueString(),
 		"tenantName": model.TenantName.ValueString(),
 		"name":       model.Name.ValueString(),
 	}
-	return &config.APICallParams{
-		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{name}",
-		PathParams:    pathParams,
-		Method:        "DELETE",
+	req := &autogen.HandleDeleteReq{
+		Resp:   resp,
+		Client: client,
+		State:  model,
+		CallParams: &config.APICallParams{
+			VersionHeader: apiVersionHeader,
+			RelativePath:  "/api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{name}",
+			PathParams:    pathParams,
+			Method:        "DELETE",
+		},
 	}
+	if timeout > 0 {
+		req.Wait = &autogen.WaitReq{
+			StateProperty:     "state",
+			PendingStates:     []string{"INIT", "CREATING", "CREATED", "STARTED", "STOPPED"},
+			TargetStates:      []string{"DELETED"},
+			Timeout:           timeout,
+			MinTimeoutSeconds: 10,
+			DelaySeconds:      10,
+			CallParams:        readAPICallParams(model),
+		}
+	}
+	return req
 }

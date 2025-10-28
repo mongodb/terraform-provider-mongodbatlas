@@ -71,9 +71,9 @@ func TestAccClusterAPI_deleteOnCreateTimeout(t *testing.T) {
 }
 
 func configBasic(groupID, clusterName, instanceSize string, withTagsAndLabels, shortTimeout bool) string {
-	addtionalConfigStr := ""
+	additionalConfigStr := ""
 	if withTagsAndLabels {
-		addtionalConfigStr += `
+		additionalConfigStr += `
 			tags = [
 				{
 					key   = "tagKey"
@@ -93,7 +93,7 @@ func configBasic(groupID, clusterName, instanceSize string, withTagsAndLabels, s
 		`
 	}
 	if shortTimeout {
-		addtionalConfigStr += `
+		additionalConfigStr += `
 			timeouts = {
 				create = "10s"
 			}
@@ -117,7 +117,7 @@ func configBasic(groupID, clusterName, instanceSize string, withTagsAndLabels, s
 			}]
 			%[4]s
 		}
-	`, groupID, clusterName, instanceSize, addtionalConfigStr)
+	`, groupID, clusterName, instanceSize, additionalConfigStr)
 }
 
 func checkBasic(groupID, clusterName, instanceSize string) resource.TestCheckFunc {
