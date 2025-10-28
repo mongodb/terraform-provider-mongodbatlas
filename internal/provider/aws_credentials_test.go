@@ -85,9 +85,9 @@ func Test_resolveSTSEndpoint(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-            ep, sign := provider.ResolveSTSEndpoint(tc.stsEndpoint, tc.secretsRegion)
-            assert.Equal(t, tc.expectedURL, ep)
-            assert.Equal(t, tc.expectedSign, sign)
+			ep, sign := provider.ResolveSTSEndpoint(tc.stsEndpoint, tc.secretsRegion)
+			assert.Equal(t, tc.expectedURL, ep)
+			assert.Equal(t, tc.expectedSign, sign)
 		})
 	}
 }
