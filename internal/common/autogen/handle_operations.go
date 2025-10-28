@@ -205,7 +205,7 @@ func addError(d *diag.Diagnostics, opName, errSummary string, err error) {
 }
 
 // callAPIWithBody makes a request to the API with the given request body and returns the response body.
-// It is used for POST, PUT, PATCH, and DELETE with static content.
+// It is used for POST, PUT, PATCH and DELETE with static content.
 func callAPIWithBody(ctx context.Context, client *config.MongoDBClient, callParams *config.APICallParams, bodyReq []byte) ([]byte, *http.Response, error) {
 	apiResp, err := client.UntypedAPICall(ctx, callParams, bodyReq)
 	if err != nil {

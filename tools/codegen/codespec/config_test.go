@@ -3,6 +3,7 @@ package codespec_test
 import (
 	"testing"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/stretchr/testify/assert"
 )
@@ -91,8 +92,6 @@ func TestApplyTimeoutTransformation(t *testing.T) {
 }
 
 func TestApplyDeleteOnCreateTimeoutTransformation(t *testing.T) {
-	defaultTrue := true
-
 	tests := map[string]struct {
 		inputOperations                codespec.APIOperations
 		shouldAddDeleteOnCreateTimeout bool
@@ -170,7 +169,7 @@ func TestApplyDeleteOnCreateTimeoutTransformation(t *testing.T) {
 				expectedAttr := codespec.Attribute{
 					TFSchemaName:             "delete_on_create_timeout",
 					TFModelName:              "DeleteOnCreateTimeout",
-					Bool:                     &codespec.BoolAttribute{Default: &defaultTrue},
+					Bool:                     &codespec.BoolAttribute{Default: conversion.Pointer(true)},
 					Description:              &description,
 					ReqBodyUsage:             codespec.OmitAlways,
 					CreateOnly:               true,
