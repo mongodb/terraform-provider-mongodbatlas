@@ -5,6 +5,7 @@ package testname
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -105,7 +106,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	reqHandle := deleteRequest(r.Client, &state, resp)
+	reqHandle := deleteRequest(r.Client, &state, &resp.Diagnostics)
 	autogen.HandleDelete(ctx, *reqHandle)
 }
 
@@ -126,14 +127,14 @@ func readAPICallParams(model *TFModel) *config.APICallParams {
 	}
 }
 
-func deleteRequest(client *config.MongoDBClient, model *TFModel, resp *resource.DeleteResponse) *autogen.HandleDeleteReq {
+func deleteRequest(client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
 	pathParams := map[string]string{
 		"projectId": model.ProjectId.ValueString(),
 	}
-	req := &autogen.HandleDeleteReq{
-		Resp:   resp,
+	return &autogen.HandleDeleteReq{
 		Client: client,
 		State:  model,
+		Diags:  diags,
 		CallParams: &config.APICallParams{
 			VersionHeader: apiVersionHeader,
 			RelativePath:  "/api/v1/testname/{projectId}",
@@ -141,5 +142,4 @@ func deleteRequest(client *config.MongoDBClient, model *TFModel, resp *resource.
 			Method:        "DELETE",
 		},
 	}
-	return req
 }

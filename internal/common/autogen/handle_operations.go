@@ -155,7 +155,7 @@ func HandleUpdate(ctx context.Context, req HandleUpdateReq) {
 }
 
 type HandleDeleteReq struct {
-	Resp              *resource.DeleteResponse
+	Diags             *diag.Diagnostics
 	Client            *config.MongoDBClient
 	State             any
 	CallParams        *config.APICallParams
@@ -164,13 +164,12 @@ type HandleDeleteReq struct {
 }
 
 func HandleDelete(ctx context.Context, req HandleDeleteReq) {
-	d := &req.Resp.Diagnostics
 	if err := callDelete(ctx, &req); err != nil {
-		addError(d, opDelete, errCallingAPI, err)
+		addError(req.Diags, opDelete, errCallingAPI, err)
 		return
 	}
 	if errWait := handleWaitDelete(ctx, req.Wait, req.Client); errWait != nil {
-		addError(d, opDelete, errWaitingForChanges, errWait)
+		addError(req.Diags, opDelete, errWaitingForChanges, errWait)
 	}
 }
 

@@ -8,6 +8,9 @@ import (
 	"time"
 	{{ end }}
 
+	{{if .APIOperations.Delete }}
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	{{ end -}}
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -66,7 +69,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		CallParams: &callParams,
 		{{- with .APIOperations.Create.Wait }}
 		{{- if $.APIOperations.Delete }}
-		DeleteReq: deleteRequest(r.Client, &plan, nil{{- with $.APIOperations.Delete.Wait }}, 0{{- end }}),
+		DeleteReq: deleteRequest(r.Client, &plan, &resp.Diagnostics),
 		DeleteOnCreateTimeout: plan.DeleteOnCreateTimeout.ValueBool(),
 		{{- end }}
 		Wait: &autogen.WaitReq{
@@ -151,14 +154,23 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	{{with .APIOperations.Delete.Wait -}}
-	timeout, localDiags := state.Timeouts.Delete(ctx, {{ .TimeoutSeconds }}*time.Second)
-	resp.Diagnostics.Append(localDiags...)
+	reqHandle := deleteRequest(r.Client, &state, &resp.Diagnostics)
+	{{- with .APIOperations.Delete.Wait }}
+	timeout, diags := state.Timeouts.Delete(ctx, {{ .TimeoutSeconds }}*time.Second)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	{{ end -}}
-	reqHandle := deleteRequest(r.Client, &state, resp{{- with .APIOperations.Delete.Wait }}, timeout{{- end }})
+	reqHandle.Wait = &autogen.WaitReq{
+		StateProperty: "{{ .StateProperty }}",
+		PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
+		TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
+		Timeout: timeout,
+		MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
+		DelaySeconds: {{ .DelaySeconds }},
+		CallParams: readAPICallParams(&state),
+	}
+	{{- end }}
 	autogen.HandleDelete(ctx, *reqHandle)
     {{- end }}
 }
@@ -182,15 +194,15 @@ func readAPICallParams(model *TFModel) *config.APICallParams {
 }
 
 {{with .APIOperations.Delete}}
-func deleteRequest(client *config.MongoDBClient, model *TFModel, resp *resource.DeleteResponse{{- with .Wait }}, timeout time.Duration{{- end }}) *autogen.HandleDeleteReq {
+func deleteRequest(client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
 	pathParams := map[string]string{ {{range .PathParams }}
 		"{{ .CamelCaseName }}": model.{{ .PascalCaseName }}.ValueString(),
 	{{- end }}
 	}
-	req := &autogen.HandleDeleteReq{
-		Resp: resp,
+	return &autogen.HandleDeleteReq{
 		Client: client,
 		State: model,
+		Diags: diags,
 		CallParams: &config.APICallParams{
 			VersionHeader: apiVersionHeader,
 			RelativePath: "{{ .Path }}",
@@ -201,19 +213,5 @@ func deleteRequest(client *config.MongoDBClient, model *TFModel, resp *resource.
 		StaticRequestBody: `{{ .StaticRequestBody }}`,
 		{{- end }}
 	}
-	{{- with .Wait }}
-	if timeout > 0 {
-		req.Wait = &autogen.WaitReq{
-			StateProperty: "{{ .StateProperty }}",
-			PendingStates: []string{ {{range .PendingStates }}"{{ . }}", {{- end }} },
-			TargetStates: []string{ {{range .TargetStates }}"{{ . }}", {{- end }} },
-			Timeout: timeout,
-			MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
-			DelaySeconds: {{ .DelaySeconds }},
-			CallParams: readAPICallParams(model),
-		}
-	}
-	{{- end }}
-	return req
 }
 {{end}}

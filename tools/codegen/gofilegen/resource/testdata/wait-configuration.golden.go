@@ -6,6 +6,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -59,7 +60,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		Client:                r.Client,
 		Plan:                  &plan,
 		CallParams:            &callParams,
-		DeleteReq:             deleteRequest(r.Client, &plan, nil, 0),
+		DeleteReq:             deleteRequest(r.Client, &plan, &resp.Diagnostics),
 		DeleteOnCreateTimeout: plan.DeleteOnCreateTimeout.ValueBool(),
 		Wait: &autogen.WaitReq{
 			StateProperty:     "state",
@@ -136,12 +137,21 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	timeout, localDiags := state.Timeouts.Delete(ctx, 300*time.Second)
-	resp.Diagnostics.Append(localDiags...)
+	reqHandle := deleteRequest(r.Client, &state, &resp.Diagnostics)
+	timeout, diags := state.Timeouts.Delete(ctx, 300*time.Second)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	reqHandle := deleteRequest(r.Client, &state, resp, timeout)
+	reqHandle.Wait = &autogen.WaitReq{
+		StateProperty:     "state",
+		PendingStates:     []string{"PENDING"},
+		TargetStates:      []string{"UNCONFIGURED", "DELETED"},
+		Timeout:           timeout,
+		MinTimeoutSeconds: 60,
+		DelaySeconds:      10,
+		CallParams:        readAPICallParams(&state),
+	}
 	autogen.HandleDelete(ctx, *reqHandle)
 }
 
@@ -162,14 +172,14 @@ func readAPICallParams(model *TFModel) *config.APICallParams {
 	}
 }
 
-func deleteRequest(client *config.MongoDBClient, model *TFModel, resp *resource.DeleteResponse, timeout time.Duration) *autogen.HandleDeleteReq {
+func deleteRequest(client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
 	pathParams := map[string]string{
 		"projectId": model.ProjectId.ValueString(),
 	}
-	req := &autogen.HandleDeleteReq{
-		Resp:   resp,
+	return &autogen.HandleDeleteReq{
 		Client: client,
 		State:  model,
+		Diags:  diags,
 		CallParams: &config.APICallParams{
 			VersionHeader: apiVersionHeader,
 			RelativePath:  "/api/v1/testname/{projectId}",
@@ -177,16 +187,4 @@ func deleteRequest(client *config.MongoDBClient, model *TFModel, resp *resource.
 			Method:        "DELETE",
 		},
 	}
-	if timeout > 0 {
-		req.Wait = &autogen.WaitReq{
-			StateProperty:     "state",
-			PendingStates:     []string{"PENDING"},
-			TargetStates:      []string{"UNCONFIGURED", "DELETED"},
-			Timeout:           timeout,
-			MinTimeoutSeconds: 60,
-			DelaySeconds:      10,
-			CallParams:        readAPICallParams(model),
-		}
-	}
-	return req
 }
