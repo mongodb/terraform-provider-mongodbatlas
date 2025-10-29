@@ -511,7 +511,7 @@ jobs:
           ACCTEST_REGEX_RUN: '^TestMig'
           ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
-      - name: Remove token
+      - name: Revoke token
         run: make access-token-revoke token="${{ steps.create-token.outputs.access_token }}"
 
   assume_role:
@@ -613,7 +613,7 @@ jobs:
           ACCTEST_REGEX_RUN: '^TestAccAccessToken'
           ACCTEST_PACKAGES: ./internal/provider
         run: make testacc
-      - name: Remove token
+      - name: Revoke token
         env:
           MONGODB_ATLAS_CLIENT_ID: ${{ secrets.mongodb_atlas_client_id }}
           MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}        
@@ -927,7 +927,7 @@ jobs:
             ./internal/service/teamprojectassignment
             ./internal/service/thirdpartyintegration
         run: make testacc
-      - name: Remove token
+      - name: Revoke token
         run: make access-token-revoke token="${{ steps.create-token.outputs.access_token }}"
 
   encryption:
