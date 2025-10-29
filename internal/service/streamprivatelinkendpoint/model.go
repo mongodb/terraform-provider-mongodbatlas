@@ -14,6 +14,7 @@ const (
 	VendorConfluent = "CONFLUENT"
 	VendorMSK       = "MSK"
 	VendorS3        = "S3"
+	ProviderGCP     = "GCP"
 )
 
 func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPrivateLinkConnection) (*TFModel, diag.Diagnostics) {
@@ -39,6 +40,12 @@ func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPri
 	}
 	result.DnsSubDomain = subdomain
 
+	serviceAttachmentUris, diagsServiceAttachment := types.ListValueFrom(ctx, types.StringType, apiResp.GetGcpServiceAttachmentUris())
+	if diagsServiceAttachment.HasError() {
+		return nil, diagsServiceAttachment
+	}
+	result.ServiceAttachmentUris = serviceAttachmentUris
+
 	return result, nil
 }
 
@@ -46,8 +53,24 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 	diags := diag.Diagnostics{}
 
 	if plan.Vendor.ValueString() == VendorConfluent {
-		if plan.ServiceEndpointId.IsNull() {
-			diags.AddError(fmt.Sprintf("service_endpoint_id is required for vendor %s", VendorConfluent), "")
+		provider := plan.Provider.ValueString()
+
+		// Validate that exactly one of service_endpoint_id or service_attachment_uris is provided
+		hasServiceEndpointID := !plan.ServiceEndpointId.IsNull() && plan.ServiceEndpointId.ValueString() != ""
+		hasServiceAttachmentUris := !plan.ServiceAttachmentUris.IsNull() && len(plan.ServiceAttachmentUris.Elements()) > 0
+
+		if !hasServiceEndpointID && !hasServiceAttachmentUris {
+			diags.AddError("Either service_endpoint_id or service_attachment_uris must be provided for CONFLUENT vendor", "")
+		}
+		if hasServiceEndpointID && hasServiceAttachmentUris {
+			diags.AddError("Only one of service_endpoint_id or service_attachment_uris can be provided", "")
+		}
+
+		if provider == ProviderGCP && !hasServiceAttachmentUris {
+			diags.AddError(fmt.Sprintf("service_attachment_uris is required for provider %s with vendor %s", ProviderGCP, VendorConfluent), "")
+		}
+		if provider != ProviderGCP && !hasServiceEndpointID {
+			diags.AddError(fmt.Sprintf("service_endpoint_id is required for provider %s with vendor %s", provider, VendorConfluent), "")
 		}
 		if plan.DnsDomain.IsNull() {
 			diags.AddError(fmt.Sprintf("dns_domain is required for vendor %s", VendorConfluent), "")
@@ -97,6 +120,16 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 		}
 		result.DnsSubDomain = &dnsSubdomains
 	}
+
+	if !plan.ServiceAttachmentUris.IsNull() {
+		var serviceAttachmentUris []string
+		diags := plan.ServiceAttachmentUris.ElementsAs(ctx, &serviceAttachmentUris, false)
+		if diags.HasError() {
+			return nil, diags
+		}
+		result.GcpServiceAttachmentUris = &serviceAttachmentUris
+	}
+
 	return result, nil
 }
 
