@@ -127,6 +127,7 @@ func TestMarshalNestedAllTypes(t *testing.T) {
 		AttrCustomList customtypes.ListValue[types.String] `tfsdk:"attr_custom_list"`
 		AttrListObj    types.List                          `tfsdk:"attr_list_obj"`
 		AttrSetSimple  types.Set                           `tfsdk:"attr_set_simple"`
+		AttrCustomSet  customtypes.SetValue[types.String]  `tfsdk:"attr_custom_set"`
 		AttrSetObj     types.Set                           `tfsdk:"attr_set_obj"`
 		AttrMapSimple  types.Map                           `tfsdk:"attr_map_simple"`
 		AttrMapObj     types.Map                           `tfsdk:"attr_map_obj"`
@@ -136,6 +137,7 @@ func TestMarshalNestedAllTypes(t *testing.T) {
 		AttrCustomList: customtypes.NewListValue[types.String](t.Context(), []attr.Value{types.StringValue("val1"), types.StringValue("val2")}),
 		AttrListObj:    attrListObj,
 		AttrSetSimple:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("val11"), types.StringValue("val22")}),
+		AttrCustomSet:  customtypes.NewSetValue[types.String](t.Context(), []attr.Value{types.StringValue("val11"), types.StringValue("val22")}),
 		AttrSetObj:     attrSetObj,
 		AttrMapSimple: types.MapValueMust(types.StringType, map[string]attr.Value{
 			"keyOne": types.StringValue("val1"),
@@ -153,6 +155,7 @@ func TestMarshalNestedAllTypes(t *testing.T) {
 				{ "attrString": "str2", "attrInt": 2 }
 			],
 			"attrSetSimple": ["val11", "val22"],
+			"attrCustomSet": ["val11", "val22"],
 			"attrSetObj": [
 				{ "attrString": "str11", "attrInt": 11 },
 				{ "attrString": "str22", "attrInt": 22 }
@@ -264,6 +267,7 @@ func TestMarshalUpdateNull(t *testing.T) {
 		AttrList          types.List                          `tfsdk:"attr_list"`
 		AttrCustomList    customtypes.ListValue[types.String] `tfsdk:"attr_custom_list"`
 		AttrSet           types.Set                           `tfsdk:"attr_set"`
+		AttrCustomSet     customtypes.SetValue[types.String]  `tfsdk:"attr_custom_set"`
 		AttrString        types.String                        `tfsdk:"attr_string"`
 		AttrObj           types.Object                        `tfsdk:"attr_obj"`
 		AttrIncludeString types.String                        `tfsdk:"attr_include_update" autogen:"includenullonupdate"`
@@ -272,6 +276,7 @@ func TestMarshalUpdateNull(t *testing.T) {
 		AttrList:          types.ListNull(types.StringType),
 		AttrCustomList:    customtypes.NewListValueNull[types.String](t.Context()),
 		AttrSet:           types.SetNull(types.StringType),
+		AttrCustomSet:     customtypes.NewSetValueNull[types.String](t.Context()),
 		AttrString:        types.StringNull(),
 		AttrObj:           types.ObjectNull(objTypeTest.AttrTypes),
 		AttrIncludeString: types.StringNull(),
@@ -284,6 +289,7 @@ func TestMarshalUpdateNull(t *testing.T) {
 			"attrList": [],
 			"attrCustomList": [],
 			"attrSet": [],
+			"attrCustomSet": [],
 			"attrIncludeString": null,
 			"attrIncludeObj": null
 		}

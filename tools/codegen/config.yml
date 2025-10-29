@@ -517,7 +517,6 @@ resources:
       path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
       method: DELETE
     schema:
-      use_custom_nested_types: false
       overrides:
         secrets.secret:
           sensitive: true

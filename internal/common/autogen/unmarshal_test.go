@@ -104,6 +104,7 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrCustomNestedListUnknownNotSent customtypes.NestedListValue[modelCustomTypeTest] `tfsdk:"attr_custom_nested_list_unknown_not_sent"`
 		AttrCustomNestedListUnknownSent    customtypes.NestedListValue[modelCustomTypeTest] `tfsdk:"attr_custom_nested_list_unknown_sent"`
 		AttrSetString                      types.Set                                        `tfsdk:"attr_set_string"`
+		AttrCustomSetString                customtypes.SetValue[types.String]               `tfsdk:"attr_custom_set_string"`
 		AttrSetObj                         types.Set                                        `tfsdk:"attr_set_obj"`
 		AttrCustomNestedSet                customtypes.NestedSetValue[modelCustomTypeTest]  `tfsdk:"attr_custom_nested_set"`
 		AttrCustomNestedSetNullNotSent     customtypes.NestedSetValue[modelCustomTypeTest]  `tfsdk:"attr_custom_nested_set_null_not_sent"`
@@ -156,6 +157,7 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 		AttrCustomNestedListUnknownNotSent: customtypes.NewNestedListValueUnknown[modelCustomTypeTest](ctx),
 		AttrCustomNestedListUnknownSent:    customtypes.NewNestedListValueUnknown[modelCustomTypeTest](ctx),
 		AttrSetString:                      types.SetUnknown(types.StringType),
+		AttrCustomSetString:                customtypes.NewSetValueUnknown[types.String](ctx),
 		AttrSetObj:                         types.SetUnknown(objTypeTest),
 		AttrCustomNestedSet:                customtypes.NewNestedSetValue[modelCustomTypeTest](ctx, []modelCustomTypeTest{modelCustomTypeBasic}),
 		AttrCustomNestedSetNullNotSent:     customtypes.NewNestedSetValueNull[modelCustomTypeTest](ctx),
@@ -270,6 +272,10 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 					}
 				],
 				"attrSetString": [
+					"set1",
+					"set2"
+				],
+				"attrCustomSetString": [
 					"set1",
 					"set2"
 				],
@@ -501,6 +507,10 @@ func TestUnmarshalNestedAllTypes(t *testing.T) {
 			},
 		}),
 		AttrSetString: types.SetValueMust(types.StringType, []attr.Value{
+			types.StringValue("set1"),
+			types.StringValue("set2"),
+		}),
+		AttrCustomSetString: customtypes.NewSetValue[types.String](ctx, []attr.Value{
 			types.StringValue("set1"),
 			types.StringValue("set2"),
 		}),
