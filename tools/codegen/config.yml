@@ -231,8 +231,6 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
       method: DELETE
     version_header: application/vnd.atlas.2023-01-01+json
-    schema:
-      use_custom_nested_types: false
 
   database_user_api:
     read:

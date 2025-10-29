@@ -70,8 +70,22 @@ func prepareAttr(value attr.Value) (attr.Value, error) {
 		if v.IsUnknown() {
 			return v.NewNestedListValueNull(ctx), nil
 		}
-		// If known, no need to process each list item since unmarshal does not generate unknown attributes.
-		return v, nil
+
+		slicePtr, diags := v.SlicePtrAsAny(ctx)
+		if diags.HasError() {
+			return nil, fmt.Errorf("unmarshal failed to convert list: %v", diags)
+		}
+
+		sliceVal := reflect.ValueOf(slicePtr).Elem()
+		for i := range sliceVal.Len() {
+			elementPtr := sliceVal.Index(i).Addr().Interface()
+			err := ResolveUnknowns(elementPtr)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		return v.NewNestedListValue(ctx, slicePtr), nil
 	case customtypes.NestedSetValueInterface:
 		if v.IsUnknown() {
 			return v.NewNestedSetValueNull(ctx), nil

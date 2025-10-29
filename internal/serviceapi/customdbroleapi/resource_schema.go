@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
@@ -17,6 +18,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"actions": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "List of the individual privilege actions that the role grants.",
+				CustomType:          customtypes.NewNestedListType[TFActionsModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"action": schema.StringAttribute{
@@ -26,6 +28,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						"resources": schema.ListNestedAttribute{
 							Optional:            true,
 							MarkdownDescription: "List of resources on which you grant the action.",
+							CustomType:          customtypes.NewNestedListType[TFActionsResourcesModel](ctx),
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"cluster": schema.BoolAttribute{
@@ -54,6 +57,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"inherited_roles": schema.SetNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "List of the built-in roles that this custom role inherits.",
+				CustomType:          customtypes.NewNestedSetType[TFInheritedRolesModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"db": schema.StringAttribute{
@@ -77,14 +81,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	Actions        types.List   `tfsdk:"actions"`
-	GroupId        types.String `tfsdk:"group_id" autogen:"omitjson"`
-	InheritedRoles types.Set    `tfsdk:"inherited_roles"`
-	RoleName       types.String `tfsdk:"role_name" autogen:"omitjsonupdate"`
+	Actions        customtypes.NestedListValue[TFActionsModel]       `tfsdk:"actions"`
+	GroupId        types.String                                      `tfsdk:"group_id" autogen:"omitjson"`
+	InheritedRoles customtypes.NestedSetValue[TFInheritedRolesModel] `tfsdk:"inherited_roles"`
+	RoleName       types.String                                      `tfsdk:"role_name" autogen:"omitjsonupdate"`
 }
 type TFActionsModel struct {
-	Action    types.String `tfsdk:"action"`
-	Resources types.List   `tfsdk:"resources"`
+	Action    types.String                                         `tfsdk:"action"`
+	Resources customtypes.NestedListValue[TFActionsResourcesModel] `tfsdk:"resources"`
 }
 type TFActionsResourcesModel struct {
 	Collection types.String `tfsdk:"collection"`
