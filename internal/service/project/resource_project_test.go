@@ -639,6 +639,7 @@ func TestAccProject_basic(t *testing.T) {
 
 func TestAccGovProject_withProjectOwner(t *testing.T) {
 	acc.SkipInSA(t, "SA not supported in Gov tests yet")
+	acc.SkipInAccessToken(t, "SA not supported in Gov tests yet")
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_GOV_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_GOV_PROJECT_OWNER_ID")
