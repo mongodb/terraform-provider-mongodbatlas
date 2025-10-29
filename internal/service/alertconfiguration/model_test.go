@@ -30,14 +30,12 @@ var (
 )
 
 func TestNotificationSDKToTFModel(t *testing.T) {
-	testCases := []struct {
-		name                      string
+	testCases := map[string]struct {
 		SDKResp                   *[]admin.AlertsNotificationRootForGroup
 		currentStateNotifications []alertconfiguration.TfNotificationModel
 		expectedTFModel           []alertconfiguration.TfNotificationModel
 	}{
-		{
-			name: "Complete SDK response",
+		"Complete SDK response": {
 			SDKResp: &[]admin.AlertsNotificationRootForGroup{
 				{
 					TypeName:      admin.PtrString(group),
@@ -78,8 +76,8 @@ func TestNotificationSDKToTFModel(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
 			resultModel := alertconfiguration.NewTFNotificationModelList(*tc.SDKResp, tc.currentStateNotifications)
 			assert.Equal(t, tc.expectedTFModel, resultModel, "created terraform model did not match expected output")
 		})
@@ -87,14 +85,12 @@ func TestNotificationSDKToTFModel(t *testing.T) {
 }
 
 func TestMetricThresholdSDKToTFModel(t *testing.T) {
-	testCases := []struct {
-		name                        string
+	testCases := map[string]struct {
 		SDKResp                     *admin.FlexClusterMetricThreshold
 		currentStateMetricThreshold []alertconfiguration.TfMetricThresholdConfigModel
 		expectedTFModel             []alertconfiguration.TfMetricThresholdConfigModel
 	}{
-		{
-			name: "Complete SDK response",
+		"Complete SDK response": {
 			SDKResp: &admin.FlexClusterMetricThreshold{
 				MetricName: "ASSERT_REGULAR",
 				Operator:   admin.PtrString(operator),
@@ -123,8 +119,8 @@ func TestMetricThresholdSDKToTFModel(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
 			resultModel := alertconfiguration.NewTFMetricThresholdConfigModel(tc.SDKResp, tc.currentStateMetricThreshold)
 			assert.Equal(t, tc.expectedTFModel, resultModel, "created terraform model did not match expected output")
 		})
@@ -132,14 +128,12 @@ func TestMetricThresholdSDKToTFModel(t *testing.T) {
 }
 
 func TestThresholdConfigSDKToTFModel(t *testing.T) {
-	testCases := []struct {
-		name                        string
+	testCases := map[string]struct {
 		SDKResp                     *admin.StreamProcessorMetricThreshold
 		currentStateThresholdConfig []alertconfiguration.TfThresholdConfigModel
 		expectedTFModel             []alertconfiguration.TfThresholdConfigModel
 	}{
-		{
-			name: "Complete SDK response",
+		"Complete SDK response": {
 			SDKResp: &admin.StreamProcessorMetricThreshold{
 				Threshold: admin.PtrFloat64(1.0),
 				Operator:  admin.PtrString("LESS_THAN"),
@@ -162,8 +156,8 @@ func TestThresholdConfigSDKToTFModel(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
 			resultModel := alertconfiguration.NewTFThresholdConfigModel(tc.SDKResp, tc.currentStateThresholdConfig)
 			assert.Equal(t, tc.expectedTFModel, resultModel, "created terraform model did not match expected output")
 		})
@@ -171,14 +165,12 @@ func TestThresholdConfigSDKToTFModel(t *testing.T) {
 }
 
 func TestMatcherSDKToTFModel(t *testing.T) {
-	testCases := []struct {
-		name                string
+	testCases := map[string]struct {
 		SDKResp             []admin.StreamsMatcher
 		currentStateMatcher []alertconfiguration.TfMatcherModel
 		expectedTFModel     []alertconfiguration.TfMatcherModel
 	}{
-		{
-			name: "Complete SDK response",
+		"Complete SDK response": {
 			SDKResp: []admin.StreamsMatcher{{
 				FieldName: "HOSTNAME",
 				Operator:  "EQUALS",
@@ -202,8 +194,8 @@ func TestMatcherSDKToTFModel(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
 			resultModel := alertconfiguration.NewTFMatcherModelList(tc.SDKResp, tc.currentStateMatcher)
 			assert.Equal(t, tc.expectedTFModel, resultModel, "created terraform model did not match expected output")
 		})
@@ -211,14 +203,12 @@ func TestMatcherSDKToTFModel(t *testing.T) {
 }
 
 func TestAlertConfigurationSDKToTFModel(t *testing.T) {
-	testCases := []struct {
-		name                           string
+	testCases := map[string]struct {
 		SDKResp                        *admin.GroupAlertsConfig
 		currentStateAlertConfiguration *alertconfiguration.TfAlertConfigurationRSModel
 		expectedTFModel                alertconfiguration.TfAlertConfigurationRSModel
 	}{
-		{
-			name: "Complete SKD response",
+		"Complete SDK response": {
 			SDKResp: &admin.GroupAlertsConfig{
 				Enabled:       admin.PtrBool(true),
 				EventTypeName: admin.PtrString("EventType"),
@@ -248,10 +238,43 @@ func TestAlertConfigurationSDKToTFModel(t *testing.T) {
 				Enabled:               types.BoolValue(true),
 			},
 		},
+		"Complete SDK response with SeverityOverride": {
+			SDKResp: &admin.GroupAlertsConfig{
+				Enabled:          admin.PtrBool(true),
+				EventTypeName:    admin.PtrString("EventType"),
+				GroupId:          admin.PtrString("projectId"),
+				Id:               admin.PtrString("alertConfigurationId"),
+				SeverityOverride: admin.PtrString("WARNING"),
+			},
+			currentStateAlertConfiguration: &alertconfiguration.TfAlertConfigurationRSModel{
+				ID:                    types.StringValue("id"),
+				ProjectID:             types.StringValue("projectId"),
+				AlertConfigurationID:  types.StringValue("alertConfigurationId"),
+				EventType:             types.StringValue("EventType"),
+				Matcher:               []alertconfiguration.TfMatcherModel{},
+				MetricThresholdConfig: []alertconfiguration.TfMetricThresholdConfigModel{},
+				ThresholdConfig:       []alertconfiguration.TfThresholdConfigModel{},
+				Notification:          []alertconfiguration.TfNotificationModel{},
+				Enabled:               types.BoolValue(true),
+				SeverityOverride:      types.StringValue("WARNING"),
+			},
+			expectedTFModel: alertconfiguration.TfAlertConfigurationRSModel{
+				ID:                    types.StringValue("id"),
+				ProjectID:             types.StringValue("projectId"),
+				AlertConfigurationID:  types.StringValue("alertConfigurationId"),
+				EventType:             types.StringValue("EventType"),
+				Matcher:               []alertconfiguration.TfMatcherModel{},
+				MetricThresholdConfig: []alertconfiguration.TfMetricThresholdConfigModel{},
+				ThresholdConfig:       []alertconfiguration.TfThresholdConfigModel{},
+				Notification:          []alertconfiguration.TfNotificationModel{},
+				Enabled:               types.BoolValue(true),
+				SeverityOverride:      types.StringValue("WARNING"),
+			},
+		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
 			resultModel := alertconfiguration.NewTFAlertConfigurationModel(tc.SDKResp, tc.currentStateAlertConfiguration)
 			assert.Equal(t, tc.expectedTFModel, resultModel, "created terraform model did not match expected output")
 		})
@@ -259,13 +282,11 @@ func TestAlertConfigurationSDKToTFModel(t *testing.T) {
 }
 
 func TestNotificationTFModelToSDK(t *testing.T) {
-	testCases := []struct {
-		name           string
+	testCases := map[string]struct {
 		expectedSDKReq *[]admin.AlertsNotificationRootForGroup
 		tfModel        []alertconfiguration.TfNotificationModel
 	}{
-		{
-			name: "Complete TF model",
+		"Complete TF model": {
 			tfModel: []alertconfiguration.TfNotificationModel{
 				{
 					TypeName:      types.StringValue(group),
@@ -291,8 +312,8 @@ func TestNotificationTFModelToSDK(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
 			apiReqResult, _ := alertconfiguration.NewNotificationList(tc.tfModel)
 			assert.Equal(t, *tc.expectedSDKReq, *apiReqResult, "created sdk model did not match expected output")
 		})
@@ -300,18 +321,15 @@ func TestNotificationTFModelToSDK(t *testing.T) {
 }
 
 func TestThresholdTFModelToSDK(t *testing.T) {
-	testCases := []struct {
-		name           string
+	testCases := map[string]struct {
 		expectedSDKReq *admin.StreamProcessorMetricThreshold
 		tfModel        []alertconfiguration.TfThresholdConfigModel
 	}{
-		{
-			name:           "Empty TF model",
+		"Empty TF model": {
 			tfModel:        []alertconfiguration.TfThresholdConfigModel{},
 			expectedSDKReq: nil,
 		},
-		{
-			name: "Complete TF model",
+		"Complete TF model": {
 			tfModel: []alertconfiguration.TfThresholdConfigModel{
 				{
 					Threshold: types.Float64Value(1.0),
@@ -327,8 +345,8 @@ func TestThresholdTFModelToSDK(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
 			apiReqResult := alertconfiguration.NewThreshold(tc.tfModel)
 			assert.Equal(t, tc.expectedSDKReq, apiReqResult, "created sdk model did not match expected output")
 		})
@@ -336,18 +354,15 @@ func TestThresholdTFModelToSDK(t *testing.T) {
 }
 
 func TestMetricThresholdTFModelToSDK(t *testing.T) {
-	testCases := []struct {
-		name           string
+	testCases := map[string]struct {
 		expectedSDKReq *admin.FlexClusterMetricThreshold
 		tfModel        []alertconfiguration.TfMetricThresholdConfigModel
 	}{
-		{
-			name:           "Empty TF model",
+		"Empty TF model": {
 			tfModel:        []alertconfiguration.TfMetricThresholdConfigModel{},
 			expectedSDKReq: nil,
 		},
-		{
-			name: "Complete TF model",
+		"Complete TF model": {
 			tfModel: []alertconfiguration.TfMetricThresholdConfigModel{
 				{
 					Threshold:  types.Float64Value(threshold),
@@ -367,8 +382,8 @@ func TestMetricThresholdTFModelToSDK(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
 			apiReqResult := alertconfiguration.NewMetricThreshold(tc.tfModel)
 			assert.Equal(t, tc.expectedSDKReq, apiReqResult, "created sdk model did not match expected output")
 		})
@@ -376,18 +391,15 @@ func TestMetricThresholdTFModelToSDK(t *testing.T) {
 }
 
 func TestMatcherTFModelToSDK(t *testing.T) {
-	testCases := []struct {
-		name           string
+	testCases := map[string]struct {
 		expectedSDKReq []admin.StreamsMatcher
 		tfModel        []alertconfiguration.TfMatcherModel
 	}{
-		{
-			name:           "Empty TF model",
+		"Empty TF model": {
 			tfModel:        []alertconfiguration.TfMatcherModel{},
 			expectedSDKReq: make([]admin.StreamsMatcher, 0),
 		},
-		{
-			name: "Complete TF model",
+		"Complete TF model": {
 			tfModel: []alertconfiguration.TfMatcherModel{
 				{
 					FieldName: types.StringValue("HOSTNAME"),
@@ -403,8 +415,8 @@ func TestMatcherTFModelToSDK(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
 			apiReqResult := *alertconfiguration.NewMatcherList(tc.tfModel)
 			assert.Equal(t, tc.expectedSDKReq, apiReqResult, "created sdk model did not match expected output")
 		})
@@ -412,14 +424,12 @@ func TestMatcherTFModelToSDK(t *testing.T) {
 }
 
 func TestAlertConfigurationSdkToTFDSModel(t *testing.T) {
-	testCases := []struct {
-		name            string
+	testCases := map[string]struct {
 		apiRespConfig   *admin.GroupAlertsConfig
 		projectID       string
 		expectedTFModel alertconfiguration.TFAlertConfigurationDSModel
 	}{
-		{
-			name: "Complete SDK model",
+		"Complete SDK model": {
 			apiRespConfig: &admin.GroupAlertsConfig{
 				Enabled:       admin.PtrBool(true),
 				EventTypeName: admin.PtrString("EventType"),
@@ -444,8 +454,8 @@ func TestAlertConfigurationSdkToTFDSModel(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
 			resultModel := alertconfiguration.NewTfAlertConfigurationDSModel(tc.apiRespConfig, tc.projectID)
 			assert.Equal(t, tc.expectedTFModel, resultModel, "created terraform model did not match expected output")
 		})
@@ -453,15 +463,13 @@ func TestAlertConfigurationSdkToTFDSModel(t *testing.T) {
 }
 
 func TestAlertConfigurationSdkToDSModelList(t *testing.T) {
-	testCases := []struct {
-		name            string
+	testCases := map[string]struct {
 		projectID       string
 		definedOutputs  []string
 		alerts          []admin.GroupAlertsConfig
 		expectedTfModel []alertconfiguration.TFAlertConfigurationDSModel
 	}{
-		{
-			name: "Complete SDK model",
+		"Complete SDK model": {
 			alerts: []admin.GroupAlertsConfig{
 				{
 					Enabled:       admin.PtrBool(true),
@@ -490,16 +498,64 @@ func TestAlertConfigurationSdkToDSModelList(t *testing.T) {
 						{
 							Type:  types.StringValue("resource_hcl"),
 							Label: types.StringValue("EventType_0"),
-							Value: types.StringValue("resource \"mongodbatlas_alert_configuration\" \"EventType_0\" {\n  project_id = \"projectId\"\n  event_type = \"EventType\"\n  enabled    = true\n}\n"),
+							Value: types.StringValue(`resource "mongodbatlas_alert_configuration" "EventType_0" {
+  project_id = "projectId"
+  event_type = "EventType"
+  enabled    = true
+}
+`),
 						},
 					},
 				},
 			},
 		},
+		"Complete SDK model with SeverityOverride": {
+			alerts: []admin.GroupAlertsConfig{
+				{
+					Enabled:          admin.PtrBool(true),
+					EventTypeName:    admin.PtrString("EventType"),
+					GroupId:          admin.PtrString("projectId"),
+					Id:               admin.PtrString("alertConfigurationId"),
+					SeverityOverride: admin.PtrString("WARNING"),
+				},
+			},
+			projectID:      "projectId",
+			definedOutputs: []string{"resource_hcl"},
+			expectedTfModel: []alertconfiguration.TFAlertConfigurationDSModel{
+				{
+					ID: types.StringValue(conversion.EncodeStateID(map[string]string{
+						"id":         "alertConfigurationId",
+						"project_id": "projectId",
+					})),
+					ProjectID:             types.StringValue("projectId"),
+					AlertConfigurationID:  types.StringValue("alertConfigurationId"),
+					EventType:             types.StringValue("EventType"),
+					Enabled:               types.BoolValue(true),
+					Matcher:               []alertconfiguration.TfMatcherModel{},
+					MetricThresholdConfig: []alertconfiguration.TfMetricThresholdConfigModel{},
+					ThresholdConfig:       []alertconfiguration.TfThresholdConfigModel{},
+					Notification:          []alertconfiguration.TfNotificationModel{},
+					Output: []alertconfiguration.TfAlertConfigurationOutputModel{
+						{
+							Type:  types.StringValue("resource_hcl"),
+							Label: types.StringValue("EventType_0"),
+							Value: types.StringValue(`resource "mongodbatlas_alert_configuration" "EventType_0" {
+  project_id        = "projectId"
+  event_type        = "EventType"
+  enabled           = true
+  severity_override = "WARNING"
+}
+`),
+						},
+					},
+					SeverityOverride: types.StringValue("WARNING"),
+				},
+			},
+		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
 			resultModel := alertconfiguration.NewTFAlertConfigurationDSModelList(tc.alerts, tc.projectID, tc.definedOutputs)
 			assert.Equal(t, tc.expectedTfModel, resultModel, "created terraform model did not match expected output")
 		})

@@ -59,6 +59,7 @@ type TfAlertConfigurationRSModel struct {
 	EventType             types.String                   `tfsdk:"event_type"`
 	Created               types.String                   `tfsdk:"created"`
 	Updated               types.String                   `tfsdk:"updated"`
+	SeverityOverride      types.String                   `tfsdk:"severity_override"`
 	Matcher               []TfMatcherModel               `tfsdk:"matcher"`
 	MetricThresholdConfig []TfMetricThresholdConfigModel `tfsdk:"metric_threshold_config"`
 	ThresholdConfig       []TfThresholdConfigModel       `tfsdk:"threshold_config"`
@@ -152,6 +153,12 @@ func (r *alertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 				Optional: true,
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"severity_override": schema.StringAttribute{
+				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
 				},
 			},
 		},
@@ -381,11 +388,12 @@ func (r *alertConfigurationRS) Create(ctx context.Context, req resource.CreateRe
 	projectID := alertConfigPlan.ProjectID.ValueString()
 
 	apiReq := &admin.GroupAlertsConfig{
-		EventTypeName:   alertConfigPlan.EventType.ValueStringPointer(),
-		Enabled:         alertConfigPlan.Enabled.ValueBoolPointer(),
-		Matchers:        NewMatcherList(alertConfigPlan.Matcher),
-		MetricThreshold: NewMetricThreshold(alertConfigPlan.MetricThresholdConfig),
-		Threshold:       NewThreshold(alertConfigPlan.ThresholdConfig),
+		EventTypeName:    alertConfigPlan.EventType.ValueStringPointer(),
+		Enabled:          alertConfigPlan.Enabled.ValueBoolPointer(),
+		Matchers:         NewMatcherList(alertConfigPlan.Matcher),
+		MetricThreshold:  NewMetricThreshold(alertConfigPlan.MetricThresholdConfig),
+		Threshold:        NewThreshold(alertConfigPlan.ThresholdConfig),
+		SeverityOverride: alertConfigPlan.SeverityOverride.ValueStringPointer(),
 	}
 
 	notifications, err := NewNotificationList(alertConfigPlan.Notification)
@@ -486,6 +494,10 @@ func (r *alertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 
 	if !reflect.DeepEqual(alertConfigPlan.Matcher, alertConfigState.Matcher) {
 		apiReq.Matchers = NewMatcherList(alertConfigPlan.Matcher)
+	}
+
+	if !alertConfigPlan.SeverityOverride.Equal(alertConfigState.SeverityOverride) {
+		apiReq.SeverityOverride = alertConfigPlan.SeverityOverride.ValueStringPointer()
 	}
 
 	// Always refresh structure to handle service keys being obfuscated coming back from read API call

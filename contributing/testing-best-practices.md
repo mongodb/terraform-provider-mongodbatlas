@@ -31,6 +31,7 @@
 - `Basic import tests` are done as the last step in the `basic acceptance tests`, not as a different test, e.g. [basicTestCase](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/66c44e62c9afe04ffe8be0dbccaec682bab830e6/internal/service/searchindex/resource_search_index_test.go#L211). Exceptions apply for more specific import tests, e.g. testing with incorrect IDs. [Import tests](https://developer.hashicorp.com/terraform/plugin/sdkv2/resources/import#resource-acceptance-testing-implementation) verify that the [Terraform Import](https://developer.hashicorp.com/terraform/cli/import) functionality is working fine.
 - Data sources are tested in the same tests as the resources, e.g. [commonChecks](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/66c44e62c9afe04ffe8be0dbccaec682bab830e6/internal/service/searchindex/resource_search_index_test.go#L262-L263).
 - Helper functions such as `resource.TestCheckTypeSetElemNestedAttrs` or `resource.TestCheckTypeSetElemAttr` can be used to check resource and data source attributes more easily, e.g. [resource_serverless_instance_test.go](https://github.com/mongodb/terraform-provider-mongodbatlas/blob/66c44e62c9afe04ffe8be0dbccaec682bab830e6/internal/service/serverlessinstance/resource_serverless_instance_test.go#L61).
+- Note: before running the acceptance tests, set the environment variable `TF_ACC=1`.
 
 ### Cloud Gov tests
 
