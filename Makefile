@@ -201,9 +201,13 @@ check-changelog-entry-file: ## Check a changelog entry file in a PR
 jira-release-version: ## Update Jira version in a release
 	go run ./tools/jira-release-version/*.go
 
-.PHONY: generate-oauth2-token
-generate-oauth2-token: ## Generate OAuth2 access token from Service Account credentials
-	@go run ./tools/generate-oauth2-token/*.go
+.PHONY: access-token-create
+access-token-create: ## Create a new OAuth2 access token from Service Account credentials
+	@go run ./tools/access-token/*.go create
+
+.PHONY: access-token-revoke
+access-token-revoke: ## Revoke an OAuth2 access token. Usage: make access-token-revoke token=<token>
+	@go run ./tools/access-token/*.go revoke $(token)
 
 .PHONY: enable-autogen
 enable-autogen: ## Enable use of autogen resources in the provider

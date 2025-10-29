@@ -14,11 +14,21 @@ func PreCheckBasic(tb testing.TB) {
 	if os.Getenv("MONGODB_ATLAS_ORG_ID") == "" {
 		tb.Fatal("`MONGODB_ATLAS_ORG_ID` must be set for acceptance testing")
 	}
-	if HasPAKCreds() && HasSACreds() {
-		tb.Fatal("PAK and SA credentials are defined in this test but only one should be set.")
+	authCount := 0
+	if HasPAKCreds() {
+		authCount++
 	}
-	if !HasPAKCreds() && !HasSACreds() {
-		tb.Fatal("No credentials are defined in this test, PAK or SA credentials should be set.")
+	if HasSACreds() {
+		authCount++
+	}
+	if HasAccessToken() {
+		authCount++
+	}
+	if authCount > 1 {
+		tb.Fatal("Multiple credentials are set (PAK, SA, Access Token) but only one should be set.")
+	}
+	if authCount == 0 {
+		tb.Fatal("No credentials are set, one of PAK, SA, or Access Token should be set.")
 	}
 }
 

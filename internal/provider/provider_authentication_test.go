@@ -12,6 +12,7 @@ import (
 func TestAccSTSAssumeRole_basic(t *testing.T) {
 	acc.SkipInPAK(t, "skipping as this test is for AWS credentials only")
 	acc.SkipInSA(t, "skipping as this test is for AWS credentials only")
+	acc.SkipInAccessToken(t, "skipping as this test is for AWS credentials only")
 	var (
 		resourceName = "mongodbatlas_project.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")
@@ -44,6 +45,7 @@ func TestAccSTSAssumeRole_basic(t *testing.T) {
 
 func TestAccServiceAccount_basic(t *testing.T) {
 	acc.SkipInPAK(t, "skipping as this test is for SA only")
+	acc.SkipInAccessToken(t, "skipping as this test is for SA only")
 	var (
 		resourceName = "data.mongodbatlas_organization.test"
 		orgID        = os.Getenv("MONGODB_ATLAS_ORG_ID")

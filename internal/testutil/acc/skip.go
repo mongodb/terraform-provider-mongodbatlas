@@ -40,6 +40,10 @@ func HasSACreds() bool {
 	return os.Getenv("MONGODB_ATLAS_CLIENT_ID") != "" || os.Getenv("MONGODB_ATLAS_CLIENT_SECRET") != ""
 }
 
+func HasAccessToken() bool {
+	return os.Getenv("MONGODB_ATLAS_ACCESS_TOKEN") != ""
+}
+
 func SkipInSA(tb testing.TB, description string) {
 	tb.Helper()
 	if HasSACreds() {
@@ -50,6 +54,13 @@ func SkipInSA(tb testing.TB, description string) {
 func SkipInPAK(tb testing.TB, description string) {
 	tb.Helper()
 	if HasPAKCreds() {
+		tb.Skip(description)
+	}
+}
+
+func SkipInAccessToken(tb testing.TB, description string) {
+	tb.Helper()
+	if HasAccessToken() {
 		tb.Skip(description)
 	}
 }
