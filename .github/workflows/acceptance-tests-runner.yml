@@ -599,6 +599,9 @@ jobs:
           ACCTEST_PACKAGES: ./internal/provider
         run: make testacc
       - id: create-token
+        env:
+          MONGODB_ATLAS_CLIENT_ID: ${{ secrets.mongodb_atlas_client_id }}
+          MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}        
         run: make access-token-create
       - name: Acceptance Tests (Access Token)
         env:
@@ -611,6 +614,9 @@ jobs:
           ACCTEST_PACKAGES: ./internal/provider
         run: make testacc
       - name: Remove token
+        env:
+          MONGODB_ATLAS_CLIENT_ID: ${{ secrets.mongodb_atlas_client_id }}
+          MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}        
         run: make access-token-revoke token="${{ steps.create-token.outputs.access_token }}"
 
   autogen_fast:
