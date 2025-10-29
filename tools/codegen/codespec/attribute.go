@@ -204,6 +204,9 @@ func (s *APISpecSchema) buildArrayAttr(name, ancestorsName string, computability
 			}
 		} else {
 			if isSet {
+				if useCustomNestedTypes {
+					attr.CustomType = NewCustomSetType(elemType)
+				}
 				attr.Set = &SetAttribute{ElementType: elemType}
 			} else {
 				if useCustomNestedTypes {

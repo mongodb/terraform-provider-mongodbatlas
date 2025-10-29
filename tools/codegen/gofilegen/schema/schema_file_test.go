@@ -281,6 +281,14 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							},
 						},
 						{
+							TFSchemaName:             "string_set_attr",
+							TFModelName:              "StringSetAttr",
+							Description:              admin.PtrString("string set attribute"),
+							ComputedOptionalRequired: codespec.Optional,
+							CustomType:               codespec.NewCustomSetType(codespec.String),
+							Set:                      &codespec.SetAttribute{ElementType: codespec.String},
+						},
+						{
 							TFSchemaName:             "nested_set_attr",
 							TFModelName:              "NestedSetAttr",
 							Description:              admin.PtrString("nested set attribute"),

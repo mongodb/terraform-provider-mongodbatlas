@@ -86,6 +86,12 @@ func prepareAttr(value attr.Value) (attr.Value, error) {
 		}
 
 		return v.NewNestedListValue(ctx, slicePtr), nil
+	case customtypes.SetValueInterface:
+		if v.IsUnknown() {
+			return v.NewSetValueNull(ctx), nil
+		}
+		// If known, no need to process each set item since unmarshal does not generate unknown attributes.
+		return v, nil
 	case customtypes.NestedSetValueInterface:
 		if v.IsUnknown() {
 			return v.NewNestedSetValueNull(ctx), nil

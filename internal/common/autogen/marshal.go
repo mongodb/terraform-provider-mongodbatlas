@@ -77,7 +77,8 @@ func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[s
 
 	if val == nil && isUpdate {
 		switch obj.(type) {
-		case types.List, types.Set, customtypes.ListValueInterface, customtypes.NestedListValueInterface, customtypes.NestedSetValueInterface:
+		case types.List, customtypes.ListValueInterface, customtypes.NestedListValueInterface,
+			types.Set, customtypes.SetValueInterface, customtypes.NestedSetValueInterface:
 			val = []any{} // Send an empty array if it's a null root list or set
 		}
 	}
@@ -110,6 +111,8 @@ func getModelAttr(val attr.Value, isUpdate bool) (any, error) {
 	case customtypes.ListValueInterface:
 		return getListAttr(v.Elements(), isUpdate)
 	case types.Set:
+		return getListAttr(v.Elements(), isUpdate)
+	case customtypes.SetValueInterface:
 		return getListAttr(v.Elements(), isUpdate)
 	case jsontypes.Normalized:
 		var valueJSON any

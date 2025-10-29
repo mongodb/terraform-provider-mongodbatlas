@@ -233,6 +233,15 @@ func NewCustomNestedListType(name string) *CustomType {
 	}
 }
 
+func NewCustomSetType(elemType ElemType) *CustomType {
+	elemTypeStr := ElementTypeToModelString[elemType]
+	return &CustomType{
+		Package: CustomTypesPkg,
+		Model:   fmt.Sprintf("customtypes.SetValue[%s]", elemTypeStr),
+		Schema:  fmt.Sprintf("customtypes.NewSetType[%s](ctx)", elemTypeStr),
+	}
+}
+
 func NewCustomNestedSetType(name string) *CustomType {
 	return &CustomType{
 		Package: CustomTypesPkg,

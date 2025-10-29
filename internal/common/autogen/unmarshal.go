@@ -169,6 +169,8 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 			return getListValueTFAttr(context.Background(), v, oldVal, nameErr)
 		case customtypes.NestedListValueInterface:
 			return getNestedListValueTFAttr(context.Background(), v, oldVal)
+		case customtypes.SetValueInterface:
+			return getSetValueTFAttr(context.Background(), v, oldVal, nameErr)
 		case customtypes.NestedSetValueInterface:
 			return getNestedSetValueTFAttr(context.Background(), v, oldVal)
 		}
@@ -312,8 +314,33 @@ func getListValueTFAttr(ctx context.Context, arrayJSON []any, list customtypes.L
 		return list, nil
 	}
 
-	elemType := list.ElementType(ctx)
+	slice, err := getArrayTFAttr(arrayJSON, list.ElementType(ctx), nameErr)
+	if err != nil {
+		return nil, err
+	}
+
+	listNew := list.NewListValue(ctx, slice)
+	return listNew, nil
+}
+
+func getSetValueTFAttr(ctx context.Context, arrayJSON []any, set customtypes.SetValueInterface, nameErr string) (attr.Value, error) {
+	if len(arrayJSON) == 0 && len(set.Elements()) == 0 {
+		// Keep current set if both model and JSON lists are zero-len (empty or null) so config is preserved.
+		// It avoids inconsistent result after apply when user explicitly sets an empty set in config.
+		return set, nil
+	}
+
+	slice, err := getArrayTFAttr(arrayJSON, set.ElementType(ctx), nameErr)
+	if err != nil {
+		return nil, err
+	}
+
+	return set.NewSetValue(ctx, slice), nil
+}
+
+func getArrayTFAttr(arrayJSON []any, elemType attr.Type, nameErr string) ([]attr.Value, error) {
 	slice := make([]attr.Value, len(arrayJSON))
+
 	for i, item := range arrayJSON {
 		newValue, err := getTfAttr(item, elemType, nil, nameErr)
 		if err != nil {
@@ -322,8 +349,7 @@ func getListValueTFAttr(ctx context.Context, arrayJSON []any, list customtypes.L
 		slice[i] = newValue
 	}
 
-	listNew := list.NewListValue(ctx, slice)
-	return listNew, nil
+	return slice, nil
 }
 
 func getNestedListValueTFAttr(ctx context.Context, arrayJSON []any, list customtypes.NestedListValueInterface) (attr.Value, error) {

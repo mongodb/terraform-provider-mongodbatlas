@@ -155,24 +155,18 @@ func applyTypeOverride(override *config.Override, attr *Attribute) {
 	switch *override.Type {
 	case config.Set:
 		if attr.List != nil {
-			attr.CustomType = nil
-			/* TODO revisit once CustomSetType is supported - CLOUDP-353170
 			if attr.CustomType != nil {
 				attr.CustomType = NewCustomSetType(attr.List.ElementType)
 			}
-			*/
-
 			attr.Set = &SetAttribute{ElementType: attr.List.ElementType}
 			attr.List = nil
 			return
 		}
 	case config.List:
 		if attr.Set != nil {
-			/* TODO uncomment once CustomSetType is supported - CLOUDP-353170
 			if attr.CustomType != nil {
 				attr.CustomType = NewCustomListType(attr.Set.ElementType)
 			}
-			*/
 			attr.List = &ListAttribute{ElementType: attr.Set.ElementType}
 			attr.Set = nil
 			return

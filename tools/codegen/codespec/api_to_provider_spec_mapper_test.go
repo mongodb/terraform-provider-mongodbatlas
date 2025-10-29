@@ -291,6 +291,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							TFSchemaName:             "set_primitive_string_attr",
 							TFModelName:              "SetPrimitiveStringAttr",
 							ComputedOptionalRequired: codespec.Computed,
+							CustomType:               codespec.NewCustomSetType(codespec.String),
 							Set: &codespec.SetAttribute{
 								ElementType: codespec.String,
 							},
@@ -669,7 +670,7 @@ func TestConvertToProviderSpec_typeOverride(t *testing.T) {
 							TFModelName:              "ListString",
 							ComputedOptionalRequired: codespec.Required,
 							// List overridden to set
-							// CustomType:   codespec.NewCustomSetType(codespec.String), // TODO uncomment once CustomSetType is supported - CLOUDP-353170
+							CustomType:   codespec.NewCustomSetType(codespec.String),
 							Set:          &codespec.SetAttribute{ElementType: codespec.String},
 							ReqBodyUsage: codespec.AllRequestBodies,
 						},
@@ -678,7 +679,7 @@ func TestConvertToProviderSpec_typeOverride(t *testing.T) {
 							TFModelName:              "SetString",
 							ComputedOptionalRequired: codespec.Required,
 							// Set overridden to list
-							// CustomType:   codespec.NewCustomListType(codespec.String), // TODO uncomment once CustomSetType is supported - CLOUDP-353170
+							CustomType:   codespec.NewCustomListType(codespec.String),
 							List:         &codespec.ListAttribute{ElementType: codespec.String},
 							ReqBodyUsage: codespec.AllRequestBodies,
 						},
