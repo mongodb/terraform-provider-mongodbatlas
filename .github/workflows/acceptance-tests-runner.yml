@@ -213,8 +213,10 @@ env:
   ACCTEST_TIMEOUT: ${{ vars.ACCTEST_TIMEOUT }}
   # If the name (regex) of the test is set, only that test is run.
   # Only Migration tests are run when a specific previous provider version is set.
-  # Don't run migration tests if using Service Account because each migration test creates a new SA token in the test first step.
-  # The previous provider runs externally (equivalent to running a Terraform command), causing token creation limit issues.
+  # When using Service Account, migration tests are run in dedicated jobs using access tokens to avoid token creation limit issues.
+  # Currently dedicated jobs are: config_sa_mig (fast tests) and advanced_cluster_sa_mig (most important resource), more can be added as needed.
+  # This is because each migration test creates a new SA token in the test first step as the previous provider runs externally (equivalent to running a Terraform command).
+  ACCTEST_REGEX_RUN: ${{ inputs.test_name || inputs.use_sa == true && '^TestAcc' || inputs.provider_version == '' && '^Test(Acc|Mig)' || '^TestMig' }}
   MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
   MONGODB_REALM_BASE_URL: ${{ inputs.mongodb_realm_base_url }}
   MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_org_id }}
@@ -479,6 +481,39 @@ jobs:
           ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
 
+  advanced_cluster_sa_mig:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ inputs.use_sa == true && inputs.reduced_tests != true && (needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster') }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false
+      - id: create-token
+        run: make access-token-create
+      - name: Migration Tests with Access Token
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ""
+          MONGODB_ATLAS_PRIVATE_KEY: ""
+          MONGODB_ATLAS_CLIENT_ID: ""
+          MONGODB_ATLAS_CLIENT_SECRET: ""
+          MONGODB_ATLAS_ACCESS_TOKEN: ${{ steps.create-token.outputs.access_token }}
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          HTTP_MOCKER_CAPTURE: 'true'
+          ACCTEST_REGEX_RUN: '^TestMig'
+          ACCTEST_PACKAGES: ./internal/service/advancedcluster
+        run: make testacc
+      - name: Remove token
+        run: make access-token-revoke token="${{ steps.create-token.outputs.access_token }}"
+
   assume_role:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.assume_role == 'true' || inputs.test_group == 'assume_role' }}
@@ -563,12 +598,7 @@ jobs:
           ACCTEST_REGEX_RUN: '^TestAccServiceAccount'
           ACCTEST_PACKAGES: ./internal/provider
         run: make testacc
-      - name: Generate access token
-        id: generate-token
-        env:
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          MONGODB_ATLAS_CLIENT_ID: ${{ secrets.mongodb_atlas_client_id }}
-          MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}
+      - id: create-token
         run: make access-token-create
       - name: Acceptance Tests (Access Token)
         env:
@@ -576,16 +606,12 @@ jobs:
           MONGODB_ATLAS_PRIVATE_KEY: ""
           MONGODB_ATLAS_CLIENT_ID: ""
           MONGODB_ATLAS_CLIENT_SECRET: ""
-          MONGODB_ATLAS_ACCESS_TOKEN: ${{ steps.generate-token.outputs.access_token }}
+          MONGODB_ATLAS_ACCESS_TOKEN: ${{ steps.create-token.outputs.access_token }}
           ACCTEST_REGEX_RUN: '^TestAccAccessToken'
           ACCTEST_PACKAGES: ./internal/provider
         run: make testacc
-      - name: Revoke access token
-        env:
-          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
-          MONGODB_ATLAS_CLIENT_ID: ${{ secrets.mongodb_atlas_client_id }}
-          MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}
-        run: make access-token-revoke token="${{ steps.generate-token.outputs.access_token }}"
+      - name: Remove token
+        run: make access-token-revoke token="${{ steps.create-token.outputs.access_token }}"
 
   autogen_fast:
     needs: [change-detection, get-provider-version]
@@ -838,6 +864,65 @@ jobs:
             ./internal/service/teamprojectassignment
             ./internal/service/thirdpartyintegration
         run: make testacc
+
+  config_sa_mig:
+    needs: [ change-detection, get-provider-version ]
+    if: ${{ inputs.use_sa == true && (needs.change-detection.outputs.config == 'true' || inputs.test_group == 'config') }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
+        with:
+          go-version-file: 'go.mod'
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false
+      - id: create-token
+        run: make access-token-create
+      - name: Migration Tests with Access Token
+        env:
+          MONGODB_ATLAS_PUBLIC_KEY: ""
+          MONGODB_ATLAS_PRIVATE_KEY: ""
+          MONGODB_ATLAS_CLIENT_ID: ""
+          MONGODB_ATLAS_CLIENT_SECRET: ""
+          MONGODB_ATLAS_ACCESS_TOKEN: ${{ steps.create-token.outputs.access_token }}
+          MONGODB_ATLAS_PROJECT_OWNER_ID: ${{ inputs.mongodb_atlas_project_owner_id }}
+          MONGODB_ATLAS_USERNAME: ${{ vars.MONGODB_ATLAS_USERNAME }}
+          MONGODB_ATLAS_USERNAME_2: ${{ vars.MONGODB_ATLAS_USERNAME_2 }}
+          AZURE_ATLAS_APP_ID: ${{ inputs.azure_atlas_app_id }}
+          AZURE_SERVICE_PRINCIPAL_ID: ${{ inputs.azure_service_principal_id }}
+          AZURE_TENANT_ID: ${{ inputs.azure_tenant_id }}
+          AWS_REGION: ${{ vars.AWS_REGION_LOWERCASE }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
+          AWS_S3_BUCKET: ${{ secrets.aws_s3_bucket_federation }}
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
+          ACCTEST_REGEX_RUN: '^TestMig'
+          ACCTEST_PACKAGES: |
+            ./internal/config
+            ./internal/service/alertconfiguration
+            ./internal/service/atlasuser
+            ./internal/service/cloudprovideraccess
+            ./internal/service/customdbrole
+            ./internal/service/customdnsconfigurationclusteraws
+            ./internal/service/databaseuser
+            ./internal/service/maintenancewindow
+            ./internal/service/organization
+            ./internal/service/orginvitation
+            ./internal/service/projectapikey
+            ./internal/service/apikeyprojectassignment
+            ./internal/service/apikey
+            ./internal/service/rolesorgid
+            ./internal/service/team
+            ./internal/service/teamprojectassignment
+            ./internal/service/thirdpartyintegration
+        run: make testacc
+      - name: Remove token
+        run: make access-token-revoke token="${{ steps.create-token.outputs.access_token }}"
 
   encryption:
     needs: [ change-detection, get-provider-version ]
