@@ -563,13 +563,13 @@ jobs:
           ACCTEST_REGEX_RUN: '^TestAccServiceAccount'
           ACCTEST_PACKAGES: ./internal/provider
         run: make testacc
-      - name: Generate OAuth2 Token
+      - name: Generate access token
         id: generate-token
         env:
           MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
           MONGODB_ATLAS_CLIENT_ID: ${{ secrets.mongodb_atlas_client_id }}
           MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}
-        run: make generate-oauth2-token
+        run: make access-token-create
       - name: Acceptance Tests (Access Token)
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ""
@@ -577,10 +577,15 @@ jobs:
           MONGODB_ATLAS_CLIENT_ID: ""
           MONGODB_ATLAS_CLIENT_SECRET: ""
           MONGODB_ATLAS_ACCESS_TOKEN: ${{ steps.generate-token.outputs.access_token }}
-          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_REGEX_RUN: '^TestAccAccessToken'
           ACCTEST_PACKAGES: ./internal/provider
         run: make testacc
+      - name: Revoke access token
+        env:
+          MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
+          MONGODB_ATLAS_CLIENT_ID: ${{ secrets.mongodb_atlas_client_id }}
+          MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}
+        run: make access-token-revoke token="${{ steps.generate-token.outputs.access_token }}"
 
   autogen_fast:
     needs: [change-detection, get-provider-version]
