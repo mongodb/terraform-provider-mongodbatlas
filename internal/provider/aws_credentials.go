@@ -37,7 +37,7 @@ func getAWSCredentials(ctx context.Context, c *config.AWSVars) (*config.Credenti
 	stsClient := sts.NewFromConfig(cfg, func(o *sts.Options) {
 		o.Region = signingRegion
 		if ep != "" {
-			o.EndpointResolver = sts.EndpointResolverFromURL(ep)
+			o.BaseEndpoint = aws.String(ep)
 		}
 	})
 
