@@ -24,5 +24,38 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Failed to generate OAuth2 token: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Print(token.AccessToken)
+
+	accessToken := token.AccessToken
+	if accessToken == "" {
+		fmt.Fprintln(os.Stderr, "Error: Generated access token is empty")
+		os.Exit(1)
+	}
+
+	if err := outputToken(accessToken); err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
+}
+
+func outputToken(accessToken string) error {
+	// Check if running in GitHub Actions
+	if githubOutput := os.Getenv("GITHUB_OUTPUT"); githubOutput != "" {
+		return writeGitHubOutput(githubOutput, accessToken)
+	}
+	// Local usage: just print the token
+	fmt.Print(accessToken)
+	return nil
+}
+
+func writeGitHubOutput(githubOutput, accessToken string) error {
+	file, err := os.OpenFile(githubOutput, os.O_APPEND|os.O_WRONLY, 0o644)
+	if err != nil {
+		return fmt.Errorf("failed to open GITHUB_OUTPUT file: %w", err)
+	}
+	defer file.Close()
+
+	if _, err := fmt.Fprintf(file, "access_token<<EOF\n%s\nEOF\n", accessToken); err != nil {
+		return fmt.Errorf("failed to write to GITHUB_OUTPUT file: %w", err)
+	}
+	return nil
 }

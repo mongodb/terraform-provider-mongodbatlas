@@ -565,25 +565,11 @@ jobs:
         run: make testacc
       - name: Generate OAuth2 Token
         id: generate-token
-        shell: bash
         env:
           MONGODB_ATLAS_BASE_URL: ${{ inputs.mongodb_atlas_base_url }}
           MONGODB_ATLAS_CLIENT_ID: ${{ secrets.mongodb_atlas_client_id }}
           MONGODB_ATLAS_CLIENT_SECRET: ${{ secrets.mongodb_atlas_client_secret }}
-        run: |
-          if ! ACCESS_TOKEN=$(make generate-oauth2-token); then
-            echo "Error: Failed to generate access token"
-            exit 1
-          fi
-          if [ -z "$ACCESS_TOKEN" ]; then
-            echo "Error: Generated access token is empty"
-            exit 1
-          fi
-          {
-            echo "access_token<<EOF"
-            echo "$ACCESS_TOKEN"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
+        run: make generate-oauth2-token
       - name: Acceptance Tests (Access Token)
         env:
           MONGODB_ATLAS_PUBLIC_KEY: ""
