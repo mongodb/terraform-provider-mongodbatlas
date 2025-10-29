@@ -465,7 +465,7 @@ func TestGetCredentials(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			got, err := config.GetCredentials(context.Background(), tc.providerVars, tc.envVars, mockGetAWSCredentials)
+			got, err := config.GetCredentials(t.Context(), tc.providerVars, tc.envVars, mockGetAWSCredentials)
 			if tc.wantErr {
 				assert.Error(t, err)
 			} else {
