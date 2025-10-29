@@ -1,5 +1,11 @@
 ## (Unreleased)
 
+ENHANCEMENTS:
+
+* data-source/mongodbatlas_alert_configuration: Adds `severity_override` attribute ([#3795](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3795))
+* data-source/mongodbatlas_alert_configurations: Adds `severity_override` attribute ([#3795](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3795))
+* resource/mongodbatlas_alert_configuration: Adds `severity_override` attribute ([#3795](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3795))
+
 ## 2.1.0 (October 22, 2025)
 
 NOTES:
