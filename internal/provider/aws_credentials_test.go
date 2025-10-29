@@ -3,9 +3,9 @@ package provider_test
 import (
 	"testing"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
 )
 
 func Test_deriveSTSRegionFromEndpoint(t *testing.T) {
@@ -85,10 +85,9 @@ func Test_resolveSTSEndpoint(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			ep, err := provider.ResolveSTSEndpoint(tc.stsEndpoint, tc.secretsRegion)
-			require.NoError(t, err)
-			assert.Equal(t, tc.expectedURL, ep.URL)
-			assert.Equal(t, tc.expectedSign, ep.SigningRegion)
+			ep, sign := provider.ResolveSTSEndpoint(tc.stsEndpoint, tc.secretsRegion)
+			assert.Equal(t, tc.expectedURL, ep)
+			assert.Equal(t, tc.expectedSign, sign)
 		})
 	}
 }

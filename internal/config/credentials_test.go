@@ -1,12 +1,14 @@
 package config_test
 
 import (
+	"context"
 	"errors"
 	"testing"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
 func TestCredentials_AuthMethod(t *testing.T) {
@@ -395,7 +397,7 @@ func TestCredentials_Errors(t *testing.T) {
 }
 
 func TestGetCredentials(t *testing.T) {
-	mockGetAWSCredentials := func(awsVars *config.AWSVars) (*config.Credentials, error) {
+	mockGetAWSCredentials := func(_ context.Context, awsVars *config.AWSVars) (*config.Credentials, error) {
 		if awsVars.AssumeRoleARN == "error" {
 			return nil, errors.New("AWS error")
 		}
@@ -463,7 +465,7 @@ func TestGetCredentials(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			got, err := config.GetCredentials(tc.providerVars, tc.envVars, mockGetAWSCredentials)
+			got, err := config.GetCredentials(t.Context(), tc.providerVars, tc.envVars, mockGetAWSCredentials)
 			if tc.wantErr {
 				assert.Error(t, err)
 			} else {

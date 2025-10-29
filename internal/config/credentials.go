@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"os"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -18,9 +19,9 @@ type Credentials struct {
 }
 
 // GetCredentials follows the order of AWS Secrets Manager, provider vars and env vars.
-func GetCredentials(providerVars, envVars *Vars, getAWSCredentials func(*AWSVars) (*Credentials, error)) (*Credentials, error) {
+func GetCredentials(ctx context.Context, providerVars, envVars *Vars, getAWSCredentials func(context.Context, *AWSVars) (*Credentials, error)) (*Credentials, error) {
 	if awsVars := CoalesceAWSVars(providerVars.GetAWS(), envVars.GetAWS()); awsVars != nil {
-		awsCredentials, err := getAWSCredentials(awsVars)
+		awsCredentials, err := getAWSCredentials(ctx, awsVars)
 		if err != nil {
 			return nil, err
 		}

@@ -297,7 +297,7 @@ func providerConfigure(provider *schema.Provider) func(ctx context.Context, d *s
 	return func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 		var diags diag.Diagnostics
 		providerVars := getSDKv2ProviderVars(d)
-		c, err := config.GetCredentials(providerVars, config.NewEnvVars(), getAWSCredentials)
+		c, err := config.GetCredentials(ctx, providerVars, config.NewEnvVars(), getAWSCredentials)
 		if err != nil {
 			return nil, append(diags, diag.FromErr(fmt.Errorf("error getting credentials for provider: %w", err))...)
 		}
