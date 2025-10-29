@@ -590,7 +590,7 @@ func TestAccConfigRSAlertConfiguration_withSeverityOverride(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "severity_override", "ERROR"),
 				),
 			},
-			// todo: should check for no attr once CLOUDP-353933 is fixed
+			// TODO: Should check for no attr once CLOUDP-353933 is fixed.
 			// {
 			// 	Config: configWithSeverityOverride(projectID, nil),
 			// 	Check: resource.ComposeAggregateTestCheckFunc(
@@ -1084,7 +1084,7 @@ func configWithSeverityOverride(projectID string, severity *string) string {
 		severityOverride = fmt.Sprintf("severity_override = %[1]q", *severity)
 	}
 
-	x := fmt.Sprintf(`
+	return fmt.Sprintf(`
 		resource "mongodbatlas_alert_configuration" "test" {
 			project_id        = %[1]q
 			enabled           = true
@@ -1103,8 +1103,6 @@ func configWithSeverityOverride(projectID string, severity *string) string {
 			alert_configuration_id = mongodbatlas_alert_configuration.test.id
 		}
 		`, projectID, severityOverride)
-
-	return x
 }
 
 func TestAccConfigDSAlertConfiguration_withOutput(t *testing.T) {
