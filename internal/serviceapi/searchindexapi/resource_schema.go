@@ -207,18 +207,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						CustomType:          customtypes.NewListType[jsontypes.Normalized](ctx),
 						ElementType:         jsontypes.NormalizedType{},
 					},
-					"mappings": schema.SingleNestedAttribute{
-						Computed:            true,
-						MarkdownDescription: "Index specifications for the collection's fields.",
-						CustomType:          customtypes.NewObjectType[TFLatestDefinitionMappingsModel](ctx),
-						Attributes: map[string]schema.Attribute{
-							"dynamic": schema.StringAttribute{
-								Computed:            true,
-								MarkdownDescription: "Indicates whether the index uses static, default dynamic, or configurable dynamic mappings. Set to **true** to enable dynamic mapping with default type set or define object to specify the name of the configured type sets for dynamic mapping. If you specify configurable dynamic mappings, you must define the referred type sets in the **typeSets** field. Set to **false** to use only static mappings through **mappings.fields**.",
-								CustomType:          jsontypes.NormalizedType{},
-							},
-						},
-					},
 					"num_partitions": schema.Int64Attribute{
 						Computed:            true,
 						MarkdownDescription: "Number of index partitions. Allowed values are [1, 2, 4].",
@@ -519,7 +507,6 @@ type TFLatestDefinitionModel struct {
 	Synonyms       customtypes.NestedListValue[TFLatestDefinitionSynonymsModel]  `tfsdk:"synonyms" autogen:"omitjson"`
 	TypeSets       customtypes.NestedListValue[TFLatestDefinitionTypeSetsModel]  `tfsdk:"type_sets" autogen:"omitjson"`
 	Analyzer       types.String                                                  `tfsdk:"analyzer" autogen:"omitjson"`
-	Mappings       customtypes.ObjectValue[TFLatestDefinitionMappingsModel]      `tfsdk:"mappings" autogen:"omitjson"`
 	SearchAnalyzer types.String                                                  `tfsdk:"search_analyzer" autogen:"omitjson"`
 	StoredSource   jsontypes.Normalized                                          `tfsdk:"stored_source" autogen:"omitjson"`
 	NumPartitions  types.Int64                                                   `tfsdk:"num_partitions" autogen:"omitjson"`
@@ -529,9 +516,6 @@ type TFLatestDefinitionAnalyzersModel struct {
 	Name         types.String                                `tfsdk:"name" autogen:"omitjson"`
 	TokenFilters customtypes.ListValue[jsontypes.Normalized] `tfsdk:"token_filters" autogen:"omitjson"`
 	Tokenizer    jsontypes.Normalized                        `tfsdk:"tokenizer" autogen:"omitjson"`
-}
-type TFLatestDefinitionMappingsModel struct {
-	Dynamic jsontypes.Normalized `tfsdk:"dynamic" autogen:"omitjson"`
 }
 type TFLatestDefinitionSynonymsModel struct {
 	Analyzer types.String                                                   `tfsdk:"analyzer" autogen:"omitjson"`

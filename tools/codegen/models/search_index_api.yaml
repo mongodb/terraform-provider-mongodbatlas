@@ -406,32 +406,6 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-                    - single_nested:
-                        nested_object:
-                            attributes:
-                                - string: {}
-                                  description: Indicates whether the index uses static, default dynamic, or configurable dynamic mappings. Set to **true** to enable dynamic mapping with default type set or define object to specify the name of the configured type sets for dynamic mapping. If you specify configurable dynamic mappings, you must define the referred type sets in the **typeSets** field. Set to **false** to use only static mappings through **mappings.fields**.
-                                  custom_type:
-                                    package: jsontypes
-                                    model: jsontypes.Normalized
-                                    schema: jsontypes.NormalizedType{}
-                                  computed_optional_required: computed
-                                  tf_schema_name: dynamic
-                                  tf_model_name: Dynamic
-                                  req_body_usage: omit_always
-                                  sensitive: false
-                                  create_only: false
-                      description: Index specifications for the collection's fields.
-                      custom_type:
-                        package: customtypes
-                        model: customtypes.ObjectValue[TFLatestDefinitionMappingsModel]
-                        schema: customtypes.NewObjectType[TFLatestDefinitionMappingsModel](ctx)
-                      computed_optional_required: computed
-                      tf_schema_name: mappings
-                      tf_model_name: Mappings
-                      req_body_usage: omit_always
-                      sensitive: false
-                      create_only: false
                     - int64:
                         default: 1
                       description: Number of index partitions. Allowed values are [1, 2, 4].

@@ -454,8 +454,10 @@ resources:
         target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
     version_header: application/vnd.atlas.2024-05-30+json
     schema:
-      ignores: ["definition.mappings.fields", "latest_definition.mappings.fields"] # TODO: will be supported in CLOUDP-352319.
-      aliases: 
+      # TODO: fields will be supported in CLOUDP-352319.
+      # TODO: latest_definition.mappings excluded because dynamic is a JSON string field but Atlas can also reply with true or false booleans.
+      ignores: ["definition.mappings.fields", "latest_definition.mappings.fields", "latest_definition.mappings"]
+      aliases:
         indexId: IndexID # path param name does not match the API response property
 
   # Update doesn't work because API defines incorrectly region and cloud_provider at root level in PATCH instead of inside data_process_region as in the other endpoints.
