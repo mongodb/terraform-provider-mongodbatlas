@@ -6,6 +6,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -446,6 +447,16 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Type of the index. The default type is search.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
+			"delete_on_create_timeout": schema.BoolAttribute{
+				Computed:            true,
+				Optional:            true,
+				MarkdownDescription: "Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.",
+				PlanModifiers:       []planmodifier.Bool{customplanmodifier.CreateOnlyBoolWithDefault(true)},
+			},
+			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
+				Create: true,
+				Update: true,
+			}),
 		},
 	}
 }
@@ -453,18 +464,20 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 type TFModel struct {
 	StatusDetail               customtypes.NestedListValue[TFStatusDetailModel]        `tfsdk:"status_detail" autogen:"omitjson"`
 	SynonymMappingStatusDetail customtypes.ListValue[jsontypes.Normalized]             `tfsdk:"synonym_mapping_status_detail" autogen:"omitjson"`
-	LatestDefinition           customtypes.ObjectValue[TFLatestDefinitionModel]        `tfsdk:"latest_definition" autogen:"omitjson"`
-	Definition                 customtypes.ObjectValue[TFDefinitionModel]              `tfsdk:"definition"`
+	Name                       types.String                                            `tfsdk:"name" autogen:"omitjsonupdate"`
+	SynonymMappingStatus       types.String                                            `tfsdk:"synonym_mapping_status" autogen:"omitjson"`
 	GroupId                    types.String                                            `tfsdk:"group_id" autogen:"omitjson"`
 	IndexID                    types.String                                            `tfsdk:"index_id" autogen:"omitjson"`
-	ClusterName                types.String                                            `tfsdk:"cluster_name" autogen:"omitjson"`
+	LatestDefinition           customtypes.ObjectValue[TFLatestDefinitionModel]        `tfsdk:"latest_definition" autogen:"omitjson"`
 	LatestDefinitionVersion    customtypes.ObjectValue[TFLatestDefinitionVersionModel] `tfsdk:"latest_definition_version" autogen:"omitjson"`
-	Name                       types.String                                            `tfsdk:"name" autogen:"omitjsonupdate"`
+	ClusterName                types.String                                            `tfsdk:"cluster_name" autogen:"omitjson"`
+	Timeouts                   timeouts.Value                                          `tfsdk:"timeouts" autogen:"omitjson"`
 	Status                     types.String                                            `tfsdk:"status" autogen:"omitjson"`
 	Database                   types.String                                            `tfsdk:"database" autogen:"omitjsonupdate"`
-	SynonymMappingStatus       types.String                                            `tfsdk:"synonym_mapping_status" autogen:"omitjson"`
+	Definition                 customtypes.ObjectValue[TFDefinitionModel]              `tfsdk:"definition"`
 	CollectionName             types.String                                            `tfsdk:"collection_name" autogen:"omitjsonupdate"`
 	Type                       types.String                                            `tfsdk:"type" autogen:"omitjsonupdate"`
+	DeleteOnCreateTimeout      types.Bool                                              `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
 	Queryable                  types.Bool                                              `tfsdk:"queryable" autogen:"omitjson"`
 }
 type TFDefinitionModel struct {

@@ -4,6 +4,7 @@ package searchindexapi
 
 import (
 	"context"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -50,11 +51,27 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		PathParams:    pathParams,
 		Method:        "POST",
 	}
+	timeout, localDiags := plan.Timeouts.Create(ctx, 10800*time.Second)
+	resp.Diagnostics.Append(localDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	reqHandle := autogen.HandleCreateReq{
-		Resp:       resp,
-		Client:     r.Client,
-		Plan:       &plan,
-		CallParams: &callParams,
+		Resp:                  resp,
+		Client:                r.Client,
+		Plan:                  &plan,
+		CallParams:            &callParams,
+		DeleteReq:             deleteRequest(r.Client, &plan, &resp.Diagnostics),
+		DeleteOnCreateTimeout: plan.DeleteOnCreateTimeout.ValueBool(),
+		Wait: &autogen.WaitReq{
+			StateProperty:     "stateName",
+			PendingStates:     []string{"PENDING", "BUILDING", "IN_PROGRESS", "MIGRATING"},
+			TargetStates:      []string{"READY", "STEADY"},
+			Timeout:           timeout,
+			MinTimeoutSeconds: 60,
+			DelaySeconds:      60,
+			CallParams:        readAPICallParams(&plan),
+		},
 	}
 	autogen.HandleCreate(ctx, reqHandle)
 }
@@ -96,11 +113,25 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		PathParams:    pathParams,
 		Method:        "PATCH",
 	}
+	timeout, localDiags := plan.Timeouts.Update(ctx, 10800*time.Second)
+	resp.Diagnostics.Append(localDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	reqHandle := autogen.HandleUpdateReq{
 		Resp:       resp,
 		Client:     r.Client,
 		Plan:       &plan,
 		CallParams: &callParams,
+		Wait: &autogen.WaitReq{
+			StateProperty:     "stateName",
+			PendingStates:     []string{"PENDING", "BUILDING", "IN_PROGRESS", "MIGRATING"},
+			TargetStates:      []string{"READY", "STEADY"},
+			Timeout:           timeout,
+			MinTimeoutSeconds: 60,
+			DelaySeconds:      60,
+			CallParams:        readAPICallParams(&state),
+		},
 	}
 	autogen.HandleUpdate(ctx, reqHandle)
 }
