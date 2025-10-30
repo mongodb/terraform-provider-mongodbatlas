@@ -29,6 +29,7 @@ func BuildSchema(proxy *base.SchemaProxy) (*APISpecSchema, error) {
 	case schema.Properties != nil && schema.Properties.Len() > 0:
 		// Infer object type when type is not explicitly defined but properties exist.
 		// This handles cases like BaseSearchIndexCreateRequestDefinition and BaseSearchIndexResponseLatestDefinition which have properties but no explicit type.
+		// This case can be removed after CLOUDP-355777 is done.
 		schemaName := getSchemaName(proxy, schema)
 		log.Printf("[WARN] Schema missing explicit type, inferring 'object' type from properties (schema: %s, properties: %d)", schemaName, schema.Properties.Len())
 		resp.Type = OASTypeObject

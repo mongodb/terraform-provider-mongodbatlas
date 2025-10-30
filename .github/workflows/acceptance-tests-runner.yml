@@ -297,7 +297,7 @@ jobs:
           authentication:
             - 'internal/config/*.go'
             - 'internal/provider/*.go' 
-          autogen_fast:
+          autogen_fast: # TODO: move searchindexapi to slow before merging
             - 'internal/common/autogen/*.go'
             - 'internal/serviceapi/auditingapi/*.go'
             - 'internal/serviceapi/customdbroleapi/*.go'
@@ -307,6 +307,7 @@ jobs:
             - 'internal/serviceapi/projectapi/*.go'
             - 'internal/serviceapi/projectsettingsapi/*.go'
             - 'internal/serviceapi/resourcepolicyapi/*.go'
+            - 'internal/serviceapi/searchindexapi/*.go'
           autogen_slow:
             - 'internal/common/autogen/*.go'
             - 'internal/serviceapi/clusterapi/*.go'
@@ -652,6 +653,7 @@ jobs:
             ./internal/serviceapi/projectapi
             ./internal/serviceapi/projectsettingsapi
             ./internal/serviceapi/resourcepolicyapi
+            ./internal/serviceapi/searchindexapi
         run: make testacc
 
   autogen_slow:
