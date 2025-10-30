@@ -30,10 +30,11 @@ func BuildSchema(proxy *base.SchemaProxy) (*APISpecSchema, error) {
 		// Infer object type when type is not explicitly defined but properties exist.
 		// This handles cases like BaseSearchIndexCreateRequestDefinition and BaseSearchIndexResponseLatestDefinition which have properties but no explicit type.
 		schemaName := getSchemaName(proxy, schema)
-		log.Printf("warning: schema missing explicit type, inferring 'object' type from properties (schema: %s, properties: %d)", schemaName, schema.Properties.Len())
+		log.Printf("[WARN] Schema missing explicit type, inferring 'object' type from properties (schema: %s, properties: %d)", schemaName, schema.Properties.Len())
 		resp.Type = OASTypeObject
 	default:
-		return nil, fmt.Errorf("invalid schema. no values for schema.Type found and type cannot be inferred")
+		schemaName := getSchemaName(proxy, schema)
+		return nil, fmt.Errorf("invalid schema. no values for schema.Type found and type cannot be inferred (schema: %s)", schemaName)
 	}
 	resp.Schema = schema
 	return resp, nil

@@ -27,14 +27,14 @@ func main() {
 	resourceName := getOsArg()
 
 	if err := openapi.DownloadOpenAPISpec(atlasAdminAPISpecURL, specFilePath); err != nil {
-		log.Fatalf("an error occurred when downloading Atlas Admin API spec: %v", err)
+		log.Fatalf("[ERROR] An error occurred when downloading Atlas Admin API spec: %v", err)
 	}
 
 	{
 		// Generate resource models
 		model, err := codespec.ToCodeSpecModel(specFilePath, configPath, resourceName)
 		if err != nil {
-			log.Fatalf("an error occurred while generating codespec.Model: %v", err)
+			log.Fatalf("[ERROR] An error occurred while generating codespec.Model: %v", err)
 		}
 
 		// Write resource models to files
@@ -43,10 +43,10 @@ func main() {
 			resourceModelFilePath := fmt.Sprintf(resourceModelFilePathFormat, resourceModel.Name)
 			resourceModelYaml, err := yaml.Marshal(resourceModel)
 			if err != nil {
-				log.Fatalf("an error occurred while serializing the resource model: %v", err)
+				log.Fatalf("[ERROR] An error occurred while serializing the resource model: %v", err)
 			}
 			if err := writeToFile(resourceModelFilePath, resourceModelYaml); err != nil {
-				log.Fatalf("an error occurred while writing resource model to file: %v", err)
+				log.Fatalf("[ERROR] An error occurred while writing resource model to file: %v", err)
 			}
 		}
 	}
@@ -56,7 +56,7 @@ func main() {
 	if resourceName == nil {
 		files, err := os.ReadDir(resourceModelDir)
 		if err != nil {
-			log.Fatalf("an error occurred while reading the resource model directory: %v", err)
+			log.Fatalf("[ERROR] An error occurred while reading the resource model directory: %v", err)
 		}
 		for _, file := range files {
 			if file.IsDir() {
@@ -72,22 +72,22 @@ func main() {
 	for _, filePath := range resourceModelFilePaths {
 		resourceModel, err := readResourceModelFromFile(filePath)
 		if err != nil {
-			log.Fatalf("an error occurred while reading the resource model file: %v", err)
+			log.Fatalf("[ERROR] An error occurred while reading the resource model file: %v", err)
 		}
 
-		log.Printf("Generating resource code: %s", resourceModel.Name)
+		log.Printf("[INFO] Generating resource code: %s", resourceModel.Name)
 
 		schemaCode := schema.GenerateGoCode(resourceModel, false) // object types are not needed as part of fully generated resources
 		schemaFilePath := fmt.Sprintf("internal/serviceapi/%s/resource_schema.go", resourceModel.Name.LowerCaseNoUnderscore())
 		if err := writeToFile(schemaFilePath, schemaCode); err != nil {
-			log.Fatalf("an error occurred when writing content to file: %v", err)
+			log.Fatalf("[ERROR] An error occurred when writing content to file: %v", err)
 		}
 		formatGoFile(schemaFilePath)
 
 		resourceCode := resource.GenerateGoCode(resourceModel)
 		resourceFilePath := fmt.Sprintf("internal/serviceapi/%s/resource.go", resourceModel.Name.LowerCaseNoUnderscore())
 		if err := writeToFile(resourceFilePath, resourceCode); err != nil {
-			log.Fatalf("an error occurred when writing content to file: %v", err)
+			log.Fatalf("[ERROR] An error occurred when writing content to file: %v", err)
 		}
 	}
 }
@@ -134,11 +134,11 @@ func readResourceModelFromFile(filePath string) (*codespec.Resource, error) {
 func formatGoFile(filePath string) {
 	goimportsCmd := exec.CommandContext(context.Background(), "goimports", "-w", filePath)
 	if output, err := goimportsCmd.CombinedOutput(); err != nil {
-		log.Printf("warning: goimports failed for %s: %v\nOutput: %s", filePath, err, output)
+		log.Printf("[WARN] Goimports failed for %s: %v\nOutput: %s", filePath, err, output)
 	}
 
 	fieldalignmentCmd := exec.CommandContext(context.Background(), "fieldalignment", "-fix", filePath)
 	if output, err := fieldalignmentCmd.CombinedOutput(); err != nil {
-		log.Printf("warning: fieldalignment failed for %s: %v\nOutput: %s", filePath, err, output)
+		log.Printf("[WARN] Fieldalignment failed for %s: %v\nOutput: %s", filePath, err, output)
 	}
 }
