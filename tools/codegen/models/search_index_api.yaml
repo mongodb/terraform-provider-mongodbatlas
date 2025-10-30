@@ -933,6 +933,7 @@ schema:
             configurable_timeouts:
                 - create
                 - update
+                - delete
           computed_optional_required: ""
           tf_schema_name: timeouts
           tf_model_name: Timeouts
@@ -941,8 +942,22 @@ schema:
           create_only: false
 operations:
     delete:
+        wait:
+            state_property: stateName
+            pending_states:
+                - PENDING
+                - BUILDING
+                - IN_PROGRESS
+                - MIGRATING
+                - READY
+                - STEADY
+            target_states:
+                - DELETED
+            timeout_seconds: 10800
+            min_timeout_seconds: 60
+            delay_seconds: 60
         http_method: DELETE
-        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{database}/{collectionName}/{name}
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}
     create:
         wait:
             state_property: stateName
@@ -961,7 +976,7 @@ operations:
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes
     read:
         http_method: GET
-        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{database}/{collectionName}/{name}
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}
     update:
         wait:
             state_property: stateName
@@ -977,6 +992,6 @@ operations:
             min_timeout_seconds: 60
             delay_seconds: 60
         http_method: PATCH
-        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{database}/{collectionName}/{name}
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}
     version_header: application/vnd.atlas.2024-05-30+json
 name: search_index_api

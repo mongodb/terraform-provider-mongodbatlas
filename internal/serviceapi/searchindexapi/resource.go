@@ -101,15 +101,13 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 	// Path params are grabbed from state as they may be computed-only and not present in the plan
 	pathParams := map[string]string{
-		"groupId":        state.GroupId.ValueString(),
-		"clusterName":    state.ClusterName.ValueString(),
-		"database":       state.Database.ValueString(),
-		"collectionName": state.CollectionName.ValueString(),
-		"name":           state.Name.ValueString(),
+		"groupId":     state.GroupId.ValueString(),
+		"clusterName": state.ClusterName.ValueString(),
+		"indexId":     state.IndexId.ValueString(),
 	}
 	callParams := config.APICallParams{
 		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{database}/{collectionName}/{name}",
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}",
 		PathParams:    pathParams,
 		Method:        "PATCH",
 	}
@@ -143,25 +141,37 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		return
 	}
 	reqHandle := deleteRequest(r.Client, &state, &resp.Diagnostics)
+	timeout, diags := state.Timeouts.Delete(ctx, 10800*time.Second)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	reqHandle.Wait = &autogen.WaitReq{
+		StateProperty:     "stateName",
+		PendingStates:     []string{"PENDING", "BUILDING", "IN_PROGRESS", "MIGRATING", "READY", "STEADY"},
+		TargetStates:      []string{"DELETED"},
+		Timeout:           timeout,
+		MinTimeoutSeconds: 60,
+		DelaySeconds:      60,
+		CallParams:        readAPICallParams(&state),
+	}
 	autogen.HandleDelete(ctx, *reqHandle)
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	idAttributes := []string{"group_id", "cluster_name", "database", "collection_name", "name"}
+	idAttributes := []string{"group_id", "cluster_name", "index_id"}
 	autogen.HandleImport(ctx, idAttributes, req, resp)
 }
 
 func readAPICallParams(model *TFModel) *config.APICallParams {
 	pathParams := map[string]string{
-		"groupId":        model.GroupId.ValueString(),
-		"clusterName":    model.ClusterName.ValueString(),
-		"database":       model.Database.ValueString(),
-		"collectionName": model.CollectionName.ValueString(),
-		"name":           model.Name.ValueString(),
+		"groupId":     model.GroupId.ValueString(),
+		"clusterName": model.ClusterName.ValueString(),
+		"indexId":     model.IndexId.ValueString(),
 	}
 	return &config.APICallParams{
 		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{database}/{collectionName}/{name}",
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}",
 		PathParams:    pathParams,
 		Method:        "GET",
 	}
@@ -169,11 +179,9 @@ func readAPICallParams(model *TFModel) *config.APICallParams {
 
 func deleteRequest(client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
 	pathParams := map[string]string{
-		"groupId":        model.GroupId.ValueString(),
-		"clusterName":    model.ClusterName.ValueString(),
-		"database":       model.Database.ValueString(),
-		"collectionName": model.CollectionName.ValueString(),
-		"name":           model.Name.ValueString(),
+		"groupId":     model.GroupId.ValueString(),
+		"clusterName": model.ClusterName.ValueString(),
+		"indexId":     model.IndexId.ValueString(),
 	}
 	return &autogen.HandleDeleteReq{
 		Client: client,
@@ -181,7 +189,7 @@ func deleteRequest(client *config.MongoDBClient, model *TFModel, diags *diag.Dia
 		Diags:  diags,
 		CallParams: &config.APICallParams{
 			VersionHeader: apiVersionHeader,
-			RelativePath:  "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{database}/{collectionName}/{name}",
+			RelativePath:  "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}",
 			PathParams:    pathParams,
 			Method:        "DELETE",
 		},
