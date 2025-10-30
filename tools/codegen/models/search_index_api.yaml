@@ -957,7 +957,7 @@ operations:
             min_timeout_seconds: 60
             delay_seconds: 60
         http_method: DELETE
-        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexID}
     create:
         wait:
             state_property: stateName
@@ -976,7 +976,7 @@ operations:
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes
     read:
         http_method: GET
-        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexID}
     update:
         wait:
             state_property: stateName
@@ -992,6 +992,6 @@ operations:
             min_timeout_seconds: 60
             delay_seconds: 60
         http_method: PATCH
-        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexID}
     version_header: application/vnd.atlas.2024-05-30+json
 name: search_index_api

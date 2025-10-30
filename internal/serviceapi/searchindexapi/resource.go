@@ -103,11 +103,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	pathParams := map[string]string{
 		"groupId":     state.GroupId.ValueString(),
 		"clusterName": state.ClusterName.ValueString(),
-		"indexId":     state.IndexId.ValueString(),
+		"indexID":     state.IndexID.ValueString(),
 	}
 	callParams := config.APICallParams{
 		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}",
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexID}",
 		PathParams:    pathParams,
 		Method:        "PATCH",
 	}
@@ -167,11 +167,11 @@ func readAPICallParams(model *TFModel) *config.APICallParams {
 	pathParams := map[string]string{
 		"groupId":     model.GroupId.ValueString(),
 		"clusterName": model.ClusterName.ValueString(),
-		"indexId":     model.IndexId.ValueString(),
+		"indexID":     model.IndexID.ValueString(),
 	}
 	return &config.APICallParams{
 		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}",
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexID}",
 		PathParams:    pathParams,
 		Method:        "GET",
 	}
@@ -181,7 +181,7 @@ func deleteRequest(client *config.MongoDBClient, model *TFModel, diags *diag.Dia
 	pathParams := map[string]string{
 		"groupId":     model.GroupId.ValueString(),
 		"clusterName": model.ClusterName.ValueString(),
-		"indexId":     model.IndexId.ValueString(),
+		"indexID":     model.IndexID.ValueString(),
 	}
 	return &autogen.HandleDeleteReq{
 		Client: client,
@@ -189,7 +189,7 @@ func deleteRequest(client *config.MongoDBClient, model *TFModel, diags *diag.Dia
 		Diags:  diags,
 		CallParams: &config.APICallParams{
 			VersionHeader: apiVersionHeader,
-			RelativePath:  "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}",
+			RelativePath:  "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexID}",
 			PathParams:    pathParams,
 			Method:        "DELETE",
 		},

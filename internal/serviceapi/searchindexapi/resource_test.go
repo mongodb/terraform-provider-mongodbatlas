@@ -44,11 +44,17 @@ func TestAccSearchIndexAPI_basic(t *testing.T) {
 func configBasic(projectID, clusterName, indexName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index_api" "test" {
-			group_id       = %[1]q
-			cluster_name     = %[2]q
-			name             = %[3]q
-			database         = %[4]q
-			collection_name  = %[5]q
+			group_id        = %[1]q
+			cluster_name    = %[2]q
+			name            = %[3]q
+			database        = %[4]q
+			collection_name = %[5]q
+
+			definition = {
+				mappings = {
+					dynamic = jsonencode(true)
+				}
+			}
 		}
 	`, projectID, clusterName, indexName, database, collection)
 }
