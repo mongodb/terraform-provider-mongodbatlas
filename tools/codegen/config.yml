@@ -426,6 +426,26 @@ resources:
         target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
     version_header: application/vnd.atlas.2025-03-12+json
 
+  search_index_api:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{databaseName}/{collectionName}/{indexName}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{databaseName}/{collectionName}/{indexName}
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{databaseName}/{collectionName}/{indexName}
+      method: DELETE
+    version_header: application/vnd.atlas.2024-05-30+json
+    schema:
+      ignores: ["definition.mappings.fields", "latest_definition.mappings.fields"] # TODO: will be supported in CLOUDP-352319.
+      aliases: # path param databaseName and indexName don't match the API request property, collectionName does
+        database_name: database
+        index_name: name
+
   # Update doesn't work because API defines incorrectly region and cloud_provider at root level in PATCH instead of inside data_process_region as in the other endpoints.
   # id should be Computed but is ignored because it's defined as _id which is not a legal name for a Terraform attribute as they can't start with an underscore.
   stream_instance_api:

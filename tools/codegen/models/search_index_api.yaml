@@ -1,0 +1,937 @@
+schema:
+    description: Creates one Atlas Search index on the specified collection. Atlas Search indexes define the fields on which to create the index and the analyzers to use when creating the index. Only clusters running MongoDB v4.2 or later can use Atlas Search. To use this resource, the requesting Service Account or API Key must have the Project Data Access Admin role.
+    attributes:
+        - string: {}
+          description: Name of the cluster that contains the collection on which to create an Atlas Search index.
+          computed_optional_required: required
+          tf_schema_name: cluster_name
+          tf_model_name: ClusterName
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+        - string: {}
+          description: Label that identifies the collection to create an Atlas Search index in.
+          computed_optional_required: required
+          tf_schema_name: collection_name
+          tf_model_name: CollectionName
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: true
+        - string: {}
+          description: Label that identifies the database that contains the collection to create an Atlas Search index in.
+          computed_optional_required: required
+          tf_schema_name: database
+          tf_model_name: Database
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: true
+        - single_nested:
+            nested_object:
+                attributes:
+                    - string:
+                        default: lucene.standard
+                      description: |-
+                        Specific pre-defined method chosen to convert database field text into searchable words. This conversion reduces the text of fields into the smallest units of text. These units are called a **term** or **token**. This process, known as tokenization, involves making the following changes to the text in fields:
+
+                        - extracting words
+                        - removing punctuation
+                        - removing accents
+                        - changing to lowercase
+                        - removing common words
+                        - reducing words to their root form (stemming)
+                        - changing words to their base form (lemmatization)
+                         MongoDB Cloud uses the process you select to build the Atlas Search index.
+                      computed_optional_required: computed_optional
+                      tf_schema_name: analyzer
+                      tf_model_name: Analyzer
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                    - list_nested:
+                        nested_object:
+                            attributes:
+                                - list:
+                                    element_type: 5
+                                  description: Filters that examine text one character at a time and perform filtering operations.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.ListValue[jsontypes.Normalized]
+                                    schema: customtypes.NewListType[jsontypes.Normalized](ctx)
+                                  computed_optional_required: optional
+                                  tf_schema_name: char_filters
+                                  tf_model_name: CharFilters
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: |-
+                                    Name that identifies the custom analyzer. Names must be unique within an index, and must not start with any of the following strings:
+                                    - `lucene.`
+                                    - `builtin.`
+                                    - `mongodb.`
+                                  computed_optional_required: required
+                                  tf_schema_name: name
+                                  tf_model_name: Name
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                - list:
+                                    element_type: 5
+                                  description: |-
+                                    Filter that performs operations such as:
+
+                                    - Stemming, which reduces related words, such as "talking", "talked", and "talks" to their root word "talk".
+
+                                    - Redaction, which is the removal of sensitive information from public documents.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.ListValue[jsontypes.Normalized]
+                                    schema: customtypes.NewListType[jsontypes.Normalized](ctx)
+                                  computed_optional_required: optional
+                                  tf_schema_name: token_filters
+                                  tf_model_name: TokenFilters
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: Tokenizer that you want to use to create tokens. Tokens determine how Atlas Search splits up text into discrete chunks for indexing.
+                                  custom_type:
+                                    package: jsontypes
+                                    model: jsontypes.Normalized
+                                    schema: jsontypes.NormalizedType{}
+                                  computed_optional_required: required
+                                  tf_schema_name: tokenizer
+                                  tf_model_name: Tokenizer
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                      description: List of user-defined methods to convert database field text into searchable words.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.NestedListValue[TFDefinitionAnalyzersModel]
+                        schema: customtypes.NewNestedListType[TFDefinitionAnalyzersModel](ctx)
+                      computed_optional_required: optional
+                      tf_schema_name: analyzers
+                      tf_model_name: Analyzers
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                    - list:
+                        element_type: 5
+                      description: Settings that configure the fields, one per object, to index. You must define at least one "vector" type field. You can optionally define "filter" type fields also.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.ListValue[jsontypes.Normalized]
+                        schema: customtypes.NewListType[jsontypes.Normalized](ctx)
+                      computed_optional_required: optional
+                      tf_schema_name: fields
+                      tf_model_name: Fields
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                    - single_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: Indicates whether the index uses static, default dynamic, or configurable dynamic mappings. Set to **true** to enable dynamic mapping with default type set or define object to specify the name of the configured type sets for dynamic mapping. If you specify configurable dynamic mappings, you must define the referred type sets in the **typeSets** field. Set to **false** to use only static mappings through **mappings.fields**.
+                                  custom_type:
+                                    package: jsontypes
+                                    model: jsontypes.Normalized
+                                    schema: jsontypes.NormalizedType{}
+                                  computed_optional_required: optional
+                                  tf_schema_name: dynamic
+                                  tf_model_name: Dynamic
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                      description: Index specifications for the collection's fields.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.ObjectValue[TFDefinitionMappingsModel]
+                        schema: customtypes.NewObjectType[TFDefinitionMappingsModel](ctx)
+                      computed_optional_required: optional
+                      tf_schema_name: mappings
+                      tf_model_name: Mappings
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                    - int64:
+                        default: 1
+                      description: Number of index partitions. Allowed values are [1, 2, 4].
+                      computed_optional_required: computed_optional
+                      tf_schema_name: num_partitions
+                      tf_model_name: NumPartitions
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                    - string:
+                        default: lucene.standard
+                      description: Method applied to identify words when searching this index.
+                      computed_optional_required: computed_optional
+                      tf_schema_name: search_analyzer
+                      tf_model_name: SearchAnalyzer
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                    - string: {}
+                      description: Flag that indicates whether to store all fields (true) on Atlas Search. By default, Atlas doesn't store (false) the fields on Atlas Search.  Alternatively, you can specify an object that only contains the list of fields to store (include) or not store (exclude) on Atlas Search. To learn more, see Stored Source Fields.
+                      custom_type:
+                        package: jsontypes
+                        model: jsontypes.Normalized
+                        schema: jsontypes.NormalizedType{}
+                      computed_optional_required: optional
+                      tf_schema_name: stored_source
+                      tf_model_name: StoredSource
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                    - list_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: Specific pre-defined method chosen to apply to the synonyms to be searched.
+                                  computed_optional_required: required
+                                  tf_schema_name: analyzer
+                                  tf_model_name: Analyzer
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: Label that identifies the synonym definition. Each **synonym.name** must be unique within the same index definition.
+                                  computed_optional_required: required
+                                  tf_schema_name: name
+                                  tf_model_name: Name
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                - single_nested:
+                                    nested_object:
+                                        attributes:
+                                            - string: {}
+                                              description: Label that identifies the MongoDB collection that stores words and their applicable synonyms.
+                                              computed_optional_required: required
+                                              tf_schema_name: collection
+                                              tf_model_name: Collection
+                                              req_body_usage: all_request_bodies
+                                              sensitive: false
+                                              create_only: false
+                                  description: Data set that stores words and their applicable synonyms.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.ObjectValue[TFDefinitionSynonymsSourceModel]
+                                    schema: customtypes.NewObjectType[TFDefinitionSynonymsSourceModel](ctx)
+                                  computed_optional_required: required
+                                  tf_schema_name: source
+                                  tf_model_name: Source
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                      description: Rule sets that map words to their synonyms in this index.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.NestedListValue[TFDefinitionSynonymsModel]
+                        schema: customtypes.NewNestedListType[TFDefinitionSynonymsModel](ctx)
+                      computed_optional_required: optional
+                      tf_schema_name: synonyms
+                      tf_model_name: Synonyms
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                    - list_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: Label that identifies the type set name. Each **typeSets.name** must be unique within the same index definition.
+                                  computed_optional_required: required
+                                  tf_schema_name: name
+                                  tf_model_name: Name
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                - list:
+                                    element_type: 5
+                                  description: List of types associated with the type set. Each type definition must include a "type" field specifying the search field type ("autocomplete", "boolean", "date", "geo", "number", "objectId", "string", "token", or "uuid") and may include additional configuration properties specific to that type.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.ListValue[jsontypes.Normalized]
+                                    schema: customtypes.NewListType[jsontypes.Normalized](ctx)
+                                  computed_optional_required: optional
+                                  tf_schema_name: types
+                                  tf_model_name: Types
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                      description: Type sets for the index.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.NestedListValue[TFDefinitionTypeSetsModel]
+                        schema: customtypes.NewNestedListType[TFDefinitionTypeSetsModel](ctx)
+                      computed_optional_required: optional
+                      tf_schema_name: type_sets
+                      tf_model_name: TypeSets
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+          description: The index definition to update the search index to.
+          custom_type:
+            package: customtypes
+            model: customtypes.ObjectValue[TFDefinitionModel]
+            schema: customtypes.NewObjectType[TFDefinitionModel](ctx)
+          computed_optional_required: required
+          tf_schema_name: definition
+          tf_model_name: Definition
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: |-
+            Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
+
+            **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+          computed_optional_required: required
+          tf_schema_name: group_id
+          tf_model_name: GroupId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies this Atlas Search index.
+          computed_optional_required: computed
+          tf_schema_name: index_id
+          tf_model_name: IndexID
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - string:
+                        default: lucene.standard
+                      description: |-
+                        Specific pre-defined method chosen to convert database field text into searchable words. This conversion reduces the text of fields into the smallest units of text. These units are called a **term** or **token**. This process, known as tokenization, involves making the following changes to the text in fields:
+
+                        - extracting words
+                        - removing punctuation
+                        - removing accents
+                        - changing to lowercase
+                        - removing common words
+                        - reducing words to their root form (stemming)
+                        - changing words to their base form (lemmatization)
+                         MongoDB Cloud uses the process you select to build the Atlas Search index.
+                      computed_optional_required: computed
+                      tf_schema_name: analyzer
+                      tf_model_name: Analyzer
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - list_nested:
+                        nested_object:
+                            attributes:
+                                - list:
+                                    element_type: 5
+                                  description: Filters that examine text one character at a time and perform filtering operations.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.ListValue[jsontypes.Normalized]
+                                    schema: customtypes.NewListType[jsontypes.Normalized](ctx)
+                                  computed_optional_required: computed
+                                  tf_schema_name: char_filters
+                                  tf_model_name: CharFilters
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: |-
+                                    Name that identifies the custom analyzer. Names must be unique within an index, and must not start with any of the following strings:
+                                    - `lucene.`
+                                    - `builtin.`
+                                    - `mongodb.`
+                                  computed_optional_required: computed
+                                  tf_schema_name: name
+                                  tf_model_name: Name
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - list:
+                                    element_type: 5
+                                  description: |-
+                                    Filter that performs operations such as:
+
+                                    - Stemming, which reduces related words, such as "talking", "talked", and "talks" to their root word "talk".
+
+                                    - Redaction, which is the removal of sensitive information from public documents.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.ListValue[jsontypes.Normalized]
+                                    schema: customtypes.NewListType[jsontypes.Normalized](ctx)
+                                  computed_optional_required: computed
+                                  tf_schema_name: token_filters
+                                  tf_model_name: TokenFilters
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: Tokenizer that you want to use to create tokens. Tokens determine how Atlas Search splits up text into discrete chunks for indexing.
+                                  custom_type:
+                                    package: jsontypes
+                                    model: jsontypes.Normalized
+                                    schema: jsontypes.NormalizedType{}
+                                  computed_optional_required: computed
+                                  tf_schema_name: tokenizer
+                                  tf_model_name: Tokenizer
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                      description: List of user-defined methods to convert database field text into searchable words.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.NestedListValue[TFLatestDefinitionAnalyzersModel]
+                        schema: customtypes.NewNestedListType[TFLatestDefinitionAnalyzersModel](ctx)
+                      computed_optional_required: computed
+                      tf_schema_name: analyzers
+                      tf_model_name: Analyzers
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - list:
+                        element_type: 5
+                      description: Settings that configure the fields, one per object, to index. You must define at least one "vector" type field. You can optionally define "filter" type fields also.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.ListValue[jsontypes.Normalized]
+                        schema: customtypes.NewListType[jsontypes.Normalized](ctx)
+                      computed_optional_required: computed
+                      tf_schema_name: fields
+                      tf_model_name: Fields
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - single_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: Indicates whether the index uses static, default dynamic, or configurable dynamic mappings. Set to **true** to enable dynamic mapping with default type set or define object to specify the name of the configured type sets for dynamic mapping. If you specify configurable dynamic mappings, you must define the referred type sets in the **typeSets** field. Set to **false** to use only static mappings through **mappings.fields**.
+                                  custom_type:
+                                    package: jsontypes
+                                    model: jsontypes.Normalized
+                                    schema: jsontypes.NormalizedType{}
+                                  computed_optional_required: computed
+                                  tf_schema_name: dynamic
+                                  tf_model_name: Dynamic
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                      description: Index specifications for the collection's fields.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.ObjectValue[TFLatestDefinitionMappingsModel]
+                        schema: customtypes.NewObjectType[TFLatestDefinitionMappingsModel](ctx)
+                      computed_optional_required: computed
+                      tf_schema_name: mappings
+                      tf_model_name: Mappings
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - int64:
+                        default: 1
+                      description: Number of index partitions. Allowed values are [1, 2, 4].
+                      computed_optional_required: computed
+                      tf_schema_name: num_partitions
+                      tf_model_name: NumPartitions
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - string:
+                        default: lucene.standard
+                      description: Method applied to identify words when searching this index.
+                      computed_optional_required: computed
+                      tf_schema_name: search_analyzer
+                      tf_model_name: SearchAnalyzer
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - string: {}
+                      description: Flag that indicates whether to store all fields (true) on Atlas Search. By default, Atlas doesn't store (false) the fields on Atlas Search.  Alternatively, you can specify an object that only contains the list of fields to store (include) or not store (exclude) on Atlas Search. To learn more, see Stored Source Fields.
+                      custom_type:
+                        package: jsontypes
+                        model: jsontypes.Normalized
+                        schema: jsontypes.NormalizedType{}
+                      computed_optional_required: computed
+                      tf_schema_name: stored_source
+                      tf_model_name: StoredSource
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - list_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: Specific pre-defined method chosen to apply to the synonyms to be searched.
+                                  computed_optional_required: computed
+                                  tf_schema_name: analyzer
+                                  tf_model_name: Analyzer
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: Label that identifies the synonym definition. Each **synonym.name** must be unique within the same index definition.
+                                  computed_optional_required: computed
+                                  tf_schema_name: name
+                                  tf_model_name: Name
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - single_nested:
+                                    nested_object:
+                                        attributes:
+                                            - string: {}
+                                              description: Label that identifies the MongoDB collection that stores words and their applicable synonyms.
+                                              computed_optional_required: computed
+                                              tf_schema_name: collection
+                                              tf_model_name: Collection
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                  description: Data set that stores words and their applicable synonyms.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.ObjectValue[TFLatestDefinitionSynonymsSourceModel]
+                                    schema: customtypes.NewObjectType[TFLatestDefinitionSynonymsSourceModel](ctx)
+                                  computed_optional_required: computed
+                                  tf_schema_name: source
+                                  tf_model_name: Source
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                      description: Rule sets that map words to their synonyms in this index.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.NestedListValue[TFLatestDefinitionSynonymsModel]
+                        schema: customtypes.NewNestedListType[TFLatestDefinitionSynonymsModel](ctx)
+                      computed_optional_required: computed
+                      tf_schema_name: synonyms
+                      tf_model_name: Synonyms
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - list_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: Label that identifies the type set name. Each **typeSets.name** must be unique within the same index definition.
+                                  computed_optional_required: computed
+                                  tf_schema_name: name
+                                  tf_model_name: Name
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - list:
+                                    element_type: 5
+                                  description: List of types associated with the type set. Each type definition must include a "type" field specifying the search field type ("autocomplete", "boolean", "date", "geo", "number", "objectId", "string", "token", or "uuid") and may include additional configuration properties specific to that type.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.ListValue[jsontypes.Normalized]
+                                    schema: customtypes.NewListType[jsontypes.Normalized](ctx)
+                                  computed_optional_required: computed
+                                  tf_schema_name: types
+                                  tf_model_name: Types
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                      description: Type sets for the index.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.NestedListValue[TFLatestDefinitionTypeSetsModel]
+                        schema: customtypes.NewNestedListType[TFLatestDefinitionTypeSetsModel](ctx)
+                      computed_optional_required: computed
+                      tf_schema_name: type_sets
+                      tf_model_name: TypeSets
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+          custom_type:
+            package: customtypes
+            model: customtypes.ObjectValue[TFLatestDefinitionModel]
+            schema: customtypes.NewObjectType[TFLatestDefinitionModel](ctx)
+          computed_optional_required: computed
+          tf_schema_name: latest_definition
+          tf_model_name: LatestDefinition
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: The time at which this index definition was created. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                      computed_optional_required: computed
+                      tf_schema_name: created_at
+                      tf_model_name: CreatedAt
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - int64: {}
+                      description: The version number associated with this index definition when it was created.
+                      computed_optional_required: computed
+                      tf_schema_name: version
+                      tf_model_name: Version
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+          description: Object which includes the version number of the index definition and the time that the index definition was created.
+          custom_type:
+            package: customtypes
+            model: customtypes.ObjectValue[TFLatestDefinitionVersionModel]
+            schema: customtypes.NewObjectType[TFLatestDefinitionVersionModel](ctx)
+          computed_optional_required: computed
+          tf_schema_name: latest_definition_version
+          tf_model_name: LatestDefinitionVersion
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: Label that identifies this index. Within each namespace, names of all indexes in the namespace must be unique.
+          computed_optional_required: required
+          tf_schema_name: name
+          tf_model_name: Name
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: true
+        - bool: {}
+          description: Flag that indicates whether the index is queryable on all hosts.
+          computed_optional_required: computed
+          tf_schema_name: queryable
+          tf_model_name: Queryable
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: |-
+            Condition of the search index when you made this request.
+
+            - `DELETING`: The index is being deleted.
+            - `FAILED` The index build failed. Indexes can enter the FAILED state due to an invalid index definition.
+            - `STALE`: The index is queryable but has stopped replicating data from the indexed collection. Searches on the index may return out-of-date data.
+            - `PENDING`: Atlas has not yet started building the index.
+            - `BUILDING`: Atlas is building or re-building the index after an edit.
+            - `READY`: The index is ready and can support queries.
+          computed_optional_required: computed
+          tf_schema_name: status
+          tf_model_name: Status
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+        - list_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Hostname that corresponds to the status detail.
+                      computed_optional_required: computed
+                      tf_schema_name: hostname
+                      tf_model_name: Hostname
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - single_nested:
+                        nested_object:
+                            attributes:
+                                - single_nested:
+                                    nested_object:
+                                        attributes:
+                                            - list:
+                                                element_type: 5
+                                              description: Settings that configure the fields, one per object, to index. You must define at least one "vector" type field. You can optionally define "filter" type fields also.
+                                              custom_type:
+                                                package: customtypes
+                                                model: customtypes.ListValue[jsontypes.Normalized]
+                                                schema: customtypes.NewListType[jsontypes.Normalized](ctx)
+                                              computed_optional_required: computed
+                                              tf_schema_name: fields
+                                              tf_model_name: Fields
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                            - int64:
+                                                default: 1
+                                              description: Number of index partitions. Allowed values are [1, 2, 4].
+                                              computed_optional_required: computed
+                                              tf_schema_name: num_partitions
+                                              tf_model_name: NumPartitions
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                  description: The vector search index definition set by the user.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.ObjectValue[TFStatusDetailMainIndexDefinitionModel]
+                                    schema: customtypes.NewObjectType[TFStatusDetailMainIndexDefinitionModel](ctx)
+                                  computed_optional_required: computed
+                                  tf_schema_name: definition
+                                  tf_model_name: Definition
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - single_nested:
+                                    nested_object:
+                                        attributes:
+                                            - string: {}
+                                              description: The time at which this index definition was created. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                                              computed_optional_required: computed
+                                              tf_schema_name: created_at
+                                              tf_model_name: CreatedAt
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                            - int64: {}
+                                              description: The version number associated with this index definition when it was created.
+                                              computed_optional_required: computed
+                                              tf_schema_name: version
+                                              tf_model_name: Version
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                  description: Object which includes the version number of the index definition and the time that the index definition was created.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.ObjectValue[TFStatusDetailMainIndexDefinitionVersionModel]
+                                    schema: customtypes.NewObjectType[TFStatusDetailMainIndexDefinitionVersionModel](ctx)
+                                  computed_optional_required: computed
+                                  tf_schema_name: definition_version
+                                  tf_model_name: DefinitionVersion
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: Optional message describing an error.
+                                  computed_optional_required: computed
+                                  tf_schema_name: message
+                                  tf_model_name: Message
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - bool: {}
+                                  description: Flag that indicates whether the index generation is queryable on the host.
+                                  computed_optional_required: computed
+                                  tf_schema_name: queryable
+                                  tf_model_name: Queryable
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: |-
+                                    Condition of the search index when you made this request.
+
+                                    - `DELETING`: The index is being deleted.
+                                    - `FAILED` The index build failed. Indexes can enter the FAILED state due to an invalid index definition.
+                                    - `STALE`: The index is queryable but has stopped replicating data from the indexed collection. Searches on the index may return out-of-date data.
+                                    - `PENDING`: Atlas has not yet started building the index.
+                                    - `BUILDING`: Atlas is building or re-building the index after an edit.
+                                    - `READY`: The index is ready and can support queries.
+                                  computed_optional_required: computed
+                                  tf_schema_name: status
+                                  tf_model_name: Status
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                      description: Contains status information about a vector search index.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.ObjectValue[TFStatusDetailMainIndexModel]
+                        schema: customtypes.NewObjectType[TFStatusDetailMainIndexModel](ctx)
+                      computed_optional_required: computed
+                      tf_schema_name: main_index
+                      tf_model_name: MainIndex
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - bool: {}
+                      description: Flag that indicates whether the index is queryable on the host.
+                      computed_optional_required: computed
+                      tf_schema_name: queryable
+                      tf_model_name: Queryable
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - single_nested:
+                        nested_object:
+                            attributes:
+                                - single_nested:
+                                    nested_object:
+                                        attributes:
+                                            - list:
+                                                element_type: 5
+                                              description: Settings that configure the fields, one per object, to index. You must define at least one "vector" type field. You can optionally define "filter" type fields also.
+                                              custom_type:
+                                                package: customtypes
+                                                model: customtypes.ListValue[jsontypes.Normalized]
+                                                schema: customtypes.NewListType[jsontypes.Normalized](ctx)
+                                              computed_optional_required: computed
+                                              tf_schema_name: fields
+                                              tf_model_name: Fields
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                            - int64:
+                                                default: 1
+                                              description: Number of index partitions. Allowed values are [1, 2, 4].
+                                              computed_optional_required: computed
+                                              tf_schema_name: num_partitions
+                                              tf_model_name: NumPartitions
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                  description: The vector search index definition set by the user.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.ObjectValue[TFStatusDetailStagedIndexDefinitionModel]
+                                    schema: customtypes.NewObjectType[TFStatusDetailStagedIndexDefinitionModel](ctx)
+                                  computed_optional_required: computed
+                                  tf_schema_name: definition
+                                  tf_model_name: Definition
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - single_nested:
+                                    nested_object:
+                                        attributes:
+                                            - string: {}
+                                              description: The time at which this index definition was created. This parameter expresses its value in the ISO 8601 timestamp format in UTC.
+                                              computed_optional_required: computed
+                                              tf_schema_name: created_at
+                                              tf_model_name: CreatedAt
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                            - int64: {}
+                                              description: The version number associated with this index definition when it was created.
+                                              computed_optional_required: computed
+                                              tf_schema_name: version
+                                              tf_model_name: Version
+                                              req_body_usage: omit_always
+                                              sensitive: false
+                                              create_only: false
+                                  description: Object which includes the version number of the index definition and the time that the index definition was created.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.ObjectValue[TFStatusDetailStagedIndexDefinitionVersionModel]
+                                    schema: customtypes.NewObjectType[TFStatusDetailStagedIndexDefinitionVersionModel](ctx)
+                                  computed_optional_required: computed
+                                  tf_schema_name: definition_version
+                                  tf_model_name: DefinitionVersion
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: Optional message describing an error.
+                                  computed_optional_required: computed
+                                  tf_schema_name: message
+                                  tf_model_name: Message
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - bool: {}
+                                  description: Flag that indicates whether the index generation is queryable on the host.
+                                  computed_optional_required: computed
+                                  tf_schema_name: queryable
+                                  tf_model_name: Queryable
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: |-
+                                    Condition of the search index when you made this request.
+
+                                    - `DELETING`: The index is being deleted.
+                                    - `FAILED` The index build failed. Indexes can enter the FAILED state due to an invalid index definition.
+                                    - `STALE`: The index is queryable but has stopped replicating data from the indexed collection. Searches on the index may return out-of-date data.
+                                    - `PENDING`: Atlas has not yet started building the index.
+                                    - `BUILDING`: Atlas is building or re-building the index after an edit.
+                                    - `READY`: The index is ready and can support queries.
+                                  computed_optional_required: computed
+                                  tf_schema_name: status
+                                  tf_model_name: Status
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                      description: Contains status information about a vector search index.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.ObjectValue[TFStatusDetailStagedIndexModel]
+                        schema: customtypes.NewObjectType[TFStatusDetailStagedIndexModel](ctx)
+                      computed_optional_required: computed
+                      tf_schema_name: staged_index
+                      tf_model_name: StagedIndex
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - string: {}
+                      description: |-
+                        Condition of the search index when you made this request.
+
+                        - `DELETING`: The index is being deleted.
+                        - `FAILED` The index build failed. Indexes can enter the FAILED state due to an invalid index definition.
+                        - `STALE`: The index is queryable but has stopped replicating data from the indexed collection. Searches on the index may return out-of-date data.
+                        - `PENDING`: Atlas has not yet started building the index.
+                        - `BUILDING`: Atlas is building or re-building the index after an edit.
+                        - `READY`: The index is ready and can support queries.
+                      computed_optional_required: computed
+                      tf_schema_name: status
+                      tf_model_name: Status
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+          description: List of documents detailing index status on each host.
+          custom_type:
+            package: customtypes
+            model: customtypes.NestedListValue[TFStatusDetailModel]
+            schema: customtypes.NewNestedListType[TFStatusDetailModel](ctx)
+          computed_optional_required: computed
+          tf_schema_name: status_detail
+          tf_model_name: StatusDetail
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: Status that describes this index's synonym mappings. This status appears only if the index has synonyms defined.
+          computed_optional_required: computed
+          tf_schema_name: synonym_mapping_status
+          tf_model_name: SynonymMappingStatus
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+        - list:
+            element_type: 5
+          description: A list of documents describing the status of the index's synonym mappings on each search host. Only appears if the index has synonyms defined.
+          custom_type:
+            package: customtypes
+            model: customtypes.ListValue[jsontypes.Normalized]
+            schema: customtypes.NewListType[jsontypes.Normalized](ctx)
+          computed_optional_required: computed
+          tf_schema_name: synonym_mapping_status_detail
+          tf_model_name: SynonymMappingStatusDetail
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: Type of the index. The default type is search.
+          computed_optional_required: optional
+          tf_schema_name: type
+          tf_model_name: Type
+          req_body_usage: omit_in_update_body
+          sensitive: false
+          create_only: true
+operations:
+    delete:
+        http_method: DELETE
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{database}/{collectionName}/{name}
+    create:
+        http_method: POST
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes
+    read:
+        http_method: GET
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{database}/{collectionName}/{name}
+    update:
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{database}/{collectionName}/{name}
+    version_header: application/vnd.atlas.2024-05-30+json
+name: search_index_api
