@@ -231,6 +231,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							TFSchemaName:             "nested_map_object_attr",
 							TFModelName:              "NestedMapObjectAttr",
 							ComputedOptionalRequired: codespec.Computed,
+							CustomType:               codespec.NewCustomNestedMapType("NestedMapObjectAttr"),
 							MapNested: &codespec.MapNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{

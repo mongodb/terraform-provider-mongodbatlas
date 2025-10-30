@@ -300,6 +300,18 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 								},
 							},
 						},
+						{
+							TFSchemaName:             "map_nested_attribute",
+							TFModelName:              "MapNestedAttribute",
+							Description:              admin.PtrString("nested map attribute"),
+							ComputedOptionalRequired: codespec.Optional,
+							CustomType:               codespec.NewCustomNestedMapType("MapNestedAttribute"),
+							MapNested: &codespec.MapNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: []codespec.Attribute{stringAttr},
+								},
+							},
+						},
 					},
 				},
 			},
