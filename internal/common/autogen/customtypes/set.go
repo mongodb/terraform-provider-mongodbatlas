@@ -40,7 +40,7 @@ type SetType[T attr.Value] struct {
 }
 
 func NewSetType[T attr.Value](ctx context.Context) SetType[T] {
-	elemType := getElemType[T](ctx)
+	elemType := getValueElementType[T](ctx)
 	return SetType[T]{
 		SetType: basetypes.SetType{ElemType: elemType},
 	}
@@ -68,7 +68,7 @@ func (t SetType[T]) ValueFromSet(ctx context.Context, in basetypes.SetValue) (ba
 		return NewSetValueUnknown[T](ctx), nil
 	}
 
-	elemType := getElemType[T](ctx)
+	elemType := getValueElementType[T](ctx)
 	baseSetValue, diags := basetypes.NewSetValue(elemType, in.Elements())
 	if diags.HasError() {
 		return nil, diags
@@ -126,7 +126,7 @@ func (v SetValue[T]) NewSetValue(ctx context.Context, value []attr.Value) SetVal
 }
 
 func NewSetValue[T attr.Value](ctx context.Context, value []attr.Value) SetValue[T] {
-	elemType := getElemType[T](ctx)
+	elemType := getValueElementType[T](ctx)
 
 	setValue, diags := basetypes.NewSetValue(elemType, value)
 	if diags.HasError() {
@@ -141,12 +141,12 @@ func (v SetValue[T]) NewSetValueNull(ctx context.Context) SetValueInterface {
 }
 
 func NewSetValueNull[T attr.Value](ctx context.Context) SetValue[T] {
-	elemType := getElemType[T](ctx)
+	elemType := getValueElementType[T](ctx)
 	return SetValue[T]{SetValue: basetypes.NewSetNull(elemType)}
 }
 
 func NewSetValueUnknown[T attr.Value](ctx context.Context) SetValue[T] {
-	elemType := getElemType[T](ctx)
+	elemType := getValueElementType[T](ctx)
 	return SetValue[T]{SetValue: basetypes.NewSetUnknown(elemType)}
 }
 
@@ -163,7 +163,7 @@ func (v SetValue[T]) Type(ctx context.Context) attr.Type {
 }
 
 func (v SetValue[T]) ElementType(ctx context.Context) attr.Type {
-	return getElemType[T](ctx)
+	return getValueElementType[T](ctx)
 }
 
 func (v SetValue[T]) Elements() []attr.Value {

@@ -3,7 +3,6 @@ package customtypes
 import (
 	"context"
 	"fmt"
-	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -212,14 +211,4 @@ func (v NestedListValue[T]) NewEmptySlicePtr() any {
 
 func (v NestedListValue[T]) Len() int {
 	return len(v.Elements())
-}
-
-func getElementType[T any](ctx context.Context) (attr.Type, diag.Diagnostics) {
-	var t T
-	attrTypes, diags := valueToAttributeTypes(ctx, reflect.ValueOf(t))
-	if diags.HasError() {
-		return nil, diags
-	}
-
-	return basetypes.ObjectType{AttrTypes: attrTypes}, nil
 }
