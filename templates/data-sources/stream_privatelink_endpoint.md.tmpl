@@ -17,6 +17,9 @@ subcategory: "Streams"
 ### AWS S3 Privatelink
 {{ tffile (printf "examples/%s/s3/main.tf" .Name )}}
 
+### GCP Confluent Privatelink
+{{ tffile (printf "examples/%s/gcp_confluent/main.tf" .Name )}}
+
 {{ .SchemaMarkdown | trimspace }}
 
 For more information see: [MongoDB Atlas API - Streams Privatelink](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprivatelinkconnection) Documentation.

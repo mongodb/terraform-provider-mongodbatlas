@@ -49,7 +49,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"provider_name": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Provider where the endpoint is deployed. Valid values are AWS and AZURE.",
+				MarkdownDescription: "Provider where the endpoint is deployed. Valid values are AWS, AZURE, and GCP.",
 			},
 			"region": schema.StringAttribute{
 				Optional:            true,
@@ -59,6 +59,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"service_endpoint_id": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "For AZURE EVENTHUB, this is the [namespace endpoint ID](https://learn.microsoft.com/en-us/rest/api/eventhub/namespaces/get). For AWS CONFLUENT cluster, this is the [VPC Endpoint service name](https://docs.confluent.io/cloud/current/networking/private-links/aws-privatelink.html).",
+			},
+			"service_attachment_uris": schema.ListAttribute{
+				Optional:            true,
+				MarkdownDescription: "List of GCP service attachment URIs for Confluent vendor. Required for GCP provider with CONFLUENT vendor.",
+				ElementType:         types.StringType,
 			},
 			"state": schema.StringAttribute{
 				Computed:            true,
@@ -70,7 +75,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 	* **AWS**: MSK, CONFLUENT, and S3
 
-	* **Azure**: EVENTHUB and CONFLUENT`,
+	* **Azure**: EVENTHUB and CONFLUENT
+
+	* **GCP**: CONFLUENT`,
 			},
 			"arn": schema.StringAttribute{
 				Optional:            true,
@@ -92,6 +99,7 @@ type TFModel struct {
 	ProviderAccountId     types.String `tfsdk:"provider_account_id"`
 	Region                types.String `tfsdk:"region"`
 	ServiceEndpointId     types.String `tfsdk:"service_endpoint_id"`
+	ServiceAttachmentUris types.List   `tfsdk:"service_attachment_uris"`
 	State                 types.String `tfsdk:"state"`
 	Vendor                types.String `tfsdk:"vendor"`
 	Arn                   types.String `tfsdk:"arn"`
