@@ -11,14 +11,15 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/mig"
 )
 
-var versionBeforeTPFGARelease = os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
+var (
+	versionBeforeTPFGARelease = os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
+	isSDKv2                   = acc.IsTestSDKv2ToTPF()
+)
 
 func TestV1xMigClusterAdvancedClusterConfig_geoShardedNewSchema(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
-	isSDKv2 := acc.IsTestSDKv2ToTPF()
-
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckBasic(t); mig.PreCheckLast1XVersion(t) },
+		PreCheck:     func() { mig.PreCheckLast1XVersionSleep(t) },
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
@@ -122,10 +123,8 @@ func checkGeoShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.
 
 func TestV1xMigAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
-	isSDKv2 := acc.IsTestSDKv2ToTPF()
-
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasicSleep(t, nil, projectID, clusterName); mig.PreCheckLast1XVersion(t) },
+		PreCheck:     func() { mig.PreCheckLast1XVersionSleep(t) },
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
@@ -151,11 +150,8 @@ func TestV1xMigAdvancedCluster_oldToNewSchemaWithAutoscalingEnabled(t *testing.T
 
 func TestV1xMigAdvancedCluster_shardedNewSchema(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
-	versionBeforeTPFGARelease := os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
-	isSDKv2 := acc.IsTestSDKv2ToTPF()
-
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckBasic(t); mig.PreCheckLast1XVersion(t) },
+		PreCheck:     func() { mig.PreCheckLast1XVersionSleep(t) },
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
@@ -277,11 +273,8 @@ func checkShardedTransitionOldToNewSchema(isTPF, useNewSchema bool) resource.Tes
 
 func TestV1xMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.T) {
 	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 8)
-	versionBeforeTPFGARelease := os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
-	isSDKv2 := acc.IsTestSDKv2ToTPF()
-
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { mig.PreCheckBasic(t); mig.PreCheckLast1XVersion(t) },
+		PreCheck:     func() { mig.PreCheckLast1XVersionSleep(t) },
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
@@ -305,14 +298,9 @@ func TestV1xMigAdvancedCluster_geoShardedMigrationFromOldToNewSchema(t *testing.
 }
 
 func TestV1xMigAdvancedCluster_replicaSetAWSProvider(t *testing.T) {
-	var (
-		projectID, clusterName    = acc.ProjectIDExecutionWithCluster(t, 6)
-		versionBeforeTPFGARelease = os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION")
-		isSDKv2                   = acc.IsTestSDKv2ToTPF()
-	)
-
+	projectID, clusterName := acc.ProjectIDExecutionWithCluster(t, 6)
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasicSleep(t, nil, projectID, clusterName); mig.PreCheckLast1XVersion(t) },
+		PreCheck:     func() { mig.PreCheckLast1XVersionSleep(t) },
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
@@ -352,11 +340,9 @@ func TestV1xMigAdvancedCluster_replicaSetMultiCloud(t *testing.T) {
 	var (
 		orgID                    = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectName, clusterName = acc.ProjectIDExecutionWithCluster(t, 6)
-		isSDKv2                  = acc.IsTestSDKv2ToTPF()
 	)
-
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acc.PreCheckBasic(t); mig.PreCheckLast1XVersion(t) },
+		PreCheck:     func() { mig.PreCheckLast1XVersionSleep(t) },
 		CheckDestroy: acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
 			{
