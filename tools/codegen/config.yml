@@ -445,13 +445,9 @@ resources:
       method: PATCH
       wait:
         <<: *search-index-create-wait
-    delete:
+    delete: # Not a LRO (long-running operation).
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}
       method: DELETE
-      wait:
-        <<: *search-index-create-wait
-        pending_states: ["PENDING", "BUILDING", "IN_PROGRESS", "MIGRATING", "READY", "STEADY"]
-        target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
     version_header: application/vnd.atlas.2024-05-30+json
     schema:
       use_custom_nested_types: false # TODO: investigate, prevents a panic in basetypes.ListValue.ToTerraformValue while creating the index

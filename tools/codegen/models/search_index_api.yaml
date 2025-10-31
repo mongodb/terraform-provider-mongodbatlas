@@ -787,7 +787,6 @@ schema:
             configurable_timeouts:
                 - create
                 - update
-                - delete
           computed_optional_required: ""
           tf_schema_name: timeouts
           tf_model_name: Timeouts
@@ -796,20 +795,6 @@ schema:
           create_only: false
 operations:
     delete:
-        wait:
-            state_property: status
-            pending_states:
-                - PENDING
-                - BUILDING
-                - IN_PROGRESS
-                - MIGRATING
-                - READY
-                - STEADY
-            target_states:
-                - DELETED
-            timeout_seconds: 10800
-            min_timeout_seconds: 30
-            delay_seconds: 30
         http_method: DELETE
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexID}
     create:

@@ -143,20 +143,6 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		return
 	}
 	reqHandle := deleteRequest(r.Client, &state, &resp.Diagnostics)
-	timeout, diags := state.Timeouts.Delete(ctx, 10800*time.Second)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	reqHandle.Wait = &autogen.WaitReq{
-		StateProperty:     "status",
-		PendingStates:     []string{"PENDING", "BUILDING", "IN_PROGRESS", "MIGRATING", "READY", "STEADY"},
-		TargetStates:      []string{"DELETED"},
-		Timeout:           timeout,
-		MinTimeoutSeconds: 30,
-		DelaySeconds:      30,
-		CallParams:        readAPICallParams,
-	}
 	autogen.HandleDelete(ctx, *reqHandle)
 }
 
