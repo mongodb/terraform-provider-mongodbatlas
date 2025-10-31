@@ -46,6 +46,20 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprivatelinkendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teamprojectassignment"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/auditingapi"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/clusterapi"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/customdbroleapi"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/databaseuserapi"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/maintenancewindowapi"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/orgserviceaccountapi"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectapi"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/projectsettingsapi"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/pushbasedlogexportapi"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/resourcepolicyapi"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/searchdeploymentapi"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/searchindexapi"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/streaminstanceapi"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/serviceapi/streamprocessorapi"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
 
@@ -306,6 +320,20 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 
 func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resource {
 	resources := []func() resource.Resource{
+		auditingapi.Resource,
+		clusterapi.Resource,
+		customdbroleapi.Resource,
+		databaseuserapi.Resource,
+		maintenancewindowapi.Resource,
+		orgserviceaccountapi.Resource,
+		projectapi.Resource,
+		projectsettingsapi.Resource,
+		pushbasedlogexportapi.Resource,
+		resourcepolicyapi.Resource,
+		searchdeploymentapi.Resource,
+		searchindexapi.Resource,
+		streaminstanceapi.Resource,
+		streamprocessorapi.Resource,
 		project.Resource,
 		encryptionatrest.Resource,
 		databaseuser.Resource,
