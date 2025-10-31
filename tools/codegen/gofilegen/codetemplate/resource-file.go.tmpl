@@ -69,7 +69,9 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		CallParams: &callParams,
 		{{- with .APIOperations.Create.Wait }}
 		{{- if $.APIOperations.Delete }}
-		DeleteReq: deleteRequest(r.Client, &plan, &resp.Diagnostics),
+		DeleteReq: func(model any) *autogen.HandleDeleteReq {
+			return deleteRequest(r.Client, model.(*TFModel), &resp.Diagnostics)
+		},
 		DeleteOnCreateTimeout: plan.DeleteOnCreateTimeout.ValueBool(),
 		{{- end }}
 		Wait: &autogen.WaitReq{
@@ -79,7 +81,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 			Timeout: timeout,
 			MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
 			DelaySeconds: {{ .DelaySeconds }},
-			CallParams: readAPICallParams(&plan),
+			CallParams: readAPICallParams,
 		},
 		{{ end }}
 	}
@@ -140,7 +142,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			Timeout: timeout,
 			MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
 			DelaySeconds: {{ .DelaySeconds }},
-			CallParams: readAPICallParams(&state),
+			CallParams: readAPICallParams,
 		},
 		{{ end }}
 	}
@@ -168,7 +170,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		Timeout: timeout,
 		MinTimeoutSeconds: {{ .MinTimeoutSeconds }},
 		DelaySeconds: {{ .DelaySeconds }},
-		CallParams: readAPICallParams(&state),
+		CallParams: readAPICallParams,
 	}
 	{{- end }}
 	autogen.HandleDelete(ctx, *reqHandle)
@@ -180,9 +182,10 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	autogen.HandleImport(ctx, idAttributes, req, resp)
 }
 
-func readAPICallParams(model *TFModel) *config.APICallParams {
+func readAPICallParams(model any) *config.APICallParams {
+	m := model.(*TFModel)
 	pathParams := map[string]string{ {{range .APIOperations.Read.PathParams }}
-		"{{ .CamelCaseName }}": model.{{ .PascalCaseName }}.ValueString(),
+		"{{ .CamelCaseName }}": m.{{ .PascalCaseName }}.ValueString(),
 	{{- end }}
 	}
 	return &config.APICallParams{

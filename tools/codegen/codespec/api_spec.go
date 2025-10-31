@@ -3,6 +3,8 @@ package codespec
 import (
 	"context"
 	"fmt"
+	"log"
+	"path"
 	"strconv"
 
 	"github.com/pb33f/libopenapi/datamodel/high/base"
@@ -17,19 +19,25 @@ var (
 // This function only builds the schema from a proxy and returns the basic type and format without handling oneOf, anyOf, allOf, or nullable types.
 func BuildSchema(proxy *base.SchemaProxy) (*APISpecSchema, error) {
 	resp := &APISpecSchema{}
-
 	schema, err := proxy.BuildSchema()
 	if err != nil {
 		return nil, fmt.Errorf("failed to build schema from proxy: %w", err)
 	}
-
-	if len(schema.Type) == 0 {
-		return nil, fmt.Errorf("invalid schema. no values for schema.Type found")
+	switch {
+	case len(schema.Type) > 0:
+		resp.Type = schema.Type[0]
+	case schema.Properties != nil && schema.Properties.Len() > 0:
+		// Infer object type when type is not explicitly defined but properties exist.
+		// This handles cases like BaseSearchIndexCreateRequestDefinition and BaseSearchIndexResponseLatestDefinition which have properties but no explicit type.
+		// This case can be removed after CLOUDP-355777 is done.
+		schemaName := getSchemaName(proxy, schema)
+		log.Printf("[WARN] Schema missing explicit type, inferring 'object' type from properties (schema: %s, properties: %d)", schemaName, schema.Properties.Len())
+		resp.Type = OASTypeObject
+	default:
+		schemaName := getSchemaName(proxy, schema)
+		return nil, fmt.Errorf("invalid schema. no values for schema.Type found and type cannot be inferred (schema: %s)", schemaName)
 	}
-
-	resp.Type = schema.Type[0]
 	resp.Schema = schema
-
 	return resp, nil
 }
 
@@ -90,4 +98,15 @@ func buildSchemaFromResponse(op *high.Operation) (*APISpecSchema, error) {
 	}
 
 	return nil, errSchemaNotFound
+}
+
+// getSchemaName extracts a human-readable schema name from the proxy reference or schema title.
+func getSchemaName(proxy *base.SchemaProxy, schema *base.Schema) string {
+	if ref := proxy.GetReference(); ref != "" { // Try to get the name from the $ref.
+		return path.Base(ref)
+	}
+	if schema.Title != "" { // Fall back to the schema title if available.
+		return schema.Title
+	}
+	return "unknown"
 }

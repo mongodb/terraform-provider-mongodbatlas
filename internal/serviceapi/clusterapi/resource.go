@@ -56,11 +56,13 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 	reqHandle := autogen.HandleCreateReq{
-		Resp:                  resp,
-		Client:                r.Client,
-		Plan:                  &plan,
-		CallParams:            &callParams,
-		DeleteReq:             deleteRequest(r.Client, &plan, &resp.Diagnostics),
+		Resp:       resp,
+		Client:     r.Client,
+		Plan:       &plan,
+		CallParams: &callParams,
+		DeleteReq: func(model any) *autogen.HandleDeleteReq {
+			return deleteRequest(r.Client, model.(*TFModel), &resp.Diagnostics)
+		},
 		DeleteOnCreateTimeout: plan.DeleteOnCreateTimeout.ValueBool(),
 		Wait: &autogen.WaitReq{
 			StateProperty:     "stateName",
@@ -69,7 +71,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 			Timeout:           timeout,
 			MinTimeoutSeconds: 60,
 			DelaySeconds:      30,
-			CallParams:        readAPICallParams(&plan),
+			CallParams:        readAPICallParams,
 		},
 	}
 	autogen.HandleCreate(ctx, reqHandle)
@@ -126,7 +128,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			Timeout:           timeout,
 			MinTimeoutSeconds: 60,
 			DelaySeconds:      30,
-			CallParams:        readAPICallParams(&state),
+			CallParams:        readAPICallParams,
 		},
 	}
 	autogen.HandleUpdate(ctx, reqHandle)
@@ -151,7 +153,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		Timeout:           timeout,
 		MinTimeoutSeconds: 60,
 		DelaySeconds:      30,
-		CallParams:        readAPICallParams(&state),
+		CallParams:        readAPICallParams,
 	}
 	autogen.HandleDelete(ctx, *reqHandle)
 }
@@ -161,10 +163,11 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	autogen.HandleImport(ctx, idAttributes, req, resp)
 }
 
-func readAPICallParams(model *TFModel) *config.APICallParams {
+func readAPICallParams(model any) *config.APICallParams {
+	m := model.(*TFModel)
 	pathParams := map[string]string{
-		"groupId": model.GroupId.ValueString(),
-		"name":    model.Name.ValueString(),
+		"groupId": m.GroupId.ValueString(),
+		"name":    m.Name.ValueString(),
 	}
 	return &config.APICallParams{
 		VersionHeader: apiVersionHeader,

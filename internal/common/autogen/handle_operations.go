@@ -31,7 +31,7 @@ const (
 )
 
 type WaitReq struct {
-	CallParams        *config.APICallParams
+	CallParams        func(model any) *config.APICallParams
 	StateProperty     string
 	PendingStates     []string
 	TargetStates      []string
@@ -45,7 +45,7 @@ type HandleCreateReq struct {
 	Client                *config.MongoDBClient
 	Plan                  any
 	CallParams            *config.APICallParams
-	DeleteReq             *HandleDeleteReq
+	DeleteReq             func(model any) *HandleDeleteReq
 	Wait                  *WaitReq
 	DeleteOnCreateTimeout bool
 }
@@ -76,7 +76,8 @@ func HandleCreate(ctx context.Context, req HandleCreateReq) {
 	if req.DeleteReq != nil {
 		// Handle timeout with cleanup if delete_on_create_timeout is enabled.
 		errWait = cleanup.HandleCreateTimeout(req.DeleteOnCreateTimeout, errWait, func(ctxCleanup context.Context) error {
-			return callDelete(ctxCleanup, req.DeleteReq)
+			deleteReq := req.DeleteReq(req.Plan)
+			return callDelete(ctxCleanup, deleteReq)
 		})
 	}
 	if errWait != nil {
@@ -168,7 +169,7 @@ func HandleDelete(ctx context.Context, req HandleDeleteReq) {
 		addError(req.Diags, opDelete, errCallingAPI, err)
 		return
 	}
-	if errWait := handleWaitDelete(ctx, req.Wait, req.Client); errWait != nil {
+	if errWait := handleWaitDelete(ctx, req.Wait, req.Client, req.State); errWait != nil {
 		addError(req.Diags, opDelete, errWaitingForChanges, errWait)
 	}
 }
@@ -179,7 +180,7 @@ func handleWaitCreateUpdate(ctx context.Context, wait *WaitReq, client *config.M
 	if wait == nil {
 		return nil
 	}
-	bodyResp, err := waitForChanges(ctx, wait, client)
+	bodyResp, err := waitForChanges(ctx, wait, client, model)
 	if err != nil || isEmptyJSON(bodyResp) {
 		return err
 	}
@@ -190,11 +191,11 @@ func handleWaitCreateUpdate(ctx context.Context, wait *WaitReq, client *config.M
 }
 
 // handleWaitDelete waits until a long-running operation to delete a resource if neeed.
-func handleWaitDelete(ctx context.Context, wait *WaitReq, client *config.MongoDBClient) error {
+func handleWaitDelete(ctx context.Context, wait *WaitReq, client *config.MongoDBClient, model any) error {
 	if wait == nil {
 		return nil
 	}
-	if _, err := waitForChanges(ctx, wait, client); err != nil {
+	if _, err := waitForChanges(ctx, wait, client, model); err != nil {
 		return err
 	}
 	return nil
@@ -253,7 +254,7 @@ func callDelete(ctx context.Context, req *HandleDeleteReq) error {
 
 // waitForChanges waits until a long-running operation is done.
 // It returns the latest JSON response from the API so it can be used to update the response state.
-func waitForChanges(ctx context.Context, wait *WaitReq, client *config.MongoDBClient) ([]byte, error) {
+func waitForChanges(ctx context.Context, wait *WaitReq, client *config.MongoDBClient, model any) ([]byte, error) {
 	if len(wait.TargetStates) == 0 {
 		return nil, fmt.Errorf("wait must have at least one target state, pending states: %v", wait.PendingStates)
 	}
@@ -263,7 +264,7 @@ func waitForChanges(ctx context.Context, wait *WaitReq, client *config.MongoDBCl
 		Timeout:    wait.Timeout,
 		MinTimeout: time.Duration(wait.MinTimeoutSeconds) * time.Second,
 		Delay:      time.Duration(wait.DelaySeconds) * time.Second,
-		Refresh:    refreshFunc(ctx, wait, client),
+		Refresh:    refreshFunc(ctx, wait, client, model),
 	}
 	bodyResp, err := stateConf.WaitForStateContext(ctx)
 	if err != nil || bodyResp == nil {
@@ -274,9 +275,10 @@ func waitForChanges(ctx context.Context, wait *WaitReq, client *config.MongoDBCl
 
 // refreshFunc retries until a target state or error happens.
 // It uses a special state value of "DELETED" when the API returns 404 or empty object
-func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClient) retry.StateRefreshFunc {
+func refreshFunc(ctx context.Context, wait *WaitReq, client *config.MongoDBClient, model any) retry.StateRefreshFunc {
 	return func() (result any, state string, err error) {
-		bodyResp, httpResp, err := callAPIWithoutBody(ctx, client, wait.CallParams)
+		callParams := wait.CallParams(model)
+		bodyResp, httpResp, err := callAPIWithoutBody(ctx, client, callParams)
 		if notFound(bodyResp, httpResp) {
 			// if "artificial" states continue to grow we can evaluate using a prefix to clearly separate states coming from API and those defined by refreshFunc
 			return emptyJSON, retrystrategy.RetryStrategyDeletedState, nil

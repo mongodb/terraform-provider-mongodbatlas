@@ -31,7 +31,7 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 	if resourceName != nil { // only generate a specific resource
 		resource, ok := configModel.Resources[*resourceName]
 		if !ok {
-			log.Printf("Resource %s not found in config file, skipping model generation", *resourceName)
+			log.Printf("[INFO] Resource %s not found in config file, skipping model generation", *resourceName)
 			return &Model{}, nil
 		}
 		resourceConfigsToIterate = map[string]config.Resource{
@@ -45,14 +45,18 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 
 	var results []Resource
 	for name, resourceConfig := range resourceConfigsToIterate {
-		log.Printf("Generating resource model: %s", name)
+		log.Printf("[INFO] Generating resource model: %s", name)
 		// find resource operations, schemas, etc from OAS
 		oasResource, err := getAPISpecResource(&apiSpec.Model, &resourceConfig, stringcase.SnakeCaseString(name))
 		if err != nil {
 			return nil, fmt.Errorf("unable to get APISpecResource schema: %v", err)
 		}
 		// map OAS resource model to CodeSpecModel
-		results = append(results, *apiSpecResourceToCodeSpecModel(oasResource, &resourceConfig, stringcase.SnakeCaseString(name)))
+		resource, err := apiSpecResourceToCodeSpecModel(oasResource, &resourceConfig, stringcase.SnakeCaseString(name))
+		if err != nil {
+			return nil, fmt.Errorf("unable to map to code spec model for %s: %w", name, err)
+		}
+		results = append(results, *resource)
 	}
 
 	return &Model{Resources: results}, nil
@@ -77,7 +81,7 @@ func validateRequiredOperations(resourceConfigs map[string]config.Resource) erro
 	return nil
 }
 
-func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig *config.Resource, name stringcase.SnakeCaseString) *Resource {
+func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig *config.Resource, name stringcase.SnakeCaseString) (*Resource, error) {
 	createOp := oasResource.CreateOp
 	updateOp := oasResource.UpdateOp
 	readOp := oasResource.ReadOp
@@ -86,8 +90,14 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 	useCustomNestedTypes := resourceConfig.SchemaOptions.UseCustomNestedTypes == nil || *resourceConfig.SchemaOptions.UseCustomNestedTypes
 
 	createPathParams := pathParamsToAttributes(createOp, useCustomNestedTypes)
-	createRequestAttributes := opRequestToAttributes(createOp, useCustomNestedTypes)
-	updateRequestAttributes := opRequestToAttributes(updateOp, useCustomNestedTypes)
+	createRequestAttributes, err := opRequestToAttributes(createOp, useCustomNestedTypes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to process create request attributes for %s: %w", name, err)
+	}
+	updateRequestAttributes, err := opRequestToAttributes(updateOp, useCustomNestedTypes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to process update request attributes for %s: %w", name, err)
+	}
 	createResponseAttributes := opResponseToAttributes(createOp, useCustomNestedTypes)
 	readResponseAttributes := opResponseToAttributes(readOp, useCustomNestedTypes)
 
@@ -117,7 +127,7 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 
 	applyTransformationsWithConfigOpts(resourceConfig, resource)
 
-	return resource
+	return resource, nil
 }
 
 func getLatestVersionFromAPISpec(readOp *high.Operation) string {
@@ -194,21 +204,19 @@ func pathParamsToAttributes(createOp *high.Operation, useCustomNestedTypes bool)
 	return pathAttributes
 }
 
-func opRequestToAttributes(op *high.Operation, useCustomNestedTypes bool) Attributes {
+func opRequestToAttributes(op *high.Operation, useCustomNestedTypes bool) (Attributes, error) {
 	var requestAttributes Attributes
 	requestSchema, err := buildSchemaFromRequest(op)
 	if err != nil {
-		log.Printf("[WARN] Request schema could not be mapped (OperationId: %s): %s", op.OperationId, err)
-		return nil
+		return nil, fmt.Errorf("request schema could not be mapped (OperationId: %s): %w", op.OperationId, err)
 	}
 
 	requestAttributes, err = buildResourceAttrs(requestSchema, "", true, useCustomNestedTypes)
 	if err != nil {
-		log.Printf("[WARN] Request attributes could not be mapped (OperationId: %s): %s", op.OperationId, err)
-		return nil
+		return nil, fmt.Errorf("request attributes could not be mapped (OperationId: %s): %w", op.OperationId, err)
 	}
 
-	return requestAttributes
+	return requestAttributes, nil
 }
 
 func opResponseToAttributes(op *high.Operation, useCustomNestedTypes bool) Attributes {
