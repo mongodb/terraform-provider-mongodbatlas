@@ -53,6 +53,10 @@ schema:
                                 - list:
                                     element_type: 5
                                   description: Filters that examine text one character at a time and perform filtering operations.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.ListValue[jsontypes.Normalized]
+                                    schema: customtypes.NewListType[jsontypes.Normalized](ctx)
                                   computed_optional_required: optional
                                   tf_schema_name: char_filters
                                   tf_model_name: CharFilters
@@ -79,6 +83,10 @@ schema:
                                     - Stemming, which reduces related words, such as "talking", "talked", and "talks" to their root word "talk".
 
                                     - Redaction, which is the removal of sensitive information from public documents.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.ListValue[jsontypes.Normalized]
+                                    schema: customtypes.NewListType[jsontypes.Normalized](ctx)
                                   computed_optional_required: optional
                                   tf_schema_name: token_filters
                                   tf_model_name: TokenFilters
@@ -98,6 +106,10 @@ schema:
                                   sensitive: false
                                   create_only: false
                       description: List of user-defined methods to convert database field text into searchable words.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.NestedListValue[TFDefinitionAnalyzersModel]
+                        schema: customtypes.NewNestedListType[TFDefinitionAnalyzersModel](ctx)
                       computed_optional_required: optional
                       tf_schema_name: analyzers
                       tf_model_name: Analyzers
@@ -107,6 +119,10 @@ schema:
                     - list:
                         element_type: 5
                       description: Settings that configure the fields, one per object, to index. You must define at least one "vector" type field. You can optionally define "filter" type fields also.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.ListValue[jsontypes.Normalized]
+                        schema: customtypes.NewListType[jsontypes.Normalized](ctx)
                       computed_optional_required: optional
                       tf_schema_name: fields
                       tf_model_name: Fields
@@ -129,6 +145,10 @@ schema:
                                   sensitive: false
                                   create_only: false
                       description: Index specifications for the collection's fields.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.ObjectValue[TFDefinitionMappingsModel]
+                        schema: customtypes.NewObjectType[TFDefinitionMappingsModel](ctx)
                       computed_optional_required: optional
                       tf_schema_name: mappings
                       tf_model_name: Mappings
@@ -196,6 +216,10 @@ schema:
                                               sensitive: false
                                               create_only: false
                                   description: Data set that stores words and their applicable synonyms.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.ObjectValue[TFDefinitionSynonymsSourceModel]
+                                    schema: customtypes.NewObjectType[TFDefinitionSynonymsSourceModel](ctx)
                                   computed_optional_required: required
                                   tf_schema_name: source
                                   tf_model_name: Source
@@ -203,6 +227,10 @@ schema:
                                   sensitive: false
                                   create_only: false
                       description: Rule sets that map words to their synonyms in this index.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.NestedListValue[TFDefinitionSynonymsModel]
+                        schema: customtypes.NewNestedListType[TFDefinitionSynonymsModel](ctx)
                       computed_optional_required: optional
                       tf_schema_name: synonyms
                       tf_model_name: Synonyms
@@ -223,6 +251,10 @@ schema:
                                 - list:
                                     element_type: 5
                                   description: List of types associated with the type set. Each type definition must include a "type" field specifying the search field type ("autocomplete", "boolean", "date", "geo", "number", "objectId", "string", "token", or "uuid") and may include additional configuration properties specific to that type.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.ListValue[jsontypes.Normalized]
+                                    schema: customtypes.NewListType[jsontypes.Normalized](ctx)
                                   computed_optional_required: optional
                                   tf_schema_name: types
                                   tf_model_name: Types
@@ -230,6 +262,10 @@ schema:
                                   sensitive: false
                                   create_only: false
                       description: Type sets for the index.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.NestedListValue[TFDefinitionTypeSetsModel]
+                        schema: customtypes.NewNestedListType[TFDefinitionTypeSetsModel](ctx)
                       computed_optional_required: optional
                       tf_schema_name: type_sets
                       tf_model_name: TypeSets
@@ -237,6 +273,10 @@ schema:
                       sensitive: false
                       create_only: false
           description: The index definition to update the search index to.
+          custom_type:
+            package: customtypes
+            model: customtypes.ObjectValue[TFDefinitionModel]
+            schema: customtypes.NewObjectType[TFDefinitionModel](ctx)
           computed_optional_required: required
           tf_schema_name: definition
           tf_model_name: Definition
@@ -290,6 +330,10 @@ schema:
                                 - list:
                                     element_type: 5
                                   description: Filters that examine text one character at a time and perform filtering operations.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.ListValue[jsontypes.Normalized]
+                                    schema: customtypes.NewListType[jsontypes.Normalized](ctx)
                                   computed_optional_required: computed
                                   tf_schema_name: char_filters
                                   tf_model_name: CharFilters
@@ -316,6 +360,10 @@ schema:
                                     - Stemming, which reduces related words, such as "talking", "talked", and "talks" to their root word "talk".
 
                                     - Redaction, which is the removal of sensitive information from public documents.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.ListValue[jsontypes.Normalized]
+                                    schema: customtypes.NewListType[jsontypes.Normalized](ctx)
                                   computed_optional_required: computed
                                   tf_schema_name: token_filters
                                   tf_model_name: TokenFilters
@@ -335,6 +383,10 @@ schema:
                                   sensitive: false
                                   create_only: false
                       description: List of user-defined methods to convert database field text into searchable words.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.NestedListValue[TFLatestDefinitionAnalyzersModel]
+                        schema: customtypes.NewNestedListType[TFLatestDefinitionAnalyzersModel](ctx)
                       computed_optional_required: computed
                       tf_schema_name: analyzers
                       tf_model_name: Analyzers
@@ -344,6 +396,10 @@ schema:
                     - list:
                         element_type: 5
                       description: Settings that configure the fields, one per object, to index. You must define at least one "vector" type field. You can optionally define "filter" type fields also.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.ListValue[jsontypes.Normalized]
+                        schema: customtypes.NewListType[jsontypes.Normalized](ctx)
                       computed_optional_required: computed
                       tf_schema_name: fields
                       tf_model_name: Fields
@@ -411,6 +467,10 @@ schema:
                                               sensitive: false
                                               create_only: false
                                   description: Data set that stores words and their applicable synonyms.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.ObjectValue[TFLatestDefinitionSynonymsSourceModel]
+                                    schema: customtypes.NewObjectType[TFLatestDefinitionSynonymsSourceModel](ctx)
                                   computed_optional_required: computed
                                   tf_schema_name: source
                                   tf_model_name: Source
@@ -418,6 +478,10 @@ schema:
                                   sensitive: false
                                   create_only: false
                       description: Rule sets that map words to their synonyms in this index.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.NestedListValue[TFLatestDefinitionSynonymsModel]
+                        schema: customtypes.NewNestedListType[TFLatestDefinitionSynonymsModel](ctx)
                       computed_optional_required: computed
                       tf_schema_name: synonyms
                       tf_model_name: Synonyms
@@ -438,6 +502,10 @@ schema:
                                 - list:
                                     element_type: 5
                                   description: List of types associated with the type set. Each type definition must include a "type" field specifying the search field type ("autocomplete", "boolean", "date", "geo", "number", "objectId", "string", "token", or "uuid") and may include additional configuration properties specific to that type.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.ListValue[jsontypes.Normalized]
+                                    schema: customtypes.NewListType[jsontypes.Normalized](ctx)
                                   computed_optional_required: computed
                                   tf_schema_name: types
                                   tf_model_name: Types
@@ -445,12 +513,20 @@ schema:
                                   sensitive: false
                                   create_only: false
                       description: Type sets for the index.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.NestedListValue[TFLatestDefinitionTypeSetsModel]
+                        schema: customtypes.NewNestedListType[TFLatestDefinitionTypeSetsModel](ctx)
                       computed_optional_required: computed
                       tf_schema_name: type_sets
                       tf_model_name: TypeSets
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
+          custom_type:
+            package: customtypes
+            model: customtypes.ObjectValue[TFLatestDefinitionModel]
+            schema: customtypes.NewObjectType[TFLatestDefinitionModel](ctx)
           computed_optional_required: computed
           tf_schema_name: latest_definition
           tf_model_name: LatestDefinition
@@ -477,6 +553,10 @@ schema:
                       sensitive: false
                       create_only: false
           description: Object which includes the version number of the index definition and the time that the index definition was created.
+          custom_type:
+            package: customtypes
+            model: customtypes.ObjectValue[TFLatestDefinitionVersionModel]
+            schema: customtypes.NewObjectType[TFLatestDefinitionVersionModel](ctx)
           computed_optional_required: computed
           tf_schema_name: latest_definition_version
           tf_model_name: LatestDefinitionVersion
@@ -535,6 +615,10 @@ schema:
                                             - list:
                                                 element_type: 5
                                               description: Settings that configure the fields, one per object, to index. You must define at least one "vector" type field. You can optionally define "filter" type fields also.
+                                              custom_type:
+                                                package: customtypes
+                                                model: customtypes.ListValue[jsontypes.Normalized]
+                                                schema: customtypes.NewListType[jsontypes.Normalized](ctx)
                                               computed_optional_required: computed
                                               tf_schema_name: fields
                                               tf_model_name: Fields
@@ -551,6 +635,10 @@ schema:
                                               sensitive: false
                                               create_only: false
                                   description: The vector search index definition set by the user.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.ObjectValue[TFStatusDetailMainIndexDefinitionModel]
+                                    schema: customtypes.NewObjectType[TFStatusDetailMainIndexDefinitionModel](ctx)
                                   computed_optional_required: computed
                                   tf_schema_name: definition
                                   tf_model_name: Definition
@@ -577,6 +665,10 @@ schema:
                                               sensitive: false
                                               create_only: false
                                   description: Object which includes the version number of the index definition and the time that the index definition was created.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.ObjectValue[TFStatusDetailMainIndexDefinitionVersionModel]
+                                    schema: customtypes.NewObjectType[TFStatusDetailMainIndexDefinitionVersionModel](ctx)
                                   computed_optional_required: computed
                                   tf_schema_name: definition_version
                                   tf_model_name: DefinitionVersion
@@ -616,6 +708,10 @@ schema:
                                   sensitive: false
                                   create_only: false
                       description: Contains status information about a vector search index.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.ObjectValue[TFStatusDetailMainIndexModel]
+                        schema: customtypes.NewObjectType[TFStatusDetailMainIndexModel](ctx)
                       computed_optional_required: computed
                       tf_schema_name: main_index
                       tf_model_name: MainIndex
@@ -639,6 +735,10 @@ schema:
                                             - list:
                                                 element_type: 5
                                               description: Settings that configure the fields, one per object, to index. You must define at least one "vector" type field. You can optionally define "filter" type fields also.
+                                              custom_type:
+                                                package: customtypes
+                                                model: customtypes.ListValue[jsontypes.Normalized]
+                                                schema: customtypes.NewListType[jsontypes.Normalized](ctx)
                                               computed_optional_required: computed
                                               tf_schema_name: fields
                                               tf_model_name: Fields
@@ -655,6 +755,10 @@ schema:
                                               sensitive: false
                                               create_only: false
                                   description: The vector search index definition set by the user.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.ObjectValue[TFStatusDetailStagedIndexDefinitionModel]
+                                    schema: customtypes.NewObjectType[TFStatusDetailStagedIndexDefinitionModel](ctx)
                                   computed_optional_required: computed
                                   tf_schema_name: definition
                                   tf_model_name: Definition
@@ -681,6 +785,10 @@ schema:
                                               sensitive: false
                                               create_only: false
                                   description: Object which includes the version number of the index definition and the time that the index definition was created.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.ObjectValue[TFStatusDetailStagedIndexDefinitionVersionModel]
+                                    schema: customtypes.NewObjectType[TFStatusDetailStagedIndexDefinitionVersionModel](ctx)
                                   computed_optional_required: computed
                                   tf_schema_name: definition_version
                                   tf_model_name: DefinitionVersion
@@ -720,6 +828,10 @@ schema:
                                   sensitive: false
                                   create_only: false
                       description: Contains status information about a vector search index.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.ObjectValue[TFStatusDetailStagedIndexModel]
+                        schema: customtypes.NewObjectType[TFStatusDetailStagedIndexModel](ctx)
                       computed_optional_required: computed
                       tf_schema_name: staged_index
                       tf_model_name: StagedIndex
@@ -743,6 +855,10 @@ schema:
                       sensitive: false
                       create_only: false
           description: List of documents detailing index status on each host.
+          custom_type:
+            package: customtypes
+            model: customtypes.NestedListValue[TFStatusDetailModel]
+            schema: customtypes.NewNestedListType[TFStatusDetailModel](ctx)
           computed_optional_required: computed
           tf_schema_name: status_detail
           tf_model_name: StatusDetail
@@ -760,6 +876,10 @@ schema:
         - list:
             element_type: 5
           description: A list of documents describing the status of the index's synonym mappings on each search host. Only appears if the index has synonyms defined.
+          custom_type:
+            package: customtypes
+            model: customtypes.ListValue[jsontypes.Normalized]
+            schema: customtypes.NewListType[jsontypes.Normalized](ctx)
           computed_optional_required: computed
           tf_schema_name: synonym_mapping_status_detail
           tf_model_name: SynonymMappingStatusDetail

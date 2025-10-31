@@ -449,7 +449,6 @@ resources:
       method: DELETE
     version_header: application/vnd.atlas.2024-05-30+json
     schema:
-      use_custom_nested_types: false # TODO: investigate, prevents a panic in basetypes.ListValue.ToTerraformValue while creating the index
       # TODO: fields will be supported in CLOUDP-352319.
       # TODO: investigate, latest_definition.mappings excluded because dynamic is a JSON string field but Atlas can also reply with true or false booleans.
       ignores: ["definition.mappings.fields", "latest_definition.mappings.fields", "latest_definition.mappings"]

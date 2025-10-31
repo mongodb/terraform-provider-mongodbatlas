@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
@@ -34,6 +35,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"definition": schema.SingleNestedAttribute{
 				Required:            true,
 				MarkdownDescription: "The index definition to update the search index to.",
+				CustomType:          customtypes.NewObjectType[TFDefinitionModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"analyzer": schema.StringAttribute{
 						Computed:            true,
@@ -43,11 +45,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"analyzers": schema.ListNestedAttribute{
 						Optional:            true,
 						MarkdownDescription: "List of user-defined methods to convert database field text into searchable words.",
+						CustomType:          customtypes.NewNestedListType[TFDefinitionAnalyzersModel](ctx),
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"char_filters": schema.ListAttribute{
 									Optional:            true,
 									MarkdownDescription: "Filters that examine text one character at a time and perform filtering operations.",
+									CustomType:          customtypes.NewListType[jsontypes.Normalized](ctx),
 									ElementType:         jsontypes.NormalizedType{},
 								},
 								"name": schema.StringAttribute{
@@ -57,6 +61,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								"token_filters": schema.ListAttribute{
 									Optional:            true,
 									MarkdownDescription: "Filter that performs operations such as:\n\n- Stemming, which reduces related words, such as \"talking\", \"talked\", and \"talks\" to their root word \"talk\".\n\n- Redaction, which is the removal of sensitive information from public documents.",
+									CustomType:          customtypes.NewListType[jsontypes.Normalized](ctx),
 									ElementType:         jsontypes.NormalizedType{},
 								},
 								"tokenizer": schema.StringAttribute{
@@ -70,11 +75,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"fields": schema.ListAttribute{
 						Optional:            true,
 						MarkdownDescription: "Settings that configure the fields, one per object, to index. You must define at least one \"vector\" type field. You can optionally define \"filter\" type fields also.",
+						CustomType:          customtypes.NewListType[jsontypes.Normalized](ctx),
 						ElementType:         jsontypes.NormalizedType{},
 					},
 					"mappings": schema.SingleNestedAttribute{
 						Optional:            true,
 						MarkdownDescription: "Index specifications for the collection's fields.",
+						CustomType:          customtypes.NewObjectType[TFDefinitionMappingsModel](ctx),
 						Attributes: map[string]schema.Attribute{
 							"dynamic": schema.StringAttribute{
 								Optional:            true,
@@ -101,6 +108,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"synonyms": schema.ListNestedAttribute{
 						Optional:            true,
 						MarkdownDescription: "Rule sets that map words to their synonyms in this index.",
+						CustomType:          customtypes.NewNestedListType[TFDefinitionSynonymsModel](ctx),
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"analyzer": schema.StringAttribute{
@@ -114,6 +122,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								"source": schema.SingleNestedAttribute{
 									Required:            true,
 									MarkdownDescription: "Data set that stores words and their applicable synonyms.",
+									CustomType:          customtypes.NewObjectType[TFDefinitionSynonymsSourceModel](ctx),
 									Attributes: map[string]schema.Attribute{
 										"collection": schema.StringAttribute{
 											Required:            true,
@@ -127,6 +136,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"type_sets": schema.ListNestedAttribute{
 						Optional:            true,
 						MarkdownDescription: "Type sets for the index.",
+						CustomType:          customtypes.NewNestedListType[TFDefinitionTypeSetsModel](ctx),
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"name": schema.StringAttribute{
@@ -136,6 +146,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								"types": schema.ListAttribute{
 									Optional:            true,
 									MarkdownDescription: "List of types associated with the type set. Each type definition must include a \"type\" field specifying the search field type (\"autocomplete\", \"boolean\", \"date\", \"geo\", \"number\", \"objectId\", \"string\", \"token\", or \"uuid\") and may include additional configuration properties specific to that type.",
+									CustomType:          customtypes.NewListType[jsontypes.Normalized](ctx),
 									ElementType:         jsontypes.NormalizedType{},
 								},
 							},
@@ -153,7 +164,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies this Atlas Search index.",
 			},
 			"latest_definition": schema.SingleNestedAttribute{
-				Computed: true,
+				Computed:   true,
+				CustomType: customtypes.NewObjectType[TFLatestDefinitionModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"analyzer": schema.StringAttribute{
 						Computed:            true,
@@ -162,11 +174,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"analyzers": schema.ListNestedAttribute{
 						Computed:            true,
 						MarkdownDescription: "List of user-defined methods to convert database field text into searchable words.",
+						CustomType:          customtypes.NewNestedListType[TFLatestDefinitionAnalyzersModel](ctx),
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"char_filters": schema.ListAttribute{
 									Computed:            true,
 									MarkdownDescription: "Filters that examine text one character at a time and perform filtering operations.",
+									CustomType:          customtypes.NewListType[jsontypes.Normalized](ctx),
 									ElementType:         jsontypes.NormalizedType{},
 								},
 								"name": schema.StringAttribute{
@@ -176,6 +190,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								"token_filters": schema.ListAttribute{
 									Computed:            true,
 									MarkdownDescription: "Filter that performs operations such as:\n\n- Stemming, which reduces related words, such as \"talking\", \"talked\", and \"talks\" to their root word \"talk\".\n\n- Redaction, which is the removal of sensitive information from public documents.",
+									CustomType:          customtypes.NewListType[jsontypes.Normalized](ctx),
 									ElementType:         jsontypes.NormalizedType{},
 								},
 								"tokenizer": schema.StringAttribute{
@@ -189,6 +204,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"fields": schema.ListAttribute{
 						Computed:            true,
 						MarkdownDescription: "Settings that configure the fields, one per object, to index. You must define at least one \"vector\" type field. You can optionally define \"filter\" type fields also.",
+						CustomType:          customtypes.NewListType[jsontypes.Normalized](ctx),
 						ElementType:         jsontypes.NormalizedType{},
 					},
 					"num_partitions": schema.Int64Attribute{
@@ -207,6 +223,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"synonyms": schema.ListNestedAttribute{
 						Computed:            true,
 						MarkdownDescription: "Rule sets that map words to their synonyms in this index.",
+						CustomType:          customtypes.NewNestedListType[TFLatestDefinitionSynonymsModel](ctx),
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"analyzer": schema.StringAttribute{
@@ -220,6 +237,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								"source": schema.SingleNestedAttribute{
 									Computed:            true,
 									MarkdownDescription: "Data set that stores words and their applicable synonyms.",
+									CustomType:          customtypes.NewObjectType[TFLatestDefinitionSynonymsSourceModel](ctx),
 									Attributes: map[string]schema.Attribute{
 										"collection": schema.StringAttribute{
 											Computed:            true,
@@ -233,6 +251,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"type_sets": schema.ListNestedAttribute{
 						Computed:            true,
 						MarkdownDescription: "Type sets for the index.",
+						CustomType:          customtypes.NewNestedListType[TFLatestDefinitionTypeSetsModel](ctx),
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"name": schema.StringAttribute{
@@ -242,6 +261,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								"types": schema.ListAttribute{
 									Computed:            true,
 									MarkdownDescription: "List of types associated with the type set. Each type definition must include a \"type\" field specifying the search field type (\"autocomplete\", \"boolean\", \"date\", \"geo\", \"number\", \"objectId\", \"string\", \"token\", or \"uuid\") and may include additional configuration properties specific to that type.",
+									CustomType:          customtypes.NewListType[jsontypes.Normalized](ctx),
 									ElementType:         jsontypes.NormalizedType{},
 								},
 							},
@@ -252,6 +272,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"latest_definition_version": schema.SingleNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: "Object which includes the version number of the index definition and the time that the index definition was created.",
+				CustomType:          customtypes.NewObjectType[TFLatestDefinitionVersionModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"created_at": schema.StringAttribute{
 						Computed:            true,
@@ -279,6 +300,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"status_detail": schema.ListNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: "List of documents detailing index status on each host.",
+				CustomType:          customtypes.NewNestedListType[TFStatusDetailModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"hostname": schema.StringAttribute{
@@ -288,14 +310,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						"main_index": schema.SingleNestedAttribute{
 							Computed:            true,
 							MarkdownDescription: "Contains status information about a vector search index.",
+							CustomType:          customtypes.NewObjectType[TFStatusDetailMainIndexModel](ctx),
 							Attributes: map[string]schema.Attribute{
 								"definition": schema.SingleNestedAttribute{
 									Computed:            true,
 									MarkdownDescription: "The vector search index definition set by the user.",
+									CustomType:          customtypes.NewObjectType[TFStatusDetailMainIndexDefinitionModel](ctx),
 									Attributes: map[string]schema.Attribute{
 										"fields": schema.ListAttribute{
 											Computed:            true,
 											MarkdownDescription: "Settings that configure the fields, one per object, to index. You must define at least one \"vector\" type field. You can optionally define \"filter\" type fields also.",
+											CustomType:          customtypes.NewListType[jsontypes.Normalized](ctx),
 											ElementType:         jsontypes.NormalizedType{},
 										},
 										"num_partitions": schema.Int64Attribute{
@@ -307,6 +332,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								"definition_version": schema.SingleNestedAttribute{
 									Computed:            true,
 									MarkdownDescription: "Object which includes the version number of the index definition and the time that the index definition was created.",
+									CustomType:          customtypes.NewObjectType[TFStatusDetailMainIndexDefinitionVersionModel](ctx),
 									Attributes: map[string]schema.Attribute{
 										"created_at": schema.StringAttribute{
 											Computed:            true,
@@ -339,14 +365,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						"staged_index": schema.SingleNestedAttribute{
 							Computed:            true,
 							MarkdownDescription: "Contains status information about a vector search index.",
+							CustomType:          customtypes.NewObjectType[TFStatusDetailStagedIndexModel](ctx),
 							Attributes: map[string]schema.Attribute{
 								"definition": schema.SingleNestedAttribute{
 									Computed:            true,
 									MarkdownDescription: "The vector search index definition set by the user.",
+									CustomType:          customtypes.NewObjectType[TFStatusDetailStagedIndexDefinitionModel](ctx),
 									Attributes: map[string]schema.Attribute{
 										"fields": schema.ListAttribute{
 											Computed:            true,
 											MarkdownDescription: "Settings that configure the fields, one per object, to index. You must define at least one \"vector\" type field. You can optionally define \"filter\" type fields also.",
+											CustomType:          customtypes.NewListType[jsontypes.Normalized](ctx),
 											ElementType:         jsontypes.NormalizedType{},
 										},
 										"num_partitions": schema.Int64Attribute{
@@ -358,6 +387,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								"definition_version": schema.SingleNestedAttribute{
 									Computed:            true,
 									MarkdownDescription: "Object which includes the version number of the index definition and the time that the index definition was created.",
+									CustomType:          customtypes.NewObjectType[TFStatusDetailStagedIndexDefinitionVersionModel](ctx),
 									Attributes: map[string]schema.Attribute{
 										"created_at": schema.StringAttribute{
 											Computed:            true,
@@ -397,6 +427,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"synonym_mapping_status_detail": schema.ListAttribute{
 				Computed:            true,
 				MarkdownDescription: "A list of documents describing the status of the index's synonym mappings on each search host. Only appears if the index has synonyms defined.",
+				CustomType:          customtypes.NewListType[jsontypes.Normalized](ctx),
 				ElementType:         jsontypes.NormalizedType{},
 			},
 			"type": schema.StringAttribute{
@@ -419,120 +450,120 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	StatusDetail               types.List     `tfsdk:"status_detail" autogen:"omitjson"`
-	SynonymMappingStatusDetail types.List     `tfsdk:"synonym_mapping_status_detail" autogen:"omitjson"`
-	Name                       types.String   `tfsdk:"name" autogen:"omitjsonupdate"`
-	SynonymMappingStatus       types.String   `tfsdk:"synonym_mapping_status" autogen:"omitjson"`
-	GroupId                    types.String   `tfsdk:"group_id" autogen:"omitjson"`
-	IndexID                    types.String   `tfsdk:"index_id" autogen:"omitjson"`
-	LatestDefinition           types.Object   `tfsdk:"latest_definition" autogen:"omitjson"`
-	LatestDefinitionVersion    types.Object   `tfsdk:"latest_definition_version" autogen:"omitjson"`
-	ClusterName                types.String   `tfsdk:"cluster_name" autogen:"omitjson"`
-	Timeouts                   timeouts.Value `tfsdk:"timeouts" autogen:"omitjson"`
-	Status                     types.String   `tfsdk:"status" autogen:"omitjson"`
-	Database                   types.String   `tfsdk:"database" autogen:"omitjsonupdate"`
-	Definition                 types.Object   `tfsdk:"definition"`
-	CollectionName             types.String   `tfsdk:"collection_name" autogen:"omitjsonupdate"`
-	Type                       types.String   `tfsdk:"type" autogen:"omitjsonupdate"`
-	DeleteOnCreateTimeout      types.Bool     `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
-	Queryable                  types.Bool     `tfsdk:"queryable" autogen:"omitjson"`
+	StatusDetail               customtypes.NestedListValue[TFStatusDetailModel]        `tfsdk:"status_detail" autogen:"omitjson"`
+	SynonymMappingStatusDetail customtypes.ListValue[jsontypes.Normalized]             `tfsdk:"synonym_mapping_status_detail" autogen:"omitjson"`
+	Name                       types.String                                            `tfsdk:"name" autogen:"omitjsonupdate"`
+	SynonymMappingStatus       types.String                                            `tfsdk:"synonym_mapping_status" autogen:"omitjson"`
+	GroupId                    types.String                                            `tfsdk:"group_id" autogen:"omitjson"`
+	IndexID                    types.String                                            `tfsdk:"index_id" autogen:"omitjson"`
+	LatestDefinition           customtypes.ObjectValue[TFLatestDefinitionModel]        `tfsdk:"latest_definition" autogen:"omitjson"`
+	LatestDefinitionVersion    customtypes.ObjectValue[TFLatestDefinitionVersionModel] `tfsdk:"latest_definition_version" autogen:"omitjson"`
+	ClusterName                types.String                                            `tfsdk:"cluster_name" autogen:"omitjson"`
+	Timeouts                   timeouts.Value                                          `tfsdk:"timeouts" autogen:"omitjson"`
+	Status                     types.String                                            `tfsdk:"status" autogen:"omitjson"`
+	Database                   types.String                                            `tfsdk:"database" autogen:"omitjsonupdate"`
+	Definition                 customtypes.ObjectValue[TFDefinitionModel]              `tfsdk:"definition"`
+	CollectionName             types.String                                            `tfsdk:"collection_name" autogen:"omitjsonupdate"`
+	Type                       types.String                                            `tfsdk:"type" autogen:"omitjsonupdate"`
+	DeleteOnCreateTimeout      types.Bool                                              `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
+	Queryable                  types.Bool                                              `tfsdk:"queryable" autogen:"omitjson"`
 }
 type TFDefinitionModel struct {
-	Analyzers      types.List           `tfsdk:"analyzers"`
-	Fields         types.List           `tfsdk:"fields"`
-	Synonyms       types.List           `tfsdk:"synonyms"`
-	TypeSets       types.List           `tfsdk:"type_sets"`
-	Analyzer       types.String         `tfsdk:"analyzer"`
-	Mappings       types.Object         `tfsdk:"mappings"`
-	SearchAnalyzer types.String         `tfsdk:"search_analyzer"`
-	StoredSource   jsontypes.Normalized `tfsdk:"stored_source"`
-	NumPartitions  types.Int64          `tfsdk:"num_partitions"`
+	Analyzers      customtypes.NestedListValue[TFDefinitionAnalyzersModel] `tfsdk:"analyzers"`
+	Fields         customtypes.ListValue[jsontypes.Normalized]             `tfsdk:"fields"`
+	Synonyms       customtypes.NestedListValue[TFDefinitionSynonymsModel]  `tfsdk:"synonyms"`
+	TypeSets       customtypes.NestedListValue[TFDefinitionTypeSetsModel]  `tfsdk:"type_sets"`
+	Analyzer       types.String                                            `tfsdk:"analyzer"`
+	Mappings       customtypes.ObjectValue[TFDefinitionMappingsModel]      `tfsdk:"mappings"`
+	SearchAnalyzer types.String                                            `tfsdk:"search_analyzer"`
+	StoredSource   jsontypes.Normalized                                    `tfsdk:"stored_source"`
+	NumPartitions  types.Int64                                             `tfsdk:"num_partitions"`
 }
 type TFDefinitionAnalyzersModel struct {
-	CharFilters  types.List           `tfsdk:"char_filters"`
-	Name         types.String         `tfsdk:"name"`
-	TokenFilters types.List           `tfsdk:"token_filters"`
-	Tokenizer    jsontypes.Normalized `tfsdk:"tokenizer"`
+	CharFilters  customtypes.ListValue[jsontypes.Normalized] `tfsdk:"char_filters"`
+	Name         types.String                                `tfsdk:"name"`
+	TokenFilters customtypes.ListValue[jsontypes.Normalized] `tfsdk:"token_filters"`
+	Tokenizer    jsontypes.Normalized                        `tfsdk:"tokenizer"`
 }
 type TFDefinitionMappingsModel struct {
 	Dynamic jsontypes.Normalized `tfsdk:"dynamic"`
 }
 type TFDefinitionSynonymsModel struct {
-	Analyzer types.String `tfsdk:"analyzer"`
-	Name     types.String `tfsdk:"name"`
-	Source   types.Object `tfsdk:"source"`
+	Analyzer types.String                                             `tfsdk:"analyzer"`
+	Name     types.String                                             `tfsdk:"name"`
+	Source   customtypes.ObjectValue[TFDefinitionSynonymsSourceModel] `tfsdk:"source"`
 }
 type TFDefinitionSynonymsSourceModel struct {
 	Collection types.String `tfsdk:"collection"`
 }
 type TFDefinitionTypeSetsModel struct {
-	Name  types.String `tfsdk:"name"`
-	Types types.List   `tfsdk:"types"`
+	Name  types.String                                `tfsdk:"name"`
+	Types customtypes.ListValue[jsontypes.Normalized] `tfsdk:"types"`
 }
 type TFLatestDefinitionModel struct {
-	Analyzers      types.List           `tfsdk:"analyzers" autogen:"omitjson"`
-	Fields         types.List           `tfsdk:"fields" autogen:"omitjson"`
-	Synonyms       types.List           `tfsdk:"synonyms" autogen:"omitjson"`
-	TypeSets       types.List           `tfsdk:"type_sets" autogen:"omitjson"`
-	Analyzer       types.String         `tfsdk:"analyzer" autogen:"omitjson"`
-	SearchAnalyzer types.String         `tfsdk:"search_analyzer" autogen:"omitjson"`
-	StoredSource   jsontypes.Normalized `tfsdk:"stored_source" autogen:"omitjson"`
-	NumPartitions  types.Int64          `tfsdk:"num_partitions" autogen:"omitjson"`
+	Analyzers      customtypes.NestedListValue[TFLatestDefinitionAnalyzersModel] `tfsdk:"analyzers" autogen:"omitjson"`
+	Fields         customtypes.ListValue[jsontypes.Normalized]                   `tfsdk:"fields" autogen:"omitjson"`
+	Synonyms       customtypes.NestedListValue[TFLatestDefinitionSynonymsModel]  `tfsdk:"synonyms" autogen:"omitjson"`
+	TypeSets       customtypes.NestedListValue[TFLatestDefinitionTypeSetsModel]  `tfsdk:"type_sets" autogen:"omitjson"`
+	Analyzer       types.String                                                  `tfsdk:"analyzer" autogen:"omitjson"`
+	SearchAnalyzer types.String                                                  `tfsdk:"search_analyzer" autogen:"omitjson"`
+	StoredSource   jsontypes.Normalized                                          `tfsdk:"stored_source" autogen:"omitjson"`
+	NumPartitions  types.Int64                                                   `tfsdk:"num_partitions" autogen:"omitjson"`
 }
 type TFLatestDefinitionAnalyzersModel struct {
-	CharFilters  types.List           `tfsdk:"char_filters" autogen:"omitjson"`
-	Name         types.String         `tfsdk:"name" autogen:"omitjson"`
-	TokenFilters types.List           `tfsdk:"token_filters" autogen:"omitjson"`
-	Tokenizer    jsontypes.Normalized `tfsdk:"tokenizer" autogen:"omitjson"`
+	CharFilters  customtypes.ListValue[jsontypes.Normalized] `tfsdk:"char_filters" autogen:"omitjson"`
+	Name         types.String                                `tfsdk:"name" autogen:"omitjson"`
+	TokenFilters customtypes.ListValue[jsontypes.Normalized] `tfsdk:"token_filters" autogen:"omitjson"`
+	Tokenizer    jsontypes.Normalized                        `tfsdk:"tokenizer" autogen:"omitjson"`
 }
 type TFLatestDefinitionSynonymsModel struct {
-	Analyzer types.String `tfsdk:"analyzer" autogen:"omitjson"`
-	Name     types.String `tfsdk:"name" autogen:"omitjson"`
-	Source   types.Object `tfsdk:"source" autogen:"omitjson"`
+	Analyzer types.String                                                   `tfsdk:"analyzer" autogen:"omitjson"`
+	Name     types.String                                                   `tfsdk:"name" autogen:"omitjson"`
+	Source   customtypes.ObjectValue[TFLatestDefinitionSynonymsSourceModel] `tfsdk:"source" autogen:"omitjson"`
 }
 type TFLatestDefinitionSynonymsSourceModel struct {
 	Collection types.String `tfsdk:"collection" autogen:"omitjson"`
 }
 type TFLatestDefinitionTypeSetsModel struct {
-	Name  types.String `tfsdk:"name" autogen:"omitjson"`
-	Types types.List   `tfsdk:"types" autogen:"omitjson"`
+	Name  types.String                                `tfsdk:"name" autogen:"omitjson"`
+	Types customtypes.ListValue[jsontypes.Normalized] `tfsdk:"types" autogen:"omitjson"`
 }
 type TFLatestDefinitionVersionModel struct {
 	CreatedAt types.String `tfsdk:"created_at" autogen:"omitjson"`
 	Version   types.Int64  `tfsdk:"version" autogen:"omitjson"`
 }
 type TFStatusDetailModel struct {
-	Hostname    types.String `tfsdk:"hostname" autogen:"omitjson"`
-	MainIndex   types.Object `tfsdk:"main_index" autogen:"omitjson"`
-	StagedIndex types.Object `tfsdk:"staged_index" autogen:"omitjson"`
-	Status      types.String `tfsdk:"status" autogen:"omitjson"`
-	Queryable   types.Bool   `tfsdk:"queryable" autogen:"omitjson"`
+	Hostname    types.String                                            `tfsdk:"hostname" autogen:"omitjson"`
+	MainIndex   customtypes.ObjectValue[TFStatusDetailMainIndexModel]   `tfsdk:"main_index" autogen:"omitjson"`
+	StagedIndex customtypes.ObjectValue[TFStatusDetailStagedIndexModel] `tfsdk:"staged_index" autogen:"omitjson"`
+	Status      types.String                                            `tfsdk:"status" autogen:"omitjson"`
+	Queryable   types.Bool                                              `tfsdk:"queryable" autogen:"omitjson"`
 }
 type TFStatusDetailMainIndexModel struct {
-	Definition        types.Object `tfsdk:"definition" autogen:"omitjson"`
-	DefinitionVersion types.Object `tfsdk:"definition_version" autogen:"omitjson"`
-	Message           types.String `tfsdk:"message" autogen:"omitjson"`
-	Status            types.String `tfsdk:"status" autogen:"omitjson"`
-	Queryable         types.Bool   `tfsdk:"queryable" autogen:"omitjson"`
+	Definition        customtypes.ObjectValue[TFStatusDetailMainIndexDefinitionModel]        `tfsdk:"definition" autogen:"omitjson"`
+	DefinitionVersion customtypes.ObjectValue[TFStatusDetailMainIndexDefinitionVersionModel] `tfsdk:"definition_version" autogen:"omitjson"`
+	Message           types.String                                                           `tfsdk:"message" autogen:"omitjson"`
+	Status            types.String                                                           `tfsdk:"status" autogen:"omitjson"`
+	Queryable         types.Bool                                                             `tfsdk:"queryable" autogen:"omitjson"`
 }
 type TFStatusDetailMainIndexDefinitionModel struct {
-	Fields        types.List  `tfsdk:"fields" autogen:"omitjson"`
-	NumPartitions types.Int64 `tfsdk:"num_partitions" autogen:"omitjson"`
+	Fields        customtypes.ListValue[jsontypes.Normalized] `tfsdk:"fields" autogen:"omitjson"`
+	NumPartitions types.Int64                                 `tfsdk:"num_partitions" autogen:"omitjson"`
 }
 type TFStatusDetailMainIndexDefinitionVersionModel struct {
 	CreatedAt types.String `tfsdk:"created_at" autogen:"omitjson"`
 	Version   types.Int64  `tfsdk:"version" autogen:"omitjson"`
 }
 type TFStatusDetailStagedIndexModel struct {
-	Definition        types.Object `tfsdk:"definition" autogen:"omitjson"`
-	DefinitionVersion types.Object `tfsdk:"definition_version" autogen:"omitjson"`
-	Message           types.String `tfsdk:"message" autogen:"omitjson"`
-	Status            types.String `tfsdk:"status" autogen:"omitjson"`
-	Queryable         types.Bool   `tfsdk:"queryable" autogen:"omitjson"`
+	Definition        customtypes.ObjectValue[TFStatusDetailStagedIndexDefinitionModel]        `tfsdk:"definition" autogen:"omitjson"`
+	DefinitionVersion customtypes.ObjectValue[TFStatusDetailStagedIndexDefinitionVersionModel] `tfsdk:"definition_version" autogen:"omitjson"`
+	Message           types.String                                                             `tfsdk:"message" autogen:"omitjson"`
+	Status            types.String                                                             `tfsdk:"status" autogen:"omitjson"`
+	Queryable         types.Bool                                                               `tfsdk:"queryable" autogen:"omitjson"`
 }
 type TFStatusDetailStagedIndexDefinitionModel struct {
-	Fields        types.List  `tfsdk:"fields" autogen:"omitjson"`
-	NumPartitions types.Int64 `tfsdk:"num_partitions" autogen:"omitjson"`
+	Fields        customtypes.ListValue[jsontypes.Normalized] `tfsdk:"fields" autogen:"omitjson"`
+	NumPartitions types.Int64                                 `tfsdk:"num_partitions" autogen:"omitjson"`
 }
 type TFStatusDetailStagedIndexDefinitionVersionModel struct {
 	CreatedAt types.String `tfsdk:"created_at" autogen:"omitjson"`
