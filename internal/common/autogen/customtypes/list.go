@@ -113,6 +113,14 @@ type ListValueInterface interface {
 	Elements() []attr.Value
 }
 
+func (v ListValue[T]) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	if v.ListValue.ElementType(ctx) == nil {
+		// ListValue created as a zero value (not explicitly initialized), initialize now so conversion does not panic.
+		v.ListValue = NewListValueNull[T](ctx).ListValue
+	}
+	return v.ListValue.ToTerraformValue(ctx)
+}
+
 func (v ListValue[T]) NewListValue(ctx context.Context, value []attr.Value) ListValueInterface {
 	return NewListValue[T](ctx, value)
 }

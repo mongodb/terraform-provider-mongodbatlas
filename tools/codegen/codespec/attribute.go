@@ -283,6 +283,9 @@ func (s *APISpecSchema) buildMapAttr(name, ancestorsName string, computability C
 			return nil, err
 		}
 
+		if useCustomNestedTypes {
+			result.CustomType = NewCustomMapType(elemType)
+		}
 		result.Map = &MapAttribute{
 			ElementType: elemType,
 		}

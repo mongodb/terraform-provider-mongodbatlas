@@ -131,6 +131,14 @@ type NestedMapValueInterface interface {
 	NewEmptyMapPtr() any
 }
 
+func (v NestedMapValue[T]) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	if v.ElementType(ctx) == nil {
+		// NestedMapValue created as a zero value (not explicitly initialized), initialize now so conversion does not panic.
+		v.MapValue = NewNestedMapValueNull[T](ctx).MapValue
+	}
+	return v.MapValue.ToTerraformValue(ctx)
+}
+
 func (v NestedMapValue[T]) NewNestedMapValue(ctx context.Context, value any) NestedMapValueInterface {
 	return NewNestedMapValue[T](ctx, value)
 }

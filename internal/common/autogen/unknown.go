@@ -98,6 +98,12 @@ func prepareAttr(value attr.Value) (attr.Value, error) {
 		}
 		// If known, no need to process each set item since unmarshal does not generate unknown attributes.
 		return v, nil
+	case customtypes.MapValueInterface:
+		if v.IsUnknown() {
+			return v.NewMapValueNull(ctx), nil
+		}
+		// If known, no need to process each map entry since unmarshal does not generate unknown attributes.
+		return v, nil
 	case customtypes.NestedMapValueInterface:
 		if v.IsUnknown() {
 			return v.NewNestedMapValueNull(ctx), nil

@@ -36,6 +36,7 @@ func TestResolveUnknowns(t *testing.T) {
 		AttrCustomObject            customtypes.ObjectValue[modelCustomTypeTest]     `tfsdk:"attr_custom_object"`
 		AttrCustomListUnknown       customtypes.ListValue[types.String]              `tfsdk:"attr_custom_list_string"`
 		AttrCustomSetUnknown        customtypes.SetValue[types.String]               `tfsdk:"attr_custom_set_string"`
+		AttrCustomMapUnknown        customtypes.MapValue[types.String]               `tfsdk:"attr_custom_map_string"`
 		AttrCustomNestedListUnknown customtypes.NestedListValue[modelEmptyTest]      `tfsdk:"attr_custom_nested_list_unknown"`
 		AttrCustomNestedSetUnknown  customtypes.NestedSetValue[modelEmptyTest]       `tfsdk:"attr_custom_nested_set_unknown"`
 		AttrCustomNestedMapUnknown  customtypes.NestedMapValue[modelEmptyTest]       `tfsdk:"attr_custom_nested_map_unknown"`
@@ -99,6 +100,7 @@ func TestResolveUnknowns(t *testing.T) {
 		AttrCustomNestedMapUnknown:  customtypes.NewNestedMapValueUnknown[modelEmptyTest](ctx),
 		AttrCustomListUnknown:       customtypes.NewListValueUnknown[types.String](ctx),
 		AttrCustomSetUnknown:        customtypes.NewSetValueUnknown[types.String](ctx),
+		AttrCustomMapUnknown:        customtypes.NewMapValueUnknown[types.String](ctx),
 		AttrCustomNestedList: customtypes.NewNestedListValue[modelCustomTypeTest](ctx, []modelCustomTypeTest{
 			{
 				AttrKnownString:   types.StringValue("val1"),
@@ -176,6 +178,7 @@ func TestResolveUnknowns(t *testing.T) {
 		}),
 		AttrCustomListUnknown:       customtypes.NewListValueNull[types.String](ctx),
 		AttrCustomSetUnknown:        customtypes.NewSetValueNull[types.String](ctx),
+		AttrCustomMapUnknown:        customtypes.NewMapValueNull[types.String](ctx),
 		AttrCustomNestedListUnknown: customtypes.NewNestedListValueNull[modelEmptyTest](ctx),
 		AttrCustomNestedSetUnknown:  customtypes.NewNestedSetValueNull[modelEmptyTest](ctx),
 		AttrCustomNestedMapUnknown:  customtypes.NewNestedMapValueNull[modelEmptyTest](ctx),

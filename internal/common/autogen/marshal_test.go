@@ -130,6 +130,7 @@ func TestMarshalNestedAllTypes(t *testing.T) {
 		AttrCustomSet  customtypes.SetValue[types.String]  `tfsdk:"attr_custom_set"`
 		AttrSetObj     types.Set                           `tfsdk:"attr_set_obj"`
 		AttrMapSimple  types.Map                           `tfsdk:"attr_map_simple"`
+		AttrCustomMap  customtypes.MapValue[types.String]  `tfsdk:"attr_custom_map"`
 		AttrMapObj     types.Map                           `tfsdk:"attr_map_obj"`
 	}{
 		AttrString:     types.StringValue("val"),
@@ -142,6 +143,10 @@ func TestMarshalNestedAllTypes(t *testing.T) {
 		AttrMapSimple: types.MapValueMust(types.StringType, map[string]attr.Value{
 			"keyOne": types.StringValue("val1"),
 			"KeyTwo": types.StringValue("val2"), // don't change the key case when it's a map
+		}),
+		AttrCustomMap: customtypes.NewMapValue[types.String](t.Context(), map[string]attr.Value{
+			"keyOne": types.StringValue("val1"),
+			"KeyTwo": types.StringValue("val2"),
 		}),
 		AttrMapObj: attrMapObj,
 	}
@@ -161,6 +166,10 @@ func TestMarshalNestedAllTypes(t *testing.T) {
 				{ "attrString": "str22", "attrInt": 22 }
 			],
 			"attrMapSimple": {
+				"keyOne": "val1",
+				"KeyTwo": "val2"
+			},
+			"attrCustomMap": {
 				"keyOne": "val1",
 				"KeyTwo": "val2"
 			},
@@ -268,6 +277,8 @@ func TestMarshalUpdateNull(t *testing.T) {
 		AttrCustomList    customtypes.ListValue[types.String] `tfsdk:"attr_custom_list"`
 		AttrSet           types.Set                           `tfsdk:"attr_set"`
 		AttrCustomSet     customtypes.SetValue[types.String]  `tfsdk:"attr_custom_set"`
+		AttrMap           types.Map                           `tfsdk:"attr_map"`
+		AttrCustomMap     customtypes.MapValue[types.String]  `tfsdk:"attr_custom_map"`
 		AttrString        types.String                        `tfsdk:"attr_string"`
 		AttrObj           types.Object                        `tfsdk:"attr_obj"`
 		AttrIncludeString types.String                        `tfsdk:"attr_include_update" autogen:"includenullonupdate"`
@@ -277,6 +288,8 @@ func TestMarshalUpdateNull(t *testing.T) {
 		AttrCustomList:    customtypes.NewListValueNull[types.String](t.Context()),
 		AttrSet:           types.SetNull(types.StringType),
 		AttrCustomSet:     customtypes.NewSetValueNull[types.String](t.Context()),
+		AttrMap:           types.MapNull(types.StringType),
+		AttrCustomMap:     customtypes.NewMapValueNull[types.String](t.Context()),
 		AttrString:        types.StringNull(),
 		AttrObj:           types.ObjectNull(objTypeTest.AttrTypes),
 		AttrIncludeString: types.StringNull(),

@@ -136,19 +136,9 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 			}
 			return mapNew, nil
 		case customtypes.ObjectValueInterface:
-			ctx := context.Background()
-			valuePtr, diags := oldVal.ValuePtrAsAny(ctx)
-			if diags.HasError() {
-				return nil, fmt.Errorf("unmarshal failed to convert object: %v", diags)
-			}
-
-			err := unmarshalAttrs(v, valuePtr)
-			if err != nil {
-				return nil, err
-			}
-
-			objNew := oldVal.NewObjectValue(ctx, valuePtr)
-			return objNew, nil
+			return getObjectValueTFAttr(context.Background(), v, oldVal)
+		case customtypes.MapValueInterface:
+			return getMapValueTFAttr(context.Background(), v, oldVal)
 		case customtypes.NestedMapValueInterface:
 			return getNestedMapValueTFAttr(context.Background(), v, oldVal)
 		}
@@ -309,6 +299,37 @@ func getObjAttrsAndTypes(obj types.Object) (mapAttrs map[string]attr.Value, mapT
 	return mapAttrs, mapTypes, nil
 }
 
+func getObjectValueTFAttr(ctx context.Context, objJSON map[string]any, obj customtypes.ObjectValueInterface) (attr.Value, error) {
+	valuePtr, diags := obj.ValuePtrAsAny(ctx)
+	if diags.HasError() {
+		return nil, fmt.Errorf("unmarshal failed to convert object: %v", diags)
+	}
+
+	err := unmarshalAttrs(objJSON, valuePtr)
+	if err != nil {
+		return nil, err
+	}
+
+	return obj.NewObjectValue(ctx, valuePtr), nil
+}
+
+func getMapValueTFAttr(ctx context.Context, mapJSON map[string]any, m customtypes.MapValueInterface) (attr.Value, error) {
+	mapAttrs := make(map[string]attr.Value, len(mapJSON))
+	elemType := m.ElementType(ctx)
+
+	for key, item := range mapJSON {
+		value, err := getTfAttr(item, elemType, nil, key)
+		if err != nil {
+			return nil, err
+		}
+		if value != nil {
+			mapAttrs[key] = value
+		}
+	}
+
+	return m.NewMapValue(ctx, mapAttrs), nil
+}
+
 func getNestedMapValueTFAttr(ctx context.Context, mapJSON map[string]any, m customtypes.NestedMapValueInterface) (attr.Value, error) {
 	oldMapPtr, diags := m.MapPtrAsAny(ctx)
 	if diags.HasError() {
@@ -382,11 +403,11 @@ func getArrayTFAttr(arrayJSON []any, elemType attr.Type, nameErr string) ([]attr
 	slice := make([]attr.Value, len(arrayJSON))
 
 	for i, item := range arrayJSON {
-		newValue, err := getTfAttr(item, elemType, nil, nameErr)
+		value, err := getTfAttr(item, elemType, nil, nameErr)
 		if err != nil {
 			return nil, err
 		}
-		slice[i] = newValue
+		slice[i] = value
 	}
 
 	return slice, nil

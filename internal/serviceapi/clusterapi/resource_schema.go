@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
@@ -23,11 +24,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Group of settings that configures a subset of the advanced configuration details.",
+				CustomType:          customtypes.NewObjectType[TFAdvancedConfigurationModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"custom_openssl_cipher_config_tls12": schema.ListAttribute{
 						Computed:            true,
 						Optional:            true,
 						MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.2. This field is only valid when `tlsCipherConfigMode` is set to `CUSTOM`.",
+						CustomType:          customtypes.NewListType[types.String](ctx),
 						ElementType:         types.StringType,
 					},
 					"minimum_enabled_tls_protocol": schema.StringAttribute{
@@ -51,6 +54,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Settings needed to configure the MongoDB Connector for Business Intelligence for this cluster.",
+				CustomType:          customtypes.NewObjectType[TFBiConnectorModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"enabled": schema.BoolAttribute{
 						Computed:            true,
@@ -80,15 +84,18 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"connection_strings": schema.SingleNestedAttribute{
 				Computed:            true,
 				MarkdownDescription: "Collection of Uniform Resource Locators that point to the MongoDB database.",
+				CustomType:          customtypes.NewObjectType[TFConnectionStringsModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"aws_private_link": schema.MapAttribute{
 						Computed:            true,
 						MarkdownDescription: "Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to MongoDB Cloud through the interface endpoint that the key names.",
+						CustomType:          customtypes.NewMapType[types.String](ctx),
 						ElementType:         types.StringType,
 					},
 					"aws_private_link_srv": schema.MapAttribute{
 						Computed:            true,
 						MarkdownDescription: "Private endpoint-aware connection strings that use AWS-hosted clusters with Amazon Web Services (AWS) PrivateLink. Each key identifies an Amazon Web Services (AWS) interface endpoint. Each value identifies the related `mongodb://` connection string that you use to connect to Atlas through the interface endpoint that the key names. If the cluster uses an optimized connection string, `awsPrivateLinkSrv` contains the optimized connection string. If the cluster has the non-optimized (legacy) connection string, `awsPrivateLinkSrv` contains the non-optimized connection string even if an optimized connection string is also present.",
+						CustomType:          customtypes.NewMapType[types.String](ctx),
 						ElementType:         types.StringType,
 					},
 					"private": schema.StringAttribute{
@@ -98,6 +105,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"private_endpoint": schema.ListNestedAttribute{
 						Computed:            true,
 						MarkdownDescription: "List of private endpoint-aware connection strings that you can use to connect to this cluster through a private endpoint. This parameter returns only if you deployed a private endpoint to all regions to which you deployed this clusters' nodes.",
+						CustomType:          customtypes.NewNestedListType[TFConnectionStringsPrivateEndpointModel](ctx),
 						NestedObject: schema.NestedAttributeObject{
 							Attributes: map[string]schema.Attribute{
 								"connection_string": schema.StringAttribute{
@@ -107,6 +115,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								"endpoints": schema.ListNestedAttribute{
 									Computed:            true,
 									MarkdownDescription: "List that contains the private endpoints through which you connect to MongoDB Cloud when you use **connectionStrings.privateEndpoint[n].connectionString** or **connectionStrings.privateEndpoint[n].srvConnectionString**.",
+									CustomType:          customtypes.NewNestedListType[TFConnectionStringsPrivateEndpointEndpointsModel](ctx),
 									NestedObject: schema.NestedAttributeObject{
 										Attributes: map[string]schema.Attribute{
 											"endpoint_id": schema.StringAttribute{
@@ -196,6 +205,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"labels": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "Collection of key-value pairs between 1 to 255 characters in length that tag and categorize the cluster. The MongoDB Cloud console doesn't display your labels.\n\nCluster labels are deprecated and will be removed in a future release. We strongly recommend that you use Resource Tags instead.",
+				CustomType:          customtypes.NewNestedListType[TFLabelsModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"key": schema.StringAttribute{
@@ -212,6 +222,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"mongo_dbemployee_access_grant": schema.SingleNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "MongoDB employee granted access level and expiration for a cluster.",
+				CustomType:          customtypes.NewObjectType[TFMongoDBEmployeeAccessGrantModel](ctx),
 				Attributes: map[string]schema.Attribute{
 					"expiration_time": schema.StringAttribute{
 						Required:            true,
@@ -259,6 +270,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"replication_specs": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "List of settings that configure your cluster regions. This array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations.",
+				CustomType:          customtypes.NewNestedListType[TFReplicationSpecsModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{
@@ -268,15 +280,18 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						"region_configs": schema.ListNestedAttribute{
 							Optional:            true,
 							MarkdownDescription: "Hardware specifications for nodes set for a given region. Each **regionConfigs** object must be unique by region and cloud provider within the **replicationSpec**. Each **regionConfigs** object describes the region's priority in elections and the number and type of MongoDB nodes that MongoDB Cloud deploys to the region. Each **regionConfigs** object must have either an **analyticsSpecs** object, **electableSpecs** object, or **readOnlySpecs** object. Tenant clusters only require **electableSpecs. Dedicated** clusters can specify any of these specifications, but must have at least one **electableSpecs** object within a **replicationSpec**.\n\n**Example:**\n\nIf you set `\"replicationSpecs[n].regionConfigs[m].analyticsSpecs.instanceSize\" : \"M30\"`, set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\" : `\"M30\"` if you have electable nodes and `\"replicationSpecs[n].regionConfigs[m].readOnlySpecs.instanceSize\" : `\"M30\"` if you have read-only nodes.",
+							CustomType:          customtypes.NewNestedListType[TFReplicationSpecsRegionConfigsModel](ctx),
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
 									"analytics_auto_scaling": schema.SingleNestedAttribute{
 										Optional:            true,
 										MarkdownDescription: "Options that determine how this cluster handles resource scaling.",
+										CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"compute": schema.SingleNestedAttribute{
 												Optional:            true,
 												MarkdownDescription: "Options that determine how this cluster handles CPU scaling.",
+												CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingComputeModel](ctx),
 												Attributes: map[string]schema.Attribute{
 													"enabled": schema.BoolAttribute{
 														Optional:            true,
@@ -303,6 +318,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 											"disk_gb": schema.SingleNestedAttribute{
 												Optional:            true,
 												MarkdownDescription: "Setting that enables disk auto-scaling.",
+												CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGBModel](ctx),
 												Attributes: map[string]schema.Attribute{
 													"enabled": schema.BoolAttribute{
 														Optional:            true,
@@ -316,6 +332,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										Computed:            true,
 										Optional:            true,
 										MarkdownDescription: "The current hardware specifications for read only nodes in the region.",
+										CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAnalyticsSpecsModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
@@ -347,11 +364,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										Computed:            true,
 										Optional:            true,
 										MarkdownDescription: "Options that determine how this cluster handles resource scaling.",
+										CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAutoScalingModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"compute": schema.SingleNestedAttribute{
 												Computed:            true,
 												Optional:            true,
 												MarkdownDescription: "Options that determine how this cluster handles CPU scaling.",
+												CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAutoScalingComputeModel](ctx),
 												Attributes: map[string]schema.Attribute{
 													"enabled": schema.BoolAttribute{
 														Computed:            true,
@@ -384,6 +403,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 												Computed:            true,
 												Optional:            true,
 												MarkdownDescription: "Setting that enables disk auto-scaling.",
+												CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsAutoScalingDiskGBModel](ctx),
 												Attributes: map[string]schema.Attribute{
 													"enabled": schema.BoolAttribute{
 														Computed:            true,
@@ -401,6 +421,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									"effective_analytics_specs": schema.SingleNestedAttribute{
 										Computed:            true,
 										MarkdownDescription: "The current hardware specifications for read only nodes in the region.",
+										CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsEffectiveAnalyticsSpecsModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
@@ -427,6 +448,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									"effective_electable_specs": schema.SingleNestedAttribute{
 										Computed:            true,
 										MarkdownDescription: "The current hardware specifications for read only nodes in the region.",
+										CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsEffectiveElectableSpecsModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
@@ -453,6 +475,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									"effective_read_only_specs": schema.SingleNestedAttribute{
 										Computed:            true,
 										MarkdownDescription: "The current hardware specifications for read only nodes in the region.",
+										CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsEffectiveReadOnlySpecsModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
@@ -479,6 +502,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									"electable_specs": schema.SingleNestedAttribute{
 										Optional:            true,
 										MarkdownDescription: "Hardware specifications for all electable nodes deployed in the region. Electable nodes can become the primary and can enable local reads. If you don't specify this option, MongoDB Cloud deploys no electable nodes to the region.",
+										CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsElectableSpecsModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
@@ -521,6 +545,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 										Computed:            true,
 										Optional:            true,
 										MarkdownDescription: "The current hardware specifications for read only nodes in the region.",
+										CustomType:          customtypes.NewObjectType[TFReplicationSpecsRegionConfigsReadOnlySpecsModel](ctx),
 										Attributes: map[string]schema.Attribute{
 											"disk_iops": schema.Int64Attribute{
 												Computed:            true,
@@ -579,6 +604,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"tags": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster.",
+				CustomType:          customtypes.NewNestedListType[TFTagsModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"key": schema.StringAttribute{
@@ -623,66 +649,66 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	Labels                                        types.List     `tfsdk:"labels"`
-	Tags                                          types.List     `tfsdk:"tags"`
-	ReplicationSpecs                              types.List     `tfsdk:"replication_specs"`
-	InternalClusterRole                           types.String   `tfsdk:"internal_cluster_role" autogen:"omitjson"`
-	MongoDBVersion                                types.String   `tfsdk:"mongo_dbversion" autogen:"omitjson"`
-	ConfigServerManagementMode                    types.String   `tfsdk:"config_server_management_mode"`
-	ConfigServerType                              types.String   `tfsdk:"config_server_type" autogen:"omitjson"`
-	ConnectionStrings                             types.Object   `tfsdk:"connection_strings" autogen:"omitjson"`
-	CreateDate                                    types.String   `tfsdk:"create_date" autogen:"omitjson"`
-	DiskWarmingMode                               types.String   `tfsdk:"disk_warming_mode"`
-	EncryptionAtRestProvider                      types.String   `tfsdk:"encryption_at_rest_provider"`
-	MongoDBMajorVersion                           types.String   `tfsdk:"mongo_dbmajor_version"`
-	FeatureCompatibilityVersionExpirationDate     types.String   `tfsdk:"feature_compatibility_version_expiration_date" autogen:"omitjson"`
-	Timeouts                                      timeouts.Value `tfsdk:"timeouts" autogen:"omitjson"`
-	GroupId                                       types.String   `tfsdk:"group_id" autogen:"omitjson"`
-	Id                                            types.String   `tfsdk:"id" autogen:"omitjson"`
-	AcceptDataRisksAndForceReplicaSetReconfig     types.String   `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
-	ClusterType                                   types.String   `tfsdk:"cluster_type"`
-	BiConnector                                   types.Object   `tfsdk:"bi_connector"`
-	FeatureCompatibilityVersion                   types.String   `tfsdk:"feature_compatibility_version" autogen:"omitjson"`
-	MongoDBEmployeeAccessGrant                    types.Object   `tfsdk:"mongo_dbemployee_access_grant"`
-	Name                                          types.String   `tfsdk:"name"`
-	VersionReleaseSystem                          types.String   `tfsdk:"version_release_system"`
-	AdvancedConfiguration                         types.Object   `tfsdk:"advanced_configuration"`
-	StateName                                     types.String   `tfsdk:"state_name" autogen:"omitjson"`
-	ReplicaSetScalingStrategy                     types.String   `tfsdk:"replica_set_scaling_strategy"`
-	RootCertType                                  types.String   `tfsdk:"root_cert_type"`
-	BackupEnabled                                 types.Bool     `tfsdk:"backup_enabled"`
-	RedactClientLogData                           types.Bool     `tfsdk:"redact_client_log_data"`
-	PitEnabled                                    types.Bool     `tfsdk:"pit_enabled"`
-	TerminationProtectionEnabled                  types.Bool     `tfsdk:"termination_protection_enabled"`
-	UseAwsTimeBasedSnapshotCopyForFastInitialSync types.Bool     `tfsdk:"use_aws_time_based_snapshot_copy_for_fast_initial_sync"`
-	Paused                                        types.Bool     `tfsdk:"paused"`
-	DeleteOnCreateTimeout                         types.Bool     `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
-	GlobalClusterSelfManagedSharding              types.Bool     `tfsdk:"global_cluster_self_managed_sharding"`
+	Labels                                        customtypes.NestedListValue[TFLabelsModel]                 `tfsdk:"labels"`
+	Tags                                          customtypes.NestedListValue[TFTagsModel]                   `tfsdk:"tags"`
+	ReplicationSpecs                              customtypes.NestedListValue[TFReplicationSpecsModel]       `tfsdk:"replication_specs"`
+	InternalClusterRole                           types.String                                               `tfsdk:"internal_cluster_role" autogen:"omitjson"`
+	MongoDBVersion                                types.String                                               `tfsdk:"mongo_dbversion" autogen:"omitjson"`
+	ConfigServerManagementMode                    types.String                                               `tfsdk:"config_server_management_mode"`
+	ConfigServerType                              types.String                                               `tfsdk:"config_server_type" autogen:"omitjson"`
+	ConnectionStrings                             customtypes.ObjectValue[TFConnectionStringsModel]          `tfsdk:"connection_strings" autogen:"omitjson"`
+	CreateDate                                    types.String                                               `tfsdk:"create_date" autogen:"omitjson"`
+	DiskWarmingMode                               types.String                                               `tfsdk:"disk_warming_mode"`
+	EncryptionAtRestProvider                      types.String                                               `tfsdk:"encryption_at_rest_provider"`
+	MongoDBMajorVersion                           types.String                                               `tfsdk:"mongo_dbmajor_version"`
+	FeatureCompatibilityVersionExpirationDate     types.String                                               `tfsdk:"feature_compatibility_version_expiration_date" autogen:"omitjson"`
+	Timeouts                                      timeouts.Value                                             `tfsdk:"timeouts" autogen:"omitjson"`
+	GroupId                                       types.String                                               `tfsdk:"group_id" autogen:"omitjson"`
+	Id                                            types.String                                               `tfsdk:"id" autogen:"omitjson"`
+	AcceptDataRisksAndForceReplicaSetReconfig     types.String                                               `tfsdk:"accept_data_risks_and_force_replica_set_reconfig"`
+	ClusterType                                   types.String                                               `tfsdk:"cluster_type"`
+	BiConnector                                   customtypes.ObjectValue[TFBiConnectorModel]                `tfsdk:"bi_connector"`
+	FeatureCompatibilityVersion                   types.String                                               `tfsdk:"feature_compatibility_version" autogen:"omitjson"`
+	MongoDBEmployeeAccessGrant                    customtypes.ObjectValue[TFMongoDBEmployeeAccessGrantModel] `tfsdk:"mongo_dbemployee_access_grant"`
+	Name                                          types.String                                               `tfsdk:"name"`
+	VersionReleaseSystem                          types.String                                               `tfsdk:"version_release_system"`
+	AdvancedConfiguration                         customtypes.ObjectValue[TFAdvancedConfigurationModel]      `tfsdk:"advanced_configuration"`
+	StateName                                     types.String                                               `tfsdk:"state_name" autogen:"omitjson"`
+	ReplicaSetScalingStrategy                     types.String                                               `tfsdk:"replica_set_scaling_strategy"`
+	RootCertType                                  types.String                                               `tfsdk:"root_cert_type"`
+	BackupEnabled                                 types.Bool                                                 `tfsdk:"backup_enabled"`
+	RedactClientLogData                           types.Bool                                                 `tfsdk:"redact_client_log_data"`
+	PitEnabled                                    types.Bool                                                 `tfsdk:"pit_enabled"`
+	TerminationProtectionEnabled                  types.Bool                                                 `tfsdk:"termination_protection_enabled"`
+	UseAwsTimeBasedSnapshotCopyForFastInitialSync types.Bool                                                 `tfsdk:"use_aws_time_based_snapshot_copy_for_fast_initial_sync"`
+	Paused                                        types.Bool                                                 `tfsdk:"paused"`
+	DeleteOnCreateTimeout                         types.Bool                                                 `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
+	GlobalClusterSelfManagedSharding              types.Bool                                                 `tfsdk:"global_cluster_self_managed_sharding"`
 }
 type TFAdvancedConfigurationModel struct {
-	CustomOpensslCipherConfigTls12 types.List   `tfsdk:"custom_openssl_cipher_config_tls12"`
-	MinimumEnabledTlsProtocol      types.String `tfsdk:"minimum_enabled_tls_protocol"`
-	TlsCipherConfigMode            types.String `tfsdk:"tls_cipher_config_mode"`
+	CustomOpensslCipherConfigTls12 customtypes.ListValue[types.String] `tfsdk:"custom_openssl_cipher_config_tls12"`
+	MinimumEnabledTlsProtocol      types.String                        `tfsdk:"minimum_enabled_tls_protocol"`
+	TlsCipherConfigMode            types.String                        `tfsdk:"tls_cipher_config_mode"`
 }
 type TFBiConnectorModel struct {
 	ReadPreference types.String `tfsdk:"read_preference"`
 	Enabled        types.Bool   `tfsdk:"enabled"`
 }
 type TFConnectionStringsModel struct {
-	AwsPrivateLink    types.Map    `tfsdk:"aws_private_link" autogen:"omitjson"`
-	AwsPrivateLinkSrv types.Map    `tfsdk:"aws_private_link_srv" autogen:"omitjson"`
-	Private           types.String `tfsdk:"private" autogen:"omitjson"`
-	PrivateEndpoint   types.List   `tfsdk:"private_endpoint" autogen:"omitjson"`
-	PrivateSrv        types.String `tfsdk:"private_srv" autogen:"omitjson"`
-	Standard          types.String `tfsdk:"standard" autogen:"omitjson"`
-	StandardSrv       types.String `tfsdk:"standard_srv" autogen:"omitjson"`
+	AwsPrivateLink    customtypes.MapValue[types.String]                                   `tfsdk:"aws_private_link" autogen:"omitjson"`
+	AwsPrivateLinkSrv customtypes.MapValue[types.String]                                   `tfsdk:"aws_private_link_srv" autogen:"omitjson"`
+	Private           types.String                                                         `tfsdk:"private" autogen:"omitjson"`
+	PrivateEndpoint   customtypes.NestedListValue[TFConnectionStringsPrivateEndpointModel] `tfsdk:"private_endpoint" autogen:"omitjson"`
+	PrivateSrv        types.String                                                         `tfsdk:"private_srv" autogen:"omitjson"`
+	Standard          types.String                                                         `tfsdk:"standard" autogen:"omitjson"`
+	StandardSrv       types.String                                                         `tfsdk:"standard_srv" autogen:"omitjson"`
 }
 type TFConnectionStringsPrivateEndpointModel struct {
-	ConnectionString                  types.String `tfsdk:"connection_string" autogen:"omitjson"`
-	Endpoints                         types.List   `tfsdk:"endpoints" autogen:"omitjson"`
-	SrvConnectionString               types.String `tfsdk:"srv_connection_string" autogen:"omitjson"`
-	SrvShardOptimizedConnectionString types.String `tfsdk:"srv_shard_optimized_connection_string" autogen:"omitjson"`
-	Type                              types.String `tfsdk:"type" autogen:"omitjson"`
+	ConnectionString                  types.String                                                                  `tfsdk:"connection_string" autogen:"omitjson"`
+	Endpoints                         customtypes.NestedListValue[TFConnectionStringsPrivateEndpointEndpointsModel] `tfsdk:"endpoints" autogen:"omitjson"`
+	SrvConnectionString               types.String                                                                  `tfsdk:"srv_connection_string" autogen:"omitjson"`
+	SrvShardOptimizedConnectionString types.String                                                                  `tfsdk:"srv_shard_optimized_connection_string" autogen:"omitjson"`
+	Type                              types.String                                                                  `tfsdk:"type" autogen:"omitjson"`
 }
 type TFConnectionStringsPrivateEndpointEndpointsModel struct {
 	EndpointId   types.String `tfsdk:"endpoint_id" autogen:"omitjson"`
@@ -698,28 +724,28 @@ type TFMongoDBEmployeeAccessGrantModel struct {
 	GrantType      types.String `tfsdk:"grant_type"`
 }
 type TFReplicationSpecsModel struct {
-	Id            types.String `tfsdk:"id" autogen:"omitjson"`
-	RegionConfigs types.List   `tfsdk:"region_configs"`
-	ZoneId        types.String `tfsdk:"zone_id" autogen:"omitjson"`
-	ZoneName      types.String `tfsdk:"zone_name"`
+	Id            types.String                                                      `tfsdk:"id" autogen:"omitjson"`
+	RegionConfigs customtypes.NestedListValue[TFReplicationSpecsRegionConfigsModel] `tfsdk:"region_configs"`
+	ZoneId        types.String                                                      `tfsdk:"zone_id" autogen:"omitjson"`
+	ZoneName      types.String                                                      `tfsdk:"zone_name"`
 }
 type TFReplicationSpecsRegionConfigsModel struct {
-	AnalyticsAutoScaling    types.Object `tfsdk:"analytics_auto_scaling"`
-	AnalyticsSpecs          types.Object `tfsdk:"analytics_specs" autogen:"omitjson"`
-	AutoScaling             types.Object `tfsdk:"auto_scaling"`
-	BackingProviderName     types.String `tfsdk:"backing_provider_name"`
-	EffectiveAnalyticsSpecs types.Object `tfsdk:"effective_analytics_specs" autogen:"omitjson"`
-	EffectiveElectableSpecs types.Object `tfsdk:"effective_electable_specs" autogen:"omitjson"`
-	EffectiveReadOnlySpecs  types.Object `tfsdk:"effective_read_only_specs" autogen:"omitjson"`
-	ElectableSpecs          types.Object `tfsdk:"electable_specs"`
-	ProviderName            types.String `tfsdk:"provider_name"`
-	ReadOnlySpecs           types.Object `tfsdk:"read_only_specs" autogen:"omitjson"`
-	RegionName              types.String `tfsdk:"region_name"`
-	Priority                types.Int64  `tfsdk:"priority"`
+	AnalyticsAutoScaling    customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingModel]    `tfsdk:"analytics_auto_scaling"`
+	AnalyticsSpecs          customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAnalyticsSpecsModel]          `tfsdk:"analytics_specs" autogen:"omitjson"`
+	AutoScaling             customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAutoScalingModel]             `tfsdk:"auto_scaling"`
+	BackingProviderName     types.String                                                                         `tfsdk:"backing_provider_name"`
+	EffectiveAnalyticsSpecs customtypes.ObjectValue[TFReplicationSpecsRegionConfigsEffectiveAnalyticsSpecsModel] `tfsdk:"effective_analytics_specs" autogen:"omitjson"`
+	EffectiveElectableSpecs customtypes.ObjectValue[TFReplicationSpecsRegionConfigsEffectiveElectableSpecsModel] `tfsdk:"effective_electable_specs" autogen:"omitjson"`
+	EffectiveReadOnlySpecs  customtypes.ObjectValue[TFReplicationSpecsRegionConfigsEffectiveReadOnlySpecsModel]  `tfsdk:"effective_read_only_specs" autogen:"omitjson"`
+	ElectableSpecs          customtypes.ObjectValue[TFReplicationSpecsRegionConfigsElectableSpecsModel]          `tfsdk:"electable_specs"`
+	ProviderName            types.String                                                                         `tfsdk:"provider_name"`
+	ReadOnlySpecs           customtypes.ObjectValue[TFReplicationSpecsRegionConfigsReadOnlySpecsModel]           `tfsdk:"read_only_specs" autogen:"omitjson"`
+	RegionName              types.String                                                                         `tfsdk:"region_name"`
+	Priority                types.Int64                                                                          `tfsdk:"priority"`
 }
 type TFReplicationSpecsRegionConfigsAnalyticsAutoScalingModel struct {
-	Compute types.Object `tfsdk:"compute"`
-	DiskGB  types.Object `tfsdk:"disk_gb"`
+	Compute customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingComputeModel] `tfsdk:"compute"`
+	DiskGB  customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGBModel]  `tfsdk:"disk_gb"`
 }
 type TFReplicationSpecsRegionConfigsAnalyticsAutoScalingComputeModel struct {
 	MaxInstanceSize   types.String `tfsdk:"max_instance_size" autogen:"omitjson"`
@@ -739,8 +765,8 @@ type TFReplicationSpecsRegionConfigsAnalyticsSpecsModel struct {
 	NodeCount     types.Int64   `tfsdk:"node_count" autogen:"omitjson"`
 }
 type TFReplicationSpecsRegionConfigsAutoScalingModel struct {
-	Compute types.Object `tfsdk:"compute"`
-	DiskGB  types.Object `tfsdk:"disk_gb"`
+	Compute customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAutoScalingComputeModel] `tfsdk:"compute"`
+	DiskGB  customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAutoScalingDiskGBModel]  `tfsdk:"disk_gb"`
 }
 type TFReplicationSpecsRegionConfigsAutoScalingComputeModel struct {
 	MaxInstanceSize   types.String `tfsdk:"max_instance_size" autogen:"omitjson"`
