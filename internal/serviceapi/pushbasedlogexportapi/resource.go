@@ -56,11 +56,13 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 	reqHandle := autogen.HandleCreateReq{
-		Resp:                  resp,
-		Client:                r.Client,
-		Plan:                  &plan,
-		CallParams:            &callParams,
-		DeleteReq:             deleteRequest(r.Client, &plan, &resp.Diagnostics),
+		Resp:       resp,
+		Client:     r.Client,
+		Plan:       &plan,
+		CallParams: &callParams,
+		DeleteReq: func(model any) *autogen.HandleDeleteReq {
+			return deleteRequest(r.Client, model.(*TFModel), &resp.Diagnostics)
+		},
 		DeleteOnCreateTimeout: plan.DeleteOnCreateTimeout.ValueBool(),
 		Wait: &autogen.WaitReq{
 			StateProperty:     "state",

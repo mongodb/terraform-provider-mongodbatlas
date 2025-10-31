@@ -45,7 +45,7 @@ type HandleCreateReq struct {
 	Client                *config.MongoDBClient
 	Plan                  any
 	CallParams            *config.APICallParams
-	DeleteReq             *HandleDeleteReq
+	DeleteReq             func(model any) *HandleDeleteReq
 	Wait                  *WaitReq
 	DeleteOnCreateTimeout bool
 }
@@ -76,7 +76,8 @@ func HandleCreate(ctx context.Context, req HandleCreateReq) {
 	if req.DeleteReq != nil {
 		// Handle timeout with cleanup if delete_on_create_timeout is enabled.
 		errWait = cleanup.HandleCreateTimeout(req.DeleteOnCreateTimeout, errWait, func(ctxCleanup context.Context) error {
-			return callDelete(ctxCleanup, req.DeleteReq)
+			deleteReq := req.DeleteReq(req.Plan)
+			return callDelete(ctxCleanup, deleteReq)
 		})
 	}
 	if errWait != nil {

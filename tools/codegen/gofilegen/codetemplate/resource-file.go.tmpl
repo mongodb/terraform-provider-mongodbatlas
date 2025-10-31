@@ -69,7 +69,9 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		CallParams: &callParams,
 		{{- with .APIOperations.Create.Wait }}
 		{{- if $.APIOperations.Delete }}
-		DeleteReq: deleteRequest(r.Client, &plan, &resp.Diagnostics),
+		DeleteReq: func(model any) *autogen.HandleDeleteReq {
+			return deleteRequest(r.Client, model.(*TFModel), &resp.Diagnostics)
+		},
 		DeleteOnCreateTimeout: plan.DeleteOnCreateTimeout.ValueBool(),
 		{{- end }}
 		Wait: &autogen.WaitReq{
