@@ -116,10 +116,11 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	autogen.HandleImport(ctx, idAttributes, req, resp)
 }
 
-func readAPICallParams(model *TFModel) *config.APICallParams {
+func readAPICallParams(model any) *config.APICallParams {
+	m := model.(*TFModel)
 	pathParams := map[string]string{
-		"orgId":    model.OrgId.ValueString(),
-		"clientId": model.ClientId.ValueString(),
+		"orgId":    m.OrgId.ValueString(),
+		"clientId": m.ClientId.ValueString(),
 	}
 	return &config.APICallParams{
 		VersionHeader: apiVersionHeader,

@@ -70,7 +70,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 			Timeout:           timeout,
 			MinTimeoutSeconds: 30,
 			DelaySeconds:      30,
-			CallParams:        readAPICallParams(&plan),
+			CallParams:        readAPICallParams,
 		},
 	}
 	autogen.HandleCreate(ctx, reqHandle)
@@ -128,7 +128,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			Timeout:           timeout,
 			MinTimeoutSeconds: 30,
 			DelaySeconds:      30,
-			CallParams:        readAPICallParams(&state),
+			CallParams:        readAPICallParams,
 		},
 	}
 	autogen.HandleUpdate(ctx, reqHandle)
@@ -153,7 +153,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		Timeout:           timeout,
 		MinTimeoutSeconds: 30,
 		DelaySeconds:      30,
-		CallParams:        readAPICallParams(&state),
+		CallParams:        readAPICallParams,
 	}
 	autogen.HandleDelete(ctx, *reqHandle)
 }
@@ -163,11 +163,12 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	autogen.HandleImport(ctx, idAttributes, req, resp)
 }
 
-func readAPICallParams(model *TFModel) *config.APICallParams {
+func readAPICallParams(model any) *config.APICallParams {
+	m := model.(*TFModel)
 	pathParams := map[string]string{
-		"groupId":     model.GroupId.ValueString(),
-		"clusterName": model.ClusterName.ValueString(),
-		"indexID":     model.IndexID.ValueString(),
+		"groupId":     m.GroupId.ValueString(),
+		"clusterName": m.ClusterName.ValueString(),
+		"indexID":     m.IndexID.ValueString(),
 	}
 	return &config.APICallParams{
 		VersionHeader: apiVersionHeader,
