@@ -434,12 +434,12 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes
       method: POST
       wait: &search-index-create-wait
-        state_property: "stateName"
+        state_property: "status"
         pending_states: ["PENDING", "BUILDING", "IN_PROGRESS", "MIGRATING"]
         target_states: ["READY", "STEADY"]
         timeout_seconds: 10800 # 3 hours
-        min_timeout_seconds: 60
-        delay_seconds: 60
+        min_timeout_seconds: 30
+        delay_seconds: 30
     update:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexId}
       method: PATCH

@@ -64,12 +64,12 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		DeleteReq:             deleteRequest(r.Client, &plan, &resp.Diagnostics),
 		DeleteOnCreateTimeout: plan.DeleteOnCreateTimeout.ValueBool(),
 		Wait: &autogen.WaitReq{
-			StateProperty:     "stateName",
+			StateProperty:     "status",
 			PendingStates:     []string{"PENDING", "BUILDING", "IN_PROGRESS", "MIGRATING"},
 			TargetStates:      []string{"READY", "STEADY"},
 			Timeout:           timeout,
-			MinTimeoutSeconds: 60,
-			DelaySeconds:      60,
+			MinTimeoutSeconds: 30,
+			DelaySeconds:      30,
 			CallParams:        readAPICallParams(&plan),
 		},
 	}
@@ -122,12 +122,12 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		Plan:       &plan,
 		CallParams: &callParams,
 		Wait: &autogen.WaitReq{
-			StateProperty:     "stateName",
+			StateProperty:     "status",
 			PendingStates:     []string{"PENDING", "BUILDING", "IN_PROGRESS", "MIGRATING"},
 			TargetStates:      []string{"READY", "STEADY"},
 			Timeout:           timeout,
-			MinTimeoutSeconds: 60,
-			DelaySeconds:      60,
+			MinTimeoutSeconds: 30,
+			DelaySeconds:      30,
 			CallParams:        readAPICallParams(&state),
 		},
 	}
@@ -147,12 +147,12 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 		return
 	}
 	reqHandle.Wait = &autogen.WaitReq{
-		StateProperty:     "stateName",
+		StateProperty:     "status",
 		PendingStates:     []string{"PENDING", "BUILDING", "IN_PROGRESS", "MIGRATING", "READY", "STEADY"},
 		TargetStates:      []string{"DELETED"},
 		Timeout:           timeout,
-		MinTimeoutSeconds: 60,
-		DelaySeconds:      60,
+		MinTimeoutSeconds: 30,
+		DelaySeconds:      30,
 		CallParams:        readAPICallParams(&state),
 	}
 	autogen.HandleDelete(ctx, *reqHandle)

@@ -797,7 +797,7 @@ schema:
 operations:
     delete:
         wait:
-            state_property: stateName
+            state_property: status
             pending_states:
                 - PENDING
                 - BUILDING
@@ -808,13 +808,13 @@ operations:
             target_states:
                 - DELETED
             timeout_seconds: 10800
-            min_timeout_seconds: 60
-            delay_seconds: 60
+            min_timeout_seconds: 30
+            delay_seconds: 30
         http_method: DELETE
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexID}
     create:
         wait:
-            state_property: stateName
+            state_property: status
             pending_states:
                 - PENDING
                 - BUILDING
@@ -824,8 +824,8 @@ operations:
                 - READY
                 - STEADY
             timeout_seconds: 10800
-            min_timeout_seconds: 60
-            delay_seconds: 60
+            min_timeout_seconds: 30
+            delay_seconds: 30
         http_method: POST
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes
     read:
@@ -833,7 +833,7 @@ operations:
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexID}
     update:
         wait:
-            state_property: stateName
+            state_property: status
             pending_states:
                 - PENDING
                 - BUILDING
@@ -843,8 +843,8 @@ operations:
                 - READY
                 - STEADY
             timeout_seconds: 10800
-            min_timeout_seconds: 60
-            delay_seconds: 60
+            min_timeout_seconds: 30
+            delay_seconds: 30
         http_method: PATCH
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexID}
     version_header: application/vnd.atlas.2024-05-30+json
