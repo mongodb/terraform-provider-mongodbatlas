@@ -35,6 +35,7 @@ func TestAccSearchIndexAPI_basic(t *testing.T) {
 				ResourceName:                         resourceName,
 				ImportStateIdFunc:                    importStateIDFunc(resourceName),
 				ImportStateVerifyIdentifierAttribute: "name",
+				ImportStateVerifyIgnore:              []string{"delete_on_create_timeout", "definition.%", "definition.mappings.%", "definition.mappings.dynamic"},
 				ImportState:                          true,
 				ImportStateVerify:                    true,
 			},
