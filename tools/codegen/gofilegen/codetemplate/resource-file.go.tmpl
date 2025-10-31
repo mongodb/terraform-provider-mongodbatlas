@@ -183,9 +183,7 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 }
 
 func readAPICallParams(model any) *config.APICallParams {
-	{{- if .APIOperations.Read.PathParams }}
 	m := model.(*TFModel)
-	{{- end }}
 	pathParams := map[string]string{ {{range .APIOperations.Read.PathParams }}
 		"{{ .CamelCaseName }}": m.{{ .PascalCaseName }}.ValueString(),
 	{{- end }}
