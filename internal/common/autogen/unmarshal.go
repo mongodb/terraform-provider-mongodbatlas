@@ -121,23 +121,23 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 			}
 			return jsontypes.NewNormalizedValue(string(jsonBytes)), nil
 		}
-		if obj, ok := oldVal.(types.Object); ok {
-			objNew, err := setObjAttrModel(obj, v)
+
+		switch oldVal := oldVal.(type) {
+		case types.Object:
+			objNew, err := setObjAttrModel(oldVal, v)
 			if err != nil {
 				return nil, err
 			}
 			return objNew, nil
-		}
-		if m, ok := oldVal.(types.Map); ok {
-			mapNew, err := setMapAttrModel(m, v)
+		case types.Map:
+			mapNew, err := setMapAttrModel(oldVal, v)
 			if err != nil {
 				return nil, err
 			}
 			return mapNew, nil
-		}
-		if obj, ok := oldVal.(customtypes.ObjectValueInterface); ok {
+		case customtypes.ObjectValueInterface:
 			ctx := context.Background()
-			valuePtr, diags := obj.ValuePtrAsAny(ctx)
+			valuePtr, diags := oldVal.ValuePtrAsAny(ctx)
 			if diags.HasError() {
 				return nil, fmt.Errorf("unmarshal failed to convert object: %v", diags)
 			}
@@ -147,8 +147,10 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 				return nil, err
 			}
 
-			objNew := obj.NewObjectValue(ctx, valuePtr)
+			objNew := oldVal.NewObjectValue(ctx, valuePtr)
 			return objNew, nil
+		case customtypes.NestedMapValueInterface:
+			return getNestedMapValueTFAttr(context.Background(), v, oldVal)
 		}
 		return nil, errUnmarshal(value, valueType, "Object", nameErr)
 	case []any:
@@ -305,6 +307,44 @@ func getObjAttrsAndTypes(obj types.Object) (mapAttrs map[string]attr.Value, mapT
 		mapAttrs[attrName] = nullVal
 	}
 	return mapAttrs, mapTypes, nil
+}
+
+func getNestedMapValueTFAttr(ctx context.Context, mapJSON map[string]any, m customtypes.NestedMapValueInterface) (attr.Value, error) {
+	oldMapPtr, diags := m.MapPtrAsAny(ctx)
+	if diags.HasError() {
+		return nil, fmt.Errorf("unmarshal failed to convert map: %v", diags)
+	}
+
+	oldMapVal := reflect.ValueOf(oldMapPtr).Elem()
+
+	mapPtr := m.NewEmptyMapPtr()
+	mapVal := reflect.ValueOf(mapPtr).Elem()
+	mapVal.Set(reflect.MakeMap(mapVal.Type()))
+
+	mapElemType := mapVal.Type().Elem()
+	for key, item := range mapJSON {
+		keyVal := reflect.ValueOf(key)
+
+		elementVal := reflect.New(mapElemType)
+
+		if oldValue := oldMapVal.MapIndex(keyVal); oldValue.IsValid() {
+			elementVal.Elem().Set(oldValue)
+		}
+
+		objJSON, ok := item.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("unmarshal of map item failed to convert to object: %v", item)
+		}
+
+		err := unmarshalAttrs(objJSON, elementVal.Interface())
+		if err != nil {
+			return nil, err
+		}
+
+		mapVal.SetMapIndex(keyVal, elementVal.Elem())
+	}
+
+	return m.NewNestedMapValue(ctx, mapPtr), nil
 }
 
 func getListValueTFAttr(ctx context.Context, arrayJSON []any, list customtypes.ListValueInterface, nameErr string) (attr.Value, error) {

@@ -98,6 +98,43 @@ func prepareAttr(value attr.Value) (attr.Value, error) {
 		}
 		// If known, no need to process each set item since unmarshal does not generate unknown attributes.
 		return v, nil
+	case customtypes.NestedMapValueInterface:
+		if v.IsUnknown() {
+			return v.NewNestedMapValueNull(ctx), nil
+		}
+
+		/*
+			Resolving nested map unknowns is a pretty expensive operation if the nested struct is big since it requires
+			copying every map element (reflection limitation) even when no unknows are present.
+			Since nested maps are very rare, it is unlikely that this will become a problem in practice.
+			If it does, we could either:
+				- Check whether there are any unknowns in the nested object before creating a copy.
+				- Resolve unknowns during unmarshal.
+			Not worth the complexity as of now.
+		*/
+
+		mapPtr, diags := v.MapPtrAsAny(ctx)
+		if diags.HasError() {
+			return nil, fmt.Errorf("unmarshal failed to convert map: %v", diags)
+		}
+
+		mapVal := reflect.ValueOf(mapPtr).Elem()
+		mapElemType := mapVal.Type().Elem()
+
+		iter := mapVal.MapRange()
+		for iter.Next() {
+			elementVal := reflect.New(mapElemType)
+			elementVal.Elem().Set(iter.Value())
+
+			err := ResolveUnknowns(elementVal.Interface())
+			if err != nil {
+				return nil, err
+			}
+
+			mapVal.SetMapIndex(iter.Key(), elementVal.Elem())
+		}
+
+		return v.NewNestedMapValue(ctx, mapPtr), nil
 	}
 
 	if value.IsUnknown() { // unknown values are converted to null
