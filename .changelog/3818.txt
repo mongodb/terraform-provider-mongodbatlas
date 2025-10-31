@@ -1,5 +1,6 @@
 ```release-note:enhancement
 resource/mongodbatlas_stream_privatelink_endpoint: Adds support for GCP Confluent
+```
 
 ```release-note:enhancement
 data-source/mongodbatlas_stream_privatelink_endpoint: Adds support for GCP Confluent
