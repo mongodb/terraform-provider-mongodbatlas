@@ -21,7 +21,10 @@ const (
 )
 
 // Marshal gets a Terraform model and marshals it into JSON (e.g. for an Atlas request).
-// It supports the following Terraform model types: String, Bool, Int64, Float64, Object, Map, List, Set.
+// It supports the following types:
+//   - Terraform types: String, Bool, Int64, Float64.
+//   - Custom types: Object, Map, List, Set & jsontypes.Normalized.
+//
 // Attributes that are null or unknown are not marshaled.
 // Attributes with autogen tag `omitjson` are never marshaled, this only applies to the root model.
 // Attributes with autogen tag `omitjsonupdate` are not marshaled if isUpdate is true, this only applies to the root model.
@@ -77,8 +80,7 @@ func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[s
 
 	if val == nil && isUpdate {
 		switch obj.(type) {
-		case types.List, customtypes.ListValueInterface, customtypes.NestedListValueInterface,
-			types.Set, customtypes.SetValueInterface, customtypes.NestedSetValueInterface:
+		case customtypes.ListValueInterface, customtypes.NestedListValueInterface, customtypes.SetValueInterface, customtypes.NestedSetValueInterface:
 			val = []any{} // Send an empty array if it's a null root list or set
 		}
 	}
@@ -102,26 +104,18 @@ func getModelAttr(val attr.Value, isUpdate bool) (any, error) {
 		return v.ValueInt64(), nil
 	case types.Float64:
 		return v.ValueFloat64(), nil
-	case types.Object:
-		return getMapAttr(v.Attributes(), false, isUpdate)
-	case types.Map:
-		return getMapAttr(v.Elements(), true, isUpdate)
-	case customtypes.MapValueInterface:
-		return getMapAttr(v.Elements(), true, isUpdate)
-	case types.List:
-		return getListAttr(v.Elements(), isUpdate)
-	case customtypes.ListValueInterface:
-		return getListAttr(v.Elements(), isUpdate)
-	case types.Set:
-		return getListAttr(v.Elements(), isUpdate)
-	case customtypes.SetValueInterface:
-		return getListAttr(v.Elements(), isUpdate)
 	case jsontypes.Normalized:
 		var valueJSON any
 		if err := json.Unmarshal([]byte(v.ValueString()), &valueJSON); err != nil {
 			return nil, fmt.Errorf("marshal failed for JSON custom type: %v", err)
 		}
 		return valueJSON, nil
+	case customtypes.ListValueInterface:
+		return getListAttr(v.Elements(), isUpdate)
+	case customtypes.SetValueInterface:
+		return getListAttr(v.Elements(), isUpdate)
+	case customtypes.MapValueInterface:
+		return getMapAttr(v.Elements(), isUpdate)
 	case customtypes.ObjectValueInterface:
 		valuePtr, diags := v.ValuePtrAsAny(context.Background())
 		if diags.HasError() {
@@ -154,6 +148,34 @@ func getModelAttr(val attr.Value, isUpdate bool) (any, error) {
 	default:
 		return nil, fmt.Errorf("marshal not supported yet for type %T", v)
 	}
+}
+
+func getListAttr(elms []attr.Value, isUpdate bool) (any, error) {
+	slice := make([]any, 0, len(elms))
+	for _, attr := range elms {
+		value, err := getModelAttr(attr, isUpdate)
+		if err != nil {
+			return nil, err
+		}
+		if value != nil {
+			slice = append(slice, value)
+		}
+	}
+	return slice, nil
+}
+
+func getMapAttr(elms map[string]attr.Value, isUpdate bool) (any, error) {
+	objJSON := make(map[string]any)
+	for name, attr := range elms {
+		value, err := getModelAttr(attr, isUpdate)
+		if err != nil {
+			return nil, err
+		}
+		if value != nil {
+			objJSON[name] = value
+		}
+	}
+	return objJSON, nil
 }
 
 func getNestedSliceAttr(slicePtr any, isUpdate bool) (any, error) {
@@ -191,38 +213,4 @@ func getNestedMapAttr(mapPtr any, isUpdate bool) (any, error) {
 	}
 
 	return result, nil
-}
-
-func getListAttr(elms []attr.Value, isUpdate bool) (any, error) {
-	arr := make([]any, 0, len(elms))
-	for _, attr := range elms {
-		valChild, err := getModelAttr(attr, isUpdate)
-		if err != nil {
-			return nil, err
-		}
-		if valChild != nil {
-			arr = append(arr, valChild)
-		}
-	}
-	return arr, nil
-}
-
-// getMapAttr gets a map of attributes and returns a map of JSON attributes.
-// keepKeyCase is used for types.Map to keep key case. However, we want to use JSON key case for types.Object
-func getMapAttr(elms map[string]attr.Value, keepKeyCase, isUpdate bool) (any, error) {
-	objJSON := make(map[string]any)
-	for name, attr := range elms {
-		valChild, err := getModelAttr(attr, isUpdate)
-		if err != nil {
-			return nil, err
-		}
-		if valChild != nil {
-			nameJSON := name
-			if !keepKeyCase {
-				nameJSON = stringcase.ToCamelCase(name)
-			}
-			objJSON[nameJSON] = valChild
-		}
-	}
-	return objJSON, nil
 }
