@@ -4,7 +4,25 @@ subcategory: "Streams"
 
 # Data Source: mongodbatlas_stream_instances
 
+~> **DEPRECATED:** This data source is deprecated. Please use [`mongodbatlas_stream_workspaces`](stream_workspaces.md) instead.
+
 `mongodbatlas_stream_instances` describes the stream instances defined in a project.
+
+## Migration to stream_workspaces
+
+To migrate from `mongodbatlas_stream_instances` to `mongodbatlas_stream_workspaces`, update your data source configuration:
+
+```terraform
+# Old (deprecated)
+data "mongodbatlas_stream_instances" "example" {
+  project_id = "<PROJECT_ID>"
+}
+
+# New (recommended)
+data "mongodbatlas_stream_workspaces" "example" {
+  project_id = "<PROJECT_ID>"
+}
+```
 
 ## Example Usage
 
