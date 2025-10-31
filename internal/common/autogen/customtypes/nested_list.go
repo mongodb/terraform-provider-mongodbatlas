@@ -133,6 +133,14 @@ type NestedListValueInterface interface {
 	Len() int
 }
 
+func (v NestedListValue[T]) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	if v.ElementType(ctx) == nil {
+		// NestedListValue created as a zero value (not explicitly initialized), initialize now so conversion does not panic.
+		v.ListValue = NewNestedListValueNull[T](ctx).ListValue
+	}
+	return v.ListValue.ToTerraformValue(ctx)
+}
+
 func (v NestedListValue[T]) NewNestedListValue(ctx context.Context, value any) NestedListValueInterface {
 	return NewNestedListValue[T](ctx, value)
 }

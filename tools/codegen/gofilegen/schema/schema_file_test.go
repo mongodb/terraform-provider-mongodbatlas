@@ -301,6 +301,14 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 							},
 						},
 						{
+							TFSchemaName:             "string_map_attr",
+							TFModelName:              "StringMapAttr",
+							Description:              admin.PtrString("string map attribute"),
+							ComputedOptionalRequired: codespec.Optional,
+							CustomType:               codespec.NewCustomMapType(codespec.String),
+							Map:                      &codespec.MapAttribute{ElementType: codespec.String},
+						},
+						{
 							TFSchemaName:             "map_nested_attribute",
 							TFModelName:              "MapNestedAttribute",
 							Description:              admin.PtrString("nested map attribute"),

@@ -106,6 +106,8 @@ func getModelAttr(val attr.Value, isUpdate bool) (any, error) {
 		return getMapAttr(v.Attributes(), false, isUpdate)
 	case types.Map:
 		return getMapAttr(v.Elements(), true, isUpdate)
+	case customtypes.MapValueInterface:
+		return getMapAttr(v.Elements(), true, isUpdate)
 	case types.List:
 		return getListAttr(v.Elements(), isUpdate)
 	case customtypes.ListValueInterface:

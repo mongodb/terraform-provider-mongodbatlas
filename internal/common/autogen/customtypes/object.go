@@ -129,6 +129,14 @@ type ObjectValueInterface interface {
 	ValuePtrAsAny(ctx context.Context) (any, diag.Diagnostics)
 }
 
+func (v ObjectValue[T]) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	if v.ObjectValue.Equal(basetypes.ObjectValue{}) {
+		// ObjectValue created as a zero value (not explicitly initialized), initialize now so conversion does not panic.
+		v.ObjectValue = NewObjectValueNull[T](ctx).ObjectValue
+	}
+	return v.ObjectValue.ToTerraformValue(ctx)
+}
+
 func (v ObjectValue[T]) NewObjectValue(ctx context.Context, value any) ObjectValueInterface {
 	return NewObjectValue[T](ctx, value)
 }

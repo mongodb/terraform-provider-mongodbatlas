@@ -113,6 +113,14 @@ type SetValueInterface interface {
 	Elements() []attr.Value
 }
 
+func (v SetValue[T]) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	if v.SetValue.ElementType(ctx) == nil {
+		// SetValue created as a zero value (not explicitly initialized), initialize now so conversion does not panic.
+		v.SetValue = NewSetValueNull[T](ctx).SetValue
+	}
+	return v.SetValue.ToTerraformValue(ctx)
+}
+
 func (v SetValue[T]) NewSetValue(ctx context.Context, value []attr.Value) SetValueInterface {
 	return NewSetValue[T](ctx, value)
 }

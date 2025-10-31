@@ -89,6 +89,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
+			"string_map_attr": schema.MapAttribute{
+				Optional:            true,
+				MarkdownDescription: "string map attribute",
+				CustomType:          customtypes.NewMapType[types.String](ctx),
+				ElementType:         types.StringType,
+			},
 			"map_nested_attribute": schema.MapNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "nested map attribute",
@@ -112,6 +118,7 @@ type TFModel struct {
 	NestedListAttr     customtypes.NestedListValue[TFNestedListAttrModel]    `tfsdk:"nested_list_attr"`
 	StringSetAttr      customtypes.SetValue[types.String]                    `tfsdk:"string_set_attr"`
 	NestedSetAttr      customtypes.NestedSetValue[TFNestedSetAttrModel]      `tfsdk:"nested_set_attr"`
+	StringMapAttr      customtypes.MapValue[types.String]                    `tfsdk:"string_map_attr"`
 	MapNestedAttribute customtypes.NestedMapValue[TFMapNestedAttributeModel] `tfsdk:"map_nested_attribute"`
 }
 type TFNestedObjectAttrModel struct {
