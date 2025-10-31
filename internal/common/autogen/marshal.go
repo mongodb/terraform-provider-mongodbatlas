@@ -106,6 +106,8 @@ func getModelAttr(val attr.Value, isUpdate bool) (any, error) {
 		return getMapAttr(v.Attributes(), false, isUpdate)
 	case types.Map:
 		return getMapAttr(v.Elements(), true, isUpdate)
+	case customtypes.MapValueInterface:
+		return getMapAttr(v.Elements(), true, isUpdate)
 	case types.List:
 		return getListAttr(v.Elements(), isUpdate)
 	case customtypes.ListValueInterface:
@@ -142,6 +144,13 @@ func getModelAttr(val attr.Value, isUpdate bool) (any, error) {
 		}
 
 		return getNestedSliceAttr(slicePtr, isUpdate)
+	case customtypes.NestedMapValueInterface:
+		mapPtr, diags := v.MapPtrAsAny(context.Background())
+		if diags.HasError() {
+			return nil, fmt.Errorf("marshal failed for type: %v", diags)
+		}
+
+		return getNestedMapAttr(mapPtr, isUpdate)
 	default:
 		return nil, fmt.Errorf("marshal not supported yet for type %T", v)
 	}
@@ -159,6 +168,25 @@ func getNestedSliceAttr(slicePtr any, isUpdate bool) (any, error) {
 		}
 		if value != nil {
 			result = append(result, value)
+		}
+	}
+
+	return result, nil
+}
+
+func getNestedMapAttr(mapPtr any, isUpdate bool) (any, error) {
+	mapValue := reflect.ValueOf(mapPtr).Elem()
+
+	result := make(map[string]any, mapValue.Len())
+	iter := mapValue.MapRange()
+	for iter.Next() {
+		key := iter.Key().String()
+		value, err := marshalAttrs(iter.Value(), isUpdate)
+		if err != nil {
+			return nil, err
+		}
+		if value != nil {
+			result[key] = value
 		}
 	}
 

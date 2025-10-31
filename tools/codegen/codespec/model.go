@@ -249,3 +249,20 @@ func NewCustomNestedSetType(name string) *CustomType {
 		Schema:  fmt.Sprintf("customtypes.NewNestedSetType[TF%sModel](ctx)", name),
 	}
 }
+
+func NewCustomMapType(elemType ElemType) *CustomType {
+	elemTypeStr := ElementTypeToModelString[elemType]
+	return &CustomType{
+		Package: CustomTypesPkg,
+		Model:   fmt.Sprintf("customtypes.MapValue[%s]", elemTypeStr),
+		Schema:  fmt.Sprintf("customtypes.NewMapType[%s](ctx)", elemTypeStr),
+	}
+}
+
+func NewCustomNestedMapType(name string) *CustomType {
+	return &CustomType{
+		Package: CustomTypesPkg,
+		Model:   fmt.Sprintf("customtypes.NestedMapValue[TF%sModel]", name),
+		Schema:  fmt.Sprintf("customtypes.NewNestedMapType[TF%sModel](ctx)", name),
+	}
+}

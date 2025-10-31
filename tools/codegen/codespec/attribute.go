@@ -263,11 +263,15 @@ func (s *APISpecSchema) buildMapAttr(name, ancestorsName string, computability C
 	}
 
 	if mapSchema.Type == OASTypeObject {
-		mapAttributes, err := buildResourceAttrs(mapSchema, ancestorsName+result.TFModelName, isFromRequest, useCustomNestedTypes)
+		fullName := ancestorsName + result.TFModelName
+		mapAttributes, err := buildResourceAttrs(mapSchema, fullName, isFromRequest, useCustomNestedTypes)
 		if err != nil {
 			return nil, err
 		}
 
+		if useCustomNestedTypes {
+			result.CustomType = NewCustomNestedMapType(fullName)
+		}
 		result.MapNested = &MapNestedAttribute{
 			NestedObject: NestedAttributeObject{
 				Attributes: mapAttributes,
@@ -279,6 +283,9 @@ func (s *APISpecSchema) buildMapAttr(name, ancestorsName string, computability C
 			return nil, err
 		}
 
+		if useCustomNestedTypes {
+			result.CustomType = NewCustomMapType(elemType)
+		}
 		result.Map = &MapAttribute{
 			ElementType: elemType,
 		}

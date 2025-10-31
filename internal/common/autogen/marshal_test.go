@@ -130,6 +130,7 @@ func TestMarshalNestedAllTypes(t *testing.T) {
 		AttrCustomSet  customtypes.SetValue[types.String]  `tfsdk:"attr_custom_set"`
 		AttrSetObj     types.Set                           `tfsdk:"attr_set_obj"`
 		AttrMapSimple  types.Map                           `tfsdk:"attr_map_simple"`
+		AttrCustomMap  customtypes.MapValue[types.String]  `tfsdk:"attr_custom_map"`
 		AttrMapObj     types.Map                           `tfsdk:"attr_map_obj"`
 	}{
 		AttrString:     types.StringValue("val"),
@@ -142,6 +143,10 @@ func TestMarshalNestedAllTypes(t *testing.T) {
 		AttrMapSimple: types.MapValueMust(types.StringType, map[string]attr.Value{
 			"keyOne": types.StringValue("val1"),
 			"KeyTwo": types.StringValue("val2"), // don't change the key case when it's a map
+		}),
+		AttrCustomMap: customtypes.NewMapValue[types.String](t.Context(), map[string]attr.Value{
+			"keyOne": types.StringValue("val1"),
+			"KeyTwo": types.StringValue("val2"),
 		}),
 		AttrMapObj: attrMapObj,
 	}
@@ -161,6 +166,10 @@ func TestMarshalNestedAllTypes(t *testing.T) {
 				{ "attrString": "str22", "attrInt": 22 }
 			],
 			"attrMapSimple": {
+				"keyOne": "val1",
+				"KeyTwo": "val2"
+			},
+			"attrCustomMap": {
 				"keyOne": "val1",
 				"KeyTwo": "val2"
 			},
@@ -268,6 +277,8 @@ func TestMarshalUpdateNull(t *testing.T) {
 		AttrCustomList    customtypes.ListValue[types.String] `tfsdk:"attr_custom_list"`
 		AttrSet           types.Set                           `tfsdk:"attr_set"`
 		AttrCustomSet     customtypes.SetValue[types.String]  `tfsdk:"attr_custom_set"`
+		AttrMap           types.Map                           `tfsdk:"attr_map"`
+		AttrCustomMap     customtypes.MapValue[types.String]  `tfsdk:"attr_custom_map"`
 		AttrString        types.String                        `tfsdk:"attr_string"`
 		AttrObj           types.Object                        `tfsdk:"attr_obj"`
 		AttrIncludeString types.String                        `tfsdk:"attr_include_update" autogen:"includenullonupdate"`
@@ -277,6 +288,8 @@ func TestMarshalUpdateNull(t *testing.T) {
 		AttrCustomList:    customtypes.NewListValueNull[types.String](t.Context()),
 		AttrSet:           types.SetNull(types.StringType),
 		AttrCustomSet:     customtypes.NewSetValueNull[types.String](t.Context()),
+		AttrMap:           types.MapNull(types.StringType),
+		AttrCustomMap:     customtypes.NewMapValueNull[types.String](t.Context()),
 		AttrString:        types.StringNull(),
 		AttrObj:           types.ObjectNull(objTypeTest.AttrTypes),
 		AttrIncludeString: types.StringNull(),
@@ -593,6 +606,105 @@ func TestMarshalCustomTypeNestedSet(t *testing.T) {
 			],
 			"attrNestedSetNull": [],
 			"attrNestedSetEmpty": []
+		}
+	`
+	rawUpdate, err := autogen.Marshal(&model, true)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedUpdateJSON, string(rawUpdate))
+}
+
+func TestMarshalCustomTypeNestedMap(t *testing.T) {
+	ctx := context.Background()
+
+	type modelEmptyTest struct{}
+
+	type modelNestedObject struct {
+		AttrNestedInt types.Int64 `tfsdk:"attr_nested_int"`
+	}
+
+	type modelNestedMapItem struct {
+		AttrOmit       customtypes.NestedMapValue[modelEmptyTest] `tfsdk:"attr_omit" autogen:"omitjson"`
+		AttrOmitUpdate customtypes.NestedMapValue[modelEmptyTest] `tfsdk:"attr_omit_update" autogen:"omitjsonupdate"`
+		AttrPrimitive  types.String                               `tfsdk:"attr_primitive"`
+		AttrObject     customtypes.ObjectValue[modelNestedObject] `tfsdk:"attr_object"`
+		AttrMANYUpper  types.Int64                                `tfsdk:"attr_many_upper"`
+	}
+
+	model := struct {
+		AttrNestedMap      customtypes.NestedMapValue[modelNestedMapItem] `tfsdk:"attr_nested_map"`
+		AttrNestedMapNull  customtypes.NestedMapValue[modelNestedMapItem] `tfsdk:"attr_nested_map_null"`
+		AttrNestedMapEmpty customtypes.NestedMapValue[modelNestedMapItem] `tfsdk:"attr_nested_map_empty"`
+	}{
+		AttrNestedMap: customtypes.NewNestedMapValue[modelNestedMapItem](ctx, map[string]modelNestedMapItem{
+			"keyOne": {
+				AttrPrimitive: types.StringValue("string1"),
+				AttrMANYUpper: types.Int64Value(1),
+				AttrObject: customtypes.NewObjectValue[modelNestedObject](ctx, modelNestedObject{
+					AttrNestedInt: types.Int64Value(2),
+				}),
+				AttrOmit:       customtypes.NewNestedMapValue[modelEmptyTest](ctx, map[string]modelEmptyTest{}),
+				AttrOmitUpdate: customtypes.NewNestedMapValue[modelEmptyTest](ctx, map[string]modelEmptyTest{}),
+			},
+			"KeyTwo": {
+				AttrPrimitive: types.StringValue("string2"),
+				AttrMANYUpper: types.Int64Value(3),
+				AttrObject: customtypes.NewObjectValue[modelNestedObject](ctx, modelNestedObject{
+					AttrNestedInt: types.Int64Value(4),
+				}),
+				AttrOmit:       customtypes.NewNestedMapValue[modelEmptyTest](ctx, map[string]modelEmptyTest{}),
+				AttrOmitUpdate: customtypes.NewNestedMapValue[modelEmptyTest](ctx, map[string]modelEmptyTest{}),
+			},
+		}),
+		AttrNestedMapNull:  customtypes.NewNestedMapValueNull[modelNestedMapItem](ctx),
+		AttrNestedMapEmpty: customtypes.NewNestedMapValue[modelNestedMapItem](ctx, map[string]modelNestedMapItem{}),
+	}
+
+	const expectedCreateJSON = `
+		{
+			"attrNestedMap": {
+				"keyOne": {
+					"attrPrimitive": "string1",
+					"attrMANYUpper": 1,
+					"attrObject": {
+						"attrNestedInt": 2
+					},
+					"attrOmitUpdate": {}
+				},
+				"KeyTwo": {
+					"attrPrimitive": "string2",
+					"attrMANYUpper": 3,
+					"attrObject": {
+						"attrNestedInt": 4
+					},
+					"attrOmitUpdate": {}
+				}
+			},
+			"attrNestedMapEmpty": {}
+		}
+	`
+	rawCreate, err := autogen.Marshal(&model, false)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedCreateJSON, string(rawCreate))
+
+	const expectedUpdateJSON = `
+		{
+			"attrNestedMap": {
+				"keyOne": {
+					"attrPrimitive": "string1",
+					"attrMANYUpper": 1,
+					"attrObject": {
+						"attrNestedInt": 2
+					}
+				},
+				"KeyTwo": {
+					"attrPrimitive": "string2",
+					"attrMANYUpper": 3,
+					"attrObject": {
+						"attrNestedInt": 4
+					}
+				}
+			},
+			"attrNestedMapEmpty": {}
 		}
 	`
 	rawUpdate, err := autogen.Marshal(&model, true)

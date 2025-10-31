@@ -132,6 +132,14 @@ type NestedSetValueInterface interface {
 	Len() int
 }
 
+func (v NestedSetValue[T]) ToTerraformValue(ctx context.Context) (tftypes.Value, error) {
+	if v.ElementType(ctx) == nil {
+		// NestedSetValue created as a zero value (not explicitly initialized), initialize now so conversion does not panic.
+		v.SetValue = NewNestedSetValueNull[T](ctx).SetValue
+	}
+	return v.SetValue.ToTerraformValue(ctx)
+}
+
 func (v NestedSetValue[T]) NewNestedSetValue(ctx context.Context, value any) NestedSetValueInterface {
 	return NewNestedSetValue[T](ctx, value)
 }

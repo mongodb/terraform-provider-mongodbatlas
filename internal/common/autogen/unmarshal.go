@@ -121,34 +121,26 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 			}
 			return jsontypes.NewNormalizedValue(string(jsonBytes)), nil
 		}
-		if obj, ok := oldVal.(types.Object); ok {
-			objNew, err := setObjAttrModel(obj, v)
+
+		switch oldVal := oldVal.(type) {
+		case types.Object:
+			objNew, err := setObjAttrModel(oldVal, v)
 			if err != nil {
 				return nil, err
 			}
 			return objNew, nil
-		}
-		if m, ok := oldVal.(types.Map); ok {
-			mapNew, err := setMapAttrModel(m, v)
+		case types.Map:
+			mapNew, err := setMapAttrModel(oldVal, v)
 			if err != nil {
 				return nil, err
 			}
 			return mapNew, nil
-		}
-		if obj, ok := oldVal.(customtypes.ObjectValueInterface); ok {
-			ctx := context.Background()
-			valuePtr, diags := obj.ValuePtrAsAny(ctx)
-			if diags.HasError() {
-				return nil, fmt.Errorf("unmarshal failed to convert object: %v", diags)
-			}
-
-			err := unmarshalAttrs(v, valuePtr)
-			if err != nil {
-				return nil, err
-			}
-
-			objNew := obj.NewObjectValue(ctx, valuePtr)
-			return objNew, nil
+		case customtypes.ObjectValueInterface:
+			return getObjectValueTFAttr(context.Background(), v, oldVal)
+		case customtypes.MapValueInterface:
+			return getMapValueTFAttr(context.Background(), v, oldVal)
+		case customtypes.NestedMapValueInterface:
+			return getNestedMapValueTFAttr(context.Background(), v, oldVal)
 		}
 		return nil, errUnmarshal(value, valueType, "Object", nameErr)
 	case []any:
@@ -307,6 +299,75 @@ func getObjAttrsAndTypes(obj types.Object) (mapAttrs map[string]attr.Value, mapT
 	return mapAttrs, mapTypes, nil
 }
 
+func getObjectValueTFAttr(ctx context.Context, objJSON map[string]any, obj customtypes.ObjectValueInterface) (attr.Value, error) {
+	valuePtr, diags := obj.ValuePtrAsAny(ctx)
+	if diags.HasError() {
+		return nil, fmt.Errorf("unmarshal failed to convert object: %v", diags)
+	}
+
+	err := unmarshalAttrs(objJSON, valuePtr)
+	if err != nil {
+		return nil, err
+	}
+
+	return obj.NewObjectValue(ctx, valuePtr), nil
+}
+
+func getMapValueTFAttr(ctx context.Context, mapJSON map[string]any, m customtypes.MapValueInterface) (attr.Value, error) {
+	mapAttrs := make(map[string]attr.Value, len(mapJSON))
+	elemType := m.ElementType(ctx)
+
+	for key, item := range mapJSON {
+		value, err := getTfAttr(item, elemType, nil, key)
+		if err != nil {
+			return nil, err
+		}
+		if value != nil {
+			mapAttrs[key] = value
+		}
+	}
+
+	return m.NewMapValue(ctx, mapAttrs), nil
+}
+
+func getNestedMapValueTFAttr(ctx context.Context, mapJSON map[string]any, m customtypes.NestedMapValueInterface) (attr.Value, error) {
+	oldMapPtr, diags := m.MapPtrAsAny(ctx)
+	if diags.HasError() {
+		return nil, fmt.Errorf("unmarshal failed to convert map: %v", diags)
+	}
+
+	oldMapVal := reflect.ValueOf(oldMapPtr).Elem()
+
+	mapPtr := m.NewEmptyMapPtr()
+	mapVal := reflect.ValueOf(mapPtr).Elem()
+	mapVal.Set(reflect.MakeMap(mapVal.Type()))
+
+	mapElemType := mapVal.Type().Elem()
+	for key, item := range mapJSON {
+		keyVal := reflect.ValueOf(key)
+
+		elementVal := reflect.New(mapElemType)
+
+		if oldValue := oldMapVal.MapIndex(keyVal); oldValue.IsValid() {
+			elementVal.Elem().Set(oldValue)
+		}
+
+		objJSON, ok := item.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("unmarshal of map item failed to convert to object: %v", item)
+		}
+
+		err := unmarshalAttrs(objJSON, elementVal.Interface())
+		if err != nil {
+			return nil, err
+		}
+
+		mapVal.SetMapIndex(keyVal, elementVal.Elem())
+	}
+
+	return m.NewNestedMapValue(ctx, mapPtr), nil
+}
+
 func getListValueTFAttr(ctx context.Context, arrayJSON []any, list customtypes.ListValueInterface, nameErr string) (attr.Value, error) {
 	if len(arrayJSON) == 0 && len(list.Elements()) == 0 {
 		// Keep current list if both model and JSON lists are zero-len (empty or null) so config is preserved.
@@ -342,11 +403,11 @@ func getArrayTFAttr(arrayJSON []any, elemType attr.Type, nameErr string) ([]attr
 	slice := make([]attr.Value, len(arrayJSON))
 
 	for i, item := range arrayJSON {
-		newValue, err := getTfAttr(item, elemType, nil, nameErr)
+		value, err := getTfAttr(item, elemType, nil, nameErr)
 		if err != nil {
 			return nil, err
 		}
-		slice[i] = newValue
+		slice[i] = value
 	}
 
 	return slice, nil

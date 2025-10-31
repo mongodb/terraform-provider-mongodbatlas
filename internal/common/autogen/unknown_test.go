@@ -36,10 +36,13 @@ func TestResolveUnknowns(t *testing.T) {
 		AttrCustomObject            customtypes.ObjectValue[modelCustomTypeTest]     `tfsdk:"attr_custom_object"`
 		AttrCustomListUnknown       customtypes.ListValue[types.String]              `tfsdk:"attr_custom_list_string"`
 		AttrCustomSetUnknown        customtypes.SetValue[types.String]               `tfsdk:"attr_custom_set_string"`
+		AttrCustomMapUnknown        customtypes.MapValue[types.String]               `tfsdk:"attr_custom_map_string"`
 		AttrCustomNestedListUnknown customtypes.NestedListValue[modelEmptyTest]      `tfsdk:"attr_custom_nested_list_unknown"`
 		AttrCustomNestedSetUnknown  customtypes.NestedSetValue[modelEmptyTest]       `tfsdk:"attr_custom_nested_set_unknown"`
+		AttrCustomNestedMapUnknown  customtypes.NestedMapValue[modelEmptyTest]       `tfsdk:"attr_custom_nested_map_unknown"`
 		AttrCustomNestedList        customtypes.NestedListValue[modelCustomTypeTest] `tfsdk:"attr_custom_nested_list"`
 		AttrCustomNestedSet         customtypes.NestedSetValue[modelCustomTypeTest]  `tfsdk:"attr_custom_nested_set"`
+		AttrCustomNestedMap         customtypes.NestedMapValue[modelCustomTypeTest]  `tfsdk:"attr_custom_nested_map"`
 	}
 
 	model := modelst{
@@ -94,8 +97,10 @@ func TestResolveUnknowns(t *testing.T) {
 		}),
 		AttrCustomNestedListUnknown: customtypes.NewNestedListValueUnknown[modelEmptyTest](ctx),
 		AttrCustomNestedSetUnknown:  customtypes.NewNestedSetValueUnknown[modelEmptyTest](ctx),
+		AttrCustomNestedMapUnknown:  customtypes.NewNestedMapValueUnknown[modelEmptyTest](ctx),
 		AttrCustomListUnknown:       customtypes.NewListValueUnknown[types.String](ctx),
 		AttrCustomSetUnknown:        customtypes.NewSetValueUnknown[types.String](ctx),
+		AttrCustomMapUnknown:        customtypes.NewMapValueUnknown[types.String](ctx),
 		AttrCustomNestedList: customtypes.NewNestedListValue[modelCustomTypeTest](ctx, []modelCustomTypeTest{
 			{
 				AttrKnownString:   types.StringValue("val1"),
@@ -103,6 +108,18 @@ func TestResolveUnknowns(t *testing.T) {
 				AttrMANYUpper:     types.Int64Unknown(),
 			},
 			{
+				AttrKnownString:   types.StringUnknown(),
+				AttrUnknownObject: customtypes.NewObjectValue[modelEmptyTest](ctx, modelEmptyTest{}),
+				AttrMANYUpper:     types.Int64Value(2),
+			},
+		}),
+		AttrCustomNestedMap: customtypes.NewNestedMapValue[modelCustomTypeTest](ctx, map[string]modelCustomTypeTest{
+			"keyOne": {
+				AttrKnownString:   types.StringValue("val1"),
+				AttrUnknownObject: customtypes.NewObjectValueUnknown[modelEmptyTest](ctx),
+				AttrMANYUpper:     types.Int64Unknown(),
+			},
+			"keyTwo": {
 				AttrKnownString:   types.StringUnknown(),
 				AttrUnknownObject: customtypes.NewObjectValue[modelEmptyTest](ctx, modelEmptyTest{}),
 				AttrMANYUpper:     types.Int64Value(2),
@@ -161,8 +178,10 @@ func TestResolveUnknowns(t *testing.T) {
 		}),
 		AttrCustomListUnknown:       customtypes.NewListValueNull[types.String](ctx),
 		AttrCustomSetUnknown:        customtypes.NewSetValueNull[types.String](ctx),
+		AttrCustomMapUnknown:        customtypes.NewMapValueNull[types.String](ctx),
 		AttrCustomNestedListUnknown: customtypes.NewNestedListValueNull[modelEmptyTest](ctx),
 		AttrCustomNestedSetUnknown:  customtypes.NewNestedSetValueNull[modelEmptyTest](ctx),
+		AttrCustomNestedMapUnknown:  customtypes.NewNestedMapValueNull[modelEmptyTest](ctx),
 		AttrCustomNestedList: customtypes.NewNestedListValue[modelCustomTypeTest](ctx, []modelCustomTypeTest{
 			{
 				AttrKnownString:   types.StringValue("val1"),
@@ -170,6 +189,18 @@ func TestResolveUnknowns(t *testing.T) {
 				AttrMANYUpper:     types.Int64Null(),
 			},
 			{
+				AttrKnownString:   types.StringNull(),
+				AttrUnknownObject: customtypes.NewObjectValue[modelEmptyTest](ctx, modelEmptyTest{}),
+				AttrMANYUpper:     types.Int64Value(2),
+			},
+		}),
+		AttrCustomNestedMap: customtypes.NewNestedMapValue[modelCustomTypeTest](ctx, map[string]modelCustomTypeTest{
+			"keyOne": {
+				AttrKnownString:   types.StringValue("val1"),
+				AttrUnknownObject: customtypes.NewObjectValueNull[modelEmptyTest](ctx),
+				AttrMANYUpper:     types.Int64Null(),
+			},
+			"keyTwo": {
 				AttrKnownString:   types.StringNull(),
 				AttrUnknownObject: customtypes.NewObjectValue[modelEmptyTest](ctx, modelEmptyTest{}),
 				AttrMANYUpper:     types.Int64Value(2),
