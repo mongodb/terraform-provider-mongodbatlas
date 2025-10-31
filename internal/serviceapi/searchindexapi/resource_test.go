@@ -31,11 +31,12 @@ func TestAccSearchIndexAPI_basic(t *testing.T) {
 				Check:  checkBasic(projectID, clusterName, indexName),
 			},
 			{
-				Config:            configBasic(projectID, clusterName, indexName),
-				ResourceName:      resourceName,
-				ImportStateIdFunc: importStateIDFunc(resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
+				Config:                               configBasic(projectID, clusterName, indexName),
+				ResourceName:                         resourceName,
+				ImportStateIdFunc:                    importStateIDFunc(resourceName),
+				ImportStateVerifyIdentifierAttribute: "name",
+				ImportState:                          true,
+				ImportStateVerify:                    true,
 			},
 		},
 	})
