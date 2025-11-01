@@ -163,7 +163,6 @@ We are committed to clear and proactive communication:
 | 1.9.x | 2024-06-26 | 2026-06-30 | 2026-06-30 |
 | 1.8.x | 2024-04-10 | 2026-04-30 | 2026-04-30 |
 | 1.7.x | 2024-01-17 | 2026-01-31 | 2026-01-31 |
-| 1.6.x | 2023-10-04 | 2025-10-31 | 2025-10-31 |
 <!-- MATRIX_PLACEHOLDER_END -->
 For the safety of our users, we require only consuming versions of HashiCorp Terraform that are currently receiving Security / Maintenance Updates. For more details see [Support Period and End-of-Life (EOL) Policy](https://support.hashicorp.com/hc/en-us/articles/360021185113-Support-Period-and-End-of-Life-EOL-Policy).   
 
