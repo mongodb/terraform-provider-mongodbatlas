@@ -40,7 +40,7 @@ type MapType[T attr.Value] struct {
 }
 
 func NewMapType[T attr.Value](ctx context.Context) MapType[T] {
-	elemType := getValueElementType[T](ctx)
+	elemType := getValueType[T](ctx)
 	return MapType[T]{
 		MapType: basetypes.MapType{ElemType: elemType},
 	}
@@ -69,7 +69,7 @@ func (t MapType[T]) ValueFromMap(ctx context.Context, in basetypes.MapValue) (ba
 		return NewMapValueUnknown[T](ctx), nil
 	}
 
-	elemType := getValueElementType[T](ctx)
+	elemType := getValueType[T](ctx)
 	baseMapValue, diags := basetypes.NewMapValue(elemType, in.Elements())
 	if diags.HasError() {
 		return nil, diags
@@ -127,7 +127,7 @@ func (v MapValue[T]) NewMapValue(ctx context.Context, value map[string]attr.Valu
 }
 
 func NewMapValue[T attr.Value](ctx context.Context, value map[string]attr.Value) MapValue[T] {
-	elemType := getValueElementType[T](ctx)
+	elemType := getValueType[T](ctx)
 
 	mapValue, diags := basetypes.NewMapValue(elemType, value)
 	if diags.HasError() {
@@ -142,12 +142,12 @@ func (v MapValue[T]) NewMapValueNull(ctx context.Context) MapValueInterface {
 }
 
 func NewMapValueNull[T attr.Value](ctx context.Context) MapValue[T] {
-	elemType := getValueElementType[T](ctx)
+	elemType := getValueType[T](ctx)
 	return MapValue[T]{MapValue: basetypes.NewMapNull(elemType)}
 }
 
 func NewMapValueUnknown[T attr.Value](ctx context.Context) MapValue[T] {
-	elemType := getValueElementType[T](ctx)
+	elemType := getValueType[T](ctx)
 	return MapValue[T]{MapValue: basetypes.NewMapUnknown(elemType)}
 }
 
@@ -164,7 +164,7 @@ func (v MapValue[T]) Type(ctx context.Context) attr.Type {
 }
 
 func (v MapValue[T]) ElementType(ctx context.Context) attr.Type {
-	return getValueElementType[T](ctx)
+	return getValueType[T](ctx)
 }
 
 func (v MapValue[T]) Elements() map[string]attr.Value {

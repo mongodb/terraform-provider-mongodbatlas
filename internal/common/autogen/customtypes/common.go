@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-func getValueElementType[T attr.Value](ctx context.Context) attr.Type {
+func getValueType[T attr.Value](ctx context.Context) attr.Type {
 	var t T
 	return t.Type(ctx)
 }
 
-func getElementType[T any](ctx context.Context) (attr.Type, diag.Diagnostics) {
+func getNestedType[T any](ctx context.Context) (attr.Type, diag.Diagnostics) {
 	var t T
 	attrTypes, diags := valueToAttributeTypes(ctx, reflect.ValueOf(t))
 	if diags.HasError() {

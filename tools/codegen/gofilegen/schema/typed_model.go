@@ -7,19 +7,15 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 )
 
-func GenerateTypedModels(attributes codespec.Attributes, withObjTypes bool) CodeStatement {
-	return generateTypedModels(attributes, "", false, withObjTypes)
+func GenerateTypedModels(attributes codespec.Attributes) CodeStatement {
+	return generateTypedModels(attributes, "")
 }
 
-func generateTypedModels(attributes codespec.Attributes, name string, isNested, withObjTypes bool) CodeStatement {
+func generateTypedModels(attributes codespec.Attributes, name string) CodeStatement {
 	models := []CodeStatement{generateStructOfTypedModel(attributes, name)}
 
-	if isNested && withObjTypes {
-		models = append(models, generateModelObjType(attributes, name))
-	}
-
 	for i := range attributes {
-		additionalModel := getNestedModel(&attributes[i], name, withObjTypes)
+		additionalModel := getNestedModel(&attributes[i], name)
 		if additionalModel != nil {
 			models = append(models, *additionalModel)
 		}
@@ -28,24 +24,7 @@ func generateTypedModels(attributes codespec.Attributes, name string, isNested, 
 	return GroupCodeStatements(models, func(list []string) string { return strings.Join(list, "\n") })
 }
 
-func generateModelObjType(attrs codespec.Attributes, name string) CodeStatement {
-	structProperties := []string{}
-	for i := range attrs {
-		propType := attrModelType(&attrs[i])
-		comment := limitationComment(&attrs[i])
-		prop := fmt.Sprintf(`%q: %sType,%s`, attrs[i].TFSchemaName.SnakeCase(), propType, comment)
-		structProperties = append(structProperties, prop)
-	}
-	structPropsCode := strings.Join(structProperties, "\n")
-	return CodeStatement{
-		Code: fmt.Sprintf(`var %sObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-    %s
-}}`, name, structPropsCode),
-		Imports: []string{"github.com/hashicorp/terraform-plugin-framework/types", "github.com/hashicorp/terraform-plugin-framework/attr"},
-	}
-}
-
-func getNestedModel(attribute *codespec.Attribute, ancestorsName string, withObjTypes bool) *CodeStatement {
+func getNestedModel(attribute *codespec.Attribute, ancestorsName string) *CodeStatement {
 	var nested *codespec.NestedAttributeObject
 	if attribute.ListNested != nil {
 		nested = &attribute.ListNested.NestedObject
@@ -62,7 +41,7 @@ func getNestedModel(attribute *codespec.Attribute, ancestorsName string, withObj
 	if nested == nil {
 		return nil
 	}
-	res := generateTypedModels(nested.Attributes, ancestorsName+attribute.TFModelName, true, withObjTypes)
+	res := generateTypedModels(nested.Attributes, ancestorsName+attribute.TFModelName)
 	return &res
 }
 
@@ -82,9 +61,8 @@ func generateStructOfTypedModel(attributes codespec.Attributes, name string) Cod
 
 func typedModelProperty(attr *codespec.Attribute) string {
 	var (
-		namePascalCase = attr.TFModelName
-		propType       = attrModelType(attr)
-		autogenTag     string
+		propType   = attrModelType(attr)
+		autogenTag string
 	)
 	switch attr.ReqBodyUsage {
 	case codespec.AllRequestBodies:
@@ -96,7 +74,7 @@ func typedModelProperty(attr *codespec.Attribute) string {
 	case codespec.IncludeNullOnUpdate:
 		autogenTag = ` autogen:"includenullonupdate"`
 	}
-	return fmt.Sprintf("%s %s", namePascalCase, propType) + " `" + fmt.Sprintf("tfsdk:%q", attr.TFSchemaName.SnakeCase()) + autogenTag + "`"
+	return fmt.Sprintf("%s %s", attr.TFModelName, propType) + " `" + fmt.Sprintf("tfsdk:%q", attr.TFSchemaName.SnakeCase()) + autogenTag + "`"
 }
 
 func attrModelType(attr *codespec.Attribute) string {
@@ -118,13 +96,4 @@ func attrModelType(attr *codespec.Attribute) string {
 	default:
 		panic("Attribute with unknown type defined when generating typed model")
 	}
-}
-
-func limitationComment(attr *codespec.Attribute) string {
-	if attr.List == nil && attr.ListNested == nil &&
-		attr.Map == nil && attr.MapNested == nil &&
-		attr.Set == nil && attr.SetNested == nil {
-		return ""
-	}
-	return " // TODO: missing ElemType, codegen limitation tracked in CLOUDP-311105"
 }

@@ -45,7 +45,6 @@ func doubleCustomNestedListAttr(ancestorName string) codespec.Attribute {
 type schemaGenerationTestCase struct {
 	inputModel     codespec.Resource
 	goldenFileName string
-	withObjType    bool
 }
 
 //nolint:funlen // Long test data
@@ -118,7 +117,6 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 					},
 				},
 			},
-			withObjType:    true,
 			goldenFileName: "primitive-attributes",
 		},
 		"Custom type attributes": {
@@ -216,7 +214,6 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 					},
 				},
 			},
-			withObjType:    false,
 			goldenFileName: "custom-types-attributes",
 		},
 		"Timeout attribute": {
@@ -276,7 +273,6 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 					},
 				},
 			},
-			withObjType:    false,
 			goldenFileName: "multiple-nested-models-same-parent-attr-name",
 		},
 		"Plan modifiers using create only": {
@@ -412,14 +408,13 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 					},
 				},
 			},
-			withObjType:    false,
 			goldenFileName: "plan-modifiers-create-only",
 		},
 	}
 
 	for testName, tc := range schemaGenFromCodeSpecTestCases {
 		t.Run(testName, func(t *testing.T) {
-			result := schema.GenerateGoCode(&tc.inputModel, tc.withObjType)
+			result := schema.GenerateGoCode(&tc.inputModel)
 			g := goldie.New(t, goldie.WithNameSuffix(".golden.go"))
 			g.Assert(t, tc.goldenFileName, result)
 		})
