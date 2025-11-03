@@ -37,193 +37,116 @@ func ResolveUnknowns(model any) error {
 }
 
 func prepareAttr(value attr.Value) (attr.Value, error) {
-	if value.IsNull() { // null values are not converted
+	if value.IsNull() {
 		return value, nil
 	}
 	ctx := context.Background()
 
-	switch v := value.(type) {
-	case customtypes.ObjectValueInterface:
-		if v.IsUnknown() {
+	if value.IsUnknown() {
+		switch v := value.(type) {
+		case types.String:
+			return types.StringNull(), nil
+		case types.Bool:
+			return types.BoolNull(), nil
+		case types.Int64:
+			return types.Int64Null(), nil
+		case types.Float64:
+			return types.Float64Null(), nil
+		case jsontypes.Normalized:
+			return jsontypes.NewNormalizedNull(), nil
+		case customtypes.ObjectValueInterface:
 			return v.NewObjectValueNull(ctx), nil
-		}
-
-		valuePtr, diags := v.ValuePtrAsAny(ctx)
-		if diags.HasError() {
-			return nil, fmt.Errorf("unmarshal failed to convert object: %v", diags)
-		}
-
-		err := ResolveUnknowns(valuePtr)
-		if err != nil {
-			return nil, err
-		}
-
-		objNew := v.NewObjectValue(ctx, valuePtr)
-		return objNew, nil
-	case customtypes.ListValueInterface:
-		if v.IsUnknown() {
+		case customtypes.ListValueInterface:
 			return v.NewListValueNull(ctx), nil
-		}
-		// If known, no need to process each list item since unmarshal does not generate unknown attributes.
-		return v, nil
-	case customtypes.NestedListValueInterface:
-		if v.IsUnknown() {
-			return v.NewNestedListValueNull(ctx), nil
-		}
-
-		slicePtr, diags := v.SlicePtrAsAny(ctx)
-		if diags.HasError() {
-			return nil, fmt.Errorf("unmarshal failed to convert list: %v", diags)
-		}
-
-		sliceVal := reflect.ValueOf(slicePtr).Elem()
-		for i := range sliceVal.Len() {
-			elementPtr := sliceVal.Index(i).Addr().Interface()
-			err := ResolveUnknowns(elementPtr)
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		return v.NewNestedListValue(ctx, slicePtr), nil
-	case customtypes.SetValueInterface:
-		if v.IsUnknown() {
+		case customtypes.SetValueInterface:
 			return v.NewSetValueNull(ctx), nil
-		}
-		// If known, no need to process each set item since unmarshal does not generate unknown attributes.
-		return v, nil
-	case customtypes.NestedSetValueInterface:
-		if v.IsUnknown() {
-			return v.NewNestedSetValueNull(ctx), nil
-		}
-		// If known, no need to process each set item since unmarshal does not generate unknown attributes.
-		return v, nil
-	case customtypes.MapValueInterface:
-		if v.IsUnknown() {
+		case customtypes.MapValueInterface:
 			return v.NewMapValueNull(ctx), nil
-		}
-		// If known, no need to process each map entry since unmarshal does not generate unknown attributes.
-		return v, nil
-	case customtypes.NestedMapValueInterface:
-		if v.IsUnknown() {
+		case customtypes.NestedListValueInterface:
+			return v.NewNestedListValueNull(ctx), nil
+		case customtypes.NestedSetValueInterface:
+			return v.NewNestedSetValueNull(ctx), nil
+		case customtypes.NestedMapValueInterface:
 			return v.NewNestedMapValueNull(ctx), nil
 		}
-
-		/*
-			Resolving nested map unknowns is a pretty expensive operation if the nested struct is big since it requires
-			copying every map element (reflection limitation) even when no unknows are present.
-			Since nested maps are very rare, it is unlikely that this will become a problem in practice.
-			If it does, we could either:
-				- Check whether there are any unknowns in the nested object before creating a copy.
-				- Resolve unknowns during unmarshal.
-			Not worth the complexity as of now.
-		*/
-
-		mapPtr, diags := v.MapPtrAsAny(ctx)
-		if diags.HasError() {
-			return nil, fmt.Errorf("unmarshal failed to convert map: %v", diags)
-		}
-
-		mapVal := reflect.ValueOf(mapPtr).Elem()
-		mapElemType := mapVal.Type().Elem()
-
-		iter := mapVal.MapRange()
-		for iter.Next() {
-			elementVal := reflect.New(mapElemType)
-			elementVal.Elem().Set(iter.Value())
-
-			err := ResolveUnknowns(elementVal.Interface())
-			if err != nil {
-				return nil, err
-			}
-
-			mapVal.SetMapIndex(iter.Key(), elementVal.Elem())
-		}
-
-		return v.NewNestedMapValue(ctx, mapPtr), nil
 	}
 
-	if value.IsUnknown() { // unknown values are converted to null
-		return getNullAttr(value.Type(ctx))
-	}
-
+	// Resolve nested types that may contain unknowns after unmarshal
 	switch v := value.(type) {
-	case types.Object:
-		mapAttrs := make(map[string]attr.Value)
-		for nameAttr, valAttr := range v.Attributes() {
-			valNew, err := prepareAttr(valAttr)
-			if err != nil {
-				return nil, err
-			}
-			mapAttrs[nameAttr] = valNew
-		}
-		objNew, diags := types.ObjectValue(v.AttributeTypes(ctx), mapAttrs)
-		if diags.HasError() {
-			return nil, fmt.Errorf("unmarshal failed to convert object: %v", diags)
-		}
-		return objNew, nil
-	case types.List:
-		elems, err := getPreparedCollection(v.Elements())
-		if err != nil {
-			return nil, err
-		}
-		listNew, diags := types.ListValue(v.ElementType(ctx), elems)
-		if diags.HasError() {
-			return nil, fmt.Errorf("unmarshal failed to convert list: %v", diags)
-		}
-		return listNew, nil
-	case types.Set:
-		elems, err := getPreparedCollection(v.Elements())
-		if err != nil {
-			return nil, err
-		}
-		setNew, diags := types.SetValue(v.ElementType(ctx), elems)
-		if diags.HasError() {
-			return nil, fmt.Errorf("unmarshal failed to convert set: %v", diags)
-		}
-		return setNew, nil
+	case customtypes.ObjectValueInterface:
+		return resolveObjectAttr(ctx, v)
+	case customtypes.NestedListValueInterface:
+		return resolveNestedListAttr(ctx, v)
+	case customtypes.NestedMapValueInterface:
+		return resolveNestedMapAttr(ctx, v)
 	}
+
 	return value, nil
 }
 
-func getPreparedCollection(elems []attr.Value) ([]attr.Value, error) {
-	arrayAttrs := make([]attr.Value, len(elems))
-	for i, elm := range elems {
-		valNew, err := prepareAttr(elm)
+func resolveObjectAttr(ctx context.Context, obj customtypes.ObjectValueInterface) (attr.Value, error) {
+	valuePtr, diags := obj.ValuePtrAsAny(ctx)
+	if diags.HasError() {
+		return nil, fmt.Errorf("unmarshal failed to convert object: %v", diags)
+	}
+
+	err := ResolveUnknowns(valuePtr)
+	if err != nil {
+		return nil, err
+	}
+
+	return obj.NewObjectValue(ctx, valuePtr), nil
+}
+
+func resolveNestedListAttr(ctx context.Context, list customtypes.NestedListValueInterface) (attr.Value, error) {
+	slicePtr, diags := list.SlicePtrAsAny(ctx)
+	if diags.HasError() {
+		return nil, fmt.Errorf("unmarshal failed to convert list: %v", diags)
+	}
+
+	sliceVal := reflect.ValueOf(slicePtr).Elem()
+	for i := range sliceVal.Len() {
+		elementPtr := sliceVal.Index(i).Addr().Interface()
+		err := ResolveUnknowns(elementPtr)
 		if err != nil {
 			return nil, err
 		}
-		arrayAttrs[i] = valNew
 	}
-	return arrayAttrs, nil
+
+	return list.NewNestedListValue(ctx, slicePtr), nil
 }
 
-func getNullAttr(attrType attr.Type) (attr.Value, error) {
-	switch attrType {
-	case types.StringType:
-		return types.StringNull(), nil
-	case types.BoolType:
-		return types.BoolNull(), nil
-	case types.Int64Type:
-		return types.Int64Null(), nil
-	case types.Float64Type:
-		return types.Float64Null(), nil
-	default:
-		if objType, ok := attrType.(types.ObjectType); ok {
-			return types.ObjectNull(objType.AttributeTypes()), nil
-		}
-		if listType, ok := attrType.(types.ListType); ok {
-			return types.ListNull(listType.ElemType), nil
-		}
-		if setType, ok := attrType.(types.SetType); ok {
-			return types.SetNull(setType.ElemType), nil
-		}
-		if mapType, ok := attrType.(types.MapType); ok {
-			return types.MapNull(mapType.ElemType), nil
-		}
-		if _, ok := attrType.(jsontypes.NormalizedType); ok {
-			return jsontypes.NewNormalizedNull(), nil
-		}
-		return nil, fmt.Errorf("unmarshal to get null value not supported yet for type %T", attrType)
+func resolveNestedMapAttr(ctx context.Context, m customtypes.NestedMapValueInterface) (attr.Value, error) {
+	/*
+		Resolving nested map unknowns is a pretty expensive operation if the nested struct is big since it requires
+		copying every map element (reflection limitation) even when no unknows are present.
+		Since nested maps are very rare, it is unlikely that this will become a problem in practice.
+		If it does, we could either:
+			- Check whether there are any unknowns in the nested object before creating a copy.
+			- Resolve unknowns during unmarshal.
+		Not worth the complexity as of now.
+	*/
+
+	mapPtr, diags := m.MapPtrAsAny(ctx)
+	if diags.HasError() {
+		return nil, fmt.Errorf("unmarshal failed to convert map: %v", diags)
 	}
+
+	mapVal := reflect.ValueOf(mapPtr).Elem()
+	mapElemType := mapVal.Type().Elem()
+
+	iter := mapVal.MapRange()
+	for iter.Next() {
+		elementVal := reflect.New(mapElemType)
+		elementVal.Elem().Set(iter.Value())
+
+		err := ResolveUnknowns(elementVal.Interface())
+		if err != nil {
+			return nil, err
+		}
+
+		mapVal.SetMapIndex(iter.Key(), elementVal.Elem())
+	}
+
+	return m.NewNestedMapValue(ctx, mapPtr), nil
 }
