@@ -49,7 +49,7 @@ type NestedListType[T any] struct {
 }
 
 func NewNestedListType[T any](ctx context.Context) NestedListType[T] {
-	elemType, diags := getElementType[T](ctx)
+	elemType, diags := getNestedType[T](ctx)
 	if diags.HasError() {
 		panic(fmt.Errorf("error creating NestedListType: %v", diags))
 	}
@@ -82,7 +82,7 @@ func (t NestedListType[T]) ValueFromList(ctx context.Context, in basetypes.ListV
 		return NewNestedListValueUnknown[T](ctx), nil
 	}
 
-	elemType, diags := getElementType[T](ctx)
+	elemType, diags := getNestedType[T](ctx)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -145,7 +145,7 @@ func (v NestedListValue[T]) NewNestedListValue(ctx context.Context, value any) N
 }
 
 func NewNestedListValue[T any](ctx context.Context, value any) NestedListValue[T] {
-	elemType, diags := getElementType[T](ctx)
+	elemType, diags := getNestedType[T](ctx)
 	if diags.HasError() {
 		panic(fmt.Errorf("error creating NestedListValue: %v", diags))
 	}
@@ -163,7 +163,7 @@ func (v NestedListValue[T]) NewNestedListValueNull(ctx context.Context) NestedLi
 }
 
 func NewNestedListValueNull[T any](ctx context.Context) NestedListValue[T] {
-	elemType, diags := getElementType[T](ctx)
+	elemType, diags := getNestedType[T](ctx)
 	if diags.HasError() {
 		panic(fmt.Errorf("error creating null NestedListValue: %v", diags))
 	}
@@ -171,7 +171,7 @@ func NewNestedListValueNull[T any](ctx context.Context) NestedListValue[T] {
 }
 
 func NewNestedListValueUnknown[T any](ctx context.Context) NestedListValue[T] {
-	elemType, diags := getElementType[T](ctx)
+	elemType, diags := getNestedType[T](ctx)
 	if diags.HasError() {
 		panic(fmt.Errorf("error creating unknown NestedListValue: %v", diags))
 	}

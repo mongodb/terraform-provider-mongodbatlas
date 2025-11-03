@@ -49,7 +49,7 @@ type NestedSetType[T any] struct {
 }
 
 func NewNestedSetType[T any](ctx context.Context) NestedSetType[T] {
-	elemType, diags := getElementType[T](ctx)
+	elemType, diags := getNestedType[T](ctx)
 	if diags.HasError() {
 		panic(fmt.Errorf("error creating NestedSetType: %v", diags))
 	}
@@ -82,7 +82,7 @@ func (t NestedSetType[T]) ValueFromSet(ctx context.Context, in basetypes.SetValu
 		return NewNestedSetValueUnknown[T](ctx), nil
 	}
 
-	elemType, diags := getElementType[T](ctx)
+	elemType, diags := getNestedType[T](ctx)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -145,7 +145,7 @@ func (v NestedSetValue[T]) NewNestedSetValue(ctx context.Context, value any) Nes
 }
 
 func NewNestedSetValue[T any](ctx context.Context, value any) NestedSetValue[T] {
-	elemType, diags := getElementType[T](ctx)
+	elemType, diags := getNestedType[T](ctx)
 	if diags.HasError() {
 		panic(fmt.Errorf("error creating NestedSetValue: %v", diags))
 	}
@@ -163,7 +163,7 @@ func (v NestedSetValue[T]) NewNestedSetValueNull(ctx context.Context) NestedSetV
 }
 
 func NewNestedSetValueNull[T any](ctx context.Context) NestedSetValue[T] {
-	elemType, diags := getElementType[T](ctx)
+	elemType, diags := getNestedType[T](ctx)
 	if diags.HasError() {
 		panic(fmt.Errorf("error creating null NestedSetValue: %v", diags))
 	}
@@ -171,7 +171,7 @@ func NewNestedSetValueNull[T any](ctx context.Context) NestedSetValue[T] {
 }
 
 func NewNestedSetValueUnknown[T any](ctx context.Context) NestedSetValue[T] {
-	elemType, diags := getElementType[T](ctx)
+	elemType, diags := getNestedType[T](ctx)
 	if diags.HasError() {
 		panic(fmt.Errorf("error creating unknown NestedSetValue: %v", diags))
 	}

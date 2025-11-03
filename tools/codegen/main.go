@@ -77,7 +77,7 @@ func main() {
 
 		log.Printf("[INFO] Generating resource code: %s", resourceModel.Name)
 
-		schemaCode := schema.GenerateGoCode(resourceModel, false) // object types are not needed as part of fully generated resources
+		schemaCode := schema.GenerateGoCode(resourceModel)
 		schemaFilePath := fmt.Sprintf("internal/serviceapi/%s/resource_schema.go", resourceModel.Name.LowerCaseNoUnderscore())
 		if err := writeToFile(schemaFilePath, schemaCode); err != nil {
 			log.Fatalf("[ERROR] An error occurred when writing content to file: %v", err)

@@ -40,7 +40,7 @@ type ListType[T attr.Value] struct {
 }
 
 func NewListType[T attr.Value](ctx context.Context) ListType[T] {
-	elemType := getValueElementType[T](ctx)
+	elemType := getValueType[T](ctx)
 	return ListType[T]{
 		ListType: basetypes.ListType{ElemType: elemType},
 	}
@@ -68,7 +68,7 @@ func (t ListType[T]) ValueFromList(ctx context.Context, in basetypes.ListValue) 
 		return NewListValueUnknown[T](ctx), nil
 	}
 
-	elemType := getValueElementType[T](ctx)
+	elemType := getValueType[T](ctx)
 	baseListValue, diags := basetypes.NewListValue(elemType, in.Elements())
 	if diags.HasError() {
 		return nil, diags
@@ -126,7 +126,7 @@ func (v ListValue[T]) NewListValue(ctx context.Context, value []attr.Value) List
 }
 
 func NewListValue[T attr.Value](ctx context.Context, value []attr.Value) ListValue[T] {
-	elemType := getValueElementType[T](ctx)
+	elemType := getValueType[T](ctx)
 
 	listValue, diags := basetypes.NewListValue(elemType, value)
 	if diags.HasError() {
@@ -141,12 +141,12 @@ func (v ListValue[T]) NewListValueNull(ctx context.Context) ListValueInterface {
 }
 
 func NewListValueNull[T attr.Value](ctx context.Context) ListValue[T] {
-	elemType := getValueElementType[T](ctx)
+	elemType := getValueType[T](ctx)
 	return ListValue[T]{ListValue: basetypes.NewListNull(elemType)}
 }
 
 func NewListValueUnknown[T attr.Value](ctx context.Context) ListValue[T] {
-	elemType := getValueElementType[T](ctx)
+	elemType := getValueType[T](ctx)
 	return ListValue[T]{ListValue: basetypes.NewListUnknown(elemType)}
 }
 
@@ -163,7 +163,7 @@ func (v ListValue[T]) Type(ctx context.Context) attr.Type {
 }
 
 func (v ListValue[T]) ElementType(ctx context.Context) attr.Type {
-	return getValueElementType[T](ctx)
+	return getValueType[T](ctx)
 }
 
 func (v ListValue[T]) Elements() []attr.Value {

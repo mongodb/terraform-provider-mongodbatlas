@@ -49,7 +49,7 @@ type NestedMapType[T any] struct {
 }
 
 func NewNestedMapType[T any](ctx context.Context) NestedMapType[T] {
-	elemType, diags := getElementType[T](ctx)
+	elemType, diags := getNestedType[T](ctx)
 	if diags.HasError() {
 		panic(fmt.Errorf("error creating NestedMapType: %v", diags))
 	}
@@ -82,7 +82,7 @@ func (t NestedMapType[T]) ValueFromMap(ctx context.Context, in basetypes.MapValu
 		return NewNestedMapValueUnknown[T](ctx), nil
 	}
 
-	elemType, diags := getElementType[T](ctx)
+	elemType, diags := getNestedType[T](ctx)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -144,7 +144,7 @@ func (v NestedMapValue[T]) NewNestedMapValue(ctx context.Context, value any) Nes
 }
 
 func NewNestedMapValue[T any](ctx context.Context, value any) NestedMapValue[T] {
-	elemType, diags := getElementType[T](ctx)
+	elemType, diags := getNestedType[T](ctx)
 	if diags.HasError() {
 		panic(fmt.Errorf("error creating NestedMapValue: %v", diags))
 	}
@@ -162,7 +162,7 @@ func (v NestedMapValue[T]) NewNestedMapValueNull(ctx context.Context) NestedMapV
 }
 
 func NewNestedMapValueNull[T any](ctx context.Context) NestedMapValue[T] {
-	elemType, diags := getElementType[T](ctx)
+	elemType, diags := getNestedType[T](ctx)
 	if diags.HasError() {
 		panic(fmt.Errorf("error creating null NestedMapValue: %v", diags))
 	}
@@ -170,7 +170,7 @@ func NewNestedMapValueNull[T any](ctx context.Context) NestedMapValue[T] {
 }
 
 func NewNestedMapValueUnknown[T any](ctx context.Context) NestedMapValue[T] {
-	elemType, diags := getElementType[T](ctx)
+	elemType, diags := getNestedType[T](ctx)
 	if diags.HasError() {
 		panic(fmt.Errorf("error creating unknown NestedMapValue: %v", diags))
 	}
