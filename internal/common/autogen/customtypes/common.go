@@ -27,7 +27,6 @@ func getElementType[T any](ctx context.Context) (attr.Type, diag.Diagnostics) {
 
 func valueToAttributeTypes(ctx context.Context, value reflect.Value) (map[string]attr.Type, diag.Diagnostics) {
 	valueType := value.Type()
-
 	if valueType.Kind() != reflect.Struct {
 		return nil, diag.Diagnostics{diag.NewErrorDiagnostic(
 			"Error getting value attribute types",
