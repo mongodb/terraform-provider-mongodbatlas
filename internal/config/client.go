@@ -151,7 +151,6 @@ func getHTTPClient(c *Credentials) (*http.Client, error) {
 	// 2. tfLoggingTransport only logs final authenticated requests (not sensitive auth details)
 	// 3. userAgentTransport modifies User-Agent before tfLoggingTransport logs it
 	// Add UserAgentExtra fields to the User-Agent header, see wrapper_provider_server.go
-	
 	transport := networkLoggingBaseTransport()
 	switch c.AuthMethod() {
 	case AccessToken:
