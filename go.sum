@@ -427,8 +427,8 @@ github.com/mitchellh/reflectwalk v1.0.2/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx
 github.com/mmcloughlin/avo v0.5.0/go.mod h1:ChHFdoV7ql95Wi7vuq2YT1bwCJqiWdZrQ1im3VujLYM=
 github.com/mongodb-forks/digest v1.1.0 h1:7eUdsR1BtqLv0mdNm4OXs6ddWvR4X2/OsLwdKksrOoc=
 github.com/mongodb-forks/digest v1.1.0/go.mod h1:rb+EX8zotClD5Dj4NdgxnJXG9nwrlx3NWKJ8xttz1Dg=
-github.com/mongodb/atlas-sdk-go v1.0.1-0.20251027083947-7cadb19a9300 h1:iY4vuQF/OccISL+iexHh/DpLua213H6GHeZzGFZlpWc=
-github.com/mongodb/atlas-sdk-go v1.0.1-0.20251027083947-7cadb19a9300/go.mod h1:tm3Q747Ez2Vsd1e8Syh9EshPrijpLfsVsf6p9rtqI5M=
+github.com/mongodb/atlas-sdk-go v1.0.1-0.20251103084024-4a19449c6541 h1:Q9KKHQHLW1ML7ngb1/gzP5agz7P9+cnmKJrl/O9mBDI=
+github.com/mongodb/atlas-sdk-go v1.0.1-0.20251103084024-4a19449c6541/go.mod h1:tm3Q747Ez2Vsd1e8Syh9EshPrijpLfsVsf6p9rtqI5M=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/nxadm/tail v1.4.8/go.mod h1:+ncqLTQzXmGhMZNUePPaPqPvBxHAIsmXswZKocGu+AU=
