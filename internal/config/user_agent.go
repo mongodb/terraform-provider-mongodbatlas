@@ -33,6 +33,10 @@ type UserAgentExtra struct {
 	ModuleVersion string
 }
 
+func userAgentNameValue(name string) string {
+	return strings.TrimPrefix(name, "mongodbatlas_")
+}
+
 // Combine returns a new UserAgentExtra by merging the receiver with another.
 // Non-empty fields in 'other' take precedence over the receiver's fields.
 func (e UserAgentExtra) Combine(other UserAgentExtra) UserAgentExtra {

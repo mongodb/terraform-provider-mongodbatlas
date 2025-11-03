@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -292,9 +291,8 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_cluster_outage_simulation":                                   clusteroutagesimulation.Resource(),
 	}
 	analyticsMap := map[string]*schema.Resource{}
-	for fullName, resource := range resourcesMap {
-		name := strings.TrimPrefix(fullName, "mongodbatlas_")
-		analyticsMap[fullName] = config.NewAnalyticsResourceSDKv2(resource, name)
+	for name, resource := range resourcesMap {
+		analyticsMap[name] = config.NewAnalyticsResourceSDKv2(resource, name)
 	}
 	return analyticsMap
 }

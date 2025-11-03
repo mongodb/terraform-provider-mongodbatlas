@@ -178,7 +178,7 @@ func (a *AnalyticsResourceSDKv2) updateContextWithProviderMeta(ctx context.Conte
 	}
 
 	uaExtra := UserAgentExtra{
-		Name:          a.name,
+		Name:          userAgentNameValue(a.name),
 		Operation:     operationName,
 		Extras:        meta.UserAgentExtra,
 		ModuleName:    moduleName,

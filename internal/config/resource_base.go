@@ -150,7 +150,7 @@ func (r *RSCommon) SetClient(client *MongoDBClient) {
 func (r *RSCommon) asUserAgentExtra(ctx context.Context, reqOperation string, reqProviderMeta tfsdk.Config) UserAgentExtra {
 	var meta ProviderMeta
 	uaExtra := UserAgentExtra{
-		Name:      r.ResourceName,
+		Name:      userAgentNameValue(r.ResourceName),
 		Operation: reqOperation,
 	}
 	if reqProviderMeta.Raw.IsNull() {
