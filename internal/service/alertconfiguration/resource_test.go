@@ -39,6 +39,7 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "2"),
+					resource.TestCheckNoResourceAttr(resourceName, "severity_override"),
 					// Data source checks
 					checkExists(dataSourceName),
 					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
@@ -47,6 +48,7 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "matcher.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "metric_threshold_config.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "threshold_config.#", "0"),
+					resource.TestCheckNoResourceAttr(dataSourceName, "severity_override"),
 				),
 			},
 			{
@@ -55,6 +57,7 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "2"),
+					resource.TestCheckNoResourceAttr(resourceName, "severity_override"),
 					// Data source checks
 					checkExists(dataSourceName),
 					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
@@ -63,6 +66,7 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "matcher.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "metric_threshold_config.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "threshold_config.#", "0"),
+					resource.TestCheckNoResourceAttr(dataSourceName, "severity_override"),
 				),
 			},
 			{
@@ -566,6 +570,41 @@ func TestAccConfigRSAlertConfiguration_withVictorOps(t *testing.T) {
 	})
 }
 
+func TestAccConfigRSAlertConfiguration_withSeverityOverride(t *testing.T) {
+	var (
+		projectID = acc.ProjectIDExecution(t)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy(),
+		Steps: []resource.TestStep{
+			{
+				Config: configWithSeverityOverride(projectID, conversion.StringPtr("ERROR")),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "severity_override", "ERROR"),
+					// Data source checks
+					checkExists(dataSourceName),
+					resource.TestCheckResourceAttr(dataSourceName, "severity_override", "ERROR"),
+				),
+			},
+			// TODO: Should check for no attr once CLOUDP-353933 is fixed.
+			// {
+			// 	Config: configWithSeverityOverride(projectID, nil),
+			// 	Check: resource.ComposeAggregateTestCheckFunc(
+			// 		checkExists(resourceName),
+			// 		resource.TestCheckNoResourceAttr(resourceName, "severity_override"),
+			// 		// Data source checks
+			// 		checkExists(dataSourceName),
+			// 		resource.TestCheckNoResourceAttr(resourceName, "severity_override"),
+			// 	),
+			// },
+		},
+	})
+}
+
 func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -576,7 +615,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.ConnV2().AlertConfigurationsApi.GetAlertConfiguration(context.Background(), ids[alertconfiguration.EncodedIDKeyProjectID], ids[alertconfiguration.EncodedIDKeyAlertID]).Execute()
+		_, _, err := acc.ConnV2().AlertConfigurationsApi.GetAlertConfig(context.Background(), ids[alertconfiguration.EncodedIDKeyProjectID], ids[alertconfiguration.EncodedIDKeyAlertID]).Execute()
 		if err != nil {
 			return fmt.Errorf("the Alert Configuration(%s) does not exist", ids[alertconfiguration.EncodedIDKeyAlertID])
 		}
@@ -591,7 +630,7 @@ func checkDestroy() resource.TestCheckFunc {
 				continue
 			}
 			ids := conversion.DecodeStateID(rs.Primary.ID)
-			alert, _, err := acc.ConnV2().AlertConfigurationsApi.GetAlertConfiguration(context.Background(), ids[alertconfiguration.EncodedIDKeyProjectID], ids[alertconfiguration.EncodedIDKeyAlertID]).Execute()
+			alert, _, err := acc.ConnV2().AlertConfigurationsApi.GetAlertConfig(context.Background(), ids[alertconfiguration.EncodedIDKeyProjectID], ids[alertconfiguration.EncodedIDKeyAlertID]).Execute()
 			if alert != nil {
 				return fmt.Errorf("the Project Alert Configuration(%s) still exists %s", ids[alertconfiguration.EncodedIDKeyAlertID], err)
 			}
@@ -1039,6 +1078,33 @@ func configWithEmptyOptionalBlocks(projectID string) string {
 	`, projectID)
 }
 
+func configWithSeverityOverride(projectID string, severity *string) string {
+	severityOverride := ""
+	if severity != nil {
+		severityOverride = fmt.Sprintf("severity_override = %[1]q", *severity)
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_alert_configuration" "test" {
+			project_id        = %[1]q
+			enabled           = true
+			event_type        = "NO_PRIMARY"
+			%[2]s
+
+			notification {
+				type_name     = "EMAIL"
+				interval_min  = 60
+				email_address = "test@mongodbtest.com"
+			}
+		}
+
+		data "mongodbatlas_alert_configuration" "test" {
+			project_id             = mongodbatlas_alert_configuration.test.project_id
+			alert_configuration_id = mongodbatlas_alert_configuration.test.id
+		}
+		`, projectID, severityOverride)
+}
+
 func TestAccConfigDSAlertConfiguration_withOutput(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
@@ -1308,7 +1374,7 @@ func checkCount(resourceName string) resource.TestCheckFunc {
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		projectID := ids["project_id"]
 
-		alertResp, _, err := acc.ConnV2().AlertConfigurationsApi.ListAlertConfigurations(context.Background(), projectID).Execute()
+		alertResp, _, err := acc.ConnV2().AlertConfigurationsApi.ListAlertConfigs(context.Background(), projectID).Execute()
 
 		if err != nil {
 			return fmt.Errorf("the Alert Configurations List for project (%s) could not be read", projectID)

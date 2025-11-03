@@ -2,13 +2,20 @@ package streamprocessor
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -22,8 +29,23 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"instance_name": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Human-readable label that identifies the stream instance.",
+				Optional:            true,
+				MarkdownDescription: "Label that identifies the stream processing workspace.",
+				DeprecationMessage:  fmt.Sprintf(constant.DeprecationParamWithReplacement, "workspace_name"),
+				Validators: []validator.String{
+					stringvalidator.ExactlyOneOf(path.Expressions{
+						path.MatchRelative().AtParent().AtName("workspace_name"),
+					}...),
+				},
+			},
+			"workspace_name": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Label that identifies the stream processing workspace.",
+				Validators: []validator.String{
+					stringvalidator.ExactlyOneOf(path.Expressions{
+						path.MatchRelative().AtParent().AtName("instance_name"),
+					}...),
+				},
 			},
 			"pipeline": schema.StringAttribute{
 				CustomType: jsontypes.NormalizedType{},
@@ -33,7 +55,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"processor_name": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Human-readable label that identifies the stream processor.",
+				MarkdownDescription: "Label that identifies the stream processor.",
 			},
 			"project_id": schema.StringAttribute{
 				Required:            true,
@@ -73,19 +95,33 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "The stats associated with the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/manage-stream-processor/#view-statistics-of-a-stream-processor) for more information.",
 			},
+			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
+				Create: true,
+			}),
+			"delete_on_create_timeout": schema.BoolAttribute{
+				Computed: true,
+				Optional: true,
+				PlanModifiers: []planmodifier.Bool{
+					customplanmodifier.CreateOnlyBoolWithDefault(true),
+				},
+				MarkdownDescription: "Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.",
+			},
 		},
 	}
 }
 
 type TFStreamProcessorRSModel struct {
-	InstanceName  types.String         `tfsdk:"instance_name"`
-	Options       types.Object         `tfsdk:"options"`
-	Pipeline      jsontypes.Normalized `tfsdk:"pipeline"`
-	ProcessorID   types.String         `tfsdk:"id"`
-	ProcessorName types.String         `tfsdk:"processor_name"`
-	ProjectID     types.String         `tfsdk:"project_id"`
-	State         types.String         `tfsdk:"state"`
-	Stats         types.String         `tfsdk:"stats"`
+	InstanceName          types.String         `tfsdk:"instance_name"`
+	WorkspaceName         types.String         `tfsdk:"workspace_name"`
+	Options               types.Object         `tfsdk:"options"`
+	Pipeline              jsontypes.Normalized `tfsdk:"pipeline"`
+	ProcessorID           types.String         `tfsdk:"id"`
+	ProcessorName         types.String         `tfsdk:"processor_name"`
+	ProjectID             types.String         `tfsdk:"project_id"`
+	State                 types.String         `tfsdk:"state"`
+	Stats                 types.String         `tfsdk:"stats"`
+	Timeouts              timeouts.Value       `tfsdk:"timeouts"`
+	DeleteOnCreateTimeout types.Bool           `tfsdk:"delete_on_create_timeout"`
 }
 
 type TFOptionsModel struct {
@@ -112,6 +148,7 @@ var DlqObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 type TFStreamProcessorDSModel struct {
 	ID            types.String `tfsdk:"id"`
 	InstanceName  types.String `tfsdk:"instance_name"`
+	WorkspaceName types.String `tfsdk:"workspace_name"`
 	Options       types.Object `tfsdk:"options"`
 	Pipeline      types.String `tfsdk:"pipeline"`
 	ProcessorName types.String `tfsdk:"processor_name"`
@@ -121,7 +158,8 @@ type TFStreamProcessorDSModel struct {
 }
 
 type TFStreamProcessorsDSModel struct {
-	ProjectID    types.String               `tfsdk:"project_id"`
-	InstanceName types.String               `tfsdk:"instance_name"`
-	Results      []TFStreamProcessorDSModel `tfsdk:"results"`
+	ProjectID     types.String               `tfsdk:"project_id"`
+	InstanceName  types.String               `tfsdk:"instance_name"`
+	WorkspaceName types.String               `tfsdk:"workspace_name"`
+	Results       []TFStreamProcessorDSModel `tfsdk:"results"`
 }

@@ -1,0 +1,32 @@
+---
+subcategory: "MongoDB Cloud Users"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` provides a Cloud User Team Assignment resource. It lets you manage the association between a cloud user and a team, enabling you to import, assign, remove, or update the user's membership.
+
+-> **NOTE**Users with pending invitations created using the deprecated `mongodbatlas_project_invitation` resource or via the deprecated [Invite One MongoDB Cloud User to One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-creategroupinvite)
+endpoint cannot be managed with this resource. See [MongoDB Atlas API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-listteamusers) for details.
+To manage such users with this resource, refer to our [Migration Guide: Team Usernames Attribute to Cloud User Team Assignment](../guides/atlas-user-management).
+
+## Example Usages
+
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+### Further Examples
+- [Cloud User Team Assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_cloud_user_team_assignment)
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Cloud User Team Assignment resource can be imported using the Org ID & Team ID & User ID OR Org ID & Team ID & Username, in the format `ORG_ID/TEAM_ID/USER_ID` OR `ORG_ID/TEAM_ID/USERNAME`.
+
+```
+$ terraform import mongodbatlas_cloud_user_team_assignment.test 63cfbf302333a3011d98592e/9f3c1e7a4d8b2f6051acde47/5f18367ccb7a503a2b481b7a
+OR
+$ terraform import mongodbatlas_cloud_user_team_assignment.test 63cfbf302333a3011d98592e/9f3c1e7a4d8b2f6051acde47/test-user@example.com
+```
+
+For more information see: [MongoDB Atlas API - Cloud Users](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-addusertoteam) Documentation.

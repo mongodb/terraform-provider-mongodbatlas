@@ -1,3 +1,7 @@
+---
+subcategory: "Projects"
+---
+
 # Data Source: mongodbatlas_third_party_integration
 
 `mongodbatlas_third_party_integration` describes a Third-Party Integration Settings for the given type.

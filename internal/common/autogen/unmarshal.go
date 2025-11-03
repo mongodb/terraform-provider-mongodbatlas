@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 )
 
 // Unmarshal gets a JSON (e.g. from an Atlas response) and unmarshals it into a Terraform model.
@@ -45,7 +47,7 @@ func unmarshalAttrs(objJSON map[string]any, model any) error {
 }
 
 func unmarshalAttr(attrNameJSON string, attrObjJSON any, valModel reflect.Value) error {
-	attrNameModel := toTfModelName(attrNameJSON)
+	attrNameModel := stringcase.Capitalize(attrNameJSON)
 	fieldModel := valModel.FieldByName(attrNameModel)
 	if !fieldModel.CanSet() {
 		return nil // skip fields that cannot be set, are invalid or not found
@@ -74,24 +76,8 @@ func setAttrTfModel(name string, field reflect.Value, val attr.Value) error {
 	return nil
 }
 
-func setObjElmAttrModel(name string, value any, mapAttrs map[string]attr.Value, mapTypes map[string]attr.Type) error {
-	nameChildTf := toTfSchemaName(name)
-	valueType, found := mapTypes[nameChildTf]
-	if !found {
-		return nil // skip attributes that are not in the model
-	}
-	newValue, err := getTfAttr(value, valueType, mapAttrs[nameChildTf], nameChildTf)
-	if err != nil {
-		return err
-	}
-	if newValue != nil {
-		mapAttrs[nameChildTf] = newValue
-	}
-	return nil
-}
-
 func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (attr.Value, error) {
-	nameErr := toTfSchemaName(name)
+	nameErr := stringcase.ToSnakeCase(name)
 	switch v := value.(type) {
 	case string:
 		if valueType == types.StringType {
@@ -119,19 +105,14 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 			}
 			return jsontypes.NewNormalizedValue(string(jsonBytes)), nil
 		}
-		if obj, ok := oldVal.(types.Object); ok {
-			objNew, err := setObjAttrModel(obj, v)
-			if err != nil {
-				return nil, err
-			}
-			return objNew, nil
-		}
-		if m, ok := oldVal.(types.Map); ok {
-			mapNew, err := setMapAttrModel(m, v)
-			if err != nil {
-				return nil, err
-			}
-			return mapNew, nil
+
+		switch oldVal := oldVal.(type) {
+		case customtypes.ObjectValueInterface:
+			return getObjectValueTFAttr(context.Background(), v, oldVal)
+		case customtypes.MapValueInterface:
+			return getMapValueTFAttr(context.Background(), v, oldVal)
+		case customtypes.NestedMapValueInterface:
+			return getNestedMapValueTFAttr(context.Background(), v, oldVal)
 		}
 		return nil, errUnmarshal(value, valueType, "Object", nameErr)
 	case []any:
@@ -142,19 +123,16 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 			}
 			return jsontypes.NewNormalizedValue(string(jsonBytes)), nil
 		}
-		if list, ok := oldVal.(types.List); ok {
-			listNew, err := setListAttrModel(list, v, nameErr)
-			if err != nil {
-				return nil, err
-			}
-			return listNew, nil
-		}
-		if set, ok := oldVal.(types.Set); ok {
-			setNew, err := setSetAttrModel(set, v, nameErr)
-			if err != nil {
-				return nil, err
-			}
-			return setNew, nil
+
+		switch oldVal := oldVal.(type) {
+		case customtypes.ListValueInterface:
+			return getListValueTFAttr(context.Background(), v, oldVal, nameErr)
+		case customtypes.NestedListValueInterface:
+			return getNestedListValueTFAttr(context.Background(), v, oldVal)
+		case customtypes.SetValueInterface:
+			return getSetValueTFAttr(context.Background(), v, oldVal, nameErr)
+		case customtypes.NestedSetValueInterface:
+			return getNestedSetValueTFAttr(context.Background(), v, oldVal)
 		}
 		return nil, errUnmarshal(value, valueType, "Array", nameErr)
 	case nil:
@@ -164,127 +142,185 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 }
 
 func errUnmarshal(value any, valueType attr.Type, typeReceived, name string) error {
-	nameErr := toTfSchemaName(name)
+	nameErr := stringcase.ToSnakeCase(name)
 	parts := strings.Split(reflect.TypeOf(valueType).String(), ".")
 	typeErr := parts[len(parts)-1]
 	return fmt.Errorf("unmarshal of attribute %s expects type %s but got %s with value: %v", nameErr, typeErr, typeReceived, value)
 }
 
-func setObjAttrModel(obj types.Object, objJSON map[string]any) (attr.Value, error) {
-	mapAttrs, mapTypes, err := getObjAttrsAndTypes(obj)
+func getObjectValueTFAttr(ctx context.Context, objJSON map[string]any, obj customtypes.ObjectValueInterface) (attr.Value, error) {
+	valuePtr, diags := obj.ValuePtrAsAny(ctx)
+	if diags.HasError() {
+		return nil, fmt.Errorf("unmarshal failed to convert object: %v", diags)
+	}
+
+	err := unmarshalAttrs(objJSON, valuePtr)
 	if err != nil {
 		return nil, err
 	}
-	for nameChild, valueChild := range objJSON {
-		if err := setObjElmAttrModel(nameChild, valueChild, mapAttrs, mapTypes); err != nil {
-			return nil, err
-		}
-	}
-	objNew, diags := types.ObjectValue(obj.AttributeTypes(context.Background()), mapAttrs)
-	if diags.HasError() {
-		return nil, fmt.Errorf("unmarshal failed to convert JSON map to object: %v", diags)
-	}
-	return objNew, nil
+
+	return obj.NewObjectValue(ctx, valuePtr), nil
 }
 
-func setMapAttrModel(m types.Map, objJSON map[string]any) (attr.Value, error) {
-	mapAttrs := m.Elements()
-	valueType := m.ElementType(context.Background())
-	nullVal, err := getNullAttr(valueType)
-	if err != nil {
-		return nil, err
-	}
-	for nameChild, valueChild := range objJSON {
-		oldVal, found := mapAttrs[nameChild]
-		if !found {
-			oldVal = nullVal
-		}
-		newValue, err := getTfAttr(valueChild, valueType, oldVal, nameChild)
+func getMapValueTFAttr(ctx context.Context, mapJSON map[string]any, m customtypes.MapValueInterface) (attr.Value, error) {
+	mapAttrs := make(map[string]attr.Value, len(mapJSON))
+	elemType := m.ElementType(ctx)
+
+	for key, item := range mapJSON {
+		value, err := getTfAttr(item, elemType, nil, key)
 		if err != nil {
 			return nil, err
 		}
-		if newValue != nil {
-			mapAttrs[nameChild] = newValue
+		if value != nil {
+			mapAttrs[key] = value
 		}
 	}
-	mapNew, diags := types.MapValue(valueType, mapAttrs)
-	if diags.HasError() {
-		return nil, fmt.Errorf("unmarshal failed to convert JSON map to map: %v", diags)
-	}
-	return mapNew, nil
+
+	return m.NewMapValue(ctx, mapAttrs), nil
 }
 
-func setListAttrModel(list types.List, arrayJSON []any, listName string) (attr.Value, error) {
-	elmType := list.ElementType(context.Background())
-	elms, err := getCollectionElements(arrayJSON, elmType, list.Elements(), listName)
-	if err != nil {
-		return nil, err
+func getNestedMapValueTFAttr(ctx context.Context, mapJSON map[string]any, m customtypes.NestedMapValueInterface) (attr.Value, error) {
+	oldMapPtr, diags := m.MapPtrAsAny(ctx)
+	if diags.HasError() {
+		return nil, fmt.Errorf("unmarshal failed to convert map: %v", diags)
 	}
-	if len(elms) == 0 && len(list.Elements()) == 0 {
+
+	oldMapVal := reflect.ValueOf(oldMapPtr).Elem()
+
+	mapPtr := m.NewEmptyMapPtr()
+	mapVal := reflect.ValueOf(mapPtr).Elem()
+	mapVal.Set(reflect.MakeMap(mapVal.Type()))
+
+	mapElemType := mapVal.Type().Elem()
+	for key, item := range mapJSON {
+		keyVal := reflect.ValueOf(key)
+
+		elementVal := reflect.New(mapElemType)
+
+		if oldValue := oldMapVal.MapIndex(keyVal); oldValue.IsValid() {
+			elementVal.Elem().Set(oldValue)
+		}
+
+		objJSON, ok := item.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("unmarshal of map item failed to convert to object: %v", item)
+		}
+
+		err := unmarshalAttrs(objJSON, elementVal.Interface())
+		if err != nil {
+			return nil, err
+		}
+
+		mapVal.SetMapIndex(keyVal, elementVal.Elem())
+	}
+
+	return m.NewNestedMapValue(ctx, mapPtr), nil
+}
+
+func getListValueTFAttr(ctx context.Context, arrayJSON []any, list customtypes.ListValueInterface, nameErr string) (attr.Value, error) {
+	if len(arrayJSON) == 0 && len(list.Elements()) == 0 {
 		// Keep current list if both model and JSON lists are zero-len (empty or null) so config is preserved.
 		// It avoids inconsistent result after apply when user explicitly sets an empty list in config.
 		return list, nil
 	}
-	listNew, diags := types.ListValue(elmType, elms)
-	if diags.HasError() {
-		return nil, fmt.Errorf("unmarshal failed to convert list to object: %v", diags)
+
+	slice, err := getArrayTFAttr(arrayJSON, list.ElementType(ctx), nameErr)
+	if err != nil {
+		return nil, err
 	}
+
+	listNew := list.NewListValue(ctx, slice)
 	return listNew, nil
 }
 
-func setSetAttrModel(set types.Set, arrayJSON []any, setName string) (attr.Value, error) {
-	elmType := set.ElementType(context.Background())
-	elms, err := getCollectionElements(arrayJSON, elmType, set.Elements(), setName)
-	if err != nil {
-		return nil, err
-	}
-	if len(elms) == 0 && len(set.Elements()) == 0 {
-		// Keep current set if both model and JSON sets are zero-len (empty or null) so config is preserved.
+func getSetValueTFAttr(ctx context.Context, arrayJSON []any, set customtypes.SetValueInterface, nameErr string) (attr.Value, error) {
+	if len(arrayJSON) == 0 && len(set.Elements()) == 0 {
+		// Keep current set if both model and JSON lists are zero-len (empty or null) so config is preserved.
 		// It avoids inconsistent result after apply when user explicitly sets an empty set in config.
 		return set, nil
 	}
-	setNew, diags := types.SetValue(elmType, elms)
-	if diags.HasError() {
-		return nil, fmt.Errorf("unmarshal failed to convert set to object: %v", diags)
-	}
-	return setNew, nil
-}
 
-func getCollectionElements(arrayJSON []any, valueType attr.Type, oldVals []attr.Value, collectionName string) ([]attr.Value, error) {
-	elms := make([]attr.Value, len(arrayJSON))
-	nullVal, err := getNullAttr(valueType)
+	slice, err := getArrayTFAttr(arrayJSON, set.ElementType(ctx), nameErr)
 	if err != nil {
 		return nil, err
 	}
+
+	return set.NewSetValue(ctx, slice), nil
+}
+
+func getArrayTFAttr(arrayJSON []any, elemType attr.Type, nameErr string) ([]attr.Value, error) {
+	slice := make([]attr.Value, len(arrayJSON))
+
 	for i, item := range arrayJSON {
-		oldVal := nullVal
-		if i < len(oldVals) {
-			oldVal = oldVals[i]
-		}
-		newValue, err := getTfAttr(item, valueType, oldVal, collectionName)
+		value, err := getTfAttr(item, elemType, nil, nameErr)
 		if err != nil {
 			return nil, err
 		}
-		if newValue != nil {
-			elms[i] = newValue
-		}
+		slice[i] = value
 	}
-	return elms, nil
+
+	return slice, nil
 }
 
-func getObjAttrsAndTypes(obj types.Object) (mapAttrs map[string]attr.Value, mapTypes map[string]attr.Type, err error) {
-	// mapTypes has all attributes, mapAttrs might not have them, e.g. in null or unknown objects
-	mapAttrs = obj.Attributes()
-	mapTypes = obj.AttributeTypes(context.Background())
-	for attrName, attrType := range mapTypes {
-		if _, found := mapAttrs[attrName]; found {
-			continue // skip attributes that are already set
-		}
-		nullVal, err := getNullAttr(attrType)
-		if err != nil {
-			return nil, nil, err
-		}
-		mapAttrs[attrName] = nullVal
+func getNestedListValueTFAttr(ctx context.Context, arrayJSON []any, list customtypes.NestedListValueInterface) (attr.Value, error) {
+	oldSlicePtr, diags := list.SlicePtrAsAny(ctx)
+	if diags.HasError() {
+		return nil, fmt.Errorf("unmarshal failed to convert list: %v", diags)
 	}
-	return mapAttrs, mapTypes, nil
+	oldSliceVal := reflect.ValueOf(oldSlicePtr).Elem()
+	oldSliceLen := oldSliceVal.Len()
+
+	if len(arrayJSON) == 0 && oldSliceLen == 0 {
+		// Keep current list if both model and JSON lists are zero-len (empty or null) so config is preserved.
+		// It avoids inconsistent result after apply when user explicitly sets an empty list in config.
+		return list, nil
+	}
+
+	slicePtr := list.NewEmptySlicePtr()
+	sliceVal := reflect.ValueOf(slicePtr).Elem()
+	sliceVal.Set(reflect.MakeSlice(sliceVal.Type(), len(arrayJSON), len(arrayJSON)))
+
+	for i, item := range arrayJSON {
+		elementVal := sliceVal.Index(i)
+		if i < oldSliceLen {
+			elementVal.Set(oldSliceVal.Index(i))
+		}
+		elementPtr := elementVal.Addr().Interface()
+		objJSON, ok := item.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("unmarshal of array item failed to convert to object: %v", item)
+		}
+		err := unmarshalAttrs(objJSON, elementPtr)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return list.NewNestedListValue(ctx, slicePtr), nil
+}
+
+func getNestedSetValueTFAttr(ctx context.Context, arrayJSON []any, set customtypes.NestedSetValueInterface) (attr.Value, error) {
+	if len(arrayJSON) == 0 && set.Len() == 0 {
+		// Keep current set if both model and JSON lists are zero-len (empty or null) so config is preserved.
+		// It avoids inconsistent result after apply when user explicitly sets an empty set in config.
+		return set, nil
+	}
+
+	slicePtr := set.NewEmptySlicePtr()
+	sliceVal := reflect.ValueOf(slicePtr).Elem()
+	sliceVal.Set(reflect.MakeSlice(sliceVal.Type(), len(arrayJSON), len(arrayJSON)))
+
+	for i, item := range arrayJSON {
+		elementPtr := sliceVal.Index(i).Addr().Interface()
+		objJSON, ok := item.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("unmarshal of array item failed to convert to object: %v", item)
+		}
+		err := unmarshalAttrs(objJSON, elementPtr)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return set.NewNestedSetValue(ctx, slicePtr), nil
 }

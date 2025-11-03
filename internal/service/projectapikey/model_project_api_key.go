@@ -7,7 +7,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/rolesorgid"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 )
 
 func expandProjectAssignments(projectAssignments *schema.Set) map[string][]string {
@@ -67,23 +68,18 @@ func sameRoles(roles1, roles2 []string) bool {
 
 // getKeyDetails returns nil error and nil details if not found as it's not considered an error
 func getKeyDetails(ctx context.Context, connV2 *admin.APIClient, apiKeyID string) (*admin.ApiKeyUserDetails, string, error) {
-	root, _, err := connV2.RootApi.GetSystemStatus(ctx).Execute()
+	orgID, err := rolesorgid.GetCurrentOrgID(ctx, connV2)
 	if err != nil {
 		return nil, "", err
 	}
-	for _, role := range root.ApiKey.GetRoles() {
-		if orgID := role.GetOrgId(); orgID != "" {
-			key, _, err := connV2.ProgrammaticAPIKeysApi.GetApiKey(ctx, orgID, apiKeyID).Execute()
-			if err != nil {
-				if admin.IsErrorCode(err, "API_KEY_NOT_FOUND") {
-					return nil, orgID, nil
-				}
-				return nil, orgID, fmt.Errorf("error getting api key information: %s", err)
-			}
-			return key, orgID, nil
+	key, _, err := connV2.ProgrammaticAPIKeysApi.GetOrgApiKey(ctx, orgID, apiKeyID).Execute()
+	if err != nil {
+		if admin.IsErrorCode(err, "API_KEY_NOT_FOUND") {
+			return nil, orgID, nil
 		}
+		return nil, orgID, fmt.Errorf("error getting api key information: %s", err)
 	}
-	return nil, "", nil
+	return key, orgID, nil
 }
 
 func validateUniqueProjectIDs(d *schema.ResourceData) error {

@@ -1,3 +1,7 @@
+---
+subcategory: "Resource Policies"
+---
+
 # Data Source: mongodbatlas_resource_policy
 
 `mongodbatlas_resource_policy` describes a resource policy in an organization.

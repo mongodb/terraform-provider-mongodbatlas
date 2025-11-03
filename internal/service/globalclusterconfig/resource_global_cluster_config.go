@@ -8,13 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -27,8 +26,6 @@ const (
 	errorGlobalClusterUpdate           = "error updating MongoDB Global Cluster Configuration (%s): %s"
 	deprecationOldShardingSchemaAction = "To learn more, see our examples, documentation, and 1.18.0 migration guide at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide"
 )
-
-var deprecationMsgOldSchema = fmt.Sprintf("%s %s", fmt.Sprintf(constant.DeprecationParamWithReplacement, "`custom_zone_mapping_zone_id`"), deprecationOldShardingSchemaAction)
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
@@ -98,11 +95,6 @@ func Resource() *schema.Resource {
 						},
 					},
 				},
-			},
-			"custom_zone_mapping": {
-				Deprecated: deprecationMsgOldSchema,
-				Type:       schema.TypeMap,
-				Computed:   true,
 			},
 			"custom_zone_mapping_zone_id": {
 				Type:     schema.TypeMap,
@@ -194,8 +186,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 
 func readGlobalClusterConfig(ctx context.Context, meta any, projectID, clusterName string, d *schema.ResourceData) (notFound bool, err error) {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
-	resp, httpResp, err := connV2.GlobalClustersApi.GetManagedNamespace(ctx, projectID, clusterName).Execute()
+	resp, httpResp, err := connV2.GlobalClustersApi.GetClusterGlobalWrites(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if validate.StatusNotFound(httpResp) {
 			return true, nil
@@ -206,24 +197,6 @@ func readGlobalClusterConfig(ctx context.Context, meta any, projectID, clusterNa
 		return false, fmt.Errorf(errorGlobalClusterRead, clusterName, err)
 	}
 	if err := d.Set("custom_zone_mapping_zone_id", resp.GetCustomZoneMapping()); err != nil {
-		return false, fmt.Errorf(errorGlobalClusterRead, clusterName, err)
-	}
-
-	oldResp, httpResp, err := connV220240530.GlobalClustersApi.GetManagedNamespace(ctx, projectID, clusterName).Execute()
-	if err != nil {
-		if validate.StatusNotFound(httpResp) {
-			return true, nil
-		}
-		if validate.ErrorClusterIsAsymmetrics(err) {
-			// Avoid non-empty plan by setting an empty custom_zone_mapping.
-			if err := d.Set("custom_zone_mapping", map[string]string{}); err != nil {
-				return false, fmt.Errorf(errorGlobalClusterRead, clusterName, err)
-			}
-			return false, nil
-		}
-		return false, fmt.Errorf(errorGlobalClusterRead, clusterName, err)
-	}
-	if err := d.Set("custom_zone_mapping", oldResp.GetCustomZoneMapping()); err != nil {
 		return false, fmt.Errorf(errorGlobalClusterRead, clusterName, err)
 	}
 	return false, nil
@@ -278,7 +251,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	if v, ok := d.GetOk("custom_zone_mappings"); ok {
 		if v.(*schema.Set).Len() > 0 {
-			if _, _, err := connV2.GlobalClustersApi.DeleteAllCustomZoneMappings(ctx, projectID, clusterName).Execute(); err != nil {
+			if _, _, err := connV2.GlobalClustersApi.DeleteCustomZoneMapping(ctx, projectID, clusterName).Execute(); err != nil {
 				return diag.FromErr(fmt.Errorf(errorGlobalClusterDelete, clusterName, err))
 			}
 		}
@@ -334,14 +307,14 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 func removeManagedNamespaces(ctx context.Context, connV2 *admin.APIClient, remove []any, projectID, clusterName string) error {
 	for _, m := range remove {
 		mn := m.(map[string]any)
-		managedNamespace := &admin.DeleteManagedNamespaceApiParams{
+		managedNamespace := &admin.DeleteManagedNamespacesApiParams{
 			Collection:  conversion.StringPtr(mn["collection"].(string)),
 			Db:          conversion.StringPtr(mn["db"].(string)),
 			ClusterName: clusterName,
 			GroupId:     projectID,
 		}
 
-		_, _, err := connV2.GlobalClustersApi.DeleteManagedNamespaceWithParams(ctx, managedNamespace).Execute()
+		_, _, err := connV2.GlobalClustersApi.DeleteManagedNamespacesWithParams(ctx, managedNamespace).Execute()
 
 		if err != nil {
 			return err
@@ -470,7 +443,7 @@ func updateCustomZoneMappings(ctx context.Context, connV2 *admin.APIClient, proj
 		if newSet.Len() != 0 {
 			return fmt.Errorf("partial deletion of custom_zone_mappings is not allowed; remove either all mappings or none")
 		}
-		if _, _, err := connV2.GlobalClustersApi.DeleteAllCustomZoneMappings(ctx, projectID, clusterName).Execute(); err != nil {
+		if _, _, err := connV2.GlobalClustersApi.DeleteCustomZoneMapping(ctx, projectID, clusterName).Execute(); err != nil {
 			return err
 		}
 	}

@@ -29,7 +29,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	conn := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	setting, _, err := conn.PrivateEndpointServicesApi.GetRegionalizedPrivateEndpointSetting(ctx, projectID).Execute()
+	setting, _, err := conn.PrivateEndpointServicesApi.GetRegionalEndpointMode(ctx, projectID).Execute()
 	if err != nil {
 		if strings.Contains(err.Error(), "404") {
 			d.SetId("")

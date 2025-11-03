@@ -1,3 +1,7 @@
+---
+subcategory: "Atlas Search"
+---
+
 # Data Source: mongodbatlas_search_deployment
 
 `mongodbatlas_search_deployment` describes a search node deployment.
@@ -14,17 +18,17 @@ resource "mongodbatlas_advanced_cluster" "example" {
   name         = "ClusterExample"
   cluster_type = "REPLICASET"
 
-  replication_specs {
-    region_configs {
-      electable_specs {
+  replication_specs = [{
+    region_configs = [{
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "US_EAST_1"
-    }
-  }
+    }]
+  }]
 }
 
 resource "mongodbatlas_search_deployment" "example" {

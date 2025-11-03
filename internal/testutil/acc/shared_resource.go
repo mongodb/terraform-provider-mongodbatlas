@@ -3,7 +3,6 @@ package acc
 import (
 	"context"
 	"fmt"
-	"os"
 	"sync"
 	"testing"
 	"time"
@@ -22,7 +21,6 @@ const (
 // It returns the cleanup function that must be called at the end of TestMain.
 func SetupSharedResources() func() {
 	sharedInfo.init = true
-	setupTestsSDKv2ToTPF()
 	return cleanupSharedResources
 }
 
@@ -45,6 +43,14 @@ func cleanupSharedResources() {
 			fmt.Printf("Failed to delete stream instances: for execution project %s, error: %s\n", projectID, err)
 		}
 	}
+	if sharedInfo.privateLinkEndpointID != "" {
+		projectID := sharedInfo.projectID
+		if projectID == "" {
+			projectID = projectIDLocal()
+		}
+		fmt.Printf("Deleting execution private link endpoint: %s, project id: %s, provider: %s\n", sharedInfo.privateLinkEndpointID, projectID, sharedInfo.privateLinkProviderName)
+		deletePrivateLinkEndpoint(projectID, sharedInfo.privateLinkProviderName, sharedInfo.privateLinkEndpointID)
+	}
 	if sharedInfo.projectID != "" {
 		fmt.Printf("Deleting execution project: %s, id: %s\n", sharedInfo.projectName, sharedInfo.projectID)
 		deleteProject(sharedInfo.projectID)
@@ -53,6 +59,7 @@ func cleanupSharedResources() {
 		fmt.Printf("Deleting execution project (%d): %s, id: %s\n", i+1, project.name, project.id)
 		deleteProject(project.id)
 	}
+	config.CloseTokenSource() // Revoke SA token when acceptance tests finish.
 }
 
 // ProjectIDExecution returns a project id created for the execution of the tests in the resource package.
@@ -177,6 +184,29 @@ func SerialSleep(tb testing.TB) {
 	time.Sleep(5 * time.Second)
 }
 
+// PrivateLinkEndpointIDExecution returns a private link endpoint id created for the execution of the tests.
+// The endpoint is created with provider "AWS" and region from environment variable.
+// When `MONGODB_ATLAS_PROJECT_ID` is defined, it is used instead of creating a project.
+func PrivateLinkEndpointIDExecution(tb testing.TB, providerName, region string) (projectID, privateLinkEndpointID string) {
+	tb.Helper()
+	SkipInUnitTest(tb)
+	require.True(tb, sharedInfo.init, "SetupSharedResources must called from TestMain test package")
+
+	projectID = ProjectIDExecution(tb) // ensure the execution project is created before endpoint creation
+
+	sharedInfo.mu.Lock()
+	defer sharedInfo.mu.Unlock()
+
+	// lazy creation so it's only done if really needed
+	if sharedInfo.privateLinkEndpointID == "" {
+		tb.Logf("Creating execution private link endpoint for provider: %s, region: %s\n", providerName, region)
+		sharedInfo.privateLinkEndpointID = createPrivateLinkEndpoint(tb, projectID, providerName, region)
+		sharedInfo.privateLinkProviderName = providerName
+	}
+
+	return projectID, sharedInfo.privateLinkEndpointID
+}
+
 type projectInfo struct {
 	id                   string
 	name                 string
@@ -185,14 +215,16 @@ type projectInfo struct {
 }
 
 var sharedInfo = struct {
-	projectID          string
-	projectName        string
-	clusterName        string
-	streamInstanceName string
-	projects           []projectInfo
-	mu                 sync.Mutex
-	muSleep            sync.Mutex
-	init               bool
+	projectName             string
+	clusterName             string
+	streamInstanceName      string
+	privateLinkEndpointID   string
+	privateLinkProviderName string
+	projectID               string
+	projects                []projectInfo
+	mu                      sync.Mutex
+	muSleep                 sync.Mutex
+	init                    bool
 }{
 	projects: []projectInfo{},
 }
@@ -217,12 +249,4 @@ func NextProjectIDClusterName(totalNodeCount, freeTierClusterCount int, projectC
 		sharedInfo.projects[len(sharedInfo.projects)-1].freeTierClusterCount += freeTierClusterCount
 	}
 	return project.id, RandomClusterName()
-}
-
-// setupTestsSDKv2ToTPF sets the Preview environment variable to false so the previous version in migration tests uses SDKv2.
-// However the current version will use TPF as the variable is only read once during import when it was true.
-func setupTestsSDKv2ToTPF() {
-	if IsTestSDKv2ToTPF() && config.PreviewProviderV2AdvancedCluster() {
-		os.Setenv(config.PreviewProviderV2AdvancedClusterEnvVar, "false")
-	}
 }

@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/mongodbatlas_cloud_provider_access_setup: Splits `cloud_provider_access` documentation page into `mongodbatlas_cloud_provider_access_setup` and `mongodbatlas_cloud_provider_access_authorization`
+```
+
+```release-note:enhancement
+resource/mongodbatlas_cloud_provider_access_authorization: Splits `cloud_provider_access` documentation page into `mongodbatlas_cloud_provider_access_setup` and `mongodbatlas_cloud_provider_access_authorization`
+```

@@ -37,7 +37,7 @@ The following Terraform configurations:
 
 Before running this example, you need:
 
-1. **MongoDB Atlas Account**: With API keys that have project owner permissions
+1. **MongoDB Atlas Account**: With a Service Account that has project owner permissions
 2. **Google Cloud Platform Account**: With a project and appropriate permissions to:
    - Create KMS resources (Key Rings and Crypto Keys)
    - Manage IAM bindings on KMS resources
@@ -57,8 +57,8 @@ Your user or service account needs the following IAM roles:
 Create a `terraform.tfvars` file:
 
 ```hcl
-atlas_public_key  = <ATLAS_PUBLIC_KEY>
-atlas_private_key = <ATLAS_PRIVATE_KEY>
+atlas_client_id  = <ATLAS_CLIENT_ID>
+atlas_client_secret = <ATLAS_CLIENT_SECRET>
 atlas_project_id  = <ATLAS_PROJECT_ID>
 gcp_project_id    = <GCP_PROJECT_ID>
 
@@ -100,8 +100,8 @@ The configuration manages dependencies between resources:
 
 | Variable | Description | Type | Default | Required |
 |----------|-------------|------|---------|----------|
-| `atlas_public_key` | MongoDB Atlas public API key | string | - | Yes |
-| `atlas_private_key` | MongoDB Atlas private API key | string | - | Yes |
+| `atlas_client_id` | MongoDB Atlas Service Account Client ID | string | - | Yes |
+| `atlas_client_secret` | MongoDB Atlas Service Account Client Secret | string | - | Yes |
 | `atlas_project_id` | MongoDB Atlas project ID | string | - | Yes |
 | `gcp_project_id` | GCP project ID | string | - | Yes |
 | `key_ring_name` | Name of the KMS key ring | string | `"atlas-key-ring"` | No |

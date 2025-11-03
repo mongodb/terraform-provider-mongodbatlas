@@ -1,3 +1,7 @@
+---
+subcategory: "Clusters"
+---
+
 # {{.Type}}: {{.Name}}
 
 `{{.Name}}` provides a Flex Cluster resource. The resource lets you create, update, delete and import a flex cluster.
@@ -7,6 +11,9 @@
 ## Example Usages
 
 {{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+### Further Examples
+- [Flex Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_flex_cluster)
 
 {{ .SchemaMarkdown | trimspace }}
 

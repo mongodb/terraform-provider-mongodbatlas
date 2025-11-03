@@ -18,27 +18,30 @@ resource "mongodbatlas_advanced_cluster" "main" {
   project_id   = "64258fba5c9...e5e94617e"
   cluster_type = "REPLICASET"
 
-  replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M20"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M20"
+            node_count    = 1
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "US_EAST_1"
+        },
+        {
+          electable_specs = {
+            instance_size = "M20"
+            node_count    = 1
+          }
+          provider_name = "AWS"
+          priority      = 6
+          region_name   = "EU_WEST_1"
+        }
+      ]
     }
-
-    region_configs {
-      electable_specs {
-        instance_size = "M20"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 6
-      region_name   = "EU_WEST_1"
-    }
-  }
+  ]
 }
 ```
 

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
@@ -52,12 +52,12 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 }
 
 func ListFlexRestoreJobs(ctx context.Context, projectID, name string, client admin.FlexRestoreJobsApi) (*[]admin.FlexBackupRestoreJob20241113, error) {
-	params := admin.ListFlexBackupRestoreJobsApiParams{
+	params := admin.ListFlexRestoreJobsApiParams{
 		GroupId: projectID,
 		Name:    name,
 	}
 	flexRestoreJobs, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.FlexBackupRestoreJob20241113], *http.Response, error) {
-		request := client.ListFlexBackupRestoreJobsWithParams(ctx, &params)
+		request := client.ListFlexRestoreJobsWithParams(ctx, &params)
 		request = request.PageNum(pageNum)
 		return request.Execute()
 	})

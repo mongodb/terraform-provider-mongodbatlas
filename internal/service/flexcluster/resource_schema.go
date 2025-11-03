@@ -3,6 +3,7 @@ package flexcluster
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
@@ -21,14 +22,14 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"project_id": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
-					customplanmodifier.CreateOnlyAttributePlanModifier(),
+					customplanmodifier.CreateOnly(),
 				},
 				MarkdownDescription: "Unique 24-hexadecimal character string that identifies the project.",
 			},
 			"name": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
-					customplanmodifier.CreateOnlyAttributePlanModifier(),
+					customplanmodifier.CreateOnly(),
 				},
 				MarkdownDescription: "Human-readable label that identifies the instance.",
 			},
@@ -37,7 +38,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"backing_provider_name": schema.StringAttribute{
 						Required: true,
 						PlanModifiers: []planmodifier.String{
-							customplanmodifier.CreateOnlyAttributePlanModifier(),
+							customplanmodifier.CreateOnly(),
 						},
 						MarkdownDescription: "Cloud service provider on which MongoDB Cloud provisioned the flex cluster.",
 					},
@@ -58,7 +59,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"region_name": schema.StringAttribute{
 						Required: true,
 						PlanModifiers: []planmodifier.String{
-							customplanmodifier.CreateOnlyAttributePlanModifier(),
+							customplanmodifier.CreateOnly(),
 						},
 						MarkdownDescription: "Human-readable label that identifies the geographic location of your MongoDB flex cluster. The region you choose can affect network latency for clients accessing your databases. For a complete list of region names, see [AWS](https://docs.atlas.mongodb.com/reference/amazon-aws/#std-label-amazon-aws), [GCP](https://docs.atlas.mongodb.com/reference/google-gcp/), and [Azure](https://docs.atlas.mongodb.com/reference/microsoft-azure/).",
 					},
@@ -145,20 +146,52 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 				MarkdownDescription: "Method by which the cluster maintains the MongoDB versions.",
 			},
+			"delete_on_create_timeout": schema.BoolAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Bool{
+					customplanmodifier.CreateOnlyBoolWithDefault(true),
+				},
+				MarkdownDescription: "Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.",
+			},
+			"timeouts": timeouts.Attributes(ctx, timeouts.Opts{
+				Create: true,
+				Update: true,
+				Delete: true,
+			}),
 		},
 	}
 }
 
 type TFModel struct {
-	ProviderSettings             types.Object `tfsdk:"provider_settings"`
-	ConnectionStrings            types.Object `tfsdk:"connection_strings"`
+	Tags                         types.Map      `tfsdk:"tags"`
+	MongoDbversion               types.String   `tfsdk:"mongo_db_version"`
+	ClusterType                  types.String   `tfsdk:"cluster_type"`
+	CreateDate                   types.String   `tfsdk:"create_date"`
+	ProjectId                    types.String   `tfsdk:"project_id"`
+	Id                           types.String   `tfsdk:"id"`
+	ProviderSettings             types.Object   `tfsdk:"provider_settings"`
+	Name                         types.String   `tfsdk:"name"`
+	ConnectionStrings            types.Object   `tfsdk:"connection_strings"`
+	StateName                    types.String   `tfsdk:"state_name"`
+	VersionReleaseSystem         types.String   `tfsdk:"version_release_system"`
+	BackupSettings               types.Object   `tfsdk:"backup_settings"`
+	Timeouts                     timeouts.Value `tfsdk:"timeouts"`
+	DeleteOnCreateTimeout        types.Bool     `tfsdk:"delete_on_create_timeout"`
+	TerminationProtectionEnabled types.Bool     `tfsdk:"termination_protection_enabled"`
+}
+
+// TFModelDS differs from TFModel: removes timeouts and delete_on_create_timeout.
+type TFModelDS struct {
 	Tags                         types.Map    `tfsdk:"tags"`
+	MongoDbversion               types.String `tfsdk:"mongo_db_version"`
+	ClusterType                  types.String `tfsdk:"cluster_type"`
 	CreateDate                   types.String `tfsdk:"create_date"`
 	ProjectId                    types.String `tfsdk:"project_id"`
 	Id                           types.String `tfsdk:"id"`
-	MongoDbversion               types.String `tfsdk:"mongo_db_version"`
+	ProviderSettings             types.Object `tfsdk:"provider_settings"`
 	Name                         types.String `tfsdk:"name"`
-	ClusterType                  types.String `tfsdk:"cluster_type"`
+	ConnectionStrings            types.Object `tfsdk:"connection_strings"`
 	StateName                    types.String `tfsdk:"state_name"`
 	VersionReleaseSystem         types.String `tfsdk:"version_release_system"`
 	BackupSettings               types.Object `tfsdk:"backup_settings"`
@@ -199,5 +232,5 @@ var ProviderSettingsType = types.ObjectType{AttrTypes: map[string]attr.Type{
 
 type TFModelDSP struct {
 	ProjectId types.String `tfsdk:"project_id"`
-	Results   []TFModel    `tfsdk:"results"`
+	Results   []TFModelDS  `tfsdk:"results"`
 }

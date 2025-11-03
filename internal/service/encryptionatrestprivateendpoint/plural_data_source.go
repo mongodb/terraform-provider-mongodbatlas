@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
@@ -46,13 +46,13 @@ func (d *encryptionAtRestPrivateEndpointsDS) Read(ctx context.Context, req datas
 
 	connV2 := d.Client.AtlasV2
 
-	params := admin.GetEncryptionAtRestPrivateEndpointsForCloudProviderApiParams{
+	params := admin.ListRestPrivateEndpointsApiParams{
 		GroupId:       projectID,
 		CloudProvider: cloudProvider,
 	}
 
 	privateEndpoints, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.EARPrivateEndpoint], *http.Response, error) {
-		request := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRestPrivateEndpointsForCloudProviderWithParams(ctx, &params)
+		request := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.ListRestPrivateEndpointsWithParams(ctx, &params)
 		request = request.PageNum(pageNum)
 		return request.Execute()
 	})

@@ -1,3 +1,7 @@
+---
+subcategory: "Streams"
+---
+
 # Resource: mongodbatlas_stream_connection
 
 `mongodbatlas_stream_connection` provides a Stream Connection resource. The resource lets you create, edit, and delete stream instance connections.
@@ -12,19 +16,22 @@
 ```terraform
 resource "mongodbatlas_stream_connection" "test" {
     project_id = var.project_id
-    instance_name = "InstanceName"
+    workspace_name = "WorkspaceName"
     connection_name = "ConnectionName"
     type = "Cluster"
     cluster_name = "Cluster0"
 }
 ```
 
+### Further Examples
+- [Atlas Stream Connection](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_stream_connection)
+
 ### Example Cross Project Cluster Connection
 
 ```terraform
 resource "mongodbatlas_stream_connection" "test" {
     project_id         = var.project_id
-    instance_name      = "InstanceName"
+    workspace_name      = "WorskpaceName"
     connection_name    = "ConnectionName"
     type               = "Cluster"
     cluster_name       = "OtherCluster"
@@ -37,7 +44,7 @@ resource "mongodbatlas_stream_connection" "test" {
 ```terraform
 resource "mongodbatlas_stream_connection" "test" {
     project_id = var.project_id
-    instance_name = "NewInstance"
+    workspace_name = "NewWorkspace"
     connection_name = "KafkaConnection"
     type = "Kafka"
     authentication = {
@@ -55,12 +62,44 @@ resource "mongodbatlas_stream_connection" "test" {
 }    
 ```
 
+### Example Kafka SASL OAuthbearer Connection
+
+```terraform
+resource "mongodbatlas_stream_connection" "example-kafka-oauthbearer" {
+    project_id      = var.project_id
+    instance_name   = mongodbatlas_stream_instance.example.instance_name
+    connection_name = "KafkaOAuthbearerConnection"
+    type            = "Kafka"
+    authentication = {
+        mechanism = "OAUTHBEARER"
+        method = "OIDC"
+        token_endpoint_url = "https://example.com/oauth/token"
+        client_id  = "auth0Client"
+        client_secret  = var.kafka_client_secret
+        scope = "read:messages write:messages"
+        sasl_oauthbearer_extensions = "logicalCluster=lkc-kmom,identityPoolId=pool-lAr"
+    }
+    bootstrap_servers = "localhost:9092,localhost:9092"
+    config = {
+        "auto.offset.reset" : "earliest"
+    }
+    security = {
+        protocol = "SASL_PLAINTEXT"
+    }
+    networking = {
+        access = {
+        type = "PUBLIC"
+        }
+    }
+}
+```
+
 ### Example Kafka SASL SSL Connection
 
 ```terraform
 resource "mongodbatlas_stream_connection" "test" {
     project_id = var.project_id
-    instance_name = "NewInstance"
+    workspace_name = "NewWorkspace"
     connection_name = "KafkaConnection"
     type = "Kafka"
     authentication = {
@@ -84,7 +123,7 @@ resource "mongodbatlas_stream_connection" "test" {
 ```terraform
 resource "mongodbatlas_stream_connection" "test" {
     project_id      = var.project_id
-    instance_name   = "NewInstance"
+    workspace_name   = "NewWorkspace"
     connection_name = "AWSLambdaConnection"
     type            = "AWSLambda"
     aws             = {
@@ -99,7 +138,7 @@ resource "mongodbatlas_stream_connection" "test" {
 ```terraform
 resource "mongodbatlas_stream_connection" "example-https" {
   project_id      = var.project_id
-  instance_name   = mongodbatlas_stream_instance.example.instance_name
+  workspace_name   = mongodbatlas_stream_instance.example.instance_name
   connection_name = "https_connection_tf_new"
   type            = "Https"
   url             = "https://example.com"
@@ -113,9 +152,12 @@ resource "mongodbatlas_stream_connection" "example-https" {
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
-* `instance_name` - (Required) Human-readable label that identifies the stream instance.
-* `connection_name` - (Required) Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
+* `instance_name` - (Deprecated) Label that identifies the stream processing workspace. Attribute is deprecated and will be removed in following major versions in favor of `workspace_name`.
+* `workspace_name` - (Optional) Label that identifies the stream processing workspace. Conflicts with `instance_name`.
+* `connection_name` - (Required) Label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
 * `type` - (Required) Type of connection. Can be `AWSLambda`, `Cluster`, `Https`, `Kafka` or `Sample`.
+
+~> **NOTE:** Either `workspace_name` or `instance_name` must be provided, but not both. These fields are functionally identical and `workspace_name` is an alias for `instance_name`. `workspace_name` should be used instead of `instance_name`.
 
 If `type` is of value `Cluster` the following additional arguments are defined:
 * `cluster_name` - Name of the cluster configured for this connection.
@@ -138,9 +180,15 @@ If `type` is of value `Https` the following additional attributes are defined:
 
 ### Authentication
 
-* `mechanism` - Style of authentication. Can be one of `PLAIN`, `SCRAM-256`, or `SCRAM-512`.
+* `mechanism` - Method of authentication. Value can be `PLAIN`, `SCRAM-256`, or `SCRAM-512`.
+* `method` - SASL OAUTHBEARER authentication method. Value must be OIDC.
 * `username` - Username of the account to connect to the Kafka cluster.
 * `password` - Password of the account to connect to the Kafka cluster.
+* `token_endpoint_url` -  OAUTH issuer (IdP provider) token endpoint HTTP(S) URI used to retrieve the token.
+* `client_id` - Public identifier for the Kafka client.
+* `client_secret` - Secret known only to the Kafka client and the authorization server.
+* `scope` - Scope of the access request to the broker specified by the Kafka clients.
+* `sasl_oauthbearer_extensions` - Additional information to provide to the Kafka broker.
 
 ### Security
 
@@ -164,7 +212,7 @@ If `type` is of value `Https` the following additional attributes are defined:
 
 ## Import
 
-You can import a stream connection resource using the instance name, project ID, and connection name. The format must be `INSTANCE_NAME-PROJECT_ID-CONNECTION_NAME`. For example:
+You can import a stream connection resource using the workspace name, project ID, and connection name. The format must be `WORKSPACE_NAME-PROJECT_ID-CONNECTION_NAME`. For example:
 
 ```
 $ terraform import mongodbatlas_stream_connection.test "DefaultInstance-12251446ae5f3f6ec7968b13-NewConnection"

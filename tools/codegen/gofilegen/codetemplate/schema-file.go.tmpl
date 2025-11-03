@@ -11,8 +11,8 @@ import (
 
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
-		Attributes: map[string]schema.Attribute{ 
-			{{ .SchemaAttributes }} 
+		Attributes: map[string]schema.Attribute{
+			{{ .SchemaAttributes }}
 		},
 	}
 }

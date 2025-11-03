@@ -27,25 +27,23 @@ By following the steps below you will see how to avoid this error.
 - `project_id`: Atlas Project ID.
 
 **Optional** Variables to be set:
-- `public_key`: Atlas Programmatic API public key
-- `private_key`: Atlas Programmatic API private key
+- `atlas_client_id`: MongoDB Atlas Service Account Client ID
+- `atlas_client_secret`: MongoDB Atlas Service Account Client Secret
 - `cluster_name`: Name of the cluster
 - `instance_size`: Instance size of the cluster.
 
 ## Usage
-
-**Note**: This directory contains an example of using the **Preview for MongoDB Atlas Provider 2.0.0** of `mongodbatlas_advanced_cluster`. In order to enable the Preview, you must set the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`, otherwise the current version will be used.
 
 You can find more info in the [resource doc page](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster%2520%2528preview%2520provider%25202.0.0%2529).
 
 
 ### 1. Ensure your MongoDB Atlas credentials are set up
 
-This can be done using environment variables or the `public_key` and `private_key` variables.
+This can be done using environment variables or the `atlas_client_id` and `atlas_client_secret` variables.
 
 ```bash
-export MONGODB_ATLAS_PUBLIC_KEY="<ATLAS_PUBLIC_KEY>"
-export MONGODB_ATLAS_PRIVATE_KEY="<ATLAS_PRIVATE_KEY>"
+export MONGODB_ATLAS_CLIENT_ID="<ATLAS_CLIENT_ID>"
+export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 ```
 ### 2. Review the Terraform plan
 

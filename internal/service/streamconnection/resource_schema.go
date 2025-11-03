@@ -2,14 +2,17 @@ package streamconnection
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -28,9 +31,22 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				},
 			},
 			"instance_name": schema.StringAttribute{
-				Required: true,
+				Optional: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(path.MatchRoot("workspace_name")),
+				},
+				DeprecationMessage: fmt.Sprintf(constant.DeprecationParamWithReplacement, "workspace_name"),
+			},
+			"workspace_name": schema.StringAttribute{
+				Optional: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(path.MatchRoot("instance_name")),
 				},
 			},
 			"connection_name": schema.StringAttribute{
@@ -75,11 +91,30 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"mechanism": schema.StringAttribute{
 						Optional: true,
 					},
+					"method": schema.StringAttribute{
+						Optional: true,
+					},
 					"password": schema.StringAttribute{
 						Optional:  true,
 						Sensitive: true,
 					},
 					"username": schema.StringAttribute{
+						Optional: true,
+					},
+					"token_endpoint_url": schema.StringAttribute{
+						Optional: true,
+					},
+					"client_id": schema.StringAttribute{
+						Optional: true,
+					},
+					"client_secret": schema.StringAttribute{
+						Optional:  true,
+						Sensitive: true,
+					},
+					"scope": schema.StringAttribute{
+						Optional: true,
+					},
+					"sasl_oauthbearer_extensions": schema.StringAttribute{
 						Optional: true,
 					},
 				},

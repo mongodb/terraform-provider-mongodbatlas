@@ -43,17 +43,21 @@ test: fmtcheck ## Run unit tests
 	@$(eval export MONGODB_ATLAS_ORG_ID?=111111111111111111111111)
 	@$(eval export MONGODB_ATLAS_PROJECT_ID?=111111111111111111111111)
 	@$(eval export MONGODB_ATLAS_CLUSTER_NAME?=mocked-cluster)
+	@$(eval export MONGODB_ATLAS_PUBLIC_KEY=)
+	@$(eval export MONGODB_ATLAS_PRIVATE_KEY=)
+	@$(eval export MONGODB_ATLAS_CLIENT_ID=)
+	@$(eval export MONGODB_ATLAS_CLIENT_SECRET=)
+	@$(eval export MONGODB_ATLAS_ACCESS_TOKEN=)
 	go test ./... -timeout=120s -parallel=$(PARALLEL_GO_TEST) -race
 
 .PHONY: testmact
 testmact: ## Run MacT tests (mocked acc tests)
-	@$(eval ACCTEST_REGEX_RUN?=^TestAccMockable)
+	@$(eval export ACCTEST_REGEX_RUN?=^TestAccMockable)
 	@$(eval export HTTP_MOCKER_REPLAY?=true)
 	@$(eval export HTTP_MOCKER_CAPTURE?=false)
 	@$(eval export MONGODB_ATLAS_ORG_ID?=111111111111111111111111)
 	@$(eval export MONGODB_ATLAS_PROJECT_ID?=111111111111111111111111)
 	@$(eval export MONGODB_ATLAS_CLUSTER_NAME?=mocked-cluster)
-	@$(eval export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER?=true)
 	@if [ "$(ACCTEST_PACKAGES)" = "./..." ]; then \
 		echo "Error: ACCTEST_PACKAGES must be explicitly set for testmact target, './...' is not allowed"; \
 		exit 1; \
@@ -73,7 +77,7 @@ testmact-capture: ## Capture HTTP traffic for MacT tests
 
 .PHONY: testacc
 testacc: fmtcheck ## Run acc & mig tests (acceptance & migration tests)
-	@$(eval ACCTEST_REGEX_RUN?=^TestAcc)
+	@$(eval export ACCTEST_REGEX_RUN?=^TestAcc)
 	TF_ACC=1 go test $(ACCTEST_PACKAGES) -run '$(ACCTEST_REGEX_RUN)' -v -parallel $(PARALLEL_GO_TEST) $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -ldflags="$(LINKER_FLAGS)"
 
 .PHONY: testaccgov
@@ -196,6 +200,14 @@ check-changelog-entry-file: ## Check a changelog entry file in a PR
 .PHONY: jira-release-version
 jira-release-version: ## Update Jira version in a release
 	go run ./tools/jira-release-version/*.go
+
+.PHONY: access-token-create
+access-token-create: ## Create a new OAuth2 access token from Service Account credentials
+	@go run ./tools/access-token/*.go create
+
+.PHONY: access-token-revoke
+access-token-revoke: ## Revoke an OAuth2 access token. Usage: make access-token-revoke token=<token>
+	@go run ./tools/access-token/*.go revoke $(token)
 
 .PHONY: enable-autogen
 enable-autogen: ## Enable use of autogen resources in the provider

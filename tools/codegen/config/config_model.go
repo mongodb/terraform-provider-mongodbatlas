@@ -30,16 +30,16 @@ type Wait struct {
 }
 
 type SchemaOptions struct {
-	Ignores   []string            `yaml:"ignores"`
 	Aliases   map[string]string   `yaml:"aliases"` // only supports modifying path param names, full alias support is not yet implemented in conversion logic for request/response bodies
 	Overrides map[string]Override `yaml:"overrides"`
-	Timeouts  []string            `yaml:"timeouts"`
+	Ignores   []string            `yaml:"ignores"`
 }
 
 type Override struct {
 	Computability       *Computability `yaml:"computability,omitempty"`
 	Sensitive           *bool          `yaml:"sensitive"`
 	IncludeNullOnUpdate *bool          `yaml:"include_null_on_update"`
+	Type                *Type          `yaml:"type"`
 	Description         string         `yaml:"description"`
 	PlanModifiers       []PlanModifier `yaml:"plan_modifiers"`
 	Validators          []Validator    `yaml:"validators"`
@@ -60,3 +60,10 @@ type Computability struct {
 	Computed bool `yaml:"computed"`
 	Required bool `yaml:"required"`
 }
+
+type Type string
+
+const (
+	List Type = "list"
+	Set  Type = "set"
+)

@@ -2,7 +2,7 @@ package acc
 
 import (
 	"os"
-	"strings"
+	"strconv"
 	"testing"
 )
 
@@ -15,7 +15,8 @@ func SkipTestForCI(tb testing.TB) {
 }
 
 func InCI() bool {
-	return strings.EqualFold(os.Getenv("CI"), "true")
+	val, _ := strconv.ParseBool(os.Getenv("CI"))
+	return val
 }
 
 // SkipInUnitTest allows skipping a test entirely when TF_ACC=1 is not defined.
@@ -29,4 +30,37 @@ func SkipInUnitTest(tb testing.TB) {
 
 func InUnitTest() bool {
 	return os.Getenv("TF_ACC") == ""
+}
+
+func HasPAKCreds() bool {
+	return os.Getenv("MONGODB_ATLAS_PUBLIC_KEY") != "" || os.Getenv("MONGODB_ATLAS_PRIVATE_KEY") != ""
+}
+
+func HasSACreds() bool {
+	return os.Getenv("MONGODB_ATLAS_CLIENT_ID") != "" || os.Getenv("MONGODB_ATLAS_CLIENT_SECRET") != ""
+}
+
+func HasAccessToken() bool {
+	return os.Getenv("MONGODB_ATLAS_ACCESS_TOKEN") != ""
+}
+
+func SkipInSA(tb testing.TB, description string) {
+	tb.Helper()
+	if HasSACreds() {
+		tb.Skip(description)
+	}
+}
+
+func SkipInPAK(tb testing.TB, description string) {
+	tb.Helper()
+	if HasPAKCreds() {
+		tb.Skip(description)
+	}
+}
+
+func SkipInAccessToken(tb testing.TB, description string) {
+	tb.Helper()
+	if HasAccessToken() {
+		tb.Skip(description)
+	}
 }

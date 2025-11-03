@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/spf13/cast"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -45,20 +45,19 @@ func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				// testing hour_of_day set to 0 during creation phase does not return errors
-				Config: configBasic(orgID, projectName, dayOfWeek, conversion.Pointer(hourOfDay), defaultProtectedHours),
+				Config: configBasic(orgID, projectName, dayOfWeek, hourOfDay, defaultProtectedHours),
 				Check:  checkBasic(dayOfWeek, hourOfDay, defaultProtectedHours),
 			},
 			{
-				Config: configBasic(orgID, projectName, dayOfWeek, conversion.Pointer(hourOfDayUpdated), updatedProtectedHours),
+				Config: configBasic(orgID, projectName, dayOfWeek, hourOfDayUpdated, updatedProtectedHours),
 				Check:  checkBasic(dayOfWeek, hourOfDayUpdated, updatedProtectedHours),
 			},
 			{
-				Config: configBasic(orgID, projectName, dayOfWeekUpdated, conversion.Pointer(hourOfDay), nil),
+				Config: configBasic(orgID, projectName, dayOfWeekUpdated, hourOfDay, nil),
 				Check:  checkBasic(dayOfWeekUpdated, hourOfDay, nil),
 			},
 			{
-				Config: configBasic(orgID, projectName, dayOfWeek, conversion.Pointer(hourOfDay), defaultProtectedHours),
+				Config: configBasic(orgID, projectName, dayOfWeek, hourOfDay, defaultProtectedHours),
 				Check:  checkBasic(dayOfWeek, hourOfDay, defaultProtectedHours),
 			},
 			{
@@ -66,26 +65,6 @@ func TestAccConfigRSMaintenanceWindow_basic(t *testing.T) {
 				ImportStateIdFunc: importStateIDFunc(resourceName),
 				ImportState:       true,
 				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func TestAccConfigRSMaintenanceWindow_emptyHourOfDay(t *testing.T) {
-	var (
-		orgID       = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		projectName = acc.RandomProjectName()
-		dayOfWeek   = 7
-	)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configBasic(orgID, projectName, dayOfWeek, nil, defaultProtectedHours),
-				Check:  checkBasic(dayOfWeek, 0, defaultProtectedHours),
 			},
 		},
 	})
@@ -167,11 +146,7 @@ func importStateIDFunc(resourceName string) resource.ImportStateIdFunc {
 	}
 }
 
-func configBasic(orgID, projectName string, dayOfWeek int, hourOfDay *int, protectedHours *admin.ProtectedHours) string {
-	hourOfDayAttr := ""
-	if hourOfDay != nil {
-		hourOfDayAttr = fmt.Sprintf("hour_of_day = %d", *hourOfDay)
-	}
+func configBasic(orgID, projectName string, dayOfWeek, hourOfDay int, protectedHours *admin.ProtectedHours) string {
 	protectedHoursStr := ""
 	if protectedHours != nil {
 		protectedHoursStr = fmt.Sprintf(`
@@ -189,10 +164,10 @@ func configBasic(orgID, projectName string, dayOfWeek int, hourOfDay *int, prote
 		resource "mongodbatlas_maintenance_window" "test" {
 			project_id  = mongodbatlas_project.test.id
 			day_of_week = %[3]d
-			%[4]s
+			hour_of_day = %[4]d
 			%[5]s
 
-		}`, orgID, projectName, dayOfWeek, hourOfDayAttr, protectedHoursStr)
+		}`, orgID, projectName, dayOfWeek, hourOfDay, protectedHoursStr)
 }
 
 func configWithAutoDeferEnabled(orgID, projectName string, dayOfWeek, hourOfDay int) string {

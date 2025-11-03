@@ -1,3 +1,7 @@
+---
+subcategory: "Organizations"
+---
+
 # Resource: mongodbatlas_organization
 
 `mongodbatlas_organization` provides programmatic management (including creation) of a MongoDB Atlas Organization resource.
@@ -16,6 +20,11 @@ resource "mongodbatlas_organization" "test" {
   role_names = ["ORG_OWNER"]
 }
 ```
+
+### Further Examples
+- [Organization setup - step 1](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_organization/organization-step-1)
+- [Organization setup - step 2](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_organization/organization-step-2)
+- [Organization import](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_organization/organization-import)
 
 ## Argument Reference
 

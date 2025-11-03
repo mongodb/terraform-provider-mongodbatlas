@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 )
 
 const (
@@ -24,15 +24,21 @@ const (
 const (
 	ErrorUpdateStateTransition = "Stream Processor must be in %s state to transition to %s state"
 	ErrorUpdateToCreatedState  = "Stream Processor cannot transition from %s to CREATED"
+	defaultTimeout             = 5 * time.Minute // big pipelines can take a while to stop due to checkpointing. By default, we prefer the API to raise the error (~ 3min) than having to expose custom timeouts.
+	minTimeout                 = 3 * time.Second
 )
 
 func WaitStateTransition(ctx context.Context, requestParams *admin.GetStreamProcessorApiParams, client admin.StreamsApi, pendingStates, desiredStates []string) (*admin.StreamsProcessorWithStats, error) {
+	return WaitStateTransitionWithTimeout(ctx, requestParams, client, pendingStates, desiredStates, defaultTimeout)
+}
+
+func WaitStateTransitionWithTimeout(ctx context.Context, requestParams *admin.GetStreamProcessorApiParams, client admin.StreamsApi, pendingStates, desiredStates []string, timeout time.Duration) (*admin.StreamsProcessorWithStats, error) {
 	stateConf := &retry.StateChangeConf{
 		Pending:    pendingStates,
 		Target:     desiredStates,
 		Refresh:    refreshFunc(ctx, requestParams, client),
-		Timeout:    5 * time.Minute, // big pipelines can take a while to stop due to checkpointing. We prefer the API to raise the error (~ 3min) than having to expose custom timeouts.
-		MinTimeout: 3 * time.Second,
+		Timeout:    timeout,
+		MinTimeout: minTimeout,
 		Delay:      0,
 	}
 

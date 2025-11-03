@@ -14,7 +14,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/zclconf/go-cty/cty"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 )
 
 var _ datasource.DataSource = &alertConfigurationDS{}
@@ -27,6 +27,7 @@ type TFAlertConfigurationDSModel struct {
 	EventType             types.String                      `tfsdk:"event_type"`
 	Created               types.String                      `tfsdk:"created"`
 	Updated               types.String                      `tfsdk:"updated"`
+	SeverityOverride      types.String                      `tfsdk:"severity_override"`
 	Matcher               []TfMatcherModel                  `tfsdk:"matcher"`
 	MetricThresholdConfig []TfMetricThresholdConfigModel    `tfsdk:"metric_threshold_config"`
 	ThresholdConfig       []TfThresholdConfigModel          `tfsdk:"threshold_config"`
@@ -242,6 +243,9 @@ var alertConfigDSSchemaAttributes = map[string]schema.Attribute{
 			},
 		},
 	},
+	"severity_override": schema.StringAttribute{
+		Computed: true,
+	},
 }
 
 func (d *alertConfigurationDS) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
@@ -266,7 +270,7 @@ func (d *alertConfigurationDS) Read(ctx context.Context, req datasource.ReadRequ
 	outputs := alertConfigurationConfig.Output
 
 	connV2 := d.Client.AtlasV2
-	alert, _, err := connV2.AlertConfigurationsApi.GetAlertConfiguration(ctx, projectID, alertID).Execute()
+	alert, _, err := connV2.AlertConfigurationsApi.GetAlertConfig(ctx, projectID, alertID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(errorReadAlertConf, err.Error())
 		return
@@ -337,6 +341,10 @@ func outputAlertConfigurationResourceHcl(label string, alert *admin.GroupAlertsC
 	notifications := alert.GetNotifications()
 	for i := range len(notifications) {
 		appendBlockWithCtyValues(resource, "notification", []string{}, convertNotificationToCtyValues(&notifications[i]))
+	}
+
+	if alert.SeverityOverride != nil {
+		resource.SetAttributeValue("severity_override", cty.StringVal(*alert.SeverityOverride))
 	}
 
 	return string(f.Bytes())

@@ -55,8 +55,10 @@ func Resource() *schema.Resource {
 				Required: true,
 			},
 			"usernames": {
-				Type:     schema.TypeSet,
-				Required: true,
+				Type:       schema.TypeSet,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "parameter", "mongodbatlas_cloud_user_team_assignment", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/atlas-user-management"),
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -65,22 +67,20 @@ func Resource() *schema.Resource {
 	}
 }
 
-func LegacyTeamsResource() *schema.Resource {
-	res := Resource()
-	res.DeprecationMessage = fmt.Sprintf(constant.DeprecationResourceByDateWithReplacement, "November 2024", "mongodbatlas_team")
-	return res
-}
-
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV220241113
 	orgID := d.Get("org_id").(string)
 
 	usernames := conversion.ExpandStringListFromSetSchema(d.Get("usernames").(*schema.Set))
-	teamsResp, _, err := connV2.TeamsApi.CreateTeam(ctx, orgID,
-		&admin20241113.Team{
-			Name:      d.Get("name").(string),
-			Usernames: usernames,
-		}).Execute()
+	createTeamReq := &admin20241113.Team{
+		Name: d.Get("name").(string),
+	}
+
+	if len(usernames) > 0 {
+		createTeamReq.Usernames = usernames
+	}
+
+	teamsResp, _, err := connV2.TeamsApi.CreateTeam(ctx, orgID, createTeamReq).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorTeamCreate, err))
 	}
@@ -211,7 +211,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 	orgID := parts[0]
 	teamID := parts[1]
 
-	team, _, err := connV2.TeamsApi.GetTeamById(ctx, orgID, teamID).Execute()
+	team, _, err := connV2.TeamsApi.GetOrgTeam(ctx, orgID, teamID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import team (%s) in organization(%s), error: %s", teamID, orgID, err)
 	}

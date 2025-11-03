@@ -1,3 +1,7 @@
+---
+subcategory: "Alert Configurations"
+---
+
 # Resource: mongodbatlas_alert_configuration
 
 `mongodbatlas_alert_configuration` provides an Alert Configuration resource to define the conditions that trigger an alert and the methods of notification within a MongoDB Atlas project.
@@ -132,6 +136,10 @@ resource "mongodbatlas_alert_configuration" "test" {
 }
 ```
 
+### Further Examples
+- [Alert Configuration](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_alert_configuration)
+
+
 ## Argument Reference
 
 * `project_id` - (Required) The ID of the project where the alert configuration will create.
@@ -142,6 +150,7 @@ resource "mongodbatlas_alert_configuration" "test" {
 
 
   -> **NOTE:** If `event_type` is set to `OUTSIDE_METRIC_THRESHOLD` or `OUTSIDE_SERVERLESS_METRIC_THRESHOLD`, the `metric_threshold_config` field must also be configured.
+* `severity_override` - (Optional) Severity of the event. For the list of accepted values please read the [Create One Alert Configuration in One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-creategroupalertconfig) API documentation.
 
 ### Matchers
 Rules to apply when matching an object against this alert configuration. Only entities that match all these rules are checked for an alert condition. You can filter using the matchers array only when the eventTypeName specifies an event for a host, replica set, or sharded cluster.

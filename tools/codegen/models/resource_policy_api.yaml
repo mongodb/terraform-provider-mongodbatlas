@@ -1,0 +1,164 @@
+schema:
+    description: Create one Atlas Resource Policy for an org.
+    attributes:
+        - single_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Unique 24-hexadecimal character string that identifies a user.
+                      computed_optional_required: computed
+                      tf_schema_name: id
+                      tf_model_name: Id
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - string: {}
+                      description: Human-readable label that describes a user.
+                      computed_optional_required: computed
+                      tf_schema_name: name
+                      tf_model_name: Name
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+          description: The user that last updated the atlas resource policy.
+          custom_type:
+            package: customtypes
+            model: customtypes.ObjectValue[TFCreatedByUserModel]
+            schema: customtypes.NewObjectType[TFCreatedByUserModel](ctx)
+          computed_optional_required: computed
+          tf_schema_name: created_by_user
+          tf_model_name: CreatedByUser
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: Date and time in UTC when the atlas resource policy was created.
+          computed_optional_required: computed
+          tf_schema_name: created_date
+          tf_model_name: CreatedDate
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: Description of the atlas resource policy.
+          computed_optional_required: optional
+          tf_schema_name: description
+          tf_model_name: Description
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: Unique 24-hexadecimal character string that identifies the atlas resource policy.
+          computed_optional_required: computed
+          tf_schema_name: id
+          tf_model_name: Id
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: Unique 24-hexadecimal character string that identifies a user.
+                      computed_optional_required: computed
+                      tf_schema_name: id
+                      tf_model_name: Id
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+                    - string: {}
+                      description: Human-readable label that describes a user.
+                      computed_optional_required: computed
+                      tf_schema_name: name
+                      tf_model_name: Name
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+          description: The user that last updated the atlas resource policy.
+          custom_type:
+            package: customtypes
+            model: customtypes.ObjectValue[TFLastUpdatedByUserModel]
+            schema: customtypes.NewObjectType[TFLastUpdatedByUserModel](ctx)
+          computed_optional_required: computed
+          tf_schema_name: last_updated_by_user
+          tf_model_name: LastUpdatedByUser
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: Date and time in UTC when the atlas resource policy was last updated.
+          computed_optional_required: computed
+          tf_schema_name: last_updated_date
+          tf_model_name: LastUpdatedDate
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: Human-readable label that describes the atlas resource policy.
+          computed_optional_required: required
+          tf_schema_name: name
+          tf_model_name: Name
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.
+          computed_optional_required: required
+          tf_schema_name: org_id
+          tf_model_name: OrgId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+        - list_nested:
+            nested_object:
+                attributes:
+                    - string: {}
+                      description: A string that defines the permissions for the policy. The syntax used is the Cedar Policy language.
+                      computed_optional_required: required
+                      tf_schema_name: body
+                      tf_model_name: Body
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                    - string: {}
+                      description: Unique 24-hexadecimal character string that identifies the policy.
+                      computed_optional_required: computed
+                      tf_schema_name: id
+                      tf_model_name: Id
+                      req_body_usage: omit_always
+                      sensitive: false
+                      create_only: false
+          description: List of policies that make up the atlas resource policy.
+          custom_type:
+            package: customtypes
+            model: customtypes.NestedListValue[TFPoliciesModel]
+            schema: customtypes.NewNestedListType[TFPoliciesModel](ctx)
+          computed_optional_required: required
+          tf_schema_name: policies
+          tf_model_name: Policies
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: A string that identifies the version of the atlas resource policy.
+          computed_optional_required: computed
+          tf_schema_name: version
+          tf_model_name: Version
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+operations:
+    delete:
+        http_method: DELETE
+        path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{id}
+    create:
+        http_method: POST
+        path: /api/atlas/v2/orgs/{orgId}/resourcePolicies
+    read:
+        http_method: GET
+        path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{id}
+    update:
+        http_method: PATCH
+        path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{id}
+    version_header: application/vnd.atlas.2024-08-05+json
+name: resource_policy_api

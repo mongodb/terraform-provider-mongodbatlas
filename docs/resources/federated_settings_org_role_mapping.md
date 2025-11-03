@@ -1,3 +1,7 @@
+---
+subcategory: "Federated Authentication"
+---
+
 # Resource: mongodbatlas_federated_settings_org_role_mapping
 
 `mongodbatlas_federated_settings_org_role_mapping` provides an Role Mapping resource. This allows organization role mapping to be created.
@@ -26,6 +30,9 @@ resource "mongodbatlas_federated_settings_org_role_mapping" "org_group_role_mapp
   }
 }
 ```
+
+### Further Examples
+- [Okta and MongoDB Atlas Federated Settings Configuration](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_federated_settings_org_role_mapping)
 
 ## Argument Reference
 

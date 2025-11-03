@@ -1,0 +1,25 @@
+---
+subcategory: "Teams"
+---
+
+# {{.Type}}: {{.Name}}
+
+`{{.Name}}` provides a Team Project Assignment resource. It lets you manage the association between a team and a project, enabling you to import, assign, remove, or update the team's membership.
+## Example Usages
+
+{{ tffile (printf "examples/%s/main.tf" .Name )}}
+
+### Further Examples
+- [Team Project Assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_team_project_assignment)
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Team Project Assignment resource can be imported using the Project ID & TeamID, in the format `PROJECT_ID/TEAM_ID`.
+
+```
+$ terraform import mongodbatlas_team_project_assignment.test 9f3a7c2e54b8d1a0e6f4b3c2/a4d9f7b18e52c0fa36b7e9cd
+```
+
+For more information, see: [MongoDB Atlas API - Teams](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-addallteamstoproject) Documentation.

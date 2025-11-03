@@ -1,3 +1,7 @@
+---
+subcategory: "Projects"
+---
+
 # Data Source: mongodbatlas_third_party_integrations
 
 `mongodbatlas_third_party_integrations` describes all Third-Party Integration Settings. This represents two Third-Party services `PAGER_DUTY` and `DATADOG`

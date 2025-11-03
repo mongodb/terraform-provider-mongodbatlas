@@ -21,8 +21,8 @@ Terraform v1.10.0
 This can be done using environment variables:
 
 ```bash
-export MONGODB_ATLAS_PUBLIC_KEY="<ATLAS_PUBLIC_KEY>"
-export MONGODB_ATLAS_PRIVATE_KEY="<ATLAS_PRIVATE_KEY>"
+export MONGODB_ATLAS_CLIENT_ID="<ATLAS_CLIENT_ID>"
+export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 ```
 
 ```bash
@@ -42,8 +42,8 @@ aws_secret_access_key = <AWS_SECRET_ACCESS_KEY>
 ```
 access_key   = "<AWS_ACCESS_KEY_ID>"
 secret_key   = "<AWS_SECRET_ACCESS_KEY>"
-public_key   = "<ATLAS_PUBLIC_KEY>"
-private_key  = "<ATLAS_PRIVATE_KEY>"
+client_id     = "<ATLAS_CLIENT_ID>"
+client_secret = "<ATLAS_CLIENT_SECRET>"
 ```
 **2\. Create an S3 bucket into your AWS account**
 Now create **terraform.tfvars** file with all the variable values and make sure **not to commit it**.

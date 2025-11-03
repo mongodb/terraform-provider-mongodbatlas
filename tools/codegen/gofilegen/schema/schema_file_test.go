@@ -10,30 +10,36 @@ import (
 )
 
 var stringAttr = codespec.Attribute{
-	Name:                     "string_attr",
+	TFSchemaName:             "string_attr",
+	TFModelName:              "StringAttr",
 	String:                   &codespec.StringAttribute{},
 	Description:              admin.PtrString("string attribute"),
 	ComputedOptionalRequired: codespec.Optional,
 }
 
 var intAttr = codespec.Attribute{
-	Name:                     "int_attr",
+	TFSchemaName:             "int_attr",
+	TFModelName:              "IntAttr",
 	Int64:                    &codespec.Int64Attribute{},
 	Description:              admin.PtrString("int attribute"),
 	ComputedOptionalRequired: codespec.Required,
 }
 
-var doubleNestedListAttr = codespec.Attribute{
-	Name:                     "double_nested_list_attr",
-	Description:              admin.PtrString("double nested list attribute"),
-	ComputedOptionalRequired: codespec.Optional,
-	ListNested: &codespec.ListNestedAttribute{
-		NestedObject: codespec.NestedAttributeObject{
-			Attributes: []codespec.Attribute{
-				stringAttr,
+func doubleCustomNestedListAttr(ancestorName string) codespec.Attribute {
+	return codespec.Attribute{
+		TFSchemaName:             "double_nested_list_attr",
+		TFModelName:              "DoubleNestedListAttr",
+		Description:              admin.PtrString("double nested list attribute"),
+		ComputedOptionalRequired: codespec.Optional,
+		CustomType:               codespec.NewCustomNestedListType(ancestorName + "DoubleNestedListAttr"),
+		ListNested: &codespec.ListNestedAttribute{
+			NestedObject: codespec.NestedAttributeObject{
+				Attributes: []codespec.Attribute{
+					stringAttr,
+				},
 			},
 		},
-	},
+	}
 }
 
 type schemaGenerationTestCase struct {
@@ -42,83 +48,68 @@ type schemaGenerationTestCase struct {
 	withObjType    bool
 }
 
+//nolint:funlen // Long test data
 func TestSchemaGenerationFromCodeSpec(t *testing.T) {
-	testCases := map[string]schemaGenerationTestCase{
+	schemaGenFromCodeSpecTestCases := map[string]schemaGenerationTestCase{
 		"Primitive attributes": {
 			inputModel: codespec.Resource{
 				Name: "test_name",
 				Schema: &codespec.Schema{
 					Attributes: []codespec.Attribute{
 						{
-							Name:                     "string_attr",
+							TFSchemaName:             "string_attr",
+							TFModelName:              "StringAttr",
 							String:                   &codespec.StringAttribute{},
 							Description:              admin.PtrString("string description"),
 							ComputedOptionalRequired: codespec.Required,
 						},
 						{
-							Name:                     "bool_attr",
+							TFSchemaName:             "bool_attr",
+							TFModelName:              "BoolAttr",
 							Bool:                     &codespec.BoolAttribute{},
 							Description:              admin.PtrString("bool description"),
 							ComputedOptionalRequired: codespec.Optional,
 						},
 						{
-							Name:                     "int_attr",
+							TFSchemaName:             "int_attr",
+							TFModelName:              "IntAttr",
 							Int64:                    &codespec.Int64Attribute{},
 							Description:              admin.PtrString("int description"),
 							ComputedOptionalRequired: codespec.ComputedOptional,
 						},
 						{
-							Name:                     "float_attr",
+							TFSchemaName:             "float_attr",
+							TFModelName:              "FloatAttr",
 							Float64:                  &codespec.Float64Attribute{},
 							Description:              admin.PtrString("float description"),
 							ComputedOptionalRequired: codespec.Optional,
 						},
 						{
-							Name:                     "number_attr",
+							TFSchemaName:             "number_attr",
+							TFModelName:              "NumberAttr",
 							Number:                   &codespec.NumberAttribute{},
 							Description:              admin.PtrString("number description"),
 							ComputedOptionalRequired: codespec.Optional,
 						},
 						{
-							Name: "simple_list_attr",
-							List: &codespec.ListAttribute{
-								ElementType: codespec.String,
-							},
-							Description:              admin.PtrString("simple arr description"),
-							ComputedOptionalRequired: codespec.Optional,
-						},
-						{
-							Name: "simple_set_attr",
-							Set: &codespec.SetAttribute{
-								ElementType: codespec.Float64,
-							},
-							Description:              admin.PtrString("simple set description"),
-							ComputedOptionalRequired: codespec.Optional,
-						},
-						{
-							Name: "simple_map_attr",
-							Map: &codespec.MapAttribute{
-								ElementType: codespec.Bool,
-							},
-							Description:              admin.PtrString("simple map description"),
-							ComputedOptionalRequired: codespec.Optional,
-						},
-						{
-							Name:                     "attr_not_included_in_req_bodies",
+							TFSchemaName:             "attr_not_included_in_req_bodies",
+							TFModelName:              "AttrNotIncludedInReqBodies",
 							String:                   &codespec.StringAttribute{},
 							Description:              admin.PtrString("string description"),
 							ComputedOptionalRequired: codespec.Required,
 							ReqBodyUsage:             codespec.OmitAlways,
 						},
 						{
-							Name:                     "attr_only_in_post_req_bodies",
+							TFSchemaName:             "attr_only_in_post_req_bodies",
+							TFModelName:              "AttrOnlyInPostReqBodies",
 							String:                   &codespec.StringAttribute{},
 							Description:              admin.PtrString("string description"),
 							ComputedOptionalRequired: codespec.Required,
 							ReqBodyUsage:             codespec.OmitInUpdateBody,
 						},
 						{
-							Name:                     "json_attr",
+							TFSchemaName:             "json_attr",
+							TFModelName:              "JsonAttr",
 							String:                   &codespec.StringAttribute{},
 							CustomType:               &codespec.CustomTypeJSONVar,
 							Description:              admin.PtrString("json description"),
@@ -130,66 +121,103 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 			withObjType:    true,
 			goldenFileName: "primitive-attributes",
 		},
-		"Nested attributes": {
+		"Custom type attributes": {
 			inputModel: codespec.Resource{
 				Name: "test_name",
 				Schema: &codespec.Schema{
 					Attributes: []codespec.Attribute{
 						{
-							Name:                     "nested_single_attr",
-							Description:              admin.PtrString("nested single attribute"),
+							TFSchemaName:             "nested_object_attr",
+							TFModelName:              "NestedObjectAttr",
+							Description:              admin.PtrString("nested object attribute"),
 							ComputedOptionalRequired: codespec.Required,
+							CustomType:               codespec.NewCustomObjectType("NestedObjectAttr"),
 							SingleNested: &codespec.SingleNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: []codespec.Attribute{
 										stringAttr,
-										intAttr,
 										{
-											Name:                     "attr_not_included_in_req_bodies",
-											String:                   &codespec.StringAttribute{},
-											Description:              admin.PtrString("string description"),
-											ComputedOptionalRequired: codespec.Computed,
-											ReqBodyUsage:             codespec.OmitAlways,
+											TFSchemaName: "sub_nested_object_attr",
+											TFModelName:  "SubNestedObjectAttr",
+											CustomType:   codespec.NewCustomObjectType("NestedObjectAttrSubNestedObjectAttr"),
+											SingleNested: &codespec.SingleNestedAttribute{
+												NestedObject: codespec.NestedAttributeObject{
+													Attributes: []codespec.Attribute{
+														intAttr,
+													},
+												},
+											},
+											ComputedOptionalRequired: codespec.Required,
 										},
 									},
 								},
 							},
 						},
 						{
-							Name:                     "nested_list_attr",
+							TFSchemaName:             "string_list_attr",
+							TFModelName:              "StringListAttr",
+							Description:              admin.PtrString("string list attribute"),
+							ComputedOptionalRequired: codespec.Optional,
+							CustomType:               codespec.NewCustomListType(codespec.String),
+							List:                     &codespec.ListAttribute{ElementType: codespec.String},
+						},
+						{
+							TFSchemaName:             "nested_list_attr",
+							TFModelName:              "NestedListAttr",
 							Description:              admin.PtrString("nested list attribute"),
 							ComputedOptionalRequired: codespec.Optional,
+							CustomType:               codespec.NewCustomNestedListType("NestedListAttr"),
 							ListNested: &codespec.ListNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
-									Attributes: []codespec.Attribute{stringAttr, intAttr, doubleNestedListAttr},
+									Attributes: []codespec.Attribute{stringAttr, intAttr, doubleCustomNestedListAttr("NestedListAttr")},
 								},
 							},
 						},
 						{
-							Name:                     "set_nested_attribute",
-							Description:              admin.PtrString("set nested attribute"),
-							ComputedOptionalRequired: codespec.ComputedOptional,
+							TFSchemaName:             "string_set_attr",
+							TFModelName:              "StringSetAttr",
+							Description:              admin.PtrString("string set attribute"),
+							ComputedOptionalRequired: codespec.Optional,
+							CustomType:               codespec.NewCustomSetType(codespec.String),
+							Set:                      &codespec.SetAttribute{ElementType: codespec.String},
+						},
+						{
+							TFSchemaName:             "nested_set_attr",
+							TFModelName:              "NestedSetAttr",
+							Description:              admin.PtrString("nested set attribute"),
+							ComputedOptionalRequired: codespec.Optional,
+							CustomType:               codespec.NewCustomNestedSetType("NestedSetAttr"),
 							SetNested: &codespec.SetNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
-									Attributes: []codespec.Attribute{stringAttr, intAttr},
+									Attributes: []codespec.Attribute{intAttr},
 								},
 							},
 						},
 						{
-							Name:                     "map_nested_attribute",
-							Description:              admin.PtrString("map nested attribute"),
-							ComputedOptionalRequired: codespec.ComputedOptional,
+							TFSchemaName:             "string_map_attr",
+							TFModelName:              "StringMapAttr",
+							Description:              admin.PtrString("string map attribute"),
+							ComputedOptionalRequired: codespec.Optional,
+							CustomType:               codespec.NewCustomMapType(codespec.String),
+							Map:                      &codespec.MapAttribute{ElementType: codespec.String},
+						},
+						{
+							TFSchemaName:             "map_nested_attribute",
+							TFModelName:              "MapNestedAttribute",
+							Description:              admin.PtrString("nested map attribute"),
+							ComputedOptionalRequired: codespec.Optional,
+							CustomType:               codespec.NewCustomNestedMapType("MapNestedAttribute"),
 							MapNested: &codespec.MapNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
-									Attributes: []codespec.Attribute{stringAttr, intAttr},
+									Attributes: []codespec.Attribute{stringAttr},
 								},
 							},
 						},
 					},
 				},
 			},
-			withObjType:    true,
-			goldenFileName: "nested-attributes",
+			withObjType:    false,
+			goldenFileName: "custom-types-attributes",
 		},
 		"Timeout attribute": {
 			inputModel: codespec.Resource{
@@ -197,13 +225,15 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 				Schema: &codespec.Schema{
 					Attributes: []codespec.Attribute{
 						{
-							Name:                     "string_attr",
+							TFSchemaName:             "string_attr",
+							TFModelName:              "StringAttr",
 							String:                   &codespec.StringAttribute{},
 							Description:              admin.PtrString("string description"),
 							ComputedOptionalRequired: codespec.Required,
 						},
 						{
-							Name: "timeouts",
+							TFSchemaName: "timeouts",
+							TFModelName:  "Timeouts",
 							Timeouts: &codespec.TimeoutsAttribute{
 								ConfigurableTimeouts: []codespec.Operation{codespec.Create, codespec.Update, codespec.Delete},
 							},
@@ -214,18 +244,32 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 			},
 			goldenFileName: "timeouts",
 		},
-		"Avoid generation of ObjType definitions": {
+		"Multiple nested models with same parent attribute name": {
 			inputModel: codespec.Resource{
 				Name: "test_name",
 				Schema: &codespec.Schema{
 					Attributes: []codespec.Attribute{
 						{
-							Name:                     "nested_list_attr",
-							Description:              admin.PtrString("nested list attribute"),
+							TFSchemaName:             "first_nested_attr",
+							TFModelName:              "FirstNestedAttr",
+							Description:              admin.PtrString("first nested attribute"),
 							ComputedOptionalRequired: codespec.Optional,
+							CustomType:               codespec.NewCustomNestedListType("FirstNestedAttr"),
 							ListNested: &codespec.ListNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
-									Attributes: []codespec.Attribute{doubleNestedListAttr},
+									Attributes: []codespec.Attribute{doubleCustomNestedListAttr("FirstNestedAttr")},
+								},
+							},
+						},
+						{
+							TFSchemaName:             "second_nested_attr",
+							TFModelName:              "SecondNestedAttr",
+							Description:              admin.PtrString("second nested attribute"),
+							ComputedOptionalRequired: codespec.Optional,
+							CustomType:               codespec.NewCustomNestedListType("SecondNestedAttr"),
+							ListNested: &codespec.ListNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: []codespec.Attribute{doubleCustomNestedListAttr("SecondNestedAttr")},
 								},
 							},
 						},
@@ -233,46 +277,151 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 				},
 			},
 			withObjType:    false,
-			goldenFileName: "no-obj-type-models",
+			goldenFileName: "multiple-nested-models-same-parent-attr-name",
 		},
-		"Multiple nested models with same parent attribute name": {
+		"Plan modifiers using create only": {
 			inputModel: codespec.Resource{
 				Name: "test_name",
 				Schema: &codespec.Schema{
 					Attributes: []codespec.Attribute{
 						{
-							Name:                     "first_nested_attr",
-							Description:              admin.PtrString("first nested attribute"),
-							ComputedOptionalRequired: codespec.Optional,
-							ListNested: &codespec.ListNestedAttribute{
-								NestedObject: codespec.NestedAttributeObject{
-									Attributes: []codespec.Attribute{doubleNestedListAttr},
-								},
-							},
+							TFSchemaName:             "string_attr",
+							TFModelName:              "StringAttr",
+							String:                   &codespec.StringAttribute{},
+							Description:              admin.PtrString("string description"),
+							ComputedOptionalRequired: codespec.Required,
+							CreateOnly:               true,
 						},
 						{
-							Name:                     "second_nested_attr",
-							Description:              admin.PtrString("second nested attribute"),
+							TFSchemaName:             "bool_attr",
+							TFModelName:              "BoolAttr",
+							Bool:                     &codespec.BoolAttribute{},
+							Description:              admin.PtrString("bool description"),
 							ComputedOptionalRequired: codespec.Optional,
-							ListNested: &codespec.ListNestedAttribute{
+							CreateOnly:               true,
+						},
+						{
+							TFSchemaName:             "int_attr",
+							TFModelName:              "IntAttr",
+							Int64:                    &codespec.Int64Attribute{},
+							Description:              admin.PtrString("int description"),
+							ComputedOptionalRequired: codespec.ComputedOptional,
+							CreateOnly:               true,
+						},
+						{
+							TFSchemaName:             "float_attr",
+							TFModelName:              "FloatAttr",
+							Float64:                  &codespec.Float64Attribute{},
+							Description:              admin.PtrString("float description"),
+							ComputedOptionalRequired: codespec.Optional,
+							CreateOnly:               true,
+						},
+						{
+							TFSchemaName:             "number_attr",
+							TFModelName:              "NumberAttr",
+							Number:                   &codespec.NumberAttribute{},
+							Description:              admin.PtrString("number description"),
+							ComputedOptionalRequired: codespec.Optional,
+							CreateOnly:               true,
+						},
+						{
+							TFSchemaName: "simple_list_attr",
+							TFModelName:  "SimpleListAttr",
+							CustomType:   codespec.NewCustomListType(codespec.String),
+							List: &codespec.ListAttribute{
+								ElementType: codespec.String,
+							},
+							Description:              admin.PtrString("simple arr description"),
+							ComputedOptionalRequired: codespec.Optional,
+							CreateOnly:               true,
+						},
+						{
+							TFSchemaName: "simple_set_attr",
+							TFModelName:  "SimpleSetAttr",
+							CustomType:   codespec.NewCustomSetType(codespec.Float64),
+							Set: &codespec.SetAttribute{
+								ElementType: codespec.Float64,
+							},
+							Description:              admin.PtrString("simple set description"),
+							ComputedOptionalRequired: codespec.Optional,
+							CreateOnly:               true,
+						},
+						{
+							TFSchemaName: "simple_map_attr",
+							TFModelName:  "SimpleMapAttr",
+							CustomType:   codespec.NewCustomMapType(codespec.Bool),
+							Map: &codespec.MapAttribute{
+								ElementType: codespec.Bool,
+							},
+							Description:              admin.PtrString("simple map description"),
+							ComputedOptionalRequired: codespec.Optional,
+							CreateOnly:               true,
+						},
+						{
+							TFSchemaName:             "nested_single_attr",
+							TFModelName:              "NestedSingleAttr",
+							Description:              admin.PtrString("nested single attribute"),
+							ComputedOptionalRequired: codespec.Required,
+							CustomType:               codespec.NewCustomObjectType("NestedSingleAttr"),
+							SingleNested: &codespec.SingleNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
-									Attributes: []codespec.Attribute{doubleNestedListAttr},
+									Attributes: []codespec.Attribute{intAttr},
 								},
 							},
+							CreateOnly: true,
+						},
+						{
+							TFSchemaName:             "nested_list_attr",
+							TFModelName:              "NestedListAttr",
+							Description:              admin.PtrString("nested list attribute"),
+							ComputedOptionalRequired: codespec.Optional,
+							CustomType:               codespec.NewCustomNestedListType("NestedListAttr"),
+							ListNested: &codespec.ListNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: []codespec.Attribute{intAttr},
+								},
+							},
+							CreateOnly: true,
+						},
+						{
+							TFSchemaName:             "set_nested_attribute",
+							TFModelName:              "SetNestedAttribute",
+							Description:              admin.PtrString("set nested attribute"),
+							ComputedOptionalRequired: codespec.ComputedOptional,
+							CustomType:               codespec.NewCustomNestedSetType("SetNestedAttribute"),
+							SetNested: &codespec.SetNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: []codespec.Attribute{intAttr},
+								},
+							},
+							CreateOnly: true,
+						},
+						{
+							TFSchemaName:             "map_nested_attribute",
+							TFModelName:              "MapNestedAttribute",
+							Description:              admin.PtrString("map nested attribute"),
+							ComputedOptionalRequired: codespec.ComputedOptional,
+							CustomType:               codespec.NewCustomNestedMapType("MapNestedAttribute"),
+							MapNested: &codespec.MapNestedAttribute{
+								NestedObject: codespec.NestedAttributeObject{
+									Attributes: []codespec.Attribute{intAttr},
+								},
+							},
+							CreateOnly: true,
 						},
 					},
 				},
 			},
-			withObjType:    true,
-			goldenFileName: "multiple-nested-models-same-parent-attr-name",
+			withObjType:    false,
+			goldenFileName: "plan-modifiers-create-only",
 		},
 	}
 
-	for testName, tc := range testCases {
+	for testName, tc := range schemaGenFromCodeSpecTestCases {
 		t.Run(testName, func(t *testing.T) {
 			result := schema.GenerateGoCode(&tc.inputModel, tc.withObjType)
 			g := goldie.New(t, goldie.WithNameSuffix(".golden.go"))
-			g.Assert(t, tc.goldenFileName, []byte(result))
+			g.Assert(t, tc.goldenFileName, result)
 		})
 	}
 }

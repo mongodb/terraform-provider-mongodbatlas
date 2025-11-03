@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 	high "github.com/pb33f/libopenapi/datamodel/high/v3"
 	low "github.com/pb33f/libopenapi/datamodel/low/v3"
 	"github.com/pb33f/libopenapi/orderedmap"
@@ -13,7 +14,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
-	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
 )
 
 func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName *string) (*Model, error) {
@@ -29,34 +29,72 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 
 	resourceConfigsToIterate := configModel.Resources
 	if resourceName != nil { // only generate a specific resource
-		resourceConfigsToIterate = map[string]config.Resource{
-			*resourceName: configModel.Resources[*resourceName],
+		resource, ok := configModel.Resources[*resourceName]
+		if !ok {
+			log.Printf("[INFO] Resource %s not found in config file, skipping model generation", *resourceName)
+			return &Model{}, nil
 		}
+		resourceConfigsToIterate = map[string]config.Resource{
+			*resourceName: resource,
+		}
+	}
+
+	if err := validateRequiredOperations(resourceConfigsToIterate); err != nil {
+		return nil, err
 	}
 
 	var results []Resource
 	for name, resourceConfig := range resourceConfigsToIterate {
-		log.Printf("Generating resource: %s", name)
+		log.Printf("[INFO] Generating resource model: %s", name)
 		// find resource operations, schemas, etc from OAS
 		oasResource, err := getAPISpecResource(&apiSpec.Model, &resourceConfig, stringcase.SnakeCaseString(name))
 		if err != nil {
 			return nil, fmt.Errorf("unable to get APISpecResource schema: %v", err)
 		}
 		// map OAS resource model to CodeSpecModel
-		results = append(results, *apiSpecResourceToCodeSpecModel(oasResource, &resourceConfig, stringcase.SnakeCaseString(name)))
+		resource, err := apiSpecResourceToCodeSpecModel(oasResource, &resourceConfig, stringcase.SnakeCaseString(name))
+		if err != nil {
+			return nil, fmt.Errorf("unable to map to code spec model for %s: %w", name, err)
+		}
+		results = append(results, *resource)
 	}
 
 	return &Model{Resources: results}, nil
 }
 
-func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig *config.Resource, name stringcase.SnakeCaseString) *Resource {
+func validateRequiredOperations(resourceConfigs map[string]config.Resource) error {
+	var validationErrors []error
+	for name, resourceConfig := range resourceConfigs {
+		if resourceConfig.Create == nil {
+			validationErrors = append(validationErrors, fmt.Errorf("resource %s missing Create operation in config file", name))
+		}
+		if resourceConfig.Read == nil {
+			validationErrors = append(validationErrors, fmt.Errorf("resource %s missing Read operation in config file", name))
+		}
+		if resourceConfig.Update == nil {
+			validationErrors = append(validationErrors, fmt.Errorf("resource %s missing Update operation in config file", name))
+		}
+	}
+	if len(validationErrors) > 0 {
+		return errors.Join(validationErrors...)
+	}
+	return nil
+}
+
+func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig *config.Resource, name stringcase.SnakeCaseString) (*Resource, error) {
 	createOp := oasResource.CreateOp
 	updateOp := oasResource.UpdateOp
 	readOp := oasResource.ReadOp
 
 	createPathParams := pathParamsToAttributes(createOp)
-	createRequestAttributes := opRequestToAttributes(createOp)
-	updateRequestAttributes := opRequestToAttributes(updateOp)
+	createRequestAttributes, err := opRequestToAttributes(createOp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to process create request attributes for %s: %w", name, err)
+	}
+	updateRequestAttributes, err := opRequestToAttributes(updateOp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to process update request attributes for %s: %w", name, err)
+	}
 	createResponseAttributes := opResponseToAttributes(createOp)
 	readResponseAttributes := opResponseToAttributes(readOp)
 
@@ -84,9 +122,9 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 		Operations: operations,
 	}
 
-	applyConfigSchemaOptions(resourceConfig, resource)
+	applyTransformationsWithConfigOpts(resourceConfig, resource)
 
-	return resource
+	return resource, nil
 }
 
 func getLatestVersionFromAPISpec(readOp *high.Operation) string {
@@ -103,16 +141,19 @@ func getLatestVersionFromAPISpec(readOp *high.Operation) string {
 
 func getOperationsFromConfig(resourceConfig *config.Resource) APIOperations {
 	return APIOperations{
-		Create:        operationConfigToModel(resourceConfig.Create),
-		Read:          operationConfigToModel(resourceConfig.Read),
-		Update:        operationConfigToModel(resourceConfig.Update),
+		Create:        *operationConfigToModel(resourceConfig.Create),
+		Read:          *operationConfigToModel(resourceConfig.Read),
+		Update:        *operationConfigToModel(resourceConfig.Update),
 		Delete:        operationConfigToModel(resourceConfig.Delete),
 		VersionHeader: resourceConfig.VersionHeader,
 	}
 }
 
-func operationConfigToModel(opConfig *config.APIOperation) APIOperation {
-	return APIOperation{
+func operationConfigToModel(opConfig *config.APIOperation) *APIOperation {
+	if opConfig == nil {
+		return nil
+	}
+	return &APIOperation{
 		HTTPMethod:        opConfig.Method,
 		Path:              opConfig.Path,
 		Wait:              waitConfigToModel(opConfig.Wait),
@@ -150,7 +191,7 @@ func pathParamsToAttributes(createOp *high.Operation) Attributes {
 
 		paramName := param.Name
 		s.Schema.Description = param.Description
-		parameterAttribute, err := s.buildResourceAttr(paramName, Required, false)
+		parameterAttribute, err := s.buildResourceAttr(paramName, "", Required, false)
 		if err != nil {
 			log.Printf("[WARN] Path param %s could not be mapped: %s", paramName, err)
 			continue
@@ -160,21 +201,19 @@ func pathParamsToAttributes(createOp *high.Operation) Attributes {
 	return pathAttributes
 }
 
-func opRequestToAttributes(op *high.Operation) Attributes {
+func opRequestToAttributes(op *high.Operation) (Attributes, error) {
 	var requestAttributes Attributes
 	requestSchema, err := buildSchemaFromRequest(op)
 	if err != nil {
-		log.Printf("[WARN] Request schema could not be mapped (OperationId: %s): %s", op.OperationId, err)
-		return nil
+		return nil, fmt.Errorf("request schema could not be mapped (OperationId: %s): %w", op.OperationId, err)
 	}
 
-	requestAttributes, err = buildResourceAttrs(requestSchema, true)
+	requestAttributes, err = buildResourceAttrs(requestSchema, "", true)
 	if err != nil {
-		log.Printf("[WARN] Request attributes could not be mapped (OperationId: %s): %s", op.OperationId, err)
-		return nil
+		return nil, fmt.Errorf("request attributes could not be mapped (OperationId: %s): %w", op.OperationId, err)
 	}
 
-	return requestAttributes
+	return requestAttributes, nil
 }
 
 func opResponseToAttributes(op *high.Operation) Attributes {
@@ -187,7 +226,7 @@ func opResponseToAttributes(op *high.Operation) Attributes {
 			log.Printf("[WARN] Operation response body schema could not be mapped (OperationId: %s): %s", op.OperationId, err)
 		}
 	} else {
-		responseAttributes, err = buildResourceAttrs(responseSchema, false)
+		responseAttributes, err = buildResourceAttrs(responseSchema, "", false)
 		if err != nil {
 			log.Printf("[WARN] Operation response body schema could not be mapped (OperationId: %s): %s", op.OperationId, err)
 		}

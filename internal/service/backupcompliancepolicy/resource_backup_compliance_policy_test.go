@@ -196,7 +196,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		projectID := ids["project_id"]
-		policy, _, err := acc.ConnV2().CloudBackupsApi.GetDataProtectionSettings(context.Background(), projectID).Execute()
+		policy, _, err := acc.ConnV2().CloudBackupsApi.GetCompliancePolicy(context.Background(), projectID).Execute()
 		if err != nil || policy == nil {
 			return fmt.Errorf("backup compliance policy (%s) does not exist: %s", rs.Primary.ID, err)
 		}
@@ -388,7 +388,7 @@ func configOverwriteIncompatibleBackupPoliciesError(projectName, orgID, projectO
 		  cloud_provider      = "AWS"
 		  frequencies         = ["DAILY"]
 		  region_name         = "US_WEST_1"
-		  replication_spec_id = one(%[2]s.replication_specs).id
+		  zone_id = %[2]s.replication_specs.*.zone_id[0]
 		  should_copy_oplogs  = false
 		}
 	  }
@@ -432,7 +432,7 @@ func configClusterWithBackupSchedule(projectName, orgID, projectOwnerID string, 
 		  cloud_provider      = "AWS"
 		  frequencies         = ["DAILY"]
 		  region_name         = "US_WEST_1"
-		  replication_spec_id = one(%[2]s.replication_specs).id
+		  zone_id = %[2]s.replication_specs.*.zone_id[0]
 		  should_copy_oplogs  = false
 		}
 	  }

@@ -1,3 +1,7 @@
+---
+subcategory: "Data Federation"
+---
+
 # Resource: mongodbatlas_privatelink_endpoint_service_data_federation_online_archive
 
 `mongodbatlas_privatelink_endpoint_service_data_federation_online_archive` provides a Private Endpoint Service resource for Data Federation and Online Archive. The resource allows you to create and manage a private endpoint for Federated Database Instances and Online Archives to the specified project.
@@ -35,6 +39,9 @@ resource "mongodbatlas_privatelink_endpoint_service_data_federation_online_archi
 
 The `service_name` value for the region in question can be found in the [MongoDB Atlas Administration](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createdatafederationprivateendpoint) documentation.
 
+### Further Examples
+- [AWS PrivateLink for Data Federation and Online Archive](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_privatelink_endpoint/aws/data-federation-online-archive)
+
 ## Argument Reference
 
 * `project_id` (Required) - Unique 24-hexadecimal digit string that identifies your project. 
@@ -60,4 +67,3 @@ $ terraform import mongodbatlas_privatelink_endpoint_service_data_federation_onl
 ```
 
 See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation/operation/createDataFederationPrivateEndpoint) Documentation for more information.
-

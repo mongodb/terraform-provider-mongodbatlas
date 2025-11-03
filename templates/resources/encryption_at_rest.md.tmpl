@@ -1,3 +1,7 @@
+---
+subcategory: "Encryption at Rest using Customer Key Management"
+---
+
 # {{.Type}}: {{.Name}}
 
 `{{.Name}}` allows management of Encryption at Rest for an Atlas project using Customer Key Management configuration. The following providers are supported:
@@ -49,15 +53,21 @@ resource "mongodbatlas_encryption_at_rest" "default" {
 #### Manage Customer Keys with Azure Key Vault Over Private Endpoints
 It is possible to configure Atlas Encryption at Rest to communicate with Customer Managed Keys (Azure Key Vault or AWS KMS) over private network interfaces (Azure Private Link or AWS PrivateLink). This requires enabling the `azure_key_vault_config.require_private_networking` or the `aws_kms_config.require_private_networking` attribute, together with the configuration of the `mongodbatlas_encryption_at_rest_private_endpoint` resource. 
 
-Please review the [`mongodbatlas_encryption_at_rest_private_endpoint` resource documentation](encryption_at_rest_private_endpoint) and [complete the example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_encryption_at_rest_private_endpoint/) for details on this functionality.
+Please review the [`mongodbatlas_encryption_at_rest_private_endpoint` resource documentation](encryption_at_rest_private_endpoint) and [complete the example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_encryption_at_rest_private_endpoint/) for details on this functionality.
 
 
 ### Configuring encryption at rest using customer key management in GCP
-For GCP environments using static service account key, we recommend configuring encryption at rest with customer key management. This approach uses role-based authentication through Cloud Provider Access for a more secure solution
+For GCP environments using static service account key, we recommend configuring encryption at rest with customer key management. For more details see our [Migration Guide: Encryption at Rest (GCP) Service Account JSON to Role-based Auth](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/encryption-at-rest-gcp-role-based-migration).
+
+This approach uses role-based authentication through Cloud Provider Access for a more secure solution.
 
 {{ tffile (printf "examples/%s/gcp/main.tf" .Name )}}
 
-For a complete example that includes GCP KMS resource creation and IAM binding setup, see the [GCP encryption at rest example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_encryption_at_rest/gcp/).
+### Further Examples
+- [AWS KMS Encryption at Rest](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_encryption_at_rest/aws)
+- [Azure Key Vault Encryption at Rest](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_encryption_at_rest/azure)
+- [GCP KMS Encryption at Rest](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_encryption_at_rest/gcp/)
+
 
 {{ .SchemaMarkdown | trimspace }}
 

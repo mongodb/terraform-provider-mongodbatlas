@@ -1,3 +1,7 @@
+---
+subcategory: "Database Users"
+---
+
 # Data Source: mongodbatlas_x509_authentication_database_user
 
 `mongodbatlas_x509_authentication_database_user` describes a X509 Authentication Database User. This represents a X509 Authentication Database User.

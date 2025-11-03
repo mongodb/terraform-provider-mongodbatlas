@@ -5,11 +5,20 @@ import (
 	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 )
+
+// GetWorkspaceOrInstanceName returns the workspace name from workspace_name or instance_name field. Assumes exactly one of the two is set.
+func GetWorkspaceOrInstanceName(workspaceName, instanceName types.String) string {
+	if !workspaceName.IsNull() && !workspaceName.IsUnknown() {
+		return workspaceName.ValueString()
+	}
+	return instanceName.ValueString()
+}
 
 func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.StreamsProcessor, diag.Diagnostics) {
 	pipeline, diags := convertPipelineToSdk(plan.Pipeline.ValueString())
@@ -42,15 +51,17 @@ func NewStreamProcessorReq(ctx context.Context, plan *TFStreamProcessorRSModel) 
 	return streamProcessor, nil
 }
 
-func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.ModifyStreamProcessorApiParams, diag.Diagnostics) {
+func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSModel) (*admin.UpdateStreamProcessorApiParams, diag.Diagnostics) {
 	pipeline, diags := convertPipelineToSdk(plan.Pipeline.ValueString())
 	if diags != nil {
 		return nil, diags
 	}
 
-	streamProcessorAPIParams := &admin.ModifyStreamProcessorApiParams{
+	workspaceOrInstanceName := GetWorkspaceOrInstanceName(plan.WorkspaceName, plan.InstanceName)
+
+	streamProcessorAPIParams := &admin.UpdateStreamProcessorApiParams{
 		GroupId:       plan.ProjectID.ValueString(),
-		TenantName:    plan.InstanceName.ValueString(),
+		TenantName:    workspaceOrInstanceName,
 		ProcessorName: plan.ProcessorName.ValueString(),
 		StreamsModifyStreamProcessor: &admin.StreamsModifyStreamProcessor{
 			Name:     plan.ProcessorName.ValueStringPointer(),
@@ -79,7 +90,7 @@ func NewStreamProcessorUpdateReq(ctx context.Context, plan *TFStreamProcessorRSM
 	return streamProcessorAPIParams, nil
 }
 
-func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName string, apiResp *admin.StreamsProcessorWithStats) (*TFStreamProcessorRSModel, diag.Diagnostics) {
+func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName, workspaceName string, apiResp *admin.StreamsProcessorWithStats, timeout *timeouts.Value, deleteOnCreateTimeout *types.Bool) (*TFStreamProcessorRSModel, diag.Diagnostics) {
 	if apiResp == nil {
 		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("streamProcessor API response is nil", "")}
 	}
@@ -96,7 +107,6 @@ func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName st
 		return nil, diags
 	}
 	tfModel := &TFStreamProcessorRSModel{
-		InstanceName:  types.StringPointerValue(&instanceName),
 		Options:       *optionsTF,
 		Pipeline:      pipelineTF,
 		ProcessorID:   types.StringPointerValue(&apiResp.Id),
@@ -105,10 +115,26 @@ func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName st
 		State:         types.StringPointerValue(&apiResp.State),
 		Stats:         statsTF,
 	}
+
+	if workspaceName != "" {
+		tfModel.WorkspaceName = types.StringValue(workspaceName)
+		tfModel.InstanceName = types.StringNull()
+	} else {
+		// Default to instance_name for backward compatibility
+		tfModel.InstanceName = types.StringValue(instanceName)
+		tfModel.WorkspaceName = types.StringNull()
+	}
+
+	if timeout != nil {
+		tfModel.Timeouts = *timeout
+	}
+	if deleteOnCreateTimeout != nil {
+		tfModel.DeleteOnCreateTimeout = *deleteOnCreateTimeout
+	}
 	return tfModel, nil
 }
 
-func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName string, apiResp *admin.StreamsProcessorWithStats) (*TFStreamProcessorDSModel, diag.Diagnostics) {
+func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName, workspaceName string, apiResp *admin.StreamsProcessorWithStats) (*TFStreamProcessorDSModel, diag.Diagnostics) {
 	if apiResp == nil {
 		return nil, diag.Diagnostics{diag.NewErrorDiagnostic("streamProcessor API response is nil", "")}
 	}
@@ -126,13 +152,21 @@ func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName st
 	}
 	tfModel := &TFStreamProcessorDSModel{
 		ID:            types.StringPointerValue(&apiResp.Id),
-		InstanceName:  types.StringPointerValue(&instanceName),
 		Options:       *optionsTF,
 		Pipeline:      types.StringValue(pipelineTF.ValueString()),
 		ProcessorName: types.StringPointerValue(&apiResp.Name),
 		ProjectID:     types.StringPointerValue(&projectID),
 		State:         types.StringPointerValue(&apiResp.State),
 		Stats:         statsTF,
+	}
+
+	if workspaceName != "" {
+		tfModel.WorkspaceName = types.StringValue(workspaceName)
+		tfModel.InstanceName = types.StringNull()
+	} else {
+		// Default to instance_name for backward compatibility
+		tfModel.InstanceName = types.StringValue(instanceName)
+		tfModel.WorkspaceName = types.StringNull()
 	}
 	return tfModel, nil
 }
@@ -197,17 +231,19 @@ func NewTFStreamProcessors(ctx context.Context,
 	results := make([]TFStreamProcessorDSModel, len(sdkResults))
 	projectID := streamProcessorsConfig.ProjectID.ValueString()
 	instanceName := streamProcessorsConfig.InstanceName.ValueString()
+	workspaceName := streamProcessorsConfig.WorkspaceName.ValueString()
 	for i := range sdkResults {
-		processorModel, diags := NewTFStreamprocessorDSModel(ctx, projectID, instanceName, &sdkResults[i])
+		processorModel, diags := NewTFStreamprocessorDSModel(ctx, projectID, instanceName, workspaceName, &sdkResults[i])
 		if diags.HasError() {
 			return nil, diags
 		}
 		results[i] = *processorModel
 	}
 	return &TFStreamProcessorsDSModel{
-		ProjectID:    streamProcessorsConfig.ProjectID,
-		InstanceName: streamProcessorsConfig.InstanceName,
-		Results:      results,
+		ProjectID:     streamProcessorsConfig.ProjectID,
+		InstanceName:  streamProcessorsConfig.InstanceName,
+		WorkspaceName: streamProcessorsConfig.WorkspaceName,
+		Results:       results,
 	}, nil
 }
 

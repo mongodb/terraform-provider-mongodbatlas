@@ -1,37 +1,51 @@
 package atlasuser_test
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/atlasuser"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
 func TestAccConfigDSAtlasUsers_ByOrgID(t *testing.T) {
-	acc.SkipInUnitTest(t) // needed while fetchOrgUsers is called from the test
 	var (
 		dataSourceName = "data.mongodbatlas_atlas_users.test"
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
-		users          = fetchOrgUsers(t, orgID)
 	)
-	checks := []resource.TestCheckFunc{testAccCheckMongoDBAtlasOrgWithUsersExists(dataSourceName)} // check that org has at least one user
-	checks = append(checks, dataSourceChecksForUsers(dataSourceName, orgID, users)...)
-
-	resource.Test(t, resource.TestCase{ // does not run in parallel to avoid changes in fetched users during execution
+	// We can only ensure count > 0 because this test relies on all users in the organization to be stable during its test run.
+	// Our test suite is running multiple jobs in parallel, so that guarantee is not fulfilled.
+	// We should isolate these runs by using separate organizations.
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDSMongoDBAtlasUsersByOrgID(orgID),
-				Check:  resource.ComposeAggregateTestCheckFunc(checks...),
+				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectKnownValue(
+						dataSourceName,
+						tfjsonpath.New("org_id"),
+						knownvalue.StringExact(orgID),
+					),
+					statecheck.ExpectKnownValue(
+						dataSourceName,
+						tfjsonpath.New("total_count"),
+						knownvalue.Int64Func(func(v int64) error {
+							if v > 0 {
+								return nil
+							}
+							return fmt.Errorf("expected total_count to be > 0, got %d", v)
+						}),
+					),
+				},
 			},
 		},
 	})
@@ -201,33 +215,6 @@ func TestAccConfigDSAtlasUsers_InvalidAttrCombinations(t *testing.T) {
 	}
 }
 
-func fetchOrgUsers(t *testing.T, orgID string) *admin20241113.PaginatedAppUser {
-	t.Helper()
-	users, _, err := acc.ConnV220241113().OrganizationsApi.ListOrganizationUsers(t.Context(), orgID).Execute()
-	if err != nil {
-		t.Fatalf("the Atlas Users for Org(%s) could not be fetched: %v", orgID, err)
-	}
-	return users
-}
-
-func dataSourceChecksForUsers(dataSourceName, orgID string, users *admin20241113.PaginatedAppUser) []resource.TestCheckFunc {
-	var totalCountValue int
-	if users.TotalCount != nil {
-		totalCountValue = *users.TotalCount
-	} else {
-		totalCountValue = 0
-	}
-	checks := []resource.TestCheckFunc{
-		resource.TestCheckResourceAttr(dataSourceName, "org_id", orgID),
-		resource.TestCheckResourceAttr(dataSourceName, "total_count", fmt.Sprintf("%d", totalCountValue)),
-	}
-	results := users.GetResults()
-	for i := range results {
-		checks = append(checks, dataSourceChecksForUser(dataSourceName, fmt.Sprintf("results.%d.", i), &results[i])...)
-	}
-	return checks
-}
-
 func testAccDSMongoDBAtlasUsersByOrgID(orgID string) string {
 	return fmt.Sprintf(`
 		data "mongodbatlas_atlas_users" "test" {
@@ -280,30 +267,4 @@ func testAccDSMongoDBAtlasUsersByTeamWithPagination(orgID, teamName, username st
 			page_num = %[5]d
 		}
 	`, orgID, teamName, username, itemsPerPage, pageNum)
-}
-
-func testAccCheckMongoDBAtlasOrgWithUsersExists(dataSourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[dataSourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", dataSourceName)
-		}
-
-		orgID, ok := rs.Primary.Attributes["org_id"]
-		if !ok {
-			return fmt.Errorf("org_id not defined in data source: %s", dataSourceName)
-		}
-
-		apiResp, _, err := acc.ConnV220241113().OrganizationsApi.ListOrganizationUsers(context.Background(), orgID).Execute()
-
-		if err != nil {
-			return fmt.Errorf("unable to determine if users exist in org: %s", orgID)
-		}
-
-		if *apiResp.TotalCount == 0 {
-			return fmt.Errorf("no users present inside org: %s", orgID)
-		}
-
-		return nil
-	}
 }

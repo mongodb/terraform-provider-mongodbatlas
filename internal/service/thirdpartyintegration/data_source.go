@@ -124,7 +124,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 
-	integration, _, err := connV2.ThirdPartyIntegrationsApi.GetThirdPartyIntegration(ctx, projectID, queryType).Execute()
+	integration, _, err := connV2.ThirdPartyIntegrationsApi.GetGroupIntegration(ctx, projectID, queryType).Execute()
 
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting third party integration for type %s %w", queryType, err))

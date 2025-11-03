@@ -1,8 +1,11 @@
+---
+subcategory: "Clusters"
+---
+
 # Data Source: mongodbatlas_advanced_clusters
 
 `mongodbatlas_advanced_clusters` returns all Advanced Clusters for a project_id.
 
-This page describes the current version of `mongodbatlas_advanced_clusters`, the page for the **Preview for MongoDB Atlas Provider 2.0.0** can be found [here](./advanced_clusters%2520%2528preview%2520provider%25202.0.0%2529).
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
@@ -20,17 +23,21 @@ resource "mongodbatlas_advanced_cluster" "example" {
   name         = "cluster-test"
   cluster_type = "REPLICASET"
 
-  replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M0"
-      }
-      provider_name         = "TENANT"
-      backing_provider_name = "AWS"
-      region_name           = "US_EAST_1"
-      priority              = 7
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M0"
+          }
+          provider_name         = "TENANT"
+          backing_provider_name = "AWS"
+          region_name           = "US_EAST_1"
+          priority              = 7
+        }
+      ]
     }
-  }
+  ]
 }
 
 data "mongodbatlas_advanced_clusters" "example" {
@@ -47,37 +54,41 @@ resource "mongodbatlas_advanced_cluster" "example" {
   backup_enabled = false
   cluster_type   = "SHARDED"
 
-  replication_specs {    # Sharded cluster with 2 asymmetric shards (M30 and M40)
-    region_configs {
-      electable_specs {
-        instance_size = "M30"
-        disk_iops     = 3000
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
+  replication_specs = [
+    {    # Sharded cluster with 2 asymmetric shards (M30 and M40)
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M30"
+            disk_iops     = 3000
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "EU_WEST_1"
+        }
+      ]
+    }, 
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M40"
+            disk_iops     = 3000
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "EU_WEST_1"
+        }
+      ]
     }
-  }
-
-  replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M40"
-        disk_iops     = 3000
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }
-  }
+  ]
 }
 
 data "mongodbatlas_advanced_cluster" "example-asym" {
   project_id                     = mongodbatlas_advanced_cluster.example.project_id
   name                           = mongodbatlas_advanced_cluster.example.name
-  use_replication_spec_per_shard = true
 }
 ```
 
@@ -89,14 +100,14 @@ resource "mongodbatlas_advanced_cluster" "example-flex" {
   name         = "flex-cluster"
   cluster_type = "REPLICASET"
   
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       provider_name = "FLEX"
       backing_provider_name = "AWS"
       region_name = "US_EAST_1"
       priority = 7
-    }
-  }
+    }]
+  }]
 }
 
 data "mongodbatlas_advanced_clusters" "example" {
@@ -107,27 +118,24 @@ data "mongodbatlas_advanced_clusters" "example" {
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project to get the clusters.
-* `use_replication_spec_per_shard` - (Optional) Set this field to true to allow the data source to use the latest schema representing each shard with an individual `replication_specs` object. This enables representing clusters with independent shard scaling. **Note:** If not set to true, this data source return all clusters except clusters with asymmetric shards.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The cluster ID.
 * `results` - A list where each represents a Cluster. See below for more details.
 
 ### Advanced Cluster
 
 * `bi_connector_config` - Configuration settings applied to BI Connector for Atlas on this cluster. See [below](#bi_connector_config). In prior versions of the MongoDB Atlas Terraform Provider, this parameter was named `bi_connector`.
 * `cluster_type` - Type of the cluster that you want to create.
-* `disk_size_gb` - Capacity, in gigabytes, of the host's root volume. **(DEPRECATED)** Use `replication_specs.#.region_configs.#.(analytics_specs|electable_specs|read_only_specs).disk_size_gb` instead. To learn more, see the [Migration Guide](../guides/1.18.0-upgrade-guide) for more details.
 * `encryption_at_rest_provider` - Possible values are AWS, GCP, AZURE or NONE.
 * `tags` - Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#tags).
 * `labels` - Set that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the cluster. See [below](#labels).
 * `mongo_db_major_version` - Version of the cluster to deploy.
 * `pinned_fcv` - The pinned Feature Compatibility Version (FCV) with its associated expiration date. See [below](#pinned_fcv).
 * `pit_enabled` - Flag that indicates if the cluster uses Continuous Cloud Backup.
-* `replication_specs` - List of settings that configure your cluster regions. If `use_replication_spec_per_shard = true`, this array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations. See [below](#replication_specs)
+* `replication_specs` - List of settings that configure your cluster regions. This array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations. See [below](#replication_specs)
 * `root_cert_type` - Certificate Authority that MongoDB Atlas clusters use.
 * `termination_protection_enabled` - Flag that indicates whether termination protection is enabled on the cluster. If set to true, MongoDB Cloud won't delete the cluster. If set to false, MongoDB Cloud will delete the cluster.
 * `version_release_system` - Release cadence that Atlas uses for this cluster.
@@ -166,9 +174,7 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 
 ### replication_specs
 
-* `id` - **(DEPRECATED)** Unique identifer of the replication document for a zone in a Global Cluster. This value corresponds to the legacy sharding schema (no independent shard scaling) and is different from the Shard ID you may see in the Atlas UI. This value is not populated (empty string) when a sharded cluster has independently scaled shards.
-* `external_id` - Unique 24-hexadecimal digit string that identifies the replication object for a shard in a Cluster. This value corresponds to Shard ID displayed in the UI. When using old sharding configuration (replication spec with `num_shards` greater than 1) this value is not populated.
-* `num_shards` - Provide this value if you set a `cluster_type` of SHARDED or GEOSHARDED. **(DEPRECATED)** To learn more, see the [Migration Guide](../guides/1.18.0-upgrade-guide) for more details.
+* `external_id` - Unique 24-hexadecimal digit string that identifies the replication object for a shard in a Cluster. This value corresponds to Shard ID displayed in the UI.
 * `region_configs` - Configuration for the hardware specifications for nodes set for a given region. Each `region_configs` object describes the region's priority in elections and the number and type of MongoDB nodes that Atlas deploys to the region. Each `region_configs` object must have either an `analytics_specs` object, `electable_specs` object, or `read_only_specs` object. See [below](#region_configs).
 *  `container_id` - A key-value map of the Network Peering Container ID(s) for the configuration specified in `region_configs`. The Container ID is the id of the container either created programmatically by the user before any clusters existed in a project or when the first cluster in the region (AWS/Azure) or project (GCP) was created.  The syntax is `"providerName:regionName" = "containerId"`. Example `AWS:US_EAST_1" = "61e0797dde08fb498ca11a71`.
 * `zone_name` - Name for the zone in a Global Cluster.
@@ -215,9 +221,7 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 
 #### Advanced Configuration
 
-* `default_read_concern` - [Default level of acknowledgment requested from MongoDB for read operations](https://docs.mongodb.com/manual/reference/read-concern/) set for this cluster. **(DEPRECATED)** MongoDB 6.0 and later clusters default to `local`. To use a custom read concern level, please refer to your driver documentation.
 * `default_write_concern` -  [Default level of acknowledgment requested from MongoDB for write operations](https://docs.mongodb.com/manual/reference/write-concern/) set for this cluster. MongoDB 6.0 clusters default to [majority](https://docs.mongodb.com/manual/reference/write-concern/).
-* `fail_index_key_too_long` - **(DEPRECATED)** When true, documents can only be updated or inserted if, for all indexed fields on the target collection, the corresponding index entries do not exceed 1024 bytes. When false, mongod writes documents that exceed the limit but does not index them.
 * `javascript_enabled` - When true, the cluster allows execution of operations that perform server-side executions of JavaScript. When false, the cluster disables execution of those operations.
 * `minimum_enabled_tls_protocol` - Sets the minimum Transport Layer Security (TLS) version the cluster accepts for incoming connections. Valid values are:
   - TLS1_0
@@ -246,7 +250,6 @@ In addition to all arguments above, the following attributes are exported:
 
 * `cluster_id` - The cluster ID.
 *  `mongo_db_version` - Version of MongoDB the cluster runs, in `major-version`.`minor-version` format.
-* `id` -	The Terraform's unique identifier used internally for state management.
 * `connection_strings` - Set of connection strings that your applications use to connect to this cluster. More information in [Connection-strings](https://docs.mongodb.com/manual/reference/connection-string/). Use the parameters in this object to connect your applications to this cluster. To learn more about the formats of connection strings, see [Connection String Options](https://docs.atlas.mongodb.com/reference/faq/connection-changes/). NOTE: Atlas returns the contents of this object after the cluster is operational, not while it builds the cluster.
 
   **NOTE** Connection strings must be returned as a list, therefore to refer to a specific attribute value add index notation. Example: mongodbatlas_advanced_cluster.cluster-test.connection_strings.0.standard_srv
@@ -258,14 +261,14 @@ In addition to all arguments above, the following attributes are exported:
   - `connection_strings.private` -   [Network-peering-endpoint-aware](https://docs.atlas.mongodb.com/security-vpc-peering/#vpc-peering) mongodb://connection strings for each interface VPC endpoint you configured to connect to this cluster. Returned only if you created a network peering connection to this cluster.
   - `connection_strings.private_srv` -  [Network-peering-endpoint-aware](https://docs.atlas.mongodb.com/security-vpc-peering/#vpc-peering) mongodb+srv://connection strings for each interface VPC endpoint you configured to connect to this cluster. Returned only if you created a network peering connection to this cluster.
   - `connection_strings.private_endpoint` - Private endpoint connection strings. Each object describes the connection strings you can use to connect to this cluster through a private endpoint. Atlas returns this parameter only if you deployed a private endpoint to all regions to which you deployed this cluster's nodes.
-  - `connection_strings.private_endpoint.#.connection_string` - Private-endpoint-aware `mongodb://`connection string for this private endpoint.
-  - `connection_strings.private_endpoint.#.srv_connection_string` - Private-endpoint-aware `mongodb+srv://` connection string for this private endpoint. The `mongodb+srv` protocol tells the driver to look up the seed list of hosts in DNS . Atlas synchronizes this list with the nodes in a cluster. If the connection string uses this URI format, you don't need to: Append the seed list or Change the URI if the nodes change. Use this URI format if your driver supports it. If it doesn't, use `connection_strings.private_endpoint[#].connection_string`
-  - `connection_strings.private_endpoint.#.srv_shard_optimized_connection_string` - Private endpoint-aware connection string optimized for sharded clusters that uses the `mongodb+srv://` protocol to connect to MongoDB Cloud through a private endpoint. If the connection string uses this Uniform Resource Identifier (URI) format, you don't need to change the Uniform Resource Identifier (URI) if the nodes change. Use this Uniform Resource Identifier (URI) format if your application and Atlas cluster support it. If it doesn't, use and consult the documentation for connectionStrings.privateEndpoint[#].srvConnectionString.
-  - `connection_strings.private_endpoint.#.type` - Type of MongoDB process that you connect to with the connection strings. Atlas returns `MONGOD` for replica sets, or `MONGOS` for sharded clusters.
-  - `connection_strings.private_endpoint.#.endpoints` - Private endpoint through which you connect to Atlas when you use `connection_strings.private_endpoint[#].connection_string` or `connection_strings.private_endpoint[#].srv_connection_string`
-  - `connection_strings.private_endpoint.#.endpoints.#.endpoint_id` - Unique identifier of the private endpoint.
-  - `connection_strings.private_endpoint.#.endpoints.#.provider_name` - Cloud provider to which you deployed the private endpoint. Atlas returns `AWS` or `AZURE`.
-  - `connection_strings.private_endpoint.#.endpoints.#.region` - Region to which you deployed the private endpoint.
+  - `connection_strings.private_endpoint[#].connection_string` - Private-endpoint-aware `mongodb://`connection string for this private endpoint.
+  - `connection_strings.private_endpoint[#].srv_connection_string` - Private-endpoint-aware `mongodb+srv://` connection string for this private endpoint. The `mongodb+srv` protocol tells the driver to look up the seed list of hosts in DNS . Atlas synchronizes this list with the nodes in a cluster. If the connection string uses this URI format, you don't need to: Append the seed list or Change the URI if the nodes change. Use this URI format if your driver supports it. If it doesn't, use `connection_strings.private_endpoint[#].connection_string`
+  - `connection_strings.private_endpoint[#].srv_shard_optimized_connection_string` - Private endpoint-aware connection string optimized for sharded clusters that uses the `mongodb+srv://` protocol to connect to MongoDB Cloud through a private endpoint. If the connection string uses this Uniform Resource Identifier (URI) format, you don't need to change the Uniform Resource Identifier (URI) if the nodes change. Use this Uniform Resource Identifier (URI) format if your application and Atlas cluster support it. If it doesn't, use and consult the documentation for connectionStrings.privateEndpoint[#].srvConnectionString.
+  - `connection_strings.private_endpoint[#].type` - Type of MongoDB process that you connect to with the connection strings. Atlas returns `MONGOD` for replica sets, or `MONGOS` for sharded clusters.
+  - `connection_strings.private_endpoint[#].endpoints` - Private endpoint through which you connect to Atlas when you use `connection_strings.private_endpoint[#].connection_string` or `connection_strings.private_endpoint[#].srv_connection_string`
+  - `connection_strings.private_endpoint[#].endpoints[#].endpoint_id` - Unique identifier of the private endpoint.
+  - `connection_strings.private_endpoint[#].endpoints[#].provider_name` - Cloud provider to which you deployed the private endpoint. Atlas returns `AWS` or `AZURE`.
+  - `connection_strings.private_endpoint[#].endpoints[#].region` - Region to which you deployed the private endpoint.
 * `paused` - Flag that indicates whether the cluster is paused or not.
 * `state_name` - Current state of the cluster. The possible states are:
 

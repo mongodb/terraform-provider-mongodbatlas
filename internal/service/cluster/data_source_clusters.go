@@ -7,20 +7,21 @@ import (
 	"net/http"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 )
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourcePluralRead,
+		DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "datasource", "mongodbatlas_advanced_clusters", clusterToAdvancedClusterGuide),
+		ReadContext:        dataSourcePluralRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:     schema.TypeString,
@@ -35,7 +36,7 @@ func PluralDataSource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"advanced_configuration": advancedcluster.SchemaAdvancedConfigDS(),
+						"advanced_configuration": schemaAdvancedConfigDS(),
 						"auto_scaling_disk_gb_enabled": {
 							Type:     schema.TypeBool,
 							Computed: true,
@@ -308,7 +309,7 @@ func PluralDataSource() *schema.Resource {
 								},
 							},
 						},
-						"tags":                   &advancedcluster.DSTagsSchema,
+						"tags":                   &DSTagsSchema,
 						"snapshot_backup_policy": computedCloudProviderSnapshotBackupPolicySchema(),
 						"container_id": {
 							Type:     schema.TypeString,
@@ -373,7 +374,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	}
 
 	if err := d.Set("results", flattenClusters(ctx, d, conn, connV2, connV220240530, clusters, latestClusterModels)); err != nil {
-		return diag.FromErr(fmt.Errorf(advancedcluster.ErrorClusterSetting, "results", d.Id(), err))
+		return diag.FromErr(fmt.Errorf(ErrorClusterSetting, "results", d.Id(), err))
 	}
 
 	return nil
@@ -392,7 +393,7 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 		if err != nil {
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", clusters[i].ID, err)
 		}
-		processArgs, _, err := connV2.ClustersApi.GetClusterAdvancedConfiguration(ctx, clusters[i].GroupID, clusters[i].Name).Execute()
+		processArgs, _, err := connV2.ClustersApi.GetProcessArgs(ctx, clusters[i].GroupID, clusters[i].Name).Execute()
 		if err != nil {
 			log.Printf("[WARN] Error setting `advanced_configuration` for the cluster(%s): %s", clusters[i].ID, err)
 		}
@@ -453,7 +454,7 @@ func flattenClusters(ctx context.Context, d *schema.ResourceData, conn *matlas.C
 			"version_release_system":                          clusters[i].VersionReleaseSystem,
 			"container_id":                                    containerID,
 			"redact_client_log_data":                          latestClusterModels[clusters[i].Name].GetRedactClientLogData(),
-			"pinned_fcv":                                      advancedcluster.FlattenPinnedFCV(latestClusterModels[clusters[i].Name]),
+			"pinned_fcv":                                      flattenPinnedFCV(latestClusterModels[clusters[i].Name]),
 		}
 		results = append(results, result)
 	}

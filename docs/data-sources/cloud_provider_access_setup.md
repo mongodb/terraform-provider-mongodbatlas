@@ -1,3 +1,7 @@
+---
+subcategory: "Cloud Provider Access"
+---
+
 # Data Source: mongodbatlas_cloud_provider_access_setup
 
 `mongodbatlas_cloud_provider_access_setup` allows you to get a single role for a provider access role setup. Supported providers: AWS, AZURE and GCP.

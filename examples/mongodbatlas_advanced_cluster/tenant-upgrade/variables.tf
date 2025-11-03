@@ -2,13 +2,16 @@ variable "atlas_org_id" {
   description = "Atlas organization id"
   type        = string
 }
-variable "public_key" {
-  description = "Public API key to authenticate to Atlas"
+variable "atlas_client_id" {
+  description = "MongoDB Atlas Service Account Client ID"
   type        = string
+  default     = ""
 }
-variable "private_key" {
-  description = "Private API key to authenticate to Atlas"
+variable "atlas_client_secret" {
+  description = "MongoDB Atlas Service Account Client Secret"
   type        = string
+  sensitive   = true
+  default     = ""
 }
 variable "provider_name" {
   description = "Atlas cluster provider name"
@@ -17,6 +20,7 @@ variable "provider_name" {
 }
 variable "backing_provider_name" {
   description = "Atlas cluster backing provider name"
+  default     = null # so it's not set when upgrading
   type        = string
 }
 variable "provider_instance_size_name" {

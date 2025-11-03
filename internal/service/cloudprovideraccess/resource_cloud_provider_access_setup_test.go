@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -15,6 +16,10 @@ import (
 
 func TestAccCloudProviderAccessSetupAWS_basic(t *testing.T) {
 	resource.ParallelTest(t, *basicSetupTestCase(t))
+}
+
+func TestAccCloudProviderAccessSetupAWS_createTimeoutWithDeleteOnCreateTimeout(t *testing.T) {
+	resource.Test(t, *basicSetupTestCaseWithDeleteOnCreateTimeout(t))
 }
 
 const (
@@ -123,6 +128,26 @@ func basicSetupTestCase(tb testing.TB) *resource.TestCase {
 	}
 }
 
+func basicSetupTestCaseWithDeleteOnCreateTimeout(tb testing.TB) *resource.TestCase {
+	tb.Helper()
+
+	var (
+		projectID = acc.ProjectIDExecution(tb)
+	)
+
+	return &resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(tb) },
+		CheckDestroy:             checkDestroy,
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:      configSetupGCPWithTimeoutAndDeleteOnCreateTimeout(projectID),
+				ExpectError: regexp.MustCompile("will run cleanup because delete_on_create_timeout is true"),
+			},
+		},
+	}
+}
+
 func configSetupAWS(projectID string) string {
 	return fmt.Sprintf(`
 	resource "mongodbatlas_cloud_provider_access_setup" "test" {
@@ -136,6 +161,19 @@ func configSetupAWS(projectID string) string {
 		role_id =  mongodbatlas_cloud_provider_access_setup.test.role_id
 	 }
 
+	`, projectID)
+}
+
+func configSetupGCPWithTimeoutAndDeleteOnCreateTimeout(projectID string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_cloud_provider_access_setup" "test" {
+			project_id = %[1]q
+			provider_name = "GCP"
+			delete_on_create_timeout = true
+			timeouts {
+				create = "1s"
+			}
+		}
 	`, projectID)
 }
 
@@ -166,7 +204,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		id := ids["id"]
 
-		role, _, err := acc.ConnV2().CloudProviderAccessApi.GetCloudProviderAccessRole(context.Background(), ids["project_id"], id).Execute()
+		role, _, err := acc.ConnV2().CloudProviderAccessApi.GetCloudProviderAccess(context.Background(), ids["project_id"], id).Execute()
 		if err != nil {
 			return fmt.Errorf(cloudprovideraccess.ErrorGetRead, err)
 		}

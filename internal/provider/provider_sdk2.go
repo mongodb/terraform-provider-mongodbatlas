@@ -3,18 +3,13 @@ package provider
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strings"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/accesslistapikey"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/apikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/auditing"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/backupcompliancepolicy"
@@ -28,7 +23,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/clusteroutagesimulation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/customdbrole"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/customdnsconfigurationclusteraws"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/datalakepipeline"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/eventtrigger"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federateddatabaseinstance"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/federatedquerylimit"
@@ -46,10 +40,8 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/orginvitation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privateendpointregionalmode"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpoint"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointserverless"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointservice"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointservicedatafederationonlinearchive"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/privatelinkendpointserviceserverless"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectapikey"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/projectinvitation"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/rolesorgid"
@@ -60,11 +52,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/thirdpartyintegration"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/x509authenticationdatabaseuser"
 )
-
-type SecretData struct {
-	PublicKey  string `json:"public_key"`
-	PrivateKey string `json:"private_key"`
-}
 
 // NewSdkV2Provider returns the provider to be use by the code.
 func NewSdkV2Provider() *schema.Provider {
@@ -127,6 +114,21 @@ func NewSdkV2Provider() *schema.Provider {
 				Optional:    true,
 				Description: "AWS Security Token Service provided session token.",
 			},
+			"client_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "MongoDB Atlas Client ID for Service Account.",
+			},
+			"client_secret": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "MongoDB Atlas Client Secret for Service Account.",
+			},
+			"access_token": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "MongoDB Atlas Access Token for Service Account.",
+			},
 		},
 		DataSourcesMap: getDataSourcesMap(),
 		ResourcesMap:   getResourcesMap(),
@@ -153,6 +155,23 @@ func NewSdkV2Provider() *schema.Provider {
 	return provider
 }
 
+func assumeRoleSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"role_arn": {
+					Type:        schema.TypeString,
+					Optional:    true,
+					Description: "Amazon Resource Name (ARN) of an IAM Role to assume prior to making API calls.",
+				},
+			},
+		},
+	}
+}
+
 func getDataSourcesMap() map[string]*schema.Resource {
 	dataSourcesMap := map[string]*schema.Resource{
 		"mongodbatlas_custom_db_role":                    customdbrole.DataSource(),
@@ -173,7 +192,6 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_maintenance_window":                maintenancewindow.DataSource(),
 		"mongodbatlas_auditing":                          auditing.DataSource(),
 		"mongodbatlas_team":                              team.DataSource(),
-		"mongodbatlas_teams":                             team.LegacyTeamsDataSource(),
 		"mongodbatlas_global_cluster_config":             globalclusterconfig.DataSource(),
 		"mongodbatlas_x509_authentication_database_user": x509authenticationdatabaseuser.DataSource(),
 		"mongodbatlas_private_endpoint_regional_mode":    privateendpointregionalmode.DataSource(),
@@ -181,8 +199,6 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archives": privatelinkendpointservicedatafederationonlinearchive.PluralDataSource(),
 		"mongodbatlas_privatelink_endpoint":                                         privatelinkendpoint.DataSource(),
 		"mongodbatlas_privatelink_endpoint_service":                                 privatelinkendpointservice.DataSource(),
-		"mongodbatlas_privatelink_endpoint_service_serverless":                      privatelinkendpointserviceserverless.DataSource(),
-		"mongodbatlas_privatelink_endpoints_service_serverless":                     privatelinkendpointserviceserverless.PluralDataSource(),
 		"mongodbatlas_third_party_integration":                                      thirdpartyintegration.DataSource(),
 		"mongodbatlas_third_party_integrations":                                     thirdpartyintegration.PluralDataSource(),
 		"mongodbatlas_cloud_provider_access_setup":                                  cloudprovideraccess.DataSourceSetup(),
@@ -193,10 +209,6 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_ldap_verify":                                                  ldapverify.DataSource(),
 		"mongodbatlas_search_index":                                                 searchindex.DataSource(),
 		"mongodbatlas_search_indexes":                                               searchindex.PluralDataSource(),
-		"mongodbatlas_data_lake_pipeline_run":                                       datalakepipeline.DataSourceRun(),
-		"mongodbatlas_data_lake_pipeline_runs":                                      datalakepipeline.PluralDataSourceRun(),
-		"mongodbatlas_data_lake_pipeline":                                           datalakepipeline.DataSource(),
-		"mongodbatlas_data_lake_pipelines":                                          datalakepipeline.PluralDataSource(),
 		"mongodbatlas_event_trigger":                                                eventtrigger.DataSource(),
 		"mongodbatlas_event_triggers":                                               eventtrigger.PluralDataSource(),
 		"mongodbatlas_project_invitation":                                           projectinvitation.DataSource(),
@@ -232,34 +244,27 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_shared_tier_snapshot":                                         sharedtier.DataSourceSnapshot(),
 		"mongodbatlas_shared_tier_snapshots":                                        sharedtier.PluralDataSourceSnapshot(),
 	}
-	if !config.PreviewProviderV2AdvancedCluster() {
-		dataSourcesMap["mongodbatlas_advanced_cluster"] = advancedcluster.DataSource()
-		dataSourcesMap["mongodbatlas_advanced_clusters"] = advancedcluster.PluralDataSource()
-	}
 	return dataSourcesMap
 }
 
 func getResourcesMap() map[string]*schema.Resource {
 	resourcesMap := map[string]*schema.Resource{
-		"mongodbatlas_api_key":                           apikey.Resource(),
-		"mongodbatlas_access_list_api_key":               accesslistapikey.Resource(),
-		"mongodbatlas_project_api_key":                   projectapikey.Resource(),
-		"mongodbatlas_custom_db_role":                    customdbrole.Resource(),
-		"mongodbatlas_cluster":                           cluster.Resource(),
-		"mongodbatlas_network_container":                 networkcontainer.Resource(),
-		"mongodbatlas_network_peering":                   networkpeering.Resource(),
-		"mongodbatlas_maintenance_window":                maintenancewindow.Resource(),
-		"mongodbatlas_auditing":                          auditing.Resource(),
-		"mongodbatlas_team":                              team.Resource(),
-		"mongodbatlas_teams":                             team.LegacyTeamsResource(),
-		"mongodbatlas_global_cluster_config":             globalclusterconfig.Resource(),
-		"mongodbatlas_x509_authentication_database_user": x509authenticationdatabaseuser.Resource(),
-		"mongodbatlas_private_endpoint_regional_mode":    privateendpointregionalmode.Resource(),
+		"mongodbatlas_api_key":                                                     apikey.Resource(),
+		"mongodbatlas_access_list_api_key":                                         accesslistapikey.Resource(),
+		"mongodbatlas_project_api_key":                                             projectapikey.Resource(),
+		"mongodbatlas_custom_db_role":                                              customdbrole.Resource(),
+		"mongodbatlas_cluster":                                                     cluster.Resource(),
+		"mongodbatlas_network_container":                                           networkcontainer.Resource(),
+		"mongodbatlas_network_peering":                                             networkpeering.Resource(),
+		"mongodbatlas_maintenance_window":                                          maintenancewindow.Resource(),
+		"mongodbatlas_auditing":                                                    auditing.Resource(),
+		"mongodbatlas_team":                                                        team.Resource(),
+		"mongodbatlas_global_cluster_config":                                       globalclusterconfig.Resource(),
+		"mongodbatlas_x509_authentication_database_user":                           x509authenticationdatabaseuser.Resource(),
+		"mongodbatlas_private_endpoint_regional_mode":                              privateendpointregionalmode.Resource(),
 		"mongodbatlas_privatelink_endpoint_service_data_federation_online_archive": privatelinkendpointservicedatafederationonlinearchive.Resource(),
 		"mongodbatlas_privatelink_endpoint":                                        privatelinkendpoint.Resource(),
-		"mongodbatlas_privatelink_endpoint_serverless":                             privatelinkendpointserverless.Resource(),
 		"mongodbatlas_privatelink_endpoint_service":                                privatelinkendpointservice.Resource(),
-		"mongodbatlas_privatelink_endpoint_service_serverless":                     privatelinkendpointserviceserverless.Resource(),
 		"mongodbatlas_third_party_integration":                                     thirdpartyintegration.Resource(),
 		"mongodbatlas_online_archive":                                              onlinearchive.Resource(),
 		"mongodbatlas_custom_dns_configuration_cluster_aws":                        customdnsconfigurationclusteraws.Resource(),
@@ -268,7 +273,6 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_cloud_provider_access_setup":                                 cloudprovideraccess.ResourceSetup(),
 		"mongodbatlas_cloud_provider_access_authorization":                         cloudprovideraccess.ResourceAuthorization(),
 		"mongodbatlas_search_index":                                                searchindex.Resource(),
-		"mongodbatlas_data_lake_pipeline":                                          datalakepipeline.Resource(),
 		"mongodbatlas_event_trigger":                                               eventtrigger.Resource(),
 		"mongodbatlas_project_invitation":                                          projectinvitation.Resource(),
 		"mongodbatlas_org_invitation":                                              orginvitation.Resource(),
@@ -287,9 +291,6 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_serverless_instance":                                         serverlessinstance.Resource(),
 		"mongodbatlas_cluster_outage_simulation":                                   clusteroutagesimulation.Resource(),
 	}
-	if !config.PreviewProviderV2AdvancedCluster() {
-		resourcesMap["mongodbatlas_advanced_cluster"] = advancedcluster.Resource()
-	}
 	analyticsMap := map[string]*schema.Resource{}
 	for fullName, resource := range resourcesMap {
 		name := strings.TrimPrefix(fullName, "mongodbatlas_")
@@ -300,303 +301,47 @@ func getResourcesMap() map[string]*schema.Resource {
 
 func providerConfigure(provider *schema.Provider) func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 	return func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
-		diagnostics := setDefaultsAndValidations(d)
-		if diagnostics.HasError() {
-			return nil, diagnostics
-		}
-
-		cfg := config.Config{
-			PublicKey:        d.Get("public_key").(string),
-			PrivateKey:       d.Get("private_key").(string),
-			BaseURL:          d.Get("base_url").(string),
-			RealmBaseURL:     d.Get("realm_base_url").(string),
-			TerraformVersion: provider.TerraformVersion,
-		}
-
-		assumeRoleValue, ok := d.GetOk("assume_role")
-		awsRoleDefined := ok && len(assumeRoleValue.([]any)) > 0 && assumeRoleValue.([]any)[0] != nil
-		if awsRoleDefined {
-			cfg.AssumeRole = expandAssumeRole(assumeRoleValue.([]any)[0].(map[string]any))
-			secret := d.Get("secret_name").(string)
-			region := conversion.MongoDBRegionToAWSRegion(d.Get("region").(string))
-			awsAccessKeyID := d.Get("aws_access_key_id").(string)
-			awsSecretAccessKey := d.Get("aws_secret_access_key").(string)
-			awsSessionToken := d.Get("aws_session_token").(string)
-			endpoint := d.Get("sts_endpoint").(string)
-			var err error
-			cfg, err = configureCredentialsSTS(&cfg, secret, region, awsAccessKeyID, awsSecretAccessKey, awsSessionToken, endpoint)
-			if err != nil {
-				return nil, append(diagnostics, diag.FromErr(err)...)
-			}
-		}
-
-		client, err := cfg.NewClient(ctx)
+		var diags diag.Diagnostics
+		providerVars := getSDKv2ProviderVars(d)
+		c, err := config.GetCredentials(ctx, providerVars, config.NewEnvVars(), getAWSCredentials)
 		if err != nil {
-			return nil, append(diagnostics, diag.FromErr(err)...)
+			return nil, append(diags, diag.FromErr(fmt.Errorf("error getting credentials for provider: %w", err))...)
 		}
-		return client, diagnostics
+		// Don't log possible warnings or errors as they will be logged by the TPF provider.
+		if c.Errors() != "" {
+			return nil, nil
+		}
+		client, err := config.NewClient(c, provider.TerraformVersion)
+		if err != nil {
+			return nil, append(diags, diag.FromErr(fmt.Errorf("error initializing provider: %w", err))...)
+		}
+		return client, nil
 	}
 }
 
-func setDefaultsAndValidations(d *schema.ResourceData) diag.Diagnostics {
-	diagnostics := []diag.Diagnostic{}
-
-	mongodbgovCloud := conversion.Pointer(d.Get("is_mongodbgov_cloud").(bool))
-	if *mongodbgovCloud {
-		if !isGovBaseURLConfiguredForSDK2Provider(d) {
-			if err := d.Set("base_url", MongodbGovCloudURL); err != nil {
-				return append(diagnostics, diag.FromErr(err)...)
-			}
-		}
-	}
-
-	if err := setValueFromConfigOrEnv(d, "base_url", []string{
-		"MONGODB_ATLAS_BASE_URL",
-		"MCLI_OPS_MANAGER_URL",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	awsRoleDefined := false
+func getSDKv2ProviderVars(d *schema.ResourceData) *config.Vars {
+	assumeRoleARN := ""
 	assumeRoles := d.Get("assume_role").([]any)
-	if len(assumeRoles) == 0 {
-		roleArn := MultiEnvDefaultFunc([]string{
-			"ASSUME_ROLE_ARN",
-			"TF_VAR_ASSUME_ROLE_ARN",
-		}, "").(string)
-		if roleArn != "" {
-			awsRoleDefined = true
-			if err := d.Set("assume_role", []map[string]any{{"role_arn": roleArn}}); err != nil {
-				return append(diagnostics, diag.FromErr(err)...)
-			}
+	if len(assumeRoles) > 0 {
+		if assumeRole, ok := assumeRoles[0].(map[string]any); ok {
+			assumeRoleARN = assumeRole["role_arn"].(string)
 		}
-	} else {
-		awsRoleDefined = true
 	}
-
-	if err := setValueFromConfigOrEnv(d, "public_key", []string{
-		"MONGODB_ATLAS_PUBLIC_API_KEY",
-		"MONGODB_ATLAS_PUBLIC_KEY",
-		"MCLI_PUBLIC_API_KEY",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
+	baseURL := applyGovBaseURLIfNeeded(d.Get("base_url").(string), d.Get("is_mongodbgov_cloud").(bool))
+	return &config.Vars{
+		AccessToken:        d.Get("access_token").(string),
+		ClientID:           d.Get("client_id").(string),
+		ClientSecret:       d.Get("client_secret").(string),
+		PublicKey:          d.Get("public_key").(string),
+		PrivateKey:         d.Get("private_key").(string),
+		BaseURL:            baseURL,
+		RealmBaseURL:       d.Get("realm_base_url").(string),
+		AWSAssumeRoleARN:   assumeRoleARN,
+		AWSSecretName:      d.Get("secret_name").(string),
+		AWSRegion:          d.Get("region").(string),
+		AWSAccessKeyID:     d.Get("aws_access_key_id").(string),
+		AWSSecretAccessKey: d.Get("aws_secret_access_key").(string),
+		AWSSessionToken:    d.Get("aws_session_token").(string),
+		AWSEndpoint:        d.Get("sts_endpoint").(string),
 	}
-	if d.Get("public_key").(string) == "" && !awsRoleDefined {
-		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: MissingAuthAttrError})
-	}
-
-	if err := setValueFromConfigOrEnv(d, "private_key", []string{
-		"MONGODB_ATLAS_PRIVATE_API_KEY",
-		"MONGODB_ATLAS_PRIVATE_KEY",
-		"MCLI_PRIVATE_API_KEY",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if d.Get("private_key").(string) == "" && !awsRoleDefined {
-		diagnostics = append(diagnostics, diag.Diagnostic{Severity: diag.Warning, Summary: MissingAuthAttrError})
-	}
-
-	if err := setValueFromConfigOrEnv(d, "realm_base_url", []string{
-		"MONGODB_REALM_BASE_URL",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if err := setValueFromConfigOrEnv(d, "region", []string{
-		"AWS_REGION",
-		"TF_VAR_AWS_REGION",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if err := setValueFromConfigOrEnv(d, "sts_endpoint", []string{
-		"STS_ENDPOINT",
-		"TF_VAR_STS_ENDPOINT",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if err := setValueFromConfigOrEnv(d, "aws_access_key_id", []string{
-		"AWS_ACCESS_KEY_ID",
-		"TF_VAR_AWS_ACCESS_KEY_ID",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if err := setValueFromConfigOrEnv(d, "aws_secret_access_key", []string{
-		"AWS_SECRET_ACCESS_KEY",
-		"TF_VAR_AWS_SECRET_ACCESS_KEY",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if err := setValueFromConfigOrEnv(d, "secret_name", []string{
-		"SECRET_NAME",
-		"TF_VAR_SECRET_NAME",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	if err := setValueFromConfigOrEnv(d, "aws_session_token", []string{
-		"AWS_SESSION_TOKEN",
-		"TF_VAR_AWS_SESSION_TOKEN",
-	}); err != nil {
-		return append(diagnostics, diag.FromErr(err)...)
-	}
-
-	return diagnostics
-}
-
-func setValueFromConfigOrEnv(d *schema.ResourceData, attrName string, envVars []string) error {
-	var val = d.Get(attrName).(string)
-	if val == "" {
-		val = MultiEnvDefaultFunc(envVars, "").(string)
-	}
-	return d.Set(attrName, val)
-}
-
-// assumeRoleSchema From aws provider.go
-func assumeRoleSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"duration": {
-					Type:         schema.TypeString,
-					Optional:     true,
-					Description:  "The duration, between 15 minutes and 12 hours, of the role session. Valid time units are ns, us (or µs), ms, s, h, or m.",
-					ValidateFunc: validAssumeRoleDuration,
-				},
-				"external_id": {
-					Type:        schema.TypeString,
-					Optional:    true,
-					Description: "A unique identifier that might be required when you assume a role in another account.",
-					ValidateFunc: validation.All(
-						validation.StringLenBetween(2, 1224),
-						validation.StringMatch(regexp.MustCompile(`[\w+=,.@:/\-]*`), ""),
-					),
-				},
-				"policy": {
-					Type:         schema.TypeString,
-					Optional:     true,
-					Description:  "IAM Policy JSON describing further restricting permissions for the IAM Role being assumed.",
-					ValidateFunc: validation.StringIsJSON,
-				},
-				"policy_arns": {
-					Type:        schema.TypeSet,
-					Optional:    true,
-					Description: "Amazon Resource Names (ARNs) of IAM Policies describing further restricting permissions for the IAM Role being assumed.",
-					Elem: &schema.Schema{
-						Type: schema.TypeString,
-					},
-				},
-				"role_arn": {
-					Type:        schema.TypeString,
-					Optional:    true,
-					Description: "Amazon Resource Name (ARN) of an IAM Role to assume prior to making API calls.",
-				},
-				"session_name": {
-					Type:         schema.TypeString,
-					Optional:     true,
-					Description:  "An identifier for the assumed role session.",
-					ValidateFunc: validAssumeRoleSessionName,
-				},
-				"source_identity": {
-					Type:         schema.TypeString,
-					Optional:     true,
-					Description:  "Source identity specified by the principal assuming the role.",
-					ValidateFunc: validAssumeRoleSourceIdentity,
-				},
-				"tags": {
-					Type:        schema.TypeMap,
-					Optional:    true,
-					Description: "Assume role session tags.",
-					Elem:        &schema.Schema{Type: schema.TypeString},
-				},
-				"transitive_tag_keys": {
-					Type:        schema.TypeSet,
-					Optional:    true,
-					Description: "Assume role session tag keys to pass to any subsequent sessions.",
-					Elem:        &schema.Schema{Type: schema.TypeString},
-				},
-			},
-		},
-	}
-}
-
-var validAssumeRoleSessionName = validation.All(
-	validation.StringLenBetween(2, 64),
-	validation.StringMatch(regexp.MustCompile(`[\w+=,.@\-]*`), ""),
-)
-
-var validAssumeRoleSourceIdentity = validation.All(
-	validation.StringLenBetween(2, 64),
-	validation.StringMatch(regexp.MustCompile(`[\w+=,.@\-]*`), ""),
-)
-
-// validAssumeRoleDuration validates a string can be parsed as a valid time.Duration
-// and is within a minimum of 15 minutes and maximum of 12 hours
-func validAssumeRoleDuration(v any, k string) (ws []string, errorResults []error) {
-	duration, err := time.ParseDuration(v.(string))
-
-	if err != nil {
-		errorResults = append(errorResults, fmt.Errorf("%q cannot be parsed as a duration: %w", k, err))
-		return
-	}
-
-	if duration.Minutes() < 15 || duration.Hours() > 12 {
-		errorResults = append(errorResults, fmt.Errorf("duration %q must be between 15 minutes (15m) and 12 hours (12h), inclusive", k))
-	}
-
-	return
-}
-
-func expandAssumeRole(tfMap map[string]any) *config.AssumeRole {
-	if tfMap == nil {
-		return nil
-	}
-
-	assumeRole := config.AssumeRole{}
-
-	if v, ok := tfMap["duration"].(string); ok && v != "" {
-		duration, _ := time.ParseDuration(v)
-		assumeRole.Duration = duration
-	}
-
-	if v, ok := tfMap["external_id"].(string); ok && v != "" {
-		assumeRole.ExternalID = v
-	}
-
-	if v, ok := tfMap["policy"].(string); ok && v != "" {
-		assumeRole.Policy = v
-	}
-
-	if v, ok := tfMap["policy_arns"].(*schema.Set); ok && v.Len() > 0 {
-		assumeRole.PolicyARNs = conversion.ExpandStringList(v.List())
-	}
-
-	if v, ok := tfMap["role_arn"].(string); ok && v != "" {
-		assumeRole.RoleARN = v
-	}
-
-	if v, ok := tfMap["session_name"].(string); ok && v != "" {
-		assumeRole.SessionName = v
-	}
-
-	if v, ok := tfMap["source_identity"].(string); ok && v != "" {
-		assumeRole.SourceIdentity = v
-	}
-
-	if v, ok := tfMap["transitive_tag_keys"].(*schema.Set); ok && v.Len() > 0 {
-		assumeRole.TransitiveTagKeys = conversion.ExpandStringList(v.List())
-	}
-
-	return &assumeRole
-}
-
-func isGovBaseURLConfiguredForSDK2Provider(d *schema.ResourceData) bool {
-	return isGovBaseURLConfigured(d.Get("base_url").(string))
 }

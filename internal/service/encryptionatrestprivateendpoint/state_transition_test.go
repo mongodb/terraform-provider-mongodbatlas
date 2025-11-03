@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
-	"go.mongodb.org/atlas-sdk/v20250312006/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/mockadmin"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -61,13 +61,13 @@ func TestStateTransition(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			m := mockadmin.NewEncryptionAtRestUsingCustomerKeyManagementApi(t)
-			m.EXPECT().GetEncryptionAtRestPrivateEndpoint(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(admin.GetEncryptionAtRestPrivateEndpointApiRequest{ApiService: m})
+			m.EXPECT().GetRestPrivateEndpoint(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(admin.GetRestPrivateEndpointApiRequest{ApiService: m})
 
 			for _, resp := range tc.mockResponses {
 				modelResp, httpResp, err := resp.get()
-				m.EXPECT().GetEncryptionAtRestPrivateEndpointExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
+				m.EXPECT().GetRestPrivateEndpointExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			resp, err := encryptionatrestprivateendpoint.WaitStateTransitionWithMinTimeout(t.Context(), 1*time.Second, "project-id", "cloud-provider", "endpoint-id", m)
+			resp, err := encryptionatrestprivateendpoint.WaitStateTransitionWithMinTimeoutAndTimeout(t.Context(), 1*time.Second, 20*time.Minute, "project-id", "cloud-provider", "endpoint-id", m)
 			assert.Equal(t, tc.expectedError, err != nil)
 			if resp != nil {
 				assert.Equal(t, tc.expectedState, resp.Status)
@@ -105,13 +105,13 @@ func TestDeleteStateTransition(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			m := mockadmin.NewEncryptionAtRestUsingCustomerKeyManagementApi(t)
-			m.EXPECT().GetEncryptionAtRestPrivateEndpoint(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(admin.GetEncryptionAtRestPrivateEndpointApiRequest{ApiService: m})
+			m.EXPECT().GetRestPrivateEndpoint(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(admin.GetRestPrivateEndpointApiRequest{ApiService: m})
 
 			for _, resp := range tc.mockResponses {
 				modelResp, httpResp, err := resp.get()
-				m.EXPECT().GetEncryptionAtRestPrivateEndpointExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
+				m.EXPECT().GetRestPrivateEndpointExecute(mock.Anything).Return(modelResp, httpResp, err).Once()
 			}
-			resp, err := encryptionatrestprivateendpoint.WaitDeleteStateTransitionWithMinTimeout(t.Context(), 1*time.Second, "project-id", "cloud-provider", "endpoint-id", m)
+			resp, err := encryptionatrestprivateendpoint.WaitDeleteStateTransitionWithMinTimeoutAndTimeout(t.Context(), 1*time.Second, 20*time.Minute, "project-id", "cloud-provider", "endpoint-id", m)
 			assert.Equal(t, tc.expectedError, err != nil)
 			if resp != nil {
 				assert.Equal(t, tc.expectedState, resp.Status)

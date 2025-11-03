@@ -7,14 +7,12 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	admin20240805 "go.mongodb.org/atlas-sdk/v20240805005/admin"
 	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 	matlasClient "go.mongodb.org/atlas/mongodbatlas"
 	realmAuth "go.mongodb.org/realm/auth"
 	"go.mongodb.org/realm/realm"
@@ -22,15 +20,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"github.com/mongodb-forks/digest"
 	adminpreview "github.com/mongodb/atlas-sdk-go/admin"
-	"github.com/spf13/cast"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
+
+	"golang.org/x/oauth2"
 )
 
 const (
-	toolName                             = "terraform-provider-mongodbatlas"
-	terraformPlatformName                = "Terraform"
-	previewV2AdvancedClusterEnabledUAKey = "AdvancedClusterPreview"
+	toolName              = "terraform-provider-mongodbatlas"
+	terraformPlatformName = "Terraform"
 
 	timeout               = 5 * time.Second
 	keepAlive             = 30 * time.Second
@@ -38,6 +36,15 @@ const (
 	maxIdleConnsPerHost   = 5
 	idleConnTimeout       = 30 * time.Second
 	expectContinueTimeout = 1 * time.Second
+)
+
+type AuthMethod int
+
+const (
+	Unknown AuthMethod = iota
+	AccessToken
+	ServiceAccount
+	Digest
 )
 
 var baseTransport = &http.Transport{
@@ -52,200 +59,182 @@ var baseTransport = &http.Transport{
 	ExpectContinueTimeout: expectContinueTimeout,
 }
 
-// MongoDBClient contains the mongodbatlas clients and configurations
-type MongoDBClient struct {
-	Atlas           *matlasClient.Client
-	AtlasV2         *admin.APIClient
-	AtlasPreview    *adminpreview.APIClient
-	AtlasV220240805 *admin20240805.APIClient // used in advanced_cluster to avoid adopting 2024-10-23 release with ISS autoscaling
-	AtlasV220240530 *admin20240530.APIClient // used in advanced_cluster and cloud_backup_schedule for avoiding breaking changes (supporting deprecated replication_specs.id)
-	AtlasV220241113 *admin20241113.APIClient // used in teams and atlas_users to avoiding breaking changes
-	Config          *Config
+// networkLoggingBaseTransport should be used as a base for authentication transport so authentication requests can be logged.
+func networkLoggingBaseTransport() http.RoundTripper {
+	return NewTransportWithNetworkLogging(baseTransport, logging.IsDebugOrHigher())
 }
 
-// Config contains the configurations needed to use SDKs
-type Config struct {
-	AssumeRole                      *AssumeRole
-	PublicKey                       string
-	PrivateKey                      string
-	BaseURL                         string
-	RealmBaseURL                    string
-	TerraformVersion                string
-	PreviewV2AdvancedClusterEnabled bool
-}
-
-type AssumeRole struct {
-	Tags              map[string]string
-	RoleARN           string
-	ExternalID        string
-	Policy            string
-	SessionName       string
-	SourceIdentity    string
-	PolicyARNs        []string
-	TransitiveTagKeys []string
-	Duration          time.Duration
-}
-
-type SecretData struct {
-	PublicKey  string `json:"public_key"`
-	PrivateKey string `json:"private_key"`
-}
-
-type UAMetadata struct {
-	Name  string
-	Value string
-}
-
-func (c *Config) NewClient(ctx context.Context) (any, error) {
-	// Transport chain (outermost to innermost):
-	// userAgentTransport -> tfLoggingTransport -> digestTransport -> networkLoggingTransport -> baseTransport
-	//
-	// This ordering ensures:
-	// 1. networkLoggingTransport logs ALL requests including digest auth 401 challenges
-	// 2. tfLoggingTransport only logs final authenticated requests (not sensitive auth details)
-	// 3. userAgentTransport modifies User-Agent before tfLoggingTransport logs it
-	networkLoggingTransport := NewTransportWithNetworkLogging(baseTransport, logging.IsDebugOrHigher())
-	digestTransport := digest.NewTransportWithHTTPRoundTripper(cast.ToString(c.PublicKey), cast.ToString(c.PrivateKey), networkLoggingTransport)
+// tfLoggingInterceptor should wrap the authentication transport to add Terraform logging.
+func tfLoggingInterceptor(base http.RoundTripper) http.RoundTripper {
 	// Don't change logging.NewTransport to NewSubsystemLoggingHTTPTransport until all resources are in TPF.
-	tfLoggingTransport := logging.NewTransport("Atlas", digestTransport)
-	// Add UserAgentExtra fields to the User-Agent header, see wrapper_provider_server.go
-	userAgentTransport := NewUserAgentTransport(tfLoggingTransport, true)
-	client := &http.Client{Transport: userAgentTransport}
+	return logging.NewTransport("Atlas", base)
+}
 
-	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent(c))}
+// MongoDBClient contains the mongodbatlas clients and configurations.
+type MongoDBClient struct {
+	Atlas            *matlasClient.Client
+	AtlasV2          *admin.APIClient
+	AtlasPreview     *adminpreview.APIClient
+	AtlasV220240530  *admin20240530.APIClient // Used in cluster to support deprecated attributes default_read_concern and fail_index_key_too_long in advanced_configuration.
+	AtlasV220241113  *admin20241113.APIClient // Used in teams and atlas_users to avoiding breaking changes.
+	Realm            *RealmClient
+	BaseURL          string // Needed by organization resource.
+	TerraformVersion string // Needed by organization resource.
+}
+
+type RealmClient struct {
+	publicKey        string
+	privateKey       string
+	realmBaseURL     string
+	terraformVersion string
+}
+
+func NewClient(c *Credentials, terraformVersion string) (*MongoDBClient, error) {
+	userAgent := userAgent(terraformVersion)
+	client, err := getHTTPClient(c)
+	if err != nil {
+		return nil, err
+	}
+
+	// Initialize the old SDK
+	optsAtlas := []matlasClient.ClientOpt{matlasClient.SetUserAgent(userAgent)}
 	if c.BaseURL != "" {
 		optsAtlas = append(optsAtlas, matlasClient.SetBaseURL(c.BaseURL))
 	}
-
-	// Initialize the MongoDB Atlas API Client.
 	atlasClient, err := matlasClient.New(client, optsAtlas...)
 	if err != nil {
 		return nil, err
 	}
 
-	sdkV2Client, err := c.newSDKV2Client(client)
+	// Initialize the new SDK for different versions
+	sdkV2Client, err := newSDKV2Client(client, c.BaseURL, userAgent)
 	if err != nil {
 		return nil, err
 	}
-
-	sdkPreviewClient, err := c.newSDKPreviewClient(client)
+	sdkPreviewClient, err := newSDKPreviewClient(client, c.BaseURL, userAgent)
 	if err != nil {
 		return nil, err
 	}
-
-	sdkV220240530Client, err := c.newSDKV220240530Client(client)
+	sdkV220240530Client, err := newSDKV220240530Client(client, c.BaseURL, userAgent)
 	if err != nil {
 		return nil, err
 	}
-
-	sdkV220240805Client, err := c.newSDKV220240805Client(client)
-	if err != nil {
-		return nil, err
-	}
-
-	sdkV220241113Client, err := c.newSDKV220241113Client(client)
+	sdkV220241113Client, err := newSDKV220241113Client(client, c.BaseURL, userAgent)
 	if err != nil {
 		return nil, err
 	}
 
 	clients := &MongoDBClient{
-		Atlas:           atlasClient,
-		AtlasV2:         sdkV2Client,
-		AtlasPreview:    sdkPreviewClient,
-		AtlasV220240530: sdkV220240530Client,
-		AtlasV220240805: sdkV220240805Client,
-		AtlasV220241113: sdkV220241113Client,
-		Config:          c,
+		Atlas:            atlasClient,
+		AtlasV2:          sdkV2Client,
+		AtlasPreview:     sdkPreviewClient,
+		AtlasV220240530:  sdkV220240530Client,
+		AtlasV220241113:  sdkV220241113Client,
+		BaseURL:          c.BaseURL,
+		TerraformVersion: terraformVersion,
+		Realm: &RealmClient{
+			publicKey:        c.PublicKey,
+			privateKey:       c.PrivateKey,
+			realmBaseURL:     NormalizeBaseURL(c.RealmBaseURL),
+			terraformVersion: terraformVersion,
+		},
 	}
 	return clients, nil
 }
 
-func (c *Config) newSDKV2Client(client *http.Client) (*admin.APIClient, error) {
-	opts := []admin.ClientModifier{
+func getHTTPClient(c *Credentials) (*http.Client, error) {
+	// Transport chain (outermost to innermost):
+	// userAgentTransport -> tfLoggingTransport -> {digestTransport|oauth2.Transport} -> networkLoggingTransport -> baseTransport
+	//
+	// This ordering ensures:
+	// 1. networkLoggingTransport logs ALL requests including digest auth 401 challenges
+	// 2. tfLoggingTransport only logs final authenticated requests (not sensitive auth details)
+	// 3. userAgentTransport modifies User-Agent before tfLoggingTransport logs it
+	// Add UserAgentExtra fields to the User-Agent header, see wrapper_provider_server.go
+	
+	transport := networkLoggingBaseTransport()
+	switch c.AuthMethod() {
+	case AccessToken:
+		tokenSource := oauth2.StaticTokenSource(&oauth2.Token{
+			AccessToken: c.AccessToken,
+			TokenType:   "Bearer", // Use a static bearer token with oauth2 transport.
+		})
+		transport = &oauth2.Transport{
+			Source: tokenSource,
+			Base:   networkLoggingBaseTransport(),
+		}
+	case ServiceAccount:
+		tokenSource, err := getTokenSource(c.ClientID, c.ClientSecret, c.BaseURL, networkLoggingBaseTransport())
+		if err != nil {
+			return nil, err
+		}
+		transport = &oauth2.Transport{
+			Source: tokenSource,
+			Base:   networkLoggingBaseTransport(),
+		}
+	case Digest:
+		transport = digest.NewTransportWithHTTPRoundTripper(c.PublicKey, c.PrivateKey, networkLoggingBaseTransport())
+	case Unknown:
+	}
+	transport = tfLoggingInterceptor(transport)
+	transport = NewUserAgentTransport(transport, true)
+	return &http.Client{Transport: transport}, nil
+}
+
+func newSDKV2Client(client *http.Client, baseURL, userAgent string) (*admin.APIClient, error) {
+	return admin.NewClient(
 		admin.UseHTTPClient(client),
-		admin.UseUserAgent(userAgent(c)),
-		admin.UseBaseURL(c.BaseURL),
-		admin.UseDebug(false)}
-
-	sdk, err := admin.NewClient(opts...)
-	if err != nil {
-		return nil, err
-	}
-	return sdk, nil
+		admin.UseUserAgent(userAgent),
+		admin.UseBaseURL(baseURL),
+		admin.UseDebug(false),
+	)
 }
 
-func (c *Config) newSDKPreviewClient(client *http.Client) (*adminpreview.APIClient, error) {
-	opts := []adminpreview.ClientModifier{
+func newSDKPreviewClient(client *http.Client, baseURL, userAgent string) (*adminpreview.APIClient, error) {
+	return adminpreview.NewClient(
 		adminpreview.UseHTTPClient(client),
-		adminpreview.UseUserAgent(userAgent(c)),
-		adminpreview.UseBaseURL(c.BaseURL),
-		adminpreview.UseDebug(false)}
-
-	sdk, err := adminpreview.NewClient(opts...)
-	if err != nil {
-		return nil, err
-	}
-	return sdk, nil
+		adminpreview.UseUserAgent(userAgent),
+		adminpreview.UseBaseURL(baseURL),
+		adminpreview.UseDebug(false),
+	)
 }
 
-func (c *Config) newSDKV220240530Client(client *http.Client) (*admin20240530.APIClient, error) {
-	opts := []admin20240530.ClientModifier{
+func newSDKV220240530Client(client *http.Client, baseURL, userAgent string) (*admin20240530.APIClient, error) {
+	return admin20240530.NewClient(
 		admin20240530.UseHTTPClient(client),
-		admin20240530.UseUserAgent(userAgent(c)),
-		admin20240530.UseBaseURL(c.BaseURL),
-		admin20240530.UseDebug(false)}
-
-	sdk, err := admin20240530.NewClient(opts...)
-	if err != nil {
-		return nil, err
-	}
-	return sdk, nil
+		admin20240530.UseUserAgent(userAgent),
+		admin20240530.UseBaseURL(baseURL),
+		admin20240530.UseDebug(false),
+	)
 }
 
-func (c *Config) newSDKV220240805Client(client *http.Client) (*admin20240805.APIClient, error) {
-	opts := []admin20240805.ClientModifier{
-		admin20240805.UseHTTPClient(client),
-		admin20240805.UseUserAgent(userAgent(c)),
-		admin20240805.UseBaseURL(c.BaseURL),
-		admin20240805.UseDebug(false)}
-
-	sdk, err := admin20240805.NewClient(opts...)
-	if err != nil {
-		return nil, err
-	}
-	return sdk, nil
-}
-
-func (c *Config) newSDKV220241113Client(client *http.Client) (*admin20241113.APIClient, error) {
-	opts := []admin20241113.ClientModifier{
+func newSDKV220241113Client(client *http.Client, baseURL, userAgent string) (*admin20241113.APIClient, error) {
+	return admin20241113.NewClient(
 		admin20241113.UseHTTPClient(client),
-		admin20241113.UseUserAgent(userAgent(c)),
-		admin20241113.UseBaseURL(c.BaseURL),
-		admin20241113.UseDebug(false)}
-
-	sdk, err := admin20241113.NewClient(opts...)
-	if err != nil {
-		return nil, err
-	}
-	return sdk, nil
+		admin20241113.UseUserAgent(userAgent),
+		admin20241113.UseBaseURL(baseURL),
+		admin20241113.UseDebug(false),
+	)
 }
 
-func (c *MongoDBClient) GetRealmClient(ctx context.Context) (*realm.Client, error) {
-	// Realm
-	if c.Config.PublicKey == "" && c.Config.PrivateKey == "" {
+// Get in RealmClient is a method instead of Atlas fields so it's lazy initialized as it needs a roundtrip to authenticate.
+func (r *RealmClient) Get(ctx context.Context) (*realm.Client, error) {
+	if r.publicKey == "" && r.privateKey == "" {
 		return nil, errors.New("please set `public_key` and `private_key` in order to use the realm client")
 	}
 
-	optsRealm := []realm.ClientOpt{realm.SetUserAgent(userAgent(c.Config))}
+	optsRealm := []realm.ClientOpt{
+		realm.SetUserAgent(userAgent(r.terraformVersion)),
+	}
 
 	authConfig := realmAuth.NewConfig(nil)
-	if c.Config.BaseURL != "" && c.Config.RealmBaseURL != "" {
-		adminURL := c.Config.RealmBaseURL + "api/admin/v3.0/"
+	if r.realmBaseURL != "" {
+		adminURL := r.realmBaseURL + "/api/admin/v3.0/"
 		optsRealm = append(optsRealm, realm.SetBaseURL(adminURL))
 		authConfig.AuthURL, _ = url.Parse(adminURL + "auth/providers/mongodb-cloud/login")
 	}
 
-	token, err := authConfig.NewTokenFromCredentials(ctx, c.Config.PublicKey, c.Config.PrivateKey)
+	token, err := authConfig.NewTokenFromCredentials(ctx, r.publicKey, r.privateKey)
 	if err != nil {
 		return nil, err
 	}
@@ -309,20 +298,21 @@ func (c *MongoDBClient) UntypedAPICall(ctx context.Context, params *APICallParam
 	return apiResp, err
 }
 
-func userAgent(c *Config) string {
-	isPreviewV2AdvancedClusterEnabled := c.PreviewV2AdvancedClusterEnabled
-
-	metadata := []UAMetadata{
+func userAgent(terraformVersion string) string {
+	metadata := []struct {
+		Name  string
+		Value string
+	}{
 		{toolName, version.ProviderVersion},
-		{terraformPlatformName, c.TerraformVersion},
-		{previewV2AdvancedClusterEnabledUAKey, strconv.FormatBool(isPreviewV2AdvancedClusterEnabled)},
+		{terraformPlatformName, terraformVersion},
 	}
-
 	var parts []string
 	for _, info := range metadata {
+		if info.Value == "" {
+			continue
+		}
 		part := fmt.Sprintf("%s/%s", info.Name, info.Value)
 		parts = append(parts, part)
 	}
-
 	return strings.Join(parts, " ")
 }

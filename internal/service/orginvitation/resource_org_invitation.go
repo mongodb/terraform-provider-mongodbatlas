@@ -6,19 +6,23 @@ import (
 	"regexp"
 	"strings"
 
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
 )
 
 func Resource() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceCreate,
-		ReadContext:   resourceRead,
-		DeleteContext: resourceDelete,
-		UpdateContext: resourceUpdate,
+		DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "resource", "mongodbatlas_cloud_user_org_assignment", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/atlas-user-management"),
+		CreateContext:      resourceCreate,
+		ReadContext:        resourceRead,
+		DeleteContext:      resourceDelete,
+		UpdateContext:      resourceUpdate,
 		Importer: &schema.ResourceImporter{
 			StateContext: resourceImport,
 		},
@@ -86,7 +90,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			"invitation_id": orgID,
 		}))
 	} else {
-		invitationRes, _, err := connV2.OrganizationsApi.CreateOrganizationInvitation(ctx, orgID, invitationReq).Execute()
+		invitationRes, _, err := connV2.OrganizationsApi.CreateOrgInvite(ctx, orgID, invitationReq).Execute()
 		if err != nil {
 			return diag.Errorf("error creating Organization invitation for user %s: %s", d.Get("username").(string), err)
 		}
@@ -108,7 +112,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	invitationID := ids["invitation_id"]
 
 	if orgID != invitationID {
-		orgInvitation, _, err := connV2.OrganizationsApi.GetOrganizationInvitation(ctx, orgID, invitationID).Execute()
+		orgInvitation, _, err := connV2.OrganizationsApi.GetOrgInvite(ctx, orgID, invitationID).Execute()
 		if err != nil {
 			if strings.Contains(err.Error(), "404") { // case 404: deleted in the backend case
 				if validateOrgInvitationAlreadyAccepted(ctx, connV2, username, orgID) {
@@ -169,7 +173,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	username := ids["username"]
 	invitationID := ids["invitation_id"]
 
-	_, _, err := connV2.OrganizationsApi.GetOrganizationInvitation(ctx, orgID, invitationID).Execute()
+	_, _, err := connV2.OrganizationsApi.GetOrgInvite(ctx, orgID, invitationID).Execute()
 	if err != nil {
 		if strings.Contains(err.Error(), "404") { // case 404: deleted in the backend case
 			if validateOrgInvitationAlreadyAccepted(ctx, connV2, username, orgID) {
@@ -179,7 +183,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return nil
 		}
 	}
-	_, err = connV2.OrganizationsApi.DeleteOrganizationInvitation(ctx, orgID, invitationID).Execute()
+	_, err = connV2.OrganizationsApi.DeleteOrgInvite(ctx, orgID, invitationID).Execute()
 	if err != nil {
 		return diag.Errorf("error deleting Organization invitation for user %s: %s", username, err)
 	}
@@ -197,7 +201,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	invitationReq := &admin.OrganizationInvitationUpdateRequest{
 		Roles: &roles,
 	}
-	_, _, err := connV2.OrganizationsApi.UpdateOrganizationInvitationById(ctx, orgID, invitationID, invitationReq).Execute()
+	_, _, err := connV2.OrganizationsApi.UpdateOrgInviteById(ctx, orgID, invitationID, invitationReq).Execute()
 	if err != nil {
 		return diag.Errorf("error updating Organization invitation for user %s: for %s", username, err)
 	}
@@ -211,7 +215,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 		return nil, err
 	}
 
-	orgInvitations, _, err := connV2.OrganizationsApi.ListOrganizationInvitations(ctx, orgID).Execute()
+	orgInvitations, _, err := connV2.OrganizationsApi.ListOrgInvites(ctx, orgID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import Organization invitations, error: %s", err)
 	}
@@ -257,7 +261,7 @@ func splitOrgInvitationImportID(id string) (orgID, username string, err error) {
 }
 
 func validateOrgInvitationAlreadyAccepted(ctx context.Context, connV2 *admin.APIClient, username, orgID string) bool {
-	user, _, err := connV2.MongoDBCloudUsersApi.GetUserByUsername(ctx, username).Execute()
+	user, _, err := connV2.MongoDBCloudUsersApi.GetUserByName(ctx, username).Execute()
 	if err != nil {
 		return false
 	}

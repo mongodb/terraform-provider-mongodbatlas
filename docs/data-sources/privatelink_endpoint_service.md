@@ -1,3 +1,7 @@
+---
+subcategory: "Private Endpoint Services"
+---
+
 # Data Source: mongodbatlas_privatelink_endpoint_service
 
 `mongodbatlas_privatelink_endpoint_service` describes a Private Endpoint Link. This represents a Private Endpoint Link Connection that wants to retrieve details in an Atlas project.
@@ -74,7 +78,7 @@ data "mongodbatlas_privatelink_endpoint_service" "test" {
 ```
 
 ### Available complete examples
-- [Setup private connection to a MongoDB Atlas Cluster with AWS VPC](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
+- [Setup private connection to a MongoDB Atlas Cluster with AWS VPC](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_privatelink_endpoint/aws/cluster)
 
 ## Argument Reference
 

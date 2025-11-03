@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -113,8 +113,8 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err := ValidateAPIKeyIsOrgOwner(conversion.ExpandStringList(d.Get("role_names").(*schema.Set).List())); err != nil {
 		return diag.FromErr(err)
 	}
-	conn := getAtlasV2Connection(ctx, d, meta) // Using provider credentials.
-	organization, resp, err := conn.OrganizationsApi.CreateOrganization(ctx, newCreateOrganizationRequest(d)).Execute()
+	conn := getAtlasV2Connection(d, meta) // Using provider credentials.
+	organization, resp, err := conn.OrganizationsApi.CreateOrg(ctx, newCreateOrganizationRequest(d)).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) && !strings.Contains(err.Error(), "USER_NOT_FOUND") {
 			d.SetId("")
@@ -128,11 +128,11 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	if err := d.Set("public_key", organization.ApiKey.GetPublicKey()); err != nil {
 		return diag.FromErr(fmt.Errorf("error setting `public_key`: %s", err))
 	}
-	conn = getAtlasV2Connection(ctx, d, meta) // Using new credentials from the created organization.
+	conn = getAtlasV2Connection(d, meta) // Using new credentials from the created organization.
 	orgID := organization.Organization.GetId()
-	_, _, errUpdate := conn.OrganizationsApi.UpdateOrganizationSettings(ctx, orgID, newOrganizationSettings(d)).Execute()
+	_, _, errUpdate := conn.OrganizationsApi.UpdateOrgSettings(ctx, orgID, newOrganizationSettings(d)).Execute()
 	if errUpdate != nil {
-		if _, err := conn.OrganizationsApi.DeleteOrganization(ctx, orgID).Execute(); err != nil {
+		if _, err := conn.OrganizationsApi.DeleteOrg(ctx, orgID).Execute(); err != nil {
 			d.SetId("")
 			return diag.FromErr(fmt.Errorf("an error occurred when updating Organization settings: %s.\n Unable to delete organization, there may be dangling resources: %s", errUpdate.Error(), err.Error()))
 		}
@@ -146,11 +146,11 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := getAtlasV2Connection(ctx, d, meta)
+	conn := getAtlasV2Connection(d, meta)
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
-	organization, resp, err := conn.OrganizationsApi.GetOrganization(ctx, orgID).Execute()
+	organization, resp, err := conn.OrganizationsApi.GetOrg(ctx, orgID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			log.Printf("warning Organization deleted will recreate: %s \n", err.Error())
@@ -170,7 +170,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		return diag.FromErr(fmt.Errorf("error setting `org_id`: %s", err))
 	}
 
-	settings, _, err := conn.OrganizationsApi.GetOrganizationSettings(ctx, orgID).Execute()
+	settings, _, err := conn.OrganizationsApi.GetOrgSettings(ctx, orgID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error reading organization settings: %s", err))
 	}
@@ -194,7 +194,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := getAtlasV2Connection(ctx, d, meta)
+	conn := getAtlasV2Connection(d, meta)
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 	for _, attr := range attrsCreateOnly {
@@ -208,7 +208,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			Name:                      d.Get("name").(string),
 			SkipDefaultAlertsSettings: conversion.Pointer(d.Get("skip_default_alerts_settings").(bool)),
 		}
-		if _, _, err := conn.OrganizationsApi.UpdateOrganization(ctx, orgID, updateRequest).Execute(); err != nil {
+		if _, _, err := conn.OrganizationsApi.UpdateOrg(ctx, orgID, updateRequest).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf("error updating Organization name: %s", err))
 		}
 	}
@@ -218,7 +218,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		d.HasChange("restrict_employee_access") ||
 		d.HasChange("gen_ai_features_enabled") ||
 		d.HasChange("security_contact") {
-		if _, _, err := conn.OrganizationsApi.UpdateOrganizationSettings(ctx, orgID, newOrganizationSettings(d)).Execute(); err != nil {
+		if _, _, err := conn.OrganizationsApi.UpdateOrgSettings(ctx, orgID, newOrganizationSettings(d)).Execute(); err != nil {
 			return diag.FromErr(fmt.Errorf("error updating Organization settings: %s", err))
 		}
 	}
@@ -227,11 +227,11 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := getAtlasV2Connection(ctx, d, meta)
+	conn := getAtlasV2Connection(d, meta)
 	ids := conversion.DecodeStateID(d.Id())
 	orgID := ids["org_id"]
 
-	if _, err := conn.OrganizationsApi.DeleteOrganization(ctx, orgID).Execute(); err != nil {
+	if _, err := conn.OrganizationsApi.DeleteOrg(ctx, orgID).Execute(); err != nil {
 		return diag.FromErr(fmt.Errorf("error deleting Organization: %s", err))
 	}
 	return nil
@@ -293,18 +293,21 @@ func ValidateAPIKeyIsOrgOwner(roles []string) error {
 
 // getAtlasV2Connection uses the created credentials for the organization if they exist.
 // Otherwise, it uses the provider credentials, e.g. if the resource was imported.
-func getAtlasV2Connection(ctx context.Context, d *schema.ResourceData, meta any) *admin.APIClient {
+func getAtlasV2Connection(d *schema.ResourceData, meta any) *admin.APIClient {
+	currentClient := meta.(*config.MongoDBClient)
 	publicKey := d.Get("public_key").(string)
 	privateKey := d.Get("private_key").(string)
 	if publicKey == "" || privateKey == "" {
-		return meta.(*config.MongoDBClient).AtlasV2
+		return currentClient.AtlasV2
 	}
-	cfg := config.Config{
-		PublicKey:        publicKey,
-		PrivateKey:       privateKey,
-		BaseURL:          meta.(*config.MongoDBClient).Config.BaseURL,
-		TerraformVersion: meta.(*config.MongoDBClient).Config.TerraformVersion,
+	c := &config.Credentials{
+		PublicKey:  publicKey,
+		PrivateKey: privateKey,
+		BaseURL:    currentClient.BaseURL,
 	}
-	clients, _ := cfg.NewClient(ctx)
-	return clients.(*config.MongoDBClient).AtlasV2
+	newClient, err := config.NewClient(c, currentClient.TerraformVersion)
+	if err != nil {
+		return currentClient.AtlasV2
+	}
+	return newClient.AtlasV2
 }

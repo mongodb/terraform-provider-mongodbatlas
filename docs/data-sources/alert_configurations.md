@@ -1,3 +1,7 @@
+---
+subcategory: "Alert Configurations"
+---
+
 # Data Source: mongodbatlas_alert_configurations
 
 `mongodbatlas_alert_configurations` describes all Alert Configurations by the provided project_id. The data source requires your Project ID.
@@ -30,7 +34,7 @@ output "alert_output" {
 ```
 
 Refer to the following for a full example on using this data_source as a tool to import all resources:
-* [atlas-alert-configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/atlas-alert-configurations)
+* [atlas-alert-configurations](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/atlas-alert-configurations)
 
 ## Argument Reference
 
@@ -60,6 +64,7 @@ In addition to all arguments above, the following attributes are exported:
 * `metric_threshold_config` - The threshold that causes an alert to be triggered. Required if `event_type_name` : `OUTSIDE_METRIC_THRESHOLD` or `OUTSIDE_SERVERLESS_METRIC_THRESHOLD`. See [metric threshold config](#metric-threshold-config).
 * `threshold_config` - 	 Threshold that triggers an alert. Required if `event_type_name` is any value other than `OUTSIDE_METRIC_THRESHOLD` or `OUTSIDE_SERVERLESS_METRIC_THRESHOLD`. See [threshold config](#threshold-config).
 * `notifications` - List of notifications to send when an alert condition is detected. See [notifications](#notifications).
+* `severity_override` - Severity of the event.
 * `output` - Requested output string format for the alert configuration
 
   -> ***IMPORTANT:*** Event Type has many possible values. Details for both conditional and metric based alerts can be found by selecting the tabs on the [alert config page](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createalertconfiguration) and checking the latest eventTypeName options.

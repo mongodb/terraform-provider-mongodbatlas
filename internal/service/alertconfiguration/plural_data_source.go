@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 )
 
 const alertConfigurationsDataSourceName = "alert_configurations"
@@ -134,7 +134,7 @@ func (d *AlertConfigurationsDS) Read(ctx context.Context, req datasource.ReadReq
 
 	connV2 := d.Client.AtlasV2
 	params := newListParams(projectID, alertConfigurationsConfig.ListOptions)
-	alerts, _, err := connV2.AlertConfigurationsApi.ListAlertConfigurationsWithParams(ctx, params).Execute()
+	alerts, _, err := connV2.AlertConfigurationsApi.ListAlertConfigsWithParams(ctx, params).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(errorReadAlertConf, err.Error())
 		return
@@ -178,13 +178,12 @@ func setDefaultValuesInListOptions(listOptionsArr []tfListOptionsModel) []tfList
 	return result
 }
 
-func newListParams(projectID string, listOptionsArr []tfListOptionsModel) *admin.ListAlertConfigurationsApiParams {
+func newListParams(projectID string, listOptionsArr []tfListOptionsModel) *admin.ListAlertConfigsApiParams {
 	var (
 		pageNum      = listOptionDefaultPageNum
 		itemsPerPage = listOptionDefaultItemsPerPage
 		includeCount = listOptionDefaultIncludeCount
 	)
-
 	if len(listOptionsArr) > 0 {
 		listOption := listOptionsArr[0]
 		if !listOption.PageNum.IsNull() {
@@ -197,8 +196,7 @@ func newListParams(projectID string, listOptionsArr []tfListOptionsModel) *admin
 			includeCount = listOption.IncludeCount.ValueBool()
 		}
 	}
-
-	return &admin.ListAlertConfigurationsApiParams{
+	return &admin.ListAlertConfigsApiParams{
 		GroupId:      projectID,
 		PageNum:      &pageNum,
 		ItemsPerPage: &itemsPerPage,

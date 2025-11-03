@@ -1,3 +1,7 @@
+---
+subcategory: "Cloud Backups"
+---
+
 # Resource: mongodbatlas_cloud_backup_schedule
 
 `mongodbatlas_cloud_backup_schedule` provides a cloud backup schedule resource. The resource lets you create, read, update and delete a cloud backup schedule.
@@ -24,17 +28,17 @@ resource "mongodbatlas_advanced_cluster" "my_cluster" {
   cluster_type   = "REPLICASET"
   backup_enabled = true # must be enabled in order to use cloud_backup_schedule resource
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AWS"
       region_name   = "EU_CENTRAL_1"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 resource "mongodbatlas_cloud_backup_schedule" "test" {
@@ -71,17 +75,17 @@ resource "mongodbatlas_advanced_cluster" "my_cluster" {
   cluster_type   = "REPLICASET"
   backup_enabled = true # must be enabled in order to use cloud_backup_schedule resource
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AWS"
       region_name   = "EU_CENTRAL_1"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 resource "mongodbatlas_cloud_backup_schedule" "test" {
@@ -107,17 +111,17 @@ resource "mongodbatlas_advanced_cluster" "my_cluster" {
   cluster_type   = "REPLICASET"
   backup_enabled = true # must be enabled in order to use cloud_backup_schedule resource
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AWS"
       region_name   = "EU_CENTRAL_1"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 resource "mongodbatlas_cloud_backup_schedule" "test" {
@@ -170,17 +174,17 @@ resource "mongodbatlas_advanced_cluster" "my_cluster" {
   cluster_type   = "REPLICASET"
   backup_enabled = true # must be enabled in order to use cloud_backup_schedule resource
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AWS"
       region_name   = "EU_CENTRAL_1"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 resource "mongodbatlas_cloud_backup_schedule" "test" {
@@ -212,6 +216,11 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 
 }
 ```
+
+
+### Further Examples
+- [Cloud Backup Schedule](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_cloud_backup_schedule)
+
 ## Argument Reference
 
 * `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
@@ -228,12 +237,12 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 * `policy_item_weekly` - (Optional) Weekly policy item. See [below](#policy_item_weekly)
 * `policy_item_monthly` - (Optional) Monthly policy item. See [below](#policy_item_monthly)
 * `policy_item_yearly` - (Optional) Yearly policy item. See [below](#policy_item_yearly)
-* `auto_export_enabled` - Flag that indicates whether MongoDB Cloud automatically exports Cloud Backup Snapshots to the Export Bucket. Once enabled, it must be disabled by explicitly setting the value to `false`. Value can be one of the following:
+* `auto_export_enabled` - (Optional) Flag that indicates whether MongoDB Cloud automatically exports Cloud Backup Snapshots to the Export Bucket. Value can be one of the following:
 	* true - Enables automatic export of cloud backup snapshots to the Export Bucket.
  	* false - Disables automatic export of cloud backup snapshots to the Export Bucket. (default)
 * `use_org_and_group_names_in_export_prefix` - Specify true to use organization and project names instead of organization and project UUIDs in the path for the metadata files that Atlas uploads to your bucket after it finishes exporting the snapshots. To learn more about the metadata files that Atlas uploads, see [Export Cloud Backup Snapshot](https://www.mongodb.com/docs/atlas/backup/cloud-backup/export/#std-label-cloud-provider-snapshot-export).
 * `copy_settings` - List that contains a document for each copy setting item in the desired backup policy. See [below](#copy_settings)
-* `export` - Policy for automatically exporting Cloud Backup Snapshots. `auto_export_enabled` must be set to true when defining this attribute. See [below](#export)
+* `export` - (Optional) Policy for automatically exporting Cloud Backup Snapshots. See [below](#export)
 ### export
 * `export_bucket_id` - Unique identifier of the mongodbatlas_cloud_backup_snapshot_export_bucket export_bucket_id value.
 * `frequency_type` - Frequency associated with the export snapshot item: `weekly`, `monthly`, `yearly`, `daily` (requires reaching out to Customer Support)
@@ -281,7 +290,6 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
 * `frequencies` - (Required) List that describes which types of snapshots to copy. i.e. "HOURLY" "DAILY" "WEEKLY" "MONTHLY" "ON_DEMAND"
 * `region_name` - (Required) Target region to copy snapshots belonging to replicationSpecId to. Please supply the 'Atlas Region' which can be found under https://www.mongodb.com/docs/atlas/reference/cloud-providers/ 'regions' link
 * `zone_id` - Unique 24-hexadecimal digit string that identifies the zone in a cluster. For global clusters, there can be multiple zones to choose from. For sharded clusters and replica set clusters, there is only one zone in the cluster. To find appropriate value for `zone_id`, do a GET request to Return One Cluster from One Project and consult the replicationSpecs array [Return One Cluster From One Project](#operation/getCluster). Alternately, use `mongodbatlas_advanced_cluster` data source or resource and reference `replication_specs.#.zone_id`.
-* `replication_spec_id` - Unique 24-hexadecimal digit string that identifies the replication object for a zone in a cluster. For global clusters, there can be multiple zones to choose from. For sharded clusters and replica set clusters, there is only one zone in the cluster. To find the Replication Spec Id, consult the replicationSpecs array returned from [Return One Multi-Cloud Cluster in One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getcluster). **(DEPRECATED)** Use `zone_id` instead. To learn more, see the [1.18.0 upgrade guide](../guides/1.18.0-upgrade-guide.md#transition-cloud-backup-schedules-for-clusters-to-use-zones).
 * `should_copy_oplogs` - (Required) Flag that indicates whether to copy the oplogs to the target region. You can use the oplogs to perform point-in-time restores.
 
 ## Attributes Reference

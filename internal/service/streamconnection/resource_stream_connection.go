@@ -36,6 +36,7 @@ type streamConnectionRS struct {
 type TFStreamConnectionModel struct {
 	ID               types.String `tfsdk:"id"`
 	ProjectID        types.String `tfsdk:"project_id"`
+	WorkspaceName    types.String `tfsdk:"workspace_name"`
 	InstanceName     types.String `tfsdk:"instance_name"`
 	ConnectionName   types.String `tfsdk:"connection_name"`
 	Type             types.String `tfsdk:"type"`
@@ -54,15 +55,27 @@ type TFStreamConnectionModel struct {
 }
 
 type TFConnectionAuthenticationModel struct {
-	Mechanism types.String `tfsdk:"mechanism"`
-	Password  types.String `tfsdk:"password"`
-	Username  types.String `tfsdk:"username"`
+	Mechanism                 types.String `tfsdk:"mechanism"`
+	Method                    types.String `tfsdk:"method"`
+	Password                  types.String `tfsdk:"password"`
+	Username                  types.String `tfsdk:"username"`
+	TokenEndpointURL          types.String `tfsdk:"token_endpoint_url"`
+	ClientID                  types.String `tfsdk:"client_id"`
+	ClientSecret              types.String `tfsdk:"client_secret"`
+	Scope                     types.String `tfsdk:"scope"`
+	SaslOauthbearerExtensions types.String `tfsdk:"sasl_oauthbearer_extensions"`
 }
 
 var ConnectionAuthenticationObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"mechanism": types.StringType,
-	"password":  types.StringType,
-	"username":  types.StringType,
+	"mechanism":                   types.StringType,
+	"method":                      types.StringType,
+	"password":                    types.StringType,
+	"username":                    types.StringType,
+	"token_endpoint_url":          types.StringType,
+	"client_id":                   types.StringType,
+	"client_secret":               types.StringType,
+	"scope":                       types.StringType,
+	"sasl_oauthbearer_extensions": types.StringType,
 }}
 
 type TFConnectionSecurityModel struct {
@@ -116,6 +129,17 @@ func (r *streamConnectionRS) Schema(ctx context.Context, req resource.SchemaRequ
 	conversion.UpdateSchemaDescription(&resp.Schema)
 }
 
+// getWorkspaceOrInstanceName returns the workspace name from workspace_name or instance_name field
+func getWorkspaceOrInstanceName(model *TFStreamConnectionModel) string {
+	if !model.WorkspaceName.IsNull() && !model.WorkspaceName.IsUnknown() {
+		return model.WorkspaceName.ValueString()
+	}
+	if !model.InstanceName.IsNull() && !model.InstanceName.IsUnknown() {
+		return model.InstanceName.ValueString()
+	}
+	return ""
+}
+
 func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var streamConnectionPlan TFStreamConnectionModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &streamConnectionPlan)...)
@@ -125,19 +149,27 @@ func (r *streamConnectionRS) Create(ctx context.Context, req resource.CreateRequ
 
 	connV2 := r.Client.AtlasV2
 	projectID := streamConnectionPlan.ProjectID.ValueString()
-	instanceName := streamConnectionPlan.InstanceName.ValueString()
+	workspaceOrInstanceName := getWorkspaceOrInstanceName(&streamConnectionPlan)
+	if workspaceOrInstanceName == "" {
+		resp.Diagnostics.AddError("validation error", "workspace_name must be provided")
+		return
+	}
+
 	streamConnectionReq, diags := NewStreamConnectionReq(ctx, &streamConnectionPlan)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	apiResp, _, err := connV2.StreamsApi.CreateStreamConnection(ctx, projectID, instanceName, streamConnectionReq).Execute()
+	apiResp, _, err := connV2.StreamsApi.CreateStreamConnection(ctx, projectID, workspaceOrInstanceName, streamConnectionReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error creating resource", err.Error())
 		return
 	}
 
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, &streamConnectionPlan.Authentication, apiResp)
+	instanceName := streamConnectionPlan.InstanceName.ValueString()
+	workspaceName := streamConnectionPlan.WorkspaceName.ValueString()
+
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, &streamConnectionPlan.Authentication, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -154,9 +186,13 @@ func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest,
 
 	connV2 := r.Client.AtlasV2
 	projectID := streamConnectionState.ProjectID.ValueString()
-	instanceName := streamConnectionState.InstanceName.ValueString()
+	workspaceOrInstanceName := getWorkspaceOrInstanceName(&streamConnectionState)
+	if workspaceOrInstanceName == "" {
+		resp.Diagnostics.AddError("validation error", "workspace_name must be provided")
+		return
+	}
 	connectionName := streamConnectionState.ConnectionName.ValueString()
-	apiResp, getResp, err := connV2.StreamsApi.GetStreamConnection(ctx, projectID, instanceName, connectionName).Execute()
+	apiResp, getResp, err := connV2.StreamsApi.GetStreamConnection(ctx, projectID, workspaceOrInstanceName, connectionName).Execute()
 	if err != nil {
 		if validate.StatusNotFound(getResp) {
 			resp.State.RemoveResource(ctx)
@@ -166,7 +202,9 @@ func (r *streamConnectionRS) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, &streamConnectionState.Authentication, apiResp)
+	instanceName := streamConnectionState.InstanceName.ValueString()
+	workspaceName := streamConnectionState.WorkspaceName.ValueString()
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, &streamConnectionState.Authentication, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -183,20 +221,26 @@ func (r *streamConnectionRS) Update(ctx context.Context, req resource.UpdateRequ
 
 	connV2 := r.Client.AtlasV2
 	projectID := streamConnectionPlan.ProjectID.ValueString()
-	instanceName := streamConnectionPlan.InstanceName.ValueString()
+	workspaceOrInstanceName := getWorkspaceOrInstanceName(&streamConnectionPlan)
+	if workspaceOrInstanceName == "" {
+		resp.Diagnostics.AddError("validation error", "workspace_name must be provided")
+		return
+	}
 	connectionName := streamConnectionPlan.ConnectionName.ValueString()
 	streamConnectionReq, diags := NewStreamConnectionUpdateReq(ctx, &streamConnectionPlan)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	apiResp, _, err := connV2.StreamsApi.UpdateStreamConnection(ctx, projectID, instanceName, connectionName, streamConnectionReq).Execute()
+	apiResp, _, err := connV2.StreamsApi.UpdateStreamConnection(ctx, projectID, workspaceOrInstanceName, connectionName, streamConnectionReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error updating resource", err.Error())
 		return
 	}
 
-	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, &streamConnectionPlan.Authentication, apiResp)
+	instanceName := streamConnectionPlan.InstanceName.ValueString()
+	workspaceName := streamConnectionPlan.WorkspaceName.ValueString()
+	newStreamConnectionModel, diags := NewTFStreamConnection(ctx, projectID, instanceName, workspaceName, &streamConnectionPlan.Authentication, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
@@ -213,7 +257,11 @@ func (r *streamConnectionRS) Delete(ctx context.Context, req resource.DeleteRequ
 
 	connV2 := r.Client.AtlasV2
 	projectID := streamConnectionState.ProjectID.ValueString()
-	instanceName := streamConnectionState.InstanceName.ValueString()
+	instanceName := getWorkspaceOrInstanceName(streamConnectionState)
+	if instanceName == "" {
+		resp.Diagnostics.AddError("validation error", "workspace_name must be provided")
+		return
+	}
 	connectionName := streamConnectionState.ConnectionName.ValueString()
 	if err := DeleteStreamConnection(ctx, connV2.StreamsApi, projectID, instanceName, connectionName, 10*time.Minute); err != nil {
 		resp.Diagnostics.AddError("error deleting resource", err.Error())
@@ -222,27 +270,27 @@ func (r *streamConnectionRS) Delete(ctx context.Context, req resource.DeleteRequ
 }
 
 func (r *streamConnectionRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	instanceName, projectID, connectionName, err := splitStreamConnectionImportID(req.ID)
+	workspaceName, projectID, connectionName, err := splitStreamConnectionImportID(req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError("error splitting stream connection import ID", err.Error())
 		return
 	}
-
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("instance_name"), instanceName)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("instance_name"), workspaceName)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("workspace_name"), workspaceName)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("connection_name"), connectionName)...)
 }
 
-func splitStreamConnectionImportID(id string) (instanceName, projectID, connectionName string, err error) {
+func splitStreamConnectionImportID(id string) (workspaceName, projectID, connectionName string, err error) {
 	var re = regexp.MustCompile(`^(.*)-([0-9a-fA-F]{24})-(.*)$`)
 	parts := re.FindStringSubmatch(id)
 
 	if len(parts) != 4 {
-		err = errors.New("use the format {instance_name}-{project_id}-{connection_name}")
+		err = errors.New("use the format {workspace_name}-{project_id}-{connection_name}")
 		return
 	}
 
-	instanceName = parts[1]
+	workspaceName = parts[1]
 	projectID = parts[2]
 	connectionName = parts[3]
 	return

@@ -32,6 +32,7 @@ linters:
     - unused
     - usetesting
     - whitespace
+    - usestdlibvars
 
   settings:
     funlen:
@@ -107,7 +108,7 @@ linters:
       - linters:
           - gocritic
         text: "^hugeParam: req is heavy"
-      - path: schema\.go # exclude rules for schema files as it's auto-genereated from OpenAPI spec
+      - path: schema\.go # exclude rules for schema files as it's auto-generated from OpenAPI spec
         text: var-naming|exceeds the maximum|regexpSimplify
       - path: (.+)\.go$
         text: declaration of ".*" shadows declaration at line .*

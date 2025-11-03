@@ -1,7 +1,6 @@
 package acc
 
 import (
-	"context"
 	"os"
 
 	matlas "go.mongodb.org/atlas/mongodbatlas"
@@ -11,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/provider"
 	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 )
 
 const (
@@ -42,13 +41,13 @@ func ConnV220241113() *admin20241113.APIClient {
 }
 
 func ConnV2UsingGov() *admin.APIClient {
-	cfg := config.Config{
+	c := &config.Credentials{
 		PublicKey:  os.Getenv("MONGODB_ATLAS_GOV_PUBLIC_KEY"),
 		PrivateKey: os.Getenv("MONGODB_ATLAS_GOV_PRIVATE_KEY"),
 		BaseURL:    os.Getenv("MONGODB_ATLAS_GOV_BASE_URL"),
 	}
-	client, _ := cfg.NewClient(context.Background())
-	return client.(*config.MongoDBClient).AtlasV2
+	client, _ := config.NewClient(c, "")
+	return client.AtlasV2
 }
 
 func init() {
@@ -57,12 +56,14 @@ func init() {
 			return provider.MuxProviderFactory()(), nil
 		},
 	}
-	cfg := config.Config{
+	c := &config.Credentials{
 		PublicKey:    os.Getenv("MONGODB_ATLAS_PUBLIC_KEY"),
 		PrivateKey:   os.Getenv("MONGODB_ATLAS_PRIVATE_KEY"),
+		ClientID:     os.Getenv("MONGODB_ATLAS_CLIENT_ID"),
+		ClientSecret: os.Getenv("MONGODB_ATLAS_CLIENT_SECRET"),
+		AccessToken:  os.Getenv("MONGODB_ATLAS_ACCESS_TOKEN"),
 		BaseURL:      os.Getenv("MONGODB_ATLAS_BASE_URL"),
 		RealmBaseURL: os.Getenv("MONGODB_REALM_BASE_URL"),
 	}
-	client, _ := cfg.NewClient(context.Background())
-	MongoDBClient = client.(*config.MongoDBClient)
+	MongoDBClient, _ = config.NewClient(c, "")
 }

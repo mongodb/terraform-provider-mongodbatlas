@@ -1,3 +1,7 @@
+---
+subcategory: "Cloud Backups"
+---
+
 # Resource: mongodbatlas_cloud_backup_snapshot
 
 `mongodbatlas_cloud_backup_snapshot` provides a resource to take a cloud backup snapshot on demand.
@@ -16,17 +20,17 @@ resource "mongodbatlas_advanced_cluster" "my_cluster" {
   cluster_type   = "REPLICASET"
   backup_enabled = true # enable cloud backup snapshots
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AWS"
       region_name   = "EU_WEST_2"
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 resource "mongodbatlas_cloud_backup_snapshot" "test" {
@@ -50,6 +54,10 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 }
 ```
 
+### Further Examples
+- [Restore from backup snapshot at point in time](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_cloud_backup_snapshot_restore_job/point-in-time)
+- [Restore from backup snapshot using an advanced cluster resource](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_cloud_backup_snapshot_restore_job/point-in-time-advanced-cluster)
+
 ## Argument Reference
 
 * `project_id` - (Required) The unique identifier of the project for the Atlas cluster.
@@ -57,6 +65,7 @@ resource "mongodbatlas_cloud_backup_snapshot_restore_job" "test" {
 * `description` - (Required) Description of the on-demand snapshot.
 * `retention_in_days` - (Required) The number of days that Atlas should retain the on-demand snapshot. Must be at least 1.
 * `timeouts`- (Optional) The duration of time to wait for Atlas to create a Cloud Backup Snapshot. The timeout value is defined by a signed sequence of decimal numbers with a time unit suffix such as: `1h45m`, `300s`, `10m`, etc. The valid time units are:  `ns`, `us` (or `µs`), `ms`, `s`, `m`, `h`. Defaults to `1h`. Learn more about timeouts [here](https://www.terraform.io/plugin/sdkv2/resources/retries-and-customizable-timeouts).
+* `delete_on_create_timeout`- (Optional) Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
 
 ## Attributes Reference
 

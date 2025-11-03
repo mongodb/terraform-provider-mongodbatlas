@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -77,12 +77,12 @@ func PluralDataSource() *schema.Resource {
 
 func pluralDataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	params := &admin.ListProjectApiKeysApiParams{
+	params := &admin.ListGroupApiKeysApiParams{
 		GroupId:      d.Get("project_id").(string),
 		PageNum:      conversion.IntPtr(d.Get("page_num").(int)),
 		ItemsPerPage: conversion.IntPtr(d.Get("items_per_page").(int)),
 	}
-	apiKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListProjectApiKeysWithParams(ctx, params).Execute()
+	apiKeys, _, err := connV2.ProgrammaticAPIKeysApi.ListGroupApiKeysWithParams(ctx, params).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting api keys information: %s", err))
 	}

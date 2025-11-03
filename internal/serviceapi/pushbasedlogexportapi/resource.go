@@ -4,7 +4,9 @@ package pushbasedlogexportapi
 
 import (
 	"context"
+	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -48,19 +50,28 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		PathParams:    pathParams,
 		Method:        "POST",
 	}
+	timeout, localDiags := plan.Timeouts.Create(ctx, 900*time.Second)
+	resp.Diagnostics.Append(localDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	reqHandle := autogen.HandleCreateReq{
 		Resp:       resp,
 		Client:     r.Client,
 		Plan:       &plan,
 		CallParams: &callParams,
+		DeleteReq: func(model any) *autogen.HandleDeleteReq {
+			return deleteRequest(r.Client, model.(*TFModel), &resp.Diagnostics)
+		},
+		DeleteOnCreateTimeout: plan.DeleteOnCreateTimeout.ValueBool(),
 		Wait: &autogen.WaitReq{
 			StateProperty:     "state",
 			PendingStates:     []string{"INITIATING", "BUCKET_VERIFIED"},
 			TargetStates:      []string{"ACTIVE"},
-			TimeoutSeconds:    900,
+			Timeout:           timeout,
 			MinTimeoutSeconds: 60,
 			DelaySeconds:      10,
-			CallParams:        readAPICallParams(&plan),
+			CallParams:        readAPICallParams,
 		},
 	}
 	autogen.HandleCreate(ctx, reqHandle)
@@ -99,6 +110,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		PathParams:    pathParams,
 		Method:        "PATCH",
 	}
+	timeout, localDiags := plan.Timeouts.Update(ctx, 900*time.Second)
+	resp.Diagnostics.Append(localDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	reqHandle := autogen.HandleUpdateReq{
 		Resp:       resp,
 		Client:     r.Client,
@@ -108,10 +124,10 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			StateProperty:     "state",
 			PendingStates:     []string{"INITIATING", "BUCKET_VERIFIED"},
 			TargetStates:      []string{"ACTIVE"},
-			TimeoutSeconds:    900,
+			Timeout:           timeout,
 			MinTimeoutSeconds: 60,
 			DelaySeconds:      10,
-			CallParams:        readAPICallParams(&state),
+			CallParams:        readAPICallParams,
 		},
 	}
 	autogen.HandleUpdate(ctx, reqHandle)
@@ -123,31 +139,22 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	pathParams := map[string]string{
-		"groupId": state.GroupId.ValueString(),
+	reqHandle := deleteRequest(r.Client, &state, &resp.Diagnostics)
+	timeout, diags := state.Timeouts.Delete(ctx, 900*time.Second)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
-	callParams := config.APICallParams{
-		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
-		PathParams:    pathParams,
-		Method:        "DELETE",
+	reqHandle.Wait = &autogen.WaitReq{
+		StateProperty:     "state",
+		PendingStates:     []string{"ACTIVE", "INITIATING", "BUCKET_VERIFIED"},
+		TargetStates:      []string{"UNCONFIGURED", "DELETED"},
+		Timeout:           timeout,
+		MinTimeoutSeconds: 60,
+		DelaySeconds:      10,
+		CallParams:        readAPICallParams,
 	}
-	reqHandle := autogen.HandleDeleteReq{
-		Resp:       resp,
-		Client:     r.Client,
-		State:      &state,
-		CallParams: &callParams,
-		Wait: &autogen.WaitReq{
-			StateProperty:     "state",
-			PendingStates:     []string{"ACTIVE", "INITIATING", "BUCKET_VERIFIED"},
-			TargetStates:      []string{"UNCONFIGURED", "DELETED"},
-			TimeoutSeconds:    900,
-			MinTimeoutSeconds: 60,
-			DelaySeconds:      10,
-			CallParams:        readAPICallParams(&state),
-		},
-	}
-	autogen.HandleDelete(ctx, reqHandle)
+	autogen.HandleDelete(ctx, *reqHandle)
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -155,14 +162,32 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	autogen.HandleImport(ctx, idAttributes, req, resp)
 }
 
-func readAPICallParams(state *TFModel) *config.APICallParams {
+func readAPICallParams(model any) *config.APICallParams {
+	m := model.(*TFModel)
 	pathParams := map[string]string{
-		"groupId": state.GroupId.ValueString(),
+		"groupId": m.GroupId.ValueString(),
 	}
 	return &config.APICallParams{
 		VersionHeader: apiVersionHeader,
 		RelativePath:  "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
 		PathParams:    pathParams,
 		Method:        "GET",
+	}
+}
+
+func deleteRequest(client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
+	pathParams := map[string]string{
+		"groupId": model.GroupId.ValueString(),
+	}
+	return &autogen.HandleDeleteReq{
+		Client: client,
+		State:  model,
+		Diags:  diags,
+		CallParams: &config.APICallParams{
+			VersionHeader: apiVersionHeader,
+			RelativePath:  "/api/atlas/v2/groups/{groupId}/pushBasedLogExport",
+			PathParams:    pathParams,
+			Method:        "DELETE",
+		},
 	}
 }

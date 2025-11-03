@@ -1,0 +1,191 @@
+schema:
+    description: Create one Stream Processor within the specified stream instance. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Stream Processing Owner role.
+    attributes:
+        - string: {}
+          description: |-
+            Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
+
+            **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
+          computed_optional_required: required
+          tf_schema_name: group_id
+          tf_model_name: GroupId
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+        - string: {}
+          description: Human-readable name of the stream processor.
+          computed_optional_required: optional
+          tf_schema_name: name
+          tf_model_name: Name
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+        - single_nested:
+            nested_object:
+                attributes:
+                    - single_nested:
+                        nested_object:
+                            attributes:
+                                - string: {}
+                                  description: Name of the collection to use for the DLQ.
+                                  computed_optional_required: optional
+                                  tf_schema_name: coll
+                                  tf_model_name: Coll
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: Name of the connection to write DLQ messages to. Must be an Atlas connection.
+                                  computed_optional_required: optional
+                                  tf_schema_name: connection_name
+                                  tf_model_name: ConnectionName
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                                - string: {}
+                                  description: Name of the database to use for the DLQ.
+                                  computed_optional_required: optional
+                                  tf_schema_name: db
+                                  tf_model_name: Db
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
+                      description: Dead letter queue for the stream processor.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.ObjectValue[TFOptionsDlqModel]
+                        schema: customtypes.NewObjectType[TFOptionsDlqModel](ctx)
+                      computed_optional_required: optional
+                      tf_schema_name: dlq
+                      tf_model_name: Dlq
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+                    - bool: {}
+                      description: When true, the modified stream processor resumes from its last checkpoint.
+                      computed_optional_required: optional
+                      tf_schema_name: resume_from_checkpoint
+                      tf_model_name: ResumeFromCheckpoint
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
+          description: Optional configuration for the stream processor.
+          custom_type:
+            package: customtypes
+            model: customtypes.ObjectValue[TFOptionsModel]
+            schema: customtypes.NewObjectType[TFOptionsModel](ctx)
+          computed_optional_required: computed_optional
+          tf_schema_name: options
+          tf_model_name: Options
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+        - list:
+            element_type: 5
+          description: Stream aggregation pipeline you want to apply to your streaming data.
+          custom_type:
+            package: customtypes
+            model: customtypes.ListValue[jsontypes.Normalized]
+            schema: customtypes.NewListType[jsontypes.Normalized](ctx)
+          computed_optional_required: optional
+          tf_schema_name: pipeline
+          tf_model_name: Pipeline
+          req_body_usage: all_request_bodies
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: The state of the stream processor. Commonly occurring states are 'CREATED', 'STARTED', 'STOPPED' and 'FAILED'.
+          computed_optional_required: computed
+          tf_schema_name: state
+          tf_model_name: State
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: The stats associated with the stream processor.
+          custom_type:
+            package: jsontypes
+            model: jsontypes.Normalized
+            schema: jsontypes.NormalizedType{}
+          computed_optional_required: computed
+          tf_schema_name: stats
+          tf_model_name: Stats
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+        - string: {}
+          description: Human-readable label that identifies the stream instance.
+          computed_optional_required: required
+          tf_schema_name: tenant_name
+          tf_model_name: TenantName
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+        - bool:
+            default: true
+          description: Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
+          computed_optional_required: computed_optional
+          tf_schema_name: delete_on_create_timeout
+          tf_model_name: DeleteOnCreateTimeout
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: true
+        - timeouts:
+            configurable_timeouts:
+                - create
+                - update
+                - delete
+          computed_optional_required: ""
+          tf_schema_name: timeouts
+          tf_model_name: Timeouts
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
+operations:
+    delete:
+        wait:
+            state_property: state
+            pending_states:
+                - INIT
+                - CREATING
+                - CREATED
+                - STARTED
+                - STOPPED
+            target_states:
+                - DELETED
+            timeout_seconds: 300
+            min_timeout_seconds: 10
+            delay_seconds: 10
+        http_method: DELETE
+        path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{name}
+    create:
+        wait:
+            state_property: state
+            pending_states:
+                - INIT
+                - CREATING
+            target_states:
+                - CREATED
+            timeout_seconds: 300
+            min_timeout_seconds: 10
+            delay_seconds: 10
+        http_method: POST
+        path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor
+    read:
+        http_method: GET
+        path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{name}
+    update:
+        wait:
+            state_property: state
+            pending_states:
+                - INIT
+                - CREATING
+            target_states:
+                - CREATED
+            timeout_seconds: 300
+            min_timeout_seconds: 10
+            delay_seconds: 10
+        http_method: PATCH
+        path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{name}
+    version_header: application/vnd.atlas.2024-05-30+json
+name: stream_processor_api

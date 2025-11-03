@@ -1,3 +1,7 @@
+---
+subcategory: "Projects"
+---
+
 # Resource: mongodbatlas_project
 
 `mongodbatlas_project` provides a Project resource. This allows project to be created.
@@ -14,16 +18,6 @@ resource "mongodbatlas_project" "test" {
   name   = "project-name"
   org_id = data.mongodbatlas_roles_org_id.test.org_id
   project_owner_id = "<OWNER_ACCOUNT_ID>"
-
-  teams {
-    team_id    = "5e0fa8c99ccf641c722fe645"
-    role_names = ["GROUP_OWNER"]
-
-  }
-  teams {
-    team_id    = "5e1dd7b4f2a30ba80a70cd4rw"
-    role_names = ["GROUP_READ_ONLY", "GROUP_DATA_ACCESS_READ_WRITE"]
-  }
 
   limits {
     name = "atlas.project.deployment.clusters"
@@ -44,6 +38,9 @@ resource "mongodbatlas_project" "test" {
   is_slow_operation_thresholding_enabled           = true
 }
 ```
+
+### Further Examples
+- [Atlas Project with custom limits](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_project)
 
 ## Argument Reference
 
@@ -83,6 +80,8 @@ To learn more, see [Resource Tags](https://www.mongodb.com/docs/atlas/tags/).
 
 ### Teams
 Teams attribute is optional
+
+~> **DEPRECATION:** This attribute is deprecated and will be removed in the next major release. Please transition to `mongodbatlas_team_project_assignment`. For more details, see [Migration Guide: Project Teams Attribute to Team Project Assignment Resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/atlas-user-management).
 
 ~> **NOTE:** Atlas limits the number of users to a maximum of 100 teams per project and a maximum of 250 teams per organization.
 

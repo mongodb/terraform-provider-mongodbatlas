@@ -3,7 +3,7 @@ package flexcluster
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -44,13 +44,13 @@ func NewTFModel(ctx context.Context, apiResp *admin.FlexClusterDescription202411
 
 func NewTFModelDSP(ctx context.Context, projectID string, input []admin.FlexClusterDescription20241113) (*TFModelDSP, diag.Diagnostics) {
 	diags := &diag.Diagnostics{}
-	tfModels := make([]TFModel, len(input))
+	tfModels := make([]TFModelDS, len(input))
 	for i := range input {
 		item := &input[i]
 		tfModel, diagsLocal := NewTFModel(ctx, item)
 		diags.Append(diagsLocal...)
 		if tfModel != nil {
-			tfModels[i] = *tfModel
+			tfModels[i] = *conversion.CopyModel[TFModelDS](tfModel)
 		}
 	}
 	if diags.HasError() {

@@ -8,7 +8,7 @@ import (
 	"sort"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -73,13 +73,13 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 		Tags:                      conversion.NewResourceTags(ctx, projectPlan.Tags),
 	}
 
-	projectAPIParams := &admin.CreateProjectApiParams{
+	projectAPIParams := &admin.CreateGroupApiParams{
 		Group:          projectGroup,
 		ProjectOwnerId: conversion.StringNullIfEmpty(projectPlan.ProjectOwnerID.ValueString()).ValueStringPointer(),
 	}
 
 	// create project
-	project, _, err := connV2.ProjectsApi.CreateProjectWithParams(ctx, projectAPIParams).Execute()
+	project, _, err := connV2.ProjectsApi.CreateGroupWithParams(ctx, projectAPIParams).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(fmt.Sprintf(errorProjectCreate, projectPlan.Name.ValueString()), err.Error())
 		return
@@ -89,7 +89,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	if len(projectPlan.Teams.Elements()) > 0 {
 		_ = projectPlan.Teams.ElementsAs(ctx, &teams, false)
 
-		_, _, err := connV2.TeamsApi.AddAllTeamsToProject(ctx, project.GetId(), NewTeamRoleList(ctx, teams)).Execute()
+		_, _, err := connV2.TeamsApi.AddGroupTeams(ctx, project.GetId(), NewTeamRoleList(ctx, teams)).Execute()
 		if err != nil {
 			errd := deleteProject(ctx, connV2.ClustersApi, connV2.ProjectsApi, project.GetId())
 			if errd != nil {
@@ -110,7 +110,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 				Name:  limit.Name.ValueString(),
 				Value: limit.Value.ValueInt64(),
 			}
-			_, _, err := connV2.ProjectsApi.SetProjectLimit(ctx, limit.Name.ValueString(), project.GetId(), dataFederationLimit).Execute()
+			_, _, err := connV2.ProjectsApi.SetGroupLimit(ctx, limit.Name.ValueString(), project.GetId(), dataFederationLimit).Execute()
 			if err != nil {
 				errd := deleteProject(ctx, connV2.ClustersApi, connV2.ProjectsApi, project.GetId())
 				if errd != nil {
@@ -124,7 +124,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	// add settings
-	projectSettings, _, err := connV2.ProjectsApi.GetProjectSettings(ctx, *project.Id).Execute()
+	projectSettings, _, err := connV2.ProjectsApi.GetGroupSettings(ctx, *project.Id).Execute()
 	if err != nil {
 		errd := deleteProject(ctx, connV2.ClustersApi, connV2.ProjectsApi, project.GetId())
 		if errd != nil {
@@ -142,7 +142,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	SetProjectBool(projectPlan.IsRealtimePerformancePanelEnabled, &projectSettings.IsRealtimePerformancePanelEnabled)
 	SetProjectBool(projectPlan.IsSchemaAdvisorEnabled, &projectSettings.IsSchemaAdvisorEnabled)
 
-	if _, _, err = connV2.ProjectsApi.UpdateProjectSettings(ctx, project.GetId(), projectSettings).Execute(); err != nil {
+	if _, _, err = connV2.ProjectsApi.UpdateGroupSettings(ctx, project.GetId(), projectSettings).Execute(); err != nil {
 		errd := deleteProject(ctx, connV2.ClustersApi, connV2.ProjectsApi, project.GetId())
 		if errd != nil {
 			resp.Diagnostics.AddError("error during project deletion when updating project settings", fmt.Sprintf(errorProjectDelete, project.GetId(), err.Error()))
@@ -153,7 +153,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 
 	projectID := project.GetId()
-	projectRes, _, err := connV2.ProjectsApi.GetProject(ctx, projectID).Execute()
+	projectRes, _, err := connV2.ProjectsApi.GetGroup(ctx, projectID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -164,8 +164,17 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 		return
 	}
 
+	projectPropsParams := &PropsParams{
+		ProjectID:             projectID,
+		IsDataSource:          false,
+		ProjectsAPI:           connV2.ProjectsApi,
+		TeamsAPI:              connV2.TeamsApi,
+		PerformanceAdvisorAPI: connV2.PerformanceAdvisorApi,
+		MongoDBCloudUsersAPI:  connV2.MongoDBCloudUsersApi,
+	}
+
 	// get project props
-	projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, projectID, &resp.Diagnostics)
+	projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams, &resp.Diagnostics)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -174,7 +183,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	filteredLimits := FilterUserDefinedLimits(projectProps.Limits, limits)
 	projectProps.Limits = filteredLimits
 
-	projectPlanNew, diags := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
+	projectPlanNew, diags := NewTFProjectResourceModel(ctx, projectRes, projectProps)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -206,7 +215,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	}
 
 	// get project
-	projectRes, atlasResp, err := connV2.ProjectsApi.GetProject(ctx, projectID).Execute()
+	projectRes, atlasResp, err := connV2.ProjectsApi.GetGroup(ctx, projectID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(atlasResp) {
 			resp.State.RemoveResource(ctx)
@@ -216,8 +225,17 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 		return
 	}
 
+	projectPropsParams := &PropsParams{
+		ProjectID:             projectID,
+		IsDataSource:          false,
+		ProjectsAPI:           connV2.ProjectsApi,
+		TeamsAPI:              connV2.TeamsApi,
+		PerformanceAdvisorAPI: connV2.PerformanceAdvisorApi,
+		MongoDBCloudUsersAPI:  connV2.MongoDBCloudUsersApi,
+	}
+
 	// get project props
-	projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, projectID, &resp.Diagnostics)
+	projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams, &resp.Diagnostics)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -226,7 +244,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	filteredLimits := FilterUserDefinedLimits(projectProps.Limits, limits)
 	projectProps.Limits = filteredLimits
 
-	projectStateNew, diags := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
+	projectStateNew, diags := NewTFProjectResourceModel(ctx, projectRes, projectProps)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -281,14 +299,23 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 		return
 	}
 
-	projectRes, _, err := connV2.ProjectsApi.GetProject(ctx, projectID).Execute()
+	projectRes, _, err := connV2.ProjectsApi.GetGroup(ctx, projectID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
 	}
 
+	projectPropsParams := &PropsParams{
+		ProjectID:             projectID,
+		IsDataSource:          false,
+		ProjectsAPI:           connV2.ProjectsApi,
+		TeamsAPI:              connV2.TeamsApi,
+		PerformanceAdvisorAPI: connV2.PerformanceAdvisorApi,
+		MongoDBCloudUsersAPI:  connV2.MongoDBCloudUsersApi,
+	}
+
 	// get project props
-	projectProps, err := GetProjectPropsFromAPI(ctx, connV2.ProjectsApi, connV2.TeamsApi, connV2.PerformanceAdvisorApi, projectID, &resp.Diagnostics)
+	projectProps, err := GetProjectPropsFromAPI(ctx, projectPropsParams, &resp.Diagnostics)
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting project properties after create", fmt.Sprintf(ErrorProjectRead, projectID, err.Error()))
 		return
@@ -299,7 +326,7 @@ func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp
 	filteredLimits := FilterUserDefinedLimits(projectProps.Limits, planLimits)
 	projectProps.Limits = filteredLimits
 
-	projectPlanNew, diags := NewTFProjectResourceModel(ctx, projectRes, *projectProps)
+	projectPlanNew, diags := NewTFProjectResourceModel(ctx, projectRes, projectProps)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -363,41 +390,59 @@ type AdditionalProperties struct {
 	Settings                           *admin.GroupSettings
 	IPAddresses                        *admin.GroupIPAddresses
 	Limits                             []admin.DataFederationLimit
+	Users                              []admin.GroupUserResponse
 	IsSlowOperationThresholdingEnabled bool
 }
 
+type PropsParams struct {
+	ProjectsAPI           admin.ProjectsApi
+	TeamsAPI              admin.TeamsApi
+	PerformanceAdvisorAPI admin.PerformanceAdvisorApi
+	MongoDBCloudUsersAPI  admin.MongoDBCloudUsersApi
+	ProjectID             string
+	IsDataSource          bool
+}
+
 // GetProjectPropsFromAPI fetches properties obtained from complementary endpoints associated with a project.
-func GetProjectPropsFromAPI(ctx context.Context, projectsAPI admin.ProjectsApi, teamsAPI admin.TeamsApi, performanceAdvisorAPI admin.PerformanceAdvisorApi, projectID string, warnings *diag.Diagnostics) (*AdditionalProperties, error) {
-	teams, _, err := teamsAPI.ListProjectTeams(ctx, projectID).Execute()
+func GetProjectPropsFromAPI(ctx context.Context, params *PropsParams, warnings *diag.Diagnostics) (*AdditionalProperties, error) {
+	teams, _, err := params.TeamsAPI.ListGroupTeams(ctx, params.ProjectID).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error getting project's teams assigned (%s): %v", projectID, err.Error())
+		return nil, fmt.Errorf("error getting project's teams assigned (%s): %v", params.ProjectID, err.Error())
 	}
 
-	limits, _, err := projectsAPI.ListProjectLimits(ctx, projectID).Execute()
+	limits, _, err := params.ProjectsAPI.ListGroupLimits(ctx, params.ProjectID).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error getting project's limits (%s): %s", projectID, err.Error())
+		return nil, fmt.Errorf("error getting project's limits (%s): %s", params.ProjectID, err.Error())
 	}
 
-	projectSettings, _, err := projectsAPI.GetProjectSettings(ctx, projectID).Execute()
+	projectSettings, _, err := params.ProjectsAPI.GetGroupSettings(ctx, params.ProjectID).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error getting project's settings assigned (%s): %v", projectID, err.Error())
+		return nil, fmt.Errorf("error getting project's settings assigned (%s): %v", params.ProjectID, err.Error())
 	}
 
-	ipAddresses, _, err := projectsAPI.ReturnAllIpAddresses(ctx, projectID).Execute()
+	ipAddresses, _, err := params.ProjectsAPI.GetGroupIpAddresses(ctx, params.ProjectID).Execute()
 	if err != nil {
-		return nil, fmt.Errorf("error getting project's IP addresses (%s): %v", projectID, err.Error())
+		return nil, fmt.Errorf("error getting project's IP addresses (%s): %v", params.ProjectID, err.Error())
 	}
-	isSlowOperationThresholdingEnabled, err := ReadIsSlowMsThresholdingEnabled(ctx, performanceAdvisorAPI, projectID, warnings)
+	isSlowOperationThresholdingEnabled, err := ReadIsSlowMsThresholdingEnabled(ctx, params.PerformanceAdvisorAPI, params.ProjectID, warnings)
 	if err != nil {
-		return nil, fmt.Errorf("error getting project's slow operation thresholding enabled (%s): %v", projectID, err.Error())
+		return nil, fmt.Errorf("error getting project's slow operation thresholding enabled (%s): %v", params.ProjectID, err.Error())
 	}
 
+	var users []admin.GroupUserResponse
+	if params.IsDataSource {
+		users, err = ListAllProjectUsers(ctx, params.ProjectID, params.MongoDBCloudUsersAPI)
+		if err != nil {
+			return nil, fmt.Errorf("error getting project's users (%s): %v", params.ProjectID, err.Error())
+		}
+	}
 	return &AdditionalProperties{
 		Teams:                              teams,
 		Limits:                             limits,
 		Settings:                           projectSettings,
 		IPAddresses:                        ipAddresses,
 		IsSlowOperationThresholdingEnabled: isSlowOperationThresholdingEnabled,
+		Users:                              users,
 	}, nil
 }
 
@@ -408,9 +453,9 @@ func SetSlowOperationThresholding(ctx context.Context, performanceAdvisorAPI adm
 	enabled := enabledPlan.ValueBool()
 	var err error
 	if enabled {
-		_, err = performanceAdvisorAPI.EnableSlowOperationThresholding(ctx, projectID).Execute()
+		_, err = performanceAdvisorAPI.EnableManagedSlowMs(ctx, projectID).Execute()
 	} else {
-		_, err = performanceAdvisorAPI.DisableSlowOperationThresholding(ctx, projectID).Execute()
+		_, err = performanceAdvisorAPI.DisableManagedSlowMs(ctx, projectID).Execute()
 	}
 	return err
 }
@@ -425,7 +470,7 @@ func ReadIsSlowMsThresholdingEnabled(ctx context.Context, api admin.PerformanceA
 
 func updateProjectSettings(ctx context.Context, projectsAPI admin.ProjectsApi, performanceAdvisorAPI admin.PerformanceAdvisorApi, state, plan *TFProjectRSModel) error {
 	projectID := state.ID.ValueString()
-	settings, _, err := projectsAPI.GetProjectSettings(ctx, projectID).Execute()
+	settings, _, err := projectsAPI.GetGroupSettings(ctx, projectID).Execute()
 	if err != nil {
 		return fmt.Errorf("error getting project's settings assigned: %v", err.Error())
 	}
@@ -438,7 +483,7 @@ func updateProjectSettings(ctx context.Context, projectsAPI admin.ProjectsApi, p
 	hasChanged = UpdateProjectBool(plan.IsSchemaAdvisorEnabled, state.IsSchemaAdvisorEnabled, &settings.IsSchemaAdvisorEnabled) || hasChanged
 
 	if hasChanged {
-		_, _, err = projectsAPI.UpdateProjectSettings(ctx, projectID, settings).Execute()
+		_, _, err = projectsAPI.UpdateGroupSettings(ctx, projectID, settings).Execute()
 		if err != nil {
 			return fmt.Errorf("error updating project's settings assigned: %v", err.Error())
 		}
@@ -466,7 +511,7 @@ func UpdateProjectLimits(ctx context.Context, projectsAPI admin.ProjectsApi, pro
 	// removing limits from the project
 	for _, limit := range removedLimits {
 		limitName := limit.Name.ValueString()
-		if _, err := projectsAPI.DeleteProjectLimit(ctx, limitName, projectID).Execute(); err != nil {
+		if _, err := projectsAPI.DeleteGroupLimit(ctx, limitName, projectID).Execute(); err != nil {
 			return fmt.Errorf("error removing limit %s from the project(%s) during update: %s", limitName, projectID, err)
 		}
 	}
@@ -494,7 +539,7 @@ func setProjectLimits(ctx context.Context, projectsAPI admin.ProjectsApi, projec
 			Name:  limit.Name.ValueString(),
 			Value: limit.Value.ValueInt64(),
 		}
-		_, _, err := projectsAPI.SetProjectLimit(ctx, limit.Name.ValueString(), projectID, dataFederationLimit).Execute()
+		_, _, err := projectsAPI.SetGroupLimit(ctx, limit.Name.ValueString(), projectID, dataFederationLimit).Execute()
 		if err != nil {
 			return fmt.Errorf("error adding limits into the project: %v", err.Error())
 		}
@@ -518,7 +563,7 @@ func UpdateProjectTeams(ctx context.Context, teamsAPI admin.TeamsApi, projectSta
 	// removing teams from the project
 	for _, team := range removedTeams {
 		teamID := team.TeamID.ValueString()
-		_, err := teamsAPI.RemoveProjectTeam(ctx, projectID, teamID).Execute()
+		_, err := teamsAPI.RemoveGroupTeam(ctx, projectID, teamID).Execute()
 		if err != nil {
 			if !admin.IsErrorCode(err, "USER_UNAUTHORIZED") {
 				return fmt.Errorf("error removing team(%s) from the project(%s): %s", teamID, projectID, err)
@@ -531,7 +576,7 @@ func UpdateProjectTeams(ctx context.Context, teamsAPI admin.TeamsApi, projectSta
 	for _, team := range changedTeams {
 		teamID := team.TeamID.ValueString()
 		roleNames := conversion.TypesSetToString(ctx, team.RoleNames)
-		_, _, err := teamsAPI.UpdateTeamRoles(ctx, projectID, teamID,
+		_, _, err := teamsAPI.UpdateGroupTeam(ctx, projectID, teamID,
 			&admin.TeamRole{
 				RoleNames: &roleNames,
 			},
@@ -542,7 +587,7 @@ func UpdateProjectTeams(ctx context.Context, teamsAPI admin.TeamsApi, projectSta
 	}
 
 	// adding new teams into the project
-	if _, _, err := teamsAPI.AddAllTeamsToProject(ctx, projectID, NewTeamRoleList(ctx, newTeams)).Execute(); err != nil {
+	if _, _, err := teamsAPI.AddGroupTeams(ctx, projectID, NewTeamRoleList(ctx, newTeams)).Execute(); err != nil {
 		return fmt.Errorf("error adding teams to the project: %v", err.Error())
 	}
 
@@ -578,7 +623,7 @@ func UpdateProject(ctx context.Context, projectsAPI admin.ProjectsApi, projectSt
 
 	projectID := projectState.ID.ValueString()
 
-	if _, _, err := projectsAPI.UpdateProject(ctx, projectID, NewGroupUpdate(projectPlan, tagsAfter)).Execute(); err != nil {
+	if _, _, err := projectsAPI.UpdateGroup(ctx, projectID, NewGroupUpdate(projectPlan, tagsAfter)).Execute(); err != nil {
 		return fmt.Errorf("error updating the project(%s): %s", projectID, err)
 	}
 
@@ -601,7 +646,7 @@ func deleteProject(ctx context.Context, clustersAPI admin.ClustersApi, projectsA
 		tflog.Info(ctx, fmt.Sprintf("[ERROR] could not determine MongoDB project %s dependents status: %s", projectID, err.Error()))
 	}
 
-	_, err = projectsAPI.DeleteProject(ctx, projectID).Execute()
+	_, err = projectsAPI.DeleteGroup(ctx, projectID).Execute()
 
 	return err
 }

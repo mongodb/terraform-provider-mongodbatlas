@@ -1,6 +1,6 @@
 provider "mongodbatlas" {
-  public_key  = var.public_key
-  private_key = var.private_key
+  client_id     = var.atlas_client_id
+  client_secret = var.atlas_client_secret
 }
 
 resource "mongodbatlas_advanced_cluster" "cluster" {
@@ -10,24 +10,27 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
 
   mongo_db_major_version = "7.0"
 
-  pinned_fcv {
+  pinned_fcv = {
     expiration_date = var.fcv_expiration_date # e.g. format: "2024-11-22T10:50:00Z". Hashicorp time provider https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/offset can be used to compute this string value.
   }
 
-  replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M10"
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "EU_WEST_1"
+        }
+      ]
     }
-  }
+  ]
 }
 
 output "feature_compatibility_version" {
-  value = mongodbatlas_advanced_cluster.cluster.pinned_fcv[0].version
+  value = mongodbatlas_advanced_cluster.cluster.pinned_fcv.version
 }
 

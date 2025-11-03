@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312006/admin"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -153,6 +153,8 @@ func TestMigProject_withLimits(t *testing.T) {
 
 // based on bug report: https://github.com/mongodb/terraform-provider-mongodbatlas/issues/2263
 func TestMigGovProject_regionUsageRestrictionsDefault(t *testing.T) {
+	acc.SkipInSA(t, "SA not supported in Gov tests yet")
+	acc.SkipInAccessToken(t, "SA not supported in Gov tests yet")
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_GOV_ORG_ID")
 		projectName = acc.RandomProjectName()

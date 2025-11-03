@@ -13,7 +13,7 @@ Don't include `org_owner_id`, `description`, `role_names` or `federation_setting
 - Terraform v0.15 or greater
 - provider.mongodbatlas: version = "~> 1.38"
 - MongoDB Atlas account with an existing organization
-- API key with Organization Owner permissions for the organization you want to import
+- Service Account with Organization Owner permissions for the organization you want to import
 - Organization ID of the existing organization
 
 ## Usage
@@ -23,8 +23,8 @@ Don't include `org_owner_id`, `description`, `role_names` or `federation_setting
 Create a `terraform.tfvars` file with your Atlas credentials:
 
 ```hcl
-public_key  = "<PUBLIC_KEY>"
-private_key = "<PRIVATE_KEY>"
+client_id     = "<ATLAS_CLIENT_ID>"
+client_secret = "<ATLAS_CLIENT_SECRET>"
 org_name    = "<ORG_NAME>"
 
 # Optional: Configure organization settings

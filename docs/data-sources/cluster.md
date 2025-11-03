@@ -1,6 +1,12 @@
+---
+subcategory: "Clusters"
+---
+
 # Data Source: mongodbatlas_cluster
 
 `mongodbatlas_cluster` describes a Cluster. The data source requires your Project ID.
+
+~> **DEPRECATION:** This datasource is deprecated and will be removed in the next major release. Please use `mongodbatlas_advanced_cluster`. For more details, see [our migration guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
 
 ~> **IMPORTANT:**
 <br> &#8226; Multi Region Cluster: The `mongodbatlas_cluster` data source doesn't return the `container_id` for each region utilized by the cluster. For retrieving the `container_id`, we recommend the [`mongodbatlas_advanced_cluster`](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/advanced_cluster) data source instead.
@@ -81,25 +87,28 @@ In addition to all arguments above, the following attributes are exported:
   NOTE: Atlas returns the contents of this object after the cluster is operational, not while it builds the cluster. 
   
   Ensure `connection_strings` are available following `terraform apply` by adding a `depends_on` relationship to the `cluster`, ex:
-  ```
+
+  	```
   data "mongodbatlas_cluster" "example_cluster" {
     project_id = var.project_id
     name       = var.cluster_name
     depends_on = [mongodbatlas_privatelink_endpoint_service.example_endpoint]
   }
-  ```
-    - `connection_strings.standard` -   Public mongodb:// connection string for this cluster.
-    - `connection_strings.standard_srv` - Public mongodb+srv:// connection string for this cluster. The mongodb+srv protocol tells the driver to look up the seed list of hosts in DNS. Atlas synchronizes this list with the nodes in a cluster. If the connection string uses this URI format, you don’t need to append the seed list or change the URI if the nodes change. Use this URI format if your driver supports it. If it doesn’t, use connectionStrings.standard.
-    - `connection_strings.private` -   [Network-peering-endpoint-aware](https://docs.atlas.mongodb.com/security-vpc-peering/#vpc-peering) mongodb://connection strings for each interface VPC endpoint you configured to connect to this cluster. Returned only if you created a network peering connection to this cluster.
-    - `connection_strings.private_srv` -  [Network-peering-endpoint-aware](https://docs.atlas.mongodb.com/security-vpc-peering/#vpc-peering) mongodb+srv://connection strings for each interface VPC endpoint you configured to connect to this cluster. Returned only if you created a network peering connection to this cluster.
-    - `connection_strings.private_endpoint.#.connection_string` - Private-endpoint-aware `mongodb://`connection string for this private endpoint.
-    - `connection_strings.private_endpoint.#.srv_connection_string` - Private-endpoint-aware `mongodb+srv://` connection string for this private endpoint.
-    - `connection_strings.private_endpoint.#.srv_shard_optimized_connection_string` - Private endpoint-aware connection string optimized for sharded clusters that uses the `mongodb+srv://` protocol to connect to MongoDB Cloud through a private endpoint.
-    - `connection_strings.private_endpoint.#.type` - Type of MongoDB process that you connect to with the connection strings. Atlas returns `MONGOD` for replica sets, or `MONGOS` for sharded clusters.
-    - `connection_strings.private_endpoint.#.endpoints` - Private endpoint through which you connect to Atlas when you use `connection_strings.private_endpoint[#].connection_string` or `connection_strings.private_endpoint[#].srv_connection_string`
-    - `connection_strings.private_endpoint.#.endpoints.#.endpoint_id` - Unique identifier of the private endpoint.
-    - `connection_strings.private_endpoint.#.endpoints.#.provider_name` - Cloud provider to which you deployed the private endpoint. Atlas returns `AWS` or `AZURE`.
-    - `connection_strings.private_endpoint.#.endpoints.#.region` - Region to which you deployed the private endpoint.
+	```
+
+
+	- `connection_strings.#.standard` -   Public mongodb:// connection string for this cluster.
+	- `connection_strings.#.standard_srv` - Public mongodb+srv:// connection string for this cluster. The mongodb+srv protocol tells the driver to look up the seed list of hosts in DNS. Atlas synchronizes this list with the nodes in a cluster. If the connection string uses this URI format, you don’t need to append the seed list or change the URI if the nodes change. Use this URI format if your driver supports it. If it doesn’t, use connectionStrings.standard.
+	- `connection_strings.#.private` -   [Network-peering-endpoint-aware](https://docs.atlas.mongodb.com/security-vpc-peering/#vpc-peering) mongodb://connection strings for each interface VPC endpoint you configured to connect to this cluster. Returned only if you created a network peering connection to this cluster.
+	- `connection_strings.#.private_srv` -  [Network-peering-endpoint-aware](https://docs.atlas.mongodb.com/security-vpc-peering/#vpc-peering) mongodb+srv://connection strings for each interface VPC endpoint you configured to connect to this cluster. Returned only if you created a network peering connection to this cluster.
+	- `connection_strings.#.private_endpoint.#.connection_string` - Private-endpoint-aware `mongodb://`connection string for this private endpoint.
+	- `connection_strings.#.private_endpoint.#.srv_connection_string` - Private-endpoint-aware `mongodb+srv://` connection string for this private endpoint.
+	- `connection_strings.#.private_endpoint.#.srv_shard_optimized_connection_string` - Private endpoint-aware connection string optimized for sharded clusters that uses the `mongodb+srv://` protocol to connect to MongoDB Cloud through a private endpoint.
+	- `connection_strings.#.private_endpoint.#.type` - Type of MongoDB process that you connect to with the connection strings. Atlas returns `MONGOD` for replica sets, or `MONGOS` for sharded clusters.
+	- `connection_strings.#.private_endpoint.#.endpoints` - Private endpoint through which you connect to Atlas when you use `connection_strings.#.private_endpoint.#.connection_string` or `connection_strings.#.private_endpoint.#.srv_connection_string`
+	- `connection_strings.#.private_endpoint.#.endpoints.#.endpoint_id` - Unique identifier of the private endpoint.
+	- `connection_strings.#.private_endpoint.#.endpoints.#.provider_name` - Cloud provider to which you deployed the private endpoint. Atlas returns `AWS` or `AZURE`.
+	- `connection_strings.#.private_endpoint.#.endpoints.#.region` - Region to which you deployed the private endpoint.
 * `disk_size_gb` - Indicates the size in gigabytes of the server’s root volume (AWS/GCP Only).
 * `encryption_at_rest_provider` - Indicates whether Encryption at Rest is enabled or disabled.
 * `name` - Name of the cluster as it appears in Atlas.

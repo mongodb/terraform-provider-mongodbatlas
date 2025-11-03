@@ -91,10 +91,10 @@ var convertNestedMappings = map[string]reflect.Type{
 }
 
 func convertAttrs(rsAttrs map[string]schema.Attribute, requiredFields []string) map[string]dsschema.Attribute {
-	const ignoreField = "timeouts"
+	ignoreFields := []string{"timeouts", "delete_on_create_timeout"}
 	dsAttrs := make(map[string]dsschema.Attribute, len(rsAttrs))
 	for name, attr := range rsAttrs {
-		if name == ignoreField {
+		if slices.Contains(ignoreFields, name) {
 			continue
 		}
 		dsAttrs[name] = convertElement(name, attr, requiredFields).(dsschema.Attribute)

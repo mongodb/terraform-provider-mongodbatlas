@@ -39,29 +39,19 @@ func (d *pushBasedLogExportDS) Read(ctx context.Context, req datasource.ReadRequ
 
 	connV2 := d.Client.AtlasV2
 	projectID := tfConfig.ProjectID.ValueString()
-	logConfig, _, err := connV2.PushBasedLogExportApi.GetPushBasedLogConfiguration(ctx, projectID).Execute()
+	logConfig, _, err := connV2.PushBasedLogExportApi.GetLogExport(ctx, projectID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("Error when getting push-based log export configuration", err.Error())
 		return
 	}
 
-	newTFModel, diags := NewTFPushBasedLogExport(ctx, projectID, logConfig, nil)
+	newTFModel, diags := NewTFPushBasedLogExport(ctx, projectID, logConfig, nil, nil)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-
-	dsModel := convertToDSModel(newTFModel)
-	resp.Diagnostics.Append(resp.State.Set(ctx, dsModel)...)
-}
-
-func convertToDSModel(inputModel *TFPushBasedLogExportRSModel) TFPushBasedLogExportDSModel {
-	return TFPushBasedLogExportDSModel{
-		BucketName: inputModel.BucketName,
-		CreateDate: inputModel.CreateDate,
-		ProjectID:  inputModel.ProjectID,
-		IamRoleID:  inputModel.IamRoleID,
-		PrefixPath: inputModel.PrefixPath,
-		State:      inputModel.State,
+	dsModel := TFPushBasedLogExportDSModel{
+		TFPushBasedLogExportCommonModel: newTFModel.TFPushBasedLogExportCommonModel,
 	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, dsModel)...)
 }

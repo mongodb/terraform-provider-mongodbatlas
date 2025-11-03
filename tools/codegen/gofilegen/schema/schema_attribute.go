@@ -105,49 +105,70 @@ func generator(attr *codespec.Attribute) attributeGenerator {
 }
 
 // generation of conventional attribute types which have common properties like MarkdownDescription, Computed/Optional/Required, Sensitive
-func commonAttrStructure(attr *codespec.Attribute, typeDef string, specificProperties []CodeStatement) CodeStatement {
-	properties := commonProperties(attr)
-	imports := []string{}
+func commonAttrStructure(attr *codespec.Attribute, attrDefType, planModifierType string, specificProperties []CodeStatement) CodeStatement {
+	properties := commonProperties(attr, planModifierType)
+	properties = append(properties, specificProperties...)
 
-	if attr.CustomType != nil {
-		imports = append(imports, "github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes")
-	}
-
-	for i := range specificProperties {
-		properties = append(properties, specificProperties[i].Code)
-		imports = append(imports, specificProperties[i].Imports...)
-	}
-
-	name := attr.Name
-	propsResultString := strings.Join(properties, ",\n") + ","
+	name := attr.TFSchemaName
+	propsStmts := GroupCodeStatements(properties, func(properties []string) string {
+		return strings.Join(properties, ",\n") + ","
+	})
 	code := fmt.Sprintf(`"%s": %s{
 		%s
-	}`, name, typeDef, propsResultString)
+	}`, name, attrDefType, propsStmts.Code)
 	return CodeStatement{
 		Code:    code,
-		Imports: imports,
+		Imports: propsStmts.Imports,
 	}
 }
 
-func commonProperties(attr *codespec.Attribute) []string {
-	var result []string
+func commonProperties(attr *codespec.Attribute, planModifierType string) []CodeStatement {
+	var result []CodeStatement
 	if attr.ComputedOptionalRequired == codespec.Required {
-		result = append(result, "Required: true")
+		result = append(result, CodeStatement{Code: "Required: true"})
 	}
 	if attr.ComputedOptionalRequired == codespec.Computed || attr.ComputedOptionalRequired == codespec.ComputedOptional {
-		result = append(result, "Computed: true")
+		result = append(result, CodeStatement{Code: "Computed: true"})
 	}
 	if attr.ComputedOptionalRequired == codespec.Optional || attr.ComputedOptionalRequired == codespec.ComputedOptional {
-		result = append(result, "Optional: true")
+		result = append(result, CodeStatement{Code: "Optional: true"})
 	}
 	if attr.Description != nil {
-		result = append(result, fmt.Sprintf("MarkdownDescription: %q", *attr.Description))
+		result = append(result, CodeStatement{Code: fmt.Sprintf("MarkdownDescription: %q", *attr.Description)})
 	}
 	if attr.Sensitive {
-		result = append(result, "Sensitive: true")
+		result = append(result, CodeStatement{Code: "Sensitive: true"})
 	}
 	if attr.CustomType != nil {
-		result = append(result, fmt.Sprintf("CustomType: %s", attr.CustomType.Schema))
+		var imports []string
+		switch attr.CustomType.Package {
+		case codespec.JSONTypesPkg:
+			imports = append(imports, "github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes")
+		case codespec.CustomTypesPkg:
+			imports = append(imports, "github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes")
+		}
+
+		result = append(result, CodeStatement{
+			Code:    fmt.Sprintf("CustomType: %s", attr.CustomType.Schema),
+			Imports: imports,
+		})
+	}
+	if attr.CreateOnly { // As of now this is the only property which implies defining plan modifiers.
+		planModifierImports := []string{
+			"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier",
+			"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier",
+		}
+		code := fmt.Sprintf("PlanModifiers: []%s{customplanmodifier.CreateOnly()}", planModifierType)
+
+		// For bool attributes with create-only and default value, use CreateOnlyBoolWithDefault
+		if attr.Bool != nil && attr.Bool.Default != nil {
+			code = fmt.Sprintf("PlanModifiers: []%s{customplanmodifier.CreateOnlyBoolWithDefault(%t)}", planModifierType, *attr.Bool.Default)
+		}
+
+		result = append(result, CodeStatement{
+			Code:    code,
+			Imports: planModifierImports,
+		})
 	}
 	return result
 }
