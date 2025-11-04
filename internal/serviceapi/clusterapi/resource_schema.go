@@ -219,7 +219,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
-			"mongo_dbemployee_access_grant": schema.SingleNestedAttribute{
+			"mongo_db_employee_access_grant": schema.SingleNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "MongoDB employee granted access level and expiration for a cluster.",
 				CustomType:          customtypes.NewObjectType[TFMongoDBEmployeeAccessGrantModel](ctx),
@@ -234,12 +234,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					},
 				},
 			},
-			"mongo_dbmajor_version": schema.StringAttribute{
+			"mongo_db_major_version": schema.StringAttribute{
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "MongoDB major version of the cluster. Set to the binary major version. \n\nOn creation: Choose from the available versions of MongoDB, or leave unspecified for the current recommended default in the MongoDB Cloud platform. The recommended version is a recent Long Term Support version. The default is not guaranteed to be the most recently released version throughout the entire release cycle. For versions available in a specific project, see the linked documentation or use the API endpoint for [project LTS versions endpoint](#tag/Projects/operation/getProjectLtsVersions).\n\n On update: Increase version only by 1 major version at a time. If the cluster is pinned to a MongoDB feature compatibility version exactly one major version below the current MongoDB version, the MongoDB version can be downgraded to the previous major version.",
 			},
-			"mongo_dbversion": schema.StringAttribute{
+			"mongo_db_version": schema.StringAttribute{
 				Computed:            true,
 				MarkdownDescription: "Version of MongoDB that the cluster runs.",
 			},
@@ -653,14 +653,14 @@ type TFModel struct {
 	Tags                                          customtypes.NestedListValue[TFTagsModel]                   `tfsdk:"tags"`
 	ReplicationSpecs                              customtypes.NestedListValue[TFReplicationSpecsModel]       `tfsdk:"replication_specs"`
 	InternalClusterRole                           types.String                                               `tfsdk:"internal_cluster_role" autogen:"omitjson"`
-	MongoDBVersion                                types.String                                               `tfsdk:"mongo_dbversion" autogen:"omitjson"`
+	MongoDBVersion                                types.String                                               `tfsdk:"mongo_db_version" autogen:"omitjson"`
 	ConfigServerManagementMode                    types.String                                               `tfsdk:"config_server_management_mode"`
 	ConfigServerType                              types.String                                               `tfsdk:"config_server_type" autogen:"omitjson"`
 	ConnectionStrings                             customtypes.ObjectValue[TFConnectionStringsModel]          `tfsdk:"connection_strings" autogen:"omitjson"`
 	CreateDate                                    types.String                                               `tfsdk:"create_date" autogen:"omitjson"`
 	DiskWarmingMode                               types.String                                               `tfsdk:"disk_warming_mode"`
 	EncryptionAtRestProvider                      types.String                                               `tfsdk:"encryption_at_rest_provider"`
-	MongoDBMajorVersion                           types.String                                               `tfsdk:"mongo_dbmajor_version"`
+	MongoDBMajorVersion                           types.String                                               `tfsdk:"mongo_db_major_version"`
 	FeatureCompatibilityVersionExpirationDate     types.String                                               `tfsdk:"feature_compatibility_version_expiration_date" autogen:"omitjson"`
 	Timeouts                                      timeouts.Value                                             `tfsdk:"timeouts" autogen:"omitjson"`
 	GroupId                                       types.String                                               `tfsdk:"group_id" autogen:"omitjson"`
@@ -669,7 +669,7 @@ type TFModel struct {
 	ClusterType                                   types.String                                               `tfsdk:"cluster_type"`
 	BiConnector                                   customtypes.ObjectValue[TFBiConnectorModel]                `tfsdk:"bi_connector"`
 	FeatureCompatibilityVersion                   types.String                                               `tfsdk:"feature_compatibility_version" autogen:"omitjson"`
-	MongoDBEmployeeAccessGrant                    customtypes.ObjectValue[TFMongoDBEmployeeAccessGrantModel] `tfsdk:"mongo_dbemployee_access_grant"`
+	MongoDBEmployeeAccessGrant                    customtypes.ObjectValue[TFMongoDBEmployeeAccessGrantModel] `tfsdk:"mongo_db_employee_access_grant"`
 	Name                                          types.String                                               `tfsdk:"name"`
 	VersionReleaseSystem                          types.String                                               `tfsdk:"version_release_system"`
 	AdvancedConfiguration                         customtypes.ObjectValue[TFAdvancedConfigurationModel]      `tfsdk:"advanced_configuration"`

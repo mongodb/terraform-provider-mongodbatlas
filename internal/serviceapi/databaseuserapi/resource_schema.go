@@ -13,7 +13,7 @@ import (
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"aws_iamtype": schema.StringAttribute{
+			"aws_iam_type": schema.StringAttribute{
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Human-readable label that indicates whether the new database user authenticates with the Amazon Web Services (AWS) Identity and Access Management (IAM) credentials associated with the user or the user's role.",
@@ -109,7 +109,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Required:            true,
 				MarkdownDescription: "Human-readable label that represents the user that authenticates to MongoDB. The format of this label depends on the method of authentication:\n\n| Authentication Method | Parameter Needed | Parameter Value | username Format |\n|---|---|---|---|\n| AWS IAM | awsIAMType | ROLE | <abbr title=\"Amazon Resource Name\">ARN</abbr> |\n| AWS IAM | awsIAMType | USER | <abbr title=\"Amazon Resource Name\">ARN</abbr> |\n| x.509 | x509Type | CUSTOMER | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |\n| x.509 | x509Type | MANAGED | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |\n| LDAP | ldapAuthType | USER | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |\n| LDAP | ldapAuthType | GROUP | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |\n| OIDC Workforce | oidcAuthType | IDP_GROUP | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP group name |\n| OIDC Workload | oidcAuthType | USER | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP user name |\n| SCRAM-SHA | awsIAMType, x509Type, ldapAuthType, oidcAuthType | NONE | Alphanumeric string |\n",
 			},
-			"x509type": schema.StringAttribute{
+			"x509_type": schema.StringAttribute{
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "X.509 method that MongoDB Cloud uses to authenticate the database user.\n\n- For application-managed X.509, specify `MANAGED`.\n- For self-managed X.509, specify `CUSTOMER`.\n\nUsers created with the `CUSTOMER` method require a Common Name (CN) in the **username** parameter. You must create externally authenticated users on the `$external` database.",
@@ -119,7 +119,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	AwsIAMType      types.String                               `tfsdk:"aws_iamtype"`
+	AwsIAMType      types.String                               `tfsdk:"aws_iam_type"`
 	DatabaseName    types.String                               `tfsdk:"database_name"`
 	DeleteAfterDate types.String                               `tfsdk:"delete_after_date"`
 	Description     types.String                               `tfsdk:"description" autogen:"includenullonupdate"`
@@ -131,7 +131,7 @@ type TFModel struct {
 	Roles           customtypes.NestedListValue[TFRolesModel]  `tfsdk:"roles"`
 	Scopes          customtypes.NestedListValue[TFScopesModel] `tfsdk:"scopes"`
 	Username        types.String                               `tfsdk:"username"`
-	X509Type        types.String                               `tfsdk:"x509type"`
+	X509Type        types.String                               `tfsdk:"x509_type"`
 }
 type TFLabelsModel struct {
 	Key   types.String `tfsdk:"key"`

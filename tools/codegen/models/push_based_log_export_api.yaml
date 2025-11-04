@@ -119,3 +119,4 @@ operations:
         path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
     version_header: application/vnd.atlas.2023-01-01+json
 name: push_based_log_export_api
+packageName: pushbasedlogexportapi

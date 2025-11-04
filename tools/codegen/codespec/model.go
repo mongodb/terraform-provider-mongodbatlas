@@ -2,8 +2,6 @@ package codespec
 
 import (
 	"fmt"
-
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 )
 
 type ElemType int
@@ -41,9 +39,10 @@ type Model struct {
 }
 
 type Resource struct {
-	Schema     *Schema                    `yaml:"schema,omitempty"`
-	Operations APIOperations              `yaml:"operations"`
-	Name       stringcase.SnakeCaseString `yaml:"name"`
+	Schema      *Schema       `yaml:"schema,omitempty"`
+	Operations  APIOperations `yaml:"operations"`
+	Name        string        `yaml:"name"`
+	PackageName string        `yaml:"packageName"`
 }
 
 type APIOperations struct {
@@ -82,28 +81,28 @@ type Attributes []Attribute
 // Add this field to the Attribute struct
 // Usage AttributeUsage
 type Attribute struct {
-	Set                      *SetAttribute              `yaml:"set,omitempty"`
-	String                   *StringAttribute           `yaml:"string,omitempty"`
-	Float64                  *Float64Attribute          `yaml:"float64,omitempty"`
-	List                     *ListAttribute             `yaml:"list,omitempty"`
-	Bool                     *BoolAttribute             `yaml:"bool,omitempty"`
-	ListNested               *ListNestedAttribute       `yaml:"list_nested,omitempty"`
-	Map                      *MapAttribute              `yaml:"map,omitempty"`
-	MapNested                *MapNestedAttribute        `yaml:"map_nested,omitempty"`
-	Number                   *NumberAttribute           `yaml:"number,omitempty"`
-	Int64                    *Int64Attribute            `yaml:"int64,omitempty"`
-	Timeouts                 *TimeoutsAttribute         `yaml:"timeouts,omitempty"`
-	SingleNested             *SingleNestedAttribute     `yaml:"single_nested,omitempty"`
-	SetNested                *SetNestedAttribute        `yaml:"set_nested,omitempty"`
-	Description              *string                    `yaml:"description,omitempty"`
-	DeprecationMessage       *string                    `yaml:"deprecation_message,omitempty"`
-	CustomType               *CustomType                `yaml:"custom_type,omitempty"`
-	ComputedOptionalRequired ComputedOptionalRequired   `yaml:"computed_optional_required"`
-	TFSchemaName             stringcase.SnakeCaseString `yaml:"tf_schema_name"`
-	TFModelName              string                     `yaml:"tf_model_name"`
-	ReqBodyUsage             AttributeReqBodyUsage      `yaml:"req_body_usage"`
-	Sensitive                bool                       `yaml:"sensitive"`
-	CreateOnly               bool                       `yaml:"create_only"` // leveraged for defining plan modifier which avoids updates on this attribute
+	Set                      *SetAttribute            `yaml:"set,omitempty"`
+	String                   *StringAttribute         `yaml:"string,omitempty"`
+	Float64                  *Float64Attribute        `yaml:"float64,omitempty"`
+	List                     *ListAttribute           `yaml:"list,omitempty"`
+	Bool                     *BoolAttribute           `yaml:"bool,omitempty"`
+	ListNested               *ListNestedAttribute     `yaml:"list_nested,omitempty"`
+	Map                      *MapAttribute            `yaml:"map,omitempty"`
+	MapNested                *MapNestedAttribute      `yaml:"map_nested,omitempty"`
+	Number                   *NumberAttribute         `yaml:"number,omitempty"`
+	Int64                    *Int64Attribute          `yaml:"int64,omitempty"`
+	Timeouts                 *TimeoutsAttribute       `yaml:"timeouts,omitempty"`
+	SingleNested             *SingleNestedAttribute   `yaml:"single_nested,omitempty"`
+	SetNested                *SetNestedAttribute      `yaml:"set_nested,omitempty"`
+	Description              *string                  `yaml:"description,omitempty"`
+	DeprecationMessage       *string                  `yaml:"deprecation_message,omitempty"`
+	CustomType               *CustomType              `yaml:"custom_type,omitempty"`
+	ComputedOptionalRequired ComputedOptionalRequired `yaml:"computed_optional_required"`
+	TFSchemaName             string                   `yaml:"tf_schema_name"`
+	TFModelName              string                   `yaml:"tf_model_name"`
+	ReqBodyUsage             AttributeReqBodyUsage    `yaml:"req_body_usage"`
+	Sensitive                bool                     `yaml:"sensitive"`
+	CreateOnly               bool                     `yaml:"create_only"` // leveraged for defining plan modifier which avoids updates on this attribute
 }
 
 type ComputedOptionalRequired string

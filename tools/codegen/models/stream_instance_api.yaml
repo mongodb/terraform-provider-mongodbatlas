@@ -479,3 +479,4 @@ operations:
         path: /api/atlas/v2/groups/{groupId}/streams/{name}
     version_header: application/vnd.atlas.2023-02-01+json
 name: stream_instance_api
+packageName: streaminstanceapi

@@ -1,60 +1,49 @@
 package stringcase
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 	"unicode"
 	"unicode/utf8"
-
-	"github.com/huandu/xstrings"
 )
 
-var (
-	camelCase             = regexp.MustCompile(`([a-z])[A-Z]`)
-	unsupportedCharacters = regexp.MustCompile(`[^a-zA-Z0-9_]+`)
-)
+var unsupportedCharacters = regexp.MustCompile(`[^a-zA-Z0-9_]+`)
 
-type SnakeCaseString string
-
-func (snake SnakeCaseString) SnakeCase() string {
-	return string(snake)
-}
-
-func (snake SnakeCaseString) PascalCase() string {
-	return xstrings.ToPascalCase(string(snake))
-}
-
-func (snake SnakeCaseString) CamelCase() string {
-	return xstrings.ToCamelCase(string(snake))
-}
-
-func (snake SnakeCaseString) LowerCaseNoUnderscore() string {
-	return strings.ReplaceAll(string(snake), "_", "")
-}
-
-func FromCamelCase(input string) SnakeCaseString {
-	if input == "" {
-		return SnakeCaseString(input)
+// ToSnakeCase Multiple consecutive uppercase letters are treated as part of the same word except for the last one.
+// Example: "MongoDBMajorVersion" -> "mongo_db_major_version"
+func ToSnakeCase(str string) string {
+	if str == "" {
+		return str
 	}
 
-	removedUnsupported := unsupportedCharacters.ReplaceAllString(input, "")
+	str = unsupportedCharacters.ReplaceAllString(str, "")
 
-	insertedUnderscores := camelCase.ReplaceAllStringFunc(removedUnsupported, func(s string) string {
-		firstChar := s[0]
-		restOfString := s[1:]
-		return fmt.Sprintf("%c_%s", firstChar, strings.ToLower(restOfString))
-	})
+	builder := &strings.Builder{}
+	runes := []rune(str)
+	length := len(runes)
 
-	return SnakeCaseString(strings.ToLower(insertedUnderscores))
-}
+	prevIsUpper := unicode.IsUpper(runes[0])
+	builder.WriteRune(unicode.ToLower(runes[0]))
 
-func ToCamelCase(str string) string {
-	return xstrings.ToCamelCase(str)
-}
+	for i := 1; i < length; i++ {
+		current := runes[i]
+		currentIsUpper := unicode.IsUpper(runes[i])
 
-func ToSnakeCase(str string) string {
-	return xstrings.ToSnakeCase(str)
+		// Write an underscore before uppercase letter if:
+		// - Previous char was lowercase, so this is the first uppercase.
+		// - Next char is lowercase, so this is the last uppercase in a sequence.
+		if currentIsUpper {
+			if !prevIsUpper || (i+1 != length && unicode.IsLower(runes[i+1])) {
+				builder.WriteByte('_')
+			}
+			current = unicode.ToLower(current)
+		}
+
+		builder.WriteRune(current)
+		prevIsUpper = currentIsUpper
+	}
+
+	return builder.String()
 }
 
 func Capitalize(str string) string {

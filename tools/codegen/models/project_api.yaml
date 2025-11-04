@@ -113,3 +113,4 @@ operations:
         path: /api/atlas/v2/groups/{id}
     version_header: application/vnd.atlas.2023-01-01+json
 name: project_api
+packageName: projectapi

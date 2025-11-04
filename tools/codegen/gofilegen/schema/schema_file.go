@@ -16,7 +16,7 @@ func GenerateGoCode(input *codespec.Resource) []byte {
 	imports = append(imports, models.Imports...)
 
 	tmplInputs := codetemplate.SchemaFileInputs{
-		PackageName:      input.Name.LowerCaseNoUnderscore(),
+		PackageName:      input.PackageName,
 		Imports:          imports,
 		SchemaAttributes: schemaAttrs.Code,
 		Models:           models.Code,

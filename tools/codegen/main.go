@@ -78,14 +78,14 @@ func main() {
 		log.Printf("[INFO] Generating resource code: %s", resourceModel.Name)
 
 		schemaCode := schema.GenerateGoCode(resourceModel)
-		schemaFilePath := fmt.Sprintf("internal/serviceapi/%s/resource_schema.go", resourceModel.Name.LowerCaseNoUnderscore())
+		schemaFilePath := fmt.Sprintf("internal/serviceapi/%s/resource_schema.go", resourceModel.PackageName)
 		if err := writeToFile(schemaFilePath, schemaCode); err != nil {
 			log.Fatalf("[ERROR] An error occurred when writing content to file: %v", err)
 		}
 		formatGoFile(schemaFilePath)
 
 		resourceCode := resource.GenerateGoCode(resourceModel)
-		resourceFilePath := fmt.Sprintf("internal/serviceapi/%s/resource.go", resourceModel.Name.LowerCaseNoUnderscore())
+		resourceFilePath := fmt.Sprintf("internal/serviceapi/%s/resource.go", resourceModel.PackageName)
 		if err := writeToFile(resourceFilePath, resourceCode); err != nil {
 			log.Fatalf("[ERROR] An error occurred when writing content to file: %v", err)
 		}

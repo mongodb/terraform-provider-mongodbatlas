@@ -11,8 +11,8 @@ import (
 
 func GenerateGoCode(input *codespec.Resource) []byte {
 	tmplInputs := codetemplate.ResourceFileInputs{
-		PackageName:  input.Name.LowerCaseNoUnderscore(),
-		ResourceName: input.Name.SnakeCase(),
+		PackageName:  input.PackageName,
+		ResourceName: input.Name,
 		APIOperations: codetemplate.APIOperations{
 			VersionHeader: input.Operations.VersionHeader,
 			Create:        *toCodeTemplateOpModel(&input.Operations.Create),
@@ -80,7 +80,7 @@ func getIDAttributes(readPath string) []string {
 	params := getPathParams(readPath)
 	result := make([]string, len(params))
 	for i, param := range params {
-		result[i] = stringcase.FromCamelCase(param.CamelCaseName).SnakeCase()
+		result[i] = stringcase.ToSnakeCase(param.CamelCaseName)
 	}
 	return result
 }

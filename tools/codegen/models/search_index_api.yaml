@@ -954,3 +954,4 @@ operations:
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexID}
     version_header: application/vnd.atlas.2024-05-30+json
 name: search_index_api
+packageName: searchindexapi

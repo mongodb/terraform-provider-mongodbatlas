@@ -5,7 +5,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
 )
@@ -39,7 +38,7 @@ func applyAttributeTransformations(schemaOptions config.SchemaOptions, attribute
 
 	for i := range *attributes {
 		attr := &(*attributes)[i]
-		attrPathName := getAttributePathName(string(attr.TFSchemaName), parentName)
+		attrPathName := getAttributePathName(attr.TFSchemaName, parentName)
 
 		if shouldIgnoreAttribute(attrPathName, ignoredAttrs) {
 			continue
@@ -96,7 +95,7 @@ func applyAliasToAttribute(attr *Attribute, attrPathName *string, schemaOptions 
 			parts[i] = newName
 
 			if i == len(parts)-1 {
-				attr.TFSchemaName = stringcase.SnakeCaseString(newName)
+				attr.TFSchemaName = newName
 			}
 		}
 	}
@@ -106,13 +105,11 @@ func applyAliasToAttribute(attr *Attribute, attrPathName *string, schemaOptions 
 
 func applyAliasToPathParams(resource *Resource, aliases map[string]string) {
 	for original, alias := range aliases {
-		originalCamel := stringcase.SnakeCaseString(original).CamelCase()
-		aliasCamel := stringcase.SnakeCaseString(alias).CamelCase()
-		resource.Operations.Create.Path = strings.ReplaceAll(resource.Operations.Create.Path, fmt.Sprintf("{%s}", originalCamel), fmt.Sprintf("{%s}", aliasCamel))
-		resource.Operations.Read.Path = strings.ReplaceAll(resource.Operations.Read.Path, fmt.Sprintf("{%s}", originalCamel), fmt.Sprintf("{%s}", aliasCamel))
-		resource.Operations.Update.Path = strings.ReplaceAll(resource.Operations.Update.Path, fmt.Sprintf("{%s}", originalCamel), fmt.Sprintf("{%s}", aliasCamel))
+		resource.Operations.Create.Path = strings.ReplaceAll(resource.Operations.Create.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
+		resource.Operations.Read.Path = strings.ReplaceAll(resource.Operations.Read.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
+		resource.Operations.Update.Path = strings.ReplaceAll(resource.Operations.Update.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
 		if resource.Operations.Delete != nil {
-			resource.Operations.Delete.Path = strings.ReplaceAll(resource.Operations.Delete.Path, fmt.Sprintf("{%s}", originalCamel), fmt.Sprintf("{%s}", aliasCamel))
+			resource.Operations.Delete.Path = strings.ReplaceAll(resource.Operations.Delete.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
 		}
 	}
 }

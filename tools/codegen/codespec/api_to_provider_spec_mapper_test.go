@@ -109,7 +109,8 @@ func TestConvertToProviderSpec(t *testing.T) {
 						},
 					},
 				},
-				Name: "test_resource_no_schema_opts",
+				Name:        "test_resource_no_schema_opts",
+				PackageName: "testresourcenoschemaopts",
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/testResource",
@@ -365,7 +366,8 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 						},
 					},
 				},
-				Name: "test_resource_with_nested_attr",
+				Name:        "test_resource_with_nested_attr",
+				PackageName: "testresourcewithnestedattr",
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
@@ -496,7 +498,8 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 						},
 					},
 				},
-				Name: "test_resource_with_nested_attr_overrides",
+				Name:        "test_resource_with_nested_attr_overrides",
+				PackageName: "testresourcewithnestedattroverrides",
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/nestedTestResource",
@@ -562,7 +565,8 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 						},
 					},
 				},
-				Name: "test_resource_path_param_in_post_req",
+				Name:        "test_resource_path_param_in_post_req",
+				PackageName: "testresourcepathparaminpostreq",
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/pathparaminpostreq",
@@ -618,7 +622,8 @@ func TestConvertToProviderSpec_singletonResourceNoDeleteOperation(t *testing.T) 
 						},
 					},
 				},
-				Name: "test_singleton_resource_no_delete_op",
+				Name:        "test_singleton_resource_no_delete_op",
+				PackageName: "testsingletonresourcenodeleteop",
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/testSingletonResource",
@@ -688,7 +693,8 @@ func TestConvertToProviderSpec_typeOverride(t *testing.T) {
 						},
 					},
 				},
-				Name: "test_resource_with_overridden_collection_types",
+				Name:        "test_resource_with_overridden_collection_types",
+				PackageName: "testresourcewithoverriddencollectiontypes",
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/testResourceWithCollections",
