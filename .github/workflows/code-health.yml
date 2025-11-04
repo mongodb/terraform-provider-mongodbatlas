@@ -87,7 +87,8 @@ jobs:
           echo "::error::Files were changed during build (see build log). If this was triggered from a fork, you will need to update your branch."
           cat doc.repo.patch
           exit 1
-  call-acceptance-tests-workflow: # TODO: TEMPORARY: This will be reverted before merging
+  call-acceptance-tests-workflow:
+    needs: [build, lint, shellcheck, unit-test, generate-doc-check]
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
     with:
