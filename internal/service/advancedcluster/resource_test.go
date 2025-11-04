@@ -1092,31 +1092,9 @@ func TestAccAdvancedCluster_removeBlocksFromConfig(t *testing.T) {
 func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateReplicaset(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 3)
-		configCall             = func(t *testing.T, timeoutSection string) string {
-			t.Helper()
+		configCall             = func(timeoutSection string) string {
 			return configBasicReplicaset(t, projectID, clusterName, "", timeoutSection)
 		}
-		waitOnClusterDeleteDone = func() {
-			diags := &diag.Diagnostics{}
-			clusterResp, _ := advancedcluster.GetClusterDetails(t.Context(), diags, projectID, clusterName, acc.MongoDBClient, false)
-			if clusterResp == nil {
-				t.Fatalf("cluster %s not found in %s", clusterName, projectID)
-			}
-			advancedcluster.AwaitChanges(t.Context(), acc.MongoDBClient, &advancedcluster.ClusterWaitParams{
-				ProjectID:   projectID,
-				ClusterName: clusterName,
-				Timeout:     60 * time.Second,
-				IsDelete:    true,
-			}, "waiting for cluster to be deleted after cleanup in create timeout", diags)
-			time.Sleep(2 * time.Minute) // decrease the chance of `CONTAINER_WAITING_FOR_FAST_RECORD_CLEAN_UP`: "A transient error occurred. Please try again in a minute or use a different name"
-		}
-	)
-	resource.ParallelTest(t, *createCleanupTest(t, configCall, waitOnClusterDeleteDone, true))
-}
-
-func createCleanupTest(t *testing.T, configCall func(t *testing.T, timeoutSection string) string, waitOnClusterDeleteDone func(), isUpdateSupported bool) *resource.TestCase {
-	t.Helper()
-	var (
 		timeoutsStrShort = `
 			timeouts = {
 				create = "2s"
@@ -1126,43 +1104,54 @@ func createCleanupTest(t *testing.T, configCall func(t *testing.T, timeoutSectio
 		timeoutsStrLong      = strings.ReplaceAll(timeoutsStrShort, "2s", "6000s")
 		timeoutsStrLongFalse = strings.ReplaceAll(timeoutsStrLong, "true", "false")
 	)
-	steps := []resource.TestStep{
-		{
-			Config:      configCall(t, timeoutsStrShort),
-			ExpectError: regexp.MustCompile("context deadline exceeded"),
-		},
-		// OK create should keep the delete_on_create_timeout flag and should be no cleanup
-		{
-			PreConfig: waitOnClusterDeleteDone,
-			Config:    configCall(t, timeoutsStrLong),
-			Check: resource.ComposeAggregateTestCheckFunc(
-				resource.TestCheckResourceAttr(resourceName, "delete_on_create_timeout", "true"),
-			),
-		},
-		acc.TestStepImportCluster(resourceName),
-	}
-	if isUpdateSupported {
-		steps = append(steps,
+
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config:      configCall(timeoutsStrShort),
+				ExpectError: regexp.MustCompile("context deadline exceeded"),
+			},
+			// OK create should keep the delete_on_create_timeout flag and should be no cleanup
+			{
+				PreConfig: func() { waitOnClusterDeleteDone(t, projectID, clusterName) },
+				Config:    configCall(timeoutsStrLong),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "delete_on_create_timeout", "true"),
+				),
+			},
+			acc.TestStepImportCluster(resourceName),
 			// Attempt to switch delete_on_create_timeout to false should fail
-			resource.TestStep{
-				Config:      configCall(t, timeoutsStrLongFalse),
+			{
+				Config:      configCall(timeoutsStrLongFalse),
 				ExpectError: regexp.MustCompile("delete_on_create_timeout cannot be updated or set after import.*"),
 			},
-		)
-		deleteOnCreateTimeoutRemoved := configCall(t, "")
-		steps = append(steps,
-			resource.TestStep{
-				Config: deleteOnCreateTimeoutRemoved,
+			// Remove delete_on_create_timeout from config, should keep state value
+			{
+				Config: configCall(""),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "delete_on_create_timeout", "true"), // Should keep state value
 				),
 			},
-			acc.TestStepImportCluster(resourceName))
+			acc.TestStepImportCluster(resourceName),
+		},
+	})
+}
+
+func waitOnClusterDeleteDone(t *testing.T, projectID, clusterName string) {
+	t.Helper()
+	diags := &diag.Diagnostics{}
+	clusterResp, _ := advancedcluster.GetClusterDetails(t.Context(), diags, projectID, clusterName, acc.MongoDBClient, false)
+	if clusterResp == nil {
+		t.Fatalf("cluster %s not found in %s", clusterName, projectID)
 	}
-	return &resource.TestCase{
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		Steps:                    steps,
-	}
+	advancedcluster.AwaitChanges(t.Context(), acc.MongoDBClient, &advancedcluster.ClusterWaitParams{
+		ProjectID:   projectID,
+		ClusterName: clusterName,
+		Timeout:     60 * time.Second,
+		IsDelete:    true,
+	}, "waiting for cluster to be deleted after cleanup in create timeout", diags)
+	time.Sleep(2 * time.Minute) // decrease the chance of `CONTAINER_WAITING_FOR_FAST_RECORD_CLEAN_UP`: "A transient error occurred. Please try again in a minute or use a different name"
 }
 
 func configBasicReplicaset(t *testing.T, projectID, clusterName, extra, timeoutStr string) string {
