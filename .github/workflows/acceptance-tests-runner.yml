@@ -405,9 +405,8 @@ jobs:
             - 'internal/service/streamprivatelinkendpoint/*.go' 
 
 
-  advanced_cluster:
+  advanced_cluster: # TODO: TEMPORARY: This will be reverted before merging
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster' }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -425,7 +424,7 @@ jobs:
         env:
           MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           HTTP_MOCKER_CAPTURE: 'true'
-          ACCTEST_REGEX_RUN: ${{ inputs.reduced_tests == true && '^TestAccMockable' || env.ACCTEST_REGEX_RUN }}
+          ACCTEST_REGEX_RUN: TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateReplicaset
           ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
 
