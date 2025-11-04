@@ -1143,19 +1143,19 @@ func createCleanupTest(t *testing.T, configCall func(t *testing.T, timeoutSectio
 	}
 	if isUpdateSupported {
 		steps = append(steps,
-			// Switch delete_on_create_timeout to false
+			// Attempt to switch delete_on_create_timeout to false should fail
 			resource.TestStep{
-				Config: configCall(t, timeoutsStrLongFalse),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "delete_on_create_timeout", "false"),
-				),
+				Config:      configCall(t, timeoutsStrLongFalse),
+				ExpectError: regexp.MustCompile("delete_on_create_timeout cannot be updated or set after import.*"),
 			},
 		)
 		deleteOnCreateTimeoutRemoved := configCall(t, "")
 		steps = append(steps,
 			resource.TestStep{
 				Config: deleteOnCreateTimeoutRemoved,
-				Check:  resource.TestCheckNoResourceAttr(resourceName, "delete_on_create_timeout"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "delete_on_create_timeout", "true"), // Should keep state value
+				),
 			},
 			acc.TestStepImportCluster(resourceName))
 	}
