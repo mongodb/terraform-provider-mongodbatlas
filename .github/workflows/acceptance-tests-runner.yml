@@ -451,10 +451,7 @@ jobs:
           MONGODB_ATLAS_LAST_1X_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
           MONGODB_ATLAS_TEST_SDKV2_TO_TPF: 'true'
           ACCTEST_REGEX_RUN: '^TestV1xMig'
-          # include TestV1xMigBackupRSCloudBackupSchedule_copySettings
-          ACCTEST_PACKAGES: |
-            ./internal/service/advancedcluster
-            ./internal/service/cloudbackupschedule
+          ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
 
   advanced_cluster_tpf_mig_from_tpf_preview:
@@ -481,7 +478,10 @@ jobs:
           MONGODB_ATLAS_LAST_1X_VERSION: ${{ inputs.mongodb_atlas_last_1x_version }}
           MONGODB_ATLAS_TEST_SDKV2_TO_TPF: 'false'
           ACCTEST_REGEX_RUN: '^TestV1xMig'
-          ACCTEST_PACKAGES: ./internal/service/advancedcluster
+          # Include TestV1xMigBackupRSCloudBackupSchedule_copySettings.
+          ACCTEST_PACKAGES: |
+            ./internal/service/advancedcluster
+            ./internal/service/cloudbackupschedule
         run: make testacc
 
   advanced_cluster_sa_mig:
