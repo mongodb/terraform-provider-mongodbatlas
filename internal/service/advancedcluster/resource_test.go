@@ -1112,7 +1112,7 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateReplicaset(t *testing
 				Config:      configCall(timeoutsStrShort),
 				ExpectError: regexp.MustCompile("context deadline exceeded"),
 			},
-			// OK create should keep the delete_on_create_timeout flag and should be no cleanup
+			// OK create should keep the delete_on_create_timeout flag and should be no cleanup.
 			{
 				PreConfig: func() { waitOnClusterDeleteDone(t, projectID, clusterName) },
 				Config:    configCall(timeoutsStrLong),
@@ -1121,12 +1121,12 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateReplicaset(t *testing
 				),
 			},
 			acc.TestStepImportCluster(resourceName),
-			// Attempt to switch delete_on_create_timeout to false should fail
+			// Attempt to switch delete_on_create_timeout to false should fail.
 			{
 				Config:      configCall(timeoutsStrLongFalse),
 				ExpectError: regexp.MustCompile("delete_on_create_timeout cannot be updated or set after import.*"),
 			},
-			// Remove delete_on_create_timeout from config, should keep state value
+			// Remove delete_on_create_timeout from config, should keep state value.
 			{
 				Config: configCall(""),
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -1151,7 +1151,7 @@ func waitOnClusterDeleteDone(t *testing.T, projectID, clusterName string) {
 		Timeout:     60 * time.Second,
 		IsDelete:    true,
 	}, "waiting for cluster to be deleted after cleanup in create timeout", diags)
-	time.Sleep(2 * time.Minute) // decrease the chance of `CONTAINER_WAITING_FOR_FAST_RECORD_CLEAN_UP`: "A transient error occurred. Please try again in a minute or use a different name"
+	time.Sleep(2 * time.Minute) // Decrease the chance of `CONTAINER_WAITING_FOR_FAST_RECORD_CLEAN_UP`: "A transient error occurred. Please try again in a minute or use a different name".
 }
 
 func configBasicReplicaset(t *testing.T, projectID, clusterName, extra, timeoutStr string) string {
