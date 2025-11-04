@@ -18,12 +18,9 @@ func ParseAtlasAdminAPI(filePath string) (*libopenapi.DocumentModel[v3.Document]
 	if err != nil {
 		return nil, fmt.Errorf("cannot create new document: %e", err)
 	}
-	docModel, errors := document.BuildV3Model()
-	if len(errors) > 0 {
-		for i := range errors {
-			fmt.Printf("error: %e\n", errors[i])
-		}
-		return nil, fmt.Errorf("cannot create v3 model from document: %d errors reported", len(errors))
+	docModel, err := document.BuildV3Model()
+	if err != nil {
+		return nil, fmt.Errorf("cannot create v3 model from document: %w", err)
 	}
 
 	return docModel, nil
