@@ -406,7 +406,7 @@ jobs:
 
   advanced_cluster:
     needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.advanced_cluster == 'false' || inputs.test_group == 'advanced_cluster' }} # TODO: TEMPORARY remove before merging
+    if: ${{ needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster' }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -428,9 +428,10 @@ jobs:
           ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
 
-  advanced_cluster_tpf_mig_from_sdkv2: # TODO: TEMPORARY remove before merging
+  advanced_cluster_tpf_mig_from_sdkv2:
     needs: [ change-detection, get-provider-version ]
     # advanced_cluster v1.x versions don't support SA.
+    if: ${{ inputs.reduced_tests != true && inputs.use_sa != true && (needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster') }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
@@ -453,9 +454,10 @@ jobs:
           ACCTEST_PACKAGES: ./internal/service/advancedcluster
         run: make testacc
 
-  advanced_cluster_tpf_mig_from_tpf_preview: # TODO: TEMPORARY remove before merging
+  advanced_cluster_tpf_mig_from_tpf_preview:
     needs: [ change-detection, get-provider-version ]
     # advanced_cluster v1.x versions don't support SA.
+    if: ${{ inputs.reduced_tests != true && inputs.use_sa != true && (needs.change-detection.outputs.advanced_cluster == 'true' || inputs.test_group == 'advanced_cluster') }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
