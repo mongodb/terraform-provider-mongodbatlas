@@ -61,9 +61,9 @@ resources:
         target_states: ["DELETED"] # DELETED is a special state value when API returns 404 or empty object
     version_header: application/vnd.atlas.2024-08-05+json
     schema:
-      ignores: ["links", "mongo_dbemployee_access_grant.links"]
+      ignores: ["links", "mongo_db_employee_access_grant.links"]
       aliases:
-        cluster_name: name # path param name does not match the API request property
+        clusterName: name # path param name does not match the API request property
       # These attributes are optional but when not configured, Atlas returns a default value.
       # If a nested attribute is optional/computed, all its optional child attributes must also be defined as optional/computed to avoid non-empty plans.
       overrides:
@@ -211,7 +211,7 @@ resources:
           computability:
             optional: true
             computed: true
-        mongo_dbmajor_version:
+        mongo_db_major_version:
           computability:
             optional: true
             computed: true
@@ -296,10 +296,6 @@ resources:
       method: PATCH
     version_header: application/vnd.atlas.2023-01-01+json
     schema:
-      aliases:
-        # "AI" is all uppercase and does not play nice with camelCase to snake_case conversion.
-        is_data_explorer_gen_aifeatures_enabled: is_data_explorer_gen_ai_features_enabled
-        is_data_explorer_gen_aisample_document_passing_enabled: is_data_explorer_gen_ai_sample_document_passing_enabled
       overrides:
         # These attributes are optional but when not configured, Atlas returns a default value.
         is_collect_database_specifics_statistics_enabled:
@@ -348,7 +344,7 @@ resources:
     schema:
       ignores: ["links"]
       aliases:
-        group_id: id # path param name does not match the API response property
+        groupId: id # path param name does not match the API response property
 
   push_based_log_export_api:
     read:
@@ -395,7 +391,7 @@ resources:
     version_header: application/vnd.atlas.2024-08-05+json
     schema:
       aliases:
-        resource_policy_id: id # path param name does not match the API response property
+        resourcePolicyId: id # path param name does not match the API response property
 
   search_deployment_api:
     read:
@@ -453,7 +449,7 @@ resources:
       # TODO: investigate, latest_definition.mappings excluded because dynamic is a JSON string field but Atlas can also reply with true or false booleans.
       ignores: ["definition.mappings.fields", "latest_definition.mappings.fields", "latest_definition.mappings"]
       aliases:
-        indexId: IndexID # path param name does not match the API response property
+        indexId: indexID # path param name does not match the API response property
 
   # Update doesn't work because API defines incorrectly region and cloud_provider at root level in PATCH instead of inside data_process_region as in the other endpoints.
   # id should be Computed but is ignored because it's defined as _id which is not a legal name for a Terraform attribute as they can't start with an underscore.
@@ -491,7 +487,7 @@ resources:
           "stream_config.links",
         ]
       aliases:
-        tenant_name: name # path param name does not match the API request property
+        tenantName: name # path param name does not match the API request property
 
   # id should be Computed but is ignored because it's defined as _id which is not a legal name for a Terraform attribute as they can't start with an underscore.
   # Custom methods :startWith and :stop are not called so state attribute is not supported as Optional like in the curated resource, only as Computed.
@@ -524,7 +520,7 @@ resources:
     schema:
       ignores: ["links", "options.links", "options.dlq.links", "_id"]
       aliases:
-        processor_name: name # path param name does not match the API request property.
+        processorName: name # path param name does not match the API request property.
       overrides:
         options: # optional but when not configured, Atlas returns a default value.
           computability:

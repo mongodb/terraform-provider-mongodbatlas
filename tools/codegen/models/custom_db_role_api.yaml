@@ -125,3 +125,4 @@ operations:
         path: /api/atlas/v2/groups/{groupId}/customDBRoles/roles/{roleName}
     version_header: application/vnd.atlas.2023-01-01+json
 name: custom_db_role_api
+packageName: customdbroleapi

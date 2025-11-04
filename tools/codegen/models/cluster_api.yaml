@@ -422,15 +422,15 @@ schema:
             model: customtypes.ObjectValue[TFMongoDBEmployeeAccessGrantModel]
             schema: customtypes.NewObjectType[TFMongoDBEmployeeAccessGrantModel](ctx)
           computed_optional_required: optional
-          tf_schema_name: mongo_dbemployee_access_grant
+          tf_schema_name: mongo_db_employee_access_grant
           tf_model_name: MongoDBEmployeeAccessGrant
           req_body_usage: all_request_bodies
           sensitive: false
           create_only: false
         - string: {}
           description: "MongoDB major version of the cluster. Set to the binary major version. \n\nOn creation: Choose from the available versions of MongoDB, or leave unspecified for the current recommended default in the MongoDB Cloud platform. The recommended version is a recent Long Term Support version. The default is not guaranteed to be the most recently released version throughout the entire release cycle. For versions available in a specific project, see the linked documentation or use the API endpoint for [project LTS versions endpoint](#tag/Projects/operation/getProjectLtsVersions).\n\n On update: Increase version only by 1 major version at a time. If the cluster is pinned to a MongoDB feature compatibility version exactly one major version below the current MongoDB version, the MongoDB version can be downgraded to the previous major version."
-          computed_optional_required: computed_optional
-          tf_schema_name: mongo_dbmajor_version
+          computed_optional_required: optional
+          tf_schema_name: mongo_db_major_version
           tf_model_name: MongoDBMajorVersion
           req_body_usage: all_request_bodies
           sensitive: false
@@ -438,7 +438,7 @@ schema:
         - string: {}
           description: Version of MongoDB that the cluster runs.
           computed_optional_required: computed
-          tf_schema_name: mongo_dbversion
+          tf_schema_name: mongo_db_version
           tf_model_name: MongoDBVersion
           req_body_usage: omit_always
           sensitive: false
@@ -1331,3 +1331,4 @@ operations:
         path: /api/atlas/v2/groups/{groupId}/clusters/{name}
     version_header: application/vnd.atlas.2024-08-05+json
 name: cluster_api
+packageName: clusterapi

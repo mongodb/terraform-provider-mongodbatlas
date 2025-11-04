@@ -6,7 +6,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 	high "github.com/pb33f/libopenapi/datamodel/high/v3"
 	low "github.com/pb33f/libopenapi/datamodel/low/v3"
 	"github.com/pb33f/libopenapi/orderedmap"
@@ -47,12 +46,12 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 	for name, resourceConfig := range resourceConfigsToIterate {
 		log.Printf("[INFO] Generating resource model: %s", name)
 		// find resource operations, schemas, etc from OAS
-		oasResource, err := getAPISpecResource(&apiSpec.Model, &resourceConfig, stringcase.SnakeCaseString(name))
+		oasResource, err := getAPISpecResource(&apiSpec.Model, &resourceConfig, name)
 		if err != nil {
 			return nil, fmt.Errorf("unable to get APISpecResource schema: %v", err)
 		}
 		// map OAS resource model to CodeSpecModel
-		resource, err := apiSpecResourceToCodeSpecModel(oasResource, &resourceConfig, stringcase.SnakeCaseString(name))
+		resource, err := apiSpecResourceToCodeSpecModel(oasResource, &resourceConfig, name)
 		if err != nil {
 			return nil, fmt.Errorf("unable to map to code spec model for %s: %w", name, err)
 		}
@@ -81,7 +80,7 @@ func validateRequiredOperations(resourceConfigs map[string]config.Resource) erro
 	return nil
 }
 
-func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig *config.Resource, name stringcase.SnakeCaseString) (*Resource, error) {
+func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig *config.Resource, name string) (*Resource, error) {
 	createOp := oasResource.CreateOp
 	updateOp := oasResource.UpdateOp
 	readOp := oasResource.ReadOp
@@ -117,9 +116,10 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 		operations.VersionHeader = getLatestVersionFromAPISpec(readOp)
 	}
 	resource := &Resource{
-		Name:       name,
-		Schema:     schema,
-		Operations: operations,
+		Name:        name,
+		PackageName: strings.ReplaceAll(name, "_", ""),
+		Schema:      schema,
+		Operations:  operations,
 	}
 
 	applyTransformationsWithConfigOpts(resourceConfig, resource)
@@ -234,7 +234,7 @@ func opResponseToAttributes(op *high.Operation) Attributes {
 	return responseAttributes
 }
 
-func getAPISpecResource(spec *high.Document, resourceConfig *config.Resource, name stringcase.SnakeCaseString) (APISpecResource, error) {
+func getAPISpecResource(spec *high.Document, resourceConfig *config.Resource, name string) (APISpecResource, error) {
 	var errResult error
 	var resourceDeprecationMsg *string
 

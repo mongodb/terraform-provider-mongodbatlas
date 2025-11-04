@@ -5,7 +5,7 @@ schema:
             default: NONE
           description: Human-readable label that indicates whether the new database user authenticates with the Amazon Web Services (AWS) Identity and Access Management (IAM) credentials associated with the user or the user's role.
           computed_optional_required: computed_optional
-          tf_schema_name: aws_iamtype
+          tf_schema_name: aws_iam_type
           tf_model_name: AwsIAMType
           req_body_usage: all_request_bodies
           sensitive: false
@@ -201,7 +201,7 @@ schema:
 
             Users created with the `CUSTOMER` method require a Common Name (CN) in the **username** parameter. You must create externally authenticated users on the `$external` database.
           computed_optional_required: computed_optional
-          tf_schema_name: x509type
+          tf_schema_name: x509_type
           tf_model_name: X509Type
           req_body_usage: all_request_bodies
           sensitive: false
@@ -221,3 +221,4 @@ operations:
         path: /api/atlas/v2/groups/{groupId}/databaseUsers/{databaseName}/{username}
     version_header: application/vnd.atlas.2023-01-01+json
 name: database_user_api
+packageName: databaseuserapi

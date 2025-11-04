@@ -43,7 +43,7 @@ func TestAccClusterAPI_basic(t *testing.T) {
 				ImportStateVerifyIdentifierAttribute: "name",
 				ImportStateVerifyIgnore: []string{
 					"retain_backups_enabled",   // This field is TF specific and not returned by Atlas, so Import can't fill it in.
-					"mongo_dbmajor_version",    // Risks plan change of 8 --> 8.0 (always normalized to `major.minor`)
+					"mongo_db_major_version",   // Risks plan change of 8 --> 8.0 (always normalized to `major.minor`)
 					"state_name",               // Cluster state can change from IDLE to UPDATING and risks making the test flaky
 					"delete_on_create_timeout", // This field is TF specific and not returned by Atlas, so Import can't fill it in.
 				},

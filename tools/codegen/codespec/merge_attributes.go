@@ -9,7 +9,7 @@ func mergeNestedAttributes(existingAttrs *Attributes, newAttrs Attributes, reqBo
 	mergedMap := make(map[string]*Attribute)
 	if existingAttrs != nil {
 		for i := range *existingAttrs {
-			mergedMap[(*existingAttrs)[i].TFSchemaName.SnakeCase()] = &(*existingAttrs)[i]
+			mergedMap[(*existingAttrs)[i].TFSchemaName] = &(*existingAttrs)[i]
 		}
 	}
 
@@ -44,14 +44,14 @@ func mergeComputability(first, second ComputedOptionalRequired) ComputedOptional
 
 // addOrUpdate adds or updates an attribute in the merged map, including nested attributes
 func addOrUpdate(merged map[string]*Attribute, newAttr *Attribute, reqBodyUsage AttributeReqBodyUsage, isFromResponse bool) {
-	if existingAttr, found := merged[newAttr.TFSchemaName.SnakeCase()]; found {
+	if existingAttr, found := merged[newAttr.TFSchemaName]; found {
 		updateAttrWithNewSource(existingAttr, newAttr, reqBodyUsage, isFromResponse)
 	} else {
 		if isFromResponse {
 			newAttr.ComputedOptionalRequired = Computed // setting as computed as attribute was defined only in response
 		}
 		newAttr.ReqBodyUsage = reqBodyUsage
-		merged[newAttr.TFSchemaName.SnakeCase()] = newAttr
+		merged[newAttr.TFSchemaName] = newAttr
 	}
 }
 

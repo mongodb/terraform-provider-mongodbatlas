@@ -189,3 +189,4 @@ operations:
         path: /api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{name}
     version_header: application/vnd.atlas.2024-05-30+json
 name: stream_processor_api
+packageName: streamprocessorapi

@@ -15,6 +15,7 @@ resources:
     version_header: application/vnd.atlas.2035-01-01+json
     schema:
       aliases:
+        groupId: projectId
         group_id: project_id
         nested_list_array_attr.inner_num_attr: inner_num_attr_alias
         outer_object.nested_level1.level_field1: level_field1_alias

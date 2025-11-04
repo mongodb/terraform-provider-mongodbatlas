@@ -52,7 +52,8 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 	schemaGenFromCodeSpecTestCases := map[string]schemaGenerationTestCase{
 		"Primitive attributes": {
 			inputModel: codespec.Resource{
-				Name: "test_name",
+				Name:        "test_name",
+				PackageName: "testname",
 				Schema: &codespec.Schema{
 					Attributes: []codespec.Attribute{
 						{
@@ -121,7 +122,8 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 		},
 		"Custom type attributes": {
 			inputModel: codespec.Resource{
-				Name: "test_name",
+				Name:        "test_name",
+				PackageName: "testname",
 				Schema: &codespec.Schema{
 					Attributes: []codespec.Attribute{
 						{
@@ -218,7 +220,8 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 		},
 		"Timeout attribute": {
 			inputModel: codespec.Resource{
-				Name: "test_name",
+				Name:        "test_name",
+				PackageName: "testname",
 				Schema: &codespec.Schema{
 					Attributes: []codespec.Attribute{
 						{
@@ -243,7 +246,8 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 		},
 		"Multiple nested models with same parent attribute name": {
 			inputModel: codespec.Resource{
-				Name: "test_name",
+				Name:        "test_name",
+				PackageName: "testname",
 				Schema: &codespec.Schema{
 					Attributes: []codespec.Attribute{
 						{
@@ -277,7 +281,8 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 		},
 		"Plan modifiers using create only": {
 			inputModel: codespec.Resource{
-				Name: "test_name",
+				Name:        "test_name",
+				PackageName: "testname",
 				Schema: &codespec.Schema{
 					Attributes: []codespec.Attribute{
 						{

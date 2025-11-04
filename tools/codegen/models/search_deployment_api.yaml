@@ -143,3 +143,4 @@ operations:
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
     version_header: application/vnd.atlas.2025-03-12+json
 name: search_deployment_api
+packageName: searchdeploymentapi

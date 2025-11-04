@@ -3,7 +3,6 @@ package resource_test
 import (
 	"testing"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/resource"
 	"github.com/sebdah/goldie/v2"
@@ -18,7 +17,8 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 	testCases := map[string]resourceGenerationTestCase{
 		"Defining different operation URLs with different path params": {
 			inputModel: codespec.Resource{
-				Name: stringcase.SnakeCaseString("test_name"),
+				Name:        "test_name",
+				PackageName: "testname",
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
 						HTTPMethod: "POST",
@@ -43,7 +43,8 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 		},
 		"Update operation using PUT": {
 			inputModel: codespec.Resource{
-				Name: stringcase.SnakeCaseString("test_name"),
+				Name:        "test_name",
+				PackageName: "testname",
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
 						HTTPMethod: "POST",
@@ -68,7 +69,8 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 		},
 		"Defining wait configuration in create update and delete": {
 			inputModel: codespec.Resource{
-				Name: stringcase.SnakeCaseString("test_name"),
+				Name:        "test_name",
+				PackageName: "testname",
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
 						HTTPMethod: "POST",
@@ -117,7 +119,8 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 		},
 		"Defining static request body in delete operation": {
 			inputModel: codespec.Resource{
-				Name: stringcase.SnakeCaseString("test_name"),
+				Name:        "test_name",
+				PackageName: "testname",
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
 						HTTPMethod: "POST",
@@ -143,7 +146,8 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 		},
 		"Defining a resource with no DELETE operation": {
 			inputModel: codespec.Resource{
-				Name: stringcase.SnakeCaseString("test_name"),
+				Name:        "test_name",
+				PackageName: "testname",
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
 						HTTPMethod: "POST",

@@ -162,3 +162,4 @@ operations:
         path: /api/atlas/v2/orgs/{orgId}/resourcePolicies/{id}
     version_header: application/vnd.atlas.2024-08-05+json
 name: resource_policy_api
+packageName: resourcepolicyapi

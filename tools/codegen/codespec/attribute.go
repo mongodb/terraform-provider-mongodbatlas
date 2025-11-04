@@ -63,7 +63,7 @@ func (s *APISpecSchema) buildResourceAttr(name, ancestorsName string, computabil
 
 func (s *APISpecSchema) buildStringAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	result := &Attribute{
-		TFSchemaName:             stringcase.FromCamelCase(name),
+		TFSchemaName:             stringcase.ToSnakeCase(name),
 		TFModelName:              stringcase.Capitalize(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
@@ -86,7 +86,7 @@ func (s *APISpecSchema) buildStringAttr(name string, computability ComputedOptio
 
 func (s *APISpecSchema) buildIntegerAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	result := &Attribute{
-		TFSchemaName:             stringcase.FromCamelCase(name),
+		TFSchemaName:             stringcase.ToSnakeCase(name),
 		TFModelName:              stringcase.Capitalize(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
@@ -109,7 +109,7 @@ func (s *APISpecSchema) buildIntegerAttr(name string, computability ComputedOpti
 func (s *APISpecSchema) buildNumberAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	if s.Schema.Format == OASFormatDouble || s.Schema.Format == OASFormatFloat {
 		result := &Attribute{
-			TFSchemaName:             stringcase.FromCamelCase(name),
+			TFSchemaName:             stringcase.ToSnakeCase(name),
 			TFModelName:              stringcase.Capitalize(name),
 			ComputedOptionalRequired: computability,
 			DeprecationMessage:       s.GetDeprecationMessage(),
@@ -130,7 +130,7 @@ func (s *APISpecSchema) buildNumberAttr(name string, computability ComputedOptio
 	}
 
 	return &Attribute{
-		TFSchemaName:             stringcase.FromCamelCase(name),
+		TFSchemaName:             stringcase.ToSnakeCase(name),
 		TFModelName:              stringcase.Capitalize(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
@@ -141,7 +141,7 @@ func (s *APISpecSchema) buildNumberAttr(name string, computability ComputedOptio
 
 func (s *APISpecSchema) buildBoolAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	result := &Attribute{
-		TFSchemaName:             stringcase.FromCamelCase(name),
+		TFSchemaName:             stringcase.ToSnakeCase(name),
 		TFModelName:              stringcase.Capitalize(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
@@ -176,7 +176,7 @@ func (s *APISpecSchema) buildArrayAttr(name, ancestorsName string, computability
 	createAttribute := func(nestedObject *NestedAttributeObject, nestedObjectName *string, elemType ElemType) *Attribute {
 		var (
 			attr = &Attribute{
-				TFSchemaName:             stringcase.FromCamelCase(name),
+				TFSchemaName:             stringcase.ToSnakeCase(name),
 				TFModelName:              tfModelName,
 				ComputedOptionalRequired: computability,
 				DeprecationMessage:       s.GetDeprecationMessage(),
@@ -247,7 +247,7 @@ func (s *APISpecSchema) buildMapAttr(name, ancestorsName string, computability C
 	}
 
 	result := &Attribute{
-		TFSchemaName:             stringcase.FromCamelCase(name),
+		TFSchemaName:             stringcase.ToSnakeCase(name),
 		TFModelName:              stringcase.Capitalize(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
@@ -284,7 +284,7 @@ func (s *APISpecSchema) buildMapAttr(name, ancestorsName string, computability C
 
 func (s *APISpecSchema) buildSingleNestedAttr(name, ancestorsName string, computability ComputedOptionalRequired, isFromRequest bool) (*Attribute, error) {
 	attr := &Attribute{
-		TFSchemaName:             stringcase.FromCamelCase(name),
+		TFSchemaName:             stringcase.ToSnakeCase(name),
 		TFModelName:              stringcase.Capitalize(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),

@@ -74,7 +74,7 @@ func typedModelProperty(attr *codespec.Attribute) string {
 	case codespec.IncludeNullOnUpdate:
 		autogenTag = ` autogen:"includenullonupdate"`
 	}
-	return fmt.Sprintf("%s %s", attr.TFModelName, propType) + " `" + fmt.Sprintf("tfsdk:%q", attr.TFSchemaName.SnakeCase()) + autogenTag + "`"
+	return fmt.Sprintf("%s %s", attr.TFModelName, propType) + " `" + fmt.Sprintf("tfsdk:%q", attr.TFSchemaName) + autogenTag + "`"
 }
 
 func attrModelType(attr *codespec.Attribute) string {
