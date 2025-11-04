@@ -24,11 +24,13 @@ func PreCheckBasicSleep(tb testing.TB) func() {
 	}
 }
 
-func PreCheckLast1XVersion(tb testing.TB) {
+func PreCheckLast1XVersionSleep(tb testing.TB) {
 	tb.Helper()
 	if os.Getenv("MONGODB_ATLAS_LAST_1X_VERSION") == "" {
 		tb.Fatal("`MONGODB_ATLAS_LAST_1X_VERSION` must be set for this migration testing")
 	}
+	PreCheckBasic(tb)
+	acc.SerialSleep(tb)
 }
 
 func PreCheck(tb testing.TB) {
