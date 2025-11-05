@@ -283,10 +283,10 @@ type TFConnectionsModel struct {
 }
 type TFConnectionsAuthenticationModel struct {
 	ClientId                  types.String `tfsdk:"client_id" autogen:"omitjson"`
-	ClientSecret              types.String `tfsdk:"client_secret" autogen:"omitjson"`
+	ClientSecret              types.String `tfsdk:"client_secret" autogen:"sensitive,omitjson"`
 	Mechanism                 types.String `tfsdk:"mechanism" autogen:"omitjson"`
 	Method                    types.String `tfsdk:"method" autogen:"omitjson"`
-	Password                  types.String `tfsdk:"password" autogen:"omitjson"`
+	Password                  types.String `tfsdk:"password" autogen:"sensitive,omitjson"`
 	SaslOauthbearerExtensions types.String `tfsdk:"sasl_oauthbearer_extensions" autogen:"omitjson"`
 	Scope                     types.String `tfsdk:"scope" autogen:"omitjson"`
 	SslCertificate            types.String `tfsdk:"ssl_certificate" autogen:"omitjson"`

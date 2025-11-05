@@ -127,7 +127,7 @@ type TFModel struct {
 	Labels          customtypes.NestedListValue[TFLabelsModel] `tfsdk:"labels"`
 	LdapAuthType    types.String                               `tfsdk:"ldap_auth_type"`
 	OidcAuthType    types.String                               `tfsdk:"oidc_auth_type"`
-	Password        types.String                               `tfsdk:"password"`
+	Password        types.String                               `tfsdk:"password" autogen:"sensitive"`
 	Roles           customtypes.NestedListValue[TFRolesModel]  `tfsdk:"roles"`
 	Scopes          customtypes.NestedListValue[TFScopesModel] `tfsdk:"scopes"`
 	Username        types.String                               `tfsdk:"username"`

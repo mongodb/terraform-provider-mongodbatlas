@@ -101,5 +101,5 @@ type TFSecretsModel struct {
 	Id                types.String `tfsdk:"id" autogen:"omitjson"`
 	LastUsedAt        types.String `tfsdk:"last_used_at" autogen:"omitjson"`
 	MaskedSecretValue types.String `tfsdk:"masked_secret_value" autogen:"omitjson"`
-	Secret            types.String `tfsdk:"secret" autogen:"omitjson"`
+	Secret            types.String `tfsdk:"secret" autogen:"sensitive,omitjson"`
 }
