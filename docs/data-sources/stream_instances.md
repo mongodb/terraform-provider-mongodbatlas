@@ -13,13 +13,13 @@ subcategory: "Streams"
 To migrate from `mongodbatlas_stream_instances` to `mongodbatlas_stream_workspaces`, update your data source configuration:
 
 ```terraform
-# Old (deprecated)
-data "mongodbatlas_stream_instances" "example" {
+# New (recommended)
+data "mongodbatlas_stream_workspaces" "example" {
   project_id = "<PROJECT_ID>"
 }
 
-# New (recommended)
-data "mongodbatlas_stream_workspaces" "example" {
+# Old (deprecated)
+data "mongodbatlas_stream_instances" "example" {
   project_id = "<PROJECT_ID>"
 }
 ```

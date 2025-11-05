@@ -6,7 +6,7 @@ subcategory: "Streams"
 
 `mongodbatlas_stream_workspace` describes a stream workspace that contains configurations for stream processing.
 
-~> **NOTE:** This data source is an alias for `mongodbatlas_stream_instance`. Use this data source for new configurations.
+~> **NOTE:** Use this data source for new configurations instead of `mongodbatlas_stream_instance`.
 
 ## Example Usage
 
@@ -19,19 +19,7 @@ data "mongodbatlas_stream_workspace" "example" {
 
 ## Migration from stream_instance
 
-To migrate from `mongodbatlas_stream_instance` data source to `mongodbatlas_stream_workspace`, use the following `moved` block:
-
-```terraform
-moved {
-  from = data.mongodbatlas_stream_instance.example
-  to   = data.mongodbatlas_stream_workspace.example
-}
-
-data "mongodbatlas_stream_workspace" "example" {
-  project_id = "<PROJECT_ID>"
-  workspace_name = "<WORKSPACE_NAME>"  # Changed from instance_name
-}
-```
+If you're migrating from the deprecated `mongodbatlas_stream_instance` data source, see the [Migration Guide: Stream Instance to Stream Workspace](../guides/stream-instance-to-stream-workspace-migration-guide) for step-by-step instructions and examples.
 
 ## Argument Reference
 

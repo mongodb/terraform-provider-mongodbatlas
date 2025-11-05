@@ -4,29 +4,16 @@ subcategory: "Streams"
 
 # Resource: mongodbatlas_stream_instance
 
-~> **DEPRECATED:** This resource is deprecated. Please use [`mongodbatlas_stream_workspace`](stream_workspace.md) instead.
+~> **DEPRECATED:** This resource is deprecated. Please use [`mongodbatlas_stream_workspace`](stream_workspace) instead.
 
 `mongodbatlas_stream_instance` provides a Stream Instance resource. The resource lets you create, edit, and delete stream instances in a project.
 
 ## Migration to stream_workspace
 
-To migrate from `mongodbatlas_stream_instance` to `mongodbatlas_stream_workspace`, add a `moved` block to your Terraform configuration:
+`mongodbatlas_stream_instance` resources can be moved to `mongodbatlas_stream_workspace` in Terraform v2.2 and later. 
 
-```terraform
-moved {
-  from = mongodbatlas_stream_instance.example
-  to   = mongodbatlas_stream_workspace.example
-}
+More information about moving resources can be found in our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/stream-instance-to-stream-workspace-migration-guide) and in the Terraform documentation [here](https://developer.hashicorp.com/terraform/language/moved) and [here](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring).
 
-resource "mongodbatlas_stream_workspace" "example" {
-  project_id = var.project_id
-  workspace_name = "WorkspaceName"  # Changed from instance_name
-  data_process_region = {
-    region = "VIRGINIA_USA"
-    cloud_provider = "AWS"
-  }
-}
-```
 
 ## Example Usage
 
