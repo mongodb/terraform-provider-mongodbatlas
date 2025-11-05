@@ -42,17 +42,14 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		return
 	}
 
-	// Convert workspace model to instance model
-	instanceModel := plan.AsInstanceModel()
-
 	connV2 := r.Client.AtlasV2
-	projectID := instanceModel.ProjectID.ValueString()
-	streamInstanceReq, diags := streaminstance.NewStreamInstanceCreateReq(ctx, instanceModel)
+	projectID := plan.ProjectID.ValueString()
+	streamWorkspaceReq, diags := newStreamWorkspaceCreateReq(ctx, &plan)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	apiResp, _, err := connV2.StreamsApi.CreateStreamWorkspace(ctx, projectID, streamInstanceReq).Execute()
+	apiResp, _, err := connV2.StreamsApi.CreateStreamWorkspace(ctx, projectID, streamWorkspaceReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error creating resource", err.Error())
 		return
@@ -111,18 +108,15 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 
-	// Convert workspace model to instance model
-	instanceModel := plan.AsInstanceModel()
-
 	connV2 := r.Client.AtlasV2
-	projectID := instanceModel.ProjectID.ValueString()
-	workspaceName := instanceModel.InstanceName.ValueString()
-	streamInstanceReq, diags := streaminstance.NewStreamInstanceUpdateReq(ctx, instanceModel)
+	projectID := plan.ProjectID.ValueString()
+	workspaceName := plan.WorkspaceName.ValueString()
+	streamWorkspaceReq, diags := newStreamWorkspaceUpdateReq(ctx, &plan)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	apiResp, _, err := connV2.StreamsApi.UpdateStreamWorkspace(ctx, projectID, workspaceName, streamInstanceReq).Execute()
+	apiResp, _, err := connV2.StreamsApi.UpdateStreamWorkspace(ctx, projectID, workspaceName, streamWorkspaceReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error updating resource", err.Error())
 		return
@@ -134,7 +128,6 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		return
 	}
 
-	// Convert back to workspace model
 	var newWorkspaceModel TFModel
 	newWorkspaceModel.FromInstanceModel(newInstanceModel)
 

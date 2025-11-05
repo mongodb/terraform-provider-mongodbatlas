@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
 
-func TestAccrs_basic(t *testing.T) {
+func TestAccStreamWorkspaceRS_basic(t *testing.T) {
 	var (
 		resourceName  = "mongodbatlas_stream_workspace.test"
 		projectID     = acc.ProjectIDExecution(t)
@@ -38,7 +38,7 @@ func TestAccrs_basic(t *testing.T) {
 	})
 }
 
-func TestAccrs_withStreamConfig(t *testing.T) {
+func TestAccStreamWorkspaceRS_withStreamConfig(t *testing.T) {
 	var (
 		resourceName  = "mongodbatlas_stream_workspace.test"
 		projectID     = acc.ProjectIDExecution(t)

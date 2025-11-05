@@ -1,20 +1,50 @@
 package streamworkspace
 
 import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
+	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 )
 
-// AsInstanceModel returns a TFStreamInstanceModel with workspace_name mapped to instance_name
-// This eliminates the need for conversion functions by reusing the same underlying data
-func (m *TFModel) AsInstanceModel() *streaminstance.TFStreamInstanceModel {
-	return &streaminstance.TFStreamInstanceModel{
-		ID:                m.ID,
-		InstanceName:      m.WorkspaceName, // Map workspace_name to instance_name
-		ProjectID:         m.ProjectID,
-		DataProcessRegion: m.DataProcessRegion,
-		StreamConfig:      m.StreamConfig,
-		Hostnames:         m.Hostnames,
+// newStreamWorkspaceCreateReq creates an API request for creating a stream workspace
+func newStreamWorkspaceCreateReq(ctx context.Context, plan *TFModel) (*admin.StreamsTenant, diag.Diagnostics) {
+	dataProcessRegion := &TFWorkspaceProcessRegionSpecModel{}
+	if diags := plan.DataProcessRegion.As(ctx, dataProcessRegion, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return nil, diags
 	}
+	streamTenant := &admin.StreamsTenant{
+		GroupId: plan.ProjectID.ValueStringPointer(),
+		Name:    plan.WorkspaceName.ValueStringPointer(),
+		DataProcessRegion: &admin.StreamsDataProcessRegion{
+			CloudProvider: dataProcessRegion.CloudProvider.ValueString(),
+			Region:        dataProcessRegion.Region.ValueString(),
+		},
+	}
+	if !plan.StreamConfig.IsNull() && !plan.StreamConfig.IsUnknown() {
+		streamConfig := new(TFWorkspaceStreamConfigModel)
+		if diags := plan.StreamConfig.As(ctx, streamConfig, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, diags
+		}
+		streamTenant.StreamConfig = &admin.StreamConfig{
+			Tier: streamConfig.Tier.ValueStringPointer(),
+		}
+	}
+	return streamTenant, nil
+}
+
+// newStreamWorkspaceUpdateReq creates an API request for updating a stream workspace
+func newStreamWorkspaceUpdateReq(ctx context.Context, plan *TFModel) (*admin.StreamsDataProcessRegion, diag.Diagnostics) {
+	dataProcessRegion := &TFWorkspaceProcessRegionSpecModel{}
+	if diags := plan.DataProcessRegion.As(ctx, dataProcessRegion, basetypes.ObjectAsOptions{}); diags.HasError() {
+		return nil, diags
+	}
+	return &admin.StreamsDataProcessRegion{
+		CloudProvider: dataProcessRegion.CloudProvider.ValueString(),
+		Region:        dataProcessRegion.Region.ValueString(),
+	}, nil
 }
 
 // FromInstanceModel populates this workspace model from a TFStreamInstanceModel

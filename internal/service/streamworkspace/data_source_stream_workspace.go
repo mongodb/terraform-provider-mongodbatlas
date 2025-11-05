@@ -52,7 +52,6 @@ func (d *streamsWorkspaceDS) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	// Convert instance model to workspace model
 	var newWorkspaceModel TFModel
 	newWorkspaceModel.FromInstanceModel(newInstanceModel)
 
