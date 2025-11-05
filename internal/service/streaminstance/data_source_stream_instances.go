@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"go.mongodb.org/atlas-sdk/v20250312009/admin"
@@ -31,6 +32,7 @@ func (d *streamInstancesDS) Schema(ctx context.Context, req datasource.SchemaReq
 		RequiredFields:  []string{"project_id"},
 		HasLegacyFields: true,
 	})
+	resp.Schema.DeprecationMessage = fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "data source", "mongodbatlas_stream_workspaces", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/stream-instance-to-stream-workspace-migraton-guide")
 }
 
 func (d *streamInstancesDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
