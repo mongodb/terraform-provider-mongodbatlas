@@ -56,23 +56,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 	}
 }
 
-type TFStreamsWorkspaceModel struct {
+type TFModel struct {
 	ID                types.String `tfsdk:"id"`
 	WorkspaceName     types.String `tfsdk:"workspace_name"` // Only difference from TFStreamInstanceModel
 	ProjectID         types.String `tfsdk:"project_id"`
 	DataProcessRegion types.Object `tfsdk:"data_process_region"`
 	StreamConfig      types.Object `tfsdk:"stream_config"`
 	Hostnames         types.List   `tfsdk:"hostnames"`
-}
-
-// GetInstanceName returns the workspace name as instance name for API compatibility
-func (m *TFStreamsWorkspaceModel) GetInstanceName() types.String {
-	return m.WorkspaceName
-}
-
-// SetInstanceName sets the workspace name from instance name for API compatibility
-func (m *TFStreamsWorkspaceModel) SetInstanceName(instanceName types.String) {
-	m.WorkspaceName = instanceName
 }
 
 type TFWorkspaceProcessRegionSpecModel struct {

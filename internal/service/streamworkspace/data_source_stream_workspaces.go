@@ -65,12 +65,12 @@ func (d *streamsWorkspacesDS) Read(ctx context.Context, req datasource.ReadReque
 }
 
 type TFStreamsWorkspacesModel struct {
-	ID           types.String              `tfsdk:"id"`
-	ProjectID    types.String              `tfsdk:"project_id"`
-	Results      []TFStreamsWorkspaceModel `tfsdk:"results"`
-	PageNum      types.Int64               `tfsdk:"page_num"`
-	ItemsPerPage types.Int64               `tfsdk:"items_per_page"`
-	TotalCount   types.Int64               `tfsdk:"total_count"`
+	ID           types.String `tfsdk:"id"`
+	ProjectID    types.String `tfsdk:"project_id"`
+	Results      []TFModel    `tfsdk:"results"`
+	PageNum      types.Int64  `tfsdk:"page_num"`
+	ItemsPerPage types.Int64  `tfsdk:"items_per_page"`
+	TotalCount   types.Int64  `tfsdk:"total_count"`
 }
 
 func NewTFStreamsWorkspaces(ctx context.Context, streamsWorkspacesConfig *TFStreamsWorkspacesModel, apiResp *admin.PaginatedApiStreamsTenant) (*TFStreamsWorkspacesModel, diag.Diagnostics) {
@@ -91,7 +91,7 @@ func NewTFStreamsWorkspaces(ctx context.Context, streamsWorkspacesConfig *TFStre
 	}
 
 	// Convert each instance result to workspace result
-	workspaceResults := make([]TFStreamsWorkspaceModel, len(newInstancesModel.Results))
+	workspaceResults := make([]TFModel, len(newInstancesModel.Results))
 	for i := range newInstancesModel.Results {
 		workspaceResults[i].FromInstanceModel(&newInstancesModel.Results[i])
 	}

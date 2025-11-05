@@ -6,7 +6,7 @@ import (
 
 // AsInstanceModel returns a TFStreamInstanceModel with workspace_name mapped to instance_name
 // This eliminates the need for conversion functions by reusing the same underlying data
-func (m *TFStreamsWorkspaceModel) AsInstanceModel() *streaminstance.TFStreamInstanceModel {
+func (m *TFModel) AsInstanceModel() *streaminstance.TFStreamInstanceModel {
 	return &streaminstance.TFStreamInstanceModel{
 		ID:                m.ID,
 		InstanceName:      m.WorkspaceName, // Map workspace_name to instance_name
@@ -19,7 +19,7 @@ func (m *TFStreamsWorkspaceModel) AsInstanceModel() *streaminstance.TFStreamInst
 
 // FromInstanceModel populates this workspace model from a TFStreamInstanceModel
 // This eliminates the need for conversion functions by directly updating fields
-func (m *TFStreamsWorkspaceModel) FromInstanceModel(instanceModel *streaminstance.TFStreamInstanceModel) {
+func (m *TFModel) FromInstanceModel(instanceModel *streaminstance.TFStreamInstanceModel) {
 	m.ID = instanceModel.ID
 	m.WorkspaceName = instanceModel.InstanceName // Map instance_name to workspace_name
 	m.ProjectID = instanceModel.ProjectID

@@ -31,7 +31,7 @@ func (d *streamsWorkspaceDS) Schema(ctx context.Context, req datasource.SchemaRe
 }
 
 func (d *streamsWorkspaceDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var streamsWorkspaceConfig TFStreamsWorkspaceModel
+	var streamsWorkspaceConfig TFModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &streamsWorkspaceConfig)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -53,7 +53,7 @@ func (d *streamsWorkspaceDS) Read(ctx context.Context, req datasource.ReadReques
 	}
 
 	// Convert instance model to workspace model
-	var newWorkspaceModel TFStreamsWorkspaceModel
+	var newWorkspaceModel TFModel
 	newWorkspaceModel.FromInstanceModel(newInstanceModel)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, newWorkspaceModel)...)

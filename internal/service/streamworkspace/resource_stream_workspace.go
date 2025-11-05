@@ -13,36 +13,37 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
 )
 
-var _ resource.ResourceWithConfigure = &streamsWorkspaceRS{}
-var _ resource.ResourceWithImportState = &streamsWorkspaceRS{}
+var _ resource.ResourceWithConfigure = &rs{}
+var _ resource.ResourceWithImportState = &rs{}
+var _ resource.ResourceWithMoveState = &rs{}
 
 const streamsWorkspaceName = "stream_workspace"
 
 func Resource() resource.Resource {
-	return &streamsWorkspaceRS{
+	return &rs{
 		RSCommon: config.RSCommon{
 			ResourceName: streamsWorkspaceName,
 		},
 	}
 }
 
-type streamsWorkspaceRS struct {
+type rs struct {
 	config.RSCommon
 }
 
-func (r *streamsWorkspaceRS) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = ResourceSchema(ctx)
 }
 
-func (r *streamsWorkspaceRS) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var streamsWorkspacePlan TFStreamsWorkspaceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &streamsWorkspacePlan)...)
+func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan TFModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Convert workspace model to instance model
-	instanceModel := streamsWorkspacePlan.AsInstanceModel()
+	instanceModel := plan.AsInstanceModel()
 
 	connV2 := r.Client.AtlasV2
 	projectID := instanceModel.ProjectID.ValueString()
@@ -64,14 +65,14 @@ func (r *streamsWorkspaceRS) Create(ctx context.Context, req resource.CreateRequ
 	}
 
 	// Convert back to workspace model
-	var newWorkspaceModel TFStreamsWorkspaceModel
+	var newWorkspaceModel TFModel
 	newWorkspaceModel.FromInstanceModel(newInstanceModel)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, newWorkspaceModel)...)
 }
 
-func (r *streamsWorkspaceRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var streamsWorkspaceState TFStreamsWorkspaceModel
+func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var streamsWorkspaceState TFModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &streamsWorkspaceState)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -97,21 +98,21 @@ func (r *streamsWorkspaceRS) Read(ctx context.Context, req resource.ReadRequest,
 	}
 
 	// Convert back to workspace model
-	var newWorkspaceModel TFStreamsWorkspaceModel
+	var newWorkspaceModel TFModel
 	newWorkspaceModel.FromInstanceModel(newInstanceModel)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, newWorkspaceModel)...)
 }
 
-func (r *streamsWorkspaceRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var streamsWorkspacePlan TFStreamsWorkspaceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &streamsWorkspacePlan)...)
+func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan TFModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	// Convert workspace model to instance model
-	instanceModel := streamsWorkspacePlan.AsInstanceModel()
+	instanceModel := plan.AsInstanceModel()
 
 	connV2 := r.Client.AtlasV2
 	projectID := instanceModel.ProjectID.ValueString()
@@ -134,14 +135,14 @@ func (r *streamsWorkspaceRS) Update(ctx context.Context, req resource.UpdateRequ
 	}
 
 	// Convert back to workspace model
-	var newWorkspaceModel TFStreamsWorkspaceModel
+	var newWorkspaceModel TFModel
 	newWorkspaceModel.FromInstanceModel(newInstanceModel)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, newWorkspaceModel)...)
 }
 
-func (r *streamsWorkspaceRS) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var streamsWorkspaceState *TFStreamsWorkspaceModel
+func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var streamsWorkspaceState *TFModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &streamsWorkspaceState)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -156,7 +157,7 @@ func (r *streamsWorkspaceRS) Delete(ctx context.Context, req resource.DeleteRequ
 	}
 }
 
-func (r *streamsWorkspaceRS) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	projectID, workspaceName, err := splitStreamsWorkspaceImportID(req.ID)
 	if err != nil {
 		resp.Diagnostics.AddError("error splitting streams workspace import ID", err.Error())
@@ -178,23 +179,4 @@ func splitStreamsWorkspaceImportID(id string) (projectID, workspaceName string, 
 
 	projectID, workspaceName = parts[1], parts[2]
 	return
-}
-
-func (r *streamsWorkspaceRS) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
-	var configModel TFStreamsWorkspaceModel
-	resp.Diagnostics.Append(req.Config.Get(ctx, &configModel)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	if !configModel.WorkspaceName.IsNull() && !configModel.WorkspaceName.IsUnknown() {
-		workspaceName := configModel.WorkspaceName.ValueString()
-		if matched, _ := regexp.MatchString(`^[a-zA-Z0-9][a-zA-Z0-9-]*$`, workspaceName); !matched {
-			resp.Diagnostics.AddAttributeError(
-				path.Root("workspace_name"),
-				"Invalid workspace name",
-				"Workspace name must contain only alphanumeric characters and hyphens, and cannot start with a hyphen.",
-			)
-		}
-	}
 }
