@@ -90,7 +90,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"scopes": schema.ListNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "List that contains clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Instances that this database user can access. If omitted, MongoDB Cloud grants the database user access to all the clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Instances in the project.",
+				MarkdownDescription: "List that contains clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Workspaces that this database user can access. If omitted, MongoDB Cloud grants the database user access to all the clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Workspaces in the project.",
 				CustomType:          customtypes.NewNestedListType[TFScopesModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{

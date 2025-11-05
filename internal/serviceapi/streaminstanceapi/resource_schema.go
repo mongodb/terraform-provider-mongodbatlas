@@ -17,7 +17,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 		Attributes: map[string]schema.Attribute{
 			"connections": schema.ListNestedAttribute{
 				Computed:            true,
-				MarkdownDescription: "List of connections configured in the stream instance.",
+				MarkdownDescription: "List of connections configured in the stream workspace.",
 				CustomType:          customtypes.NewNestedListType[TFConnectionsModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -215,13 +215,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"hostnames": schema.ListAttribute{
 				Computed:            true,
-				MarkdownDescription: "List that contains the hostnames assigned to the stream instance.",
+				MarkdownDescription: "List that contains the hostnames assigned to the stream workspace.",
 				CustomType:          customtypes.NewListType[types.String](ctx),
 				ElementType:         types.StringType,
 			},
 			"name": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Human-readable label that identifies the stream instance.",
+				MarkdownDescription: "Label that identifies the stream workspace.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"sample_connections": schema.SingleNestedAttribute{
@@ -239,17 +239,17 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"stream_config": schema.SingleNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "Configuration options for an Atlas Stream Processing Instance.",
+				MarkdownDescription: "Configuration options for an Atlas Stream Processing Workspace.",
 				CustomType:          customtypes.NewObjectType[TFStreamConfigModel](ctx),
 				PlanModifiers:       []planmodifier.Object{customplanmodifier.CreateOnly()},
 				Attributes: map[string]schema.Attribute{
 					"max_tier_size": schema.StringAttribute{
 						Optional:            true,
-						MarkdownDescription: "Max tier size for the Stream Instance. Configures Memory / VCPU allowances. This field is not supported yet.",
+						MarkdownDescription: "Max tier size for the Stream Workspace. Configures Memory / VCPU allowances.",
 					},
 					"tier": schema.StringAttribute{
 						Optional:            true,
-						MarkdownDescription: "Selected tier for the Stream Instance. Configures Memory / VCPU allowances.",
+						MarkdownDescription: "Selected tier for the Stream Workspace. Configures Memory / VCPU allowances.",
 					},
 				},
 			},

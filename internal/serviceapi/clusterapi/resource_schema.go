@@ -305,10 +305,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 														Computed:            true,
 														MarkdownDescription: "Instance size boundary to which your cluster can automatically scale.",
 													},
-													"predictive_enabled": schema.BoolAttribute{
-														Optional:            true,
-														MarkdownDescription: "Flag that indicates whether predictive instance size auto-scaling is enabled.\n\n- Set to `true` to enable predictive instance size auto-scaling. MongoDB Cloud requires **replicationSpecs[n].regionConfigs[m].autoScaling.compute.enabled** to be `true` in order to enable this feature.\n- Set to `false` to disable predictive instance size auto-scaling.",
-													},
 													"scale_down_enabled": schema.BoolAttribute{
 														Optional:            true,
 														MarkdownDescription: "Flag that indicates whether the instance size may scale down via reactive auto-scaling. MongoDB Cloud requires this parameter if **replicationSpecs[n].regionConfigs[m].autoScaling.compute.enabled** is `true`. If you enable this option, specify a value for **replicationSpecs[n].regionConfigs[m].autoScaling.compute.minInstanceSize**.",
@@ -386,11 +382,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 														Computed:            true,
 														Optional:            true,
 														MarkdownDescription: "Instance size boundary to which your cluster can automatically scale.",
-													},
-													"predictive_enabled": schema.BoolAttribute{
-														Computed:            true,
-														Optional:            true,
-														MarkdownDescription: "Flag that indicates whether predictive instance size auto-scaling is enabled.\n\n- Set to `true` to enable predictive instance size auto-scaling. MongoDB Cloud requires **replicationSpecs[n].regionConfigs[m].autoScaling.compute.enabled** to be `true` in order to enable this feature.\n- Set to `false` to disable predictive instance size auto-scaling.",
 													},
 													"scale_down_enabled": schema.BoolAttribute{
 														Computed:            true,
@@ -748,11 +739,10 @@ type TFReplicationSpecsRegionConfigsAnalyticsAutoScalingModel struct {
 	DiskGB  customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGBModel]  `tfsdk:"disk_gb"`
 }
 type TFReplicationSpecsRegionConfigsAnalyticsAutoScalingComputeModel struct {
-	MaxInstanceSize   types.String `tfsdk:"max_instance_size" autogen:"omitjson"`
-	MinInstanceSize   types.String `tfsdk:"min_instance_size" autogen:"omitjson"`
-	Enabled           types.Bool   `tfsdk:"enabled"`
-	PredictiveEnabled types.Bool   `tfsdk:"predictive_enabled"`
-	ScaleDownEnabled  types.Bool   `tfsdk:"scale_down_enabled"`
+	MaxInstanceSize  types.String `tfsdk:"max_instance_size" autogen:"omitjson"`
+	MinInstanceSize  types.String `tfsdk:"min_instance_size" autogen:"omitjson"`
+	Enabled          types.Bool   `tfsdk:"enabled"`
+	ScaleDownEnabled types.Bool   `tfsdk:"scale_down_enabled"`
 }
 type TFReplicationSpecsRegionConfigsAnalyticsAutoScalingDiskGBModel struct {
 	Enabled types.Bool `tfsdk:"enabled"`
@@ -769,11 +759,10 @@ type TFReplicationSpecsRegionConfigsAutoScalingModel struct {
 	DiskGB  customtypes.ObjectValue[TFReplicationSpecsRegionConfigsAutoScalingDiskGBModel]  `tfsdk:"disk_gb"`
 }
 type TFReplicationSpecsRegionConfigsAutoScalingComputeModel struct {
-	MaxInstanceSize   types.String `tfsdk:"max_instance_size" autogen:"omitjson"`
-	MinInstanceSize   types.String `tfsdk:"min_instance_size" autogen:"omitjson"`
-	Enabled           types.Bool   `tfsdk:"enabled"`
-	PredictiveEnabled types.Bool   `tfsdk:"predictive_enabled"`
-	ScaleDownEnabled  types.Bool   `tfsdk:"scale_down_enabled"`
+	MaxInstanceSize  types.String `tfsdk:"max_instance_size" autogen:"omitjson"`
+	MinInstanceSize  types.String `tfsdk:"min_instance_size" autogen:"omitjson"`
+	Enabled          types.Bool   `tfsdk:"enabled"`
+	ScaleDownEnabled types.Bool   `tfsdk:"scale_down_enabled"`
 }
 type TFReplicationSpecsRegionConfigsAutoScalingDiskGBModel struct {
 	Enabled types.Bool `tfsdk:"enabled"`
