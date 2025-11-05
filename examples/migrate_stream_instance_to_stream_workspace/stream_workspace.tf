@@ -1,9 +1,9 @@
 # AFTER: New stream workspace resource
 resource "mongodbatlas_stream_workspace" "example" {
-  project_id = var.project_id
-  workspace_name = var.workspace_name  # Note: instance_name -> workspace_name
+  project_id     = var.project_id
+  workspace_name = var.workspace_name # Note: instance_name -> workspace_name
   data_process_region = {
-    region = "VIRGINIA_USA"
+    region         = "VIRGINIA_USA"
     cloud_provider = "AWS"
   }
   stream_config = {
