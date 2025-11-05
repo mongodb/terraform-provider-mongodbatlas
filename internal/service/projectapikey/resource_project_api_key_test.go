@@ -175,7 +175,10 @@ func TestAccProjectAPIKey_recreateWhenDeletedExternally(t *testing.T) {
 					if err := deleteAPIKeyManually(orgID, descriptionPrefix); err != nil {
 						t.Fatalf("failed to manually delete API key resource: %s", err)
 					}
-					time.Sleep(5 * time.Second) // Avoid flaky empty plan error by ensuring the deletion is registered.
+					// Wait longer and verify deletion to ensure API consistency.
+					if err := waitForAPIKeyDeletion(orgID, descriptionPrefix, 30*time.Second); err != nil {
+						t.Fatalf("failed to verify API key deletion: %s", err)
+					}
 				},
 				Config:             config,
 				PlanOnly:           true,
@@ -247,6 +250,28 @@ func deleteAPIKeyManually(orgID, descriptionPrefix string) error {
 		}
 	}
 	return nil
+}
+
+func waitForAPIKeyDeletion(orgID, descriptionPrefix string, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		list, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.ListOrgApiKeys(context.Background(), orgID).Execute()
+		if err != nil {
+			return fmt.Errorf("error listing API keys: %w", err)
+		}
+		found := false
+		for _, key := range list.GetResults() {
+			if strings.HasPrefix(key.GetDesc(), descriptionPrefix) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return nil // API key successfully deleted and confirmed.
+		}
+		time.Sleep(2 * time.Second)
+	}
+	return fmt.Errorf("timeout waiting for API key deletion after %v", timeout)
 }
 
 func checkDestroy(projectID string) resource.TestCheckFunc {
