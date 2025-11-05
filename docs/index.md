@@ -180,7 +180,7 @@ The MongoDB Atlas Provider supports multiple operating systems and architectures
 
 [Report bugs](https://github.com/mongodb/terraform-provider-mongodbatlas/issues)
 
-[Request Features](https://feedback.mongodb.com/forums/924145-atlas?category_id=370723)
+[Request Features](https://feedback.mongodb.com/ideas?category=7548141186718564699)
 
 [Support covered by MongoDB Atlas support plans, Developer and above](https://docs.atlas.mongodb.com/support/) 
 
