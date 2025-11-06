@@ -17,6 +17,7 @@ import (
 
 const (
 	tagKey                    = "autogen"
+	tagSensitive              = "sensitive"
 	tagValOmitJSON            = "omitjson"
 	tagValOmitJSONUpdate      = "omitjsonupdate"
 	tagValIncludeNullOnUpdate = "includenullonupdate"

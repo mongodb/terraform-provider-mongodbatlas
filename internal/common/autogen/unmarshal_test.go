@@ -82,6 +82,48 @@ func TestUnmarshalDynamicJSONAttr(t *testing.T) {
 	assert.JSONEq(t, "[1, 2, 3]", model.AttrDynamicJSONArray.ValueString())
 }
 
+func TestUnmarshalSensitiveAttribute(t *testing.T) {
+	type modelst struct {
+		AttrKnownSent      types.String `tfsdk:"attr_known_sent" autogen:"sensitive"`
+		AttrKnownNotSent   types.String `tfsdk:"attr_known_not_sent" autogen:"sensitive"`
+		AttrUnknownSent    types.String `tfsdk:"attr_unknown_sent" autogen:"sensitive"`
+		AttrUnknownNotSent types.String `tfsdk:"attr_unknown_not_sent" autogen:"sensitive"`
+		AttrNullSent       types.String `tfsdk:"attr_null_sent" autogen:"sensitive"`
+		AttrNullNotSent    types.String `tfsdk:"attr_null_not_sent" autogen:"sensitive"`
+	}
+
+	model := modelst{
+		AttrKnownSent:      types.StringValue("Known sensitive value not overwritten"),
+		AttrKnownNotSent:   types.StringValue("Known sensitive value"),
+		AttrUnknownSent:    types.StringUnknown(),
+		AttrUnknownNotSent: types.StringUnknown(),
+		AttrNullSent:       types.StringNull(),
+		AttrNullNotSent:    types.StringNull(),
+	}
+
+	const (
+		jsonResp = `
+			{
+				"attrKnownSent": "Redacted known value",
+				"attrUnknownSent": "Redacted unknown value",
+				"attrNullSent": "Redacted null value"
+			}
+		`
+	)
+
+	modelExpected := modelst{
+		AttrKnownSent:      types.StringValue("Known sensitive value not overwritten"),
+		AttrKnownNotSent:   types.StringValue("Known sensitive value"),
+		AttrUnknownSent:    types.StringValue("Redacted unknown value"),
+		AttrUnknownNotSent: types.StringUnknown(),
+		AttrNullSent:       types.StringValue("Redacted null value"),
+		AttrNullNotSent:    types.StringNull(),
+	}
+
+	require.NoError(t, autogen.Unmarshal([]byte(jsonResp), &model))
+	assert.Equal(t, modelExpected, model)
+}
+
 type unmarshalModelEmpty struct{}
 
 type unmarshalModelCustomType struct {

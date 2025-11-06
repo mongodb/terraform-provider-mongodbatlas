@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"slices"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
@@ -47,18 +48,27 @@ func unmarshalAttrs(objJSON map[string]any, model any) error {
 }
 
 func unmarshalAttr(attrNameJSON string, attrObjJSON any, valModel reflect.Value) error {
+	if attrObjJSON == nil {
+		return nil // skip nil values, no need to set anything
+	}
+
 	attrNameModel := stringcase.Capitalize(attrNameJSON)
 	fieldModel := valModel.FieldByName(attrNameModel)
 	if !fieldModel.CanSet() {
 		return nil // skip fields that cannot be set, are invalid or not found
 	}
-	if attrObjJSON == nil {
-		return nil // skip nil values, no need to set anything
-	}
 	oldVal, ok := fieldModel.Interface().(attr.Value)
 	if !ok {
 		return fmt.Errorf("unmarshal trying to set non-Terraform attribute %s", attrNameModel)
 	}
+
+	if !oldVal.IsNull() && !oldVal.IsUnknown() {
+		structField, _ := valModel.Type().FieldByName(attrNameModel) // Always valid, checked above
+		if slices.Contains(strings.Split(structField.Tag.Get(tagKey), ","), tagSensitive) {
+			return nil // skip sensitive fields that are already set in the plan/state to avoid overwriting
+		}
+	}
+
 	valueType := oldVal.Type(context.Background())
 	newValue, err := getTfAttr(attrObjJSON, valueType, oldVal, attrNameModel)
 	if err != nil {
