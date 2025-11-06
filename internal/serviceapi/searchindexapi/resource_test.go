@@ -63,11 +63,12 @@ func configBasic(projectID, clusterName, indexName string) string {
 
 func checkBasic(projectID, clusterName, indexName string) resource.TestCheckFunc {
 	attributes := map[string]string{
-		"group_id":        projectID,
-		"cluster_name":    clusterName,
-		"name":            indexName,
-		"database":        database,
-		"collection_name": collection,
+		"group_id":                           projectID,
+		"cluster_name":                       clusterName,
+		"name":                               indexName,
+		"database":                           database,
+		"collection_name":                    collection,
+		"latest_definition.mappings.dynamic": "true",
 	}
 	checks := []resource.TestCheckFunc{
 		checkExists(resourceName),

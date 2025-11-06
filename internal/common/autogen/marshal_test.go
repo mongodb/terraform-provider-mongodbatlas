@@ -60,18 +60,21 @@ func TestMarshalDynamicJSONAttr(t *testing.T) {
 		AttrDynamicJSONBoolean jsontypes.Normalized `tfsdk:"attr_dynamic_json_boolean"`
 		AttrDynamicJSONString  jsontypes.Normalized `tfsdk:"attr_dynamic_json_string"`
 		AttrDynamicJSONNumber  jsontypes.Normalized `tfsdk:"attr_dynamic_json_number"`
+		AttrDynamicJSONArray   jsontypes.Normalized `tfsdk:"attr_dynamic_json_array"`
 	}{
 		AttrDynamicJSONObject:  jsontypes.NewNormalizedValue("{\"hello\": \"there\"}"),
 		AttrDynamicJSONBoolean: jsontypes.NewNormalizedValue("true"),
 		AttrDynamicJSONString:  jsontypes.NewNormalizedValue("\"hello\""),
 		AttrDynamicJSONNumber:  jsontypes.NewNormalizedValue("1.234"),
+		AttrDynamicJSONArray:   jsontypes.NewNormalizedValue("[1, 2, 3]"),
 	}
 	const expectedJSON = `
 		{ 
 			"attrDynamicJSONObject": {"hello": "there"}, 
 			"attrDynamicJSONBoolean": true, 
 			"attrDynamicJSONString": "hello", 
-			"attrDynamicJSONNumber": 1.234
+			"attrDynamicJSONNumber": 1.234,
+			"attrDynamicJSONArray": [1, 2, 3]
 		}
 	`
 	raw, err := autogen.Marshal(&model, false)

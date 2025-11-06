@@ -63,13 +63,15 @@ func TestUnmarshalDynamicJSONAttr(t *testing.T) {
 		AttrDynamicJSONBoolean jsontypes.Normalized `tfsdk:"attr_dynamic_json_boolean"`
 		AttrDynamicJSONNumber  jsontypes.Normalized `tfsdk:"attr_dynamic_json_number"`
 		AttrDynamicJSONString  jsontypes.Normalized `tfsdk:"attr_dynamic_json_string"`
+		AttrDynamicJSONArray   jsontypes.Normalized `tfsdk:"attr_dynamic_json_array"`
 	}
 	const jsonResp = `
 		{
 			"attrDynamicJSONObject": {"hello":"there"},
 			"attrDynamicJSONBoolean": true,
 			"attrDynamicJSONNumber": 1.234,
-			"attrDynamicJSONString": "hello"
+			"attrDynamicJSONString": "hello",
+			"attrDynamicJSONArray": [1, 2, 3]
 		}
 	`
 	require.NoError(t, autogen.Unmarshal([]byte(jsonResp), &model))
@@ -77,6 +79,7 @@ func TestUnmarshalDynamicJSONAttr(t *testing.T) {
 	assert.JSONEq(t, "true", model.AttrDynamicJSONBoolean.ValueString())
 	assert.JSONEq(t, "1.234", model.AttrDynamicJSONNumber.ValueString())
 	assert.JSONEq(t, "\"hello\"", model.AttrDynamicJSONString.ValueString())
+	assert.JSONEq(t, "[1, 2, 3]", model.AttrDynamicJSONArray.ValueString())
 }
 
 type unmarshalModelEmpty struct{}
