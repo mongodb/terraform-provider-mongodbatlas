@@ -90,13 +90,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"scopes": schema.ListNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "List that contains clusters, MongoDB Atlas Data Federation, and MongoDB Atlas Streams Instances that this database user can access. If omitted, MongoDB Cloud grants the database user access to all the clusters, MongoDB Atlas Data Federation, and MongoDB Atlas Streams Instances in the project.",
+				MarkdownDescription: "List that contains clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Instances that this database user can access. If omitted, MongoDB Cloud grants the database user access to all the clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Instances in the project.",
 				CustomType:          customtypes.NewNestedListType[TFScopesModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
 							Required:            true,
-							MarkdownDescription: "Human-readable label that identifies the cluster or MongoDB Atlas Data Federation that this database user can access.",
+							MarkdownDescription: "Human-readable label that identifies the cluster or MongoDB Atlas Data Lake that this database user can access.",
 						},
 						"type": schema.StringAttribute{
 							Required:            true,
