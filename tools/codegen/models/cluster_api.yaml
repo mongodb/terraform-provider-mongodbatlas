@@ -547,18 +547,6 @@ schema:
                                                           sensitive: false
                                                           create_only: false
                                                         - bool: {}
-                                                          description: |-
-                                                            Flag that indicates whether predictive instance size auto-scaling is enabled.
-
-                                                            - Set to `true` to enable predictive instance size auto-scaling. MongoDB Cloud requires **replicationSpecs[n].regionConfigs[m].autoScaling.compute.enabled** to be `true` in order to enable this feature.
-                                                            - Set to `false` to disable predictive instance size auto-scaling.
-                                                          computed_optional_required: optional
-                                                          tf_schema_name: predictive_enabled
-                                                          tf_model_name: PredictiveEnabled
-                                                          req_body_usage: all_request_bodies
-                                                          sensitive: false
-                                                          create_only: false
-                                                        - bool: {}
                                                           description: Flag that indicates whether the instance size may scale down via reactive auto-scaling. MongoDB Cloud requires this parameter if **replicationSpecs[n].regionConfigs[m].autoScaling.compute.enabled** is `true`. If you enable this option, specify a value for **replicationSpecs[n].regionConfigs[m].autoScaling.compute.minInstanceSize**.
                                                           computed_optional_required: optional
                                                           tf_schema_name: scale_down_enabled
@@ -705,18 +693,6 @@ schema:
                                                           tf_schema_name: min_instance_size
                                                           tf_model_name: MinInstanceSize
                                                           req_body_usage: omit_always
-                                                          sensitive: false
-                                                          create_only: false
-                                                        - bool: {}
-                                                          description: |-
-                                                            Flag that indicates whether predictive instance size auto-scaling is enabled.
-
-                                                            - Set to `true` to enable predictive instance size auto-scaling. MongoDB Cloud requires **replicationSpecs[n].regionConfigs[m].autoScaling.compute.enabled** to be `true` in order to enable this feature.
-                                                            - Set to `false` to disable predictive instance size auto-scaling.
-                                                          computed_optional_required: computed_optional
-                                                          tf_schema_name: predictive_enabled
-                                                          tf_model_name: PredictiveEnabled
-                                                          req_body_usage: all_request_bodies
                                                           sensitive: false
                                                           create_only: false
                                                         - bool: {}

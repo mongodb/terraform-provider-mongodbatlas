@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"slices"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -50,16 +52,16 @@ func marshalAttrs(valModel reflect.Value, isUpdate bool) (map[string]any, error)
 	objJSON := make(map[string]any)
 	for i := range valModel.NumField() {
 		attrTypeModel := valModel.Type().Field(i)
-		tag := attrTypeModel.Tag.Get(tagKey)
-		if tag == tagValOmitJSON {
+		tags := strings.Split(attrTypeModel.Tag.Get(tagKey), ",")
+		if slices.Contains(tags, tagValOmitJSON) {
 			continue // skip fields with tag `omitjson`
 		}
-		if isUpdate && tag == tagValOmitJSONUpdate {
+		if isUpdate && slices.Contains(tags, tagValOmitJSONUpdate) {
 			continue // skip fields with tag `omitjsonupdate` if in update mode
 		}
 		attrNameModel := attrTypeModel.Name
 		attrValModel := valModel.Field(i)
-		includeNullOnUpdate := tag == tagValIncludeNullOnUpdate
+		includeNullOnUpdate := slices.Contains(tags, tagValIncludeNullOnUpdate)
 		if err := marshalAttr(attrNameModel, attrValModel, objJSON, isUpdate, includeNullOnUpdate); err != nil {
 			return nil, err
 		}

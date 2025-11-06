@@ -61,20 +61,29 @@ func generateStructOfTypedModel(attributes codespec.Attributes, name string) Cod
 
 func typedModelProperty(attr *codespec.Attribute) string {
 	var (
-		propType   = attrModelType(attr)
-		autogenTag string
+		propType = attrModelType(attr)
+		tagsStr  = ""
+		tags     = make([]string, 0)
 	)
+
+	if attr.Sensitive {
+		tags = append(tags, "sensitive")
+	}
+
 	switch attr.ReqBodyUsage {
 	case codespec.AllRequestBodies:
-		autogenTag = ""
 	case codespec.OmitAlways:
-		autogenTag = ` autogen:"omitjson"`
+		tags = append(tags, "omitjson")
 	case codespec.OmitInUpdateBody:
-		autogenTag = ` autogen:"omitjsonupdate"`
+		tags = append(tags, "omitjsonupdate")
 	case codespec.IncludeNullOnUpdate:
-		autogenTag = ` autogen:"includenullonupdate"`
+		tags = append(tags, "includenullonupdate")
 	}
-	return fmt.Sprintf("%s %s", attr.TFModelName, propType) + " `" + fmt.Sprintf("tfsdk:%q", attr.TFSchemaName) + autogenTag + "`"
+
+	if len(tags) > 0 {
+		tagsStr = fmt.Sprintf(" autogen:%q", strings.Join(tags, ","))
+	}
+	return fmt.Sprintf("%s %s", attr.TFModelName, propType) + " `" + fmt.Sprintf("tfsdk:%q", attr.TFSchemaName) + tagsStr + "`"
 }
 
 func attrModelType(attr *codespec.Attribute) string {
