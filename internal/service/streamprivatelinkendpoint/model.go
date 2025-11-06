@@ -40,15 +40,11 @@ func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPri
 	}
 	result.DnsSubDomain = subdomain
 
-	if len(apiResp.GetGcpServiceAttachmentUris()) > 0 {
-		serviceAttachmentUris, diagsServiceAttachment := types.ListValueFrom(ctx, types.StringType, apiResp.GetGcpServiceAttachmentUris())
-		if diagsServiceAttachment.HasError() {
-			return nil, diagsServiceAttachment
-		}
-		result.ServiceAttachmentUris = serviceAttachmentUris
-	} else {
-		result.ServiceAttachmentUris = types.ListNull(types.StringType)
+	serviceAttachmentUris, diagsServiceAttachment := types.ListValueFrom(ctx, types.StringType, apiResp.GcpServiceAttachmentUris)
+	if diagsServiceAttachment.HasError() {
+		return nil, diagsServiceAttachment
 	}
+	result.ServiceAttachmentUris = serviceAttachmentUris
 
 	return result, nil
 }
