@@ -1,5 +1,5 @@
 schema:
-    description: Creates one stream instance in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Data Access Admin role, Project Owner role or Project Stream Processing Owner role.
+    description: Creates one stream workspace in the specified project. To use this resource, the requesting Service Account or API Key must have the Project Data Access Admin role, Project Owner role or Project Stream Processing Owner role.
     attributes:
         - list_nested:
             nested_object:
@@ -338,7 +338,7 @@ schema:
                       req_body_usage: omit_always
                       sensitive: false
                       create_only: false
-          description: List of connections configured in the stream instance.
+          description: List of connections configured in the stream workspace.
           custom_type:
             package: customtypes
             model: customtypes.NestedListValue[TFConnectionsModel]
@@ -392,7 +392,7 @@ schema:
           create_only: true
         - list:
             element_type: 4
-          description: List that contains the hostnames assigned to the stream instance.
+          description: List that contains the hostnames assigned to the stream workspace.
           custom_type:
             package: customtypes
             model: customtypes.ListValue[types.String]
@@ -404,7 +404,7 @@ schema:
           sensitive: false
           create_only: false
         - string: {}
-          description: Human-readable label that identifies the stream instance.
+          description: Label that identifies the stream workspace.
           computed_optional_required: optional
           tf_schema_name: name
           tf_model_name: Name
@@ -438,7 +438,7 @@ schema:
             nested_object:
                 attributes:
                     - string: {}
-                      description: Max tier size for the Stream Instance. Configures Memory / VCPU allowances. This field is not supported yet.
+                      description: Max tier size for the Stream Workspace. Configures Memory / VCPU allowances.
                       computed_optional_required: optional
                       tf_schema_name: max_tier_size
                       tf_model_name: MaxTierSize
@@ -446,14 +446,14 @@ schema:
                       sensitive: false
                       create_only: false
                     - string: {}
-                      description: Selected tier for the Stream Instance. Configures Memory / VCPU allowances.
+                      description: Selected tier for the Stream Workspace. Configures Memory / VCPU allowances.
                       computed_optional_required: optional
                       tf_schema_name: tier
                       tf_model_name: Tier
                       req_body_usage: ""
                       sensitive: false
                       create_only: false
-          description: Configuration options for an Atlas Stream Processing Instance.
+          description: Configuration options for an Atlas Stream Processing Workspace.
           custom_type:
             package: customtypes
             model: customtypes.ObjectValue[TFStreamConfigModel]

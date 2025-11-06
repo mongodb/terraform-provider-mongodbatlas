@@ -74,7 +74,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"tenant_name": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "Human-readable label that identifies the stream instance.",
+				MarkdownDescription: "Label that identifies the stream workspace.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"delete_on_create_timeout": schema.BoolAttribute{

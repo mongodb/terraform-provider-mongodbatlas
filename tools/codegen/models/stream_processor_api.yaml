@@ -1,5 +1,5 @@
 schema:
-    description: Create one Stream Processor within the specified stream instance. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Stream Processing Owner role.
+    description: Create one Stream Processor within the specified stream workspace. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Stream Processing Owner role.
     attributes:
         - string: {}
           description: |-
@@ -114,7 +114,7 @@ schema:
           sensitive: false
           create_only: false
         - string: {}
-          description: Human-readable label that identifies the stream instance.
+          description: Label that identifies the stream workspace.
           computed_optional_required: required
           tf_schema_name: tenant_name
           tf_model_name: TenantName
