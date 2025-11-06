@@ -132,7 +132,7 @@ func getNormalizedJSONAttrValue(value any, nameErr string) (attr.Value, error) {
 	// Marshal the value as a JSON string and return a jsontypes.NormalizedValue.
 	jsonBytes, err := json.Marshal(value)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal object to JSON for attribute %s", nameErr)
+		return nil, fmt.Errorf("failed to marshal value to JSON for attribute %s", nameErr)
 	}
 	return jsontypes.NewNormalizedValue(string(jsonBytes)), nil
 }
