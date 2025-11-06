@@ -17,16 +17,15 @@ const epsilon = 10e-15 // float tolerance in test equality
 
 func TestUnmarshalBasic(t *testing.T) {
 	var model struct {
-		AttrFloat        types.Float64        `tfsdk:"attr_float"`
-		AttrFloatWithInt types.Float64        `tfsdk:"attr_float_with_int"`
-		AttrString       types.String         `tfsdk:"attr_string"`
-		AttrNotInJSON    types.String         `tfsdk:"attr_not_in_json"`
-		AttrJSON         jsontypes.Normalized `tfsdk:"attr_json"`
-		AttrInt          types.Int64          `tfsdk:"attr_int"`
-		AttrIntWithFloat types.Int64          `tfsdk:"attr_int_with_float"`
-		AttrTrue         types.Bool           `tfsdk:"attr_true"`
-		AttrFalse        types.Bool           `tfsdk:"attr_false"`
-		AttrMANYUpper    types.Int64          `tfsdk:"attr_many_upper"`
+		AttrFloat        types.Float64 `tfsdk:"attr_float"`
+		AttrFloatWithInt types.Float64 `tfsdk:"attr_float_with_int"`
+		AttrString       types.String  `tfsdk:"attr_string"`
+		AttrNotInJSON    types.String  `tfsdk:"attr_not_in_json"`
+		AttrInt          types.Int64   `tfsdk:"attr_int"`
+		AttrIntWithFloat types.Int64   `tfsdk:"attr_int_with_float"`
+		AttrTrue         types.Bool    `tfsdk:"attr_true"`
+		AttrFalse        types.Bool    `tfsdk:"attr_false"`
+		AttrMANYUpper    types.Int64   `tfsdk:"attr_many_upper"`
 	}
 	const (
 		// attribute_not_in_model is ignored because it is not in the model, no error is thrown.
@@ -42,7 +41,6 @@ func TestUnmarshalBasic(t *testing.T) {
 				"attrFloatWithInt": 13,
 				"attrNotInModel": "val",
 				"attrNull": null,
-				"attrJSON": {"hello": "there"},
 				"attrMANYUpper": 1
 			}
 		`
@@ -57,7 +55,22 @@ func TestUnmarshalBasic(t *testing.T) {
 	assert.InEpsilon(t, float64(13), model.AttrFloatWithInt.ValueFloat64(), epsilon)
 	assert.True(t, model.AttrNotInJSON.IsNull()) // attributes not in JSON response are not changed, so null is kept.
 	assert.Equal(t, int64(1), model.AttrMANYUpper.ValueInt64())
-	assert.JSONEq(t, "{\"hello\":\"there\"}", model.AttrJSON.ValueString())
+}
+
+func TestUnmarshalDynamicJSONAttr(t *testing.T) {
+	var model struct {
+		AttrDynamicJSONObject  jsontypes.Normalized `tfsdk:"attr_dynamic_json_object"`
+		AttrDynamicJSONBoolean jsontypes.Normalized `tfsdk:"attr_dynamic_json_boolean"`
+	}
+	const jsonResp = `
+		{
+			"attrDynamicJSONObject": {"hello":"there"},
+			"attrDynamicJSONBoolean": true
+		}
+	`
+	require.NoError(t, autogen.Unmarshal([]byte(jsonResp), &model))
+	assert.JSONEq(t, "{\"hello\":\"there\"}", model.AttrDynamicJSONObject.ValueString())
+	assert.JSONEq(t, "true", model.AttrDynamicJSONBoolean.ValueString())
 }
 
 type unmarshalModelEmpty struct{}

@@ -15,18 +15,17 @@ import (
 
 func TestMarshalBasic(t *testing.T) {
 	model := struct {
-		AttrFloat           types.Float64        `tfsdk:"attr_float"`
-		AttrString          types.String         `tfsdk:"attr_string"`
-		AttrOmit            types.String         `tfsdk:"attr_omit" autogen:"omitjson"`
-		AttrUnknown         types.String         `tfsdk:"attr_unknown"`
-		AttrNull            types.String         `tfsdk:"attr_null"`
-		AttrJSON            jsontypes.Normalized `tfsdk:"attr_json"`
-		AttrOmitNoTerraform string               `autogen:"omitjson"`
-		AttrInt             types.Int64          `tfsdk:"attr_int"`
-		AttrBoolTrue        types.Bool           `tfsdk:"attr_bool_true"`
-		AttrBoolFalse       types.Bool           `tfsdk:"attr_bool_false"`
-		AttrBoolNull        types.Bool           `tfsdk:"attr_bool_null"`
-		AttrMANYUpper       types.Int64          `tfsdk:"attr_many_upper"`
+		AttrFloat           types.Float64 `tfsdk:"attr_float"`
+		AttrString          types.String  `tfsdk:"attr_string"`
+		AttrOmit            types.String  `tfsdk:"attr_omit" autogen:"omitjson"`
+		AttrUnknown         types.String  `tfsdk:"attr_unknown"`
+		AttrNull            types.String  `tfsdk:"attr_null"`
+		AttrOmitNoTerraform string        `autogen:"omitjson"`
+		AttrInt             types.Int64   `tfsdk:"attr_int"`
+		AttrBoolTrue        types.Bool    `tfsdk:"attr_bool_true"`
+		AttrBoolFalse       types.Bool    `tfsdk:"attr_bool_false"`
+		AttrBoolNull        types.Bool    `tfsdk:"attr_bool_null"`
+		AttrMANYUpper       types.Int64   `tfsdk:"attr_many_upper"`
 	}{
 		AttrFloat:           types.Float64Value(1.234),
 		AttrString:          types.StringValue("hello"),
@@ -38,7 +37,6 @@ func TestMarshalBasic(t *testing.T) {
 		AttrBoolTrue:        types.BoolValue(true),
 		AttrBoolFalse:       types.BoolValue(false),
 		AttrBoolNull:        types.BoolNull(), // null values are not marshaled
-		AttrJSON:            jsontypes.NewNormalizedValue("{\"hello\": \"there\"}"),
 		AttrMANYUpper:       types.Int64Value(2),
 	}
 	const expectedJSON = `
@@ -47,9 +45,33 @@ func TestMarshalBasic(t *testing.T) {
 			"attrInt": 1, 
 			"attrFloat": 1.234, 
 			"attrBoolTrue": true, 
-			"attrBoolFalse": false, 
-			"attrJSON": {"hello": "there"}, 
+			"attrBoolFalse": false,
 			"attrMANYUpper": 2
+		}
+	`
+	raw, err := autogen.Marshal(&model, false)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedJSON, string(raw))
+}
+
+func TestMarshalDynamicJSONAttr(t *testing.T) {
+	model := struct {
+		AttrDynamicJSONObject  jsontypes.Normalized `tfsdk:"attr_dynamic_json_object"`
+		AttrDynamicJSONBoolean jsontypes.Normalized `tfsdk:"attr_dynamic_json_boolean"`
+		AttrDynamicJSONString  jsontypes.Normalized `tfsdk:"attr_dynamic_json_string"`
+		AttrDynamicJSONNumber  jsontypes.Normalized `tfsdk:"attr_dynamic_json_number"`
+	}{
+		AttrDynamicJSONObject:  jsontypes.NewNormalizedValue("{\"hello\": \"there\"}"),
+		AttrDynamicJSONBoolean: jsontypes.NewNormalizedValue("true"),
+		AttrDynamicJSONString:  jsontypes.NewNormalizedValue("\"hello\""),
+		AttrDynamicJSONNumber:  jsontypes.NewNormalizedValue("1.234"),
+	}
+	const expectedJSON = `
+		{ 
+			"attrDynamicJSONObject": {"hello": "there"}, 
+			"attrDynamicJSONBoolean": true, 
+			"attrDynamicJSONString": "hello", 
+			"attrDynamicJSONNumber": 1.234
 		}
 	`
 	raw, err := autogen.Marshal(&model, false)
