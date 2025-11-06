@@ -77,7 +77,6 @@ func (r *resourcePolicyRS) Create(ctx context.Context, req resource.CreateReques
 	}
 	orgID := plan.OrgID.ValueString()
 	policies := NewAdminPolicies(ctx, plan.Policies)
-
 	connV2 := r.Client.AtlasV2
 	policySDK, _, err := connV2.ResourcePoliciesApi.CreateOrgResourcePolicy(ctx, orgID, &admin.ApiAtlasResourcePolicyCreate{
 		Name:        plan.Name.ValueString(),
