@@ -1273,7 +1273,10 @@ jobs:
     # Resource policy tests create org-level policies that can block AWS cluster creation.
     # Run after advanced_cluster to avoid interfering with cluster tests, or immediately if advanced_cluster is skipped.
     needs: [ change-detection, get-provider-version, advanced_cluster ]
-    if: ${{ !cancelled() && needs.change-detection.result == 'success' && needs.get-provider-version.result == 'success' && (needs.change-detection.outputs.resource_policy == 'true' || inputs.test_group == 'resource_policy') && needs.advanced_cluster.result != 'cancelled' }}
+    if: >-
+      ${{ !cancelled() && needs.advanced_cluster.result != 'cancelled' &&
+      needs.change-detection.result == 'success' && needs.get-provider-version.result == 'success' &&
+      (needs.change-detection.outputs.resource_policy == 'true' || inputs.test_group == 'resource_policy') }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
