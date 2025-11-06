@@ -58,7 +58,7 @@ In addition to all arguments above, the following attributes are exported:
     * `storage_databases.#.views.#.name` - Name of the view.
     * `storage_databases.#.views.#.source` -  Name of the source collection for the view.
     * `storage_databases.#.views.#.pipeline`- Aggregation pipeline stage(s) to apply to the source collection.
-* `storage_stores` - Each object in the array represents a data store. Federated Database uses the storage.databases configuration details to map data in each data store to queryable databases and collections. For complete documentation on this object and its nested fields, see [stores](https://www.mongodb.com/docs/atlas/data-federation/config/config-oa/#stores). An empty object indicates that the Federated Database Instance has no configured data stores.
+* `storage_stores` - Each object in the array represents a data store. Federated Database uses the `storage.databases` configuration details to map data in each data store to queryable databases and collections. For complete documentation on this object and its nested fields, see [stores](https://www.mongodb.com/docs/atlas/data-federation/config/config-oa/#stores). An empty object indicates that the Federated Database Instance has no configured data stores.
   * `storage_stores.#.name` - Name of the data store.
   * `storage_stores.#.provider` - Defines where the data is stored.
   * `storage_stores.#.region` - Name of the AWS region in which the S3 bucket is hosted.
