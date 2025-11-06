@@ -4,7 +4,10 @@ ENHANCEMENTS:
 
 * data-source/mongodbatlas_alert_configuration: Adds `severity_override` attribute ([#3795](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3795))
 * data-source/mongodbatlas_alert_configurations: Adds `severity_override` attribute ([#3795](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3795))
+* data-source/mongodbatlas_stream_privatelink_endpoint: Adds support for GCP Confluent ([#3818](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3818))
+* data-source/mongodbatlas_stream_privatelink_endpoints: Adds support for GCP Confluent ([#3818](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3818))
 * resource/mongodbatlas_alert_configuration: Adds `severity_override` attribute ([#3795](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3795))
+* resource/mongodbatlas_stream_privatelink_endpoint: Adds support for GCP Confluent ([#3818](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3818))
 
 ## 2.1.0 (October 22, 2025)
 
