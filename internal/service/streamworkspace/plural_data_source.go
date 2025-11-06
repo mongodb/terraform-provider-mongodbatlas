@@ -10,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
-	"go.mongodb.org/atlas-sdk/v20250312008/admin"
+	"go.mongodb.org/atlas-sdk/v20250312009/admin"
 )
 
 var _ datasource.DataSource = &streamsWorkspacesDS{}
