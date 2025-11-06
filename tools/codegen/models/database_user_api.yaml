@@ -144,7 +144,7 @@ schema:
             nested_object:
                 attributes:
                     - string: {}
-                      description: Human-readable label that identifies the cluster or MongoDB Atlas Data Lake that this database user can access.
+                      description: Human-readable label that identifies the cluster or MongoDB Atlas Data Federation that this database user can access.
                       computed_optional_required: required
                       tf_schema_name: name
                       tf_model_name: Name
@@ -159,7 +159,7 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
-          description: List that contains clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Instances that this database user can access. If omitted, MongoDB Cloud grants the database user access to all the clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Instances in the project.
+          description: List that contains clusters, MongoDB Atlas Data Federation, and MongoDB Atlas Streams Instances that this database user can access. If omitted, MongoDB Cloud grants the database user access to all the clusters, MongoDB Atlas Data Federation, and MongoDB Atlas Streams Instances in the project.
           custom_type:
             package: customtypes
             model: customtypes.NestedListValue[TFScopesModel]

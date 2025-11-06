@@ -4,7 +4,7 @@ subcategory: "Private Endpoint Services"
 
 # Data Source: privatelink_endpoints_service_adl
 
-`privatelink_endpoints_service_adl` describes the list of all Atlas Data Lake (ADL) and Online Archive PrivateLink endpoints resource.
+`privatelink_endpoints_service_adl` describes the list of all Atlas Data Federation and Online Archive PrivateLink endpoints resource.
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find group_id in the official documentation.
 
@@ -13,16 +13,8 @@ subcategory: "Private Endpoint Services"
 
 ### Basic
 ```terraform
-resource "mongodbatlas_privatelink_endpoint_service_adl" "adl_test" {
-  project_id   = "<PROJECT_ID>"
-  endpoint_id  = "<ENDPOINT_ID>"
-  comment      = "Comment for PrivateLink endpoint ADL"
-  type		 = "DATA_LAKE"
-  provider_name	 = "AWS"
-}
-
 data "mongodbatlas_privatelink_endpoints_service_adl" "test" {
-  project_id            = mongodbatlas_privatelink_endpoint_service_adl.adl_test.project_id
+  project_id            = <PROJECT_ID>
 }
 ```
 

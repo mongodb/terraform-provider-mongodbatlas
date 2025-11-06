@@ -22,8 +22,8 @@ variable "database_name" {
   description = "The Database in the cluster"
   type        = list(string)
 }
-variable "data_lake" {
-  description = "The datalake name"
+variable "data_federation_name" {
+  description = "Atlas Data Federation name"
   type        = string
 }
 variable "org_id" {

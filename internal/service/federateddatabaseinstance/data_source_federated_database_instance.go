@@ -281,15 +281,15 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstanceRead(ctx context.Context, d 
 
 	dataFederationInstance, _, err := connV2.DataFederationApi.GetDataFederation(ctx, projectID, name).Execute()
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("couldn't import data lake(%s) for project (%s), error: %s", name, projectID, err))
+		return diag.FromErr(fmt.Errorf("couldn't import Atlas Data Federation (%s) for project (%s), error: %s", name, projectID, err))
 	}
 
 	if err := d.Set("project_id", projectID); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `project_id` for data lakes (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error setting `project_id` for Atlas Data Federation (%s): %s", d.Id(), err))
 	}
 
 	if err := d.Set("name", dataFederationInstance.Name); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `name` for data lakes (%s): %s", d.Id(), err))
+		return diag.FromErr(fmt.Errorf("error setting `name` for Atlas Data Federation (%s): %s", d.Id(), err))
 	}
 
 	if cloudProviderField := flattenCloudProviderConfig(d, dataFederationInstance.CloudProviderConfig); cloudProviderField != nil {

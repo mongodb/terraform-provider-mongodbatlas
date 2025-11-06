@@ -20,7 +20,6 @@ const (
 	errorPrivateEndpointServiceDataFederationOnlineArchiveCreate = "error creating a Private Endpoint for projectId %s: %s"
 	errorPrivateEndpointServiceDataFederationOnlineArchiveDelete = "error deleting Private Endpoint %s for projectId %s: %s"
 	errorPrivateEndpointServiceDataFederationOnlineArchiveRead   = "error reading Private Endpoint %s for projectId %s: %s"
-	errorPrivateEndpointServiceDataFederationOnlineArchiveUpdate = "error updating a Private Endpoint for projectId %s: %s"
 	errorPrivateEndpointServiceDataFederationOnlineArchiveImport = "error importing Private Endpoint %s for projectId %s: %w"
 	endpointType                                                 = "DATA_LAKE"
 )
@@ -181,7 +180,7 @@ func splitAtlasPrivatelinkEndpointServiceDataFederationOnlineArchive(id string) 
 	var parts = strings.Split(id, "--")
 
 	if len(parts) != 2 {
-		err = errors.New("import format error: to import a Data Lake, use the format {project_id}--{name}")
+		err = errors.New("import format error: to import Atlas Data Federation, use the format {project_id}--{name}")
 		return
 	}
 

@@ -412,7 +412,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := ids["project_id"]
 	name := ids["name"]
 
-	dataLakeTenant := &admin.DataLakeTenant{
+	teanant := &admin.DataLakeTenant{
 		Name:                conversion.StringPtr(name),
 		CloudProviderConfig: newCloudProviderConfig(d),
 		DataProcessRegion:   newDataProcessRegion(d),
@@ -423,7 +423,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		GroupId:            projectID,
 		TenantName:         name,
 		SkipRoleValidation: admin.PtrBool(false),
-		DataLakeTenant:     dataLakeTenant,
+		DataLakeTenant:     teanant,
 	}).Execute(); err != nil {
 		return diag.FromErr(fmt.Errorf(errorFederatedDatabaseInstanceUpdate, name, err))
 	}
