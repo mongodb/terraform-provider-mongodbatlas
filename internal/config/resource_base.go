@@ -29,12 +29,12 @@ type ImplementedResource interface {
 }
 
 func AnalyticsResourceFunc(iResource resource.Resource) func() resource.Resource {
+	commonResource, ok := iResource.(ImplementedResource)
+	if !ok {
+		panic("resource %T didn't comply with the ImplementedResource interface")
+	}
 	a := func() resource.Resource {
-		commonResource, ok := iResource.(ImplementedResource)
-		if ok {
-			return analyticsResource(commonResource)
-		}
-		return iResource
+		return analyticsResource(commonResource)
 	}
 	return a
 }
