@@ -78,10 +78,8 @@ func setAttrTfModel(name string, field reflect.Value, val attr.Value) error {
 
 func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (attr.Value, error) {
 	nameErr := stringcase.ToSnakeCase(name)
-	if normalizedVal, handled, err := getNormalizedJSONAttrValue(value, valueType, nameErr); err != nil {
-		return nil, err
-	} else if handled {
-		return normalizedVal, nil
+	if _, ok := valueType.(jsontypes.NormalizedType); ok {
+		return getNormalizedJSONAttrValue(value, nameErr)
 	}
 	switch v := value.(type) {
 	case string:
@@ -130,16 +128,13 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 	return nil, fmt.Errorf("unmarshal not supported yet for type %T for attribute %s", value, nameErr)
 }
 
-func getNormalizedJSONAttrValue(value any, valueType attr.Type, nameErr string) (attr.Value, bool, error) {
-	// If the attribute type is jsontypes.Normalized, marshal the value as a JSON string and return a jsontypes.NormalizedValue.
-	if _, ok := valueType.(jsontypes.NormalizedType); !ok {
-		return nil, false, nil
-	}
+func getNormalizedJSONAttrValue(value any, nameErr string) (attr.Value, error) {
+	// Marshal the value as a JSON string and return a jsontypes.NormalizedValue.
 	jsonBytes, err := json.Marshal(value)
 	if err != nil {
-		return nil, false, fmt.Errorf("failed to marshal object to JSON for attribute %s: %v", nameErr, err)
+		return nil, fmt.Errorf("failed to marshal object to JSON for attribute %s", nameErr)
 	}
-	return jsontypes.NewNormalizedValue(string(jsonBytes)), true, nil
+	return jsontypes.NewNormalizedValue(string(jsonBytes)), nil
 }
 
 func errUnmarshal(value any, valueType attr.Type, typeReceived, name string) error {
