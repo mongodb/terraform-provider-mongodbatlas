@@ -174,9 +174,9 @@ Containing key-value pairs that tag and categorize the database user. Each key a
 * `value` - The value that you want to write.
 
 ### Scopes
-Array of clusters and Atlas Data Lakes that this user has access to. If omitted, Atlas grants the user access to all the clusters and Atlas Data Lakes in the project by default.
+Array of clusters and Atlas Data Federation that this user has access to. If omitted, Atlas grants the user access to all the clusters and Atlas Data Federation in the project by default.
 
-* `name` - (Required) Name of the cluster or Atlas Data Lake that the user has access to.
+* `name` - (Required) Name of the cluster or Atlas Data Federation that the user has access to.
 * `type` - (Required) Type of resource that the user has access to. See [Database User API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createdatabaseuser) for the list of valid values.
 
 ## Attributes Reference

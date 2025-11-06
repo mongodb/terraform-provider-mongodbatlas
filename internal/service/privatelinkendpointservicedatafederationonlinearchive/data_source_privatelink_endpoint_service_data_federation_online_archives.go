@@ -13,7 +13,7 @@ import (
 
 const (
 	errorPrivateEndpointServiceDataFederationOnlineArchiveList = "error reading Private Endpoints for projectId %s: %s"
-	errorDataLakeSetting                                       = "error setting `%s` for MongoDB Atlas DataLake (%s): %s"
+	errorDataFederationSetting                                 = "error setting `%s` for MongoDB Atlas Data Federation (%s): %s"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -70,7 +70,7 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	}
 
 	if err := d.Set("results", flattenPrivateLinkEndpointDataFederationResponse(privateEndpoints.GetResults())); err != nil {
-		return diag.FromErr(fmt.Errorf(errorDataLakeSetting, "results", projectID, err))
+		return diag.FromErr(fmt.Errorf(errorDataFederationSetting, "results", projectID, err))
 	}
 
 	d.SetId(id.UniqueId())
@@ -78,23 +78,17 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	return nil
 }
 
-func flattenPrivateLinkEndpointDataFederationResponse(atlasPrivateLinkEndpointDataLakes []admin.PrivateNetworkEndpointIdEntry) []map[string]any {
-	if len(atlasPrivateLinkEndpointDataLakes) == 0 {
-		return []map[string]any{}
-	}
-
-	results := make([]map[string]any, len(atlasPrivateLinkEndpointDataLakes))
-
-	for i, atlasPrivateLinkEndpointDataLake := range atlasPrivateLinkEndpointDataLakes {
+func flattenPrivateLinkEndpointDataFederationResponse(entries []admin.PrivateNetworkEndpointIdEntry) []map[string]any {
+	results := make([]map[string]any, len(entries))
+	for i, entry := range entries {
 		results[i] = map[string]any{
-			"endpoint_id":                atlasPrivateLinkEndpointDataLake.GetEndpointId(),
-			"provider_name":              atlasPrivateLinkEndpointDataLake.GetProvider(),
-			"comment":                    atlasPrivateLinkEndpointDataLake.GetComment(),
-			"type":                       atlasPrivateLinkEndpointDataLake.GetType(),
-			"region":                     atlasPrivateLinkEndpointDataLake.GetRegion(),
-			"customer_endpoint_dns_name": atlasPrivateLinkEndpointDataLake.GetCustomerEndpointDNSName(),
+			"endpoint_id":                entry.GetEndpointId(),
+			"provider_name":              entry.GetProvider(),
+			"comment":                    entry.GetComment(),
+			"type":                       entry.GetType(),
+			"region":                     entry.GetRegion(),
+			"customer_endpoint_dns_name": entry.GetCustomerEndpointDNSName(),
 		}
 	}
-
 	return results
 }

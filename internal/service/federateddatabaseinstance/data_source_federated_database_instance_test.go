@@ -55,8 +55,8 @@ func checkExists(resourceName string, dataFederatedInstance *admin.DataLakeTenan
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		if dataLakeResp, _, err := acc.ConnV2().DataFederationApi.GetDataFederation(context.Background(), ids["project_id"], ids["name"]).Execute(); err == nil {
-			*dataFederatedInstance = *dataLakeResp
+		if resp, _, err := acc.ConnV2().DataFederationApi.GetDataFederation(context.Background(), ids["project_id"], ids["name"]).Execute(); err == nil {
+			*dataFederatedInstance = *resp
 			return nil
 		}
 		return fmt.Errorf("federated database instance (%s) does not exist", ids["project_id"])
