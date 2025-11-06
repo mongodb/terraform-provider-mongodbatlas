@@ -1269,8 +1269,10 @@ jobs:
         run: make testacc
 
   resource_policy:
-    needs: [ change-detection, get-provider-version ]
-    if: ${{ needs.change-detection.outputs.resource_policy == 'true' || inputs.test_group == 'resource_policy' }}
+    # Resource policy tests create org-level policies that can block AWS cluster creation.
+    # Run after advanced_cluster to avoid interfering with cluster tests, or immediately if advanced_cluster is skipped.
+    needs: [ change-detection, get-provider-version, advanced_cluster ]
+    if: ${{ !cancelled() && (needs.change-detection.outputs.resource_policy == 'true' || inputs.test_group == 'resource_policy') && needs.advanced_cluster.result != 'cancelled' }}
     runs-on: ubuntu-latest
     permissions: {}
     steps:
