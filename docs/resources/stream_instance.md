@@ -10,7 +10,7 @@ subcategory: "Streams"
 
 ## Migration to stream_workspace
 
-`mongodbatlas_stream_instance` resources can be moved to `mongodbatlas_stream_workspace` in Terraform v2.2 and later. 
+`mongodbatlas_stream_instance` resources can be moved to `mongodbatlas_stream_workspace` in MongoDB Atlas Provider v2.2.0 and later with Terraform v1.8 and later. 
 
 More information about moving resources can be found in our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/stream-instance-to-stream-workspace-migration-guide) and in the Terraform documentation [here](https://developer.hashicorp.com/terraform/language/moved) and [here](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring).
 

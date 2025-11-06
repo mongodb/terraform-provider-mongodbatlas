@@ -10,7 +10,7 @@ subcategory: "Streams"
 
 ## Migration to stream_workspace
 
-To migrate from `mongodbatlas_stream_instance` to `mongodbatlas_stream_workspace`, update your data source configuration:
+To migrate from `mongodbatlas_stream_instance` to `mongodbatlas_stream_workspace`, update your data source configuration. See [Migration Guide: Stream Instance to Stream Workspace](../guides/stream-instance-to-stream-workspace-migration-guide) for step-by-step instructions and examples:
 
 ```terraform
 # New (recommended)
