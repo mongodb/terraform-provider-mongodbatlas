@@ -447,7 +447,7 @@ resources:
     schema:
       # TODO: fields will be supported in CLOUDP-352319.
       # TODO: investigate, latest_definition.mappings excluded because dynamic is a JSON string field but Atlas can also reply with true or false booleans.
-      ignores: ["definition.mappings.fields", "latest_definition.mappings.fields", "latest_definition.mappings"]
+      ignores: ["definition.mappings.fields", "latest_definition.mappings.fields"]
       aliases:
         indexId: indexID # path param name does not match the API response property
 
