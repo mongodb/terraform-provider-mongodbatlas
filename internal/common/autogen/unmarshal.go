@@ -62,10 +62,10 @@ func unmarshalAttr(attrNameJSON string, attrObjJSON any, valModel reflect.Value)
 		return fmt.Errorf("unmarshal trying to set non-Terraform attribute %s", attrNameModel)
 	}
 
-	if !oldVal.IsNull() && !oldVal.IsUnknown() {
-		structField, _ := valModel.Type().FieldByName(attrNameModel) // Always valid, checked above
-		if slices.Contains(strings.Split(structField.Tag.Get(tagKey), ","), tagSensitive) {
-			return nil // skip sensitive fields that are already set in the plan/state to avoid overwriting
+	if !oldVal.IsNull() && !oldVal.IsUnknown() { // Check if oldVal is a known value
+		structField, _ := valModel.Type().FieldByName(attrNameModel)                        // Always valid, checked above
+		if slices.Contains(strings.Split(structField.Tag.Get(tagKey), ","), tagSensitive) { // Field contains the "sensitive" tag
+			return nil // skip sensitive fields that are already set in the plan/state to avoid overwriting with redacted values
 		}
 	}
 
