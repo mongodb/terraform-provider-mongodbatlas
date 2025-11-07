@@ -26,7 +26,7 @@ var (
 		"instance_size":   {"disk_iops"},       // disk_iops can change based on instance_size changes
 		"provider_name":   {"ebs_volume_type"}, // AWS --> AZURE will change ebs_volume_type
 		"region_name":     {"container_id"},    // container_id changes based on region_name changes
-		"zone_name":       {"zone_id"},         // zone_id copy from state is not safe when
+		"zone_name":       {"zone_id"},         // zone_id copy from state is not safe when zone_name has changed, because zone_id may be computed based on the new zone_name value.
 	}
 )
 
