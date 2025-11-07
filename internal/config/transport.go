@@ -8,12 +8,15 @@ import (
 )
 
 // UserAgentTransport wraps an http.RoundTripper to add User-Agent header with additional metadata.
+// Resource wrappers (RSCommon, AnalyticsResourceSDKv2) parse provider_meta and add UserAgentExtra
+// to the Go context at the start of CRUD operations. This transport reads that context data via
+// ReadUserAgentExtra(ctx) and appends it to the User-Agent header before making HTTP requests.
 type UserAgentTransport struct {
 	Transport http.RoundTripper
 	Enabled   bool
 }
 
-func NewUserAgentTransport(transport http.RoundTripper, enabled bool) *UserAgentTransport {
+func newUserAgentTransport(transport http.RoundTripper, enabled bool) *UserAgentTransport {
 	return &UserAgentTransport{
 		Transport: transport,
 		Enabled:   enabled,

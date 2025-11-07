@@ -31,14 +31,16 @@ type ImplementedResource interface {
 func AnalyticsResourceFunc(iResource resource.Resource) func() resource.Resource {
 	commonResource, ok := iResource.(ImplementedResource)
 	if !ok {
-		panic("resource %T didn't comply with the ImplementedResource interface")
+		panic(fmt.Sprintf("resource %T didn't comply with the ImplementedResource interface", iResource))
 	}
-	a := func() resource.Resource {
+	return func() resource.Resource {
 		return analyticsResource(commonResource)
 	}
-	return a
 }
 
+// analyticsResource wraps an ImplementedResource with RSCommon to add analytics tracking.
+// We cannot return iResource directly because we need to intercept all CRUD operations
+// to inject provider_meta information into the context before calling the actual resource methods.
 func analyticsResource(iResource ImplementedResource) resource.Resource {
 	return &RSCommon{
 		ResourceName:        iResource.GetName(),

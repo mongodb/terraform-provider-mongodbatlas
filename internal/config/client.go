@@ -150,7 +150,6 @@ func getHTTPClient(c *Credentials) (*http.Client, error) {
 	// 1. networkLoggingTransport logs ALL requests including digest auth 401 challenges
 	// 2. tfLoggingTransport only logs final authenticated requests (not sensitive auth details)
 	// 3. userAgentTransport modifies User-Agent before tfLoggingTransport logs it
-	// Add UserAgentExtra fields to the User-Agent header, see wrapper_provider_server.go
 	transport := networkLoggingBaseTransport()
 	switch c.AuthMethod() {
 	case AccessToken:
@@ -176,7 +175,7 @@ func getHTTPClient(c *Credentials) (*http.Client, error) {
 	case Unknown:
 	}
 	transport = tfLoggingInterceptor(transport)
-	transport = NewUserAgentTransport(transport, true)
+	transport = newUserAgentTransport(transport, true)
 	return &http.Client{Transport: transport}, nil
 }
 
