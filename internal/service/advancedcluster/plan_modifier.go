@@ -2,8 +2,6 @@ package advancedcluster
 
 import (
 	"context"
-	"fmt"
-	"slices"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -30,16 +28,7 @@ var (
 		"region_name":     {"container_id"},    // container_id changes based on region_name changes
 		"zone_name":       {"zone_id"},         // zone_id copy from state is not safe when
 	}
-	keepUnknownsCalls = schemafunc.KeepUnknownFuncOr(keepUnkownFuncWithNonEmptyAutoScaling)
 )
-
-func keepUnkownFuncWithNonEmptyAutoScaling(name string, replacement attr.Value) bool {
-	autoScalingBoolValues := []string{"compute_enabled", "disk_gb_enabled", "compute_scale_down_enabled"}
-	autoScalingStringValues := []string{"compute_min_instance_size", "compute_max_instance_size"}
-	boolValues := slices.Contains(autoScalingBoolValues, name) && replacement.Equal(types.BoolValue(true))
-	stringValues := slices.Contains(autoScalingStringValues, name) && replacement.(types.String).ValueString() != ""
-	return boolValues || stringValues
-}
 
 // useStateForUnknowns should be called only in Update, because of findClusterDiff
 func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) {
@@ -54,36 +43,6 @@ func useStateForUnknowns(ctx context.Context, diags *diag.Diagnostics, state, pl
 	keepUnknown = append(keepUnknown, attributeChanges.KeepUnknown(attributeRootChangeMapping)...)
 	keepUnknown = append(keepUnknown, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
 	schemafunc.CopyUnknowns(ctx, state, plan, keepUnknown, nil)
-}
-
-func UseStateForUnknownsReplicationSpecs(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, attrChanges *schemafunc.AttributeChanges) {
-	stateRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, state.ReplicationSpecs)
-	planRepSpecsTF := TFModelList[TFReplicationSpecsModel](ctx, diags, plan.ReplicationSpecs)
-	if diags.HasError() {
-		return
-	}
-	planWithUnknowns := []TFReplicationSpecsModel{}
-	keepUnknownsUnchangedSpec := determineKeepUnknownsUnchangedReplicationSpecs(attrChanges)
-	keepUnknownsUnchangedSpec = append(keepUnknownsUnchangedSpec, determineKeepUnknownsAutoScaling(ctx, diags, state, plan)...)
-	if diags.HasError() {
-		return
-	}
-	for i := range planRepSpecsTF {
-		if i < len(stateRepSpecsTF) {
-			keepUnknowns := keepUnknownsUnchangedSpec
-			if attrChanges.ListIndexChanged("replication_specs", i) {
-				keepUnknowns = determineKeepUnknownsChangedReplicationSpec(keepUnknownsUnchangedSpec, attrChanges, fmt.Sprintf("replication_specs[%d]", i))
-			}
-			schemafunc.CopyUnknowns(ctx, &stateRepSpecsTF[i], &planRepSpecsTF[i], keepUnknowns, keepUnknownsCalls)
-		}
-		planWithUnknowns = append(planWithUnknowns, planRepSpecsTF[i])
-	}
-	listType, diagsLocal := types.ListValueFrom(ctx, ReplicationSpecsObjType, planWithUnknowns)
-	diags.Append(diagsLocal...)
-	if diags.HasError() {
-		return
-	}
-	plan.ReplicationSpecs = listType
 }
 
 // AdjustRegionConfigsChildren modifies the planned values of region configs based on the current state.
@@ -187,25 +146,6 @@ func findDefinedElectableSpecInReplicationSpec(ctx context.Context, regionConfig
 		}
 	}
 	return nil
-}
-
-// determineKeepUnknownsChangedReplicationSpec: These fields must be kept unknown in the replication_specs[index_of_changes]
-func determineKeepUnknownsChangedReplicationSpec(keepUnknownsAlways []string, attributeChanges *schemafunc.AttributeChanges, parentPath string) []string {
-	var keepUnknowns = slices.Clone(keepUnknownsAlways)
-	if attributeChanges.NestedListLenChanges(parentPath + ".region_configs") {
-		keepUnknowns = append(keepUnknowns, "container_id")
-	}
-	return append(keepUnknowns, attributeChanges.KeepUnknown(attributeReplicationSpecChangeMapping)...)
-}
-
-func determineKeepUnknownsUnchangedReplicationSpecs(attributeChanges *schemafunc.AttributeChanges) []string {
-	keepUnknowns := []string{}
-
-	// it might be an insertion in the middle of replication spec leading to wrong value from state copied
-	if attributeChanges.ListLenChanges("replication_specs") {
-		keepUnknowns = append(keepUnknowns, "external_id")
-	}
-	return keepUnknowns
 }
 
 func determineKeepUnknownsAutoScaling(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel) []string {
