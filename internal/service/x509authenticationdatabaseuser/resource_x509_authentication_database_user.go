@@ -20,7 +20,6 @@ const (
 	errorX509AuthDBUsersSetting        = "error setting `%s` for MongoDB X509 Authentication DB User(%s): %s"
 	errorCustomerX509AuthDBUsersCreate = "error creating Customer X509 Authentication in the project(%s): %s"
 	errorCustomerX509AuthDBUsersRead   = "error reading Customer X509 Authentication in the project(%s): %s"
-	errorCustomerX509AuthDBUsersDelete = "error deleting Customer X509 Authentication in the project(%s): %s"
 )
 
 func Resource() *schema.Resource {

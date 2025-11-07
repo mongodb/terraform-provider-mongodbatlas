@@ -17,11 +17,9 @@ import (
 )
 
 const (
-	resourceName           = "cloud_user_project_assignment"
-	errorReadingByUserID   = "Error getting project users by user_id"
-	errorReadingByUsername = "Error getting project users by username"
-	invalidImportID        = "Invalid import ID format"
-	errorReadingUser       = "Error retrieving project users"
+	resourceName     = "cloud_user_project_assignment"
+	invalidImportID  = "Invalid import ID format"
+	errorReadingUser = "Error retrieving project users"
 )
 
 var _ resource.ResourceWithConfigure = &rs{}

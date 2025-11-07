@@ -12,7 +12,6 @@ import (
 
 const (
 	connectionName = "Connection"
-	typeValue      = ""
 	clusterName    = "Cluster0"
 	dummyProjectID = "111111111111111111111111"
 	instanceName   = "InstanceName"
@@ -31,7 +30,6 @@ const (
 	dbRoleType                = "CUSTOM"
 	sampleConnectionName      = "sample_stream_solar"
 	networkingType            = "PUBLIC"
-	privatelinkNetworkingType = "PRIVATE_LINK"
 	awslambdaConnectionName   = "aws_lambda_connection"
 	sampleRoleArn             = "rn:aws:iam::123456789123:role/sample"
 	httpsURL                  = "https://example.com"

@@ -20,11 +20,10 @@ import (
 )
 
 const (
-	errorGlobalClusterCreate           = "error creating MongoDB Global Cluster Configuration: %s"
-	errorGlobalClusterRead             = "error reading MongoDB Global Cluster Configuration (%s): %s"
-	errorGlobalClusterDelete           = "error deleting MongoDB Global Cluster Configuration (%s): %s"
-	errorGlobalClusterUpdate           = "error updating MongoDB Global Cluster Configuration (%s): %s"
-	deprecationOldShardingSchemaAction = "To learn more, see our examples, documentation, and 1.18.0 migration guide at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide"
+	errorGlobalClusterCreate = "error creating MongoDB Global Cluster Configuration: %s"
+	errorGlobalClusterRead   = "error reading MongoDB Global Cluster Configuration (%s): %s"
+	errorGlobalClusterDelete = "error deleting MongoDB Global Cluster Configuration (%s): %s"
+	errorGlobalClusterUpdate = "error updating MongoDB Global Cluster Configuration (%s): %s"
 )
 
 func Resource() *schema.Resource {

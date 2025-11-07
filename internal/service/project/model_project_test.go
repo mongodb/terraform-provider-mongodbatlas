@@ -24,7 +24,6 @@ const (
 	projectID               = "projectId"
 	projectName             = "projectName"
 	projectOrgID            = "orgId"
-	projectClusterCount     = int64(1)
 	clusterCount            = 1
 	regionUsageRestrictions = "GOV_REGIONS_ONLY"
 	userOrgMembershipStatus = "ACTIVE"

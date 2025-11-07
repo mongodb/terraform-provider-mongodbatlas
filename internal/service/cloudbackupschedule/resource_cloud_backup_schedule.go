@@ -19,18 +19,15 @@ import (
 )
 
 const (
-	Hourly                              = "hourly"
-	Daily                               = "daily"
-	Weekly                              = "weekly"
-	Monthly                             = "monthly"
-	Yearly                              = "yearly"
-	errorSnapshotBackupScheduleCreate   = "error creating a Cloud Backup Schedule: %s"
-	errorSnapshotBackupScheduleUpdate   = "error updating a Cloud Backup Schedule: %s"
-	errorSnapshotBackupScheduleRead     = "error getting a Cloud Backup Schedule for the cluster(%s): %s"
-	ErrorOperationNotPermitted          = "error operation not permitted"
-	errorSnapshotBackupScheduleSetting  = "error setting `%s` for Cloud Backup Schedule(%s): %s"
-	DeprecationOldSchemaAction          = "To learn more, see our examples, documentation, and 1.18.0 migration guide for more details at https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.18.0-upgrade-guide"
-	AsymmetricShardsUnsupportedAPIError = "ASYMMETRIC_SHARD_BACKUP_UNSUPPORTED"
+	Hourly                             = "hourly"
+	Daily                              = "daily"
+	Weekly                             = "weekly"
+	Monthly                            = "monthly"
+	Yearly                             = "yearly"
+	errorSnapshotBackupScheduleCreate  = "error creating a Cloud Backup Schedule: %s"
+	errorSnapshotBackupScheduleUpdate  = "error updating a Cloud Backup Schedule: %s"
+	errorSnapshotBackupScheduleRead    = "error getting a Cloud Backup Schedule for the cluster(%s): %s"
+	errorSnapshotBackupScheduleSetting = "error setting `%s` for Cloud Backup Schedule(%s): %s"
 )
 
 func Resource() *schema.Resource {

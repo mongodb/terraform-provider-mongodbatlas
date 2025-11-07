@@ -19,18 +19,12 @@ const (
 	testLastName            = "Doe"
 	testCountry             = "CA"
 	testMobile              = "+1555123456"
-	testInviter             = "admin"
 	testOrgMembershipStatus = "ACTIVE"
 	testInviterUsername     = ""
 
-	testOrgRoleOwner      = "ORG_OWNER"
-	testOrgRoleMember     = "ORG_MEMBER"
-	testProjectRoleOwner  = "PROJECT_OWNER"
-	testProjectRoleRead   = "PROJECT_READ_ONLY"
-	testProjectRoleMember = "PROJECT_MEMBER"
+	testProjectRoleOwner = "PROJECT_OWNER"
 
 	testTeamID1    = "team1"
-	testTeamID2    = "team2"
 	testProjectID1 = "project-123"
 	testOrgID      = "org-123"
 )

@@ -19,16 +19,13 @@ const (
 	testLastName            = "Doe"
 	testCountry             = "CA"
 	testMobile              = "+1555123456"
-	testInviter             = "admin"
 	testOrgMembershipStatus = "ACTIVE"
 	testInviterUsername     = ""
 
 	testProjectRoleOwner  = "PROJECT_OWNER"
-	testProjectRoleRead   = "PROJECT_READ_ONLY"
 	testProjectRoleMember = "PROJECT_MEMBER"
 
 	testProjectID = "project-123"
-	testOrgID     = "org-123"
 )
 
 var (

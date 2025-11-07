@@ -23,12 +23,11 @@ import (
 )
 
 const (
-	errorTeamCreate   = "error creating Team information: %s"
-	errorTeamAddUsers = "error adding users to the Team information: %s"
-	errorTeamRead     = "error getting Team information: %s"
-	errorTeamUpdate   = "error updating Team information: %s"
-	errorTeamDelete   = "error deleting Team (%s): %s"
-	errorTeamSetting  = "error setting `%s` for Team (%s): %s"
+	errorTeamCreate  = "error creating Team information: %s"
+	errorTeamRead    = "error getting Team information: %s"
+	errorTeamUpdate  = "error updating Team information: %s"
+	errorTeamDelete  = "error deleting Team (%s): %s"
+	errorTeamSetting = "error setting `%s` for Team (%s): %s"
 )
 
 func Resource() *schema.Resource {
