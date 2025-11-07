@@ -720,6 +720,73 @@ func TestConvertToProviderSpec_typeOverride(t *testing.T) {
 	runTestCase(t, tc)
 }
 
+func TestConvertToProviderSpec_dynamicJSONProperties(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      testDataConfigPath,
+		inputResourceName:    "test_dynamic_json_properties",
+
+		expectedResult: &codespec.Model{
+			Resources: []codespec.Resource{{
+				Schema: &codespec.Schema{
+					Description: conversion.StringPtr(testResourceDesc),
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "array_of_dynamic_values",
+							TFModelName:              "ArrayOfDynamicValues",
+							ComputedOptionalRequired: codespec.Optional,
+							CustomType:               codespec.NewCustomListType(codespec.CustomTypeJSON),
+							List: &codespec.ListAttribute{
+								ElementType: codespec.CustomTypeJSON,
+							},
+							Description:  conversion.StringPtr("Array of dynamic values."),
+							ReqBodyUsage: codespec.AllRequestBodies,
+						},
+						{
+							TFSchemaName:             "dynamic_value",
+							TFModelName:              "DynamicValue",
+							ComputedOptionalRequired: codespec.Optional,
+							String:                   &codespec.StringAttribute{},
+							CustomType:               &codespec.CustomTypeJSONVar,
+							Description:              conversion.StringPtr("Dynamic value."),
+							ReqBodyUsage:             codespec.AllRequestBodies,
+						},
+						{
+							TFSchemaName:             "object_of_dynamic_values",
+							TFModelName:              "ObjectOfDynamicValues",
+							ComputedOptionalRequired: codespec.Optional,
+							Description:              conversion.StringPtr("Object of dynamic values."),
+							ReqBodyUsage:             codespec.AllRequestBodies,
+						},
+					},
+				},
+				Name:        "test_dynamic_json_properties",
+				PackageName: "testdynamicjsonproperties",
+				Operations: codespec.APIOperations{
+					Create: codespec.APIOperation{
+						Path:       "/api/atlas/v2/dynamicJsonProperties",
+						HTTPMethod: "POST",
+					},
+					Read: codespec.APIOperation{
+						Path:       "/api/atlas/v2/dynamicJsonProperties",
+						HTTPMethod: "GET",
+					},
+					Update: codespec.APIOperation{
+						Path:       "/api/atlas/v2/dynamicJsonProperties",
+						HTTPMethod: "PATCH",
+					},
+					Delete: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/dynamicJsonProperties",
+						HTTPMethod: "DELETE",
+					},
+					VersionHeader: "application/vnd.atlas.2024-05-30+json",
+				},
+			}},
+		},
+	}
+	runTestCase(t, tc)
+}
+
 func runTestCase(t *testing.T, tc convertToSpecTestCase) {
 	t.Helper()
 	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)

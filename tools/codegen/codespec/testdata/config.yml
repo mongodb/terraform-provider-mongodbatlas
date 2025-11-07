@@ -73,3 +73,17 @@ resources:
           type: set
         set_string:
           type: list
+
+  test_dynamic_json_properties:
+    create:
+      path: /api/atlas/v2/dynamicJsonProperties
+      method: POST
+    read:
+      path: /api/atlas/v2/dynamicJsonProperties
+      method: GET
+    update:
+      path: /api/atlas/v2/dynamicJsonProperties
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/dynamicJsonProperties
+      method: DELETE

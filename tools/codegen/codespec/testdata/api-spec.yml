@@ -449,6 +449,46 @@ paths:
       summary: Enable the Test Resource feature for a project
       tags:
         - Test Resource
+  "/api/atlas/v2/dynamicJsonProperties":
+    post:
+      description: POST API description
+      requestBody:
+        content:
+          application/vnd.atlas.2024-05-30+json:
+            schema:
+              $ref: "#/components/schemas/DynamicJsonProps"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2024-05-30+json:
+              schema:
+                $ref: "#/components/schemas/DynamicJsonProps"
+    get:
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2024-05-30+json:
+              schema:
+                $ref: "#/components/schemas/DynamicJsonProps"
+    patch:
+      requestBody:
+        content:
+          application/vnd.atlas.2024-05-30+json:
+            schema:
+              $ref: "#/components/schemas/DynamicJsonProps"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2024-05-30+json:
+              schema:
+                $ref: "#/components/schemas/DynamicJsonProps"
+    delete:
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2024-05-30+json:
+              schema:
+                $ref: "#/components/schemas/DynamicJsonProps"
 components:
   parameters:
     groupId:
@@ -475,6 +515,23 @@ components:
     accepted:
       description: Accepted.
   schemas:
+    DynamicJsonProps:
+      type: object
+      properties:
+        dynamicValue:
+          description: Dynamic value.
+          type: object
+        arrayOfDynamicValues:
+          description: Array of dynamic values.
+          type: array
+          items:
+            type: object
+        objectOfDynamicValues:
+          description: Object of dynamic values.
+          type: object
+          additionalProperties:
+            type: object
+
     TestResourceRequest:
       type: object
       properties:
