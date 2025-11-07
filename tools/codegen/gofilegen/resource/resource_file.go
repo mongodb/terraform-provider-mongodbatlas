@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"fmt"
 	"go/format"
 	"regexp"
 
@@ -9,7 +10,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/codetemplate"
 )
 
-func GenerateGoCode(input *codespec.Resource) []byte {
+func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
 	tmplInputs := codetemplate.ResourceFileInputs{
 		PackageName:  input.PackageName,
 		ResourceName: input.Name,
@@ -26,9 +27,9 @@ func GenerateGoCode(input *codespec.Resource) []byte {
 
 	formattedResult, err := format.Source(result.Bytes())
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("failed to format generated Go code (resource): %w", err)
 	}
-	return formattedResult
+	return formattedResult, nil
 }
 
 func toCodeTemplateOpModel(op *codespec.APIOperation) *codetemplate.Operation {
