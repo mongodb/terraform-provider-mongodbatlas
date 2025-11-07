@@ -8,7 +8,6 @@ on:
         default: '["CLOUDP-313272-dev-effective-fields"]'
   schedule:
     - cron: "0 5 * * 1,4" # workflow runs every Monday and Thursday at 5 AM UTC
-      
 concurrency:
   group: '${{ github.workflow }}'
   cancel-in-progress: false
