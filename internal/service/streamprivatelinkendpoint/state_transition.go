@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	defaultTimeout    = 20 * time.Minute // The amount of time to wait before timeout
+	defaultTimeout    = 60 * time.Minute // The amount of time to wait before timeout
 	defaultMinTimeout = 30 * time.Second // Smallest time to wait before refreshes
 )
 

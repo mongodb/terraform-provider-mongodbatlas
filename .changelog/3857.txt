@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/mongodbatlas_stream_privatelink_endpoint: Changes timeout from 20m to 1h
+```
