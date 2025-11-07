@@ -223,6 +223,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 								MarkdownDescription: "Indicates whether the index uses static, default dynamic, or configurable dynamic mappings. Set to **true** to enable dynamic mapping with default type set or define object to specify the name of the configured type sets for dynamic mapping. If you specify configurable dynamic mappings, you must define the referred type sets in the **typeSets** field. Set to **false** to use only static mappings through **mappings.fields**.",
 								CustomType:          jsontypes.NormalizedType{},
 							},
+							"fields": schema.MapAttribute{
+								Computed:            true,
+								MarkdownDescription: "One or more field specifications for the Atlas Search index. Required if **mappings.dynamic** is omitted or set to **false**.",
+								CustomType:          customtypes.NewMapType[jsontypes.Normalized](ctx),
+								ElementType:         jsontypes.NormalizedType{},
+							},
 						},
 					},
 					"num_partitions": schema.Int64Attribute{
@@ -537,7 +543,8 @@ type TFLatestDefinitionAnalyzersModel struct {
 	Tokenizer    jsontypes.Normalized                        `tfsdk:"tokenizer" autogen:"omitjson"`
 }
 type TFLatestDefinitionMappingsModel struct {
-	Dynamic jsontypes.Normalized `tfsdk:"dynamic" autogen:"omitjson"`
+	Dynamic jsontypes.Normalized                       `tfsdk:"dynamic" autogen:"omitjson"`
+	Fields  customtypes.MapValue[jsontypes.Normalized] `tfsdk:"fields" autogen:"omitjson"`
 }
 type TFLatestDefinitionSynonymsModel struct {
 	Analyzer types.String                                                   `tfsdk:"analyzer" autogen:"omitjson"`

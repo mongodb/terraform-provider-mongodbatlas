@@ -445,7 +445,6 @@ resources:
       method: DELETE
     version_header: application/vnd.atlas.2024-05-30+json
     schema:
-      ignores: ["latest_definition.mappings.fields"]
       aliases:
         indexId: indexID # path param name does not match the API response property
 
