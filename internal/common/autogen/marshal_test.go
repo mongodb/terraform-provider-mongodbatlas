@@ -56,17 +56,35 @@ func TestMarshalBasic(t *testing.T) {
 
 func TestMarshalDynamicJSONAttr(t *testing.T) {
 	model := struct {
-		AttrDynamicJSONObject  jsontypes.Normalized `tfsdk:"attr_dynamic_json_object"`
-		AttrDynamicJSONBoolean jsontypes.Normalized `tfsdk:"attr_dynamic_json_boolean"`
-		AttrDynamicJSONString  jsontypes.Normalized `tfsdk:"attr_dynamic_json_string"`
-		AttrDynamicJSONNumber  jsontypes.Normalized `tfsdk:"attr_dynamic_json_number"`
-		AttrDynamicJSONArray   jsontypes.Normalized `tfsdk:"attr_dynamic_json_array"`
+		AttrDynamicJSONObject         jsontypes.Normalized                        `tfsdk:"attr_dynamic_json_object"`
+		AttrDynamicJSONBoolean        jsontypes.Normalized                        `tfsdk:"attr_dynamic_json_boolean"`
+		AttrDynamicJSONString         jsontypes.Normalized                        `tfsdk:"attr_dynamic_json_string"`
+		AttrDynamicJSONNumber         jsontypes.Normalized                        `tfsdk:"attr_dynamic_json_number"`
+		AttrDynamicJSONArray          jsontypes.Normalized                        `tfsdk:"attr_dynamic_json_array"`
+		AttrListOfDynamicJSONObjects  customtypes.ListValue[jsontypes.Normalized] `tfsdk:"attr_list_of_dynamic_json_objects"`
+		AttrSetOfDynamicJSONObjects   customtypes.SetValue[jsontypes.Normalized]  `tfsdk:"attr_set_of_dynamic_json_objects"`
+		AttrMapOfDynamicJSONObjects   customtypes.MapValue[jsontypes.Normalized]  `tfsdk:"attr_map_of_dynamic_json_objects"`
+		AttrListOfDynamicJSONBooleans customtypes.ListValue[jsontypes.Normalized] `tfsdk:"attr_list_of_dynamic_json_booleans"`
+		AttrSetOfDynamicJSONBooleans  customtypes.SetValue[jsontypes.Normalized]  `tfsdk:"attr_set_of_dynamic_json_booleans"`
+		AttrMapOfDynamicJSONBooleans  customtypes.MapValue[jsontypes.Normalized]  `tfsdk:"attr_map_of_dynamic_json_booleans"`
 	}{
-		AttrDynamicJSONObject:  jsontypes.NewNormalizedValue("{\"hello\": \"there\"}"),
-		AttrDynamicJSONBoolean: jsontypes.NewNormalizedValue("true"),
-		AttrDynamicJSONString:  jsontypes.NewNormalizedValue("\"hello\""),
-		AttrDynamicJSONNumber:  jsontypes.NewNormalizedValue("1.234"),
-		AttrDynamicJSONArray:   jsontypes.NewNormalizedValue("[1, 2, 3]"),
+		AttrDynamicJSONObject:        jsontypes.NewNormalizedValue("{\"hello\": \"there\"}"),
+		AttrDynamicJSONBoolean:       jsontypes.NewNormalizedValue("true"),
+		AttrDynamicJSONString:        jsontypes.NewNormalizedValue("\"hello\""),
+		AttrDynamicJSONNumber:        jsontypes.NewNormalizedValue("1.234"),
+		AttrDynamicJSONArray:         jsontypes.NewNormalizedValue("[1, 2, 3]"),
+		AttrListOfDynamicJSONObjects: customtypes.NewListValue[jsontypes.Normalized](t.Context(), []attr.Value{jsontypes.NewNormalizedValue("{\"hello\": \"there\"}")}),
+		AttrSetOfDynamicJSONObjects:  customtypes.NewSetValue[jsontypes.Normalized](t.Context(), []attr.Value{jsontypes.NewNormalizedValue("{\"hello\": \"there\"}")}),
+		AttrMapOfDynamicJSONObjects: customtypes.NewMapValue[jsontypes.Normalized](t.Context(), map[string]attr.Value{
+			"key1": jsontypes.NewNormalizedValue("{\"hello\": \"there\"}"),
+			"key2": jsontypes.NewNormalizedValue("{\"hello\": \"there\"}"),
+		}),
+		AttrListOfDynamicJSONBooleans: customtypes.NewListValue[jsontypes.Normalized](t.Context(), []attr.Value{jsontypes.NewNormalizedValue("true")}),
+		AttrSetOfDynamicJSONBooleans:  customtypes.NewSetValue[jsontypes.Normalized](t.Context(), []attr.Value{jsontypes.NewNormalizedValue("true")}),
+		AttrMapOfDynamicJSONBooleans: customtypes.NewMapValue[jsontypes.Normalized](t.Context(), map[string]attr.Value{
+			"key1": jsontypes.NewNormalizedValue("true"),
+			"key2": jsontypes.NewNormalizedValue("false"),
+		}),
 	}
 	const expectedJSON = `
 		{ 
@@ -74,7 +92,13 @@ func TestMarshalDynamicJSONAttr(t *testing.T) {
 			"attrDynamicJSONBoolean": true, 
 			"attrDynamicJSONString": "hello", 
 			"attrDynamicJSONNumber": 1.234,
-			"attrDynamicJSONArray": [1, 2, 3]
+			"attrDynamicJSONArray": [1, 2, 3],
+			"attrListOfDynamicJSONObjects": [{"hello": "there"}],
+			"attrSetOfDynamicJSONObjects": [{"hello": "there"}],
+			"attrMapOfDynamicJSONObjects": {"key1": {"hello": "there"}, "key2": {"hello": "there"}},
+			"attrListOfDynamicJSONBooleans": [true],
+			"attrSetOfDynamicJSONBooleans": [true],
+			"attrMapOfDynamicJSONBooleans": {"key1": true, "key2": false}
 		}
 	`
 	raw, err := autogen.Marshal(&model, false)
