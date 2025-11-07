@@ -14,7 +14,6 @@ const (
 	VendorConfluent = "CONFLUENT"
 	VendorMSK       = "MSK"
 	VendorS3        = "S3"
-	ProviderGCP     = "GCP"
 )
 
 func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPrivateLinkConnection) (*TFModel, diag.Diagnostics) {

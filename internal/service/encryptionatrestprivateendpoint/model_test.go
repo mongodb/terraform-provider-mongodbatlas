@@ -14,7 +14,6 @@ import (
 const (
 	testCloudProvider    = "AZURE"
 	testProjectID        = "666666666067bd1e20a8bf14"
-	testTotalResultCount = 99
 	testErrMsg           = "error occurred"
 	testID               = "6666666999999adsfsgdg"
 	testRegionName       = "US_EAST"

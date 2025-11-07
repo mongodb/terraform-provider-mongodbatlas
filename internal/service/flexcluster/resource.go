@@ -24,7 +24,6 @@ import (
 
 const (
 	resourceName                = "flex_cluster"
-	ErrorUpdateNotAllowed       = "update not allowed"
 	FlexClusterType             = "FLEX"
 	ErrorCreateFlex             = "error creating flex cluster: %s"
 	ErrorReadFlex               = "error reading flex cluster (%s): %s"

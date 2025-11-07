@@ -12,9 +12,7 @@ import (
 )
 
 const (
-	errorZoneNameNotSet          = "zoneName is required for legacy schema"
-	errorNumShardsNotSet         = "numShards not set for zoneName %s"
-	errorReplicationSpecIDNotSet = "replicationSpecID not set for zoneName %s"
+	errorZoneNameNotSet = "zoneName is required for legacy schema"
 )
 
 func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, diags *diag.Diagnostics, containerIDs map[string]string) *TFModel {

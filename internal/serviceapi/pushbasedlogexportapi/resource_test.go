@@ -15,7 +15,6 @@ import (
 const (
 	resourceName       = "mongodbatlas_push_based_log_export_api.test"
 	nonEmptyPrefixPath = "push-log-prefix"
-	defaultPrefixPath  = ""
 )
 
 func TestAccPushBasedLogExportAPI_basic(t *testing.T) {
