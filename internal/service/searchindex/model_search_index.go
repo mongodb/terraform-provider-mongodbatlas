@@ -85,6 +85,35 @@ func UnmarshalSearchIndexAnalyzersFields(str string) ([]admin.AtlasSearchAnalyze
 	return fields, nil
 }
 
+func expandSearchIndexTypeSets(d *schema.ResourceData) ([]admin.SearchTypeSets, diag.Diagnostics) {
+	var result []admin.SearchTypeSets
+
+	v, ok := d.GetOk("type_sets")
+	if !ok {
+		return result, nil
+	}
+
+	for _, raw := range v.(*schema.Set).List() {
+		item := raw.(map[string]any)
+
+		ts := admin.SearchTypeSets{
+			Name: item["name"].(string),
+		}
+
+		if s, ok := item["types"].(string); ok && s != "" {
+			arr, diags := unmarshalSearchIndexFields(s)
+			if diags != nil {
+				return nil, diags
+			}
+			ts.Types = conversion.ToAnySlicePointer(&arr)
+		}
+
+		result = append(result, ts)
+	}
+
+	return result, nil
+}
+
 func MarshalStoredSource(obj any) (string, error) {
 	if obj == nil {
 		return "", nil

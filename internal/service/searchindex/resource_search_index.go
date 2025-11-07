@@ -131,6 +131,23 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 			Optional:         true,
 			DiffSuppressFunc: diffSuppressJSON,
 		},
+		"type_sets": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"name": {
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"types": {
+						Type:             schema.TypeString,
+						Optional:         true,
+						DiffSuppressFunc: diffSuppressJSON,
+					},
+				},
+			},
+		},
 	}
 }
 
@@ -261,6 +278,18 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		searchIndex.Definition.Synonyms = &synonyms
 	}
 
+	if d.HasChange("type_sets") {
+		typeSets, err := expandSearchIndexTypeSets(d)
+		if err != nil {
+			return err
+		}
+		if len(typeSets) > 0 && searchIndex.Definition.Mappings == nil {
+			searchIndex.Definition.TypeSets = &typeSets
+		} else {
+			searchIndex.Definition.TypeSets = nil
+		}
+	}
+
 	if d.HasChange("stored_source") {
 		obj, err := UnmarshalStoredSource(d.Get("stored_source").(string))
 		if err != nil {
@@ -383,6 +412,24 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		}
 	}
 
+	if typeSets := searchIndex.LatestDefinition.GetTypeSets(); len(typeSets) > 0 {
+		var flattenedTypeSets []map[string]any
+		for _, typeSet := range typeSets {
+			entry := map[string]any{"name": typeSet.Name}
+			if types := typeSet.GetTypes(); len(types) > 0 {
+				j, err := marshalSearchIndex(types)
+				if err != nil {
+					return diag.FromErr(err)
+				}
+				entry["types"] = j
+			}
+			flattenedTypeSets = append(flattenedTypeSets, entry)
+		}
+		if err := d.Set("type_sets", flattenedTypeSets); err != nil {
+			return diag.Errorf("error setting `type_sets` for for search index (%s): %s", d.Id(), err)
+		}
+	}
+
 	storedSource := searchIndex.LatestDefinition.GetStoredSource()
 	strStoredSource, errStoredSource := MarshalStoredSource(storedSource)
 	if errStoredSource != nil {
@@ -434,6 +481,14 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 		synonyms := expandSearchIndexSynonyms(d)
 		searchIndexRequest.Definition.Synonyms = &synonyms
+
+		typeSets, diags := expandSearchIndexTypeSets(d)
+		if diags != nil {
+			return diags
+		}
+		if len(typeSets) > 0 {
+			searchIndexRequest.Definition.TypeSets = &typeSets
+		}
 	}
 
 	objStoredSource, errStoredSource := UnmarshalStoredSource(d.Get("stored_source").(string))
