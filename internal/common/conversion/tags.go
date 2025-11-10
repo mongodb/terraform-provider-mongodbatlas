@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"go.mongodb.org/atlas-sdk/v20250312009/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
 )
 
 func NewResourceTags(ctx context.Context, tags types.Map) *[]admin.ResourceTag {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312009/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -357,8 +357,8 @@ func NewTeamRoleList(ctx context.Context, teams []TFTeamModel) *[]admin.TeamRole
 	for i, team := range teams {
 		roleNames := conversion.TypesSetToString(ctx, team.RoleNames)
 		res[i] = admin.TeamRole{
-			TeamId:    team.TeamID.ValueStringPointer(),
-			RoleNames: &roleNames,
+			TeamId:    team.TeamID.ValueString(),
+			RoleNames: roleNames,
 		}
 	}
 	return &res

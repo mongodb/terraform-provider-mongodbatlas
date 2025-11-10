@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"go.mongodb.org/atlas-sdk/v20250312009/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -36,7 +36,7 @@ func (d *projectDS) Schema(ctx context.Context, req datasource.SchemaRequest, re
 
 func (d *projectDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var projectState TFProjectDSModel
-	connV2 := d.Client.AtlasV2
+	connV2 := d.Client.AtlasPreview
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &projectState)...)
 

@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312009/admin"
+	//	"go.mongodb.org/atlas-sdk/v20250312009/admin" TODO: don't use normal SDK while hidden tls1.3 field
+	"github.com/mongodb/atlas-sdk-go/admin" // TODO: change to SDK before merging to master
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -136,7 +137,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	}
 	if isFlex {
 		flexClusterReq := NewFlexCreateReq(latestReq.GetName(), latestReq.GetTerminationProtectionEnabled(), latestReq.Tags, latestReq.ReplicationSpecs)
-		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, plan.ProjectID.ValueString(), latestReq.GetName(), flexClusterReq, r.Client.AtlasV2.FlexClustersApi, &waitParams.Timeout)
+		flexClusterResp, err := flexcluster.CreateFlexCluster(ctx, plan.ProjectID.ValueString(), latestReq.GetName(), flexClusterReq, r.Client.AtlasPreview.FlexClustersApi, &waitParams.Timeout)
 		if err != nil {
 			diags.AddError(fmt.Sprintf(flexcluster.ErrorCreateFlex, clusterDetailStr), err.Error())
 			return
@@ -335,7 +336,7 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 
 func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
 	var (
-		api         = r.Client.AtlasV2.ClustersApi
+		api         = r.Client.AtlasPreview.ClustersApi
 		projectID   = waitParams.ProjectID
 		clusterName = waitParams.ClusterName
 	)
@@ -404,7 +405,7 @@ func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *
 		projectID   = clusterResp.GetGroupId()
 		clusterName = clusterResp.GetName()
 	)
-	containerIDs, err := resolveContainerIDs(ctx, projectID, clusterResp, client.AtlasV2.NetworkPeeringApi)
+	containerIDs, err := resolveContainerIDs(ctx, projectID, clusterResp, client.AtlasPreview.NetworkPeeringApi)
 	if err != nil {
 		diags.AddError(errorResolveContainerIDs, fmt.Sprintf("cluster name = %s, error details: %s", clusterName, err.Error()))
 		return nil
@@ -527,7 +528,7 @@ func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *conf
 	clusterName := plan.Name.ValueString()
 	flexCluster, err := flexcluster.UpdateFlexCluster(ctx, plan.ProjectID.ValueString(), clusterName,
 		GetFlexClusterUpdateRequest(configReq.Tags, configReq.TerminationProtectionEnabled),
-		client.AtlasV2.FlexClustersApi, waitParams.Timeout)
+		client.AtlasPreview.FlexClustersApi, waitParams.Timeout)
 	if err != nil {
 		diags.AddError(fmt.Sprintf(flexcluster.ErrorUpdateFlex, clusterName), err.Error())
 		return nil

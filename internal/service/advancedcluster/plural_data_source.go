@@ -6,7 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312009/admin"
+	// "go.mongodb.org/atlas-sdk/v20250312009/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -52,7 +53,7 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 
 func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pluralModel *TFModelPluralDS) (*TFModelPluralDS, *diag.Diagnostics) {
 	projectID := pluralModel.ProjectID.ValueString()
-	api := d.Client.AtlasV2.ClustersApi
+	api := d.Client.AtlasPreview.ClustersApi
 	params := admin.ListClustersApiParams{
 		GroupId: projectID,
 	}
@@ -122,7 +123,7 @@ func ResetClusterNotFoundErrors(diags *diag.Diagnostics) *diag.Diagnostics {
 func (d *pluralDS) getFlexClustersModels(ctx context.Context, diags *diag.Diagnostics, projectID string) []*TFModelDS {
 	var results []*TFModelDS
 
-	listFlexClusters, err := flexcluster.ListFlexClusters(ctx, projectID, d.Client.AtlasV2.FlexClustersApi)
+	listFlexClusters, err := flexcluster.ListFlexClusters(ctx, projectID, d.Client.AtlasPreview.FlexClustersApi)
 	if err != nil {
 		diags.AddError(errorList, fmt.Sprintf(errorListDetail, projectID, err.Error()))
 		return nil

@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 
+	"github.com/mongodb/atlas-sdk-go/admin"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312009/admin"
 )
 
 const projectsDataSourceName = "projects"
@@ -41,7 +41,7 @@ func (d *ProjectsDS) Schema(ctx context.Context, req datasource.SchemaRequest, r
 
 func (d *ProjectsDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var stateModel tfProjectsDSModel
-	connV2 := d.Client.AtlasV2
+	connV2 := d.Client.AtlasPreview
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &stateModel)...)
 

@@ -9,8 +9,11 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.mongodb.org/atlas-sdk/v20250312009/admin"
-	"go.mongodb.org/atlas-sdk/v20250312009/mockadmin"
+
+	//	"go.mongodb.org/atlas-sdk/v20250312009/admin" // TODO: change to SDK before merging to master
+	"github.com/mongodb/atlas-sdk-go/admin"
+	//	"go.mongodb.org/atlas-sdk/v20250312009/mockadmin" // TODO: change to SDK before merging to master
+	"github.com/mongodb/atlas-sdk-go/mockadmin"
 )
 
 var (

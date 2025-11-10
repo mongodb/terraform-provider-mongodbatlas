@@ -98,7 +98,7 @@ func DataSource() *schema.Resource {
 
 func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	// Get client connection.
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 
 	projectID := d.Get("project_id").(string)
 	privateLinkID := conversion.GetEncodedID(d.Get("private_link_id").(string), "private_link_id")

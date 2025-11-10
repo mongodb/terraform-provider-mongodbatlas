@@ -7,7 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312009/admin"
+	// "go.mongodb.org/atlas-sdk/v20250312009/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -47,7 +48,7 @@ func AwaitChangesUpgrade(ctx context.Context, client *config.MongoDBClient, wait
 }
 
 func AwaitChanges(ctx context.Context, client *config.MongoDBClient, waitParams *ClusterWaitParams, errorLocator string, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
-	api := client.AtlasV2.ClustersApi
+	api := client.AtlasPreview.ClustersApi
 	targetState := retrystrategy.RetryStrategyIdleState
 	extraPending := []string{}
 	isDelete := waitParams.IsDelete

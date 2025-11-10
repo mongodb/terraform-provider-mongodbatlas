@@ -9,10 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mongodb/atlas-sdk-go/admin"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"go.mongodb.org/atlas-sdk/v20250312009/admin"
 )
 
 type permCtxKey string
@@ -66,7 +66,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).AtlasV2
+	conn := meta.(*config.MongoDBClient).AtlasPreview
 
 	projectID := d.Id()
 
@@ -88,7 +88,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	conn := meta.(*config.MongoDBClient).AtlasV2
+	conn := meta.(*config.MongoDBClient).AtlasPreview
 
 	projectID := d.Id()
 	enabled := d.Get("enabled").(bool)
@@ -140,7 +140,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	conn := meta.(*config.MongoDBClient).AtlasV2
+	conn := meta.(*config.MongoDBClient).AtlasPreview
 	projectID := d.Id()
 
 	setting, _, err := conn.PrivateEndpointServicesApi.GetRegionalEndpointMode(ctx, projectID).Execute()
