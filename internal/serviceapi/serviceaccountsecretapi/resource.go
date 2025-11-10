@@ -4,6 +4,7 @@ package serviceaccountsecretapi
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -15,7 +16,7 @@ import (
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
 
-const apiVersionHeader = ""
+const apiVersionHeader = "application/vnd.atlas.2026-01-01+json"
 
 func Resource() resource.Resource {
 	return &rs{
@@ -65,13 +66,46 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	reqHandle := autogen.HandleReadReq{
-		Resp:       resp,
-		Client:     r.Client,
-		State:      &state,
-		CallParams: readAPICallParams(&state),
+
+	serviceAccount, _, err := r.Client.AtlasV2.ServiceAccountsApi.GetOrgServiceAccount(ctx, state.OrgId.ValueString(), state.ClientId.ValueString()).Execute()
+	if err != nil {
+		resp.Diagnostics.AddError("Error calling API", err.Error())
+		return
 	}
-	autogen.HandleRead(ctx, reqHandle)
+
+	// Find the secret that matches the current resource ID and build the JSON body.
+	var (
+		secretJsonBody []byte
+		found          bool
+	)
+	for _, s := range serviceAccount.GetSecrets() {
+		if s.GetId() == state.Id.ValueString() {
+			secretJsonBody, err = json.Marshal(s)
+			if err != nil {
+				resp.Diagnostics.AddError("Error marshalling secret", err.Error())
+				return
+			}
+			found = true
+			break
+		}
+	}
+	if !found {
+		// Secret not found, resource no longer exists.
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
+	// Use the current state as the base model to set the response state
+	if err := autogen.Unmarshal(secretJsonBody, &state); err != nil {
+		resp.Diagnostics.AddError("Error unmarshalling response", err.Error())
+		return
+	}
+	if err := autogen.ResolveUnknowns(&state); err != nil {
+		resp.Diagnostics.AddError("Error resolving unknowns", err.Error())
+		return
+	}
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -93,20 +127,6 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	idAttributes := []string{"org_id", "client_id"}
 	autogen.HandleImport(ctx, idAttributes, req, resp)
-}
-
-func readAPICallParams(model any) *config.APICallParams {
-	m := model.(*TFModel)
-	pathParams := map[string]string{
-		"orgId":    m.OrgId.ValueString(),
-		"clientId": m.ClientId.ValueString(),
-	}
-	return &config.APICallParams{
-		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets",
-		PathParams:    pathParams,
-		Method:        "POST",
-	}
 }
 
 func deleteRequest(client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
