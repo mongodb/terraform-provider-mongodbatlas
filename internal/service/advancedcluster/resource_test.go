@@ -48,6 +48,7 @@ var (
 
 func testAccAdvancedClusterFlexUpgrade(t *testing.T, projectID, clusterName, instanceSize string, includeDedicated bool) resource.TestCase {
 	t.Helper()
+	t.Skip("Skipping until CLOUDP-357683 is implemented")
 	defaultZoneName := "Zone 1" // Uses backend default as in existing tests
 
 	// avoid checking plural data source to reduce risk of being impacted from failure in other test using same project, allows running in parallel
