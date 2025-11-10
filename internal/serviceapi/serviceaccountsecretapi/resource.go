@@ -75,31 +75,9 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan TFModel
-	var state TFModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	// Path params are grabbed from state as they may be computed-only and not present in the plan
-	pathParams := map[string]string{
-		"orgId":    state.OrgId.ValueString(),
-		"clientId": state.ClientId.ValueString(),
-	}
-	callParams := config.APICallParams{
-		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets",
-		PathParams:    pathParams,
-		Method:        "POST",
-	}
-	reqHandle := autogen.HandleUpdateReq{
-		Resp:       resp,
-		Client:     r.Client,
-		Plan:       &plan,
-		CallParams: &callParams,
-	}
-	autogen.HandleUpdate(ctx, reqHandle)
+	// not supported
+	resp.Diagnostics.AddError("Update not supported", "Update is not supported for this resource")
+	return
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -135,7 +113,7 @@ func deleteRequest(client *config.MongoDBClient, model *TFModel, diags *diag.Dia
 	pathParams := map[string]string{
 		"orgId":    model.OrgId.ValueString(),
 		"clientId": model.ClientId.ValueString(),
-		"secretId": model.SecretId.ValueString(),
+		"secretId": model.Id.ValueString(),
 	}
 	return &autogen.HandleDeleteReq{
 		Client: client,
