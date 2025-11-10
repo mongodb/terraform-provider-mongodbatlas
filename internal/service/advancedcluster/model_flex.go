@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312008/admin"
+	//	"go.mongodb.org/atlas-sdk/v20250312009/admin" TODO: don't use normal SDK while hidden tls1.3 field
+	"github.com/mongodb/atlas-sdk-go/admin" // TODO: change to SDK before merging to master
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -142,7 +143,7 @@ func NewTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *a
 }
 
 func FlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.FlexClusterDescription20241113 {
-	if _, _, err := client.AtlasV2.ClustersApi.UpgradeTenantUpgrade(ctx, waitParams.ProjectID, req).Execute(); err != nil {
+	if _, _, err := client.AtlasPreview.ClustersApi.UpgradeTenantUpgrade(ctx, waitParams.ProjectID, req).Execute(); err != nil {
 		diags.AddError(fmt.Sprintf(flexcluster.ErrorUpgradeFlex, req.Name), err.Error())
 		return nil
 	}
@@ -152,7 +153,7 @@ func FlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.Mo
 		Name:    waitParams.ClusterName,
 	}
 
-	flexClusterResp, err := flexcluster.WaitStateTransition(ctx, flexClusterParams, client.AtlasV2.FlexClustersApi, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState}, true, waitParams.Timeout)
+	flexClusterResp, err := flexcluster.WaitStateTransition(ctx, flexClusterParams, client.AtlasPreview.FlexClustersApi, []string{retrystrategy.RetryStrategyUpdatingState}, []string{retrystrategy.RetryStrategyIdleState}, true, waitParams.Timeout)
 	if err != nil {
 		diags.AddError(fmt.Sprintf(flexcluster.ErrorUpgradeFlex, req.Name), err.Error())
 		return nil

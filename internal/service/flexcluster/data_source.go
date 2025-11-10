@@ -36,8 +36,8 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 		return
 	}
 
-	connV2 := d.Client.AtlasV2
-	apiResp, _, err := connV2.FlexClustersApi.GetFlexCluster(ctx, tfModel.ProjectId.ValueString(), tfModel.Name.ValueString()).Execute()
+	conn := d.Client.AtlasPreview
+	apiResp, _, err := conn.FlexClustersApi.GetFlexCluster(ctx, tfModel.ProjectId.ValueString(), tfModel.Name.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error reading data source", err.Error())
 		return

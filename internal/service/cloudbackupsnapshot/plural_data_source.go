@@ -9,7 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312008/admin"
+
+	//	"go.mongodb.org/atlas-sdk/v20250312009/admin" TODO: don't use normal SDK while hidden tls1.3 field
+	"github.com/mongodb/atlas-sdk-go/admin" // TODO: change to SDK before merging to master
 )
 
 func PluralDataSource() *schema.Resource {
@@ -124,7 +126,7 @@ func PluralDataSource() *schema.Resource {
 }
 
 func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 
 	params := &admin.ListBackupSnapshotsApiParams{
 		GroupId:      d.Get("project_id").(string),

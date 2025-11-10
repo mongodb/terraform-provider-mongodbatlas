@@ -3,7 +3,8 @@ package advancedcluster
 import (
 	"context"
 
-	"go.mongodb.org/atlas-sdk/v20250312008/admin"
+	//	"go.mongodb.org/atlas-sdk/v20250312009/admin" TODO: don't use normal SDK while hidden tls1.3 field
+	"github.com/mongodb/atlas-sdk-go/admin" // TODO: change to SDK before merging to master
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -12,9 +13,7 @@ import (
 )
 
 const (
-	errorZoneNameNotSet          = "zoneName is required for legacy schema"
-	errorNumShardsNotSet         = "numShards not set for zoneName %s"
-	errorReplicationSpecIDNotSet = "replicationSpecID not set for zoneName %s"
+	errorZoneNameNotSet = "zoneName is required for legacy schema"
 )
 
 func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, diags *diag.Diagnostics, containerIDs map[string]string) *TFModel {

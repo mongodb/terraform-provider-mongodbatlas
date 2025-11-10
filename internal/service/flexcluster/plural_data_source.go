@@ -38,8 +38,8 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 		return
 	}
 
-	connV2 := d.Client.AtlasV2
-	flexClusters, err := ListFlexClusters(ctx, tfModel.ProjectId.ValueString(), connV2.FlexClustersApi)
+	conn := d.Client.AtlasPreview
+	flexClusters, err := ListFlexClusters(ctx, tfModel.ProjectId.ValueString(), conn.FlexClustersApi)
 
 	if err != nil {
 		resp.Diagnostics.AddError("error reading plural data source", err.Error())

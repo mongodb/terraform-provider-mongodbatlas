@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"go.mongodb.org/atlas-sdk/v20250312008/admin"
+	//	"go.mongodb.org/atlas-sdk/v20250312009/admin" TODO: don't use normal SDK while hidden tls1.3 field
+	"github.com/mongodb/atlas-sdk-go/admin" // TODO: change to SDK before merging to master
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 

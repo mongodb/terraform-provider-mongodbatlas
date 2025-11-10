@@ -12,8 +12,8 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/mongodb/atlas-sdk-go/admin"
 	admin20240530 "go.mongodb.org/atlas-sdk/v20240530005/admin"
-	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 	matlas "go.mongodb.org/atlas/mongodbatlas"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -596,7 +596,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 	var (
 		conn             = meta.(*config.MongoDBClient).Atlas
-		connV2           = meta.(*config.MongoDBClient).AtlasV2
+		connV2           = meta.(*config.MongoDBClient).AtlasPreview
 		connV220240530   = meta.(*config.MongoDBClient).AtlasV220240530
 		projectID        = d.Get("project_id").(string)
 		clusterName      = d.Get("name").(string)
@@ -834,7 +834,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 	connV220240530 := meta.(*config.MongoDBClient).AtlasV220240530
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -1046,7 +1046,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	var (
 		conn                = meta.(*config.MongoDBClient).Atlas
-		connV2              = meta.(*config.MongoDBClient).AtlasV2
+		connV2              = meta.(*config.MongoDBClient).AtlasPreview
 		connV220240530      = meta.(*config.MongoDBClient).AtlasV220240530
 		ids                 = conversion.DecodeStateID(d.Id())
 		projectID           = ids["project_id"]
@@ -1317,7 +1317,7 @@ func didErrOnPausedCluster(err error) bool {
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn := meta.(*config.MongoDBClient).Atlas
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]

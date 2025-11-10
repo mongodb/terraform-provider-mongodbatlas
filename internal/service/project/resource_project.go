@@ -8,7 +8,7 @@ import (
 	"sort"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312008/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -58,7 +58,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 	var teams []TFTeamModel
 	var limits []TFLimitModel
 
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 
 	diags := req.Plan.Get(ctx, &projectPlan)
 	resp.Diagnostics.Append(diags...)
@@ -201,7 +201,7 @@ func (r *projectRS) Create(ctx context.Context, req resource.CreateRequest, resp
 func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var projectState TFProjectRSModel
 	var limits []TFLimitModel
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 
 	// get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &projectState)...)
@@ -261,7 +261,7 @@ func (r *projectRS) Read(ctx context.Context, req resource.ReadRequest, resp *re
 func (r *projectRS) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var projectState TFProjectRSModel
 	var projectPlan TFProjectRSModel
-	connV2 := r.Client.AtlasV2
+	connV2 := r.Client.AtlasPreview
 
 	// get current state
 	resp.Diagnostics.Append(req.State.Get(ctx, &projectState)...)
@@ -347,7 +347,7 @@ func (r *projectRS) Delete(ctx context.Context, req resource.DeleteRequest, resp
 	}
 
 	projectID := project.ID.ValueString()
-	err := deleteProject(ctx, r.Client.AtlasV2.ClustersApi, r.Client.AtlasV2.ProjectsApi, projectID)
+	err := deleteProject(ctx, r.Client.AtlasPreview.ClustersApi, r.Client.AtlasPreview.ProjectsApi, projectID)
 
 	if err != nil {
 		resp.Diagnostics.AddError("error when destroying resource", fmt.Sprintf(errorProjectDelete, projectID, err.Error()))
@@ -576,11 +576,7 @@ func UpdateProjectTeams(ctx context.Context, teamsAPI admin.TeamsApi, projectSta
 	for _, team := range changedTeams {
 		teamID := team.TeamID.ValueString()
 		roleNames := conversion.TypesSetToString(ctx, team.RoleNames)
-		_, _, err := teamsAPI.UpdateGroupTeam(ctx, projectID, teamID,
-			&admin.TeamRole{
-				RoleNames: &roleNames,
-			},
-		).Execute()
+		_, _, err := teamsAPI.UpdateGroupTeam(ctx, projectID, teamID, &admin.TeamRole{RoleNames: roleNames}).Execute()
 		if err != nil {
 			return fmt.Errorf("error updating role names for the team(%s): %s", teamID, err.Error())
 		}

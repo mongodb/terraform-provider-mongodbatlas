@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/mongodb/atlas-sdk-go/admin"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/cleanup"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
-	"go.mongodb.org/atlas-sdk/v20250312008/admin"
 )
 
 func Resource() *schema.Resource {
@@ -137,7 +137,7 @@ const (
 )
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 	groupID := d.Get("project_id").(string)
 	clusterName := d.Get("cluster_name").(string)
 	stateConf := cluster.CreateStateChangeConfig(ctx, connV2, groupID, clusterName, 15*time.Minute)
@@ -191,7 +191,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 	ids := conversion.DecodeStateID(d.Id())
 	groupID := ids["project_id"]
 	clusterName := ids["cluster_name"]
@@ -264,7 +264,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 	ids := conversion.DecodeStateID(d.Id())
 	groupID := ids["project_id"]
 	clusterName := ids["cluster_name"]

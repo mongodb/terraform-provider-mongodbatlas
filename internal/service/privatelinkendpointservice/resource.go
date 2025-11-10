@@ -18,7 +18,9 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/advancedcluster"
-	"go.mongodb.org/atlas-sdk/v20250312008/admin"
+
+	// "go.mongodb.org/atlas-sdk/v20250312009/admin" // TODO: don't use normal SDK while hidden tls1.3 field
+	"github.com/mongodb/atlas-sdk-go/admin" // TODO: change to SDK before merging to master
 )
 
 const (
@@ -145,7 +147,7 @@ func Resource() *schema.Resource {
 }
 
 func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 	projectID := d.Get("project_id").(string)
 	privateLinkID := conversion.GetEncodedID(d.Get("private_link_id").(string), "private_link_id")
 	providerName := d.Get("provider_name").(string)
@@ -226,7 +228,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -298,7 +300,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 }
 
 func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
@@ -346,7 +348,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 }
 
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
-	connV2 := meta.(*config.MongoDBClient).AtlasV2
+	connV2 := meta.(*config.MongoDBClient).AtlasPreview
 
 	parts := strings.SplitN(d.Id(), "--", 4)
 	if len(parts) != 4 {
