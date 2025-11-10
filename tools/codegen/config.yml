@@ -545,3 +545,21 @@ resources:
           sensitive: true
         roles:
           type: set
+  
+  service_account_secret_api:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets
+      method: POST
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets
+      method: POST
+    update:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets
+      method: POST
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets/{secretId}
+      method: DELETE
+    schema:
+      overrides:
+        aliases:
+          secretId: id # path param name does not match the API request property.
