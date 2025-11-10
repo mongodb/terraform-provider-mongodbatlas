@@ -15,7 +15,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
-// MoveState is used with moved block to upgrade from stream_instance to stream_workspace
+// MoveState is used with moved block to upgrade from stream_instance to stream_workspace.
 func (r *rs) MoveState(context.Context) []resource.StateMover {
 	return []resource.StateMover{{StateMover: stateMover}}
 }
@@ -25,7 +25,7 @@ func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resour
 		return
 	}
 
-	// Extract all fields from source state to preserve values during move
+	// Extract all fields from source state to preserve values during move.
 	stateAttrs := map[string]tftypes.Type{
 		"project_id":    tftypes.String,
 		"instance_name": tftypes.String,
@@ -68,14 +68,14 @@ func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resour
 		return
 	}
 
-	// Create model with actual values from source state
+	// Create model with actual values from source state and map instance_name to workspace_name.
 	model := &TFModel{
 		ID:            types.StringNull(), // Will be computed during read
 		ProjectID:     types.StringPointerValue(projectID),
-		WorkspaceName: types.StringPointerValue(instanceName), // Map instance_name to workspace_name
+		WorkspaceName: types.StringPointerValue(instanceName),
 	}
 
-	// Extract and preserve data_process_region if present
+	// Extract and preserve data_process_region if present.
 	if dataProcessRegionVal, exists := stateObj["data_process_region"]; exists && !dataProcessRegionVal.IsNull() {
 		var regionObj map[string]tftypes.Value
 		if err := dataProcessRegionVal.As(&regionObj); err == nil {
@@ -101,7 +101,7 @@ func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resour
 		})
 	}
 
-	// Extract and preserve stream_config if present
+	// Extract and preserve stream_config if present.
 	if streamConfigVal, exists := stateObj["stream_config"]; exists && !streamConfigVal.IsNull() {
 		var configObj map[string]tftypes.Value
 		if err := streamConfigVal.As(&configObj); err == nil {
@@ -123,7 +123,7 @@ func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resour
 		})
 	}
 
-	// Extract and preserve hostnames if present
+	// Extract and preserve hostnames if present.
 	if hostnamesVal, exists := stateObj["hostnames"]; exists && !hostnamesVal.IsNull() {
 		var hostnamesList []tftypes.Value
 		if err := hostnamesVal.As(&hostnamesList); err == nil {

@@ -41,7 +41,6 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	connV2 := r.Client.AtlasV2
 	projectID := plan.ProjectID.ValueString()
 	streamWorkspaceReq, diags := newStreamWorkspaceCreateReq(ctx, &plan)
@@ -54,17 +53,15 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		resp.Diagnostics.AddError("error creating resource", err.Error())
 		return
 	}
-
 	newInstanceModel, diags := streaminstance.NewTFStreamInstance(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
 
-	// Convert back to workspace model
+	// Convert back to workspace model.
 	var newWorkspaceModel TFModel
 	newWorkspaceModel.FromInstanceModel(newInstanceModel)
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, newWorkspaceModel)...)
 }
 
@@ -74,7 +71,6 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	connV2 := r.Client.AtlasV2
 	projectID := streamsWorkspaceState.ProjectID.ValueString()
 	workspaceName := streamsWorkspaceState.WorkspaceName.ValueString()
@@ -87,17 +83,15 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		resp.Diagnostics.AddError("error fetching resource", err.Error())
 		return
 	}
-
 	newInstanceModel, diags := streaminstance.NewTFStreamInstance(ctx, apiResp)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
 
-	// Convert back to workspace model
+	// Convert back to workspace model.
 	var newWorkspaceModel TFModel
 	newWorkspaceModel.FromInstanceModel(newInstanceModel)
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, newWorkspaceModel)...)
 }
 
@@ -107,7 +101,6 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	connV2 := r.Client.AtlasV2
 	projectID := plan.ProjectID.ValueString()
 	workspaceName := plan.WorkspaceName.ValueString()
@@ -127,10 +120,8 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-
 	var newWorkspaceModel TFModel
 	newWorkspaceModel.FromInstanceModel(newInstanceModel)
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, newWorkspaceModel)...)
 }
 
@@ -140,7 +131,6 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	connV2 := r.Client.AtlasV2
 	projectID := streamsWorkspaceState.ProjectID.ValueString()
 	workspaceName := streamsWorkspaceState.WorkspaceName.ValueString()
@@ -156,7 +146,6 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 		resp.Diagnostics.AddError("error splitting streams workspace import ID", err.Error())
 		return
 	}
-
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_id"), projectID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("workspace_name"), workspaceName)...)
 }
@@ -164,12 +153,10 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 func splitStreamsWorkspaceImportID(id string) (projectID, workspaceName string, err error) {
 	var re = regexp.MustCompile(`(?s)^([0-9a-fA-F]{24})-(.*)$`)
 	parts := re.FindStringSubmatch(id)
-
 	if len(parts) != 3 {
 		err = errors.New("use the format {project_id}-{workspace_name}")
 		return
 	}
-
 	projectID, workspaceName = parts[1], parts[2]
 	return
 }

@@ -76,7 +76,7 @@ type TFStreamsWorkspacesModel struct {
 func NewTFStreamsWorkspaces(ctx context.Context, streamsWorkspacesConfig *TFStreamsWorkspacesModel, apiResp *admin.PaginatedApiStreamsTenant) (*TFStreamsWorkspacesModel, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	// Convert the stream instances response to stream instances model first
+	// Convert the stream instances response to stream instances model first.
 	instancesModel := &streaminstance.TFStreamInstancesModel{
 		ID:           streamsWorkspacesConfig.ID,
 		ProjectID:    streamsWorkspacesConfig.ProjectID,
@@ -90,7 +90,7 @@ func NewTFStreamsWorkspaces(ctx context.Context, streamsWorkspacesConfig *TFStre
 		return nil, diags
 	}
 
-	// Convert each instance result to workspace result
+	// Convert each instance result to workspace result.
 	workspaceResults := make([]TFModel, len(newInstancesModel.Results))
 	for i := range newInstancesModel.Results {
 		workspaceResults[i].FromInstanceModel(&newInstancesModel.Results[i])
