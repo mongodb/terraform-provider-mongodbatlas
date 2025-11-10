@@ -1,0 +1,3 @@
+```release-note:bug
+mongodbatlas_online_archive: Skips `date_format` validation to allow all different formats
+```
