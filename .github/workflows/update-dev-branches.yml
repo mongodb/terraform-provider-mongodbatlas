@@ -5,7 +5,9 @@ on:
     inputs:
       branches:
         description: 'Dev branch names to update from master'
-        default: '["CLOUDP-334161-service-accounts-dev"]'
+        default: '["CLOUDP-313272-dev-effective-fields"]'
+  schedule:
+    - cron: "0 5 * * 1,4" # workflow runs every Monday and Thursday at 5 AM UTC
 concurrency:
   group: '${{ github.workflow }}'
   cancel-in-progress: false
@@ -16,7 +18,7 @@ jobs:
       max-parallel: 10
       fail-fast: false
       matrix:
-        branch: ${{ fromJSON(inputs.branches || '["CLOUDP-334161-service-accounts-dev"]') }} # scheduled branches go here
+        branch: ${{ fromJSON(inputs.branches || '["CLOUDP-313272-dev-effective-fields"]') }} # scheduled branches go here
     name: ${{ matrix.branch }}
     runs-on: ubuntu-latest
     permissions:
