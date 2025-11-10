@@ -82,26 +82,27 @@ func TestAccSearchIndex_withTypeSets_ConfigurableDynamic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: configWithTypeSets(projectID, clusterName, indexName, dynamicTypeSet, typeSetsJSONOne),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrWith(resourceName, "mappings_dynamic_config", acc.JSONEquals(dynamicTypeSet)),
-					resource.TestCheckResourceAttr(resourceName, "type_sets.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "type_sets.0.name", "ts_acc"),
-					resource.TestCheckResourceAttrWith(resourceName, "type_sets.0.types", acc.JSONEquals(typeSetsJSONOne)),
-				),
+				Check:  resource.ComposeAggregateTestCheckFunc(checkExists(resourceName), checkTypeSetsConfigurableDynamic(typeSetsJSONOne)),
 			},
 			{
 				Config: configWithTypeSets(projectID, clusterName, indexName, dynamicTypeSet, typeSetsJSONTwo),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkExists(resourceName),
-					resource.TestCheckResourceAttrWith(resourceName, "mappings_dynamic_config", acc.JSONEquals(dynamicTypeSet)),
-					resource.TestCheckResourceAttr(resourceName, "type_sets.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "type_sets.0.name", "ts_acc"),
-					resource.TestCheckResourceAttrWith(resourceName, "type_sets.0.types", acc.JSONEquals(typeSetsJSONTwo)),
-				),
+				Check:  resource.ComposeAggregateTestCheckFunc(checkExists(resourceName), checkTypeSetsConfigurableDynamic(typeSetsJSONTwo)),
 			},
 		},
 	})
+}
+
+func checkTypeSetsConfigurableDynamic(typeSetsJSON string) resource.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(
+		resource.TestCheckResourceAttrWith(resourceName, "mappings_dynamic_config", acc.JSONEquals(dynamicTypeSet)),
+		resource.TestCheckResourceAttr(resourceName, "type_sets.#", "1"),
+		resource.TestCheckResourceAttr(resourceName, "type_sets.0.name", "ts_acc"),
+		resource.TestCheckResourceAttrWith(resourceName, "type_sets.0.types", acc.JSONEquals(typeSetsJSON)),
+		resource.TestCheckResourceAttrWith(datasourceName, "mappings_dynamic_config", acc.JSONEquals(dynamicTypeSet)),
+		resource.TestCheckResourceAttr(datasourceName, "type_sets.#", "1"),
+		resource.TestCheckResourceAttr(datasourceName, "type_sets.0.name", "ts_acc"),
+		resource.TestCheckResourceAttrWith(datasourceName, "type_sets.0.types", acc.JSONEquals(typeSetsJSON)),
+	)
 }
 
 func TestAccSearchIndex_updatedToEmptySynonyms(t *testing.T) {
