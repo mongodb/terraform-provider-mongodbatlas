@@ -217,7 +217,7 @@ EOF
     EOF
   ```
 
-* `mappings_dynamic_config` - (Optional) JSON object for `mappings.dynamic` when using configurable dynamic. Please note that this is mutually exclusive with `mappings_dynamic`, and should be use along with `type_sets`. See the MongoDB documentation for further information on [Static and Dynamic Mapping](https://www.mongodb.com/docs/atlas/atlas-search/define-field-mappings/#std-label-fts-field-mappings).
+* `mappings_dynamic_config` - (Optional) JSON object for `mappings.dynamic` when using configurable dynamic. Please note that this is mutually exclusive with `mappings_dynamic`. See the MongoDB documentation for further information on [Static and Dynamic Mapping](https://www.mongodb.com/docs/atlas/atlas-search/define-field-mappings/#std-label-fts-field-mappings).
 
 * `type_sets` - (Optional) One or more blocks defining configurable dynamic type sets. Atlas only persists/returns `typeSets` when `mappings.dynamic` is an object referencing a `typeSet` name.
   * `name` - (Required) Name of the type set.
