@@ -414,7 +414,9 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			if err := d.Set("mappings_dynamic", v); err != nil {
 				return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
 			}
-			_ = d.Set("mappings_dynamic_config", "")
+			if err := d.Set("mappings_dynamic_config", ""); err != nil {
+				return diag.Errorf("error setting `mappings_dynamic_config` for search index (%s): %s", d.Id(), err)
+			}
 		case map[string]any:
 			j, err := marshalSearchIndex(v)
 			if err != nil {
@@ -423,8 +425,11 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			if err := d.Set("mappings_dynamic_config", j); err != nil {
 				return diag.Errorf("error setting `mappings_dynamic_config` for search index (%s): %s", d.Id(), err)
 			}
-			_ = d.Set("mappings_dynamic", nil)
+			if err := d.Set("mappings_dynamic", nil); err != nil {
+				return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
+			}
 		default:
+			log.Printf("[DEBUG] search_index: unexpected mappings.dynamic type: %T", v)
 		}
 
 		if fields := searchIndex.LatestDefinition.Mappings.Fields; fields != nil && conversion.HasElementsSliceOrMap(*fields) {

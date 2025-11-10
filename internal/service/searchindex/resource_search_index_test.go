@@ -88,6 +88,10 @@ func TestAccSearchIndex_withTypeSets_ConfigurableDynamic(t *testing.T) {
 				Config: configWithTypeSets(projectID, clusterName, indexName, dynamicTypeSet, typeSetsJSONTwo),
 				Check:  resource.ComposeAggregateTestCheckFunc(checkExists(resourceName), checkTypeSetsConfigurableDynamic(typeSetsJSONTwo)),
 			},
+			{
+				Config: configWithTypeSetsOmitted(projectID, clusterName, indexName, dynamicTypeSet),
+				Check:  resource.ComposeAggregateTestCheckFunc(checkExists(resourceName), checkTypeSetsOmittedConfigDynamic()),
+			},
 		},
 	})
 }
@@ -102,6 +106,15 @@ func checkTypeSetsConfigurableDynamic(typeSetsJSON string) resource.TestCheckFun
 		resource.TestCheckResourceAttr(datasourceName, "type_sets.#", "1"),
 		resource.TestCheckResourceAttr(datasourceName, "type_sets.0.name", "ts_acc"),
 		resource.TestCheckResourceAttrWith(datasourceName, "type_sets.0.types", acc.JSONEquals(typeSetsJSON)),
+	)
+}
+
+func checkTypeSetsOmittedConfigDynamic() resource.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(
+		resource.TestCheckResourceAttrWith(resourceName, "mappings_dynamic_config", acc.JSONEquals(dynamicTypeSet)),
+		resource.TestCheckResourceAttr(resourceName, "type_sets.#", "0"),
+		resource.TestCheckResourceAttrWith(datasourceName, "mappings_dynamic_config", acc.JSONEquals(dynamicTypeSet)),
+		resource.TestCheckResourceAttr(datasourceName, "type_sets.#", "0"),
 	)
 }
 
@@ -688,4 +701,28 @@ func configWithTypeSets(projectID, clusterName, indexName, dynamicJSON, typeSets
             index_id         = mongodbatlas_search_index.test.index_id
         }
     `, clusterName, projectID, indexName, database, collection, dynamicJSON, typeSetsJSON)
+}
+
+func configWithTypeSetsOmitted(projectID, clusterName, indexName, dynamicJSON string) string {
+	return fmt.Sprintf(`
+        resource "mongodbatlas_search_index" "test" {
+            cluster_name     = %[1]q
+            project_id       = %[2]q
+            name             = %[3]q
+            database         = %[4]q
+            collection_name  = %[5]q
+
+            type = "search"
+
+            mappings_dynamic_config = <<-EOF
+            %[6]s
+            EOF
+        }
+
+        data "mongodbatlas_search_index" "data_index" {
+            cluster_name     = mongodbatlas_search_index.test.cluster_name
+            project_id       = mongodbatlas_search_index.test.project_id
+            index_id         = mongodbatlas_search_index.test.index_id
+        }
+    `, clusterName, projectID, indexName, database, collection, dynamicJSON)
 }
