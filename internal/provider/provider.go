@@ -299,7 +299,11 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		advancedcluster.DataSource,
 		advancedcluster.PluralDataSource,
 	}
-	return dataSources
+	analyticsDataSources := []func() datasource.DataSource{}
+	for _, dataSourceFunc := range dataSources {
+		analyticsDataSources = append(analyticsDataSources, config.AnalyticsDataSourceFunc(dataSourceFunc()))
+	}
+	return analyticsDataSources
 }
 
 func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resource {
