@@ -141,16 +141,7 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 		"type_sets": {
 			Type:     schema.TypeSet,
 			Optional: true,
-			Set: func(v interface{}) int {
-				m := v.(map[string]interface{})
-				name := ""
-				if nv, ok := m["name"].(string); ok {
-					name = strings.ToLower(nv)
-				}
-				typesStr, _ := m["types"].(string)
-				canon := canonicalizeJSONString(typesStr)
-				return schema.HashString(name + "|" + canon)
-			},
+			Set:      hashTypeSetElement,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"name": {

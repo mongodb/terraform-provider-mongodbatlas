@@ -209,3 +209,14 @@ func canonicalizeJSONValue(v any) string {
 		return string(by)
 	}
 }
+
+func hashTypeSetElement(v interface{}) int {
+	m := v.(map[string]interface{})
+	name := ""
+	if nv, ok := m["name"].(string); ok {
+		name = nv
+	}
+	typesStr, _ := m["types"].(string)
+	canon := canonicalizeJSONString(typesStr)
+	return schema.HashString(name + "|" + canon)
+}
