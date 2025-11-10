@@ -1,0 +1,15 @@
+```release-note:enhancement
+resource/mongodbatlas_search_index: Add `type_sets` field to support Atlas Search configurable dynamic type sets.
+```
+
+```release-note:enhancement
+resource/mongodbatlas_search_index: Add `mappings_dynamic_config` (mutually exclusive with `mappings_dynamic`) to support object form of `mappings.dynamic`.
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_search_index: Expose `mappings_dynamic_config` and `type_sets`.
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_search_indexes: Expose `mappings_dynamic_config` and `type_sets` per result.
+```
