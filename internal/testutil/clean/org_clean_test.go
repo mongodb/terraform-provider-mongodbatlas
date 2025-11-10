@@ -262,6 +262,7 @@ func removeClusters(ctx context.Context, t *testing.T, dryRun bool, client *admi
 					deleteFailures = append(deleteFailures, fmt.Sprintf("Unable to delete %s (cluster simulation stuck), might require manual action: %s", cName, err))
 					continue
 				}
+				_, err = client.ClustersApi.DeleteCluster(ctx, projectID, cName).Execute() // Retry deletion after ending outage simulation
 			}
 			if admin.IsErrorCode(err, "CLUSTER_ALREADY_REQUESTED_DELETION") {
 				t.Logf("cluster %s already requested deletion", cName)
