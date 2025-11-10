@@ -254,6 +254,10 @@ func removeClusters(ctx context.Context, t *testing.T, dryRun bool, client *admi
 		t.Logf("delete cluster %s", cName)
 		if !dryRun {
 			_, err = client.ClustersApi.DeleteCluster(ctx, projectID, cName).Execute()
+			if admin.IsErrorCode(err, "CANNOT_TERMINATE_CLUSTER_WITH_UNDERGOING_REGIONAL_OUTAGE_SIMULATION") {
+				t.Logf("cluster %s has ongoing region outage simulation, deleting it now", cName)
+				_, _, err = client.ClusterOutageSimulationApi.EndOutageSimulation(ctx, projectID, cName).Execute()
+			}
 			if admin.IsErrorCode(err, "CLUSTER_ALREADY_REQUESTED_DELETION") {
 				t.Logf("cluster %s already requested deletion", cName)
 				continue
