@@ -41,6 +41,7 @@ data "mongodbatlas_search_indexes" "test" {
 * `collection_name` - (Required) Name of the collection the index is on.
 * `database` - (Required) Name of the database the collection is in.
 * `mappings_dynamic` - Flag indicating whether the index uses dynamic or static mappings.
+* `mappings_dynamic_config` - JSON object for `mappings.dynamic` when Atlas returns an object (Please see the documentation for [dynamic and static mappings](https://www.mongodb.com/docs/atlas/atlas-search/index-definitions/#field-mapping-examples)).
 * `mappings_fields` - Object containing one or more field specifications.
 * `search_analyzer` - [Analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/#std-label-analyzers-ref) to use when searching the index.
 * `synonyms` - 	Synonyms mapping definition to use in this index.
@@ -48,5 +49,8 @@ data "mongodbatlas_search_indexes" "test" {
 * `synonyms.#.source_collection` - Name of the source MongoDB collection for the synonyms.
 * `synonyms.#.analyzer` - Name of the [analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/#std-label-analyzers-ref) to use with this synonym mapping.
 * `stored_source` - String that can be "true" (store all fields), "false" (default, don't store any field), or a JSON string that contains the list of fields to store (include) or not store (exclude) on Atlas Search. To learn more, see [Stored Source Fields](https://www.mongodb.com/docs/atlas/atlas-search/stored-source-definition/).
+* `type_sets` - Set of type set definitions (when present). Each item includes:
+  * `name` - Type set name.
+  * `types` - JSON array string describing the types for the set.
 
 For more information see: [MongoDB Atlas API Reference.](https://docs.atlas.mongodb.com/atlas-search/) - [and MongoDB Atlas API - Search](https://docs.atlas.mongodb.com/reference/api/atlas-search/) Documentation for more information.
