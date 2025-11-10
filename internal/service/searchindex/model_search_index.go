@@ -62,16 +62,19 @@ func unmarshalSearchIndexMappingFields(str string) (map[string]any, diag.Diagnos
 	return fields, nil
 }
 
-func unmarshalSearchIndexFields(str string) ([]map[string]any, diag.Diagnostics) {
-	fields := []map[string]any{}
+func unmarshalJSONArrayForAttr(str, attr string) ([]map[string]any, diag.Diagnostics) {
+	arr := []map[string]any{}
 	if str == "" {
-		return fields, nil
+		return arr, nil
 	}
-	if err := json.Unmarshal([]byte(str), &fields); err != nil {
-		return nil, diag.Errorf("cannot unmarshal search index attribute `fields` because it has an incorrect format")
+	if err := json.Unmarshal([]byte(str), &arr); err != nil {
+		return nil, diag.Errorf("cannot unmarshal search index attribute `%s` because it has an incorrect format", attr)
 	}
+	return arr, nil
+}
 
-	return fields, nil
+func unmarshalSearchIndexFields(str string) ([]map[string]any, diag.Diagnostics) {
+	return unmarshalJSONArrayForAttr(str, "fields")
 }
 
 func UnmarshalSearchIndexAnalyzersFields(str string) ([]admin.AtlasSearchAnalyzer, diag.Diagnostics) {
@@ -103,7 +106,7 @@ func expandSearchIndexTypeSets(d *schema.ResourceData) ([]admin.SearchTypeSets, 
 		}
 
 		if s, ok := item["types"].(string); ok && s != "" {
-			arr, diags := unmarshalSearchIndexFields(s)
+			arr, diags := unmarshalJSONArrayForAttr(s, "type_sets.types")
 			if diags != nil {
 				return nil, diags
 			}
