@@ -81,8 +81,15 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 			Optional: true,
 		},
 		"mappings_dynamic": {
-			Type:     schema.TypeBool,
-			Optional: true,
+			Type:          schema.TypeBool,
+			Optional:      true,
+			ConflictsWith: []string{"mappings_dynamic_config"},
+		},
+		"mappings_dynamic_config": {
+			Type:             schema.TypeString,
+			Optional:         true,
+			DiffSuppressFunc: diffSuppressJSON,
+			ConflictsWith:    []string{"mappings_dynamic"},
 		},
 		"mappings_fields": {
 			Type:             schema.TypeString,
@@ -134,6 +141,16 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 		"type_sets": {
 			Type:     schema.TypeSet,
 			Optional: true,
+			Set: func(v interface{}) int {
+				m := v.(map[string]interface{})
+				name := ""
+				if nv, ok := m["name"].(string); ok {
+					name = strings.ToLower(nv)
+				}
+				typesStr, _ := m["types"].(string)
+				canon := canonicalizeJSONString(typesStr)
+				return schema.HashString(name + "|" + canon)
+			},
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"name": {
@@ -246,6 +263,20 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		searchIndex.Definition.Analyzers = &analyzers
 	}
 
+	if d.HasChange("mappings_dynamic_config") {
+		cfg := d.Get("mappings_dynamic_config").(string)
+		if cfg != "" {
+			obj, diags := unmarshalSearchIndexMappingFields(cfg)
+			if diags != nil {
+				return diags
+			}
+			if searchIndex.Definition.Mappings == nil {
+				searchIndex.Definition.Mappings = &admin.SearchMappings{}
+			}
+			searchIndex.Definition.Mappings.Dynamic = obj
+		}
+	}
+
 	if d.HasChange("mappings_dynamic") {
 		dynamic := d.Get("mappings_dynamic").(bool)
 		if searchIndex.Definition.Mappings == nil {
@@ -283,7 +314,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if err != nil {
 			return err
 		}
-		if len(typeSets) > 0 && searchIndex.Definition.Mappings == nil {
+		if len(typeSets) > 0 {
 			searchIndex.Definition.TypeSets = &typeSets
 		} else {
 			searchIndex.Definition.TypeSets = nil
@@ -387,8 +418,22 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	}
 
 	if searchIndex.LatestDefinition.Mappings != nil {
-		if err := d.Set("mappings_dynamic", searchIndex.LatestDefinition.Mappings.Dynamic); err != nil {
-			return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
+		switch v := searchIndex.LatestDefinition.Mappings.GetDynamic().(type) {
+		case bool:
+			if err := d.Set("mappings_dynamic", v); err != nil {
+				return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
+			}
+		//	_ = d.Set("mappings_dynamic_config", "")
+		case map[string]any:
+			j, err := marshalSearchIndex(v)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+			if err := d.Set("mappings_dynamic_config", j); err != nil {
+				return diag.Errorf("error setting `mappings_dynamic_config` for search index (%s): %s", d.Id(), err)
+			}
+			_ = d.Set("mappings_dynamic", nil)
+		default:
 		}
 
 		if fields := searchIndex.LatestDefinition.Mappings.Fields; fields != nil && conversion.HasElementsSliceOrMap(*fields) {
@@ -474,10 +519,22 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if err != nil {
 			return err
 		}
-		dynamic := d.Get("mappings_dynamic").(bool)
-		searchIndexRequest.Definition.Mappings = &admin.SearchMappings{
-			Dynamic: &dynamic,
-			Fields:  &mappingsFields,
+
+		if v, ok := d.GetOk("mappings_dynamic_config"); ok && v.(string) != "" {
+			obj, diags := unmarshalSearchIndexMappingFields(v.(string))
+			if diags != nil {
+				return diags
+			}
+			searchIndexRequest.Definition.Mappings = &admin.SearchMappings{
+				Dynamic: obj,
+				Fields:  &mappingsFields,
+			}
+		} else {
+			dynamic := d.Get("mappings_dynamic").(bool)
+			searchIndexRequest.Definition.Mappings = &admin.SearchMappings{
+				Dynamic: &dynamic,
+				Fields:  &mappingsFields,
+			}
 		}
 		synonyms := expandSearchIndexSynonyms(d)
 		searchIndexRequest.Definition.Synonyms = &synonyms

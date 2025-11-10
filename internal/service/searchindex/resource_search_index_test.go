@@ -70,6 +70,40 @@ func TestAccSearchIndex_withSynonyms(t *testing.T) {
 	})
 }
 
+func TestAccSearchIndex_withTypeSets_ConfigurableDynamic(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ClusterNameExecution(t, true)
+		indexName              = acc.RandomName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithTypeSets(projectID, clusterName, indexName, dynamicTypeSet, typeSetsJSONOne),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrWith(resourceName, "mappings_dynamic_config", acc.JSONEquals(dynamicTypeSet)),
+					resource.TestCheckResourceAttr(resourceName, "type_sets.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "type_sets.0.name", "ts_acc"),
+					resource.TestCheckResourceAttrWith(resourceName, "type_sets.0.types", acc.JSONEquals(typeSetsJSONOne)),
+				),
+			},
+			{
+				Config: configWithTypeSets(projectID, clusterName, indexName, dynamicTypeSet, typeSetsJSONTwo),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttrWith(resourceName, "mappings_dynamic_config", acc.JSONEquals(dynamicTypeSet)),
+					resource.TestCheckResourceAttr(resourceName, "type_sets.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "type_sets.0.name", "ts_acc"),
+					resource.TestCheckResourceAttrWith(resourceName, "type_sets.0.types", acc.JSONEquals(typeSetsJSONTwo)),
+				),
+			},
+		},
+	})
+}
+
 func TestAccSearchIndex_updatedToEmptySynonyms(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ClusterNameExecution(t, true)
@@ -618,4 +652,39 @@ const (
 			"exclude": ["exclude1", "exclude2"]
 		}	
 	`
+
+	typeSetsJSONOne = `[{"type":"string"}]`
+	typeSetsJSONTwo = `[{"type":"string"},{"type":"number"}]`
+	dynamicTypeSet  = `{"typeSet":"ts_acc"}`
 )
+
+func configWithTypeSets(projectID, clusterName, indexName, dynamicJSON, typeSetsJSON string) string {
+	return fmt.Sprintf(`
+        resource "mongodbatlas_search_index" "test" {
+            cluster_name     = %[1]q
+            project_id       = %[2]q
+            name             = %[3]q
+            database         = %[4]q
+            collection_name  = %[5]q
+
+            type = "search"
+
+            mappings_dynamic_config = <<-EOF
+            %[6]s
+            EOF
+
+            type_sets {
+              name  = "ts_acc"
+              types = <<-EOF
+              %[7]s
+              EOF
+            }
+        }
+
+        data "mongodbatlas_search_index" "data_index" {
+            cluster_name     = mongodbatlas_search_index.test.cluster_name
+            project_id       = mongodbatlas_search_index.test.project_id
+            index_id         = mongodbatlas_search_index.test.index_id
+        }
+    `, clusterName, projectID, indexName, database, collection, dynamicJSON, typeSetsJSON)
+}
