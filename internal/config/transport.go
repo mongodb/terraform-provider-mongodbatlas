@@ -7,6 +7,37 @@ import (
 	"time"
 )
 
+// UserAgentTransport wraps an http.RoundTripper to add User-Agent header with additional metadata.
+// Resource wrappers (RSCommon, AnalyticsResourceSDKv2) parse provider_meta and add UserAgentExtra
+// to the Go context at the start of CRUD operations. This transport reads that context data via
+// ReadUserAgentExtra(ctx) and appends it to the User-Agent header before making HTTP requests.
+type UserAgentTransport struct {
+	Transport http.RoundTripper
+	Enabled   bool
+}
+
+func newUserAgentTransport(transport http.RoundTripper, enabled bool) *UserAgentTransport {
+	return &UserAgentTransport{
+		Transport: transport,
+		Enabled:   enabled,
+	}
+}
+
+func (t *UserAgentTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if !t.Enabled {
+		return t.Transport.RoundTrip(req)
+	}
+	ctx := req.Context()
+	extra := ReadUserAgentExtra(ctx)
+	if extra != nil {
+		userAgent := req.Header.Get(UserAgentHeader)
+		newVar := extra.ToHeaderValue(ctx, userAgent)
+		req.Header.Set(UserAgentHeader, newVar)
+	}
+	resp, err := t.Transport.RoundTrip(req)
+	return resp, err
+}
+
 // NetworkLoggingTransport wraps an http.RoundTripper to provide enhanced logging
 // for network operations, including timing, status codes, and error details.
 type NetworkLoggingTransport struct {

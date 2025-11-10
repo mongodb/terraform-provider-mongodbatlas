@@ -143,6 +143,13 @@ func NewClient(c *Credentials, terraformVersion string) (*MongoDBClient, error) 
 }
 
 func getHTTPClient(c *Credentials) (*http.Client, error) {
+	// Transport chain (outermost to innermost):
+	// userAgentTransport -> tfLoggingTransport -> {digestTransport|oauth2.Transport} -> networkLoggingTransport -> baseTransport
+	//
+	// This ordering ensures:
+	// 1. networkLoggingTransport logs ALL requests including digest auth 401 challenges
+	// 2. tfLoggingTransport only logs final authenticated requests (not sensitive auth details)
+	// 3. userAgentTransport modifies User-Agent before tfLoggingTransport logs it
 	transport := networkLoggingBaseTransport()
 	switch c.AuthMethod() {
 	case AccessToken:
@@ -167,7 +174,9 @@ func getHTTPClient(c *Credentials) (*http.Client, error) {
 		transport = digest.NewTransportWithHTTPRoundTripper(c.PublicKey, c.PrivateKey, networkLoggingBaseTransport())
 	case Unknown:
 	}
-	return &http.Client{Transport: tfLoggingInterceptor(transport)}, nil
+	transport = tfLoggingInterceptor(transport)
+	transport = newUserAgentTransport(transport, true)
+	return &http.Client{Transport: transport}, nil
 }
 
 func newSDKV2Client(client *http.Client, baseURL, userAgent string) (*admin.APIClient, error) {

@@ -290,7 +290,11 @@ func getResourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_serverless_instance":                                         serverlessinstance.Resource(),
 		"mongodbatlas_cluster_outage_simulation":                                   clusteroutagesimulation.Resource(),
 	}
-	return resourcesMap
+	analyticsMap := map[string]*schema.Resource{}
+	for name, resource := range resourcesMap {
+		analyticsMap[name] = config.NewAnalyticsResourceSDKv2(resource, name)
+	}
+	return analyticsMap
 }
 
 func providerConfigure(provider *schema.Provider) func(ctx context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
