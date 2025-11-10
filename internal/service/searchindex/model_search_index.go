@@ -161,3 +161,51 @@ func resourceSearchIndexRefreshFunc(ctx context.Context, clusterName, projectID,
 		return searchIndex, status, nil
 	}
 }
+
+func canonicalizeJSONString(s string) string {
+	if s == "" {
+		return ""
+	}
+	var v any
+	if err := json.Unmarshal([]byte(s), &v); err != nil {
+		return s
+	}
+	return canonicalizeJSONValue(v)
+}
+
+func canonicalizeJSONValue(v any) string {
+	switch t := v.(type) {
+	case map[string]any:
+		keys := make([]string, 0, len(t))
+		for k := range t {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		var b strings.Builder
+		b.WriteString("{")
+		for i, k := range keys {
+			if i > 0 {
+				b.WriteString(",")
+			}
+			b.WriteString(k)
+			b.WriteString(":")
+			b.WriteString(canonicalizeJSONValue(t[k]))
+		}
+		b.WriteString("}")
+		return b.String()
+	case []any:
+		var b strings.Builder
+		b.WriteString("[")
+		for i, el := range t {
+			if i > 0 {
+				b.WriteString(",")
+			}
+			b.WriteString(canonicalizeJSONValue(el))
+		}
+		b.WriteString("]")
+		return b.String()
+	default:
+		by, _ := json.Marshal(t)
+		return string(by)
+	}
+}
