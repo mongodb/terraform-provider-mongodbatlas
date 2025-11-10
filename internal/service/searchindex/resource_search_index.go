@@ -423,7 +423,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 			if err := d.Set("mappings_dynamic", v); err != nil {
 				return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
 			}
-		//	_ = d.Set("mappings_dynamic_config", "")
+			_ = d.Set("mappings_dynamic_config", "")
 		case map[string]any:
 			j, err := marshalSearchIndex(v)
 			if err != nil {
