@@ -179,7 +179,7 @@ EOF
 
 * `database` - (Required) Name of the database the collection is in.
 
-* `mappings_dynamic` - Indicates whether the search index uses dynamic or static mapping. For dynamic mapping, set the value to `true`. For static mapping, specify the fields to index using `mappings_fields`. Mutually exclusive with `mappings_dynamic_config`.
+* `mappings_dynamic` - Indicates whether the search index uses dynamic or static mapping. For default dynamic mapping, set the value to `true`. For static mapping, specify the fields to index using `mappings_fields`. Mutually exclusive with `mappings_dynamic_config`.
 
 * `mappings_fields` - attribute is required in search indexes when `mappings_dynamic` is false. This field needs to be a JSON string in order to be decoded correctly.
   ```terraform
