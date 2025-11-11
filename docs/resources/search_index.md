@@ -113,6 +113,33 @@ EOF
 }
 ```
 
+### Configurable dynamic (typeSets + dynamic object)
+```terraform
+resource "mongodbatlas_search_index" "conf-dynamic" {
+  project_id      = "<PROJECT_ID>"
+  cluster_name    = "<CLUSTER_NAME>"
+  collection_name = "collection_test"
+  database        = "database_test"
+  name            = "conf-dynamic"
+  type            = "search"
+
+  # mappings.dynamic as an object referencing a type set
+  mappings_dynamic_config = <<-EOF
+  { "typeSet": "type_set_name" }
+  EOF
+
+  # Define the referenced type set
+  type_sets {
+    name  = "type_set_name"
+    types = <<-EOF
+    [
+      { "type": "string" }
+    ]
+    EOF
+  }
+}
+```
+
 ## Argument Reference
 
 * `type` - (Optional) Type of index: `search` or `vectorSearch`. Default type is `search`.
@@ -152,7 +179,7 @@ EOF
 
 * `database` - (Required) Name of the database the collection is in.
 
-* `mappings_dynamic` - Indicates whether the search index uses dynamic or static mapping. For dynamic mapping, set the value to `true`. For static mapping, specify the fields to index using `mappings_fields`
+* `mappings_dynamic` - Indicates whether the search index uses dynamic or static mapping. For default dynamic mapping, set the value to `true`. For static mapping, specify the fields to index using `mappings_fields`. Mutually exclusive with `mappings_dynamic_config`.
 
 * `mappings_fields` - attribute is required in search indexes when `mappings_dynamic` is false. This field needs to be a JSON string in order to be decoded correctly.
   ```terraform
@@ -189,6 +216,12 @@ EOF
     }
     EOF
   ```
+
+* `mappings_dynamic_config` - (Optional) JSON object for `mappings.dynamic` when using configurable dynamic. See the MongoDB documentation for further information on [Static and Dynamic Mapping](https://www.mongodb.com/docs/atlas/atlas-search/define-field-mappings/#std-label-fts-field-mappings). Mutually exclusive with `mappings_dynamic`.
+
+* `type_sets` - (Optional) One or more blocks defining configurable dynamic type sets. Atlas only persists/returns `typeSets` when `mappings.dynamic` is an object referencing a `typeSet` name.
+  * `name` - (Required) Name of the type set.
+  * `types` - (Optional) JSON array describing the types.
 
 * `search_analyzer` - [Analyzer](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/#std-label-analyzers-ref) to use when searching the index. Defaults to [lucene.standard](https://docs.atlas.mongodb.com/reference/atlas-search/analyzers/standard/#std-label-ref-standard-analyzer)
 * `synonyms` - Synonyms mapping definition to use in this index.

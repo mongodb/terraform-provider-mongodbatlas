@@ -58,6 +58,10 @@ func returnSearchIndexDSSchema() map[string]*schema.Schema {
 			Type:     schema.TypeBool,
 			Computed: true,
 		},
+		"mappings_dynamic_config": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
 		"mappings_fields": {
 			Type:     schema.TypeString,
 			Computed: true,
@@ -97,6 +101,22 @@ func returnSearchIndexDSSchema() map[string]*schema.Schema {
 		"stored_source": {
 			Type:     schema.TypeString,
 			Computed: true,
+		},
+		"type_sets": {
+			Type:     schema.TypeSet,
+			Computed: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"name": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"types": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+				},
+			},
 		},
 	}
 }
@@ -160,18 +180,8 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 	}
 
 	if searchIndex.LatestDefinition.Mappings != nil {
-		if err := d.Set("mappings_dynamic", searchIndex.LatestDefinition.Mappings.Dynamic); err != nil {
-			return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
-		}
-
-		if fields := searchIndex.LatestDefinition.Mappings.Fields; fields != nil && conversion.HasElementsSliceOrMap(*fields) {
-			searchIndexMappingFields, err := marshalSearchIndex(*fields)
-			if err != nil {
-				return diag.FromErr(err)
-			}
-			if err := d.Set("mappings_fields", searchIndexMappingFields); err != nil {
-				return diag.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
-			}
+		if diags := setMappingsAttributesFromDefinition(d, searchIndex.LatestDefinition.Mappings); diags != nil {
+			return diags
 		}
 	}
 
@@ -183,6 +193,24 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 
 		if err := d.Set("fields", fieldsMarshaled); err != nil {
 			return diag.Errorf("error setting `fields` for for search index (%s): %s", d.Id(), err)
+		}
+	}
+
+	if typeSets := searchIndex.LatestDefinition.GetTypeSets(); len(typeSets) > 0 {
+		var flattened []map[string]any
+		for _, t := range typeSets {
+			entry := map[string]any{"name": t.Name}
+			if types := t.GetTypes(); len(types) > 0 {
+				j, err := marshalSearchIndex(types)
+				if err != nil {
+					return diag.FromErr(err)
+				}
+				entry["types"] = j
+			}
+			flattened = append(flattened, entry)
+		}
+		if err := d.Set("type_sets", flattened); err != nil {
+			return diag.Errorf("error setting `type_sets` for search index (%s): %s", d.Id(), err)
 		}
 	}
 
