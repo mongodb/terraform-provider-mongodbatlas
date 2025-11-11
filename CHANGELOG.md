@@ -1,5 +1,17 @@
 ## (Unreleased)
 
+NOTES:
+
+* data-source/mongodbatlas_stream_instance: Deprecates the `mongodbatlas_stream_instance` datasource, use `mongodbatlas_stream_workspace` ([#3832](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3832))
+* data-source/mongodbatlas_stream_instances: Deprecates the `mongodbatlas_stream_instances` datasource, use `mongodbatlas_stream_workspaces` ([#3832](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3832))
+* resource/mongodbatlas_stream_instance: Deprecates the `mongodbatlas_stream_instance` resource, use `mongodbatlas_stream_workspace` ([#3832](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3832))
+
+FEATURES:
+
+* **New Data Source:** `mongodbatlas_stream_workspace` ([#3832](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3832))
+* **New Data Source:** `mongodbatlas_stream_workspaces` ([#3832](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3832))
+* **New Resource:** `mongodbatlas_stream_workspace` ([#3832](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3832))
+
 ENHANCEMENTS:
 
 * data-source/mongodbatlas_alert_configuration: Adds `severity_override` attribute ([#3795](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3795))
