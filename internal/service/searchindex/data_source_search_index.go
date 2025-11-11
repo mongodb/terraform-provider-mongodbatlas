@@ -180,30 +180,8 @@ func dataSourceMongoDBAtlasSearchIndexRead(ctx context.Context, d *schema.Resour
 	}
 
 	if searchIndex.LatestDefinition.Mappings != nil {
-		switch v := searchIndex.LatestDefinition.Mappings.GetDynamic().(type) {
-		case bool:
-			if err := d.Set("mappings_dynamic", v); err != nil {
-				return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
-			}
-		case map[string]any:
-			j, err := marshalSearchIndex(v)
-			if err != nil {
-				return diag.FromErr(err)
-			}
-			if err := d.Set("mappings_dynamic_config", j); err != nil {
-				return diag.Errorf("error setting `mappings_dynamic_config` for search index (%s): %s", d.Id(), err)
-			}
-		default:
-		}
-
-		if fields := searchIndex.LatestDefinition.Mappings.Fields; fields != nil && conversion.HasElementsSliceOrMap(*fields) {
-			searchIndexMappingFields, err := marshalSearchIndex(*fields)
-			if err != nil {
-				return diag.FromErr(err)
-			}
-			if err := d.Set("mappings_fields", searchIndexMappingFields); err != nil {
-				return diag.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
-			}
+		if diags := setMappingsAttributesFromDefinition(d, searchIndex.LatestDefinition.Mappings); diags != nil {
+			return diags
 		}
 	}
 
