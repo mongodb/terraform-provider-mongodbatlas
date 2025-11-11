@@ -247,6 +247,7 @@ func removeClusters(ctx context.Context, t *testing.T, dryRun bool, client *admi
 	clusters, _, err := client.ClustersApi.ListClusters(ctx, projectID).ItemsPerPage(itemsPerPage).Execute()
 	require.NoError(t, err)
 	clustersResults := clusters.GetResults()
+	deleteFailures := []string{}
 
 	for i := range clustersResults {
 		c := clustersResults[i]
@@ -254,6 +255,15 @@ func removeClusters(ctx context.Context, t *testing.T, dryRun bool, client *admi
 		t.Logf("delete cluster %s", cName)
 		if !dryRun {
 			_, err = client.ClustersApi.DeleteCluster(ctx, projectID, cName).Execute()
+			if admin.IsErrorCode(err, "CANNOT_TERMINATE_CLUSTER_WITH_UNDERGOING_REGIONAL_OUTAGE_SIMULATION") {
+				t.Logf("cluster %s has ongoing region outage simulation, deleting it now", cName)
+				_, _, err = client.ClusterOutageSimulationApi.EndOutageSimulation(ctx, projectID, cName).Execute()
+				if err != nil {
+					deleteFailures = append(deleteFailures, fmt.Sprintf("Unable to delete %s (cluster simulation stuck), might require manual action: %s", cName, err))
+					continue
+				}
+				_, err = client.ClustersApi.DeleteCluster(ctx, projectID, cName).Execute() // Retry deletion after ending outage simulation
+			}
 			if admin.IsErrorCode(err, "CLUSTER_ALREADY_REQUESTED_DELETION") {
 				t.Logf("cluster %s already requested deletion", cName)
 				continue
@@ -261,6 +271,7 @@ func removeClusters(ctx context.Context, t *testing.T, dryRun bool, client *admi
 			require.NoError(t, err)
 		}
 	}
+	require.Empty(t, deleteFailures, strings.Join(deleteFailures, "\n"))
 	return len(clustersResults)
 }
 
