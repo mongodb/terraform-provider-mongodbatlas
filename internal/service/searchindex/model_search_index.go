@@ -4,9 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"sort"
 	"strconv"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -170,44 +168,11 @@ func canonicalizeJSONString(s string) string {
 	if err := json.Unmarshal([]byte(s), &v); err != nil {
 		return s
 	}
-	return canonicalizeJSONValue(v)
-}
-
-func canonicalizeJSONValue(v any) string {
-	switch t := v.(type) {
-	case map[string]any:
-		keys := make([]string, 0, len(t))
-		for k := range t {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-		var b strings.Builder
-		b.WriteString("{")
-		for i, k := range keys {
-			if i > 0 {
-				b.WriteString(",")
-			}
-			b.WriteString(k)
-			b.WriteString(":")
-			b.WriteString(canonicalizeJSONValue(t[k]))
-		}
-		b.WriteString("}")
-		return b.String()
-	case []any:
-		var b strings.Builder
-		b.WriteString("[")
-		for i, el := range t {
-			if i > 0 {
-				b.WriteString(",")
-			}
-			b.WriteString(canonicalizeJSONValue(el))
-		}
-		b.WriteString("]")
-		return b.String()
-	default:
-		by, _ := json.Marshal(t)
-		return string(by)
+	by, err := json.Marshal(v)
+	if err != nil {
+		return s
 	}
+	return string(by)
 }
 
 func hashTypeSetElement(v interface{}) int {
