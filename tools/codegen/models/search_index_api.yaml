@@ -144,6 +144,19 @@ schema:
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
+                                - map:
+                                    element_type: 5
+                                  description: One or more field specifications for the Atlas Search index. Required if **mappings.dynamic** is omitted or set to **false**.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.MapValue[jsontypes.Normalized]
+                                    schema: customtypes.NewMapType[jsontypes.Normalized](ctx)
+                                  computed_optional_required: optional
+                                  tf_schema_name: fields
+                                  tf_model_name: Fields
+                                  req_body_usage: all_request_bodies
+                                  sensitive: false
+                                  create_only: false
                       description: Index specifications for the collection's fields.
                       custom_type:
                         package: customtypes
@@ -418,6 +431,19 @@ schema:
                                   computed_optional_required: computed
                                   tf_schema_name: dynamic
                                   tf_model_name: Dynamic
+                                  req_body_usage: omit_always
+                                  sensitive: false
+                                  create_only: false
+                                - map:
+                                    element_type: 5
+                                  description: One or more field specifications for the Atlas Search index. Required if **mappings.dynamic** is omitted or set to **false**.
+                                  custom_type:
+                                    package: customtypes
+                                    model: customtypes.MapValue[jsontypes.Normalized]
+                                    schema: customtypes.NewMapType[jsontypes.Normalized](ctx)
+                                  computed_optional_required: computed
+                                  tf_schema_name: fields
+                                  tf_model_name: Fields
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false

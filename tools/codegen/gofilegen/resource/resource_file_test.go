@@ -171,7 +171,10 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			result := resource.GenerateGoCode(&tc.inputModel)
+			result, err := resource.GenerateGoCode(&tc.inputModel)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
 			g := goldie.New(t, goldie.WithNameSuffix(".golden.go"))
 			g.Assert(t, tc.goldenFileName, result)
 		})

@@ -43,6 +43,29 @@ func TestAccSearchIndexAPI_basic(t *testing.T) {
 	})
 }
 
+func TestAccSearchIndexAPI_withMappingsFields(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ClusterNameExecution(t, true)
+		indexName              = acc.RandomName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithMappingsFields(projectID, clusterName, indexName, true),
+				Check:  checkWithMappingsFields(projectID, clusterName, indexName, true),
+			},
+			// TODO: revise update behavior as part of CLOUDP-352324
+			// {
+			// 	Config: configWithMappingsFields(projectID, clusterName, indexName, false),
+			// 	Check:  checkWithMappingsFields(projectID, clusterName, indexName, false),
+			// },
+		},
+	})
+}
+
 func configBasic(projectID, clusterName, indexName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_search_index_api" "test" {
@@ -61,6 +84,59 @@ func configBasic(projectID, clusterName, indexName string) string {
 	`, projectID, clusterName, indexName, database, collection)
 }
 
+func configWithMappingsFields(projectID, clusterName, indexName string, with bool) string {
+	var fields string
+	if with {
+		fields = `
+                fields = {
+                    address = jsonencode({
+                        type = "document"
+                        fields = {
+                            city = {
+                                type = "string"
+                                analyzer = "lucene.simple"
+                                ignoreAbove = 255
+                            }
+                            state = {
+                                type = "string"
+                                analyzer = "lucene.english"
+                            }
+                        }
+                    })
+                    company = jsonencode({
+                        type = "string"
+                        analyzer = "lucene.whitespace"
+                        multi = {
+                            mySecondaryAnalyzer = {
+                                type = "string"
+                                analyzer = "lucene.french"
+                            }
+                        }
+                    })
+                    employees = jsonencode({
+                        type = "string"
+                        analyzer = "lucene.standard"
+                    })
+                }`
+	}
+	return fmt.Sprintf(`
+        resource "mongodbatlas_search_index_api" "test" {
+            group_id        = %[1]q
+            cluster_name    = %[2]q
+            name            = %[3]q
+            database        = %[4]q
+            collection_name = %[5]q
+
+            definition = {
+                mappings = {
+                    dynamic = jsonencode(true)
+                    %[6]s
+                }
+            }
+        }
+    `, projectID, clusterName, indexName, database, collection, fields)
+}
+
 func checkBasic(projectID, clusterName, indexName string) resource.TestCheckFunc {
 	attributes := map[string]string{
 		"group_id":                           projectID,
@@ -76,6 +152,17 @@ func checkBasic(projectID, clusterName, indexName string) resource.TestCheckFunc
 	checks = acc.AddAttrChecks(resourceName, checks, attributes)
 	checks = acc.AddAttrSetChecks(resourceName, checks, "index_id")
 	return resource.ComposeAggregateTestCheckFunc(checks...)
+}
+
+func checkWithMappingsFields(projectID, clusterName, indexName string, has bool) resource.TestCheckFunc {
+	count := "0"
+	if has {
+		count = "3"
+	}
+	return resource.ComposeAggregateTestCheckFunc(
+		checkBasic(projectID, clusterName, indexName),
+		resource.TestCheckResourceAttr(resourceName, "latest_definition.mappings.fields.%", count),
+	)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {

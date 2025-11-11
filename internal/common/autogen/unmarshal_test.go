@@ -58,28 +58,68 @@ func TestUnmarshalBasic(t *testing.T) {
 }
 
 func TestUnmarshalDynamicJSONAttr(t *testing.T) {
-	var model struct {
-		AttrDynamicJSONObject  jsontypes.Normalized `tfsdk:"attr_dynamic_json_object"`
-		AttrDynamicJSONBoolean jsontypes.Normalized `tfsdk:"attr_dynamic_json_boolean"`
-		AttrDynamicJSONNumber  jsontypes.Normalized `tfsdk:"attr_dynamic_json_number"`
-		AttrDynamicJSONString  jsontypes.Normalized `tfsdk:"attr_dynamic_json_string"`
-		AttrDynamicJSONArray   jsontypes.Normalized `tfsdk:"attr_dynamic_json_array"`
+	ctx := context.Background()
+
+	type modelst struct {
+		AttrDynamicJSONObject         jsontypes.Normalized                        `tfsdk:"attr_dynamic_json_object"`
+		AttrDynamicJSONBoolean        jsontypes.Normalized                        `tfsdk:"attr_dynamic_json_boolean"`
+		AttrDynamicJSONNumber         jsontypes.Normalized                        `tfsdk:"attr_dynamic_json_number"`
+		AttrDynamicJSONString         jsontypes.Normalized                        `tfsdk:"attr_dynamic_json_string"`
+		AttrDynamicJSONArray          jsontypes.Normalized                        `tfsdk:"attr_dynamic_json_array"`
+		AttrListOfDynamicJSONObjects  customtypes.ListValue[jsontypes.Normalized] `tfsdk:"attr_list_of_dynamic_json_objects"`
+		AttrSetOfDynamicJSONObjects   customtypes.SetValue[jsontypes.Normalized]  `tfsdk:"attr_set_of_dynamic_json_objects"`
+		AttrMapOfDynamicJSONObjects   customtypes.MapValue[jsontypes.Normalized]  `tfsdk:"attr_map_of_dynamic_json_objects"`
+		AttrListOfDynamicJSONBooleans customtypes.ListValue[jsontypes.Normalized] `tfsdk:"attr_list_of_dynamic_json_booleans"`
+		AttrSetOfDynamicJSONBooleans  customtypes.SetValue[jsontypes.Normalized]  `tfsdk:"attr_set_of_dynamic_json_booleans"`
+		AttrMapOfDynamicJSONBooleans  customtypes.MapValue[jsontypes.Normalized]  `tfsdk:"attr_map_of_dynamic_json_booleans"`
 	}
+
+	var model modelst
 	const jsonResp = `
 		{
 			"attrDynamicJSONObject": {"hello":"there"},
 			"attrDynamicJSONBoolean": true,
 			"attrDynamicJSONNumber": 1.234,
 			"attrDynamicJSONString": "hello",
-			"attrDynamicJSONArray": [1, 2, 3]
+			"attrDynamicJSONArray": [1, 2, 3],
+			"attrListOfDynamicJSONObjects": [{"hello": "there"}],
+			"attrSetOfDynamicJSONObjects": [{"hello": "there"}],
+			"attrMapOfDynamicJSONObjects": {"key1": {"hello": "there"}, "key2": {"hello": "there"}},
+			"attrListOfDynamicJSONBooleans": [true],
+			"attrSetOfDynamicJSONBooleans": [true],
+			"attrMapOfDynamicJSONBooleans": {"key1": true, "key2": false}
 		}
 	`
+	modelExpected := modelst{
+		AttrDynamicJSONObject:  jsontypes.NewNormalizedValue("{\"hello\":\"there\"}"),
+		AttrDynamicJSONBoolean: jsontypes.NewNormalizedValue("true"),
+		AttrDynamicJSONNumber:  jsontypes.NewNormalizedValue("1.234"),
+		AttrDynamicJSONString:  jsontypes.NewNormalizedValue("\"hello\""),
+		AttrDynamicJSONArray:   jsontypes.NewNormalizedValue("[1,2,3]"),
+		AttrListOfDynamicJSONObjects: customtypes.NewListValue[jsontypes.Normalized](ctx, []attr.Value{
+			jsontypes.NewNormalizedValue("{\"hello\":\"there\"}"),
+		}),
+		AttrSetOfDynamicJSONObjects: customtypes.NewSetValue[jsontypes.Normalized](ctx, []attr.Value{
+			jsontypes.NewNormalizedValue("{\"hello\":\"there\"}"),
+		}),
+		AttrMapOfDynamicJSONObjects: customtypes.NewMapValue[jsontypes.Normalized](ctx, map[string]attr.Value{
+			"key1": jsontypes.NewNormalizedValue("{\"hello\":\"there\"}"),
+			"key2": jsontypes.NewNormalizedValue("{\"hello\":\"there\"}"),
+		}),
+		AttrListOfDynamicJSONBooleans: customtypes.NewListValue[jsontypes.Normalized](ctx, []attr.Value{
+			jsontypes.NewNormalizedValue("true"),
+		}),
+		AttrSetOfDynamicJSONBooleans: customtypes.NewSetValue[jsontypes.Normalized](ctx, []attr.Value{
+			jsontypes.NewNormalizedValue("true"),
+		}),
+		AttrMapOfDynamicJSONBooleans: customtypes.NewMapValue[jsontypes.Normalized](ctx, map[string]attr.Value{
+			"key1": jsontypes.NewNormalizedValue("true"),
+			"key2": jsontypes.NewNormalizedValue("false"),
+		}),
+	}
+
 	require.NoError(t, autogen.Unmarshal([]byte(jsonResp), &model))
-	assert.JSONEq(t, "{\"hello\":\"there\"}", model.AttrDynamicJSONObject.ValueString())
-	assert.JSONEq(t, "true", model.AttrDynamicJSONBoolean.ValueString())
-	assert.JSONEq(t, "1.234", model.AttrDynamicJSONNumber.ValueString())
-	assert.JSONEq(t, "\"hello\"", model.AttrDynamicJSONString.ValueString())
-	assert.JSONEq(t, "[1, 2, 3]", model.AttrDynamicJSONArray.ValueString())
+	assert.Equal(t, modelExpected, model)
 }
 
 func TestUnmarshalSensitiveAttribute(t *testing.T) {

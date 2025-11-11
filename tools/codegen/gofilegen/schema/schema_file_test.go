@@ -428,7 +428,10 @@ func TestSchemaGenerationFromCodeSpec(t *testing.T) {
 
 	for testName, tc := range schemaGenFromCodeSpecTestCases {
 		t.Run(testName, func(t *testing.T) {
-			result := schema.GenerateGoCode(&tc.inputModel)
+			result, err := schema.GenerateGoCode(&tc.inputModel)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
 			g := goldie.New(t, goldie.WithNameSuffix(".golden.go"))
 			g.Assert(t, tc.goldenFileName, result)
 		})

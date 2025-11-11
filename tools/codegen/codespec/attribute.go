@@ -160,6 +160,48 @@ func (s *APISpecSchema) buildBoolAttr(name string, computability ComputedOptiona
 	return result, nil
 }
 
+// buildRegularCollectionAttribute creates an attribute for list/set of regular (non-nested) element types.
+func (s *APISpecSchema) buildRegularCollectionAttribute(name, tfModelName string, computability ComputedOptionalRequired, isSet bool, elemType ElemType) *Attribute {
+	attr := &Attribute{
+		TFSchemaName:             stringcase.ToSnakeCase(name),
+		TFModelName:              tfModelName,
+		ComputedOptionalRequired: computability,
+		DeprecationMessage:       s.GetDeprecationMessage(),
+		Description:              s.GetDescription(),
+	}
+
+	if isSet {
+		attr.CustomType = NewCustomSetType(elemType)
+		attr.Set = &SetAttribute{ElementType: elemType}
+	} else {
+		attr.CustomType = NewCustomListType(elemType)
+		attr.List = &ListAttribute{ElementType: elemType}
+	}
+
+	return attr
+}
+
+// buildNestedCollectionAttribute creates an attribute for list/set of nested objects (with attributes).
+func (s *APISpecSchema) buildNestedCollectionAttribute(name, tfModelName, nestedObjectName string, computability ComputedOptionalRequired, isSet bool, nestedObject NestedAttributeObject) *Attribute {
+	attr := &Attribute{
+		TFSchemaName:             stringcase.ToSnakeCase(name),
+		TFModelName:              tfModelName,
+		ComputedOptionalRequired: computability,
+		DeprecationMessage:       s.GetDeprecationMessage(),
+		Description:              s.GetDescription(),
+	}
+
+	if isSet {
+		attr.CustomType = NewCustomNestedSetType(nestedObjectName)
+		attr.SetNested = &SetNestedAttribute{NestedObject: nestedObject}
+	} else {
+		attr.CustomType = NewCustomNestedListType(nestedObjectName)
+		attr.ListNested = &ListNestedAttribute{NestedObject: nestedObject}
+	}
+
+	return attr
+}
+
 func (s *APISpecSchema) buildArrayAttr(name, ancestorsName string, computability ComputedOptionalRequired, isFromRequest bool) (*Attribute, error) {
 	if !s.Schema.Items.IsA() {
 		return nil, fmt.Errorf("invalid array items property, schema doesn't exist: %s", name)
@@ -171,45 +213,7 @@ func (s *APISpecSchema) buildArrayAttr(name, ancestorsName string, computability
 	}
 
 	isSet := s.Schema.Format == OASFormatSet || (s.Schema.UniqueItems != nil && *s.Schema.UniqueItems)
-
 	tfModelName := stringcase.Capitalize(name)
-	createAttribute := func(nestedObject *NestedAttributeObject, nestedObjectName *string, elemType ElemType) *Attribute {
-		var (
-			attr = &Attribute{
-				TFSchemaName:             stringcase.ToSnakeCase(name),
-				TFModelName:              tfModelName,
-				ComputedOptionalRequired: computability,
-				DeprecationMessage:       s.GetDeprecationMessage(),
-				Description:              s.GetDescription(),
-			}
-			isNested      = nestedObject != nil
-			isNestedEmpty = isNested && len(nestedObject.Attributes) == 0
-		)
-
-		if isNested && isNestedEmpty { // objects without attributes use JSON custom type
-			elemType = CustomTypeJSON
-		}
-
-		if isNested && !isNestedEmpty {
-			if isSet {
-				attr.CustomType = NewCustomNestedSetType(*nestedObjectName)
-				attr.SetNested = &SetNestedAttribute{NestedObject: *nestedObject}
-			} else {
-				attr.CustomType = NewCustomNestedListType(*nestedObjectName)
-				attr.ListNested = &ListNestedAttribute{NestedObject: *nestedObject}
-			}
-		} else {
-			if isSet {
-				attr.CustomType = NewCustomSetType(elemType)
-				attr.Set = &SetAttribute{ElementType: elemType}
-			} else {
-				attr.CustomType = NewCustomListType(elemType)
-				attr.List = &ListAttribute{ElementType: elemType}
-			}
-		}
-
-		return attr
-	}
 
 	if itemSchema.Type == OASTypeObject {
 		fullName := ancestorsName + tfModelName
@@ -218,8 +222,15 @@ func (s *APISpecSchema) buildArrayAttr(name, ancestorsName string, computability
 			return nil, fmt.Errorf("error while building nested schema: %s", name)
 		}
 
-		nestedObject := &NestedAttributeObject{Attributes: objectAttributes}
-		return createAttribute(nestedObject, &fullName, Unknown), nil // Using Unknown ElemType as a placeholder for no ElemType
+		nestedObject := NestedAttributeObject{Attributes: objectAttributes}
+		if len(nestedObject.Attributes) == 0 {
+			// objects without attributes use JSON custom type as element
+			result := s.buildRegularCollectionAttribute(name, tfModelName, computability, isSet, CustomTypeJSON)
+			return result, nil
+		}
+
+		result := s.buildNestedCollectionAttribute(name, tfModelName, fullName, computability, isSet, nestedObject)
+		return result, nil
 	}
 
 	elemType, err := itemSchema.buildElementType()
@@ -227,7 +238,7 @@ func (s *APISpecSchema) buildArrayAttr(name, ancestorsName string, computability
 		return nil, fmt.Errorf("error while building nested schema: %s", name)
 	}
 
-	result := createAttribute(nil, nil, elemType)
+	result := s.buildRegularCollectionAttribute(name, tfModelName, computability, isSet, elemType)
 
 	if s.Schema.Default != nil {
 		var staticDefault bool
@@ -261,11 +272,19 @@ func (s *APISpecSchema) buildMapAttr(name, ancestorsName string, computability C
 			return nil, err
 		}
 
-		result.CustomType = NewCustomNestedMapType(fullName)
-		result.MapNested = &MapNestedAttribute{
-			NestedObject: NestedAttributeObject{
-				Attributes: mapAttributes,
-			},
+		if len(mapAttributes) == 0 {
+			// objects without attributes use JSON custom type
+			result.CustomType = NewCustomMapType(CustomTypeJSON)
+			result.Map = &MapAttribute{
+				ElementType: CustomTypeJSON,
+			}
+		} else {
+			result.CustomType = NewCustomNestedMapType(fullName)
+			result.MapNested = &MapNestedAttribute{
+				NestedObject: NestedAttributeObject{
+					Attributes: mapAttributes,
+				},
+			}
 		}
 	} else {
 		elemType, err := mapSchema.buildElementType()

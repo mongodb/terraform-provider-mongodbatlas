@@ -1,13 +1,14 @@
 package schema
 
 import (
+	"fmt"
 	"go/format"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/codetemplate"
 )
 
-func GenerateGoCode(input *codespec.Resource) []byte {
+func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
 	schemaAttrs := GenerateSchemaAttributes(input.Schema.Attributes)
 	models := GenerateTypedModels(input.Schema.Attributes)
 
@@ -25,7 +26,7 @@ func GenerateGoCode(input *codespec.Resource) []byte {
 
 	formattedResult, err := format.Source(result.Bytes())
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("failed to format generated Go code (schema): %w", err)
 	}
-	return formattedResult
+	return formattedResult, nil
 }
