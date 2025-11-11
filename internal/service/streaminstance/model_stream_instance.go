@@ -61,9 +61,10 @@ func NewTFStreamInstance(ctx context.Context, apiResp *admin.StreamsTenant) (*TF
 	}
 	var streamConfig = types.ObjectNull(StreamConfigObjectType.AttrTypes)
 	apiStreamConfig := apiResp.StreamConfig
-	if apiStreamConfig != nil && apiStreamConfig.Tier != nil {
+	if apiStreamConfig != nil && (apiStreamConfig.Tier != nil || apiStreamConfig.MaxTierSize != nil) {
 		returnedStreamConfig, diagsStreamConfig := types.ObjectValueFrom(ctx, StreamConfigObjectType.AttrTypes, TFInstanceStreamConfigSpecModel{
-			Tier: types.StringPointerValue(apiStreamConfig.Tier),
+			MaxTierSize: types.StringPointerValue(apiStreamConfig.MaxTierSize),
+			Tier:        types.StringPointerValue(apiStreamConfig.Tier),
 		})
 		streamConfig = returnedStreamConfig
 		diags.Append(diagsStreamConfig...)

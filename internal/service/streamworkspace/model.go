@@ -29,7 +29,8 @@ func newStreamWorkspaceCreateReq(ctx context.Context, plan *TFModel) (*admin.Str
 			return nil, diags
 		}
 		streamTenant.StreamConfig = &admin.StreamConfig{
-			Tier: streamConfig.Tier.ValueStringPointer(),
+			MaxTierSize: streamConfig.MaxTierSize.ValueStringPointer(),
+			Tier:        streamConfig.Tier.ValueStringPointer(),
 		}
 	}
 	return streamTenant, nil

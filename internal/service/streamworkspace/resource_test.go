@@ -25,7 +25,8 @@ func TestAccStreamWorkspaceRS_basic(t *testing.T) {
 				Config: streamsWorkspaceConfig(projectID, workspaceName, region, cloudProvider),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					streamsWorkspaceAttributeChecks(resourceName, workspaceName, region, cloudProvider),
-					resource.TestCheckResourceAttr(resourceName, "stream_config.tier", "SP30"),
+					resource.TestCheckResourceAttr(resourceName, "stream_config.max_tier_size", "SP30"),
+					resource.TestCheckResourceAttr(resourceName, "stream_config.tier", "SP10"),
 				),
 			},
 			{
@@ -50,10 +51,11 @@ func TestAccStreamWorkspaceRS_withStreamConfig(t *testing.T) {
 		CheckDestroy:             acc.CheckDestroyStreamInstance, // Reuse the same destroy check
 		Steps: []resource.TestStep{
 			{
-				Config: streamsWorkspaceConfigWithStreamConfig(projectID, workspaceName, region, cloudProvider),
+				Config: streamsWorkspaceConfig(projectID, workspaceName, region, cloudProvider),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					streamsWorkspaceAttributeChecks(resourceName, workspaceName, region, cloudProvider),
-					resource.TestCheckResourceAttr(resourceName, "stream_config.tier", "SP30"),
+					resource.TestCheckResourceAttr(resourceName, "stream_config.max_tier_size", "SP30"),
+					resource.TestCheckResourceAttr(resourceName, "stream_config.tier", "SP10"),
 				),
 			},
 		},
@@ -109,21 +111,9 @@ func streamsWorkspaceConfig(projectID, workspaceName, region, cloudProvider stri
 				region = %[3]q
 				cloud_provider = %[4]q
 			}
-		}
-	`, projectID, workspaceName, region, cloudProvider)
-}
-
-func streamsWorkspaceConfigWithStreamConfig(projectID, workspaceName, region, cloudProvider string) string {
-	return fmt.Sprintf(`
-		resource "mongodbatlas_stream_workspace" "test" {
-			project_id = %[1]q
-			workspace_name = %[2]q
-			data_process_region = {
-				region = %[3]q
-				cloud_provider = %[4]q
-			}
 			stream_config = {
-				tier = "SP30"
+				max_tier_size = "SP30"
+				tier = "SP10"
 			}
 		}
 	`, projectID, workspaceName, region, cloudProvider)

@@ -29,7 +29,8 @@ func TestAccStreamsWorkspaceDS_basic(t *testing.T) {
 				Config: streamsWorkspaceDataSourceConfig(projectID, workspaceName, region, cloudProvider),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					streamsWorkspaceAttributeChecks(dataSourceName, workspaceName, region, cloudProvider),
-					resource.TestCheckResourceAttr(dataSourceName, "stream_config.tier", "SP30"),
+					resource.TestCheckResourceAttr(dataSourceName, "stream_config.max_tier_size", "SP30"),
+					resource.TestCheckResourceAttr(dataSourceName, "stream_config.tier", "SP10"),
 				),
 			},
 		},

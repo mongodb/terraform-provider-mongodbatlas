@@ -46,6 +46,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional: true,
 				Computed: true,
 				Attributes: map[string]schema.Attribute{
+					"max_tier_size": schema.StringAttribute{
+						Optional: true,
+						Computed: true,
+					},
 					"tier": schema.StringAttribute{
 						Optional: true,
 						Computed: true,
@@ -71,5 +75,6 @@ type TFWorkspaceProcessRegionSpecModel struct {
 }
 
 type TFWorkspaceStreamConfigModel struct {
-	Tier types.String `tfsdk:"tier"`
+	MaxTierSize types.String `tfsdk:"max_tier_size"`
+	Tier        types.String `tfsdk:"tier"`
 }

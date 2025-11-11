@@ -22,6 +22,8 @@ func TestAccStreamsWorkspacesDS_basic(t *testing.T) {
 		resource.TestCheckResourceAttrSet(dataSourceName, "results.0.data_process_region.region"),
 		resource.TestCheckResourceAttrSet(dataSourceName, "results.0.data_process_region.cloud_provider"),
 		resource.TestCheckResourceAttrSet(dataSourceName, "results.0.hostnames.#"),
+		resource.TestCheckResourceAttr(dataSourceName, "results.0.stream_config.max_tier_size", "SP30"),
+		resource.TestCheckResourceAttr(dataSourceName, "results.0.stream_config.tier", "SP10"),
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
