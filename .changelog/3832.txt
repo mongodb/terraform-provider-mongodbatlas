@@ -1,0 +1,23 @@
+```release-note:new-datasource
+mongodbatlas_stream_workspace
+```
+
+```release-note:new-datasource
+mongodbatlas_stream_workspaces
+```
+
+```release-note:new-resource
+mongodbatlas_stream_workspace
+```
+
+```release-note:note
+data-source/mongodbatlas_stream_instance: Deprecates the `mongodbatlas_stream_instance` datasource, use `mongodbatlas_stream_workspace` 
+```
+
+```release-note:note
+data-source/mongodbatlas_stream_instances: Deprecates the `mongodbatlas_stream_instances` datasource, use `mongodbatlas_stream_workspaces` 
+```
+
+```release-note:note
+resource/mongodbatlas_stream_instance: Deprecates the `mongodbatlas_stream_instance` resource, use `mongodbatlas_stream_workspace` 
+```

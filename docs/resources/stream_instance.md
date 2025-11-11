@@ -4,7 +4,16 @@ subcategory: "Streams"
 
 # Resource: mongodbatlas_stream_instance
 
+~> **DEPRECATED:** This resource is deprecated. Please use [`mongodbatlas_stream_workspace`](stream_workspace) instead.
+
 `mongodbatlas_stream_instance` provides a Stream Instance resource. The resource lets you create, edit, and delete stream instances in a project.
+
+## Migration to stream_workspace
+
+`mongodbatlas_stream_instance` resources can be moved to `mongodbatlas_stream_workspace` in MongoDB Atlas Provider v2.2.0 and later with Terraform v1.8 and later. 
+
+More information about moving resources can be found in our [Migration Guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/stream-instance-to-stream-workspace-migration-guide) and in the Terraform documentation [here](https://developer.hashicorp.com/terraform/language/moved) and [here](https://developer.hashicorp.com/terraform/language/modules/develop/refactoring).
+
 
 ## Example Usage
 
@@ -20,7 +29,8 @@ resource "mongodbatlas_stream_instance" "test" {
 ```
 
 ### Further Examples
-- [Atlas Stream Instance](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.1.0/examples/mongodbatlas_stream_instance)
+- [Atlas Stream Instance (Deprecated)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_stream_instance)
+- [Atlas Stream Workspace (Recommended)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_stream_workspace)
 
 ## Argument Reference
 

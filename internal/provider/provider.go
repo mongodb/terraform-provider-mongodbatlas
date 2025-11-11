@@ -45,6 +45,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprivatelinkendpoint"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamprocessor"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamworkspace"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/teamprojectassignment"
 	"github.com/mongodb/terraform-provider-mongodbatlas/version"
 )
@@ -269,6 +270,8 @@ func (p *MongodbtlasProvider) DataSources(context.Context) []func() datasource.D
 		pushbasedlogexport.DataSource,
 		streaminstance.DataSource,
 		streaminstance.PluralDataSource,
+		streamworkspace.DataSource,
+		streamworkspace.PluralDataSource,
 		streamconnection.DataSource,
 		streamconnection.PluralDataSource,
 		controlplaneipaddresses.DataSource,
@@ -312,6 +315,7 @@ func (p *MongodbtlasProvider) Resources(context.Context) []func() resource.Resou
 		searchdeployment.Resource,
 		pushbasedlogexport.Resource,
 		streaminstance.Resource,
+		streamworkspace.Resource,
 		streamconnection.Resource,
 		streamprocessor.Resource,
 		encryptionatrestprivateendpoint.Resource,
