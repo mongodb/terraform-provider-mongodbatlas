@@ -26,6 +26,10 @@ ENHANCEMENTS:
 * resource/mongodbatlas_stream_privatelink_endpoint: Adds support for GCP Confluent ([#3818](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3818))
 * resource/mongodbatlas_stream_privatelink_endpoint: Changes timeout from 20m to 1h ([#3857](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3857))
 
+BUG FIXES:
+
+* resource/mongodbatlas_online_archive: Removing incorrect validation for valid value `OBJECT_ID` in `date_format` field ([#3865](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3865))
+
 ## 2.1.0 (October 22, 2025)
 
 NOTES:
