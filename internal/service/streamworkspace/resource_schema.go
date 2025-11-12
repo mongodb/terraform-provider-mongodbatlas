@@ -49,6 +49,9 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 					"max_tier_size": schema.StringAttribute{
 						Optional: true,
 						Computed: true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.UseStateForUnknown(),
+						},
 					},
 					"tier": schema.StringAttribute{
 						Optional: true,

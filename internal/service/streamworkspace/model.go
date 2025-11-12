@@ -32,17 +32,12 @@ func newStreamWorkspaceCreateReq(ctx context.Context, plan *TFModel) (*admin.Str
 		}
 		var maxTierSize *string
 		if !streamConfig.MaxTierSize.IsNull() && !streamConfig.MaxTierSize.IsUnknown() {
-			value := streamConfig.MaxTierSize.ValueString()
-			if value != "" {
-				maxTierSize = &value
-			}
+			maxTierSize = streamConfig.MaxTierSize.ValueStringPointer()
 		}
+
 		var tier *string
 		if !streamConfig.Tier.IsNull() && !streamConfig.Tier.IsUnknown() {
-			value := streamConfig.Tier.ValueString()
-			if value != "" {
-				tier = &value
-			}
+			tier = streamConfig.Tier.ValueStringPointer()
 		}
 		streamTenant.StreamConfig = &admin.StreamConfig{
 			MaxTierSize: maxTierSize,
