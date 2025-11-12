@@ -278,8 +278,7 @@ func tfRegionObject(t *testing.T, cloudProvider, region string) types.Object {
 func tfStreamConfigObject(t *testing.T, tier string) types.Object {
 	t.Helper()
 	streamConfig, diags := types.ObjectValueFrom(t.Context(), streaminstance.StreamConfigObjectType.AttrTypes, streaminstance.TFInstanceStreamConfigSpecModel{
-		MaxTierSize: types.StringNull(), // Set to null for test cases that don't specify it
-		Tier:        types.StringValue(tier),
+		Tier: types.StringValue(tier),
 	})
 	if diags.HasError() {
 		t.Errorf("failed to create terraform data process region model: %s", diags.Errors()[0].Summary())

@@ -108,9 +108,11 @@ func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resour
 			tier := schemafunc.GetAttrFromStateObj[string](configObj, "tier")
 
 			objValue, diags := types.ObjectValue(map[string]attr.Type{
-				"tier": types.StringType,
+				"max_tier_size": types.StringType,
+				"tier":          types.StringType,
 			}, map[string]attr.Value{
-				"tier": types.StringPointerValue(tier),
+				"max_tier_size": types.StringNull(),
+				"tier":          types.StringPointerValue(tier),
 			})
 			if !diags.HasError() {
 				model.StreamConfig = objValue
@@ -119,7 +121,8 @@ func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resour
 	}
 	if model.StreamConfig.IsNull() {
 		model.StreamConfig = types.ObjectNull(map[string]attr.Type{
-			"tier": types.StringType,
+			"max_tier_size": types.StringType,
+			"tier":          types.StringType,
 		})
 	}
 
