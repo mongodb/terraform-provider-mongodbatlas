@@ -208,7 +208,7 @@ func TestAccBackupRSOnlineArchiveWithProcessRegion(t *testing.T) {
 	})
 }
 
-func TestAccBackupRSOnlineArchiveInvalidProcessRegion(t *testing.T) {
+func TestAccBackupRSOnlineArchive_ErrorMessages(t *testing.T) {
 	var (
 		clusterInfo         = acc.GetClusterInfo(t, clusterRequest())
 		clusterTerraformStr = clusterInfo.TerraformStr
@@ -221,6 +221,10 @@ func TestAccBackupRSOnlineArchiveInvalidProcessRegion(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
+			{
+				Config:      configWithInvalidDateFormat(clusterTerraformStr, clusterResourceName),
+				ExpectError: regexp.MustCompile("An invalid enumeration value INVALID_FORMAT was specified"),
+			},
 			{
 				Config:      configWithDataProcessRegion(clusterTerraformStr, clusterResourceName, cloudProvider, "UNKNOWN"),
 				ExpectError: regexp.MustCompile("INVALID_ATTRIBUTE"),
@@ -544,4 +548,29 @@ func TestAccOnlineArchive_deleteOnCreateTimeout(t *testing.T) {
 			},
 		},
 	})
+}
+
+func configWithInvalidDateFormat(clusterTerraformStr, clusterResourceName string) string {
+	return fmt.Sprintf(`
+	%[1]s
+	resource "mongodbatlas_online_archive" "users_archive" {
+		project_id = %[2]s.project_id
+		cluster_name = %[2]s.name
+		coll_name = "listingsAndReviews"
+		collection_type = "STANDARD"
+		db_name = "sample_airbnb"
+	
+		criteria {
+			type = "DATE"
+			date_field = "last_review"
+			date_format = "INVALID_FORMAT"
+			expire_after_days = 2
+		}
+
+		partition_fields {
+			field_name = "last_review"
+			order = 0
+		}
+	}
+	`, clusterTerraformStr, clusterResourceName)
 }
