@@ -118,7 +118,7 @@ func GetPriorityOfFlexReplicationSpecs(replicationSpecs *[]admin.ReplicationSpec
 
 func ResourceClusterListAdvancedRefreshFunc(ctx context.Context, projectID string, clustersAPI admin.ClustersApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		clusters, resp, err := clustersAPI.ListClusters(ctx, projectID).Execute()
+		clusters, resp, err := clustersAPI.ListClusters(ctx, projectID).UseEffectiveInstanceFields(true).Execute()
 
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, "REPEATING", nil
