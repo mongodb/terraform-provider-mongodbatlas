@@ -20,11 +20,14 @@ ENHANCEMENTS:
 * data-source/mongodbatlas_search_indexes: Exposes `mappings_dynamic_config` and `type_sets` per result ([#3867](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3867))
 * data-source/mongodbatlas_stream_privatelink_endpoint: Adds support for GCP Confluent ([#3818](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3818))
 * data-source/mongodbatlas_stream_privatelink_endpoints: Adds support for GCP Confluent ([#3818](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3818))
+* data-source/mongodbatlas_stream_workspace: Adds the `max_tier_size` attribute ([#3871](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3871))
+* data-source/mongodbatlas_stream_workspaces: Adds the `max_tier_size` attribute ([#3871](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3871))
 * resource/mongodbatlas_alert_configuration: Adds `severity_override` attribute ([#3795](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3795))
 * resource/mongodbatlas_search_index: Adds `mappings_dynamic_config` (mutually exclusive with `mappings_dynamic`) to support object form of `mappings.dynamic` ([#3867](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3867))
 * resource/mongodbatlas_search_index: Adds `type_sets` field to support Atlas Search configurable dynamic type sets ([#3867](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3867))
 * resource/mongodbatlas_stream_privatelink_endpoint: Adds support for GCP Confluent ([#3818](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3818))
 * resource/mongodbatlas_stream_privatelink_endpoint: Changes timeout from 20m to 1h ([#3857](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3857))
+* resource/mongodbatlas_stream_workspace: Adds the `max_tier_size` attribute ([#3871](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3871))
 
 BUG FIXES:
 
