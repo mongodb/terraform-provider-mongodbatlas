@@ -54,10 +54,12 @@ type APIOperations struct {
 }
 
 type APIOperation struct {
-	Wait              *Wait  `yaml:"wait,omitempty"`
-	HTTPMethod        string `yaml:"http_method"`
-	Path              string `yaml:"path"`
-	StaticRequestBody string `yaml:"static_request_body,omitempty"`
+	Wait               *Wait  `yaml:"wait,omitempty"`
+	HTTPMethod         string `yaml:"http_method"`
+	Path               string `yaml:"path"`
+	StaticRequestBody  string `yaml:"static_request_body,omitempty"`
+	PreRequestHandler  bool   `yaml:"pre_request_handler"`
+	PostRequestHandler bool   `yaml:"post_request_handler"`
 }
 
 type Wait struct {

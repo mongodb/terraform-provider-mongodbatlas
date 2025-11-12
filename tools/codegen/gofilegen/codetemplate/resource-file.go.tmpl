@@ -100,7 +100,13 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		State: &state,
 		CallParams: readAPICallParams(&state),
 	}
+	{{- if .APIOperations.Read.PreRequestHandler}}
+		reqHandle = r.PreReadHandler(reqHandle) // *******
+	{{- end }}
 	autogen.HandleRead(ctx, reqHandle)
+	{{- if .APIOperations.Read.PostRequestHandler}}
+		r.PostReadHandler(reqHandle, &state) // *******
+	{{- end }}
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {

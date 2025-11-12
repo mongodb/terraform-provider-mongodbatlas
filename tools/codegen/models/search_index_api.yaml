@@ -943,6 +943,8 @@ operations:
     delete:
         http_method: DELETE
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexID}
+        pre_request_handler: false
+        post_request_handler: false
     create:
         wait:
             state_property: status
@@ -959,9 +961,13 @@ operations:
             delay_seconds: 30
         http_method: POST
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes
+        pre_request_handler: false
+        post_request_handler: false
     read:
         http_method: GET
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexID}
+        pre_request_handler: false
+        post_request_handler: false
     update:
         wait:
             state_property: status
@@ -978,6 +984,8 @@ operations:
             delay_seconds: 30
         http_method: PATCH
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes/{indexID}
+        pre_request_handler: false
+        post_request_handler: false
     version_header: application/vnd.atlas.2024-05-30+json
 name: search_index_api
 packageName: searchindexapi

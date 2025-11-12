@@ -81,12 +81,18 @@ operations:
     create:
         http_method: PATCH
         path: /api/atlas/v2/groups/{groupId}/settings
+        pre_request_handler: false
+        post_request_handler: false
     read:
         http_method: GET
         path: /api/atlas/v2/groups/{groupId}/settings
+        pre_request_handler: false
+        post_request_handler: false
     update:
         http_method: PATCH
         path: /api/atlas/v2/groups/{groupId}/settings
+        pre_request_handler: false
+        post_request_handler: false
     version_header: application/vnd.atlas.2023-01-01+json
 name: project_settings_api
 packageName: projectsettingsapi

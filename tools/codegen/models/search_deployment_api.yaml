@@ -112,6 +112,8 @@ operations:
             delay_seconds: 60
         http_method: DELETE
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
+        pre_request_handler: false
+        post_request_handler: false
     create:
         wait:
             state_property: stateName
@@ -125,9 +127,13 @@ operations:
             delay_seconds: 60
         http_method: POST
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
+        pre_request_handler: false
+        post_request_handler: false
     read:
         http_method: GET
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
+        pre_request_handler: false
+        post_request_handler: false
     update:
         wait:
             state_property: stateName
@@ -141,6 +147,8 @@ operations:
             delay_seconds: 60
         http_method: PATCH
         path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/deployment
+        pre_request_handler: false
+        post_request_handler: false
     version_header: application/vnd.atlas.2025-03-12+json
 name: search_deployment_api
 packageName: searchdeploymentapi

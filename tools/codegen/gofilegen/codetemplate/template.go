@@ -35,11 +35,13 @@ type APIOperations struct {
 }
 
 type Operation struct {
-	Wait              *Wait
-	Path              string
-	HTTPMethod        string
-	StaticRequestBody string
-	PathParams        []Param
+	Wait               *Wait
+	Path               string
+	HTTPMethod         string
+	StaticRequestBody  string
+	PathParams         []Param
+	PreRequestHandler  bool
+	PostRequestHandler bool
 }
 
 type Wait struct {

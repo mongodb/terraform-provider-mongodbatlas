@@ -154,10 +154,12 @@ func operationConfigToModel(opConfig *config.APIOperation) *APIOperation {
 		return nil
 	}
 	return &APIOperation{
-		HTTPMethod:        opConfig.Method,
-		Path:              opConfig.Path,
-		Wait:              waitConfigToModel(opConfig.Wait),
-		StaticRequestBody: opConfig.StaticRequestBody,
+		HTTPMethod:         opConfig.Method,
+		Path:               opConfig.Path,
+		Wait:               waitConfigToModel(opConfig.Wait),
+		StaticRequestBody:  opConfig.StaticRequestBody,
+		PreRequestHandler:  opConfig.PreRequestHandler,
+		PostRequestHandler: opConfig.PostRequestHandler,
 	}
 }
 

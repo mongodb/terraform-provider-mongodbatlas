@@ -88,6 +88,8 @@ operations:
             delay_seconds: 10
         http_method: DELETE
         path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
+        pre_request_handler: false
+        post_request_handler: false
     create:
         wait:
             state_property: state
@@ -101,9 +103,13 @@ operations:
             delay_seconds: 10
         http_method: POST
         path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
+        pre_request_handler: false
+        post_request_handler: false
     read:
         http_method: GET
         path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
+        pre_request_handler: false
+        post_request_handler: false
     update:
         wait:
             state_property: state
@@ -117,6 +123,8 @@ operations:
             delay_seconds: 10
         http_method: PATCH
         path: /api/atlas/v2/groups/{groupId}/pushBasedLogExport
+        pre_request_handler: false
+        post_request_handler: false
     version_header: application/vnd.atlas.2023-01-01+json
 name: push_based_log_export_api
 packageName: pushbasedlogexportapi

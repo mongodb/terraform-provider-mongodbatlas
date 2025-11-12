@@ -51,15 +51,23 @@ operations:
         http_method: PATCH
         path: /api/atlas/v2/groups/{groupId}/auditLog
         static_request_body: '{"enabled": "false"}'
+        pre_request_handler: false
+        post_request_handler: false
     create:
         http_method: PATCH
         path: /api/atlas/v2/groups/{groupId}/auditLog
+        pre_request_handler: false
+        post_request_handler: false
     read:
         http_method: GET
         path: /api/atlas/v2/groups/{groupId}/auditLog
+        pre_request_handler: false
+        post_request_handler: false
     update:
         http_method: PATCH
         path: /api/atlas/v2/groups/{groupId}/auditLog
+        pre_request_handler: false
+        post_request_handler: false
     version_header: application/vnd.atlas.2023-01-01+json
 name: auditing_api
 packageName: auditingapi

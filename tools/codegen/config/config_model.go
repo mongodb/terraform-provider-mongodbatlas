@@ -14,10 +14,12 @@ type Resource struct {
 }
 
 type APIOperation struct {
-	Wait              *Wait  `yaml:"wait"`
-	Path              string `yaml:"path"`
-	Method            string `yaml:"method"`
-	StaticRequestBody string `yaml:"static_request_body"` // use at the moment for Delete when it's done with a PATCH or PUT and needs to send a static request body.
+	Wait               *Wait  `yaml:"wait"`
+	Path               string `yaml:"path"`
+	Method             string `yaml:"method"`
+	StaticRequestBody  string `yaml:"static_request_body"` // use at the moment for Delete when it's done with a PATCH or PUT and needs to send a static request body.
+	PreRequestHandler  bool   `yaml:"pre_request_handler"`
+	PostRequestHandler bool   `yaml:"post_request_handler"`
 }
 
 type Wait struct {

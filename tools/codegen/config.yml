@@ -550,6 +550,8 @@ resources:
     read:
       path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets
       method: POST
+      pre_request_handler: true
+      post_request_handler: true
     create:
       path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets
       method: POST

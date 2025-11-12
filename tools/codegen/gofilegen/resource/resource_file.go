@@ -36,11 +36,13 @@ func toCodeTemplateOpModel(op *codespec.APIOperation) *codetemplate.Operation {
 		return nil
 	}
 	return &codetemplate.Operation{
-		Path:              op.Path,
-		HTTPMethod:        op.HTTPMethod,
-		PathParams:        getPathParams(op.Path),
-		Wait:              getWaitValues(op.Wait),
-		StaticRequestBody: op.StaticRequestBody,
+		Path:               op.Path,
+		HTTPMethod:         op.HTTPMethod,
+		PathParams:         getPathParams(op.Path),
+		Wait:               getWaitValues(op.Wait),
+		StaticRequestBody:  op.StaticRequestBody,
+		PreRequestHandler:  op.PreRequestHandler,
+		PostRequestHandler: op.PostRequestHandler,
 	}
 }
 
