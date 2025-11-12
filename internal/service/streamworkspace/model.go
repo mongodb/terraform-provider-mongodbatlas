@@ -3,7 +3,9 @@ package streamworkspace
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streaminstance"
 	"go.mongodb.org/atlas-sdk/v20250312009/admin"
@@ -28,8 +30,18 @@ func newStreamWorkspaceCreateReq(ctx context.Context, plan *TFModel) (*admin.Str
 		if diags := plan.StreamConfig.As(ctx, streamConfig, basetypes.ObjectAsOptions{}); diags.HasError() {
 			return nil, diags
 		}
+		var maxTierSize *string
+		if streamConfig.MaxTierSize.ValueString() != "" {
+			maxTierSize = streamConfig.MaxTierSize.ValueStringPointer()
+		}
+
+		var tier *string
+		if streamConfig.Tier.ValueString() != "" {
+			tier = streamConfig.Tier.ValueStringPointer()
+		}
 		streamTenant.StreamConfig = &admin.StreamConfig{
-			Tier: streamConfig.Tier.ValueStringPointer(),
+			MaxTierSize: maxTierSize,
+			Tier:        tier,
 		}
 	}
 	return streamTenant, nil
@@ -54,6 +66,26 @@ func (m *TFModel) FromInstanceModel(instanceModel *streaminstance.TFStreamInstan
 	m.WorkspaceName = instanceModel.InstanceName
 	m.ProjectID = instanceModel.ProjectID
 	m.DataProcessRegion = instanceModel.DataProcessRegion
-	m.StreamConfig = instanceModel.StreamConfig
+	if instanceModel.StreamConfig.IsNull() {
+		m.StreamConfig = types.ObjectNull(map[string]attr.Type{
+			"max_tier_size": types.StringType,
+			"tier":          types.StringType,
+		})
+	} else {
+		instanceStreamConfigAttrs := instanceModel.StreamConfig.Attributes()
+		tierValue := instanceStreamConfigAttrs["tier"]
+
+		workspaceStreamConfig, _ := types.ObjectValue(
+			map[string]attr.Type{
+				"max_tier_size": types.StringType,
+				"tier":          types.StringType,
+			},
+			map[string]attr.Value{
+				"max_tier_size": types.StringNull(),
+				"tier":          tierValue,
+			},
+		)
+		m.StreamConfig = workspaceStreamConfig
+	}
 	m.Hostnames = instanceModel.Hostnames
 }

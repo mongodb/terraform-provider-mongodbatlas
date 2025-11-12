@@ -59,7 +59,8 @@ resource "mongodbatlas_stream_workspace" "example" {
 
 ### Stream Config
 
-* `tier` - (Required) Selected tier for the Stream Instance. Configures Memory / VCPU allowances. The [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/creategroupstreamworkspace) describes the valid values.
+* `max_tier_size` - (Optional) Max tier size for the Stream Workspace. Configures Memory / VCPU allowances.
+* `tier` - (Optional) Selected tier for the Stream Workspace. Configures Memory / VCPU allowances. The [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Streams/operation/creategroupstreamworkspace) describes the valid values.
 
 
 ## Attributes Reference
