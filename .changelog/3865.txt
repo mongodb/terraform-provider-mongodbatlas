@@ -1,0 +1,3 @@
+```release-note:bug
+resource/mongodbatlas_online_archive: Removing incorrect validation for valid value `OBJECT_ID` in `date_format` field
+```

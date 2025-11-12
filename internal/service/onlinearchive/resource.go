@@ -87,10 +87,9 @@ func resourceSchema() map[string]*schema.Schema {
 						Optional: true,
 					},
 					"date_format": {
-						Type:         schema.TypeString,
-						Optional:     true,
-						Computed:     true, // api will set the default
-						ValidateFunc: validation.StringInSlice([]string{"ISODATE", "EPOCH_SECONDS", "EPOCH_MILLIS", "EPOCH_NANOSECONDS"}, false),
+						Type:     schema.TypeString,
+						Optional: true,
+						Computed: true, // api will set the default
 					},
 					"expire_after_days": {
 						Type:     schema.TypeInt,

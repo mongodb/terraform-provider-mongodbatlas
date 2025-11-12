@@ -71,6 +71,9 @@ func TestStepImportCluster(resourceName string, ignorePrefixFields ...string) re
 }
 
 func CheckDestroyCluster(s *terraform.State) error {
+	if ExistingClusterUsed() {
+		return nil
+	}
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mongodbatlas_cluster" && rs.Type != "mongodbatlas_advanced_cluster" {
 			continue
