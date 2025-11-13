@@ -97,7 +97,7 @@ func createStateChangeConfig(ctx context.Context, api admin.ClustersApi, project
 
 func ResourceRefreshFunc(ctx context.Context, name, projectID string, api admin.ClustersApi) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		cluster, resp, err := api.GetCluster(ctx, projectID, name).Execute()
+		cluster, resp, err := api.GetCluster(ctx, projectID, name).UseEffectiveInstanceFields(true).Execute()
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, retrystrategy.RetryStrategyRepeatingState, nil
 		}
