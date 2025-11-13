@@ -11,24 +11,18 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/schema"
-	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/openapi"
 	"gopkg.in/yaml.v3"
 )
 
 const (
-	atlasAdminAPISpecURL        = "https://raw.githubusercontent.com/mongodb/atlas-sdk-go/main/openapi/atlas-api-transformed.yaml"
 	configPath                  = "tools/codegen/config.yml"
-	specFilePath                = "tools/codegen/open-api-spec.yml"
+	specFilePath                = "tools/codegen/atlasapispec/multi-version-api-spec.flattened.yml"
 	resourceModelDir            = "tools/codegen/models/"
 	resourceModelFilePathFormat = resourceModelDir + "%s.yaml"
 )
 
 func main() {
 	resourceName := getOsArg()
-
-	if err := openapi.DownloadOpenAPISpec(atlasAdminAPISpecURL, specFilePath); err != nil {
-		log.Fatalf("[ERROR] An error occurred when downloading Atlas Admin API spec: %v", err)
-	}
 
 	{
 		// Generate resource models
