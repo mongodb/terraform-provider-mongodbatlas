@@ -585,6 +585,11 @@ func TestAccConfigRSAlertConfiguration_updateNotificationTypeFromTeamsToPagerDut
 		CheckDestroy:             checkDestroy(),
 		Steps: []resource.TestStep{
 			{
+				// Verify that explicitly setting interval_min with PAGER_DUTY fails at schema validation level
+				Config:      configWithPagerDutyAndIntervalMin(projectID, pagerDutyKey, true),
+				ExpectError: regexp.MustCompile(`(?s).*'interval_min'.*must not be set.*PAGER_DUTY`),
+			},
+			{
 				Config: configWithTeamsNotificationAndIntervalMin(projectID, teamsWebhookURL, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkExists(resourceName),
@@ -1058,6 +1063,23 @@ func configWithPagerDutyNotification(projectID, serviceKey string, enabled bool)
 			notification {
 				type_name   = "PAGER_DUTY"
 				service_key = %[2]q
+				delay_min   = 0
+			}
+		}
+	`, projectID, serviceKey, enabled)
+}
+
+func configWithPagerDutyAndIntervalMin(projectID, serviceKey string, enabled bool) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_alert_configuration" "test" {
+			project_id = %[1]q
+			enabled    = %[3]t
+			event_type = "NO_PRIMARY"
+
+			notification {
+				type_name   = "PAGER_DUTY"
+				service_key = %[2]q
+				interval_min = 30
 				delay_min   = 0
 			}
 		}
