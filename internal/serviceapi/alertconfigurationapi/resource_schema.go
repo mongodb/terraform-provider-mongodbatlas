@@ -147,7 +147,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 							MarkdownDescription: "The id of the associated integration, the credentials of which to use for requests.",
 						},
 						"interval_min": schema.Int64Attribute{
-							Computed:            true,
 							Optional:            true,
 							MarkdownDescription: "Number of minutes to wait between successive notifications. MongoDB Cloud sends notifications until someone acknowledges the unacknowledged alert.\n\nPagerDuty, VictorOps, and OpsGenie notifications don't return this element. Configure and manage the notification interval within each of those services.",
 						},

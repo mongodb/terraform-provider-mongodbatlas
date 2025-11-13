@@ -264,7 +264,7 @@ schema:
                         Number of minutes to wait between successive notifications. MongoDB Cloud sends notifications until someone acknowledges the unacknowledged alert.
 
                         PagerDuty, VictorOps, and OpsGenie notifications don't return this element. Configure and manage the notification interval within each of those services.
-                      computed_optional_required: computed_optional
+                      computed_optional_required: optional
                       tf_schema_name: interval_min
                       tf_model_name: IntervalMin
                       req_body_usage: all_request_bodies

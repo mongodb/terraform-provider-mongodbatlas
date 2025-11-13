@@ -569,10 +569,6 @@ resources:
           computability:
             optional: true
             computed: true
-        notifications.interval_min:
-          computability:
-            optional: true
-            computed: true
         notifications.integration_id:
           computability:
             optional: true
