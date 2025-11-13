@@ -299,6 +299,7 @@ jobs:
             - 'internal/provider/*.go' 
           autogen_fast:
             - 'internal/common/autogen/*.go'
+            - 'internal/serviceapi/alertconfigurationapi/*.go'
             - 'internal/serviceapi/auditingapi/*.go'
             - 'internal/serviceapi/customdbroleapi/*.go'
             - 'internal/serviceapi/databaseuserapi/*.go'

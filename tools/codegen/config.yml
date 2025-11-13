@@ -543,3 +543,53 @@ resources:
           sensitive: true
         roles:
           type: set
+
+  alert_configuration_api:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/alertConfigs
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
+      method: PUT
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}
+      method: DELETE
+    schema:
+      aliases:
+        alertConfigId: id # path param name does not match the API response property
+      overrides:
+        notifications.notifier_id:
+          computability:
+            optional: true
+            computed: true
+        notifications.delay_min:
+          computability:
+            optional: true
+            computed: true
+        notifications.interval_min:
+          computability:
+            optional: true
+            computed: true
+        notifications.integration_id:
+          computability:
+            optional: true
+            computed: true
+        notifications.datadog_api_key:
+          sensitive: true
+        notifications.service_key:
+          sensitive: true
+        notifications.api_token:
+          sensitive: true
+        notifications.victor_ops_api_key:
+          sensitive: true
+        notifications.notification_token:
+          sensitive: true
+        notifications.microsoft_teams_webhook_url:
+          sensitive: true
+        notifications.webhook_url:
+          sensitive: true
+        notifications.ops_genie_api_key:
+          sensitive: true
