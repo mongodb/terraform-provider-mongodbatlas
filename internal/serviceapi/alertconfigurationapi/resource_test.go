@@ -55,7 +55,7 @@ func TestAccAlertConfigurationAPI_basic(t *testing.T) {
 				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"group_id", "updated"},
+				ImportStateVerifyIgnore: []string{"updated"},
 			},
 		},
 	})
@@ -426,8 +426,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if id == "" || projectID == "" {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
-		_, _, err := acc.ConnV2().AlertConfigurationsApi.GetAlertConfig(context.Background(), projectID, id).Execute()
-		if err != nil {
+		if _, _, err := acc.ConnV2().AlertConfigurationsApi.GetAlertConfig(context.Background(), projectID, id).Execute(); err != nil {
 			return fmt.Errorf("the Alert Configuration(%s) does not exist", id)
 		}
 		return nil
