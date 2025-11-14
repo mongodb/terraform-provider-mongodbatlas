@@ -625,6 +625,9 @@ jobs:
 
   autogen_fast:
     needs: [change-detection, get-provider-version]
+    # Avoids concurrent execution of resource policy tests to prevent race conditions on organization-level side effects of resource policies
+    concurrency:
+      group: ${{ github.repository }}-resource-policy-concurrency
     if: ${{ needs.change-detection.outputs.autogen_fast == 'true' || inputs.test_group == 'autogen' || inputs.test_group == 'autogen_fast' }}
     runs-on: ubuntu-latest
     permissions: {}
@@ -1279,18 +1282,12 @@ jobs:
 
   resource_policy:
     needs: [ change-detection, get-provider-version ]
+    # Avoids concurrent execution of resource policy tests to prevent race conditions on organization-level side effects of resource policies
+    concurrency:
+      group: ${{ github.repository }}-resource-policy-concurrency
     if: ${{ needs.change-detection.outputs.resource_policy == 'true' || inputs.test_group == 'resource_policy' }}
     runs-on: ubuntu-latest
     permissions: {}
-    # Environment variables are set at job level and use dedicated resource policy credentials (mongodb_atlas_rp_*)
-    # instead of standard credentials due to organization-level side effects of resource policies
-    env:
-      MONGODB_ATLAS_PUBLIC_KEY: ${{ inputs.use_sa != true && secrets.mongodb_atlas_rp_public_key || '' }}
-      MONGODB_ATLAS_PRIVATE_KEY: ${{ inputs.use_sa != true && secrets.mongodb_atlas_rp_private_key || '' }}
-      MONGODB_ATLAS_CLIENT_ID: ${{ inputs.use_sa == true && secrets.mongodb_atlas_rp_client_id || '' }}
-      MONGODB_ATLAS_CLIENT_SECRET: ${{ inputs.use_sa == true && secrets.mongodb_atlas_rp_client_secret || '' }}
-      MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_rp_org_id }}
-      MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:
@@ -1304,6 +1301,12 @@ jobs:
           terraform_wrapper: false
       - name: Acceptance Tests
         env:
+          MONGODB_ATLAS_PUBLIC_KEY: ${{ inputs.use_sa != true && secrets.mongodb_atlas_rp_public_key || '' }}
+          MONGODB_ATLAS_PRIVATE_KEY: ${{ inputs.use_sa != true && secrets.mongodb_atlas_rp_private_key || '' }}
+          MONGODB_ATLAS_CLIENT_ID: ${{ inputs.use_sa == true && secrets.mongodb_atlas_rp_client_id || '' }}
+          MONGODB_ATLAS_CLIENT_SECRET: ${{ inputs.use_sa == true && secrets.mongodb_atlas_rp_client_secret || '' }}
+          MONGODB_ATLAS_ORG_ID: ${{ inputs.mongodb_atlas_rp_org_id }}
+          MONGODB_ATLAS_LAST_VERSION: ${{ needs.get-provider-version.outputs.provider_version }}
           ACCTEST_PACKAGES: ./internal/service/resourcepolicy
         run: make testacc
 
