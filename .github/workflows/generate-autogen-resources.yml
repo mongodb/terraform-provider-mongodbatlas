@@ -17,8 +17,18 @@ jobs:
         with:
           go-version-file: 'go.mod'
       - name: Generate resources
-        run: make tools generate-resource-code
+        run: make tools resource-generation-pipeline
+      # Avoids creating a PR if only the API spec has changed
+      - name: Check for changes in ./internal (resource implementations)
+        id: check_internal_changes
+        run: |
+          if git ls-files -m -o --exclude-standard -- internal | grep -q .; then
+            echo "internal_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "internal_changed=false" >> $GITHUB_OUTPUT
+          fi
       - name: Create PR
+        if: steps.check_internal_changes.outputs.internal_changed == 'true'
         uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e
         with:
           token: ${{ secrets.APIX_BOT_PAT }}
