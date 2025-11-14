@@ -67,15 +67,20 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "The state of the stream processor. Commonly occurring states are 'CREATED', 'STARTED', 'STOPPED' and 'FAILED'.",
 			},
-			"stats": schema.StringAttribute{
+			"stats": schema.MapAttribute{
 				Computed:            true,
 				MarkdownDescription: "The stats associated with the stream processor.",
-				CustomType:          jsontypes.NormalizedType{},
+				CustomType:          customtypes.NewMapType[jsontypes.Normalized](ctx),
+				ElementType:         jsontypes.NormalizedType{},
 			},
 			"tenant_name": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Label that identifies the stream workspace.",
 				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
+			},
+			"tier": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Selected tier for the Stream Workspace. Configures Memory / VCPU allowances.",
 			},
 			"delete_on_create_timeout": schema.BoolAttribute{
 				Computed:            true,
@@ -94,12 +99,13 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 
 type TFModel struct {
 	Pipeline              customtypes.ListValue[jsontypes.Normalized] `tfsdk:"pipeline"`
+	Stats                 customtypes.MapValue[jsontypes.Normalized]  `tfsdk:"stats" autogen:"omitjson"`
 	GroupId               types.String                                `tfsdk:"group_id" autogen:"omitjson"`
 	Name                  types.String                                `tfsdk:"name"`
 	Options               customtypes.ObjectValue[TFOptionsModel]     `tfsdk:"options"`
 	State                 types.String                                `tfsdk:"state" autogen:"omitjson"`
-	Stats                 jsontypes.Normalized                        `tfsdk:"stats" autogen:"omitjson"`
 	TenantName            types.String                                `tfsdk:"tenant_name" autogen:"omitjson"`
+	Tier                  types.String                                `tfsdk:"tier" autogen:"omitjson"`
 	Timeouts              timeouts.Value                              `tfsdk:"timeouts" autogen:"omitjson"`
 	DeleteOnCreateTimeout types.Bool                                  `tfsdk:"delete_on_create_timeout" autogen:"omitjson"`
 }

@@ -86,16 +86,21 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 	readOp := oasResource.ReadOp
 
 	createPathParams := pathParamsToAttributes(createOp)
-	createRequestAttributes, err := opRequestToAttributes(createOp)
+	var configuredVersion *string
+	if resourceConfig.VersionHeader != "" {
+		configuredVersion = &resourceConfig.VersionHeader
+	}
+
+	createRequestAttributes, err := opRequestToAttributes(createOp, configuredVersion)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process create request attributes for %s: %w", name, err)
 	}
-	updateRequestAttributes, err := opRequestToAttributes(updateOp)
+	updateRequestAttributes, err := opRequestToAttributes(updateOp, configuredVersion)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process update request attributes for %s: %w", name, err)
 	}
-	createResponseAttributes := opResponseToAttributes(createOp)
-	readResponseAttributes := opResponseToAttributes(readOp)
+	createResponseAttributes := opResponseToAttributes(createOp, configuredVersion)
+	readResponseAttributes := opResponseToAttributes(readOp, configuredVersion)
 
 	attributes := mergeAttributes(&attributeDefinitionSources{
 		createPathParams: createPathParams,
@@ -201,9 +206,9 @@ func pathParamsToAttributes(createOp *high.Operation) Attributes {
 	return pathAttributes
 }
 
-func opRequestToAttributes(op *high.Operation) (Attributes, error) {
+func opRequestToAttributes(op *high.Operation, configuredVersion *string) (Attributes, error) {
 	var requestAttributes Attributes
-	requestSchema, err := buildSchemaFromRequest(op)
+	requestSchema, err := buildSchemaFromRequest(op, configuredVersion)
 	if err != nil {
 		return nil, fmt.Errorf("request schema could not be mapped (OperationId: %s): %w", op.OperationId, err)
 	}
@@ -216,9 +221,9 @@ func opRequestToAttributes(op *high.Operation) (Attributes, error) {
 	return requestAttributes, nil
 }
 
-func opResponseToAttributes(op *high.Operation) Attributes {
+func opResponseToAttributes(op *high.Operation, configuredVersion *string) Attributes {
 	var responseAttributes Attributes
-	responseSchema, err := buildSchemaFromResponse(op)
+	responseSchema, err := buildSchemaFromResponse(op, configuredVersion)
 	if err != nil {
 		if errors.Is(err, errSchemaNotFound) {
 			log.Printf("[INFO] Operation response body schema not found (OperationId: %s)", op.OperationId)

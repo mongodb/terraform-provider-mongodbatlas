@@ -2,7 +2,7 @@ schema:
     description: |-
         Creates one cluster in the specified project. Clusters contain a group of hosts that maintain the same data set. This resource can create clusters with asymmetrically-sized shards. Each project supports up to 25 database deployments. To use this resource, the requesting Service Account or API Key must have the Project Owner role. This feature is not available for serverless clusters.
 
-        Please note that using an instanceSize of M2 or M5 will create a Flex cluster instead. Support for the instanceSize of M2 or M5 will be discontinued in January 2026. We recommend using the createFlexCluster API for such configurations moving forward. Deprecated versions: v2-{2024-08-05}, v2-{2023-02-01}, v2-{2023-01-01}
+        Please note that using an instanceSize of M2 or M5 will create a Flex cluster instead. Support for the instanceSize of M2 or M5 will be discontinued in January 2026. We recommend using the createFlexCluster API for such configurations moving forward.
     attributes:
         - string: {}
           description: If reconfiguration is necessary to regain a primary due to a regional outage, submit this field alongside your topology reconfiguration to request a new regional outage resistant topology. Forced reconfigurations during an outage of the majority of electable nodes carry a risk of data loss if replicated writes (even majority committed writes) have not been replicated to the new primary node. MongoDB Atlas docs contain more information. To proceed with an operation which carries that risk, set **acceptDataRisksAndForceReplicaSetReconfig** to the current date. This parameter expresses its value in the ISO 8601 timestamp format in UTC.

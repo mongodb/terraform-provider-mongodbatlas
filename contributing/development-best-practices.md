@@ -35,7 +35,7 @@ The generation command makes use of a configuration file defined under [`./tools
 The generation command takes a single optional argument `resource_name`. If not provided, all resources defined in the configuration are generated.
 
 ```bash
-make generate-resource-code resource_name=search_deployment_api
+make resource-generation-pipeline resource_name=search_deployment_api
 ```
 
 As a result, content of schemas and models will be written into the corresponding resource packages:
