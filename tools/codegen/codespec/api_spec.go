@@ -118,27 +118,27 @@ func extractAtlasDateFromMediaType(mediaType string) string {
 	return date
 }
 
-func buildSchemaFromRequest(op *high.Operation) (*APISpecSchema, error) {
+func buildSchemaFromRequest(op *high.Operation, configuredVersion *string) (*APISpecSchema, error) {
 	if op == nil || op.RequestBody == nil || op.RequestBody.Content == nil || op.RequestBody.Content.Len() == 0 {
 		return nil, errSchemaNotFound
 	}
 
-	return getSchemaFromMediaType(op.RequestBody.Content, nil)
+	return getSchemaFromMediaType(op.RequestBody.Content, configuredVersion)
 }
 
-func buildSchemaFromResponse(op *high.Operation) (*APISpecSchema, error) {
+func buildSchemaFromResponse(op *high.Operation, configuredVersion *string) (*APISpecSchema, error) {
 	if op == nil || op.Responses == nil || op.Responses.Codes == nil || op.Responses.Codes.Len() == 0 {
 		return nil, errSchemaNotFound
 	}
 
 	okResponse, ok := op.Responses.Codes.Get(OASResponseCodeOK)
 	if ok {
-		return getSchemaFromMediaType(okResponse.Content, nil)
+		return getSchemaFromMediaType(okResponse.Content, configuredVersion)
 	}
 
 	createdResponse, ok := op.Responses.Codes.Get(OASResponseCodeCreated)
 	if ok {
-		return getSchemaFromMediaType(createdResponse.Content, nil)
+		return getSchemaFromMediaType(createdResponse.Content, configuredVersion)
 	}
 
 	sortedCodes := orderedmap.SortAlpha(op.Responses.Codes)
@@ -150,7 +150,7 @@ func buildSchemaFromResponse(op *high.Operation) (*APISpecSchema, error) {
 		}
 
 		if statusCode >= 200 && statusCode <= 299 {
-			return getSchemaFromMediaType(responseCode.Content, nil)
+			return getSchemaFromMediaType(responseCode.Content, configuredVersion)
 		}
 	}
 
