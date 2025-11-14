@@ -157,8 +157,8 @@ scaffold: ## Create scaffolding for a new resource
 scaffold-schemas: ## Create the schema scaffolding for a new resource
 	@scripts/schema-scaffold.sh $(resource_name)
 
-.PHONY: generate-api-spec
-generate-api-spec: ## Generate flattened API spec used by codegen
+.PHONY: generate-autogen-api-spec
+generate-autogen-api-spec: ## Generate flattened API spec used by codegen
 	@scripts/generate_flattened_api_spec.sh
 
 # Run resource code generation using API spec present in tools/codegen/atlasapispec/multi-version-api-spec.flattened.yml
@@ -170,7 +170,7 @@ resource-code-generation: ## Generate resource code from API spec (resource_name
 ## Download latest API Spec, apply API Spec transformations, and then generate resource code
 # resource_name is optional, if not provided all configured resources code will be generated
 .PHONY: resource-generation-pipeline
-resource-generation-pipeline: generate-api-spec resource-code-generation 
+resource-generation-pipeline: generate-autogen-api-spec resource-code-generation 
 
 .PHONY: generate-doc
 # e.g. run: make generate-doc resource_name=search_deployment
