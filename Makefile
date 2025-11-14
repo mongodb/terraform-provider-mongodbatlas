@@ -111,7 +111,7 @@ tools:  ## Install the dev tools (dependencies)
 	go install github.com/icholy/gomajor@latest
 	go install github.com/terraform-linters/tflint@v0.52.0
 	go install github.com/rhysd/actionlint/cmd/actionlint@latest
-	go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@latest
+	go install golang.org/x/tools/go/analysis/passes/fieldalignment/cmd/fieldalignment@v0.38.0 # Pinning version since v0.39.0 fails to fix files with large structs. See versions at https://pkg.go.dev/golang.org/x/tools/go/analysis/passes/fieldalignment?tab=versions
 	go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@latest
 	go install github.com/hashicorp/terraform-plugin-codegen-openapi/cmd/tfplugingen-openapi@latest
 	go install github.com/hashicorp/terraform-plugin-codegen-framework/cmd/tfplugingen-framework@latest

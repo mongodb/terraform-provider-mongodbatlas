@@ -74,7 +74,7 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"project_id", "updated"},
+				ImportStateVerifyIgnore: []string{"updated"},
 			},
 		},
 	})
@@ -147,7 +147,7 @@ func TestAccConfigRSAlertConfiguration_withNotifications(t *testing.T) {
 				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"project_id", "updated"},
+				ImportStateVerifyIgnore: []string{"updated"},
 			},
 		},
 	})
@@ -263,7 +263,7 @@ func TestAccConfigRSAlertConfiguration_withThreshold(t *testing.T) {
 				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"project_id", "updated", "matcher.0.field_name"},
+				ImportStateVerifyIgnore: []string{"updated", "matcher.0.field_name"},
 			},
 		},
 	})

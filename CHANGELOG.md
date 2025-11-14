@@ -1,5 +1,7 @@
 ## (Unreleased)
 
+## 2.2.0 (November 13, 2025)
+
 NOTES:
 
 * data-source/mongodbatlas_stream_instance: Deprecates the `mongodbatlas_stream_instance` datasource, use `mongodbatlas_stream_workspace` ([#3832](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3832))

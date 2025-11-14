@@ -29,8 +29,8 @@ resource "mongodbatlas_stream_instance" "test" {
 ```
 
 ### Further Examples
-- [Atlas Stream Instance (Deprecated)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_stream_instance)
-- [Atlas Stream Workspace (Recommended)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_stream_workspace)
+- [Atlas Stream Instance (Deprecated)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_stream_instance)
+- [Atlas Stream Workspace (Recommended)](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_stream_workspace)
 
 ## Argument Reference
 
