@@ -92,6 +92,65 @@ paths:
       summary: Enable the Test Resource feature for a project
       tags:
         - Test Resource
+  "/api/atlas/v2/groups/{groupId}/testResourceNoUpdate":
+    delete:
+      description: DELETE API description
+      operationId: deleteTestResourceConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: [ ]
+      summary: Disable the Test Resource feature for a project.
+      tags:
+        - Test Resource
+    get:
+      description: GET API description
+      operationId: getTestResourceConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              schema:
+                $ref: "#/components/schemas/TestResourceNoUpdate"
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: [ ]
+      summary: Get the Test Resource configuration for a project
+      tags:
+        - Test Resource
+    post:
+      description: POST API description
+      operationId: createTestResourceConfiguration
+      parameters:
+        - $ref: "#/components/parameters/groupId"
+      requestBody:
+        content:
+          application/vnd.atlas.2023-01-01+json:
+            schema:
+              $ref: "#/components/schemas/TestResourceNoUpdate"
+            x-xgen-version: 2023-01-01
+        description: Create request description
+        required: true
+      responses:
+        "200":
+          content:
+            application/vnd.atlas.2023-01-01+json:
+              x-xgen-version: 2023-01-01
+          description: OK
+      security:
+        - DigestAuth: [ ]
+      summary: Enable the Test Resource feature for a project
+      tags:
+        - Test Resource
   "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource":
     delete:
       description: DELETE API description
@@ -591,6 +650,13 @@ components:
           type: number
           format: double
           default: 2.0
+    TestResourceNoUpdate:
+      type: object
+      properties:
+        stringAttr:
+          type: string
+      required:
+        - stringAttr
     NestedTestResourceResponse:
       type: object
       properties:

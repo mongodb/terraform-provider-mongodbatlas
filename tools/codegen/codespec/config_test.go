@@ -17,7 +17,7 @@ func TestApplyTimeoutTransformation(t *testing.T) {
 			inputOperations: codespec.APIOperations{
 				Create: codespec.APIOperation{},
 				Read:   codespec.APIOperation{},
-				Update: codespec.APIOperation{},
+				Update: &codespec.APIOperation{},
 			},
 			expectedTimeouts: nil,
 		},
@@ -27,7 +27,7 @@ func TestApplyTimeoutTransformation(t *testing.T) {
 					Wait: &codespec.Wait{},
 				},
 				Read:   codespec.APIOperation{},
-				Update: codespec.APIOperation{},
+				Update: &codespec.APIOperation{},
 			},
 			expectedTimeouts: []codespec.Operation{codespec.Create},
 		},
@@ -37,7 +37,7 @@ func TestApplyTimeoutTransformation(t *testing.T) {
 					Wait: &codespec.Wait{},
 				},
 				Read: codespec.APIOperation{},
-				Update: codespec.APIOperation{
+				Update: &codespec.APIOperation{
 					Wait: &codespec.Wait{},
 				},
 				Delete: &codespec.APIOperation{
@@ -54,7 +54,7 @@ func TestApplyTimeoutTransformation(t *testing.T) {
 				Read: codespec.APIOperation{
 					Wait: &codespec.Wait{},
 				},
-				Update: codespec.APIOperation{
+				Update: &codespec.APIOperation{
 					Wait: &codespec.Wait{},
 				},
 				Delete: &codespec.APIOperation{
@@ -102,7 +102,7 @@ func TestApplyDeleteOnCreateTimeoutTransformation(t *testing.T) {
 					Wait: &codespec.Wait{},
 				},
 				Read:   codespec.APIOperation{},
-				Update: codespec.APIOperation{},
+				Update: &codespec.APIOperation{},
 				Delete: &codespec.APIOperation{},
 			},
 			shouldAddDeleteOnCreateTimeout: true,
@@ -113,7 +113,7 @@ func TestApplyDeleteOnCreateTimeoutTransformation(t *testing.T) {
 					Wait: &codespec.Wait{},
 				},
 				Read:   codespec.APIOperation{},
-				Update: codespec.APIOperation{},
+				Update: &codespec.APIOperation{},
 			},
 			shouldAddDeleteOnCreateTimeout: false,
 		},
@@ -121,7 +121,7 @@ func TestApplyDeleteOnCreateTimeoutTransformation(t *testing.T) {
 			inputOperations: codespec.APIOperations{
 				Create: codespec.APIOperation{},
 				Read:   codespec.APIOperation{},
-				Update: codespec.APIOperation{},
+				Update: &codespec.APIOperation{},
 				Delete: &codespec.APIOperation{},
 			},
 			shouldAddDeleteOnCreateTimeout: false,
@@ -130,7 +130,7 @@ func TestApplyDeleteOnCreateTimeoutTransformation(t *testing.T) {
 			inputOperations: codespec.APIOperations{
 				Create: codespec.APIOperation{},
 				Read:   codespec.APIOperation{},
-				Update: codespec.APIOperation{},
+				Update: &codespec.APIOperation{},
 			},
 			shouldAddDeleteOnCreateTimeout: false,
 		},
@@ -140,7 +140,7 @@ func TestApplyDeleteOnCreateTimeoutTransformation(t *testing.T) {
 					Wait: &codespec.Wait{},
 				},
 				Read: codespec.APIOperation{},
-				Update: codespec.APIOperation{
+				Update: &codespec.APIOperation{
 					Wait: &codespec.Wait{},
 				},
 				Delete: &codespec.APIOperation{

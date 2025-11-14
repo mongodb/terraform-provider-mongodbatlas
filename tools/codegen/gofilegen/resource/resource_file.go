@@ -17,7 +17,7 @@ func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
 		APIOperations: codetemplate.APIOperations{
 			VersionHeader: input.Operations.VersionHeader,
 			Create:        *toCodeTemplateOpModel(&input.Operations.Create),
-			Update:        *toCodeTemplateOpModel(&input.Operations.Update),
+			Update:        toCodeTemplateOpModel(input.Operations.Update),
 			Read:          *toCodeTemplateOpModel(&input.Operations.Read),
 			Delete:        toCodeTemplateOpModel(input.Operations.Delete),
 		},

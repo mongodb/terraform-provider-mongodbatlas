@@ -24,7 +24,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Update: codespec.APIOperation{
+					Update: &codespec.APIOperation{
 						HTTPMethod: "PATCH",
 						Path:       "/api/v1/testname/{projectId}/{roleName}",
 					},
@@ -50,7 +50,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Update: codespec.APIOperation{
+					Update: &codespec.APIOperation{
 						HTTPMethod: "PUT",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -84,7 +84,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 							DelaySeconds:      10,
 						},
 					},
-					Update: codespec.APIOperation{
+					Update: &codespec.APIOperation{
 						HTTPMethod: "PUT",
 						Path:       "/api/v1/testname/{projectId}",
 						Wait: &codespec.Wait{
@@ -126,7 +126,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Update: codespec.APIOperation{
+					Update: &codespec.APIOperation{
 						HTTPMethod: "PATCH",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -153,7 +153,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Update: codespec.APIOperation{
+					Update: &codespec.APIOperation{
 						HTTPMethod: "PATCH",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -166,6 +166,30 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 				},
 			},
 			goldenFileName: "no-op-delete-operation",
+		},
+		"Defining a resource with no UPDATE operation": {
+			inputModel: codespec.Resource{
+				Name:        "test_name",
+				PackageName: "testname",
+				Operations: codespec.APIOperations{
+					Create: codespec.APIOperation{
+						HTTPMethod: "POST",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Update: nil,
+					Read: codespec.APIOperation{
+						HTTPMethod: "GET",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Delete: &codespec.APIOperation{
+						HTTPMethod:        "PATCH",
+						Path:              "/api/v1/testname/{projectId}",
+						StaticRequestBody: `{"enabled": false}`,
+					},
+					VersionHeader: "application/vnd.atlas.2024-05-30+json",
+				},
+			},
+			goldenFileName: "no-op-update-operation",
 		},
 	}
 

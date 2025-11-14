@@ -120,7 +120,7 @@ func TestConvertToProviderSpec(t *testing.T) {
 						Path:       "/api/atlas/v2/groups/{groupId}/testResource",
 						HTTPMethod: "GET",
 					},
-					Update: codespec.APIOperation{
+					Update: &codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/testResource",
 						HTTPMethod: "PATCH",
 					},
@@ -377,7 +377,7 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 						Path:       "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
 						HTTPMethod: "GET",
 					},
-					Update: codespec.APIOperation{
+					Update: &codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
 						HTTPMethod: "PATCH",
 					},
@@ -509,7 +509,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 						Path:       "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/nestedTestResource",
 						HTTPMethod: "GET",
 					},
-					Update: codespec.APIOperation{
+					Update: &codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/nestedTestResource",
 						HTTPMethod: "PATCH",
 					},
@@ -580,7 +580,7 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 						Path:       "/api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}",
 						HTTPMethod: "DELETE",
 					},
-					Update: codespec.APIOperation{
+					Update: &codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}",
 						HTTPMethod: "PATCH",
 					},
@@ -633,11 +633,65 @@ func TestConvertToProviderSpec_singletonResourceNoDeleteOperation(t *testing.T) 
 						Path:       "/api/atlas/v2/groups/{groupId}/testSingletonResource",
 						HTTPMethod: "GET",
 					},
-					Update: codespec.APIOperation{
+					Update: &codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/testSingletonResource",
 						HTTPMethod: "PATCH",
 					},
 					Delete:        nil,
+					VersionHeader: "application/vnd.atlas.2023-01-01+json",
+				},
+			}},
+		},
+	}
+	runTestCase(t, tc)
+}
+
+func TestConvertToProviderSpec_NoUpdateOperation(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      testDataConfigPath,
+		inputResourceName:    "test_resource_no_update_op",
+
+		expectedResult: &codespec.Model{
+			Resources: []codespec.Resource{{
+				Schema: &codespec.Schema{
+					Description: conversion.StringPtr("POST API description"),
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "group_id",
+							TFModelName:              "GroupId",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr(testPathParamDesc),
+							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
+						},
+						{
+							TFSchemaName:             "string_attr",
+							TFModelName:              "StringAttr",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							ReqBodyUsage:             codespec.OmitInUpdateBody,
+							CreateOnly:               true,
+						},
+					},
+				},
+				Name:        "test_resource_no_update_op",
+				PackageName: "testresourcenoupdateop",
+				Operations: codespec.APIOperations{
+					Create: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResourceNoUpdate",
+						HTTPMethod: "POST",
+					},
+					Read: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResourceNoUpdate",
+						HTTPMethod: "GET",
+					},
+					Update: nil,
+					Delete: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResourceNoUpdate",
+						HTTPMethod: "DELETE",
+					},
 					VersionHeader: "application/vnd.atlas.2023-01-01+json",
 				},
 			}},
@@ -704,7 +758,7 @@ func TestConvertToProviderSpec_typeOverride(t *testing.T) {
 						Path:       "/api/atlas/v2/groups/{groupId}/testResourceWithCollections",
 						HTTPMethod: "GET",
 					},
-					Update: codespec.APIOperation{
+					Update: &codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/testResourceWithCollections",
 						HTTPMethod: "PATCH",
 					},
@@ -775,7 +829,7 @@ func TestConvertToProviderSpec_dynamicJSONProperties(t *testing.T) {
 						Path:       "/api/atlas/v2/dynamicJsonProperties",
 						HTTPMethod: "GET",
 					},
-					Update: codespec.APIOperation{
+					Update: &codespec.APIOperation{
 						Path:       "/api/atlas/v2/dynamicJsonProperties",
 						HTTPMethod: "PATCH",
 					},

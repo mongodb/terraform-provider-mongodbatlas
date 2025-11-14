@@ -107,7 +107,9 @@ func applyAliasToPathParams(resource *Resource, aliases map[string]string) {
 	for original, alias := range aliases {
 		resource.Operations.Create.Path = strings.ReplaceAll(resource.Operations.Create.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
 		resource.Operations.Read.Path = strings.ReplaceAll(resource.Operations.Read.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
-		resource.Operations.Update.Path = strings.ReplaceAll(resource.Operations.Update.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
+		if resource.Operations.Delete != nil {
+			resource.Operations.Update.Path = strings.ReplaceAll(resource.Operations.Update.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
+		}
 		if resource.Operations.Delete != nil {
 			resource.Operations.Delete.Path = strings.ReplaceAll(resource.Operations.Delete.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
 		}
@@ -196,7 +198,8 @@ func ApplyTimeoutTransformation(resource *Resource) {
 	if ops.Create.Wait != nil {
 		configurableTimeouts = append(configurableTimeouts, Create)
 	}
-	if ops.Update.Wait != nil {
+	// Update operation is optional
+	if ops.Update != nil && ops.Update.Wait != nil {
 		configurableTimeouts = append(configurableTimeouts, Update)
 	}
 	if ops.Read.Wait != nil {
