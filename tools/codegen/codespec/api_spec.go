@@ -6,6 +6,7 @@ import (
 	"log"
 	"path"
 	"strconv"
+	"strings"
 
 	"github.com/pb33f/libopenapi/datamodel/high/base"
 	high "github.com/pb33f/libopenapi/datamodel/high/v3"
@@ -41,16 +42,54 @@ func BuildSchema(proxy *base.SchemaProxy) (*APISpecSchema, error) {
 	return resp, nil
 }
 
-func getSchemaFromMediaType(mediaTypes *orderedmap.Map[string, *high.MediaType]) (*APISpecSchema, error) {
+func getSchemaFromMediaType(mediaTypes *orderedmap.Map[string, *high.MediaType], configuredVersion *string) (*APISpecSchema, error) {
 	if mediaTypes == nil {
 		return nil, errSchemaNotFound
 	}
 
+	// If a configured version is provided, attempt to select the exact match or the closest older available version.
+	if configuredVersion != nil {
+		target := *configuredVersion
+
+		// Find the closest version by comparing the Atlas date segment (exact match or closest older version)
+		targetDate := extractAtlasDateFromMediaType(target)
+		var bestKey string
+		var bestDate string
+
+		for pair := range orderedmap.Iterate(context.Background(), mediaTypes) {
+			key := pair.Key()
+			mt := pair.Value()
+			if mt == nil || mt.Schema == nil {
+				continue
+			}
+			keyDate := extractAtlasDateFromMediaType(key)
+			if keyDate == "" || targetDate == "" {
+				continue
+			}
+			// We want the greatest keyDate such that keyDate <= targetDate.
+			if keyDate <= targetDate && (bestDate == "" || keyDate > bestDate) {
+				bestKey = key
+				bestDate = keyDate
+			}
+		}
+
+		if bestKey != "" {
+			if mt, ok := mediaTypes.Get(bestKey); ok {
+				s, err := BuildSchema(mt.Schema)
+				if err != nil {
+					return nil, err
+				}
+				return s, nil
+			}
+		}
+		// If no suitable version was found using the configuredVersion, fall through to default behavior.
+	}
+
 	sortedMediaTypes := orderedmap.SortAlpha(mediaTypes)
-	for pair := range orderedmap.Iterate(context.Background(), sortedMediaTypes) {
-		mediaType := pair.Value()
-		if mediaType.Schema != nil {
-			s, err := BuildSchema(mediaType.Schema)
+	if newest := sortedMediaTypes.Newest(); newest != nil {
+		mt := newest.Value
+		if mt != nil && mt.Schema != nil {
+			s, err := BuildSchema(mt.Schema)
 			if err != nil {
 				return nil, err
 			}
@@ -61,12 +100,30 @@ func getSchemaFromMediaType(mediaTypes *orderedmap.Map[string, *high.MediaType])
 	return nil, errSchemaNotFound
 }
 
+// extractAtlasDateFromMediaType extracts the YYYY-MM-DD date segment from Atlas media types like:
+// "application/vnd.atlas.2023-01-01+json". Returns empty string if not found.
+func extractAtlasDateFromMediaType(mediaType string) string {
+	const marker = "vnd.atlas."
+	idx := strings.Index(mediaType, marker)
+	if idx == -1 {
+		return ""
+	}
+	start := idx + len(marker)
+	rest := mediaType[start:]
+	end := strings.IndexByte(rest, '+')
+	if end == -1 {
+		end = len(rest)
+	}
+	date := rest[:end]
+	return date
+}
+
 func buildSchemaFromRequest(op *high.Operation) (*APISpecSchema, error) {
 	if op == nil || op.RequestBody == nil || op.RequestBody.Content == nil || op.RequestBody.Content.Len() == 0 {
 		return nil, errSchemaNotFound
 	}
 
-	return getSchemaFromMediaType(op.RequestBody.Content)
+	return getSchemaFromMediaType(op.RequestBody.Content, nil)
 }
 
 func buildSchemaFromResponse(op *high.Operation) (*APISpecSchema, error) {
@@ -76,12 +133,12 @@ func buildSchemaFromResponse(op *high.Operation) (*APISpecSchema, error) {
 
 	okResponse, ok := op.Responses.Codes.Get(OASResponseCodeOK)
 	if ok {
-		return getSchemaFromMediaType(okResponse.Content)
+		return getSchemaFromMediaType(okResponse.Content, nil)
 	}
 
 	createdResponse, ok := op.Responses.Codes.Get(OASResponseCodeCreated)
 	if ok {
-		return getSchemaFromMediaType(createdResponse.Content)
+		return getSchemaFromMediaType(createdResponse.Content, nil)
 	}
 
 	sortedCodes := orderedmap.SortAlpha(op.Responses.Codes)
@@ -93,7 +150,7 @@ func buildSchemaFromResponse(op *high.Operation) (*APISpecSchema, error) {
 		}
 
 		if statusCode >= 200 && statusCode <= 299 {
-			return getSchemaFromMediaType(responseCode.Content)
+			return getSchemaFromMediaType(responseCode.Content, nil)
 		}
 	}
 
