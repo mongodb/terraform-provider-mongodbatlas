@@ -101,12 +101,13 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: false
-        - string: {}
+        - map:
+            element_type: 5
           description: The stats associated with the stream processor.
           custom_type:
-            package: jsontypes
-            model: jsontypes.Normalized
-            schema: jsontypes.NormalizedType{}
+            package: customtypes
+            model: customtypes.MapValue[jsontypes.Normalized]
+            schema: customtypes.NewMapType[jsontypes.Normalized](ctx)
           computed_optional_required: computed
           tf_schema_name: stats
           tf_model_name: Stats
@@ -121,6 +122,14 @@ schema:
           req_body_usage: omit_always
           sensitive: false
           create_only: true
+        - string: {}
+          description: Selected tier for the Stream Workspace. Configures Memory / VCPU allowances.
+          computed_optional_required: computed
+          tf_schema_name: tier
+          tf_model_name: Tier
+          req_body_usage: omit_always
+          sensitive: false
+          create_only: false
         - bool:
             default: true
           description: Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
