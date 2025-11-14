@@ -13,7 +13,8 @@ import (
 
 func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *ProcessArgs, diags *diag.Diagnostics) {
 	var advancedConfig TFAdvancedConfigurationModel
-	var customCipherConfig *[]string
+	var customCipherConfigTLS12 *[]string
+	var customCipherConfigTLS13 *[]string
 
 	if input.ArgsDefault != nil {
 		// Using the new API as source of Truth, only use `inputLegacy` for fields not in `input`
@@ -37,9 +38,11 @@ func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *ProcessArgs
 			MinimumEnabledTlsProtocol:        types.StringValue(conversion.SafeValue(input.ArgsDefault.MinimumEnabledTlsProtocol)),
 			TlsCipherConfigMode:              types.StringValue(conversion.SafeValue(input.ArgsDefault.TlsCipherConfigMode)),
 		}
-		customCipherConfig = input.ArgsDefault.CustomOpensslCipherConfigTls12
+		customCipherConfigTLS12 = input.ArgsDefault.CustomOpensslCipherConfigTls12
+		customCipherConfigTLS13 = input.ArgsDefault.CustomOpensslCipherConfigTls13
 	}
-	advancedConfig.CustomOpensslCipherConfigTls12 = customOpensslCipherConfigTLS12(ctx, diags, customCipherConfig)
+	advancedConfig.CustomOpensslCipherConfigTls12 = customOpensslCipherConfig(ctx, diags, customCipherConfigTLS12)
+	advancedConfig.CustomOpensslCipherConfigTls13 = customOpensslCipherConfig(ctx, diags, customCipherConfigTLS13)
 
 	overrideTLSIfClusterAdvancedConfigPresent(ctx, diags, &advancedConfig, input.ClusterAdvancedConfig)
 
@@ -54,14 +57,15 @@ func overrideTLSIfClusterAdvancedConfigPresent(ctx context.Context, diags *diag.
 	}
 	tfAdvConfig.MinimumEnabledTlsProtocol = types.StringValue(conversion.SafeValue(conf.MinimumEnabledTlsProtocol))
 	tfAdvConfig.TlsCipherConfigMode = types.StringValue(conversion.SafeValue(conf.TlsCipherConfigMode))
-	tfAdvConfig.CustomOpensslCipherConfigTls12 = customOpensslCipherConfigTLS12(ctx, diags, conf.CustomOpensslCipherConfigTls12)
+	tfAdvConfig.CustomOpensslCipherConfigTls12 = customOpensslCipherConfig(ctx, diags, conf.CustomOpensslCipherConfigTls12)
+	tfAdvConfig.CustomOpensslCipherConfigTls13 = customOpensslCipherConfig(ctx, diags, conf.CustomOpensslCipherConfigTls13)
 }
 
-func customOpensslCipherConfigTLS12(ctx context.Context, diags *diag.Diagnostics, customOpensslCipherConfigTLS12 *[]string) types.Set {
-	if customOpensslCipherConfigTLS12 == nil {
+func customOpensslCipherConfig(ctx context.Context, diags *diag.Diagnostics, customOpensslCipherConfig *[]string) types.Set {
+	if customOpensslCipherConfig == nil {
 		return types.SetNull(types.StringType)
 	}
-	val, d := types.SetValueFrom(ctx, types.StringType, customOpensslCipherConfigTLS12)
+	val, d := types.SetValueFrom(ctx, types.StringType, customOpensslCipherConfig)
 	diags.Append(d...)
 	return val
 }

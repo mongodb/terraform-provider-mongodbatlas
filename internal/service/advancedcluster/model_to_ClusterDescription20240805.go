@@ -65,6 +65,7 @@ func newClusterAdvancedConfiguration(ctx context.Context, objInput *types.Object
 		MinimumEnabledTlsProtocol:      conversion.NilForUnknown(inputAdvConfig.MinimumEnabledTlsProtocol, inputAdvConfig.MinimumEnabledTlsProtocol.ValueStringPointer()),
 		TlsCipherConfigMode:            conversion.NilForUnknown(inputAdvConfig.TlsCipherConfigMode, inputAdvConfig.TlsCipherConfigMode.ValueStringPointer()),
 		CustomOpensslCipherConfigTls12: conversion.Pointer(conversion.TypesSetToString(ctx, inputAdvConfig.CustomOpensslCipherConfigTls12)),
+		CustomOpensslCipherConfigTls13: conversion.Pointer(conversion.TypesSetToString(ctx, inputAdvConfig.CustomOpensslCipherConfigTls13)),
 	}
 }
 
