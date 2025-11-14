@@ -23,9 +23,9 @@ jobs:
         id: check_internal_changes
         run: |
           if git ls-files -m -o --exclude-standard -- internal | grep -q .; then
-            echo "internal_changed=true" >> $GITHUB_OUTPUT
+            echo "internal_changed=true" >> "$GITHUB_OUTPUT"
           else
-            echo "internal_changed=false" >> $GITHUB_OUTPUT
+            echo "internal_changed=false" >> "$GITHUB_OUTPUT"
           fi
       - name: Create PR
         if: steps.check_internal_changes.outputs.internal_changed == 'true'
