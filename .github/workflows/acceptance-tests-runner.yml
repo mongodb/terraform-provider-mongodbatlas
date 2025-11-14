@@ -1292,7 +1292,7 @@ jobs:
         with:
           terraform_version: ${{ inputs.terraform_version }}
           terraform_wrapper: false
-      - name: Acceptance Tests (Currated)
+      - name: Acceptance Tests (Curated)
         env:
           ACCTEST_PACKAGES: ./internal/service/resourcepolicy
         run: make testacc
@@ -1302,9 +1302,7 @@ jobs:
         env:
           ACCTEST_PACKAGES: ./internal/serviceapi/resourcepolicyapi
         run: make testacc
-            
-            
-  
+
   search_deployment:
     needs: [ change-detection, get-provider-version ]
     if: ${{ needs.change-detection.outputs.search_deployment == 'true' || inputs.test_group == 'search_deployment' }}
