@@ -290,6 +290,9 @@ func (r *alertConfigurationRS) Schema(ctx context.Context, req resource.SchemaRe
 						"interval_min": schema.Int64Attribute{
 							Optional: true,
 							Computed: true,
+							Validators: []validator.Int64{
+								ValidIntervalMin(),
+							},
 						},
 						"mobile_number": schema.StringAttribute{
 							Optional: true,

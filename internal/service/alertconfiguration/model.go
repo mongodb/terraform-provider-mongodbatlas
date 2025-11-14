@@ -2,7 +2,6 @@ package alertconfiguration
 
 import (
 	"fmt"
-	"strings"
 
 	"go.mongodb.org/atlas-sdk/v20250312009/admin"
 
@@ -13,15 +12,6 @@ import (
 
 func NewNotificationList(list []TfNotificationModel) (*[]admin.AlertsNotificationRootForGroup, error) {
 	notifications := make([]admin.AlertsNotificationRootForGroup, len(list))
-
-	for i := range list {
-		if !list[i].IntervalMin.IsNull() && list[i].IntervalMin.ValueInt64() > 0 {
-			typeName := list[i].TypeName.ValueString()
-			if strings.EqualFold(typeName, pagerDuty) || strings.EqualFold(typeName, opsGenie) || strings.EqualFold(typeName, victorOps) {
-				return nil, fmt.Errorf(`'interval_min' must not be set if type_name is 'PAGER_DUTY', 'OPS_GENIE' or 'VICTOR_OPS'`)
-			}
-		}
-	}
 
 	for i := range list {
 		n := &list[i]
