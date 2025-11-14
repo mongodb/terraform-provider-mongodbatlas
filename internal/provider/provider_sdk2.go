@@ -243,7 +243,11 @@ func getDataSourcesMap() map[string]*schema.Resource {
 		"mongodbatlas_shared_tier_snapshot":                                         sharedtier.DataSourceSnapshot(),
 		"mongodbatlas_shared_tier_snapshots":                                        sharedtier.PluralDataSourceSnapshot(),
 	}
-	return dataSourcesMap
+	analyticsMap := map[string]*schema.Resource{}
+	for name, dataSource := range dataSourcesMap {
+		analyticsMap[name] = config.NewAnalyticsResourceSDKv2(dataSource, name, true)
+	}
+	return analyticsMap
 }
 
 func getResourcesMap() map[string]*schema.Resource {
@@ -292,7 +296,7 @@ func getResourcesMap() map[string]*schema.Resource {
 	}
 	analyticsMap := map[string]*schema.Resource{}
 	for name, resource := range resourcesMap {
-		analyticsMap[name] = config.NewAnalyticsResourceSDKv2(resource, name)
+		analyticsMap[name] = config.NewAnalyticsResourceSDKv2(resource, name, false)
 	}
 	return analyticsMap
 }

@@ -8,10 +8,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func NewAnalyticsResourceSDKv2(d *schema.Resource, name string) *schema.Resource {
+func NewAnalyticsResourceSDKv2(d *schema.Resource, name string, isDataSource bool) *schema.Resource {
 	analyticsResource := &AnalyticsResourceSDKv2{
-		resource: d,
-		name:     name,
+		resource:     d,
+		name:         name,
+		isDataSource: isDataSource,
 	}
 	/*
 		We are not initializing deprecated fields, for example Update to avoid the message:
@@ -83,8 +84,9 @@ type ProviderMetaSDKv2 struct {
 }
 
 type AnalyticsResourceSDKv2 struct {
-	resource *schema.Resource
-	name     string
+	resource     *schema.Resource
+	name         string
+	isDataSource bool
 }
 
 func (a *AnalyticsResourceSDKv2) CreateContext(ctx context.Context, r *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -167,7 +169,8 @@ func (a *AnalyticsResourceSDKv2) resourceImport(ctx context.Context, d *schema.R
 	return a.resource.Importer.StateContext(ctx, d, meta)
 }
 
-func (a *AnalyticsResourceSDKv2) updateContextWithProviderMeta(ctx context.Context, meta ProviderMetaSDKv2, operationName string) context.Context {
+// updateContextWithProviderMetaSDKv2 is a shared function to update context with provider meta for SDKv2 resources and data sources.
+func updateContextWithProviderMetaSDKv2(ctx context.Context, name string, isDataSource bool, meta ProviderMetaSDKv2, operationName string) context.Context {
 	moduleName := ""
 	if meta.ModuleName != nil {
 		moduleName = *meta.ModuleName
@@ -176,9 +179,15 @@ func (a *AnalyticsResourceSDKv2) updateContextWithProviderMeta(ctx context.Conte
 	if meta.ModuleVersion != nil {
 		moduleVersion = *meta.ModuleVersion
 	}
+	var nameValue string
+	if isDataSource {
+		nameValue = userAgentNameValueDataSource(name)
+	} else {
+		nameValue = userAgentNameValue(name)
+	}
 
 	uaExtra := UserAgentExtra{
-		Name:          userAgentNameValue(a.name),
+		Name:          nameValue,
 		Operation:     operationName,
 		Extras:        meta.UserAgentExtra,
 		ModuleName:    moduleName,
@@ -186,6 +195,10 @@ func (a *AnalyticsResourceSDKv2) updateContextWithProviderMeta(ctx context.Conte
 	}
 	ctx = AddUserAgentExtra(ctx, uaExtra)
 	return ctx
+}
+
+func (a *AnalyticsResourceSDKv2) updateContextWithProviderMeta(ctx context.Context, meta ProviderMetaSDKv2, operationName string) context.Context {
+	return updateContextWithProviderMetaSDKv2(ctx, a.name, a.isDataSource, meta, operationName)
 }
 
 func parseProviderMeta(r *schema.ResourceData) (ProviderMetaSDKv2, error) {
