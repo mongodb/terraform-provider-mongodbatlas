@@ -490,6 +490,12 @@ func AdvancedConfigurationSchema(ctx context.Context) schema.SingleNestedAttribu
 				ElementType:         types.StringType,
 				MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.2. This field is only valid when `tls_cipher_config_mode` is set to `CUSTOM`.",
 			},
+			"custom_openssl_cipher_config_tls13": schema.SetAttribute{
+				Computed:            true,
+				Optional:            true,
+				ElementType:         types.StringType,
+				MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.3. This field is only valid when `tls_cipher_config_mode` is set to `CUSTOM`.",
+			},
 			"tls_cipher_config_mode": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
