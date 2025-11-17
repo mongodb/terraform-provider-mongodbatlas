@@ -32,8 +32,8 @@ jobs:
         uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e
         with:
           token: ${{ secrets.APIX_BOT_PAT }}
-          title: "chore: Update auto-generated resources"
-          commit-message: "chore: Update auto-generated resources"
+          title: "chore: Updates auto-generated resources"
+          commit-message: "chore: Updates auto-generated resources"
           delete-branch: true
           branch: auto-generated-resources-update
           body: Automatic update of auto-generated resources.
