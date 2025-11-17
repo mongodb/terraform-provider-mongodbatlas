@@ -54,6 +54,17 @@ resources:
       path: /api/atlas/v2/groups/{groupId}/testSingletonResource
       method: PATCH
 
+  test_resource_no_update_op:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/testResourceNoUpdate
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/testResourceNoUpdate
+      method: POST
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/testResourceNoUpdate
+      method: DELETE
+
   test_resource_with_overridden_collection_types:
     create:
       path: /api/atlas/v2/groups/{groupId}/testResourceWithCollections

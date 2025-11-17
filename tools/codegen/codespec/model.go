@@ -49,7 +49,7 @@ type APIOperations struct {
 	Delete        *APIOperation `yaml:"delete,omitempty"`
 	Create        APIOperation  `yaml:"create"`
 	Read          APIOperation  `yaml:"read"`
-	Update        APIOperation  `yaml:"update"`
+	Update        *APIOperation `yaml:"update"`
 	VersionHeader string        `yaml:"version_header"`
 }
 
