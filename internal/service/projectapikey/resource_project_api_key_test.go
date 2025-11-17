@@ -190,11 +190,9 @@ func TestAccProjectAPIKey_recreateWhenDeletedExternally(t *testing.T) {
 					if err := deleteAPIKeyManually(orgID, descriptionPrefix); err != nil {
 						t.Fatalf("failed to manually delete API key resource: %s", err)
 					}
-					if err := waitForAPIKeyDeletionByID(orgID, apiKeyID, 30*time.Second); err != nil {
+					if err := waitForAPIKeyDeletionByID(orgID, apiKeyID, 2*time.Minute); err != nil {
 						t.Fatalf("failed to verify API key deletion: %s", err)
 					}
-					// Additional delay to account for eventual consistency in Atlas API
-					time.Sleep(2 * time.Second)
 				},
 				Config:             config,
 				PlanOnly:           true,
