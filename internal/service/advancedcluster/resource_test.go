@@ -2052,6 +2052,42 @@ func checkAdvancedDefaultWrite(name, writeConcern, tls string) resource.TestChec
 		pluralChecks...)
 }
 
+func TestAccAdvancedCluster_tls13CustomCiphers(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
+		resourceName           = "mongodbatlas_advanced_cluster.test"
+		processArgs            = &admin.ClusterDescriptionProcessArgs20240805{
+			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
+			CustomOpensslCipherConfigTls13: conversion.Pointer([]string{"TLS_AES_128_GCM_SHA256"}),
+			MinimumEnabledTlsProtocol:      conversion.StringPtr("TLS1_3"),
+		}
+	)
+
+	cfg := configAdvanced(t, projectID, clusterName, "", processArgs)
+	check := resource.ComposeAggregateTestCheckFunc(
+		resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+		resource.TestCheckResourceAttr(resourceName, "name", clusterName),
+		resource.TestCheckResourceAttr(resourceName, "advanced_configuration.tls_cipher_config_mode", "CUSTOM"),
+		resource.TestCheckResourceAttr(resourceName, "advanced_configuration.custom_openssl_cipher_config_tls13.#", "1"),
+
+		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.tls_cipher_config_mode", "CUSTOM"),
+		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.custom_openssl_cipher_config_tls13.#", "1"),
+
+		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.tls_cipher_config_mode", "CUSTOM"),
+		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.custom_openssl_cipher_config_tls13.#", "1"),
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: cfg,
+				Check:  check,
+			},
+		},
+	})
+}
+
 func configReplicationSpecsAutoScaling(t *testing.T, projectID, clusterName string, autoScalingSettings *admin.AdvancedAutoScalingSettings, elecInstanceSize string, elecDiskSizeGB, analyticsNodeCount int) string {
 	t.Helper()
 	lifecycleIgnoreChanges := ""
