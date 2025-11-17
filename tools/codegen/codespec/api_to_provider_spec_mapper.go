@@ -70,9 +70,6 @@ func validateRequiredOperations(resourceConfigs map[string]config.Resource) erro
 		if resourceConfig.Read == nil {
 			validationErrors = append(validationErrors, fmt.Errorf("resource %s missing Read operation in config file", name))
 		}
-		if resourceConfig.Update == nil {
-			validationErrors = append(validationErrors, fmt.Errorf("resource %s missing Update operation in config file", name))
-		}
 	}
 	if len(validationErrors) > 0 {
 		return errors.Join(validationErrors...)
@@ -143,7 +140,7 @@ func getOperationsFromConfig(resourceConfig *config.Resource) APIOperations {
 	return APIOperations{
 		Create:        *operationConfigToModel(resourceConfig.Create),
 		Read:          *operationConfigToModel(resourceConfig.Read),
-		Update:        *operationConfigToModel(resourceConfig.Update),
+		Update:        operationConfigToModel(resourceConfig.Update),
 		Delete:        operationConfigToModel(resourceConfig.Delete),
 		VersionHeader: resourceConfig.VersionHeader,
 	}
@@ -202,6 +199,9 @@ func pathParamsToAttributes(createOp *high.Operation) Attributes {
 }
 
 func opRequestToAttributes(op *high.Operation) (Attributes, error) {
+	if op == nil {
+		return nil, nil
+	}
 	var requestAttributes Attributes
 	requestSchema, err := buildSchemaFromRequest(op)
 	if err != nil {
