@@ -257,7 +257,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	var copySettings []map[string]any
 	var err error
 
-	backupSchedule, _, err = connV2.CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
+	backupSchedule, _, err = connV2.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		return diag.Errorf(errorSnapshotBackupScheduleRead, clusterName, err)
 	}

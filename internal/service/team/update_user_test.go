@@ -155,7 +155,7 @@ func TestUpdateTeamUsers(t *testing.T) {
 			mockTeamsAPI := mockadmin20241113.NewTeamsApi(t)
 			mockUsersAPI := mockadmin20241113.NewMongoDBCloudUsersApi(t)
 			testCase.mockFuncExpectations(mockTeamsAPI, mockUsersAPI)
-			testCase.expectError(t, team.UpdateTeamUsers(mockTeamsAPI, mockUsersAPI, testCase.existingTeamUsers.GetResults(), testCase.usernames, "orgID", "teamID"))
+			testCase.expectError(t, team.UpdateTeamUsers(t.Context(), mockTeamsAPI, mockUsersAPI, testCase.existingTeamUsers.GetResults(), testCase.usernames, "orgID", "teamID"))
 		})
 	}
 }
