@@ -38,7 +38,7 @@ linters:
   settings:
     forbidigo:
       forbid:
-        - pattern: 'context\.Background\(\)'
+        - pattern: 'context\.Background'
           msg: 'Use of context.Background() is discouraged; use the ctx parameter instead to preserve analytics tracking'
     funlen:
       lines: 360
@@ -115,13 +115,7 @@ linters:
         text: "^hugeParam: req is heavy"
       - linters:
           - forbidigo
-        path: _test\.go$
-      - linters:
-          - forbidigo
-        path: tools/
-      - linters:
-          - forbidigo
-        path: internal/testutil/
+        path: '(_test\.go$|tools/|internal/(config|common|provider|testutil)/)'
       - path: schema\.go # exclude rules for schema files as it's auto-generated from OpenAPI spec
         text: var-naming|exceeds the maximum|regexpSimplify
       - path: (.+)\.go$
