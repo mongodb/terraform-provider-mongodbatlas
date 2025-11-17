@@ -1919,6 +1919,9 @@ func configAdvanced(t *testing.T, projectID, clusterName, mongoDBMajorVersion st
 		if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
 			advancedConfig += fmt.Sprintf("custom_openssl_cipher_config_tls12 = [%s]\n", acc.JoinQuotedStrings(*p.CustomOpensslCipherConfigTls12))
 		}
+		if p.CustomOpensslCipherConfigTls13 != nil && len(*p.CustomOpensslCipherConfigTls13) > 0 {
+			advancedConfig += fmt.Sprintf("custom_openssl_cipher_config_tls13 = [%s]\n", acc.JoinQuotedStrings(*p.CustomOpensslCipherConfigTls13))
+		}
 	}
 	if p.MinimumEnabledTlsProtocol != nil {
 		advancedConfig += fmt.Sprintf("minimum_enabled_tls_protocol = %[1]q\n", *p.MinimumEnabledTlsProtocol)
@@ -1973,9 +1976,14 @@ func checkAdvanced(name, tls string, processArgs *admin.ClusterDescriptionProces
 		advancedConfig["advanced_configuration.default_max_time_ms"] = strconv.Itoa(*processArgs.DefaultMaxTimeMS)
 	}
 
-	if processArgs.TlsCipherConfigMode != nil && processArgs.CustomOpensslCipherConfigTls12 != nil {
+	if processArgs.TlsCipherConfigMode != nil && (processArgs.CustomOpensslCipherConfigTls12 != nil || processArgs.CustomOpensslCipherConfigTls13 != nil) {
 		advancedConfig["advanced_configuration.tls_cipher_config_mode"] = "CUSTOM"
-		advancedConfig["advanced_configuration.custom_openssl_cipher_config_tls12.#"] = strconv.Itoa(len(*processArgs.CustomOpensslCipherConfigTls12))
+		if processArgs.CustomOpensslCipherConfigTls12 != nil {
+			advancedConfig["advanced_configuration.custom_openssl_cipher_config_tls12.#"] = strconv.Itoa(len(*processArgs.CustomOpensslCipherConfigTls12))
+		}
+		if processArgs.CustomOpensslCipherConfigTls13 != nil {
+			advancedConfig["advanced_configuration.custom_openssl_cipher_config_tls13.#"] = strconv.Itoa(len(*processArgs.CustomOpensslCipherConfigTls13))
+		}
 	} else {
 		advancedConfig["advanced_configuration.tls_cipher_config_mode"] = "DEFAULT"
 	}
@@ -2051,6 +2059,41 @@ func checkAdvancedDefaultWrite(name, writeConcern, tls string) resource.TestChec
 		pluralChecks...)
 }
 
+func TestAccAdvancedCluster_tls13CustomCiphers(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
+		resourceName           = "mongodbatlas_advanced_cluster.test"
+		processArgs            = &admin.ClusterDescriptionProcessArgs20240805{
+			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
+			CustomOpensslCipherConfigTls13: conversion.Pointer([]string{"TLS_AES_128_GCM_SHA256"}),
+			MinimumEnabledTlsProtocol:      conversion.StringPtr("TLS1_3"),
+		}
+	)
+
+	advancedConfig := configAdvanced(t, projectID, clusterName, "", processArgs)
+	check := resource.ComposeAggregateTestCheckFunc(
+		resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+		resource.TestCheckResourceAttr(resourceName, "name", clusterName),
+		resource.TestCheckResourceAttr(resourceName, "advanced_configuration.tls_cipher_config_mode", "CUSTOM"),
+		resource.TestCheckResourceAttr(resourceName, "advanced_configuration.custom_openssl_cipher_config_tls13.#", "1"),
+
+		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.tls_cipher_config_mode", "CUSTOM"),
+		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.custom_openssl_cipher_config_tls13.#", "1"),
+
+		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.tls_cipher_config_mode", "CUSTOM"),
+		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.custom_openssl_cipher_config_tls13.#", "1"),
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: advancedConfig,
+				Check:  check,
+			},
+		},
+	})
+}
 func configReplicationSpecsAutoScaling(t *testing.T, projectID, clusterName string, autoScalingSettings *admin.AdvancedAutoScalingSettings, elecInstanceSize string, elecDiskSizeGB, analyticsNodeCount int) string {
 	t.Helper()
 	lifecycleIgnoreChanges := ""
