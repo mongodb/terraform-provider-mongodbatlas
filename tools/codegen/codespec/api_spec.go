@@ -82,7 +82,8 @@ func getSchemaFromMediaType(mediaTypes *orderedmap.Map[string, *high.MediaType],
 				return s, nil
 			}
 		}
-		// If no suitable version was found using the configuredVersion, fall through to default behavior.
+		// If no suitable version was found using the configuredVersion, return an explicit error.
+		return nil, fmt.Errorf("no suitable media type found for configured version %q", target)
 	}
 
 	sortedMediaTypes := orderedmap.SortAlpha(mediaTypes)
