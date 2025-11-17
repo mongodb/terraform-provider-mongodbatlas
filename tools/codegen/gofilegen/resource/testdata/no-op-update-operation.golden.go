@@ -74,6 +74,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 }
 
 func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	resp.Diagnostics.AddError("Operation not supported", "Updating this resource is not supported. To modify your infrastructure, please delete the existing resource and create a new one with the necessary updates.")
 }
 
 func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {

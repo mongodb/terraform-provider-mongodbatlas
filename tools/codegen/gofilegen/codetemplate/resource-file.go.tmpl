@@ -148,6 +148,8 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		{{ end }}
 	}
 	autogen.HandleUpdate(ctx, reqHandle)
+    {{- else}}
+    resp.Diagnostics.AddError("Operation not supported", "Updating this resource is not supported. To modify your infrastructure, please delete the existing resource and create a new one with the necessary updates.")
     {{- end }}
 }
 
