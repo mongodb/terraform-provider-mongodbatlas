@@ -10,7 +10,9 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/cluster"
 	"github.com/stretchr/testify/require"
-	"go.mongodb.org/atlas-sdk/v20250312008/admin"
+
+	//	"go.mongodb.org/atlas-sdk/v20250312009/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
 )
 
 func createProject(tb testing.TB, name string) string {
@@ -18,7 +20,7 @@ func createProject(tb testing.TB, name string) string {
 	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
 	require.NotNil(tb, "Project creation failed: %s, org not set", name)
 	params := &admin.Group{Name: name, OrgId: orgID}
-	resp, _, err := ConnV2().ProjectsApi.CreateGroup(tb.Context(), params).Execute()
+	resp, _, err := ConnPreview().ProjectsApi.CreateGroup(tb.Context(), params).Execute()
 	require.NoError(tb, err, "Project creation failed: %s, err: %s", name, err)
 	id := resp.GetId()
 	require.NotEmpty(tb, id, "Project creation failed: %s", name)
@@ -26,11 +28,11 @@ func createProject(tb testing.TB, name string) string {
 }
 
 func deleteProject(id string) {
-	_, err := ConnV2().ProjectsApi.DeleteGroup(context.Background(), id).Execute()
+	_, err := ConnPreview().ProjectsApi.DeleteGroup(context.Background(), id).Execute()
 	if admin.IsErrorCode(err, "CANNOT_CLOSE_GROUP_ACTIVE_ATLAS_CLUSTERS") {
 		fmt.Printf("Project deletion failed will retry in 30s: %s, error: %s", id, err)
 		time.Sleep(30 * time.Second)
-		_, err = ConnV2().ProjectsApi.DeleteGroup(context.Background(), id).Execute()
+		_, err = ConnPreview().ProjectsApi.DeleteGroup(context.Background(), id).Execute()
 	}
 	if err != nil {
 		fmt.Printf("Project deletion failed: %s, error: %s", id, err)
@@ -40,9 +42,9 @@ func deleteProject(id string) {
 func createCluster(tb testing.TB, projectID, name string) string {
 	tb.Helper()
 	req := clusterReq(name, projectID)
-	_, _, err := ConnV2().ClustersApi.CreateCluster(tb.Context(), projectID, &req).Execute()
+	_, _, err := ConnPreview().ClustersApi.CreateCluster(tb.Context(), projectID, &req).Execute()
 	require.NoError(tb, err, "Cluster creation failed: %s, err: %s", name, err)
-	stateConf := cluster.CreateStateChangeConfig(tb.Context(), ConnV2(), projectID, name, 1*time.Hour)
+	stateConf := cluster.CreateStateChangeConfig(tb.Context(), ConnPreview(), projectID, name, 1*time.Hour)
 	_, err = stateConf.WaitForStateContext(tb.Context())
 	require.NoError(tb, err, "Cluster creation failed: %s, err: %s", name, err)
 
@@ -50,11 +52,11 @@ func createCluster(tb testing.TB, projectID, name string) string {
 }
 
 func deleteCluster(projectID, name string) {
-	_, err := ConnV2().ClustersApi.DeleteCluster(context.Background(), projectID, name).Execute()
+	_, err := ConnPreview().ClustersApi.DeleteCluster(context.Background(), projectID, name).Execute()
 	if err != nil {
 		fmt.Printf("Cluster deletion failed: %s %s, error: %s", projectID, name, err)
 	}
-	stateConf := cluster.DeleteStateChangeConfig(context.Background(), ConnV2(), projectID, name, 1*time.Hour)
+	stateConf := cluster.DeleteStateChangeConfig(context.Background(), ConnPreview(), projectID, name, 1*time.Hour)
 	_, err = stateConf.WaitForStateContext(context.Background())
 	if err != nil {
 		fmt.Printf("Cluster deletion failed: %s %s, error: %s", projectID, name, err)
@@ -99,7 +101,7 @@ func createStreamInstance(tb testing.TB, projectID, name string) {
 			Solar: admin.PtrBool(true),
 		},
 	}
-	_, _, err := ConnV2().StreamsApi.CreateStreamWorkspace(tb.Context(), projectID, &req).Execute()
+	_, _, err := ConnPreview().StreamsApi.CreateStreamWorkspace(tb.Context(), projectID, &req).Execute()
 	require.NoError(tb, err, "Stream instance creation failed: %s, err: %s", name, err)
 }
 
