@@ -189,7 +189,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 					VersionHeader: "application/vnd.atlas.2024-05-30+json",
 				},
 			},
-			goldenFileName: "no-op-update-operation",
+			goldenFileName: "unsupported-update-operation",
 		},
 	}
 
