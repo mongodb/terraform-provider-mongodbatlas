@@ -187,7 +187,7 @@ func TestAccProjectAPIKey_recreateWhenDeletedExternally(t *testing.T) {
 					if apiKeyID == "" {
 						t.Fatalf("API key ID not captured from previous step")
 					}
-					if err := deleteAPIKeyManually(orgID, descriptionPrefix); err != nil {
+					if _, err := acc.ConnV2().ProgrammaticAPIKeysApi.DeleteOrgApiKey(t.Context(), orgID, apiKeyID).Execute(); err != nil {
 						t.Fatalf("failed to manually delete API key resource: %s", err)
 					}
 					if err := waitForAPIKeyDeletionByID(orgID, apiKeyID, 2*time.Minute); err != nil {
@@ -249,21 +249,6 @@ func TestAccProjectAPIKey_invalidRole(t *testing.T) {
 			},
 		},
 	})
-}
-
-func deleteAPIKeyManually(orgID, descriptionPrefix string) error {
-	list, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.ListOrgApiKeys(context.Background(), orgID).Execute()
-	if err != nil {
-		return err
-	}
-	for _, key := range list.GetResults() {
-		if strings.HasPrefix(key.GetDesc(), descriptionPrefix) {
-			if _, err := acc.ConnV2().ProgrammaticAPIKeysApi.DeleteOrgApiKey(context.Background(), orgID, key.GetId()).Execute(); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
 }
 
 // waitForAPIKeyDeletionByID waits for API key deletion using GetOrgApiKey, the same method
