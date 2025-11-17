@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"go.mongodb.org/atlas-sdk/v20250312009/admin"
 )
 
 const (
@@ -159,6 +160,7 @@ func TestAccProjectAPIKey_recreateWhenDeletedExternally(t *testing.T) {
 		descriptionPrefix = acc.RandomName()
 		description       = descriptionPrefix + "-" + acc.RandomName()
 		config            = configBasic(description, projectID, roleName)
+		apiKeyID          string
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -168,17 +170,31 @@ func TestAccProjectAPIKey_recreateWhenDeletedExternally(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config,
-				Check:  check(description, projectID, roleName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					check(description, projectID, roleName),
+					func(s *terraform.State) error {
+						rs, ok := s.RootModule().Resources[resourceName]
+						if !ok {
+							return fmt.Errorf("not found: %s", resourceName)
+						}
+						apiKeyID = rs.Primary.Attributes["api_key_id"]
+						return nil
+					},
+				),
 			},
 			{
 				PreConfig: func() {
+					if apiKeyID == "" {
+						t.Fatalf("API key ID not captured from previous step")
+					}
 					if err := deleteAPIKeyManually(orgID, descriptionPrefix); err != nil {
 						t.Fatalf("failed to manually delete API key resource: %s", err)
 					}
-					// Wait longer and verify deletion to ensure API consistency.
-					if err := waitForAPIKeyDeletion(orgID, descriptionPrefix, 30*time.Second); err != nil {
+					if err := waitForAPIKeyDeletionByID(orgID, apiKeyID, 30*time.Second); err != nil {
 						t.Fatalf("failed to verify API key deletion: %s", err)
 					}
+					// Additional delay to account for eventual consistency in Atlas API
+					time.Sleep(2 * time.Second)
 				},
 				Config:             config,
 				PlanOnly:           true,
@@ -252,23 +268,20 @@ func deleteAPIKeyManually(orgID, descriptionPrefix string) error {
 	return nil
 }
 
-func waitForAPIKeyDeletion(orgID, descriptionPrefix string, timeout time.Duration) error {
+// waitForAPIKeyDeletionByID waits for API key deletion using GetOrgApiKey, the same method
+// the provider's Read function uses. This ensures consistency between test verification
+// and provider operations, reducing race conditions from eventual consistency.
+func waitForAPIKeyDeletionByID(orgID, apiKeyID string, timeout time.Duration) error {
 	deadline := time.Now().Add(timeout)
 	for time.Now().Before(deadline) {
-		list, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.ListOrgApiKeys(context.Background(), orgID).Execute()
+		_, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.GetOrgApiKey(context.Background(), orgID, apiKeyID).Execute()
 		if err != nil {
-			return fmt.Errorf("error listing API keys: %w", err)
-		}
-		found := false
-		for _, key := range list.GetResults() {
-			if strings.HasPrefix(key.GetDesc(), descriptionPrefix) {
-				found = true
-				break
+			if admin.IsErrorCode(err, "API_KEY_NOT_FOUND") {
+				return nil // API key successfully deleted and confirmed.
 			}
+			// For other errors, continue waiting (might be transient)
 		}
-		if !found {
-			return nil // API key successfully deleted and confirmed.
-		}
+		// Key still exists, continue waiting
 		time.Sleep(2 * time.Second)
 	}
 	return fmt.Errorf("timeout waiting for API key deletion after %v", timeout)
