@@ -570,6 +570,50 @@ func TestAccConfigRSAlertConfiguration_withVictorOps(t *testing.T) {
 	})
 }
 
+func TestAccConfigRSAlertConfiguration_updateNotificationTypeFromTeamsToPagerDuty(t *testing.T) {
+	// This test reproduces issue #3869: updating from MICROSOFT_TEAMS with interval_min
+	// to PAGER_DUTY should work without requiring deletion and recreation
+	var (
+		projectID       = acc.ProjectIDExecution(t)
+		teamsWebhookURL = "https://outlook.office.com/webhook/11111111-1111-1111-1111-111111111111@22222222-2222-2222-2222-222222222222/IncomingWebhook/33333333333333333333333333333333/44444444-4444-4444-4444-444444444444"
+		pagerDutyKey    = dummy32CharKey
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy(),
+		Steps: []resource.TestStep{
+			{
+				// Verify that explicitly setting interval_min with PAGER_DUTY fails at schema validation level
+				Config:      configWithPagerDutyAndIntervalMin(projectID, pagerDutyKey, true),
+				ExpectError: regexp.MustCompile(`(?s).*'interval_min'.*must not be set.*PAGER_DUTY`),
+			},
+			{
+				Config: configWithTeamsNotificationAndIntervalMin(projectID, teamsWebhookURL, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "notification.0.type_name", "MICROSOFT_TEAMS"),
+					resource.TestCheckResourceAttr(resourceName, "notification.0.interval_min", "30"),
+				),
+			},
+			{
+				Config: configWithPagerDutyNotification(projectID, pagerDutyKey, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "notification.0.type_name", "PAGER_DUTY"),
+					// interval_min should not be set for PAGER_DUTY
+					resource.TestCheckNoResourceAttr(resourceName, "notification.0.interval_min"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccConfigRSAlertConfiguration_withSeverityOverride(t *testing.T) {
 	var (
 		projectID = acc.ProjectIDExecution(t)
@@ -990,6 +1034,56 @@ func configWithVictorOps(projectID, apiKey string, enabled bool) string {
 			}
 		}
 	`, projectID, apiKey, enabled)
+}
+
+func configWithTeamsNotificationAndIntervalMin(projectID, webhookURL string, enabled bool) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_alert_configuration" "test" {
+			project_id = %[1]q
+			enabled    = %[3]t
+			event_type = "NO_PRIMARY"
+
+			notification {
+				type_name                   = "MICROSOFT_TEAMS"
+				microsoft_teams_webhook_url = %[2]q
+				interval_min                = 30
+				delay_min                   = 0
+			}
+		}
+	`, projectID, webhookURL, enabled)
+}
+
+func configWithPagerDutyNotification(projectID, serviceKey string, enabled bool) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_alert_configuration" "test" {
+			project_id = %[1]q
+			enabled    = %[3]t
+			event_type = "NO_PRIMARY"
+
+			notification {
+				type_name   = "PAGER_DUTY"
+				service_key = %[2]q
+				delay_min   = 0
+			}
+		}
+	`, projectID, serviceKey, enabled)
+}
+
+func configWithPagerDutyAndIntervalMin(projectID, serviceKey string, enabled bool) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_alert_configuration" "test" {
+			project_id = %[1]q
+			enabled    = %[3]t
+			event_type = "NO_PRIMARY"
+
+			notification {
+				type_name   = "PAGER_DUTY"
+				service_key = %[2]q
+				interval_min = 30
+				delay_min   = 0
+			}
+		}
+	`, projectID, serviceKey, enabled)
 }
 
 func configWithEmptyMetricThresholdConfig(projectID string, enabled bool) string {
