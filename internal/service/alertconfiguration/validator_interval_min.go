@@ -3,11 +3,9 @@ package alertconfiguration
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
@@ -33,41 +31,13 @@ func (v IntervalMinValidator) ValidateInt64(ctx context.Context, req validator.I
 	if req.ConfigValue.ValueInt64() <= 0 {
 		return
 	}
-
-	// Parse the path to find which notification index we're validating
 	// Path format: notification[0].interval_min
-	pathStr := req.Path.String()
-	notificationIndex := -1
-
-	// Extract the index from the path (e.g., "notification[0]" -> 0)
-	if idxStart := strings.Index(pathStr, "["); idxStart != -1 {
-		if idxEnd := strings.Index(pathStr[idxStart:], "]"); idxEnd != -1 {
-			idxStr := pathStr[idxStart+1 : idxStart+idxEnd]
-			if idx, err := strconv.Atoi(idxStr); err == nil {
-				notificationIndex = idx
-			}
-		}
-	}
-
-	// If we couldn't parse the index, skip validation
-	if notificationIndex < 0 {
-		return
-	}
-
-	// Get the entire notification list from config
-	var notifications []TfNotificationModel
-	diags := req.Config.GetAttribute(ctx, path.Root("notification"), &notifications)
+	notificationPath := req.Path.ParentPath()
+	var notification TfNotificationModel
+	diags := req.Config.GetAttribute(ctx, notificationPath, &notification)
 	if diags.HasError() {
-		// If we can't read notifications, skip validation (might be unknown during plan)
 		return
 	}
-
-	// Check if we have the notification at the parsed index
-	if notificationIndex >= len(notifications) {
-		return
-	}
-
-	notification := notifications[notificationIndex]
 	typeNameValue := notification.TypeName.ValueString()
 	// Check if the type_name is one of the unsupported types
 	if strings.EqualFold(typeNameValue, pagerDuty) ||
