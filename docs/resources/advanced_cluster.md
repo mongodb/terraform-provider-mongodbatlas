@@ -842,12 +842,25 @@ When auto-scaling is enabled on a cluster, Atlas automatically adjusts instance 
 
 ### How use_effective_fields works
 
-When `use_effective_fields = true`:
+The `use_effective_fields` attribute fundamentally changes how the provider handles specification attributes:
 
-- **Opt-in feature**: Defaults to `false` for full backward compatibility. Existing configurations continue to work without changes
-- **Null vs. default values**: Attributes not explicitly defined in your Terraform configuration are sent as `null` to the Atlas API instead of using default values
-- **Simplified configuration**: You only specify the attributes you want to manage; Atlas handles auto-scaling independently
-- **Read effective values**: Use the `mongodbatlas_advanced_cluster` data source to read actual (effective) values that Atlas has scaled to. Effective specs (`effective_electable_specs`, `effective_analytics_specs`, `effective_read_only_specs`) are always available in data sources regardless of the flag value
+**When `use_effective_fields = false` (default - current behavior):**
+- Spec attributes (`electable_specs`, `analytics_specs`, `read_only_specs`) behavior:
+  - If you specify values in your Terraform configuration (e.g., `instance_size = "M10"`), those values stay in your configuration
+  - If you don't specify them, Atlas provides default values automatically
+- With auto-scaling enabled, Atlas scales your cluster but your configured values don't update to match
+- This creates plan drift: Terraform shows differences between your configured values and what Atlas has actually deployed
+- You must use `lifecycle.ignore_changes` to prevent Terraform from reverting Atlas auto-scaling changes back to your original configuration
+
+**When `use_effective_fields = true` (new behavior):**
+- **Clear separation of concerns**:
+  - Spec attributes remain **exactly as you defined them** in your Terraform configuration
+  - Atlas-computed values (defaults and auto-scaled values) are available separately in **effective specs**
+- Attributes not in your Terraform configuration are sent as `null` to the Atlas API
+- No plan drift occurs when Atlas auto-scales your cluster
+- Use data sources to read `effective_electable_specs`, `effective_analytics_specs`, and `effective_read_only_specs` for actual values
+
+**Key difference:** With `use_effective_fields = true`, your configuration stays clean and represents your intent, while effective specs show the reality of what Atlas has provisioned. Effective spec attributes are always available in data sources regardless of the flag value.
 
 ### Example: Auto-scaling without lifecycle ignore_changes
 
@@ -863,7 +876,8 @@ resource "mongodbatlas_advanced_cluster" "example" {
       region_configs = [
         {
           electable_specs = {
-            instance_size = "M10"  // Starting size
+            instance_size = "M10"  # Starting size - will remain M10 in state
+            node_count    = 3
           }
           auto_scaling = {
             compute_enabled            = true
@@ -880,11 +894,15 @@ resource "mongodbatlas_advanced_cluster" "example" {
   ]
 }
 
-// Read the effective (actual) values after Atlas scales
+# Read the effective (actual) values after Atlas scales
 data "mongodbatlas_advanced_cluster" "example" {
   project_id = mongodbatlas_advanced_cluster.example.project_id
   name       = mongodbatlas_advanced_cluster.example.name
   depends_on = [mongodbatlas_advanced_cluster.example]
+}
+
+output "configured_instance_size" {
+  value = data.mongodbatlas_advanced_cluster.example.replication_specs[0].region_configs[0].electable_specs.instance_size
 }
 
 output "actual_instance_size" {

@@ -138,6 +138,7 @@ resource "mongodbatlas_advanced_cluster" "auto_scale" {
         {
           electable_specs = {
             instance_size = "M10"
+            node_count    = 3
           }
           auto_scaling = {
             compute_enabled            = true
@@ -177,7 +178,7 @@ output "actual_instance_size" {
 
 * `project_id` - (Required) The unique ID for the project to create the cluster.
 * `name` - (Required) Name of the cluster as it appears in Atlas. Once the cluster is created, its name cannot be changed.
-* `use_effective_fields` - (Optional) Flag that indicates whether to return effective field values in the response. When `false` (default), the data source returns standard field values. When `true`, the data source returns effective field values that reflect Atlas-managed changes (such as auto-scaling adjustments). Use this with clusters that have `use_effective_fields = true` enabled. Note that effective specs attributes (`effective_electable_specs`, `effective_analytics_specs`, `effective_read_only_specs`) are always returned regardless of this flag's value. See the resource documentation for [Auto-Scaling with Effective Fields](../resources/advanced_cluster.md#auto-scaling-with-effective-fields) for more details.
+* `use_effective_fields` - (Optional) Flag that indicates whether to return effective field values in the response. When `false` (default), the data source returns standard field values. When `true`, the data source returns effective field values that reflect Atlas-managed changes (such as auto-scaling adjustments). Use this with clusters that have `use_effective_fields = true` enabled. **Note:** This flag does not affect the availability of effective specs attributes (`effective_electable_specs`, `effective_analytics_specs`, `effective_read_only_specs`), which are always returned. See the resource documentation for [Auto-Scaling with Effective Fields](../resources/advanced_cluster.md#auto-scaling-with-effective-fields) for more details.
 
 ## Attributes Reference
 
@@ -244,9 +245,9 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 * `analytics_auto_scaling` - Configuration for the Collection of settings that configures analytics-auto-scaling information for the cluster. See [below](#analytics_auto_scaling).
 * `backing_provider_name` - Cloud service provider on which you provision the host for a multi-tenant cluster.
 * `electable_specs` - Hardware specifications for electable nodes in the region.
-* `effective_electable_specs` - Effective hardware specifications for electable nodes in the region, reflecting actual Atlas-managed values including auto-scaling changes. These fields are always available and show the current state of the cluster as managed by Atlas. See [below](#specs).
-* `effective_analytics_specs` - Effective hardware specifications for analytics nodes in the region, reflecting actual Atlas-managed values including auto-scaling changes. These fields are always available and show the current state of the cluster as managed by Atlas. See [below](#specs).
-* `effective_read_only_specs` - Effective hardware specifications for read-only nodes in the region, reflecting actual Atlas-managed values including auto-scaling changes. These fields are always available and show the current state of the cluster as managed by Atlas. See [below](#specs).
+* `effective_electable_specs` - Effective hardware specifications for electable nodes in the region, reflecting actual Atlas-managed values including auto-scaling changes. See [below](#specs).
+* `effective_analytics_specs` - Effective hardware specifications for analytics nodes in the region, reflecting actual Atlas-managed values including auto-scaling changes. See [below](#specs).
+* `effective_read_only_specs` - Effective hardware specifications for read-only nodes in the region, reflecting actual Atlas-managed values including auto-scaling changes. See [below](#specs).
 * `priority` -  Election priority of the region.
 * `provider_name` - Cloud service provider on which the servers are provisioned.
 * `read_only_specs` - Hardware specifications for read-only nodes in the region. See [below](#specs).
