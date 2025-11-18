@@ -313,6 +313,10 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				Update: true,
 				Delete: true,
 			}),
+			"use_effective_fields": schema.BoolAttribute{
+				Optional:            true,
+				MarkdownDescription: "Flag that indicates whether to use the effective fields for the cluster.",
+			},
 		},
 	}
 }
@@ -531,6 +535,7 @@ type TFModel struct {
 	RedactClientLogData                       types.Bool     `tfsdk:"redact_client_log_data"`
 	PitEnabled                                types.Bool     `tfsdk:"pit_enabled"`
 	DeleteOnCreateTimeout                     types.Bool     `tfsdk:"delete_on_create_timeout"`
+	UseEffectiveFields                        types.Bool     `tfsdk:"use_effective_fields"`
 }
 
 // TFModelDS differs from TFModel: removes timeouts, accept_data_risks_and_force_replica_set_reconfig
@@ -563,6 +568,7 @@ type TFModelDS struct {
 	Paused                           types.Bool   `tfsdk:"paused"`
 	TerminationProtectionEnabled     types.Bool   `tfsdk:"termination_protection_enabled"`
 	PitEnabled                       types.Bool   `tfsdk:"pit_enabled"`
+	UseEffectiveFields               types.Bool   `tfsdk:"use_effective_fields"`
 }
 
 type TFModelPluralDS struct {
