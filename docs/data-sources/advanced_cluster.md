@@ -171,6 +171,8 @@ output "actual_instance_size" {
 }
 ```
 
+**For module authors:** See the [Effective Fields Module Example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/effective-fields-module) for a complete example of using `use_effective_fields` and effective specs in reusable Terraform modules.
+
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project to create the cluster.

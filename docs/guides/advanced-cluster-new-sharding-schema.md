@@ -435,6 +435,8 @@ output "shard_sizes" {
 
 To learn more about `use_effective_fields`, see [Auto-Scaling with Effective Fields](../resources/advanced_cluster.md#auto-scaling-with-effective-fields).
 
+**For module authors:** If you're creating reusable Terraform modules, `use_effective_fields` is particularly valuable as it allows a single module to handle both auto-scaling and non-auto-scaling clusters without requiring lifecycle blocks. See the [Effective Fields Module Example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/effective-fields-module) for a complete implementation.
+
 ### Legacy Approach: Using lifecycle.ignore_changes
 
 If you need to maintain the legacy approach without using `use_effective_fields`, you can use `lifecycle.ignore_changes`:

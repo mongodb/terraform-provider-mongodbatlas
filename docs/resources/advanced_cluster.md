@@ -897,6 +897,27 @@ output "actual_instance_size" {
 - **Current (2.x)**: `use_effective_fields` defaults to `false` for full backward compatibility. Explicitly set to `true` to enable the feature
 - **Future (3.x)**: The feature will be enabled by default (or the attribute deprecated with a new default of `true`). The effective fields behavior will become standard, providing a better auto-scaling experience for all users
 
+### Perfect for Terraform Modules
+
+One of the most powerful use cases for `use_effective_fields` is in **reusable Terraform modules**. When creating a module that provisions Atlas clusters:
+
+- **Without use_effective_fields**: You need either two separate modules (one for auto-scaling, one without) or require module users to add `lifecycle.ignore_changes` blocks themselves
+- **With use_effective_fields**: You can create **one module that works seamlessly for both auto-scaling and non-auto-scaling clusters**, with no lifecycle blocks required
+
+This dramatically simplifies module development and usage:
+
+```terraform
+# Module consumers can enable/disable auto-scaling without changing the module code
+module "atlas_cluster" {
+  source = "./cluster-module"
+
+  enable_auto_scaling = true  # or false - same module handles both!
+  # ... rest of configuration
+}
+```
+
+See the complete [Effective Fields Module Example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/effective-fields-module) for a fully-functional reusable module demonstrating this pattern.
+
 ### When not to use use_effective_fields
 
 If you prefer the current behavior and want to continue using `lifecycle.ignore_changes`, you can keep `use_effective_fields = false` or omit it entirely. This ensures no breaking changes to existing workflows.
