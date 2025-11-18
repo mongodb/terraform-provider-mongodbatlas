@@ -4,9 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -73,25 +71,25 @@ func (r *RSCommon) Configure(ctx context.Context, req resource.ConfigureRequest,
 }
 
 func (r *RSCommon) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	extra := r.asUserAgentExtra(ctx, UserAgentOperationValueCreate, req.ProviderMeta)
+	extra := asUserAgentExtraFromProviderMeta(ctx, r.ResourceName, UserAgentOperationValueCreate, false, req.ProviderMeta)
 	ctx = AddUserAgentExtra(ctx, extra)
 	r.ImplementedResource.Create(ctx, req, resp)
 }
 
 func (r *RSCommon) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	extra := r.asUserAgentExtra(ctx, UserAgentOperationValueRead, req.ProviderMeta)
+	extra := asUserAgentExtraFromProviderMeta(ctx, r.ResourceName, UserAgentOperationValueRead, false, req.ProviderMeta)
 	ctx = AddUserAgentExtra(ctx, extra)
 	r.ImplementedResource.Read(ctx, req, resp)
 }
 
 func (r *RSCommon) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	extra := r.asUserAgentExtra(ctx, UserAgentOperationValueUpdate, req.ProviderMeta)
+	extra := asUserAgentExtraFromProviderMeta(ctx, r.ResourceName, UserAgentOperationValueUpdate, false, req.ProviderMeta)
 	ctx = AddUserAgentExtra(ctx, extra)
 	r.ImplementedResource.Update(ctx, req, resp)
 }
 
 func (r *RSCommon) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	extra := r.asUserAgentExtra(ctx, UserAgentOperationValueDelete, req.ProviderMeta)
+	extra := asUserAgentExtraFromProviderMeta(ctx, r.ResourceName, UserAgentOperationValueDelete, false, req.ProviderMeta)
 	ctx = AddUserAgentExtra(ctx, extra)
 	r.ImplementedResource.Delete(ctx, req, resp)
 }
@@ -111,7 +109,7 @@ func (r *RSCommon) ModifyPlan(ctx context.Context, req resource.ModifyPlanReques
 	if !ok {
 		return
 	}
-	extra := r.asUserAgentExtra(ctx, UserAgentOperationValuePlanModify, req.ProviderMeta)
+	extra := asUserAgentExtraFromProviderMeta(ctx, r.ResourceName, UserAgentOperationValuePlanModify, false, req.ProviderMeta)
 	ctx = AddUserAgentExtra(ctx, extra)
 	resourceWithModifier.ModifyPlan(ctx, req, resp)
 }
@@ -147,70 +145,4 @@ func (r *RSCommon) GetName() string {
 
 func (r *RSCommon) SetClient(client *MongoDBClient) {
 	r.Client = client
-}
-
-func (r *RSCommon) asUserAgentExtra(ctx context.Context, reqOperation string, reqProviderMeta tfsdk.Config) UserAgentExtra {
-	var meta ProviderMeta
-	uaExtra := UserAgentExtra{
-		Name:      userAgentNameValue(r.ResourceName),
-		Operation: reqOperation,
-	}
-	if reqProviderMeta.Raw.IsNull() {
-		return uaExtra
-	}
-	diags := reqProviderMeta.Get(ctx, &meta)
-	if diags.HasError() {
-		return uaExtra
-	}
-
-	extrasLen := len(meta.UserAgentExtra.Elements())
-	userExtras := make(map[string]types.String, extrasLen)
-	diags.Append(meta.UserAgentExtra.ElementsAs(ctx, &userExtras, false)...)
-	if diags.HasError() {
-		return uaExtra
-	}
-	userExtrasString := make(map[string]string, extrasLen)
-	for k, v := range userExtras {
-		userExtrasString[k] = v.ValueString()
-	}
-	return uaExtra.Combine(UserAgentExtra{
-		Extras:        userExtrasString,
-		ModuleName:    meta.ModuleName.ValueString(),
-		ModuleVersion: meta.ModuleVersion.ValueString(),
-	})
-}
-
-// DSCommon is used as an embedded struct for all framework data sources. Implements the following plugin-framework defined functions:
-// - Metadata
-// - Configure
-// Client is left empty and populated by the framework when envoking Configure method.
-// DataSourceName must be defined when creating an instance of a data source.
-type DSCommon struct {
-	Client         *MongoDBClient
-	DataSourceName string
-}
-
-func (d *DSCommon) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = fmt.Sprintf("%s_%s", req.ProviderTypeName, d.DataSourceName)
-}
-
-func (d *DSCommon) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	client, err := configureClient(req.ProviderData)
-	if err != nil {
-		resp.Diagnostics.AddError(errorConfigureSummary, err.Error())
-		return
-	}
-	d.Client = client
-}
-
-func configureClient(providerData any) (*MongoDBClient, error) {
-	if providerData == nil {
-		return nil, nil
-	}
-
-	if client, ok := providerData.(*MongoDBClient); ok {
-		return client, nil
-	}
-
-	return nil, fmt.Errorf(errorConfigure, providerData)
 }

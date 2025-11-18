@@ -33,6 +33,9 @@ type UserAgentExtra struct {
 	ModuleVersion string
 }
 
+func userAgentNameValueDataSource(name string) string {
+	return "data." + userAgentNameValue(name)
+}
 func userAgentNameValue(name string) string {
 	return strings.TrimPrefix(name, "mongodbatlas_")
 }
