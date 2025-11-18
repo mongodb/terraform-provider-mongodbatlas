@@ -11,7 +11,7 @@ jobs:
     permissions: {}
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
       - uses: ./.github/templates/clean-atlas-org
         name: Clean Atlas Org Dev
         env:
@@ -25,7 +25,7 @@ jobs:
     permissions: {}
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
       - uses: ./.github/templates/clean-atlas-org
         name: Clean Atlas Org QA
         env:
