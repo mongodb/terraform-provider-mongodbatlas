@@ -106,7 +106,7 @@ The provider supports retrieving credentials from AWS Secrets Manager. See [AWS 
       aws_session_token     = var.aws_session_token
       assume_role {
          role_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/mdbsts"
-      }           
+      }
       secret_name           = "mongodbsecret"
       region                = "us-east-2"
    }
