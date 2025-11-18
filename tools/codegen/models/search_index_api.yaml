@@ -93,12 +93,13 @@ schema:
                                   req_body_usage: all_request_bodies
                                   sensitive: false
                                   create_only: false
-                                - string: {}
+                                - map:
+                                    element_type: 5
                                   description: Tokenizer that you want to use to create tokens. Tokens determine how Atlas Search splits up text into discrete chunks for indexing.
                                   custom_type:
-                                    package: jsontypes
-                                    model: jsontypes.Normalized
-                                    schema: jsontypes.NormalizedType{}
+                                    package: customtypes
+                                    model: customtypes.MapValue[jsontypes.Normalized]
+                                    schema: customtypes.NewMapType[jsontypes.Normalized](ctx)
                                   computed_optional_required: required
                                   tf_schema_name: tokenizer
                                   tf_model_name: Tokenizer
@@ -383,12 +384,13 @@ schema:
                                   req_body_usage: omit_always
                                   sensitive: false
                                   create_only: false
-                                - string: {}
+                                - map:
+                                    element_type: 5
                                   description: Tokenizer that you want to use to create tokens. Tokens determine how Atlas Search splits up text into discrete chunks for indexing.
                                   custom_type:
-                                    package: jsontypes
-                                    model: jsontypes.Normalized
-                                    schema: jsontypes.NormalizedType{}
+                                    package: customtypes
+                                    model: customtypes.MapValue[jsontypes.Normalized]
+                                    schema: customtypes.NewMapType[jsontypes.Normalized](ctx)
                                   computed_optional_required: computed
                                   tf_schema_name: tokenizer
                                   tf_model_name: Tokenizer
