@@ -54,8 +54,8 @@ func TestAccSearchIndexAPI_withMappingAndAnalyzer(t *testing.T) {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configWithMappingAndAnalyzer(projectID, clusterName, indexName),
-				Check:  checkWithMappingAndAnalyzer(projectID, clusterName, indexName),
+				Config: configWithMappingAndAnalyzer(projectID, clusterName, indexName, true),
+				Check:  checkWithMappingAndAnalyzer(projectID, clusterName, indexName, true),
 			},
 		},
 	})
@@ -80,31 +80,32 @@ func TestAccSearchIndexAPI_withSynonymsUpdatedToEmpty(t *testing.T) {
 			// {
 			// 	Config: configWithSynonyms(projectID, clusterName, indexName, false),
 			// 	Check:  checkWithSynonyms(projectID, clusterName, indexName, false),
-			// },	
+			// },
 		},
 	})
 }
 
 func TestAccSearchIndexAPI_updatedToEmptyAnalyzers(t *testing.T) {
-	// var (
-	// 	projectID, clusterName = acc.ClusterNameExecution(t, true)
-	// 	indexName              = acc.RandomName()
-	// )
-	// resource.ParallelTest(t, resource.TestCase{
-	// 	PreCheck:                 func() { acc.PreCheckBasic(t) },
-	// 	ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-	// 	CheckDestroy:             checkDestroy,
-	// 	// Steps: []resource.TestStep{
-	// 	// 	{
-	// 	// 		Config: configWithAnalyzers(projectID, clusterName, indexName),
-	// 	// 		Check:  checkWithAnalyzers(projectID, clusterName, indexName, true),
-	// 	// 	},
-	// 	// 	{
-	// 	// 		Config: configBasic(projectID, clusterName, indexName),
-	// 	// 		Check:  checkWithAnalyzers(projectID, clusterName, indexName, false),
-	// 	// 	},
-	// 	// },
-	// })
+	var (
+		projectID, clusterName = acc.ClusterNameExecution(t, true)
+		indexName              = acc.RandomName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithMappingAndAnalyzer(projectID, clusterName, indexName, true),
+				Check:  checkWithMappingAndAnalyzer(projectID, clusterName, indexName, true),
+			},
+			// Currently fails due to Invalid definition: "typeSets" cannot be empty. CLOUDP to allow configuration for sending null in list (and other) types
+			// {
+			// 	Config: configWithMappingAndAnalyzer(projectID, clusterName, indexName, false),
+			// 	Check:  checkWithMappingAndAnalyzer(projectID, clusterName, indexName, false),
+			// },
+		},
+	})
 }
 
 func TestAccSearchIndexAPI_withStoredSourceFalse(t *testing.T) {
@@ -285,7 +286,32 @@ func configBasic(projectID, clusterName, indexName string) string {
 	`, projectID, clusterName, indexName, database, collection)
 }
 
-func configWithMappingAndAnalyzer(projectID, clusterName, indexName string) string {
+func configWithMappingAndAnalyzer(projectID, clusterName, indexName string, includeAnalyzers bool) string {
+	var analyzers string
+	if includeAnalyzers {
+		analyzers = `
+				analyzers = [{
+					name = "index_analyzer_test_name"
+					char_filters = [
+						jsonencode({
+							type     = "mapping"
+							mappings = {"\\\\"="/"}
+						})
+					]
+					tokenizer = {
+						type   = jsonencode("nGram")
+						minGram = 2
+						maxGram = 5
+					}
+					token_filters = [
+						jsonencode({
+							type = "length"
+							min  = 20
+							max  = 33
+						})
+					]
+				}]`
+	}
 	return fmt.Sprintf(`
         resource "mongodbatlas_search_index_api" "test" {
             group_id        = %[1]q
@@ -328,31 +354,11 @@ func configWithMappingAndAnalyzer(projectID, clusterName, indexName string) stri
 						})
                 	}
                 }
-				analyzer = "index_analyzer_test_name"
-				analyzers = [{
-					name = "index_analyzer_test_name"
-					char_filters = [
-						jsonencode({
-							type     = "mapping"
-							mappings = {"\\\\"="/"}
-						})
-					]
-					tokenizer = {
-						type   = jsonencode("nGram")
-						minGram = 2
-						maxGram = 5
-					}
-					token_filters = [
-						jsonencode({
-							type = "length"
-							min  = 20
-							max  = 33
-						})
-					]
-				}]
+				analyzer = "lucene.standard"
+				%[6]s
             }
         }
-    `, projectID, clusterName, indexName, database, collection)
+    `, projectID, clusterName, indexName, database, collection, analyzers)
 }
 
 func checkBasic(projectID, clusterName, indexName string) resource.TestCheckFunc {
@@ -371,14 +377,19 @@ func checkBasic(projectID, clusterName, indexName string) resource.TestCheckFunc
 	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
-func checkWithMappingAndAnalyzer(projectID, clusterName, indexName string) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
+func checkWithMappingAndAnalyzer(projectID, clusterName, indexName string, expectAnalyzers bool) resource.TestCheckFunc {
+	checks := []resource.TestCheckFunc{
 		checkBasic(projectID, clusterName, indexName),
 		resource.TestCheckResourceAttr(resourceName, "latest_definition.mappings.dynamic", "false"),
 		resource.TestCheckResourceAttr(resourceName, "latest_definition.mappings.fields.%", "3"),
-		resource.TestCheckResourceAttr(resourceName, "latest_definition.analyzers.#", "1"),
-		resource.TestCheckResourceAttr(resourceName, "latest_definition.analyzer", "index_analyzer_test_name"),
-	)
+		resource.TestCheckResourceAttr(resourceName, "latest_definition.analyzer", "lucene.standard"),
+	}
+	if expectAnalyzers {
+		checks = append(checks, resource.TestCheckResourceAttr(resourceName, "latest_definition.analyzers.#", "1"))
+	} else {
+		checks = append(checks, resource.TestCheckResourceAttr(resourceName, "latest_definition.analyzers.#", "0"))
+	}
+	return resource.ComposeAggregateTestCheckFunc(checks...)
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
