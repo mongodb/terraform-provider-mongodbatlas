@@ -514,7 +514,7 @@ Refer to the following for full privatelink endpoint connection string examples:
 * `redact_client_log_data` - (Optional) Flag that enables or disables log redaction, see the [manual](https://www.mongodb.com/docs/manual/administration/monitoring/#log-redaction) for more information. Use this in conjunction with Encryption at Rest and TLS/SSL (Transport Encryption) to assist compliance with regulatory requirements. **Note**: Changing this setting on a cluster will trigger a rolling restart as soon as the cluster is updated.
 * `config_server_management_mode` - (Optional) Config Server Management Mode for creating or updating a sharded cluster. Valid values are `ATLAS_MANAGED` (default) and `FIXED_TO_DEDICATED`. When configured as `ATLAS_MANAGED`, Atlas may automatically switch the cluster's config server type for optimal performance and savings. When configured as `FIXED_TO_DEDICATED`, the cluster will always use a dedicated config server. To learn more, see the [Sharded Cluster Config Servers documentation](https://dochub.mongodb.org/docs/manual/core/sharded-cluster-config-servers/).
 - `delete_on_create_timeout`- (Optional) Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
-* `use_effective_fields` - (Optional) Flag that indicates whether to use effective fields for Atlas API operations. When `false` (default), the resource uses client-provided values and provides full backward compatibility. When `true`, the resource uses only fields explicitly defined in your Terraform configuration, with unspecified fields sent as `null` to the Atlas API. This opt-in feature enhances auto-scaling workflows by preventing plan drift from Atlas-managed changes. See [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) for details. **Note**: This attribute will be deprecated in provider version 2.x and removed in 3.x when the new behavior becomes default.
+* `use_effective_fields` - (Optional) Flag that indicates whether to use effective fields for Atlas API operations. When `false` (default), the resource uses client-provided values and provides full backward compatibility. When `true`, the resource uses only fields explicitly defined in your Terraform configuration, with unspecified fields sent as `null` to the Atlas API. This opt-in feature enhances auto-scaling workflows by eliminating the need for `lifecycle.ignore_changes` blocks and preventing plan drift from Atlas-managed changes. See [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) for details. **Note**: This attribute will be deprecated in provider version 2.x and removed in 3.x when the new behavior becomes default.
 
 ### bi_connector_config
 
@@ -741,9 +741,9 @@ lifecycle {
 ~> **IMPORTANT:** If `disk_gb_enabled` or `compute_enabled` is true, Atlas automatically scales the cluster up or down.
 This will cause the value of `replication_specs[#].region_config[#].analytics_specs.disk_size_gb` or `replication_specs[#].region_config[#].analytics_specs.instance_size` returned to potentially be different than what is specified in the Terraform config. If you then apply a plan, not noting this, Terraform will scale the cluster back to the original values in the config.
 
-**Option 1 (Recommended):** Use `use_effective_fields = true` to enable the new effective fields behavior. This eliminates the need for `lifecycle` ignore customizations and allows you to read scaled values using the `mongodbatlas_advanced_cluster` data source. See [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) for details.
+**Option 1 (Recommended):** Use `use_effective_fields = true` to enable the effective fields behavior. This eliminates the need for `lifecycle` ignore customizations and allows you to read scaled values using the `mongodbatlas_advanced_cluster` data source. See [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) for details.
 
-**Option 2:** To prevent unintended changes when enabling autoscaling without using `use_effective_fields`, use a lifecycle ignore customization as shown in the example below. To explicitly change `disk_size_gb` or `instance_size` values, comment out the `lifecycle` block and run `terraform apply`. Please be sure to uncomment the `lifecycle` block once done to prevent any accidental changes.
+**Option 2:** To prevent unintended changes when enabling auto-scaling without using `use_effective_fields`, use a lifecycle ignore customization as shown in the example below. To explicitly change `disk_size_gb` or `instance_size` values, comment out the `lifecycle` block and run `terraform apply`. Be sure to uncomment the `lifecycle` block once done to prevent any accidental changes.
 
 ```terraform
 // Example: ignore disk_size_gb and instance_size changes in a replica set
@@ -830,24 +830,24 @@ More information about moving resources can be found in our [Migration Guide](ht
 
 ## Auto-Scaling with Effective Fields
 
-The `use_effective_fields` attribute provides an enhanced auto-scaling experience by addressing common challenges with plan verbosity and configuration drift.
+The `use_effective_fields` attribute enhances auto-scaling workflows by eliminating the need for `lifecycle.ignore_changes` blocks and providing visibility into Atlas-managed changes.
 
 ### Why use_effective_fields?
 
 When auto-scaling is enabled on a cluster, Atlas automatically adjusts instance sizes and disk capacity based on workload. Without `use_effective_fields`, you must use `lifecycle.ignore_changes` blocks to prevent Terraform from reverting these Atlas-managed changes. This approach has limitations:
 
-- **Plan verbosity**: You cannot easily see what Atlas has scaled in your Terraform state
+- **Limited visibility**: You cannot easily see what Atlas has scaled in your Terraform state
 - **Configuration drift**: The actual cluster configuration diverges from your Terraform configuration
-- **Maintenance burden**: You must carefully manage `ignore_changes` blocks and comment/uncomment them when making intentional changes
+- **Maintenance overhead**: You must carefully manage `ignore_changes` blocks and comment/uncomment them when making intentional changes
 
 ### How use_effective_fields works
 
 When `use_effective_fields = true`:
 
-- **Backward compatibility**: This is an opt-in feature. When `false` (default), behavior is fully backward compatible
-- **Null vs. default values**: Attributes not defined in your Terraform configuration are sent as `null` to the Atlas API, rather than using default values
-- **Cleaner configuration**: You only specify the attributes you want to manage, and Atlas handles the rest
-- **Read effective values**: Use the `mongodbatlas_advanced_cluster` data source to read actual (effective) values that Atlas has scaled to. Note that effective specs (`effective_electable_specs`, `effective_analytics_specs`, `effective_read_only_specs`) are always available in data sources regardless of the `use_effective_fields` flag value, allowing you to see the current state of the cluster
+- **Opt-in feature**: Defaults to `false` for full backward compatibility. Existing configurations continue to work without changes
+- **Null vs. default values**: Attributes not explicitly defined in your Terraform configuration are sent as `null` to the Atlas API instead of using default values
+- **Simplified configuration**: You only specify the attributes you want to manage; Atlas handles auto-scaling independently
+- **Read effective values**: Use the `mongodbatlas_advanced_cluster` data source to read actual (effective) values that Atlas has scaled to. Effective specs (`effective_electable_specs`, `effective_analytics_specs`, `effective_read_only_specs`) are always available in data sources regardless of the flag value
 
 ### Example: Auto-scaling without lifecycle ignore_changes
 
@@ -894,33 +894,21 @@ output "actual_instance_size" {
 
 ### Migration path and version 3.0
 
-- **Current (2.x)**: `use_effective_fields` defaults to `false` for full backward compatibility. Explicitly set to `true` to enable the feature
-- **Future (3.x)**: The feature will be enabled by default (or the attribute deprecated with a new default of `true`). The effective fields behavior will become standard, providing a better auto-scaling experience for all users
+- **Current (2.x)**: `use_effective_fields` defaults to `false` for full backward compatibility. Set to `true` to enable the feature
+- **Future (3.x)**: The effective fields behavior will be enabled by default. The `use_effective_fields` attribute will be deprecated in 2.x and removed in 3.x, when the new behavior becomes standard
 
-### Perfect for Terraform Modules
+### Terraform Modules
 
-One of the most powerful use cases for `use_effective_fields` is in **reusable Terraform modules**. When creating a module that provisions Atlas clusters:
+`use_effective_fields` is particularly valuable for **reusable Terraform modules**. It enables a single module to handle both auto-scaling and non-auto-scaling clusters without requiring lifecycle blocks:
 
-- **Without use_effective_fields**: You need either two separate modules (one for auto-scaling, one without) or require module users to add `lifecycle.ignore_changes` blocks themselves
-- **With use_effective_fields**: You can create **one module that works seamlessly for both auto-scaling and non-auto-scaling clusters**, with no lifecycle blocks required
+- **Without use_effective_fields**: You need separate modules or require module users to add `lifecycle.ignore_changes` blocks
+- **With use_effective_fields**: One module works for both scenarios with no lifecycle blocks required
 
-This dramatically simplifies module development and usage:
-
-```terraform
-# Module consumers can enable/disable auto-scaling without changing the module code
-module "atlas_cluster" {
-  source = "./cluster-module"
-
-  enable_auto_scaling = true  # or false - same module handles both!
-  # ... rest of configuration
-}
-```
-
-See the complete [Effective Fields Module Example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/effective-fields-module) for a fully-functional reusable module demonstrating this pattern.
+See the [Effective Fields Module Example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/effective-fields-module) for a complete implementation.
 
 ### When not to use use_effective_fields
 
-If you prefer the current behavior and want to continue using `lifecycle.ignore_changes`, you can keep `use_effective_fields = false` or omit it entirely. This ensures no breaking changes to existing workflows.
+If you prefer the current behavior and want to continue using `lifecycle.ignore_changes`, keep `use_effective_fields = false` or omit it entirely. This ensures no breaking changes to existing workflows.
 
 ## Considerations and Best Practices
 
