@@ -311,6 +311,7 @@ jobs:
           autogen_slow:
             - 'internal/common/autogen/*.go'
             - 'internal/serviceapi/clusterapi/*.go'
+            - 'internal/serviceapi/clusteroldapi/*.go'
             - 'internal/serviceapi/pushbasedlogexportapi/*.go'
             - 'internal/serviceapi/searchdeploymentapi/*.go'
             - 'internal/serviceapi/searchindexapi/*.go'
