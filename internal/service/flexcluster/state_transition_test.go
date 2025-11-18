@@ -5,8 +5,10 @@ import (
 	"net/http"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312008/admin"
-	"go.mongodb.org/atlas-sdk/v20250312008/mockadmin"
+	//	"go.mongodb.org/atlas-sdk/v20250312008/admin" // TODO: change to SDK before merging to master
+	"github.com/mongodb/atlas-sdk-go/admin"
+	//	"go.mongodb.org/atlas-sdk/v20250312008/mockadmin" // TODO: change to SDK before merging to master
+	"github.com/mongodb/atlas-sdk-go/mockadmin"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

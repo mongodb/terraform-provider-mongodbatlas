@@ -11,8 +11,10 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312008/admin"
-	"go.mongodb.org/atlas-sdk/v20250312008/mockadmin"
+	//	"go.mongodb.org/atlas-sdk/v20250312008/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
+	//	"go.mongodb.org/atlas-sdk/v20250312008/mockadmin"
+	"github.com/mongodb/atlas-sdk-go/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -1196,11 +1198,11 @@ func tagChecks(tags map[string]string, notFoundKeys ...string) resource.TestChec
 }
 
 func checkExists(resourceName string) resource.TestCheckFunc {
-	return checkExistsWithConn(resourceName, acc.ConnV2())
+	return checkExistsWithConn(resourceName, acc.ConnPreview())
 }
 
 func checkExistsGov(resourceName string) resource.TestCheckFunc {
-	return checkExistsWithConn(resourceName, acc.ConnV2UsingGov())
+	return checkExistsWithConn(resourceName, acc.ConnPreview())
 }
 
 func checkExistsWithConn(resourceName string, conn *admin.APIClient) resource.TestCheckFunc {

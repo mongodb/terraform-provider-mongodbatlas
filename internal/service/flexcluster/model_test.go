@@ -9,7 +9,9 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/flexcluster"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20250312008/admin"
+
+	//	"go.mongodb.org/atlas-sdk/v20250312008/admin" // TODO: change to SDK before merging to master
+	"github.com/mongodb/atlas-sdk-go/admin"
 )
 
 var (

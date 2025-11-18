@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312008/admin"
+	"github.com/mongodb/atlas-sdk-go/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
