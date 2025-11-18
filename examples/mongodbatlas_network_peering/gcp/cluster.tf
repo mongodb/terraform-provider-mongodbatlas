@@ -1,10 +1,13 @@
 # This cluster is in GCP cloud-provider with VPC peering enabled
+# Note: Using use_effective_fields = true eliminates the need for lifecycle.ignore_changes
+# See: https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#auto-scaling-with-effective-fields
 
 resource "mongodbatlas_advanced_cluster" "cluster" {
-  project_id     = var.project_id
-  name           = "cluster-test"
-  cluster_type   = "REPLICASET"
-  backup_enabled = true # enable cloud provider snapshots
+  project_id           = var.project_id
+  name                 = "cluster-test"
+  cluster_type         = "REPLICASET"
+  backup_enabled       = true # enable cloud provider snapshots
+  use_effective_fields = true
 
   replication_specs = [{
     region_configs = [{
@@ -29,12 +32,6 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   }
   advanced_configuration = {
     minimum_enabled_tls_protocol = "TLS1_2"
-  }
-
-  lifecycle {
-    ignore_changes = [
-      replication_specs[0].region_configs[0].electable_specs.instance_size,
-    ]
   }
 }
 
