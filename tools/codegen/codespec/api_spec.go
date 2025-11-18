@@ -48,6 +48,7 @@ func getSchemaFromMediaType(mediaTypes *orderedmap.Map[string, *high.MediaType],
 	}
 
 	// If a configured version is provided, attempt to select the exact match or the closest older available version.
+	// Fuzzy matching allows defining a single configured version per resource, handling case in which all operations do not having the same version.
 	if configuredVersion != nil {
 		target := *configuredVersion
 
