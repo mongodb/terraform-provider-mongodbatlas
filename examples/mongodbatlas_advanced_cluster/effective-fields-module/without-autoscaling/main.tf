@@ -12,7 +12,7 @@ provider "mongodbatlas" {
   client_secret = var.atlas_client_secret
 }
 
-# Example: Using the module WITHOUT auto-scaling
+# This example demonstrates module usage with fixed cluster specifications (auto-scaling disabled).
 module "atlas_cluster" {
   source = "../module"
 
@@ -21,7 +21,7 @@ module "atlas_cluster" {
   cluster_name = "example-cluster-fixed"
   cluster_type = "REPLICASET"
 
-  # Auto-scaling is disabled
+  # Disable auto-scaling to maintain fixed cluster specifications
   enable_auto_scaling           = false
   enable_analytics_auto_scaling = false
 
@@ -53,10 +53,10 @@ module "atlas_cluster" {
   }
 }
 
-# Outputs showing both configured and effective specs
-# Even without auto-scaling, effective specs are available and match configured values
+# Module outputs expose both configured and effective specifications.
+# Without auto-scaling, effective specifications match configured values.
 output "cluster_info" {
-  description = "Cluster information"
+  description = "Basic cluster information including operational state"
   value = {
     cluster_name         = module.atlas_cluster.cluster_name
     project_id           = module.atlas_cluster.project_id
@@ -66,7 +66,7 @@ output "cluster_info" {
 }
 
 output "configured_vs_effective" {
-  description = "Comparison of configured and effective specifications"
+  description = "Comparison of configured specifications and effective specifications as provisioned by Atlas"
   value = {
     configured = module.atlas_cluster.configured_specs
     effective  = module.atlas_cluster.effective_specs

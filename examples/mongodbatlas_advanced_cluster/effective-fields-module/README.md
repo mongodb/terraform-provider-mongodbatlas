@@ -1,59 +1,78 @@
 # MongoDB Atlas Advanced Cluster Module with Effective Fields
 
-This example demonstrates how to create a **reusable Terraform module** for MongoDB Atlas clusters that seamlessly supports both auto-scaling and non-auto-scaling configurations without requiring `lifecycle.ignore_changes` blocks.
+This example demonstrates a reusable Terraform module for MongoDB Atlas clusters that supports both auto-scaling and non-auto-scaling configurations without requiring `lifecycle.ignore_changes` blocks.
 
-## Why This Matters for Module Authors
+## Overview
 
-When creating reusable Terraform modules for MongoDB Atlas clusters, you typically face a challenge:
+When creating reusable Terraform modules for MongoDB Atlas clusters with auto-scaling capabilities, module authors face a significant challenge: auto-scaling changes made by Atlas cause plan drift unless `lifecycle.ignore_changes` blocks are used. However, incorporating lifecycle blocks into modules creates inflexibility and maintenance complexity.
 
-- **Without auto-scaling**: Module works fine, no special handling needed
-- **With auto-scaling**: Atlas changes instance sizes dynamically, causing Terraform plan drift unless you use `lifecycle.ignore_changes`
+The `use_effective_fields` attribute addresses this by enabling a single module implementation that handles both auto-scaling and non-auto-scaling scenarios without lifecycle block requirements.
 
-### The Problem with Traditional Approaches
+## The Challenge for Module Authors
 
-**Before `use_effective_fields`, you needed TWO different modules or complex workarounds:**
+### Without use_effective_fields
 
+Traditional approaches require one of the following unsatisfactory solutions:
+
+**Option 1: Module includes lifecycle.ignore_changes in resource definition**
 ```terraform
-# ❌ Problem: Module users must add lifecycle.ignore_changes themselves
-module "cluster" {
-  source = "./cluster-module"
+# Inside the module's cluster resource
+resource "mongodbatlas_advanced_cluster" "this" {
   # ... configuration
 
   lifecycle {
     ignore_changes = [
-      # Users must know which fields to ignore
       replication_specs[0].region_configs[0].electable_specs.instance_size,
-      # ... and maintain this list
+      replication_specs[0].region_configs[0].electable_specs.disk_size_gb,
+      # ... additional fields
     ]
   }
 }
 ```
+**Limitation**: Module becomes specialized for auto-scaling scenarios only, or requires conditional lifecycle block logic, adding complexity.
 
-**Or you'd need separate modules:**
-- `cluster-module-with-autoscaling/` (includes lifecycle.ignore_changes)
+**Option 2: Module users manage resources directly**
+```terraform
+# Users cannot use the module and must manage resources directly
+resource "mongodbatlas_advanced_cluster" "this" {
+  # ... direct configuration instead of module abstraction
+
+  lifecycle {
+    ignore_changes = [
+      replication_specs[0].region_configs[0].electable_specs.instance_size,
+    ]
+  }
+}
+```
+**Limitation**: Eliminates the benefits of module abstraction and reusability.
+
+**Option 3: Separate module implementations**
+- `cluster-module-with-autoscaling/` (includes lifecycle.ignore_changes in resources)
 - `cluster-module-without-autoscaling/` (no lifecycle blocks)
 
-### The Solution: use_effective_fields
+**Limitation**: Duplicated code and increased maintenance burden.
 
-By setting `use_effective_fields = true` in your module, you create **ONE module that works for both scenarios**:
+### With use_effective_fields
+
+By incorporating `use_effective_fields = true` in the module's cluster resource, a single module implementation supports both scenarios:
 
 ```terraform
-# ✅ Solution: Single module works for both auto-scaling and fixed-size clusters
+# Single module works for both auto-scaling and non-auto-scaling clusters
 module "cluster" {
   source = "./cluster-module"
-  enable_auto_scaling = true  # or false - module handles both!
+  enable_auto_scaling = true  # Module handles both true and false
   # ... configuration
 }
-# No lifecycle.ignore_changes needed!
+# No lifecycle.ignore_changes required
 ```
 
-## Benefits for Module Authors
+## Benefits
 
-1. **Single Module for All Use Cases**: Write one module that handles auto-scaling and non-auto-scaling clusters
-2. **No lifecycle.ignore_changes Required**: Module users don't need to add lifecycle blocks
-3. **Visibility into Scaled Values**: Module can output both configured and effective (actual) instance sizes
-4. **Cleaner Module Interface**: Simpler for consumers, easier to maintain
-5. **Future-Proof**: Aligns with provider version 3.0 where this will be default behavior
+1. **Unified module implementation**: Single codebase supports all use cases
+2. **No lifecycle blocks required**: Module users do not need to add `lifecycle.ignore_changes`
+3. **Operational visibility**: Module outputs expose both configured and effective (actual) specifications
+4. **Simplified interface**: Cleaner module API, reduced consumer complexity
+5. **Forward compatibility**: Aligns with provider v3.x where this behavior becomes default
 
 ## Module Structure
 
@@ -73,22 +92,26 @@ effective-fields-module/
     └── versions.tf
 ```
 
-## How It Works
+## Implementation Details
 
-The module sets `use_effective_fields = true` internally:
+### Module Resource Configuration
+
+The module resource incorporates `use_effective_fields = true`:
 
 ```terraform
 resource "mongodbatlas_advanced_cluster" "this" {
-  # ... other configuration
-  use_effective_fields = true  # This is the key!
+  # ... configuration
+  use_effective_fields = true
 
   replication_specs = [
-    # ... configuration that may or may not include auto-scaling
+    # Configuration supports both auto-scaling and non-auto-scaling scenarios
   ]
 }
 ```
 
-The module also includes a data source to read effective values:
+### Data Source Integration
+
+A companion data source reads effective (actual) values:
 
 ```terraform
 data "mongodbatlas_advanced_cluster" "this" {
@@ -98,23 +121,27 @@ data "mongodbatlas_advanced_cluster" "this" {
 }
 ```
 
-And exposes both configured and effective specifications through outputs:
+### Output Exposure
+
+The module exposes both configured and effective specifications:
 
 ```terraform
 output "configured_specs" {
-  # What you configured
+  description = "Hardware specifications as defined in configuration"
+  # Returns user-configured values
 }
 
 output "effective_specs" {
-  # What Atlas actually allocated (after auto-scaling)
+  description = "Hardware specifications as provisioned by Atlas"
+  # Returns actual operational values including auto-scaling changes
 }
 ```
 
 ## Usage Examples
 
-### Example 1: Without Auto-Scaling
+### Without Auto-Scaling
 
-See `without-autoscaling/main.tf`:
+The `without-autoscaling/` directory demonstrates module usage with fixed cluster specifications:
 
 ```terraform
 module "atlas_cluster" {
@@ -124,65 +151,73 @@ module "atlas_cluster" {
 
   replication_specs = [
     {
-      region_configs = [{
-        electable_specs = {
-          instance_size = "M10"  # Fixed size
-          node_count    = 3
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M10"  # Fixed size
+            node_count    = 3
+          }
         }
-      }]
+      ]
     }
   ]
 }
 ```
 
-### Example 2: With Auto-Scaling
+In this configuration, cluster specifications remain constant. The effective specifications returned by the module match the configured specifications.
 
-See `with-autoscaling/main.tf`:
+### With Auto-Scaling
+
+The `with-autoscaling/` directory demonstrates module usage with auto-scaling enabled:
 
 ```terraform
 module "atlas_cluster" {
   source = "../module"
 
-  enable_auto_scaling = true  # Enable auto-scaling
+  enable_auto_scaling = true
 
   replication_specs = [
     {
-      region_configs = [{
-        electable_specs = {
-          instance_size = "M10"  # Starting size
-          node_count    = 3
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M10"  # Starting size
+            node_count    = 3
+          }
+          auto_scaling = {
+            compute_enabled           = true
+            compute_min_instance_size = "M10"
+            compute_max_instance_size = "M30"
+          }
         }
-        auto_scaling = {
-          compute_enabled           = true
-          compute_min_instance_size = "M10"
-          compute_max_instance_size = "M30"
-        }
-      }]
+      ]
     }
   ]
 }
 ```
 
-**Notice:** Same module, different configuration, no `lifecycle.ignore_changes` needed!
+With auto-scaling enabled, Atlas adjusts instance sizes based on workload. The module's effective specifications output reflects these Atlas-managed changes. Both configurations utilize the same module implementation without requiring `lifecycle.ignore_changes` blocks.
 
 ## Running the Examples
 
 ### Prerequisites
 
+The examples require the following:
+
 * Terraform >= 1.0
 * MongoDB Atlas Provider v2.0.0 or later
-* MongoDB Atlas account with service account credentials
+* MongoDB Atlas service account credentials
 
-### Setup
+### Configuration
 
-1. **Configure credentials:**
+Configure authentication credentials using environment variables:
 
 ```bash
 export MONGODB_ATLAS_CLIENT_ID="<your-client-id>"
 export MONGODB_ATLAS_CLIENT_SECRET="<your-client-secret>"
 ```
 
-Or create a `terraform.tfvars` file:
+Alternatively, create a `terraform.tfvars` file:
 
 ```hcl
 atlas_client_id     = "<your-client-id>"
@@ -190,15 +225,21 @@ atlas_client_secret = "<your-client-secret>"
 atlas_org_id        = "<your-org-id>"
 ```
 
-2. **Choose an example:**
+### Execution
+
+Navigate to the desired example directory:
 
 ```bash
 cd with-autoscaling/
-# or
+```
+
+or
+
+```bash
 cd without-autoscaling/
 ```
 
-3. **Initialize and apply:**
+Initialize and apply the configuration:
 
 ```bash
 terraform init
@@ -206,49 +247,55 @@ terraform plan
 terraform apply
 ```
 
-4. **View outputs:**
+Review the module outputs to observe both configured and effective specifications:
 
 ```bash
 terraform output cluster_info
 terraform output configured_vs_effective
 ```
 
-5. **Cleanup:**
+To remove all created resources:
 
 ```bash
 terraform destroy
 ```
 
-## Key Module Features
+## Module Interface
 
 ### Input Variables
 
-- `enable_auto_scaling`: Enable/disable compute auto-scaling for electable nodes
-- `enable_analytics_auto_scaling`: Enable/disable compute auto-scaling for analytics nodes
-- `replication_specs`: Full cluster topology configuration
-- `tags`: Resource tags
+The module accepts the following key input variables:
 
-### Outputs
+- `enable_auto_scaling` - Enables compute auto-scaling for electable nodes
+- `enable_analytics_auto_scaling` - Enables compute auto-scaling for analytics nodes
+- `replication_specs` - Defines cluster topology and hardware specifications
+- `tags` - Key-value pairs for resource categorization
 
-- `configured_specs`: What you configured in Terraform
-- `effective_specs`: What Atlas actually allocated (reflects auto-scaling changes)
-- `auto_scaling_enabled`: Whether auto-scaling is enabled
-- `connection_strings`: Cluster connection strings
-- `project_id`, `cluster_id`: Resource identifiers
+### Output Values
 
-## Learn More
+The module exposes the following outputs:
+
+- `configured_specs` - Hardware specifications as defined in the configuration
+- `effective_specs` - Hardware specifications as provisioned by Atlas (includes auto-scaling changes)
+- `auto_scaling_enabled` - Indicates whether auto-scaling is active
+- `connection_strings` - Connection strings for cluster access
+- `project_id`, `cluster_id` - Resource identifiers
+
+## Additional Resources
+
+For comprehensive information about the effective fields functionality:
 
 - [Auto-Scaling with Effective Fields](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster#auto-scaling-with-effective-fields)
 - [Advanced Cluster Resource Documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster)
 - [Advanced Cluster Data Source Documentation](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/data-sources/advanced_cluster)
 
-## Migration from Legacy Modules
+## Migration from Legacy Implementations
 
-If you have existing modules that use `lifecycle.ignore_changes`:
+Existing modules utilizing `lifecycle.ignore_changes` can be updated through the following steps:
 
-1. Add `use_effective_fields = true` to your cluster resource
-2. Remove `lifecycle.ignore_changes` blocks
-3. Add a data source to read effective values
-4. Update outputs to expose both configured and effective specs
+1. Add `use_effective_fields = true` to the cluster resource definition
+2. Remove existing `lifecycle.ignore_changes` blocks
+3. Incorporate a data source to retrieve effective values
+4. Update module outputs to expose both configured and effective specifications
 
-Your module users won't need to change their code - it's a backward-compatible improvement!
+This migration maintains backward compatibility, requiring no changes to module consumer configurations.

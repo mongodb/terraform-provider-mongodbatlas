@@ -1,21 +1,21 @@
 variable "atlas_org_id" {
+  description = "Atlas organization id"
   type        = string
-  description = "The ID of your MongoDB Atlas organization"
 }
 
 variable "project_name" {
+  description = "Atlas project name"
   type        = string
-  description = "The name of the Atlas project to create"
 }
 
 variable "cluster_name" {
+  description = "Atlas cluster name"
   type        = string
-  description = "The name of the cluster"
 }
 
 variable "cluster_type" {
+  description = "Atlas cluster type"
   type        = string
-  description = "The type of cluster (REPLICASET, SHARDED, or GEOSHARDED)"
   default     = "REPLICASET"
 
   validation {
@@ -69,19 +69,19 @@ variable "replication_specs" {
 }
 
 variable "enable_auto_scaling" {
+  description = "Flag to enable auto-scaling for electable nodes"
   type        = bool
-  description = "Enable auto-scaling for electable nodes. When true, auto_scaling configuration from replication_specs will be used"
   default     = false
 }
 
 variable "enable_analytics_auto_scaling" {
+  description = "Flag to enable auto-scaling for analytics nodes"
   type        = bool
-  description = "Enable auto-scaling for analytics nodes. When true, analytics_auto_scaling configuration from replication_specs will be used"
   default     = false
 }
 
 variable "tags" {
+  description = "Map of tags to assign to the cluster"
   type        = map(string)
-  description = "Map of tags to apply to the cluster"
   default     = {}
 }

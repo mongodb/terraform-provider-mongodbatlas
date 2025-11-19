@@ -1,36 +1,36 @@
 output "project_id" {
-  description = "The ID of the created Atlas project"
+  description = "Atlas project id"
   value       = mongodbatlas_project.this.id
 }
 
 output "project_name" {
-  description = "The name of the created Atlas project"
+  description = "Atlas project name"
   value       = mongodbatlas_project.this.name
 }
 
 output "cluster_id" {
-  description = "The ID of the created cluster"
+  description = "Atlas cluster id"
   value       = mongodbatlas_advanced_cluster.this.cluster_id
 }
 
 output "cluster_name" {
-  description = "The name of the created cluster"
+  description = "Atlas cluster name"
   value       = mongodbatlas_advanced_cluster.this.name
 }
 
 output "cluster_state" {
-  description = "Current state of the cluster"
+  description = "Atlas cluster state"
   value       = mongodbatlas_advanced_cluster.this.state_name
 }
 
 output "connection_strings" {
-  description = "Connection strings for the cluster"
+  description = "Atlas cluster connection strings"
   value       = mongodbatlas_advanced_cluster.this.connection_strings
   sensitive   = true
 }
 
 output "configured_specs" {
-  description = "Configured specifications for each shard/replication spec"
+  description = "Configured hardware specifications for each shard or replica set"
   value = [
     for spec in data.mongodbatlas_advanced_cluster.this.replication_specs : {
       zone_name = spec.zone_name
@@ -51,7 +51,7 @@ output "configured_specs" {
 }
 
 output "effective_specs" {
-  description = "Effective (actual) specifications after Atlas auto-scaling. Always available regardless of whether auto-scaling is enabled"
+  description = "Effective hardware specifications as provisioned by Atlas, including auto-scaling changes"
   value = [
     for spec in data.mongodbatlas_advanced_cluster.this.replication_specs : {
       zone_name = spec.zone_name
@@ -69,6 +69,6 @@ output "effective_specs" {
 }
 
 output "auto_scaling_enabled" {
-  description = "Whether auto-scaling is enabled on this cluster"
+  description = "Flag indicating if auto-scaling is enabled"
   value       = var.enable_auto_scaling || var.enable_analytics_auto_scaling
 }

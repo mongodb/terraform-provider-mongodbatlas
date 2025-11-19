@@ -12,9 +12,8 @@ provider "mongodbatlas" {
   client_secret = var.atlas_client_secret
 }
 
-# Example: Using the module WITH auto-scaling
-# Notice: No lifecycle.ignore_changes needed!
-# The module uses use_effective_fields = true internally, making it work seamlessly
+# This example demonstrates module usage with auto-scaling enabled.
+# The module utilizes use_effective_fields = true internally, eliminating the need for lifecycle.ignore_changes blocks.
 module "atlas_cluster" {
   source = "../module"
 
@@ -23,7 +22,7 @@ module "atlas_cluster" {
   cluster_name = "example-cluster-autoscale"
   cluster_type = "REPLICASET"
 
-  # Auto-scaling is enabled
+  # Enable auto-scaling for both electable and analytics nodes
   enable_auto_scaling           = true
   enable_analytics_auto_scaling = true
 
@@ -73,10 +72,10 @@ module "atlas_cluster" {
   }
 }
 
-# Outputs showing both configured and effective specs
-# With auto-scaling enabled, effective specs will show the actual scaled values
+# Module outputs expose both configured and effective specifications.
+# With auto-scaling enabled, effective specifications reflect actual scaled values.
 output "cluster_info" {
-  description = "Cluster information"
+  description = "Basic cluster information including operational state"
   value = {
     cluster_name         = module.atlas_cluster.cluster_name
     project_id           = module.atlas_cluster.project_id
@@ -86,7 +85,7 @@ output "cluster_info" {
 }
 
 output "configured_vs_effective" {
-  description = "Comparison of configured and effective specifications - effective values show what Atlas has scaled to"
+  description = "Comparison of configured specifications and effective specifications as provisioned by Atlas"
   value = {
     configured = module.atlas_cluster.configured_specs
     effective  = module.atlas_cluster.effective_specs
