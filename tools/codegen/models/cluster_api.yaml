@@ -1306,5 +1306,8 @@ operations:
         http_method: PATCH
         path: /api/atlas/v2/groups/{groupId}/clusters/{name}
     version_header: application/vnd.atlas.2024-08-05+json
+move_state:
+    source_resources:
+        - mongodbatlas_cluster_old_api
 name: cluster_api
 packageName: clusterapi

@@ -266,6 +266,8 @@ resources:
             "DELETING",
           ]
         target_states: [ "DELETED" ] # DELETED is a special state value when API returns 404 or empty object
+    move_state:
+      source_resources: ["mongodbatlas_cluster_old_api"]
     version_header: application/vnd.atlas.2024-08-05+json
     schema:
       ignores: [ "links", "mongo_db_employee_access_grant.links" ]
