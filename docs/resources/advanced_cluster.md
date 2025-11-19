@@ -912,12 +912,7 @@ See the [Example using effective fields with auto-scaling](#example-using-effect
 
 ### Terraform Modules
 
-`use_effective_fields` is particularly valuable for reusable Terraform modules. It enables a single module to handle both auto-scaling and non-auto-scaling clusters without requiring lifecycle blocks:
-
-- **Without use_effective_fields**: Separate modules are required or module users must add `lifecycle.ignore_changes` blocks
-- **With use_effective_fields**: One module works for both scenarios with no lifecycle blocks required
-
-See the [Effective Fields Module Example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/effective-fields-module) for a complete implementation.
+`use_effective_fields` is particularly valuable for reusable Terraform modules. Without it, separate module implementations are required (one with lifecycle blocks for auto-scaling, one without). With `use_effective_fields`, a single module handles both scenarios without lifecycle blocks. See the [Effective Fields Module Example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/effective-fields-module) for a complete implementation.
 
 ### Migration path and version 3.x
 
