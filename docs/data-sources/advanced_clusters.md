@@ -18,7 +18,7 @@ subcategory: "Clusters"
 ## Example Usage
 
 ```terraform
-resource "mongodbatlas_advanced_cluster" "example" {
+resource "mongodbatlas_advanced_cluster" "this" {
   project_id   = "<YOUR-PROJECT-ID>"
   name         = "cluster-test"
   cluster_type = "REPLICASET"
@@ -40,15 +40,15 @@ resource "mongodbatlas_advanced_cluster" "example" {
   ]
 }
 
-data "mongodbatlas_advanced_clusters" "example" {
-  project_id = mongodbatlas_advanced_cluster.example.project_id
+data "mongodbatlas_advanced_clusters" "this" {
+  project_id = mongodbatlas_advanced_cluster.this.project_id
 }
 ```
 
 ## Example using latest sharding configurations with independent shard scaling in the cluster
 
 ```terraform
-resource "mongodbatlas_advanced_cluster" "example" {
+resource "mongodbatlas_advanced_cluster" "this" {
   project_id     = "<YOUR-PROJECT-ID>"
   name           = "cluster-test"
   backup_enabled = false
@@ -68,7 +68,7 @@ resource "mongodbatlas_advanced_cluster" "example" {
           region_name   = "EU_WEST_1"
         }
       ]
-    }, 
+    },
     {
       region_configs = [
         {
@@ -86,16 +86,16 @@ resource "mongodbatlas_advanced_cluster" "example" {
   ]
 }
 
-data "mongodbatlas_advanced_cluster" "example-asym" {
-  project_id                     = mongodbatlas_advanced_cluster.example.project_id
-  name                           = mongodbatlas_advanced_cluster.example.name
+data "mongodbatlas_advanced_cluster" "this" {
+  project_id                     = mongodbatlas_advanced_cluster.this.project_id
+  name                           = mongodbatlas_advanced_cluster.this.name
 }
 ```
 
 ## Example using Flex cluster
 
 ```terraform
-resource "mongodbatlas_advanced_cluster" "example-flex" {
+resource "mongodbatlas_advanced_cluster" "this" {
   project_id   = "<YOUR-PROJECT-ID>"
   name         = "flex-cluster"
   cluster_type = "REPLICASET"
@@ -110,15 +110,15 @@ resource "mongodbatlas_advanced_cluster" "example-flex" {
   }]
 }
 
-data "mongodbatlas_advanced_clusters" "example" {
-  project_id = mongodbatlas_advanced_cluster.example-flex.project_id
+data "mongodbatlas_advanced_clusters" "this" {
+  project_id = mongodbatlas_advanced_cluster.this.project_id
 }
 ```
 
 ## Example using effective fields with auto-scaling
 
 ```terraform
-resource "mongodbatlas_advanced_cluster" "auto_scale_1" {
+resource "mongodbatlas_advanced_cluster" "this" {
   project_id            = "<YOUR-PROJECT-ID>"
   name                  = "auto-scale-cluster-1"
   cluster_type          = "REPLICASET"
@@ -147,7 +147,7 @@ resource "mongodbatlas_advanced_cluster" "auto_scale_1" {
   ]
 }
 
-resource "mongodbatlas_advanced_cluster" "auto_scale_2" {
+resource "mongodbatlas_advanced_cluster" "this_2" {
   project_id            = "<YOUR-PROJECT-ID>"
   name                  = "auto-scale-cluster-2"
   cluster_type          = "REPLICASET"
@@ -177,18 +177,18 @@ resource "mongodbatlas_advanced_cluster" "auto_scale_2" {
 }
 
 # Read effective values for all clusters in the project
-data "mongodbatlas_advanced_clusters" "all_clusters" {
+data "mongodbatlas_advanced_clusters" "this" {
   project_id           = "<YOUR-PROJECT-ID>"
   use_effective_fields = true
   depends_on = [
-    mongodbatlas_advanced_cluster.auto_scale_1,
-    mongodbatlas_advanced_cluster.auto_scale_2
+    mongodbatlas_advanced_cluster.this,
+    mongodbatlas_advanced_cluster.this_2
   ]
 }
 
 output "all_cluster_names_and_sizes" {
   value = [
-    for cluster in data.mongodbatlas_advanced_clusters.all_clusters.results : {
+    for cluster in data.mongodbatlas_advanced_clusters.this.results : {
       name                  = cluster.name
       configured_size       = cluster.replication_specs[0].region_configs[0].electable_specs.instance_size
       actual_size           = cluster.replication_specs[0].region_configs[0].effective_electable_specs.instance_size
