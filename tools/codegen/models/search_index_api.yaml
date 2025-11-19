@@ -283,7 +283,7 @@ schema:
                       computed_optional_required: optional
                       tf_schema_name: type_sets
                       tf_model_name: TypeSets
-                      req_body_usage: all_request_bodies
+                      req_body_usage: include_null_on_update
                       sensitive: false
                       create_only: false
           description: The index definition to update the search index to.

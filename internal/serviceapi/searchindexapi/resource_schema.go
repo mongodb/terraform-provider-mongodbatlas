@@ -498,7 +498,7 @@ type TFDefinitionModel struct {
 	Analyzers      customtypes.NestedListValue[TFDefinitionAnalyzersModel] `tfsdk:"analyzers"`
 	Fields         customtypes.ListValue[jsontypes.Normalized]             `tfsdk:"fields"`
 	Synonyms       customtypes.NestedListValue[TFDefinitionSynonymsModel]  `tfsdk:"synonyms"`
-	TypeSets       customtypes.NestedListValue[TFDefinitionTypeSetsModel]  `tfsdk:"type_sets"`
+	TypeSets       customtypes.NestedListValue[TFDefinitionTypeSetsModel]  `tfsdk:"type_sets" autogen:"includenullonupdate"`
 	Analyzer       types.String                                            `tfsdk:"analyzer"`
 	Mappings       customtypes.ObjectValue[TFDefinitionMappingsModel]      `tfsdk:"mappings"`
 	SearchAnalyzer types.String                                            `tfsdk:"search_analyzer"`

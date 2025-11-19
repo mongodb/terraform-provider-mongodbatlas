@@ -81,13 +81,15 @@ func marshalAttr(attrNameModel string, attrValModel reflect.Value, objJSON map[s
 		return err
 	}
 
-	if val == nil && isUpdate {
+	// Emit empty array for null list/set attributes unless explicit configuration with includeNullOnUpdate
+	if val == nil && isUpdate && !includeNullOnUpdate {
 		switch obj.(type) {
 		case customtypes.ListValueInterface, customtypes.NestedListValueInterface, customtypes.SetValueInterface, customtypes.NestedSetValueInterface:
-			val = []any{} // Send an empty array if it's a null root list or set
+			val = []any{}
 		}
 	}
 
+	// Emit value if non-nil, or emit null on update when configured by includeNullOnUpdate
 	if val != nil || (isUpdate && includeNullOnUpdate) {
 		objJSON[attrNameJSON] = val
 	}
