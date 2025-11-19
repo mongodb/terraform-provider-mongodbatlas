@@ -609,7 +609,7 @@ bi_connector_config = {
 Include **desired options** within advanced_configuration:
 
 ```terraform
-// Nest options within advanced_configuration
+# Nest options within advanced_configuration
  advanced_configuration = {
    javascript_enabled                   = false
    minimum_enabled_tls_protocol         = "TLS1_2"
@@ -675,7 +675,7 @@ Key-value pairs that categorize the cluster. Each key and value has a maximum le
 ~> **NOTE:**  We recommend reviewing our [Best Practices](#remove-or-disable-functionality) before disabling or removing any elements of replication_specs.
 
 ```terraform
-//Example Multicloud
+# Example Multicloud
 replication_specs = [
   {
     region_configs = [
@@ -774,23 +774,24 @@ replication_specs = [
 
 * `compute_enabled` - (Optional) Flag that indicates whether instance size auto-scaling is enabled. This parameter defaults to false. If a sharded cluster is making use of the [New Sharding Configuration](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema), auto-scaling of the instance size will be independent for each individual shard. Please reference the [Use Auto-Scaling Per Shard](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema#use-auto-scaling-per-shard) section for more details.
 
-~> **IMPORTANT:** If `disk_gb_enabled` or `compute_enabled` is true, Atlas automatically scales the cluster up or down.
-This will cause the value of `replication_specs[#].region_config[#].(electable_specs|read_only_specs).disk_size_gb` or `replication_specs[#].region_config[#].(electable_specs|read_only_specs).instance_size` returned to potentially be different than what is specified in the Terraform config. If you then apply a plan, not noting this, Terraform will scale the cluster back to the original values in the config.
+When auto-scaling is enabled, there are two approaches to manage your cluster configuration with Terraform:
 
-**Option 1 (Recommended):** Use `use_effective_fields = true` to enable the new effective fields behavior. This eliminates the need for `lifecycle` ignore customizations and allows you to read scaled values using the `mongodbatlas_advanced_cluster` data source. See [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) for details.
+**Option 1 (Recommended):** Use `use_effective_fields = true` to enable the new effective fields behavior. With this option, Atlas-managed auto-scaling changes won't cause plan drift, eliminating the need for `lifecycle` ignore customizations. You can read scaled values using the `effective_electable_specs`, `effective_analytics_specs`, and `effective_read_only_specs` attributes in the `mongodbatlas_advanced_cluster` data source. See [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) for details.
 
-**Option 2:** To prevent unintended changes when enabling autoscaling without using `use_effective_fields`, use a lifecycle ignore customization as shown in the example below. To explicitly change `disk_size_gb` or `instance_size` values, comment out the `lifecycle` block and run `terraform apply`. Please be sure to uncomment the `lifecycle` block once done to prevent any accidental changes.
+**Option 2:** If not using `use_effective_fields`, use a lifecycle ignore customization to prevent unintended changes. To explicitly change `disk_size_gb` or `instance_size` values, comment out the `lifecycle` block and run `terraform apply`. Please be sure to uncomment the `lifecycle` block once done to prevent any accidental changes.
 
 ```terraform
-// Example: ignore disk_size_gb and instance_size changes in a replica set
+# Example: ignore disk_size_gb and instance_size changes in a replica set
 lifecycle {
   ignore_changes = [
     replication_specs[0].region_configs[0].electable_specs.disk_size_gb,
     replication_specs[0].region_configs[0].electable_specs.instance_size,
-    replication_specs[0].region_configs[0].electable_specs.disk_iops // instance_size change can affect disk_iops in case that you are using it
+    replication_specs[0].region_configs[0].electable_specs.disk_iops # instance_size change can affect disk_iops in case that you are using it
   ]
 }
 ```
+
+~> **IMPORTANT:** With Option 2, when `disk_gb_enabled` or `compute_enabled` is true, Atlas automatically scales the cluster up or down. This will cause the value of `replication_specs[#].region_config[#].(electable_specs|read_only_specs).disk_size_gb` or `replication_specs[#].region_config[#].(electable_specs|read_only_specs).instance_size` returned to potentially be different than what is specified in the Terraform config. If you then apply a plan without the `lifecycle` ignore customization, Terraform will scale the cluster back to the original values in the config.
 
 * `compute_scale_down_enabled` - (Optional) Flag that indicates whether the instance size may scale down. Atlas requires this parameter if `replication_specs[#].region_configs[#].auto_scaling.compute_enabled` : true. If you enable this option, specify a value for `replication_specs[#].region_configs[#].auto_scaling.compute_min_instance_size`.
 * `compute_min_instance_size` - (Optional) Minimum instance size to which your cluster can automatically scale (such as M10). Atlas requires this parameter if `replication_specs[#].region_configs[#].auto_scaling.compute_scale_down_enabled` is true.
@@ -800,28 +801,11 @@ lifecycle {
 
 * `disk_gb_enabled` - (Optional) Flag that indicates whether this cluster enables disk auto-scaling. This parameter defaults to false.
 * `compute_enabled` - (Optional) Flag that indicates whether analytics instance size auto-scaling is enabled. This parameter defaults to false. If a sharded cluster is making use of the [New Sharding Configuration](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema), auto-scaling of analytics instance size will be independent for each individual shard. Please reference the [Use Auto-Scaling Per Shard](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/advanced-cluster-new-sharding-schema#use-auto-scaling-per-shard) section for more details.
-
-~> **IMPORTANT:** If `disk_gb_enabled` or `compute_enabled` is true, Atlas automatically scales the cluster up or down.
-This will cause the value of `replication_specs[#].region_config[#].analytics_specs.disk_size_gb` or `replication_specs[#].region_config[#].analytics_specs.instance_size` returned to potentially be different than what is specified in the Terraform config. If you then apply a plan, not noting this, Terraform will scale the cluster back to the original values in the config.
-
-**Option 1 (Recommended):** Use `use_effective_fields = true` to enable the effective fields behavior. This eliminates the need for `lifecycle` ignore customizations and allows you to read scaled values using the `mongodbatlas_advanced_cluster` data source. See [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) for details.
-
-**Option 2:** To prevent unintended changes when enabling auto-scaling without using `use_effective_fields`, use a lifecycle ignore customization as shown in the example below. To explicitly change `disk_size_gb` or `instance_size` values, comment out the `lifecycle` block and run `terraform apply`. Be sure to uncomment the `lifecycle` block once done to prevent any accidental changes.
-
-```terraform
-// Example: ignore disk_size_gb and instance_size changes in a replica set
-lifecycle {
-  ignore_changes = [
-    replication_specs[0].region_configs[0].analytics_specs.disk_size_gb,
-    replication_specs[0].region_configs[0].analytics_specs.instance_size,
-    replication_specs[0].region_configs[0].analytics_specs.disk_iops // instance_size change can affect disk_iops in case that you are using it
-  ]
-}
-```
-
 * `compute_scale_down_enabled` - (Optional) Flag that indicates whether the instance size may scale down. Atlas requires this parameter if `replication_specs[#].region_configs[#].analytics_auto_scaling.compute_enabled` : true. If you enable this option, specify a value for `replication_specs[#].region_configs[#].analytics_auto_scaling.compute_min_instance_size`.
 * `compute_min_instance_size` - (Optional) Minimum instance size to which your cluster can automatically scale (such as M10). Atlas requires this parameter if `replication_specs[#].region_configs[#].analytics_auto_scaling.compute_scale_down_enabled` is true.
 * `compute_max_instance_size` - (Optional) Maximum instance size to which your cluster can automatically scale (such as M40). Atlas requires this parameter if `replication_specs[#].region_configs[#].analytics_auto_scaling.compute_enabled` is true.
+
+**Note:** The configuration options and considerations for analytics auto-scaling are similar to those described in [auto_scaling](#auto_scaling). When using `use_effective_fields = true`, you can read scaled values using `effective_analytics_specs` in the data source. When not using `use_effective_fields`, you may need lifecycle ignore customizations for `analytics_specs` fields similar to the example shown in the [auto_scaling](#auto_scaling) section.
 
 ### pinned_fcv
 
