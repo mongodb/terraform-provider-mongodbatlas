@@ -162,7 +162,7 @@ func dataSourceMongoDBAtlasEventTriggersRead(ctx context.Context, d *schema.Reso
 	}
 
 	if err := d.Set("results", flattenEventTriggers(eventTriggers)); err != nil {
-		return diag.FromErr(fmt.Errorf("error setting `result` for event triggers: %s", err))
+		return diag.FromErr(fmt.Errorf("error setting `results` for event triggers: %w", err))
 	}
 
 	d.SetId(id.UniqueId())
