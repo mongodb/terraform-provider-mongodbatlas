@@ -137,7 +137,7 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 				advanced_configuration  {
 					fail_index_key_too_long              = false
 					javascript_enabled                   = true
-					minimum_enabled_tls_protocol         = "TLS1_1"
+					minimum_enabled_tls_protocol         = "TLS1_2"
 					no_table_scan                        = false
 					oplog_size_mb                        = 1000
 					sample_size_bi_connector			 = 110
@@ -218,7 +218,7 @@ func TestConvertAdvancedClusterToTPF(t *testing.T) {
 			    change_stream_options_pre_and_post_images_expire_after_seconds = 100
 					fail_index_key_too_long              = false
 					javascript_enabled                   = true
-					minimum_enabled_tls_protocol         = "TLS1_1"
+					minimum_enabled_tls_protocol         = "TLS1_2"
 					no_table_scan                        = false
 					oplog_size_mb                        = 1000
 					sample_refresh_interval_bi_connector = 310
