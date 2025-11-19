@@ -297,7 +297,7 @@ func resourceMongoDBAtlasEventTriggersCreate(ctx context.Context, d *schema.Reso
 
 	eventTriggerReq.Config = eventTriggerConfig
 
-	eventResp, _, err := conn.EventTriggers.Create(context.Background(), projectID, appID, eventTriggerReq)
+	eventResp, _, err := conn.EventTriggers.Create(ctx, projectID, appID, eventTriggerReq)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorEventTriggersCreate, projectID, err))
 	}

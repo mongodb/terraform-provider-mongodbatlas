@@ -60,7 +60,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Id()
-	dnsResp, resp, err := connV2.AWSClustersDNSApi.GetAwsCustomDns(context.Background(), projectID).Execute()
+	dnsResp, resp, err := connV2.AWSClustersDNSApi.GetAwsCustomDns(ctx, projectID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")

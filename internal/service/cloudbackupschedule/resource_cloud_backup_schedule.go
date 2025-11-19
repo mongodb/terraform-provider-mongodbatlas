@@ -348,7 +348,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	var resp *http.Response
 	var err error
 
-	backupSchedule, resp, err = connV2.CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusterName).Execute()
+	backupSchedule, resp, err = connV2.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusterName).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -550,7 +550,7 @@ func cloudBackupScheduleCreateOrUpdate(ctx context.Context, connV2 *admin.APICli
 
 	req.Policies = getRequestPolicies(policiesItem, resp.GetPolicies())
 
-	_, _, err = connV2.CloudBackupsApi.UpdateBackupSchedule(context.Background(), projectID, clusterName, req).Execute()
+	_, _, err = connV2.CloudBackupsApi.UpdateBackupSchedule(ctx, projectID, clusterName, req).Execute()
 	if err != nil {
 		return err
 	}

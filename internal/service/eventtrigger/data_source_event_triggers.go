@@ -144,7 +144,7 @@ func PluralDataSource() *schema.Resource {
 }
 
 func dataSourceMongoDBAtlasEventTriggersRead(d *schema.ResourceData, meta any) error {
-	ctx := context.Background()
+	ctx := context.Background() //nolint:forbidigo // This SDKv2 data source doesn't use context-aware pattern (ReadContext)
 	conn, err := meta.(*config.MongoDBClient).Realm.Get(ctx)
 	if err != nil {
 		return err
