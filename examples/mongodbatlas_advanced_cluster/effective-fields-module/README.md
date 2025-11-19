@@ -14,9 +14,12 @@ The `use_effective_fields` attribute addresses this by enabling a single module 
 
 Traditional approaches require one of the following unsatisfactory solutions:
 
-**Option 1: Module includes lifecycle.ignore_changes in resource definition**
+**Option 1: Separate module implementations**
+- `cluster-module-with-autoscaling/` - Includes lifecycle.ignore_changes blocks for auto-scaling scenarios
+- `cluster-module-without-autoscaling/` - No lifecycle blocks for fixed-size clusters
+
 ```terraform
-# Inside the module's cluster resource
+# Inside the auto-scaling module's cluster resource
 resource "mongodbatlas_advanced_cluster" "this" {
   # ... configuration
 
@@ -29,7 +32,8 @@ resource "mongodbatlas_advanced_cluster" "this" {
   }
 }
 ```
-**Limitation**: Module becomes specialized for auto-scaling scenarios only, or requires conditional lifecycle block logic, adding complexity.
+
+**Limitation**: Lifecycle blocks cannot be conditional, requiring two separate modules with duplicated code and increased maintenance burden.
 
 **Option 2: Module users manage resources directly**
 ```terraform
@@ -46,12 +50,6 @@ resource "mongodbatlas_advanced_cluster" "this" {
 ```
 **Limitation**: Eliminates the benefits of module abstraction and reusability.
 
-**Option 3: Separate module implementations**
-- `cluster-module-with-autoscaling/` (includes lifecycle.ignore_changes in resources)
-- `cluster-module-without-autoscaling/` (no lifecycle blocks)
-
-**Limitation**: Duplicated code and increased maintenance burden.
-
 ### With use_effective_fields
 
 By incorporating `use_effective_fields = true` in the module's cluster resource, a single module implementation supports both scenarios:
@@ -60,7 +58,7 @@ By incorporating `use_effective_fields = true` in the module's cluster resource,
 # Single module works for both auto-scaling and non-auto-scaling clusters
 module "cluster" {
   source = "./cluster-module"
-  enable_auto_scaling = true  # Module handles both true and false
+  # Auto-scaling is automatically detected from replication_specs configuration
   # ... configuration
 }
 # No lifecycle.ignore_changes required
@@ -69,10 +67,8 @@ module "cluster" {
 ## Benefits
 
 1. **Unified module implementation**: Single codebase supports all use cases
-2. **No lifecycle blocks required**: Module users do not need to add `lifecycle.ignore_changes`
-3. **Operational visibility**: Module outputs expose both configured and effective (actual) specifications
-4. **Simplified interface**: Cleaner module API, reduced consumer complexity
-5. **Forward compatibility**: Aligns with provider v3.x where this behavior becomes default
+2. **Operational visibility**: Module outputs expose both configured and effective (actual) specifications
+3. **Forward compatibility**: Aligns with provider v3.x where this behavior becomes default
 
 ## Module Structure
 
@@ -147,8 +143,6 @@ The `without-autoscaling/` directory demonstrates module usage with fixed cluste
 module "atlas_cluster" {
   source = "../module"
 
-  enable_auto_scaling = false
-
   replication_specs = [
     {
       region_configs = [
@@ -157,6 +151,7 @@ module "atlas_cluster" {
             instance_size = "M10"  # Fixed size
             node_count    = 3
           }
+          # No auto_scaling block - cluster maintains fixed specifications
         }
       ]
     }
@@ -173,8 +168,6 @@ The `with-autoscaling/` directory demonstrates module usage with auto-scaling en
 ```terraform
 module "atlas_cluster" {
   source = "../module"
-
-  enable_auto_scaling = true
 
   replication_specs = [
     {
@@ -196,7 +189,7 @@ module "atlas_cluster" {
 }
 ```
 
-With auto-scaling enabled, Atlas adjusts instance sizes based on workload. The module's effective specifications output reflects these Atlas-managed changes. Both configurations utilize the same module implementation without requiring `lifecycle.ignore_changes` blocks.
+With auto-scaling enabled, Atlas adjusts instance sizes based on workload. The module automatically detects auto-scaling configuration from the `replication_specs` and exposes effective specifications that reflect Atlas-managed changes. Both configurations utilize the same module implementation without requiring `lifecycle.ignore_changes` blocks.
 
 ## Running the Examples
 
@@ -266,9 +259,11 @@ terraform destroy
 
 The module accepts the following key input variables:
 
-- `enable_auto_scaling` - Enables compute auto-scaling for electable nodes
-- `enable_analytics_auto_scaling` - Enables compute auto-scaling for analytics nodes
-- `replication_specs` - Defines cluster topology and hardware specifications
+- `atlas_org_id` - Atlas organization identifier
+- `project_name` - Atlas project name
+- `cluster_name` - Atlas cluster name
+- `cluster_type` - Cluster type (REPLICASET, SHARDED, or GEOSHARDED)
+- `replication_specs` - Cluster topology and hardware specifications (auto-scaling is automatically detected from this configuration)
 - `tags` - Key-value pairs for resource categorization
 
 ### Output Values
@@ -277,7 +272,8 @@ The module exposes the following outputs:
 
 - `configured_specs` - Hardware specifications as defined in the configuration
 - `effective_specs` - Hardware specifications as provisioned by Atlas (includes auto-scaling changes)
-- `auto_scaling_enabled` - Indicates whether auto-scaling is active
+- `auto_scaling_enabled` - Indicates whether auto-scaling is enabled for electable and read-only nodes
+- `analytics_auto_scaling_enabled` - Indicates whether auto-scaling is enabled for analytics nodes
 - `connection_strings` - Connection strings for cluster access
 - `project_id`, `cluster_id` - Resource identifiers
 

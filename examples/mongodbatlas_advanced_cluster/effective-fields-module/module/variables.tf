@@ -68,18 +68,6 @@ variable "replication_specs" {
   description = "List of replication specifications for the cluster"
 }
 
-variable "enable_auto_scaling" {
-  description = "Flag to enable auto-scaling for electable nodes"
-  type        = bool
-  default     = false
-}
-
-variable "enable_analytics_auto_scaling" {
-  description = "Flag to enable auto-scaling for analytics nodes"
-  type        = bool
-  default     = false
-}
-
 variable "tags" {
   description = "Map of tags to assign to the cluster"
   type        = map(string)

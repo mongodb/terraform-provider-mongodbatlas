@@ -1,12 +1,3 @@
-terraform {
-  required_providers {
-    mongodbatlas = {
-      source  = "mongodb/mongodbatlas"
-      version = "~> 2.0"
-    }
-  }
-}
-
 provider "mongodbatlas" {
   client_id     = var.atlas_client_id
   client_secret = var.atlas_client_secret
@@ -21,10 +12,6 @@ module "atlas_cluster" {
   project_name = "EffectiveFieldsExample-WithAutoScale"
   cluster_name = "example-cluster-autoscale"
   cluster_type = "REPLICASET"
-
-  # Enable auto-scaling for both electable and analytics nodes
-  enable_auto_scaling           = true
-  enable_analytics_auto_scaling = true
 
   replication_specs = [
     {
@@ -77,10 +64,11 @@ module "atlas_cluster" {
 output "cluster_info" {
   description = "Basic cluster information including operational state"
   value = {
-    cluster_name         = module.atlas_cluster.cluster_name
-    project_id           = module.atlas_cluster.project_id
-    state                = module.atlas_cluster.cluster_state
-    auto_scaling_enabled = module.atlas_cluster.auto_scaling_enabled
+    cluster_name                     = module.atlas_cluster.cluster_name
+    project_id                       = module.atlas_cluster.project_id
+    state                            = module.atlas_cluster.cluster_state
+    auto_scaling_enabled             = module.atlas_cluster.auto_scaling_enabled
+    analytics_auto_scaling_enabled   = module.atlas_cluster.analytics_auto_scaling_enabled
   }
 }
 

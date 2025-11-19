@@ -69,6 +69,23 @@ output "effective_specs" {
 }
 
 output "auto_scaling_enabled" {
-  description = "Flag indicating if auto-scaling is enabled"
-  value       = var.enable_auto_scaling || var.enable_analytics_auto_scaling
+  description = "Flag indicating if auto-scaling is enabled for electable and read-only nodes"
+  value = try(
+    var.replication_specs[0].region_configs[0].auto_scaling.disk_gb_enabled,
+    false
+  ) || try(
+    var.replication_specs[0].region_configs[0].auto_scaling.compute_enabled,
+    false
+  )
+}
+
+output "analytics_auto_scaling_enabled" {
+  description = "Flag indicating if auto-scaling is enabled for analytics nodes"
+  value = try(
+    var.replication_specs[0].region_configs[0].analytics_auto_scaling.disk_gb_enabled,
+    false
+  ) || try(
+    var.replication_specs[0].region_configs[0].analytics_auto_scaling.compute_enabled,
+    false
+  )
 }
