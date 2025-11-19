@@ -39,7 +39,7 @@ func (d *encryptionAtRestDS) Read(ctx context.Context, req datasource.ReadReques
 	connV2 := d.Client.AtlasV2
 	projectID := earConfig.ProjectID.ValueString()
 
-	encryptionResp, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), projectID).Execute()
+	encryptionResp, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(ctx, projectID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error fetching resource", err.Error())
 		return

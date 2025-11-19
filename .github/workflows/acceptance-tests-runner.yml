@@ -240,7 +240,7 @@ jobs:
       provider_version: ${{ inputs.provider_version || steps.get_last_release.outputs.last_provider_version }}
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
       - name: Get Last Release
         id: get_last_release
         shell: bash
@@ -283,7 +283,7 @@ jobs:
       serverless: ${{ steps.filter.outputs.serverless == 'true' || env.mustTrigger == 'true' }}
       stream: ${{ steps.filter.outputs.stream == 'true' || env.mustTrigger == 'true' }}
     steps:
-    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+    - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
     - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36
       id: filter
       if: ${{ inputs.test_group == ''  && env.mustTrigger == 'false' }}
@@ -413,7 +413,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -438,7 +438,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -464,7 +464,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -493,7 +493,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -543,7 +543,7 @@ jobs:
     name: assume_role – ${{ matrix.name }}
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -584,7 +584,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -634,7 +634,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -678,7 +678,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -711,7 +711,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -750,7 +750,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -772,7 +772,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -802,7 +802,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -824,7 +824,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -846,7 +846,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -895,7 +895,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -956,7 +956,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -995,7 +995,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -1017,7 +1017,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -1058,7 +1058,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -1080,7 +1080,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -1107,7 +1107,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -1129,7 +1129,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -1158,7 +1158,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -1180,7 +1180,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -1225,7 +1225,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -1263,7 +1263,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -1291,7 +1291,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -1318,7 +1318,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -1341,7 +1341,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -1363,7 +1363,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           ref: ${{ inputs.ref || github.ref }}
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
@@ -1388,7 +1388,7 @@ jobs:
       runs-on: ubuntu-latest
       permissions: {}
       steps:
-        - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
           with:
             ref: ${{ inputs.ref || github.ref }}
         - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00

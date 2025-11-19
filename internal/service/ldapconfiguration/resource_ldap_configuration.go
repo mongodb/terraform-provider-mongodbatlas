@@ -156,7 +156,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 
 func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	resp, httpResp, err := connV2.LDAPConfigurationApi.GetUserSecurity(context.Background(), d.Id()).Execute()
+	resp, httpResp, err := connV2.LDAPConfigurationApi.GetUserSecurity(ctx, d.Id()).Execute()
 	if err != nil {
 		if validate.StatusNotFound(httpResp) {
 			d.SetId("")

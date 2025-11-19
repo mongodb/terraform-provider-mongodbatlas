@@ -239,7 +239,7 @@ func resourceRefresh(ctx context.Context, client *admin.APIClient, projectID, ex
 		clusters := clustersPaginated.GetResults()
 
 		for i := range clusters {
-			backupPolicy, _, err := client.CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusters[i].GetName()).Execute()
+			backupPolicy, _, err := client.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusters[i].GetName()).Execute()
 			if err != nil {
 				continue
 			}

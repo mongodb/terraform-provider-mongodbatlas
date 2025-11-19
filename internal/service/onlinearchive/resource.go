@@ -308,7 +308,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	projectID := ids["project_id"]
 	clusterName := ids["cluster_name"]
 
-	onlineArchive, resp, err := connV2.OnlineArchiveApi.GetOnlineArchive(context.Background(), projectID, archiveID, clusterName).Execute()
+	onlineArchive, resp, err := connV2.OnlineArchiveApi.GetOnlineArchive(ctx, projectID, archiveID, clusterName).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")

@@ -135,7 +135,7 @@ func resourceCloudProviderAccessSetupRead(ctx context.Context, d *schema.Resourc
 	projectID := ids["project_id"]
 	roleID := ids["id"]
 
-	role, resp, err := conn.CloudProviderAccessApi.GetCloudProviderAccess(context.Background(), projectID, roleID).Execute()
+	role, resp, err := conn.CloudProviderAccessApi.GetCloudProviderAccess(ctx, projectID, roleID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")

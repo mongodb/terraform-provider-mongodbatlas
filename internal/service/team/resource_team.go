@@ -99,7 +99,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	orgID := ids["org_id"]
 	teamID := ids["id"]
 
-	team, resp, err := connV2.TeamsApi.GetTeamById(context.Background(), orgID, teamID).Execute()
+	team, resp, err := connV2.TeamsApi.GetTeamById(ctx, orgID, teamID).Execute()
 
 	if err != nil {
 		if validate.StatusNotFound(resp) {
@@ -159,7 +159,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 		newUsernames := conversion.ExpandStringList(d.Get("usernames").(*schema.Set).List())
 
-		err = UpdateTeamUsers(connV2.TeamsApi, connV2.MongoDBCloudUsersApi, existingUsers, newUsernames, orgID, teamID)
+		err = UpdateTeamUsers(ctx, connV2.TeamsApi, connV2.MongoDBCloudUsersApi, existingUsers, newUsernames, orgID, teamID)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("error when updating usernames in team: %s", err))
 		}
