@@ -200,7 +200,7 @@ output "all_cluster_names_and_sizes" {
 ## Argument Reference
 
 * `project_id` - (Required) The unique ID for the project to get the clusters.
-* `use_effective_fields` - (Optional) Flag that indicates whether to return effective field values in the response. When `false` (default), the data source returns standard field values. When `true`, the data source returns effective field values that reflect Atlas-managed changes (such as auto-scaling adjustments). Use this with clusters that have `use_effective_fields = true` enabled. **Note:** This flag does not affect the availability of effective specs attributes (`effective_electable_specs`, `effective_analytics_specs`, `effective_read_only_specs`), which are always returned. See the resource documentation for [Auto-Scaling with Effective Fields](../resources/advanced_cluster.md#auto-scaling-with-effective-fields) for more details.
+* `use_effective_fields` - (Optional) Controls how hardware specification fields are returned in the response. When set to true, returns the original client-specified values and provides separate effective fields showing current operational values. When false (default), hardware specification fields show current operational values directly. Primarily used for autoscaling compatibility. **Note:** Effective specs (`effective_electable_specs`, `effective_analytics_specs`, `effective_read_only_specs`) are always returned independently of the flag value. See the resource documentation for [Auto-Scaling with Effective Fields](../resources/advanced_cluster.md#auto-scaling-with-effective-fields) for more details.
 
 ## Attributes Reference
 
