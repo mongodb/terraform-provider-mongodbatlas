@@ -6,9 +6,9 @@ This example creates a Sharded Cluster with 2 shards defining electable and anal
 
 This example uses the recommended approach with `use_effective_fields = true` to manage auto-scaling configurations. This approach offers several benefits:
 
-- **No lifecycle.ignore_changes needed**: Eliminates the need for `lifecycle.ignore_changes` blocks to prevent Terraform from reverting Atlas-managed auto-scaling changes
-- **Visibility into scaled values**: Includes a data source and output to show both configured and actual (effective) instance sizes after Atlas auto-scales
-- **Simplified configuration**: You only specify the attributes you want to manage; Atlas handles auto-scaling independently
+- **No lifecycle.ignore_changes needed**: Eliminates the need for `lifecycle.ignore_changes` blocks to prevent Terraform from reverting Atlas-managed auto-scaling changes.
+- **Visibility into scaled values**: Includes a data source and output to show both configured and actual (effective) instance sizes after Atlas auto-scales.
+- **Simplified configuration**: You only specify the attributes you want to manage; Atlas handles auto-scaling independently.
 
 The example demonstrates:
 - Setting `use_effective_fields = true` on the cluster resource
