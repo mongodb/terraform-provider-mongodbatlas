@@ -42,19 +42,23 @@ resource "mongodbatlas_advanced_cluster" "test" {
   name         = "SymmetricShardedCluster"
   cluster_type = "SHARDED"
 
-  replication_specs = [{
-    num_shards = 2           # this attribute has been removed in v2.0.0
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M30"
-        disk_iops = 3000
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }]
-  }]
+  replication_specs = [
+    {
+      num_shards = 2           # this attribute has been removed in v2.0.0
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M30"
+            disk_iops = 3000
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "EU_WEST_1"
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -66,30 +70,36 @@ resource "mongodbatlas_advanced_cluster" "test" {
   name         = "SymmetricShardedCluster"
   cluster_type = "SHARDED"
 
-  replication_specs = [{ # first shard
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M30"
-        disk_iops = 3000
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }]
-  },
-  { # second shard
-    region_configs = [{
-      electable_specs = {
-        instance_size = "M30"
-        disk_iops = 3000
-        node_count    = 3
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "EU_WEST_1"
-    }]
-  }]
+  replication_specs = [
+    { # first shard
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M30"
+            disk_iops = 3000
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "EU_WEST_1"
+        }
+      ]
+    },
+    { # second shard
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M30"
+            disk_iops = 3000
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "EU_WEST_1"
+        }
+      ]
+    }
+  ]
 }
 ```
 
