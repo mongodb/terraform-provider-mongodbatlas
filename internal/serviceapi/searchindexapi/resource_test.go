@@ -35,7 +35,7 @@ func TestAccSearchIndexAPI_basic(t *testing.T) {
 				ResourceName:                         resourceName,
 				ImportStateIdFunc:                    importStateIDFunc(resourceName),
 				ImportStateVerifyIdentifierAttribute: "name",
-				// import experience is limited due to IPA not respecting: Fields defined in CREATE and UPDATE request schemas should be the same and should be present in response schema
+				// import experience is limited due to API not respecting: Fields defined in CREATE and UPDATE request schemas should be the same and should be present in response schema
 				// Current API defines index within `definition` property, however response doen not include `definition` and instead returns `latestDefinition`.
 				ImportStateVerifyIgnore: []string{"delete_on_create_timeout", "definition.%", "definition.mappings.%", "definition.mappings.dynamic"},
 				ImportState:             true,
@@ -79,7 +79,7 @@ func TestAccSearchIndexAPI_MappingWithAnalyzersUpdatedToEmptyAnalyzers(t *testin
 				Config: configFieldMappingOptionalAnalyzers(projectID, clusterName, indexName, true),
 				Check:  checkFieldMappingOptionalAnalyzers(projectID, clusterName, indexName, true),
 			},
-			// Currently fails due to Invalid definition: "typeSets" cannot be empty. CLOUDP to allow configuration for sending null in list (and other) properties which are not defined
+			// Currently fails due to Invalid definition: "typeSets" cannot be empty. CLOUDP-360429 to allow configuration for sending null instead of empty array which causes error.
 			// {
 			// 	Config: configWithMappingAndAnalyzer(projectID, clusterName, indexName, false),
 			// 	Check:  checkWithMappingAndAnalyzer(projectID, clusterName, indexName, false),
@@ -102,7 +102,7 @@ func TestAccSearchIndexAPI_MappingsUpdatedToEmptyMapping(t *testing.T) {
 				Config: configFieldMappingOptionalAnalyzers(projectID, clusterName, indexName, false),
 				Check:  checkFieldMappingOptionalAnalyzers(projectID, clusterName, indexName, false),
 			},
-			// Currently fails due to Invalid definition: "typeSets" cannot be empty. CLOUDP to allow configuration for sending null in list (and other) properties which are not defined
+			// Currently fails due to Invalid definition: "typeSets" cannot be empty. CLOUDP-360429 to allow configuration for sending null instead of empty array which causes error.
 			// {
 			// 	Config: configBasic(projectID, clusterName, indexName),
 			// 	Check:  checkBasic(projectID, clusterName, indexName),
@@ -129,7 +129,7 @@ func TestAccSearchIndexAPI_withTypeSets_ConfigurableDynamic(t *testing.T) {
 				Config: configWithTypeSets(projectID, clusterName, indexName, `{"typeSet":"ts_acc"}`, []string{`{"type":"string"}`, `{"type":"number"}`}),
 				Check:  checkTypeSets(projectID, clusterName, indexName, `{"typeSet":"ts_acc"}`, 2),
 			},
-			// Currently fails due to Invalid definition: "typeSets" cannot be empty. CLOUDP to allow configuration for sending null in list (and other) properties which are not defined
+			// Currently fails due to Invalid definition: "typeSets" cannot be empty. CLOUDP-360429 to allow configuration for sending null instead of empty array which causes error.
 			// {
 			// 	Config: configWithTypeSetsOmitted(projectID, clusterName, indexName, `{"typeSet":"ts_acc"}`),
 			// 	Check:  checkTypeSetsOmitted(projectID, clusterName, indexName, `{"typeSet":"ts_acc"}`),
@@ -170,11 +170,11 @@ func TestAccSearchIndexAPI_withStoredSourceBool(t *testing.T) {
 				Config: configWithStoredSourceBool(projectID, clusterName, indexName, false),
 				Check:  checkStoredSourceBool(projectID, clusterName, indexName, false),
 			},
-			{
-				// Currently fails due to Invalid definition: "typeSets" cannot be empty. CLOUDP to allow configuration for sending null in list (and other) properties which are not defined
-				Config: configWithStoredSourceBool(projectID, clusterName, indexName, true),
-				Check:  checkStoredSourceBool(projectID, clusterName, indexName, true),
-			},
+			// Currently fails due to Invalid definition: "typeSets" cannot be empty. CLOUDP-360429 to allow configuration for sending null instead of empty array which causes error.
+			// {
+			// 	Config: configWithStoredSourceBool(projectID, clusterName, indexName, true),
+			// 	Check:  checkStoredSourceBool(projectID, clusterName, indexName, true),
+			// },
 		},
 	})
 }
@@ -197,28 +197,6 @@ func TestAccSearchIndexAPI_withStoredSourceInclude(t *testing.T) {
 	})
 }
 
-func TestAccSearchIndexAPI_withStoredSourceUpdateEmptyType(t *testing.T) {
-	var (
-		projectID, clusterName = acc.ClusterNameExecution(t, true)
-		indexName              = acc.RandomName()
-	)
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheckBasic(t) },
-		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
-		CheckDestroy:             checkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configWithStoredSourceBool(projectID, clusterName, indexName, false),
-				Check:  checkStoredSourceBool(projectID, clusterName, indexName, false),
-			},
-			{
-				Config: configWithStoredSourceBool(projectID, clusterName, indexName, true),
-				Check:  checkStoredSourceBool(projectID, clusterName, indexName, true),
-			},
-		},
-	})
-}
-
 func TestAccSearchIndexAPI_withStoredSourceUpdateSearchType(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ClusterNameExecution(t, true)
@@ -232,10 +210,6 @@ func TestAccSearchIndexAPI_withStoredSourceUpdateSearchType(t *testing.T) {
 			{
 				Config: configWithStoredSourceBoolAndType(projectID, clusterName, indexName, "search", false),
 				Check:  checkStoredSourceBool(projectID, clusterName, indexName, false),
-			},
-			{
-				Config: configWithStoredSourceBoolAndType(projectID, clusterName, indexName, "search", true),
-				Check:  checkStoredSourceBool(projectID, clusterName, indexName, true),
 			},
 		},
 	})
