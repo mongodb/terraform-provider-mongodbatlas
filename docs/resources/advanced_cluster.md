@@ -508,11 +508,21 @@ Refer to the following for full privatelink endpoint connection string examples:
 
 
 ### Further Examples
+
+**Cluster Types:**
+- [Replicaset](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_advanced_cluster/replicaset)
+- [Symmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_advanced_cluster/symmetric-sharded-cluster)
 - [Asymmetric Sharded Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_advanced_cluster/asymmetric-sharded-cluster)
-- [Auto-Scaling Per Shard](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_advanced_cluster/auto-scaling-per-shard)
 - [Global Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_advanced_cluster/global-cluster)
 - [Multi-Cloud](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_advanced_cluster/multi-cloud)
+
+**Auto-scaling:**
+- [Auto-Scaling Per Shard](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_advanced_cluster/auto-scaling-per-shard)
+- [Effective Fields Module](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_advanced_cluster/effective-fields-module)
+
+**Upgrades & Migrations:**
 - [Tenant Upgrade](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_advanced_cluster/tenant-upgrade)
+- [Flex Upgrade](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_advanced_cluster/flex-upgrade)
 - [Version Upgrade with Pinned FCV](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_advanced_cluster/version-upgrade-with-pinned-fcv)
 - [Migrate Cluster to Advanced Cluster](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/migrate_cluster_to_advanced_cluster/basic)
 
