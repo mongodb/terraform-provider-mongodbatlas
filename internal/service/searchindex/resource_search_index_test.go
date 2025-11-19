@@ -423,6 +423,7 @@ func checkWithMapping(projectID, indexName, clusterName string) resource.TestChe
 	return checkAggr(projectID, clusterName, indexName, indexType, mappingsDynamic, checks...)
 }
 
+// Note: configWithSynonyms requires a synonyms source collection to be setup in the database (not being done in the test), current configuration returns successful creation but eventually reaches an error state.
 func configWithSynonyms(projectID, indexName, clusterName string, has bool) string {
 	var synonymsStr string
 	if has {

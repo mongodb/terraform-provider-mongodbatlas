@@ -35,9 +35,11 @@ func TestAccSearchIndexAPI_basic(t *testing.T) {
 				ResourceName:                         resourceName,
 				ImportStateIdFunc:                    importStateIDFunc(resourceName),
 				ImportStateVerifyIdentifierAttribute: "name",
-				ImportStateVerifyIgnore:              []string{"delete_on_create_timeout", "definition.%", "definition.mappings.%", "definition.mappings.dynamic"},
-				ImportState:                          true,
-				ImportStateVerify:                    true,
+				// import experience is limited due to IPA not respecting: Fields defined in CREATE and UPDATE request schemas should be the same and should be present in response schema
+				// Current API defines index within `definition` property, however response doen not include `definition` and instead returns `latestDefinition`.
+				ImportStateVerifyIgnore: []string{"delete_on_create_timeout", "definition.%", "definition.mappings.%", "definition.mappings.dynamic"},
+				ImportState:             true,
+				ImportStateVerify:       true,
 			},
 		},
 	})
