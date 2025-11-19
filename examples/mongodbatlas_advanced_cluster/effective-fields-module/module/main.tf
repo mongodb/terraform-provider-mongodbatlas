@@ -19,7 +19,8 @@ resource "mongodbatlas_advanced_cluster" "this" {
 # Data source to read effective values after Atlas auto-scales
 # This is always available regardless of whether auto-scaling is enabled
 data "mongodbatlas_advanced_cluster" "this" {
-  project_id = mongodbatlas_advanced_cluster.this.project_id
-  name       = mongodbatlas_advanced_cluster.this.name
-  depends_on = [mongodbatlas_advanced_cluster.this]
+  project_id           = mongodbatlas_advanced_cluster.this.project_id
+  name                 = mongodbatlas_advanced_cluster.this.name
+  use_effective_fields = true
+  depends_on           = [mongodbatlas_advanced_cluster.this]
 }

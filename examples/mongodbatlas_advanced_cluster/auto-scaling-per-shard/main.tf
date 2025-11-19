@@ -73,9 +73,10 @@ resource "mongodbatlas_advanced_cluster" "test" {
 
 # Read effective values to see what Atlas has scaled to
 data "mongodbatlas_advanced_cluster" "test" {
-  project_id = mongodbatlas_advanced_cluster.test.project_id
-  name       = mongodbatlas_advanced_cluster.test.name
-  depends_on = [mongodbatlas_advanced_cluster.test]
+  project_id           = mongodbatlas_advanced_cluster.test.project_id
+  name                 = mongodbatlas_advanced_cluster.test.name
+  use_effective_fields = true
+  depends_on           = [mongodbatlas_advanced_cluster.test]
 }
 
 # Output to show both configured and actual (effective) sizes

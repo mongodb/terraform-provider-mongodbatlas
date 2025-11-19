@@ -91,9 +91,10 @@ resource "mongodbatlas_advanced_cluster" "this" {
 
 # Read the effective (actual) values after Atlas scales
 data "mongodbatlas_advanced_cluster" "this" {
-  project_id = mongodbatlas_advanced_cluster.this.project_id
-  name       = mongodbatlas_advanced_cluster.this.name
-  depends_on = [mongodbatlas_advanced_cluster.this]
+  project_id           = mongodbatlas_advanced_cluster.this.project_id
+  name                 = mongodbatlas_advanced_cluster.this.name
+  use_effective_fields = true
+  depends_on           = [mongodbatlas_advanced_cluster.this]
 }
 
 output "configured_instance_size" {
