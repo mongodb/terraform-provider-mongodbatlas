@@ -13,16 +13,16 @@ func NewAnalyticsResourceSDKv2(d *schema.Resource, name string, isDataSource boo
 		log.Panicf("%s: Read is not supported for SDKv2 resources, it is deprecated, use ReadContext instead or ReadWithoutTimeout instead", name)
 	}
 	if d.Update != nil {
-		log.Panicf("%s: Update is not supported for SDKv2 resources, it is deprecated, use UpdateContext instead or UpdateWithoutTimeout instead", name)
+		log.Panicf("%s: Update is not supported for SDKv2 resources, it is deprecated, use UpdateContext or UpdateWithoutTimeout instead", name)
 	}
 	if d.Delete != nil {
-		log.Panicf("%s: Delete is not supported for SDKv2 resources, it is deprecated, use DeleteContext instead or DeleteWithoutTimeout instead", name)
+		log.Panicf("%s: Delete is not supported for SDKv2 resources, it is deprecated, use DeleteContext or DeleteWithoutTimeout instead", name)
 	}
 	if d.Importer != nil && d.Importer.State != nil {
 		log.Panicf("%s: Importer.State is not supported for SDKv2 resources, it is deprecated, use Importer.StateContext instead", name)
 	}
 	if d.Create != nil {
-		log.Panicf("%s: Create is not supported for SDKv2 resources, it is deprecated, use CreateContext instead or CreateWithoutTimeout instead", name)
+		log.Panicf("%s: Create is not supported for SDKv2 resources, it is deprecated, use CreateContext or CreateWithoutTimeout instead", name)
 	}
 	analyticsResource := &AnalyticsResourceSDKv2{
 		resource:     d,
