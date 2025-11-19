@@ -45,76 +45,6 @@ data "mongodbatlas_advanced_clusters" "this" {
 }
 ```
 
-## Example using latest sharding configurations with independent shard scaling in the cluster
-
-```terraform
-resource "mongodbatlas_advanced_cluster" "this" {
-  project_id     = "<YOUR-PROJECT-ID>"
-  name           = "cluster-test"
-  backup_enabled = false
-  cluster_type   = "SHARDED"
-
-  replication_specs = [
-    {    # Sharded cluster with 2 asymmetric shards (M30 and M40)
-      region_configs = [
-        {
-          electable_specs = {
-            instance_size = "M30"
-            disk_iops     = 3000
-            node_count    = 3
-          }
-          provider_name = "AWS"
-          priority      = 7
-          region_name   = "EU_WEST_1"
-        }
-      ]
-    },
-    {
-      region_configs = [
-        {
-          electable_specs = {
-            instance_size = "M40"
-            disk_iops     = 3000
-            node_count    = 3
-          }
-          provider_name = "AWS"
-          priority      = 7
-          region_name   = "EU_WEST_1"
-        }
-      ]
-    }
-  ]
-}
-
-data "mongodbatlas_advanced_cluster" "this" {
-  project_id                     = mongodbatlas_advanced_cluster.this.project_id
-  name                           = mongodbatlas_advanced_cluster.this.name
-}
-```
-
-## Example using Flex cluster
-
-```terraform
-resource "mongodbatlas_advanced_cluster" "this" {
-  project_id   = "<YOUR-PROJECT-ID>"
-  name         = "flex-cluster"
-  cluster_type = "REPLICASET"
-
-  replication_specs = [{
-    region_configs = [{
-      provider_name = "FLEX"
-      backing_provider_name = "AWS"
-      region_name = "US_EAST_1"
-      priority = 7
-    }]
-  }]
-}
-
-data "mongodbatlas_advanced_clusters" "this" {
-  project_id = mongodbatlas_advanced_cluster.this.project_id
-}
-```
-
 ## Example using effective fields with auto-scaling
 
 ```terraform
@@ -194,6 +124,80 @@ output "all_cluster_names_and_sizes" {
       actual_size           = cluster.replication_specs[0].region_configs[0].effective_electable_specs.instance_size
     }
   ]
+}
+```
+
+## Example using latest sharding configurations with independent shard scaling in the cluster
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "this" {
+  project_id     = "<YOUR-PROJECT-ID>"
+  name           = "cluster-test"
+  backup_enabled = false
+  cluster_type   = "SHARDED"
+
+  replication_specs = [
+    {    # Sharded cluster with 2 asymmetric shards (M30 and M40)
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M30"
+            disk_iops     = 3000
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "EU_WEST_1"
+        }
+      ]
+    },
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M40"
+            disk_iops     = 3000
+            node_count    = 3
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "EU_WEST_1"
+        }
+      ]
+    }
+  ]
+}
+
+data "mongodbatlas_advanced_cluster" "this" {
+  project_id                     = mongodbatlas_advanced_cluster.this.project_id
+  name                           = mongodbatlas_advanced_cluster.this.name
+}
+```
+
+## Example using Flex cluster
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "this" {
+  project_id   = "<YOUR-PROJECT-ID>"
+  name         = "flex-cluster"
+  cluster_type = "REPLICASET"
+
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          provider_name = "FLEX"
+          backing_provider_name = "AWS"
+          region_name = "US_EAST_1"
+          priority = 7
+        }
+      ]
+    }
+  ]
+}
+
+data "mongodbatlas_advanced_clusters" "this" {
+  project_id = mongodbatlas_advanced_cluster.this.project_id
 }
 ```
 

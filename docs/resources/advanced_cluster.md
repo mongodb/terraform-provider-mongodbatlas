@@ -57,6 +57,56 @@ resource "mongodbatlas_advanced_cluster" "this" {
 }
 ```
 
+### Example using effective fields with auto-scaling
+
+```terraform
+resource "mongodbatlas_advanced_cluster" "this" {
+  project_id            = var.project_id
+  name                  = "auto-scale-cluster"
+  cluster_type          = "REPLICASET"
+  use_effective_fields  = true
+
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M10"  # Starting size - will remain M10 in state
+            node_count    = 3
+          }
+          auto_scaling = {
+            compute_enabled            = true
+            compute_scale_down_enabled = true
+            compute_min_instance_size  = "M10"
+            compute_max_instance_size  = "M30"
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "US_EAST_1"
+        }
+      ]
+    }
+  ]
+}
+
+# Read the effective (actual) values after Atlas scales
+data "mongodbatlas_advanced_cluster" "this" {
+  project_id = mongodbatlas_advanced_cluster.this.project_id
+  name       = mongodbatlas_advanced_cluster.this.name
+  depends_on = [mongodbatlas_advanced_cluster.this]
+}
+
+output "configured_instance_size" {
+  value = data.mongodbatlas_advanced_cluster.this.replication_specs[0].region_configs[0].electable_specs.instance_size
+}
+
+output "actual_instance_size" {
+  value = data.mongodbatlas_advanced_cluster.this.replication_specs[0].region_configs[0].effective_electable_specs.instance_size
+}
+```
+
+**For module authors:** See the [Effective Fields Module Example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/effective-fields-module) for a complete example of using `use_effective_fields` and effective specs in reusable Terraform modules.
+
 ### Example Tenant Cluster
 
 ```terraform
@@ -862,53 +912,7 @@ The `use_effective_fields` attribute fundamentally changes how the provider hand
 
 **Key difference:** With `use_effective_fields = true`, your configuration stays clean and represents your intent, while effective specs show the reality of what Atlas has provisioned. Effective spec attributes are always available in data sources regardless of the flag value.
 
-### Example: Auto-scaling without lifecycle ignore_changes
-
-```terraform
-resource "mongodbatlas_advanced_cluster" "this" {
-  project_id            = var.project_id
-  name                  = "auto-scale-cluster"
-  cluster_type          = "REPLICASET"
-  use_effective_fields  = true
-
-  replication_specs = [
-    {
-      region_configs = [
-        {
-          electable_specs = {
-            instance_size = "M10"  # Starting size - will remain M10 in state
-            node_count    = 3
-          }
-          auto_scaling = {
-            compute_enabled            = true
-            compute_scale_down_enabled = true
-            compute_min_instance_size  = "M10"
-            compute_max_instance_size  = "M30"
-          }
-          provider_name = "AWS"
-          priority      = 7
-          region_name   = "US_EAST_1"
-        }
-      ]
-    }
-  ]
-}
-
-# Read the effective (actual) values after Atlas scales
-data "mongodbatlas_advanced_cluster" "this" {
-  project_id = mongodbatlas_advanced_cluster.this.project_id
-  name       = mongodbatlas_advanced_cluster.this.name
-  depends_on = [mongodbatlas_advanced_cluster.this]
-}
-
-output "configured_instance_size" {
-  value = data.mongodbatlas_advanced_cluster.this.replication_specs[0].region_configs[0].electable_specs.instance_size
-}
-
-output "actual_instance_size" {
-  value = data.mongodbatlas_advanced_cluster.this.replication_specs[0].region_configs[0].effective_electable_specs.instance_size
-}
-```
+See the [Example using effective fields with auto-scaling](#example-using-effective-fields-with-auto-scaling) in the Example Usage section.
 
 ### Migration path and version 3.0
 
