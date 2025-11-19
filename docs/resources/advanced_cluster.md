@@ -903,13 +903,21 @@ The `use_effective_fields` attribute changes how the provider handles specificat
 - **Clear separation of concerns**:
   - Spec attributes remain exactly as defined in your Terraform configuration
   - Atlas-computed values (defaults and auto-scaled values) are available separately in effective specs
-- Attributes not in your Terraform configuration are sent as `null` to the Atlas API
 - No plan drift occurs when Atlas auto-scales your cluster
 - Use data sources to read `effective_electable_specs`, `effective_analytics_specs`, and `effective_read_only_specs` for actual values
 
-**Key difference:** With `use_effective_fields = true`, your configuration stays clean and represents your intent, while effective specs show the reality of what Atlas has provisioned. Effective spec attributes are always available in data sources regardless of the flag value.
+**Key difference:** With `use_effective_fields = true`, your configuration stays clean and represents your intent, while effective specs show the reality of what Atlas has provisioned. 
 
 See the [Example using effective fields with auto-scaling](#example-using-effective-fields-with-auto-scaling) in the Example Usage section.
+
+### Terraform Modules
+
+`use_effective_fields` is particularly valuable for reusable Terraform modules. It enables a single module to handle both auto-scaling and non-auto-scaling clusters without requiring lifecycle blocks:
+
+- **Without use_effective_fields**: Separate modules are required or module users must add `lifecycle.ignore_changes` blocks
+- **With use_effective_fields**: One module works for both scenarios with no lifecycle blocks required
+
+See the [Effective Fields Module Example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/effective-fields-module) for a complete implementation.
 
 ### Migration path and version 3.x
 
@@ -925,19 +933,10 @@ See the [Example using effective fields with auto-scaling](#example-using-effect
 
 **Potential enhancements (v3.x or later):**
 - If customer demand warrants, effective spec fields (`effective_electable_specs`, `effective_analytics_specs`, `effective_read_only_specs`) may be exposed directly in the resource (currently available only via data source)
-- This would improve observability by allowing direct access to actual operational values
+- This would improve observability by providing direct access to actual operational values from the resource without requiring a separate data source
 - Note: Effective fields would still show `(known after apply)` markers, but user-configured spec fields would not, resulting in clearer plan output overall
 
 **Migration recommendation:** Adopt `use_effective_fields = true` in v2.x to prepare for the v3.x transition and benefit from improved auto-scaling workflows immediately.
-
-### Terraform Modules
-
-`use_effective_fields` is particularly valuable for reusable Terraform modules. It enables a single module to handle both auto-scaling and non-auto-scaling clusters without requiring lifecycle blocks:
-
-- **Without use_effective_fields**: Separate modules are required or module users must add `lifecycle.ignore_changes` blocks
-- **With use_effective_fields**: One module works for both scenarios with no lifecycle blocks required
-
-See the [Effective Fields Module Example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/effective-fields-module) for a complete implementation.
 
 ## Considerations and Best Practices
 
