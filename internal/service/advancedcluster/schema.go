@@ -315,7 +315,7 @@ func resourceSchema(ctx context.Context) schema.Schema {
 			}),
 			"use_effective_fields": schema.BoolAttribute{
 				Optional:            true,
-				MarkdownDescription: "Flag that indicates whether to use the effective fields for the cluster.",
+				MarkdownDescription: "Controls how hardware specification fields are returned in the response. When set to true, returns the original client-specified values and provides separate effective fields showing current operational values. When false (default), hardware specification fields show current operational values directly. Primarily used for autoscaling compatibility.",
 			},
 		},
 	}
