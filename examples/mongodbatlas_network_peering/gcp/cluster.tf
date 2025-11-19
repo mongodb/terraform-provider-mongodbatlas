@@ -35,7 +35,7 @@ resource "mongodbatlas_advanced_cluster" "cluster" {
   }
 }
 
-# The connection strings available for the GCP MognoDB Atlas cluster
+# The connection strings available for the GCP MongoDB Atlas cluster
 output "connection_string" {
   value = mongodbatlas_advanced_cluster.cluster.connection_strings
 }
