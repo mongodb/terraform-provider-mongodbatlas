@@ -101,6 +101,8 @@ func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
 	if modelIn.DeleteOnCreateTimeout.ValueBoolPointer() != nil {
 		modelOut.DeleteOnCreateTimeout = modelIn.DeleteOnCreateTimeout
 	}
+
+	modelOut.UseEffectiveFields = modelIn.UseEffectiveFields
 	overrideMapStringWithPrevStateValue(&modelIn.Labels, &modelOut.Labels)
 	overrideMapStringWithPrevStateValue(&modelIn.Tags, &modelOut.Tags)
 }

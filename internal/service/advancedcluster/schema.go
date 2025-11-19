@@ -323,14 +323,14 @@ func resourceSchema(ctx context.Context) schema.Schema {
 
 func dataSourceSchema(ctx context.Context) dsschema.Schema {
 	return conversion.DataSourceSchemaFromResource(resourceSchema(ctx), &conversion.DataSourceSchemaRequest{
-		RequiredFields:  []string{"project_id", "name"},
+		RequiredFields:  []string{"project_id", "name", "use_effective_fields"},
 		OverridenFields: dataSourceOverridenFields(),
 	})
 }
 
 func pluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 	return conversion.PluralDataSourceSchemaFromResource(resourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
-		RequiredFields:  []string{"project_id"},
+		RequiredFields:  []string{"project_id", "use_effective_fields"},
 		OverridenFields: dataSourceOverridenFields(),
 	})
 }
