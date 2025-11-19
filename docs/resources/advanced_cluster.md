@@ -881,28 +881,28 @@ The `use_effective_fields` attribute enhances auto-scaling workflows by eliminat
 
 ### Why use_effective_fields?
 
-When auto-scaling is enabled on a cluster, Atlas automatically adjusts instance sizes and disk capacity based on workload. Without `use_effective_fields`, you must use `lifecycle.ignore_changes` blocks to prevent Terraform from reverting these Atlas-managed changes. This approach has limitations:
+When auto-scaling is enabled on a cluster, Atlas automatically adjusts instance sizes and disk capacity based on workload. Without `use_effective_fields`, `lifecycle.ignore_changes` blocks are required to prevent Terraform from reverting these Atlas-managed changes. This approach has limitations:
 
-- **Limited visibility**: You cannot easily see what Atlas has scaled in your Terraform state
 - **Configuration drift**: The actual cluster configuration diverges from your Terraform configuration
-- **Maintenance overhead**: You must carefully manage `ignore_changes` blocks and comment/uncomment them when making intentional changes
+- **Maintenance overhead**: Careful management of `ignore_changes` blocks is required, including commenting and uncommenting when making intentional changes
+- **Limited visibility**: Actual scaled values cannot be easily inspected within Terraform state
 
 ### How use_effective_fields works
 
-The `use_effective_fields` attribute fundamentally changes how the provider handles specification attributes:
+The `use_effective_fields` attribute changes how the provider handles specification attributes:
 
 **When `use_effective_fields = false` (default - current behavior):**
 - Spec attributes (`electable_specs`, `analytics_specs`, `read_only_specs`) behavior:
-  - If you specify values in your Terraform configuration (e.g., `instance_size = "M10"`), those values stay in your configuration
-  - If you don't specify them, Atlas provides default values automatically
-- With auto-scaling enabled, Atlas scales your cluster but your configured values don't update to match
+  - If values are specified in your Terraform configuration (e.g., `instance_size = "M10"`), those values remain in your configuration
+  - If values are not specified, Atlas provides default values automatically
+- With auto-scaling enabled, Atlas scales your cluster but your configured values do not update to match
 - This creates plan drift: Terraform shows differences between your configured values and what Atlas has actually deployed
-- You must use `lifecycle.ignore_changes` to prevent Terraform from reverting Atlas auto-scaling changes back to your original configuration
+- `lifecycle.ignore_changes` must be used to prevent Terraform from reverting Atlas auto-scaling changes back to your original configuration
 
 **When `use_effective_fields = true` (new behavior):**
 - **Clear separation of concerns**:
-  - Spec attributes remain **exactly as you defined them** in your Terraform configuration
-  - Atlas-computed values (defaults and auto-scaled values) are available separately in **effective specs**
+  - Spec attributes remain exactly as defined in your Terraform configuration
+  - Atlas-computed values (defaults and auto-scaled values) are available separately in effective specs
 - Attributes not in your Terraform configuration are sent as `null` to the Atlas API
 - No plan drift occurs when Atlas auto-scales your cluster
 - Use data sources to read `effective_electable_specs`, `effective_analytics_specs`, and `effective_read_only_specs` for actual values
@@ -911,23 +911,33 @@ The `use_effective_fields` attribute fundamentally changes how the provider hand
 
 See the [Example using effective fields with auto-scaling](#example-using-effective-fields-with-auto-scaling) in the Example Usage section.
 
-### Migration path and version 3.0
+### Migration path and version 3.x
 
-- **Current (2.x)**: `use_effective_fields` defaults to `false` for full backward compatibility. Set to `true` to enable the feature
-- **Future (3.x)**: The effective fields behavior will be enabled by default. The `use_effective_fields` attribute will be deprecated in 2.x and removed in 3.x, when the new behavior becomes standard
+**Current behavior (provider v2.x):**
+- `use_effective_fields` defaults to `false` for full backward compatibility
+- Set to `true` to opt into the effective fields behavior
+- The attribute will be deprecated later in v2.x releases in preparation for v3.x
+
+**Future behavior (provider v3.x):**
+- The effective fields behavior will be enabled by default
+- The `use_effective_fields` attribute will be removed, as the new behavior becomes standard
+- This change will reduce plan verbosity by making specification fields Optional-only (removing Computed), eliminating unnecessary `(known after apply)` markers for user-configured values
+
+**Potential enhancements (v3.x or later):**
+- If customer demand warrants, effective spec fields (`effective_electable_specs`, `effective_analytics_specs`, `effective_read_only_specs`) may be exposed directly in the resource (currently available only via data source)
+- This would improve observability by allowing direct access to actual operational values
+- Note: Effective fields would still show `(known after apply)` markers, but user-configured spec fields would not, resulting in clearer plan output overall
+
+**Migration recommendation:** Adopt `use_effective_fields = true` in v2.x to prepare for the v3.x transition and benefit from improved auto-scaling workflows immediately.
 
 ### Terraform Modules
 
-`use_effective_fields` is particularly valuable for **reusable Terraform modules**. It enables a single module to handle both auto-scaling and non-auto-scaling clusters without requiring lifecycle blocks:
+`use_effective_fields` is particularly valuable for reusable Terraform modules. It enables a single module to handle both auto-scaling and non-auto-scaling clusters without requiring lifecycle blocks:
 
-- **Without use_effective_fields**: You need separate modules or require module users to add `lifecycle.ignore_changes` blocks
+- **Without use_effective_fields**: Separate modules are required or module users must add `lifecycle.ignore_changes` blocks
 - **With use_effective_fields**: One module works for both scenarios with no lifecycle blocks required
 
 See the [Effective Fields Module Example](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/effective-fields-module) for a complete implementation.
-
-### When not to use use_effective_fields
-
-If you prefer the current behavior and want to continue using `lifecycle.ignore_changes`, keep `use_effective_fields = false` or omit it entirely. This ensures no breaking changes to existing workflows.
 
 ## Considerations and Best Practices
 
