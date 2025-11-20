@@ -38,7 +38,7 @@ func TestAccClusterAPI_moveBasic(t *testing.T) {
 	})
 }
 
-func TestAccClusterAPI_moveInvalid(t *testing.T) {
+func TestAccClusterAPI_moveFromUnsupportedSource(t *testing.T) {
 	var (
 		projectID   = acc.ProjectIDExecution(t)
 		clusterName = acc.RandomClusterName()
@@ -49,14 +49,14 @@ func TestAccClusterAPI_moveInvalid(t *testing.T) {
 		CheckDestroy:             checkDestroyDatabaseUser,
 		Steps: []resource.TestStep{
 			{
-				Config: configMoveFirstInvalid(projectID, clusterName),
+				Config: configMoveFirstUnsupported(projectID, clusterName),
 			},
 			{
-				Config:      configMoveSecondInvalid(projectID, clusterName),
+				Config:      configMoveSecondUnsupported(projectID, clusterName),
 				ExpectError: regexp.MustCompile("Unable to Move Resource State"),
 			},
 			{
-				Config: configMoveFirstInvalid(projectID, clusterName),
+				Config: configMoveFirstUnsupported(projectID, clusterName),
 			},
 		},
 	})
@@ -131,7 +131,7 @@ func configMoveSecond(projectID, clusterName string, numShards int) string {
 	`, projectID, clusterName, clusterTypeStr, strings.Join(replicationSpecsStr, ","))
 }
 
-func configMoveFirstInvalid(projectID, clusterName string) string {
+func configMoveFirstUnsupported(projectID, clusterName string) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_database_user_api" "old" {
 			group_id      = %[1]q
@@ -147,7 +147,7 @@ func configMoveFirstInvalid(projectID, clusterName string) string {
 	`, projectID, clusterName)
 }
 
-func configMoveSecondInvalid(projectID, clusterName string) string {
+func configMoveSecondUnsupported(projectID, clusterName string) string {
 	return fmt.Sprintf(`
 		moved {
 			from = mongodbatlas_database_user_api.old
