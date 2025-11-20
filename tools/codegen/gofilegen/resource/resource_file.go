@@ -21,7 +21,8 @@ func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
 			Read:          *toCodeTemplateOpModel(&input.Operations.Read),
 			Delete:        toCodeTemplateOpModel(input.Operations.Delete),
 		},
-		ImportIDAttributes: getIDAttributes(input.Operations.Read.Path),
+		MoveState:    toCodeTemplateMoveStateModel(input.MoveState),
+		IDAttributes: getIDAttributes(input.Operations.Read.Path),
 	}
 	result := codetemplate.ApplyResourceFileTemplate(&tmplInputs)
 
@@ -30,6 +31,13 @@ func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
 		return nil, fmt.Errorf("failed to format generated Go code (resource): %w", err)
 	}
 	return formattedResult, nil
+}
+
+func toCodeTemplateMoveStateModel(moveState *codespec.MoveState) *codetemplate.MoveState {
+	if moveState == nil {
+		return nil
+	}
+	return &codetemplate.MoveState{SourceResources: moveState.SourceResources}
 }
 
 func toCodeTemplateOpModel(op *codespec.APIOperation) *codetemplate.Operation {

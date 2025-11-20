@@ -191,6 +191,33 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 			},
 			goldenFileName: "unsupported-update-operation",
 		},
+		"Defining a resource with move state": {
+			inputModel: codespec.Resource{
+				Name:        "test_name",
+				PackageName: "testname",
+				MoveState:   &codespec.MoveState{SourceResources: []string{"test_name_old"}},
+				Operations: codespec.APIOperations{
+					Create: codespec.APIOperation{
+						HTTPMethod: "POST",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Update: &codespec.APIOperation{
+						HTTPMethod: "PATCH",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Read: codespec.APIOperation{
+						HTTPMethod: "GET",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Delete: &codespec.APIOperation{
+						HTTPMethod: "DELETE",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					VersionHeader: "application/vnd.atlas.2024-05-30+json",
+				},
+			},
+			goldenFileName: "move-state",
+		},
 	}
 
 	for testName, tc := range testCases {
