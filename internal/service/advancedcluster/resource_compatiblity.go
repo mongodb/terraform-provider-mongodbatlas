@@ -101,6 +101,8 @@ func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
 	overrideMapStringWithPrevStateValue(&modelIn.Tags, &modelOut.Tags)
 
 	// Copy Terraform-only attributes which are not returned by Atlas API.
+	// These fields are Optional-only or Optional+Computed (because of a default value),
+	// so no need for more complex logic as they can't be Unknown in the plan.
 	modelOut.Timeouts = modelIn.Timeouts
 	modelOut.DeleteOnCreateTimeout = modelIn.DeleteOnCreateTimeout
 	modelOut.RetainBackupsEnabled = modelIn.RetainBackupsEnabled
