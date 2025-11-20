@@ -36,7 +36,7 @@ func TestAccSearchIndexAPI_basic(t *testing.T) {
 				ImportStateIdFunc:                    importStateIDFunc(resourceName),
 				ImportStateVerifyIdentifierAttribute: "name",
 				// import experience is limited due to API not respecting: Fields defined in CREATE and UPDATE request schemas should be the same and should be present in response schema
-				// Current API defines index within `definition` property, however response doen not include `definition` and instead returns `latestDefinition`.
+				// Current API defines index within `definition` property, however response does not include `definition` and instead returns `latestDefinition`.
 				ImportStateVerifyIgnore: []string{"delete_on_create_timeout", "definition.%", "definition.mappings.%", "definition.mappings.dynamic"},
 				ImportState:             true,
 				ImportStateVerify:       true,
@@ -55,7 +55,7 @@ func TestAccSearchIndexAPI_withSynonymsUpdatedToEmpty(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
-			// configWithSynonyms requires a source collection to be setup in the database, creation reachs READY but does have an error.
+			// configWithSynonyms requires a source collection to be setup in the database, creation reaches READY but does have an error.
 			// Any follow up steps fail with an error unexpected state 'FAILED', wanted target 'READY, STEADY'.
 			{
 				Config: configWithSynonyms(projectID, clusterName, indexName, true),
