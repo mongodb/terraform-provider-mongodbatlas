@@ -381,7 +381,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
         node_count    = 3
       }
       analytics_specs = {
-        instance_size = "M40"
+        instance_size = "M40" # Initial size value that won't change in Terraform state, actual size in Atlas may differ due to auto-scaling
         node_count = 1
       }
       auto_scaling = {
@@ -405,7 +405,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
         node_count    = 3
       }
       analytics_specs = {
-        instance_size = "M40"
+        instance_size = "M40" # Initial size value that won't change in Terraform state, actual size in Atlas may differ due to auto-scaling
         node_count = 1
       }
       auto_scaling = {
@@ -465,7 +465,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
         node_count    = 3
       }
       analytics_specs = {
-        instance_size = "M40"
+        instance_size = "M40" # Initial size value that won't change in Terraform state, actual size in Atlas may differ due to auto-scaling
         node_count = 1
       }
       auto_scaling = {
@@ -489,7 +489,7 @@ resource "mongodbatlas_advanced_cluster" "test" {
         node_count    = 3
       }
       analytics_specs = {
-        instance_size = "M40"
+        instance_size = "M40" # Initial size value that won't change in Terraform state, actual size in Atlas may differ due to auto-scaling
         node_count = 1
       }
       auto_scaling = {

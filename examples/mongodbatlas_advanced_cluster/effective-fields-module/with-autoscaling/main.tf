@@ -27,7 +27,7 @@ module "atlas_cluster" {
           }
 
           analytics_specs = {
-            instance_size = "M10"
+            instance_size = "M10" # Initial size value that won't change in Terraform state, actual size in Atlas may differ due to auto-scaling
             node_count    = 1
           }
 
