@@ -392,10 +392,7 @@ func getBasicClusterModelResource(ctx context.Context, diags *diag.Diagnostics, 
 		return nil
 	}
 	modelOut := getBasicClusterModel(ctx, diags, client, clusterResp)
-	if modelOut != nil {
-		modelOut.Timeouts = modelIn.Timeouts
-		overrideAttributesWithPrevStateValue(modelIn, modelOut)
-	}
+	overrideAttributesWithPrevStateValue(modelIn, modelOut)
 	return modelOut
 }
 

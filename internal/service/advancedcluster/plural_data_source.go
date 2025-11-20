@@ -46,6 +46,7 @@ func (d *pluralDS) Read(ctx context.Context, req datasource.ReadRequest, resp *d
 	model, diags := d.readClusters(ctx, diags, &state)
 	resp.Diagnostics = *diags
 	if model != nil {
+		model.UseEffectiveFields = state.UseEffectiveFields // Set Optional Terraform-only attribute.
 		diags.Append(resp.State.Set(ctx, model)...)
 	}
 }
@@ -90,6 +91,7 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 			return nil, diags
 		}
 		modelOutDS := conversion.CopyModel[TFModelDS](modelOut)
+		modelOutDS.UseEffectiveFields = pluralModel.UseEffectiveFields // Set Optional Terraform-only attribute.
 		outs.Results = append(outs.Results, modelOutDS)
 	}
 	flexModels := d.getFlexClustersModels(ctx, diags, projectID)

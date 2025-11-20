@@ -122,10 +122,7 @@ func FlexDescriptionToClusterDescription(flexCluster *admin.FlexClusterDescripti
 
 func NewTFModelFlexResource(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, priority *int, modelIn *TFModel) *TFModel {
 	modelOut := NewTFModelFlex(ctx, diags, flexCluster, priority)
-	if modelOut != nil {
-		overrideAttributesWithPrevStateValue(modelIn, modelOut)
-		modelOut.Timeouts = modelIn.Timeouts
-	}
+	overrideAttributesWithPrevStateValue(modelIn, modelOut)
 	return modelOut
 }
 
