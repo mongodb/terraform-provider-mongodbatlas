@@ -10,10 +10,11 @@ import (
 var schemaFileTemplate string
 
 type SchemaFileInputs struct {
-	PackageName      string
-	SchemaAttributes string
-	Models           string
-	Imports          []string
+	DeprecationMessage *string
+	PackageName        string
+	SchemaAttributes   string
+	Models             string
+	Imports            []string
 }
 
 //go:embed resource-file.go.tmpl
@@ -60,7 +61,7 @@ type MoveState struct {
 	SourceResources []string
 }
 
-func ApplySchemaFileTemplate(inputs SchemaFileInputs) bytes.Buffer {
+func ApplySchemaFileTemplate(inputs *SchemaFileInputs) bytes.Buffer {
 	return applyTemplate(schemaFileTemplate, inputs)
 }
 

@@ -548,10 +548,10 @@ paths:
             application/vnd.atlas.2024-05-30+json:
               schema:
                 $ref: "#/components/schemas/DynamicJsonProps"
-  "/api/atlas/v2/groups/{groupId}/testResourceMoveState":
+  "/api/atlas/v2/groups/{groupId}/simpleTestResource":
     delete:
       description: DELETE API description
-      operationId: deleteTestResourceConfiguration
+      operationId: deleteSimpleTestResourceConfiguration
       parameters:
         - $ref: "#/components/parameters/groupId"
       responses:
@@ -561,13 +561,13 @@ paths:
               x-xgen-version: 2023-01-01
           description: OK
       security:
-        - DigestAuth: [ ]
-      summary: Disable the Test Resource feature for a project.
+        - DigestAuth: []
+      summary: Disable the Simple Test Resource feature for a project.
       tags:
         - Test Resource
     get:
       description: GET API description
-      operationId: getTestResourceConfiguration
+      operationId: getSimpleTestResourceConfiguration
       parameters:
         - $ref: "#/components/parameters/groupId"
       responses:
@@ -575,24 +575,24 @@ paths:
           content:
             application/vnd.atlas.2023-01-01+json:
               schema:
-                $ref: "#/components/schemas/TestResourceSingleStringAttribute"
+                $ref: "#/components/schemas/SimpleTestResource"
               x-xgen-version: 2023-01-01
           description: OK
       security:
-        - DigestAuth: [ ]
-      summary: Get the Test Resource configuration for a project
+        - DigestAuth: []
+      summary: Get the Simple Test Resource configuration for a project
       tags:
         - Test Resource
     patch:
       description: PATCH API description
-      operationId: updateTestResourceConfiguration
+      operationId: updateSimpleTestResourceConfiguration
       parameters:
         - $ref: "#/components/parameters/groupId"
       requestBody:
         content:
           application/vnd.atlas.2023-01-01+json:
             schema:
-              $ref: "#/components/schemas/TestResourceSingleStringAttribute"
+              $ref: "#/components/schemas/SimpleTestResource"
             x-xgen-version: 2023-01-01
         description: Patch request description
         required: true
@@ -603,20 +603,20 @@ paths:
               x-xgen-version: 2023-01-01
           description: OK
       security:
-        - DigestAuth: [ ]
-      summary: Update the Test Resource feature for a project
+        - DigestAuth: []
+      summary: Update the Simple Test Resource feature for a project
       tags:
         - Test Resource
     post:
       description: POST API description
-      operationId: createTestResourceConfiguration
+      operationId: createSimpleTestResourceConfiguration
       parameters:
         - $ref: "#/components/parameters/groupId"
       requestBody:
         content:
           application/vnd.atlas.2023-01-01+json:
             schema:
-              $ref: "#/components/schemas/TestResourceSingleStringAttribute"
+              $ref: "#/components/schemas/SimpleTestResource"
             x-xgen-version: 2023-01-01
         description: Create request description
         required: true
@@ -627,8 +627,8 @@ paths:
               x-xgen-version: 2023-01-01
           description: OK
       security:
-        - DigestAuth: [ ]
-      summary: Enable the Test Resource feature for a project
+        - DigestAuth: []
+      summary: Enable the Simple Test Resource feature for a project
       tags:
         - Test Resource
 components:
@@ -920,10 +920,11 @@ components:
         - flag
         - listString
         - setString
-    TestResourceSingleStringAttribute:
+    SimpleTestResource:
       type: object
       properties:
         stringAttr:
           type: string
+          description: Test field description
       required:
         - stringAttr
