@@ -71,5 +71,6 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		return nil
 	}
 	modelOutDS := conversion.CopyModel[TFModelDS](modelOut)
+	modelOutDS.UseEffectiveFields = modelDS.UseEffectiveFields // Set Optional Terraform-only attribute.
 	return modelOutDS
 }
