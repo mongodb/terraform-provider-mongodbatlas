@@ -80,7 +80,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	federationSettingsID := ids["federation_settings_id"]
 	orgID := ids["org_id"]
 
-	federatedSettingsConnectedOrganization, resp, err := conn.FederatedAuthenticationApi.GetConnectedOrgConfig(context.Background(), federationSettingsID, orgID).Execute()
+	federatedSettingsConnectedOrganization, resp, err := conn.FederatedAuthenticationApi.GetConnectedOrgConfig(ctx, federationSettingsID, orgID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")
@@ -191,7 +191,7 @@ func resourceImport(ctx context.Context, d *schema.ResourceData, meta any) ([]*s
 		return nil, err
 	}
 
-	_, _, err = conn.FederatedAuthenticationApi.GetConnectedOrgConfig(context.Background(), *federationSettingsID, *orgID).Execute()
+	_, _, err = conn.FederatedAuthenticationApi.GetConnectedOrgConfig(ctx, *federationSettingsID, *orgID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import Organization config (%s) in Federation settings (%s), error: %s", *orgID, *federationSettingsID, err)
 	}

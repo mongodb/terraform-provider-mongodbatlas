@@ -6,8 +6,8 @@ import (
 	admin20241113 "go.mongodb.org/atlas-sdk/v20241113005/admin"
 )
 
-func UpdateTeamUsers(teamsAPI admin20241113.TeamsApi, usersAPI admin20241113.MongoDBCloudUsersApi, existingTeamUsers []admin20241113.CloudAppUser, newUsernames []string, orgID, teamID string) error {
-	validNewUsers, err := ValidateUsernames(usersAPI, newUsernames)
+func UpdateTeamUsers(ctx context.Context, teamsAPI admin20241113.TeamsApi, usersAPI admin20241113.MongoDBCloudUsersApi, existingTeamUsers []admin20241113.CloudAppUser, newUsernames []string, orgID, teamID string) error {
+	validNewUsers, err := ValidateUsernames(ctx, usersAPI, newUsernames)
 	if err != nil {
 		return err
 	}
@@ -24,7 +24,7 @@ func UpdateTeamUsers(teamsAPI admin20241113.TeamsApi, usersAPI admin20241113.Mon
 	}
 	// save all users to add
 	if len(userToAddModels) > 0 {
-		_, _, err = teamsAPI.AddTeamUser(context.Background(), orgID, teamID, &userToAddModels).Execute()
+		_, _, err = teamsAPI.AddTeamUser(ctx, orgID, teamID, &userToAddModels).Execute()
 		if err != nil {
 			return err
 		}
@@ -32,7 +32,7 @@ func UpdateTeamUsers(teamsAPI admin20241113.TeamsApi, usersAPI admin20241113.Mon
 
 	for i := range usersToRemove {
 		// remove user from team
-		_, err := teamsAPI.RemoveTeamUser(context.Background(), orgID, teamID, usersToRemove[i]).Execute()
+		_, err := teamsAPI.RemoveTeamUser(ctx, orgID, teamID, usersToRemove[i]).Execute()
 		if err != nil {
 			return err
 		}
@@ -41,10 +41,10 @@ func UpdateTeamUsers(teamsAPI admin20241113.TeamsApi, usersAPI admin20241113.Mon
 	return nil
 }
 
-func ValidateUsernames(c admin20241113.MongoDBCloudUsersApi, usernames []string) ([]admin20241113.CloudAppUser, error) {
+func ValidateUsernames(ctx context.Context, c admin20241113.MongoDBCloudUsersApi, usernames []string) ([]admin20241113.CloudAppUser, error) {
 	var validUsers []admin20241113.CloudAppUser
 	for _, elem := range usernames {
-		userToAdd, _, err := c.GetUserByUsername(context.Background(), elem).Execute()
+		userToAdd, _, err := c.GetUserByUsername(ctx, elem).Execute()
 		if err != nil {
 			return nil, err
 		}

@@ -171,7 +171,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	providerName := ids["provider_name"]
 	region := ids["region"]
 
-	privateEndpoint, resp, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpointService(context.Background(), projectID, providerName, privateLinkID).Execute()
+	privateEndpoint, resp, err := connV2.PrivateEndpointServicesApi.GetPrivateEndpointService(ctx, projectID, providerName, privateLinkID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")

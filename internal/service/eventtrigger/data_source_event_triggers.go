@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -13,7 +14,7 @@ import (
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceMongoDBAtlasEventTriggersRead,
+		ReadContext: dataSourceMongoDBAtlasEventTriggersRead,
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:         schema.TypeString,
@@ -143,11 +144,13 @@ func PluralDataSource() *schema.Resource {
 	}
 }
 
-func dataSourceMongoDBAtlasEventTriggersRead(d *schema.ResourceData, meta any) error {
-	ctx := context.Background()
+func dataSourceMongoDBAtlasEventTriggersRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	conn, err := meta.(*config.MongoDBClient).Realm.Get(ctx)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
+	}
+	if conn == nil {
+		return diag.FromErr(fmt.Errorf("realm client connection is nil"))
 	}
 
 	projectID := d.Get("project_id").(string)
@@ -155,11 +158,11 @@ func dataSourceMongoDBAtlasEventTriggersRead(d *schema.ResourceData, meta any) e
 
 	eventTriggers, _, err := conn.EventTriggers.List(ctx, projectID, appID)
 	if err != nil {
-		return fmt.Errorf("error getting event triggers information: %s", err)
+		return diag.FromErr(fmt.Errorf("error getting event triggers information: %w", err))
 	}
 
 	if err := d.Set("results", flattenEventTriggers(eventTriggers)); err != nil {
-		return fmt.Errorf("error setting `result` for event triggers: %s", err)
+		return diag.FromErr(fmt.Errorf("error setting `results` for event triggers: %w", err))
 	}
 
 	d.SetId(id.UniqueId())
