@@ -41,8 +41,8 @@ var (
 	empptyTFList, _    = types.ListValueFrom(context.Background(), types.StringType, []string{})
 	teamRolesSDK       = []admin.TeamRole{
 		{
-			TeamId:    conversion.StringPtr("teamId"),
-			RoleNames: &roles,
+			TeamId:    "teamId",
+			RoleNames: roles,
 		},
 	}
 	teamsDSTF = []*project.TFTeamDSModel{

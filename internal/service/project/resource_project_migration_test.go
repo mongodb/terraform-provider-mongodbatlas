@@ -50,12 +50,12 @@ func TestMigProject_withTeams(t *testing.T) {
 		config       = configBasic(orgID, projectName, "", false,
 			[]*admin.TeamRole{
 				{
-					TeamId:    &teamsIDs[0],
-					RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
+					TeamId:    teamsIDs[0],
+					RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 				},
 				{
-					TeamId:    &teamsIDs[1],
-					RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
+					TeamId:    teamsIDs[1],
+					RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 				},
 			}, nil)
 	)

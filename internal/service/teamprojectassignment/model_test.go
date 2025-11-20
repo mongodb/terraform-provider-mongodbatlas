@@ -27,8 +27,8 @@ func TestTeamProjectAssignmentSDKToTFModel(t *testing.T) {
 	ctx := t.Context()
 
 	fullResp := &admin.TeamRole{
-		TeamId:    admin.PtrString(testTeamID),
-		RoleNames: &testProjectRoles,
+		TeamId:    testTeamID,
+		RoleNames: testProjectRoles,
 	}
 
 	expectedRoles, _ := types.SetValueFrom(ctx, types.StringType, testProjectRoles)
@@ -39,7 +39,7 @@ func TestTeamProjectAssignmentSDKToTFModel(t *testing.T) {
 	}
 
 	fullNilResp := &admin.TeamRole{
-		TeamId:    admin.PtrString(""),
+		TeamId:    "",
 		RoleNames: nil,
 	}
 
@@ -89,8 +89,8 @@ func TestNewAtlasReq(t *testing.T) {
 			},
 			expected: &[]admin.TeamRole{
 				{
-					TeamId:    admin.PtrString(testTeamID),
-					RoleNames: &testProjectRoles,
+					TeamId:    testTeamID,
+					RoleNames: testProjectRoles,
 				},
 			},
 		},
@@ -102,8 +102,8 @@ func TestNewAtlasReq(t *testing.T) {
 			},
 			expected: &[]admin.TeamRole{
 				{
-					TeamId:    admin.PtrString(testTeamID),
-					RoleNames: &[]string{},
+					TeamId:    testTeamID,
+					RoleNames: []string{},
 				},
 			},
 		},
@@ -120,12 +120,12 @@ func TestNewAtlasReq(t *testing.T) {
 				expectedItem := (*tc.expected)[i]
 				actualItem := (*apiReqResult)[i]
 
-				assert.Equal(t, *expectedItem.TeamId, *actualItem.TeamId, "TeamId values don't match")
+				assert.Equal(t, expectedItem.TeamId, actualItem.TeamId, "TeamId values don't match")
 
 				if expectedItem.RoleNames == nil {
 					assert.Nil(t, actualItem.RoleNames, "expected RoleNames to be nil")
 				} else {
-					assert.Equal(t, *expectedItem.RoleNames, *actualItem.RoleNames, "RoleNames values don't match")
+					assert.Equal(t, expectedItem.RoleNames, actualItem.RoleNames, "RoleNames values don't match")
 				}
 			}
 		})
@@ -148,8 +148,8 @@ func TestNewAtlasUpdateReq(t *testing.T) {
 				RoleNames: roles,
 			},
 			expected: &admin.TeamRole{
-				TeamId:    admin.PtrString(testTeamID),
-				RoleNames: &testProjectRoles,
+				TeamId:    testTeamID,
+				RoleNames: testProjectRoles,
 			},
 		},
 		"No roles": {
@@ -159,8 +159,8 @@ func TestNewAtlasUpdateReq(t *testing.T) {
 				RoleNames: types.SetNull(types.StringType),
 			},
 			expected: &admin.TeamRole{
-				TeamId:    admin.PtrString(testTeamID),
-				RoleNames: &[]string{},
+				TeamId:    testTeamID,
+				RoleNames: []string{},
 			},
 		},
 	}
@@ -169,12 +169,12 @@ func TestNewAtlasUpdateReq(t *testing.T) {
 			apiReqResult, diags := teamprojectassignment.NewAtlasUpdateReq(ctx, tc.plan)
 			assert.False(t, diags.HasError(), "expected no diagnostics")
 
-			assert.Equal(t, *tc.expected.TeamId, *apiReqResult.TeamId, "TeamId values don't match")
+			assert.Equal(t, tc.expected.TeamId, apiReqResult.TeamId, "TeamId values don't match")
 
 			if tc.expected.RoleNames == nil {
 				assert.Nil(t, apiReqResult.RoleNames, "expected RoleNames to be nil")
 			} else {
-				assert.Equal(t, *tc.expected.RoleNames, *apiReqResult.RoleNames, "RoleNames values don't match")
+				assert.Equal(t, tc.expected.RoleNames, apiReqResult.RoleNames, "RoleNames values don't match")
 			}
 		})
 	}
