@@ -90,21 +90,21 @@ func resolveContainerIDs(ctx context.Context, projectID string, cluster *admin.C
 }
 
 func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
+	if modelIn == nil || modelOut == nil {
+		return
+	}
 	beforeVersion := conversion.NilForUnknown(modelIn.MongoDBMajorVersion, modelIn.MongoDBMajorVersion.ValueStringPointer())
 	if beforeVersion != nil && !modelIn.MongoDBMajorVersion.Equal(modelOut.MongoDBMajorVersion) {
 		modelOut.MongoDBMajorVersion = types.StringPointerValue(beforeVersion)
 	}
-	retainBackups := conversion.NilForUnknown(modelIn.RetainBackupsEnabled, modelIn.RetainBackupsEnabled.ValueBoolPointer())
-	if retainBackups != nil && !modelIn.RetainBackupsEnabled.Equal(modelOut.RetainBackupsEnabled) {
-		modelOut.RetainBackupsEnabled = types.BoolPointerValue(retainBackups)
-	}
-	if modelIn.DeleteOnCreateTimeout.ValueBoolPointer() != nil {
-		modelOut.DeleteOnCreateTimeout = modelIn.DeleteOnCreateTimeout
-	}
-
-	modelOut.UseEffectiveFields = modelIn.UseEffectiveFields
 	overrideMapStringWithPrevStateValue(&modelIn.Labels, &modelOut.Labels)
 	overrideMapStringWithPrevStateValue(&modelIn.Tags, &modelOut.Tags)
+
+	// Copy Terraform-only attributes which are not returned by Atlas API.
+	modelOut.Timeouts = modelIn.Timeouts
+	modelOut.DeleteOnCreateTimeout = modelIn.DeleteOnCreateTimeout
+	modelOut.RetainBackupsEnabled = modelIn.RetainBackupsEnabled
+	modelOut.UseEffectiveFields = modelIn.UseEffectiveFields
 }
 
 func overrideMapStringWithPrevStateValue(mapIn, mapOut *types.Map) {
