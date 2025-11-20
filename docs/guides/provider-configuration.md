@@ -104,7 +104,9 @@ The provider supports retrieving credentials from AWS Secrets Manager. See [AWS 
       aws_access_key_id     = var.aws_access_key_id
       aws_secret_access_key = var.aws_secret_access_key
       aws_session_token     = var.aws_session_token
-      assume_role           = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/mdbsts"
+      assume_role {
+         role_arn = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/mdbsts"
+      }
       secret_name           = "mongodbsecret"
       region                = "us-east-2"
    }
@@ -121,7 +123,9 @@ provider "mongodbatlas" {
    aws_access_key_id     = var.aws_access_key_id
    aws_secret_access_key = var.aws_secret_access_key
    aws_session_token     = var.aws_session_token
-   assume_role    = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/mdbsts"
+   assume_role {
+      role_arn    = "arn:aws:iam::<AWS_ACCOUNT_ID>:role/mdbsts"
+   }
    secret_name    = "arn:aws:secretsmanager:us-east-1:<AWS_ACCOUNT_ID>:secret:test789-TO06Hy"
    region         = "us-east-2"
    sts_endpoint   = "https://sts.us-east-2.amazonaws.com/"
@@ -147,7 +151,7 @@ provider "mongodbatlas" {
     is_mongodbgov_cloud = true
   }
   ```
-* `assume_role` - (Optional) AWS IAM role configuration for accessing secrets in AWS Secrets Manager. Role ARN env: `ASSUME_ROLE_ARN`. See [AWS Secrets Manager](#aws-secrets-manager) section for details.
+* `assume_role.role_arn` - (Optional) AWS IAM role configuration for accessing secrets in AWS Secrets Manager. Role ARN env: `ASSUME_ROLE_ARN`. See [AWS Secrets Manager](#aws-secrets-manager) section for details.
 * `secret_name` - (Optional) Name of the secret in AWS Secrets Manager (env: `SECRET_NAME`).
 * `region` - (Optional) AWS region where the secret is stored (env: `AWS_REGION`).
 * `aws_access_key_id` - (Optional) AWS Access Key ID (env: `AWS_ACCESS_KEY_ID`).

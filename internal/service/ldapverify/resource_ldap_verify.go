@@ -168,7 +168,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	ids := conversion.DecodeStateID(d.Id())
 	projectID := ids["project_id"]
 	requestID := ids["request_id"]
-	ldapResp, resp, err := connV2.LDAPConfigurationApi.GetUserSecurityVerify(context.Background(), projectID, requestID).Execute()
+	ldapResp, resp, err := connV2.LDAPConfigurationApi.GetUserSecurityVerify(ctx, projectID, requestID).Execute()
 	if err != nil || ldapResp == nil {
 		if validate.StatusNotFound(resp) {
 			d.SetId("")

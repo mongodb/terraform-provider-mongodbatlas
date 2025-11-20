@@ -437,7 +437,7 @@ func (r *alertConfigurationRS) Read(ctx context.Context, req resource.ReadReques
 
 	ids := conversion.DecodeStateID(alertConfigState.ID.ValueString())
 
-	alert, getResp, err := connV2.AlertConfigurationsApi.GetAlertConfig(context.Background(), ids[EncodedIDKeyProjectID], ids[EncodedIDKeyAlertID]).Execute()
+	alert, getResp, err := connV2.AlertConfigurationsApi.GetAlertConfig(ctx, ids[EncodedIDKeyProjectID], ids[EncodedIDKeyAlertID]).Execute()
 	if err != nil {
 		// deleted in the backend case
 		if validate.StatusNotFound(getResp) {
@@ -518,9 +518,9 @@ func (r *alertConfigurationRS) Update(ctx context.Context, req resource.UpdateRe
 		reflect.DeepEqual(apiReq, &admin.GroupAlertsConfig{Enabled: conversion.Pointer(false)}) {
 		// this code seems unreachable, as notifications are always being set
 		updatedAlertConfigResp, _, err = connV2.AlertConfigurationsApi.ToggleAlertConfig(
-			context.Background(), ids[EncodedIDKeyProjectID], ids[EncodedIDKeyAlertID], &admin.AlertsToggle{Enabled: apiReq.Enabled}).Execute()
+			ctx, ids[EncodedIDKeyProjectID], ids[EncodedIDKeyAlertID], &admin.AlertsToggle{Enabled: apiReq.Enabled}).Execute()
 	} else {
-		updatedAlertConfigResp, _, err = connV2.AlertConfigurationsApi.UpdateAlertConfig(context.Background(), ids[EncodedIDKeyProjectID], ids[EncodedIDKeyAlertID], apiReq).Execute()
+		updatedAlertConfigResp, _, err = connV2.AlertConfigurationsApi.UpdateAlertConfig(ctx, ids[EncodedIDKeyProjectID], ids[EncodedIDKeyAlertID], apiReq).Execute()
 	}
 
 	if err != nil {

@@ -64,10 +64,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									CustomType:          customtypes.NewListType[jsontypes.Normalized](ctx),
 									ElementType:         jsontypes.NormalizedType{},
 								},
-								"tokenizer": schema.StringAttribute{
+								"tokenizer": schema.MapAttribute{
 									Required:            true,
 									MarkdownDescription: "Tokenizer that you want to use to create tokens. Tokens determine how Atlas Search splits up text into discrete chunks for indexing.",
-									CustomType:          jsontypes.NormalizedType{},
+									CustomType:          customtypes.NewMapType[jsontypes.Normalized](ctx),
+									ElementType:         jsontypes.NormalizedType{},
 								},
 							},
 						},
@@ -199,10 +200,11 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 									CustomType:          customtypes.NewListType[jsontypes.Normalized](ctx),
 									ElementType:         jsontypes.NormalizedType{},
 								},
-								"tokenizer": schema.StringAttribute{
+								"tokenizer": schema.MapAttribute{
 									Computed:            true,
 									MarkdownDescription: "Tokenizer that you want to use to create tokens. Tokens determine how Atlas Search splits up text into discrete chunks for indexing.",
-									CustomType:          jsontypes.NormalizedType{},
+									CustomType:          customtypes.NewMapType[jsontypes.Normalized](ctx),
+									ElementType:         jsontypes.NormalizedType{},
 								},
 							},
 						},
@@ -507,7 +509,7 @@ type TFDefinitionAnalyzersModel struct {
 	CharFilters  customtypes.ListValue[jsontypes.Normalized] `tfsdk:"char_filters"`
 	Name         types.String                                `tfsdk:"name"`
 	TokenFilters customtypes.ListValue[jsontypes.Normalized] `tfsdk:"token_filters"`
-	Tokenizer    jsontypes.Normalized                        `tfsdk:"tokenizer"`
+	Tokenizer    customtypes.MapValue[jsontypes.Normalized]  `tfsdk:"tokenizer"`
 }
 type TFDefinitionMappingsModel struct {
 	Dynamic jsontypes.Normalized                       `tfsdk:"dynamic"`
@@ -540,7 +542,7 @@ type TFLatestDefinitionAnalyzersModel struct {
 	CharFilters  customtypes.ListValue[jsontypes.Normalized] `tfsdk:"char_filters" autogen:"omitjson"`
 	Name         types.String                                `tfsdk:"name" autogen:"omitjson"`
 	TokenFilters customtypes.ListValue[jsontypes.Normalized] `tfsdk:"token_filters" autogen:"omitjson"`
-	Tokenizer    jsontypes.Normalized                        `tfsdk:"tokenizer" autogen:"omitjson"`
+	Tokenizer    customtypes.MapValue[jsontypes.Normalized]  `tfsdk:"tokenizer" autogen:"omitjson"`
 }
 type TFLatestDefinitionMappingsModel struct {
 	Dynamic jsontypes.Normalized                       `tfsdk:"dynamic" autogen:"omitjson"`
