@@ -98,3 +98,19 @@ resources:
     delete:
       path: /api/atlas/v2/dynamicJsonProperties
       method: DELETE
+
+  test_resource_move_state:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/testResourceMoveState
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/testResourceMoveState
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/testResourceMoveState
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/testResourceMoveState
+      method: DELETE
+    move_state:
+      source_resources: ["test_resource"]

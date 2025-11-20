@@ -19,6 +19,9 @@ import (
 
 var _ resource.ResourceWithConfigure = &rs{}
 var _ resource.ResourceWithImportState = &rs{}
+{{- if .MoveState}}
+var _ resource.ResourceWithMoveState = &rs{}
+{{- end}}
 
 const apiVersionHeader = "{{ .APIOperations.VersionHeader }}"
 
@@ -182,7 +185,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 }
 
 func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	idAttributes := []string{ {{range .ImportIDAttributes }}"{{ . }}", {{- end }}}
+	idAttributes := []string{ {{range .IDAttributes }}"{{ . }}", {{- end }}}
 	autogen.HandleImport(ctx, idAttributes, req, resp)
 }
 
@@ -222,3 +225,16 @@ func deleteRequest(client *config.MongoDBClient, model *TFModel, diags *diag.Dia
 	}
 }
 {{end}}
+
+{{- if .MoveState}}
+func (r *rs) MoveState(context.Context) []resource.StateMover {
+    return []resource.StateMover{ {StateMover: stateMover} }
+}
+
+func stateMover(ctx context.Context, req resource.MoveStateRequest, resp *resource.MoveStateResponse) {
+    supportedSources := []string{ {{range .MoveState.SourceResources }}"{{ . }}", {{- end }}}
+    idAttributes := []string{ {{range .IDAttributes }}"{{ . }}", {{- end }}}
+    autogen.HandleMove(ctx, supportedSources, idAttributes, req, resp)
+}
+
+{{- end}}

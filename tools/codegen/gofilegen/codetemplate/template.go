@@ -20,10 +20,11 @@ type SchemaFileInputs struct {
 var resourceFileTemplate string
 
 type ResourceFileInputs struct {
-	PackageName        string
-	ResourceName       string
-	APIOperations      APIOperations
-	ImportIDAttributes []string // e.g. ["project_id", "name"]
+	PackageName   string
+	ResourceName  string
+	APIOperations APIOperations
+	MoveState     *MoveState
+	IDAttributes  []string // e.g. ["project_id", "name"]
 }
 
 type APIOperations struct {
@@ -53,6 +54,10 @@ type Wait struct {
 type Param struct {
 	PascalCaseName string
 	CamelCaseName  string
+}
+
+type MoveState struct {
+	SourceResources []string
 }
 
 func ApplySchemaFileTemplate(inputs SchemaFileInputs) bytes.Buffer {
