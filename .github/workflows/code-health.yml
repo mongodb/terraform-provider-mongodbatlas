@@ -35,7 +35,7 @@ jobs:
       # Also speeds up the tests
       - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
         with:
-          terraform_version: '1.13.x'
+          terraform_version: '1.14.x'
           terraform_wrapper: false
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
         with:
