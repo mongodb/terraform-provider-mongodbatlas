@@ -578,6 +578,7 @@ func UpdateProjectTeams(ctx context.Context, teamsAPI admin.TeamsApi, projectSta
 		roleNames := conversion.TypesSetToString(ctx, team.RoleNames)
 		_, _, err := teamsAPI.UpdateGroupTeam(ctx, projectID, teamID,
 			&admin.TeamRole{
+				TeamId:    teamID,
 				RoleNames: roleNames,
 			},
 		).Execute()
