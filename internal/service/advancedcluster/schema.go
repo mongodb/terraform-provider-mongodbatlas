@@ -20,6 +20,10 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
 )
 
+const (
+	descUseEfectiveFields = "Controls how hardware specification fields are returned in the response. When set to true, the non-effective specs (`electable_specs`, `read_only_specs`, `analytics_specs`) fields return the hardware specifications that the client provided. When set to false (default), the non-effective specs fields show the **current** hardware specifications. Cluster auto-scaling is the primary cause for differences between initial and current hardware specifications."
+)
+
 func resourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Version: 2,
@@ -332,6 +336,12 @@ func pluralDataSourceSchema(ctx context.Context) dsschema.Schema {
 	return conversion.PluralDataSourceSchemaFromResource(resourceSchema(ctx), &conversion.PluralDataSourceSchemaRequest{
 		RequiredFields:  []string{"project_id"},
 		OverridenFields: dataSourceOverridenFields(),
+		OverridenRootFields: map[string]dsschema.Attribute{
+			"use_effective_fields": dsschema.BoolAttribute{
+				Optional:            true,
+				MarkdownDescription: descUseEfectiveFields,
+			},
+		},
 	})
 }
 
@@ -339,7 +349,10 @@ func dataSourceOverridenFields() map[string]dsschema.Attribute {
 	return map[string]dsschema.Attribute{
 		"accept_data_risks_and_force_replica_set_reconfig": nil,
 		"delete_on_create_timeout":                         nil,
-		"use_effective_fields":                             dsschema.BoolAttribute{Optional: true},
+		"use_effective_fields": dsschema.BoolAttribute{
+			Optional:            true,
+			MarkdownDescription: descUseEfectiveFields,
+		},
 	}
 }
 
@@ -573,8 +586,9 @@ type TFModelDS struct {
 }
 
 type TFModelPluralDS struct {
-	ProjectID types.String `tfsdk:"project_id"`
-	Results   []*TFModelDS `tfsdk:"results"`
+	ProjectID          types.String `tfsdk:"project_id"`
+	Results            []*TFModelDS `tfsdk:"results"`
+	UseEffectiveFields types.Bool   `tfsdk:"use_effective_fields"`
 }
 
 type TFBiConnectorModel struct {
