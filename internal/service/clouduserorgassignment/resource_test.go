@@ -107,6 +107,18 @@ func dataSourceTestCase(t *testing.T) *resource.TestCase {
 				Check: resource.ComposeTestCheckFunc(
 					cloudUserOrgAssignmentChecks("data.mongodbatlas_cloud_user_org_assignment.by_username", orgID, username, "PENDING", roles),
 					cloudUserOrgAssignmentChecks("data.mongodbatlas_cloud_user_org_assignment.by_user_id", orgID, username, "PENDING", roles),
+					// Verify that when using username, user_id is computed and matches the resource
+					resource.TestCheckResourceAttrSet("data.mongodbatlas_cloud_user_org_assignment.by_username", "user_id"),
+					resource.TestCheckResourceAttrPair(
+						"data.mongodbatlas_cloud_user_org_assignment.by_username", "user_id",
+						"mongodbatlas_cloud_user_org_assignment.test", "user_id",
+					),
+					// Verify that when using user_id, username is computed and matches the resource
+					resource.TestCheckResourceAttrSet("data.mongodbatlas_cloud_user_org_assignment.by_user_id", "username"),
+					resource.TestCheckResourceAttrPair(
+						"data.mongodbatlas_cloud_user_org_assignment.by_user_id", "username",
+						"mongodbatlas_cloud_user_org_assignment.test", "username",
+					),
 				),
 			},
 		},
