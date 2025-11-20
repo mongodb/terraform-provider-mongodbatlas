@@ -90,7 +90,7 @@ func resolveContainerIDs(ctx context.Context, projectID string, cluster *admin.C
 }
 
 func overrideAttributesWithPrevStateValue(modelIn, modelOut *TFModel) {
-	if modelIn == nil || modelOut == nil {
+	if modelOut == nil {
 		return
 	}
 	beforeVersion := conversion.NilForUnknown(modelIn.MongoDBMajorVersion, modelIn.MongoDBMajorVersion.ValueStringPointer())
