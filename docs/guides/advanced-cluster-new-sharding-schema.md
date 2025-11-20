@@ -461,11 +461,11 @@ resource "mongodbatlas_advanced_cluster" "test" {
   replication_specs = [{ # first shard
     region_configs = [{
       electable_specs = {
-        instance_size = "M40" # Initial size value that won't change in Terraform state, actual size in Atlas may differ due to auto-scaling
+        instance_size = "M40"
         node_count    = 3
       }
       analytics_specs = {
-        instance_size = "M40" # Initial size value that won't change in Terraform state, actual size in Atlas may differ due to auto-scaling
+        instance_size = "M40"
         node_count = 1
       }
       auto_scaling = {
@@ -485,11 +485,11 @@ resource "mongodbatlas_advanced_cluster" "test" {
   { # second shard
     region_configs = [{
       electable_specs = {
-        instance_size = "M40" # Initial size value that won't change in Terraform state, actual size in Atlas may differ due to auto-scaling
+        instance_size = "M40"
         node_count    = 3
       }
       analytics_specs = {
-        instance_size = "M40" # Initial size value that won't change in Terraform state, actual size in Atlas may differ due to auto-scaling
+        instance_size = "M40"
         node_count = 1
       }
       auto_scaling = {
