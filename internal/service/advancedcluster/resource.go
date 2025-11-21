@@ -148,7 +148,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		diags.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 		return
 	}
-	clusterResp := createCluster(ctx, diags, r.Client, latestReq, waitParams)
+	clusterResp := createCluster(ctx, diags, r.Client, latestReq, plan.UseEffectiveFields.ValueBool(), waitParams)
 
 	emptyAdvancedConfiguration := types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
 	patchReqProcessArgs := update.PatchPayloadCluster(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
@@ -265,7 +265,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		case diff.isUpgradeTenant():
 			clusterResp = UpgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq)
 		case diff.isClusterPatchOnly():
-			clusterResp = r.applyClusterChanges(ctx, diags, &state, &plan, diff.clusterPatchOnlyReq, waitParams)
+			clusterResp = r.applyClusterChanges(ctx, diags, &state, &plan, diff.clusterPatchOnlyReq, waitParams, plan.UseEffectiveFields.ValueBool())
 		}
 		if diags.HasError() {
 			return
@@ -364,12 +364,12 @@ func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics,
 	return AwaitChanges(ctx, r.Client, waitParams, operationFCVUnpinning, diags)
 }
 
-func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, patchReq *admin.ClusterDescription20240805, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
+func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, patchReq *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, useEffectiveFields bool) *admin.ClusterDescription20240805 {
 	// paused = `false` is sent in an isolated request before other changes to avoid error from API: Cannot update cluster while it is paused or being paused.
 	var result *admin.ClusterDescription20240805
 	if patchReq.Paused != nil && !patchReq.GetPaused() {
 		patchReq.Paused = nil
-		_ = updateCluster(ctx, diags, r.Client, &resumeRequest, waitParams, operationResumeBeforeUpdate)
+		_ = updateCluster(ctx, diags, r.Client, &resumeRequest, waitParams, useEffectiveFields, operationResumeBeforeUpdate)
 	}
 
 	// paused = `true` is sent in an isolated request after other changes have been applied to avoid error from API: Cannot update and pause cluster at the same time
@@ -379,10 +379,10 @@ func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, s
 		pauseAfterOtherChanges = true
 	}
 
-	result = updateCluster(ctx, diags, r.Client, patchReq, waitParams, operationUpdate)
+	result = updateCluster(ctx, diags, r.Client, patchReq, waitParams, useEffectiveFields, operationUpdate)
 
 	if pauseAfterOtherChanges {
-		result = updateCluster(ctx, diags, r.Client, &pauseRequest, waitParams, operationPauseAfterUpdate)
+		result = updateCluster(ctx, diags, r.Client, &pauseRequest, waitParams, useEffectiveFields, operationPauseAfterUpdate)
 	}
 	return result
 }
@@ -427,7 +427,7 @@ func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, cli
 	AddAdvancedConfig(ctx, model, p, diags)
 }
 
-func createCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
+func createCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, useEffectiveFields bool, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
 	var (
 		pauseAfter  = req.GetPaused()
 		clusterResp *admin.ClusterDescription20240805
@@ -435,7 +435,7 @@ func createCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 	if pauseAfter {
 		req.Paused = nil
 	}
-	_, _, err := client.AtlasV2.ClustersApi.CreateCluster(ctx, waitParams.ProjectID, req).UseEffectiveInstanceFields(true).Execute()
+	_, _, err := client.AtlasV2.ClustersApi.CreateCluster(ctx, waitParams.ProjectID, req).UseEffectiveInstanceFields(useEffectiveFields).Execute()
 	if err != nil {
 		addErrorDiag(diags, operationCreate, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
@@ -445,13 +445,13 @@ func createCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 		return nil
 	}
 	if pauseAfter {
-		clusterResp = updateCluster(ctx, diags, client, &pauseRequest, waitParams, operationPauseAfterCreate)
+		clusterResp = updateCluster(ctx, diags, client, &pauseRequest, waitParams, useEffectiveFields, operationPauseAfterCreate)
 	}
 	return clusterResp
 }
 
-func updateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, operationName string) *admin.ClusterDescription20240805 {
-	_, _, err := client.AtlasV2.ClustersApi.UpdateCluster(ctx, waitParams.ProjectID, waitParams.ClusterName, req).UseEffectiveInstanceFields(true).Execute()
+func updateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, useEffectiveFields bool, operationName string) *admin.ClusterDescription20240805 {
+	_, _, err := client.AtlasV2.ClustersApi.UpdateCluster(ctx, waitParams.ProjectID, waitParams.ClusterName, req).UseEffectiveInstanceFields(useEffectiveFields).Execute()
 	if err != nil {
 		addErrorDiag(diags, operationName, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
