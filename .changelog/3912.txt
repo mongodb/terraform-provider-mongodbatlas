@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/mongodbatlas_advanced_cluster: Adds the `custom_openssl_cipher_config_tls13`` attribute 
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_advanced_cluster: Adds the `custom_openssl_cipher_config_tls13`` attribute 
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_advanced_clusters: Adds the `custom_openssl_cipher_config_tls13`` attribute 
+```
