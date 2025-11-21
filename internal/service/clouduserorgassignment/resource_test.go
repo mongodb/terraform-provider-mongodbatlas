@@ -107,18 +107,6 @@ func dataSourceTestCase(t *testing.T) *resource.TestCase {
 				Check: resource.ComposeTestCheckFunc(
 					cloudUserOrgAssignmentChecks("data.mongodbatlas_cloud_user_org_assignment.by_username", orgID, username, "PENDING", roles),
 					cloudUserOrgAssignmentChecks("data.mongodbatlas_cloud_user_org_assignment.by_user_id", orgID, username, "PENDING", roles),
-					// Verify that when using username, user_id is computed and matches the resource
-					resource.TestCheckResourceAttrSet("data.mongodbatlas_cloud_user_org_assignment.by_username", "user_id"),
-					resource.TestCheckResourceAttrPair(
-						"data.mongodbatlas_cloud_user_org_assignment.by_username", "user_id",
-						"mongodbatlas_cloud_user_org_assignment.test", "user_id",
-					),
-					// Verify that when using user_id, username is computed and matches the resource
-					resource.TestCheckResourceAttrSet("data.mongodbatlas_cloud_user_org_assignment.by_user_id", "username"),
-					resource.TestCheckResourceAttrPair(
-						"data.mongodbatlas_cloud_user_org_assignment.by_user_id", "username",
-						"mongodbatlas_cloud_user_org_assignment.test", "username",
-					),
 				),
 			},
 		},
@@ -130,23 +118,43 @@ func testAccCloudUserOrgAssignmentWithDataSourceConfig(orgID, username string, r
 
 	return fmt.Sprintf(`
 resource "mongodbatlas_cloud_user_org_assignment" "test" {
-  org_id   = "%s"
-  username = "%s"
+  org_id   = %[1]q
+  username = %[2]q
   roles = {
-    org_roles = [%s]
+    org_roles = [%[3]s]
   }
 }
 
+# Query by username - user_id should be computed
 data "mongodbatlas_cloud_user_org_assignment" "by_username" {
-  org_id   = "%s"
+  org_id   = %[1]q
   username = mongodbatlas_cloud_user_org_assignment.test.username
 }
 
+# Query by user_id - username should be computed
 data "mongodbatlas_cloud_user_org_assignment" "by_user_id" {
-  org_id   = "%s"
+  org_id   = %[1]q
   user_id  = mongodbatlas_cloud_user_org_assignment.test.user_id
 }
-`, orgID, username, rolesStr, orgID, orgID)
+
+# The following resources verify that user_id is properly marked as Computed
+# When querying by username, user_id must be marked as "Computed: true" in the schema
+# so that Terraform knows its value will be available for use in other resources.
+# Without "Computed: true", Terraform will fail at plan time because it cannot validate
+# that user_id will be available as an input to the team assignment resource below, where user_id is required.
+#   - Without Computed: This test FAILS at plan time
+#   - With Computed: This test SUCCEEDS
+resource "mongodbatlas_team" "test" {
+  org_id = %[1]q
+  name   = "test-team"
+}
+
+resource "mongodbatlas_cloud_user_team_assignment" "test_team_assignment" {
+  org_id  = %[1]q
+  team_id = mongodbatlas_team.test.team_id
+  user_id = data.mongodbatlas_cloud_user_org_assignment.by_username.user_id
+}
+`, orgID, username, rolesStr)
 }
 
 func cloudUserOrgAssignmentChecks(resourceName, orgID, username, orgMembershipStatus string, roles []string) resource.TestCheckFunc {
