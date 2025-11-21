@@ -800,3 +800,20 @@ resources:
           sensitive: true
         notifications.ops_genie_api_key:
           sensitive: true
+  
+  log_export_integration:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/logIntegrations
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
+      method: PUT
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/logIntegrations/{id}
+      method: DELETE
+    schema:
+      aliases:
+        group_id: project_id
