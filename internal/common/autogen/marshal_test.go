@@ -157,27 +157,70 @@ func TestMarshalOmitJSONUpdate(t *testing.T) {
 	assert.JSONEq(t, expectedUpdate, string(update))
 }
 
-func TestMarshalUpdateNull(t *testing.T) {
+func TestMarshalUpdateAbsentAttrs(t *testing.T) {
+	type modelEmptyTest struct{}
+
 	model := struct {
-		AttrCustomList    customtypes.ListValue[types.String] `tfsdk:"attr_custom_list"`
-		AttrCustomSet     customtypes.SetValue[types.String]  `tfsdk:"attr_custom_set"`
-		AttrCustomMap     customtypes.MapValue[types.String]  `tfsdk:"attr_custom_map"`
-		AttrString        types.String                        `tfsdk:"attr_string"`
-		AttrIncludeString types.String                        `tfsdk:"attr_include_update" autogen:"includenullonupdate"`
+		AttrList                    customtypes.ListValue[types.String]         `tfsdk:"attr_list"`
+		AttrListIncludeNull         customtypes.ListValue[types.String]         `tfsdk:"attr_list_include_null" autogen:"includenullonupdate"`
+		AttrSet                     customtypes.SetValue[types.String]          `tfsdk:"attr_set"`
+		AttrSetIncludeNull          customtypes.SetValue[types.String]          `tfsdk:"attr_set_include_null" autogen:"includenullonupdate"`
+		AttrNestedList              customtypes.NestedListValue[modelEmptyTest] `tfsdk:"attr_nested_list"`
+		AttrNestedListIncludeNull   customtypes.NestedListValue[modelEmptyTest] `tfsdk:"attr_nested_list_include_null" autogen:"includenullonupdate"`
+		AttrNestedSet               customtypes.NestedSetValue[modelEmptyTest]  `tfsdk:"attr_nested_set"`
+		AttrNestedSetIncludeNull    customtypes.NestedSetValue[modelEmptyTest]  `tfsdk:"attr_nested_set_include_null" autogen:"includenullonupdate"`
+		AttrMap                     customtypes.MapValue[types.String]          `tfsdk:"attr_map"`
+		AttrMapIncludeNull          customtypes.MapValue[types.String]          `tfsdk:"attr_map_include_null" autogen:"includenullonupdate"`
+		AttrNestedMap               customtypes.NestedMapValue[modelEmptyTest]  `tfsdk:"attr_nested_map"`
+		AttrNestedMapIncludeNull    customtypes.NestedMapValue[modelEmptyTest]  `tfsdk:"attr_nested_map_include_null" autogen:"includenullonupdate"`
+		AttrNestedObject            customtypes.ObjectValue[modelEmptyTest]     `tfsdk:"attr_nested_object"`
+		AttrNestedObjectIncludeNull customtypes.ObjectValue[modelEmptyTest]     `tfsdk:"attr_nested_object_include_null" autogen:"includenullonupdate"`
+		AttrString                  types.String                                `tfsdk:"attr_string"`
+		AttrStringIncludeNull       types.String                                `tfsdk:"attr_include_update" autogen:"includenullonupdate"`
+		AttrInt                     types.Int64                                 `tfsdk:"attr_int"`
+		AttrIntIncludeNull          types.Int64                                 `tfsdk:"attr_int_include_null" autogen:"includenullonupdate"`
+		AttrBool                    types.Bool                                  `tfsdk:"attr_bool"`
+		AttrBoolIncludeNull         types.Bool                                  `tfsdk:"attr_bool_include_null" autogen:"includenullonupdate"`
 	}{
-		AttrCustomList:    customtypes.NewListValueNull[types.String](t.Context()),
-		AttrCustomSet:     customtypes.NewSetValueNull[types.String](t.Context()),
-		AttrCustomMap:     customtypes.NewMapValueNull[types.String](t.Context()),
-		AttrString:        types.StringNull(),
-		AttrIncludeString: types.StringNull(),
+		AttrList:                    customtypes.NewListValueNull[types.String](t.Context()),
+		AttrListIncludeNull:         customtypes.NewListValueNull[types.String](t.Context()),
+		AttrSet:                     customtypes.NewSetValueNull[types.String](t.Context()),
+		AttrSetIncludeNull:          customtypes.NewSetValueNull[types.String](t.Context()),
+		AttrMap:                     customtypes.NewMapValueNull[types.String](t.Context()),
+		AttrMapIncludeNull:          customtypes.NewMapValueNull[types.String](t.Context()),
+		AttrNestedObject:            customtypes.NewObjectValueNull[modelEmptyTest](t.Context()),
+		AttrNestedList:              customtypes.NewNestedListValueNull[modelEmptyTest](t.Context()),
+		AttrNestedListIncludeNull:   customtypes.NewNestedListValueNull[modelEmptyTest](t.Context()),
+		AttrNestedSet:               customtypes.NewNestedSetValueNull[modelEmptyTest](t.Context()),
+		AttrNestedSetIncludeNull:    customtypes.NewNestedSetValueNull[modelEmptyTest](t.Context()),
+		AttrNestedMap:               customtypes.NewNestedMapValueNull[modelEmptyTest](t.Context()),
+		AttrNestedMapIncludeNull:    customtypes.NewNestedMapValueNull[modelEmptyTest](t.Context()),
+		AttrNestedObjectIncludeNull: customtypes.NewObjectValueNull[modelEmptyTest](t.Context()),
+		AttrString:                  types.StringNull(),
+		AttrBool:                    types.BoolNull(),
+		AttrInt:                     types.Int64Null(),
+		AttrStringIncludeNull:       types.StringNull(),
+		AttrIntIncludeNull:          types.Int64Null(),
+		AttrBoolIncludeNull:         types.BoolNull(),
 	}
 	// null list and set root elements are sent as empty arrays in update.
 	// fields with includenullonupdate tag are included even when null during updates.
 	const expectedJSON = `
 		{
-			"attrCustomList": [],
-			"attrCustomSet": [],
-			"attrIncludeString": null
+			"attrList": [],
+			"attrListIncludeNull": null,
+			"attrSet": [],
+			"attrSetIncludeNull": null,
+			"attrNestedList": [],
+			"attrNestedListIncludeNull": null,
+			"attrNestedSet": [],
+			"attrNestedSetIncludeNull": null,
+			"attrMapIncludeNull": null,
+			"attrNestedMapIncludeNull": null,
+			"attrNestedObjectIncludeNull": null,
+			"attrStringIncludeNull": null,
+			"attrIntIncludeNull": null,
+			"attrBoolIncludeNull": null
 		}
 	`
 	raw, err := autogen.Marshal(&model, true)
