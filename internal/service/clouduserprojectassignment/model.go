@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 
-	"go.mongodb.org/atlas-sdk/v20250312009/admin"
+	"go.mongodb.org/atlas-sdk/v20250312010/admin"
 )
 
 func NewTFModel(ctx context.Context, projectID string, apiResp *admin.GroupUserResponse) (*TFModel, diag.Diagnostics) {

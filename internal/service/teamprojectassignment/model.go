@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250312009/admin"
+	"go.mongodb.org/atlas-sdk/v20250312010/admin"
 )
 
 func NewTFModel(ctx context.Context, apiResp *admin.TeamRole, projectID string) (*TFModel, diag.Diagnostics) {
@@ -16,11 +16,11 @@ func NewTFModel(ctx context.Context, apiResp *admin.TeamRole, projectID string) 
 		return nil, diags
 	}
 
-	roleNames := conversion.TFSetValueOrNull(ctx, apiResp.RoleNames, types.StringType)
+	roleNames := conversion.TFSetValueOrNull(ctx, &apiResp.RoleNames, types.StringType)
 
 	return &TFModel{
 		ProjectId: types.StringValue(projectID),
-		TeamId:    types.StringPointerValue(apiResp.TeamId),
+		TeamId:    types.StringValue(apiResp.TeamId),
 		RoleNames: roleNames,
 	}, diags
 }
@@ -32,8 +32,8 @@ func buildTeamRole(ctx context.Context, plan *TFModel) *admin.TeamRole {
 	}
 
 	return &admin.TeamRole{
-		TeamId:    plan.TeamId.ValueStringPointer(),
-		RoleNames: &roleNames,
+		TeamId:    plan.TeamId.ValueString(),
+		RoleNames: roleNames,
 	}
 }
 

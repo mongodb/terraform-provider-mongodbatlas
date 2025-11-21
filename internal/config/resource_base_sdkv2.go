@@ -9,19 +9,46 @@ import (
 )
 
 func NewAnalyticsResourceSDKv2(d *schema.Resource, name string, isDataSource bool) *schema.Resource {
+	if d.Read != nil {
+		log.Panicf("%s: Read is not supported for SDKv2 resources, it is deprecated, use ReadContext instead or ReadWithoutTimeout instead", name)
+	}
+	if d.Update != nil {
+		log.Panicf("%s: Update is not supported for SDKv2 resources, it is deprecated, use UpdateContext or UpdateWithoutTimeout instead", name)
+	}
+	if d.Delete != nil {
+		log.Panicf("%s: Delete is not supported for SDKv2 resources, it is deprecated, use DeleteContext or DeleteWithoutTimeout instead", name)
+	}
+	if d.Importer != nil && d.Importer.State != nil {
+		log.Panicf("%s: Importer.State is not supported for SDKv2 resources, it is deprecated, use Importer.StateContext instead", name)
+	}
+	if d.Create != nil {
+		log.Panicf("%s: Create is not supported for SDKv2 resources, it is deprecated, use CreateContext or CreateWithoutTimeout instead", name)
+	}
 	analyticsResource := &AnalyticsResourceSDKv2{
 		resource:     d,
 		name:         name,
 		isDataSource: isDataSource,
 	}
 	/*
-		We are not initializing deprecated fields, for example Update to avoid the message:
+		Panic checks for deprecated fields:
+		We check for deprecated schema.Resource fields (Create, Read, Update, Delete, Importer.State) at runtime
+		because static analysis tools like staticcheck (SA1019) cannot detect deprecated struct fields when they
+		are used in struct literals. These panics ensure we catch any usage of deprecated fields early during
+		provider initialization, before they cause issues in production.
+
+		Why not just rely on staticcheck?
+		- staticcheck SA1019 only detects deprecated function calls and type usage, not struct field assignments
+		- When you write `&schema.Resource{ Read: ... }`, staticcheck won't flag the deprecated `Read` field
+		- Pattern matching scripts can help, but runtime checks provide immediate feedback during development
+
+		We are not initializing deprecated fields in the new resource, for example Update to avoid the message:
 			resource mongodbatlas_cloud_backup_snapshot: All fields are ForceNew or Computed w/out Optional, Update is superfluous
 
-		Ensure no deprecated fields are used by running `staticcheck ./internal/service/... | grep -v 'd.GetOkExists'` and looking for (SA1019)
-			GetOkExists we are using in many places; therefore, we use -v (invert match) to filter out lines with different deprecations
-			Example line:
-				internal/service/cluster/model_cluster.go:306:14: d.GetOkExists is deprecated: usage is discouraged due to undefined behaviors and may be removed in a future version of the SDK  (SA1019)
+		For detecting other deprecated API usage (like d.GetOkExists), run:
+			staticcheck ./internal/service/... | grep -v 'd.GetOkExists'
+		Note: GetOkExists is filtered out because we use it in many places intentionally.
+		Example line:
+			internal/service/cluster/model_cluster.go:306:14: d.GetOkExists is deprecated: usage is discouraged due to undefined behaviors and may be removed in a future version of the SDK  (SA1019)
 	*/
 	resource := &schema.Resource{
 		CustomizeDiff:                     d.CustomizeDiff,

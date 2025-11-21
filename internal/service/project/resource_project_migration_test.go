@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312009/admin"
+	"go.mongodb.org/atlas-sdk/v20250312010/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -50,12 +50,12 @@ func TestMigProject_withTeams(t *testing.T) {
 		config       = configBasic(orgID, projectName, "", false,
 			[]*admin.TeamRole{
 				{
-					TeamId:    &teamsIDs[0],
-					RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
+					TeamId:    teamsIDs[0],
+					RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 				},
 				{
-					TeamId:    &teamsIDs[1],
-					RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
+					TeamId:    teamsIDs[1],
+					RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 				},
 			}, nil)
 	)

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312009/admin"
+	"go.mongodb.org/atlas-sdk/v20250312010/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -41,8 +41,8 @@ var (
 	empptyTFList, _    = types.ListValueFrom(context.Background(), types.StringType, []string{})
 	teamRolesSDK       = []admin.TeamRole{
 		{
-			TeamId:    conversion.StringPtr("teamId"),
-			RoleNames: &roles,
+			TeamId:    "teamId",
+			RoleNames: roles,
 		},
 	}
 	teamsDSTF = []*project.TFTeamDSModel{

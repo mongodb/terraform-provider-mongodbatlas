@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312009/admin"
-	"go.mongodb.org/atlas-sdk/v20250312009/mockadmin"
+	"go.mongodb.org/atlas-sdk/v20250312010/admin"
+	"go.mongodb.org/atlas-sdk/v20250312010/mockadmin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -564,12 +564,12 @@ func TestAccProject_basic(t *testing.T) {
 				Config: configBasic(orgID, projectName, projectOwnerID, true,
 					[]*admin.TeamRole{
 						{
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
-							RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
+							TeamId:    acc.GetProjectTeamsIDsWithPos(0),
+							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 						{
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(1)),
-							RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
+							TeamId:    acc.GetProjectTeamsIDsWithPos(1),
+							RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 						},
 					},
 					conversion.Pointer(true),
@@ -580,16 +580,16 @@ func TestAccProject_basic(t *testing.T) {
 				Config: configBasic(orgID, projectName, projectOwnerID, false,
 					[]*admin.TeamRole{
 						{
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
-							RoleNames: &[]string{"GROUP_OWNER"},
+							TeamId:    acc.GetProjectTeamsIDsWithPos(0),
+							RoleNames: []string{"GROUP_OWNER"},
 						},
 						{
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(1)),
-							RoleNames: &[]string{"GROUP_DATA_ACCESS_READ_WRITE"},
+							TeamId:    acc.GetProjectTeamsIDsWithPos(1),
+							RoleNames: []string{"GROUP_DATA_ACCESS_READ_WRITE"},
 						},
 						{
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(2)),
-							RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
+							TeamId:    acc.GetProjectTeamsIDsWithPos(2),
+							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 					},
 					conversion.Pointer(false),
@@ -607,12 +607,12 @@ func TestAccProject_basic(t *testing.T) {
 				Config: configBasic(orgID, projectName, projectOwnerID, false,
 					[]*admin.TeamRole{
 						{
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
-							RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_READ_ONLY"},
+							TeamId:    acc.GetProjectTeamsIDsWithPos(0),
+							RoleNames: []string{"GROUP_READ_ONLY", "GROUP_READ_ONLY"},
 						},
 						{
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(1)),
-							RoleNames: &[]string{"GROUP_OWNER", "GROUP_DATA_ACCESS_ADMIN"},
+							TeamId:    acc.GetProjectTeamsIDsWithPos(1),
+							RoleNames: []string{"GROUP_OWNER", "GROUP_DATA_ACCESS_ADMIN"},
 						},
 					},
 					nil,
@@ -818,8 +818,8 @@ func TestAccProject_updatedToEmptyRoles(t *testing.T) {
 				Config: configBasic(orgID, projectName, "", false,
 					[]*admin.TeamRole{
 						{
-							TeamId:    conversion.StringPtr(acc.GetProjectTeamsIDsWithPos(0)),
-							RoleNames: &[]string{"GROUP_OWNER", "GROUP_READ_ONLY"},
+							TeamId:    acc.GetProjectTeamsIDsWithPos(0),
+							RoleNames: []string{"GROUP_OWNER", "GROUP_READ_ONLY"},
 						},
 					},
 					nil,
@@ -1249,7 +1249,7 @@ func configBasic(orgID, projectName, projectOwnerID string, includeDataSource bo
 			team_id = %q
 			role_names = %s
 		}
-		`, t.GetTeamId(), strings.ReplaceAll(fmt.Sprintf("%+q", *t.RoleNames), " ", ","))
+		`, t.GetTeamId(), strings.ReplaceAll(fmt.Sprintf("%+q", t.RoleNames), " ", ","))
 	}
 
 	return fmt.Sprintf(`
