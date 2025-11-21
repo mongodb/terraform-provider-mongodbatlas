@@ -26,6 +26,21 @@ type ImplementedResource interface {
 	GetName() string
 }
 
+/*
+Note: Unlike SDKv2 resources (see resource_base_sdkv2.go), we do NOT need panic checks for deprecated fields here.
+
+Why panic checks are NOT necessary for TPF resources:
+  - TPF uses interfaces with methods, not structs with fields. You cannot accidentally "set" a deprecated
+    field because there are no fields - only methods that must be implemented.
+  - Go's type system enforces interface implementation, preventing accidental use of deprecated signatures.
+  - Staticcheck CAN detect deprecated interface methods (unlike struct field assignments in SDKv2).
+
+Interface preservation:
+  - RSCommon embeds ImplementedResource, so all interfaces that ImplementedResource implements are preserved.
+  - Optional interfaces (ResourceWithModifyPlan, ResourceWithMoveState, etc.) are handled by checking
+    if the embedded resource implements them and delegating accordingly.
+  - If TPF adds new optional interfaces in the future, RSCommon will need to be updated to delegate to them.
+*/
 func AnalyticsResourceFunc(iResource resource.Resource) func() resource.Resource {
 	commonResource, ok := iResource.(ImplementedResource)
 	if !ok {
