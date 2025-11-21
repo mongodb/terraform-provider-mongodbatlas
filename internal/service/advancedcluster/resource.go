@@ -265,7 +265,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		case diff.isUpgradeTenant():
 			clusterResp = UpgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq)
 		case diff.isClusterPatchOnly():
-			clusterResp = r.applyClusterChanges(ctx, diags, &state, &plan, diff.clusterPatchOnlyReq, waitParams, plan.UseEffectiveFields.ValueBool())
+			clusterResp = r.applyClusterChanges(ctx, diags, diff.clusterPatchOnlyReq, waitParams, plan.UseEffectiveFields.ValueBool())
 		}
 		if diags.HasError() {
 			return
@@ -364,7 +364,7 @@ func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics,
 	return AwaitChanges(ctx, r.Client, waitParams, operationFCVUnpinning, diags)
 }
 
-func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, patchReq *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, useEffectiveFields bool) *admin.ClusterDescription20240805 {
+func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, patchReq *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, useEffectiveFields bool) *admin.ClusterDescription20240805 {
 	// paused = `false` is sent in an isolated request before other changes to avoid error from API: Cannot update cluster while it is paused or being paused.
 	var result *admin.ClusterDescription20240805
 	if patchReq.Paused != nil && !patchReq.GetPaused() {
@@ -437,7 +437,7 @@ func createCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 		addErrorDiag(diags, operationCreate, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
 	}
-	clusterResp := AwaitChanges(ctx, client, waitParams, operationCreate, diags)
+	clusterResp := AwaitChangesWithUseEffectiveFields(ctx, client, waitParams, operationCreate, diags, useEffectiveFields)
 	if diags.HasError() {
 		return nil
 	}
@@ -453,7 +453,7 @@ func updateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 		addErrorDiag(diags, operationName, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
 	}
-	return AwaitChanges(ctx, client, waitParams, operationName, diags)
+	return AwaitChangesWithUseEffectiveFields(ctx, client, waitParams, operationName, diags, useEffectiveFields)
 }
 
 func resolveClusterWaitParams(ctx context.Context, model *TFModel, diags *diag.Diagnostics, operation string) *ClusterWaitParams {

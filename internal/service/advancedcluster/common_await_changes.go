@@ -46,7 +46,12 @@ func AwaitChangesUpgrade(ctx context.Context, client *config.MongoDBClient, wait
 	return upgraded
 }
 
+// TODO: Check all uses of AwaitChanges !!!!
 func AwaitChanges(ctx context.Context, client *config.MongoDBClient, waitParams *ClusterWaitParams, errorLocator string, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
+	return AwaitChangesWithUseEffectiveFields(ctx, client, waitParams, errorLocator, diags, false)
+}
+
+func AwaitChangesWithUseEffectiveFields(ctx context.Context, client *config.MongoDBClient, waitParams *ClusterWaitParams, errorLocator string, diags *diag.Diagnostics, useEffectiveFields bool) *admin.ClusterDescription20240805 {
 	api := client.AtlasV2.ClustersApi
 	targetState := retrystrategy.RetryStrategyIdleState
 	extraPending := []string{}
@@ -56,7 +61,7 @@ func AwaitChanges(ctx context.Context, client *config.MongoDBClient, waitParams 
 		extraPending = append(extraPending, retrystrategy.RetryStrategyIdleState)
 	}
 	clusterName := waitParams.ClusterName
-	stateConf := createStateChangeConfig(ctx, api, waitParams.ProjectID, clusterName, targetState, waitParams.Timeout, extraPending...)
+	stateConf := createStateChangeConfig(ctx, api, waitParams.ProjectID, clusterName, targetState, waitParams.Timeout, useEffectiveFields, extraPending...)
 	clusterAny, err := stateConf.WaitForStateContext(ctx)
 	if err != nil {
 		if admin.IsErrorCode(err, ErrorCodeClusterNotFound) && isDelete {
@@ -76,7 +81,7 @@ func AwaitChanges(ctx context.Context, client *config.MongoDBClient, waitParams 
 	return cluster
 }
 
-func createStateChangeConfig(ctx context.Context, api admin.ClustersApi, projectID, name, targetState string, timeout time.Duration, extraPending ...string) retry.StateChangeConf {
+func createStateChangeConfig(ctx context.Context, api admin.ClustersApi, projectID, name, targetState string, timeout time.Duration, useEffectiveFields bool, extraPending ...string) retry.StateChangeConf {
 	return retry.StateChangeConf{
 		Pending: slices.Concat([]string{
 			retrystrategy.RetryStrategyCreatingState,
@@ -87,7 +92,7 @@ func createStateChangeConfig(ctx context.Context, api admin.ClustersApi, project
 			retrystrategy.RetryStrategyDeletingState,
 		}, extraPending),
 		Target:       []string{targetState},
-		Refresh:      ResourceRefreshFunc(ctx, name, projectID, api),
+		Refresh:      ResourceRefreshFunc(ctx, name, projectID, api, useEffectiveFields),
 		Timeout:      timeout,
 		MinTimeout:   RetryMinTimeout,
 		Delay:        RetryDelay,
@@ -95,9 +100,9 @@ func createStateChangeConfig(ctx context.Context, api admin.ClustersApi, project
 	}
 }
 
-func ResourceRefreshFunc(ctx context.Context, name, projectID string, api admin.ClustersApi) retry.StateRefreshFunc {
+func ResourceRefreshFunc(ctx context.Context, name, projectID string, api admin.ClustersApi, useEffectiveFields bool) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		cluster, resp, err := api.GetCluster(ctx, projectID, name).UseEffectiveInstanceFields(true).Execute()
+		cluster, resp, err := api.GetCluster(ctx, projectID, name).UseEffectiveInstanceFields(useEffectiveFields).Execute()
 		if err != nil && strings.Contains(err.Error(), "reset by peer") {
 			return nil, retrystrategy.RetryStrategyRepeatingState, nil
 		}
