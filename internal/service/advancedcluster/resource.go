@@ -428,10 +428,7 @@ func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, cli
 }
 
 func createCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, useEffectiveFields bool) *admin.ClusterDescription20240805 {
-	var (
-		pauseAfter  = req.GetPaused()
-		clusterResp *admin.ClusterDescription20240805
-	)
+	pauseAfter := req.GetPaused()
 	if pauseAfter {
 		req.Paused = nil
 	}
@@ -440,7 +437,7 @@ func createCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 		addErrorDiag(diags, operationCreate, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
 	}
-	clusterResp = AwaitChanges(ctx, client, waitParams, operationCreate, diags)
+	clusterResp := AwaitChanges(ctx, client, waitParams, operationCreate, diags)
 	if diags.HasError() {
 		return nil
 	}
