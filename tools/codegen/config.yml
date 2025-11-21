@@ -18,6 +18,7 @@ resources:
     version_header: application/vnd.atlas.2023-01-01+json
 
   cluster_old_api:
+    deprecation_message: "This resource is deprecated. Please use the mongodbatlas_cluster_api resource instead."
     read:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}
       method: GET

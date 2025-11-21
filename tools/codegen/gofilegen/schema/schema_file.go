@@ -17,12 +17,13 @@ func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
 	imports = append(imports, models.Imports...)
 
 	tmplInputs := codetemplate.SchemaFileInputs{
-		PackageName:      input.PackageName,
-		Imports:          imports,
-		SchemaAttributes: schemaAttrs.Code,
-		Models:           models.Code,
+		PackageName:        input.PackageName,
+		Imports:            imports,
+		SchemaAttributes:   schemaAttrs.Code,
+		Models:             models.Code,
+		DeprecationMessage: input.Schema.DeprecationMessage,
 	}
-	result := codetemplate.ApplySchemaFileTemplate(tmplInputs)
+	result := codetemplate.ApplySchemaFileTemplate(&tmplInputs)
 
 	formattedResult, err := format.Source(result.Bytes())
 	if err != nil {
