@@ -693,28 +693,28 @@ func TestUnmarshalErrors(t *testing.T) {
 		errorStr     string
 	}{
 		"response ints are not converted to model strings": {
-			errorStr:     "unmarshal of attribute attr expects type StringType but got Number with value: 1",
+			errorStr:     "unmarshal of attribute attr expects type StringType but got Number",
 			responseJSON: `{"attr": 123}`,
 			model: &struct {
 				Attr types.String
 			}{},
 		},
 		"response strings are not converted to model ints": {
-			errorStr:     "unmarshal of attribute attr expects type Int64Type but got String with value: hello",
+			errorStr:     "unmarshal of attribute attr expects type Int64Type but got String",
 			responseJSON: `{"attr": "hello"}`,
 			model: &struct {
 				Attr types.Int64
 			}{},
 		},
 		"response strings are not converted to model bools": {
-			errorStr:     "unmarshal of attribute attr expects type BoolType but got String with value: true",
+			errorStr:     "unmarshal of attribute attr expects type BoolType but got String",
 			responseJSON: `{"attr": "true"}`,
 			model: &struct {
 				Attr types.Bool
 			}{},
 		},
 		"response bools are not converted to model string": {
-			errorStr:     "unmarshal of attribute attr expects type StringType but got Bool with value: true",
+			errorStr:     "unmarshal of attribute attr expects type StringType but got Bool",
 			responseJSON: `{"attr": true}`,
 			model: &struct {
 				Attr types.String
@@ -728,7 +728,7 @@ func TestUnmarshalErrors(t *testing.T) {
 			}{},
 		},
 		"model attr types in objects must match JSON types - string": {
-			errorStr:     "unmarshal of attribute attr_string expects type StringType but got Number with value: 1",
+			errorStr:     "unmarshal of attribute attr_string expects type StringType but got Number",
 			responseJSON: `{ "attrObj": { "attrString": 1 } }`,
 			model: &struct {
 				AttrObj customtypes.ObjectValue[testNestedObject] `tfsdk:"attr_obj"`
@@ -737,7 +737,7 @@ func TestUnmarshalErrors(t *testing.T) {
 			},
 		},
 		"model attr types in objects must match JSON types - bool": {
-			errorStr:     "unmarshal of attribute attr_bool expects type BoolType but got String with value: not a bool",
+			errorStr:     "unmarshal of attribute attr_bool expects type BoolType but got String",
 			responseJSON: `{ "attrObj": { "attrBool": "not a bool" } }`,
 			model: &struct {
 				AttrObj customtypes.ObjectValue[testNestedObject] `tfsdk:"attr_obj"`
@@ -746,7 +746,7 @@ func TestUnmarshalErrors(t *testing.T) {
 			},
 		},
 		"model attr types in objects must match JSON types - int": {
-			errorStr:     "unmarshal of attribute attr_int expects type Int64Type but got String with value: not an int",
+			errorStr:     "unmarshal of attribute attr_int expects type Int64Type but got String",
 			responseJSON: `{ "attrObj": { "attrInt": "not an int" } }`,
 			model: &struct {
 				AttrObj customtypes.ObjectValue[testNestedObject] `tfsdk:"attr_obj"`
@@ -755,7 +755,7 @@ func TestUnmarshalErrors(t *testing.T) {
 			},
 		},
 		"model attr types in objects must match JSON types - float": {
-			errorStr:     "unmarshal of attribute attr_float expects type Float64Type but got String with value: not an int",
+			errorStr:     "unmarshal of attribute attr_float expects type Float64Type but got String",
 			responseJSON: `{ "attrObj": { "attrFloat": "not an int" } }`,
 			model: &struct {
 				AttrObj customtypes.ObjectValue[testNestedObject] `tfsdk:"attr_obj"`
