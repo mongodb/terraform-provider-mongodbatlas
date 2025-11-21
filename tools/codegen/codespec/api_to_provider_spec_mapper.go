@@ -107,14 +107,9 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 		readResponse:     readResponseAttributes,
 	})
 
-	deprecationMessage := resourceConfig.DeprecationMessage
-	if resourceConfig.DeprecationMessage == nil {
-		deprecationMessage = oasResource.DeprecationMessage
-	}
-
 	schema := &Schema{
 		Description:        oasResource.Description,
-		DeprecationMessage: deprecationMessage,
+		DeprecationMessage: resourceConfig.DeprecationMessage,
 		Attributes:         attributes,
 	}
 
