@@ -8,7 +8,7 @@ import (
 	"sort"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312009/admin"
+	"go.mongodb.org/atlas-sdk/v20250312010/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -578,7 +578,8 @@ func UpdateProjectTeams(ctx context.Context, teamsAPI admin.TeamsApi, projectSta
 		roleNames := conversion.TypesSetToString(ctx, team.RoleNames)
 		_, _, err := teamsAPI.UpdateGroupTeam(ctx, projectID, teamID,
 			&admin.TeamRole{
-				RoleNames: &roleNames,
+				TeamId:    teamID,
+				RoleNames: roleNames,
 			},
 		).Execute()
 		if err != nil {
