@@ -56,7 +56,7 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 	api := d.Client.AtlasV2.ClustersApi
 	params := admin.ListClustersApiParams{
 		GroupId:                    projectID,
-		UseEffectiveInstanceFields: conversion.Pointer(true), // TEMPORARY: Don't merge.
+		UseEffectiveInstanceFields: conversion.Pointer(pluralModel.UseEffectiveFields.ValueBool()), // TEMPORARY: Don't merge.
 	}
 	list, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.ClusterDescription20240805], *http.Response, error) {
 		return api.ListClustersWithParams(ctx, &params).PageNum(pageNum).Execute()

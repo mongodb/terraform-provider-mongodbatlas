@@ -1142,7 +1142,7 @@ func TestAccAdvancedCluster_createTimeoutWithDeleteOnCreateReplicaset(t *testing
 func waitOnClusterDeleteDone(t *testing.T, projectID, clusterName string) {
 	t.Helper()
 	diags := &diag.Diagnostics{}
-	clusterResp, _ := advancedcluster.GetClusterDetails(t.Context(), diags, projectID, clusterName, acc.MongoDBClient, false)
+	clusterResp, _ := advancedcluster.GetClusterDetails(t.Context(), diags, projectID, clusterName, acc.MongoDBClient, false, false)
 	if clusterResp == nil {
 		t.Fatalf("cluster %s not found in %s", clusterName, projectID)
 	}

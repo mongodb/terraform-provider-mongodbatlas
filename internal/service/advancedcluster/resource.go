@@ -195,7 +195,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 	}
 	clusterName := state.Name.ValueString()
 	projectID := state.ProjectID.ValueString()
-	cluster, flexCluster := GetClusterDetails(ctx, diags, projectID, clusterName, r.Client, !state.PinnedFCV.IsNull())
+	cluster, flexCluster := GetClusterDetails(ctx, diags, projectID, clusterName, r.Client, !state.PinnedFCV.IsNull(), state.UseEffectiveFields.ValueBool())
 	if diags.HasError() {
 		return
 	}
@@ -274,7 +274,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	// clusterResp can be nil if there are no changes to the cluster, for example when `delete_on_create_timeout` is changed or only advanced configuration is changed
 	if clusterResp == nil {
 		var flexResp *admin.FlexClusterDescription20241113
-		clusterResp, flexResp = GetClusterDetails(ctx, diags, waitParams.ProjectID, waitParams.ClusterName, r.Client, false)
+		clusterResp, flexResp = GetClusterDetails(ctx, diags, waitParams.ProjectID, waitParams.ClusterName, r.Client, false, plan.UseEffectiveFields.ValueBool())
 		// This should never happen since the switch case should handle the two flex cases (update/upgrade) and return, but keeping it here for safety.
 		if flexResp != nil {
 			flexPriority := GetPriorityOfFlexReplicationSpecs(newAtlasReq(ctx, &plan, diags).ReplicationSpecs)
