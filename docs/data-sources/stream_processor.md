@@ -140,6 +140,7 @@ output "stream_processors_results" {
 
 **NOTE** When a Stream Processor is updated without specifying the state, it is stopped and then restored to previous state upon update completion.
 - `stats` (String) The stats associated with the stream processor. Refer to the [MongoDB Atlas Docs](https://www.mongodb.com/docs/atlas/atlas-stream-processing/manage-stream-processor/#view-statistics-of-a-stream-processor) for more information.
+- `tier` (String) Selected tier for the Stream Processor. Configures Memory / VCPU allowances.
 
 <a id="nestedatt--options"></a>
 ### Nested Schema for `options`
