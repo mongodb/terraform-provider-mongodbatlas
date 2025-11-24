@@ -2,7 +2,6 @@ package codespec
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
@@ -14,16 +13,19 @@ const DeleteOnCreateTimeoutDescription = "Indicates whether to delete the resour
 	"deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a " +
 	"transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`."
 
-func applyTransformationsWithConfigOpts(resourceConfig *config.Resource, resource *Resource) {
-	applyAttributeTransformations(resourceConfig.SchemaOptions, &resource.Schema.Attributes, "")
+func applyTransformationsWithConfigOpts(resourceConfig *config.Resource, resource *Resource) error {
+	if err := applyAttributeTransformations(resourceConfig.SchemaOptions, &resource.Schema.Attributes, ""); err != nil {
+		return fmt.Errorf("failed to apply attribute transformations: %w", err)
+	}
 	applyAliasToPathParams(resource, resourceConfig.SchemaOptions.Aliases)
 	ApplyDeleteOnCreateTimeoutTransformation(resource)
 	ApplyTimeoutTransformation(resource)
+	return nil
 }
 
 // AttributeTransformation represents a operation applied to an attribute during traversal.
 // Implementations may mutate the attribute in-place.
-type AttributeTransformation func(attr *Attribute, attrPathName *string, schemaOptions config.SchemaOptions)
+type AttributeTransformation func(attr *Attribute, attrPathName *string, schemaOptions config.SchemaOptions) error
 
 var transformations = []AttributeTransformation{
 	aliasTransformation,
@@ -31,7 +33,7 @@ var transformations = []AttributeTransformation{
 	createOnlyTransformation,
 }
 
-func applyAttributeTransformations(schemaOptions config.SchemaOptions, attributes *Attributes, parentName string) {
+func applyAttributeTransformations(schemaOptions config.SchemaOptions, attributes *Attributes, parentName string) error {
 	ignoredAttrs := getIgnoredAttributesMap(schemaOptions.Ignores)
 
 	var finalAttributes Attributes
@@ -45,25 +47,36 @@ func applyAttributeTransformations(schemaOptions config.SchemaOptions, attribute
 		}
 
 		for _, t := range transformations {
-			t(attr, &attrPathName, schemaOptions)
+			if err := t(attr, &attrPathName, schemaOptions); err != nil {
+				return err
+			}
 		}
 
 		// apply transformations to nested attributes
 		switch {
 		case attr.ListNested != nil:
-			applyAttributeTransformations(schemaOptions, &attr.ListNested.NestedObject.Attributes, attrPathName)
+			if err := applyAttributeTransformations(schemaOptions, &attr.ListNested.NestedObject.Attributes, attrPathName); err != nil {
+				return err
+			}
 		case attr.SingleNested != nil:
-			applyAttributeTransformations(schemaOptions, &attr.SingleNested.NestedObject.Attributes, attrPathName)
+			if err := applyAttributeTransformations(schemaOptions, &attr.SingleNested.NestedObject.Attributes, attrPathName); err != nil {
+				return err
+			}
 		case attr.SetNested != nil:
-			applyAttributeTransformations(schemaOptions, &attr.SetNested.NestedObject.Attributes, attrPathName)
+			if err := applyAttributeTransformations(schemaOptions, &attr.SetNested.NestedObject.Attributes, attrPathName); err != nil {
+				return err
+			}
 		case attr.MapNested != nil:
-			applyAttributeTransformations(schemaOptions, &attr.MapNested.NestedObject.Attributes, attrPathName)
+			if err := applyAttributeTransformations(schemaOptions, &attr.MapNested.NestedObject.Attributes, attrPathName); err != nil {
+				return err
+			}
 		}
 
 		finalAttributes = append(finalAttributes, *attr)
 	}
 
 	*attributes = finalAttributes
+	return nil
 }
 
 func getAttributePathName(attrName, parentName string) string {
@@ -117,20 +130,22 @@ func applyAliasToPathParams(resource *Resource, aliases map[string]string) {
 }
 
 // Transformations
-func aliasTransformation(attr *Attribute, attrPathName *string, schemaOptions config.SchemaOptions) {
+func aliasTransformation(attr *Attribute, attrPathName *string, schemaOptions config.SchemaOptions) error {
 	// the config is expected to use alias name for defining any subsequent overrides (description, etc)
 	applyAliasToAttribute(attr, attrPathName, schemaOptions)
+	return nil
 }
 
-func overridesTransformation(attr *Attribute, attrPathName *string, schemaOptions config.SchemaOptions) {
-	applyOverrides(attr, *attrPathName, schemaOptions)
+func overridesTransformation(attr *Attribute, attrPathName *string, schemaOptions config.SchemaOptions) error {
+	return applyOverrides(attr, *attrPathName, schemaOptions)
 }
 
-func createOnlyTransformation(attr *Attribute, _ *string, _ config.SchemaOptions) {
+func createOnlyTransformation(attr *Attribute, _ *string, _ config.SchemaOptions) error {
 	setCreateOnlyValue(attr)
+	return nil
 }
 
-func applyOverrides(attr *Attribute, attrPathName string, schemaOptions config.SchemaOptions) {
+func applyOverrides(attr *Attribute, attrPathName string, schemaOptions config.SchemaOptions) error {
 	if override, ok := schemaOptions.Overrides[attrPathName]; ok {
 		if override.Description != "" {
 			attr.Description = &override.Description
@@ -145,12 +160,15 @@ func applyOverrides(attr *Attribute, attrPathName string, schemaOptions config.S
 			attr.ReqBodyUsage = IncludeNullOnUpdate
 		}
 		if override.Type != nil {
-			applyTypeOverride(&override, attr)
+			if err := applyTypeOverride(&override, attr); err != nil {
+				return err
+			}
 		}
 	}
+	return nil
 }
 
-func applyTypeOverride(override *config.Override, attr *Attribute) {
+func applyTypeOverride(override *config.Override, attr *Attribute) error {
 	switch *override.Type {
 	case config.Set:
 		if attr.List != nil {
@@ -159,7 +177,7 @@ func applyTypeOverride(override *config.Override, attr *Attribute) {
 			}
 			attr.Set = &SetAttribute{ElementType: attr.List.ElementType}
 			attr.List = nil
-			return
+			return nil
 		}
 	case config.List:
 		if attr.Set != nil {
@@ -168,13 +186,12 @@ func applyTypeOverride(override *config.Override, attr *Attribute) {
 			}
 			attr.List = &ListAttribute{ElementType: attr.Set.ElementType}
 			attr.Set = nil
-			return
+			return nil
 		}
 	default:
-		log.Printf("[WARN] %s - Unsupported type override defined in configuration: %s", attr.TFSchemaName, *override.Type)
-		return
+		return fmt.Errorf("unsupported type override defined in configuration: %s for attribute %s", *override.Type, attr.TFSchemaName)
 	}
-	log.Printf("[WARN] %s - Unsupported override from original type to: %s", attr.TFSchemaName, *override.Type)
+	return fmt.Errorf("unsupported override from original type to %s for attribute %s", *override.Type, attr.TFSchemaName)
 }
 
 func getComputabilityFromConfig(computability config.Computability) ComputedOptionalRequired {
