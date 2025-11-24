@@ -36,7 +36,7 @@ func TestAccSearchIndexAPI_basic(t *testing.T) {
 				ImportStateIdFunc:                    importStateIDFunc(resourceName),
 				ImportStateVerifyIdentifierAttribute: "name",
 				// import experience is limited due to API not respecting: Fields defined in CREATE and UPDATE request schemas should be the same and should be present in response schema
-				// Current API defines index within `definition` property, however response doen not include `definition` and instead returns `latestDefinition`.
+				// Current API defines index within `definition` property, however response does not include `definition` and instead returns `latestDefinition`.
 				ImportStateVerifyIgnore: []string{"delete_on_create_timeout", "definition.%", "definition.mappings.%", "definition.mappings.dynamic"},
 				ImportState:             true,
 				ImportStateVerify:       true,
@@ -55,7 +55,7 @@ func TestAccSearchIndexAPI_withSynonymsUpdatedToEmpty(t *testing.T) {
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
-			// configWithSynonyms requires a source collection to be setup in the database, creation reachs READY but does have an error.
+			// configWithSynonyms requires a source collection to be setup in the database, creation reaches READY but does have an error.
 			// Any follow up steps fail with an error unexpected state 'FAILED', wanted target 'READY, STEADY'.
 			{
 				Config: configWithSynonyms(projectID, clusterName, indexName, true),
@@ -79,11 +79,10 @@ func TestAccSearchIndexAPI_MappingWithAnalyzersUpdatedToEmptyAnalyzers(t *testin
 				Config: configFieldMappingOptionalAnalyzers(projectID, clusterName, indexName, true),
 				Check:  checkFieldMappingOptionalAnalyzers(projectID, clusterName, indexName, true),
 			},
-			// Currently fails due to Invalid definition: "typeSets" cannot be empty. CLOUDP-360429 to allow configuration for sending null instead of empty array which causes error.
-			// {
-			// 	Config: configWithMappingAndAnalyzer(projectID, clusterName, indexName, false),
-			// 	Check:  checkWithMappingAndAnalyzer(projectID, clusterName, indexName, false),
-			// },
+			{
+				Config: configFieldMappingOptionalAnalyzers(projectID, clusterName, indexName, false),
+				Check:  checkFieldMappingOptionalAnalyzers(projectID, clusterName, indexName, false),
+			},
 		},
 	})
 }
@@ -102,11 +101,10 @@ func TestAccSearchIndexAPI_MappingsUpdatedToEmptyMapping(t *testing.T) {
 				Config: configFieldMappingOptionalAnalyzers(projectID, clusterName, indexName, false),
 				Check:  checkFieldMappingOptionalAnalyzers(projectID, clusterName, indexName, false),
 			},
-			// Currently fails due to Invalid definition: "typeSets" cannot be empty. CLOUDP-360429 to allow configuration for sending null instead of empty array which causes error.
-			// {
-			// 	Config: configBasic(projectID, clusterName, indexName),
-			// 	Check:  checkBasic(projectID, clusterName, indexName),
-			// },
+			{
+				Config: configBasic(projectID, clusterName, indexName),
+				Check:  checkBasic(projectID, clusterName, indexName),
+			},
 		},
 	})
 }
@@ -129,11 +127,10 @@ func TestAccSearchIndexAPI_withTypeSets_ConfigurableDynamic(t *testing.T) {
 				Config: configWithTypeSets(projectID, clusterName, indexName, `{"typeSet":"ts_acc"}`, []string{`{"type":"string"}`, `{"type":"number"}`}),
 				Check:  checkTypeSets(projectID, clusterName, indexName, `{"typeSet":"ts_acc"}`, 2),
 			},
-			// Currently fails due to Invalid definition: "typeSets" cannot be empty. CLOUDP-360429 to allow configuration for sending null instead of empty array which causes error.
-			// {
-			// 	Config: configWithTypeSetsOmitted(projectID, clusterName, indexName, `{"typeSet":"ts_acc"}`),
-			// 	Check:  checkTypeSetsOmitted(projectID, clusterName, indexName, `{"typeSet":"ts_acc"}`),
-			// },
+			{
+				Config: configWithTypeSetsOmitted(projectID, clusterName, indexName, "true"),
+				Check:  checkTypeSetsOmitted(projectID, clusterName, indexName, "true"),
+			},
 		},
 	})
 }
@@ -170,11 +167,10 @@ func TestAccSearchIndexAPI_withStoredSourceBool(t *testing.T) {
 				Config: configWithStoredSourceBool(projectID, clusterName, indexName, false),
 				Check:  checkStoredSourceBool(projectID, clusterName, indexName, false),
 			},
-			// Currently fails due to Invalid definition: "typeSets" cannot be empty. CLOUDP-360429 to allow configuration for sending null instead of empty array which causes error.
-			// {
-			// 	Config: configWithStoredSourceBool(projectID, clusterName, indexName, true),
-			// 	Check:  checkStoredSourceBool(projectID, clusterName, indexName, true),
-			// },
+			{
+				Config: configWithStoredSourceBool(projectID, clusterName, indexName, true),
+				Check:  checkStoredSourceBool(projectID, clusterName, indexName, true),
+			},
 		},
 	})
 }
@@ -532,6 +528,25 @@ func configWithTypeSets(projectID, clusterName, indexName, dynamicJSON string, t
 	`, projectID, clusterName, indexName, database, collection, dynamicJSON, typesStr)
 }
 
+func configWithTypeSetsOmitted(projectID, clusterName, indexName, dynamicJSON string) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_search_index_api" "test" {
+			group_id        = %[1]q
+			cluster_name    = %[2]q
+			name            = %[3]q
+			database        = %[4]q
+			collection_name = %[5]q
+			type            = "search"
+
+			definition = {
+				mappings = {
+					dynamic = jsonencode(%[6]s)
+				}
+			}
+		}
+	`, projectID, clusterName, indexName, database, collection, dynamicJSON)
+}
+
 func checkAttrs(projectID, clusterName, indexName string) resource.TestCheckFunc {
 	attributes := map[string]string{
 		"group_id":        projectID,
@@ -600,5 +615,13 @@ func checkTypeSets(projectID, clusterName, indexName, dynamicJSON string, typeCo
 		resource.TestCheckResourceAttr(resourceName, "latest_definition.type_sets.#", "1"),
 		resource.TestCheckResourceAttr(resourceName, "latest_definition.type_sets.0.name", "ts_acc"),
 		resource.TestCheckResourceAttr(resourceName, "latest_definition.type_sets.0.types.#", fmt.Sprintf("%d", typeCount)),
+	)
+}
+
+func checkTypeSetsOmitted(projectID, clusterName, indexName, dynamicJSON string) resource.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(
+		checkAttrs(projectID, clusterName, indexName),
+		resource.TestCheckResourceAttrWith(resourceName, "latest_definition.mappings.dynamic", acc.JSONEquals(dynamicJSON)),
+		resource.TestCheckResourceAttr(resourceName, "latest_definition.type_sets.#", "0"),
 	)
 }

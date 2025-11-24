@@ -18,6 +18,48 @@ const (
 	testDataConfigPath  = "testdata/config.yml"
 )
 
+var (
+	simpleTestResourceAttributes = codespec.Attributes{
+		{
+			TFSchemaName:             "group_id",
+			TFModelName:              "GroupId",
+			ComputedOptionalRequired: codespec.Required,
+			String:                   &codespec.StringAttribute{},
+			Description:              conversion.StringPtr(testPathParamDesc),
+			ReqBodyUsage:             codespec.OmitAlways,
+			CreateOnly:               true,
+		},
+		{
+			TFSchemaName:             "string_attr",
+			TFModelName:              "StringAttr",
+			ComputedOptionalRequired: codespec.Required,
+			String:                   &codespec.StringAttribute{},
+			Description:              conversion.StringPtr(testFieldDesc),
+			ReqBodyUsage:             codespec.AllRequestBodies,
+		},
+	}
+
+	simpleTestResourceOperations = codespec.APIOperations{
+		Create: codespec.APIOperation{
+			Path:       "/api/atlas/v2/groups/{groupId}/simpleTestResource",
+			HTTPMethod: "POST",
+		},
+		Read: codespec.APIOperation{
+			Path:       "/api/atlas/v2/groups/{groupId}/simpleTestResource",
+			HTTPMethod: "GET",
+		},
+		Update: &codespec.APIOperation{
+			Path:       "/api/atlas/v2/groups/{groupId}/simpleTestResource",
+			HTTPMethod: "PATCH",
+		},
+		Delete: &codespec.APIOperation{
+			Path:       "/api/atlas/v2/groups/{groupId}/simpleTestResource",
+			HTTPMethod: "DELETE",
+		},
+		VersionHeader: "application/vnd.atlas.2023-01-01+json",
+	}
+)
+
 type convertToSpecTestCase struct {
 	expectedResult       *codespec.Model
 	inputOpenAPISpecPath string
@@ -879,47 +921,37 @@ func TestConvertToProviderSpec_moveState(t *testing.T) {
 			Resources: []codespec.Resource{{
 				Schema: &codespec.Schema{
 					Description: conversion.StringPtr("POST API description"),
-					Attributes: codespec.Attributes{
-						{
-							TFSchemaName:             "group_id",
-							TFModelName:              "GroupId",
-							ComputedOptionalRequired: codespec.Required,
-							String:                   &codespec.StringAttribute{},
-							Description:              conversion.StringPtr(testPathParamDesc),
-							ReqBodyUsage:             codespec.OmitAlways,
-							CreateOnly:               true,
-						},
-						{
-							TFSchemaName:             "string_attr",
-							TFModelName:              "StringAttr",
-							ComputedOptionalRequired: codespec.Required,
-							String:                   &codespec.StringAttribute{},
-							ReqBodyUsage:             codespec.AllRequestBodies,
-						},
-					},
+					Attributes:  simpleTestResourceAttributes,
 				},
 				Name:        "test_resource_move_state",
 				PackageName: "testresourcemovestate",
-				Operations: codespec.APIOperations{
-					Create: codespec.APIOperation{
-						Path:       "/api/atlas/v2/groups/{groupId}/testResourceMoveState",
-						HTTPMethod: "POST",
-					},
-					Read: codespec.APIOperation{
-						Path:       "/api/atlas/v2/groups/{groupId}/testResourceMoveState",
-						HTTPMethod: "GET",
-					},
-					Update: &codespec.APIOperation{
-						Path:       "/api/atlas/v2/groups/{groupId}/testResourceMoveState",
-						HTTPMethod: "PATCH",
-					},
-					Delete: &codespec.APIOperation{
-						Path:       "/api/atlas/v2/groups/{groupId}/testResourceMoveState",
-						HTTPMethod: "DELETE",
-					},
-					VersionHeader: "application/vnd.atlas.2023-01-01+json",
+				Operations:  simpleTestResourceOperations,
+				MoveState:   &codespec.MoveState{SourceResources: []string{"test_resource"}},
+			}},
+		},
+	}
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
+}
+
+func TestConvertToProviderSpec_deprecatedResource(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      testDataConfigPath,
+		inputResourceName:    "test_resource_deprecated",
+
+		expectedResult: &codespec.Model{
+			Resources: []codespec.Resource{{
+				Schema: &codespec.Schema{
+					Description:        conversion.StringPtr("POST API description"),
+					DeprecationMessage: conversion.StringPtr("This resource is deprecated. Please use test_resource_new resource instead."),
+					Attributes:         simpleTestResourceAttributes,
 				},
-				MoveState: &codespec.MoveState{SourceResources: []string{"test_resource"}},
+				Name:        "test_resource_deprecated",
+				PackageName: "testresourcedeprecated",
+				Operations:  simpleTestResourceOperations,
 			}},
 		},
 	}
