@@ -32,8 +32,7 @@ func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, c
 			addErrorDiag(diags, operationAdvancedConfigurationUpdate, defaultAPIErrorDetails(clusterName, err))
 			return nil, false
 		}
-		// Any useEffectiveFields as the cluster description is not used.
-		_ = AwaitChanges(ctx, client, waitParams, operationAdvancedConfigurationUpdate, diags, false)
+		_ = AwaitChanges(ctx, client, waitParams, operationAdvancedConfigurationUpdate, diags)
 		if diags.HasError() {
 			return nil, false
 		}
@@ -56,22 +55,22 @@ func ReadIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnosti
 	return configNew
 }
 
-func UpgradeTenant(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest, useEffectiveFields bool) *admin.ClusterDescription20240805 {
+func UpgradeTenant(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.ClusterDescription20240805 {
 	_, _, err := client.AtlasV2.ClustersApi.UpgradeTenantUpgrade(ctx, waitParams.ProjectID, req).Execute()
 	if err != nil {
 		addErrorDiag(diags, operationTenantUpgrade, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
 	}
-	return AwaitChangesUpgrade(ctx, client, waitParams, operationTenantUpgrade, diags, useEffectiveFields)
+	return AwaitChangesUpgrade(ctx, client, waitParams, operationTenantUpgrade, diags)
 }
 
-func UpgradeFlexToDedicated(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.AtlasTenantClusterUpgradeRequest20240805, useEffectiveFields bool) *admin.ClusterDescription20240805 {
+func UpgradeFlexToDedicated(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.AtlasTenantClusterUpgradeRequest20240805) *admin.ClusterDescription20240805 {
 	_, _, err := client.AtlasV2.FlexClustersApi.TenantUpgrade(ctx, waitParams.ProjectID, req).Execute()
 	if err != nil {
 		addErrorDiag(diags, operationFlexUpgrade, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
 	}
-	return AwaitChangesUpgrade(ctx, client, waitParams, operationFlexUpgrade, diags, useEffectiveFields)
+	return AwaitChangesUpgrade(ctx, client, waitParams, operationFlexUpgrade, diags)
 }
 
 func PinFCV(ctx context.Context, api admin.ClustersApi, projectID, clusterName, expirationDateStr string) error {
@@ -106,8 +105,7 @@ func DeleteCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 			return
 		}
 	}
-	// Any useEffectiveFields as the cluster description is not used.
-	_ = AwaitChanges(ctx, client, waitParams, operationDelete, diags, false)
+	_ = AwaitChanges(ctx, client, waitParams, operationDelete, diags)
 }
 
 func DeleteClusterNoWait(client *config.MongoDBClient, projectID, clusterName string, isFlex bool) func(ctx context.Context) error {

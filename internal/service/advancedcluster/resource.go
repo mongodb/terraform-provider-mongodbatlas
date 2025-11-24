@@ -148,7 +148,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		diags.Append(resp.State.Set(ctx, newFlexClusterModel)...)
 		return
 	}
-	clusterResp := createCluster(ctx, diags, r.Client, latestReq, waitParams, plan.UseEffectiveFields.ValueBool())
+	clusterResp := createCluster(ctx, diags, r.Client, latestReq, waitParams)
 
 	emptyAdvancedConfiguration := types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
 	patchReqProcessArgs := update.PatchPayloadCluster(ctx, diags, &emptyAdvancedConfiguration, &plan.AdvancedConfiguration, NewAtlasReqAdvancedConfiguration)
@@ -163,7 +163,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	if changedCluster := r.applyPinnedFCVChanges(ctx, diags, &TFModel{}, &plan, waitParams, plan.UseEffectiveFields.ValueBool()); changedCluster != nil {
+	if changedCluster := r.applyPinnedFCVChanges(ctx, diags, &TFModel{}, &plan, waitParams); changedCluster != nil {
 		clusterResp = changedCluster
 	}
 	if diags.HasError() {
@@ -239,7 +239,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 
 	// FCV update is intentionally handled before any other cluster updates, and will wait for cluster to reach IDLE state before continuing
-	clusterResp := r.applyPinnedFCVChanges(ctx, diags, &state, &plan, waitParams, plan.UseEffectiveFields.ValueBool())
+	clusterResp := r.applyPinnedFCVChanges(ctx, diags, &state, &plan, waitParams)
 	if diags.HasError() {
 		return
 	}
@@ -261,11 +261,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			}
 			return
 		case diff.isUpgradeFlexToDedicated():
-			clusterResp = UpgradeFlexToDedicated(ctx, diags, r.Client, waitParams, diff.upgradeFlexToDedicatedReq, plan.UseEffectiveFields.ValueBool())
+			clusterResp = UpgradeFlexToDedicated(ctx, diags, r.Client, waitParams, diff.upgradeFlexToDedicatedReq)
 		case diff.isUpgradeTenant():
-			clusterResp = UpgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq, plan.UseEffectiveFields.ValueBool())
+			clusterResp = UpgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq)
 		case diff.isClusterPatchOnly():
-			clusterResp = r.applyClusterChanges(ctx, diags, diff.clusterPatchOnlyReq, waitParams, plan.UseEffectiveFields.ValueBool())
+			clusterResp = r.applyClusterChanges(ctx, diags, diff.clusterPatchOnlyReq, waitParams)
 		}
 		if diags.HasError() {
 			return
@@ -274,7 +274,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	// clusterResp can be nil if there are no changes to the cluster, for example when `delete_on_create_timeout` is changed or only advanced configuration is changed
 	if clusterResp == nil {
 		var flexResp *admin.FlexClusterDescription20241113
-		clusterResp, flexResp = GetClusterDetails(ctx, diags, waitParams.ProjectID, waitParams.ClusterName, r.Client, false, plan.UseEffectiveFields.ValueBool())
+		clusterResp, flexResp = GetClusterDetails(ctx, diags, waitParams.ProjectID, waitParams.ClusterName, r.Client, false, waitParams.UseEffectiveFields)
 		// This should never happen since the switch case should handle the two flex cases (update/upgrade) and return, but keeping it here for safety.
 		if flexResp != nil {
 			flexPriority := GetPriorityOfFlexReplicationSpecs(newAtlasReq(ctx, &plan, diags).ReplicationSpecs)
@@ -333,7 +333,7 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	conversion.ImportStateProjectIDClusterName(ctx, req, resp, "project_id", "name")
 }
 
-func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, waitParams *ClusterWaitParams, useEffectiveFields bool) *admin.ClusterDescription20240805 {
+func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
 	var (
 		api         = r.Client.AtlasV2.ClustersApi
 		projectID   = waitParams.ProjectID
@@ -354,22 +354,22 @@ func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics,
 			addErrorDiag(diags, operationFCVPinning, defaultAPIErrorDetails(clusterName, err))
 			return nil
 		}
-		return AwaitChanges(ctx, r.Client, waitParams, operationFCVPinning, diags, useEffectiveFields)
+		return AwaitChanges(ctx, r.Client, waitParams, operationFCVPinning, diags)
 	}
 	// pinned_fcv has been removed from the config so unpin method is called
 	if _, err := api.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
 		addErrorDiag(diags, operationFCVUnpinning, defaultAPIErrorDetails(clusterName, err))
 		return nil
 	}
-	return AwaitChanges(ctx, r.Client, waitParams, operationFCVUnpinning, diags, useEffectiveFields)
+	return AwaitChanges(ctx, r.Client, waitParams, operationFCVUnpinning, diags)
 }
 
-func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, patchReq *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, useEffectiveFields bool) *admin.ClusterDescription20240805 {
+func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, patchReq *admin.ClusterDescription20240805, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
 	// paused = `false` is sent in an isolated request before other changes to avoid error from API: Cannot update cluster while it is paused or being paused.
 	var result *admin.ClusterDescription20240805
 	if patchReq.Paused != nil && !patchReq.GetPaused() {
 		patchReq.Paused = nil
-		_ = updateCluster(ctx, diags, r.Client, &resumeRequest, waitParams, operationResumeBeforeUpdate, useEffectiveFields)
+		_ = updateCluster(ctx, diags, r.Client, &resumeRequest, waitParams, operationResumeBeforeUpdate)
 	}
 
 	// paused = `true` is sent in an isolated request after other changes have been applied to avoid error from API: Cannot update and pause cluster at the same time
@@ -379,10 +379,10 @@ func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, p
 		pauseAfterOtherChanges = true
 	}
 
-	result = updateCluster(ctx, diags, r.Client, patchReq, waitParams, operationUpdate, useEffectiveFields)
+	result = updateCluster(ctx, diags, r.Client, patchReq, waitParams, operationUpdate)
 
 	if pauseAfterOtherChanges {
-		result = updateCluster(ctx, diags, r.Client, &pauseRequest, waitParams, operationPauseAfterUpdate, useEffectiveFields)
+		result = updateCluster(ctx, diags, r.Client, &pauseRequest, waitParams, operationPauseAfterUpdate)
 	}
 	return result
 }
@@ -427,33 +427,33 @@ func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, cli
 	AddAdvancedConfig(ctx, model, p, diags)
 }
 
-func createCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, useEffectiveFields bool) *admin.ClusterDescription20240805 {
+func createCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
 	pauseAfter := req.GetPaused()
 	if pauseAfter {
 		req.Paused = nil
 	}
-	_, _, err := client.AtlasV2.ClustersApi.CreateCluster(ctx, waitParams.ProjectID, req).UseEffectiveInstanceFields(useEffectiveFields).Execute()
+	_, _, err := client.AtlasV2.ClustersApi.CreateCluster(ctx, waitParams.ProjectID, req).UseEffectiveInstanceFields(waitParams.UseEffectiveFields).Execute()
 	if err != nil {
 		addErrorDiag(diags, operationCreate, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
 	}
-	clusterResp := AwaitChanges(ctx, client, waitParams, operationCreate, diags, useEffectiveFields)
+	clusterResp := AwaitChanges(ctx, client, waitParams, operationCreate, diags)
 	if diags.HasError() {
 		return nil
 	}
 	if pauseAfter {
-		clusterResp = updateCluster(ctx, diags, client, &pauseRequest, waitParams, operationPauseAfterCreate, useEffectiveFields)
+		clusterResp = updateCluster(ctx, diags, client, &pauseRequest, waitParams, operationPauseAfterCreate)
 	}
 	return clusterResp
 }
 
-func updateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, operationName string, useEffectiveFields bool) *admin.ClusterDescription20240805 {
-	_, _, err := client.AtlasV2.ClustersApi.UpdateCluster(ctx, waitParams.ProjectID, waitParams.ClusterName, req).UseEffectiveInstanceFields(useEffectiveFields).Execute()
+func updateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, operationName string) *admin.ClusterDescription20240805 {
+	_, _, err := client.AtlasV2.ClustersApi.UpdateCluster(ctx, waitParams.ProjectID, waitParams.ClusterName, req).UseEffectiveInstanceFields(waitParams.UseEffectiveFields).Execute()
 	if err != nil {
 		addErrorDiag(diags, operationName, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
 	}
-	return AwaitChanges(ctx, client, waitParams, operationName, diags, useEffectiveFields)
+	return AwaitChanges(ctx, client, waitParams, operationName, diags)
 }
 
 func resolveClusterWaitParams(ctx context.Context, model *TFModel, diags *diag.Diagnostics, operation string) *ClusterWaitParams {
@@ -464,10 +464,11 @@ func resolveClusterWaitParams(ctx context.Context, model *TFModel, diags *diag.D
 		return nil
 	}
 	return &ClusterWaitParams{
-		ProjectID:   projectID,
-		ClusterName: clusterName,
-		Timeout:     operationTimeout,
-		IsDelete:    operation == operationDelete,
+		ProjectID:          projectID,
+		ClusterName:        clusterName,
+		Timeout:            operationTimeout,
+		IsDelete:           operation == operationDelete,
+		UseEffectiveFields: model.UseEffectiveFields.ValueBool(),
 	}
 }
 

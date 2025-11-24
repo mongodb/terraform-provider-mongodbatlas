@@ -1146,13 +1146,12 @@ func waitOnClusterDeleteDone(t *testing.T, projectID, clusterName string) {
 	if clusterResp == nil {
 		t.Fatalf("cluster %s not found in %s", clusterName, projectID)
 	}
-	// Any useEffectiveFields as the cluster description is not used.
 	_ = advancedcluster.AwaitChanges(t.Context(), acc.MongoDBClient, &advancedcluster.ClusterWaitParams{
 		ProjectID:   projectID,
 		ClusterName: clusterName,
 		Timeout:     60 * time.Second,
 		IsDelete:    true,
-	}, "waiting for cluster to be deleted after cleanup in create timeout", diags, false)
+	}, "waiting for cluster to be deleted after cleanup in create timeout", diags)
 	time.Sleep(2 * time.Minute) // Decrease the chance of `CONTAINER_WAITING_FOR_FAST_RECORD_CLEAN_UP`: "A transient error occurred. Please try again in a minute or use a different name".
 }
 
