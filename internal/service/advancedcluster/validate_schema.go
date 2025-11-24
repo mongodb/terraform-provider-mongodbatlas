@@ -94,7 +94,7 @@ func (v RegionSpecPriorityOrderDecreasingValidator) MarkdownDescription(_ contex
 }
 func (v RegionSpecPriorityOrderDecreasingValidator) ValidateList(ctx context.Context, req validator.ListRequest, resp *validator.ListResponse) {
 	diags := &resp.Diagnostics
-	regionConfigs := newCloudRegionConfig20240805(ctx, req.ConfigValue, diags)
+	regionConfigs := newRegionConfig(ctx, req.ConfigValue, diags)
 	if diags.HasError() || regionConfigs == nil {
 		return
 	}
