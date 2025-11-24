@@ -163,7 +163,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	if changedCluster := r.applyPinnedFCVChanges(ctx, diags, &TFModel{}, &plan, waitParams); changedCluster != nil {
+	if changedCluster := r.applyPinnedFCVChanges(ctx, diags, &TFModel{}, &plan, waitParams, plan.UseEffectiveFields.ValueBool()); changedCluster != nil {
 		clusterResp = changedCluster
 	}
 	if diags.HasError() {
@@ -239,7 +239,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 	}
 
 	// FCV update is intentionally handled before any other cluster updates, and will wait for cluster to reach IDLE state before continuing
-	clusterResp := r.applyPinnedFCVChanges(ctx, diags, &state, &plan, waitParams)
+	clusterResp := r.applyPinnedFCVChanges(ctx, diags, &state, &plan, waitParams, plan.UseEffectiveFields.ValueBool())
 	if diags.HasError() {
 		return
 	}
@@ -333,7 +333,7 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 	conversion.ImportStateProjectIDClusterName(ctx, req, resp, "project_id", "name")
 }
 
-func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {
+func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics, state, plan *TFModel, waitParams *ClusterWaitParams, useEffectiveFields bool) *admin.ClusterDescription20240805 {
 	var (
 		api         = r.Client.AtlasV2.ClustersApi
 		projectID   = waitParams.ProjectID
@@ -354,14 +354,14 @@ func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics,
 			addErrorDiag(diags, operationFCVPinning, defaultAPIErrorDetails(clusterName, err))
 			return nil
 		}
-		return AwaitChanges(ctx, r.Client, waitParams, operationFCVPinning, diags)
+		return AwaitChangesWithUseEffectiveFields(ctx, r.Client, waitParams, operationFCVPinning, diags, useEffectiveFields)
 	}
 	// pinned_fcv has been removed from the config so unpin method is called
 	if _, err := api.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
 		addErrorDiag(diags, operationFCVUnpinning, defaultAPIErrorDetails(clusterName, err))
 		return nil
 	}
-	return AwaitChanges(ctx, r.Client, waitParams, operationFCVUnpinning, diags)
+	return AwaitChangesWithUseEffectiveFields(ctx, r.Client, waitParams, operationFCVUnpinning, diags, useEffectiveFields)
 }
 
 func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, patchReq *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, useEffectiveFields bool) *admin.ClusterDescription20240805 {
