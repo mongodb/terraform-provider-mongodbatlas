@@ -5,13 +5,14 @@ type Config struct {
 }
 
 type Resource struct {
-	Create        *APIOperation `yaml:"create"`
-	Read          *APIOperation `yaml:"read"`
-	Update        *APIOperation `yaml:"update"`
-	Delete        *APIOperation `yaml:"delete"`
-	MoveState     *MoveState    `yaml:"move_state"`
-	VersionHeader string        `yaml:"version_header"` // when not defined latest version defined in API Spec of the resource is used
-	SchemaOptions SchemaOptions `yaml:"schema"`
+	Create             *APIOperation `yaml:"create"`
+	Read               *APIOperation `yaml:"read"`
+	Update             *APIOperation `yaml:"update"`
+	Delete             *APIOperation `yaml:"delete"`
+	MoveState          *MoveState    `yaml:"move_state"`
+	VersionHeader      string        `yaml:"version_header"` // when not defined latest version defined in API Spec of the resource is used
+	DeprecationMessage *string       `yaml:"deprecation_message"`
+	SchemaOptions      SchemaOptions `yaml:"schema"`
 }
 
 type APIOperation struct {
