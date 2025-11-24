@@ -70,6 +70,7 @@ resource "mongodbatlas_stream_processor" "stream-processor-sample-example" {
     { "$emit" = { "connectionName" : resource.mongodbatlas_stream_connection.example-cluster.connection_name, "db" : "sample", "coll" : "solar", "timeseries" : { "timeField" : "_ts" } } }
   ])
   state = "STARTED"
+  tier  = "SP30"
 }
 
 resource "mongodbatlas_stream_processor" "stream-processor-cluster-to-kafka-example" {
@@ -141,9 +142,10 @@ output "stream_processors_results" {
 - `delete_on_create_timeout` (Boolean) Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`.
 - `instance_name` (String, Deprecated) Label that identifies the stream processing workspace.
 - `options` (Attributes) Optional configuration for the stream processor. (see [below for nested schema](#nestedatt--options))
-- `state` (String) The state of the stream processor. Commonly occurring states are 'CREATED', 'STARTED', 'STOPPED' and 'FAILED'. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`. When a Stream Processor is created without specifying the state, it will default to `CREATED` state. When a Stream Processor is updated without specifying the state, it will default to the Previous state. 
+- `state` (String) The state of the stream processor. Commonly occurring states are 'CREATED', 'STARTED', 'STOPPED' and 'FAILED'. Used to start or stop the Stream Processor. Valid values are `CREATED`, `STARTED` or `STOPPED`. When a Stream Processor is created without specifying the state, it will default to `CREATED` state. When a Stream Processor is updated without specifying the state, it will default to the Previous state.
 
 **NOTE** When a Stream Processor is updated without specifying the state, it is stopped and then restored to previous state upon update completion.
+- `tier` (String) Selected tier for the Stream Processor. Configures Memory / VCPU allowances.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 - `workspace_name` (String) Label that identifies the stream processing workspace.
 

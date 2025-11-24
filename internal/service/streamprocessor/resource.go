@@ -107,13 +107,12 @@ func (r *streamProcessorRS) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	if needsStarting {
-		_, err := connV2.StreamsApi.StartStreamProcessorWithParams(ctx,
-			&admin.StartStreamProcessorApiParams{
-				GroupId:       projectID,
-				TenantName:    workspaceOrInstanceName,
-				ProcessorName: processorName,
-			},
-		).Execute()
+		startWithOptions := &admin.StreamsStartStreamProcessorWith{}
+		if plan.Tier.ValueString() != "" {
+			startWithOptions.SetTier(plan.Tier.ValueString())
+		}
+
+		_, err := connV2.StreamsApi.StartStreamProcessorWith(ctx, projectID, workspaceOrInstanceName, processorName, startWithOptions).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError(errorCreateStart, err.Error())
 			return
@@ -237,13 +236,12 @@ func (r *streamProcessorRS) Update(ctx context.Context, req resource.UpdateReque
 
 	// start the stream processor if the desired state is started
 	if plannedState == StartedState {
-		_, err := r.Client.AtlasV2.StreamsApi.StartStreamProcessorWithParams(ctx,
-			&admin.StartStreamProcessorApiParams{
-				GroupId:       projectID,
-				TenantName:    workspaceOrInstanceName,
-				ProcessorName: processorName,
-			},
-		).Execute()
+		startWithOptions := &admin.StreamsStartStreamProcessorWith{}
+		if plan.Tier.ValueString() != "" {
+			startWithOptions.SetTier(plan.Tier.ValueString())
+		}
+
+		_, err := r.Client.AtlasV2.StreamsApi.StartStreamProcessorWith(ctx, projectID, workspaceOrInstanceName, processorName, startWithOptions).Execute()
 		if err != nil {
 			resp.Diagnostics.AddError("Error starting stream processor", err.Error())
 			return

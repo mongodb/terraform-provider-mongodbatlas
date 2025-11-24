@@ -114,6 +114,7 @@ func NewStreamProcessorWithStats(ctx context.Context, projectID, instanceName, w
 		ProjectID:     types.StringPointerValue(&projectID),
 		State:         types.StringPointerValue(&apiResp.State),
 		Stats:         statsTF,
+		Tier:          types.StringPointerValue(apiResp.Tier),
 	}
 
 	if workspaceName != "" {
@@ -158,6 +159,7 @@ func NewTFStreamprocessorDSModel(ctx context.Context, projectID, instanceName, w
 		ProjectID:     types.StringPointerValue(&projectID),
 		State:         types.StringPointerValue(&apiResp.State),
 		Stats:         statsTF,
+		Tier:          types.StringPointerValue(apiResp.Tier),
 	}
 
 	if workspaceName != "" {

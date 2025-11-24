@@ -53,6 +53,33 @@ func TestAccStreamProcessor_basic(t *testing.T) {
 	resource.ParallelTest(t, *basicTestCase(t))
 }
 
+func TestAccStreamProcessor_withTier(t *testing.T) {
+	var (
+		projectID, workspaceName = acc.ProjectIDExecutionWithStreamInstance(t)
+		randomSuffix             = acctest.RandString(5)
+		processorName            = "new-processor-tier" + randomSuffix
+		tier                     = "SP30"
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroyStreamProcessor,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithTier(t, projectID, workspaceName, processorName, tier),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "workspace_name", workspaceName),
+					resource.TestCheckResourceAttr(resourceName, "processor_name", processorName),
+					resource.TestCheckResourceAttr(resourceName, "state", streamprocessor.StartedState),
+					resource.TestCheckResourceAttr(resourceName, "tier", tier),
+				),
+			},
+			importStep(),
+		}})
+}
+
 func basicTestCase(t *testing.T) *resource.TestCase {
 	t.Helper()
 	var (
@@ -671,6 +698,44 @@ func config(t *testing.T, projectID, workspaceName, processorName, state, nameSu
 		}
 		
 	`, projectID, workspaceName, processorName, pipeline, stateConfig, optionsStr, dependsOnStr, timeoutConfig, deleteOnCreateTimeoutConfig) + otherConfig
+}
+
+func configWithTier(t *testing.T, projectID, workspaceName, processorName, tier string) string {
+	t.Helper()
+
+	return fmt.Sprintf(`
+	resource "mongodbatlas_stream_connection" "sample_stream_solar" {
+		project_id      = %[1]q
+		workspace_name  = %[2]q
+		connection_name = "sample_stream_solar"
+		type            = "Sample"
+	}
+
+	resource "mongodbatlas_stream_processor" "processor" {
+		project_id     = %[1]q
+		workspace_name = %[2]q
+		processor_name = %[3]q
+		pipeline = jsonencode([
+			{ "$source" = { "connectionName" = mongodbatlas_stream_connection.sample_stream_solar.connection_name } },
+			{ "$emit" = { "connectionName" = "__testLog" } }
+		])
+		state = "STARTED"
+		tier  = %[4]q
+	}
+
+	data "mongodbatlas_stream_processor" "test" {
+		project_id     = %[1]q
+		workspace_name = %[2]q
+		processor_name = %[3]q
+		depends_on     = [mongodbatlas_stream_processor.processor]
+	}
+
+	data "mongodbatlas_stream_processors" "test" {
+		project_id     = %[1]q
+		workspace_name = %[2]q
+		depends_on     = [mongodbatlas_stream_processor.processor]
+	}
+	`, projectID, workspaceName, processorName, tier)
 }
 
 func configMigration(t *testing.T, projectID, instanceName, processorName, state, nameSuffix string, src, dest connectionConfig, timeoutConfig string, deleteOnCreateTimeout *bool) string {

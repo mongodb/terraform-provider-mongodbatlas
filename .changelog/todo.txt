@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/mongodbatlas_stream_processor: Adds the `tier` attribute
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_stream_processor: Adds the `tier` attribute
+```
