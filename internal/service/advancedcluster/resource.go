@@ -124,7 +124,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 	if diags.HasError() {
 		return
 	}
-	isFlex := IsFlex(latestReq.ReplicationSpecs)
+	isFlex := isFlex(latestReq.ReplicationSpecs)
 	projectID, clusterName := waitParams.ProjectID, waitParams.ClusterName
 	clusterDetailStr := fmt.Sprintf("Cluster name %s (project_id=%s).", clusterName, projectID)
 	if plan.DeleteOnCreateTimeout.ValueBool() {
@@ -503,7 +503,7 @@ func findClusterDiff(ctx context.Context, state, plan *TFModel, diags *diag.Diag
 		return clusterDiff{}
 	}
 
-	if IsFlex(planReq.ReplicationSpecs) {
+	if isFlex(planReq.ReplicationSpecs) {
 		if isValidUpgradeTenantToFlex(stateReq, planReq) {
 			return clusterDiff{isUpgradeTenantToFlex: true}
 		}
