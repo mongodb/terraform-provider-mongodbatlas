@@ -33,25 +33,20 @@ type ClusterWaitParams struct {
 	IsDelete    bool
 }
 
-func AwaitChangesUpgrade(ctx context.Context, client *config.MongoDBClient, waitParams *ClusterWaitParams, errorLocator string, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
-	upgraded := AwaitChanges(ctx, client, waitParams, errorLocator, diags)
+func AwaitChangesUpgrade(ctx context.Context, client *config.MongoDBClient, waitParams *ClusterWaitParams, errorLocator string, diags *diag.Diagnostics, useEffectiveFields bool) *admin.ClusterDescription20240805 {
+	upgraded := AwaitChanges(ctx, client, waitParams, errorLocator, diags, useEffectiveFields)
 	if diags.HasError() || upgraded == nil {
 		return nil
 	}
 	providerName := getProviderName(upgraded.ReplicationSpecs)
 	if slices.Contains([]string{flexcluster.FlexClusterType, constant.TENANT}, providerName) {
 		tflog.Warn(ctx, fmt.Sprintf("cluster upgrade unexpected provider %s, retrying", providerName))
-		return AwaitChanges(ctx, client, waitParams, errorLocator, diags)
+		return AwaitChanges(ctx, client, waitParams, errorLocator, diags, useEffectiveFields)
 	}
 	return upgraded
 }
 
-// TODO: Check all uses of AwaitChanges !!!!
-func AwaitChanges(ctx context.Context, client *config.MongoDBClient, waitParams *ClusterWaitParams, errorLocator string, diags *diag.Diagnostics) *admin.ClusterDescription20240805 {
-	return AwaitChangesWithUseEffectiveFields(ctx, client, waitParams, errorLocator, diags, false)
-}
-
-func AwaitChangesWithUseEffectiveFields(ctx context.Context, client *config.MongoDBClient, waitParams *ClusterWaitParams, errorLocator string, diags *diag.Diagnostics, useEffectiveFields bool) *admin.ClusterDescription20240805 {
+func AwaitChanges(ctx context.Context, client *config.MongoDBClient, waitParams *ClusterWaitParams, errorLocator string, diags *diag.Diagnostics, useEffectiveFields bool) *admin.ClusterDescription20240805 {
 	api := client.AtlasV2.ClustersApi
 	targetState := retrystrategy.RetryStrategyIdleState
 	extraPending := []string{}

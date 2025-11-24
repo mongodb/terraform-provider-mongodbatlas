@@ -261,9 +261,9 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 			}
 			return
 		case diff.isUpgradeFlexToDedicated():
-			clusterResp = UpgradeFlexToDedicated(ctx, diags, r.Client, waitParams, diff.upgradeFlexToDedicatedReq)
+			clusterResp = UpgradeFlexToDedicated(ctx, diags, r.Client, waitParams, diff.upgradeFlexToDedicatedReq, plan.UseEffectiveFields.ValueBool())
 		case diff.isUpgradeTenant():
-			clusterResp = UpgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq)
+			clusterResp = UpgradeTenant(ctx, diags, r.Client, waitParams, diff.upgradeTenantReq, plan.UseEffectiveFields.ValueBool())
 		case diff.isClusterPatchOnly():
 			clusterResp = r.applyClusterChanges(ctx, diags, diff.clusterPatchOnlyReq, waitParams, plan.UseEffectiveFields.ValueBool())
 		}
@@ -354,14 +354,14 @@ func (r *rs) applyPinnedFCVChanges(ctx context.Context, diags *diag.Diagnostics,
 			addErrorDiag(diags, operationFCVPinning, defaultAPIErrorDetails(clusterName, err))
 			return nil
 		}
-		return AwaitChangesWithUseEffectiveFields(ctx, r.Client, waitParams, operationFCVPinning, diags, useEffectiveFields)
+		return AwaitChanges(ctx, r.Client, waitParams, operationFCVPinning, diags, useEffectiveFields)
 	}
 	// pinned_fcv has been removed from the config so unpin method is called
 	if _, err := api.UnpinFeatureCompatibilityVersion(ctx, projectID, clusterName).Execute(); err != nil {
 		addErrorDiag(diags, operationFCVUnpinning, defaultAPIErrorDetails(clusterName, err))
 		return nil
 	}
-	return AwaitChangesWithUseEffectiveFields(ctx, r.Client, waitParams, operationFCVUnpinning, diags, useEffectiveFields)
+	return AwaitChanges(ctx, r.Client, waitParams, operationFCVUnpinning, diags, useEffectiveFields)
 }
 
 func (r *rs) applyClusterChanges(ctx context.Context, diags *diag.Diagnostics, patchReq *admin.ClusterDescription20240805, waitParams *ClusterWaitParams, useEffectiveFields bool) *admin.ClusterDescription20240805 {
@@ -437,7 +437,7 @@ func createCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 		addErrorDiag(diags, operationCreate, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
 	}
-	clusterResp := AwaitChangesWithUseEffectiveFields(ctx, client, waitParams, operationCreate, diags, useEffectiveFields)
+	clusterResp := AwaitChanges(ctx, client, waitParams, operationCreate, diags, useEffectiveFields)
 	if diags.HasError() {
 		return nil
 	}
@@ -453,7 +453,7 @@ func updateCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 		addErrorDiag(diags, operationName, defaultAPIErrorDetails(waitParams.ClusterName, err))
 		return nil
 	}
-	return AwaitChangesWithUseEffectiveFields(ctx, client, waitParams, operationName, diags, useEffectiveFields)
+	return AwaitChanges(ctx, client, waitParams, operationName, diags, useEffectiveFields)
 }
 
 func resolveClusterWaitParams(ctx context.Context, model *TFModel, diags *diag.Diagnostics, operation string) *ClusterWaitParams {
