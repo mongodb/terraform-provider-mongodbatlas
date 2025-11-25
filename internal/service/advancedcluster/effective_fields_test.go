@@ -22,7 +22,7 @@ func TestAccAdvancedCluster_effectiveBasic(t *testing.T) {
 				Config: flag.config(),
 				Check:  flag.check(),
 			},
-			acc.TestStepImportCluster(flag.clusterName),
+			acc.TestStepImportCluster(resourceName),
 		},
 	})
 }
@@ -76,11 +76,6 @@ func baseEffectiveReq(t *testing.T) effectiveReq {
 
 func (req effectiveReq) withFlag() effectiveReq {
 	req.useEffectiveFields = true
-	return req
-}
-
-func (req effectiveReq) withoutFlag() effectiveReq {
-	req.useEffectiveFields = false
 	return req
 }
 
