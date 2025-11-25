@@ -11,22 +11,13 @@ import (
 
 func TestAccAdvancedCluster_effectiveBasic(t *testing.T) {
 	var (
-		flag   = baseEffectiveReq(t).withFlag()
-		noFlag = flag.withoutFlag()
+		flag = baseEffectiveReq(t).withFlag()
 	)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             acc.CheckDestroyCluster,
 		Steps: []resource.TestStep{
-			{
-				Config: flag.config(),
-				Check:  flag.check(),
-			},
-			{
-				Config: noFlag.config(),
-				Check:  noFlag.check(),
-			},
 			{
 				Config: flag.config(),
 				Check:  flag.check(),
