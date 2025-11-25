@@ -8,11 +8,13 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
+	"go.mongodb.org/atlas-sdk/v20250312010/admin"
 )
 
 const (
@@ -158,6 +160,7 @@ func TestAccProjectAPIKey_recreateWhenDeletedExternally(t *testing.T) {
 		descriptionPrefix = acc.RandomName()
 		description       = descriptionPrefix + "-" + acc.RandomName()
 		config            = configBasic(description, projectID, roleName)
+		apiKeyID          string
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -167,12 +170,28 @@ func TestAccProjectAPIKey_recreateWhenDeletedExternally(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config,
-				Check:  check(description, projectID, roleName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					check(description, projectID, roleName),
+					func(s *terraform.State) error {
+						rs, ok := s.RootModule().Resources[resourceName]
+						if !ok {
+							return fmt.Errorf("not found: %s", resourceName)
+						}
+						apiKeyID = rs.Primary.Attributes["api_key_id"]
+						return nil
+					},
+				),
 			},
 			{
 				PreConfig: func() {
-					if err := deleteAPIKeyManually(orgID, descriptionPrefix); err != nil {
+					if apiKeyID == "" {
+						t.Fatalf("API key ID not captured from previous step")
+					}
+					if _, err := acc.ConnV2().ProgrammaticAPIKeysApi.DeleteOrgApiKey(t.Context(), orgID, apiKeyID).Execute(); err != nil {
 						t.Fatalf("failed to manually delete API key resource: %s", err)
+					}
+					if err := waitForAPIKeyDeletionByID(orgID, apiKeyID, 2*time.Minute); err != nil {
+						t.Fatalf("failed to verify API key deletion: %s", err)
 					}
 				},
 				Config:             config,
@@ -232,19 +251,23 @@ func TestAccProjectAPIKey_invalidRole(t *testing.T) {
 	})
 }
 
-func deleteAPIKeyManually(orgID, descriptionPrefix string) error {
-	list, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.ListApiKeys(context.Background(), orgID).Execute()
-	if err != nil {
-		return err
-	}
-	for _, key := range list.GetResults() {
-		if strings.HasPrefix(key.GetDesc(), descriptionPrefix) {
-			if _, err := acc.ConnV2().ProgrammaticAPIKeysApi.DeleteApiKey(context.Background(), orgID, key.GetId()).Execute(); err != nil {
-				return err
+// waitForAPIKeyDeletionByID waits for API key deletion using GetOrgApiKey, the same method
+// the provider's Read function uses. This ensures consistency between test verification
+// and provider operations, reducing race conditions from eventual consistency.
+func waitForAPIKeyDeletionByID(orgID, apiKeyID string, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		_, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.GetOrgApiKey(context.Background(), orgID, apiKeyID).Execute()
+		if err != nil {
+			if admin.IsErrorCode(err, "API_KEY_NOT_FOUND") {
+				return nil // API key successfully deleted and confirmed.
 			}
+			// For other errors, continue waiting (might be transient)
 		}
+		// Key still exists, continue waiting
+		time.Sleep(2 * time.Second)
 	}
-	return nil
+	return fmt.Errorf("timeout waiting for API key deletion after %v", timeout)
 }
 
 func checkDestroy(projectID string) resource.TestCheckFunc {
@@ -253,7 +276,7 @@ func checkDestroy(projectID string) resource.TestCheckFunc {
 			if rs.Type != "mongodbatlas_project_api_key" {
 				continue
 			}
-			projectAPIKeys, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.ListProjectApiKeys(context.Background(), projectID).Execute()
+			projectAPIKeys, _, err := acc.ConnV2().ProgrammaticAPIKeysApi.ListGroupApiKeys(context.Background(), projectID).Execute()
 			if err != nil {
 				return nil
 			}
@@ -280,7 +303,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		apiKeyID := ids["api_key_id"]
 		orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
-		if found, _, _ := acc.ConnV2().ProgrammaticAPIKeysApi.GetApiKey(context.Background(), orgID, apiKeyID).Execute(); found == nil {
+		if found, _, _ := acc.ConnV2().ProgrammaticAPIKeysApi.GetOrgApiKey(context.Background(), orgID, apiKeyID).Execute(); found == nil {
 			return fmt.Errorf("API Key (%s) does not exist", apiKeyID)
 		}
 		return nil

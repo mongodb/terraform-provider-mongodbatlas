@@ -11,7 +11,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312010/admin"
 )
 
 func Resource() *schema.Resource {
@@ -79,7 +79,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	orgID := ids["org_id"]
 	roleMappingID := ids["role_mapping_id"]
 
-	federatedSettingsOrganizationRoleMapping, resp, err := conn.FederatedAuthenticationApi.GetRoleMapping(context.Background(), federationSettingsID, roleMappingID, orgID).Execute()
+	federatedSettingsOrganizationRoleMapping, resp, err := conn.FederatedAuthenticationApi.GetRoleMapping(ctx, federationSettingsID, roleMappingID, orgID).Execute()
 
 	if err != nil {
 		if validate.StatusNotFound(resp) {
@@ -157,7 +157,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	orgID := ids["org_id"]
 	roleMappingID := ids["role_mapping_id"]
 
-	federatedSettingsOrganizationRoleMappingUpdate, _, err := conn.FederatedAuthenticationApi.GetRoleMapping(context.Background(), federationSettingsID, roleMappingID, orgID).Execute()
+	federatedSettingsOrganizationRoleMappingUpdate, _, err := conn.FederatedAuthenticationApi.GetRoleMapping(ctx, federationSettingsID, roleMappingID, orgID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error retreiving federation settings connected organization (%s): %s", federationSettingsID, err))
 	}
@@ -201,7 +201,7 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 		return nil, err
 	}
 
-	_, _, err = conn.FederatedAuthenticationApi.GetRoleMapping(context.Background(), *federationSettingsID, *roleMappingID, *orgID).Execute()
+	_, _, err = conn.FederatedAuthenticationApi.GetRoleMapping(ctx, *federationSettingsID, *roleMappingID, *orgID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import Role Mappings (%s) in Federation settings (%s), error: %s", *roleMappingID, *federationSettingsID, err)
 	}

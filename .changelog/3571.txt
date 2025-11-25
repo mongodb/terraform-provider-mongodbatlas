@@ -1,0 +1,7 @@
+```release-note:enhancement
+resource/mongodbatlas_stream_processor: Adds `delete_on_create_timeout` attribute to indicate whether to delete the resource if its creation times out
+```
+
+```release-note:enhancement
+resource/mongodbatlas_stream_processor: Adds `timeouts` attribute for create operation
+```

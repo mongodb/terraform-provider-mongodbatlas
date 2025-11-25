@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312010/admin"
 )
 
 func NewStreamInstanceCreateReq(ctx context.Context, plan *TFStreamInstanceModel) (*admin.StreamsTenant, diag.Diagnostics) {
@@ -61,9 +61,10 @@ func NewTFStreamInstance(ctx context.Context, apiResp *admin.StreamsTenant) (*TF
 	}
 	var streamConfig = types.ObjectNull(StreamConfigObjectType.AttrTypes)
 	apiStreamConfig := apiResp.StreamConfig
-	if apiStreamConfig != nil && apiStreamConfig.Tier != nil {
+	if apiStreamConfig != nil {
 		returnedStreamConfig, diagsStreamConfig := types.ObjectValueFrom(ctx, StreamConfigObjectType.AttrTypes, TFInstanceStreamConfigSpecModel{
-			Tier: types.StringPointerValue(apiStreamConfig.Tier),
+			MaxTierSize: types.StringPointerValue(apiStreamConfig.MaxTierSize),
+			Tier:        types.StringPointerValue(apiStreamConfig.Tier),
 		})
 		streamConfig = returnedStreamConfig
 		diags.Append(diagsStreamConfig...)

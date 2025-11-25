@@ -4,8 +4,8 @@ This example shows how you can use Atlas Dedicated Search Nodes in Terraform. As
 
 Variables Required to be set:
 
-- `public_key`: Atlas public key
-- `private_key`: Atlas  private key
+- `atlas_client_id`: MongoDB Atlas Service Account Client ID
+- `atlas_client_secret`: MongoDB Atlas Service Account Client Secret
 - `org_id`: Organization ID where the project and cluster will be created.
 
 For additional information you can visit the [Search Node Documentation](https://www.mongodb.com/docs/atlas/cluster-config/multi-cloud-distribution/#search-nodes-for-workload-isolation).

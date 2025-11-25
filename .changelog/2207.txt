@@ -1,3 +1,0 @@
-```release-note:note
-data-source/mongodbatlas_federated_settings_identity_providers: Deprecates `page_num` and `items_per_page` attributes. They are not being used and will not be relevant once all results are fetched internally. 
-```

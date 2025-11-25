@@ -1,7 +1,0 @@
-```release-note:bug
-data-source/mongodbatlas_team: Fixes pagination logic when retrieved users of a team
-```
-
-```release-note:bug
-resource/mongodbatlas_team: Fixes pagination logic when retrieved users of a team
-```

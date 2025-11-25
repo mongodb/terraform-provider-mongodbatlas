@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312010/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
@@ -239,7 +239,7 @@ func resourceRefresh(ctx context.Context, client *admin.APIClient, projectID, ex
 		clusters := clustersPaginated.GetResults()
 
 		for i := range clusters {
-			backupPolicy, _, err := client.CloudBackupsApi.GetBackupSchedule(context.Background(), projectID, clusters[i].GetName()).Execute()
+			backupPolicy, _, err := client.CloudBackupsApi.GetBackupSchedule(ctx, projectID, clusters[i].GetName()).Execute()
 			if err != nil {
 				continue
 			}

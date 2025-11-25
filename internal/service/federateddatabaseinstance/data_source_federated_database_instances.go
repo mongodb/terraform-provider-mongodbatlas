@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312010/admin"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
@@ -45,47 +45,7 @@ func PluralDataSource() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
-						"cloud_provider_config": {
-							Type:     schema.TypeList,
-							MaxItems: 1,
-							Computed: true,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"aws": {
-										Type:     schema.TypeList,
-										MaxItems: 1,
-										Computed: true,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"role_id": {
-													Type:     schema.TypeString,
-													Computed: true,
-												},
-												"test_s3_bucket": {
-													Type:     schema.TypeString,
-													Computed: true,
-													Optional: true,
-												},
-												"iam_assumed_role_arn": {
-													Type:     schema.TypeString,
-													Computed: true,
-												},
-												"iam_user_arn": {
-													Type:     schema.TypeString,
-													Computed: true,
-												},
-												"external_id": {
-													Type:     schema.TypeString,
-													Computed: true,
-												},
-											},
-										},
-									},
-								},
-							},
-						},
+						"cloud_provider_config": cloudProviderConfig(true),
 						"data_process_region": {
 							Type:     schema.TypeList,
 							Computed: true,
@@ -116,7 +76,7 @@ func dataSourceMongoDBAtlasFederatedDatabaseInstancesRead(ctx context.Context, d
 
 	projectID := d.Get("project_id").(string)
 
-	federatedDatabaseInstances, _, err := connV2.DataFederationApi.ListFederatedDatabases(ctx, projectID).Execute()
+	federatedDatabaseInstances, _, err := connV2.DataFederationApi.ListDataFederation(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error getting MongoDB Atlas Federated Database Instances information: %s", err))
 	}

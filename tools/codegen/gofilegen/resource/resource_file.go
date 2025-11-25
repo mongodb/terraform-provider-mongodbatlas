@@ -1,42 +1,55 @@
 package resource
 
 import (
+	"fmt"
 	"go/format"
 	"regexp"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/codetemplate"
-	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
 )
 
-func GenerateGoCode(input *codespec.Resource) string {
+func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
 	tmplInputs := codetemplate.ResourceFileInputs{
-		PackageName:  input.Name.LowerCaseNoUnderscore(),
-		ResourceName: input.Name.SnakeCase(),
+		PackageName:  input.PackageName,
+		ResourceName: input.Name,
 		APIOperations: codetemplate.APIOperations{
 			VersionHeader: input.Operations.VersionHeader,
-			Create:        toCodeTemplateOpModel(input.Operations.Create),
+			Create:        *toCodeTemplateOpModel(&input.Operations.Create),
 			Update:        toCodeTemplateOpModel(input.Operations.Update),
-			Read:          toCodeTemplateOpModel(input.Operations.Read),
+			Read:          *toCodeTemplateOpModel(&input.Operations.Read),
 			Delete:        toCodeTemplateOpModel(input.Operations.Delete),
 		},
-		ImportIDAttributes: getIDAttributes(input.Operations.Read.Path),
+		MoveState:    toCodeTemplateMoveStateModel(input.MoveState),
+		IDAttributes: getIDAttributes(input.Operations.Read.Path),
 	}
 	result := codetemplate.ApplyResourceFileTemplate(&tmplInputs)
 
 	formattedResult, err := format.Source(result.Bytes())
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("failed to format generated Go code (resource): %w", err)
 	}
-	return string(formattedResult)
+	return formattedResult, nil
 }
 
-func toCodeTemplateOpModel(op codespec.APIOperation) codetemplate.Operation {
-	return codetemplate.Operation{
-		Path:       op.Path,
-		HTTPMethod: op.HTTPMethod,
-		PathParams: getPathParams(op.Path),
-		Wait:       getWaitValues(op.Wait),
+func toCodeTemplateMoveStateModel(moveState *codespec.MoveState) *codetemplate.MoveState {
+	if moveState == nil {
+		return nil
+	}
+	return &codetemplate.MoveState{SourceResources: moveState.SourceResources}
+}
+
+func toCodeTemplateOpModel(op *codespec.APIOperation) *codetemplate.Operation {
+	if op == nil {
+		return nil
+	}
+	return &codetemplate.Operation{
+		Path:              op.Path,
+		HTTPMethod:        op.HTTPMethod,
+		PathParams:        getPathParams(op.Path),
+		Wait:              getWaitValues(op.Wait),
+		StaticRequestBody: op.StaticRequestBody,
 	}
 }
 
@@ -66,7 +79,7 @@ func getPathParams(s string) []codetemplate.Param {
 		paramName := match[1]
 		params = append(params, codetemplate.Param{
 			CamelCaseName:  paramName,
-			PascalCaseName: stringcase.FromCamelCase(paramName).PascalCase(),
+			PascalCaseName: stringcase.Capitalize(paramName),
 		})
 	}
 	return params
@@ -76,7 +89,7 @@ func getIDAttributes(readPath string) []string {
 	params := getPathParams(readPath)
 	result := make([]string, len(params))
 	for i, param := range params {
-		result[i] = stringcase.FromCamelCase(param.CamelCaseName).SnakeCase()
+		result[i] = stringcase.ToSnakeCase(param.CamelCaseName)
 	}
 	return result
 }

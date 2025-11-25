@@ -92,7 +92,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if orgID == "" || id == "" {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
-		if _, _, err := acc.ConnV2().ResourcePoliciesApi.GetAtlasResourcePolicy(context.Background(), orgID, id).Execute(); err == nil {
+		if _, _, err := acc.ConnV2().ResourcePoliciesApi.GetOrgResourcePolicy(context.Background(), orgID, id).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("resource policy (%s/%s) does not exist", orgID, id)
@@ -109,7 +109,7 @@ func checkDestroy(s *terraform.State) error {
 		if orgID == "" || id == "" {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", resourceName)
 		}
-		_, _, err := acc.ConnV2().ResourcePoliciesApi.GetAtlasResourcePolicy(context.Background(), orgID, id).Execute()
+		_, _, err := acc.ConnV2().ResourcePoliciesApi.GetOrgResourcePolicy(context.Background(), orgID, id).Execute()
 		if err == nil {
 			return fmt.Errorf("resource policy (%s/%s) still exists", orgID, id)
 		}

@@ -1,3 +1,7 @@
+---
+subcategory: "Federated Authentication"
+---
+
 # Resource: mongodbatlas_federated_settings_org_role_mapping
 
 `mongodbatlas_federated_settings_org_role_mapping` provides an Role Mapping resource. This allows organization role mapping to be created.
@@ -27,12 +31,15 @@ resource "mongodbatlas_federated_settings_org_role_mapping" "org_group_role_mapp
 }
 ```
 
+### Further Examples
+- [Okta and MongoDB Atlas Federated Settings Configuration](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_federated_settings_org_role_mapping)
+
 ## Argument Reference
 
 * `federation_settings_id` - (Required) Unique 24-hexadecimal digit string that identifies the federated authentication configuration.
-* `org_id` - Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
-* `external_group_name` - Unique human-readable label that identifies the identity provider group to which this role mapping applies.
-* `role_assignments` - Atlas roles and the unique identifiers of the groups and organizations associated with each role.
+* `org_id` - (Required) Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
+* `external_group_name` - (Required) Unique label that identifies the identity provider group to which this role mapping applies.
+* `role_assignments` - (Required) Atlas roles and the unique identifiers of the groups and organizations associated with each role.
     * `group_id` - Unique identifier of the project to which you want the role mapping to apply.
     * `roles` - Specifies the Roles that are attached to the Role Mapping. Available role IDs can be found on [the User Roles
   Reference](https://www.mongodb.com/docs/atlas/reference/user-roles/).

@@ -98,7 +98,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if groupID == "" || roleName == "" {
 			return fmt.Errorf("checkExists, attributes not found for: %s", resourceName)
 		}
-		if _, _, err := acc.ConnV2().CustomDatabaseRolesApi.GetCustomDatabaseRole(context.Background(), groupID, roleName).Execute(); err == nil {
+		if _, _, err := acc.ConnV2().CustomDatabaseRolesApi.GetCustomDbRole(context.Background(), groupID, roleName).Execute(); err == nil {
 			return nil
 		}
 		return fmt.Errorf("custom DB Role (%s/%s) does not exist", groupID, roleName)
@@ -115,7 +115,7 @@ func checkDestroy(s *terraform.State) error {
 		if groupID == "" || roleName == "" {
 			return fmt.Errorf("checkDestroy, attributes not found for: %s", rs.Type)
 		}
-		_, _, err := acc.ConnV2().CustomDatabaseRolesApi.GetCustomDatabaseRole(context.Background(), groupID, roleName).Execute()
+		_, _, err := acc.ConnV2().CustomDatabaseRolesApi.GetCustomDbRole(context.Background(), groupID, roleName).Execute()
 		if err == nil {
 			return fmt.Errorf("custom DB Role (%s) still exists", roleName)
 		}

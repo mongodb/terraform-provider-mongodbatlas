@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/stringcase"
 	"github.com/pb33f/libopenapi/orderedmap"
 )
 
-func buildResourceAttrs(s *APISpecSchema, isFromRequest bool) (Attributes, error) {
+func buildResourceAttrs(s *APISpecSchema, ancestorsName string, isFromRequest bool) (Attributes, error) {
 	objectAttributes := Attributes{}
 
 	sortedProperties := orderedmap.SortAlpha(s.Schema.Properties)
@@ -26,7 +26,7 @@ func buildResourceAttrs(s *APISpecSchema, isFromRequest bool) (Attributes, error
 			continue
 		}
 
-		attribute, err := schema.buildResourceAttr(name, s.GetComputability(name), isFromRequest)
+		attribute, err := schema.buildResourceAttr(name, ancestorsName, s.GetComputability(name), isFromRequest)
 		if err != nil {
 			return nil, err
 		}
@@ -39,7 +39,7 @@ func buildResourceAttrs(s *APISpecSchema, isFromRequest bool) (Attributes, error
 	return objectAttributes, nil
 }
 
-func (s *APISpecSchema) buildResourceAttr(name string, computability ComputedOptionalRequired, isFromRequest bool) (*Attribute, error) {
+func (s *APISpecSchema) buildResourceAttr(name, ancestorsName string, computability ComputedOptionalRequired, isFromRequest bool) (*Attribute, error) {
 	switch s.Type {
 	case OASTypeString:
 		return s.buildStringAttr(name, computability)
@@ -50,12 +50,12 @@ func (s *APISpecSchema) buildResourceAttr(name string, computability ComputedOpt
 	case OASTypeBoolean:
 		return s.buildBoolAttr(name, computability)
 	case OASTypeArray:
-		return s.buildArrayAttr(name, computability, isFromRequest)
+		return s.buildArrayAttr(name, ancestorsName, computability, isFromRequest)
 	case OASTypeObject:
 		if s.Schema.AdditionalProperties != nil && s.Schema.AdditionalProperties.IsA() {
-			return s.buildMapAttr(name, computability, isFromRequest)
+			return s.buildMapAttr(name, ancestorsName, computability, isFromRequest)
 		}
-		return s.buildSingleNestedAttr(name, computability, isFromRequest)
+		return s.buildSingleNestedAttr(name, ancestorsName, computability, isFromRequest)
 	default:
 		return nil, fmt.Errorf("invalid schema type '%s'", s.Type)
 	}
@@ -63,7 +63,8 @@ func (s *APISpecSchema) buildResourceAttr(name string, computability ComputedOpt
 
 func (s *APISpecSchema) buildStringAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	result := &Attribute{
-		Name:                     stringcase.FromCamelCase(name),
+		TFSchemaName:             stringcase.ToSnakeCase(name),
+		TFModelName:              stringcase.Capitalize(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -85,7 +86,8 @@ func (s *APISpecSchema) buildStringAttr(name string, computability ComputedOptio
 
 func (s *APISpecSchema) buildIntegerAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	result := &Attribute{
-		Name:                     stringcase.FromCamelCase(name),
+		TFSchemaName:             stringcase.ToSnakeCase(name),
+		TFModelName:              stringcase.Capitalize(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -107,7 +109,8 @@ func (s *APISpecSchema) buildIntegerAttr(name string, computability ComputedOpti
 func (s *APISpecSchema) buildNumberAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	if s.Schema.Format == OASFormatDouble || s.Schema.Format == OASFormatFloat {
 		result := &Attribute{
-			Name:                     stringcase.FromCamelCase(name),
+			TFSchemaName:             stringcase.ToSnakeCase(name),
+			TFModelName:              stringcase.Capitalize(name),
 			ComputedOptionalRequired: computability,
 			DeprecationMessage:       s.GetDeprecationMessage(),
 			Description:              s.GetDescription(),
@@ -127,7 +130,8 @@ func (s *APISpecSchema) buildNumberAttr(name string, computability ComputedOptio
 	}
 
 	return &Attribute{
-		Name:                     stringcase.FromCamelCase(name),
+		TFSchemaName:             stringcase.ToSnakeCase(name),
+		TFModelName:              stringcase.Capitalize(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -137,7 +141,8 @@ func (s *APISpecSchema) buildNumberAttr(name string, computability ComputedOptio
 
 func (s *APISpecSchema) buildBoolAttr(name string, computability ComputedOptionalRequired) (*Attribute, error) {
 	result := &Attribute{
-		Name:                     stringcase.FromCamelCase(name),
+		TFSchemaName:             stringcase.ToSnakeCase(name),
+		TFModelName:              stringcase.Capitalize(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
@@ -155,7 +160,49 @@ func (s *APISpecSchema) buildBoolAttr(name string, computability ComputedOptiona
 	return result, nil
 }
 
-func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOptionalRequired, isFromRequest bool) (*Attribute, error) {
+// buildRegularCollectionAttribute creates an attribute for list/set of regular (non-nested) element types.
+func (s *APISpecSchema) buildRegularCollectionAttribute(name, tfModelName string, computability ComputedOptionalRequired, isSet bool, elemType ElemType) *Attribute {
+	attr := &Attribute{
+		TFSchemaName:             stringcase.ToSnakeCase(name),
+		TFModelName:              tfModelName,
+		ComputedOptionalRequired: computability,
+		DeprecationMessage:       s.GetDeprecationMessage(),
+		Description:              s.GetDescription(),
+	}
+
+	if isSet {
+		attr.CustomType = NewCustomSetType(elemType)
+		attr.Set = &SetAttribute{ElementType: elemType}
+	} else {
+		attr.CustomType = NewCustomListType(elemType)
+		attr.List = &ListAttribute{ElementType: elemType}
+	}
+
+	return attr
+}
+
+// buildNestedCollectionAttribute creates an attribute for list/set of nested objects (with attributes).
+func (s *APISpecSchema) buildNestedCollectionAttribute(name, tfModelName, nestedObjectName string, computability ComputedOptionalRequired, isSet bool, nestedObject NestedAttributeObject) *Attribute {
+	attr := &Attribute{
+		TFSchemaName:             stringcase.ToSnakeCase(name),
+		TFModelName:              tfModelName,
+		ComputedOptionalRequired: computability,
+		DeprecationMessage:       s.GetDeprecationMessage(),
+		Description:              s.GetDescription(),
+	}
+
+	if isSet {
+		attr.CustomType = NewCustomNestedSetType(nestedObjectName)
+		attr.SetNested = &SetNestedAttribute{NestedObject: nestedObject}
+	} else {
+		attr.CustomType = NewCustomNestedListType(nestedObjectName)
+		attr.ListNested = &ListNestedAttribute{NestedObject: nestedObject}
+	}
+
+	return attr
+}
+
+func (s *APISpecSchema) buildArrayAttr(name, ancestorsName string, computability ComputedOptionalRequired, isFromRequest bool) (*Attribute, error) {
 	if !s.Schema.Items.IsA() {
 		return nil, fmt.Errorf("invalid array items property, schema doesn't exist: %s", name)
 	}
@@ -166,40 +213,24 @@ func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOption
 	}
 
 	isSet := s.Schema.Format == OASFormatSet || (s.Schema.UniqueItems != nil && *s.Schema.UniqueItems)
-
-	createAttribute := func(nestedObject *NestedAttributeObject, elemType ElemType) *Attribute {
-		attr := &Attribute{
-			Name:                     stringcase.FromCamelCase(name),
-			ComputedOptionalRequired: computability,
-			DeprecationMessage:       s.GetDeprecationMessage(),
-			Description:              s.GetDescription(),
-		}
-
-		if nestedObject != nil {
-			if isSet {
-				attr.SetNested = &SetNestedAttribute{NestedObject: *nestedObject}
-			} else {
-				attr.ListNested = &ListNestedAttribute{NestedObject: *nestedObject}
-			}
-		} else {
-			if isSet {
-				attr.Set = &SetAttribute{ElementType: elemType}
-			} else {
-				attr.List = &ListAttribute{ElementType: elemType}
-			}
-		}
-
-		return attr
-	}
+	tfModelName := stringcase.Capitalize(name)
 
 	if itemSchema.Type == OASTypeObject {
-		objectAttributes, err := buildResourceAttrs(itemSchema, isFromRequest)
+		fullName := ancestorsName + tfModelName
+		objectAttributes, err := buildResourceAttrs(itemSchema, fullName, isFromRequest)
 		if err != nil {
 			return nil, fmt.Errorf("error while building nested schema: %s", name)
 		}
-		nestedObject := &NestedAttributeObject{Attributes: objectAttributes}
 
-		return createAttribute(nestedObject, Unknown), nil // Using Unknown ElemType as a placeholder for no ElemType
+		nestedObject := NestedAttributeObject{Attributes: objectAttributes}
+		if len(nestedObject.Attributes) == 0 {
+			// objects without attributes use JSON custom type as element
+			result := s.buildRegularCollectionAttribute(name, tfModelName, computability, isSet, CustomTypeJSON)
+			return result, nil
+		}
+
+		result := s.buildNestedCollectionAttribute(name, tfModelName, fullName, computability, isSet, nestedObject)
+		return result, nil
 	}
 
 	elemType, err := itemSchema.buildElementType()
@@ -207,7 +238,7 @@ func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOption
 		return nil, fmt.Errorf("error while building nested schema: %s", name)
 	}
 
-	result := createAttribute(nil, elemType)
+	result := s.buildRegularCollectionAttribute(name, tfModelName, computability, isSet, elemType)
 
 	if s.Schema.Default != nil {
 		var staticDefault bool
@@ -220,29 +251,40 @@ func (s *APISpecSchema) buildArrayAttr(name string, computability ComputedOption
 	return result, nil
 }
 
-func (s *APISpecSchema) buildMapAttr(name string, computability ComputedOptionalRequired, isFromRequest bool) (*Attribute, error) {
+func (s *APISpecSchema) buildMapAttr(name, ancestorsName string, computability ComputedOptionalRequired, isFromRequest bool) (*Attribute, error) {
 	mapSchema, err := BuildSchema(s.Schema.AdditionalProperties.A)
 	if err != nil {
 		return nil, err
 	}
 
 	result := &Attribute{
-		Name:                     stringcase.FromCamelCase(name),
+		TFSchemaName:             stringcase.ToSnakeCase(name),
+		TFModelName:              stringcase.Capitalize(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
 	}
 
 	if mapSchema.Type == OASTypeObject {
-		mapAttributes, err := buildResourceAttrs(mapSchema, isFromRequest)
+		fullName := ancestorsName + result.TFModelName
+		mapAttributes, err := buildResourceAttrs(mapSchema, fullName, isFromRequest)
 		if err != nil {
 			return nil, err
 		}
 
-		result.MapNested = &MapNestedAttribute{
-			NestedObject: NestedAttributeObject{
-				Attributes: mapAttributes,
-			},
+		if len(mapAttributes) == 0 {
+			// objects without attributes use JSON custom type
+			result.CustomType = NewCustomMapType(CustomTypeJSON)
+			result.Map = &MapAttribute{
+				ElementType: CustomTypeJSON,
+			}
+		} else {
+			result.CustomType = NewCustomNestedMapType(fullName)
+			result.MapNested = &MapNestedAttribute{
+				NestedObject: NestedAttributeObject{
+					Attributes: mapAttributes,
+				},
+			}
 		}
 	} else {
 		elemType, err := mapSchema.buildElementType()
@@ -250,6 +292,7 @@ func (s *APISpecSchema) buildMapAttr(name string, computability ComputedOptional
 			return nil, err
 		}
 
+		result.CustomType = NewCustomMapType(elemType)
 		result.Map = &MapAttribute{
 			ElementType: elemType,
 		}
@@ -258,21 +301,29 @@ func (s *APISpecSchema) buildMapAttr(name string, computability ComputedOptional
 	return result, nil
 }
 
-func (s *APISpecSchema) buildSingleNestedAttr(name string, computability ComputedOptionalRequired, isFromRequest bool) (*Attribute, error) {
-	objectAttributes, err := buildResourceAttrs(s, isFromRequest)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Attribute{
-		Name:                     stringcase.FromCamelCase(name),
+func (s *APISpecSchema) buildSingleNestedAttr(name, ancestorsName string, computability ComputedOptionalRequired, isFromRequest bool) (*Attribute, error) {
+	attr := &Attribute{
+		TFSchemaName:             stringcase.ToSnakeCase(name),
+		TFModelName:              stringcase.Capitalize(name),
 		ComputedOptionalRequired: computability,
 		DeprecationMessage:       s.GetDeprecationMessage(),
 		Description:              s.GetDescription(),
-		SingleNested: &SingleNestedAttribute{
+	}
+	fullName := ancestorsName + attr.TFModelName
+	objectAttributes, err := buildResourceAttrs(s, fullName, isFromRequest)
+	if err != nil {
+		return nil, err
+	}
+	if len(objectAttributes) > 0 {
+		attr.CustomType = NewCustomObjectType(fullName)
+		attr.SingleNested = &SingleNestedAttribute{
 			NestedObject: NestedAttributeObject{
 				Attributes: objectAttributes,
 			},
-		},
-	}, nil
+		}
+	} else { // objects without attributes use JSON custom type
+		attr.CustomType = &CustomTypeJSONVar
+		attr.String = &StringAttribute{}
+	}
+	return attr, nil
 }

@@ -91,8 +91,8 @@ func (r *MockRoundTripper) canReturnResponse(responseIndex int) bool {
 }
 
 func (r *MockRoundTripper) allowReUse(req *RequestInfo) bool {
-	isGet := req.Method == "GET"
-	customReReadOk := req.Method == "POST" && strings.HasSuffix(req.Path, ":validate")
+	isGet := req.Method == http.MethodGet
+	customReReadOk := req.Method == http.MethodPost && strings.HasSuffix(req.Path, ":validate")
 	return isGet || customReReadOk
 }
 
@@ -131,6 +131,7 @@ func (r *MockRoundTripper) nextDiffResponseIndex() {
 	step := r.currentStep()
 	if step == nil {
 		r.t.Fatal("no more steps, in testCase")
+		return
 	}
 	for index, req := range step.DiffRequests {
 		if _, ok := r.foundsDiffs[index]; !ok {

@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/schemafunc"
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312010/admin"
 )
 
 func flattenSearchIndexSynonyms(synonyms []admin.SearchSynonymMappingDefinition) []map[string]any {
@@ -60,16 +60,19 @@ func unmarshalSearchIndexMappingFields(str string) (map[string]any, diag.Diagnos
 	return fields, nil
 }
 
-func unmarshalSearchIndexFields(str string) ([]map[string]any, diag.Diagnostics) {
-	fields := []map[string]any{}
+func unmarshalJSONArrayForAttr(str, attr string) ([]map[string]any, diag.Diagnostics) {
+	arr := []map[string]any{}
 	if str == "" {
-		return fields, nil
+		return arr, nil
 	}
-	if err := json.Unmarshal([]byte(str), &fields); err != nil {
-		return nil, diag.Errorf("cannot unmarshal search index attribute `fields` because it has an incorrect format")
+	if err := json.Unmarshal([]byte(str), &arr); err != nil {
+		return nil, diag.Errorf("cannot unmarshal search index attribute `%s` because it has an incorrect format", attr)
 	}
+	return arr, nil
+}
 
-	return fields, nil
+func unmarshalSearchIndexFields(str string) ([]map[string]any, diag.Diagnostics) {
+	return unmarshalJSONArrayForAttr(str, "fields")
 }
 
 func UnmarshalSearchIndexAnalyzersFields(str string) ([]admin.AtlasSearchAnalyzer, diag.Diagnostics) {
@@ -83,6 +86,35 @@ func UnmarshalSearchIndexAnalyzersFields(str string) ([]admin.AtlasSearchAnalyze
 		return nil, diag.Errorf("cannot unmarshal search index attribute `analyzers` because it has an incorrect format")
 	}
 	return fields, nil
+}
+
+func expandSearchIndexTypeSets(d *schema.ResourceData) ([]admin.SearchTypeSets, diag.Diagnostics) {
+	var result []admin.SearchTypeSets
+
+	v, ok := d.GetOk("type_sets")
+	if !ok {
+		return result, nil
+	}
+
+	for _, raw := range v.(*schema.Set).List() {
+		item := raw.(map[string]any)
+
+		ts := admin.SearchTypeSets{
+			Name: item["name"].(string),
+		}
+
+		if s, ok := item["types"].(string); ok && s != "" {
+			arr, diags := unmarshalJSONArrayForAttr(s, "type_sets.types")
+			if diags != nil {
+				return nil, diags
+			}
+			ts.Types = conversion.ToAnySlicePointer(&arr)
+		}
+
+		result = append(result, ts)
+	}
+
+	return result, nil
 }
 
 func MarshalStoredSource(obj any) (string, error) {
@@ -119,11 +151,37 @@ func diffSuppressJSON(k, old, newStr string, d *schema.ResourceData) bool {
 
 func resourceSearchIndexRefreshFunc(ctx context.Context, clusterName, projectID, indexID string, connV2 *admin.APIClient) retry.StateRefreshFunc {
 	return func() (any, string, error) {
-		searchIndex, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
+		searchIndex, _, err := connV2.AtlasSearchApi.GetClusterSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 		if err != nil {
 			return nil, "ERROR", err
 		}
 		status := conversion.SafeString(searchIndex.Status)
 		return searchIndex, status, nil
 	}
+}
+
+func canonicalizeJSONString(s string) string {
+	if s == "" {
+		return ""
+	}
+	var v any
+	if err := json.Unmarshal([]byte(s), &v); err != nil {
+		return s
+	}
+	by, err := json.Marshal(v)
+	if err != nil {
+		return s
+	}
+	return string(by)
+}
+
+func hashTypeSetElement(v interface{}) int {
+	m := v.(map[string]interface{})
+	name := ""
+	if nv, ok := m["name"].(string); ok {
+		name = nv
+	}
+	typesStr, _ := m["types"].(string)
+	canon := canonicalizeJSONString(typesStr)
+	return schema.HashString(name + "|" + canon)
 }

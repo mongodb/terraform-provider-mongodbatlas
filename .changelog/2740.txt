@@ -1,7 +1,0 @@
-```release-note:enhancement
-data-source/mongodbatlas_resource_policies: Adds `results` attribute
-```
-
-```release-note:note
-data-source/mongodbatlas_resource_policies: Deprecates `resource_policies` attribute
-```

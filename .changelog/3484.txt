@@ -1,0 +1,11 @@
+```release-note:enhancement
+resource/mongodbatlas_federated_database_instance: Adds `azure` attribute to allow the creation of federated databases with Azure cloud provider configuration
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_federated_database_instance: Adds `azure` attribute to support reading federated databases with Azure cloud provider configuration
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_federated_database_instances: Adds `azure` attribute to support reading federated databases with Azure cloud provider configuration
+```

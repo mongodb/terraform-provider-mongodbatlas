@@ -1,0 +1,7 @@
+```release-note:note
+resource/mongodbatlas_team: Deprecates `usernames` attribute & makes it Optional & Computed in favour of `mongodbatlas_cloud_user_team_assignment` resource
+```
+
+```release-note:note
+data-source/mongodbatlas_team: Deprecates `usernames` attribute in favour of `data.mongodbatlas_team.users` attribute
+```

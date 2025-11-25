@@ -1,3 +1,7 @@
+---
+subcategory: "Data Federation"
+---
+
 # Data Source: mongodbatlas_federated_database_instance
 
 `mongodbatlas_federated_database_instance` provides a Federated Database Instance data source.
@@ -10,7 +14,7 @@
 
 ```terraform
 data "mongodbatlas_federated_database_instance" "test" {
-  project_id         = "PROJECT ID"
+  project_id         = "<PROJECT_ID>"
   name               = "TENANT NAME OF THE FEDERATED DATABASE INSTANCE"
 }
 ```
@@ -19,13 +23,27 @@ data "mongodbatlas_federated_database_instance" "test" {
 
 ```terraform
 data "mongodbatlas_federated_database_instance" "test" {
-  project_id         = "PROJECT ID"
-  name               = "TENANT NAME OF THE FEDERATED DATABASE INSTANCE"
+  project_id         = "<PROJECT_ID>"
+  name               = "<TENANT_NAME_OF_THE_FEDERATED_DATABASE_INSTANCE>"
   cloud_provider_config {
 		aws {
 			test_s3_bucket = "Amazon S3 Bucket Name"
 		}
 	}
+}
+```
+
+## Example of Azure Blob Storage as storage database
+
+```terraform
+data "mongodbatlas_federated_database_instance" "test" {
+  project_id = "<PROJECT_ID>"
+  name       = "<TENANT_NAME_OF_THE_FEDERATED_DATABASE_INSTANCE>"
+  cloud_provider_config {
+    azure {
+      role_id = "<AZURE_ROLE_ID>"
+    }
+  }
 }
 ```
 
@@ -43,9 +61,9 @@ In addition to all arguments above, the following attributes are exported:
 * `state` - Current state of the Federated Database Instance:
   * `ACTIVE` - The Federated Database Instance is active and verified. You can query the data stores associated with the Federated Database Instance.
   * `DELETED` - The Federated Database Instance was deleted.
-* `storage_databases` - Configuration details for mapping each data store to queryable databases and collections. For complete documentation on this object and its nested fields, see [databases](https://docs.mongodb.com/datalake/reference/format/data-lake-configuration#std-label-datalake-databases-reference). An empty object indicates that the Federated Database Instance has no mapping configuration for any data store.
+* `storage_databases` - Configuration details for mapping each data store to queryable databases and collections. For complete documentation on this object and its nested fields, see [databases](https://www.mongodb.com/docs/atlas/data-federation/config/config-oa/#databases). An empty object indicates that the Federated Database Instance has no mapping configuration for any data store.
   * `storage_databases.#.name` - Name of the database to which the Federated Database Instance maps the data contained in the data store.
-  * `storage_databases.#.collections` -     Array of objects where each object represents a collection and data sources that map to a [stores](https://docs.mongodb.com/datalake/reference/format/data-lake-configuration#mongodb-datalakeconf-datalakeconf.stores) data store.
+  * `storage_databases.#.collections` -     Array of objects where each object represents a collection and data sources that map to a [stores](https://www.mongodb.com/docs/atlas/data-federation/config/config-oa/#stores) data store.
     * `storage_databases.#.collections.#.name` - Name of the collection.
       * `storage_databases.#.collections.#.data_sources` -     Array of objects where each object represents a stores data store to map with the collection.
         * `storage_databases.#.collections.#.data_sources.#.store_name` -     Name of a data store to map to the `<collection>`. Must match the name of an object in the stores array.
@@ -64,7 +82,7 @@ In addition to all arguments above, the following attributes are exported:
     * `storage_databases.#.views.#.name` - Name of the view.
     * `storage_databases.#.views.#.source` -  Name of the source collection for the view.
     * `storage_databases.#.views.#.pipeline`- Aggregation pipeline stage(s) to apply to the source collection.
-* `storage_stores` - Each object in the array represents a data store. Federated Database uses the storage.databases configuration details to map data in each data store to queryable databases and collections. For complete documentation on this object and its nested fields, see [stores](https://docs.mongodb.com/datalake/reference/format/data-lake-configuration#std-label-datalake-stores-reference). An empty object indicates that the Federated Database Instance has no configured data stores.
+* `storage_stores` - Each object in the array represents a data store. Federated Database uses the `storage.databases` configuration details to map data in each data store to queryable databases and collections. For complete documentation on this object and its nested fields, see [stores](https://www.mongodb.com/docs/atlas/data-federation/config/config-oa/#stores). An empty object indicates that the Federated Database Instance has no configured data stores.
   * `storage_stores.#.name` - Name of the data store.
   * `storage_stores.#.provider` - Defines where the data is stored.
   * `storage_stores.#.region` - Name of the AWS region in which the S3 bucket is hosted.
@@ -75,7 +93,7 @@ In addition to all arguments above, the following attributes are exported:
   * `storage_stores.#.cluster_name` - Human-readable label of the MongoDB Cloud cluster on which the store is based.
   * `storage_stores.#.allow_insecure` - Flag that validates the scheme in the specified URLs.
   * `storage_stores.#.public` - Flag that indicates whether the bucket is public.
-  * `storage_stores.#.default_format` - Default format that Data Lake assumes if it encounters a file without an extension while searching the storeName.
+  * `storage_stores.#.default_format` - Default format that Data Federation assumes if it encounters a file without an extension while searching the storeName.
   * `storage_stores.#.urls` - Comma-separated list of publicly accessible HTTP URLs where data is stored.
   * `storage_stores.#.read_preference` - MongoDB Cloud cluster read preference, which describes how to route read requests to the cluster.
     * `storage_stores.#.read_preference.maxStalenessSeconds` - Maximum replication lag, or staleness, for reads from secondaries.
@@ -96,10 +114,16 @@ In addition to all arguments above, the following attributes are exported:
 
 * `iam_user_arn` - Amazon Resource Name (ARN) of the user that the Federated Database Instance assumes when accessing S3 Bucket data stores.
 * `external_id` - Unique identifier associated with the IAM Role that the Federated Database Instance assumes when accessing the data stores.
-* `role_id` - Unique identifier of the role that the data lake can use to access the data stores.
+* `role_id` - Unique identifier of the role that Atlas Data Federation can use to access the data stores.
+
+#### `azure` - Microsoft Azure provider of the cloud service where the Federated Database Instance can access Blob Storage.
+* `atlas_azure_app_id` - Unique identifier of the Azure Active Directory application associated with the service principal.
+* `service_principal_id` - Unique identifier of the Azure service principal that the Federated Database instance uses to access Azure Blob Storage.
+* `tenant_id` - Unique identifier of the Azure Active Directory tenant where the service principal resides.
+* `role_id` - Unique identifier of the role that the Federated Database Instance can use to access the data stores.
+
 ### `data_process_region` - The cloud provider region to which the Federated Instance routes client connections for data processing.
-* `cloud_provider` -  Name of the cloud service provider. Atlas Federated Database only supports AWS.
-* `region` - Name of the region to which the Federanted Instnace routes client connections for data processing. 
+* `cloud_provider` -  Name of the cloud service provider. Supported providers: `AWS`, `AZURE`.
+* `region` - Name of the region to which the Federated Instance routes client connections for data processing.
 
-
-See [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation) Documentation for more information.
+To learn more, see the [MongoDB Atlas API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/#tag/Data-Federation) documentation.

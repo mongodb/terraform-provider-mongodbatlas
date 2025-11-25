@@ -49,7 +49,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 	endpointID := d.Get("endpoint_id").(string)
 
-	privateEndpoint, _, err := connV2.DataFederationApi.GetDataFederationPrivateEndpoint(ctx, projectID, endpointID).Execute()
+	privateEndpoint, _, err := connV2.DataFederationApi.GetPrivateEndpointId(ctx, projectID, endpointID).Execute()
 	if err != nil {
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveRead, endpointID, projectID, err)
 	}

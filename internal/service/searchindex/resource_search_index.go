@@ -14,7 +14,7 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/validate"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312010/admin"
 )
 
 const (
@@ -81,8 +81,15 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 			Optional: true,
 		},
 		"mappings_dynamic": {
-			Type:     schema.TypeBool,
-			Optional: true,
+			Type:          schema.TypeBool,
+			Optional:      true,
+			ConflictsWith: []string{"mappings_dynamic_config"},
+		},
+		"mappings_dynamic_config": {
+			Type:             schema.TypeString,
+			Optional:         true,
+			DiffSuppressFunc: diffSuppressJSON,
+			ConflictsWith:    []string{"mappings_dynamic"},
 		},
 		"mappings_fields": {
 			Type:             schema.TypeString,
@@ -131,7 +138,59 @@ func returnSearchIndexSchema() map[string]*schema.Schema {
 			Optional:         true,
 			DiffSuppressFunc: diffSuppressJSON,
 		},
+		"type_sets": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Set:      hashTypeSetElement,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"name": {
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"types": {
+						Type:             schema.TypeString,
+						Optional:         true,
+						DiffSuppressFunc: diffSuppressJSON,
+					},
+				},
+			},
+		},
 	}
+}
+
+func setMappingsAttributesFromDefinition(d *schema.ResourceData, mappings *admin.SearchMappings) diag.Diagnostics {
+	if mappings == nil {
+		return nil
+	}
+
+	switch v := mappings.GetDynamic().(type) {
+	case bool:
+		if err := d.Set("mappings_dynamic", v); err != nil {
+			return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
+		}
+	case map[string]any:
+		j, err := marshalSearchIndex(v)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		if err := d.Set("mappings_dynamic_config", j); err != nil {
+			return diag.Errorf("error setting `mappings_dynamic_config` for search index (%s): %s", d.Id(), err)
+		}
+	default:
+		log.Printf("[DEBUG] search_index: unexpected mappings.dynamic type: %T", v)
+	}
+
+	if fields := mappings.Fields; fields != nil && conversion.HasElementsSliceOrMap(*fields) {
+		searchIndexMappingFields, err := marshalSearchIndex(*fields)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		if err := d.Set("mappings_fields", searchIndexMappingFields); err != nil {
+			return diag.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
+		}
+	}
+	return nil
 }
 
 func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) ([]*schema.ResourceData, error) {
@@ -145,7 +204,7 @@ func resourceImportState(ctx context.Context, d *schema.ResourceData, meta any) 
 	indexID := parts[2]
 
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	_, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
+	_, _, err := connV2.AtlasSearchApi.GetClusterSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		return nil, fmt.Errorf("couldn't import search index (%s) in projectID (%s) and Cluster (%s), error: %s", indexID, projectID, clusterName, err)
 	}
@@ -178,7 +237,7 @@ func resourceDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	indexID := ids["index_id"]
 
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	_, err := connV2.AtlasSearchApi.DeleteAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
+	_, err := connV2.AtlasSearchApi.DeleteClusterSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		return diag.Errorf("error deleting search index (%s): %s", d.Get("name").(string), err)
 	}
@@ -197,7 +256,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		return diag.Errorf("error updating search index (%s): attributes name, type, database and collection_name can't be updated", indexName)
 	}
 
-	searchRead, _, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
+	searchRead, _, err := connV2.AtlasSearchApi.GetClusterSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		return diag.Errorf("error getting search index information: %s", err)
 	}
@@ -227,6 +286,20 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 			return err
 		}
 		searchIndex.Definition.Analyzers = &analyzers
+	}
+
+	if d.HasChange("mappings_dynamic_config") {
+		cfg := d.Get("mappings_dynamic_config").(string)
+		if cfg != "" {
+			obj, diags := unmarshalSearchIndexMappingFields(cfg)
+			if diags != nil {
+				return diags
+			}
+			if searchIndex.Definition.Mappings == nil {
+				searchIndex.Definition.Mappings = &admin.SearchMappings{}
+			}
+			searchIndex.Definition.Mappings.Dynamic = obj
+		}
 	}
 
 	if d.HasChange("mappings_dynamic") {
@@ -261,6 +334,18 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		searchIndex.Definition.Synonyms = &synonyms
 	}
 
+	if d.HasChange("type_sets") {
+		typeSets, err := expandSearchIndexTypeSets(d)
+		if err != nil {
+			return err
+		}
+		if len(typeSets) > 0 {
+			searchIndex.Definition.TypeSets = &typeSets
+		} else {
+			searchIndex.Definition.TypeSets = nil
+		}
+	}
+
 	if d.HasChange("stored_source") {
 		obj, err := UnmarshalStoredSource(d.Get("stored_source").(string))
 		if err != nil {
@@ -269,7 +354,7 @@ func resourceUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		searchIndex.Definition.StoredSource = obj
 	}
 
-	if _, _, err := connV2.AtlasSearchApi.UpdateAtlasSearchIndex(ctx, projectID, clusterName, indexID, searchIndex).Execute(); err != nil {
+	if _, _, err := connV2.AtlasSearchApi.UpdateClusterSearchIndex(ctx, projectID, clusterName, indexID, searchIndex).Execute(); err != nil {
 		return diag.Errorf("error updating search index (%s): %s", indexName, err)
 	}
 
@@ -305,7 +390,7 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	indexID := ids["index_id"]
 
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	searchIndex, resp, err := connV2.AtlasSearchApi.GetAtlasSearchIndex(ctx, projectID, clusterName, indexID).Execute()
+	searchIndex, resp, err := connV2.AtlasSearchApi.GetClusterSearchIndex(ctx, projectID, clusterName, indexID).Execute()
 	if err != nil {
 		// deleted in the backend case
 		if validate.StatusNotFound(resp) && !d.IsNewResource() {
@@ -358,18 +443,8 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 	}
 
 	if searchIndex.LatestDefinition.Mappings != nil {
-		if err := d.Set("mappings_dynamic", searchIndex.LatestDefinition.Mappings.Dynamic); err != nil {
-			return diag.Errorf("error setting `mappings_dynamic` for search index (%s): %s", d.Id(), err)
-		}
-
-		if fields := searchIndex.LatestDefinition.Mappings.Fields; fields != nil && conversion.HasElementsSliceOrMap(*fields) {
-			searchIndexMappingFields, err := marshalSearchIndex(*fields)
-			if err != nil {
-				return diag.FromErr(err)
-			}
-			if err := d.Set("mappings_fields", searchIndexMappingFields); err != nil {
-				return diag.Errorf("error setting `mappings_fields` for for search index (%s): %s", d.Id(), err)
-			}
+		if diags := setMappingsAttributesFromDefinition(d, searchIndex.LatestDefinition.Mappings); diags != nil {
+			return diags
 		}
 	}
 
@@ -380,6 +455,24 @@ func resourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Di
 		}
 		if err := d.Set("fields", fieldsMarshaled); err != nil {
 			return diag.Errorf("error setting `fields` for for search index (%s): %s", d.Id(), err)
+		}
+	}
+
+	if typeSets := searchIndex.LatestDefinition.GetTypeSets(); len(typeSets) > 0 {
+		var flattenedTypeSets []map[string]any
+		for _, typeSet := range typeSets {
+			entry := map[string]any{"name": typeSet.Name}
+			if types := typeSet.GetTypes(); len(types) > 0 {
+				j, err := marshalSearchIndex(types)
+				if err != nil {
+					return diag.FromErr(err)
+				}
+				entry["types"] = j
+			}
+			flattenedTypeSets = append(flattenedTypeSets, entry)
+		}
+		if err := d.Set("type_sets", flattenedTypeSets); err != nil {
+			return diag.Errorf("error setting `type_sets` for for search index (%s): %s", d.Id(), err)
 		}
 	}
 
@@ -427,13 +520,33 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		if err != nil {
 			return err
 		}
-		dynamic := d.Get("mappings_dynamic").(bool)
-		searchIndexRequest.Definition.Mappings = &admin.SearchMappings{
-			Dynamic: &dynamic,
-			Fields:  &mappingsFields,
+
+		if v, ok := d.GetOk("mappings_dynamic_config"); ok && v.(string) != "" {
+			obj, diags := unmarshalSearchIndexMappingFields(v.(string))
+			if diags != nil {
+				return diags
+			}
+			searchIndexRequest.Definition.Mappings = &admin.SearchMappings{
+				Dynamic: obj,
+				Fields:  &mappingsFields,
+			}
+		} else {
+			dynamic := d.Get("mappings_dynamic").(bool)
+			searchIndexRequest.Definition.Mappings = &admin.SearchMappings{
+				Dynamic: &dynamic,
+				Fields:  &mappingsFields,
+			}
 		}
 		synonyms := expandSearchIndexSynonyms(d)
 		searchIndexRequest.Definition.Synonyms = &synonyms
+
+		typeSets, diags := expandSearchIndexTypeSets(d)
+		if diags != nil {
+			return diags
+		}
+		if len(typeSets) > 0 {
+			searchIndexRequest.Definition.TypeSets = &typeSets
+		}
 	}
 
 	objStoredSource, errStoredSource := UnmarshalStoredSource(d.Get("stored_source").(string))
@@ -442,7 +555,7 @@ func resourceCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	}
 	searchIndexRequest.Definition.StoredSource = objStoredSource
 
-	dbSearchIndexRes, _, err := connV2.AtlasSearchApi.CreateAtlasSearchIndex(ctx, projectID, clusterName, searchIndexRequest).Execute()
+	dbSearchIndexRes, _, err := connV2.AtlasSearchApi.CreateClusterSearchIndex(ctx, projectID, clusterName, searchIndexRequest).Execute()
 	if err != nil {
 		return diag.Errorf("error creating index: %s", err)
 	}

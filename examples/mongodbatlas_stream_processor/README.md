@@ -4,8 +4,8 @@ This example shows how to use Atlas Stream Processors in Terraform. It also crea
 
 You must set the following variables:
 
-- `public_key`: Atlas public key
-- `private_key`: Atlas private key
+- `atlas_client_id`: MongoDB Atlas Service Account Client ID
+- `atlas_client_secret`: MongoDB Atlas Service Account Client Secret
 - `project_id`: Unique 24-hexadecimal digit string that identifies the project where the stream instance will be created.
 - `kafka_username`: Username used for connecting to your external Kafka Cluster. 
 - `kafka_password`: Password used for connecting to your external Kafka Cluster.

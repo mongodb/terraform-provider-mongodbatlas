@@ -1,3 +1,7 @@
+---
+subcategory: "Push-Based Log Export"
+---
+
 # {{.Type}}: {{.Name}}
 
 `{{.Name}}` provides a resource for push-based log export feature. The resource lets you configure, enable & disable the project level settings for the push-based log export feature. Using this resource you 
@@ -10,6 +14,9 @@ The [push based log export Terraform module](https://registry.terraform.io/modul
 
 {{ tffile (printf "examples/%s/main.tf" .Name )}}
 
+### Further Examples
+- [Push-Based Log Export](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_push_based_log_export)
+
 {{ .SchemaMarkdown | trimspace }}
 
 ## Import 
@@ -19,4 +26,4 @@ Push-based log export resource can be imported using the project ID, e.g.
 $ terraform import mongodbatlas_push_based_log_export.test 650972848269185c55f40ca1
 ```
 
-For more information see: [MongoDB Atlas API - Push-Based Log Export](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Push-Based-Log-Export) Documentation.
+For more information see: [MongoDB Atlas API - Push-Based Log Export](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-push-based-log-export) Documentation.

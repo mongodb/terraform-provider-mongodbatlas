@@ -106,7 +106,7 @@ func (d *projectIPAccessListDS) Read(ctx context.Context, req datasource.ReadReq
 	}
 
 	connV2 := d.Client.AtlasV2
-	accessList, _, err := connV2.ProjectIPAccessListApi.GetProjectIpList(ctx, databaseDSUserConfig.ProjectID.ValueString(), entry.String()).Execute()
+	accessList, _, err := connV2.ProjectIPAccessListApi.GetAccessListEntry(ctx, databaseDSUserConfig.ProjectID.ValueString(), entry.String()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error getting access list entry", err.Error())
 		return

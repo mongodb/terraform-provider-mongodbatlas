@@ -64,7 +64,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		auditingRes, _, _ := acc.ConnV2().AuditingApi.GetAuditingConfiguration(context.Background(), rs.Primary.ID).Execute()
+		auditingRes, _, _ := acc.ConnV2().AuditingApi.GetGroupAuditLog(context.Background(), rs.Primary.ID).Execute()
 		if auditingRes == nil {
 			return fmt.Errorf("auditing (%s) does not exist", rs.Primary.ID)
 		}
@@ -77,7 +77,7 @@ func checkDestroy(s *terraform.State) error {
 		if rs.Type != "mongodbatlas_auditing" {
 			continue
 		}
-		auditingRes, _, _ := acc.ConnV2().AuditingApi.GetAuditingConfiguration(context.Background(), rs.Primary.ID).Execute()
+		auditingRes, _, _ := acc.ConnV2().AuditingApi.GetGroupAuditLog(context.Background(), rs.Primary.ID).Execute()
 		if auditingRes.GetEnabled() {
 			return fmt.Errorf("auditing (%s) exists", rs.Primary.ID)
 		}

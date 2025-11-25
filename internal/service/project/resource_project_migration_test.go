@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312010/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
@@ -50,12 +50,12 @@ func TestMigProject_withTeams(t *testing.T) {
 		config       = configBasic(orgID, projectName, "", false,
 			[]*admin.TeamRole{
 				{
-					TeamId:    &teamsIDs[0],
-					RoleNames: &[]string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
+					TeamId:    teamsIDs[0],
+					RoleNames: []string{"GROUP_READ_ONLY", "GROUP_DATA_ACCESS_ADMIN"},
 				},
 				{
-					TeamId:    &teamsIDs[1],
-					RoleNames: &[]string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
+					TeamId:    teamsIDs[1],
+					RoleNames: []string{"GROUP_DATA_ACCESS_ADMIN", "GROUP_OWNER"},
 				},
 			}, nil)
 	)
@@ -79,15 +79,24 @@ func TestMigProject_withTeams(t *testing.T) {
 	})
 }
 
-func TestMigProject_withFalseDefaultSettings(t *testing.T) {
+// empty is tested by the TestMigProject_basic
+func TestMigProject_withFalseDefaultAlertSettings(t *testing.T) {
+	resource.ParallelTest(t, *defaultAlertSettingsTestCase(t, false))
+}
+
+func TestMigProject_withTrueDefaultAlertSettings(t *testing.T) {
+	resource.ParallelTest(t, *defaultAlertSettingsTestCase(t, true))
+}
+
+func defaultAlertSettingsTestCase(t *testing.T, withDefaultAlertSettings bool) *resource.TestCase {
+	t.Helper()
 	var (
 		orgID          = os.Getenv("MONGODB_ATLAS_ORG_ID")
 		projectOwnerID = os.Getenv("MONGODB_ATLAS_PROJECT_OWNER_ID")
 		projectName    = acc.RandomProjectName()
-		config         = configWithFalseDefaultSettings(orgID, projectName, projectOwnerID)
+		config         = configWithDefaultAlertSettings(orgID, projectName, projectOwnerID, withDefaultAlertSettings)
 	)
-
-	resource.Test(t, resource.TestCase{
+	return &resource.TestCase{
 		PreCheck:     func() { mig.PreCheckBasicOwnerID(t) },
 		CheckDestroy: acc.CheckDestroyProject,
 		Steps: []resource.TestStep{
@@ -102,7 +111,7 @@ func TestMigProject_withFalseDefaultSettings(t *testing.T) {
 			},
 			mig.TestStepCheckEmptyPlan(config),
 		},
-	})
+	}
 }
 
 func TestMigProject_withLimits(t *testing.T) {
@@ -144,6 +153,8 @@ func TestMigProject_withLimits(t *testing.T) {
 
 // based on bug report: https://github.com/mongodb/terraform-provider-mongodbatlas/issues/2263
 func TestMigGovProject_regionUsageRestrictionsDefault(t *testing.T) {
+	acc.SkipInSA(t, "SA not supported in Gov tests yet")
+	acc.SkipInAccessToken(t, "SA not supported in Gov tests yet")
 	var (
 		orgID       = os.Getenv("MONGODB_ATLAS_GOV_ORG_ID")
 		projectName = acc.RandomProjectName()

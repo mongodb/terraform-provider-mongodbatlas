@@ -12,8 +12,8 @@ This example shows how to configure encryption at rest using Azure with customer
 
 **1\. Provide the appropriate values for the input variables.**
 
-- `atlas_public_key`: The public API key for MongoDB Atlas
-- `atlas_private_key`: The private API key for MongoDB Atlas
+- `atlas_client_id`: MongoDB Atlas Service Account Client ID
+- `atlas_client_secret`: MongoDB Atlas Service Account Client Secret
 - `atlas_project_id`: Atlas Project ID
 - `azure_subscription_id`: Azure ID that identifies your Azure subscription
 - `azure_client_id`: Azure ID identifies an Azure application associated with your Azure Active Directory tenant

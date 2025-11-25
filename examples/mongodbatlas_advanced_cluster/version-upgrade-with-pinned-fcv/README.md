@@ -8,12 +8,12 @@ The following [knowledge hub article](https://kb.corp.mongodb.com/article/000021
 
 ## Dependencies
 
-* Terraform MongoDB Atlas Provider v1.23.0
+* Terraform MongoDB Atlas Provider v2.0.0 or later
 * A MongoDB Atlas account 
 
 ```
 Terraform >= 0.13
-+ provider registry.terraform.io/terraform-providers/mongodbatlas v1.23.0
++ provider registry.terraform.io/terraform-providers/mongodbatlas v2.0.0
 ```
 
 
@@ -22,8 +22,8 @@ Terraform >= 0.13
 
 Following `variables.tf` file create **terraform.tfvars** file with all the variable values, as demonstrated below:
 ```
-public_key           = "<MONGODB_ATLAS_PUBLIC_KEY>"
-private_key          = "<MONGODB_ATLAS_PRIVATE_KEY>"
+client_id     = "<ATLAS_CLIENT_ID>"
+client_secret = "<ATLAS_CLIENT_SECRET>"
 atlas_project_id     = "<MONGODB_ATLAS_PROJECT_ID>"
 fcv_expiration_date  = "<FCV pin expiration date, e.g. 2024-11-22T10:50:00Z>"
 ```
@@ -54,4 +54,3 @@ Once you finished your testing, ensure you destroy the resources to avoid unnece
 ``` bash
 $ terraform destroy
 ```
-

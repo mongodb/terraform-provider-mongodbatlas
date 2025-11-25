@@ -73,7 +73,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if orgID == "" && username == "" && invitationID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		_, _, err := acc.ConnV2().OrganizationsApi.GetOrganizationInvitation(context.Background(), orgID, invitationID).Execute()
+		_, _, err := acc.ConnV2().OrganizationsApi.GetOrgInvite(context.Background(), orgID, invitationID).Execute()
 		if err == nil {
 			return nil
 		}

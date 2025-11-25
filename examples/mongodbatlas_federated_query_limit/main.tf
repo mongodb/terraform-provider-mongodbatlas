@@ -3,17 +3,17 @@ resource "mongodbatlas_advanced_cluster" "atlas_cluster_1" {
   name         = var.atlas_cluster_name_1
   cluster_type = "REPLICASET"
 
-  replication_specs {
-    region_configs {
-      electable_specs {
+  replication_specs = [{
+    region_configs = [{
+      electable_specs = {
         instance_size = var.provider_instance_size_name
       }
       provider_name         = var.provider_name
       backing_provider_name = var.backing_provider_name
       region_name           = var.provider_region_name
       priority              = 7
-    }
-  }
+    }]
+  }]
 }
 
 resource "mongodbatlas_advanced_cluster" "atlas_cluster_2" {
@@ -21,17 +21,17 @@ resource "mongodbatlas_advanced_cluster" "atlas_cluster_2" {
   name         = var.atlas_cluster_name_2
   cluster_type = "REPLICASET"
 
-  replication_specs {
-    region_configs {
-      electable_specs {
+  replication_specs = [{
+    region_configs = [{
+      electable_specs = {
         instance_size = var.provider_instance_size_name
       }
       provider_name         = var.provider_name
       backing_provider_name = var.backing_provider_name
       region_name           = var.provider_region_name
       priority              = 7
-    }
-  }
+    }]
+  }]
 }
 
 resource "mongodbatlas_federated_database_instance" "test-instance" {

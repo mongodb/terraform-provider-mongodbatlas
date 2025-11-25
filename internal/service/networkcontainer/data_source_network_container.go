@@ -79,7 +79,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	projectID := d.Get("project_id").(string)
 	containerID := conversion.GetEncodedID(d.Get("container_id").(string), "container_id")
 
-	container, resp, err := connV2.NetworkPeeringApi.GetPeeringContainer(ctx, projectID, containerID).Execute()
+	container, resp, err := connV2.NetworkPeeringApi.GetGroupContainer(ctx, projectID, containerID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(resp) {
 			return nil

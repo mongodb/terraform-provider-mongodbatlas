@@ -80,6 +80,7 @@ type mockClientModifier struct {
 	config           *MockHTTPDataConfig
 	mockRoundTripper http.RoundTripper
 	oldRoundTripper  http.RoundTripper
+	skipReset        bool // When true, skip reset to avoid data races with shared clients
 }
 
 func (c *mockClientModifier) ModifyHTTPClient(httpClient *http.Client) error {
@@ -89,6 +90,10 @@ func (c *mockClientModifier) ModifyHTTPClient(httpClient *http.Client) error {
 }
 
 func (c *mockClientModifier) ResetHTTPClient(httpClient *http.Client) {
+	// Skip reset when using copied HTTP clients to avoid data races
+	if c.skipReset {
+		return
+	}
 	if c.oldRoundTripper != nil {
 		httpClient.Transport = c.oldRoundTripper
 	}

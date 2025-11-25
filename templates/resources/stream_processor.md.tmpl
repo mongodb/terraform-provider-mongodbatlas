@@ -1,3 +1,7 @@
+---
+subcategory: "Streams"
+---
+
 # {{.Type}}: {{.Name}}
 
 `{{.Name}}` provides a Stream Processor resource. The resource lets you create, delete, import, start and stop a stream processor in a stream instance.
@@ -11,6 +15,9 @@
 
 {{ tffile (printf "examples/%s/main.tf" .Name )}}
 
+### Further Examples
+- [Atlas Stream Processor](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_stream_processor)
+
 {{ .SchemaMarkdown | trimspace }}
 
 ## Import 
@@ -19,4 +26,4 @@ Stream Processor resource can be imported using the Project ID, Stream Instance 
 $ terraform import mongodbatlas_stream_processor.test yourInstanceName-6117ac2fe2a3d04ed27a987v-yourProcessorName
 ```
 
-For more information see: [MongoDB Atlas API - Stream Processor](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createStreamProcessor) Documentation.
+For more information see: [MongoDB Atlas API - Stream Processor](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createstreamprocessor) Documentation.

@@ -1,5 +1,5 @@
 locals {
-  mongodb_uri = mongodbatlas_advanced_cluster.this.connection_strings[0].standard
+  mongodb_uri = mongodbatlas_advanced_cluster.this.connection_strings.standard
 }
 
 data "mongodbatlas_federated_settings" "this" {
@@ -21,17 +21,17 @@ resource "mongodbatlas_advanced_cluster" "this" {
   name         = var.project_name
   cluster_type = "REPLICASET"
 
-  replication_specs {
-    region_configs {
+  replication_specs = [{
+    region_configs = [{
       priority      = 7
       provider_name = "AWS"
       region_name   = var.region
-      electable_specs {
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-    }
-  }
+    }]
+  }]
 }
 
 resource "mongodbatlas_federated_settings_identity_provider" "oidc" {

@@ -70,6 +70,54 @@ func TestAccSearchIndex_withSynonyms(t *testing.T) {
 	})
 }
 
+func TestAccSearchIndex_withTypeSets_ConfigurableDynamic(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ClusterNameExecution(t, true)
+		indexName              = acc.RandomName()
+	)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             acc.CheckDestroySearchIndex,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithTypeSets(projectID, clusterName, indexName, dynamicTypeSet, typeSetsJSONOne),
+				Check:  resource.ComposeAggregateTestCheckFunc(checkExists(resourceName), checkTypeSetsConfigurableDynamic(typeSetsJSONOne)),
+			},
+			{
+				Config: configWithTypeSets(projectID, clusterName, indexName, dynamicTypeSet, typeSetsJSONTwo),
+				Check:  resource.ComposeAggregateTestCheckFunc(checkExists(resourceName), checkTypeSetsConfigurableDynamic(typeSetsJSONTwo)),
+			},
+			{
+				Config: configWithTypeSetsOmitted(projectID, clusterName, indexName, dynamicTypeSet),
+				Check:  resource.ComposeAggregateTestCheckFunc(checkExists(resourceName), checkTypeSetsOmittedConfigDynamic()),
+			},
+		},
+	})
+}
+
+func checkTypeSetsConfigurableDynamic(typeSetsJSON string) resource.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(
+		resource.TestCheckResourceAttrWith(resourceName, "mappings_dynamic_config", acc.JSONEquals(dynamicTypeSet)),
+		resource.TestCheckResourceAttr(resourceName, "type_sets.#", "1"),
+		resource.TestCheckResourceAttr(resourceName, "type_sets.0.name", "ts_acc"),
+		resource.TestCheckResourceAttrWith(resourceName, "type_sets.0.types", acc.JSONEquals(typeSetsJSON)),
+		resource.TestCheckResourceAttrWith(datasourceName, "mappings_dynamic_config", acc.JSONEquals(dynamicTypeSet)),
+		resource.TestCheckResourceAttr(datasourceName, "type_sets.#", "1"),
+		resource.TestCheckResourceAttr(datasourceName, "type_sets.0.name", "ts_acc"),
+		resource.TestCheckResourceAttrWith(datasourceName, "type_sets.0.types", acc.JSONEquals(typeSetsJSON)),
+	)
+}
+
+func checkTypeSetsOmittedConfigDynamic() resource.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(
+		resource.TestCheckResourceAttrWith(resourceName, "mappings_dynamic_config", acc.JSONEquals(dynamicTypeSet)),
+		resource.TestCheckResourceAttr(resourceName, "type_sets.#", "0"),
+		resource.TestCheckResourceAttrWith(datasourceName, "mappings_dynamic_config", acc.JSONEquals(dynamicTypeSet)),
+		resource.TestCheckResourceAttr(datasourceName, "type_sets.#", "0"),
+	)
+}
+
 func TestAccSearchIndex_updatedToEmptySynonyms(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ClusterNameExecution(t, true)
@@ -288,7 +336,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.ConnV2().AtlasSearchApi.GetAtlasSearchIndex(context.Background(), ids["project_id"], ids["cluster_name"], ids["index_id"]).Execute()
+		_, _, err := acc.ConnV2().AtlasSearchApi.GetClusterSearchIndex(context.Background(), ids["project_id"], ids["cluster_name"], ids["index_id"]).Execute()
 		if err != nil {
 			return fmt.Errorf("index (%s) does not exist", ids["index_id"])
 		}
@@ -375,6 +423,7 @@ func checkWithMapping(projectID, indexName, clusterName string) resource.TestChe
 	return checkAggr(projectID, clusterName, indexName, indexType, mappingsDynamic, checks...)
 }
 
+// Note: configWithSynonyms requires a synonyms source collection to be setup in the database (not being done in the test), current configuration returns successful creation but eventually reaches an error state.
 func configWithSynonyms(projectID, indexName, clusterName string, has bool) string {
 	var synonymsStr string
 	if has {
@@ -618,4 +667,63 @@ const (
 			"exclude": ["exclude1", "exclude2"]
 		}	
 	`
+
+	typeSetsJSONOne = `[{"type":"string"}]`
+	typeSetsJSONTwo = `[{"type":"string"},{"type":"number"}]`
+	dynamicTypeSet  = `{"typeSet":"ts_acc"}`
 )
+
+func configWithTypeSets(projectID, clusterName, indexName, dynamicJSON, typeSetsJSON string) string {
+	return fmt.Sprintf(`
+        resource "mongodbatlas_search_index" "test" {
+            cluster_name     = %[1]q
+            project_id       = %[2]q
+            name             = %[3]q
+            database         = %[4]q
+            collection_name  = %[5]q
+
+            type = "search"
+
+            mappings_dynamic_config = <<-EOF
+            %[6]s
+            EOF
+
+            type_sets {
+              name  = "ts_acc"
+              types = <<-EOF
+              %[7]s
+              EOF
+            }
+        }
+
+        data "mongodbatlas_search_index" "data_index" {
+            cluster_name     = mongodbatlas_search_index.test.cluster_name
+            project_id       = mongodbatlas_search_index.test.project_id
+            index_id         = mongodbatlas_search_index.test.index_id
+        }
+    `, clusterName, projectID, indexName, database, collection, dynamicJSON, typeSetsJSON)
+}
+
+func configWithTypeSetsOmitted(projectID, clusterName, indexName, dynamicJSON string) string {
+	return fmt.Sprintf(`
+        resource "mongodbatlas_search_index" "test" {
+            cluster_name     = %[1]q
+            project_id       = %[2]q
+            name             = %[3]q
+            database         = %[4]q
+            collection_name  = %[5]q
+
+            type = "search"
+
+            mappings_dynamic_config = <<-EOF
+            %[6]s
+            EOF
+        }
+
+        data "mongodbatlas_search_index" "data_index" {
+            cluster_name     = mongodbatlas_search_index.test.cluster_name
+            project_id       = mongodbatlas_search_index.test.project_id
+            index_id         = mongodbatlas_search_index.test.index_id
+        }
+    `, clusterName, projectID, indexName, database, collection, dynamicJSON)
+}

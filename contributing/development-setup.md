@@ -17,16 +17,16 @@
 - Fork the repository.
 - Clone your forked repository locally.
 - We use Go Modules to manage dependencies, so you can develop outside your `$GOPATH`.
-- We use [golangci-lint](https://github.com/golangci/golangci-lint) to lint our code, you can install it locally via `make setup`.
+- We use [golangci-lint](https://github.com/golangci/golangci-lint) to lint our code, you can install it locally via `make tools`.
 ### Building
 - Enter the provider directory
 - Run `make tools` to install the needed tools for the provider
-- Run `link-git-hooks` to install githooks 
+- Run `make link-git-hooks` to install githooks 
 - Run `make build` to build the binary in the `./bin` directory: 
 - Use the local provider binary in the `./bin` folder:
   - Create the following `dev.trfc` file inside your directory 
   ```terraform
-    provider_installation {
+  provider_installation {
 
     dev_overrides {
       "mongodb/mongodbatlas" = "/Users/<YourUser>/terraform-provider-mongodbatlas/bin" # path to the provider binary
@@ -39,7 +39,7 @@
   ```bash
   export TF_CLI_CONFIG_FILE=PATH/TO/dev.trfc
   ```
-- Run `terraform init` to inizialize terraform
+- Run `terraform init` to initialize terraform
 - Run `terraform apply` to use terraform with the local binary
 
 For more explained information about plugin override check [Development Overrides for Provider Developers](https://www.terraform.io/docs/cli/config/config-file.html#development-overrides-for-provider-developers)
@@ -160,7 +160,7 @@ You must also configure the following environment variables before running the t
   export MONGODB_ATLAS_FEDERATED_SSO_URL=<ATLAS_FEDERATED_SSO_URL>
   export MONGODB_ATLAS_FEDERATED_ISSUER_URI=<ATLAS_FEDERATED_ISSUER_URI>
   ```
-~> **Notice:** For more information about the Federation configuration resource, see: https://www.mongodb.com/docs/atlas/reference/api/federation-configuration/
+~> **Notice:** For more information about the Federation configuration resource, see: https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-federated-authentication
 
 ##### AWS env variables
 

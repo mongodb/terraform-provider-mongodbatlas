@@ -1,6 +1,12 @@
+---
+subcategory: "MongoDB Cloud Users"
+---
+
 # Data Source: atlas_users
 
 `atlas_users` provides Atlas Users associated with a specified Organization, Project, or Team.
+
+~> **DEPRECATION:** This data source is deprecated. Replace it with the `users` attribute on `mongodbatlas_organization`, `mongodbatlas_project`, or `mongodbatlas_team` data sources, depending on scope. See the [Migration Guide: Migrate off deprecated `mongodbatlas_atlas_user` and `mongodbatlas_atlas_users`](../guides/atlas-user-management).
 
 -> **NOTE:** Groups and projects are synonymous terms. You may find `groupId` in the official documentation.
 
@@ -54,7 +60,7 @@ In addition to all arguments above, the following attributes are exported:
 * `username` - Email address that belongs to the MongoDB Atlas user account. You cannot modify this address after creating the user.
 * `country` - Two alphabet characters that identifies MongoDB Cloud user's geographic location. This parameter uses the ISO 3166-1a2 code format.
 * `created_at` - Date and time when the current account is created. This value is in the ISO 8601 timestamp format in UTC.
-* `email_address` - Email address that belongs to the MongoDB Atlas user.
+* `email_address` - **(DEPRECATED)** Email address that belongs to the MongoDB Atlas user. This attribute is deprecated and will be removed in the next major release. Please transition to `data.mongodbatlas_organization.users.username`, `data.mongodbatlas_team.users.username` or `data.mongodbatlas_project.users.username` attributes. For more details, see [Migration Guide: Migrate off deprecated `mongodbatlas_atlas_user` and `mongodbatlas_atlas_users`](../guides/atlas-user-management)."
 * `first_name` - First or given name that belongs to the MongoDB Atlas user.
 * `last_auth` - Date and time when the current account last authenticated. This value is in the ISO 8601 timestamp format in UTC.
 * `last_name` - Last name, family name, or surname that belongs to the MongoDB Atlas user.

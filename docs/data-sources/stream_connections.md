@@ -1,3 +1,7 @@
+---
+subcategory: "Streams"
+---
+
 # Data Source: mongodbatlas_stream_connections
 
 `mongodbatlas_stream_connections` describes all connections of a stream instance for the specified project.
@@ -7,14 +11,17 @@
 ```terraform
 data "mongodbatlas_stream_connections" "test" {
     project_id = "<PROJECT_ID>"
-    instance_name = "<INSTANCE_NAME>"
+    workspace_name = "<WORKSPACE_NAME>"
 }
 ```
 
 ## Argument Reference
 
 * `project_id` - (Required) Unique 24-hexadecimal digit string that identifies your project.
-* `instance_name` - (Required) Human-readable label that identifies the stream instance.
+* `instance_name` - (Deprecated) Label that identifies the stream processing workspace. Attribute is deprecated and will be removed in following major versions in favor of `workspace_name`.
+* `workspace_name` - (Optional) Label that identifies the stream processing workspace. Conflicts with `instance_name`.
+
+~> **NOTE:** Either `workspace_name` or `instance_name` must be provided, but not both. These fields are functionally identical and `workspace_name` is an alias for `instance_name`. `workspace_name` should be used instead of `instance_name`.
 
 * `page_num` - (Optional) Number of the page that displays the current set of the total objects that the response returns. Defaults to `1`.
 * `items_per_page` - (Optional) Number of items that the response returns per page, up to a maximum of `500`. Defaults to `100`.
@@ -30,8 +37,8 @@ In addition to all arguments above, it also exports the following attributes:
 ### Stream Connection
 
 * `project_id` - Unique 24-hexadecimal digit string that identifies your project.
-* `instance_name` - Human-readable label that identifies the stream instance.
-* `connection_name` - Human-readable label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
+* `workspace_name` - Label that identifies the stream processing workspace.
+* `connection_name` - Label that identifies the stream connection. In the case of the Sample type, this is the name of the sample source.
 * `type` - Type of connection. `AWSLambda`, `Cluster`, `Https`, `Kafka` or `Sample`.
 
 If `type` is of value `Cluster` the following additional attributes are defined:
@@ -54,9 +61,15 @@ If `type` is of value `Https` the following additional attributes are defined:
 
 ### Authentication
 
-* `mechanism` - Style of authentication. Can be one of `PLAIN`, `SCRAM-256`, or `SCRAM-512`.
+* `mechanism` - Method of authentication. Value can be `PLAIN`, `SCRAM-256`, `SCRAM-512`, or `OAUTHBEARER`.
+* `method` - SASL OAUTHBEARER authentication method. Value must be OIDC.
 * `username` - Username of the account to connect to the Kafka cluster.
 * `password` - Password of the account to connect to the Kafka cluster.
+* `token_endpoint_url` -  OAUTH issuer (IdP provider) token endpoint HTTP(S) URI used to retrieve the token.
+* `client_id` - Public identifier for the Kafka client.
+* `client_secret` - Secret known only to the Kafka client and the authorization server.
+* `scope` - Scope of the access request to the broker specified by the Kafka clients.
+* `sasl_oauthbearer_extensions` - Additional information to provide to the Kafka broker.
 
 ### Security
 

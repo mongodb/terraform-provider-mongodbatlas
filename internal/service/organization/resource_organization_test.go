@@ -9,10 +9,11 @@ import (
 	"strings"
 	"testing"
 
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312010/admin"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
@@ -45,7 +46,7 @@ func TestAccConfigRSOrganization_Basic(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -80,7 +81,7 @@ func TestAccConfigRSOrganization_BasicAccess(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -123,7 +124,7 @@ func TestAccConfigRSOrganization_Settings(t *testing.T) {
 	)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
@@ -151,7 +152,7 @@ func TestAccConfigRSOrganizationCreate_Errors(t *testing.T) {
 	)
 	acc.SkipTestForCI(t) // test will fail in CI since API_KEY_MUST_BE_ASSOCIATED_WITH_PAYING_ORG is returned
 	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { acc.PreCheck(t) },
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
 			{
@@ -168,7 +169,7 @@ func TestAccConfigDSOrganization_noAccessShouldFail(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      configWithPluralDS("555") + acc.ConfigOrgMemberProvider(),
-				ExpectError: regexp.MustCompile("error getting organization settings .*"),
+				ExpectError: regexp.MustCompile("error getting organizations information:"),
 			},
 		},
 	})
@@ -184,7 +185,40 @@ func TestAccConfigDSOrganization_basic(t *testing.T) {
 			{
 				Config: configWithPluralDS(orgID),
 				Check: checkAggrDS(resource.TestCheckResourceAttr(datasourceName, "gen_ai_features_enabled", "true"),
-					resource.TestCheckResourceAttr(pluralDSName, "results.0.gen_ai_features_enabled", "true")),
+					resource.TestCheckResourceAttr(pluralDSName, "results.0.gen_ai_features_enabled", "true"),
+					resource.TestCheckResourceAttrSet(datasourceName, "users.#"),
+					resource.TestCheckResourceAttrSet(datasourceName, "users.0.id")),
+			},
+		},
+	})
+}
+
+func TestAccConfigDSOrganization_users(t *testing.T) {
+	var (
+		orgID = os.Getenv("MONGODB_ATLAS_ORG_ID")
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configWithPluralDS(orgID),
+				Check: checkAggrDS(
+					resource.TestCheckResourceAttrWith(datasourceName, "users.#", acc.IntGreatThan(0)),
+					resource.TestCheckResourceAttrSet(datasourceName, "users.0.id"),
+					resource.TestCheckResourceAttrSet(datasourceName, "users.0.roles.0.org_roles.#"),
+					resource.TestCheckResourceAttrSet(datasourceName, "users.0.roles.0.project_role_assignments.#"),
+					resource.TestCheckResourceAttrWith(datasourceName, "users.0.username", acc.IsUsername()),
+					resource.TestCheckResourceAttrWith(datasourceName, "users.0.last_auth", acc.IsTimestamp()),
+					resource.TestCheckResourceAttrWith(datasourceName, "users.0.created_at", acc.IsTimestamp()),
+
+					resource.TestCheckResourceAttrWith(pluralDSName, "results.0.users.#", acc.IntGreatThan(0)),
+					resource.TestCheckResourceAttrSet(pluralDSName, "results.0.users.0.id"),
+					resource.TestCheckResourceAttrSet(pluralDSName, "results.0.users.0.roles.0.org_roles.#"),
+					resource.TestCheckResourceAttrSet(pluralDSName, "results.0.users.0.roles.0.project_role_assignments.#"),
+					resource.TestCheckResourceAttrWith(pluralDSName, "results.0.users.0.username", acc.IsUsername()),
+					resource.TestCheckResourceAttrWith(pluralDSName, "results.0.users.0.last_auth", acc.IsTimestamp()),
+				),
 			},
 		},
 	})
@@ -199,6 +233,36 @@ func TestAccConfigDSOrganizations_withPagination(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(pluralDSName, "results.#"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccConfigRSOrganization_import(t *testing.T) {
+	acc.SkipInUnitTest(t) // needed so OrganizationsApi is not called in unit tests
+	orgID := os.Getenv("MONGODB_ATLAS_ORG_ID")
+	resp, _, _ := acc.ConnV2().OrganizationsApi.GetOrg(t.Context(), orgID).Execute()
+	orgName := resp.GetName()
+	require.NotEmpty(t, orgName)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: configImportSet(orgID, orgName), // Use import so a new organization is not created, the resource must exist in a step before import state is verified.
+			},
+			{
+				ResourceName:                         resourceName,
+				ImportStateId:                        orgID,
+				ImportState:                          true, // Do the import check.
+				ImportStateVerify:                    true,
+				ImportStateVerifyIdentifierAttribute: "org_id",
+			},
+			{
+				// Use removed block so the organization is not deleted.
+				// Even if something goes wrong, the organization wouldn't be deleted if it has some projects, it would return ORG_NOT_EMPTY error.
+				Config: acc.ConfigRemove(resourceName),
 			},
 		},
 	})
@@ -228,6 +292,22 @@ func configWithPagination(pageNum, itemPage int) string {
 	`, pageNum, itemPage)
 }
 
+func configImportSet(orgID, orgName string) string {
+	return fmt.Sprintf(`
+		import {
+			id = %[1]q
+			to = mongodbatlas_organization.test
+		}
+
+		resource "mongodbatlas_organization" "test" {
+			name = %[2]q
+			lifecycle {
+   		 prevent_destroy = true
+  		}
+		}
+	`, orgID, orgName)
+}
+
 func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -245,7 +325,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return err
 		}
 
-		orgs, _, err := conn.OrganizationsApi.ListOrganizations(context.Background()).Execute()
+		orgs, _, err := conn.OrganizationsApi.ListOrgs(context.Background()).Execute()
 		if err == nil {
 			for _, val := range orgs.GetResults() {
 				if val.GetId() == ids["org_id"] {
@@ -271,7 +351,7 @@ func checkDestroy(s *terraform.State) error {
 			return err
 		}
 
-		orgs, _, err := conn.OrganizationsApi.ListOrganizations(context.Background()).Execute()
+		orgs, _, err := conn.OrganizationsApi.ListOrgs(context.Background()).Execute()
 		if err == nil {
 			for _, val := range orgs.GetResults() {
 				if val.GetId() == ids["org_id"] {
@@ -347,20 +427,16 @@ func getTestClientWithNewOrgCreds(rs *terraform.ResourceState) (*admin.APIClient
 	if rs.Primary.Attributes["public_key"] == "" {
 		return nil, fmt.Errorf("no public_key is set")
 	}
-
 	if rs.Primary.Attributes["private_key"] == "" {
 		return nil, fmt.Errorf("no private_key is set")
 	}
-
-	cfg := config.Config{
+	c := &config.Credentials{
 		PublicKey:  rs.Primary.Attributes["public_key"],
 		PrivateKey: rs.Primary.Attributes["private_key"],
-		BaseURL:    acc.MongoDBClient.Config.BaseURL,
+		BaseURL:    acc.MongoDBClient.BaseURL,
 	}
-
-	ctx := context.Background()
-	clients, _ := cfg.NewClient(ctx)
-	return clients.(*config.MongoDBClient).AtlasV2, nil
+	client, _ := config.NewClient(c, acc.MongoDBClient.TerraformVersion)
+	return client.AtlasV2, nil
 }
 
 func TestValidateAPIKeyIsOrgOwner(t *testing.T) {
@@ -401,10 +477,10 @@ func checkAggr(orgOwnerID, name, description string, settings *admin.Organizatio
 		"name":                       name,
 		"org_owner_id":               orgOwnerID,
 		"description":                description,
-		"api_access_list_required":   strconv.FormatBool(*settings.ApiAccessListRequired),
-		"multi_factor_auth_required": strconv.FormatBool(*settings.MultiFactorAuthRequired),
-		"restrict_employee_access":   strconv.FormatBool(*settings.RestrictEmployeeAccess),
-		"gen_ai_features_enabled":    strconv.FormatBool(*settings.GenAIFeaturesEnabled),
+		"api_access_list_required":   strconv.FormatBool(settings.GetApiAccessListRequired()),
+		"multi_factor_auth_required": strconv.FormatBool(settings.GetMultiFactorAuthRequired()),
+		"restrict_employee_access":   strconv.FormatBool(settings.GetRestrictEmployeeAccess()),
+		"gen_ai_features_enabled":    strconv.FormatBool(settings.GetGenAIFeaturesEnabled()),
 		"security_contact":           settings.GetSecurityContact(),
 	}
 	checks := []resource.TestCheckFunc{

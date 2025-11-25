@@ -18,27 +18,30 @@ resource "mongodbatlas_advanced_cluster" "main" {
   project_id   = "64258fba5c9...e5e94617e"
   cluster_type = "REPLICASET"
 
-  replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M20"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 7
-      region_name   = "US_EAST_1"
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M20"
+            node_count    = 1
+          }
+          provider_name = "AWS"
+          priority      = 7
+          region_name   = "US_EAST_1"
+        },
+        {
+          electable_specs = {
+            instance_size = "M20"
+            node_count    = 1
+          }
+          provider_name = "AWS"
+          priority      = 6
+          region_name   = "EU_WEST_1"
+        }
+      ]
     }
-
-    region_configs {
-      electable_specs {
-        instance_size = "M20"
-        node_count    = 1
-      }
-      provider_name = "AWS"
-      priority      = 6
-      region_name   = "EU_WEST_1"
-    }
-  }
+  ]
 }
 ```
 
@@ -77,4 +80,4 @@ variable "region_configs_list" {
 ```
 
 ### Cause:
-Due to recent updates in the Atlas API [Alert Configuration](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Alert-Configurations/operation/getAlertConfiguration), a computed value for `integration_id` might be returned. This affects MongoDB Atlas Provider versions **1.16.0 to 1.19.0**. Please review the Breaking Changes section in our [1.20.0 upgrade guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.20.0-upgrade-guide) to learn more.
+Due to recent updates in the Atlas API [Alert Configuration](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getalertconfiguration), a computed value for `integration_id` might be returned. This affects MongoDB Atlas Provider versions **1.16.0 to 1.19.0**. Please review the Breaking Changes section in our [1.20.0 upgrade guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/1.20.0-upgrade-guide) to learn more.

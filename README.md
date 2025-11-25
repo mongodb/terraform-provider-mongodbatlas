@@ -14,7 +14,7 @@ Support for the Terraform MongoDB Atlas Provider is provided under MongoDB Atlas
 
 Bugs should be filed under the Issues section of this repo.
 
-Feature requests can be submitted at https://feedback.mongodb.com/forums/924145-atlas - just select the Terraform plugin as the category or vote for an already suggested feature.
+Feature requests can be submitted at the [MongoDB feedback portal](https://feedback.mongodb.com/ideas?category=7548141186718564699) - select Atlas -> infra-as-code as the category or vote for an already suggested feature.
 
 ## Requirements  
 - [HashiCorp Terraform Version Compatibility Matrix](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs#hashicorp-terraform-versionhttpswwwterraformiodownloadshtml-compatibility-matrix) 

@@ -1,3 +1,0 @@
-```release-note:bug
-resource/mongodbatlas_team: Fixes update logic of `usernames` attribute ensuring team is never emptied
-```

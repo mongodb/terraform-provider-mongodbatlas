@@ -5,7 +5,6 @@ import (
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/resource"
-	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
 	"github.com/sebdah/goldie/v2"
 )
 
@@ -18,15 +17,14 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 	testCases := map[string]resourceGenerationTestCase{
 		"Defining different operation URLs with different path params": {
 			inputModel: codespec.Resource{
-				Name: stringcase.SnakeCaseString("test_name"),
-
+				Name:        "test_name",
+				PackageName: "testname",
 				Operations: codespec.APIOperations{
-
 					Create: codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Update: codespec.APIOperation{
+					Update: &codespec.APIOperation{
 						HTTPMethod: "PATCH",
 						Path:       "/api/v1/testname/{projectId}/{roleName}",
 					},
@@ -34,7 +32,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}/{roleName}",
 					},
-					Delete: codespec.APIOperation{
+					Delete: &codespec.APIOperation{
 						HTTPMethod: "DELETE",
 						Path:       "/api/v1/testname/{projectId}/{roleName}",
 					},
@@ -45,15 +43,14 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 		},
 		"Update operation using PUT": {
 			inputModel: codespec.Resource{
-				Name: stringcase.SnakeCaseString("test_name"),
-
+				Name:        "test_name",
+				PackageName: "testname",
 				Operations: codespec.APIOperations{
-
 					Create: codespec.APIOperation{
 						HTTPMethod: "POST",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Update: codespec.APIOperation{
+					Update: &codespec.APIOperation{
 						HTTPMethod: "PUT",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -61,7 +58,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Delete: codespec.APIOperation{
+					Delete: &codespec.APIOperation{
 						HTTPMethod: "DELETE",
 						Path:       "/api/v1/testname/{projectId}",
 					},
@@ -72,7 +69,8 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 		},
 		"Defining wait configuration in create update and delete": {
 			inputModel: codespec.Resource{
-				Name: stringcase.SnakeCaseString("test_name"),
+				Name:        "test_name",
+				PackageName: "testname",
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
 						HTTPMethod: "POST",
@@ -86,7 +84,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 							DelaySeconds:      10,
 						},
 					},
-					Update: codespec.APIOperation{
+					Update: &codespec.APIOperation{
 						HTTPMethod: "PUT",
 						Path:       "/api/v1/testname/{projectId}",
 						Wait: &codespec.Wait{
@@ -102,7 +100,7 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 						HTTPMethod: "GET",
 						Path:       "/api/v1/testname/{projectId}",
 					},
-					Delete: codespec.APIOperation{
+					Delete: &codespec.APIOperation{
 						HTTPMethod: "DELETE",
 						Path:       "/api/v1/testname/{projectId}",
 						Wait: &codespec.Wait{
@@ -119,13 +117,117 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 			},
 			goldenFileName: "wait-configuration",
 		},
+		"Defining static request body in delete operation": {
+			inputModel: codespec.Resource{
+				Name:        "test_name",
+				PackageName: "testname",
+				Operations: codespec.APIOperations{
+					Create: codespec.APIOperation{
+						HTTPMethod: "POST",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Update: &codespec.APIOperation{
+						HTTPMethod: "PATCH",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Read: codespec.APIOperation{
+						HTTPMethod: "GET",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Delete: &codespec.APIOperation{
+						HTTPMethod:        "PATCH",
+						Path:              "/api/v1/testname/{projectId}",
+						StaticRequestBody: `{"enabled": false}`,
+					},
+					VersionHeader: "application/vnd.atlas.2024-05-30+json",
+				},
+			},
+			goldenFileName: "static-request-body-delete",
+		},
+		"Defining a resource with no DELETE operation": {
+			inputModel: codespec.Resource{
+				Name:        "test_name",
+				PackageName: "testname",
+				Operations: codespec.APIOperations{
+					Create: codespec.APIOperation{
+						HTTPMethod: "POST",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Update: &codespec.APIOperation{
+						HTTPMethod: "PATCH",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Read: codespec.APIOperation{
+						HTTPMethod: "GET",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Delete:        nil,
+					VersionHeader: "application/vnd.atlas.2024-05-30+json",
+				},
+			},
+			goldenFileName: "no-op-delete-operation",
+		},
+		"Defining a resource with no UPDATE operation": {
+			inputModel: codespec.Resource{
+				Name:        "test_name",
+				PackageName: "testname",
+				Operations: codespec.APIOperations{
+					Create: codespec.APIOperation{
+						HTTPMethod: "POST",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Update: nil,
+					Read: codespec.APIOperation{
+						HTTPMethod: "GET",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Delete: &codespec.APIOperation{
+						HTTPMethod:        "PATCH",
+						Path:              "/api/v1/testname/{projectId}",
+						StaticRequestBody: `{"enabled": false}`,
+					},
+					VersionHeader: "application/vnd.atlas.2024-05-30+json",
+				},
+			},
+			goldenFileName: "unsupported-update-operation",
+		},
+		"Defining a resource with move state": {
+			inputModel: codespec.Resource{
+				Name:        "test_name",
+				PackageName: "testname",
+				MoveState:   &codespec.MoveState{SourceResources: []string{"test_name_old"}},
+				Operations: codespec.APIOperations{
+					Create: codespec.APIOperation{
+						HTTPMethod: "POST",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Update: &codespec.APIOperation{
+						HTTPMethod: "PATCH",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Read: codespec.APIOperation{
+						HTTPMethod: "GET",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					Delete: &codespec.APIOperation{
+						HTTPMethod: "DELETE",
+						Path:       "/api/v1/testname/{projectId}",
+					},
+					VersionHeader: "application/vnd.atlas.2024-05-30+json",
+				},
+			},
+			goldenFileName: "move-state",
+		},
 	}
 
 	for testName, tc := range testCases {
 		t.Run(testName, func(t *testing.T) {
-			result := resource.GenerateGoCode(&tc.inputModel)
+			result, err := resource.GenerateGoCode(&tc.inputModel)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
 			g := goldie.New(t, goldie.WithNameSuffix(".golden.go"))
-			g.Assert(t, tc.goldenFileName, []byte(result))
+			g.Assert(t, tc.goldenFileName, result)
 		})
 	}
 }

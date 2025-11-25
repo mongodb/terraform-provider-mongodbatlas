@@ -10,12 +10,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func ImportSplit3(importRaw string) (ok bool, part1, part2, part3 string) {
-	parts := strings.Split(importRaw, "/")
-	if len(parts) != 3 {
-		return false, "", "", ""
+// ImportSplit is a generalized function to split import strings by "/" with validation
+func ImportSplit(importRaw string, expectedParts int) (ok bool, parts []string) {
+	parts = strings.Split(importRaw, "/")
+	if len(parts) != expectedParts {
+		return false, nil
 	}
-	return true, parts[0], parts[1], parts[2]
+	return true, parts
 }
 
 func ImportStateProjectIDClusterName(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse, attrNameProjectID, attrNameClusterName string) {

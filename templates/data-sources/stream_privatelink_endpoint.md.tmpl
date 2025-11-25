@@ -1,3 +1,7 @@
+---
+subcategory: "Streams"
+---
+
 # {{.Type}}: {{.Name}}
 
 `{{.Name}}` describes a Privatelink Endpoint for Streams.
@@ -10,6 +14,12 @@
 ### AWS MSK Privatelink
 {{ tffile (printf "examples/%s/aws_msk_cluster/main.tf" .Name )}}
 
+### AWS S3 Privatelink
+{{ tffile (printf "examples/%s/s3/main.tf" .Name )}}
+
+### GCP Confluent Privatelink
+{{ tffile (printf "examples/%s/gcp_confluent/main.tf" .Name )}}
+
 {{ .SchemaMarkdown | trimspace }}
 
-For more information see: [MongoDB Atlas API - Streams Privatelink](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Streams/operation/createPrivateLinkConnection) Documentation.
+For more information see: [MongoDB Atlas API - Streams Privatelink](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprivatelinkconnection) Documentation.

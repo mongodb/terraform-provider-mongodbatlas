@@ -110,7 +110,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("no ID is set")
 		}
-		_, _, err := acc.ConnV2().LDAPConfigurationApi.GetLdapConfigurationStatus(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["request_id"]).Execute()
+		_, _, err := acc.ConnV2().LDAPConfigurationApi.GetUserSecurityVerify(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["request_id"]).Execute()
 		if err != nil {
 			return fmt.Errorf("ldapVerify (%s) does not exist", rs.Primary.ID)
 		}

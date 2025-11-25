@@ -1,7 +1,0 @@
-```release-note:bug
-resource/mongodbatlas_advanced_cluster: Supports using decimal in advanced_configuration `oplog_min_retention_hours`
-```
-
-```release-note:bug
-resource/mongodbatlas_cluster: Supports using decimal in advanced_configuration `oplog_min_retention_hours`
-```

@@ -6,7 +6,10 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/customplanmodifier"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
@@ -24,22 +27,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Computed:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the MongoDB Cloud project.",
 			},
-			"links": schema.ListNestedAttribute{
-				Computed:            true,
-				MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"href": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-						},
-						"rel": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-						},
-					},
-				},
-			},
 			"name": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Human-readable label that identifies the project included in the MongoDB Cloud organization.",
@@ -47,6 +34,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"org_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the MongoDB Cloud organization to which the project belongs.",
+				PlanModifiers:       []planmodifier.String{customplanmodifier.CreateOnly()},
 			},
 			"region_usage_restrictions": schema.StringAttribute{
 				Computed:            true,
@@ -56,6 +44,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"tags": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the project.",
+				CustomType:          customtypes.NewNestedListType[TFTagsModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"key": schema.StringAttribute{
@@ -72,26 +61,21 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"with_default_alerts_settings": schema.BoolAttribute{
 				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Flag that indicates whether to create the project with default alert settings.",
+				MarkdownDescription: "Flag that indicates whether to create the project with default alert settings. This setting cannot be updated after project creation.",
 			},
 		},
 	}
 }
 
 type TFModel struct {
-	ClusterCount              types.Int64  `tfsdk:"cluster_count" autogen:"omitjson"`
-	Created                   types.String `tfsdk:"created" autogen:"omitjson"`
-	Id                        types.String `tfsdk:"id" autogen:"omitjson"`
-	Links                     types.List   `tfsdk:"links" autogen:"omitjson"`
-	Name                      types.String `tfsdk:"name"`
-	OrgId                     types.String `tfsdk:"org_id" autogen:"omitjsonupdate"`
-	RegionUsageRestrictions   types.String `tfsdk:"region_usage_restrictions" autogen:"omitjsonupdate"`
-	Tags                      types.List   `tfsdk:"tags"`
-	WithDefaultAlertsSettings types.Bool   `tfsdk:"with_default_alerts_settings" autogen:"omitjsonupdate"`
-}
-type TFLinksModel struct {
-	Href types.String `tfsdk:"href" autogen:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
+	Tags                      customtypes.NestedListValue[TFTagsModel] `tfsdk:"tags"`
+	Created                   types.String                             `tfsdk:"created" autogen:"omitjson"`
+	Id                        types.String                             `tfsdk:"id" autogen:"omitjson"`
+	Name                      types.String                             `tfsdk:"name"`
+	OrgId                     types.String                             `tfsdk:"org_id" autogen:"omitjsonupdate"`
+	RegionUsageRestrictions   types.String                             `tfsdk:"region_usage_restrictions" autogen:"omitjsonupdate"`
+	ClusterCount              types.Int64                              `tfsdk:"cluster_count" autogen:"omitjson"`
+	WithDefaultAlertsSettings types.Bool                               `tfsdk:"with_default_alerts_settings" autogen:"omitjsonupdate"`
 }
 type TFTagsModel struct {
 	Key   types.String `tfsdk:"key"`

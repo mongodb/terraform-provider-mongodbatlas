@@ -12,7 +12,7 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/testResource
       method: DELETE
-  
+
   test_resource_with_nested_attr:
     read:
       path: /api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource
@@ -41,4 +41,91 @@ resources:
       method: PATCH
     delete:
       path: /api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}
+      method: DELETE
+
+  test_singleton_resource_no_delete_op:
+    create:
+      path: /api/atlas/v2/groups/{groupId}/testSingletonResource
+      method: PATCH
+    read:
+      path: /api/atlas/v2/groups/{groupId}/testSingletonResource
+      method: GET
+    update:
+      path: /api/atlas/v2/groups/{groupId}/testSingletonResource
+      method: PATCH
+
+  test_resource_no_update_op:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/testResourceNoUpdate
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/testResourceNoUpdate
+      method: POST
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/testResourceNoUpdate
+      method: DELETE
+
+  test_resource_with_overridden_collection_types:
+    create:
+      path: /api/atlas/v2/groups/{groupId}/testResourceWithCollections
+      method: POST
+    read:
+      path: /api/atlas/v2/groups/{groupId}/testResourceWithCollections
+      method: GET
+    update:
+      path: /api/atlas/v2/groups/{groupId}/testResourceWithCollections
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/testResourceWithCollections
+      method: DELETE
+    schema:
+      overrides:
+        list_string:
+          type: set
+        set_string:
+          type: list
+
+  test_dynamic_json_properties:
+    create:
+      path: /api/atlas/v2/dynamicJsonProperties
+      method: POST
+    read:
+      path: /api/atlas/v2/dynamicJsonProperties
+      method: GET
+    update:
+      path: /api/atlas/v2/dynamicJsonProperties
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/dynamicJsonProperties
+      method: DELETE
+
+  test_resource_move_state:
+    read:
+      path: /api/atlas/v2/groups/{groupId}/simpleTestResource
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/simpleTestResource
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/simpleTestResource
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/simpleTestResource
+      method: DELETE
+    move_state:
+      source_resources: ["test_resource"]
+
+  test_resource_deprecated:
+    deprecation_message: "This resource is deprecated. Please use test_resource_new resource instead."
+    read:
+      path: /api/atlas/v2/groups/{groupId}/simpleTestResource
+      method: GET
+    create:
+      path: /api/atlas/v2/groups/{groupId}/simpleTestResource
+      method: POST
+    update:
+      path: /api/atlas/v2/groups/{groupId}/simpleTestResource
+      method: PATCH
+    delete:
+      path: /api/atlas/v2/groups/{groupId}/simpleTestResource
       method: DELETE

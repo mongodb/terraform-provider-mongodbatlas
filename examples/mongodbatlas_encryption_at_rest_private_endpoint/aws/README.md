@@ -12,8 +12,8 @@ This example shows how to configure encryption at rest using AWS with customer m
 
 **1\. Provide the appropriate values for the input variables.**
 
-- `atlas_public_key`: The public API key for MongoDB Atlas
-- `atlas_private_key`: The private API key for MongoDB Atlas
+- `atlas_client_id`: MongoDB Atlas Service Account Client ID
+- `atlas_client_secret`: MongoDB Atlas Service Account Client Secret
 - `atlas_project_id`: Atlas Project ID
 - `aws_kms_key_id`: ARN that identifies the Amazon Web Services (AWS) Customer Master Key (CMK) to use to encrypt and decrypt
 - `atlas_aws_region`: Region in which the Encryption At Rest private endpoint is located

@@ -1,3 +1,0 @@
-```release-note:enhancement
-resource/mongodbatlas_global_cluster_config: Supports update operation
-```

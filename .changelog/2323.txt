@@ -1,3 +1,0 @@
-```release-note:enhancement
-resource/mongodbatlas_database_user: Supports Workload OIDC `mongodbatlas_database_user`
-```

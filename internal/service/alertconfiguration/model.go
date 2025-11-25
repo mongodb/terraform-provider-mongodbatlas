@@ -2,9 +2,8 @@ package alertconfiguration
 
 import (
 	"fmt"
-	"strings"
 
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312010/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -13,15 +12,6 @@ import (
 
 func NewNotificationList(list []TfNotificationModel) (*[]admin.AlertsNotificationRootForGroup, error) {
 	notifications := make([]admin.AlertsNotificationRootForGroup, len(list))
-
-	for i := range list {
-		if !list[i].IntervalMin.IsNull() && list[i].IntervalMin.ValueInt64() > 0 {
-			typeName := list[i].TypeName.ValueString()
-			if strings.EqualFold(typeName, pagerDuty) || strings.EqualFold(typeName, opsGenie) || strings.EqualFold(typeName, victorOps) {
-				return nil, fmt.Errorf(`'interval_min' must not be set if type_name is 'PAGER_DUTY', 'OPS_GENIE' or 'VICTOR_OPS'`)
-			}
-		}
-	}
 
 	for i := range list {
 		n := &list[i]
@@ -107,6 +97,7 @@ func NewTFAlertConfigurationModel(apiRespConfig *admin.GroupAlertsConfig, currSt
 		ThresholdConfig:       NewTFThresholdConfigModel(apiRespConfig.Threshold, currState.ThresholdConfig),
 		Notification:          NewTFNotificationModelList(apiRespConfig.GetNotifications(), currState.Notification),
 		Matcher:               NewTFMatcherModelList(apiRespConfig.GetMatchers(), currState.Matcher),
+		SeverityOverride:      types.StringPointerValue(apiRespConfig.SeverityOverride),
 	}
 }
 
@@ -298,6 +289,7 @@ func NewTfAlertConfigurationDSModel(apiRespConfig *admin.GroupAlertsConfig, proj
 		ThresholdConfig:       NewTFThresholdConfigModel(apiRespConfig.Threshold, []TfThresholdConfigModel{}),
 		Notification:          NewTFNotificationModelList(apiRespConfig.GetNotifications(), []TfNotificationModel{}),
 		Matcher:               NewTFMatcherModelList(apiRespConfig.GetMatchers(), []TfMatcherModel{}),
+		SeverityOverride:      types.StringPointerValue(apiRespConfig.SeverityOverride),
 	}
 }
 

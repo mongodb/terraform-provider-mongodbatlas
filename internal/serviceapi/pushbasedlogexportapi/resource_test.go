@@ -15,7 +15,6 @@ import (
 const (
 	resourceName       = "mongodbatlas_push_based_log_export_api.test"
 	nonEmptyPrefixPath = "push-log-prefix"
-	defaultPrefixPath  = ""
 )
 
 func TestAccPushBasedLogExportAPI_basic(t *testing.T) {
@@ -56,6 +55,7 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 				ImportState:                          true,
 				ImportStateVerify:                    true,
 				ImportStateVerifyIdentifierAttribute: "group_id",
+				ImportStateVerifyIgnore:              []string{"delete_on_create_timeout"},
 			},
 		},
 	}
@@ -265,7 +265,7 @@ func checkDestroy(state *terraform.State) error {
 	}
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type == "mongodbatlas_push_based_log_export_api" {
-			resp, _, err := acc.ConnV2().PushBasedLogExportApi.GetPushBasedLogConfiguration(context.Background(), rs.Primary.Attributes["group_id"]).Execute()
+			resp, _, err := acc.ConnV2().PushBasedLogExportApi.GetLogExport(context.Background(), rs.Primary.Attributes["group_id"]).Execute()
 			if err == nil && *resp.State != pushbasedlogexport.UnconfiguredState {
 				return fmt.Errorf("push-based log export for group_id %s still configured with state %s", rs.Primary.Attributes["group_id"], rs.Primary.Attributes["state"])
 			}

@@ -1,3 +1,7 @@
+---
+subcategory: "Programmatic API Keys"
+---
+
 # Data Source: mongodbatlas_access_list_api_key
 
 `mongodbatlas_access_list_api_keys` describes an Access List API Key entry resource. The access list grants access from IPs, CIDRs) to clusters within the Project.
@@ -14,7 +18,7 @@ When you remove an entry from the access list, existing connections from the rem
 ### Using CIDR Block
 ```terraform
 resource "mongodbatlas_access_list_api_key" "test" {
-  org_id = "<ORG-ID>"
+  org_id = "<ORG_ID>"
   cidr_block = "1.2.3.4/32"
   api_key = "a29120e123cd"
 }
@@ -29,7 +33,7 @@ data "mongodbatlas_access_list_api_key" "test" {
 ### Using IP Address
 ```terraform
 resource "mongodbatlas_access_list_api_key" "test" {
-  org_id     = "<ORG-ID>"
+  org_id     = "<ORG_ID>"
   ip_address = "2.3.4.5"
   api_key = "a29120e123cd"
 }

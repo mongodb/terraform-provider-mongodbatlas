@@ -1,3 +1,7 @@
+---
+subcategory: "Federated Authentication"
+---
+
 # Data Source: mongodbatlas_federated_settings_org_config
 
 `mongodbatlas_federated_settings_org_config` provides an Federated Settings Identity Providers datasource. Atlas Cloud Federated Settings Organizational configuration provides federated settings outputs for the configured Organizational configuration.

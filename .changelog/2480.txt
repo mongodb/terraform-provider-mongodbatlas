@@ -1,3 +1,0 @@
-```release-note:bug
-resource/mongodbatlas_backup_compliance_policy: Fixes an issue where the update operation modified attributes that were not supposed to be modified"
-```

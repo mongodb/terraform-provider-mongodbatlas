@@ -7,14 +7,14 @@ This example demonstrates how to migrate a `mongodbatlas_cluster` resource to `m
 In this example we use specific files, but the same approach can be applied to any configuration file with `mongodbatlas_cluster` resource(s).
 The main steps are:
 
-1. [Enable the `mongodbatlas_advanced_cluster` preview for MongoDB Atlas Provider 2.0.0](#enable-the-mongodbatlas_advanced_cluster-preview)
+1. *(Only required if using version lower than 2.0)* [Enable the `mongodbatlas_advanced_cluster` preview for MongoDB Atlas Provider 2.0.0](#enable-the-mongodbatlas_advanced_cluster-preview)
 2. [Create the `mongodbatlas_cluster`](#create-the-mongodbatlas_cluster) (skip if you already have a configuration with one or more `mongodbatlas_cluster` resources).
 3. [Use the Atlas CLI Plugin Terraform to create the `mongodbatlas_advanced_cluster` configuration](#use-the-atlas-cli-plugin-terraform-to-create-the-mongodbatlas_advanced_cluster-resource).
 4. [Manually update the Terraform configuration](#manual-updates-to-the-terraform-configuration).
 5. [Perform the Move](#perform-the-move).
    - [Troubleshooting](#troubleshooting).
 
-## Enable the `mongodbatlas_advanced_cluster` preview
+## Enable the `mongodbatlas_advanced_cluster` preview *(Only required if using version lower than 2.0)*
 
 Enable the `mongodbatlas_advanced_cluster` preview for MongoDB Atlas Provider 2.0.0 by setting the environment variable `MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`. More information can be found in the [resource documentation page](../resources/advanced_cluster%2520%2528preview%2520provider%25202.0.0%2529).
 
@@ -66,7 +66,7 @@ moved {
 ## Perform the Move
 
 1. Ensure you are using the MongoDB Atlas Terraform provider 1.29 or later.
-2. Ensure you are using V2 schema: `export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`.
+2. *(Only required if using version lower than 2.0)* Ensure you are using V2 schema: `export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true`.
 3. Run `terraform validate` to ensure there are no missing reference updates. You might see errors like:
    - `Error: Reference to undeclared resource`: You forgot to update the resource type to `mongodbatlas_advanced_cluster`
    ```text

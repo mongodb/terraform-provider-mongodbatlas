@@ -1,3 +1,7 @@
+---
+subcategory: "Auditing"
+---
+
 # Resource: mongodbatlas_auditing
 
 `mongodbatlas_auditing` provides an Auditing resource. This allows auditing to be created.

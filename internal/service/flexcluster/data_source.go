@@ -30,7 +30,7 @@ func (d *ds) Schema(ctx context.Context, req datasource.SchemaRequest, resp *dat
 }
 
 func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var tfModel TFModel
+	var tfModel TFModelDS
 	resp.Diagnostics.Append(req.Config.Get(ctx, &tfModel)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -48,5 +48,6 @@ func (d *ds) Read(ctx context.Context, req datasource.ReadRequest, resp *datasou
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, newFlexClusterModel)...)
+	newFlexClusterModelDS := conversion.CopyModel[TFModelDS](newFlexClusterModel)
+	resp.Diagnostics.Append(resp.State.Set(ctx, newFlexClusterModelDS)...)
 }

@@ -1,3 +1,0 @@
-```release-note:note
-resource/mongodbatlas_alert_configuration: Updates `notification.#.integration_id` to be Optional & Computed
-```

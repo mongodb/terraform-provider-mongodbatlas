@@ -1,3 +1,7 @@
+---
+subcategory: "Encryption at Rest using Customer Key Management"
+---
+
 # Data Source: mongodbatlas_encryption_at_rest_private_endpoints
 
 `mongodbatlas_encryption_at_rest_private_endpoints` describes private endpoints of a particular cloud provider used for encryption at rest using customer-managed keys.
@@ -58,5 +62,5 @@ Read-Only:
 - `status` (String) State of the Encryption At Rest private endpoint.
 
 For more information see: 
-- [MongoDB Atlas API - Private Endpoint for Encryption at Rest Using Customer Key Management](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Encryption-at-Rest-using-Customer-Key-Management/operation/getEncryptionAtRestPrivateEndpointsForCloudProvider) Documentation.
+- [MongoDB Atlas API - Private Endpoint for Encryption at Rest Using Customer Key Management](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getencryptionatrestprivateendpointsForCloudProvider) Documentation.
 - [Manage Customer Keys with Azure Key Vault Over Private Endpoints](https://www.mongodb.com/docs/atlas/security/azure-kms-over-private-endpoint/).

@@ -1,0 +1,15 @@
+```release-note:breaking-change
+resource/mongodbatlas_privatelink_endpoint_serverless: Removes resource
+```
+
+```release-note:breaking-change
+resource/mongodbatlas_privatelink_endpoint_service_serverless: Removes resource
+```
+
+```release-note:breaking-change
+data-source/mongodbatlas_privatelink_endpoint_serverless: Removes data source
+```
+
+```release-note:breaking-change
+data-source/mongodbatlas_privatelink_endpoint_serverless: Removes data source
+```

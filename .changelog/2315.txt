@@ -1,3 +1,0 @@
-```release-note:bug
-resource/mongodbatlas_network_peering: Fixes computed values of `altas_gcp_project_id` and `atlas_vpc_name` to provide GCP related values
-```

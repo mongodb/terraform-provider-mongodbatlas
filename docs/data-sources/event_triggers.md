@@ -1,3 +1,7 @@
+---
+subcategory: "Event Trigger"
+---
+
 # Data Source: mongodbatlas_event_triggers
 
 `mongodbatlas_event_triggers` describes all Event Triggers.
@@ -33,7 +37,7 @@ data "mongodbatlas_event_triggers" "test" {
 
 * `project_id` - (Required) The unique ID for the project to get all event triggers.
 * `app_id` - (Required) The ObjectID of your application.
-    * For more details on `project_id` and `app_id` see: https://www.mongodb.com/docs/atlas/app-services/admin/api/v3/#section/Project-and-Application-IDs    
+    * For more details on `project_id` and `app_id` see: https://www.mongodb.com/docs/api/doc/atlas-app-services-admin-api-v3/#topic-project-amp-application-ids    
 
 ## Attributes Reference
 

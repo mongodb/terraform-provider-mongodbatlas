@@ -32,7 +32,7 @@ func (d *controlPlaneIPAddressesDS) Schema(ctx context.Context, req datasource.S
 
 func (d *controlPlaneIPAddressesDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	connV2 := d.Client.AtlasV2
-	apiResp, _, err := connV2.RootApi.ReturnAllControlPlaneIpAddresses(ctx).Execute()
+	apiResp, _, err := connV2.RootApi.ListControlPlaneAddresses(ctx).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error fetching control plane ip addresses", err.Error())
 		return

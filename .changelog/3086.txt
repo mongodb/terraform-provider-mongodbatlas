@@ -1,3 +1,0 @@
-```release-note:bug
-resource/mongodbatlas_maintenance_window: Avoids error in creation when `hour_of_day` is set to zero or not defined
-```

@@ -1,7 +1,0 @@
-```release-note:bug
-data-source/mongodbatlas_advanced_cluster: Converts `replication_specs` from TypeSet to TypeList. This fixes an issue where some items were not returned in the results.
-```
-
-```release-note:bug
-data-source/mongodbatlas_advanced_clusters: Converts `replication_specs` from TypeSet to TypeList. This fixes an issue where some items were not returned in the results.
-```

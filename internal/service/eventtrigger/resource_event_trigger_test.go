@@ -484,7 +484,7 @@ func TestAccEventTrigger_functionBasic(t *testing.T) {
 func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		ctx := context.Background()
-		conn, err := acc.MongoDBClient.GetRealmClient(ctx)
+		conn, err := acc.MongoDBClient.Realm.Get(ctx)
 		if err != nil {
 			return err
 		}
@@ -513,7 +513,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 
 func checkDestroy(s *terraform.State) error {
 	ctx := context.Background()
-	conn, err := acc.MongoDBClient.GetRealmClient(ctx)
+	conn, err := acc.MongoDBClient.Realm.Get(ctx)
 	if err != nil {
 		return err
 	}

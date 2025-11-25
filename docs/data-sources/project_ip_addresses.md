@@ -1,3 +1,7 @@
+---
+subcategory: "Projects"
+---
+
 # Data Source: mongodbatlas_project_ip_addresses
 
 `mongodbatlas_project_ip_addresses` returns the IP addresses in a project categorized by services.
@@ -42,4 +46,4 @@ Read-Only:
 - `inbound` (List of String) List of inbound IP addresses associated with the cluster. If your network allows outbound HTTP requests only to specific IP addresses, you must allow access to the following IP addresses so that your application can connect to your Atlas cluster.
 - `outbound` (List of String) List of outbound IP addresses associated with the cluster. If your network allows inbound HTTP requests only from specific IP addresses, you must allow access from the following IP addresses so that your Atlas cluster can communicate with your webhooks and KMS.
 
-For more information see: [MongoDB Atlas API - Return All IP Addresses for One Project](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Projects/operation/returnAllIPAddresses) Documentation.
+For more information see: [MongoDB Atlas API - Return All IP Addresses for One Project](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-returnallipaddresses) Documentation.

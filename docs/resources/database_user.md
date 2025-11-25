@@ -1,3 +1,7 @@
+---
+subcategory: "Database Users"
+---
+
 # Resource: mongodbatlas_database_user
 
 `mongodbatlas_database_user` provides a Database User resource. This represents a database user which will be applied to all clusters within the project.
@@ -115,6 +119,10 @@ resource "mongodbatlas_database_user" "test" {
 Note: OIDC support is only avalible starting in [MongoDB 7.0](https://www.mongodb.com/evolved#mdbsevenzero) or later. To learn more, see the [MongoDB Atlas documentation](https://www.mongodb.com/docs/atlas/security-oidc/).
 
 
+### Further Examples
+- [Database User](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/mongodbatlas_database_user)
+
+
 ## Argument Reference
 
 * `auth_database_name` - (Required) Database against which Atlas authenticates the user. A user must provide both a username and authentication database to log into MongoDB.
@@ -166,10 +174,10 @@ Containing key-value pairs that tag and categorize the database user. Each key a
 * `value` - The value that you want to write.
 
 ### Scopes
-Array of clusters and Atlas Data Lakes that this user has access to. If omitted, Atlas grants the user access to all the clusters and Atlas Data Lakes in the project by default.
+Array of clusters and Atlas Data Federation that this user has access to. If omitted, Atlas grants the user access to all the clusters and Atlas Data Federation in the project by default.
 
-* `name` - (Required) Name of the cluster or Atlas Data Lake that the user has access to.
-* `type` - (Required) Type of resource that the user has access to. See [Database User API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Database-Users/operation/createDatabaseUser) for the list of valid values.
+* `name` - (Required) Name of the cluster or Atlas Data Federation that the user has access to.
+* `type` - (Required) Type of resource that the user has access to. See [Database User API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createdatabaseuser) for the list of valid values.
 
 ## Attributes Reference
 

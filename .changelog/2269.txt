@@ -1,3 +1,0 @@
-```release-note:bug
-resource/mongodbatlas_cloud_backup_snapshot_export_bucket: Calls DeleteExportBucket before checking for a status update so that the delete operation doesn't hang
-```

@@ -1,31 +1,33 @@
 package schema
 
 import (
+	"fmt"
 	"go/format"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/codespec"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/gofilegen/codetemplate"
 )
 
-func GenerateGoCode(input *codespec.Resource, withObjTypes bool) string {
+func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
 	schemaAttrs := GenerateSchemaAttributes(input.Schema.Attributes)
-	models := GenerateTypedModels(input.Schema.Attributes, withObjTypes)
+	models := GenerateTypedModels(input.Schema.Attributes)
 
 	imports := []string{"github.com/hashicorp/terraform-plugin-framework/resource/schema"}
 	imports = append(imports, schemaAttrs.Imports...)
 	imports = append(imports, models.Imports...)
 
 	tmplInputs := codetemplate.SchemaFileInputs{
-		PackageName:      input.Name.LowerCaseNoUnderscore(),
-		Imports:          imports,
-		SchemaAttributes: schemaAttrs.Code,
-		Models:           models.Code,
+		PackageName:        input.PackageName,
+		Imports:            imports,
+		SchemaAttributes:   schemaAttrs.Code,
+		Models:             models.Code,
+		DeprecationMessage: input.Schema.DeprecationMessage,
 	}
-	result := codetemplate.ApplySchemaFileTemplate(tmplInputs)
+	result := codetemplate.ApplySchemaFileTemplate(&tmplInputs)
 
 	formattedResult, err := format.Source(result.Bytes())
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("failed to format generated Go code (schema): %w", err)
 	}
-	return string(formattedResult)
+	return formattedResult, nil
 }

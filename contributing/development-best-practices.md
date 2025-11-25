@@ -35,7 +35,7 @@ The generation command makes use of a configuration file defined under [`./tools
 The generation command takes a single optional argument `resource_name`. If not provided, all resources defined in the configuration are generated.
 
 ```bash
-make generate-resource-code resource_name=search_deployment_api
+make resource-generation-pipeline resource_name=search_deployment_api
 ```
 
 As a result, content of schemas and models will be written into the corresponding resource packages:
@@ -50,7 +50,7 @@ And operations will be written into:
 ##### (Legacy) Using schema generation HashiCorp tooling
 
 
-Complementary to the `scaffold` command, there is a command which generates the initial Terraform schema definition and associated Go types for a resource or data source. This processes leverages [Code Generation Tools](https://developer.hashicorp.com/terraform/plugin/code-generation) developed by HashiCorp, which in turn make use of the [Atlas Admin API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/) OpenAPI Specification.
+Complementary to the `scaffold` command, there is a command which generates the initial Terraform schema definition and associated Go types for a resource or data source. This processes leverages [Code Generation Tools](https://developer.hashicorp.com/terraform/plugin/code-generation) developed by HashiCorp, which in turn make use of the [Atlas Admin API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/) OpenAPI Specification.
 
 ###### Running the command
 

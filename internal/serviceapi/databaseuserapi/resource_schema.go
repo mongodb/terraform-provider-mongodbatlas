@@ -7,12 +7,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"aws_iamtype": schema.StringAttribute{
+			"aws_iam_type": schema.StringAttribute{
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "Human-readable label that indicates whether the new database user authenticates with the Amazon Web Services (AWS) Identity and Access Management (IAM) credentials associated with the user or the user's role.",
@@ -37,6 +38,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"labels": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "List that contains the key-value pairs for tagging and categorizing the MongoDB database user. The labels that you define do not appear in the console.",
+				CustomType:          customtypes.NewNestedListType[TFLabelsModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"key": schema.StringAttribute{
@@ -55,22 +57,6 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional:            true,
 				MarkdownDescription: "Part of the Lightweight Directory Access Protocol (LDAP) record that the database uses to authenticate this database user on the LDAP host.",
 			},
-			"links": schema.ListNestedAttribute{
-				Computed:            true,
-				MarkdownDescription: "List of one or more Uniform Resource Locators (URLs) that point to API sub-resources, related API resources, or both. RFC 5988 outlines these relationships.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"href": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Uniform Resource Locator (URL) that points another API resource to which this response has some relationship. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-						},
-						"rel": schema.StringAttribute{
-							Computed:            true,
-							MarkdownDescription: "Uniform Resource Locator (URL) that defines the semantic relationship between this resource and another API resource. This URL often begins with `https://cloud.mongodb.com/api/atlas`.",
-						},
-					},
-				},
-			},
 			"oidc_auth_type": schema.StringAttribute{
 				Computed:            true,
 				Optional:            true,
@@ -84,6 +70,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			"roles": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "List that provides the pairings of one role with one applicable database.",
+				CustomType:          customtypes.NewNestedListType[TFRolesModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"collection_name": schema.StringAttribute{
@@ -103,7 +90,8 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 			},
 			"scopes": schema.ListNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "List that contains clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Instances that this database user can access. If omitted, MongoDB Cloud grants the database user access to all the clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Instances in the project.",
+				MarkdownDescription: "List that contains clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Workspaces that this database user can access. If omitted, MongoDB Cloud grants the database user access to all the clusters, MongoDB Atlas Data Lakes, and MongoDB Atlas Streams Workspaces in the project.",
+				CustomType:          customtypes.NewNestedListType[TFScopesModel](ctx),
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
@@ -121,7 +109,7 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Required:            true,
 				MarkdownDescription: "Human-readable label that represents the user that authenticates to MongoDB. The format of this label depends on the method of authentication:\n\n| Authentication Method | Parameter Needed | Parameter Value | username Format |\n|---|---|---|---|\n| AWS IAM | awsIAMType | ROLE | <abbr title=\"Amazon Resource Name\">ARN</abbr> |\n| AWS IAM | awsIAMType | USER | <abbr title=\"Amazon Resource Name\">ARN</abbr> |\n| x.509 | x509Type | CUSTOMER | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |\n| x.509 | x509Type | MANAGED | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |\n| LDAP | ldapAuthType | USER | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |\n| LDAP | ldapAuthType | GROUP | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |\n| OIDC Workforce | oidcAuthType | IDP_GROUP | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP group name |\n| OIDC Workload | oidcAuthType | USER | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP user name |\n| SCRAM-SHA | awsIAMType, x509Type, ldapAuthType, oidcAuthType | NONE | Alphanumeric string |\n",
 			},
-			"x509type": schema.StringAttribute{
+			"x509_type": schema.StringAttribute{
 				Computed:            true,
 				Optional:            true,
 				MarkdownDescription: "X.509 method that MongoDB Cloud uses to authenticate the database user.\n\n- For application-managed X.509, specify `MANAGED`.\n- For self-managed X.509, specify `CUSTOMER`.\n\nUsers created with the `CUSTOMER` method require a Common Name (CN) in the **username** parameter. You must create externally authenticated users on the `$external` database.",
@@ -131,28 +119,23 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 }
 
 type TFModel struct {
-	AwsIamtype      types.String `tfsdk:"aws_iamtype"`
-	DatabaseName    types.String `tfsdk:"database_name"`
-	DeleteAfterDate types.String `tfsdk:"delete_after_date"`
-	Description     types.String `tfsdk:"description"`
-	GroupId         types.String `tfsdk:"group_id"`
-	Labels          types.List   `tfsdk:"labels"`
-	LdapAuthType    types.String `tfsdk:"ldap_auth_type"`
-	Links           types.List   `tfsdk:"links" autogen:"omitjson"`
-	OidcAuthType    types.String `tfsdk:"oidc_auth_type"`
-	Password        types.String `tfsdk:"password"`
-	Roles           types.List   `tfsdk:"roles"`
-	Scopes          types.List   `tfsdk:"scopes"`
-	Username        types.String `tfsdk:"username"`
-	X509type        types.String `tfsdk:"x509type"`
+	AwsIAMType      types.String                               `tfsdk:"aws_iam_type"`
+	DatabaseName    types.String                               `tfsdk:"database_name"`
+	DeleteAfterDate types.String                               `tfsdk:"delete_after_date"`
+	Description     types.String                               `tfsdk:"description" autogen:"includenullonupdate"`
+	GroupId         types.String                               `tfsdk:"group_id"`
+	Labels          customtypes.NestedListValue[TFLabelsModel] `tfsdk:"labels"`
+	LdapAuthType    types.String                               `tfsdk:"ldap_auth_type"`
+	OidcAuthType    types.String                               `tfsdk:"oidc_auth_type"`
+	Password        types.String                               `tfsdk:"password" autogen:"sensitive"`
+	Roles           customtypes.NestedListValue[TFRolesModel]  `tfsdk:"roles"`
+	Scopes          customtypes.NestedListValue[TFScopesModel] `tfsdk:"scopes"`
+	Username        types.String                               `tfsdk:"username"`
+	X509Type        types.String                               `tfsdk:"x509_type"`
 }
 type TFLabelsModel struct {
 	Key   types.String `tfsdk:"key"`
 	Value types.String `tfsdk:"value"`
-}
-type TFLinksModel struct {
-	Href types.String `tfsdk:"href" autogen:"omitjson"`
-	Rel  types.String `tfsdk:"rel" autogen:"omitjson"`
 }
 type TFRolesModel struct {
 	CollectionName types.String `tfsdk:"collection_name"`

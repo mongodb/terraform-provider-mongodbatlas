@@ -2,8 +2,9 @@ name: "HashiCorp Terraform Compatibility Matrix"
 run-name: 'HashiCorp Terraform Compatibility Matrix ${{ inputs.atlas_cloud_env }}'
 
 on:
-  schedule:
-    - cron: "0 0 1 * *" # runs first day of the month at midnight UTC
+  # Will be spread in multiple days in CLOUDP-353513, don't schedule at the moment.
+  # schedule:
+  #  - cron: "0 0 1 * *" # runs first day of the month at midnight UTC
   workflow_dispatch:
     inputs:
       atlas_cloud_env:
@@ -20,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
       - name: Get HashiCorp Terraform supported versions
         shell: bash
         id: get-terraform-supported-versions
@@ -56,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
       - name: Get content of slack message
         id: slack-payload
         run: |
@@ -64,7 +65,7 @@ jobs:
           echo "slack_payload=${slack_message}" >> "${GITHUB_OUTPUT}"
       - name: Send Slack message
         id: slack
-        uses: slackapi/slack-github-action@b0fa283ad8fea605de13dc3f449259339835fc52
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook

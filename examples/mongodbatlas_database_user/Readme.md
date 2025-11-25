@@ -1,6 +1,6 @@
 # Example - MongoDB Atlas Database User Scope Use
 
-This project aims to provide a very straight-forward example of setting up scope on database user in MongoDB Atlas. Using this, the database user access can be limited to a cluster or data lake.
+This project aims to provide a very straight-forward example of setting up scope on database user in MongoDB Atlas. Using this, the database user access can be limited to a cluster or Atlas Data Federation.
 
 ![MongoDB Atlas DB User](https://github.com/nikhil-mongo/atlas-database-users/blob/master/atlas-1.png?raw=true)
 
@@ -19,8 +19,8 @@ This can be done using environment variables:
 
 
 ```bash
-export MONGODB_ATLAS_PUBLIC_KEY="<ATLAS_PUBLIC_KEY>"
-export MONGODB_ATLAS_PRIVATE_KEY="<ATLAS_PRIVATE_KEY>"
+export MONGODB_ATLAS_CLIENT_ID="<ATLAS_CLIENT_ID>"
+export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 ```
 
 ... or follow as in the `variables.tf` file and create **terraform.tfvars** file with all the variable values and make sure **not to commit it**.
@@ -35,7 +35,7 @@ $ terraform plan
 This project currently does the below deployments:
 
 - MongoDB cluster - M10
-- Creates 2 database users, with the access scope to the database and data lake.
+- Creates 2 database users, with the access scope to the database and Atlas Data Federation.
 
 **4\. Execute the Terraform apply.**
 

@@ -16,13 +16,13 @@ resource "mongodbatlas_advanced_cluster" "automated_backup_test_cluster" {
   name         = each.value.name
   cluster_type = "REPLICASET"
 
-  replication_specs {
-    region_configs {
-      electable_specs {
+  replication_specs = [{
+    region_configs = [{
+      electable_specs = {
         instance_size = "M10"
         node_count    = 3
       }
-      analytics_specs {
+      analytics_specs = {
         instance_size = "M10"
         node_count    = 1
       }
@@ -30,8 +30,8 @@ resource "mongodbatlas_advanced_cluster" "automated_backup_test_cluster" {
       provider_name = "AWS"
       region_name   = each.value.region
       priority      = 7
-    }
-  }
+    }]
+  }]
 
   backup_enabled = true # enable cloud backup snapshots
   pit_enabled    = true
@@ -55,7 +55,7 @@ resource "mongodbatlas_cloud_backup_schedule" "test" {
       "YEARLY",
     "ON_DEMAND"]
     region_name        = "US_WEST_1"
-    zone_id            = mongodbatlas_advanced_cluster.automated_backup_test_cluster[each.key].replication_specs[0].zone_id[0]
+    zone_id            = mongodbatlas_advanced_cluster.automated_backup_test_cluster[each.key].replication_specs[0].zone_id
     should_copy_oplogs = true
   }
 

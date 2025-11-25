@@ -1,3 +1,7 @@
+---
+subcategory: "Clusters"
+---
+
 # Data Source: mongodbatlas_mongodb_employee_access_grant
 
 `mongodbatlas_mongodb_employee_access_grant` describes a MongoDB employee access grant.
@@ -40,4 +44,4 @@ output "expiration_time" {
 - `expiration_time` (String) Expiration date for the employee access grant.
 - `grant_type` (String) Level of access to grant to MongoDB Employees. Possible values are CLUSTER_DATABASE_LOGS, CLUSTER_INFRASTRUCTURE or CLUSTER_INFRASTRUCTURE_AND_APP_SERVICES_SYNC_DATA.
 
-For more information see: [MongoDB Employee Access Grant API doc](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/grantMongoDBEmployeeAccess).
+For more information see: [MongoDB Employee Access Grant API doc](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-grantmongodbemployeeaccess).

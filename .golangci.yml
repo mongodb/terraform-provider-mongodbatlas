@@ -9,6 +9,7 @@ linters:
     - dogsled
     - errcheck
     - exhaustive
+    - forbidigo
     - funlen
     - gocritic
     - goprintffuncname
@@ -32,8 +33,13 @@ linters:
     - unused
     - usetesting
     - whitespace
+    - usestdlibvars
 
   settings:
+    forbidigo:
+      forbid:
+        - pattern: 'context\.Background'
+          msg: 'Use of context.Background() is discouraged; use the ctx parameter instead to preserve analytics tracking'
     funlen:
       lines: 360
       statements: 120
@@ -107,8 +113,11 @@ linters:
       - linters:
           - gocritic
         text: "^hugeParam: req is heavy"
-      - path: schema\.go # exclude rules for schema files as it's auto-genereated from OpenAPI spec
-        text: fieldalignment|hugeParam|var-naming|ST1003|S1007|exceeds the maximum|too long|regexpSimplify|nolint
+      - linters:
+          - forbidigo
+        path: '(_test\.go$|tools/|internal/(config|common|provider|testutil)/)'
+      - path: schema\.go # exclude rules for schema files as it's auto-generated from OpenAPI spec
+        text: var-naming|exceeds the maximum|regexpSimplify
       - path: (.+)\.go$
         text: declaration of ".*" shadows declaration at line .*
 formatters:

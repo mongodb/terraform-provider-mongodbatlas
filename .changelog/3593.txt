@@ -1,0 +1,7 @@
+```release-note:breaking-change
+resource/mongodbatlas_teams: Removes resource
+```
+
+```release-note:breaking-change
+data-source/mongodbatlas_teams: Removes datasource
+```

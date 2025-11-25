@@ -7,24 +7,29 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/streamconnection"
 	"github.com/stretchr/testify/assert"
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312010/admin"
 )
 
 const (
-	connectionName            = "Connection"
-	typeValue                 = ""
-	clusterName               = "Cluster0"
-	dummyProjectID            = "111111111111111111111111"
-	instanceName              = "InstanceName"
-	authMechanism             = "PLAIN"
-	authUsername              = "user1"
+	connectionName = "Connection"
+	clusterName    = "Cluster0"
+	dummyProjectID = "111111111111111111111111"
+	instanceName   = "InstanceName"
+	authMechanism  = "PLAIN"
+	authUsername   = "user1"
+	clientID       = "auth0Client"
+	clientSecret   = "secret"
+	// #nosec G101
+	tokenEndpointURL          = "https://your-domain.com/"
+	scope                     = "read:messages write:messages"
+	saslOauthbearerExtentions = "logicalCluster=cluster-kmo17m,identityPoolId=pool-l7Arl"
+	method                    = "OIDC"
 	securityProtocol          = "SASL_SSL"
 	bootstrapServers          = "localhost:9092,another.host:9092"
 	dbRole                    = "customRole"
 	dbRoleType                = "CUSTOM"
 	sampleConnectionName      = "sample_stream_solar"
 	networkingType            = "PUBLIC"
-	privatelinkNetworkingType = "PRIVATE_LINK"
 	awslambdaConnectionName   = "aws_lambda_connection"
 	sampleRoleArn             = "rn:aws:iam::123456789123:role/sample"
 	httpsURL                  = "https://example.com"
@@ -50,6 +55,7 @@ type sdkToTFModelTestCase struct {
 
 func TestStreamConnectionSDKToTFModel(t *testing.T) {
 	var authConfigWithPasswordDefined = tfAuthenticationObject(t, authMechanism, authUsername, "raw password")
+	var authConfigWithOAuth = tfAuthenticationObjectForOAuth(t, authMechanism, clientID, clientSecret, tokenEndpointURL, scope, saslOauthbearerExtentions, method)
 
 	testCases := []sdkToTFModelTestCase{
 		{
@@ -68,7 +74,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			providedAuthConfig:   nil,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:       types.StringValue(dummyProjectID),
-				InstanceName:    types.StringValue(instanceName),
+				WorkspaceName:   types.StringValue(instanceName),
 				ConnectionName:  types.StringValue(connectionName),
 				Type:            types.StringValue("Cluster"),
 				ClusterName:     types.StringValue(clusterName),
@@ -79,6 +85,37 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 				Networking:      types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
 				AWS:             types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
 				Headers:         types.MapNull(types.StringType),
+			},
+		},
+		{
+			name: "Cluster cross project connection type SDK response",
+			SDKResp: &admin.StreamsConnection{
+				Name:           admin.PtrString(connectionName),
+				Type:           admin.PtrString("Cluster"),
+				ClusterName:    admin.PtrString(clusterName),
+				ClusterGroupId: admin.PtrString("foo"),
+				DbRoleToExecute: &admin.DBRoleToExecute{
+					Role: admin.PtrString(dbRole),
+					Type: admin.PtrString(dbRoleType),
+				},
+			},
+			providedProjID:       dummyProjectID,
+			providedInstanceName: instanceName,
+			providedAuthConfig:   nil,
+			expectedTFModel: &streamconnection.TFStreamConnectionModel{
+				ProjectID:        types.StringValue(dummyProjectID),
+				WorkspaceName:    types.StringValue(instanceName),
+				ConnectionName:   types.StringValue(connectionName),
+				Type:             types.StringValue("Cluster"),
+				ClusterName:      types.StringValue(clusterName),
+				ClusterProjectID: types.StringValue("foo"),
+				Authentication:   types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
+				Config:           types.MapNull(types.StringType),
+				Security:         types.ObjectNull(streamconnection.ConnectionSecurityObjectType.AttrTypes),
+				DBRoleToExecute:  tfDBRoleToExecuteObject(t, dbRole, dbRoleType),
+				Networking:       types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+				AWS:              types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+				Headers:          types.MapNull(types.StringType),
 			},
 		},
 		{
@@ -102,10 +139,48 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			providedAuthConfig:   &authConfigWithPasswordDefined,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:        types.StringValue(dummyProjectID),
-				InstanceName:     types.StringValue(instanceName),
+				WorkspaceName:    types.StringValue(instanceName),
 				ConnectionName:   types.StringValue(connectionName),
 				Type:             types.StringValue("Kafka"),
 				Authentication:   tfAuthenticationObject(t, authMechanism, authUsername, "raw password"), // password value is obtained from config, not api resp.
+				BootstrapServers: types.StringValue(bootstrapServers),
+				Config:           tfConfigMap(t, configMap),
+				Security:         tfSecurityObject(t, DummyCACert, securityProtocol),
+				DBRoleToExecute:  types.ObjectNull(streamconnection.DBRoleToExecuteObjectType.AttrTypes),
+				Networking:       types.ObjectNull(streamconnection.NetworkingObjectType.AttrTypes),
+				AWS:              types.ObjectNull(streamconnection.AWSObjectType.AttrTypes),
+				Headers:          types.MapNull(types.StringType),
+			},
+		},
+		{
+			name: "Kafka connection type SDK response for OAuthBearer authentication",
+			SDKResp: &admin.StreamsConnection{
+				Name: admin.PtrString(connectionName),
+				Type: admin.PtrString("Kafka"),
+				Authentication: &admin.StreamsKafkaAuthentication{
+					Mechanism:                 admin.PtrString(authMechanism),
+					Method:                    admin.PtrString(method),
+					ClientId:                  admin.PtrString(clientID),
+					TokenEndpointUrl:          admin.PtrString(tokenEndpointURL),
+					Scope:                     admin.PtrString(scope),
+					SaslOauthbearerExtensions: admin.PtrString(saslOauthbearerExtentions),
+				},
+				BootstrapServers: admin.PtrString(bootstrapServers),
+				Config:           &configMap,
+				Security: &admin.StreamsKafkaSecurity{
+					Protocol:                admin.PtrString(securityProtocol),
+					BrokerPublicCertificate: admin.PtrString(DummyCACert),
+				},
+			},
+			providedProjID:       dummyProjectID,
+			providedInstanceName: instanceName,
+			providedAuthConfig:   &authConfigWithOAuth,
+			expectedTFModel: &streamconnection.TFStreamConnectionModel{
+				ProjectID:        types.StringValue(dummyProjectID),
+				WorkspaceName:    types.StringValue(instanceName),
+				ConnectionName:   types.StringValue(connectionName),
+				Type:             types.StringValue("Kafka"),
+				Authentication:   tfAuthenticationObjectForOAuth(t, authMechanism, clientID, clientSecret, tokenEndpointURL, scope, saslOauthbearerExtentions, method), // password value is obtained from config, not api resp.
 				BootstrapServers: types.StringValue(bootstrapServers),
 				Config:           tfConfigMap(t, configMap),
 				Security:         tfSecurityObject(t, DummyCACert, securityProtocol),
@@ -126,7 +201,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			providedAuthConfig:   nil,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:       types.StringValue(dummyProjectID),
-				InstanceName:    types.StringValue(instanceName),
+				WorkspaceName:   types.StringValue(instanceName),
 				ConnectionName:  types.StringValue(connectionName),
 				Type:            types.StringValue("Kafka"),
 				Authentication:  types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
@@ -159,7 +234,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			providedAuthConfig:   nil,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:        types.StringValue(dummyProjectID),
-				InstanceName:     types.StringValue(instanceName),
+				WorkspaceName:    types.StringValue(instanceName),
 				ConnectionName:   types.StringValue(connectionName),
 				Type:             types.StringValue("Kafka"),
 				Authentication:   tfAuthenticationObjectWithNoPassword(t, authMechanism, authUsername),
@@ -182,7 +257,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			providedInstanceName: instanceName,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:       types.StringValue(dummyProjectID),
-				InstanceName:    types.StringValue(instanceName),
+				WorkspaceName:   types.StringValue(instanceName),
 				ConnectionName:  types.StringValue(sampleConnectionName),
 				Type:            types.StringValue("Sample"),
 				Authentication:  types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
@@ -205,7 +280,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 			providedInstanceName: instanceName,
 			expectedTFModel: &streamconnection.TFStreamConnectionModel{
 				ProjectID:       types.StringValue(dummyProjectID),
-				InstanceName:    types.StringValue(instanceName),
+				WorkspaceName:   types.StringValue(instanceName),
 				ConnectionName:  types.StringValue(awslambdaConnectionName),
 				Type:            types.StringValue("AWSLambda"),
 				Authentication:  types.ObjectNull(streamconnection.ConnectionAuthenticationObjectType.AttrTypes),
@@ -221,7 +296,7 @@ func TestStreamConnectionSDKToTFModel(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			resultModel, diags := streamconnection.NewTFStreamConnection(t.Context(), tc.providedProjID, tc.providedInstanceName, tc.providedAuthConfig, tc.SDKResp)
+			resultModel, diags := streamconnection.NewTFStreamConnection(t.Context(), tc.providedProjID, "", tc.providedInstanceName, tc.providedAuthConfig, tc.SDKResp)
 			if diags.HasError() {
 				t.Fatalf("unexpected errors found: %s", diags.Errors()[0].Summary())
 			}
@@ -405,6 +480,25 @@ func TestStreamConnectionsSDKToTFModel(t *testing.T) {
 				Results:      []streamconnection.TFStreamConnectionModel{},
 			},
 		},
+		{
+			name: "With workspace name and no page options",
+			SDKResp: &admin.PaginatedApiStreamsConnection{
+				Results:    &[]admin.StreamsConnection{},
+				TotalCount: admin.PtrInt(0),
+			},
+			providedConfig: &streamconnection.TFStreamConnectionsDSModel{
+				ProjectID:     types.StringValue(dummyProjectID),
+				WorkspaceName: types.StringValue(instanceName),
+			},
+			expectedTFModel: &streamconnection.TFStreamConnectionsDSModel{
+				ProjectID:     types.StringValue(dummyProjectID),
+				WorkspaceName: types.StringValue(instanceName),
+				PageNum:       types.Int64Null(),
+				ItemsPerPage:  types.Int64Null(),
+				TotalCount:    types.Int64Value(0),
+				Results:       []streamconnection.TFStreamConnectionModel{},
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -558,6 +652,23 @@ func tfAuthenticationObject(t *testing.T, mechanism, username, password string) 
 		Mechanism: types.StringValue(mechanism),
 		Username:  types.StringValue(username),
 		Password:  types.StringValue(password),
+	})
+	if diags.HasError() {
+		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())
+	}
+	return auth
+}
+
+func tfAuthenticationObjectForOAuth(t *testing.T, mechanism, clientID, clientSecret, tokenEndpointURL, scope, saslOauthbearerExtensions, method string) types.Object {
+	t.Helper()
+	auth, diags := types.ObjectValueFrom(t.Context(), streamconnection.ConnectionAuthenticationObjectType.AttrTypes, streamconnection.TFConnectionAuthenticationModel{
+		Mechanism:                 types.StringValue(mechanism),
+		Method:                    types.StringValue(method),
+		ClientID:                  types.StringValue(clientID),
+		ClientSecret:              types.StringValue(clientSecret),
+		TokenEndpointURL:          types.StringValue(tokenEndpointURL),
+		Scope:                     types.StringValue(scope),
+		SaslOauthbearerExtensions: types.StringValue(saslOauthbearerExtensions),
 	})
 	if diags.HasError() {
 		t.Errorf("failed to create terraform data model: %s", diags.Errors()[0].Summary())

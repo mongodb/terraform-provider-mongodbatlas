@@ -67,7 +67,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	username := d.Get("username").(string)
 
 	if username != "" {
-		resp, _, err := connV2.X509AuthenticationApi.ListDatabaseUserCertificates(ctx, projectID, username).Execute()
+		resp, _, err := connV2.X509AuthenticationApi.ListDatabaseUserCerts(ctx, projectID, username).Execute()
 		if err != nil {
 			return diag.FromErr(fmt.Errorf(errorX509AuthDBUsersRead, username, projectID, err))
 		}
@@ -78,7 +78,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 		}
 	}
 
-	resp, _, err := connV2.LDAPConfigurationApi.GetLdapConfiguration(ctx, projectID).Execute()
+	resp, _, err := connV2.LDAPConfigurationApi.GetUserSecurity(ctx, projectID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorCustomerX509AuthDBUsersRead, projectID, err))
 	}

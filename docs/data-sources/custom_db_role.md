@@ -1,3 +1,7 @@
+---
+subcategory: "Database Users"
+---
+
 # Data Source: mongodbatlas_custom_db_role
 
 `mongodbatlas_custom_db_role` describes a Custom DB Role. This represents a custom db role.

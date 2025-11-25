@@ -12,7 +12,7 @@ type ListNestedAttrGenerator struct {
 }
 
 func (l *ListNestedAttrGenerator) AttributeCode() CodeStatement {
-	return commonAttrStructure(&l.attr, "schema.ListNestedAttribute", []CodeStatement{nestedObjectProperty(l.listNestedModel.NestedObject)})
+	return commonAttrStructure(&l.attr, "schema.ListNestedAttribute", "planmodifier.List", []CodeStatement{nestedObjectProperty(l.listNestedModel.NestedObject)})
 }
 
 type SetNestedGenerator struct {
@@ -21,7 +21,7 @@ type SetNestedGenerator struct {
 }
 
 func (l *SetNestedGenerator) AttributeCode() CodeStatement {
-	return commonAttrStructure(&l.attr, "schema.SetNestedAttribute", []CodeStatement{nestedObjectProperty(l.setNestedModel.NestedObject)})
+	return commonAttrStructure(&l.attr, "schema.SetNestedAttribute", "planmodifier.Set", []CodeStatement{nestedObjectProperty(l.setNestedModel.NestedObject)})
 }
 
 type MapNestedAttrGenerator struct {
@@ -30,7 +30,7 @@ type MapNestedAttrGenerator struct {
 }
 
 func (m *MapNestedAttrGenerator) AttributeCode() CodeStatement {
-	return commonAttrStructure(&m.attr, "schema.MapNestedAttribute", []CodeStatement{nestedObjectProperty(m.mapNestedModel.NestedObject)})
+	return commonAttrStructure(&m.attr, "schema.MapNestedAttribute", "planmodifier.Map", []CodeStatement{nestedObjectProperty(m.mapNestedModel.NestedObject)})
 }
 
 type SingleNestedAttrGenerator struct {
@@ -39,13 +39,13 @@ type SingleNestedAttrGenerator struct {
 }
 
 func (l *SingleNestedAttrGenerator) AttributeCode() CodeStatement {
-	return commonAttrStructure(&l.attr, "schema.SingleNestedAttribute", []CodeStatement{attributesProperty(l.singleNestedModel.NestedObject)})
+	return commonAttrStructure(&l.attr, "schema.SingleNestedAttribute", "planmodifier.Object", []CodeStatement{attributesProperty(l.singleNestedModel.NestedObject)})
 }
 
 func attributesProperty(nested codespec.NestedAttributeObject) CodeStatement {
 	attrs := GenerateSchemaAttributes(nested.Attributes)
-	attributeProperty := fmt.Sprintf(`Attributes: map[string]schema.Attribute{ 
-		%s 
+	attributeProperty := fmt.Sprintf(`Attributes: map[string]schema.Attribute{
+		%s
 	}`, attrs.Code)
 	return CodeStatement{
 		Code:    attributeProperty,

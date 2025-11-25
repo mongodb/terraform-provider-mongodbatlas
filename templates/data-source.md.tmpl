@@ -29,7 +29,6 @@
     {{ else if eq .Name "mongodbatlas_cloud_backup_snapshot_export_bucket" }}
         {{ tffile "examples/mongodbatlas_cloud_backup_snapshot_export_bucket/aws/main.tf" }}
     {{ else if eq .Name "mongodbatlas_api_key" }}
-        {{ tffile (printf "examples/%s/create-and-assign-pak/main.tf" .Name )}}
     {{ else if eq .Name "mongodbatlas_backup_compliance_policy" }}
     {{ else if eq .Name "mongodbatlas_event_trigger" }}
     {{ else if eq .Name "mongodbatlas_access_list_api_key" }}

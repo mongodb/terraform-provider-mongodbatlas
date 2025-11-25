@@ -237,7 +237,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	policy, resp, err := connV2.CloudBackupsApi.GetDataProtectionSettings(ctx, projectID).Execute()
+	policy, resp, err := connV2.CloudBackupsApi.GetCompliancePolicy(ctx, projectID).Execute()
 	if validate.StatusNotFound(resp) || policy.GetProjectId() == "" {
 		return nil
 	}

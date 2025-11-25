@@ -3,8 +3,10 @@ package conversion_test
 import (
 	"testing"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
 func TestHasElementsSliceOrMap(t *testing.T) {
@@ -57,6 +59,28 @@ func TestToAnySlicePointer(t *testing.T) {
 				for i := range *value {
 					assert.Equal(t, (*value)[i], (*ret)[i])
 				}
+			}
+		})
+	}
+}
+
+func TestTFSetValueOrNull(t *testing.T) {
+	ctx := t.Context()
+
+	testCases := map[string]*[]string{
+		"nil":       nil,
+		"empty":     {},
+		"populated": {"a", "b", "c"},
+	}
+
+	for name, value := range testCases {
+		t.Run(name, func(t *testing.T) {
+			result := conversion.TFSetValueOrNull(ctx, value, types.StringType)
+			if value == nil || len(*value) == 0 {
+				assert.True(t, result.IsNull())
+			} else {
+				assert.False(t, result.IsNull())
+				assert.Len(t, result.Elements(), len(*value))
 			}
 		})
 	}

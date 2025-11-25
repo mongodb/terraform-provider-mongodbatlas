@@ -348,8 +348,9 @@ func (r *databaseUserRS) ImportState(ctx context.Context, req resource.ImportSta
 }
 
 func SplitDatabaseUserImportID(id string) (projectID, username, authDatabaseName string, err error) {
-	ok, projectID, username, authDatabaseName := conversion.ImportSplit3(id)
+	ok, splitParts := conversion.ImportSplit(id, 3)
 	if ok {
+		projectID, username, authDatabaseName = splitParts[0], splitParts[1], splitParts[2]
 		err = conversion.ValidateProjectID(projectID)
 		return
 	}

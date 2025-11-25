@@ -49,7 +49,7 @@ func (r *streamInstanceRS) Create(ctx context.Context, req resource.CreateReques
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	apiResp, _, err := connV2.StreamsApi.CreateStreamInstance(ctx, projectID, streamInstanceReq).Execute()
+	apiResp, _, err := connV2.StreamsApi.CreateStreamWorkspace(ctx, projectID, streamInstanceReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error creating resource", err.Error())
 		return
@@ -73,7 +73,7 @@ func (r *streamInstanceRS) Read(ctx context.Context, req resource.ReadRequest, r
 	connV2 := r.Client.AtlasV2
 	projectID := streamInstanceState.ProjectID.ValueString()
 	instanceName := streamInstanceState.InstanceName.ValueString()
-	apiResp, getResp, err := connV2.StreamsApi.GetStreamInstance(ctx, projectID, instanceName).Execute()
+	apiResp, getResp, err := connV2.StreamsApi.GetStreamWorkspace(ctx, projectID, instanceName).Execute()
 	if err != nil {
 		if validate.StatusNotFound(getResp) {
 			resp.State.RemoveResource(ctx)
@@ -106,7 +106,7 @@ func (r *streamInstanceRS) Update(ctx context.Context, req resource.UpdateReques
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	apiResp, _, err := connV2.StreamsApi.UpdateStreamInstance(ctx, projectID, instanceName, streamInstanceReq).Execute()
+	apiResp, _, err := connV2.StreamsApi.UpdateStreamWorkspace(ctx, projectID, instanceName, streamInstanceReq).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error updating resource", err.Error())
 		return
@@ -130,7 +130,7 @@ func (r *streamInstanceRS) Delete(ctx context.Context, req resource.DeleteReques
 	connV2 := r.Client.AtlasV2
 	projectID := streamInstanceState.ProjectID.ValueString()
 	instanceName := streamInstanceState.InstanceName.ValueString()
-	if _, err := connV2.StreamsApi.DeleteStreamInstance(ctx, projectID, instanceName).Execute(); err != nil {
+	if _, err := connV2.StreamsApi.DeleteStreamWorkspace(ctx, projectID, instanceName).Execute(); err != nil {
 		resp.Diagnostics.AddError("error during resource delete", err.Error())
 		return
 	}

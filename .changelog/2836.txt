@@ -1,3 +1,0 @@
-```release-note:enhancement
-resource/mongodbatlas_advanced_cluster: Adjusts create operation to support cluster tier auto scaling per shard.
-```

@@ -39,6 +39,7 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "2"),
+					resource.TestCheckNoResourceAttr(resourceName, "severity_override"),
 					// Data source checks
 					checkExists(dataSourceName),
 					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
@@ -47,6 +48,7 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "matcher.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "metric_threshold_config.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "threshold_config.#", "0"),
+					resource.TestCheckNoResourceAttr(dataSourceName, "severity_override"),
 				),
 			},
 			{
@@ -55,6 +57,7 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 					checkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
 					resource.TestCheckResourceAttr(resourceName, "notification.#", "2"),
+					resource.TestCheckNoResourceAttr(resourceName, "severity_override"),
 					// Data source checks
 					checkExists(dataSourceName),
 					resource.TestCheckResourceAttr(dataSourceName, "project_id", projectID),
@@ -63,6 +66,7 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "matcher.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "metric_threshold_config.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "threshold_config.#", "0"),
+					resource.TestCheckNoResourceAttr(dataSourceName, "severity_override"),
 				),
 			},
 			{
@@ -70,7 +74,7 @@ func TestAccConfigRSAlertConfiguration_basic(t *testing.T) {
 				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"project_id", "updated"},
+				ImportStateVerifyIgnore: []string{"updated"},
 			},
 		},
 	})
@@ -143,7 +147,7 @@ func TestAccConfigRSAlertConfiguration_withNotifications(t *testing.T) {
 				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"project_id", "updated"},
+				ImportStateVerifyIgnore: []string{"updated"},
 			},
 		},
 	})
@@ -259,7 +263,7 @@ func TestAccConfigRSAlertConfiguration_withThreshold(t *testing.T) {
 				ImportStateIdFunc:       importStateProjectIDFunc(resourceName),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"project_id", "updated", "matcher.0.field_name"},
+				ImportStateVerifyIgnore: []string{"updated", "matcher.0.field_name"},
 			},
 		},
 	})
@@ -566,6 +570,85 @@ func TestAccConfigRSAlertConfiguration_withVictorOps(t *testing.T) {
 	})
 }
 
+func TestAccConfigRSAlertConfiguration_updateNotificationTypeFromTeamsToPagerDuty(t *testing.T) {
+	// This test reproduces issue #3869: updating from MICROSOFT_TEAMS with interval_min
+	// to PAGER_DUTY should work without requiring deletion and recreation
+	var (
+		projectID       = acc.ProjectIDExecution(t)
+		teamsWebhookURL = "https://outlook.office.com/webhook/11111111-1111-1111-1111-111111111111@22222222-2222-2222-2222-222222222222/IncomingWebhook/33333333333333333333333333333333/44444444-4444-4444-4444-444444444444"
+		pagerDutyKey    = dummy32CharKey
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy(),
+		Steps: []resource.TestStep{
+			{
+				// Verify that explicitly setting interval_min with PAGER_DUTY fails at schema validation level
+				Config:      configWithPagerDutyAndIntervalMin(projectID, pagerDutyKey, true),
+				ExpectError: regexp.MustCompile(`(?s).*'interval_min'.*must not be set.*PAGER_DUTY`),
+			},
+			{
+				Config: configWithTeamsNotificationAndIntervalMin(projectID, teamsWebhookURL, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "notification.0.type_name", "MICROSOFT_TEAMS"),
+					resource.TestCheckResourceAttr(resourceName, "notification.0.interval_min", "30"),
+				),
+			},
+			{
+				Config: configWithPagerDutyNotification(projectID, pagerDutyKey, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+					resource.TestCheckResourceAttr(resourceName, "notification.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "notification.0.type_name", "PAGER_DUTY"),
+					// interval_min should not be set for PAGER_DUTY
+					resource.TestCheckNoResourceAttr(resourceName, "notification.0.interval_min"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccConfigRSAlertConfiguration_withSeverityOverride(t *testing.T) {
+	var (
+		projectID = acc.ProjectIDExecution(t)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { acc.PreCheckBasic(t) },
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		CheckDestroy:             checkDestroy(),
+		Steps: []resource.TestStep{
+			{
+				Config: configWithSeverityOverride(projectID, conversion.StringPtr("ERROR")),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "severity_override", "ERROR"),
+					// Data source checks
+					checkExists(dataSourceName),
+					resource.TestCheckResourceAttr(dataSourceName, "severity_override", "ERROR"),
+				),
+			},
+			// TODO: Should check for no attr once CLOUDP-353933 is fixed.
+			// {
+			// 	Config: configWithSeverityOverride(projectID, nil),
+			// 	Check: resource.ComposeAggregateTestCheckFunc(
+			// 		checkExists(resourceName),
+			// 		resource.TestCheckNoResourceAttr(resourceName, "severity_override"),
+			// 		// Data source checks
+			// 		checkExists(dataSourceName),
+			// 		resource.TestCheckNoResourceAttr(resourceName, "severity_override"),
+			// 	),
+			// },
+		},
+	})
+}
+
 func checkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -576,7 +659,7 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("no ID is set")
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
-		_, _, err := acc.ConnV2().AlertConfigurationsApi.GetAlertConfiguration(context.Background(), ids[alertconfiguration.EncodedIDKeyProjectID], ids[alertconfiguration.EncodedIDKeyAlertID]).Execute()
+		_, _, err := acc.ConnV2().AlertConfigurationsApi.GetAlertConfig(context.Background(), ids[alertconfiguration.EncodedIDKeyProjectID], ids[alertconfiguration.EncodedIDKeyAlertID]).Execute()
 		if err != nil {
 			return fmt.Errorf("the Alert Configuration(%s) does not exist", ids[alertconfiguration.EncodedIDKeyAlertID])
 		}
@@ -591,7 +674,7 @@ func checkDestroy() resource.TestCheckFunc {
 				continue
 			}
 			ids := conversion.DecodeStateID(rs.Primary.ID)
-			alert, _, err := acc.ConnV2().AlertConfigurationsApi.GetAlertConfiguration(context.Background(), ids[alertconfiguration.EncodedIDKeyProjectID], ids[alertconfiguration.EncodedIDKeyAlertID]).Execute()
+			alert, _, err := acc.ConnV2().AlertConfigurationsApi.GetAlertConfig(context.Background(), ids[alertconfiguration.EncodedIDKeyProjectID], ids[alertconfiguration.EncodedIDKeyAlertID]).Execute()
 			if alert != nil {
 				return fmt.Errorf("the Project Alert Configuration(%s) still exists %s", ids[alertconfiguration.EncodedIDKeyAlertID], err)
 			}
@@ -953,6 +1036,56 @@ func configWithVictorOps(projectID, apiKey string, enabled bool) string {
 	`, projectID, apiKey, enabled)
 }
 
+func configWithTeamsNotificationAndIntervalMin(projectID, webhookURL string, enabled bool) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_alert_configuration" "test" {
+			project_id = %[1]q
+			enabled    = %[3]t
+			event_type = "NO_PRIMARY"
+
+			notification {
+				type_name                   = "MICROSOFT_TEAMS"
+				microsoft_teams_webhook_url = %[2]q
+				interval_min                = 30
+				delay_min                   = 0
+			}
+		}
+	`, projectID, webhookURL, enabled)
+}
+
+func configWithPagerDutyNotification(projectID, serviceKey string, enabled bool) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_alert_configuration" "test" {
+			project_id = %[1]q
+			enabled    = %[3]t
+			event_type = "NO_PRIMARY"
+
+			notification {
+				type_name   = "PAGER_DUTY"
+				service_key = %[2]q
+				delay_min   = 0
+			}
+		}
+	`, projectID, serviceKey, enabled)
+}
+
+func configWithPagerDutyAndIntervalMin(projectID, serviceKey string, enabled bool) string {
+	return fmt.Sprintf(`
+		resource "mongodbatlas_alert_configuration" "test" {
+			project_id = %[1]q
+			enabled    = %[3]t
+			event_type = "NO_PRIMARY"
+
+			notification {
+				type_name   = "PAGER_DUTY"
+				service_key = %[2]q
+				interval_min = 30
+				delay_min   = 0
+			}
+		}
+	`, projectID, serviceKey, enabled)
+}
+
 func configWithEmptyMetricThresholdConfig(projectID string, enabled bool) string {
 	return fmt.Sprintf(`
 		resource "mongodbatlas_alert_configuration" "test" {
@@ -1037,6 +1170,33 @@ func configWithEmptyOptionalBlocks(projectID string) string {
 			}
 		}
 	`, projectID)
+}
+
+func configWithSeverityOverride(projectID string, severity *string) string {
+	severityOverride := ""
+	if severity != nil {
+		severityOverride = fmt.Sprintf("severity_override = %[1]q", *severity)
+	}
+
+	return fmt.Sprintf(`
+		resource "mongodbatlas_alert_configuration" "test" {
+			project_id        = %[1]q
+			enabled           = true
+			event_type        = "NO_PRIMARY"
+			%[2]s
+
+			notification {
+				type_name     = "EMAIL"
+				interval_min  = 60
+				email_address = "test@mongodbtest.com"
+			}
+		}
+
+		data "mongodbatlas_alert_configuration" "test" {
+			project_id             = mongodbatlas_alert_configuration.test.project_id
+			alert_configuration_id = mongodbatlas_alert_configuration.test.id
+		}
+		`, projectID, severityOverride)
 }
 
 func TestAccConfigDSAlertConfiguration_withOutput(t *testing.T) {
@@ -1308,7 +1468,7 @@ func checkCount(resourceName string) resource.TestCheckFunc {
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		projectID := ids["project_id"]
 
-		alertResp, _, err := acc.ConnV2().AlertConfigurationsApi.ListAlertConfigurations(context.Background(), projectID).Execute()
+		alertResp, _, err := acc.ConnV2().AlertConfigurationsApi.ListAlertConfigs(context.Background(), projectID).Execute()
 
 		if err != nil {
 			return fmt.Errorf("the Alert Configurations List for project (%s) could not be read", projectID)

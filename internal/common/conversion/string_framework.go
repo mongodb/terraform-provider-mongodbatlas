@@ -14,12 +14,6 @@ func TypesSetToString(ctx context.Context, set types.Set) []string {
 	return results
 }
 
-func TypesListToString(ctx context.Context, list types.List) []string {
-	results := []string{}
-	_ = list.ElementsAs(ctx, &results, false)
-	return results
-}
-
 func ToTFMapOfSlices(ctx context.Context, values map[string][]string) (basetypes.MapValue, diag.Diagnostics) {
 	return types.MapValueFrom(ctx, types.ListType{ElemType: types.StringType}, values)
 }

@@ -1,3 +1,7 @@
+---
+subcategory: "Projects"
+---
+
 # Data Source: mongodbatlas_ldap_configuration
 
 `mongodbatlas_ldap_configuration` describes a LDAP Configuration.

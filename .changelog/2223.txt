@@ -1,7 +1,0 @@
-```release-note:bug
-data-source/mongodbatlas_federated_database_instance: Populates value of `data_process_region` when returned by the API
-```
-
-```release-note:bug
-data-source/mongodbatlas_federated_database_instances: Populates value of `data_process_region` when returned by the API
-```

@@ -1,0 +1,7 @@
+```release-note:breaking-change
+resource/mongodbatlas_global_cluster_config: Removes the deprecated `custom_zone_mapping` attribute in favor of `custom_zone_mapping_zone_id`
+```
+
+```release-note:breaking-change
+data-source/mongodbatlas_global_cluster_config: Removes the deprecated `custom_zone_mapping` attribute in favor of `custom_zone_mapping_zone_id`
+```

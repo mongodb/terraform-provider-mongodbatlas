@@ -6,9 +6,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312010/admin"
 )
 
 var _ datasource.DataSource = &streamInstancesDS{}
@@ -31,6 +32,7 @@ func (d *streamInstancesDS) Schema(ctx context.Context, req datasource.SchemaReq
 		RequiredFields:  []string{"project_id"},
 		HasLegacyFields: true,
 	})
+	resp.Schema.DeprecationMessage = fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "data source", "mongodbatlas_stream_workspaces", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/stream-instance-to-stream-workspace-migraton-guide")
 }
 
 func (d *streamInstancesDS) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -44,7 +46,7 @@ func (d *streamInstancesDS) Read(ctx context.Context, req datasource.ReadRequest
 	projectID := streamInstancesConfig.ProjectID.ValueString()
 	itemsPerPage := streamInstancesConfig.ItemsPerPage.ValueInt64Pointer()
 	pageNum := streamInstancesConfig.PageNum.ValueInt64Pointer()
-	apiResp, _, err := connV2.StreamsApi.ListStreamInstancesWithParams(ctx, &admin.ListStreamInstancesApiParams{
+	apiResp, _, err := connV2.StreamsApi.ListStreamWorkspacesWithParams(ctx, &admin.ListStreamWorkspacesApiParams{
 		GroupId:      projectID,
 		ItemsPerPage: conversion.Int64PtrToIntPtr(itemsPerPage),
 		PageNum:      conversion.Int64PtrToIntPtr(pageNum),

@@ -1,7 +1,0 @@
-```release-note:new-datasource
-data-source/mongodbatlas_resource_policy
-```
-
-```release-note:new-datasource
-data-source/mongodbatlas_resource_policies
-```

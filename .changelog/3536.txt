@@ -1,0 +1,3 @@
+```release-note:enhancement
+resource/mongodbatlas_cloud_backup_snapshot: Adds `delete_on_create_timeout` attribute to indicate whether to delete the resource if its creation times out
+``` 

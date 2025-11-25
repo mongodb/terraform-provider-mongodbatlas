@@ -2,23 +2,26 @@ name: Generate Changelog
 on:
   pull_request:
     types: [closed]
-    branches: [master]
+    branches: [master, master-v1]
     paths:
       - .changelog/**
   workflow_dispatch:
 jobs:
   generate-and-update-changelog:
     if: github.event.pull_request.merged || github.event_name == 'workflow_dispatch'
-    uses: ./.github/workflows/run-script-and-commit.yml
-    with:
-      script_call: 'make tools update-changelog-unreleased-section'
-      file_to_commit: 'CHANGELOG.md'
-      commit_message: ${{ github.event_name == 'workflow_dispatch' && format('{0}{1}', 'chore:',' Updates CHANGELOG.md (Manual Trigger)') || format('{0}{1}{2}{3}', 'chore:', ' Updates CHANGELOG.md for ', '#', github.event.pull_request.number) }}
-    secrets:
-      apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
-      remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
-      gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
-      passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}     
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: ./.github/templates/run-script-and-commit
+        with:
+          script_call: 'make tools update-changelog-unreleased-section'
+          file_to_commit: 'CHANGELOG.md'
+          commit_message: ${{ github.event_name == 'workflow_dispatch' && format('{0}{1}', 'chore:',' Updates CHANGELOG.md (Manual Trigger)') || format('{0}{1}{2}{3}', 'chore:', ' Updates CHANGELOG.md for ', '#', github.event.pull_request.number) }}
+          apix_bot_pat: ${{ secrets.APIX_BOT_PAT }}
+          remote: https://svc-apix-bot:${{ secrets.APIX_BOT_PAT }}@github.com/${{ github.repository }}  
+          gpg_private_key: ${{ secrets.APIX_BOT_GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.APIX_BOT_PASSPHRASE }}     
 
   slack-notification:
     needs: [generate-and-update-changelog]
@@ -28,7 +31,7 @@ jobs:
     steps:
       - name: Send Slack message
         id: slack
-        uses: slackapi/slack-github-action@b0fa283ad8fea605de13dc3f449259339835fc52
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
@@ -40,7 +43,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Automatic Changelog update failed* ${{ secrets.SLACK_ONCALL_TAG }} . <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|Failed action >"
+                    "text": "❌ *Automatic Changelog update failed* ${{ secrets.SLACK_ONCALL_TAG }} . <${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}|Failed action >"
                   }
                 }
               ]

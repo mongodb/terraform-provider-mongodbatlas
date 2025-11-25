@@ -1,3 +1,0 @@
-```release-note:new-resource
-resource/mongodbatlas_resource_policy
-```

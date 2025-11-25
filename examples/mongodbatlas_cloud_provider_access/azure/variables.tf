@@ -6,11 +6,16 @@ variable "cloud_provider_access_name" {
   type    = string
   default = "AZURE"
 }
-variable "public_key" {
-  type = string
+variable "atlas_client_id" {
+  description = "MongoDB Atlas Service Account Client ID"
+  type        = string
+  default     = ""
 }
-variable "private_key" {
-  type = string
+variable "atlas_client_secret" {
+  description = "MongoDB Atlas Service Account Client Secret"
+  type        = string
+  sensitive   = true
+  default     = ""
 }
 
 variable "azure_tenant_id" {

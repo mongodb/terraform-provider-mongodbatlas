@@ -1,7 +1,7 @@
 blank_issues_enabled: true
 contact_links:
   - name: Terraform MongoDB Atlas Provider Feature Request
-    url: https://feedback.mongodb.com/forums/924145-atlas?category_id=370723
+    url: https://feedback.mongodb.com/ideas?category=7548141186718564699
     about: Request a feature or up-vote an existing suggestion!
   - name: MongoDB Atlas Support
     url: https://support.mongodb.com/

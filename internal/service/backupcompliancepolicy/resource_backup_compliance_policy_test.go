@@ -6,9 +6,11 @@ import (
 	"os"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/testutil/acc"
 )
@@ -67,7 +69,7 @@ func TestAccBackupCompliancePolicy_overwriteBackupPolicies(t *testing.T) {
 				acc.ClusterAdvConfigOplogMinRetentionHours: 8,
 			},
 			ProjectID:            projectIDTerraform,
-			MongoDBMajorVersion:  "6.0",
+			MongoDBMajorVersion:  "8.0",
 			CloudBackup:          true,
 			DiskSizeGb:           12,
 			RetainBackupsEnabled: true,
@@ -194,10 +196,11 @@ func checkExists(resourceName string) resource.TestCheckFunc {
 		}
 		ids := conversion.DecodeStateID(rs.Primary.ID)
 		projectID := ids["project_id"]
-		policy, _, err := acc.ConnV2().CloudBackupsApi.GetDataProtectionSettings(context.Background(), projectID).Execute()
+		policy, _, err := acc.ConnV2().CloudBackupsApi.GetCompliancePolicy(context.Background(), projectID).Execute()
 		if err != nil || policy == nil {
 			return fmt.Errorf("backup compliance policy (%s) does not exist: %s", rs.Primary.ID, err)
 		}
+		time.Sleep(30 * time.Second) // Wait for the bcp to be fully applied, see more details in CLOUDP-324378.
 		return nil
 	}
 }
@@ -385,7 +388,7 @@ func configOverwriteIncompatibleBackupPoliciesError(projectName, orgID, projectO
 		  cloud_provider      = "AWS"
 		  frequencies         = ["DAILY"]
 		  region_name         = "US_WEST_1"
-		  replication_spec_id = one(%[2]s.replication_specs).id
+		  zone_id = %[2]s.replication_specs.*.zone_id[0]
 		  should_copy_oplogs  = false
 		}
 	  }
@@ -429,7 +432,7 @@ func configClusterWithBackupSchedule(projectName, orgID, projectOwnerID string, 
 		  cloud_provider      = "AWS"
 		  frequencies         = ["DAILY"]
 		  region_name         = "US_WEST_1"
-		  replication_spec_id = one(%[2]s.replication_specs).id
+		  zone_id = %[2]s.replication_specs.*.zone_id[0]
 		  should_copy_oplogs  = false
 		}
 	  }

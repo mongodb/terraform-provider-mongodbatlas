@@ -65,7 +65,8 @@ func dataSourceChecksForUser(dataSourceName, attrPrefix string, user *admin20241
 		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%smobile_number", attrPrefix), user.MobileNumber),
 		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%scountry", attrPrefix), user.Country),
 		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%screated_at", attrPrefix), *conversion.TimePtrToStringPtr(user.CreatedAt)),
-		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%steam_ids.#", attrPrefix), fmt.Sprintf("%d", len(*user.TeamIds))),
+		// team_ids count validation is flexible as team membership can change during test execution.
+		resource.TestCheckResourceAttrWith(dataSourceName, fmt.Sprintf("%steam_ids.#", attrPrefix), acc.IntGreatThan(0)),
 		resource.TestCheckResourceAttr(dataSourceName, fmt.Sprintf("%slinks.#", attrPrefix), fmt.Sprintf("%d", len(*user.Links))),
 		// for assertion of roles the values of `user.Roles` must not be used as it has the risk of flaky executions. CLOUDP-220377
 		resource.TestCheckResourceAttrWith(dataSourceName, fmt.Sprintf("%sroles.#", attrPrefix), acc.IntGreatThan(0)),

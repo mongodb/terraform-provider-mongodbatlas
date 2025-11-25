@@ -33,11 +33,11 @@ The rest of this example is a step by step guide on how to migrate from `mongodb
 - Terraform CLI >= 1.8
 - Terraform MongoDB Atlas Provider `>=v1.29.0`
 - A MongoDB Atlas account.
-- Configure the provider (can also be done by configuring `public_key` and `private_key` in a `provider.tfvars`).
+- Configure the provider (can also be done by configuring `atlas_client_id` and `atlas_client_secret` in a `provider.tfvars`).
 
 ```bash
-export MONGODB_ATLAS_PUBLIC_KEY="<ATLAS_PUBLIC_KEY>"
-export MONGODB_ATLAS_PRIVATE_KEY="<ATLAS_PRIVATE_KEY>"
+export MONGODB_ATLAS_CLIENT_ID="<ATLAS_CLIENT_ID>"
+export MONGODB_ATLAS_CLIENT_SECRET="<ATLAS_CLIENT_SECRET>"
 ```
 
 ## Step 1: Create the `mongodbatlas_cluster` with `v1` of the module
@@ -58,7 +58,7 @@ terraform apply -var-file=../v1_v2.tfvars
 ```bash
 cd v2
 cp ../v1/terraform.tfstate . # if you are not using a remote state
-export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true # necessary for the `moved` block to work
+export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true # skip this if using version 2.0 or later
 terraform init -upgrade # in case your Atlas Provider version needs to be upgraded
 terraform apply -var-file=../v1_v2.tfvars # notice the same variables used as in `v1`
 ```
@@ -81,7 +81,7 @@ The example changes:
 ```bash
 cd v3
 cp ../v2/terraform.tfstate . # if you are not using a remote state
-export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true # necessary for the `moved` block to work
+export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true  # skip this if using version 2.0 or later
 terraform init -upgrade # in case your Atlas Provider version needs to be upgraded
 terraform plan -var-file=../v3_no_plan_changes.tfvars # updated variables to enable latest mongodb_advanced_cluster features
 ```
@@ -101,7 +101,7 @@ The example changes:
 ```bash
 cd v3
 cp ../v2/terraform.tfstate . # if you are not using a remote state
-export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true # necessary for the `moved` block to work
+export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true  # skip this if using version 2.0 or later
 terraform init -upgrade # in case your Atlas Provider version needs to be upgraded
 terraform apply -var-file=../v3.tfvars # updated variables to enable latest mongodb_advanced_cluster features
 ```
@@ -117,7 +117,7 @@ This example renames the variable `replication_specs_new` to `replication_specs`
 ```bash
 cd v4
 cp ../v3/terraform.tfstate . # if you are not using a remote state
-export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true # necessary to use the latest schema
+export MONGODB_ATLAS_PREVIEW_PROVIDER_V2_ADVANCED_CLUSTER=true  # skip this if using version 2.0 or later
 terraform init -upgrade # in case your Atlas Provider version needs to be upgraded
 terraform plan -var-file=../v4.tfvars
 ```

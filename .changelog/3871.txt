@@ -1,0 +1,11 @@
+```release-note:enhancement
+data-source/mongodbatlas_stream_workspace: Adds the `max_tier_size` attribute 
+```
+
+```release-note:enhancement
+data-source/mongodbatlas_stream_workspaces: Adds the `max_tier_size` attribute 
+```
+
+```release-note:enhancement
+resource/mongodbatlas_stream_workspace: Adds the `max_tier_size` attribute 
+```

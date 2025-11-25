@@ -7,12 +7,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312010/admin"
 )
 
 const (
 	VendorConfluent = "CONFLUENT"
 	VendorMSK       = "MSK"
+	VendorS3        = "S3"
 )
 
 func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPrivateLinkConnection) (*TFModel, diag.Diagnostics) {
@@ -38,14 +39,28 @@ func NewTFModel(ctx context.Context, projectID string, apiResp *admin.StreamsPri
 	}
 	result.DnsSubDomain = subdomain
 
+	serviceAttachmentUris, diagsServiceAttachment := types.ListValueFrom(ctx, types.StringType, apiResp.GcpServiceAttachmentUris)
+	if diagsServiceAttachment.HasError() {
+		return nil, diagsServiceAttachment
+	}
+	result.ServiceAttachmentUris = serviceAttachmentUris
+
 	return result, nil
 }
 
 func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkConnection, diag.Diagnostics) {
+	diags := diag.Diagnostics{}
+
 	if plan.Vendor.ValueString() == VendorConfluent {
-		diags := diag.Diagnostics{}
-		if plan.ServiceEndpointId.IsNull() {
-			diags.AddError(fmt.Sprintf("service_endpoint_id is required for vendor %s", VendorConfluent), "")
+		// Validate that exactly one of service_endpoint_id or service_attachment_uris is provided
+		hasServiceEndpointID := !plan.ServiceEndpointId.IsNull() && plan.ServiceEndpointId.ValueString() != ""
+		hasServiceAttachmentUris := !plan.ServiceAttachmentUris.IsNull() && len(plan.ServiceAttachmentUris.Elements()) > 0
+
+		if !hasServiceEndpointID && !hasServiceAttachmentUris {
+			diags.AddError(fmt.Sprintf("Either service_endpoint_id or service_attachment_uris must be provided for vendor %s", VendorConfluent), "")
+		}
+		if hasServiceEndpointID && hasServiceAttachmentUris {
+			diags.AddError("Only one of service_endpoint_id or service_attachment_uris can be provided", "")
 		}
 		if plan.DnsDomain.IsNull() {
 			diags.AddError(fmt.Sprintf("dns_domain is required for vendor %s", VendorConfluent), "")
@@ -53,22 +68,28 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 		if plan.Region.IsNull() {
 			diags.AddError(fmt.Sprintf("region is required for vendor %s", VendorConfluent), "")
 		}
-		if diags.HasError() {
-			return nil, diags
-		}
 	}
 
 	if plan.Vendor.ValueString() == VendorMSK {
-		diags := diag.Diagnostics{}
 		if plan.Arn.IsNull() {
 			diags.AddError(fmt.Sprintf("arn is required for vendor %s", VendorMSK), "")
 		}
 		if plan.Region.ValueString() != "" {
 			diags.AddError(fmt.Sprintf("region cannot be set for vendor %s", VendorMSK), "")
 		}
-		if diags.HasError() {
-			return nil, diags
+	}
+
+	if plan.Vendor.ValueString() == VendorS3 {
+		if plan.Region.IsNull() {
+			diags.AddError(fmt.Sprintf("region is required for vendor %s", VendorS3), "")
 		}
+		if plan.ServiceEndpointId.IsNull() {
+			diags.AddError(fmt.Sprintf("service_endpoint_id is required for vendor %s", VendorS3), "It should follow the format 'com.amazonaws.<region>.s3', for example 'com.amazonaws.us-east-1.s3'")
+		}
+	}
+
+	if diags.HasError() {
+		return nil, diags
 	}
 
 	result := &admin.StreamsPrivateLinkConnection{
@@ -89,6 +110,16 @@ func NewAtlasReq(ctx context.Context, plan *TFModel) (*admin.StreamsPrivateLinkC
 		}
 		result.DnsSubDomain = &dnsSubdomains
 	}
+
+	if !plan.ServiceAttachmentUris.IsNull() {
+		var serviceAttachmentUris []string
+		diags := plan.ServiceAttachmentUris.ElementsAs(ctx, &serviceAttachmentUris, false)
+		if diags.HasError() {
+			return nil, diags
+		}
+		result.GcpServiceAttachmentUris = &serviceAttachmentUris
+	}
+
 	return result, nil
 }
 

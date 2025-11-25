@@ -8,11 +8,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/service/datalakepipeline"
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312010/admin"
 )
 
-const errorPrivateEndpointServiceDataFederationOnlineArchiveList = "error reading Private Endpoings for projectId %s: %s"
+const (
+	errorPrivateEndpointServiceDataFederationOnlineArchiveList = "error reading Private Endpoints for projectId %s: %s"
+	errorDataFederationSetting                                 = "error setting `%s` for MongoDB Atlas Data Federation (%s): %s"
+)
 
 func PluralDataSource() *schema.Resource {
 	return &schema.Resource{
@@ -62,13 +64,13 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 
-	privateEndpoints, _, err := connV2.DataFederationApi.ListDataFederationPrivateEndpoints(ctx, projectID).Execute()
+	privateEndpoints, _, err := connV2.DataFederationApi.ListPrivateEndpointIds(ctx, projectID).Execute()
 	if err != nil {
 		return diag.Errorf(errorPrivateEndpointServiceDataFederationOnlineArchiveList, projectID, err)
 	}
 
-	if err := d.Set("results", flattenPrivateLinkEndpointDataLakeResponse(privateEndpoints.GetResults())); err != nil {
-		return diag.FromErr(fmt.Errorf(datalakepipeline.ErrorDataLakeSetting, "results", projectID, err))
+	if err := d.Set("results", flattenPrivateLinkEndpointDataFederationResponse(privateEndpoints.GetResults())); err != nil {
+		return diag.FromErr(fmt.Errorf(errorDataFederationSetting, "results", projectID, err))
 	}
 
 	d.SetId(id.UniqueId())
@@ -76,23 +78,17 @@ func dataSourcePluralRead(ctx context.Context, d *schema.ResourceData, meta any)
 	return nil
 }
 
-func flattenPrivateLinkEndpointDataLakeResponse(atlasPrivateLinkEndpointDataLakes []admin.PrivateNetworkEndpointIdEntry) []map[string]any {
-	if len(atlasPrivateLinkEndpointDataLakes) == 0 {
-		return []map[string]any{}
-	}
-
-	results := make([]map[string]any, len(atlasPrivateLinkEndpointDataLakes))
-
-	for i, atlasPrivateLinkEndpointDataLake := range atlasPrivateLinkEndpointDataLakes {
+func flattenPrivateLinkEndpointDataFederationResponse(entries []admin.PrivateNetworkEndpointIdEntry) []map[string]any {
+	results := make([]map[string]any, len(entries))
+	for i, entry := range entries {
 		results[i] = map[string]any{
-			"endpoint_id":                atlasPrivateLinkEndpointDataLake.GetEndpointId(),
-			"provider_name":              atlasPrivateLinkEndpointDataLake.GetProvider(),
-			"comment":                    atlasPrivateLinkEndpointDataLake.GetComment(),
-			"type":                       atlasPrivateLinkEndpointDataLake.GetType(),
-			"region":                     atlasPrivateLinkEndpointDataLake.GetRegion(),
-			"customer_endpoint_dns_name": atlasPrivateLinkEndpointDataLake.GetCustomerEndpointDNSName(),
+			"endpoint_id":                entry.GetEndpointId(),
+			"provider_name":              entry.GetProvider(),
+			"comment":                    entry.GetComment(),
+			"type":                       entry.GetType(),
+			"region":                     entry.GetRegion(),
+			"customer_endpoint_dns_name": entry.GetCustomerEndpointDNSName(),
 		}
 	}
-
 	return results
 }

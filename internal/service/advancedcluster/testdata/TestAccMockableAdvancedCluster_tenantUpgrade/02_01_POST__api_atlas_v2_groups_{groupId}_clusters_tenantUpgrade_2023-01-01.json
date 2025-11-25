@@ -1,7 +1,8 @@
 {
  "name": "{clusterName}",
+ "providerBackupEnabled": true,
  "providerSettings": {
-  "instanceSizeName": "M10",
+  "instanceSizeName": "M40_NVME",
   "providerName": "AWS",
   "regionName": "US_EAST_1"
  }

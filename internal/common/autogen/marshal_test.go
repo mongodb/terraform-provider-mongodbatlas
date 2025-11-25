@@ -1,151 +1,52 @@
 package autogen_test
 
 import (
+	"context"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-type modelTest struct {
-	AttrFloat  types.Float64 `tfsdk:"attr_float"`
-	AttrString types.String  `tfsdk:"attr_string"`
-	AttrInt    types.Int64   `tfsdk:"attr_int"`
-	AttrBool   types.Bool    `tfsdk:"attr_bool"`
-}
-
-type modelParentTest struct {
-	AttrParentObj    types.Object `tfsdk:"attr_parent_obj"`
-	AttrParentString types.String `tfsdk:"attr_parent_string"`
-	AttrParentInt    types.Int64  `tfsdk:"attr_parent_int"`
-}
-
-var (
-	objTypeTest = types.ObjectType{AttrTypes: map[string]attr.Type{
-		"attr_float":  types.Float64Type,
-		"attr_string": types.StringType,
-		"attr_int":    types.Int64Type,
-		"attr_bool":   types.BoolType,
-	}}
-
-	objTypeParentTest = types.ObjectType{AttrTypes: map[string]attr.Type{
-		"attr_parent_obj":    objTypeTest,
-		"attr_parent_string": types.StringType,
-		"attr_parent_int":    types.Int64Type,
-	}}
-)
-
-const epsilon = 10e-15 // float tolerance in test equality
-
 func TestMarshalBasic(t *testing.T) {
 	model := struct {
-		AttrFloat  types.Float64 `tfsdk:"attr_float"`
-		AttrString types.String  `tfsdk:"attr_string"`
-		// values with tag `omitjson` are not marshaled, and they don't need to be Terraform types
-		AttrOmit            types.String `tfsdk:"attr_omit" autogen:"omitjson"`
-		AttrOmitNoTerraform string       `autogen:"omitjson"`
-		AttrUnkown          types.String `tfsdk:"attr_unknown"`
-		AttrNull            types.String `tfsdk:"attr_null"`
-		AttrInt             types.Int64  `tfsdk:"attr_int"`
-		AttrBoolTrue        types.Bool   `tfsdk:"attr_bool_true"`
-		AttrBoolFalse       types.Bool   `tfsdk:"attr_bool_false"`
-		AttrBoolNull        types.Bool   `tfsdk:"attr_bool_null"`
+		AttrFloat           types.Float64 `tfsdk:"attr_float"`
+		AttrString          types.String  `tfsdk:"attr_string"`
+		AttrOmit            types.String  `tfsdk:"attr_omit" autogen:"omitjson"`
+		AttrUnknown         types.String  `tfsdk:"attr_unknown"`
+		AttrNull            types.String  `tfsdk:"attr_null"`
+		AttrOmitNoTerraform string        `autogen:"omitjson"`
+		AttrInt             types.Int64   `tfsdk:"attr_int"`
+		AttrBoolTrue        types.Bool    `tfsdk:"attr_bool_true"`
+		AttrBoolFalse       types.Bool    `tfsdk:"attr_bool_false"`
+		AttrBoolNull        types.Bool    `tfsdk:"attr_bool_null"`
+		AttrMANYUpper       types.Int64   `tfsdk:"attr_many_upper"`
 	}{
 		AttrFloat:           types.Float64Value(1.234),
 		AttrString:          types.StringValue("hello"),
 		AttrOmit:            types.StringValue("omit"),
 		AttrOmitNoTerraform: "omit",
-		AttrUnkown:          types.StringUnknown(), // unknown values are not marshaled
+		AttrUnknown:         types.StringUnknown(), // unknown values are not marshaled
 		AttrNull:            types.StringNull(),    // null values are not marshaled
 		AttrInt:             types.Int64Value(1),
 		AttrBoolTrue:        types.BoolValue(true),
 		AttrBoolFalse:       types.BoolValue(false),
 		AttrBoolNull:        types.BoolNull(), // null values are not marshaled
-	}
-	const expectedJSON = `{ "attrString": "hello", "attrInt": 1, "attrFloat": 1.234, "attrBoolTrue": true, "attrBoolFalse": false }`
-	raw, err := autogen.Marshal(&model, false)
-	require.NoError(t, err)
-	assert.JSONEq(t, expectedJSON, string(raw))
-}
-
-func TestMarshalNestedAllTypes(t *testing.T) {
-	attrListObj, diags := types.ListValueFrom(t.Context(), objTypeTest, []modelTest{
-		{
-			AttrString: types.StringValue("str1"),
-			AttrInt:    types.Int64Value(1),
-		},
-		{
-			AttrString: types.StringValue("str2"),
-			AttrInt:    types.Int64Value(2),
-		},
-	})
-	assert.False(t, diags.HasError())
-	attrSetObj, diags := types.SetValueFrom(t.Context(), objTypeTest, []modelTest{
-		{
-			AttrString: types.StringValue("str11"),
-			AttrInt:    types.Int64Value(11),
-		},
-		{
-			AttrString: types.StringValue("str22"),
-			AttrInt:    types.Int64Value(22),
-		},
-	})
-	assert.False(t, diags.HasError())
-	attrMapObj, diags := types.MapValueFrom(t.Context(), objTypeTest, map[string]modelTest{
-		"keyOne": {
-			AttrString: types.StringValue("str1"),
-			AttrInt:    types.Int64Value(1),
-		},
-		"KeyTwo": { // don't change the key case when it's a map
-			AttrString: types.StringValue("str2"),
-			AttrInt:    types.Int64Value(2),
-		},
-	})
-	assert.False(t, diags.HasError())
-	model := struct {
-		AttrString     types.String `tfsdk:"attr_string"`
-		AttrListSimple types.List   `tfsdk:"attr_list_simple"`
-		AttrListObj    types.List   `tfsdk:"attr_list_obj"`
-		AttrSetSimple  types.Set    `tfsdk:"attr_set_simple"`
-		AttrSetObj     types.Set    `tfsdk:"attr_set_obj"`
-		AttrMapSimple  types.Map    `tfsdk:"attr_map_simple"`
-		AttrMapObj     types.Map    `tfsdk:"attr_map_obj"`
-	}{
-		AttrString:     types.StringValue("val"),
-		AttrListSimple: types.ListValueMust(types.StringType, []attr.Value{types.StringValue("val1"), types.StringValue("val2")}),
-		AttrListObj:    attrListObj,
-		AttrSetSimple:  types.SetValueMust(types.StringType, []attr.Value{types.StringValue("val11"), types.StringValue("val22")}),
-		AttrSetObj:     attrSetObj,
-		AttrMapSimple: types.MapValueMust(types.StringType, map[string]attr.Value{
-			"keyOne": types.StringValue("val1"),
-			"KeyTwo": types.StringValue("val2"), // don't change the key case when it's a map
-		}),
-		AttrMapObj: attrMapObj,
+		AttrMANYUpper:       types.Int64Value(2),
 	}
 	const expectedJSON = `
-		{
-			"attrString": "val", 
-			"attrListSimple": ["val1", "val2"],
-			"attrListObj": [
-				{ "attrString": "str1", "attrInt": 1 },
-				{ "attrString": "str2", "attrInt": 2 }
-			],
-			"attrSetSimple": ["val11", "val22"],
-			"attrSetObj": [
-				{ "attrString": "str11", "attrInt": 11 },
-				{ "attrString": "str22", "attrInt": 22 }
-			],
-			"attrMapSimple": {
-				"keyOne": "val1",
-				"KeyTwo": "val2"
-			},
-			"attrMapObj": {
-				"keyOne": { "attrString": "str1", "attrInt": 1 },
-				"KeyTwo": { "attrString": "str2", "attrInt": 2 }
-			}
+		{ 
+			"attrString": "hello", 
+			"attrInt": 1, 
+			"attrFloat": 1.234, 
+			"attrBoolTrue": true, 
+			"attrBoolFalse": false,
+			"attrMANYUpper": 2
 		}
 	`
 	raw, err := autogen.Marshal(&model, false)
@@ -153,63 +54,79 @@ func TestMarshalNestedAllTypes(t *testing.T) {
 	assert.JSONEq(t, expectedJSON, string(raw))
 }
 
-func TestMarshalNestedMultiLevel(t *testing.T) {
-	attrListObj, diags := types.ListValueFrom(t.Context(), objTypeParentTest, []modelParentTest{
-		{
-			AttrParentObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
-				"attr_string": types.StringValue("str11"),
-				"attr_int":    types.Int64Value(11),
-				"attr_float":  types.Float64Value(11.1),
-				"attr_bool":   types.BoolValue(true),
-			}),
-			AttrParentString: types.StringValue("str1"),
-			AttrParentInt:    types.Int64Value(1),
-		},
-		{
-			AttrParentObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
-				"attr_string": types.StringValue("str22"),
-				"attr_int":    types.Int64Value(22),
-				"attr_float":  types.Float64Value(22.2),
-				"attr_bool":   types.BoolValue(false),
-			}),
-			AttrParentString: types.StringValue("str2"),
-			AttrParentInt:    types.Int64Value(2),
-		},
-	})
-	assert.False(t, diags.HasError())
-
+func TestMarshalDynamicJSONAttr(t *testing.T) {
 	model := struct {
-		AttrString      types.String `tfsdk:"attr_string"`
-		AttrListParents types.List   `tfsdk:"attr_list_parents"`
+		AttrDynamicJSONObject         jsontypes.Normalized                        `tfsdk:"attr_dynamic_json_object"`
+		AttrDynamicJSONBoolean        jsontypes.Normalized                        `tfsdk:"attr_dynamic_json_boolean"`
+		AttrDynamicJSONString         jsontypes.Normalized                        `tfsdk:"attr_dynamic_json_string"`
+		AttrDynamicJSONNumber         jsontypes.Normalized                        `tfsdk:"attr_dynamic_json_number"`
+		AttrDynamicJSONArray          jsontypes.Normalized                        `tfsdk:"attr_dynamic_json_array"`
+		AttrListOfDynamicJSONObjects  customtypes.ListValue[jsontypes.Normalized] `tfsdk:"attr_list_of_dynamic_json_objects"`
+		AttrSetOfDynamicJSONObjects   customtypes.SetValue[jsontypes.Normalized]  `tfsdk:"attr_set_of_dynamic_json_objects"`
+		AttrMapOfDynamicJSONObjects   customtypes.MapValue[jsontypes.Normalized]  `tfsdk:"attr_map_of_dynamic_json_objects"`
+		AttrListOfDynamicJSONBooleans customtypes.ListValue[jsontypes.Normalized] `tfsdk:"attr_list_of_dynamic_json_booleans"`
+		AttrSetOfDynamicJSONBooleans  customtypes.SetValue[jsontypes.Normalized]  `tfsdk:"attr_set_of_dynamic_json_booleans"`
+		AttrMapOfDynamicJSONBooleans  customtypes.MapValue[jsontypes.Normalized]  `tfsdk:"attr_map_of_dynamic_json_booleans"`
 	}{
-		AttrString:      types.StringValue("val"),
-		AttrListParents: attrListObj,
+		AttrDynamicJSONObject:        jsontypes.NewNormalizedValue("{\"hello\": \"there\"}"),
+		AttrDynamicJSONBoolean:       jsontypes.NewNormalizedValue("true"),
+		AttrDynamicJSONString:        jsontypes.NewNormalizedValue("\"hello\""),
+		AttrDynamicJSONNumber:        jsontypes.NewNormalizedValue("1.234"),
+		AttrDynamicJSONArray:         jsontypes.NewNormalizedValue("[1, 2, 3]"),
+		AttrListOfDynamicJSONObjects: customtypes.NewListValue[jsontypes.Normalized](t.Context(), []attr.Value{jsontypes.NewNormalizedValue("{\"hello\": \"there\"}")}),
+		AttrSetOfDynamicJSONObjects:  customtypes.NewSetValue[jsontypes.Normalized](t.Context(), []attr.Value{jsontypes.NewNormalizedValue("{\"hello\": \"there\"}")}),
+		AttrMapOfDynamicJSONObjects: customtypes.NewMapValue[jsontypes.Normalized](t.Context(), map[string]attr.Value{
+			"key1": jsontypes.NewNormalizedValue("{\"hello\": \"there\"}"),
+			"key2": jsontypes.NewNormalizedValue("{\"hello\": \"there\"}"),
+		}),
+		AttrListOfDynamicJSONBooleans: customtypes.NewListValue[jsontypes.Normalized](t.Context(), []attr.Value{jsontypes.NewNormalizedValue("true")}),
+		AttrSetOfDynamicJSONBooleans:  customtypes.NewSetValue[jsontypes.Normalized](t.Context(), []attr.Value{jsontypes.NewNormalizedValue("true")}),
+		AttrMapOfDynamicJSONBooleans: customtypes.NewMapValue[jsontypes.Normalized](t.Context(), map[string]attr.Value{
+			"key1": jsontypes.NewNormalizedValue("true"),
+			"key2": jsontypes.NewNormalizedValue("false"),
+		}),
+	}
+	const expectedJSON = `
+		{ 
+			"attrDynamicJSONObject": {"hello": "there"}, 
+			"attrDynamicJSONBoolean": true, 
+			"attrDynamicJSONString": "hello", 
+			"attrDynamicJSONNumber": 1.234,
+			"attrDynamicJSONArray": [1, 2, 3],
+			"attrListOfDynamicJSONObjects": [{"hello": "there"}],
+			"attrSetOfDynamicJSONObjects": [{"hello": "there"}],
+			"attrMapOfDynamicJSONObjects": {"key1": {"hello": "there"}, "key2": {"hello": "there"}},
+			"attrListOfDynamicJSONBooleans": [true],
+			"attrSetOfDynamicJSONBooleans": [true],
+			"attrMapOfDynamicJSONBooleans": {"key1": true, "key2": false}
+		}
+	`
+	raw, err := autogen.Marshal(&model, false)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedJSON, string(raw))
+}
+
+func TestMarshalNestedAllTypes(t *testing.T) {
+	model := struct {
+		AttrCustomList customtypes.ListValue[types.String] `tfsdk:"attr_custom_list"`
+		AttrCustomSet  customtypes.SetValue[types.String]  `tfsdk:"attr_custom_set"`
+		AttrCustomMap  customtypes.MapValue[types.String]  `tfsdk:"attr_custom_map"`
+	}{
+		AttrCustomList: customtypes.NewListValue[types.String](t.Context(), []attr.Value{types.StringValue("val1"), types.StringValue("val2")}),
+		AttrCustomSet:  customtypes.NewSetValue[types.String](t.Context(), []attr.Value{types.StringValue("val11"), types.StringValue("val22")}),
+		AttrCustomMap: customtypes.NewMapValue[types.String](t.Context(), map[string]attr.Value{
+			"keyOne": types.StringValue("val1"),
+			"KeyTwo": types.StringValue("val2"),
+		}),
 	}
 	const expectedJSON = `
 		{
-			"attrString": "val", 
-			"attrListParents": [
-				{
-					"attrParentString": "str1",
-					"attrParentInt": 1,
-					"attrParentObj": {
-						"attrString": "str11",			
-						"attrInt": 11,
-						"attrFloat": 11.1,
-						"attrBool": true
-					}				
-				},
-				{
-					"attrParentString": "str2",
-					"attrParentInt": 2,
-					"attrParentObj": {		
-						"attrString": "str22",	
-						"attrInt": 22,
-						"attrFloat": 22.2,
-						"attrBool": false
-					}
-				}
-			]
+			"attrCustomList": ["val1", "val2"],
+			"attrCustomSet": ["val11", "val22"],
+			"attrCustomMap": {
+				"keyOne": "val1",
+				"KeyTwo": "val2"
+			}
 		}
 	`
 	raw, err := autogen.Marshal(&model, false)
@@ -238,6 +155,477 @@ func TestMarshalOmitJSONUpdate(t *testing.T) {
 	update, errUpdate := autogen.Marshal(&model, true)
 	require.NoError(t, errUpdate)
 	assert.JSONEq(t, expectedUpdate, string(update))
+}
+
+func TestMarshalUpdateAbsentAttrs(t *testing.T) {
+	type modelEmptyTest struct{}
+
+	model := struct {
+		AttrList                    customtypes.ListValue[types.String]         `tfsdk:"attr_list"`
+		AttrListIncludeNull         customtypes.ListValue[types.String]         `tfsdk:"attr_list_include_null" autogen:"includenullonupdate"`
+		AttrSet                     customtypes.SetValue[types.String]          `tfsdk:"attr_set"`
+		AttrSetIncludeNull          customtypes.SetValue[types.String]          `tfsdk:"attr_set_include_null" autogen:"includenullonupdate"`
+		AttrNestedList              customtypes.NestedListValue[modelEmptyTest] `tfsdk:"attr_nested_list"`
+		AttrNestedListIncludeNull   customtypes.NestedListValue[modelEmptyTest] `tfsdk:"attr_nested_list_include_null" autogen:"includenullonupdate"`
+		AttrNestedSet               customtypes.NestedSetValue[modelEmptyTest]  `tfsdk:"attr_nested_set"`
+		AttrNestedSetIncludeNull    customtypes.NestedSetValue[modelEmptyTest]  `tfsdk:"attr_nested_set_include_null" autogen:"includenullonupdate"`
+		AttrMap                     customtypes.MapValue[types.String]          `tfsdk:"attr_map"`
+		AttrMapIncludeNull          customtypes.MapValue[types.String]          `tfsdk:"attr_map_include_null" autogen:"includenullonupdate"`
+		AttrNestedMap               customtypes.NestedMapValue[modelEmptyTest]  `tfsdk:"attr_nested_map"`
+		AttrNestedMapIncludeNull    customtypes.NestedMapValue[modelEmptyTest]  `tfsdk:"attr_nested_map_include_null" autogen:"includenullonupdate"`
+		AttrNestedObject            customtypes.ObjectValue[modelEmptyTest]     `tfsdk:"attr_nested_object"`
+		AttrNestedObjectIncludeNull customtypes.ObjectValue[modelEmptyTest]     `tfsdk:"attr_nested_object_include_null" autogen:"includenullonupdate"`
+		AttrString                  types.String                                `tfsdk:"attr_string"`
+		AttrStringIncludeNull       types.String                                `tfsdk:"attr_include_update" autogen:"includenullonupdate"`
+		AttrInt                     types.Int64                                 `tfsdk:"attr_int"`
+		AttrIntIncludeNull          types.Int64                                 `tfsdk:"attr_int_include_null" autogen:"includenullonupdate"`
+		AttrBool                    types.Bool                                  `tfsdk:"attr_bool"`
+		AttrBoolIncludeNull         types.Bool                                  `tfsdk:"attr_bool_include_null" autogen:"includenullonupdate"`
+	}{
+		AttrList:                    customtypes.NewListValueNull[types.String](t.Context()),
+		AttrListIncludeNull:         customtypes.NewListValueNull[types.String](t.Context()),
+		AttrSet:                     customtypes.NewSetValueNull[types.String](t.Context()),
+		AttrSetIncludeNull:          customtypes.NewSetValueNull[types.String](t.Context()),
+		AttrMap:                     customtypes.NewMapValueNull[types.String](t.Context()),
+		AttrMapIncludeNull:          customtypes.NewMapValueNull[types.String](t.Context()),
+		AttrNestedObject:            customtypes.NewObjectValueNull[modelEmptyTest](t.Context()),
+		AttrNestedList:              customtypes.NewNestedListValueNull[modelEmptyTest](t.Context()),
+		AttrNestedListIncludeNull:   customtypes.NewNestedListValueNull[modelEmptyTest](t.Context()),
+		AttrNestedSet:               customtypes.NewNestedSetValueNull[modelEmptyTest](t.Context()),
+		AttrNestedSetIncludeNull:    customtypes.NewNestedSetValueNull[modelEmptyTest](t.Context()),
+		AttrNestedMap:               customtypes.NewNestedMapValueNull[modelEmptyTest](t.Context()),
+		AttrNestedMapIncludeNull:    customtypes.NewNestedMapValueNull[modelEmptyTest](t.Context()),
+		AttrNestedObjectIncludeNull: customtypes.NewObjectValueNull[modelEmptyTest](t.Context()),
+		AttrString:                  types.StringNull(),
+		AttrBool:                    types.BoolNull(),
+		AttrInt:                     types.Int64Null(),
+		AttrStringIncludeNull:       types.StringNull(),
+		AttrIntIncludeNull:          types.Int64Null(),
+		AttrBoolIncludeNull:         types.BoolNull(),
+	}
+	// null list and set root elements are sent as empty arrays in update.
+	// fields with includenullonupdate tag are included even when null during updates.
+	const expectedJSON = `
+		{
+			"attrList": [],
+			"attrListIncludeNull": null,
+			"attrSet": [],
+			"attrSetIncludeNull": null,
+			"attrNestedList": [],
+			"attrNestedListIncludeNull": null,
+			"attrNestedSet": [],
+			"attrNestedSetIncludeNull": null,
+			"attrMapIncludeNull": null,
+			"attrNestedMapIncludeNull": null,
+			"attrNestedObjectIncludeNull": null,
+			"attrStringIncludeNull": null,
+			"attrIntIncludeNull": null,
+			"attrBoolIncludeNull": null
+		}
+	`
+	raw, err := autogen.Marshal(&model, true)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedJSON, string(raw))
+
+	// Test that includenullonupdate fields are NOT included when isUpdate is false
+	rawCreate, errCreate := autogen.Marshal(&model, false)
+	require.NoError(t, errCreate)
+	const expectedJSONCreate = `
+		{
+		}
+	`
+	assert.JSONEq(t, expectedJSONCreate, string(rawCreate))
+}
+
+func TestMarshalCustomTypeObject(t *testing.T) {
+	ctx := context.Background()
+
+	type modelEmptyTest struct{}
+
+	type modelCustomTypeTest struct {
+		AttrPrimitiveOmit    types.String                            `tfsdk:"attr_primitive_omit" autogen:"omitjson"`
+		AttrObjectOmit       customtypes.ObjectValue[modelEmptyTest] `tfsdk:"attr_object_omit" autogen:"omitjson"`
+		AttrObjectOmitUpdate customtypes.ObjectValue[modelEmptyTest] `tfsdk:"attr_object_omit_update" autogen:"omitjsonupdate"`
+		AttrNull             customtypes.ObjectValue[modelEmptyTest] `tfsdk:"attr_null" autogen:"includenullonupdate"`
+		AttrInt              types.Int64                             `tfsdk:"attr_int"`
+		AttrMANYUpper        types.Int64                             `tfsdk:"attr_many_upper"`
+	}
+
+	type modelCustomTypeParentTest struct {
+		AttrString types.String                                 `tfsdk:"attr_string"`
+		AttrObject customtypes.ObjectValue[modelCustomTypeTest] `tfsdk:"attr_object"`
+	}
+
+	nullObject := customtypes.NewObjectValueNull[modelEmptyTest](ctx)
+	emptyObject := customtypes.NewObjectValue[modelEmptyTest](ctx, modelEmptyTest{})
+
+	model := struct {
+		AttrObjectBasic  customtypes.ObjectValue[modelCustomTypeTest]       `tfsdk:"attr_object_basic"`
+		AttrObjectNull   customtypes.ObjectValue[modelCustomTypeTest]       `tfsdk:"attr_object_null"`
+		AttrObjectNested customtypes.ObjectValue[modelCustomTypeParentTest] `tfsdk:"attr_object_nested"`
+	}{
+		AttrObjectBasic: customtypes.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
+			AttrInt:              types.Int64Value(1),
+			AttrPrimitiveOmit:    types.StringValue("omitted"),
+			AttrObjectOmit:       emptyObject,
+			AttrObjectOmitUpdate: emptyObject,
+			AttrNull:             nullObject,
+			AttrMANYUpper:        types.Int64Value(2),
+		}),
+		AttrObjectNull: customtypes.NewObjectValueNull[modelCustomTypeTest](ctx),
+		AttrObjectNested: customtypes.NewObjectValue[modelCustomTypeParentTest](ctx, modelCustomTypeParentTest{
+			AttrString: types.StringValue("parent"),
+			AttrObject: customtypes.NewObjectValue[modelCustomTypeTest](ctx, modelCustomTypeTest{
+				AttrInt:              types.Int64Value(2),
+				AttrPrimitiveOmit:    types.StringValue("omitted"),
+				AttrObjectOmit:       emptyObject,
+				AttrObjectOmitUpdate: emptyObject,
+				AttrNull:             nullObject,
+				AttrMANYUpper:        types.Int64Value(3),
+			}),
+		}),
+	}
+
+	const expectedCreateJSON = `
+		{
+			"attrObjectBasic": {
+				"attrInt": 1,
+				"attrObjectOmitUpdate": {},
+				"attrMANYUpper": 2
+			},
+			"attrObjectNested": {
+				"attrObject": {
+					"attrInt": 2,
+					"attrObjectOmitUpdate": {},
+					"attrMANYUpper": 3
+				},
+				"attrString": "parent"
+			}
+		}
+	`
+	rawCreate, err := autogen.Marshal(&model, false)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedCreateJSON, string(rawCreate))
+
+	const expectedUpdateJSON = `
+		{
+			"attrObjectBasic": {
+				"attrInt": 1,
+				"attrNull": null,
+				"attrMANYUpper": 2
+			},
+			"attrObjectNested": {
+				"attrObject": {
+					"attrInt": 2,
+					"attrNull": null,
+					"attrMANYUpper": 3
+				},
+				"attrString": "parent"
+			}
+		}
+	`
+	rawUpdate, err := autogen.Marshal(&model, true)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedUpdateJSON, string(rawUpdate))
+}
+
+func TestMarshalCustomTypeNestedList(t *testing.T) {
+	ctx := context.Background()
+
+	type modelEmptyTest struct{}
+
+	type modelNestedObject struct {
+		AttrNestedInt types.Int64 `tfsdk:"attr_nested_int"`
+	}
+
+	type modelNestedListItem struct {
+		AttrOmit       customtypes.NestedListValue[modelEmptyTest] `tfsdk:"attr_omit" autogen:"omitjson"`
+		AttrOmitUpdate customtypes.NestedListValue[modelEmptyTest] `tfsdk:"attr_omit_update" autogen:"omitjsonupdate"`
+		AttrPrimitive  types.String                                `tfsdk:"attr_primitive"`
+		AttrObject     customtypes.ObjectValue[modelNestedObject]  `tfsdk:"attr_object"`
+		AttrMANYUpper  types.Int64                                 `tfsdk:"attr_many_upper"`
+	}
+
+	model := struct {
+		AttrNestedList      customtypes.NestedListValue[modelNestedListItem] `tfsdk:"attr_nested_list"`
+		AttrNestedListNull  customtypes.NestedListValue[modelNestedListItem] `tfsdk:"attr_nested_list_null"`
+		AttrNestedListEmpty customtypes.NestedListValue[modelNestedListItem] `tfsdk:"attr_nested_list_empty"`
+	}{
+		AttrNestedList: customtypes.NewNestedListValue[modelNestedListItem](ctx, []modelNestedListItem{
+			{
+				AttrPrimitive: types.StringValue("string1"),
+				AttrMANYUpper: types.Int64Value(1),
+				AttrObject: customtypes.NewObjectValue[modelNestedObject](ctx, modelNestedObject{
+					AttrNestedInt: types.Int64Value(2),
+				}),
+				AttrOmit:       customtypes.NewNestedListValue[modelEmptyTest](ctx, []modelEmptyTest{}),
+				AttrOmitUpdate: customtypes.NewNestedListValue[modelEmptyTest](ctx, []modelEmptyTest{}),
+			},
+			{
+				AttrPrimitive: types.StringValue("string2"),
+				AttrMANYUpper: types.Int64Value(3),
+				AttrObject: customtypes.NewObjectValue[modelNestedObject](ctx, modelNestedObject{
+					AttrNestedInt: types.Int64Value(4),
+				}),
+				AttrOmit:       customtypes.NewNestedListValue[modelEmptyTest](ctx, []modelEmptyTest{}),
+				AttrOmitUpdate: customtypes.NewNestedListValue[modelEmptyTest](ctx, []modelEmptyTest{}),
+			},
+		}),
+		AttrNestedListNull:  customtypes.NewNestedListValueNull[modelNestedListItem](ctx),
+		AttrNestedListEmpty: customtypes.NewNestedListValue[modelNestedListItem](ctx, []modelNestedListItem{}),
+	}
+
+	const expectedCreateJSON = `
+		{
+			"attrNestedList": [
+				{
+					"attrPrimitive": "string1",
+					"attrMANYUpper": 1,
+					"attrObject": {
+						"attrNestedInt": 2
+					},
+					"attrOmitUpdate": []
+				},
+				{
+					"attrPrimitive": "string2",
+					"attrMANYUpper": 3,
+					"attrObject": {
+						"attrNestedInt": 4
+					},
+					"attrOmitUpdate": []
+				}
+			],
+			"attrNestedListEmpty": []
+		}
+	`
+	rawCreate, err := autogen.Marshal(&model, false)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedCreateJSON, string(rawCreate))
+
+	const expectedUpdateJSON = `
+		{
+			"attrNestedList": [
+				{
+					"attrPrimitive": "string1",
+					"attrMANYUpper": 1,
+					"attrObject": {
+						"attrNestedInt": 2
+					}
+				},
+				{
+					"attrPrimitive": "string2",
+					"attrMANYUpper": 3,
+					"attrObject": {
+						"attrNestedInt": 4
+					}
+				}
+			],
+			"attrNestedListNull": [],
+			"attrNestedListEmpty": []
+		}
+	`
+	rawUpdate, err := autogen.Marshal(&model, true)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedUpdateJSON, string(rawUpdate))
+}
+
+func TestMarshalCustomTypeNestedSet(t *testing.T) {
+	ctx := context.Background()
+
+	type modelEmptyTest struct{}
+
+	type modelNestedObject struct {
+		AttrNestedInt types.Int64 `tfsdk:"attr_nested_int"`
+	}
+
+	type modelNestedSetItem struct {
+		AttrOmit       customtypes.NestedSetValue[modelEmptyTest] `tfsdk:"attr_omit" autogen:"omitjson"`
+		AttrOmitUpdate customtypes.NestedSetValue[modelEmptyTest] `tfsdk:"attr_omit_update" autogen:"omitjsonupdate"`
+		AttrPrimitive  types.String                               `tfsdk:"attr_primitive"`
+		AttrObject     customtypes.ObjectValue[modelNestedObject] `tfsdk:"attr_object"`
+		AttrMANYUpper  types.Int64                                `tfsdk:"attr_many_upper"`
+	}
+
+	model := struct {
+		AttrNestedSet      customtypes.NestedSetValue[modelNestedSetItem] `tfsdk:"attr_nested_set"`
+		AttrNestedSetNull  customtypes.NestedSetValue[modelNestedSetItem] `tfsdk:"attr_nested_set_null"`
+		AttrNestedSetEmpty customtypes.NestedSetValue[modelNestedSetItem] `tfsdk:"attr_nested_set_empty"`
+	}{
+		AttrNestedSet: customtypes.NewNestedSetValue[modelNestedSetItem](ctx, []modelNestedSetItem{
+			{
+				AttrPrimitive: types.StringValue("string1"),
+				AttrMANYUpper: types.Int64Value(1),
+				AttrObject: customtypes.NewObjectValue[modelNestedObject](ctx, modelNestedObject{
+					AttrNestedInt: types.Int64Value(2),
+				}),
+				AttrOmit:       customtypes.NewNestedSetValue[modelEmptyTest](ctx, []modelEmptyTest{}),
+				AttrOmitUpdate: customtypes.NewNestedSetValue[modelEmptyTest](ctx, []modelEmptyTest{}),
+			},
+			{
+				AttrPrimitive: types.StringValue("string2"),
+				AttrMANYUpper: types.Int64Value(3),
+				AttrObject: customtypes.NewObjectValue[modelNestedObject](ctx, modelNestedObject{
+					AttrNestedInt: types.Int64Value(4),
+				}),
+				AttrOmit:       customtypes.NewNestedSetValue[modelEmptyTest](ctx, []modelEmptyTest{}),
+				AttrOmitUpdate: customtypes.NewNestedSetValue[modelEmptyTest](ctx, []modelEmptyTest{}),
+			},
+		}),
+		AttrNestedSetNull:  customtypes.NewNestedSetValueNull[modelNestedSetItem](ctx),
+		AttrNestedSetEmpty: customtypes.NewNestedSetValue[modelNestedSetItem](ctx, []modelNestedSetItem{}),
+	}
+
+	const expectedCreateJSON = `
+		{
+			"attrNestedSet": [
+				{
+					"attrPrimitive": "string1",
+					"attrMANYUpper": 1,
+					"attrObject": {
+						"attrNestedInt": 2
+					},
+					"attrOmitUpdate": []
+				},
+				{
+					"attrPrimitive": "string2",
+					"attrMANYUpper": 3,
+					"attrObject": {
+						"attrNestedInt": 4
+					},
+					"attrOmitUpdate": []
+				}
+			],
+			"attrNestedSetEmpty": []
+		}
+	`
+	rawCreate, err := autogen.Marshal(&model, false)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedCreateJSON, string(rawCreate))
+
+	const expectedUpdateJSON = `
+		{
+			"attrNestedSet": [
+				{
+					"attrPrimitive": "string1",
+					"attrMANYUpper": 1,
+					"attrObject": {
+						"attrNestedInt": 2
+					}
+				},
+				{
+					"attrPrimitive": "string2",
+					"attrMANYUpper": 3,
+					"attrObject": {
+						"attrNestedInt": 4
+					}
+				}
+			],
+			"attrNestedSetNull": [],
+			"attrNestedSetEmpty": []
+		}
+	`
+	rawUpdate, err := autogen.Marshal(&model, true)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedUpdateJSON, string(rawUpdate))
+}
+
+func TestMarshalCustomTypeNestedMap(t *testing.T) {
+	ctx := context.Background()
+
+	type modelEmptyTest struct{}
+
+	type modelNestedObject struct {
+		AttrNestedInt types.Int64 `tfsdk:"attr_nested_int"`
+	}
+
+	type modelNestedMapItem struct {
+		AttrOmit       customtypes.NestedMapValue[modelEmptyTest] `tfsdk:"attr_omit" autogen:"omitjson"`
+		AttrOmitUpdate customtypes.NestedMapValue[modelEmptyTest] `tfsdk:"attr_omit_update" autogen:"omitjsonupdate"`
+		AttrPrimitive  types.String                               `tfsdk:"attr_primitive"`
+		AttrObject     customtypes.ObjectValue[modelNestedObject] `tfsdk:"attr_object"`
+		AttrMANYUpper  types.Int64                                `tfsdk:"attr_many_upper"`
+	}
+
+	model := struct {
+		AttrNestedMap      customtypes.NestedMapValue[modelNestedMapItem] `tfsdk:"attr_nested_map"`
+		AttrNestedMapNull  customtypes.NestedMapValue[modelNestedMapItem] `tfsdk:"attr_nested_map_null"`
+		AttrNestedMapEmpty customtypes.NestedMapValue[modelNestedMapItem] `tfsdk:"attr_nested_map_empty"`
+	}{
+		AttrNestedMap: customtypes.NewNestedMapValue[modelNestedMapItem](ctx, map[string]modelNestedMapItem{
+			"keyOne": {
+				AttrPrimitive: types.StringValue("string1"),
+				AttrMANYUpper: types.Int64Value(1),
+				AttrObject: customtypes.NewObjectValue[modelNestedObject](ctx, modelNestedObject{
+					AttrNestedInt: types.Int64Value(2),
+				}),
+				AttrOmit:       customtypes.NewNestedMapValue[modelEmptyTest](ctx, map[string]modelEmptyTest{}),
+				AttrOmitUpdate: customtypes.NewNestedMapValue[modelEmptyTest](ctx, map[string]modelEmptyTest{}),
+			},
+			"KeyTwo": {
+				AttrPrimitive: types.StringValue("string2"),
+				AttrMANYUpper: types.Int64Value(3),
+				AttrObject: customtypes.NewObjectValue[modelNestedObject](ctx, modelNestedObject{
+					AttrNestedInt: types.Int64Value(4),
+				}),
+				AttrOmit:       customtypes.NewNestedMapValue[modelEmptyTest](ctx, map[string]modelEmptyTest{}),
+				AttrOmitUpdate: customtypes.NewNestedMapValue[modelEmptyTest](ctx, map[string]modelEmptyTest{}),
+			},
+		}),
+		AttrNestedMapNull:  customtypes.NewNestedMapValueNull[modelNestedMapItem](ctx),
+		AttrNestedMapEmpty: customtypes.NewNestedMapValue[modelNestedMapItem](ctx, map[string]modelNestedMapItem{}),
+	}
+
+	const expectedCreateJSON = `
+		{
+			"attrNestedMap": {
+				"keyOne": {
+					"attrPrimitive": "string1",
+					"attrMANYUpper": 1,
+					"attrObject": {
+						"attrNestedInt": 2
+					},
+					"attrOmitUpdate": {}
+				},
+				"KeyTwo": {
+					"attrPrimitive": "string2",
+					"attrMANYUpper": 3,
+					"attrObject": {
+						"attrNestedInt": 4
+					},
+					"attrOmitUpdate": {}
+				}
+			},
+			"attrNestedMapEmpty": {}
+		}
+	`
+	rawCreate, err := autogen.Marshal(&model, false)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedCreateJSON, string(rawCreate))
+
+	const expectedUpdateJSON = `
+		{
+			"attrNestedMap": {
+				"keyOne": {
+					"attrPrimitive": "string1",
+					"attrMANYUpper": 1,
+					"attrObject": {
+						"attrNestedInt": 2
+					}
+				},
+				"KeyTwo": {
+					"attrPrimitive": "string2",
+					"attrMANYUpper": 3,
+					"attrObject": {
+						"attrNestedInt": 4
+					}
+				}
+			},
+			"attrNestedMapEmpty": {}
+		}
+	`
+	rawUpdate, err := autogen.Marshal(&model, true)
+	require.NoError(t, err)
+	assert.JSONEq(t, expectedUpdateJSON, string(rawUpdate))
 }
 
 func TestMarshalUnsupported(t *testing.T) {

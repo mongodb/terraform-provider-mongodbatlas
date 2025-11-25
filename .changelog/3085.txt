@@ -1,7 +1,0 @@
-```release-note:enhancement
-resource/mongodbatlas_stream_connection: Adds `AWSLambda` connection
-```
-
-```release-note:enhancement
-data-source/mongodbatlas_stream_connection: Adds `AWSLambda` connection
-```

@@ -93,7 +93,7 @@ func checkSearchInstanceExists() resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		for _, rs := range s.RootModule().Resources {
 			if rs.Type == "mongodbatlas_stream_instance" {
-				_, _, err := acc.ConnV2().StreamsApi.GetStreamInstance(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["instance_name"]).Execute()
+				_, _, err := acc.ConnV2().StreamsApi.GetStreamWorkspace(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["instance_name"]).Execute()
 				if err != nil {
 					return fmt.Errorf("stream instance (%s:%s) does not exist", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["instance_name"])
 				}

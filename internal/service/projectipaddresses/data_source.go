@@ -39,7 +39,7 @@ func (d *projectIPAddressesDS) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
-	projectIPAddresses, _, err := connV2.ProjectsApi.ReturnAllIpAddresses(ctx, databaseDSUserConfig.ProjectId.ValueString()).Execute()
+	projectIPAddresses, _, err := connV2.ProjectsApi.GetGroupIpAddresses(ctx, databaseDSUserConfig.ProjectId.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error getting project's IP addresses", err.Error())
 		return

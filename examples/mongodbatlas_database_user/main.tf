@@ -39,7 +39,7 @@ resource "mongodbatlas_database_user" "user2" {
   }
 
   scopes {
-    name = var.data_lake
+    name = var.data_federation_name
     type = "DATA_LAKE"
   }
 }

@@ -1,3 +1,0 @@
-```release-note:note
-resource/mongodbatlas_cloud_backup_snapshot_export_job: Changes `custom_data` changed attribute from required -> optional
-```

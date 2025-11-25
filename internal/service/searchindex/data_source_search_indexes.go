@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312010/admin"
 )
 
 func PluralDataSource() *schema.Resource {
@@ -57,7 +57,7 @@ func dataSourceMongoDBAtlasSearchIndexesRead(ctx context.Context, d *schema.Reso
 	}
 
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
-	searchIndexes, _, err := connV2.AtlasSearchApi.ListAtlasSearchIndexes(ctx, projectID.(string), clusterName.(string), collectionName.(string), databaseName.(string)).Execute()
+	searchIndexes, _, err := connV2.AtlasSearchApi.ListSearchIndex(ctx, projectID.(string), clusterName.(string), collectionName.(string), databaseName.(string)).Execute()
 
 	if err != nil {
 		return diag.Errorf("error getting search indexes information: %s", err)
@@ -105,7 +105,17 @@ func flattenSearchIndexes(searchIndexes []admin.SearchIndexResponse, projectID, 
 		}
 
 		if searchIndexes[i].LatestDefinition.Mappings != nil {
-			searchIndexesMap[i]["mappings_dynamic"] = searchIndexes[i].LatestDefinition.Mappings.Dynamic
+			switch v := searchIndexes[i].LatestDefinition.Mappings.GetDynamic().(type) {
+			case bool:
+				searchIndexesMap[i]["mappings_dynamic"] = v
+			case map[string]any:
+				j, err := marshalSearchIndex(v)
+				if err != nil {
+					return nil, err
+				}
+				searchIndexesMap[i]["mappings_dynamic_config"] = j
+			default:
+			}
 
 			if conversion.HasElementsSliceOrMap(searchIndexes[i].LatestDefinition.Mappings.Fields) {
 				searchIndexMappingFields, err := marshalSearchIndex(searchIndexes[i].LatestDefinition.Mappings.Fields)
@@ -114,6 +124,22 @@ func flattenSearchIndexes(searchIndexes []admin.SearchIndexResponse, projectID, 
 				}
 				searchIndexesMap[i]["mappings_fields"] = searchIndexMappingFields
 			}
+		}
+
+		if typeSets := searchIndexes[i].LatestDefinition.GetTypeSets(); len(typeSets) > 0 {
+			var flattened []map[string]any
+			for _, ts := range typeSets {
+				entry := map[string]any{"name": ts.Name}
+				if types := ts.GetTypes(); len(types) > 0 {
+					j, err := marshalSearchIndex(types)
+					if err != nil {
+						return nil, err
+					}
+					entry["types"] = j
+				}
+				flattened = append(flattened, entry)
+			}
+			searchIndexesMap[i]["type_sets"] = flattened
 		}
 
 		if analyzers := searchIndexes[i].LatestDefinition.GetAnalyzers(); len(analyzers) > 0 {

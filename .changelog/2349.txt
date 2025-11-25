@@ -1,3 +1,0 @@
-```release-note:bug
-resource/mongodbatlas_project_ip_access_list: Fixes resource removal in Read() if resource doesn't exist after creation
-```

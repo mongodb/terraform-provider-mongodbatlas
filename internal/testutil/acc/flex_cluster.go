@@ -15,9 +15,13 @@ var (
 	data "mongodbatlas_flex_cluster" "test" {
 		project_id = mongodbatlas_flex_cluster.test.project_id
 		name       = mongodbatlas_flex_cluster.test.name
+		
+		depends_on = [mongodbatlas_flex_cluster.test]
 	}
 	data "mongodbatlas_flex_clusters" "test" {
 		project_id = mongodbatlas_flex_cluster.test.project_id
+		
+		depends_on = [mongodbatlas_flex_cluster.test]
 	}`
 )
 

@@ -1,7 +1,0 @@
-```release-note:enhancement
-resource/mongodbatlas_serverless_instance: Adds `auto_indexing` attribute
-```
-
-```release-note:enhancement
-data-source/mongodbatlas_serverless_instance: Adds `auto_indexing` attribute
-```

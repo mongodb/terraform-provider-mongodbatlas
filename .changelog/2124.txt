@@ -1,3 +1,0 @@
-```release-note:note
-provider: New changelog format has been incorporated following [Terraform Changelog Specification](https://developer.hashicorp.com/terraform/plugin/best-practices/versioning#changelog-specification)
-```

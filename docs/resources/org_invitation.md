@@ -1,6 +1,12 @@
+---
+subcategory: "Organizations"
+---
+
 # Resource: mongodbatlas_org_invitation
 
 `mongodbatlas_org_invitation` invites a user to join an Atlas organization.
+
+~> **DEPRECATION:** This resource is deprecated. Migrate to `mongodbatlas_cloud_user_org_assignment` for managing organization membership. See the [Org Invitation to Cloud User Org Assignment Migration Guide](../guides/atlas-user-management).
 
 Each invitation for an Atlas user includes roles that Atlas grants the user when they accept the invitation.
 
@@ -16,7 +22,7 @@ The [MongoDB Documentation](https://www.mongodb.com/docs/atlas/reference/user-ro
 ```terraform
 resource "mongodbatlas_org_invitation" "test0" {
   username    = "test0-acc-username"
-  org_id      = "<ORG-ID>"
+  org_id      = "<ORG_ID>"
   roles       = [ "ORG_OWNER" ]
 }
 ```
@@ -24,7 +30,7 @@ resource "mongodbatlas_org_invitation" "test0" {
 ```terraform
 resource "mongodbatlas_org_invitation" "test0" {
   username    = "test0-acc-username"
-  org_id      = "<ORG-ID>"
+  org_id      = "<ORG_ID>"
   roles       = [ "ORG_MEMBER", "ORG_BILLING_ADMIN" ]
 }
 ```
@@ -32,11 +38,14 @@ resource "mongodbatlas_org_invitation" "test0" {
 ```terraform
 resource "mongodbatlas_org_invitation" "test1" {
   username    = "test1-acc-username"
-  org_id      = "<ORG-ID>"
+  org_id      = "<ORG_ID>"
   teams_ids   = [ "<TEAM-0-ID>", "<TEAM-1-ID>" ]
   roles       = [ "ORG_MEMBER" ]
 }
 ```
+
+### Further Examples
+- [Migrate Org Invitation to Cloud User Org Assignment](https://github.com/mongodb/terraform-provider-mongodbatlas/tree/v2.2.0/examples/migrate_org_invitation_to_cloud_user_org_assignment)
 
 ## Argument Reference
 

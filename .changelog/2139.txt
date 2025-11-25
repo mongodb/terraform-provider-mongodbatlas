@@ -1,3 +1,0 @@
-```release-note:bug
-resource/mongodbatlas_cluster: Fixes nil pointer dereference if `advanced_configuration` update fails
-```

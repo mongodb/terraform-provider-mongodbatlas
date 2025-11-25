@@ -78,7 +78,7 @@ func dataSourceRead(ctx context.Context, d *schema.ResourceData, meta any) diag.
 	connV2 := meta.(*config.MongoDBClient).AtlasV2
 	projectID := d.Get("project_id").(string)
 	requestID := d.Get("request_id").(string)
-	ldapResp, _, err := connV2.LDAPConfigurationApi.GetLdapConfigurationStatus(ctx, projectID, requestID).Execute()
+	ldapResp, _, err := connV2.LDAPConfigurationApi.GetUserSecurityVerify(ctx, projectID, requestID).Execute()
 	if err != nil {
 		return diag.FromErr(fmt.Errorf(errorRead, projectID, err))
 	}

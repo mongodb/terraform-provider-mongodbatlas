@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"time"
 
-	"go.mongodb.org/atlas-sdk/v20250312003/admin"
+	"go.mongodb.org/atlas-sdk/v20250312010/admin"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -87,6 +87,7 @@ type TFAzureKeyVaultConfigModel struct {
 type TFGcpKmsConfigModel struct {
 	ServiceAccountKey    types.String `tfsdk:"service_account_key"`
 	KeyVersionResourceID types.String `tfsdk:"key_version_resource_id"`
+	RoleID               types.String `tfsdk:"role_id"`
 	Enabled              types.Bool   `tfsdk:"enabled"`
 	Valid                types.Bool   `tfsdk:"valid"`
 }
@@ -259,6 +260,10 @@ func (r *encryptionAtRestRS) Schema(ctx context.Context, req resource.SchemaRequ
 							Computed:            true,
 							MarkdownDescription: "Flag that indicates whether the Google Cloud Key Management Service (KMS) encryption key can encrypt and decrypt data.",
 						},
+						"role_id": schema.StringAttribute{
+							Optional:            true,
+							MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the Google Cloud Provider Access Role that MongoDB Cloud uses to access the Google Cloud KMS.",
+						},
 					},
 				},
 			},
@@ -357,7 +362,7 @@ func (r *encryptionAtRestRS) Read(ctx context.Context, req resource.ReadRequest,
 
 	connV2 := r.Client.AtlasV2
 
-	encryptionResp, getResp, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), projectID).Execute()
+	encryptionResp, getResp, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(ctx, projectID).Execute()
 	if err != nil {
 		if validate.StatusNotFound(getResp) {
 			resp.State.RemoveResource(ctx)
@@ -403,7 +408,7 @@ func (r *encryptionAtRestRS) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 	projectID := encryptionAtRestState.ProjectID.ValueString()
-	atlasEncryptionAtRest, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), projectID).Execute()
+	atlasEncryptionAtRest, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(ctx, projectID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error when getting encryption at rest resource during update", fmt.Sprintf(project.ErrorProjectRead, projectID, err.Error()))
 		return
@@ -436,7 +441,7 @@ func (r *encryptionAtRestRS) Delete(ctx context.Context, req resource.DeleteRequ
 	connV2 := r.Client.AtlasV2
 	projectID := encryptionAtRestState.ProjectID.ValueString()
 
-	_, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(context.Background(), projectID).Execute()
+	_, _, err := connV2.EncryptionAtRestUsingCustomerKeyManagementApi.GetEncryptionAtRest(ctx, projectID).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError("error when destroying resource", fmt.Sprintf(errorDeleteEncryptionAtRest, projectID, err.Error()))
 		return

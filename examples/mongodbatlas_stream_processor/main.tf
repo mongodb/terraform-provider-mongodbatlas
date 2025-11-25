@@ -9,14 +9,14 @@ resource "mongodbatlas_stream_instance" "example" {
 
 resource "mongodbatlas_stream_connection" "example-sample" {
   project_id      = var.project_id
-  instance_name   = mongodbatlas_stream_instance.example.instance_name
+  workspace_name  = mongodbatlas_stream_instance.example.instance_name
   connection_name = "sample_stream_solar"
   type            = "Sample"
 }
 
 resource "mongodbatlas_stream_connection" "example-cluster" {
   project_id      = var.project_id
-  instance_name   = mongodbatlas_stream_instance.example.instance_name
+  workspace_name  = mongodbatlas_stream_instance.example.instance_name
   connection_name = "ClusterConnection"
   type            = "Cluster"
   cluster_name    = var.cluster_name
@@ -28,7 +28,7 @@ resource "mongodbatlas_stream_connection" "example-cluster" {
 
 resource "mongodbatlas_stream_connection" "example-kafka" {
   project_id      = var.project_id
-  instance_name   = mongodbatlas_stream_instance.example.instance_name
+  workspace_name  = mongodbatlas_stream_instance.example.instance_name
   connection_name = "KafkaPlaintextConnection"
   type            = "Kafka"
   authentication = {
@@ -47,7 +47,7 @@ resource "mongodbatlas_stream_connection" "example-kafka" {
 
 resource "mongodbatlas_stream_processor" "stream-processor-sample-example" {
   project_id     = var.project_id
-  instance_name  = mongodbatlas_stream_instance.example.instance_name
+  workspace_name = mongodbatlas_stream_instance.example.instance_name
   processor_name = "sampleProcessorName"
   pipeline = jsonencode([
     { "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-sample.connection_name } },
@@ -58,7 +58,7 @@ resource "mongodbatlas_stream_processor" "stream-processor-sample-example" {
 
 resource "mongodbatlas_stream_processor" "stream-processor-cluster-to-kafka-example" {
   project_id     = var.project_id
-  instance_name  = mongodbatlas_stream_instance.example.instance_name
+  workspace_name = mongodbatlas_stream_instance.example.instance_name
   processor_name = "clusterProcessorName"
   pipeline = jsonencode([
     { "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-cluster.connection_name } },
@@ -69,7 +69,7 @@ resource "mongodbatlas_stream_processor" "stream-processor-cluster-to-kafka-exam
 
 resource "mongodbatlas_stream_processor" "stream-processor-kafka-to-cluster-example" {
   project_id     = var.project_id
-  instance_name  = mongodbatlas_stream_instance.example.instance_name
+  workspace_name = mongodbatlas_stream_instance.example.instance_name
   processor_name = "kafkaProcessorName"
   pipeline = jsonencode([
     { "$source" = { "connectionName" = resource.mongodbatlas_stream_connection.example-kafka.connection_name, "topic" : "topic_source" } },
@@ -86,13 +86,13 @@ resource "mongodbatlas_stream_processor" "stream-processor-kafka-to-cluster-exam
 }
 
 data "mongodbatlas_stream_processors" "example-stream-processors" {
-  project_id    = var.project_id
-  instance_name = mongodbatlas_stream_instance.example.instance_name
+  project_id     = var.project_id
+  workspace_name = mongodbatlas_stream_instance.example.instance_name
 }
 
 data "mongodbatlas_stream_processor" "example-stream-processor" {
   project_id     = var.project_id
-  instance_name  = mongodbatlas_stream_instance.example.instance_name
+  workspace_name = mongodbatlas_stream_instance.example.instance_name
   processor_name = mongodbatlas_stream_processor.stream-processor-sample-example.processor_name
 }
 

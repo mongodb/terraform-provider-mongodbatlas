@@ -41,7 +41,7 @@ func (d *resourcePolicyDS) Read(ctx context.Context, req datasource.ReadRequest,
 	}
 
 	connV2 := d.Client.AtlasV2
-	apiResp, _, err := connV2.ResourcePoliciesApi.GetAtlasResourcePolicy(ctx, cfg.OrgID.ValueString(), cfg.ID.ValueString()).Execute()
+	apiResp, _, err := connV2.ResourcePoliciesApi.GetOrgResourcePolicy(ctx, cfg.OrgID.ValueString(), cfg.ID.ValueString()).Execute()
 	if err != nil {
 		resp.Diagnostics.AddError(errorReadDS, err.Error())
 		return

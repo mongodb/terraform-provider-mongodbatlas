@@ -1,3 +1,7 @@
+---
+subcategory: "Federated Authentication"
+---
+
 # Data Source: mongodbatlas_federated_settings_org_role_mapping
 
 `mongodbatlas_federated_settings_org_role_mapping` provides an Federated Settings Org Role Mapping datasource. Atlas Cloud Federated Settings Org Role Mapping provides federated settings outputs for the configured Org Role Mapping.
@@ -38,14 +42,15 @@ data "mongodbatlas_federated_settings_org_role_mapping" "role_mapping" {
 ## Argument Reference
 
 * `federation_settings_id` - (Required) Unique 24-hexadecimal digit string that identifies the federated authentication configuration.
-* `org_id` - Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
+* `org_id` - (Required) Unique 24-hexadecimal digit string that identifies the organization that contains your projects.
+* `role_mapping_id` - (Required) Unique 24-hexadecimal digit string that identifies this role mapping.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 ### FederatedSettingsOrgRoleMappings
 
-* `external_group_name` - Unique human-readable label that identifies the identity provider group to which this role mapping applies.
+* `external_group_name` - Unique label that identifies the identity provider group to which this role mapping applies.
 * `id` - Unique 24-hexadecimal digit string that identifies this role mapping.
 * `role_assignments` - Atlas roles and the unique identifiers of the groups and organizations associated with each role.
 * `group_id` - Unique identifier of the project to which you want the role mapping to apply.

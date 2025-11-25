@@ -1,3 +1,7 @@
+---
+subcategory: "Cloud Backups"
+---
+
 # Data Source: mongodbatlas_flex_restore_job
 
 `mongodbatlas_flex_restore_job` describes a flex restore job.
@@ -48,4 +52,4 @@ output "mongodbatlas_flex_restore_jobs" {
 - `target_deployment_item_name` (String) Human-readable label that identifies the instance or cluster on the target project to which you want to restore the snapshot. You can restore the snapshot to another flex cluster or dedicated cluster tier.
 - `target_project_id` (String) Unique 24-hexadecimal digit string that identifies the project that contains the instance or cluster to which you want to restore the snapshot.
 
-For more information see: [MongoDB Atlas API - Flex Restore Job](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Restore-Jobs/operation/getFlexBackupRestoreJob) Documentation.
+For more information see: [MongoDB Atlas API - Flex Restore Job](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-getflexbackuprestorejob) Documentation.

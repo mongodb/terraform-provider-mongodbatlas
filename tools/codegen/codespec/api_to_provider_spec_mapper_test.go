@@ -18,6 +18,48 @@ const (
 	testDataConfigPath  = "testdata/config.yml"
 )
 
+var (
+	simpleTestResourceAttributes = codespec.Attributes{
+		{
+			TFSchemaName:             "group_id",
+			TFModelName:              "GroupId",
+			ComputedOptionalRequired: codespec.Required,
+			String:                   &codespec.StringAttribute{},
+			Description:              conversion.StringPtr(testPathParamDesc),
+			ReqBodyUsage:             codespec.OmitAlways,
+			CreateOnly:               true,
+		},
+		{
+			TFSchemaName:             "string_attr",
+			TFModelName:              "StringAttr",
+			ComputedOptionalRequired: codespec.Required,
+			String:                   &codespec.StringAttribute{},
+			Description:              conversion.StringPtr(testFieldDesc),
+			ReqBodyUsage:             codespec.AllRequestBodies,
+		},
+	}
+
+	simpleTestResourceOperations = codespec.APIOperations{
+		Create: codespec.APIOperation{
+			Path:       "/api/atlas/v2/groups/{groupId}/simpleTestResource",
+			HTTPMethod: "POST",
+		},
+		Read: codespec.APIOperation{
+			Path:       "/api/atlas/v2/groups/{groupId}/simpleTestResource",
+			HTTPMethod: "GET",
+		},
+		Update: &codespec.APIOperation{
+			Path:       "/api/atlas/v2/groups/{groupId}/simpleTestResource",
+			HTTPMethod: "PATCH",
+		},
+		Delete: &codespec.APIOperation{
+			Path:       "/api/atlas/v2/groups/{groupId}/simpleTestResource",
+			HTTPMethod: "DELETE",
+		},
+		VersionHeader: "application/vnd.atlas.2023-01-01+json",
+	}
+)
+
 type convertToSpecTestCase struct {
 	expectedResult       *codespec.Model
 	inputOpenAPISpecPath string
@@ -37,63 +79,80 @@ func TestConvertToProviderSpec(t *testing.T) {
 					Description: conversion.StringPtr(testResourceDesc),
 					Attributes: codespec.Attributes{
 						{
-							Name:                     "bool_default_attr",
+							TFSchemaName:             "bool_default_attr",
+							TFModelName:              "BoolDefaultAttr",
 							ComputedOptionalRequired: codespec.ComputedOptional,
 							Bool:                     &codespec.BoolAttribute{Default: conversion.Pointer(false)},
+							ReqBodyUsage:             codespec.AllRequestBodies,
 						},
 						{
-							Name:                     "count",
+							TFSchemaName:             "count",
+							TFModelName:              "Count",
 							ComputedOptionalRequired: codespec.Optional,
 							Int64:                    &codespec.Int64Attribute{},
 							Description:              conversion.StringPtr(testFieldDesc),
+							ReqBodyUsage:             codespec.AllRequestBodies,
 						},
 						{
-							Name:                     "create_date",
+							TFSchemaName:             "create_date",
+							TFModelName:              "CreateDate",
 							String:                   &codespec.StringAttribute{},
 							ComputedOptionalRequired: codespec.Computed,
 							Description:              conversion.StringPtr(testFieldDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
 						},
 						{
-							Name:                     "group_id",
+							TFSchemaName:             "group_id",
+							TFModelName:              "GroupId",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
 						},
 						{
-							Name:                     "num_double_default_attr",
+							TFSchemaName:             "num_double_default_attr",
+							TFModelName:              "NumDoubleDefaultAttr",
 							Float64:                  &codespec.Float64Attribute{Default: conversion.Pointer(2.0)},
 							ComputedOptionalRequired: codespec.ComputedOptional,
+							ReqBodyUsage:             codespec.AllRequestBodies,
 						},
 						{
-							Name:                     "str_computed_attr",
+							TFSchemaName:             "str_computed_attr",
+							TFModelName:              "StrComputedAttr",
 							ComputedOptionalRequired: codespec.Computed,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testFieldDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
 						},
 						{
-							Name:                     "str_req_attr1",
+							TFSchemaName:             "str_req_attr1",
+							TFModelName:              "StrReqAttr1",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testFieldDesc),
+							ReqBodyUsage:             codespec.AllRequestBodies,
 						},
 						{
-							Name:                     "str_req_attr2",
+							TFSchemaName:             "str_req_attr2",
+							TFModelName:              "StrReqAttr2",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testFieldDesc),
+							ReqBodyUsage:             codespec.AllRequestBodies,
 						},
 						{
-							Name:                     "str_req_attr3",
+							TFSchemaName:             "str_req_attr3",
+							TFModelName:              "StrReqAttr3",
 							String:                   &codespec.StringAttribute{},
 							ComputedOptionalRequired: codespec.Required,
 							Description:              conversion.StringPtr(testFieldDesc),
+							ReqBodyUsage:             codespec.AllRequestBodies,
 						},
 					},
 				},
-				Name: "test_resource_no_schema_opts",
+				Name:        "test_resource_no_schema_opts",
+				PackageName: "testresourcenoschemaopts",
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/testResource",
@@ -103,11 +162,11 @@ func TestConvertToProviderSpec(t *testing.T) {
 						Path:       "/api/atlas/v2/groups/{groupId}/testResource",
 						HTTPMethod: "GET",
 					},
-					Update: codespec.APIOperation{
+					Update: &codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/testResource",
 						HTTPMethod: "PATCH",
 					},
-					Delete: codespec.APIOperation{
+					Delete: &codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/testResource",
 						HTTPMethod: "DELETE",
 					},
@@ -116,7 +175,10 @@ func TestConvertToProviderSpec(t *testing.T) {
 			}},
 		},
 	}
-	runTestCase(t, tc)
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
 
 func TestConvertToProviderSpec_nested(t *testing.T) {
@@ -131,22 +193,36 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 					Description: conversion.StringPtr(testResourceDesc),
 					Attributes: codespec.Attributes{
 						{
-							Name:                     "cluster_name",
+							TFSchemaName:             "attr_always_in_updates",
+							TFModelName:              "AttrAlwaysInUpdates",
+							ComputedOptionalRequired: codespec.Optional,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr("Always in updates"),
+							ReqBodyUsage:             codespec.AllRequestBodies,
+						},
+						{
+							TFSchemaName:             "cluster_name",
+							TFModelName:              "ClusterName",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
 						},
 						{
-							Name:                     "group_id",
+							TFSchemaName:             "group_id",
+							TFModelName:              "GroupId",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
 						},
 						{
-							Name:                     "list_primitive_string_attr",
+							TFSchemaName:             "list_primitive_string_attr",
+							TFModelName:              "ListPrimitiveStringAttr",
 							ComputedOptionalRequired: codespec.Computed,
+							CustomType:               codespec.NewCustomListType(codespec.String),
 							List: &codespec.ListAttribute{
 								ElementType: codespec.String,
 							},
@@ -154,28 +230,37 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							ReqBodyUsage: codespec.OmitAlways,
 						},
 						{
-							Name:                     "nested_list_array_attr",
+							TFSchemaName:             "nested_list_array_attr",
+							TFModelName:              "NestedListArrayAttr",
 							ComputedOptionalRequired: codespec.Required,
+							CustomType:               codespec.NewCustomNestedListType("NestedListArrayAttr"),
 							ListNested: &codespec.ListNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
 										{
-											Name:                     "inner_num_attr",
+											TFSchemaName:             "inner_num_attr",
+											TFModelName:              "InnerNumAttr",
 											ComputedOptionalRequired: codespec.Required,
 											Int64:                    &codespec.Int64Attribute{},
 											Description:              conversion.StringPtr(testFieldDesc),
+											ReqBodyUsage:             codespec.AllRequestBodies,
 										},
 										{
-											Name:                     "list_primitive_string_attr",
+											TFSchemaName:             "list_primitive_string_attr",
+											TFModelName:              "ListPrimitiveStringAttr",
 											ComputedOptionalRequired: codespec.Optional,
+											CustomType:               codespec.NewCustomListType(codespec.String),
 											List: &codespec.ListAttribute{
 												ElementType: codespec.String,
 											},
-											Description: conversion.StringPtr(testFieldDesc),
+											Description:  conversion.StringPtr(testFieldDesc),
+											ReqBodyUsage: codespec.AllRequestBodies,
 										},
 										{
-											Name:                     "list_primitive_string_computed_attr",
+											TFSchemaName:             "list_primitive_string_computed_attr",
+											TFModelName:              "ListPrimitiveStringComputedAttr",
 											ComputedOptionalRequired: codespec.Computed,
+											CustomType:               codespec.NewCustomListType(codespec.String),
 											List: &codespec.ListAttribute{
 												ElementType: codespec.String,
 											},
@@ -185,16 +270,20 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 									},
 								},
 							},
-							Description: conversion.StringPtr(testFieldDesc),
+							Description:  conversion.StringPtr(testFieldDesc),
+							ReqBodyUsage: codespec.AllRequestBodies,
 						},
 						{
-							Name:                     "nested_map_object_attr",
+							TFSchemaName:             "nested_map_object_attr",
+							TFModelName:              "NestedMapObjectAttr",
 							ComputedOptionalRequired: codespec.Computed,
+							CustomType:               codespec.NewCustomNestedMapType("NestedMapObjectAttr"),
 							MapNested: &codespec.MapNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
 										{
-											Name:                     "attr",
+											TFSchemaName:             "attr",
+											TFModelName:              "Attr",
 											ComputedOptionalRequired: codespec.Computed,
 											String:                   &codespec.StringAttribute{},
 											ReqBodyUsage:             codespec.OmitAlways,
@@ -205,21 +294,26 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							ReqBodyUsage: codespec.OmitAlways,
 						},
 						{
-							Name:                     "nested_set_array_attr",
+							TFSchemaName:             "nested_set_array_attr",
+							TFModelName:              "NestedSetArrayAttr",
 							ComputedOptionalRequired: codespec.Computed,
+							CustomType:               codespec.NewCustomNestedSetType("NestedSetArrayAttr"),
 							SetNested: &codespec.SetNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
 										{
-											Name:                     "inner_num_attr",
+											TFSchemaName:             "inner_num_attr",
+											TFModelName:              "InnerNumAttr",
 											ComputedOptionalRequired: codespec.Computed,
 											Int64:                    &codespec.Int64Attribute{},
 											Description:              conversion.StringPtr(testFieldDesc),
 											ReqBodyUsage:             codespec.OmitAlways,
 										},
 										{
-											Name:                     "list_primitive_string_attr",
+											TFSchemaName:             "list_primitive_string_attr",
+											TFModelName:              "ListPrimitiveStringAttr",
 											ComputedOptionalRequired: codespec.Computed,
+											CustomType:               codespec.NewCustomListType(codespec.String),
 											List: &codespec.ListAttribute{
 												ElementType: codespec.String,
 											},
@@ -233,35 +327,43 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 							Description:  conversion.StringPtr(testFieldDesc),
 						},
 						{
-							Name:                     "optional_string_attr",
+							TFSchemaName:             "optional_string_attr",
+							TFModelName:              "OptionalStringAttr",
 							ComputedOptionalRequired: codespec.Optional,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr("Optional string"),
+							ReqBodyUsage:             codespec.AllRequestBodies,
 						},
 						{
-							Name:                     "set_primitive_string_attr",
+							TFSchemaName:             "set_primitive_string_attr",
+							TFModelName:              "SetPrimitiveStringAttr",
 							ComputedOptionalRequired: codespec.Computed,
+							CustomType:               codespec.NewCustomSetType(codespec.String),
 							Set: &codespec.SetAttribute{
 								ElementType: codespec.String,
 							},
-							ReqBodyUsage: codespec.OmitAlways,
 							Description:  conversion.StringPtr(testFieldDesc),
+							ReqBodyUsage: codespec.OmitAlways,
 						},
 						{
-							Name:                     "single_nested_attr",
+							TFSchemaName:             "single_nested_attr",
+							TFModelName:              "SingleNestedAttr",
 							ComputedOptionalRequired: codespec.Computed,
+							CustomType:               codespec.NewCustomObjectType("SingleNestedAttr"),
 							SingleNested: &codespec.SingleNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
 										{
-											Name:                     "inner_int_attr",
+											TFSchemaName:             "inner_int_attr",
+											TFModelName:              "InnerIntAttr",
 											ComputedOptionalRequired: codespec.Computed,
 											Int64:                    &codespec.Int64Attribute{},
 											Description:              conversion.StringPtr(testFieldDesc),
 											ReqBodyUsage:             codespec.OmitAlways,
 										},
 										{
-											Name:                     "inner_str_attr",
+											TFSchemaName:             "inner_str_attr",
+											TFModelName:              "InnerStrAttr",
 											ComputedOptionalRequired: codespec.Computed,
 											String:                   &codespec.StringAttribute{},
 											Description:              conversion.StringPtr(testFieldDesc),
@@ -270,26 +372,32 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 									},
 								},
 							},
-							ReqBodyUsage: codespec.OmitAlways,
 							Description:  conversion.StringPtr(testFieldDesc),
+							ReqBodyUsage: codespec.OmitAlways,
 						},
 						{
-							Name:                     "single_nested_attr_with_nested_maps",
+							TFSchemaName:             "single_nested_attr_with_nested_maps",
+							TFModelName:              "SingleNestedAttrWithNestedMaps",
 							ComputedOptionalRequired: codespec.Computed,
+							CustomType:               codespec.NewCustomObjectType("SingleNestedAttrWithNestedMaps"),
 							SingleNested: &codespec.SingleNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
 										{
-											Name:                     "map_attr1",
+											TFSchemaName:             "map_attr1",
+											TFModelName:              "MapAttr1",
 											ComputedOptionalRequired: codespec.Computed,
+											CustomType:               codespec.NewCustomMapType(codespec.String),
 											Map: &codespec.MapAttribute{
 												ElementType: codespec.String,
 											},
 											ReqBodyUsage: codespec.OmitAlways,
 										},
 										{
-											Name:                     "map_attr2",
+											TFSchemaName:             "map_attr2",
+											TFModelName:              "MapAttr2",
 											ComputedOptionalRequired: codespec.Computed,
+											CustomType:               codespec.NewCustomMapType(codespec.String),
 											Map: &codespec.MapAttribute{
 												ElementType: codespec.String,
 											},
@@ -298,12 +406,13 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 									},
 								},
 							},
-							ReqBodyUsage: codespec.OmitAlways,
 							Description:  conversion.StringPtr(testFieldDesc),
+							ReqBodyUsage: codespec.OmitAlways,
 						},
 					},
 				},
-				Name: "test_resource_with_nested_attr",
+				Name:        "test_resource_with_nested_attr",
+				PackageName: "testresourcewithnestedattr",
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
@@ -313,21 +422,23 @@ func TestConvertToProviderSpec_nested(t *testing.T) {
 						Path:       "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
 						HTTPMethod: "GET",
 					},
-					Update: codespec.APIOperation{
+					Update: &codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
 						HTTPMethod: "PATCH",
 					},
-					Delete: codespec.APIOperation{
+					Delete: &codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/nestedTestResource",
 						HTTPMethod: "DELETE",
 					},
 					VersionHeader: "application/vnd.atlas.2024-05-30+json",
 				},
-			},
-			},
+			}},
 		},
 	}
-	runTestCase(t, tc)
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
 
 func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
@@ -342,27 +453,43 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 					Description: conversion.StringPtr(testResourceDesc),
 					Attributes: codespec.Attributes{
 						{
-							Name:                     "project_id",
+							TFSchemaName:             "attr_always_in_updates",
+							TFModelName:              "AttrAlwaysInUpdates",
+							ComputedOptionalRequired: codespec.Optional,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr("Always in updates"),
+							ReqBodyUsage:             codespec.IncludeNullOnUpdate,
+						},
+						{
+							TFSchemaName:             "project_id",
+							TFModelName:              "GroupId",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
 						},
 						{
-							Name:                     "nested_list_array_attr",
+							TFSchemaName:             "nested_list_array_attr",
+							TFModelName:              "NestedListArrayAttr",
 							ComputedOptionalRequired: codespec.Required,
+							CustomType:               codespec.NewCustomNestedListType("NestedListArrayAttr"),
 							ListNested: &codespec.ListNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
 										{
-											Name:                     "inner_num_attr_alias",
+											TFSchemaName:             "inner_num_attr_alias",
+											TFModelName:              "InnerNumAttr",
 											ComputedOptionalRequired: codespec.Required,
 											Int64:                    &codespec.Int64Attribute{},
 											Description:              conversion.StringPtr("Overridden inner_num_attr_alias description"),
+											ReqBodyUsage:             codespec.AllRequestBodies,
 										},
 										{
-											Name:                     "list_primitive_string_computed_attr",
+											TFSchemaName:             "list_primitive_string_computed_attr",
+											TFModelName:              "ListPrimitiveStringComputedAttr",
 											ComputedOptionalRequired: codespec.Computed,
+											CustomType:               codespec.NewCustomListType(codespec.String),
 											List: &codespec.ListAttribute{
 												ElementType: codespec.String,
 											},
@@ -372,30 +499,38 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 									},
 								},
 							},
-							Description: conversion.StringPtr(testFieldDesc),
+							Description:  conversion.StringPtr(testFieldDesc),
+							ReqBodyUsage: codespec.AllRequestBodies,
 						},
 						{
-							Name:                     "optional_string_attr",
+							TFSchemaName:             "optional_string_attr",
+							TFModelName:              "OptionalStringAttr",
 							ComputedOptionalRequired: codespec.ComputedOptional,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr("Optional string that has config override to optional/computed"),
+							ReqBodyUsage:             codespec.AllRequestBodies,
 						},
 						{
-							Name:                     "outer_object",
+							TFSchemaName:             "outer_object",
+							TFModelName:              "OuterObject",
 							ComputedOptionalRequired: codespec.Computed,
 							ReqBodyUsage:             codespec.OmitAlways,
+							CustomType:               codespec.NewCustomObjectType("OuterObject"),
 							SingleNested: &codespec.SingleNestedAttribute{
 								NestedObject: codespec.NestedAttributeObject{
 									Attributes: codespec.Attributes{
 										{
-											Name:                     "nested_level1",
+											TFSchemaName:             "nested_level1",
+											TFModelName:              "NestedLevel1",
 											ComputedOptionalRequired: codespec.Computed,
 											ReqBodyUsage:             codespec.OmitAlways,
+											CustomType:               codespec.NewCustomObjectType("OuterObjectNestedLevel1"),
 											SingleNested: &codespec.SingleNestedAttribute{
 												NestedObject: codespec.NestedAttributeObject{
 													Attributes: codespec.Attributes{
 														{
-															Name:                     "level_field1_alias",
+															TFSchemaName:             "level_field1_alias",
+															TFModelName:              "LevelField1",
 															ComputedOptionalRequired: codespec.Computed,
 															ReqBodyUsage:             codespec.OmitAlways,
 															String:                   &codespec.StringAttribute{},
@@ -409,16 +544,10 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 								},
 							},
 						},
-						{
-							Name: "timeouts",
-							Timeouts: &codespec.TimeoutsAttribute{
-								ConfigurableTimeouts: []codespec.Operation{codespec.Create, codespec.Read, codespec.Update, codespec.Delete},
-							},
-							ReqBodyUsage: codespec.OmitAlways,
-						},
 					},
 				},
-				Name: "test_resource_with_nested_attr_overrides",
+				Name:        "test_resource_with_nested_attr_overrides",
+				PackageName: "testresourcewithnestedattroverrides",
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/nestedTestResource",
@@ -428,11 +557,11 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 						Path:       "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/nestedTestResource",
 						HTTPMethod: "GET",
 					},
-					Update: codespec.APIOperation{
+					Update: &codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/nestedTestResource",
 						HTTPMethod: "PATCH",
 					},
-					Delete: codespec.APIOperation{
+					Delete: &codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{projectId}/clusters/{clusterName}/nestedTestResource",
 						HTTPMethod: "DELETE",
 					},
@@ -442,7 +571,10 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 			},
 		},
 	}
-	runTestCase(t, tc)
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
 
 func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
@@ -457,28 +589,35 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 					Description: conversion.StringPtr(testResourceDesc),
 					Attributes: codespec.Attributes{
 						{
-							Name:                     "group_id",
+							TFSchemaName:             "group_id",
+							TFModelName:              "GroupId",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
 							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
 						},
 						{
-							Name:                     "special_param",
+							TFSchemaName:             "special_param",
+							TFModelName:              "SpecialParam",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							ReqBodyUsage:             codespec.OmitInUpdateBody,
 							Description:              conversion.StringPtr(testPathParamDesc),
+							CreateOnly:               true,
 						},
 						{
-							Name:                     "str_req_attr1",
+							TFSchemaName:             "str_req_attr1",
+							TFModelName:              "StrReqAttr1",
 							ComputedOptionalRequired: codespec.Optional,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testFieldDesc),
+							ReqBodyUsage:             codespec.AllRequestBodies,
 						},
 					},
 				},
-				Name: "test_resource_path_param_in_post_req",
+				Name:        "test_resource_path_param_in_post_req",
+				PackageName: "testresourcepathparaminpostreq",
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/pathparaminpostreq",
@@ -488,11 +627,11 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 						Path:       "/api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}",
 						HTTPMethod: "GET",
 					},
-					Delete: codespec.APIOperation{
+					Delete: &codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}",
 						HTTPMethod: "DELETE",
 					},
-					Update: codespec.APIOperation{
+					Update: &codespec.APIOperation{
 						Path:       "/api/atlas/v2/groups/{groupId}/pathparaminpostreq/{specialParam}",
 						HTTPMethod: "PATCH",
 					},
@@ -502,11 +641,321 @@ func TestConvertToProviderSpec_pathParamPresentInPostRequest(t *testing.T) {
 			},
 		},
 	}
-	runTestCase(t, tc)
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
 }
 
-func runTestCase(t *testing.T, tc convertToSpecTestCase) {
-	t.Helper()
+func TestConvertToProviderSpec_singletonResourceNoDeleteOperation(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      testDataConfigPath,
+		inputResourceName:    "test_singleton_resource_no_delete_op",
+
+		expectedResult: &codespec.Model{
+			Resources: []codespec.Resource{{
+				Schema: &codespec.Schema{
+					Description: conversion.StringPtr("PATCH API description"),
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "flag",
+							TFModelName:              "Flag",
+							ComputedOptionalRequired: codespec.Optional,
+							Bool:                     &codespec.BoolAttribute{},
+							ReqBodyUsage:             codespec.AllRequestBodies,
+						},
+						{
+							TFSchemaName:             "group_id",
+							TFModelName:              "GroupId",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr(testPathParamDesc),
+							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
+						},
+					},
+				},
+				Name:        "test_singleton_resource_no_delete_op",
+				PackageName: "testsingletonresourcenodeleteop",
+				Operations: codespec.APIOperations{
+					Create: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testSingletonResource",
+						HTTPMethod: "PATCH",
+					},
+					Read: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testSingletonResource",
+						HTTPMethod: "GET",
+					},
+					Update: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testSingletonResource",
+						HTTPMethod: "PATCH",
+					},
+					Delete:        nil,
+					VersionHeader: "application/vnd.atlas.2023-01-01+json",
+				},
+			}},
+		},
+	}
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
+}
+
+func TestConvertToProviderSpec_NoUpdateOperation(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      testDataConfigPath,
+		inputResourceName:    "test_resource_no_update_op",
+
+		expectedResult: &codespec.Model{
+			Resources: []codespec.Resource{{
+				Schema: &codespec.Schema{
+					Description: conversion.StringPtr("POST API description"),
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "group_id",
+							TFModelName:              "GroupId",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr(testPathParamDesc),
+							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
+						},
+						{
+							TFSchemaName:             "string_attr",
+							TFModelName:              "StringAttr",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							ReqBodyUsage:             codespec.OmitInUpdateBody,
+							CreateOnly:               true,
+						},
+					},
+				},
+				Name:        "test_resource_no_update_op",
+				PackageName: "testresourcenoupdateop",
+				Operations: codespec.APIOperations{
+					Create: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResourceNoUpdate",
+						HTTPMethod: "POST",
+					},
+					Read: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResourceNoUpdate",
+						HTTPMethod: "GET",
+					},
+					Update: nil,
+					Delete: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResourceNoUpdate",
+						HTTPMethod: "DELETE",
+					},
+					VersionHeader: "application/vnd.atlas.2023-01-01+json",
+				},
+			}},
+		},
+	}
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
+}
+
+func TestConvertToProviderSpec_typeOverride(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      testDataConfigPath,
+		inputResourceName:    "test_resource_with_overridden_collection_types",
+
+		expectedResult: &codespec.Model{
+			Resources: []codespec.Resource{{
+				Schema: &codespec.Schema{
+					Description: conversion.StringPtr(testResourceDesc),
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "flag",
+							TFModelName:              "Flag",
+							ComputedOptionalRequired: codespec.Required,
+							Bool:                     &codespec.BoolAttribute{},
+							ReqBodyUsage:             codespec.AllRequestBodies,
+						},
+						{
+							TFSchemaName:             "group_id",
+							TFModelName:              "GroupId",
+							ComputedOptionalRequired: codespec.Required,
+							String:                   &codespec.StringAttribute{},
+							Description:              conversion.StringPtr(testPathParamDesc),
+							ReqBodyUsage:             codespec.OmitAlways,
+							CreateOnly:               true,
+						},
+						{
+							TFSchemaName:             "list_string",
+							TFModelName:              "ListString",
+							ComputedOptionalRequired: codespec.Required,
+							// List overridden to set
+							CustomType:   codespec.NewCustomSetType(codespec.String),
+							Set:          &codespec.SetAttribute{ElementType: codespec.String},
+							ReqBodyUsage: codespec.AllRequestBodies,
+						},
+						{
+							TFSchemaName:             "set_string",
+							TFModelName:              "SetString",
+							ComputedOptionalRequired: codespec.Required,
+							// Set overridden to list
+							CustomType:   codespec.NewCustomListType(codespec.String),
+							List:         &codespec.ListAttribute{ElementType: codespec.String},
+							ReqBodyUsage: codespec.AllRequestBodies,
+						},
+					},
+				},
+				Name:        "test_resource_with_overridden_collection_types",
+				PackageName: "testresourcewithoverriddencollectiontypes",
+				Operations: codespec.APIOperations{
+					Create: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResourceWithCollections",
+						HTTPMethod: "POST",
+					},
+					Read: codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResourceWithCollections",
+						HTTPMethod: "GET",
+					},
+					Update: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResourceWithCollections",
+						HTTPMethod: "PATCH",
+					},
+					Delete: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/groups/{groupId}/testResourceWithCollections",
+						HTTPMethod: "DELETE",
+					},
+					VersionHeader: "application/vnd.atlas.2023-01-01+json",
+				},
+			}},
+		},
+	}
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
+}
+
+func TestConvertToProviderSpec_dynamicJSONProperties(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      testDataConfigPath,
+		inputResourceName:    "test_dynamic_json_properties",
+
+		expectedResult: &codespec.Model{
+			Resources: []codespec.Resource{{
+				Schema: &codespec.Schema{
+					Description: conversion.StringPtr(testResourceDesc),
+					Attributes: codespec.Attributes{
+						{
+							TFSchemaName:             "array_of_dynamic_values",
+							TFModelName:              "ArrayOfDynamicValues",
+							ComputedOptionalRequired: codespec.Optional,
+							CustomType:               codespec.NewCustomListType(codespec.CustomTypeJSON),
+							List: &codespec.ListAttribute{
+								ElementType: codespec.CustomTypeJSON,
+							},
+							Description:  conversion.StringPtr("Array of dynamic values."),
+							ReqBodyUsage: codespec.AllRequestBodies,
+						},
+						{
+							TFSchemaName:             "dynamic_value",
+							TFModelName:              "DynamicValue",
+							ComputedOptionalRequired: codespec.Optional,
+							String:                   &codespec.StringAttribute{},
+							CustomType:               &codespec.CustomTypeJSONVar,
+							Description:              conversion.StringPtr("Dynamic value."),
+							ReqBodyUsage:             codespec.AllRequestBodies,
+						},
+						{
+							TFSchemaName:             "object_of_dynamic_values",
+							TFModelName:              "ObjectOfDynamicValues",
+							ComputedOptionalRequired: codespec.Optional,
+							CustomType:               codespec.NewCustomMapType(codespec.CustomTypeJSON),
+							Map: &codespec.MapAttribute{
+								ElementType: codespec.CustomTypeJSON,
+							},
+							Description:  conversion.StringPtr("Object of dynamic values."),
+							ReqBodyUsage: codespec.AllRequestBodies,
+						},
+					},
+				},
+				Name:        "test_dynamic_json_properties",
+				PackageName: "testdynamicjsonproperties",
+				Operations: codespec.APIOperations{
+					Create: codespec.APIOperation{
+						Path:       "/api/atlas/v2/dynamicJsonProperties",
+						HTTPMethod: "POST",
+					},
+					Read: codespec.APIOperation{
+						Path:       "/api/atlas/v2/dynamicJsonProperties",
+						HTTPMethod: "GET",
+					},
+					Update: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/dynamicJsonProperties",
+						HTTPMethod: "PATCH",
+					},
+					Delete: &codespec.APIOperation{
+						Path:       "/api/atlas/v2/dynamicJsonProperties",
+						HTTPMethod: "DELETE",
+					},
+					VersionHeader: "application/vnd.atlas.2024-05-30+json",
+				},
+			}},
+		},
+	}
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
+}
+
+func TestConvertToProviderSpec_moveState(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      testDataConfigPath,
+		inputResourceName:    "test_resource_move_state",
+
+		expectedResult: &codespec.Model{
+			Resources: []codespec.Resource{{
+				Schema: &codespec.Schema{
+					Description: conversion.StringPtr("POST API description"),
+					Attributes:  simpleTestResourceAttributes,
+				},
+				Name:        "test_resource_move_state",
+				PackageName: "testresourcemovestate",
+				Operations:  simpleTestResourceOperations,
+				MoveState:   &codespec.MoveState{SourceResources: []string{"test_resource"}},
+			}},
+		},
+	}
+
+	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
+	require.NoError(t, err)
+	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")
+}
+
+func TestConvertToProviderSpec_deprecatedResource(t *testing.T) {
+	tc := convertToSpecTestCase{
+		inputOpenAPISpecPath: testDataAPISpecPath,
+		inputConfigPath:      testDataConfigPath,
+		inputResourceName:    "test_resource_deprecated",
+
+		expectedResult: &codespec.Model{
+			Resources: []codespec.Resource{{
+				Schema: &codespec.Schema{
+					Description:        conversion.StringPtr("POST API description"),
+					DeprecationMessage: conversion.StringPtr("This resource is deprecated. Please use test_resource_new resource instead."),
+					Attributes:         simpleTestResourceAttributes,
+				},
+				Name:        "test_resource_deprecated",
+				PackageName: "testresourcedeprecated",
+				Operations:  simpleTestResourceOperations,
+			}},
+		},
+	}
+
 	result, err := codespec.ToCodeSpecModel(tc.inputOpenAPISpecPath, tc.inputConfigPath, &tc.inputResourceName)
 	require.NoError(t, err)
 	assert.Equal(t, tc.expectedResult, result, "Expected result to match the specified structure")

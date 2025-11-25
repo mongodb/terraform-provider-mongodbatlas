@@ -2,16 +2,19 @@ package streaminstance
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/constant"
 )
 
 func ResourceSchema(ctx context.Context) schema.Schema {
 	return schema.Schema{
+		DeprecationMessage: fmt.Sprintf(constant.DeprecationNextMajorWithReplacementGuide, "resource", "mongodbatlas_stream_workspace", "https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/stream-instance-to-stream-workspace-migraton-guide"),
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -47,6 +50,10 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 				Optional: true,
 				Computed: true,
 				Attributes: map[string]schema.Attribute{
+					"max_tier_size": schema.StringAttribute{
+						Optional: true,
+						Computed: true,
+					},
 					"tier": schema.StringAttribute{
 						Optional: true,
 						Computed: true,
@@ -72,7 +79,8 @@ type TFInstanceProcessRegionSpecModel struct {
 }
 
 type TFInstanceStreamConfigSpecModel struct {
-	Tier types.String `tfsdk:"tier"`
+	MaxTierSize types.String `tfsdk:"max_tier_size"`
+	Tier        types.String `tfsdk:"tier"`
 }
 
 var ProcessRegionObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
@@ -81,5 +89,6 @@ var ProcessRegionObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 }}
 
 var StreamConfigObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"tier": types.StringType,
+	"max_tier_size": types.StringType,
+	"tier":          types.StringType,
 }}

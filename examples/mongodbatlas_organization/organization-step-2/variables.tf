@@ -1,10 +1,10 @@
 variable "public_key" {
-  type        = string
   description = "Public Programmatic API key to authenticate to Atlas"
+  type        = string
 }
 variable "private_key" {
-  type        = string
   description = "Private Programmatic API key to authenticate to Atlas"
+  type        = string
 }
 variable "org_id" {
   type        = string

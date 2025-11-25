@@ -1,3 +1,7 @@
+---
+subcategory: "Root"
+---
+
 # Data Source: mongodbatlas_control_plane_ip_addresses
 
 `mongodbatlas_control_plane_ip_addresses` returns all control plane IP addresses.
@@ -39,4 +43,4 @@ Read-Only:
 - `azure` (Map of List of String) Control plane IP addresses in Azure. Each key identifies an Azure region. Each value identifies control plane IP addresses in the Azure region.
 - `gcp` (Map of List of String) Control plane IP addresses in GCP. Each key identifies a Google Cloud (GCP) region. Each value identifies control plane IP addresses in the GCP region.
 
-For more information see: [MongoDB Atlas API - Return All Control Plane IP Addresses](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Root/operation/returnAllControlPlaneIPAddresses) Documentation.
+For more information see: [MongoDB Atlas API - Return All Control Plane IP Addresses](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-returnallcontrolplaneipaddresses) Documentation.

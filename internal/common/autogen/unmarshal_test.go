@@ -1,14 +1,19 @@
 package autogen_test
 
 import (
+	"context"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework-jsontypes/jsontypes"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen/customtypes"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+const epsilon = 10e-15 // float tolerance in test equality
 
 func TestUnmarshalBasic(t *testing.T) {
 	var model struct {
@@ -20,6 +25,7 @@ func TestUnmarshalBasic(t *testing.T) {
 		AttrIntWithFloat types.Int64   `tfsdk:"attr_int_with_float"`
 		AttrTrue         types.Bool    `tfsdk:"attr_true"`
 		AttrFalse        types.Bool    `tfsdk:"attr_false"`
+		AttrMANYUpper    types.Int64   `tfsdk:"attr_many_upper"`
 	}
 	const (
 		// attribute_not_in_model is ignored because it is not in the model, no error is thrown.
@@ -34,7 +40,8 @@ func TestUnmarshalBasic(t *testing.T) {
 				"attrFloat": 456.1,
 				"attrFloatWithInt": 13,
 				"attrNotInModel": "val",
-				"attrNull": null
+				"attrNull": null,
+				"attrMANYUpper": 1
 			}
 		`
 	)
@@ -47,407 +54,667 @@ func TestUnmarshalBasic(t *testing.T) {
 	assert.InEpsilon(t, float64(456.1), model.AttrFloat.ValueFloat64(), epsilon)
 	assert.InEpsilon(t, float64(13), model.AttrFloatWithInt.ValueFloat64(), epsilon)
 	assert.True(t, model.AttrNotInJSON.IsNull()) // attributes not in JSON response are not changed, so null is kept.
+	assert.Equal(t, int64(1), model.AttrMANYUpper.ValueInt64())
 }
 
-func TestUnmarshalNestedAllTypes(t *testing.T) {
+func TestUnmarshalDynamicJSONAttr(t *testing.T) {
+	ctx := context.Background()
+
 	type modelst struct {
-		AttrObj               types.Object `tfsdk:"attr_obj"`
-		AttrObjNullNotSent    types.Object `tfsdk:"attr_obj_null_not_sent"`
-		AttrObjNullSent       types.Object `tfsdk:"attr_obj_null_sent"`
-		AttrObjUnknownNotSent types.Object `tfsdk:"attr_obj_unknown_not_sent"`
-		AttrObjUnknownSent    types.Object `tfsdk:"attr_obj_unknown_sent"`
-		AttrObjParent         types.Object `tfsdk:"attr_obj_parent"`
-		AttrListString        types.List   `tfsdk:"attr_list_string"`
-		AttrListObj           types.List   `tfsdk:"attr_list_obj"`
-		AttrSetString         types.Set    `tfsdk:"attr_set_string"`
-		AttrSetObj            types.Set    `tfsdk:"attr_set_obj"`
-		AttrListListString    types.List   `tfsdk:"attr_list_list_string"`
-		AttrSetListObj        types.Set    `tfsdk:"attr_set_list_obj"`
-		AttrListObjKnown      types.List   `tfsdk:"attr_list_obj_known"`
-		AttrMapSimple         types.Map    `tfsdk:"attr_map_simple"`
-		AttrMapSimpleExisting types.Map    `tfsdk:"attr_map_simple_existing"`
-		AttrMapObj            types.Map    `tfsdk:"attr_map_obj"`
+		AttrDynamicJSONObject         jsontypes.Normalized                        `tfsdk:"attr_dynamic_json_object"`
+		AttrDynamicJSONBoolean        jsontypes.Normalized                        `tfsdk:"attr_dynamic_json_boolean"`
+		AttrDynamicJSONNumber         jsontypes.Normalized                        `tfsdk:"attr_dynamic_json_number"`
+		AttrDynamicJSONString         jsontypes.Normalized                        `tfsdk:"attr_dynamic_json_string"`
+		AttrDynamicJSONArray          jsontypes.Normalized                        `tfsdk:"attr_dynamic_json_array"`
+		AttrListOfDynamicJSONObjects  customtypes.ListValue[jsontypes.Normalized] `tfsdk:"attr_list_of_dynamic_json_objects"`
+		AttrSetOfDynamicJSONObjects   customtypes.SetValue[jsontypes.Normalized]  `tfsdk:"attr_set_of_dynamic_json_objects"`
+		AttrMapOfDynamicJSONObjects   customtypes.MapValue[jsontypes.Normalized]  `tfsdk:"attr_map_of_dynamic_json_objects"`
+		AttrListOfDynamicJSONBooleans customtypes.ListValue[jsontypes.Normalized] `tfsdk:"attr_list_of_dynamic_json_booleans"`
+		AttrSetOfDynamicJSONBooleans  customtypes.SetValue[jsontypes.Normalized]  `tfsdk:"attr_set_of_dynamic_json_booleans"`
+		AttrMapOfDynamicJSONBooleans  customtypes.MapValue[jsontypes.Normalized]  `tfsdk:"attr_map_of_dynamic_json_booleans"`
 	}
+
+	var model modelst
+	const jsonResp = `
+		{
+			"attrDynamicJSONObject": {"hello":"there"},
+			"attrDynamicJSONBoolean": true,
+			"attrDynamicJSONNumber": 1.234,
+			"attrDynamicJSONString": "hello",
+			"attrDynamicJSONArray": [1, 2, 3],
+			"attrListOfDynamicJSONObjects": [{"hello": "there"}],
+			"attrSetOfDynamicJSONObjects": [{"hello": "there"}],
+			"attrMapOfDynamicJSONObjects": {"key1": {"hello": "there"}, "key2": {"hello": "there"}},
+			"attrListOfDynamicJSONBooleans": [true],
+			"attrSetOfDynamicJSONBooleans": [true],
+			"attrMapOfDynamicJSONBooleans": {"key1": true, "key2": false}
+		}
+	`
+	modelExpected := modelst{
+		AttrDynamicJSONObject:  jsontypes.NewNormalizedValue("{\"hello\":\"there\"}"),
+		AttrDynamicJSONBoolean: jsontypes.NewNormalizedValue("true"),
+		AttrDynamicJSONNumber:  jsontypes.NewNormalizedValue("1.234"),
+		AttrDynamicJSONString:  jsontypes.NewNormalizedValue("\"hello\""),
+		AttrDynamicJSONArray:   jsontypes.NewNormalizedValue("[1,2,3]"),
+		AttrListOfDynamicJSONObjects: customtypes.NewListValue[jsontypes.Normalized](ctx, []attr.Value{
+			jsontypes.NewNormalizedValue("{\"hello\":\"there\"}"),
+		}),
+		AttrSetOfDynamicJSONObjects: customtypes.NewSetValue[jsontypes.Normalized](ctx, []attr.Value{
+			jsontypes.NewNormalizedValue("{\"hello\":\"there\"}"),
+		}),
+		AttrMapOfDynamicJSONObjects: customtypes.NewMapValue[jsontypes.Normalized](ctx, map[string]attr.Value{
+			"key1": jsontypes.NewNormalizedValue("{\"hello\":\"there\"}"),
+			"key2": jsontypes.NewNormalizedValue("{\"hello\":\"there\"}"),
+		}),
+		AttrListOfDynamicJSONBooleans: customtypes.NewListValue[jsontypes.Normalized](ctx, []attr.Value{
+			jsontypes.NewNormalizedValue("true"),
+		}),
+		AttrSetOfDynamicJSONBooleans: customtypes.NewSetValue[jsontypes.Normalized](ctx, []attr.Value{
+			jsontypes.NewNormalizedValue("true"),
+		}),
+		AttrMapOfDynamicJSONBooleans: customtypes.NewMapValue[jsontypes.Normalized](ctx, map[string]attr.Value{
+			"key1": jsontypes.NewNormalizedValue("true"),
+			"key2": jsontypes.NewNormalizedValue("false"),
+		}),
+	}
+
+	require.NoError(t, autogen.Unmarshal([]byte(jsonResp), &model))
+	assert.Equal(t, modelExpected, model)
+}
+
+func TestUnmarshalSensitiveAttribute(t *testing.T) {
+	type modelst struct {
+		AttrKnownSent      types.String `tfsdk:"attr_known_sent" autogen:"sensitive"`
+		AttrKnownNotSent   types.String `tfsdk:"attr_known_not_sent" autogen:"sensitive"`
+		AttrUnknownSent    types.String `tfsdk:"attr_unknown_sent" autogen:"sensitive"`
+		AttrUnknownNotSent types.String `tfsdk:"attr_unknown_not_sent" autogen:"sensitive"`
+		AttrNullSent       types.String `tfsdk:"attr_null_sent" autogen:"sensitive"`
+		AttrNullNotSent    types.String `tfsdk:"attr_null_not_sent" autogen:"sensitive"`
+	}
+
 	model := modelst{
-		AttrObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
-			// these attribute values are irrelevant, they will be overwritten with JSON values
-			"attr_string": types.StringValue("different_string"),
-			"attr_int":    types.Int64Value(123456),
-			"attr_float":  types.Float64Unknown(), // can even be null
-			"attr_bool":   types.BoolUnknown(),    // can even be unknown
-		}),
-		AttrObjNullNotSent:    types.ObjectNull(objTypeTest.AttrTypes),
-		AttrObjNullSent:       types.ObjectNull(objTypeTest.AttrTypes),
-		AttrObjUnknownNotSent: types.ObjectUnknown(objTypeTest.AttrTypes), // unknown values are changed to null
-		AttrObjUnknownSent:    types.ObjectUnknown(objTypeTest.AttrTypes),
-		AttrObjParent:         types.ObjectNull(objTypeParentTest.AttrTypes),
-		AttrListString:        types.ListUnknown(types.StringType),
-		AttrListObj:           types.ListUnknown(objTypeTest),
-		AttrSetString:         types.SetUnknown(types.StringType),
-		AttrSetObj:            types.SetUnknown(objTypeTest),
-		AttrListListString:    types.ListUnknown(types.ListType{ElemType: types.StringType}),
-		AttrSetListObj:        types.SetUnknown(types.ListType{ElemType: objTypeTest}),
-		AttrListObjKnown: types.ListValueMust(objTypeTest, []attr.Value{
-			types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
-				"attr_string": types.StringValue("val"),
-				"attr_int":    types.Int64Value(1),
-				"attr_float":  types.Float64Value(1.1),
-				"attr_bool":   types.BoolValue(true),
-			}),
-		}),
-		AttrMapSimple: types.MapNull(types.StringType),
-		AttrMapSimpleExisting: types.MapValueMust(types.StringType, map[string]attr.Value{
-			"existing":       types.StringValue("valexisting"),
-			"existingCHANGE": types.StringValue("before"),
-		}),
-		AttrMapObj: types.MapUnknown(objTypeTest),
+		AttrKnownSent:      types.StringValue("Known sensitive value not overwritten"),
+		AttrKnownNotSent:   types.StringValue("Known sensitive value"),
+		AttrUnknownSent:    types.StringUnknown(),
+		AttrUnknownNotSent: types.StringUnknown(),
+		AttrNullSent:       types.StringNull(),
+		AttrNullNotSent:    types.StringNull(),
 	}
-	// attrUnexisting is ignored because it is in JSON but not in the model, no error is returned
+
 	const (
 		jsonResp = `
 			{
-				"attrObj": {
+				"attrKnownSent": "Redacted known value",
+				"attrUnknownSent": "Redacted unknown value",
+				"attrNullSent": "Redacted null value"
+			}
+		`
+	)
+
+	modelExpected := modelst{
+		AttrKnownSent:      types.StringValue("Known sensitive value not overwritten"),
+		AttrKnownNotSent:   types.StringValue("Known sensitive value"),
+		AttrUnknownSent:    types.StringValue("Redacted unknown value"),
+		AttrUnknownNotSent: types.StringUnknown(),
+		AttrNullSent:       types.StringValue("Redacted null value"),
+		AttrNullNotSent:    types.StringNull(),
+	}
+
+	require.NoError(t, autogen.Unmarshal([]byte(jsonResp), &model))
+	assert.Equal(t, modelExpected, model)
+}
+
+type unmarshalModelEmpty struct{}
+
+type unmarshalModelCustomType struct {
+	AttrFloat     types.Float64                                `tfsdk:"attr_float"`
+	AttrString    types.String                                 `tfsdk:"attr_string"`
+	AttrNested    customtypes.ObjectValue[unmarshalModelEmpty] `tfsdk:"attr_nested"`
+	AttrInt       types.Int64                                  `tfsdk:"attr_int"`
+	AttrBool      types.Bool                                   `tfsdk:"attr_bool"`
+	AttrMANYUpper types.Int64                                  `tfsdk:"attr_many_upper"`
+}
+
+func TestUnmarshalCustomObject(t *testing.T) {
+	ctx := context.Background()
+
+	type modelst struct {
+		AttrCustomObj               customtypes.ObjectValue[unmarshalModelCustomType] `tfsdk:"attr_custom_obj"`
+		AttrCustomObjNullNotSent    customtypes.ObjectValue[unmarshalModelCustomType] `tfsdk:"attr_custom_obj_null_not_sent"`
+		AttrCustomObjNullSent       customtypes.ObjectValue[unmarshalModelCustomType] `tfsdk:"attr_custom_obj_null_sent"`
+		AttrCustomObjUnknownNotSent customtypes.ObjectValue[unmarshalModelCustomType] `tfsdk:"attr_custom_obj_unknown_not_sent"`
+		AttrCustomObjUnknownSent    customtypes.ObjectValue[unmarshalModelCustomType] `tfsdk:"attr_custom_obj_unknown_sent"`
+		AttrCustomObjParent         customtypes.ObjectValue[unmarshalModelCustomType] `tfsdk:"attr_custom_obj_parent"`
+		AttrCustomObjZeroInit       customtypes.ObjectValue[unmarshalModelCustomType] `tfsdk:"attr_custom_obj_zero"`
+	}
+
+	model := modelst{
+		AttrCustomObj: customtypes.NewObjectValue[unmarshalModelCustomType](ctx, unmarshalModelCustomType{
+			AttrString:    types.StringValue("different_string"),
+			AttrInt:       types.Int64Value(999),
+			AttrFloat:     types.Float64Unknown(),
+			AttrBool:      types.BoolUnknown(),
+			AttrNested:    customtypes.NewObjectValueUnknown[unmarshalModelEmpty](ctx),
+			AttrMANYUpper: types.Int64Value(999),
+		}),
+		AttrCustomObjNullNotSent:    customtypes.NewObjectValueNull[unmarshalModelCustomType](ctx),
+		AttrCustomObjNullSent:       customtypes.NewObjectValueNull[unmarshalModelCustomType](ctx),
+		AttrCustomObjUnknownNotSent: customtypes.NewObjectValueUnknown[unmarshalModelCustomType](ctx),
+		AttrCustomObjUnknownSent:    customtypes.NewObjectValueUnknown[unmarshalModelCustomType](ctx),
+		AttrCustomObjParent:         customtypes.NewObjectValueNull[unmarshalModelCustomType](ctx),
+	}
+
+	const (
+		jsonResp = `
+			{
+				"attrCustomObj": {
 					"attrString": "value_string",
 					"attrInt": 123,
 					"attrFloat": 1.1,
 					"attrBool": true,
-					"attrUnexisting": "val"
-				}, 
-				"attrObjNullSent": {
+					"attrNested": {},
+					"attrMANYUpper": 456
+				},
+				"attrCustomObjNullSent": {
 					"attrString": "null_obj",
 					"attrInt": 1,
 					"attrFloat": null
 				},
-				"attrObjUnknownSent": {
+				"attrCustomObjUnknownSent": {
 					"attrString": "unknown_obj"
 				},
-				"attrObjParent": {
-					"attrParentString": "parent string",
-					"attrParentObj": {
-						"attrString": "inside parent string"
-					}
+				"attrCustomObjParent": {
+					"attrString": "parent string",
+					"attrNested": {}
 				},
-				"attrListString": [
+				"attrCustomObjZeroInit": {
+					"attrString": "zero init string",
+					"attrNested": {}
+				}
+			}
+		`
+	)
+
+	modelExpected := modelst{
+		AttrCustomObj: customtypes.NewObjectValue[unmarshalModelCustomType](ctx, unmarshalModelCustomType{
+			AttrString:    types.StringValue("value_string"),
+			AttrInt:       types.Int64Value(123),
+			AttrFloat:     types.Float64Value(1.1),
+			AttrBool:      types.BoolValue(true),
+			AttrNested:    customtypes.NewObjectValue[unmarshalModelEmpty](ctx, unmarshalModelEmpty{}),
+			AttrMANYUpper: types.Int64Value(456),
+		}),
+		AttrCustomObjNullNotSent: customtypes.NewObjectValueNull[unmarshalModelCustomType](ctx),
+		AttrCustomObjNullSent: customtypes.NewObjectValue[unmarshalModelCustomType](ctx, unmarshalModelCustomType{
+			AttrString:    types.StringValue("null_obj"),
+			AttrInt:       types.Int64Value(1),
+			AttrFloat:     types.Float64Null(),
+			AttrBool:      types.BoolNull(),
+			AttrNested:    customtypes.NewObjectValueNull[unmarshalModelEmpty](ctx),
+			AttrMANYUpper: types.Int64Null(),
+		}),
+		AttrCustomObjUnknownNotSent: customtypes.NewObjectValueUnknown[unmarshalModelCustomType](ctx),
+		AttrCustomObjUnknownSent: customtypes.NewObjectValue[unmarshalModelCustomType](ctx, unmarshalModelCustomType{
+			AttrString:    types.StringValue("unknown_obj"),
+			AttrInt:       types.Int64Null(),
+			AttrFloat:     types.Float64Null(),
+			AttrBool:      types.BoolNull(),
+			AttrNested:    customtypes.NewObjectValueNull[unmarshalModelEmpty](ctx),
+			AttrMANYUpper: types.Int64Null(),
+		}),
+		AttrCustomObjParent: customtypes.NewObjectValue[unmarshalModelCustomType](ctx, unmarshalModelCustomType{
+			AttrString:    types.StringValue("parent string"),
+			AttrInt:       types.Int64Null(),
+			AttrFloat:     types.Float64Null(),
+			AttrBool:      types.BoolNull(),
+			AttrNested:    customtypes.NewObjectValue[unmarshalModelEmpty](ctx, unmarshalModelEmpty{}),
+			AttrMANYUpper: types.Int64Null(),
+		}),
+		AttrCustomObjZeroInit: customtypes.NewObjectValue[unmarshalModelCustomType](ctx, unmarshalModelCustomType{
+			AttrString:    types.StringValue("zero init string"),
+			AttrInt:       types.Int64Null(),
+			AttrFloat:     types.Float64Null(),
+			AttrBool:      types.BoolNull(),
+			AttrNested:    customtypes.NewObjectValue[unmarshalModelEmpty](ctx, unmarshalModelEmpty{}),
+			AttrMANYUpper: types.Int64Null(),
+		}),
+	}
+
+	require.NoError(t, autogen.Unmarshal([]byte(jsonResp), &model))
+	assert.Equal(t, modelExpected, model)
+}
+
+func TestUnmarshalCustomList(t *testing.T) {
+	ctx := context.Background()
+
+	type modelst struct {
+		AttrCustomListString               customtypes.ListValue[types.String]                   `tfsdk:"attr_custom_list_string"`
+		AttrCustomNestedList               customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_list"`
+		AttrCustomNestedListNullNotSent    customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_list_null_not_sent"`
+		AttrCustomNestedListNullSent       customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_list_null_sent"`
+		AttrCustomNestedListUnknownNotSent customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_list_unknown_not_sent"`
+		AttrCustomNestedListUnknownSent    customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_list_unknown_sent"`
+		AttrCustomNestedListZeroInit       customtypes.NestedListValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_list_zero"`
+	}
+
+	model := modelst{
+		AttrCustomListString: customtypes.NewListValueUnknown[types.String](ctx),
+		AttrCustomNestedList: customtypes.NewNestedListValue[unmarshalModelCustomType](ctx, []unmarshalModelCustomType{
+			{
+				AttrString:    types.StringValue("different_string"),
+				AttrInt:       types.Int64Value(999),
+				AttrFloat:     types.Float64Unknown(),
+				AttrBool:      types.BoolUnknown(),
+				AttrNested:    customtypes.NewObjectValueUnknown[unmarshalModelEmpty](ctx),
+				AttrMANYUpper: types.Int64Value(999),
+			},
+			{
+				AttrString:    types.StringValue("existing not overwritten"),
+				AttrInt:       types.Int64Unknown(),
+				AttrFloat:     types.Float64Unknown(),
+				AttrBool:      types.BoolUnknown(),
+				AttrNested:    customtypes.NewObjectValueUnknown[unmarshalModelEmpty](ctx),
+				AttrMANYUpper: types.Int64Value(999),
+			},
+		}),
+		AttrCustomNestedListNullNotSent:    customtypes.NewNestedListValueNull[unmarshalModelCustomType](ctx),
+		AttrCustomNestedListNullSent:       customtypes.NewNestedListValueNull[unmarshalModelCustomType](ctx),
+		AttrCustomNestedListUnknownNotSent: customtypes.NewNestedListValueUnknown[unmarshalModelCustomType](ctx),
+		AttrCustomNestedListUnknownSent:    customtypes.NewNestedListValueUnknown[unmarshalModelCustomType](ctx),
+	}
+
+	const (
+		jsonResp = `
+			{
+				"attrCustomListString": [
 					"list1",
 					"list2"
 				],
-				"attrListObj": [
+				"attrCustomNestedList": [
 					{
-						"attrString": "list1",
+						"attrString": "nestedList1",
 						"attrInt": 1,
 						"attrFloat": 1.1,
-						"attrBool": true
+						"attrBool": true,
+						"attrNested": {},
+						"attrMANYUpper": 123
 					},
 					{
-						"attrString": "list2",
-						"attrInt": 2,
 						"attrFloat": 2.2,
-						"attrBool": false
+						"attrBool": false,
+						"attrNested": {},
+						"attrMANYUpper": 456
 					}
 				],
-				"attrSetString": [
+				"attrCustomNestedListNullSent": null,
+				"attrCustomNestedListUnknownSent": [
+					{
+						"attrString": "unknownSent"
+					}
+				],
+				"attrCustomNestedListZeroInit": [
+					{
+						"attrString": "zero init string",
+						"attrNested": {}
+					}
+				]
+			}
+		`
+	)
+
+	modelExpected := modelst{
+		AttrCustomListString: customtypes.NewListValue[types.String](ctx, []attr.Value{
+			types.StringValue("list1"),
+			types.StringValue("list2"),
+		}),
+		AttrCustomNestedList: customtypes.NewNestedListValue[unmarshalModelCustomType](ctx, []unmarshalModelCustomType{
+			{
+				AttrString:    types.StringValue("nestedList1"),
+				AttrInt:       types.Int64Value(1),
+				AttrFloat:     types.Float64Value(1.1),
+				AttrBool:      types.BoolValue(true),
+				AttrNested:    customtypes.NewObjectValue[unmarshalModelEmpty](ctx, unmarshalModelEmpty{}),
+				AttrMANYUpper: types.Int64Value(123),
+			},
+			{
+				AttrString:    types.StringValue("existing not overwritten"),
+				AttrInt:       types.Int64Unknown(),
+				AttrFloat:     types.Float64Value(2.2),
+				AttrBool:      types.BoolValue(false),
+				AttrNested:    customtypes.NewObjectValue[unmarshalModelEmpty](ctx, unmarshalModelEmpty{}),
+				AttrMANYUpper: types.Int64Value(456),
+			},
+		}),
+		AttrCustomNestedListNullNotSent:    customtypes.NewNestedListValueNull[unmarshalModelCustomType](ctx),
+		AttrCustomNestedListNullSent:       customtypes.NewNestedListValueNull[unmarshalModelCustomType](ctx),
+		AttrCustomNestedListUnknownNotSent: customtypes.NewNestedListValueUnknown[unmarshalModelCustomType](ctx),
+		AttrCustomNestedListUnknownSent: customtypes.NewNestedListValue[unmarshalModelCustomType](ctx, []unmarshalModelCustomType{
+			{
+				AttrString:    types.StringValue("unknownSent"),
+				AttrInt:       types.Int64Null(),
+				AttrFloat:     types.Float64Null(),
+				AttrBool:      types.BoolNull(),
+				AttrNested:    customtypes.NewObjectValueNull[unmarshalModelEmpty](ctx),
+				AttrMANYUpper: types.Int64Null(),
+			},
+		}),
+		AttrCustomNestedListZeroInit: customtypes.NewNestedListValue[unmarshalModelCustomType](ctx, []unmarshalModelCustomType{
+			{
+				AttrString:    types.StringValue("zero init string"),
+				AttrInt:       types.Int64Null(),
+				AttrFloat:     types.Float64Null(),
+				AttrBool:      types.BoolNull(),
+				AttrNested:    customtypes.NewObjectValue[unmarshalModelEmpty](ctx, unmarshalModelEmpty{}),
+				AttrMANYUpper: types.Int64Null(),
+			},
+		}),
+	}
+
+	require.NoError(t, autogen.Unmarshal([]byte(jsonResp), &model))
+	assert.Equal(t, modelExpected, model)
+}
+
+func TestUnmarshalCustomSet(t *testing.T) {
+	ctx := context.Background()
+
+	type modelst struct {
+		AttrCustomSetString               customtypes.SetValue[types.String]                   `tfsdk:"attr_custom_set_string"`
+		AttrCustomNestedSet               customtypes.NestedSetValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_set"`
+		AttrCustomNestedSetNullNotSent    customtypes.NestedSetValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_set_null_not_sent"`
+		AttrCustomNestedSetNullSent       customtypes.NestedSetValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_set_null_sent"`
+		AttrCustomNestedSetUnknownNotSent customtypes.NestedSetValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_set_unknown_not_sent"`
+		AttrCustomNestedSetUnknownSent    customtypes.NestedSetValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_set_unknown_sent"`
+		AttrCustomNestedSetZeroInit       customtypes.NestedSetValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_set_zero"`
+	}
+
+	model := modelst{
+		AttrCustomSetString: customtypes.NewSetValueUnknown[types.String](ctx),
+		AttrCustomNestedSet: customtypes.NewNestedSetValue[unmarshalModelCustomType](ctx, []unmarshalModelCustomType{{
+			AttrString:    types.StringValue("different_string"),
+			AttrInt:       types.Int64Value(999),
+			AttrFloat:     types.Float64Unknown(),
+			AttrBool:      types.BoolUnknown(),
+			AttrNested:    customtypes.NewObjectValueUnknown[unmarshalModelEmpty](ctx),
+			AttrMANYUpper: types.Int64Value(999),
+		}}),
+		AttrCustomNestedSetNullNotSent:    customtypes.NewNestedSetValueNull[unmarshalModelCustomType](ctx),
+		AttrCustomNestedSetNullSent:       customtypes.NewNestedSetValueNull[unmarshalModelCustomType](ctx),
+		AttrCustomNestedSetUnknownNotSent: customtypes.NewNestedSetValueUnknown[unmarshalModelCustomType](ctx),
+		AttrCustomNestedSetUnknownSent:    customtypes.NewNestedSetValueUnknown[unmarshalModelCustomType](ctx),
+	}
+
+	const (
+		jsonResp = `
+			{
+				"attrCustomSetString": [
 					"set1",
 					"set2"
 				],
-				"attrSetObj": [
+				"attrCustomNestedSet": [
 					{
-						"attrString": "set1",
-						"attrInt": 11,
-						"attrFloat": 11.1,
-						"attrBool": false
-					},
-					{			
-						"attrString": "set2",
-						"attrInt": 22,
-						"attrFloat": 22.2,		
-						"attrBool": true		
-					}
-				],
-				"attrListListString": [
-					["list1a", "list1b"],
-					["list2a", "list2b", "list2c"]
-				],
-				"attrSetListObj": [
-					[{
-						"attrString": "setList1",
+						"attrString": "nestedSet1",
 						"attrInt": 1,
 						"attrFloat": 1.1,
-						"attrBool": true
+						"attrBool": true,
+						"attrNested": {},
+						"attrMANYUpper": 123
 					},
 					{
-						"attrString": "setList2",	
+						"attrString": "nestedSet2",
 						"attrInt": 2,
 						"attrFloat": 2.2,
-						"attrBool": false
-					}],
-					[{
-						"attrString": "setList3",	
-						"attrInt": 3,
-						"attrFloat": 3.3,
-						"attrBool": true
-					},
-					{
-						"attrString": "setList4",
-						"attrInt": 4,					
-						"attrFloat": 4.4,
-						"attrBool": false
-					},
-					{
-						"attrString": "setList5",
-						"attrInt": 5,
-						"attrFloat": 5.5,
-						"attrBool": true
-					}]
-				],
-				"attrListObjKnown": [
-					{
-						"attrString": "val2",
-						"attrInt": 2
+						"attrBool": false,
+						"attrNested": {},
+						"attrMANYUpper": 456
 					}
 				],
-				"attrMapSimple": {
-					"keyOne": "val1",
-					"KeyTwo": "val2"
+				"attrCustomNestedSetNullSent": null,
+				"attrCustomNestedSetUnknownSent": [
+					{
+						"attrString": "unknownSetSent"
+					}
+				],
+				"attrCustomNestedSetZeroInit": [
+					{
+						"attrString": "zero init set string",
+						"attrNested": {}
+					}
+				]
+			}
+		`
+	)
+
+	modelExpected := modelst{
+		AttrCustomSetString: customtypes.NewSetValue[types.String](ctx, []attr.Value{
+			types.StringValue("set1"),
+			types.StringValue("set2"),
+		}),
+		AttrCustomNestedSet: customtypes.NewNestedSetValue[unmarshalModelCustomType](ctx, []unmarshalModelCustomType{
+			{
+				AttrString:    types.StringValue("nestedSet1"),
+				AttrInt:       types.Int64Value(1),
+				AttrFloat:     types.Float64Value(1.1),
+				AttrBool:      types.BoolValue(true),
+				AttrNested:    customtypes.NewObjectValue[unmarshalModelEmpty](ctx, unmarshalModelEmpty{}),
+				AttrMANYUpper: types.Int64Value(123),
+			},
+			{
+				AttrString:    types.StringValue("nestedSet2"),
+				AttrInt:       types.Int64Value(2),
+				AttrFloat:     types.Float64Value(2.2),
+				AttrBool:      types.BoolValue(false),
+				AttrNested:    customtypes.NewObjectValue[unmarshalModelEmpty](ctx, unmarshalModelEmpty{}),
+				AttrMANYUpper: types.Int64Value(456),
+			},
+		}),
+		AttrCustomNestedSetNullNotSent:    customtypes.NewNestedSetValueNull[unmarshalModelCustomType](ctx),
+		AttrCustomNestedSetNullSent:       customtypes.NewNestedSetValueNull[unmarshalModelCustomType](ctx),
+		AttrCustomNestedSetUnknownNotSent: customtypes.NewNestedSetValueUnknown[unmarshalModelCustomType](ctx),
+		AttrCustomNestedSetUnknownSent: customtypes.NewNestedSetValue[unmarshalModelCustomType](ctx, []unmarshalModelCustomType{
+			{
+				AttrString:    types.StringValue("unknownSetSent"),
+				AttrInt:       types.Int64Null(),
+				AttrFloat:     types.Float64Null(),
+				AttrBool:      types.BoolNull(),
+				AttrNested:    customtypes.NewObjectValueNull[unmarshalModelEmpty](ctx),
+				AttrMANYUpper: types.Int64Null(),
+			},
+		}),
+		AttrCustomNestedSetZeroInit: customtypes.NewNestedSetValue[unmarshalModelCustomType](ctx, []unmarshalModelCustomType{
+			{
+				AttrString:    types.StringValue("zero init set string"),
+				AttrInt:       types.Int64Null(),
+				AttrFloat:     types.Float64Null(),
+				AttrBool:      types.BoolNull(),
+				AttrNested:    customtypes.NewObjectValue[unmarshalModelEmpty](ctx, unmarshalModelEmpty{}),
+				AttrMANYUpper: types.Int64Null(),
+			},
+		}),
+	}
+
+	require.NoError(t, autogen.Unmarshal([]byte(jsonResp), &model))
+	assert.Equal(t, modelExpected, model)
+}
+
+func TestUnmarshalCustomMap(t *testing.T) {
+	ctx := context.Background()
+
+	type modelst struct {
+		AttrCustomMapString               customtypes.MapValue[types.String]                   `tfsdk:"attr_custom_map_string"`
+		AttrCustomNestedMap               customtypes.NestedMapValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_map"`
+		AttrCustomNestedMapNullNotSent    customtypes.NestedMapValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_map_null_not_sent"`
+		AttrCustomNestedMapNullSent       customtypes.NestedMapValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_map_null_sent"`
+		AttrCustomNestedMapUnknownNotSent customtypes.NestedMapValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_map_unknown_not_sent"`
+		AttrCustomNestedMapUnknownSent    customtypes.NestedMapValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_map_unknown_sent"`
+		AttrCustomNestedMapZeroInit       customtypes.NestedMapValue[unmarshalModelCustomType] `tfsdk:"attr_custom_nested_map_zero"`
+	}
+
+	model := modelst{
+		AttrCustomMapString: customtypes.NewMapValueUnknown[types.String](ctx),
+		AttrCustomNestedMap: customtypes.NewNestedMapValue[unmarshalModelCustomType](ctx, map[string]unmarshalModelCustomType{
+			"keyOne": {
+				AttrString:    types.StringValue("different_string"),
+				AttrInt:       types.Int64Value(999),
+				AttrFloat:     types.Float64Unknown(),
+				AttrBool:      types.BoolUnknown(),
+				AttrNested:    customtypes.NewObjectValueUnknown[unmarshalModelEmpty](ctx),
+				AttrMANYUpper: types.Int64Value(999),
+			},
+			"keyTwo": {
+				AttrString:    types.StringValue("existing not overwritten"),
+				AttrInt:       types.Int64Unknown(),
+				AttrFloat:     types.Float64Unknown(),
+				AttrBool:      types.BoolUnknown(),
+				AttrNested:    customtypes.NewObjectValueUnknown[unmarshalModelEmpty](ctx),
+				AttrMANYUpper: types.Int64Value(999),
+			},
+		}),
+		AttrCustomNestedMapNullNotSent:    customtypes.NewNestedMapValueNull[unmarshalModelCustomType](ctx),
+		AttrCustomNestedMapNullSent:       customtypes.NewNestedMapValueNull[unmarshalModelCustomType](ctx),
+		AttrCustomNestedMapUnknownNotSent: customtypes.NewNestedMapValueUnknown[unmarshalModelCustomType](ctx),
+		AttrCustomNestedMapUnknownSent:    customtypes.NewNestedMapValueUnknown[unmarshalModelCustomType](ctx),
+	}
+
+	const (
+		jsonResp = `
+			{
+				"attrCustomMapString": {
+					"keyOne": "map1",
+					"KeyTwo": "map2"
 				},
-				"attrMapSimpleExisting": {
-					"key": "val",
-					"existingCHANGE": "after"
-				},
-				"attrMapObj": {
-					"obj1": {
-						"attrString": "str1",
-						"attrInt": 11,
-						"attrFloat": 11.1,
-						"attrBool": false
+				"attrCustomNestedMap": {
+					"keyOne": {
+						"attrString": "nestedMap1",
+						"attrInt": 1,
+						"attrFloat": 1.1,
+						"attrBool": true,
+						"attrNested": {},
+						"attrMANYUpper": 123
 					},
-					"obj2": {			
-						"attrString": "str2",
-						"attrInt": 22,
-						"attrFloat": 22.2,		
-						"attrBool": true		
+					"keyTwo": {
+						"attrFloat": 2.2,
+						"attrBool": false,
+						"attrNested": {},
+						"attrMANYUpper": 456
+					}
+				},
+				"attrCustomNestedMapNullSent": null,
+				"attrCustomNestedMapUnknownSent": {
+					"keyOne": {
+						"attrString": "unknownMapSent"
+					}
+				},
+				"attrCustomNestedMapZeroInit": {
+					"keyOne": {
+						"attrString": "zero init map string",
+						"attrNested": {}
 					}
 				}
 			}
 		`
 	)
+
 	modelExpected := modelst{
-		AttrObj: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
-			"attr_string": types.StringValue("value_string"),
-			"attr_int":    types.Int64Value(123),
-			"attr_float":  types.Float64Value(1.1),
-			"attr_bool":   types.BoolValue(true),
+		AttrCustomMapString: customtypes.NewMapValue[types.String](ctx, map[string]attr.Value{
+			"keyOne": types.StringValue("map1"),
+			"KeyTwo": types.StringValue("map2"),
 		}),
-		AttrObjNullNotSent: types.ObjectNull(objTypeTest.AttrTypes),
-		AttrObjNullSent: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
-			"attr_string": types.StringValue("null_obj"),
-			"attr_int":    types.Int64Value(1),
-			"attr_float":  types.Float64Null(),
-			"attr_bool":   types.BoolNull(),
+		AttrCustomNestedMap: customtypes.NewNestedMapValue[unmarshalModelCustomType](ctx, map[string]unmarshalModelCustomType{
+			"keyOne": {
+				AttrString:    types.StringValue("nestedMap1"),
+				AttrInt:       types.Int64Value(1),
+				AttrFloat:     types.Float64Value(1.1),
+				AttrBool:      types.BoolValue(true),
+				AttrNested:    customtypes.NewObjectValue[unmarshalModelEmpty](ctx, unmarshalModelEmpty{}),
+				AttrMANYUpper: types.Int64Value(123),
+			},
+			"keyTwo": {
+				AttrString:    types.StringValue("existing not overwritten"),
+				AttrInt:       types.Int64Unknown(),
+				AttrFloat:     types.Float64Value(2.2),
+				AttrBool:      types.BoolValue(false),
+				AttrNested:    customtypes.NewObjectValue[unmarshalModelEmpty](ctx, unmarshalModelEmpty{}),
+				AttrMANYUpper: types.Int64Value(456),
+			},
 		}),
-		AttrObjUnknownNotSent: types.ObjectUnknown(objTypeTest.AttrTypes),
-		AttrObjUnknownSent: types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
-			"attr_string": types.StringValue("unknown_obj"),
-			"attr_int":    types.Int64Null(),
-			"attr_float":  types.Float64Null(),
-			"attr_bool":   types.BoolNull(),
+		AttrCustomNestedMapNullNotSent:    customtypes.NewNestedMapValueNull[unmarshalModelCustomType](ctx),
+		AttrCustomNestedMapNullSent:       customtypes.NewNestedMapValueNull[unmarshalModelCustomType](ctx),
+		AttrCustomNestedMapUnknownNotSent: customtypes.NewNestedMapValueUnknown[unmarshalModelCustomType](ctx),
+		AttrCustomNestedMapUnknownSent: customtypes.NewNestedMapValue[unmarshalModelCustomType](ctx, map[string]unmarshalModelCustomType{
+			"keyOne": {
+				AttrString:    types.StringValue("unknownMapSent"),
+				AttrInt:       types.Int64Null(),
+				AttrFloat:     types.Float64Null(),
+				AttrBool:      types.BoolNull(),
+				AttrNested:    customtypes.NewObjectValueNull[unmarshalModelEmpty](ctx),
+				AttrMANYUpper: types.Int64Null(),
+			},
 		}),
-		AttrObjParent: types.ObjectValueMust(objTypeParentTest.AttrTypes, map[string]attr.Value{
-			"attr_parent_string": types.StringValue("parent string"),
-			"attr_parent_int":    types.Int64Null(),
-			"attr_parent_obj": types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
-				"attr_string": types.StringValue("inside parent string"),
-				"attr_int":    types.Int64Null(),
-				"attr_float":  types.Float64Null(),
-				"attr_bool":   types.BoolNull(),
-			}),
-		}),
-		AttrListString: types.ListValueMust(types.StringType, []attr.Value{
-			types.StringValue("list1"),
-			types.StringValue("list2"),
-		}),
-		AttrListObj: types.ListValueMust(objTypeTest, []attr.Value{
-			types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
-				"attr_string": types.StringValue("list1"),
-				"attr_int":    types.Int64Value(1),
-				"attr_float":  types.Float64Value(1.1),
-				"attr_bool":   types.BoolValue(true),
-			}),
-			types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
-				"attr_string": types.StringValue("list2"),
-				"attr_int":    types.Int64Value(2),
-				"attr_float":  types.Float64Value(2.2),
-				"attr_bool":   types.BoolValue(false),
-			}),
-		}),
-		AttrSetString: types.SetValueMust(types.StringType, []attr.Value{
-			types.StringValue("set1"),
-			types.StringValue("set2"),
-		}),
-		AttrSetObj: types.SetValueMust(objTypeTest, []attr.Value{
-			types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
-				"attr_string": types.StringValue("set1"),
-				"attr_int":    types.Int64Value(11),
-				"attr_float":  types.Float64Value(11.1),
-				"attr_bool":   types.BoolValue(false),
-			}),
-			types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
-				"attr_string": types.StringValue("set2"),
-				"attr_int":    types.Int64Value(22),
-				"attr_float":  types.Float64Value(22.2),
-				"attr_bool":   types.BoolValue(true),
-			}),
-		}),
-		AttrListListString: types.ListValueMust(types.ListType{ElemType: types.StringType}, []attr.Value{
-			types.ListValueMust(types.StringType, []attr.Value{
-				types.StringValue("list1a"),
-				types.StringValue("list1b"),
-			}),
-			types.ListValueMust(types.StringType, []attr.Value{
-				types.StringValue("list2a"),
-				types.StringValue("list2b"),
-				types.StringValue("list2c"),
-			}),
-		}),
-		AttrSetListObj: types.SetValueMust(types.ListType{ElemType: objTypeTest}, []attr.Value{
-			types.ListValueMust(objTypeTest, []attr.Value{
-				types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
-					"attr_string": types.StringValue("setList1"),
-					"attr_int":    types.Int64Value(1),
-					"attr_float":  types.Float64Value(1.1),
-					"attr_bool":   types.BoolValue(true),
-				}),
-				types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
-					"attr_string": types.StringValue("setList2"),
-					"attr_int":    types.Int64Value(2),
-					"attr_float":  types.Float64Value(2.2),
-					"attr_bool":   types.BoolValue(false),
-				}),
-			}),
-			types.ListValueMust(objTypeTest, []attr.Value{
-				types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
-					"attr_string": types.StringValue("setList3"),
-					"attr_int":    types.Int64Value(3),
-					"attr_float":  types.Float64Value(3.3),
-					"attr_bool":   types.BoolValue(true),
-				}),
-				types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
-					"attr_string": types.StringValue("setList4"),
-					"attr_int":    types.Int64Value(4),
-					"attr_float":  types.Float64Value(4.4),
-					"attr_bool":   types.BoolValue(false),
-				}),
-				types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
-					"attr_string": types.StringValue("setList5"),
-					"attr_int":    types.Int64Value(5),
-					"attr_float":  types.Float64Value(5.5),
-					"attr_bool":   types.BoolValue(true),
-				}),
-			}),
-		}),
-		AttrListObjKnown: types.ListValueMust(objTypeTest, []attr.Value{
-			types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
-				"attr_string": types.StringValue("val2"),
-				"attr_int":    types.Int64Value(2),
-				"attr_float":  types.Float64Value(1.1),
-				"attr_bool":   types.BoolValue(true),
-			}),
-		}),
-		AttrMapSimple: types.MapValueMust(types.StringType, map[string]attr.Value{
-			"keyOne": types.StringValue("val1"),
-			"KeyTwo": types.StringValue("val2"), // don't change the key case when it's a map
-		}),
-		AttrMapSimpleExisting: types.MapValueMust(types.StringType, map[string]attr.Value{
-			"key":            types.StringValue("val"),
-			"existing":       types.StringValue("valexisting"), // existing map values are kept
-			"existingCHANGE": types.StringValue("after"),       // existing map values are changed if in JSON
-		}),
-		AttrMapObj: types.MapValueMust(objTypeTest, map[string]attr.Value{
-			"obj1": types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
-				"attr_string": types.StringValue("str1"),
-				"attr_int":    types.Int64Value(11),
-				"attr_float":  types.Float64Value(11.1),
-				"attr_bool":   types.BoolValue(false),
-			}),
-			"obj2": types.ObjectValueMust(objTypeTest.AttrTypes, map[string]attr.Value{
-				"attr_string": types.StringValue("str2"),
-				"attr_int":    types.Int64Value(22),
-				"attr_float":  types.Float64Value(22.2),
-				"attr_bool":   types.BoolValue(true),
-			}),
+		AttrCustomNestedMapZeroInit: customtypes.NewNestedMapValue[unmarshalModelCustomType](ctx, map[string]unmarshalModelCustomType{
+			"keyOne": {
+				AttrString:    types.StringValue("zero init map string"),
+				AttrInt:       types.Int64Null(),
+				AttrFloat:     types.Float64Null(),
+				AttrBool:      types.BoolNull(),
+				AttrNested:    customtypes.NewObjectValue[unmarshalModelEmpty](ctx, unmarshalModelEmpty{}),
+				AttrMANYUpper: types.Int64Null(),
+			},
 		}),
 	}
+
 	require.NoError(t, autogen.Unmarshal([]byte(jsonResp), &model))
 	assert.Equal(t, modelExpected, model)
 }
 
-func TestUnmarshalZeroLenCollections(t *testing.T) {
-	type modelst struct {
-		ListNullAbsent  types.List `tfsdk:"list_null_absent"`
-		ListNullEmpty   types.List `tfsdk:"list_null_present"`
-		ListNullNull    types.List `tfsdk:"list_null_present_null"`
-		ListEmptyAbsent types.List `tfsdk:"list_empty_absent"`
-		ListEmptyEmpty  types.List `tfsdk:"list_empty_present"`
-		ListEmptyNull   types.List `tfsdk:"list_empty_present_null"`
+func TestUnmarshalEmptyJSON(t *testing.T) {
+	model := struct {
+		Attr types.String `tfsdk:"attr"`
+	}{
+		Attr: types.StringValue("hello"),
 	}
-	model := modelst{
-		ListNullAbsent:  types.ListNull(types.StringType),
-		ListNullEmpty:   types.ListNull(types.StringType),
-		ListNullNull:    types.ListNull(types.StringType),
-		ListEmptyAbsent: types.ListValueMust(types.StringType, []attr.Value{}),
-		ListEmptyEmpty:  types.ListValueMust(types.StringType, []attr.Value{}),
-		ListEmptyNull:   types.ListValueMust(types.StringType, []attr.Value{}),
-	}
-	const (
-		jsonResp = `
-			{
-				"list_null_empty": [],
-				"list_null_null": null,
-				"list_empty_empty": [],
-				"list_empty_null": null
-			}
-		`
-	)
-	modelExpected := modelst{
-		ListNullAbsent:  types.ListNull(types.StringType),
-		ListNullEmpty:   types.ListNull(types.StringType),
-		ListNullNull:    types.ListNull(types.StringType),
-		ListEmptyAbsent: types.ListValueMust(types.StringType, []attr.Value{}),
-		ListEmptyEmpty:  types.ListValueMust(types.StringType, []attr.Value{}),
-		ListEmptyNull:   types.ListValueMust(types.StringType, []attr.Value{}),
-	}
-	require.NoError(t, autogen.Unmarshal([]byte(jsonResp), &model))
-	assert.Equal(t, modelExpected, model)
+	require.NoError(t, autogen.Unmarshal([]byte(""), &model))
+	require.NoError(t, autogen.Unmarshal(nil, &model))
+	assert.Equal(t, types.StringValue("hello"), model.Attr)
 }
 
 func TestUnmarshalErrors(t *testing.T) {
+	ctx := context.Background()
+
+	type testNestedObject struct {
+		AttrFloat  types.Float64 `tfsdk:"attr_float"`
+		AttrString types.String  `tfsdk:"attr_string"`
+		AttrInt    types.Int64   `tfsdk:"attr_int"`
+		AttrBool   types.Bool    `tfsdk:"attr_bool"`
+	}
+
 	testCases := map[string]struct {
 		model        any
 		responseJSON string
 		errorStr     string
 	}{
 		"response ints are not converted to model strings": {
-			errorStr:     "unmarshal of attribute attr expects type StringType but got Number with value: 1",
+			errorStr:     "unmarshal of attribute attr expects type StringType but got Number",
 			responseJSON: `{"attr": 123}`,
 			model: &struct {
 				Attr types.String
 			}{},
 		},
 		"response strings are not converted to model ints": {
-			errorStr:     "unmarshal of attribute attr expects type Int64Type but got String with value: hello",
+			errorStr:     "unmarshal of attribute attr expects type Int64Type but got String",
 			responseJSON: `{"attr": "hello"}`,
 			model: &struct {
 				Attr types.Int64
 			}{},
 		},
 		"response strings are not converted to model bools": {
-			errorStr:     "unmarshal of attribute attr expects type BoolType but got String with value: true",
+			errorStr:     "unmarshal of attribute attr expects type BoolType but got String",
 			responseJSON: `{"attr": "true"}`,
 			model: &struct {
 				Attr types.Bool
 			}{},
 		},
 		"response bools are not converted to model string": {
-			errorStr:     "unmarshal of attribute attr expects type StringType but got Bool with value: true",
+			errorStr:     "unmarshal of attribute attr expects type StringType but got Bool",
 			responseJSON: `{"attr": true}`,
 			model: &struct {
 				Attr types.String
@@ -461,39 +728,39 @@ func TestUnmarshalErrors(t *testing.T) {
 			}{},
 		},
 		"model attr types in objects must match JSON types - string": {
-			errorStr:     "unmarshal of attribute attr_string expects type StringType but got Number with value: 1",
+			errorStr:     "unmarshal of attribute attr_string expects type StringType but got Number",
 			responseJSON: `{ "attrObj": { "attrString": 1 } }`,
 			model: &struct {
-				AttrObj types.Object `tfsdk:"attr_obj"`
+				AttrObj customtypes.ObjectValue[testNestedObject] `tfsdk:"attr_obj"`
 			}{
-				AttrObj: types.ObjectNull(objTypeTest.AttrTypes),
+				AttrObj: customtypes.NewObjectValueNull[testNestedObject](ctx),
 			},
 		},
 		"model attr types in objects must match JSON types - bool": {
-			errorStr:     "unmarshal of attribute attr_bool expects type BoolType but got String with value: not a bool",
+			errorStr:     "unmarshal of attribute attr_bool expects type BoolType but got String",
 			responseJSON: `{ "attrObj": { "attrBool": "not a bool" } }`,
 			model: &struct {
-				AttrObj types.Object `tfsdk:"attr_obj"`
+				AttrObj customtypes.ObjectValue[testNestedObject] `tfsdk:"attr_obj"`
 			}{
-				AttrObj: types.ObjectNull(objTypeTest.AttrTypes),
+				AttrObj: customtypes.NewObjectValueNull[testNestedObject](ctx),
 			},
 		},
 		"model attr types in objects must match JSON types - int": {
-			errorStr:     "unmarshal of attribute attr_int expects type Int64Type but got String with value: not an int",
+			errorStr:     "unmarshal of attribute attr_int expects type Int64Type but got String",
 			responseJSON: `{ "attrObj": { "attrInt": "not an int" } }`,
 			model: &struct {
-				AttrObj types.Object `tfsdk:"attr_obj"`
+				AttrObj customtypes.ObjectValue[testNestedObject] `tfsdk:"attr_obj"`
 			}{
-				AttrObj: types.ObjectNull(objTypeTest.AttrTypes),
+				AttrObj: customtypes.NewObjectValueNull[testNestedObject](ctx),
 			},
 		},
 		"model attr types in objects must match JSON types - float": {
-			errorStr:     "unmarshal of attribute attr_float expects type Float64Type but got String with value: not an int",
+			errorStr:     "unmarshal of attribute attr_float expects type Float64Type but got String",
 			responseJSON: `{ "attrObj": { "attrFloat": "not an int" } }`,
 			model: &struct {
-				AttrObj types.Object `tfsdk:"attr_obj"`
+				AttrObj customtypes.ObjectValue[testNestedObject] `tfsdk:"attr_obj"`
 			}{
-				AttrObj: types.ObjectNull(objTypeTest.AttrTypes),
+				AttrObj: customtypes.NewObjectValueNull[testNestedObject](ctx),
 			},
 		},
 	}

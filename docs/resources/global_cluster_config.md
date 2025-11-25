@@ -1,3 +1,7 @@
+---
+subcategory: "Clusters"
+---
+
 # Resource: mongodbatlas_global_cluster_config
 
 `mongodbatlas_global_cluster_config` provides a Global Cluster Configuration resource.
@@ -6,7 +10,7 @@
 
 -> **NOTE:** This resource can only be used with Atlas-managed clusters. See doc for `global_cluster_self_managed_sharding` attribute in [`mongodbatlas_advanced_cluster` resource](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/advanced_cluster) for more information.
 
-~> **IMPORTANT:** You can update a Global Cluster Configuration to add new custom zone mappings and managed namespaces. However, once configured, you can't modify or partially delete custom zone mappings (you must remove them all at once). You can add or remove, but can't modify, managed namespaces. Any update that changes an existing managed namespace results in an error. [Read more about Global Cluster Configuration](https://www.mongodb.com/docs/atlas/global-clusters/). For more details, see [Global Clusters API](https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Global-Clusters)
+~> **IMPORTANT:** You can update a Global Cluster Configuration to add new custom zone mappings and managed namespaces. However, once configured, you can't modify or partially delete custom zone mappings (you must remove them all at once). You can add or remove, but can't modify, managed namespaces. Any update that changes an existing managed namespace results in an error. [Read more about Global Cluster Configuration](https://www.mongodb.com/docs/atlas/global-clusters/). For more details, see [Global Clusters API](https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/group/endpoint-global-clusters)
 
 ## Examples Usage
 
@@ -19,33 +23,32 @@ resource "mongodbatlas_advanced_cluster" "test" {
   cluster_type   = "GEOSHARDED"
   backup_enabled = true
 
-  replication_specs {
+  replication_specs = [{
     zone_name = "Zone 1"
 
-    region_configs {
-      electable_specs {
+    region_configs = [{
+      electable_specs = {
         instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "EU_CENTRAL_1"
-    }
-  }
-
-  replication_specs {
+    }]
+  },
+  {
     zone_name = "Zone 2"
 
-    region_configs {
-      electable_specs {
+    region_configs = [{
+      electable_specs = {
         instance_size = "M30"
         node_count    = 3
       }
       provider_name = "AWS"
       priority      = 7
       region_name   = "US_EAST_2"
-    }
-  }
+    }]
+  }]
 }
 
 resource "mongodbatlas_global_cluster_config" "config" {
@@ -93,7 +96,6 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The Terraform's unique identifier used internally for state management.
 * `custom_zone_mapping_zone_id` - A map of all custom zone mappings defined for the Global Cluster to `replication_specs.*.zone_id`. Atlas automatically maps each location code to the closest geographical zone. Custom zone mappings allow administrators to override these automatic mappings. If your Global Cluster does not have any custom zone mappings, this document is empty.
-* `custom_zone_mapping` - (Deprecated) A map of all custom zone mappings defined for the Global Cluster to `replication_specs.*.id`. This attribute is deprecated, use `custom_zone_mapping_zone_id` instead. This attribute is not set when a cluster uses independent shard scaling. To learn more, see the [Sharding Configuration guide](https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/guides/cluster-to-advanced-cluster-migration-guide).
 
 ## Import
 

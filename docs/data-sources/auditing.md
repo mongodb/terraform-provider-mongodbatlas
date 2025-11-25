@@ -1,3 +1,7 @@
+---
+subcategory: "Auditing"
+---
+
 # Data Source: mongodbatlas_auditing
 
 `mongodbatlas_auditing` describes a Auditing.

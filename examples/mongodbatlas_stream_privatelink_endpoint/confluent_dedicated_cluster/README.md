@@ -4,8 +4,8 @@ This example shows how to use AWS Confluent Privatelink for Atlas Streams with a
 
 You must set the following variables:
 
-- `public_key`: Public API key to authenticate to Atlas
-- `private_key`: Private API key to authenticate to Atlas
+- `atlas_client_id`: MongoDB Atlas Service Account Client ID
+- `atlas_client_secret`: MongoDB Atlas Service Account Client Secret
 - `project_id`: Unique 24-hexadecimal digit string that identifies your project
 - `confluent_cloud_api_key`: Public API key to authenticate to Confluent Cloud
 - `confluent_cloud_api_secret`: Private API key to authenticate to Confleunt Cloud

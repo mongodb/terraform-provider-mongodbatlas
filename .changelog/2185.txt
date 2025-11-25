@@ -1,7 +1,0 @@
-```release-note:breaking-change
-resource/mongodbatlas_federated_settings_identity_provider: Import can only use a 24-hexadecimal digit string that identifies the IdP, `idp_id`, instead of `okta_idp_id`
-```
-
-```release-note:breaking-change
-data-source/mongodbatlas_federated_settings_identity_provider: The only allowed format for `identity_provider_id` is a 24-hexadecimal digit string
-```

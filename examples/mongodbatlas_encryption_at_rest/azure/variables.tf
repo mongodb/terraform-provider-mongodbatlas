@@ -1,11 +1,13 @@
-variable "atlas_public_key" {
-  description = "The public API key for MongoDB Atlas"
+variable "atlas_client_id" {
+  description = "MongoDB Atlas Service Account Client ID"
   type        = string
+  default     = ""
 }
-variable "atlas_private_key" {
-  description = "The private API key for MongoDB Atlas"
+variable "atlas_client_secret" {
+  description = "MongoDB Atlas Service Account Client Secret"
   type        = string
   sensitive   = true
+  default     = ""
 }
 variable "atlas_project_id" {
   description = "Atlas Project ID"

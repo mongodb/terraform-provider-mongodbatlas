@@ -1,7 +1,0 @@
-```release-note:note
-resource/mongodbatlas_teams: Deprecates resource in favour of `mongodbatlas_team` which has the same implementation. This aligns the name of the resource with the implementation which manages a single team.
-```
-
-```release-note:note
-data-source/mongodbatlas_teams: Deprecates data source in favour of `mongodbatlas_team` which has the same implementation. This aligns the name of the resource with the implementation which fetches a single team.
-```

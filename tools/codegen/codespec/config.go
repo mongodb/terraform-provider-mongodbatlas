@@ -2,46 +2,81 @@ package codespec
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/config"
-	"github.com/mongodb/terraform-provider-mongodbatlas/tools/codegen/stringcase"
 )
 
-func applyConfigSchemaOptions(resourceConfig *config.Resource, resource *Resource) {
-	applySchemaOptions(resourceConfig.SchemaOptions, &resource.Schema.Attributes, "")
+const DeleteOnCreateTimeoutDescription = "Indicates whether to delete the resource being created if a timeout is reached when waiting for completion. " +
+	"When set to `true` and timeout occurs, it triggers the deletion and returns immediately without waiting for " +
+	"deletion to complete. When set to `false`, the timeout will not trigger resource deletion. If you suspect a " +
+	"transient error when the value is `true`, wait before retrying to allow resource deletion to finish. Default is `true`."
+
+func applyTransformationsWithConfigOpts(resourceConfig *config.Resource, resource *Resource) error {
+	if err := applyAttributeTransformations(resourceConfig.SchemaOptions, &resource.Schema.Attributes, ""); err != nil {
+		return fmt.Errorf("failed to apply attribute transformations: %w", err)
+	}
 	applyAliasToPathParams(resource, resourceConfig.SchemaOptions.Aliases)
+	ApplyDeleteOnCreateTimeoutTransformation(resource)
+	ApplyTimeoutTransformation(resource)
+	return nil
 }
 
-func applySchemaOptions(schemaOptions config.SchemaOptions, attributes *Attributes, parentName string) {
+// AttributeTransformation represents a operation applied to an attribute during traversal.
+// Implementations may mutate the attribute in-place.
+type AttributeTransformation func(attr *Attribute, attrPathName *string, schemaOptions config.SchemaOptions) error
+
+var transformations = []AttributeTransformation{
+	aliasTransformation,
+	overridesTransformation,
+	createOnlyTransformation,
+}
+
+func applyAttributeTransformations(schemaOptions config.SchemaOptions, attributes *Attributes, parentName string) error {
 	ignoredAttrs := getIgnoredAttributesMap(schemaOptions.Ignores)
 
 	var finalAttributes Attributes
 
 	for i := range *attributes {
 		attr := &(*attributes)[i]
-		attrPathName := getAttributePathName(string(attr.Name), parentName)
+		attrPathName := getAttributePathName(attr.TFSchemaName, parentName)
 
 		if shouldIgnoreAttribute(attrPathName, ignoredAttrs) {
 			continue
 		}
 
-		// the config is expected to use alias name for defining any subsequent overrides (description, etc)
-		applyAliasToAttribute(attr, &attrPathName, schemaOptions)
+		for _, t := range transformations {
+			if err := t(attr, &attrPathName, schemaOptions); err != nil {
+				return err
+			}
+		}
 
-		applyOverrides(attr, attrPathName, schemaOptions)
-
-		processNestedAttributes(attr, schemaOptions, attrPathName)
+		// apply transformations to nested attributes
+		switch {
+		case attr.ListNested != nil:
+			if err := applyAttributeTransformations(schemaOptions, &attr.ListNested.NestedObject.Attributes, attrPathName); err != nil {
+				return err
+			}
+		case attr.SingleNested != nil:
+			if err := applyAttributeTransformations(schemaOptions, &attr.SingleNested.NestedObject.Attributes, attrPathName); err != nil {
+				return err
+			}
+		case attr.SetNested != nil:
+			if err := applyAttributeTransformations(schemaOptions, &attr.SetNested.NestedObject.Attributes, attrPathName); err != nil {
+				return err
+			}
+		case attr.MapNested != nil:
+			if err := applyAttributeTransformations(schemaOptions, &attr.MapNested.NestedObject.Attributes, attrPathName); err != nil {
+				return err
+			}
+		}
 
 		finalAttributes = append(finalAttributes, *attr)
 	}
 
-	if timeoutAttr := applyTimeoutConfig(schemaOptions); parentName == "" && timeoutAttr != nil { // will not run for nested attributes
-		finalAttributes = append(finalAttributes, *timeoutAttr)
-	}
-
 	*attributes = finalAttributes
+	return nil
 }
 
 func getAttributePathName(attrName, parentName string) string {
@@ -73,7 +108,7 @@ func applyAliasToAttribute(attr *Attribute, attrPathName *string, schemaOptions 
 			parts[i] = newName
 
 			if i == len(parts)-1 {
-				attr.Name = stringcase.SnakeCaseString(newName)
+				attr.TFSchemaName = newName
 			}
 		}
 	}
@@ -83,16 +118,34 @@ func applyAliasToAttribute(attr *Attribute, attrPathName *string, schemaOptions 
 
 func applyAliasToPathParams(resource *Resource, aliases map[string]string) {
 	for original, alias := range aliases {
-		originalCamel := stringcase.SnakeCaseString(original).CamelCase()
-		aliasCamel := stringcase.SnakeCaseString(alias).CamelCase()
-		resource.Operations.Create.Path = strings.ReplaceAll(resource.Operations.Create.Path, fmt.Sprintf("{%s}", originalCamel), fmt.Sprintf("{%s}", aliasCamel))
-		resource.Operations.Read.Path = strings.ReplaceAll(resource.Operations.Read.Path, fmt.Sprintf("{%s}", originalCamel), fmt.Sprintf("{%s}", aliasCamel))
-		resource.Operations.Update.Path = strings.ReplaceAll(resource.Operations.Update.Path, fmt.Sprintf("{%s}", originalCamel), fmt.Sprintf("{%s}", aliasCamel))
-		resource.Operations.Delete.Path = strings.ReplaceAll(resource.Operations.Delete.Path, fmt.Sprintf("{%s}", originalCamel), fmt.Sprintf("{%s}", aliasCamel))
+		resource.Operations.Create.Path = strings.ReplaceAll(resource.Operations.Create.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
+		resource.Operations.Read.Path = strings.ReplaceAll(resource.Operations.Read.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
+		if resource.Operations.Delete != nil {
+			resource.Operations.Update.Path = strings.ReplaceAll(resource.Operations.Update.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
+		}
+		if resource.Operations.Delete != nil {
+			resource.Operations.Delete.Path = strings.ReplaceAll(resource.Operations.Delete.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
+		}
 	}
 }
 
-func applyOverrides(attr *Attribute, attrPathName string, schemaOptions config.SchemaOptions) {
+// Transformations
+func aliasTransformation(attr *Attribute, attrPathName *string, schemaOptions config.SchemaOptions) error {
+	// the config is expected to use alias name for defining any subsequent overrides (description, etc)
+	applyAliasToAttribute(attr, attrPathName, schemaOptions)
+	return nil
+}
+
+func overridesTransformation(attr *Attribute, attrPathName *string, schemaOptions config.SchemaOptions) error {
+	return applyOverrides(attr, *attrPathName, schemaOptions)
+}
+
+func createOnlyTransformation(attr *Attribute, _ *string, _ config.SchemaOptions) error {
+	setCreateOnlyValue(attr)
+	return nil
+}
+
+func applyOverrides(attr *Attribute, attrPathName string, schemaOptions config.SchemaOptions) error {
 	if override, ok := schemaOptions.Overrides[attrPathName]; ok {
 		if override.Description != "" {
 			attr.Description = &override.Description
@@ -103,7 +156,42 @@ func applyOverrides(attr *Attribute, attrPathName string, schemaOptions config.S
 		if override.Sensitive != nil {
 			attr.Sensitive = *override.Sensitive
 		}
+		if override.IncludeNullOnUpdate != nil && *override.IncludeNullOnUpdate {
+			attr.ReqBodyUsage = IncludeNullOnUpdate
+		}
+		if override.Type != nil {
+			if err := applyTypeOverride(&override, attr); err != nil {
+				return err
+			}
+		}
 	}
+	return nil
+}
+
+func applyTypeOverride(override *config.Override, attr *Attribute) error {
+	switch *override.Type {
+	case config.Set:
+		if attr.List != nil {
+			if attr.CustomType != nil {
+				attr.CustomType = NewCustomSetType(attr.List.ElementType)
+			}
+			attr.Set = &SetAttribute{ElementType: attr.List.ElementType}
+			attr.List = nil
+			return nil
+		}
+	case config.List:
+		if attr.Set != nil {
+			if attr.CustomType != nil {
+				attr.CustomType = NewCustomListType(attr.Set.ElementType)
+			}
+			attr.List = &ListAttribute{ElementType: attr.Set.ElementType}
+			attr.Set = nil
+			return nil
+		}
+	default:
+		return fmt.Errorf("unsupported type override defined in configuration: %s for attribute %s", *override.Type, attr.TFSchemaName)
+	}
+	return fmt.Errorf("unsupported override from original type to %s for attribute %s", *override.Type, attr.TFSchemaName)
 }
 
 func getComputabilityFromConfig(computability config.Computability) ComputedOptionalRequired {
@@ -119,41 +207,61 @@ func getComputabilityFromConfig(computability config.Computability) ComputedOpti
 	return Required
 }
 
-func processNestedAttributes(attr *Attribute, schemaOptions config.SchemaOptions, attrPathName string) {
-	switch {
-	case attr.ListNested != nil:
-		applySchemaOptions(schemaOptions, &attr.ListNested.NestedObject.Attributes, attrPathName)
-	case attr.SingleNested != nil:
-		applySchemaOptions(schemaOptions, &attr.SingleNested.NestedObject.Attributes, attrPathName)
-	case attr.SetNested != nil:
-		applySchemaOptions(schemaOptions, &attr.SetNested.NestedObject.Attributes, attrPathName)
-	case attr.MapNested != nil:
-		applySchemaOptions(schemaOptions, &attr.MapNested.NestedObject.Attributes, attrPathName)
+// ApplyTimeoutTransformation adds a timeout attribute to the resource schema if any operation has wait blocks.
+func ApplyTimeoutTransformation(resource *Resource) {
+	ops := &resource.Operations
+	var configurableTimeouts []Operation
+
+	if ops.Create.Wait != nil {
+		configurableTimeouts = append(configurableTimeouts, Create)
+	}
+	// Update operation is optional
+	if ops.Update != nil && ops.Update.Wait != nil {
+		configurableTimeouts = append(configurableTimeouts, Update)
+	}
+	if ops.Read.Wait != nil {
+		configurableTimeouts = append(configurableTimeouts, Read)
+	}
+	// Delete operation is optional
+	if ops.Delete != nil && ops.Delete.Wait != nil {
+		configurableTimeouts = append(configurableTimeouts, Delete)
+	}
+
+	if len(configurableTimeouts) > 0 {
+		resource.Schema.Attributes = append(resource.Schema.Attributes, Attribute{
+			TFSchemaName: "timeouts",
+			TFModelName:  "Timeouts",
+			Timeouts:     &TimeoutsAttribute{ConfigurableTimeouts: configurableTimeouts},
+			ReqBodyUsage: OmitAlways,
+		})
 	}
 }
 
-func applyTimeoutConfig(options config.SchemaOptions) *Attribute {
-	var result []Operation
-	for _, op := range options.Timeouts {
-		switch op {
-		case "create":
-			result = append(result, Create)
-		case "read":
-			result = append(result, Read)
-		case "delete":
-			result = append(result, Delete)
-		case "update":
-			result = append(result, Update)
-		default:
-			log.Printf("[WARN] Unknown operation type defined in timeout configuration: %s", op)
-		}
+// ApplyDeleteOnCreateTimeoutTransformation adds a delete_on_create_timeout attribute to the resource schema
+// if the Create operation has a wait block and the Delete operation exists.
+func ApplyDeleteOnCreateTimeoutTransformation(resource *Resource) {
+	if ops := &resource.Operations; ops.Create.Wait == nil || ops.Delete == nil {
+		return
 	}
-	if result != nil {
-		return &Attribute{
-			Name:         "timeouts",
-			Timeouts:     &TimeoutsAttribute{ConfigurableTimeouts: result},
-			ReqBodyUsage: OmitAlways,
-		}
+	resource.Schema.Attributes = append(resource.Schema.Attributes, Attribute{
+		TFSchemaName:             "delete_on_create_timeout",
+		TFModelName:              "DeleteOnCreateTimeout",
+		Bool:                     &BoolAttribute{Default: conversion.Pointer(true)},
+		Description:              conversion.StringPtr(DeleteOnCreateTimeoutDescription),
+		ReqBodyUsage:             OmitAlways,
+		CreateOnly:               true,
+		ComputedOptionalRequired: ComputedOptional,
+	})
+}
+
+func setCreateOnlyValue(attr *Attribute) {
+	// CreateOnly plan modifier will not be applied for computed attributes
+	if attr.ComputedOptionalRequired == Computed || attr.ComputedOptionalRequired == ComputedOptional {
+		return
 	}
-	return nil
+
+	// captures case of path param attributes (no present in request body) and properties which are only present in post request
+	if attr.ReqBodyUsage == OmitAlways || attr.ReqBodyUsage == OmitInUpdateBody {
+		attr.CreateOnly = true
+	}
 }
