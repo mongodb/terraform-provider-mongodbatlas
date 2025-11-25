@@ -779,7 +779,7 @@ replication_specs = [
 
 When auto-scaling is enabled, there are two approaches to manage your cluster configuration with Terraform:
 
-**Option 1 (Recommended):** Use `use_effective_fields = true` to enable the new effective fields behavior. With this option, Atlas-managed auto-scaling changes won't cause plan drift, eliminating the need for `lifecycle` ignore customizations. You can read scaled values using the `effective_electable_specs`, `effective_analytics_specs`, and `effective_read_only_specs` attributes in the `mongodbatlas_advanced_cluster` data source. See [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) for details.
+**Option 1 (Recommended):** Use `use_effective_fields = true` to enable the new effective fields behavior. With this option, Atlas-managed auto-scaling changes won't cause plan drift, eliminating the need for `lifecycle` ignore customizations. Auto-scaling features independently ignore specific Terraform-configured fields: compute auto-scaling ignores only `instance_size`, disk auto-scaling ignores only `disk_size_gb` and `disk_iops`, while both together ignore all three fields. You can read the actual scaled values using the `effective_electable_specs` and `effective_read_only_specs` attributes in the `mongodbatlas_advanced_cluster` data source. See [Auto-Scaling with Effective Fields](#auto-scaling-with-effective-fields) for details.
 
 **Option 2:** If not using `use_effective_fields`, use a lifecycle ignore customization to prevent unintended changes. To explicitly change `disk_size_gb` or `instance_size` values, comment out the `lifecycle` block and run `terraform apply`. Please be sure to uncomment the `lifecycle` block once done to prevent any accidental changes.
 
