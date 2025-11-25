@@ -120,7 +120,7 @@ func applyAliasToPathParams(resource *Resource, aliases map[string]string) {
 	for original, alias := range aliases {
 		resource.Operations.Create.Path = strings.ReplaceAll(resource.Operations.Create.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
 		resource.Operations.Read.Path = strings.ReplaceAll(resource.Operations.Read.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
-		if resource.Operations.Delete != nil {
+		if resource.Operations.Update != nil {
 			resource.Operations.Update.Path = strings.ReplaceAll(resource.Operations.Update.Path, fmt.Sprintf("{%s}", original), fmt.Sprintf("{%s}", alias))
 		}
 		if resource.Operations.Delete != nil {
