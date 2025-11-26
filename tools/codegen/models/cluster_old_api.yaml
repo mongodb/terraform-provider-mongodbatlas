@@ -29,6 +29,19 @@ schema:
                       req_body_usage: all_request_bodies
                       sensitive: false
                       create_only: false
+                    - list:
+                        element_type: 4
+                      description: The custom OpenSSL cipher suite list for TLS 1.3. This field is only valid when `tlsCipherConfigMode` is set to `CUSTOM`.
+                      custom_type:
+                        package: customtypes
+                        model: customtypes.ListValue[types.String]
+                        schema: customtypes.NewListType[types.String](ctx)
+                      computed_optional_required: optional
+                      tf_schema_name: custom_openssl_cipher_config_tls13
+                      tf_model_name: CustomOpensslCipherConfigTls13
+                      req_body_usage: all_request_bodies
+                      sensitive: false
+                      create_only: false
                     - string: {}
                       description: Minimum Transport Layer Security (TLS) version that the cluster accepts for incoming connections. Clusters using TLS 1.0 or 1.1 should consider setting TLS 1.2 as the minimum TLS protocol version.
                       computed_optional_required: computed_optional
