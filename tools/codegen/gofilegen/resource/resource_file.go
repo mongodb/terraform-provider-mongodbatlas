@@ -11,6 +11,11 @@ import (
 )
 
 func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
+	var attributes codespec.Attributes
+	if input.Schema != nil {
+		attributes = input.Schema.Attributes
+	}
+
 	tmplInputs := codetemplate.ResourceFileInputs{
 		PackageName:  input.PackageName,
 		ResourceName: input.Name,
@@ -22,7 +27,7 @@ func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
 			Delete:        toCodeTemplateOpModel(input.Operations.Delete),
 		},
 		MoveState:    toCodeTemplateMoveStateModel(input.MoveState),
-		IDAttributes: getIDAttributes(input.Operations.Read.Path),
+		IDAttributes: getIDAttributes(input.Operations.Read.Path, attributes),
 	}
 	result := codetemplate.ApplyResourceFileTemplate(&tmplInputs)
 
@@ -85,11 +90,30 @@ func getPathParams(s string) []codetemplate.Param {
 	return params
 }
 
-func getIDAttributes(readPath string) []string {
+func getIDAttributes(readPath string, attributes codespec.Attributes) []string {
 	params := getPathParams(readPath)
 	result := make([]string, len(params))
+
 	for i, param := range params {
-		result[i] = stringcase.ToSnakeCase(param.CamelCaseName)
+		snakeCaseName := stringcase.ToSnakeCase(param.CamelCaseName)
+
+		// Find the matching attribute in the schema (which has aliases already applied)
+		// Path params are marked as Required with OmitAlways req body usage
+		found := false
+		for j := range attributes {
+			attr := &attributes[j]
+			if attr.ReqBodyUsage == codespec.OmitAlways && attr.ComputedOptionalRequired == codespec.Required {
+				// Check if this attribute's TFModelName matches the param name
+				if stringcase.ToSnakeCase(attr.TFModelName) == snakeCaseName {
+					result[i] = attr.TFSchemaName // Use the aliased TF schema name
+					found = true
+					break
+				}
+			}
+		}
+		if !found {
+			result[i] = snakeCaseName // Fallback to snake_case if not found
+		}
 	}
 	return result
 }
