@@ -3,9 +3,9 @@ package orgserviceaccountsecretapi
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/autogen"
 )
 
@@ -18,13 +18,7 @@ func (r *rs) PerformRead(ctx context.Context, req *autogen.HandleReadReq) ([]byt
 
 	bodyResp, apiResp, err := autogen.CallAPIWithoutBody(ctx, req.Client, req.CallParams)
 	if err != nil {
-		tflog.Error(ctx, "Failed to read service account secret", map[string]any{
-			"error": err.Error(),
-		})
-		return nil, apiResp, err
-	}
-	if autogen.NotFound(bodyResp, apiResp) {
-		return bodyResp, apiResp, nil
+		return nil, apiResp, fmt.Errorf("failed to read service account secret: %w", err)
 	}
 
 	var responseJSON response
