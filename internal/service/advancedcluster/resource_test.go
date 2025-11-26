@@ -1916,11 +1916,19 @@ func configAdvanced(t *testing.T, projectID, clusterName, mongoDBMajorVersion st
 	}
 	if p.TlsCipherConfigMode != nil {
 		advancedConfig += fmt.Sprintf("tls_cipher_config_mode = %[1]q\n", *p.TlsCipherConfigMode)
-		if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
-			advancedConfig += fmt.Sprintf("custom_openssl_cipher_config_tls12 = [%s]\n", acc.JoinQuotedStrings(*p.CustomOpensslCipherConfigTls12))
+		if p.CustomOpensslCipherConfigTls12 != nil {
+			if len(*p.CustomOpensslCipherConfigTls12) > 0 {
+				advancedConfig += fmt.Sprintf("custom_openssl_cipher_config_tls12 = [%s]\n", acc.JoinQuotedStrings(*p.CustomOpensslCipherConfigTls12))
+			} else {
+				advancedConfig += "custom_openssl_cipher_config_tls12 = []\n"
+			}
 		}
-		if p.CustomOpensslCipherConfigTls13 != nil && len(*p.CustomOpensslCipherConfigTls13) > 0 {
-			advancedConfig += fmt.Sprintf("custom_openssl_cipher_config_tls13 = [%s]\n", acc.JoinQuotedStrings(*p.CustomOpensslCipherConfigTls13))
+		if p.CustomOpensslCipherConfigTls13 != nil {
+			if len(*p.CustomOpensslCipherConfigTls13) > 0 {
+				advancedConfig += fmt.Sprintf("custom_openssl_cipher_config_tls13 = [%s]\n", acc.JoinQuotedStrings(*p.CustomOpensslCipherConfigTls13))
+			} else {
+				advancedConfig += "custom_openssl_cipher_config_tls13 = []\n"
+			}
 		}
 	}
 	if p.MinimumEnabledTlsProtocol != nil {
@@ -2074,18 +2082,10 @@ func TestAccAdvancedCluster_tls12to13CustomCipherUpdate(t *testing.T) {
 			CustomOpensslCipherConfigTls13: conversion.Pointer([]string{"TLS_AES_128_GCM_SHA256"}),
 			MinimumEnabledTlsProtocol:      conversion.StringPtr("TLS1_3"),
 		}
-
-		processArgsTLS12Revert = &admin.ClusterDescriptionProcessArgs20240805{
-			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
-			CustomOpensslCipherConfigTls12: conversion.Pointer([]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"}),
-			CustomOpensslCipherConfigTls13: conversion.Pointer([]string{}),
-			MinimumEnabledTlsProtocol:      conversion.StringPtr("TLS1_2"),
-		}
 	)
 
 	advancedConfigTLS13 := configAdvanced(t, projectID, clusterName, "", processArgsTLS13)
 	advancedConfigTLS12 := configAdvanced(t, projectID, clusterName, "", processArgsTLS12)
-	advancedConfigTLS12Revert := configAdvanced(t, projectID, clusterName, "", processArgsTLS12Revert)
 
 	check := resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
@@ -2116,24 +2116,6 @@ func TestAccAdvancedCluster_tls12to13CustomCipherUpdate(t *testing.T) {
 		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.minimum_enabled_tls_protocol", "TLS1_3"),
 	)
 
-	updateRevertToTLS12Check := resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr(resourceName, "advanced_configuration.tls_cipher_config_mode", "CUSTOM"),
-
-		resource.TestCheckResourceAttr(resourceName, "advanced_configuration.custom_openssl_cipher_config_tls12.#", "1"),
-		resource.TestCheckResourceAttr(resourceName, "advanced_configuration.custom_openssl_cipher_config_tls13.#", "0"),
-		resource.TestCheckResourceAttr(resourceName, "advanced_configuration.minimum_enabled_tls_protocol", "TLS1_2"),
-
-		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.tls_cipher_config_mode", "CUSTOM"),
-		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.custom_openssl_cipher_config_tls12.#", "1"),
-		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.custom_openssl_cipher_config_tls13.#", "0"),
-		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.minimum_enabled_tls_protocol", "TLS1_2"),
-
-		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.tls_cipher_config_mode", "CUSTOM"),
-		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.custom_openssl_cipher_config_tls12.#", "1"),
-		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.custom_openssl_cipher_config_tls13.#", "0"),
-		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.minimum_enabled_tls_protocol", "TLS1_2"),
-	)
-
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
 		Steps: []resource.TestStep{
@@ -2146,8 +2128,8 @@ func TestAccAdvancedCluster_tls12to13CustomCipherUpdate(t *testing.T) {
 				Check:  updateCheck,
 			},
 			{
-				Config: advancedConfigTLS12Revert,
-				Check:  updateRevertToTLS12Check,
+				Config: advancedConfigTLS12,
+				Check:  check,
 			},
 		},
 	})
