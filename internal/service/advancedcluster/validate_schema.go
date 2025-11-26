@@ -114,7 +114,7 @@ func (v UseEffectiveFieldsValidator) Description(ctx context.Context) string {
 }
 
 func (v UseEffectiveFieldsValidator) MarkdownDescription(_ context.Context) string {
-	return "use_effective_fields cannot be set for Flex or Tenant clusters"
+	return "use_effective_fields cannot be set for Flex or Tenant clusters."
 }
 
 func (v UseEffectiveFieldsValidator) ValidateBool(ctx context.Context, req validator.BoolRequest, resp *validator.BoolResponse) {
