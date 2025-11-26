@@ -9,8 +9,8 @@ import (
 )
 
 type resourceGenerationTestCase struct {
-	inputModel     codespec.Resource
 	goldenFileName string
+	inputModel     codespec.Resource
 }
 
 func TestResourceGenerationFromCodeSpec(t *testing.T) {

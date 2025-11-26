@@ -19,14 +19,16 @@ const apiVersionHeader = "application/vnd.atlas.2023-01-01+json"
 
 func Resource() resource.Resource {
 	return &rs{
-		RSCommon: config.RSCommon{
-			ResourceName: "maintenance_window_api",
+		RSAutogen: autogen.RSAutogen{
+			RSCommon: config.RSCommon{
+				ResourceName: "maintenance_window_api",
+			},
 		},
 	}
 }
 
 type rs struct {
-	config.RSCommon
+	autogen.RSAutogen
 }
 
 func (r *rs) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -50,10 +52,11 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 		Method:        "PATCH",
 	}
 	reqHandle := autogen.HandleCreateReq{
-		Resp:       resp,
-		Client:     r.Client,
-		Plan:       &plan,
-		CallParams: &callParams,
+		APIOperations: r,
+		Resp:          resp,
+		Client:        r.Client,
+		Plan:          &plan,
+		CallParams:    &callParams,
 	}
 	autogen.HandleCreate(ctx, reqHandle)
 }
@@ -65,10 +68,11 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 	reqHandle := autogen.HandleReadReq{
-		Resp:       resp,
-		Client:     r.Client,
-		State:      &state,
-		CallParams: readAPICallParams(&state),
+		APIOperations: r,
+		Resp:          resp,
+		Client:        r.Client,
+		State:         &state,
+		CallParams:    readAPICallParams(&state),
 	}
 	autogen.HandleRead(ctx, reqHandle)
 }
@@ -92,10 +96,11 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		Method:        "PATCH",
 	}
 	reqHandle := autogen.HandleUpdateReq{
-		Resp:       resp,
-		Client:     r.Client,
-		Plan:       &plan,
-		CallParams: &callParams,
+		APIOperations: r,
+		Resp:          resp,
+		Client:        r.Client,
+		Plan:          &plan,
+		CallParams:    &callParams,
 	}
 	autogen.HandleUpdate(ctx, reqHandle)
 }
@@ -106,7 +111,7 @@ func (r *rs) Delete(ctx context.Context, req resource.DeleteRequest, resp *resou
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	reqHandle := deleteRequest(r.Client, &state, &resp.Diagnostics)
+	reqHandle := deleteRequest(r, &state, &resp.Diagnostics)
 	autogen.HandleDelete(ctx, *reqHandle)
 }
 
@@ -128,14 +133,15 @@ func readAPICallParams(model any) *config.APICallParams {
 	}
 }
 
-func deleteRequest(client *config.MongoDBClient, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
+func deleteRequest(r *rs, model *TFModel, diags *diag.Diagnostics) *autogen.HandleDeleteReq {
 	pathParams := map[string]string{
 		"groupId": model.GroupId.ValueString(),
 	}
 	return &autogen.HandleDeleteReq{
-		Client: client,
-		State:  model,
-		Diags:  diags,
+		APIOperations: r,
+		Client:        r.Client,
+		State:         model,
+		Diags:         diags,
 		CallParams: &config.APICallParams{
 			VersionHeader: apiVersionHeader,
 			RelativePath:  "/api/atlas/v2/groups/{groupId}/maintenanceWindow",

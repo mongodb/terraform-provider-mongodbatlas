@@ -761,6 +761,25 @@ resources:
         roles:
           type: set
 
+  org_service_account_secret_api:
+    read:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}
+      schema_ignore: true
+      method: GET
+    create:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets
+      method: POST
+    delete:
+      path: /api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets/{secretId}
+      method: DELETE
+    id_attributes: ["id", "org_id", "client_id"]
+    schema:
+      aliases:
+        secretId: id # path param name does not match the API request property.
+      overrides:
+        secret:
+          sensitive: true
+
   alert_configuration_api:
     read:
       path: /api/atlas/v2/groups/{groupId}/alertConfigs/{alertConfigId}

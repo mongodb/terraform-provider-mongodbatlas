@@ -43,7 +43,8 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 	}
 
 	var results []Resource
-	for name, resourceConfig := range resourceConfigsToIterate {
+	for name := range resourceConfigsToIterate {
+		resourceConfig := resourceConfigsToIterate[name]
 		log.Printf("[INFO] Generating resource model: %s", name)
 		// find resource operations, schemas, etc from OAS
 		oasResource, err := getAPISpecResource(&apiSpec.Model, &resourceConfig, name)
@@ -63,7 +64,8 @@ func ToCodeSpecModel(atlasAdminAPISpecFilePath, configPath string, resourceName 
 
 func validateRequiredOperations(resourceConfigs map[string]config.Resource) error {
 	var validationErrors []error
-	for name, resourceConfig := range resourceConfigs {
+	for name := range resourceConfigs {
+		resourceConfig := resourceConfigs[name]
 		if resourceConfig.Create == nil {
 			validationErrors = append(validationErrors, fmt.Errorf("resource %s missing Create operation in config file", name))
 		}
@@ -78,6 +80,7 @@ func validateRequiredOperations(resourceConfigs map[string]config.Resource) erro
 }
 
 func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig *config.Resource, name string) (*Resource, error) {
+	var err error
 	createOp := oasResource.CreateOp
 	updateOp := oasResource.UpdateOp
 	readOp := oasResource.ReadOp
@@ -88,16 +91,16 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 		configuredVersion = &resourceConfig.VersionHeader
 	}
 
-	createRequestAttributes, err := opRequestToAttributes(createOp, configuredVersion)
+	createRequestAttributes, err := opRequestToAttributes(createOp, resourceConfig.Create, configuredVersion)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process create request attributes for %s: %w", name, err)
 	}
-	updateRequestAttributes, err := opRequestToAttributes(updateOp, configuredVersion)
+	updateRequestAttributes, err := opRequestToAttributes(updateOp, resourceConfig.Update, configuredVersion)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process update request attributes for %s: %w", name, err)
 	}
-	createResponseAttributes := opResponseToAttributes(createOp, configuredVersion)
-	readResponseAttributes := opResponseToAttributes(readOp, configuredVersion)
+	createResponseAttributes := opResponseToAttributes(createOp, resourceConfig.Create, configuredVersion)
+	readResponseAttributes := opResponseToAttributes(readOp, resourceConfig.Read, configuredVersion)
 
 	attributes := mergeAttributes(&attributeDefinitionSources{
 		createPathParams: createPathParams,
@@ -127,11 +130,12 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 	}
 
 	resource := &Resource{
-		Name:        name,
-		PackageName: strings.ReplaceAll(name, "_", ""),
-		Schema:      schema,
-		MoveState:   moveState,
-		Operations:  operations,
+		Name:         name,
+		PackageName:  strings.ReplaceAll(name, "_", ""),
+		Schema:       schema,
+		MoveState:    moveState,
+		Operations:   operations,
+		IDAttributes: resourceConfig.IDAttributes,
 	}
 
 	if err := applyTransformationsWithConfigOpts(resourceConfig, resource); err != nil {
@@ -215,8 +219,8 @@ func pathParamsToAttributes(createOp *high.Operation) Attributes {
 	return pathAttributes
 }
 
-func opRequestToAttributes(op *high.Operation, configuredVersion *string) (Attributes, error) {
-	if op == nil {
+func opRequestToAttributes(op *high.Operation, opConfig *config.APIOperation, configuredVersion *string) (Attributes, error) {
+	if op == nil || opConfig.SchemaIgnore {
 		return nil, nil
 	}
 	var requestAttributes Attributes
@@ -233,7 +237,10 @@ func opRequestToAttributes(op *high.Operation, configuredVersion *string) (Attri
 	return requestAttributes, nil
 }
 
-func opResponseToAttributes(op *high.Operation, configuredVersion *string) Attributes {
+func opResponseToAttributes(op *high.Operation, opConfig *config.APIOperation, configuredVersion *string) Attributes {
+	if opConfig.SchemaIgnore {
+		return nil
+	}
 	var responseAttributes Attributes
 	responseSchema, err := buildSchemaFromResponse(op, configuredVersion)
 	if err != nil {
