@@ -33,6 +33,12 @@ func ResourceSchema(ctx context.Context) schema.Schema {
 						CustomType:          customtypes.NewListType[types.String](ctx),
 						ElementType:         types.StringType,
 					},
+					"custom_openssl_cipher_config_tls13": schema.ListAttribute{
+						Optional:            true,
+						MarkdownDescription: "The custom OpenSSL cipher suite list for TLS 1.3. This field is only valid when `tlsCipherConfigMode` is set to `CUSTOM`.",
+						CustomType:          customtypes.NewListType[types.String](ctx),
+						ElementType:         types.StringType,
+					},
 					"minimum_enabled_tls_protocol": schema.StringAttribute{
 						Computed:            true,
 						Optional:            true,
@@ -679,6 +685,7 @@ type TFModel struct {
 }
 type TFAdvancedConfigurationModel struct {
 	CustomOpensslCipherConfigTls12 customtypes.ListValue[types.String] `tfsdk:"custom_openssl_cipher_config_tls12"`
+	CustomOpensslCipherConfigTls13 customtypes.ListValue[types.String] `tfsdk:"custom_openssl_cipher_config_tls13"`
 	MinimumEnabledTlsProtocol      types.String                        `tfsdk:"minimum_enabled_tls_protocol"`
 	TlsCipherConfigMode            types.String                        `tfsdk:"tls_cipher_config_mode"`
 }
