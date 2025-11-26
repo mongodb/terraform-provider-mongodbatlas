@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SOURCE_SPEC_URL="${SOURCE_SPEC_URL:-https://raw.githubusercontent.com/mongodb/openapi/main/openapi/v2.yaml}"
+SOURCE_SPEC_URL="${SOURCE_SPEC_URL:-https://raw.githubusercontent.com/mongodb/openapi/dev/openapi/v2.yaml}" # TODO: change to main once API is in production
 SPEC_PATH="tools/codegen/atlasapispec/raw-multi-version-api-spec.yml"
 FLATTENED_SPEC_PATH="tools/codegen/atlasapispec/multi-version-api-spec.flattened.yml"
 
