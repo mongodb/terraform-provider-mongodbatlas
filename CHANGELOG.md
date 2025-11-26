@@ -2,6 +2,7 @@
 
 BUG FIXES:
 
+* data-source/mongodbatlas_cloud_user_org_assignment: Changes `user_id` and `username` to be Optional and Computed ([#3911](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3911))
 * resource/mongodbatlas_alert_configuration: Fixes issue preventing updates from notification types supporting `interval_min` (e.g., MICROSOFT_TEAMS) to types that don't support it (PAGER_DUTY, OPS_GENIE, VICTOR_OPS) ([#3882](https://github.com/mongodb/terraform-provider-mongodbatlas/pull/3882))
 
 ## 2.2.0 (November 13, 2025)

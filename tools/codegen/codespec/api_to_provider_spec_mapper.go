@@ -134,7 +134,9 @@ func apiSpecResourceToCodeSpecModel(oasResource APISpecResource, resourceConfig 
 		Operations:  operations,
 	}
 
-	applyTransformationsWithConfigOpts(resourceConfig, resource)
+	if err := applyTransformationsWithConfigOpts(resourceConfig, resource); err != nil {
+		return nil, err
+	}
 
 	return resource, nil
 }

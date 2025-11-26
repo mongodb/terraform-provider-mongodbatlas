@@ -2,8 +2,10 @@ package clouduserorgassignment
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	dsschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -154,11 +156,19 @@ func dataSourceOverridenFields() map[string]dsschema.Attribute {
 	return map[string]dsschema.Attribute{
 		"user_id": dsschema.StringAttribute{
 			Optional:            true,
+			Computed:            true,
 			MarkdownDescription: "Unique 24-hexadecimal digit string that identifies the MongoDB Cloud user.",
+			Validators: []validator.String{
+				stringvalidator.ExactlyOneOf(path.MatchRoot("username")),
+			},
 		},
 		"username": dsschema.StringAttribute{
 			Optional:            true,
+			Computed:            true,
 			MarkdownDescription: "Email address that represents the username of the MongoDB Cloud user.",
+			Validators: []validator.String{
+				stringvalidator.ExactlyOneOf(path.MatchRoot("user_id")),
+			},
 		},
 	}
 }

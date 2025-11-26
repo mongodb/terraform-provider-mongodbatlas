@@ -96,12 +96,12 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 		if valueType == types.StringType {
 			return types.StringValue(v), nil
 		}
-		return nil, errUnmarshal(value, valueType, "String", nameErr)
+		return nil, errUnmarshal(valueType, "String", nameErr)
 	case bool:
 		if valueType == types.BoolType {
 			return types.BoolValue(v), nil
 		}
-		return nil, errUnmarshal(value, valueType, "Bool", nameErr)
+		return nil, errUnmarshal(valueType, "Bool", nameErr)
 	case float64:
 		switch valueType {
 		case types.Int64Type:
@@ -109,7 +109,7 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 		case types.Float64Type:
 			return types.Float64Value(v), nil
 		}
-		return nil, errUnmarshal(value, valueType, "Number", nameErr)
+		return nil, errUnmarshal(valueType, "Number", nameErr)
 	case map[string]any:
 		switch oldVal := oldVal.(type) {
 		case customtypes.ObjectValueInterface:
@@ -119,7 +119,7 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 		case customtypes.NestedMapValueInterface:
 			return getNestedMapValueTFAttr(context.Background(), v, oldVal)
 		}
-		return nil, errUnmarshal(value, valueType, "Object", nameErr)
+		return nil, errUnmarshal(valueType, "Object", nameErr)
 	case []any:
 		switch oldVal := oldVal.(type) {
 		case customtypes.ListValueInterface:
@@ -131,7 +131,7 @@ func getTfAttr(value any, valueType attr.Type, oldVal attr.Value, name string) (
 		case customtypes.NestedSetValueInterface:
 			return getNestedSetValueTFAttr(context.Background(), v, oldVal)
 		}
-		return nil, errUnmarshal(value, valueType, "Array", nameErr)
+		return nil, errUnmarshal(valueType, "Array", nameErr)
 	case nil:
 		return nil, nil // skip nil values, no need to set anything
 	}
@@ -147,11 +147,11 @@ func getNormalizedJSONAttrValue(value any, nameErr string) (attr.Value, error) {
 	return jsontypes.NewNormalizedValue(string(jsonBytes)), nil
 }
 
-func errUnmarshal(value any, valueType attr.Type, typeReceived, name string) error {
+func errUnmarshal(valueType attr.Type, typeReceived, name string) error {
 	nameErr := stringcase.ToSnakeCase(name)
 	parts := strings.Split(reflect.TypeOf(valueType).String(), ".")
 	typeErr := parts[len(parts)-1]
-	return fmt.Errorf("unmarshal of attribute %s expects type %s but got %s with value: %v", nameErr, typeErr, typeReceived, value)
+	return fmt.Errorf("unmarshal of attribute %s expects type %s but got %s", nameErr, typeErr, typeReceived)
 }
 
 func getObjectValueTFAttr(ctx context.Context, objJSON map[string]any, obj customtypes.ObjectValueInterface) (attr.Value, error) {
@@ -209,7 +209,7 @@ func getNestedMapValueTFAttr(ctx context.Context, mapJSON map[string]any, m cust
 
 		objJSON, ok := item.(map[string]any)
 		if !ok {
-			return nil, fmt.Errorf("unmarshal of map item failed to convert to object: %v", item)
+			return nil, fmt.Errorf("failed to unmarshal map item, expected object but got %T", item)
 		}
 
 		err := unmarshalAttrs(objJSON, elementVal.Interface())
@@ -294,7 +294,7 @@ func getNestedListValueTFAttr(ctx context.Context, arrayJSON []any, list customt
 		elementPtr := elementVal.Addr().Interface()
 		objJSON, ok := item.(map[string]any)
 		if !ok {
-			return nil, fmt.Errorf("unmarshal of array item failed to convert to object: %v", item)
+			return nil, fmt.Errorf("failed to unmarshal array item, expected object but got %T", item)
 		}
 		err := unmarshalAttrs(objJSON, elementPtr)
 		if err != nil {
@@ -320,7 +320,7 @@ func getNestedSetValueTFAttr(ctx context.Context, arrayJSON []any, set customtyp
 		elementPtr := sliceVal.Index(i).Addr().Interface()
 		objJSON, ok := item.(map[string]any)
 		if !ok {
-			return nil, fmt.Errorf("unmarshal of array item failed to convert to object: %v", item)
+			return nil, fmt.Errorf("failed to unmarshal set item, expected object but got %T", item)
 		}
 		err := unmarshalAttrs(objJSON, elementPtr)
 		if err != nil {
