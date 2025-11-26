@@ -95,22 +95,17 @@ func getIDAttributes(readPath string, attributes codespec.Attributes) []string {
 	result := make([]string, len(params))
 
 	for i, param := range params {
-		// Find the matching attribute in the schema (which has aliases already applied)
-		// Path params are marked as Required with OmitAlways req body usage
 		found := false
 		for j := range attributes {
 			attr := &attributes[j]
-			if attr.ReqBodyUsage == codespec.OmitAlways && attr.ComputedOptionalRequired == codespec.Required {
-				// Check if this attribute's TFModelName matches the param name
-				if attr.TFModelName == param.PascalCaseName {
-					result[i] = attr.TFSchemaName // Use the aliased TF schema name
-					found = true
-					break
-				}
+			if attr.TFModelName == param.PascalCaseName {
+				result[i] = attr.TFSchemaName
+				found = true
+				break
 			}
 		}
 		if !found {
-			result[i] = stringcase.ToSnakeCase(param.CamelCaseName) // Fallback to snake_case if not found
+			result[i] = stringcase.ToSnakeCase(param.CamelCaseName)
 		}
 	}
 	return result
