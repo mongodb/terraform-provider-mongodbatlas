@@ -208,18 +208,24 @@ func NewRegionConfigsObjType(ctx context.Context, input *[]admin.CloudRegionConf
 		analyticsAutoScaling := NewAutoScalingObjType(ctx, item.AnalyticsAutoScaling, diags)
 		analyticsSpecs := NewSpecsObjType(ctx, item.AnalyticsSpecs, diags)
 		autoScaling := NewAutoScalingObjType(ctx, item.AutoScaling, diags)
+		effectiveAnalyticsSpecs := NewSpecsObjType(ctx, item.EffectiveAnalyticsSpecs, diags)
+		effectiveElectableSpecs := NewSpecsObjType(ctx, item.EffectiveElectableSpecs, diags)
+		effectiveReadOnlySpecs := NewSpecsObjType(ctx, item.EffectiveReadOnlySpecs, diags)
 		electableSpecs := NewSpecsFromHwObjType(ctx, item.ElectableSpecs, diags)
 		readOnlySpecs := NewSpecsObjType(ctx, item.ReadOnlySpecs, diags)
 		tfModels[i] = TFRegionConfigsModel{
-			AnalyticsAutoScaling: analyticsAutoScaling,
-			AnalyticsSpecs:       analyticsSpecs,
-			AutoScaling:          autoScaling,
-			BackingProviderName:  types.StringPointerValue(item.BackingProviderName),
-			ElectableSpecs:       electableSpecs,
-			Priority:             types.Int64PointerValue(conversion.IntPtrToInt64Ptr(item.Priority)),
-			ProviderName:         types.StringValue(conversion.SafeValue(item.ProviderName)),
-			ReadOnlySpecs:        readOnlySpecs,
-			RegionName:           types.StringValue(conversion.SafeValue(item.RegionName)),
+			AnalyticsAutoScaling:    analyticsAutoScaling,
+			AnalyticsSpecs:          analyticsSpecs,
+			AutoScaling:             autoScaling,
+			BackingProviderName:     types.StringPointerValue(item.BackingProviderName),
+			EffectiveAnalyticsSpecs: effectiveAnalyticsSpecs,
+			EffectiveElectableSpecs: effectiveElectableSpecs,
+			EffectiveReadOnlySpecs:  effectiveReadOnlySpecs,
+			ElectableSpecs:          electableSpecs,
+			Priority:                types.Int64PointerValue(conversion.IntPtrToInt64Ptr(item.Priority)),
+			ProviderName:            types.StringValue(conversion.SafeValue(item.ProviderName)),
+			ReadOnlySpecs:           readOnlySpecs,
+			RegionName:              types.StringValue(conversion.SafeValue(item.RegionName)),
 		}
 	}
 	listType, diagsLocal := types.ListValueFrom(ctx, RegionConfigsObjType, tfModels)

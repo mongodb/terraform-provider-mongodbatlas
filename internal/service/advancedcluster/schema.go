@@ -22,6 +22,8 @@ import (
 
 const (
 	descUseEfectiveFields = "Controls how hardware specification fields are returned in the response. When set to true, the non-effective specs (`electable_specs`, `read_only_specs`, `analytics_specs`) fields return the hardware specifications that the client provided. When set to false (default), the non-effective specs fields show the **current** hardware specifications. Cluster auto-scaling is the primary cause for differences between initial and current hardware specifications."
+	descSpecs             = "Hardware specifications for nodes deployed in the region."
+	descEffectiveSpecs    = "Effective hardware specifications for nodes deployed in the region."
 )
 
 func resourceSchema(ctx context.Context) schema.Schema {
@@ -228,14 +230,17 @@ func resourceSchema(ctx context.Context) schema.Schema {
 							},
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
-									"analytics_auto_scaling": AutoScalingSchema(),
-									"analytics_specs":        SpecsSchema("Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region."),
-									"auto_scaling":           AutoScalingSchema(),
+									"analytics_auto_scaling": autoScalingSchema(),
+									"analytics_specs":        specsSchema(),
+									"auto_scaling":           autoScalingSchema(),
 									"backing_provider_name": schema.StringAttribute{
 										Optional:            true,
 										MarkdownDescription: "Cloud service provider on which MongoDB Cloud provisioned the multi-tenant cluster. The resource returns this parameter when **providerName** is `TENANT` and **electableSpecs.instanceSize** is `M0`.",
 									},
-									"electable_specs": SpecsSchema("Hardware specifications for all electable nodes deployed in the region. Electable nodes can become the primary and can enable local reads. If you don't specify this option, MongoDB Cloud deploys no electable nodes to the region."),
+									"effective_analytics_specs": effectiveSpecsSchema(),
+									"effective_electable_specs": effectiveSpecsSchema(),
+									"effective_read_only_specs": effectiveSpecsSchema(),
+									"electable_specs":           specsSchema(),
 									"priority": schema.Int64Attribute{
 										Required:            true,
 										MarkdownDescription: "Precedence is given to this region when a primary election occurs. If your **regionConfigs** has only **readOnlySpecs**, **analyticsSpecs**, or both, set this value to `0`. If you have multiple **regionConfigs** objects (your cluster is multi-region or multi-cloud), they must have priorities in descending order. The highest priority is `7`.\n\n**Example:** If you have three regions, their priorities would be `7`, `6`, and `5` respectively. If you added two more regions for supporting electable nodes, the priorities of those regions would be `4` and `3` respectively.",
@@ -244,7 +249,7 @@ func resourceSchema(ctx context.Context) schema.Schema {
 										Required:            true,
 										MarkdownDescription: "Cloud service provider on which MongoDB Cloud provisions the hosts. Set dedicated clusters to `AWS`, `GCP`, `AZURE` or `TENANT`.",
 									},
-									"read_only_specs": SpecsSchema("Hardware specifications for read-only nodes in the region. Read-only nodes can never become the primary member, but can enable local reads. If you don't specify this parameter, no read-only nodes are deployed to the region."),
+									"read_only_specs": specsSchema(),
 									"region_name": schema.StringAttribute{
 										Required:            true,
 										MarkdownDescription: "Physical location of your MongoDB cluster nodes. The region you choose can affect network latency for clients accessing your databases. The region name is only returned in the response for single-region clusters. When MongoDB Cloud deploys a dedicated cluster, it checks if a VPC or VPC connection exists for that provider and region. If not, MongoDB Cloud creates them as part of the deployment. It assigns the VPC a Classless Inter-Domain Routing (CIDR) block. To limit a new VPC peering connection to one Classless Inter-Domain Routing (CIDR) block and region, create the connection first. Deploy the cluster after the connection starts. GCP Clusters and Multi-region clusters require one VPC peering connection for each region. MongoDB nodes can use only the peering connection that resides in the same region as the nodes to communicate with the peered VPC.",
@@ -359,7 +364,7 @@ func dataSourceOverridenFields() map[string]dsschema.Attribute {
 	}
 }
 
-func AutoScalingSchema() schema.SingleNestedAttribute {
+func autoScalingSchema() schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
 		Computed:            true,
 		Optional:            true,
@@ -394,11 +399,11 @@ func AutoScalingSchema() schema.SingleNestedAttribute {
 	}
 }
 
-func SpecsSchema(markdownDescription string) schema.SingleNestedAttribute {
+func specsSchema() schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
 		Computed:            true,
 		Optional:            true,
-		MarkdownDescription: markdownDescription,
+		MarkdownDescription: descSpecs,
 		Attributes: map[string]schema.Attribute{
 			"disk_iops": schema.Int64Attribute{
 				Computed:            true,
@@ -426,6 +431,36 @@ func SpecsSchema(markdownDescription string) schema.SingleNestedAttribute {
 			"node_count": schema.Int64Attribute{
 				Computed:            true,
 				Optional:            true,
+				MarkdownDescription: "Number of nodes of the given type for MongoDB Cloud to deploy to the region.",
+			},
+		},
+	}
+}
+
+func effectiveSpecsSchema() schema.SingleNestedAttribute {
+	return schema.SingleNestedAttribute{
+		Computed:            true,
+		Optional:            true,
+		MarkdownDescription: descEffectiveSpecs,
+		Attributes: map[string]schema.Attribute{
+			"disk_iops": schema.Int64Attribute{
+				Computed:            true,
+				MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"Azure\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\" : \"M40\"` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected **.instanceSize** and **.diskSizeGB**.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
+			},
+			"disk_size_gb": schema.Float64Attribute{
+				Computed:            true,
+				MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
+			},
+			"ebs_volume_type": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters.",
+			},
+			"instance_size": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "Hardware specification for the instance sizes in this region in this shard. Each instance size has a default storage and memory capacity. Electable nodes and read-only nodes (known as \"base nodes\") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.",
+			},
+			"node_count": schema.Int64Attribute{
+				Computed:            true,
 				MarkdownDescription: "Number of nodes of the given type for MongoDB Cloud to deploy to the region.",
 			},
 		},
@@ -665,27 +700,33 @@ var ReplicationSpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 }}
 
 type TFRegionConfigsModel struct {
-	AnalyticsAutoScaling types.Object `tfsdk:"analytics_auto_scaling"`
-	AnalyticsSpecs       types.Object `tfsdk:"analytics_specs"`
-	AutoScaling          types.Object `tfsdk:"auto_scaling"`
-	BackingProviderName  types.String `tfsdk:"backing_provider_name"`
-	ElectableSpecs       types.Object `tfsdk:"electable_specs"`
-	ProviderName         types.String `tfsdk:"provider_name"`
-	ReadOnlySpecs        types.Object `tfsdk:"read_only_specs"`
-	RegionName           types.String `tfsdk:"region_name"`
-	Priority             types.Int64  `tfsdk:"priority"`
+	AnalyticsAutoScaling    types.Object `tfsdk:"analytics_auto_scaling"`
+	AnalyticsSpecs          types.Object `tfsdk:"analytics_specs"`
+	AutoScaling             types.Object `tfsdk:"auto_scaling"`
+	BackingProviderName     types.String `tfsdk:"backing_provider_name"`
+	EffectiveAnalyticsSpecs types.Object `tfsdk:"effective_analytics_specs"`
+	EffectiveElectableSpecs types.Object `tfsdk:"effective_electable_specs"`
+	EffectiveReadOnlySpecs  types.Object `tfsdk:"effective_read_only_specs"`
+	ElectableSpecs          types.Object `tfsdk:"electable_specs"`
+	ProviderName            types.String `tfsdk:"provider_name"`
+	ReadOnlySpecs           types.Object `tfsdk:"read_only_specs"`
+	RegionName              types.String `tfsdk:"region_name"`
+	Priority                types.Int64  `tfsdk:"priority"`
 }
 
 var RegionConfigsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"analytics_auto_scaling": AutoScalingObjType,
-	"analytics_specs":        SpecsObjType,
-	"auto_scaling":           AutoScalingObjType,
-	"backing_provider_name":  types.StringType,
-	"electable_specs":        SpecsObjType,
-	"priority":               types.Int64Type,
-	"provider_name":          types.StringType,
-	"read_only_specs":        SpecsObjType,
-	"region_name":            types.StringType,
+	"analytics_auto_scaling":    AutoScalingObjType,
+	"analytics_specs":           SpecsObjType,
+	"auto_scaling":              AutoScalingObjType,
+	"backing_provider_name":     types.StringType,
+	"effective_analytics_specs": SpecsObjType,
+	"effective_electable_specs": SpecsObjType,
+	"effective_read_only_specs": SpecsObjType,
+	"electable_specs":           SpecsObjType,
+	"priority":                  types.Int64Type,
+	"provider_name":             types.StringType,
+	"read_only_specs":           SpecsObjType,
+	"region_name":               types.StringType,
 }}
 
 type TFAutoScalingModel struct {
