@@ -61,16 +61,11 @@ func newClusterAdvancedConfiguration(ctx context.Context, objInput *types.Object
 		return nil
 	}
 
-	var customCipherConfigTLS13 *[]string
-	if !inputAdvConfig.CustomOpensslCipherConfigTls13.IsNull() && !inputAdvConfig.CustomOpensslCipherConfigTls13.IsUnknown() {
-		customCipherConfigTLS13 = conversion.Pointer(conversion.TypesSetToString(ctx, inputAdvConfig.CustomOpensslCipherConfigTls13))
-	}
-
 	return &admin.ApiAtlasClusterAdvancedConfiguration{
 		MinimumEnabledTlsProtocol:      conversion.NilForUnknown(inputAdvConfig.MinimumEnabledTlsProtocol, inputAdvConfig.MinimumEnabledTlsProtocol.ValueStringPointer()),
 		TlsCipherConfigMode:            conversion.NilForUnknown(inputAdvConfig.TlsCipherConfigMode, inputAdvConfig.TlsCipherConfigMode.ValueStringPointer()),
 		CustomOpensslCipherConfigTls12: conversion.Pointer(conversion.TypesSetToString(ctx, inputAdvConfig.CustomOpensslCipherConfigTls12)),
-		CustomOpensslCipherConfigTls13: customCipherConfigTLS13,
+		CustomOpensslCipherConfigTls13: conversion.Pointer(conversion.TypesSetToString(ctx, inputAdvConfig.CustomOpensslCipherConfigTls13)),
 	}
 }
 

@@ -2059,6 +2059,93 @@ func checkAdvancedDefaultWrite(name, writeConcern, tls string) resource.TestChec
 		pluralChecks...)
 }
 
+func TestAccAdvancedCluster_tls12to13CustomCipherUpdate(t *testing.T) {
+	var (
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
+		resourceName           = "mongodbatlas_advanced_cluster.test"
+		processArgsTLS12       = &admin.ClusterDescriptionProcessArgs20240805{
+			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
+			CustomOpensslCipherConfigTls12: conversion.Pointer([]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"}),
+			MinimumEnabledTlsProtocol:      conversion.StringPtr("TLS1_2"),
+		}
+		processArgsTLS13 = &admin.ClusterDescriptionProcessArgs20240805{
+			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
+			CustomOpensslCipherConfigTls12: conversion.Pointer([]string{}),
+			CustomOpensslCipherConfigTls13: conversion.Pointer([]string{"TLS_AES_128_GCM_SHA256"}),
+			MinimumEnabledTlsProtocol:      conversion.StringPtr("TLS1_3"),
+		}
+
+		processArgsTLS12Revert = &admin.ClusterDescriptionProcessArgs20240805{
+			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
+			CustomOpensslCipherConfigTls12: conversion.Pointer([]string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"}),
+			CustomOpensslCipherConfigTls13: conversion.Pointer([]string{}),
+			MinimumEnabledTlsProtocol:      conversion.StringPtr("TLS1_2"),
+		}
+	)
+
+	advancedConfigTLS13 := configAdvanced(t, projectID, clusterName, "", processArgsTLS13)
+	advancedConfigTLS12 := configAdvanced(t, projectID, clusterName, "", processArgsTLS12)
+	advancedConfigTLS12Revert := configAdvanced(t, projectID, clusterName, "", processArgsTLS12Revert)
+
+	check := resource.ComposeAggregateTestCheckFunc(
+		resource.TestCheckResourceAttr(resourceName, "project_id", projectID),
+		resource.TestCheckResourceAttr(resourceName, "name", clusterName),
+		resource.TestCheckResourceAttr(resourceName, "advanced_configuration.tls_cipher_config_mode", "CUSTOM"),
+		resource.TestCheckResourceAttr(resourceName, "advanced_configuration.custom_openssl_cipher_config_tls12.#", "1"),
+		resource.TestCheckResourceAttr(resourceName, "advanced_configuration.minimum_enabled_tls_protocol", "TLS1_2"),
+
+		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.tls_cipher_config_mode", "CUSTOM"),
+		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.custom_openssl_cipher_config_tls12.#", "1"),
+
+		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.tls_cipher_config_mode", "CUSTOM"),
+		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.custom_openssl_cipher_config_tls12.#", "1"),
+	)
+
+	updateCheck := resource.ComposeAggregateTestCheckFunc(
+		resource.TestCheckResourceAttr(resourceName, "advanced_configuration.tls_cipher_config_mode", "CUSTOM"),
+		resource.TestCheckResourceAttr(resourceName, "advanced_configuration.custom_openssl_cipher_config_tls13.#", "1"),
+
+		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.tls_cipher_config_mode", "CUSTOM"),
+		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.custom_openssl_cipher_config_tls13.#", "1"),
+
+		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.tls_cipher_config_mode", "CUSTOM"),
+		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.custom_openssl_cipher_config_tls13.#", "1"),
+	)
+
+	updateRevertToTLS12Check := resource.ComposeAggregateTestCheckFunc(
+		resource.TestCheckResourceAttr(resourceName, "advanced_configuration.tls_cipher_config_mode", "CUSTOM"),
+
+		resource.TestCheckResourceAttr(resourceName, "advanced_configuration.custom_openssl_cipher_config_tls12.#", "1"),
+		resource.TestCheckResourceAttr(resourceName, "advanced_configuration.custom_openssl_cipher_config_tls13.#", "0"),
+
+		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.tls_cipher_config_mode", "CUSTOM"),
+		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.custom_openssl_cipher_config_tls12.#", "1"),
+		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.custom_openssl_cipher_config_tls13.#", "0"),
+
+		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.tls_cipher_config_mode", "CUSTOM"),
+		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.custom_openssl_cipher_config_tls12.#", "1"),
+		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.custom_openssl_cipher_config_tls13.#", "0"),
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: acc.TestAccProviderV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: advancedConfigTLS12,
+				Check:  check,
+			},
+			{
+				Config: advancedConfigTLS13,
+				Check:  updateCheck,
+			},
+			{
+				Config: advancedConfigTLS12Revert,
+				Check:  updateRevertToTLS12Check,
+			},
+		},
+	})
+}
+
 func TestAccAdvancedCluster_tls13CustomCiphers(t *testing.T) {
 	var (
 		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
