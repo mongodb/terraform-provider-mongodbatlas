@@ -22,7 +22,8 @@ func TestAccAdvancedCluster_effectiveBasic(t *testing.T) {
 				Config: flag.config(),
 				Check:  flag.check(),
 			},
-			acc.TestStepImportCluster(resourceName),
+			// Ignore replication_specs differences as import doesn't use flag so non-effective specs not in the config are set in the state.
+			acc.TestStepImportCluster(resourceName, "use_effective_fields", "replication_specs"),
 		},
 	})
 }
