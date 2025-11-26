@@ -2096,9 +2096,11 @@ func TestAccAdvancedCluster_tls12to13CustomCipherUpdate(t *testing.T) {
 
 		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.tls_cipher_config_mode", "CUSTOM"),
 		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.custom_openssl_cipher_config_tls12.#", "1"),
+		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.minimum_enabled_tls_protocol", "TLS1_2"),
 
 		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.tls_cipher_config_mode", "CUSTOM"),
 		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.custom_openssl_cipher_config_tls12.#", "1"),
+		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.minimum_enabled_tls_protocol", "TLS1_2"),
 	)
 
 	updateCheck := resource.ComposeAggregateTestCheckFunc(
@@ -2107,9 +2109,11 @@ func TestAccAdvancedCluster_tls12to13CustomCipherUpdate(t *testing.T) {
 
 		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.tls_cipher_config_mode", "CUSTOM"),
 		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.custom_openssl_cipher_config_tls13.#", "1"),
+		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.minimum_enabled_tls_protocol", "TLS1_3"),
 
 		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.tls_cipher_config_mode", "CUSTOM"),
 		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.custom_openssl_cipher_config_tls13.#", "1"),
+		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.minimum_enabled_tls_protocol", "TLS1_3"),
 	)
 
 	updateRevertToTLS12Check := resource.ComposeAggregateTestCheckFunc(
@@ -2117,14 +2121,17 @@ func TestAccAdvancedCluster_tls12to13CustomCipherUpdate(t *testing.T) {
 
 		resource.TestCheckResourceAttr(resourceName, "advanced_configuration.custom_openssl_cipher_config_tls12.#", "1"),
 		resource.TestCheckResourceAttr(resourceName, "advanced_configuration.custom_openssl_cipher_config_tls13.#", "0"),
+		resource.TestCheckResourceAttr(resourceName, "advanced_configuration.minimum_enabled_tls_protocol", "TLS1_2"),
 
 		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.tls_cipher_config_mode", "CUSTOM"),
 		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.custom_openssl_cipher_config_tls12.#", "1"),
 		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.custom_openssl_cipher_config_tls13.#", "0"),
+		resource.TestCheckResourceAttr(dataSourceName, "advanced_configuration.minimum_enabled_tls_protocol", "TLS1_2"),
 
 		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.tls_cipher_config_mode", "CUSTOM"),
 		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.custom_openssl_cipher_config_tls12.#", "1"),
 		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.custom_openssl_cipher_config_tls13.#", "0"),
+		resource.TestCheckResourceAttr(dataSourcePluralName, "results.0.advanced_configuration.minimum_enabled_tls_protocol", "TLS1_2"),
 	)
 
 	resource.ParallelTest(t, resource.TestCase{
