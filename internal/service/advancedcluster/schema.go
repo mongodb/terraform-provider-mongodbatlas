@@ -24,6 +24,11 @@ const (
 	descUseEfectiveFields = "Controls how hardware specification fields are returned in the response. When set to true, the non-effective specs (`electable_specs`, `read_only_specs`, `analytics_specs`) fields return the hardware specifications that the client provided. When set to false (default), the non-effective specs fields show the **current** hardware specifications. Cluster auto-scaling is the primary cause for differences between initial and current hardware specifications."
 	descSpecs             = "Hardware specifications for nodes deployed in the region."
 	descEffectiveSpecs    = "Effective hardware specifications for nodes deployed in the region."
+	descDiskIops          = "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"Azure\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\" : \"M40\"` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected **.instanceSize** and **.diskSizeGB**.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost."
+	descDiskSizeGb        = "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier."
+	descEbsVolumeType     = "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters."
+	descInstanceSize      = "Hardware specification for the instance sizes in this region in this shard. Each instance size has a default storage and memory capacity. Electable nodes and read-only nodes (known as \"base nodes\") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards."
+	descNodeCount         = "Number of nodes of the given type for MongoDB Cloud to deploy to the region."
 )
 
 func resourceSchema(ctx context.Context) schema.Schema {
@@ -408,17 +413,17 @@ func specsSchema() schema.SingleNestedAttribute {
 			"disk_iops": schema.Int64Attribute{
 				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"Azure\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\" : \"M40\"` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected **.instanceSize** and **.diskSizeGB**.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
+				MarkdownDescription: descDiskIops,
 			},
 			"disk_size_gb": schema.Float64Attribute{
 				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
+				MarkdownDescription: descDiskSizeGb,
 			},
 			"ebs_volume_type": schema.StringAttribute{
 				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters.",
+				MarkdownDescription: descEbsVolumeType,
 			},
 			"instance_size": schema.StringAttribute{
 				Computed: true,
@@ -426,12 +431,12 @@ func specsSchema() schema.SingleNestedAttribute {
 				PlanModifiers: []planmodifier.String{
 					customplanmodifier.InstanceSizeStringAttributePlanModifier(),
 				},
-				MarkdownDescription: "Hardware specification for the instance sizes in this region in this shard. Each instance size has a default storage and memory capacity. Electable nodes and read-only nodes (known as \"base nodes\") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.",
+				MarkdownDescription: descInstanceSize,
 			},
 			"node_count": schema.Int64Attribute{
 				Computed:            true,
 				Optional:            true,
-				MarkdownDescription: "Number of nodes of the given type for MongoDB Cloud to deploy to the region.",
+				MarkdownDescription: descNodeCount,
 			},
 		},
 	}
@@ -445,23 +450,23 @@ func effectiveSpecsSchema() schema.SingleNestedAttribute {
 		Attributes: map[string]schema.Attribute{
 			"disk_iops": schema.Int64Attribute{
 				Computed:            true,
-				MarkdownDescription: "Target throughput desired for storage attached to your Azure-provisioned cluster. Change this parameter if you:\n\n- set `\"replicationSpecs[n].regionConfigs[m].providerName\" : \"Azure\"`.\n- set `\"replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize\" : \"M40\"` or greater not including `Mxx_NVME` tiers.\n\nThe maximum input/output operations per second (IOPS) depend on the selected **.instanceSize** and **.diskSizeGB**.\nThis parameter defaults to the cluster tier's standard IOPS value.\nChanging this value impacts cluster cost.",
+				MarkdownDescription: descDiskIops,
 			},
 			"disk_size_gb": schema.Float64Attribute{
 				Computed:            true,
-				MarkdownDescription: "Storage capacity of instance data volumes expressed in gigabytes. Increase this number to add capacity.\n\n This value must be equal for all shards and node types.\n\n This value is not configurable on M0/M2/M5 clusters.\n\n MongoDB Cloud requires this parameter if you set **replicationSpecs**.\n\n If you specify a disk size below the minimum (10 GB), this parameter defaults to the minimum disk size value. \n\n Storage charge calculations depend on whether you choose the default value or a custom value.\n\n The maximum value for disk storage cannot exceed 50 times the maximum RAM for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.",
+				MarkdownDescription: descDiskSizeGb,
 			},
 			"ebs_volume_type": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Type of storage you want to attach to your AWS-provisioned cluster.\n\n- `STANDARD` volume types can't exceed the default input/output operations per second (IOPS) rate for the selected volume size. \n\n- `PROVISIONED` volume types must fall within the allowable IOPS range for the selected volume size. You must set this value to (`PROVISIONED`) for NVMe clusters.",
+				MarkdownDescription: descEbsVolumeType,
 			},
 			"instance_size": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "Hardware specification for the instance sizes in this region in this shard. Each instance size has a default storage and memory capacity. Electable nodes and read-only nodes (known as \"base nodes\") within a single shard must use the same instance size. Analytics nodes can scale independently from base nodes within a shard. Both base nodes and analytics nodes can scale independently from their equivalents in other shards.",
+				MarkdownDescription: descInstanceSize,
 			},
 			"node_count": schema.Int64Attribute{
 				Computed:            true,
-				MarkdownDescription: "Number of nodes of the given type for MongoDB Cloud to deploy to the region.",
+				MarkdownDescription: descNodeCount,
 			},
 		},
 	}
