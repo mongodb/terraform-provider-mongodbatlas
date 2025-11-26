@@ -55,12 +55,11 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 	projectID := pluralModel.ProjectID.ValueString()
 	api := d.Client.AtlasV2.ClustersApi
 	params := admin.ListClustersApiParams{
-		GroupId: projectID,
+		GroupId:                    projectID,
+		UseEffectiveInstanceFields: conversion.Pointer(pluralModel.UseEffectiveFields.ValueBool()),
 	}
 	list, err := dsschema.AllPages(ctx, func(ctx context.Context, pageNum int) (dsschema.PaginateResponse[admin.ClusterDescription20240805], *http.Response, error) {
-		request := api.ListClustersWithParams(ctx, &params)
-		request = request.PageNum(pageNum)
-		return request.Execute()
+		return api.ListClustersWithParams(ctx, &params).PageNum(pageNum).Execute()
 	})
 	if err != nil {
 		diags.AddError(errorList, fmt.Sprintf(errorListDetail, projectID, err.Error()))

@@ -318,7 +318,10 @@ func resourceSchema(ctx context.Context) schema.Schema {
 				Delete: true,
 			}),
 			"use_effective_fields": schema.BoolAttribute{
-				Optional:            true,
+				Optional: true,
+				Validators: []validator.Bool{
+					UseEffectiveFieldsValidator{},
+				},
 				MarkdownDescription: descUseEfectiveFields,
 			},
 		},
