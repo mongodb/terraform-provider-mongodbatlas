@@ -93,19 +93,13 @@ func getPathParams(s string) []codetemplate.Param {
 func getIDAttributes(readPath string, attributes codespec.Attributes) []string {
 	params := getPathParams(readPath)
 	result := make([]string, len(params))
-
 	for i, param := range params {
-		found := false
 		for j := range attributes {
 			attr := &attributes[j]
 			if attr.TFModelName == param.PascalCaseName {
 				result[i] = attr.TFSchemaName
-				found = true
 				break
 			}
-		}
-		if !found {
-			result[i] = stringcase.ToSnakeCase(param.CamelCaseName)
 		}
 	}
 	return result
