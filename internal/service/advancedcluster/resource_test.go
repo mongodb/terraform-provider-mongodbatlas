@@ -1937,7 +1937,7 @@ func configAdvanced(t *testing.T, projectID, clusterName, mongoDBMajorVersion st
 				region_configs = [{
 					electable_specs = {
 						instance_size = "M10"
-						node_count    = 3
+						node_count    = 5
 					}
 					analytics_specs = {
 						instance_size = "M10"
@@ -2061,7 +2061,7 @@ func checkAdvancedDefaultWrite(name, writeConcern, tls string) resource.TestChec
 
 func TestAccAdvancedCluster_tls12to13CustomCipherUpdate(t *testing.T) {
 	var (
-		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 4)
+		projectID, clusterName = acc.ProjectIDExecutionWithCluster(t, 5)
 		resourceName           = "mongodbatlas_advanced_cluster.test"
 		processArgsTLS12       = &admin.ClusterDescriptionProcessArgs20240805{
 			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
