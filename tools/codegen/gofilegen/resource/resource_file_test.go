@@ -286,14 +286,14 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 					Attributes: codespec.Attributes{
 						{
 							TFSchemaName:             "project_id",
-							TFModelName:              "GroupId",
+							TFModelName:              "ProjectId",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							ReqBodyUsage:             codespec.OmitAlways,
 						},
 						{
 							TFSchemaName:             "integration_id",
-							TFModelName:              "Id",
+							TFModelName:              "IntegrationId",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							ReqBodyUsage:             codespec.OmitAlways,
@@ -303,19 +303,19 @@ func TestResourceGenerationFromCodeSpec(t *testing.T) {
 				Operations: codespec.APIOperations{
 					Create: codespec.APIOperation{
 						HTTPMethod: "POST",
-						Path:       "/api/v1/groups/{groupId}/integrations",
+						Path:       "/api/v1/groups/{projectId}/integrations",
 					},
 					Update: &codespec.APIOperation{
 						HTTPMethod: "PATCH",
-						Path:       "/api/v1/groups/{groupId}/integrations/{id}",
+						Path:       "/api/v1/groups/{projectId}/integrations/{integrationId}",
 					},
 					Read: codespec.APIOperation{
 						HTTPMethod: "GET",
-						Path:       "/api/v1/groups/{groupId}/integrations/{id}",
+						Path:       "/api/v1/groups/{projectId}/integrations/{integrationId}",
 					},
 					Delete: &codespec.APIOperation{
 						HTTPMethod: "DELETE",
-						Path:       "/api/v1/groups/{groupId}/integrations/{id}",
+						Path:       "/api/v1/groups/{projectId}/integrations/{integrationId}",
 					},
 					VersionHeader: "application/vnd.atlas.2024-05-30+json",
 				},

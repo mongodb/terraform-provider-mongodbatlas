@@ -11,11 +11,6 @@ import (
 )
 
 func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
-	var attributes codespec.Attributes
-	if input.Schema != nil {
-		attributes = input.Schema.Attributes
-	}
-
 	tmplInputs := codetemplate.ResourceFileInputs{
 		PackageName:  input.PackageName,
 		ResourceName: input.Name,
@@ -27,7 +22,7 @@ func GenerateGoCode(input *codespec.Resource) ([]byte, error) {
 			Delete:        toCodeTemplateOpModel(input.Operations.Delete),
 		},
 		MoveState:    toCodeTemplateMoveStateModel(input.MoveState),
-		IDAttributes: getIDAttributes(input.Operations.Read.Path, attributes),
+		IDAttributes: getIDAttributes(input.Operations.Read.Path),
 	}
 	result := codetemplate.ApplyResourceFileTemplate(&tmplInputs)
 
@@ -90,17 +85,11 @@ func getPathParams(s string) []codetemplate.Param {
 	return params
 }
 
-func getIDAttributes(readPath string, attributes codespec.Attributes) []string {
+func getIDAttributes(readPath string) []string {
 	params := getPathParams(readPath)
 	result := make([]string, len(params))
 	for i, param := range params {
-		for j := range attributes {
-			attr := &attributes[j]
-			if attr.TFModelName == param.PascalCaseName {
-				result[i] = attr.TFSchemaName
-				break
-			}
-		}
+		result[i] = stringcase.ToSnakeCase(param.PascalCaseName)
 	}
 	return result
 }

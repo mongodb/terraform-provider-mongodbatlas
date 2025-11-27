@@ -462,7 +462,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 						},
 						{
 							TFSchemaName:             "project_id",
-							TFModelName:              "GroupId",
+							TFModelName:              "ProjectId",
 							ComputedOptionalRequired: codespec.Required,
 							String:                   &codespec.StringAttribute{},
 							Description:              conversion.StringPtr(testPathParamDesc),
@@ -479,7 +479,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 									Attributes: codespec.Attributes{
 										{
 											TFSchemaName:             "inner_num_attr_alias",
-											TFModelName:              "InnerNumAttr",
+											TFModelName:              "InnerNumAttrAlias",
 											ComputedOptionalRequired: codespec.Required,
 											Int64:                    &codespec.Int64Attribute{},
 											Description:              conversion.StringPtr("Overridden inner_num_attr_alias description"),
@@ -530,7 +530,7 @@ func TestConvertToProviderSpec_nested_schemaOverrides(t *testing.T) {
 													Attributes: codespec.Attributes{
 														{
 															TFSchemaName:             "level_field1_alias",
-															TFModelName:              "LevelField1",
+															TFModelName:              "LevelField1Alias",
 															ComputedOptionalRequired: codespec.Computed,
 															ReqBodyUsage:             codespec.OmitAlways,
 															String:                   &codespec.StringAttribute{},
