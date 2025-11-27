@@ -18,7 +18,7 @@ import (
 
 // ProcessArgs.ClusterAdvancedConfig is managed through create/updateCluster APIs instead of /processArgs APIs but since corresponding TF attributes
 // belong in the advanced_configuration attribute we still need to check for any changes
-func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, p *ProcessArgs, waitParams *ClusterWaitParams) (latest *admin.ClusterDescriptionProcessArgs20240805, changed bool) {
+func updateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, p *ProcessArgs, waitParams *ClusterWaitParams) (latest *admin.ClusterDescriptionProcessArgs20240805, changed bool) {
 	var (
 		err         error
 		advConfig   *admin.ClusterDescriptionProcessArgs20240805
@@ -43,7 +43,7 @@ func UpdateAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, c
 	return advConfig, changed
 }
 
-func ReadIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, projectID, clusterName string, configNew *admin.ClusterDescriptionProcessArgs20240805) (latest *admin.ClusterDescriptionProcessArgs20240805) {
+func readIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, projectID, clusterName string, configNew *admin.ClusterDescriptionProcessArgs20240805) (latest *admin.ClusterDescriptionProcessArgs20240805) {
 	var err error
 	if configNew == nil {
 		configNew, _, err = client.AtlasV2.ClustersApi.GetProcessArgs(ctx, projectID, clusterName).Execute()
@@ -55,7 +55,7 @@ func ReadIfUnsetAdvancedConfiguration(ctx context.Context, diags *diag.Diagnosti
 	return configNew
 }
 
-func UpgradeTenant(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.ClusterDescription20240805 {
+func upgradeTenant(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.ClusterDescription20240805 {
 	_, _, err := client.AtlasV2.ClustersApi.UpgradeTenantUpgrade(ctx, waitParams.ProjectID, req).Execute()
 	if err != nil {
 		addErrorDiag(diags, operationTenantUpgrade, defaultAPIErrorDetails(waitParams.ClusterName, err))
@@ -64,7 +64,7 @@ func UpgradeTenant(ctx context.Context, diags *diag.Diagnostics, client *config.
 	return AwaitChangesUpgrade(ctx, client, waitParams, operationTenantUpgrade, diags)
 }
 
-func UpgradeFlexToDedicated(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.AtlasTenantClusterUpgradeRequest20240805) *admin.ClusterDescription20240805 {
+func upgradeFlexToDedicated(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.AtlasTenantClusterUpgradeRequest20240805) *admin.ClusterDescription20240805 {
 	_, _, err := client.AtlasV2.FlexClustersApi.TenantUpgrade(ctx, waitParams.ProjectID, req).Execute()
 	if err != nil {
 		addErrorDiag(diags, operationFlexUpgrade, defaultAPIErrorDetails(waitParams.ClusterName, err))
@@ -87,7 +87,7 @@ func PinFCV(ctx context.Context, api admin.ClustersApi, projectID, clusterName, 
 	return nil
 }
 
-func DeleteCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, retainBackups *bool) {
+func deleteCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, retainBackups *bool) {
 	params := &admin.DeleteClusterApiParams{
 		GroupId:       waitParams.ProjectID,
 		ClusterName:   waitParams.ClusterName,
@@ -108,7 +108,7 @@ func DeleteCluster(ctx context.Context, diags *diag.Diagnostics, client *config.
 	_ = AwaitChanges(ctx, client, waitParams, operationDelete, diags)
 }
 
-func DeleteClusterNoWait(client *config.MongoDBClient, projectID, clusterName string, isFlex bool) func(ctx context.Context) error {
+func deleteClusterNoWait(client *config.MongoDBClient, projectID, clusterName string, isFlex bool) func(ctx context.Context) error {
 	return func(ctx context.Context) error {
 		var cleanResp *http.Response
 		var cleanErr error

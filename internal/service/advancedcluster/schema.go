@@ -739,7 +739,7 @@ type TFBiConnectorModel struct {
 	Enabled        types.Bool   `tfsdk:"enabled"`
 }
 
-var BiConnectorConfigObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var biConnectorConfigObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"enabled":         types.BoolType,
 	"read_preference": types.StringType,
 }}
@@ -752,9 +752,9 @@ type TFConnectionStringsModel struct {
 	StandardSrv     types.String `tfsdk:"standard_srv"`
 }
 
-var ConnectionStringsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var connectionStringsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"private":          types.StringType,
-	"private_endpoint": types.ListType{ElemType: PrivateEndpointObjType},
+	"private_endpoint": types.ListType{ElemType: privateEndpointObjType},
 	"private_srv":      types.StringType,
 	"standard":         types.StringType,
 	"standard_srv":     types.StringType,
@@ -768,9 +768,9 @@ type TFPrivateEndpointModel struct {
 	Type                              types.String `tfsdk:"type"`
 }
 
-var PrivateEndpointObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var privateEndpointObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"connection_string":                     types.StringType,
-	"endpoints":                             types.ListType{ElemType: EndpointsObjType},
+	"endpoints":                             types.ListType{ElemType: endpointsObjType},
 	"srv_connection_string":                 types.StringType,
 	"srv_shard_optimized_connection_string": types.StringType,
 	"type":                                  types.StringType,
@@ -782,7 +782,7 @@ type TFEndpointsModel struct {
 	Region       types.String `tfsdk:"region"`
 }
 
-var EndpointsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var endpointsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"endpoint_id":   types.StringType,
 	"provider_name": types.StringType,
 	"region":        types.StringType,
@@ -796,18 +796,18 @@ type TFReplicationSpecsModel struct {
 	ZoneName      types.String `tfsdk:"zone_name"`
 }
 
-var ReplicationSpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var replicationSpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"container_id":   types.MapType{ElemType: types.StringType},
 	"external_id":    types.StringType,
-	"region_configs": types.ListType{ElemType: RegionConfigsObjType},
+	"region_configs": types.ListType{ElemType: regionConfigsObjType},
 	"zone_id":        types.StringType,
 	"zone_name":      types.StringType,
 }}
 
-var ReplicationSpecsDSObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var replicationSpecsDSObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"container_id":   types.MapType{ElemType: types.StringType},
 	"external_id":    types.StringType,
-	"region_configs": types.ListType{ElemType: RegionConfigsDSObjType},
+	"region_configs": types.ListType{ElemType: regionConfigsDSObjType},
 	"zone_id":        types.StringType,
 	"zone_name":      types.StringType,
 }}
@@ -824,15 +824,15 @@ type TFRegionConfigsModel struct {
 	Priority             types.Int64  `tfsdk:"priority"`
 }
 
-var RegionConfigsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"analytics_auto_scaling": AutoScalingObjType,
-	"analytics_specs":        SpecsObjType,
-	"auto_scaling":           AutoScalingObjType,
+var regionConfigsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"analytics_auto_scaling": autoScalingObjType,
+	"analytics_specs":        specsObjType,
+	"auto_scaling":           autoScalingObjType,
 	"backing_provider_name":  types.StringType,
-	"electable_specs":        SpecsObjType,
+	"electable_specs":        specsObjType,
 	"priority":               types.Int64Type,
 	"provider_name":          types.StringType,
-	"read_only_specs":        SpecsObjType,
+	"read_only_specs":        specsObjType,
 	"region_name":            types.StringType,
 }}
 
@@ -851,18 +851,18 @@ type TFRegionConfigsDSModel struct {
 	Priority                types.Int64  `tfsdk:"priority"`
 }
 
-var RegionConfigsDSObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
-	"analytics_auto_scaling":    AutoScalingObjType,
-	"analytics_specs":           SpecsObjType,
-	"auto_scaling":              AutoScalingObjType,
+var regionConfigsDSObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"analytics_auto_scaling":    autoScalingObjType,
+	"analytics_specs":           specsObjType,
+	"auto_scaling":              autoScalingObjType,
 	"backing_provider_name":     types.StringType,
-	"effective_analytics_specs": SpecsObjType,
-	"effective_electable_specs": SpecsObjType,
-	"effective_read_only_specs": SpecsObjType,
-	"electable_specs":           SpecsObjType,
+	"effective_analytics_specs": specsObjType,
+	"effective_electable_specs": specsObjType,
+	"effective_read_only_specs": specsObjType,
+	"electable_specs":           specsObjType,
 	"priority":                  types.Int64Type,
 	"provider_name":             types.StringType,
-	"read_only_specs":           SpecsObjType,
+	"read_only_specs":           specsObjType,
 	"region_name":               types.StringType,
 }}
 
@@ -874,7 +874,7 @@ type TFAutoScalingModel struct {
 	DiskGBEnabled           types.Bool   `tfsdk:"disk_gb_enabled"`
 }
 
-var AutoScalingObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var autoScalingObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"compute_enabled":            types.BoolType,
 	"compute_max_instance_size":  types.StringType,
 	"compute_min_instance_size":  types.StringType,
@@ -890,7 +890,7 @@ type TFSpecsModel struct {
 	NodeCount     types.Int64   `tfsdk:"node_count"`
 }
 
-var SpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var specsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"disk_iops":       types.Int64Type,
 	"disk_size_gb":    types.Float64Type,
 	"ebs_volume_type": types.StringType,
@@ -914,7 +914,7 @@ type TFAdvancedConfigurationModel struct {
 	NoTableScan                                           types.Bool    `tfsdk:"no_table_scan"`
 }
 
-var AdvancedConfigurationObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var advancedConfigurationObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"change_stream_options_pre_and_post_images_expire_after_seconds": types.Int64Type,
 	"default_write_concern":                types.StringType,
 	"javascript_enabled":                   types.BoolType,
@@ -935,7 +935,7 @@ type TFPinnedFCVModel struct {
 	ExpirationDate types.String `tfsdk:"expiration_date"`
 }
 
-var PinnedFCVObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var pinnedFCVObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"version":         types.StringType,
 	"expiration_date": types.StringType,
 }}

@@ -43,7 +43,7 @@ func buildAdvancedConfigObjType(ctx context.Context, input *ProcessArgs, diags *
 
 	overrideTLSIfClusterAdvancedConfigPresent(ctx, diags, &advancedConfig, input.ClusterAdvancedConfig)
 
-	objType, diagsLocal := types.ObjectValueFrom(ctx, AdvancedConfigurationObjType.AttrTypes, advancedConfig)
+	objType, diagsLocal := types.ObjectValueFrom(ctx, advancedConfigurationObjType.AttrTypes, advancedConfig)
 	diags.Append(diagsLocal...)
 	return objType
 }

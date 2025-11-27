@@ -16,12 +16,12 @@ const (
 )
 
 func newTFModel(ctx context.Context, input *admin.ClusterDescription20240805, diags *diag.Diagnostics, containerIDs map[string]string) *TFModel {
-	biConnector := NewBiConnectorConfigObjType(ctx, input.BiConnector, diags)
-	connectionStrings := NewConnectionStringsObjType(ctx, input.ConnectionStrings, diags)
-	labels := NewLabelsObjType(ctx, diags, input.Labels)
+	biConnector := newBiConnectorConfigObjType(ctx, input.BiConnector, diags)
+	connectionStrings := newConnectionStringsObjType(ctx, input.ConnectionStrings, diags)
+	labels := newLabelsObjType(ctx, diags, input.Labels)
 	replicationSpecs := newReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags, containerIDs)
-	tags := NewTagsObjType(ctx, diags, input.Tags)
-	pinnedFCV := NewPinnedFCVObjType(ctx, input, diags)
+	tags := newTagsObjType(ctx, diags, input.Tags)
+	pinnedFCV := newPinnedFCVObjType(ctx, input, diags)
 	if diags.HasError() {
 		return nil
 	}
@@ -66,24 +66,24 @@ func newTFModelDS(ctx context.Context, input *admin.ClusterDescription20240805, 
 	return dsModel
 }
 
-func NewBiConnectorConfigObjType(ctx context.Context, input *admin.BiConnector, diags *diag.Diagnostics) types.Object {
+func newBiConnectorConfigObjType(ctx context.Context, input *admin.BiConnector, diags *diag.Diagnostics) types.Object {
 	if input == nil {
-		return types.ObjectNull(BiConnectorConfigObjType.AttrTypes)
+		return types.ObjectNull(biConnectorConfigObjType.AttrTypes)
 	}
 	tfModel := TFBiConnectorModel{
 		Enabled:        types.BoolValue(conversion.SafeValue(input.Enabled)),
 		ReadPreference: types.StringValue(conversion.SafeValue(input.ReadPreference)),
 	}
-	objType, diagsLocal := types.ObjectValueFrom(ctx, BiConnectorConfigObjType.AttrTypes, tfModel)
+	objType, diagsLocal := types.ObjectValueFrom(ctx, biConnectorConfigObjType.AttrTypes, tfModel)
 	diags.Append(diagsLocal...)
 	return objType
 }
 
-func NewConnectionStringsObjType(ctx context.Context, input *admin.ClusterConnectionStrings, diags *diag.Diagnostics) types.Object {
+func newConnectionStringsObjType(ctx context.Context, input *admin.ClusterConnectionStrings, diags *diag.Diagnostics) types.Object {
 	if input == nil {
-		return types.ObjectNull(ConnectionStringsObjType.AttrTypes)
+		return types.ObjectNull(connectionStringsObjType.AttrTypes)
 	}
-	privateEndpoint := NewPrivateEndpointObjType(ctx, input.PrivateEndpoint, diags)
+	privateEndpoint := newPrivateEndpointObjType(ctx, input.PrivateEndpoint, diags)
 	tfModel := TFConnectionStringsModel{
 		Private:         types.StringValue(conversion.SafeValue(input.Private)),
 		PrivateEndpoint: privateEndpoint,
@@ -91,12 +91,12 @@ func NewConnectionStringsObjType(ctx context.Context, input *admin.ClusterConnec
 		Standard:        types.StringValue(conversion.SafeValue(input.Standard)),
 		StandardSrv:     types.StringValue(conversion.SafeValue(input.StandardSrv)),
 	}
-	objType, diagsLocal := types.ObjectValueFrom(ctx, ConnectionStringsObjType.AttrTypes, tfModel)
+	objType, diagsLocal := types.ObjectValueFrom(ctx, connectionStringsObjType.AttrTypes, tfModel)
 	diags.Append(diagsLocal...)
 	return objType
 }
 
-func NewLabelsObjType(ctx context.Context, diags *diag.Diagnostics, input *[]admin.ComponentLabel) types.Map {
+func newLabelsObjType(ctx context.Context, diags *diag.Diagnostics, input *[]admin.ComponentLabel) types.Map {
 	elms := make(map[string]string)
 	if input != nil {
 		for _, item := range *input {
@@ -113,39 +113,39 @@ func NewLabelsObjType(ctx context.Context, diags *diag.Diagnostics, input *[]adm
 
 func newReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, containerIDs map[string]string) types.List {
 	if input == nil {
-		return types.ListNull(ReplicationSpecsObjType)
+		return types.ListNull(replicationSpecsObjType)
 	}
 	tfModels := convertReplicationSpecs(ctx, input, diags, containerIDs, newRegionConfigsObjType)
 	if diags.HasError() {
-		return types.ListNull(ReplicationSpecsObjType)
+		return types.ListNull(replicationSpecsObjType)
 	}
-	listType, diagsLocal := types.ListValueFrom(ctx, ReplicationSpecsObjType, *tfModels)
+	listType, diagsLocal := types.ListValueFrom(ctx, replicationSpecsObjType, *tfModels)
 	diags.Append(diagsLocal...)
 	return listType
 }
 
 func newReplicationSpecsDSObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, containerIDs map[string]string) types.List {
 	if input == nil {
-		return types.ListNull(ReplicationSpecsDSObjType)
+		return types.ListNull(replicationSpecsDSObjType)
 	}
 	tfModels := convertReplicationSpecs(ctx, input, diags, containerIDs, newRegionConfigsDSObjType)
 	if diags.HasError() {
-		return types.ListNull(ReplicationSpecsDSObjType)
+		return types.ListNull(replicationSpecsDSObjType)
 	}
-	listType, diagsLocal := types.ListValueFrom(ctx, ReplicationSpecsDSObjType, *tfModels)
+	listType, diagsLocal := types.ListValueFrom(ctx, replicationSpecsDSObjType, *tfModels)
 	diags.Append(diagsLocal...)
 	return listType
 }
 
-func NewPinnedFCVObjType(ctx context.Context, cluster *admin.ClusterDescription20240805, diags *diag.Diagnostics) types.Object {
+func newPinnedFCVObjType(ctx context.Context, cluster *admin.ClusterDescription20240805, diags *diag.Diagnostics) types.Object {
 	if cluster.FeatureCompatibilityVersionExpirationDate == nil {
-		return types.ObjectNull(PinnedFCVObjType.AttrTypes)
+		return types.ObjectNull(pinnedFCVObjType.AttrTypes)
 	}
 	tfModel := TFPinnedFCVModel{
 		Version:        types.StringValue(cluster.GetFeatureCompatibilityVersion()),
 		ExpirationDate: types.StringValue(conversion.TimeToString(cluster.GetFeatureCompatibilityVersionExpirationDate())),
 	}
-	objType, diagsLocal := types.ObjectValueFrom(ctx, PinnedFCVObjType.AttrTypes, tfModel)
+	objType, diagsLocal := types.ObjectValueFrom(ctx, pinnedFCVObjType.AttrTypes, tfModel)
 	diags.Append(diagsLocal...)
 	return objType
 }
@@ -195,7 +195,7 @@ func selectContainerIDs(spec *admin.ReplicationSpec20240805, allIDs map[string]s
 	return containerIDs
 }
 
-func NewTagsObjType(ctx context.Context, diags *diag.Diagnostics, input *[]admin.ResourceTag) types.Map {
+func newTagsObjType(ctx context.Context, diags *diag.Diagnostics, input *[]admin.ResourceTag) types.Map {
 	elms := make(map[string]string)
 	if input != nil {
 		for _, item := range *input {
@@ -205,13 +205,13 @@ func NewTagsObjType(ctx context.Context, diags *diag.Diagnostics, input *[]admin
 	return conversion.ToTFMapOfString(ctx, diags, elms)
 }
 
-func NewPrivateEndpointObjType(ctx context.Context, input *[]admin.ClusterDescriptionConnectionStringsPrivateEndpoint, diags *diag.Diagnostics) types.List {
+func newPrivateEndpointObjType(ctx context.Context, input *[]admin.ClusterDescriptionConnectionStringsPrivateEndpoint, diags *diag.Diagnostics) types.List {
 	if input == nil {
-		return types.ListNull(PrivateEndpointObjType)
+		return types.ListNull(privateEndpointObjType)
 	}
 	tfModels := make([]TFPrivateEndpointModel, len(*input))
 	for i, item := range *input {
-		endpoints := NewEndpointsObjType(ctx, item.Endpoints, diags)
+		endpoints := newEndpointsObjType(ctx, item.Endpoints, diags)
 		tfModels[i] = TFPrivateEndpointModel{
 			ConnectionString:                  types.StringValue(conversion.SafeValue(item.ConnectionString)),
 			Endpoints:                         endpoints,
@@ -220,60 +220,60 @@ func NewPrivateEndpointObjType(ctx context.Context, input *[]admin.ClusterDescri
 			Type:                              types.StringValue(conversion.SafeValue(item.Type)),
 		}
 	}
-	listType, diagsLocal := types.ListValueFrom(ctx, PrivateEndpointObjType, tfModels)
+	listType, diagsLocal := types.ListValueFrom(ctx, privateEndpointObjType, tfModels)
 	diags.Append(diagsLocal...)
 	return listType
 }
 
 func newRegionConfigModel(ctx context.Context, item *admin.CloudRegionConfig20240805, diags *diag.Diagnostics) TFRegionConfigsModel {
 	return TFRegionConfigsModel{
-		AnalyticsAutoScaling: NewAutoScalingObjType(ctx, item.AnalyticsAutoScaling, diags),
-		AnalyticsSpecs:       NewSpecsObjType(ctx, item.AnalyticsSpecs, diags),
-		AutoScaling:          NewAutoScalingObjType(ctx, item.AutoScaling, diags),
+		AnalyticsAutoScaling: newAutoScalingObjType(ctx, item.AnalyticsAutoScaling, diags),
+		AnalyticsSpecs:       newSpecsObjType(ctx, item.AnalyticsSpecs, diags),
+		AutoScaling:          newAutoScalingObjType(ctx, item.AutoScaling, diags),
 		BackingProviderName:  types.StringPointerValue(item.BackingProviderName),
-		ElectableSpecs:       NewSpecsFromHwObjType(ctx, item.ElectableSpecs, diags),
+		ElectableSpecs:       newSpecsFromHwObjType(ctx, item.ElectableSpecs, diags),
 		Priority:             types.Int64PointerValue(conversion.IntPtrToInt64Ptr(item.Priority)),
 		ProviderName:         types.StringValue(conversion.SafeValue(item.ProviderName)),
-		ReadOnlySpecs:        NewSpecsObjType(ctx, item.ReadOnlySpecs, diags),
+		ReadOnlySpecs:        newSpecsObjType(ctx, item.ReadOnlySpecs, diags),
 		RegionName:           types.StringValue(conversion.SafeValue(item.RegionName)),
 	}
 }
 
 func newRegionConfigsObjType(ctx context.Context, input *[]admin.CloudRegionConfig20240805, diags *diag.Diagnostics) types.List {
 	if input == nil {
-		return types.ListNull(RegionConfigsObjType)
+		return types.ListNull(regionConfigsObjType)
 	}
 	tfModels := make([]TFRegionConfigsModel, len(*input))
 	for i := range *input {
 		tfModels[i] = newRegionConfigModel(ctx, &(*input)[i], diags)
 	}
-	listType, diagsLocal := types.ListValueFrom(ctx, RegionConfigsObjType, tfModels)
+	listType, diagsLocal := types.ListValueFrom(ctx, regionConfigsObjType, tfModels)
 	diags.Append(diagsLocal...)
 	return listType
 }
 
 func newRegionConfigsDSObjType(ctx context.Context, input *[]admin.CloudRegionConfig20240805, diags *diag.Diagnostics) types.List {
 	if input == nil {
-		return types.ListNull(RegionConfigsDSObjType)
+		return types.ListNull(regionConfigsDSObjType)
 	}
 	tfModels := make([]TFRegionConfigsDSModel, len(*input))
 	for i := range *input {
 		item := &(*input)[i]
 		baseModel := newRegionConfigModel(ctx, item, diags)
 		dsModel := *conversion.CopyModel[TFRegionConfigsDSModel](&baseModel)
-		dsModel.EffectiveAnalyticsSpecs = NewSpecsObjType(ctx, item.EffectiveAnalyticsSpecs, diags)
-		dsModel.EffectiveElectableSpecs = NewSpecsObjType(ctx, item.EffectiveElectableSpecs, diags)
-		dsModel.EffectiveReadOnlySpecs = NewSpecsObjType(ctx, item.EffectiveReadOnlySpecs, diags)
+		dsModel.EffectiveAnalyticsSpecs = newSpecsObjType(ctx, item.EffectiveAnalyticsSpecs, diags)
+		dsModel.EffectiveElectableSpecs = newSpecsObjType(ctx, item.EffectiveElectableSpecs, diags)
+		dsModel.EffectiveReadOnlySpecs = newSpecsObjType(ctx, item.EffectiveReadOnlySpecs, diags)
 		tfModels[i] = dsModel
 	}
-	listType, diagsLocal := types.ListValueFrom(ctx, RegionConfigsDSObjType, tfModels)
+	listType, diagsLocal := types.ListValueFrom(ctx, regionConfigsDSObjType, tfModels)
 	diags.Append(diagsLocal...)
 	return listType
 }
 
-func NewEndpointsObjType(ctx context.Context, input *[]admin.ClusterDescriptionConnectionStringsPrivateEndpointEndpoint, diags *diag.Diagnostics) types.List {
+func newEndpointsObjType(ctx context.Context, input *[]admin.ClusterDescriptionConnectionStringsPrivateEndpointEndpoint, diags *diag.Diagnostics) types.List {
 	if input == nil {
-		return types.ListNull(EndpointsObjType)
+		return types.ListNull(endpointsObjType)
 	}
 	tfModels := make([]TFEndpointsModel, len(*input))
 	for i, item := range *input {
@@ -283,14 +283,14 @@ func NewEndpointsObjType(ctx context.Context, input *[]admin.ClusterDescriptionC
 			Region:       types.StringValue(conversion.SafeValue(item.Region)),
 		}
 	}
-	listType, diagsLocal := types.ListValueFrom(ctx, EndpointsObjType, tfModels)
+	listType, diagsLocal := types.ListValueFrom(ctx, endpointsObjType, tfModels)
 	diags.Append(diagsLocal...)
 	return listType
 }
 
-func NewSpecsObjType(ctx context.Context, input *admin.DedicatedHardwareSpec20240805, diags *diag.Diagnostics) types.Object {
+func newSpecsObjType(ctx context.Context, input *admin.DedicatedHardwareSpec20240805, diags *diag.Diagnostics) types.Object {
 	if input == nil {
-		return types.ObjectNull(SpecsObjType.AttrTypes)
+		return types.ObjectNull(specsObjType.AttrTypes)
 	}
 	tfModel := TFSpecsModel{
 		DiskIops:      types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.DiskIOPS)),
@@ -299,14 +299,14 @@ func NewSpecsObjType(ctx context.Context, input *admin.DedicatedHardwareSpec2024
 		InstanceSize:  types.StringValue(conversion.SafeValue(input.InstanceSize)),
 		NodeCount:     types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.NodeCount)),
 	}
-	objType, diagsLocal := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, tfModel)
+	objType, diagsLocal := types.ObjectValueFrom(ctx, specsObjType.AttrTypes, tfModel)
 	diags.Append(diagsLocal...)
 	return objType
 }
 
-func NewSpecsFromHwObjType(ctx context.Context, input *admin.HardwareSpec20240805, diags *diag.Diagnostics) types.Object {
+func newSpecsFromHwObjType(ctx context.Context, input *admin.HardwareSpec20240805, diags *diag.Diagnostics) types.Object {
 	if input == nil {
-		return types.ObjectNull(SpecsObjType.AttrTypes)
+		return types.ObjectNull(specsObjType.AttrTypes)
 	}
 	tfModel := TFSpecsModel{
 		DiskIops:      types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.DiskIOPS)),
@@ -315,14 +315,14 @@ func NewSpecsFromHwObjType(ctx context.Context, input *admin.HardwareSpec2024080
 		InstanceSize:  types.StringValue(conversion.SafeValue(input.InstanceSize)),
 		NodeCount:     types.Int64PointerValue(conversion.IntPtrToInt64Ptr(input.NodeCount)),
 	}
-	objType, diagsLocal := types.ObjectValueFrom(ctx, SpecsObjType.AttrTypes, tfModel)
+	objType, diagsLocal := types.ObjectValueFrom(ctx, specsObjType.AttrTypes, tfModel)
 	diags.Append(diagsLocal...)
 	return objType
 }
 
-func NewAutoScalingObjType(ctx context.Context, input *admin.AdvancedAutoScalingSettings, diags *diag.Diagnostics) types.Object {
+func newAutoScalingObjType(ctx context.Context, input *admin.AdvancedAutoScalingSettings, diags *diag.Diagnostics) types.Object {
 	if input == nil {
-		return types.ObjectNull(AutoScalingObjType.AttrTypes)
+		return types.ObjectNull(autoScalingObjType.AttrTypes)
 	}
 	compute := input.Compute
 	tfModel := TFAutoScalingModel{}
@@ -336,7 +336,7 @@ func NewAutoScalingObjType(ctx context.Context, input *admin.AdvancedAutoScaling
 	if diskGB != nil {
 		tfModel.DiskGBEnabled = types.BoolValue(conversion.SafeValue(diskGB.Enabled))
 	}
-	objType, diagsLocal := types.ObjectValueFrom(ctx, AutoScalingObjType.AttrTypes, tfModel)
+	objType, diagsLocal := types.ObjectValueFrom(ctx, autoScalingObjType.AttrTypes, tfModel)
 	diags.Append(diagsLocal...)
 	return objType
 }

@@ -54,7 +54,7 @@ func AddIDsToReplicationSpecs(replicationSpecs []admin.ReplicationSpec20240805, 
 	return replicationSpecs
 }
 
-func GetAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cluster *admin.CloudRegionConfig20240805) string {
+func getAdvancedClusterContainerID(containers []admin.CloudProviderContainer, cluster *admin.CloudRegionConfig20240805) string {
 	for i, container := range containers {
 		gpc := cluster.GetProviderName() == constant.GCP
 		azure := container.GetProviderName() == cluster.GetProviderName() && container.GetRegion() == cluster.GetRegionName()
@@ -112,7 +112,7 @@ func getRegionConfig(replicationSpecs *[]admin.ReplicationSpec20240805) *admin.C
 	return &replicationSpec.GetRegionConfigs()[0]
 }
 
-func GetPriorityOfFlexReplicationSpecs(replicationSpecs *[]admin.ReplicationSpec20240805) *int {
+func getPriorityOfFlexReplicationSpecs(replicationSpecs *[]admin.ReplicationSpec20240805) *int {
 	regionConfig := getRegionConfig(replicationSpecs)
 	if regionConfig == nil {
 		return nil

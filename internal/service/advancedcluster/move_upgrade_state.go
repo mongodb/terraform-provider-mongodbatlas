@@ -175,7 +175,7 @@ func setReplicationSpecNumShardsAttr(ctx context.Context, stateObj map[string]tf
 		}
 	}
 	if len(specModels) > 0 {
-		model.ReplicationSpecs, _ = types.ListValueFrom(ctx, ReplicationSpecsObjType, specModels)
+		model.ReplicationSpecs, _ = types.ListValueFrom(ctx, replicationSpecsObjType, specModels)
 	}
 }
 
@@ -185,7 +185,7 @@ func replicationSpecModelWithNumShards(numShardsVal tftypes.Value) *TFReplicatio
 		return nil
 	}
 	return &TFReplicationSpecsModel{
-		RegionConfigs: types.ListNull(RegionConfigsObjType),
+		RegionConfigs: types.ListNull(regionConfigsObjType),
 		ContainerId:   types.MapNull(types.StringType),
 		ExternalId:    types.StringNull(),
 		ZoneId:        types.StringNull(),

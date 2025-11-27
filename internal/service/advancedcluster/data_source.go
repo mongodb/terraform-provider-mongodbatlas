@@ -67,12 +67,12 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 }
 
 func convertFlexClusterToDS(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113) *TFModelDS {
-	clusterDesc := FlexDescriptionToClusterDescription(flexCluster, nil)
+	clusterDesc := flexDescriptionToClusterDescription(flexCluster, nil)
 	modelOutDS := newTFModelDS(ctx, clusterDesc, diags, nil)
 	if diags.HasError() {
 		return nil
 	}
-	modelOutDS.AdvancedConfiguration = types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
+	modelOutDS.AdvancedConfiguration = types.ObjectNull(advancedConfigurationObjType.AttrTypes)
 	return modelOutDS
 }
 
