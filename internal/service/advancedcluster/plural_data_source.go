@@ -110,13 +110,11 @@ func ResetClusterNotFoundErrors(diags *diag.Diagnostics) *diag.Diagnostics {
 
 func (d *pluralDS) getFlexClustersModels(ctx context.Context, diags *diag.Diagnostics, projectID string, useEffectiveFields types.Bool) []*TFModelDS {
 	var results []*TFModelDS
-
 	listFlexClusters, err := flexcluster.ListFlexClusters(ctx, projectID, d.Client.AtlasV2.FlexClustersApi)
 	if err != nil {
 		diags.AddError(errorList, fmt.Sprintf(errorListDetail, projectID, err.Error()))
 		return nil
 	}
-
 	for i := range *listFlexClusters {
 		flexClusterResp := (*listFlexClusters)[i]
 		modelOutDS := convertFlexClusterToDS(ctx, diags, &flexClusterResp, useEffectiveFields)

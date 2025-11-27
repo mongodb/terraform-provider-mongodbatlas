@@ -2,7 +2,6 @@ package advancedcluster
 
 import (
 	"context"
-	"fmt"
 
 	"go.mongodb.org/atlas-sdk/v20250312010/admin"
 
@@ -73,11 +72,8 @@ func convertFlexClusterToDS(ctx context.Context, diags *diag.Diagnostics, flexCl
 }
 
 func convertBasicClusterToDS(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, useEffectiveFields types.Bool) *TFModelDS {
-	projectID := clusterResp.GetGroupId()
-	clusterName := clusterResp.GetName()
-	containerIDs, err := resolveContainerIDs(ctx, projectID, clusterResp, client.AtlasV2.NetworkPeeringApi)
-	if err != nil {
-		diags.AddError(errorResolveContainerIDs, fmt.Sprintf("cluster name = %s, error details: %s", clusterName, err.Error()))
+	containerIDs := resolveContainerIDsOrError(ctx, diags, clusterResp, client.AtlasV2.NetworkPeeringApi)
+	if diags.HasError() {
 		return nil
 	}
 	modelOutDS := newTFModelDS(ctx, clusterResp, diags, containerIDs)

@@ -94,7 +94,7 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 	if diags.HasError() {
 		return
 	}
-	AddAdvancedConfig(ctx, model, &ProcessArgs{
+	model.AdvancedConfiguration = buildAdvancedConfigObjType(ctx, &ProcessArgs{
 		ArgsDefault:           nil,
 		ClusterAdvancedConfig: nil,
 	}, diags)

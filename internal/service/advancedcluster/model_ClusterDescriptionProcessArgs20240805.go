@@ -11,14 +11,6 @@ import (
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 )
 
-func AddAdvancedConfig(ctx context.Context, tfModel *TFModel, input *ProcessArgs, diags *diag.Diagnostics) {
-	tfModel.AdvancedConfiguration = buildAdvancedConfigObjType(ctx, input, diags)
-}
-
-func AddAdvancedConfigDS(ctx context.Context, tfModel *TFModelDS, input *ProcessArgs, diags *diag.Diagnostics) {
-	tfModel.AdvancedConfiguration = buildAdvancedConfigObjType(ctx, input, diags)
-}
-
 func buildAdvancedConfigObjType(ctx context.Context, input *ProcessArgs, diags *diag.Diagnostics) types.Object {
 	var advancedConfig TFAdvancedConfigurationModel
 	var customCipherConfig *[]string
