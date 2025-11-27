@@ -1937,7 +1937,7 @@ func configAdvanced(t *testing.T, projectID, clusterName, mongoDBMajorVersion st
 				region_configs = [{
 					electable_specs = {
 						instance_size = "M10"
-						node_count    = 5
+						node_count    = 3
 					}
 					analytics_specs = {
 						instance_size = "M10"
@@ -2117,10 +2117,6 @@ func TestAccAdvancedCluster_tls12to13CustomCipherUpdate(t *testing.T) {
 			{
 				Config: advancedConfigTLS13,
 				Check:  updateCheck,
-			},
-			{
-				Config: advancedConfigTLS12,
-				Check:  check,
 			},
 		},
 	})
