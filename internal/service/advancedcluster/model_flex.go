@@ -120,13 +120,7 @@ func FlexDescriptionToClusterDescription(flexCluster *admin.FlexClusterDescripti
 	}
 }
 
-func newTFModelFlexResource(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, priority *int, modelIn *TFModel) *TFModel {
-	modelOut := newTFModelFlex(ctx, diags, flexCluster, priority)
-	overrideAttributesWithPrevStateValue(modelIn, modelOut)
-	return modelOut
-}
-
-func newTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, priority *int) *TFModel {
+func newTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, priority *int, modelIn *TFModel) *TFModel {
 	if priority == nil {
 		priority = conversion.Pointer(defaultPriority)
 	}
@@ -135,15 +129,8 @@ func newTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *a
 		return nil
 	}
 	modelOut.AdvancedConfiguration = types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
+	overrideAttributesWithPrevStateValue(modelIn, modelOut)
 	return modelOut
-}
-
-func newTFModelFlexDS(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, priority *int) *TFModelDS {
-	resourceModel := newTFModelFlex(ctx, diags, flexCluster, priority)
-	if diags.HasError() {
-		return nil
-	}
-	return conversion.CopyModel[TFModelDS](resourceModel)
 }
 
 func FlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.FlexClusterDescription20241113 {

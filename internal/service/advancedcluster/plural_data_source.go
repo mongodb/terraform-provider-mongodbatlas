@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/dsschema"
@@ -70,7 +71,7 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 	}
 	for i := range list {
 		clusterResp := &list[i]
-		modelOutDS := getBasicClusterModelDS(ctx, diags, d.Client, clusterResp)
+		modelOutDS := convertBasicClusterToDS(ctx, diags, d.Client, clusterResp, pluralModel.UseEffectiveFields)
 		if diags.HasError() {
 			if DiagsHasOnlyClusterNotFoundErrors(diags) {
 				diags = ResetClusterNotFoundErrors(diags)
@@ -78,21 +79,9 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 			}
 			return nil, diags
 		}
-		updateModelAdvancedConfigDS(ctx, diags, d.Client, modelOutDS, &ProcessArgs{
-			ArgsDefault:           nil,
-			ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
-		})
-		if diags.HasError() {
-			if DiagsHasOnlyClusterNotFoundErrors(diags) {
-				diags = ResetClusterNotFoundErrors(diags)
-				continue
-			}
-			return nil, diags
-		}
-		modelOutDS.UseEffectiveFields = pluralModel.UseEffectiveFields // Set Optional Terraform-only attribute.
 		outs.Results = append(outs.Results, modelOutDS)
 	}
-	flexModels := d.getFlexClustersModels(ctx, diags, projectID)
+	flexModels := d.getFlexClustersModels(ctx, diags, projectID, pluralModel.UseEffectiveFields)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -119,7 +108,7 @@ func ResetClusterNotFoundErrors(diags *diag.Diagnostics) *diag.Diagnostics {
 	return newDiags
 }
 
-func (d *pluralDS) getFlexClustersModels(ctx context.Context, diags *diag.Diagnostics, projectID string) []*TFModelDS {
+func (d *pluralDS) getFlexClustersModels(ctx context.Context, diags *diag.Diagnostics, projectID string, useEffectiveFields types.Bool) []*TFModelDS {
 	var results []*TFModelDS
 
 	listFlexClusters, err := flexcluster.ListFlexClusters(ctx, projectID, d.Client.AtlasV2.FlexClustersApi)
@@ -130,7 +119,7 @@ func (d *pluralDS) getFlexClustersModels(ctx context.Context, diags *diag.Diagno
 
 	for i := range *listFlexClusters {
 		flexClusterResp := (*listFlexClusters)[i]
-		modelOutDS := newTFModelFlexDS(ctx, diags, &flexClusterResp, nil)
+		modelOutDS := convertFlexClusterToDS(ctx, diags, &flexClusterResp, useEffectiveFields)
 		if diags.HasError() {
 			if DiagsHasOnlyClusterNotFoundErrors(diags) {
 				diags = ResetClusterNotFoundErrors(diags)

@@ -141,7 +141,7 @@ func (r *rs) Create(ctx context.Context, req resource.CreateRequest, resp *resou
 			diags.AddError(fmt.Sprintf(flexcluster.ErrorCreateFlex, clusterDetailStr), err.Error())
 			return
 		}
-		newFlexClusterModel := newTFModelFlexResource(ctx, diags, flexClusterResp, GetPriorityOfFlexReplicationSpecs(latestReq.ReplicationSpecs), &plan)
+		newFlexClusterModel := newTFModelFlex(ctx, diags, flexClusterResp, GetPriorityOfFlexReplicationSpecs(latestReq.ReplicationSpecs), &plan)
 		if diags.HasError() {
 			return
 		}
@@ -204,7 +204,7 @@ func (r *rs) Read(ctx context.Context, req resource.ReadRequest, resp *resource.
 		return
 	}
 	if flexCluster != nil {
-		newFlexClusterModel := newTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(newAtlasReq(ctx, &state, diags).ReplicationSpecs), &state)
+		newFlexClusterModel := newTFModelFlex(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(newAtlasReq(ctx, &state, diags).ReplicationSpecs), &state)
 		if diags.HasError() {
 			return
 		}
@@ -278,7 +278,7 @@ func (r *rs) Update(ctx context.Context, req resource.UpdateRequest, resp *resou
 		// This should never happen since the switch case should handle the two flex cases (update/upgrade) and return, but keeping it here for safety.
 		if flexResp != nil {
 			flexPriority := GetPriorityOfFlexReplicationSpecs(newAtlasReq(ctx, &plan, diags).ReplicationSpecs)
-			if flexOut := newTFModelFlexResource(ctx, diags, flexResp, flexPriority, &plan); flexOut != nil {
+			if flexOut := newTFModelFlex(ctx, diags, flexResp, flexPriority, &plan); flexOut != nil {
 				diags.Append(resp.State.Set(ctx, flexOut)...)
 			}
 			return
@@ -574,7 +574,7 @@ func handleFlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *con
 	if diags.HasError() {
 		return nil
 	}
-	return newTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(configReq.ReplicationSpecs), plan)
+	return newTFModelFlex(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(configReq.ReplicationSpecs), plan)
 }
 
 func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, plan *TFModel) *TFModel {
@@ -590,5 +590,5 @@ func handleFlexUpdate(ctx context.Context, diags *diag.Diagnostics, client *conf
 		diags.AddError(fmt.Sprintf(flexcluster.ErrorUpdateFlex, clusterName), err.Error())
 		return nil
 	}
-	return newTFModelFlexResource(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(configReq.ReplicationSpecs), plan)
+	return newTFModelFlex(ctx, diags, flexCluster, GetPriorityOfFlexReplicationSpecs(configReq.ReplicationSpecs), plan)
 }

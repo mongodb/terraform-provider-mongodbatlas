@@ -3,9 +3,13 @@ package advancedcluster
 import (
 	"context"
 
+	"go.mongodb.org/atlas-sdk/v20250312010/admin"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -52,24 +56,35 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		return nil
 	}
 	if flexClusterResp != nil {
-		modelOutDS := newTFModelFlexDS(ctx, diags, flexClusterResp, nil)
-		if diags.HasError() {
-			return nil
-		}
-		modelOutDS.UseEffectiveFields = modelDS.UseEffectiveFields
-		return modelOutDS
+		return convertFlexClusterToDS(ctx, diags, flexClusterResp, modelDS.UseEffectiveFields)
 	}
-	modelOutDS := getBasicClusterModelDS(ctx, diags, d.Client, clusterResp)
+	return convertBasicClusterToDS(ctx, diags, d.Client, clusterResp, modelDS.UseEffectiveFields)
+}
+
+// convertFlexClusterToDS converts a flex cluster response to a datasource model
+func convertFlexClusterToDS(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, useEffectiveFields types.Bool) *TFModelDS {
+	resourceModel := newTFModelFlex(ctx, diags, flexCluster, nil, nil)
 	if diags.HasError() {
 		return nil
 	}
-	updateModelAdvancedConfigDS(ctx, diags, d.Client, modelOutDS, &ProcessArgs{
+	modelOutDS := conversion.CopyModel[TFModelDS](resourceModel)
+	modelOutDS.UseEffectiveFields = useEffectiveFields
+	return modelOutDS
+}
+
+// convertBasicClusterToDS converts a basic cluster response to a datasource model
+func convertBasicClusterToDS(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, useEffectiveFields types.Bool) *TFModelDS {
+	modelOutDS := getBasicClusterModelDS(ctx, diags, client, clusterResp)
+	if diags.HasError() {
+		return nil
+	}
+	updateModelAdvancedConfigDS(ctx, diags, client, modelOutDS, &ProcessArgs{
 		ArgsDefault:           nil,
 		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
 	})
 	if diags.HasError() {
 		return nil
 	}
-	modelOutDS.UseEffectiveFields = modelDS.UseEffectiveFields // Set Optional Terraform-only attribute.
+	modelOutDS.UseEffectiveFields = useEffectiveFields
 	return modelOutDS
 }
