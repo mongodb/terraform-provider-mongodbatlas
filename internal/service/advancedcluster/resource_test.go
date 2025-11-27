@@ -1916,19 +1916,11 @@ func configAdvanced(t *testing.T, projectID, clusterName, mongoDBMajorVersion st
 	}
 	if p.TlsCipherConfigMode != nil {
 		advancedConfig += fmt.Sprintf("tls_cipher_config_mode = %[1]q\n", *p.TlsCipherConfigMode)
-		if p.CustomOpensslCipherConfigTls12 != nil {
-			if len(*p.CustomOpensslCipherConfigTls12) > 0 {
-				advancedConfig += fmt.Sprintf("custom_openssl_cipher_config_tls12 = [%s]\n", acc.JoinQuotedStrings(*p.CustomOpensslCipherConfigTls12))
-			} else {
-				advancedConfig += "custom_openssl_cipher_config_tls12 = []\n"
-			}
+		if p.CustomOpensslCipherConfigTls12 != nil && len(*p.CustomOpensslCipherConfigTls12) > 0 {
+			advancedConfig += fmt.Sprintf("custom_openssl_cipher_config_tls12 = [%s]\n", acc.JoinQuotedStrings(*p.CustomOpensslCipherConfigTls12))
 		}
-		if p.CustomOpensslCipherConfigTls13 != nil {
-			if len(*p.CustomOpensslCipherConfigTls13) > 0 {
-				advancedConfig += fmt.Sprintf("custom_openssl_cipher_config_tls13 = [%s]\n", acc.JoinQuotedStrings(*p.CustomOpensslCipherConfigTls13))
-			} else {
-				advancedConfig += "custom_openssl_cipher_config_tls13 = []\n"
-			}
+		if p.CustomOpensslCipherConfigTls13 != nil && len(*p.CustomOpensslCipherConfigTls13) > 0 {
+			advancedConfig += fmt.Sprintf("custom_openssl_cipher_config_tls13 = [%s]\n", acc.JoinQuotedStrings(*p.CustomOpensslCipherConfigTls13))
 		}
 	}
 	if p.MinimumEnabledTlsProtocol != nil {
@@ -2078,7 +2070,6 @@ func TestAccAdvancedCluster_tls12to13CustomCipherUpdate(t *testing.T) {
 		}
 		processArgsTLS13 = &admin.ClusterDescriptionProcessArgs20240805{
 			TlsCipherConfigMode:            conversion.StringPtr("CUSTOM"),
-			CustomOpensslCipherConfigTls12: conversion.Pointer([]string{}),
 			CustomOpensslCipherConfigTls13: conversion.Pointer([]string{"TLS_AES_128_GCM_SHA256"}),
 			MinimumEnabledTlsProtocol:      conversion.StringPtr("TLS1_3"),
 		}
