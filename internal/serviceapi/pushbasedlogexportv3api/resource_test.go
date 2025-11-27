@@ -264,7 +264,7 @@ func checkDestroy(state *terraform.State) error {
 	for _, rs := range state.RootModule().Resources {
 		if rs.Type == "mongodbatlas_push_based_log_export_api" {
 			_, _, err := acc.ConnPreview().PushBasedLogExportApi.GetGroupLogIntegration(context.Background(), rs.Primary.Attributes["project_id"], rs.Primary.Attributes["id"]).Execute() // TODO: CLOUDP-362256 change to ConnV2() once API is in production
-			if err != nil {
+			if err == nil {
 				return fmt.Errorf("push-based log export for project_id %s with id %s still exists", rs.Primary.Attributes["project_id"], rs.Primary.Attributes["id"])
 			}
 		}
