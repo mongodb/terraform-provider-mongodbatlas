@@ -3,6 +3,7 @@ package pushbasedlogexportv3api_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -25,12 +26,11 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 
 	var (
 		projectID            = acc.ProjectIDExecution(tb)
-		s3BucketNamePrefix   = acc.RandomS3BucketName()
-		s3BucketName1        = fmt.Sprintf("%s-1", s3BucketNamePrefix)
-		s3BucketName2        = fmt.Sprintf("%s-2", s3BucketNamePrefix)
-		s3BucketPolicyName   = fmt.Sprintf("%s-s3-policy", s3BucketNamePrefix)
+		s3BucketName         = acc.RandomS3BucketName()
+		s3BucketPolicyName   = fmt.Sprintf("%s-s3-policy", s3BucketName)
 		awsIAMRoleName       = acc.RandomIAMRole()
 		awsIAMRolePolicyName = fmt.Sprintf("%s-policy", awsIAMRoleName)
+		kmsKey               = os.Getenv("AWS_KMS_KEY_ID")
 	)
 
 	return &resource.TestCase{
@@ -40,15 +40,19 @@ func basicTestCase(tb testing.TB) *resource.TestCase {
 		CheckDestroy:             checkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true),
-				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(s3BucketName1, nonEmptyPrefixPath)...),
+				Config: configBasic(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true, false, ""),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(s3BucketName, nonEmptyPrefixPath)...),
 			},
 			{
-				Config: configBasicUpdated(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true),
-				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(s3BucketName2, nonEmptyPrefixPath)...),
+				Config: configBasic(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true, true, kmsKey),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(s3BucketName, nonEmptyPrefixPath)...),
 			},
 			{
-				Config:                               configBasicUpdated(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true),
+				Config: configBasic(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true, false, ""),
+				Check:  resource.ComposeAggregateTestCheckFunc(commonChecks(s3BucketName, nonEmptyPrefixPath)...),
+			},
+			{
+				Config:                               configBasic(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, nonEmptyPrefixPath, true, false, ""),
 				ResourceName:                         resourceName,
 				ImportStateIdFunc:                    importStateIDFunc(resourceName),
 				ImportState:                          true,
@@ -71,76 +75,51 @@ func commonChecks(s3BucketName, prefixPath string) []resource.TestCheckFunc {
 	return acc.AddAttrSetChecks(resourceName, checks, "project_id", "iam_role_id", "id")
 }
 
-func configBasic(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath string, usePrefixPath bool) string {
+func configBasic(projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath string, usePrefixPath, useKmsKey bool, kmsKey string) string {
 	return fmt.Sprintf(`
 	 	locals {
 				project_id = %[1]q
-		 		s3_bucket_name_1 = %[2]q
-				s3_bucket_name_2 = %[3]q
-		 		s3_bucket_policy_name = %[4]q
-		 		aws_iam_role_policy_name = %[5]q
-		 		aws_iam_role_name = %[6]q
+		 		s3_bucket_name = %[2]q
+		 		s3_bucket_policy_name = %[3]q
+		 		aws_iam_role_policy_name = %[4]q
+		 		aws_iam_role_name = %[5]q
 		 	  }
 
-			   %[7]s
+			   %[6]s
 
-			   %[8]s		
-	`, projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName,
-		awsIAMroleAuthAndS3Config(s3BucketName1, s3BucketName2), pushBasedLogExportConfig(false, usePrefixPath, prefixPath))
-}
-
-func configBasicUpdated(projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName, prefixPath string, usePrefixPath bool) string {
-	return fmt.Sprintf(`
-	 	locals {
-				project_id = %[1]q
-		 		s3_bucket_name_1 = %[2]q
-				s3_bucket_name_2 = %[3]q
-		 		s3_bucket_policy_name = %[4]q
-		 		aws_iam_role_policy_name = %[5]q
-		 		aws_iam_role_name = %[6]q
-		 	  }
-
-			   %[7]s
-
-			   %[8]s
-	`, projectID, s3BucketName1, s3BucketName2, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName,
-		awsIAMroleAuthAndS3Config(s3BucketName1, s3BucketName2), pushBasedLogExportConfig(true, usePrefixPath, prefixPath)) // updating the S3 bucket to use for push-based log config
+			   %[7]s		
+	`, projectID, s3BucketName, s3BucketPolicyName, awsIAMRoleName, awsIAMRolePolicyName,
+		awsIAMroleAuthAndS3Config(s3BucketName), pushBasedLogExportConfig(usePrefixPath, useKmsKey, prefixPath, kmsKey))
 }
 
 // pushBasedLogExportConfig returns config for mongodbatlas_push_based_log_export_v3_api resource.
 // This method uses the project and S3 bucket created in awsIAMroleAuthAndS3Config()
-func pushBasedLogExportConfig(useBucket2, usePrefixPath bool, prefixPath string) string {
-	bucketNameAttr := "bucket_name = aws_s3_bucket.log_bucket_1.bucket"
-	if useBucket2 {
-		bucketNameAttr = "bucket_name = aws_s3_bucket.log_bucket_2.bucket"
-	}
+func pushBasedLogExportConfig(usePrefixPath, useKmsKey bool, prefixPath, kmsKey string) string {
+	prefixPathAttr := ""
 	if usePrefixPath {
-		return fmt.Sprintf(`resource "mongodbatlas_push_based_log_export_v3_api" "test" {
-			project_id  = local.project_id
-			%[1]s
-			iam_role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
-			type        = "S3_LOG_EXPORT"
-			prefix_path = %[2]q
-			log_types   = ["MONGOD_AUDIT"]
-		}
-		`, bucketNameAttr, prefixPath)
+		prefixPathAttr = fmt.Sprintf("prefix_path   = %[1]q", prefixPath)
+	}
+	kmsKeyAttr := ""
+	if useKmsKey {
+		kmsKeyAttr = fmt.Sprintf("kms_key   = %[1]q", kmsKey)
 	}
 
 	return fmt.Sprintf(`resource "mongodbatlas_push_based_log_export_v3_api" "test" {
 		project_id  = local.project_id
-		%[1]s
+		bucket_name = aws_s3_bucket.log_bucket.bucket
 		iam_role_id = mongodbatlas_cloud_provider_access_authorization.auth_role.role_id
 		type        = "S3_LOG_EXPORT"
 		log_types   = ["MONGOD_AUDIT"]
+		%[1]s
+		%[2]s
 	}
-	`, bucketNameAttr)
+	`, prefixPathAttr, kmsKeyAttr)
 }
 
 // awsIAMroleAuthAndS3Config returns config for required IAM roles and authorizes them (sets up cloud provider access) with a mongodbatlas_project
 // This method also creates two S3 buckets and sets up required access policy for them
-func awsIAMroleAuthAndS3Config(firstBucketName, secondBucketName string) string {
-	firstBucketResourceName := "arn:aws:s3:::" + firstBucketName
-	secondBucketResourceName := "arn:aws:s3:::" + secondBucketName
+func awsIAMroleAuthAndS3Config(bucketName string) string {
+	bucketResourceName := "arn:aws:s3:::" + bucketName
 	return fmt.Sprintf(`
 		// Create IAM role & policy to authorize with Atlas
 resource "aws_iam_role_policy" "test_policy" {
@@ -164,8 +143,7 @@ resource "aws_iam_role_policy" "test_policy" {
        "Effect": "Allow",
         "Action": "s3:*",
         "Resource": [
-          %[1]q,
-          %[2]q
+          %[1]q
         ]
       }
     ]
@@ -216,13 +194,8 @@ resource "mongodbatlas_cloud_provider_access_authorization" "auth_role" {
 }
 
 // Create S3 buckets
-resource "aws_s3_bucket" "log_bucket_1" {
-  bucket        = local.s3_bucket_name_1
-  force_destroy = true  // required as atlas creates a test folder in the bucket when push-based log export is set up 
-}
-
-resource "aws_s3_bucket" "log_bucket_2" {
-  bucket        = local.s3_bucket_name_2
+resource "aws_s3_bucket" "log_bucket" {
+  bucket        = local.s3_bucket_name
   force_destroy = true  // required as atlas creates a test folder in the bucket when push-based log export is set up 
 }
 
@@ -244,17 +217,15 @@ resource "aws_iam_role_policy" "s3_bucket_policy" {
           "s3:GetBucketLocation"
         ],
         "Resource": [
-          "${aws_s3_bucket.log_bucket_1.arn}",
-          "${aws_s3_bucket.log_bucket_1.arn}/*",
-          "${aws_s3_bucket.log_bucket_2.arn}",
-          "${aws_s3_bucket.log_bucket_2.arn}/*"
+          "${aws_s3_bucket.log_bucket.arn}",
+          "${aws_s3_bucket.log_bucket.arn}/*"
         ]
       }
     ]
   }
   EOF
 }
-		`, firstBucketResourceName, secondBucketResourceName)
+		`, bucketResourceName)
 }
 
 func checkDestroy(state *terraform.State) error {
