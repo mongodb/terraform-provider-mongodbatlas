@@ -2118,6 +2118,10 @@ func TestAccAdvancedCluster_tls12to13CustomCipherUpdate(t *testing.T) {
 				Config: advancedConfigTLS13,
 				Check:  updateCheck,
 			},
+			{
+				Config: advancedConfigTLS12,
+				Check:  check,
+			},
 		},
 	})
 }
