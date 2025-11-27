@@ -130,7 +130,7 @@ func (d *pluralDS) getFlexClustersModels(ctx context.Context, diags *diag.Diagno
 
 	for i := range *listFlexClusters {
 		flexClusterResp := (*listFlexClusters)[i]
-		modelOutDS := NewTFModelFlexDS(ctx, diags, &flexClusterResp, nil)
+		modelOutDS := newTFModelFlexDS(ctx, diags, &flexClusterResp, nil)
 		if diags.HasError() {
 			if DiagsHasOnlyClusterNotFoundErrors(diags) {
 				diags = ResetClusterNotFoundErrors(diags)

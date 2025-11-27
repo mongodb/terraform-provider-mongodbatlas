@@ -52,7 +52,7 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		return nil
 	}
 	if flexClusterResp != nil {
-		modelOutDS := NewTFModelFlexDS(ctx, diags, flexClusterResp, nil)
+		modelOutDS := newTFModelFlexDS(ctx, diags, flexClusterResp, nil)
 		if diags.HasError() {
 			return nil
 		}

@@ -120,13 +120,13 @@ func FlexDescriptionToClusterDescription(flexCluster *admin.FlexClusterDescripti
 	}
 }
 
-func NewTFModelFlexResource(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, priority *int, modelIn *TFModel) *TFModel {
-	modelOut := NewTFModelFlex(ctx, diags, flexCluster, priority)
+func newTFModelFlexResource(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, priority *int, modelIn *TFModel) *TFModel {
+	modelOut := newTFModelFlex(ctx, diags, flexCluster, priority)
 	overrideAttributesWithPrevStateValue(modelIn, modelOut)
 	return modelOut
 }
 
-func NewTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, priority *int) *TFModel {
+func newTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, priority *int) *TFModel {
 	if priority == nil {
 		priority = conversion.Pointer(defaultPriority)
 	}
@@ -138,16 +138,12 @@ func NewTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *a
 	return modelOut
 }
 
-func NewTFModelFlexDS(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, priority *int) *TFModelDS {
-	if priority == nil {
-		priority = conversion.Pointer(defaultPriority)
-	}
-	modelOut := NewTFModelDS(ctx, FlexDescriptionToClusterDescription(flexCluster, priority), diags, nil)
+func newTFModelFlexDS(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, priority *int) *TFModelDS {
+	resourceModel := newTFModelFlex(ctx, diags, flexCluster, priority)
 	if diags.HasError() {
 		return nil
 	}
-	modelOut.AdvancedConfiguration = types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
-	return modelOut
+	return conversion.CopyModel[TFModelDS](resourceModel)
 }
 
 func FlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.FlexClusterDescription20241113 {

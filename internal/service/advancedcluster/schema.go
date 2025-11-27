@@ -373,6 +373,7 @@ func dataSourceOverridenFields() map[string]dsschema.Attribute {
 	return map[string]dsschema.Attribute{
 		"accept_data_risks_and_force_replica_set_reconfig": nil,
 		"delete_on_create_timeout":                         nil,
+		"retain_backups_enabled":                           nil,
 		"use_effective_fields": dsschema.BoolAttribute{
 			Optional:            true,
 			MarkdownDescription: descUseEfectiveFields,
@@ -695,7 +696,7 @@ type TFModel struct {
 	UseEffectiveFields                        types.Bool     `tfsdk:"use_effective_fields"`
 }
 
-// TFModelDS differs from TFModel: removes timeouts, accept_data_risks_and_force_replica_set_reconfig
+// TFModelDS differs from TFModel: removes resource-only fields like timeouts, accept_data_risks_and_force_replica_set_reconfig, retain_backups_enabled
 type TFModelDS struct {
 	Labels                           types.Map    `tfsdk:"labels"`
 	ReplicationSpecs                 types.List   `tfsdk:"replication_specs"`
@@ -721,7 +722,6 @@ type TFModelDS struct {
 	RedactClientLogData              types.Bool   `tfsdk:"redact_client_log_data"`
 	GlobalClusterSelfManagedSharding types.Bool   `tfsdk:"global_cluster_self_managed_sharding"`
 	BackupEnabled                    types.Bool   `tfsdk:"backup_enabled"`
-	RetainBackupsEnabled             types.Bool   `tfsdk:"retain_backups_enabled"`
 	Paused                           types.Bool   `tfsdk:"paused"`
 	TerminationProtectionEnabled     types.Bool   `tfsdk:"termination_protection_enabled"`
 	PitEnabled                       types.Bool   `tfsdk:"pit_enabled"`
@@ -803,14 +803,6 @@ var ReplicationSpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"zone_id":        types.StringType,
 	"zone_name":      types.StringType,
 }}
-
-type TFReplicationSpecsDSModel struct {
-	RegionConfigs types.List   `tfsdk:"region_configs"`
-	ContainerId   types.Map    `tfsdk:"container_id"`
-	ExternalId    types.String `tfsdk:"external_id"`
-	ZoneId        types.String `tfsdk:"zone_id"`
-	ZoneName      types.String `tfsdk:"zone_name"`
-}
 
 var ReplicationSpecsDSObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"container_id":   types.MapType{ElemType: types.StringType},

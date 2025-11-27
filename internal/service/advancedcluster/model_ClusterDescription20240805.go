@@ -57,44 +57,13 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, di
 }
 
 func NewTFModelDS(ctx context.Context, input *admin.ClusterDescription20240805, diags *diag.Diagnostics, containerIDs map[string]string) *TFModelDS {
-	biConnector := NewBiConnectorConfigObjType(ctx, input.BiConnector, diags)
-	connectionStrings := NewConnectionStringsObjType(ctx, input.ConnectionStrings, diags)
-	labels := NewLabelsObjType(ctx, diags, input.Labels)
-	replicationSpecs := NewReplicationSpecsDSObjType(ctx, input.ReplicationSpecs, diags, containerIDs)
-	tags := NewTagsObjType(ctx, diags, input.Tags)
-	pinnedFCV := NewPinnedFCVObjType(ctx, input, diags)
+	resourceModel := NewTFModel(ctx, input, diags, containerIDs)
 	if diags.HasError() {
 		return nil
 	}
-	return &TFModelDS{
-		BackupEnabled:                    types.BoolValue(conversion.SafeValue(input.BackupEnabled)),
-		BiConnectorConfig:                biConnector,
-		ClusterType:                      types.StringValue(conversion.SafeValue(input.ClusterType)),
-		ConfigServerManagementMode:       types.StringValue(conversion.SafeValue(input.ConfigServerManagementMode)),
-		ConfigServerType:                 types.StringValue(conversion.SafeValue(input.ConfigServerType)),
-		ConnectionStrings:                connectionStrings,
-		CreateDate:                       types.StringValue(conversion.SafeValue(conversion.TimePtrToStringPtr(input.CreateDate))),
-		EncryptionAtRestProvider:         types.StringValue(conversion.SafeValue(input.EncryptionAtRestProvider)),
-		GlobalClusterSelfManagedSharding: types.BoolValue(conversion.SafeValue(input.GlobalClusterSelfManagedSharding)),
-		ProjectID:                        types.StringValue(conversion.SafeValue(input.GroupId)),
-		ClusterID:                        types.StringValue(conversion.SafeValue(input.Id)),
-		Labels:                           labels,
-		MongoDBMajorVersion:              types.StringValue(conversion.SafeValue(input.MongoDBMajorVersion)),
-		MongoDBVersion:                   types.StringValue(conversion.SafeValue(input.MongoDBVersion)),
-		Name:                             types.StringValue(conversion.SafeValue(input.Name)),
-		Paused:                           types.BoolValue(conversion.SafeValue(input.Paused)),
-		PitEnabled:                       types.BoolValue(conversion.SafeValue(input.PitEnabled)),
-		RedactClientLogData:              types.BoolValue(conversion.SafeValue(input.RedactClientLogData)),
-		ReplicaSetScalingStrategy:        types.StringValue(conversion.SafeValue(input.ReplicaSetScalingStrategy)),
-		ReplicationSpecs:                 replicationSpecs,
-		RootCertType:                     types.StringValue(conversion.SafeValue(input.RootCertType)),
-		StateName:                        types.StringValue(conversion.SafeValue(input.StateName)),
-		Tags:                             tags,
-		TerminationProtectionEnabled:     types.BoolValue(conversion.SafeValue(input.TerminationProtectionEnabled)),
-		VersionReleaseSystem:             types.StringValue(conversion.SafeValue(input.VersionReleaseSystem)),
-		PinnedFCV:                        pinnedFCV,
-		RetainBackupsEnabled:             types.BoolNull(),
-	}
+	dsModel := conversion.CopyModel[TFModelDS](resourceModel)
+	dsModel.ReplicationSpecs = NewReplicationSpecsDSObjType(ctx, input.ReplicationSpecs, diags, containerIDs)
+	return dsModel
 }
 
 func NewBiConnectorConfigObjType(ctx context.Context, input *admin.BiConnector, diags *diag.Diagnostics) types.Object {
@@ -181,10 +150,21 @@ func NewPinnedFCVObjType(ctx context.Context, cluster *admin.ClusterDescription2
 	return objType
 }
 
+// regionConfigsConverter is a function type for converting region configs
+type regionConfigsConverter func(context.Context, *[]admin.CloudRegionConfig20240805, *diag.Diagnostics) types.List
+
 func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, containerIDs map[string]string) *[]TFReplicationSpecsModel {
+	return convertReplicationSpecsInternal(ctx, input, diags, containerIDs, NewRegionConfigsObjType)
+}
+
+func convertReplicationSpecsDS(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, containerIDs map[string]string) *[]TFReplicationSpecsModel {
+	return convertReplicationSpecsInternal(ctx, input, diags, containerIDs, NewRegionConfigsDSObjType)
+}
+
+func convertReplicationSpecsInternal(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, containerIDs map[string]string, regionConfigsConv regionConfigsConverter) *[]TFReplicationSpecsModel {
 	tfModels := make([]TFReplicationSpecsModel, len(*input))
 	for i, item := range *input {
-		regionConfigs := NewRegionConfigsObjType(ctx, item.RegionConfigs, diags)
+		regionConfigs := regionConfigsConv(ctx, item.RegionConfigs, diags)
 		zoneName := item.GetZoneName()
 		if zoneName == "" {
 			diags.AddError(errorZoneNameNotSet, errorZoneNameNotSet)
@@ -192,27 +172,6 @@ func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec
 		}
 		containerIDs := selectContainerIDs(&item, containerIDs)
 		tfModels[i] = TFReplicationSpecsModel{
-			ExternalId:    types.StringValue(conversion.SafeValue(item.Id)),
-			ContainerId:   conversion.ToTFMapOfString(ctx, diags, containerIDs),
-			RegionConfigs: regionConfigs,
-			ZoneId:        types.StringValue(conversion.SafeValue(item.ZoneId)),
-			ZoneName:      types.StringValue(conversion.SafeValue(item.ZoneName)),
-		}
-	}
-	return &tfModels
-}
-
-func convertReplicationSpecsDS(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, containerIDs map[string]string) *[]TFReplicationSpecsDSModel {
-	tfModels := make([]TFReplicationSpecsDSModel, len(*input))
-	for i, item := range *input {
-		regionConfigs := NewRegionConfigsDSObjType(ctx, item.RegionConfigs, diags)
-		zoneName := item.GetZoneName()
-		if zoneName == "" {
-			diags.AddError(errorZoneNameNotSet, errorZoneNameNotSet)
-			return &tfModels
-		}
-		containerIDs := selectContainerIDs(&item, containerIDs)
-		tfModels[i] = TFReplicationSpecsDSModel{
 			ExternalId:    types.StringValue(conversion.SafeValue(item.Id)),
 			ContainerId:   conversion.ToTFMapOfString(ctx, diags, containerIDs),
 			RegionConfigs: regionConfigs,
