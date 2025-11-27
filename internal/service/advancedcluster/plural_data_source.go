@@ -72,11 +72,8 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 	for i := range list {
 		clusterResp := &list[i]
 		modelOutDS := convertBasicClusterToDS(ctx, diags, d.Client, clusterResp)
+		RemoveClusterNotFoundErrors(diags)
 		if diags.HasError() {
-			if DiagsHasOnlyClusterNotFoundErrors(diags) {
-				diags = ResetClusterNotFoundErrors(diags)
-				continue
-			}
 			return nil, diags
 		}
 		modelOutDS.UseEffectiveFields = pluralModel.UseEffectiveFields
@@ -89,24 +86,17 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 	outs.Results = append(outs.Results, flexModels...)
 	return outs, diags
 }
-func DiagsHasOnlyClusterNotFoundErrors(diags *diag.Diagnostics) bool {
-	for _, d := range *diags {
-		if d.Severity() == diag.SeverityError && !strings.Contains(d.Detail(), "CLUSTER_NOT_FOUND") {
-			return false
-		}
-	}
-	return true
-}
 
-func ResetClusterNotFoundErrors(diags *diag.Diagnostics) *diag.Diagnostics {
-	newDiags := &diag.Diagnostics{}
+// RemoveClusterNotFoundErrors removes CLUSTER_NOT_FOUND errors from diags in-place.
+func RemoveClusterNotFoundErrors(diags *diag.Diagnostics) {
+	filtered := diag.Diagnostics{}
 	for _, d := range *diags {
 		if d.Severity() == diag.SeverityError && strings.Contains(d.Detail(), "CLUSTER_NOT_FOUND") {
-			continue
+			continue // Skip CLUSTER_NOT_FOUND errors
 		}
-		newDiags.Append(d)
+		filtered.Append(d)
 	}
-	return newDiags
+	*diags = filtered
 }
 
 func (d *pluralDS) getFlexClustersModels(ctx context.Context, diags *diag.Diagnostics, projectID string, useEffectiveFields types.Bool) []*TFModelDS {
@@ -119,11 +109,8 @@ func (d *pluralDS) getFlexClustersModels(ctx context.Context, diags *diag.Diagno
 	for i := range *listFlexClusters {
 		flexClusterResp := (*listFlexClusters)[i]
 		modelOutDS := convertFlexClusterToDS(ctx, diags, &flexClusterResp)
+		RemoveClusterNotFoundErrors(diags)
 		if diags.HasError() {
-			if DiagsHasOnlyClusterNotFoundErrors(diags) {
-				diags = ResetClusterNotFoundErrors(diags)
-				continue
-			}
 			return nil
 		}
 		modelOutDS.UseEffectiveFields = useEffectiveFields
