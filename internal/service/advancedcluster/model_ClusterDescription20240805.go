@@ -15,7 +15,7 @@ const (
 	errorZoneNameNotSet = "zoneName is required for legacy schema"
 )
 
-func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, diags *diag.Diagnostics, containerIDs map[string]string) *TFModel {
+func newTFModel(ctx context.Context, input *admin.ClusterDescription20240805, diags *diag.Diagnostics, containerIDs map[string]string) *TFModel {
 	biConnector := NewBiConnectorConfigObjType(ctx, input.BiConnector, diags)
 	connectionStrings := NewConnectionStringsObjType(ctx, input.ConnectionStrings, diags)
 	labels := NewLabelsObjType(ctx, diags, input.Labels)
@@ -56,8 +56,8 @@ func NewTFModel(ctx context.Context, input *admin.ClusterDescription20240805, di
 	}
 }
 
-func NewTFModelDS(ctx context.Context, input *admin.ClusterDescription20240805, diags *diag.Diagnostics, containerIDs map[string]string) *TFModelDS {
-	resourceModel := NewTFModel(ctx, input, diags, containerIDs)
+func newTFModelDS(ctx context.Context, input *admin.ClusterDescription20240805, diags *diag.Diagnostics, containerIDs map[string]string) *TFModelDS {
+	resourceModel := newTFModel(ctx, input, diags, containerIDs)
 	if diags.HasError() {
 		return nil
 	}

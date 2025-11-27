@@ -87,7 +87,7 @@ func setStateResponse(ctx context.Context, diags *diag.Diagnostics, stateIn *tfp
 	if diags.HasError() {
 		return
 	}
-	model := NewTFModel(ctx, &admin.ClusterDescription20240805{
+	model := newTFModel(ctx, &admin.ClusterDescription20240805{
 		GroupId: projectID,
 		Name:    name,
 	}, diags, nil)

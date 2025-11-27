@@ -2,6 +2,7 @@ package advancedcluster
 
 import (
 	"context"
+	"fmt"
 
 	"go.mongodb.org/atlas-sdk/v20250312010/admin"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -61,20 +61,26 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 	return convertBasicClusterToDS(ctx, diags, d.Client, clusterResp, modelDS.UseEffectiveFields)
 }
 
-// convertFlexClusterToDS converts a flex cluster response to a datasource model
 func convertFlexClusterToDS(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, useEffectiveFields types.Bool) *TFModelDS {
-	resourceModel := newTFModelFlex(ctx, diags, flexCluster, nil, nil)
+	clusterDesc := FlexDescriptionToClusterDescription(flexCluster, nil)
+	modelOutDS := newTFModelDS(ctx, clusterDesc, diags, nil)
 	if diags.HasError() {
 		return nil
 	}
-	modelOutDS := conversion.CopyModel[TFModelDS](resourceModel)
+	modelOutDS.AdvancedConfiguration = types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
 	modelOutDS.UseEffectiveFields = useEffectiveFields
 	return modelOutDS
 }
 
-// convertBasicClusterToDS converts a basic cluster response to a datasource model
 func convertBasicClusterToDS(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, useEffectiveFields types.Bool) *TFModelDS {
-	modelOutDS := getBasicClusterModelDS(ctx, diags, client, clusterResp)
+	projectID := clusterResp.GetGroupId()
+	clusterName := clusterResp.GetName()
+	containerIDs, err := resolveContainerIDs(ctx, projectID, clusterResp, client.AtlasV2.NetworkPeeringApi)
+	if err != nil {
+		diags.AddError(errorResolveContainerIDs, fmt.Sprintf("cluster name = %s, error details: %s", clusterName, err.Error()))
+		return nil
+	}
+	modelOutDS := newTFModelDS(ctx, clusterResp, diags, containerIDs)
 	if diags.HasError() {
 		return nil
 	}
@@ -85,6 +91,7 @@ func convertBasicClusterToDS(ctx context.Context, diags *diag.Diagnostics, clien
 	if diags.HasError() {
 		return nil
 	}
+
 	modelOutDS.UseEffectiveFields = useEffectiveFields
 	return modelOutDS
 }

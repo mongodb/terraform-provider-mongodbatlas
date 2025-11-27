@@ -124,7 +124,7 @@ func newTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *a
 	if priority == nil {
 		priority = conversion.Pointer(defaultPriority)
 	}
-	modelOut := NewTFModel(ctx, FlexDescriptionToClusterDescription(flexCluster, priority), diags, nil)
+	modelOut := newTFModel(ctx, FlexDescriptionToClusterDescription(flexCluster, priority), diags, nil)
 	if diags.HasError() {
 		return nil
 	}
