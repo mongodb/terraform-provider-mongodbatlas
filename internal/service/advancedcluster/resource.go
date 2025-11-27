@@ -30,7 +30,7 @@ const (
 	errorDetailDefault       = "cluster name: %s, API error details: %s"
 	errorReadResource        = "error reading advanced cluster"
 	errorAdvancedConfRead    = "error reading Advanced Configuration"
-	errorList                = "error reading  advanced cluster list"
+	errorList                = "error reading advanced cluster list"
 	errorListDetail          = "project ID %s. Error %s"
 	errorResolveContainerIDs = "error resolving container IDs"
 	errorRegionPriorities    = "priority values in region_configs must be in descending order"

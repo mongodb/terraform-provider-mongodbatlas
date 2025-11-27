@@ -233,28 +233,27 @@ func NewPrivateEndpointObjType(ctx context.Context, input *[]admin.ClusterDescri
 	return listType
 }
 
+func newRegionConfigModel(ctx context.Context, item *admin.CloudRegionConfig20240805, diags *diag.Diagnostics) TFRegionConfigsModel {
+	return TFRegionConfigsModel{
+		AnalyticsAutoScaling: NewAutoScalingObjType(ctx, item.AnalyticsAutoScaling, diags),
+		AnalyticsSpecs:       NewSpecsObjType(ctx, item.AnalyticsSpecs, diags),
+		AutoScaling:          NewAutoScalingObjType(ctx, item.AutoScaling, diags),
+		BackingProviderName:  types.StringPointerValue(item.BackingProviderName),
+		ElectableSpecs:       NewSpecsFromHwObjType(ctx, item.ElectableSpecs, diags),
+		Priority:             types.Int64PointerValue(conversion.IntPtrToInt64Ptr(item.Priority)),
+		ProviderName:         types.StringValue(conversion.SafeValue(item.ProviderName)),
+		ReadOnlySpecs:        NewSpecsObjType(ctx, item.ReadOnlySpecs, diags),
+		RegionName:           types.StringValue(conversion.SafeValue(item.RegionName)),
+	}
+}
+
 func NewRegionConfigsObjType(ctx context.Context, input *[]admin.CloudRegionConfig20240805, diags *diag.Diagnostics) types.List {
 	if input == nil {
 		return types.ListNull(RegionConfigsObjType)
 	}
 	tfModels := make([]TFRegionConfigsModel, len(*input))
-	for i, item := range *input {
-		analyticsAutoScaling := NewAutoScalingObjType(ctx, item.AnalyticsAutoScaling, diags)
-		analyticsSpecs := NewSpecsObjType(ctx, item.AnalyticsSpecs, diags)
-		autoScaling := NewAutoScalingObjType(ctx, item.AutoScaling, diags)
-		electableSpecs := NewSpecsFromHwObjType(ctx, item.ElectableSpecs, diags)
-		readOnlySpecs := NewSpecsObjType(ctx, item.ReadOnlySpecs, diags)
-		tfModels[i] = TFRegionConfigsModel{
-			AnalyticsAutoScaling: analyticsAutoScaling,
-			AnalyticsSpecs:       analyticsSpecs,
-			AutoScaling:          autoScaling,
-			BackingProviderName:  types.StringPointerValue(item.BackingProviderName),
-			ElectableSpecs:       electableSpecs,
-			Priority:             types.Int64PointerValue(conversion.IntPtrToInt64Ptr(item.Priority)),
-			ProviderName:         types.StringValue(conversion.SafeValue(item.ProviderName)),
-			ReadOnlySpecs:        readOnlySpecs,
-			RegionName:           types.StringValue(conversion.SafeValue(item.RegionName)),
-		}
+	for i := range *input {
+		tfModels[i] = newRegionConfigModel(ctx, &(*input)[i], diags)
 	}
 	listType, diagsLocal := types.ListValueFrom(ctx, RegionConfigsObjType, tfModels)
 	diags.Append(diagsLocal...)
@@ -266,29 +265,14 @@ func NewRegionConfigsDSObjType(ctx context.Context, input *[]admin.CloudRegionCo
 		return types.ListNull(RegionConfigsDSObjType)
 	}
 	tfModels := make([]TFRegionConfigsDSModel, len(*input))
-	for i, item := range *input {
-		analyticsAutoScaling := NewAutoScalingObjType(ctx, item.AnalyticsAutoScaling, diags)
-		analyticsSpecs := NewSpecsObjType(ctx, item.AnalyticsSpecs, diags)
-		autoScaling := NewAutoScalingObjType(ctx, item.AutoScaling, diags)
-		effectiveAnalyticsSpecs := NewSpecsObjType(ctx, item.EffectiveAnalyticsSpecs, diags)
-		effectiveElectableSpecs := NewSpecsObjType(ctx, item.EffectiveElectableSpecs, diags)
-		effectiveReadOnlySpecs := NewSpecsObjType(ctx, item.EffectiveReadOnlySpecs, diags)
-		electableSpecs := NewSpecsFromHwObjType(ctx, item.ElectableSpecs, diags)
-		readOnlySpecs := NewSpecsObjType(ctx, item.ReadOnlySpecs, diags)
-		tfModels[i] = TFRegionConfigsDSModel{
-			AnalyticsAutoScaling:    analyticsAutoScaling,
-			AnalyticsSpecs:          analyticsSpecs,
-			AutoScaling:             autoScaling,
-			BackingProviderName:     types.StringPointerValue(item.BackingProviderName),
-			EffectiveAnalyticsSpecs: effectiveAnalyticsSpecs,
-			EffectiveElectableSpecs: effectiveElectableSpecs,
-			EffectiveReadOnlySpecs:  effectiveReadOnlySpecs,
-			ElectableSpecs:          electableSpecs,
-			Priority:                types.Int64PointerValue(conversion.IntPtrToInt64Ptr(item.Priority)),
-			ProviderName:            types.StringValue(conversion.SafeValue(item.ProviderName)),
-			ReadOnlySpecs:           readOnlySpecs,
-			RegionName:              types.StringValue(conversion.SafeValue(item.RegionName)),
-		}
+	for i := range *input {
+		item := &(*input)[i]
+		baseModel := newRegionConfigModel(ctx, item, diags)
+		dsModel := *conversion.CopyModel[TFRegionConfigsDSModel](&baseModel)
+		dsModel.EffectiveAnalyticsSpecs = NewSpecsObjType(ctx, item.EffectiveAnalyticsSpecs, diags)
+		dsModel.EffectiveElectableSpecs = NewSpecsObjType(ctx, item.EffectiveElectableSpecs, diags)
+		dsModel.EffectiveReadOnlySpecs = NewSpecsObjType(ctx, item.EffectiveReadOnlySpecs, diags)
+		tfModels[i] = dsModel
 	}
 	listType, diagsLocal := types.ListValueFrom(ctx, RegionConfigsDSObjType, tfModels)
 	diags.Append(diagsLocal...)
