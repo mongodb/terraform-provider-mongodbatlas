@@ -16,7 +16,11 @@ var (
 	attributeRootChangeMapping = map[string][]string{
 		"replication_specs":      {},
 		"tls_cipher_config_mode": {"custom_openssl_cipher_config_tls12", "custom_openssl_cipher_config_tls13"},
-		"cluster_type":           {"config_server_management_mode", "config_server_type"}, // computed values of config server change when REPLICA_SET changes to SHARDED
+		// When changing custom_openssl_cipher_config_tls12 -> custom_openssl_cipher_config_tls13 and vice versa, we CANNOT use the state value
+		// it needs to be unknown to avoid sending a PATCH with both values included.
+		"custom_openssl_cipher_config_tls12": {"custom_openssl_cipher_config_tls13"},
+		"custom_openssl_cipher_config_tls13": {"custom_openssl_cipher_config_tls12"},
+		"cluster_type":                       {"config_server_management_mode", "config_server_type"}, // computed values of config server change when REPLICA_SET changes to SHARDED
 	}
 	attributeReplicationSpecChangeMapping = map[string][]string{
 		// All these fields can exist in specs that are computed, therefore, it is not safe to use them when they have changed.
