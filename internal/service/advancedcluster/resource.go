@@ -414,6 +414,24 @@ func getBasicClusterModel(ctx context.Context, diags *diag.Diagnostics, client *
 	return modelOut
 }
 
+func getBasicClusterModelDS(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805) *TFModelDS {
+	var (
+		projectID   = clusterResp.GetGroupId()
+		clusterName = clusterResp.GetName()
+	)
+	containerIDs, err := resolveContainerIDs(ctx, projectID, clusterResp, client.AtlasV2.NetworkPeeringApi)
+	if err != nil {
+		diags.AddError(errorResolveContainerIDs, fmt.Sprintf("cluster name = %s, error details: %s", clusterName, err.Error()))
+		return nil
+	}
+
+	modelOut := NewTFModelDS(ctx, clusterResp, diags, containerIDs)
+	if diags.HasError() {
+		return nil
+	}
+	return modelOut
+}
+
 func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModel,
 	p *ProcessArgs) {
 	projectID := model.ProjectID.ValueString()
@@ -425,6 +443,19 @@ func updateModelAdvancedConfig(ctx context.Context, diags *diag.Diagnostics, cli
 	p.ArgsDefault = advConfig
 
 	AddAdvancedConfig(ctx, model, p, diags)
+}
+
+func updateModelAdvancedConfigDS(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, model *TFModelDS,
+	p *ProcessArgs) {
+	projectID := model.ProjectID.ValueString()
+	clusterName := model.Name.ValueString()
+	advConfig := ReadIfUnsetAdvancedConfiguration(ctx, diags, client, projectID, clusterName, p.ArgsDefault)
+	if diags.HasError() {
+		return
+	}
+	p.ArgsDefault = advConfig
+
+	AddAdvancedConfigDS(ctx, model, p, diags)
 }
 
 func createCluster(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, req *admin.ClusterDescription20240805, waitParams *ClusterWaitParams) *admin.ClusterDescription20240805 {

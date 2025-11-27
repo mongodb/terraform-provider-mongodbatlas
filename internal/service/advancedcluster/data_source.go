@@ -6,7 +6,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 
-	"github.com/mongodb/terraform-provider-mongodbatlas/internal/common/conversion"
 	"github.com/mongodb/terraform-provider-mongodbatlas/internal/config"
 )
 
@@ -53,24 +52,24 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 		return nil
 	}
 	if flexClusterResp != nil {
-		modelOut := NewTFModelFlex(ctx, diags, flexClusterResp, nil)
+		modelOutDS := NewTFModelFlexDS(ctx, diags, flexClusterResp, nil)
 		if diags.HasError() {
 			return nil
 		}
-		return conversion.CopyModel[TFModelDS](modelOut)
+		modelOutDS.UseEffectiveFields = modelDS.UseEffectiveFields
+		return modelOutDS
 	}
-	modelOut := getBasicClusterModel(ctx, diags, d.Client, clusterResp)
+	modelOutDS := getBasicClusterModelDS(ctx, diags, d.Client, clusterResp)
 	if diags.HasError() {
 		return nil
 	}
-	updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, &ProcessArgs{
+	updateModelAdvancedConfigDS(ctx, diags, d.Client, modelOutDS, &ProcessArgs{
 		ArgsDefault:           nil,
 		ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
 	})
 	if diags.HasError() {
 		return nil
 	}
-	modelOutDS := conversion.CopyModel[TFModelDS](modelOut)
 	modelOutDS.UseEffectiveFields = modelDS.UseEffectiveFields // Set Optional Terraform-only attribute.
 	return modelOutDS
 }

@@ -70,7 +70,7 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 	}
 	for i := range list {
 		clusterResp := &list[i]
-		modelOut := getBasicClusterModel(ctx, diags, d.Client, clusterResp)
+		modelOutDS := getBasicClusterModelDS(ctx, diags, d.Client, clusterResp)
 		if diags.HasError() {
 			if DiagsHasOnlyClusterNotFoundErrors(diags) {
 				diags = ResetClusterNotFoundErrors(diags)
@@ -78,7 +78,7 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 			}
 			return nil, diags
 		}
-		updateModelAdvancedConfig(ctx, diags, d.Client, modelOut, &ProcessArgs{
+		updateModelAdvancedConfigDS(ctx, diags, d.Client, modelOutDS, &ProcessArgs{
 			ArgsDefault:           nil,
 			ClusterAdvancedConfig: clusterResp.AdvancedConfiguration,
 		})
@@ -89,7 +89,6 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 			}
 			return nil, diags
 		}
-		modelOutDS := conversion.CopyModel[TFModelDS](modelOut)
 		modelOutDS.UseEffectiveFields = pluralModel.UseEffectiveFields // Set Optional Terraform-only attribute.
 		outs.Results = append(outs.Results, modelOutDS)
 	}
@@ -131,7 +130,7 @@ func (d *pluralDS) getFlexClustersModels(ctx context.Context, diags *diag.Diagno
 
 	for i := range *listFlexClusters {
 		flexClusterResp := (*listFlexClusters)[i]
-		modelOut := NewTFModelFlex(ctx, diags, &flexClusterResp, nil)
+		modelOutDS := NewTFModelFlexDS(ctx, diags, &flexClusterResp, nil)
 		if diags.HasError() {
 			if DiagsHasOnlyClusterNotFoundErrors(diags) {
 				diags = ResetClusterNotFoundErrors(diags)
@@ -139,7 +138,6 @@ func (d *pluralDS) getFlexClustersModels(ctx context.Context, diags *diag.Diagno
 			}
 			return nil
 		}
-		modelOutDS := conversion.CopyModel[TFModelDS](modelOut)
 		results = append(results, modelOutDS)
 	}
 	return results

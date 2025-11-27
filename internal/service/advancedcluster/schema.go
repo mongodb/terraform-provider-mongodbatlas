@@ -804,7 +804,47 @@ var ReplicationSpecsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"zone_name":      types.StringType,
 }}
 
+type TFReplicationSpecsDSModel struct {
+	RegionConfigs types.List   `tfsdk:"region_configs"`
+	ContainerId   types.Map    `tfsdk:"container_id"`
+	ExternalId    types.String `tfsdk:"external_id"`
+	ZoneId        types.String `tfsdk:"zone_id"`
+	ZoneName      types.String `tfsdk:"zone_name"`
+}
+
+var ReplicationSpecsDSObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"container_id":   types.MapType{ElemType: types.StringType},
+	"external_id":    types.StringType,
+	"region_configs": types.ListType{ElemType: RegionConfigsDSObjType},
+	"zone_id":        types.StringType,
+	"zone_name":      types.StringType,
+}}
+
 type TFRegionConfigsModel struct {
+	AnalyticsAutoScaling types.Object `tfsdk:"analytics_auto_scaling"`
+	AnalyticsSpecs       types.Object `tfsdk:"analytics_specs"`
+	AutoScaling          types.Object `tfsdk:"auto_scaling"`
+	BackingProviderName  types.String `tfsdk:"backing_provider_name"`
+	ElectableSpecs       types.Object `tfsdk:"electable_specs"`
+	ProviderName         types.String `tfsdk:"provider_name"`
+	ReadOnlySpecs        types.Object `tfsdk:"read_only_specs"`
+	RegionName           types.String `tfsdk:"region_name"`
+	Priority             types.Int64  `tfsdk:"priority"`
+}
+
+var RegionConfigsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"analytics_auto_scaling": AutoScalingObjType,
+	"analytics_specs":        SpecsObjType,
+	"auto_scaling":           AutoScalingObjType,
+	"backing_provider_name":  types.StringType,
+	"electable_specs":        SpecsObjType,
+	"priority":               types.Int64Type,
+	"provider_name":          types.StringType,
+	"read_only_specs":        SpecsObjType,
+	"region_name":            types.StringType,
+}}
+
+type TFRegionConfigsDSModel struct {
 	AnalyticsAutoScaling    types.Object `tfsdk:"analytics_auto_scaling"`
 	AnalyticsSpecs          types.Object `tfsdk:"analytics_specs"`
 	AutoScaling             types.Object `tfsdk:"auto_scaling"`
@@ -819,7 +859,7 @@ type TFRegionConfigsModel struct {
 	Priority                types.Int64  `tfsdk:"priority"`
 }
 
-var RegionConfigsObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
+var RegionConfigsDSObjType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"analytics_auto_scaling":    AutoScalingObjType,
 	"analytics_specs":           SpecsObjType,
 	"auto_scaling":              AutoScalingObjType,

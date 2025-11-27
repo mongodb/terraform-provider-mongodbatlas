@@ -138,6 +138,18 @@ func NewTFModelFlex(ctx context.Context, diags *diag.Diagnostics, flexCluster *a
 	return modelOut
 }
 
+func NewTFModelFlexDS(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, priority *int) *TFModelDS {
+	if priority == nil {
+		priority = conversion.Pointer(defaultPriority)
+	}
+	modelOut := NewTFModelDS(ctx, FlexDescriptionToClusterDescription(flexCluster, priority), diags, nil)
+	if diags.HasError() {
+		return nil
+	}
+	modelOut.AdvancedConfiguration = types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
+	return modelOut
+}
+
 func FlexUpgrade(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, waitParams *ClusterWaitParams, req *admin.LegacyAtlasTenantClusterUpgradeRequest) *admin.FlexClusterDescription20241113 {
 	if _, _, err := client.AtlasV2.ClustersApi.UpgradeTenantUpgrade(ctx, waitParams.ProjectID, req).Execute(); err != nil {
 		diags.AddError(fmt.Sprintf(flexcluster.ErrorUpgradeFlex, req.Name), err.Error())
