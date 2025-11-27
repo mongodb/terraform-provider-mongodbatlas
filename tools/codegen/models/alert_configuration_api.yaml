@@ -90,7 +90,7 @@ schema:
                       sensitive: false
                       create_only: false
                     - string: {}
-                      description: Comparison operator to apply when checking the current metric value against **matcher[n].value**.
+                      description: Comparison operator to apply when checking the current metric value against **matcher[n].value**. The `REGEX` operator only supports inclusive matches. Use the `NOT_CONTAINS` operator to exclude values.
                       computed_optional_required: required
                       tf_schema_name: operator
                       tf_model_name: Operator
@@ -455,7 +455,7 @@ schema:
 
                         Atlas returns this value if you set `"notifications.[n].typeName" :"WEBHOOK"` and either:
                         * You set `notification.[n].webhookSecret` to a non-empty string
-                        * You set a default webhookSecret either on the Integrations page, or with the [Integrations API](#tag/Third-Party-Service-Integrations/operation/createIntegration)
+                        * You set a default webhookSecret either on the Integrations page, or with the Integrations API
 
                         **NOTE**: When you view or edit the alert for a webhook notification, the secret appears completely redacted.
                       computed_optional_required: optional
@@ -470,7 +470,7 @@ schema:
 
                         Atlas returns this value if you set `"notifications.[n].typeName" :"WEBHOOK"` and either:
                         * You set `notification.[n].webhookURL` to a non-empty string
-                        * You set a default webhookUrl either on the [Integrations](https://www.mongodb.com/docs/atlas/tutorial/third-party-service-integrations/#std-label-third-party-integrations) page, or with the [Integrations API](#tag/Third-Party-Service-Integrations/operation/createIntegration)
+                        * You set a default webhookUrl either on the Integrations page, or with the Integrations API
 
                         **NOTE**: When you view or edit the alert for a Webhook URL notification, the URL appears partially redacted.
                       computed_optional_required: optional
