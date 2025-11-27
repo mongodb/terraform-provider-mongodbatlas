@@ -125,11 +125,12 @@ func (r *rs) ImportState(ctx context.Context, req resource.ImportStateRequest, r
 func readAPICallParams(model any) *config.APICallParams {
 	m := model.(*TFModel)
 	pathParams := map[string]string{
-		"groupId": m.GroupId.ValueString(),
+		"groupId":  m.GroupId.ValueString(),
+		"clientId": m.ClientId.ValueString(),
 	}
 	return &config.APICallParams{
 		VersionHeader: apiVersionHeader,
-		RelativePath:  "/api/atlas/v2/groups/{groupId}/serviceAccounts",
+		RelativePath:  "/api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}",
 		PathParams:    pathParams,
 		Method:        "GET",
 	}

@@ -782,8 +782,7 @@ resources:
 
   org_service_account_project_assignment_api:
     read:
-      path: /api/atlas/v2/groups/{groupId}/serviceAccounts
-      schema_ignore: true
+      path: /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}
       method: GET
     create:
       path: /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}:invite
@@ -794,7 +793,6 @@ resources:
     delete:
       path: /api/atlas/v2/groups/{groupId}/serviceAccounts/{clientId}
       method: DELETE
-    id_attributes: ["group_id", "client_id"]
     schema:
       ignores: ["secrets", "name", "description", "created_at"]
 
