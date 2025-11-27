@@ -54,24 +54,29 @@ func (d *ds) readCluster(ctx context.Context, diags *diag.Diagnostics, modelDS *
 	if flexClusterResp == nil && clusterResp == nil {
 		return nil
 	}
+	var result *TFModelDS
 	if flexClusterResp != nil {
-		return convertFlexClusterToDS(ctx, diags, flexClusterResp, modelDS.UseEffectiveFields)
+		result = convertFlexClusterToDS(ctx, diags, flexClusterResp)
+	} else {
+		result = convertBasicClusterToDS(ctx, diags, d.Client, clusterResp)
 	}
-	return convertBasicClusterToDS(ctx, diags, d.Client, clusterResp, modelDS.UseEffectiveFields)
+	if result != nil {
+		result.UseEffectiveFields = modelDS.UseEffectiveFields
+	}
+	return result
 }
 
-func convertFlexClusterToDS(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113, useEffectiveFields types.Bool) *TFModelDS {
+func convertFlexClusterToDS(ctx context.Context, diags *diag.Diagnostics, flexCluster *admin.FlexClusterDescription20241113) *TFModelDS {
 	clusterDesc := FlexDescriptionToClusterDescription(flexCluster, nil)
 	modelOutDS := newTFModelDS(ctx, clusterDesc, diags, nil)
 	if diags.HasError() {
 		return nil
 	}
 	modelOutDS.AdvancedConfiguration = types.ObjectNull(AdvancedConfigurationObjType.AttrTypes)
-	modelOutDS.UseEffectiveFields = useEffectiveFields
 	return modelOutDS
 }
 
-func convertBasicClusterToDS(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805, useEffectiveFields types.Bool) *TFModelDS {
+func convertBasicClusterToDS(ctx context.Context, diags *diag.Diagnostics, client *config.MongoDBClient, clusterResp *admin.ClusterDescription20240805) *TFModelDS {
 	containerIDs := resolveContainerIDsOrError(ctx, diags, clusterResp, client.AtlasV2.NetworkPeeringApi)
 	if diags.HasError() {
 		return nil
@@ -87,7 +92,5 @@ func convertBasicClusterToDS(ctx context.Context, diags *diag.Diagnostics, clien
 	if diags.HasError() {
 		return nil
 	}
-
-	modelOutDS.UseEffectiveFields = useEffectiveFields
 	return modelOutDS
 }

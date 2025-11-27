@@ -71,7 +71,7 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 	}
 	for i := range list {
 		clusterResp := &list[i]
-		modelOutDS := convertBasicClusterToDS(ctx, diags, d.Client, clusterResp, pluralModel.UseEffectiveFields)
+		modelOutDS := convertBasicClusterToDS(ctx, diags, d.Client, clusterResp)
 		if diags.HasError() {
 			if DiagsHasOnlyClusterNotFoundErrors(diags) {
 				diags = ResetClusterNotFoundErrors(diags)
@@ -79,6 +79,7 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 			}
 			return nil, diags
 		}
+		modelOutDS.UseEffectiveFields = pluralModel.UseEffectiveFields
 		outs.Results = append(outs.Results, modelOutDS)
 	}
 	flexModels := d.getFlexClustersModels(ctx, diags, projectID, pluralModel.UseEffectiveFields)
@@ -117,7 +118,7 @@ func (d *pluralDS) getFlexClustersModels(ctx context.Context, diags *diag.Diagno
 	}
 	for i := range *listFlexClusters {
 		flexClusterResp := (*listFlexClusters)[i]
-		modelOutDS := convertFlexClusterToDS(ctx, diags, &flexClusterResp, useEffectiveFields)
+		modelOutDS := convertFlexClusterToDS(ctx, diags, &flexClusterResp)
 		if diags.HasError() {
 			if DiagsHasOnlyClusterNotFoundErrors(diags) {
 				diags = ResetClusterNotFoundErrors(diags)
@@ -125,6 +126,7 @@ func (d *pluralDS) getFlexClustersModels(ctx context.Context, diags *diag.Diagno
 			}
 			return nil
 		}
+		modelOutDS.UseEffectiveFields = useEffectiveFields
 		results = append(results, modelOutDS)
 	}
 	return results
