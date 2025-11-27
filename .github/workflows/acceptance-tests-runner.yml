@@ -310,6 +310,7 @@ jobs:
             - 'internal/serviceapi/projectapi/*.go'
             - 'internal/serviceapi/projectsettingsapi/*.go'
             - 'internal/serviceapi/resourcepolicyapi/*.go'
+            - 'internal/serviceapi/pushbasedlogexportv3api/*.go'
           autogen_slow:
             - 'internal/common/autogen/*.go'
             - 'internal/serviceapi/pushbasedlogexportapi/*.go'
@@ -317,7 +318,8 @@ jobs:
             - 'internal/serviceapi/searchindexapi/*.go'
             - 'internal/serviceapi/streaminstanceapi/*.go'
             - 'internal/serviceapi/streamprocessorapi/*.go'
-            - 'internal/serviceapi/pushbasedlogexportv3api/*.go'
+            - 'internal/serviceapi/clusterapi/*.go'
+            - 'internal/serviceapi/clusteroldapi/*.go'
           backup:
             - 'internal/service/cloudbackupschedule/*.go'
             - 'internal/service/cloudbackupsnapshot/*.go'
