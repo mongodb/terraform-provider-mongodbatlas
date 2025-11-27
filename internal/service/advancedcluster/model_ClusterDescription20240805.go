@@ -19,7 +19,7 @@ func newTFModel(ctx context.Context, input *admin.ClusterDescription20240805, di
 	biConnector := NewBiConnectorConfigObjType(ctx, input.BiConnector, diags)
 	connectionStrings := NewConnectionStringsObjType(ctx, input.ConnectionStrings, diags)
 	labels := NewLabelsObjType(ctx, diags, input.Labels)
-	replicationSpecs := NewReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags, containerIDs)
+	replicationSpecs := newReplicationSpecsObjType(ctx, input.ReplicationSpecs, diags, containerIDs)
 	tags := NewTagsObjType(ctx, diags, input.Tags)
 	pinnedFCV := NewPinnedFCVObjType(ctx, input, diags)
 	if diags.HasError() {
@@ -62,7 +62,7 @@ func newTFModelDS(ctx context.Context, input *admin.ClusterDescription20240805, 
 		return nil
 	}
 	dsModel := conversion.CopyModel[TFModelDS](resourceModel)
-	dsModel.ReplicationSpecs = NewReplicationSpecsDSObjType(ctx, input.ReplicationSpecs, diags, containerIDs)
+	dsModel.ReplicationSpecs = newReplicationSpecsDSObjType(ctx, input.ReplicationSpecs, diags, containerIDs)
 	return dsModel
 }
 
@@ -111,11 +111,11 @@ func NewLabelsObjType(ctx context.Context, diags *diag.Diagnostics, input *[]adm
 	return conversion.ToTFMapOfString(ctx, diags, elms)
 }
 
-func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, containerIDs map[string]string) types.List {
+func newReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, containerIDs map[string]string) types.List {
 	if input == nil {
 		return types.ListNull(ReplicationSpecsObjType)
 	}
-	tfModels := convertReplicationSpecs(ctx, input, diags, containerIDs)
+	tfModels := convertReplicationSpecs(ctx, input, diags, containerIDs, newRegionConfigsObjType)
 	if diags.HasError() {
 		return types.ListNull(ReplicationSpecsObjType)
 	}
@@ -124,11 +124,11 @@ func NewReplicationSpecsObjType(ctx context.Context, input *[]admin.ReplicationS
 	return listType
 }
 
-func NewReplicationSpecsDSObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, containerIDs map[string]string) types.List {
+func newReplicationSpecsDSObjType(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, containerIDs map[string]string) types.List {
 	if input == nil {
 		return types.ListNull(ReplicationSpecsDSObjType)
 	}
-	tfModels := convertReplicationSpecsDS(ctx, input, diags, containerIDs)
+	tfModels := convertReplicationSpecs(ctx, input, diags, containerIDs, newRegionConfigsDSObjType)
 	if diags.HasError() {
 		return types.ListNull(ReplicationSpecsDSObjType)
 	}
@@ -153,15 +153,7 @@ func NewPinnedFCVObjType(ctx context.Context, cluster *admin.ClusterDescription2
 // regionConfigsConverter is a function type for converting region configs
 type regionConfigsConverter func(context.Context, *[]admin.CloudRegionConfig20240805, *diag.Diagnostics) types.List
 
-func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, containerIDs map[string]string) *[]TFReplicationSpecsModel {
-	return convertReplicationSpecsInternal(ctx, input, diags, containerIDs, NewRegionConfigsObjType)
-}
-
-func convertReplicationSpecsDS(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, containerIDs map[string]string) *[]TFReplicationSpecsModel {
-	return convertReplicationSpecsInternal(ctx, input, diags, containerIDs, NewRegionConfigsDSObjType)
-}
-
-func convertReplicationSpecsInternal(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, containerIDs map[string]string, regionConfigsConv regionConfigsConverter) *[]TFReplicationSpecsModel {
+func convertReplicationSpecs(ctx context.Context, input *[]admin.ReplicationSpec20240805, diags *diag.Diagnostics, containerIDs map[string]string, regionConfigsConv regionConfigsConverter) *[]TFReplicationSpecsModel {
 	tfModels := make([]TFReplicationSpecsModel, len(*input))
 	for i, item := range *input {
 		regionConfigs := regionConfigsConv(ctx, item.RegionConfigs, diags)
@@ -247,7 +239,7 @@ func newRegionConfigModel(ctx context.Context, item *admin.CloudRegionConfig2024
 	}
 }
 
-func NewRegionConfigsObjType(ctx context.Context, input *[]admin.CloudRegionConfig20240805, diags *diag.Diagnostics) types.List {
+func newRegionConfigsObjType(ctx context.Context, input *[]admin.CloudRegionConfig20240805, diags *diag.Diagnostics) types.List {
 	if input == nil {
 		return types.ListNull(RegionConfigsObjType)
 	}
@@ -260,7 +252,7 @@ func NewRegionConfigsObjType(ctx context.Context, input *[]admin.CloudRegionConf
 	return listType
 }
 
-func NewRegionConfigsDSObjType(ctx context.Context, input *[]admin.CloudRegionConfig20240805, diags *diag.Diagnostics) types.List {
+func newRegionConfigsDSObjType(ctx context.Context, input *[]admin.CloudRegionConfig20240805, diags *diag.Diagnostics) types.List {
 	if input == nil {
 		return types.ListNull(RegionConfigsDSObjType)
 	}

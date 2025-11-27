@@ -87,18 +87,6 @@ func (d *pluralDS) readClusters(ctx context.Context, diags *diag.Diagnostics, pl
 	return outs, diags
 }
 
-// RemoveClusterNotFoundErrors removes CLUSTER_NOT_FOUND errors from diags in-place.
-func RemoveClusterNotFoundErrors(diags *diag.Diagnostics) {
-	filtered := diag.Diagnostics{}
-	for _, d := range *diags {
-		if d.Severity() == diag.SeverityError && strings.Contains(d.Detail(), "CLUSTER_NOT_FOUND") {
-			continue // Skip CLUSTER_NOT_FOUND errors
-		}
-		filtered.Append(d)
-	}
-	*diags = filtered
-}
-
 func (d *pluralDS) getFlexClustersModels(ctx context.Context, diags *diag.Diagnostics, projectID string, useEffectiveFields types.Bool) []*TFModelDS {
 	var results []*TFModelDS
 	listFlexClusters, err := flexcluster.ListFlexClusters(ctx, projectID, d.Client.AtlasV2.FlexClustersApi)
@@ -117,4 +105,16 @@ func (d *pluralDS) getFlexClustersModels(ctx context.Context, diags *diag.Diagno
 		results = append(results, modelOutDS)
 	}
 	return results
+}
+
+// RemoveClusterNotFoundErrors removes CLUSTER_NOT_FOUND errors from diags in-place.
+func RemoveClusterNotFoundErrors(diags *diag.Diagnostics) {
+	filtered := diag.Diagnostics{}
+	for _, d := range *diags {
+		if d.Severity() == diag.SeverityError && strings.Contains(d.Detail(), "CLUSTER_NOT_FOUND") {
+			continue // Skip CLUSTER_NOT_FOUND errors
+		}
+		filtered.Append(d)
+	}
+	*diags = filtered
 }
