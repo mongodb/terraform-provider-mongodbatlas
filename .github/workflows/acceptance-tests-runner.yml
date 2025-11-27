@@ -310,13 +310,12 @@ jobs:
             - 'internal/serviceapi/resourcepolicyapi/*.go'
           autogen_slow:
             - 'internal/common/autogen/*.go'
-            - 'internal/serviceapi/clusterapi/*.go'
-            - 'internal/serviceapi/clusteroldapi/*.go'
             - 'internal/serviceapi/pushbasedlogexportapi/*.go'
             - 'internal/serviceapi/searchdeploymentapi/*.go'
             - 'internal/serviceapi/searchindexapi/*.go'
             - 'internal/serviceapi/streaminstanceapi/*.go'
             - 'internal/serviceapi/streamprocessorapi/*.go'
+            - 'internal/serviceapi/pushbasedlogexportv3api/*.go'
           backup:
             - 'internal/service/cloudbackupschedule/*.go'
             - 'internal/service/cloudbackupsnapshot/*.go'
