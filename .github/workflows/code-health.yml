@@ -88,11 +88,8 @@ jobs:
           cat doc.repo.patch
           exit 1
   call-acceptance-tests-workflow:
-    # needs: [build, lint, shellcheck, unit-test, generate-doc-check]
-    # TEMPORARY: Don't merged, will be reverted in the last commit before merging.
+    needs: [build, lint, shellcheck, unit-test, generate-doc-check]
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
     with:
         reduced_tests: true
-        atlas_cloud_env: qa # TEMPORARY: Don't merged, will be reverted in the last commit before merging.
-
