@@ -88,8 +88,7 @@ jobs:
           cat doc.repo.patch
           exit 1
   call-acceptance-tests-workflow:
-    # TEMPORARY: Don't merge to master, will be reverted in the last commit before merging. 
-    # needs: [build, lint, shellcheck, unit-test, generate-doc-check]
+    needs: [build, lint, shellcheck, unit-test, generate-doc-check]
     secrets: inherit
     uses: ./.github/workflows/acceptance-tests.yml
     with:
